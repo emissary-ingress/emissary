@@ -950,18 +950,20 @@ class V2Listener(dict):
                 # Make sure we have a listener on the right port for this.
                 listener = listeners_by_port[irlistener.insecure_addl_port]
 
-                # This insecure vhost can _only_ have a hostname of "*", since (by definition)
-                # there is no SNI associated with it.
-                #
-                # Also, no, it is not a bug to have action=None. There is no secure action
-                # for this vhost.
-                listener.make_vhost(name="redirector",
-                                    hostname="*",
-                                    context=None,
-                                    secure=False,
-                                    action=None,
-                                    insecure_action=irlistener.insecure_action,
-                                    use_proxy_proto=irlistener.use_proxy_proto)
+                # ...and make sure we have a VHost for '*'.
+                if '*' not in listener.vhosts:
+                    # This insecure vhost can _only_ have a hostname of "*", since (by definition)
+                    # there is no SNI associated with it.
+                    #
+                    # Also, no, it is not a bug to have action=None. There is no secure action
+                    # for this vhost.
+                    listener.make_vhost(name="redirector",
+                                        hostname="*",
+                                        context=None,
+                                        secure=False,
+                                        action=None,
+                                        insecure_action=irlistener.insecure_action,
+                                        use_proxy_proto=irlistener.use_proxy_proto)
 
         if config.ir.edge_stack_allowed:
             # If we're running Edge Stack, make sure we have a listener on port 8080, so that
