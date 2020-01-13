@@ -6,7 +6,7 @@ In this Docker quickstart guide, we'll get Ambassador Edge Stack running locally
 
 By default, Ambassador Edge Stack uses a demo configuration to show some of its basic features. Get it running with Docker, and expose Ambassador Edge Stack on port 8080:
 
-```shell
+```
 docker run -it -p 8080:8080 --name=ambassador --rm quay.io/datawire/aes:$version$ --demo
 ```
 
@@ -22,14 +22,14 @@ Some of the most important information - your Ambassador Edge Stack version, how
 
 ## 3. The Quote of the Moment Service
 
-Since Ambassador Edge Stack is an API gateway, its primary purpose is to provide access to microservices. The demo is preconfigured with a mapping that connects the `/qotm/` resource to the "Quote of the Moment" service -- a demo service that supplies quotations. You can try it out by opening
+Since Ambassador Edge Stack is a comprehensive, self-service edge stack, its primary purpose is to provide access and control to microservices for the teams that manage them. The demo is preconfigured with a mapping that connects the `/qotm/` resource to the "Quote of the Moment" service -- a demo service that supplies quotations. You can try it out by opening
 
 `http://localhost:8080/qotm/`
 
 in your browser, or from the command line as
 
 ```shell
-curl 'http://localhost:8080/qotm/?json=true'
+curl -L 'http://localhost:8080/qotm/?json=true'
 ```
 
 This request will route to the `qotm` service at `demo.getambassador.io`, and return a random quote for this very moment.
@@ -47,13 +47,13 @@ You saw above that access to the diagnostic overview required you to authenticat
 in your brower. From the command line, you can see that 
 
 ```shell
-curl -v 'http://localhost:8080/qotm/quote/5?json=true'
+curl -Lv 'http://localhost:8080/qotm/quote/5?json=true'
 ```
 
 will return a 401, but
 
 ```shell
-curl -v -u username:password 'http://localhost:8080/qotm/quote/5?json=true'
+curl -Lv -u username:password 'http://localhost:8080/qotm/quote/5?json=true'
 ```
 
 will succeed. (Note that that's literally "username" and "password" -- the demo auth service is deliberately not very secure!)

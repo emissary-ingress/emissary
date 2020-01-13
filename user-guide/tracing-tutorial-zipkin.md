@@ -12,7 +12,7 @@ After completing the Getting Started guide you will have a Kubernetes cluster ru
 
 In this tutorial you will use a simple deployment of the open source [Zipkin](https://zipkin.io/) distributed tracing system to store and visualize the Ambassador Edge Stack-generated traces. The trace data will be stored in-memory within the Zipkin container, and you will be able to explore the traces via the Zipkin web UI.
 
-First, add the following YAML to a file named `zipkin.yaml`. This configuration will create a zipkin Deployment that uses the [openzipkin/zipkin](https://hub.docker.com/r/openzipkin/zipkin/) container image and also an associated Service. You will notice that the Service also has an notation on it that configures Ambassador Edge Stack to use the zipkin service (running on the default port of 9411) to provide tracing support.
+First, add the following YAML to a file named `zipkin.yaml`. This configuration will create a zipkin Deployment that uses the [openzipkin/zipkin](https://hub.docker.com/r/openzipkin/zipkin/) container image and also an associated Service. We will also include a `TracingService` that configures Ambassador Edge Stack to use the Zipkin service (running on the default port of 9411) to provide tracing support.
 
 ```yaml
 ---
@@ -25,39 +25,41 @@ spec:
   driver: zipkin
   config: {}
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: zipkin
-spec:
-  selector:
-    app: zipkin
-  ports:
-  - port: 9411
-    name: http
-    targetPort: http
-  type: NodePort
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: zipkin
 spec:
   replicas: 1
-  strategy:
-    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: zipkin
   template:
     metadata:
       labels:
         app: zipkin
     spec:
       containers:
-      - name: zipkin
-        image: openzipkin/zipkin
-        imagePullPolicy: Always
-        ports:
-        - name: http
-          containerPort: 9411
+        - name: zipkin
+          image: openzipkin/zipkin
+          env:
+            # note: in-memory storage holds all data in memory, purging older data upon a span limit.
+            #       you should use a proper storage in production environments
+            - name: STORAGE_TYPE
+              value: mem
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: zipkin
+  name: zipkin
+spec:
+  ports:
+    - port: 9411
+      targetPort: 9411
+  selector:
+    app: zipkin
 ```
 
 You can deploy this configuration into your Kubernetes cluster like so:
@@ -73,14 +75,14 @@ $ kubectl apply -f zipkin.yaml
 Use `curl` to generate a few requests to an existing Ambassador Edge Stack mapping. You may need to perform many requests since only a subset of random requests are sampled and instrumented with traces.
 
 ```shell
-$ curl $AMBASSADOR_IP/httpbin/ip
+$ curl -L $AMBASSADOR_IP/httpbin/ip
 ```
 
 ## 3. Test traces
 
 To test things out, we'll need to access the Zipkin UI. If you're on Kubernetes, get the name of the Zipkin pod:
 
-```shelll
+```shell
 $ kubectl get pods
 NAME                                   READY     STATUS    RESTARTS   AGE
 ambassador-5ffcfc798-c25dc             2/2       Running   0          1d

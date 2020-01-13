@@ -22,8 +22,11 @@ metadata:
     product: aes
 rules:
 # Edge Stack mostly needs the same permissions as Ambassador OSS,
-# but it needs extra permissions to write getambassador.io CRs and
-# to create and update secrets.
+# but:
+#  1. It needs extra permissions ("update"/"patch"/"create"/"delete")
+#     for getambassador.io resources.
+#  2. It needs extra permissions ("create"/"update") for secrets.
+#  3. It needs permission to "create" events.
 - apiGroups: [""]
   resources: [ "endpoints", "namespaces", "services" ]
   verbs: ["get", "list", "watch"]
@@ -48,6 +51,9 @@ rules:
 - apiGroups: [""]
   resources: [ "secrets" ]
   verbs: ["get", "list", "watch", "create", "update"]
+- apiGroups: [""]
+  resources: [ "events" ]
+  verbs: ["get", "list", "watch", "create"]
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -175,30 +181,6 @@ spec:
   prefix: /openapi/
   rewrite: ""
   service: "127.0.0.1:8500"
----
-apiVersion: getambassador.io/v2
-kind: FilterPolicy
-metadata:
-  name: ambassador-internal-access-control
-  namespace: ambassador
-  labels:
-    product: aes
-spec:
-  rules:
-    - host: "*"
-      path: "*/.ambassador-internal/*"
-      filters:
-        - name: ambassador-internal-access-control
----
-apiVersion: getambassador.io/v2
-kind: Filter
-metadata:
-  name: ambassador-internal-access-control
-  namespace: ambassador
-  labels:
-    product: aes
-spec:
-  Internal: {}
 
 ######################################################################
 # Create the 'ambassador' and 'ambassador-admin' Services.
@@ -210,6 +192,7 @@ metadata:
   namespace: ambassador
   labels:
     product: aes
+    app.kubernetes.io/component: ambassador-service
 spec:
   type: LoadBalancer
   externalTrafficPolicy: Local
@@ -289,7 +272,7 @@ spec:
           value: https://127.0.0.1:8443
         - name: AMBASSADOR_ADMIN_URL
           value: http://127.0.0.1:8877
-        image: quay.io/datawire-dev/aes:0.99.0-rc-latest
+        image: quay.io/datawire/aes:$version$
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
@@ -311,19 +294,17 @@ spec:
           periodSeconds: 3
         resources:
           limits:
-            cpu: 1
-            memory: 400Mi
+            cpu: 1000m
+            memory: 600Mi
           requests:
             cpu: 200m
-            memory: 100Mi
+            memory: 300Mi
         volumeMounts:
         - mountPath: /tmp/ambassador-pod-info
           name: ambassador-pod-info
         - mountPath: /.config/ambassador
           name: ambassador-edge-stack-secrets
           readOnly: true
-      imagePullSecrets:
-      - name: aes-pull-secret
       restartPolicy: Always
       securityContext:
         runAsUser: 8888

@@ -52,7 +52,7 @@ This sets up Graphite access at `http://localhost:8080/`.
 
 ## Prometheus
 
-[Prometheus](https://prometheus.io/) is an open-source monitoring and alerting system. If you use [Prometheus](https://github.com/prometheus/statsd_exporter), you can use the `/metrics` endpoint for scraping metrics directly from the Ambassador admin port, or deploy the Prometheus StatsD Exporter as the statsd-sink service. Configure a Prometheus target to read from `statsd-sink` on port 9102 to complete the Prometheus configuration. A sample configuration for Prometheus is available [here](https://github.com/datawire/ambassador/blob/master/deployments/statsd-sink/prometheus/prom-statsd-sink.yaml).
+[Prometheus](https://prometheus.io/) is an open-source monitoring and alerting system. If you use Prometheus, you can use the `/metrics` endpoint for scraping metrics directly from the Ambassador admin port (`:8877`), or deploy the [Prometheus StatsD Exporter](https://github.com/prometheus/statsd_exporter) as the `statsd-sink` service. The latter will translate StatsD metrics into Prometheus metrics; configure a Prometheus target to read from `statsd-sink` on port 9102 to complete the Prometheus configuration. A sample configuration for Prometheus is available [here](https://github.com/datawire/ambassador/blob/master/deployments/statsd-sink/prometheus/prom-statsd-sink.yaml).
 
 You can optionally also add the `statsd-sink` service and Prometheus exporter as a sidecar on the Ambassador Edge Stack pod. If you do this, make sure to set `STATSD_HOST: localhost` so that UDP packets are routed to the sidecar.
 
@@ -64,9 +64,24 @@ For example, by default each service that the API Gateway serves will create a n
 
 [Follow this guide](https://github.com/prometheus/statsd_exporter/tree/v0.6.0#metric-mapping-and-configuration) to learn how to modify your mappings.
 
+#### Configuring for Helm
+
+If you deploy Prometheus using Helm the value that you should change is `prometheusExporter.configuration`. Set it to something like this:
+
+```yaml
+  configuration: |
+    ---
+    mappings:
+    - match: 'envoy.cluster.*.upstream_rq_total'
+      name: "envoy_cluster_upstream_rq_total"
+      timer_type: 'histogram'
+      labels:
+        cluster_name: "$1"
+```
+
 #### Configuring for kubectl
 
-In the [ambassador-rbac-prometheus](https://github.com/datawire/ambassador/blob/master/docs/yaml/ambassador/ambassador-rbac-prometheus.yaml) example template there is a `ConfigMap` that should be updated. Add your mapping to the `configuration` property.
+In the [`ambassador-rbac-prometheus.yaml`](../../yaml/ambassador/ambassador-rbac-prometheus.yaml) example template there is a `ConfigMap` that should be updated. Add your mapping to the `configuration` property.
 
 ```yaml
 ---

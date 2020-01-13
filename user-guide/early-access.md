@@ -1,18 +1,22 @@
 # Early Access Releases
 
-From time to time, the Ambassador Edge Stack may ship early access releases to test major changes. **Early access releases are not supported for production use**, but are intended to gain early feedback from our community prior to shipping a release.
+Looking for early access to the Ambassador Edge Stack? [Click here to get started](../../user-guide/getting-started).
 
-Early access releases will always have names that include the string "-ea" followed by a build number, for example `0.50.0-ea1` is the first early access build of the Ambassador Edge Stack 0.50.0.
+## About
+
+From time to time, the Ambassador Edge Stack may ship early access releases to test major changes. **Early access releases are not supported for production use** but are intended to gain early feedback from our community before shipping a release.
+
+Early access releases will always have names that include the string "-ea" followed by a build number. For example, `$version$`.
 
 ## Early Access Status
 
-There are currently no early access releases available.
+The current early access build for the Ambassador Edge Stack is `$version$`.
 
 ### Installing the Ambassador Edge Stack Early Access releases
 
-Use a Kubernetes deployment as usual, but use image `quay.io/datawire/ambassador:0.50.0-ea5`.
+Use a Kubernetes deployment as usual, but use the image `quay.io/datawire/aes:$version$`.
 
-We recommend testing with shadowing, as documented below, before switching to any new Ambassador Edge Stack release. We also recommend testing with shadowing for all early access releases before deploying in production.
+We recommend [testing with shadowing](../../reference/shadowing), as documented below, before switching to any new Ambassador Edge Stack release. We also recommend testing with shadowing for all early access releases before deploying in production.
 
 ## Testing with shadowing
 

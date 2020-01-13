@@ -71,7 +71,7 @@ Note that the cluster does not yet contain any Ambassador Edge Stack AuthService
 The YAML above is published at getambassador.io, so if you like, you can just do
 
 ```shell
-kubectl apply -f https://www.getambassador.io/yaml/demo/demo-auth.yaml
+kubectl apply -f https://www.getambassador.io/early-access/yaml/demo/demo-auth.yaml
 ```
 
 to spin everything up. (Of course, you can also use a local file, if you prefer.)
@@ -112,7 +112,7 @@ authentication handler. For this reason, remember that the full path of the inco
 You can apply this file from getambassador.io with
 
 ```shell
-kubectl apply -f https://www.getambassador.io/yaml/demo/demo-auth-enable.yaml
+kubectl apply -f https://www.getambassador.io/early-access/yaml/demo/demo-auth-enable.yaml
 ```
 
 or, again, apply it from a local file if you prefer.
@@ -124,7 +124,7 @@ Note that the cluster does not yet contain any Ambassador Edge Stack AuthService
 If we `curl` to a protected URL:
 
 ```shell
-$ curl -v $AMBASSADORURL/backend/get-quote/
+$ curl -Lv $AMBASSADORURL/backend/get-quote/
 ```
 
 We get a 401, since we haven't authenticated.
@@ -149,7 +149,7 @@ We get a 401, since we haven't authenticated.
 If we authenticate to the service, we will get a quote successfully:
 
 ```shell
-$ curl -v -u username:password $AMBASSADORURL/backend/get-quote/
+$ curl -Lv -u username:password $AMBASSADORURL/backend/get-quote/
 
 * TCP_NODELAY set
 * Connected to 54.165.128.189 (54.165.128.189) port 32281 (#0)

@@ -10,13 +10,13 @@ To use Salesforce as your IdP, you will first need to register an OAuth applicat
 
 3. Fill in the following fields with whichever values you want
 
-    - Connected App Name 
+    - Connected App Name
     - API Name
     - Contact Email 
 
 4. Under `API (Enable OAuth Settings)` check the box next to `Enable OAuth Settings`
 
-5. Fill in the `Callback URL` section with `https://{{AMBASSADOR_HOST}}/callback`
+5. Fill in the `Callback URL` section with `https://{{AMBASSADOR_HOST}}/.ambassador/oauth2/redirection-endpoint`
 
 6. Under `Selected OAuth Scopes` you must select the `openid` scope at the minimum. Select any other scopes you want included in the response as well.
 

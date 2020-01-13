@@ -44,37 +44,36 @@ We've created an example filter that you can customize for your particular use c
    image instead of the standard sidecar.
 
    ```patch
-      containers:
-      - name: ambassador-pro
-   -    image: quay.io/datawire/ambassador_pro:amb-sidecar-$aproVersion$
-   +    image: DOCKER_REGISTRY/amb-sidecar-plugin:VERSION
-        ports:
-        - name: ratelimit-grpc
-          containerPort: 8081
-        - name: ratelimit-debug
-          containerPort: 6070
+              value: https://127.0.0.1:8443
+            - name: AMBASSADOR_ADMIN_URL
+              value: http://127.0.0.1:8877
+   -        image: quay.io/datawire/aes:$version$
+   +        image: DOCKER_REGISTRY/aes-plugin:VERSION
+            imagePullPolicy: Always
+            livenessProbe:
+              httpGet:
    ```
 
 ## Rapid development of a custom filter
 
-During development, you may want to sidestep the deployment process for a faster development loop. The `apro-plugin-runner` helps you rapidly develop Ambassador Edge Stack filters locally.
+During development, you may want to sidestep the deployment process for a faster development loop. The `aes-plugin-runner` helps you rapidly develop Ambassador Edge Stack filters locally.
 
 To install the runner, download the latest version:
 
-<a class="pro-runner-dl" href="https://s3.amazonaws.com/datawire-static-files/apro-plugin-runner/$aproVersion$/darwin/amd64/apro-plugin-runner">Mac 64-bit</a> |
-<a class="pro-runner-linux-dl" href="https://s3.amazonaws.com/datawire-static-files/apro-plugin-runner/$aproVersion$/linux/amd64/apro-plugin-runner">Linux 64-bit</a>
+<a class="pro-runner-dl" href="https://s3.amazonaws.com/datawire-static-files/aes-plugin-runner/$version$/darwin/amd64/aes-plugin-runner">Mac 64-bit</a> |
+<a class="pro-runner-linux-dl" href="https://s3.amazonaws.com/datawire-static-files/aes-plugin-runner/$version$/linux/amd64/aes-plugin-runner">Linux 64-bit</a>
 
 Note that the plugin runner must match the version of Ambassador Edge Stack that you are running. Place the binary somewhere in your `$PATH`.
 
-Information about open source code used in `apro-plugin-runner` can be found by running `apro-plugin-runner --version`.
+Information about open source code used in `aes-plugin-runner` can be found by running `aes-plugin-runner --version`.
 
 Now, you can quickly test and develop your filter.
 
-1. In your filter directory, type: `apro-plugin-runner :8080 ./param-plugin.so`.
+1. In your filter directory, type: `aes-plugin-runner :8080 ./param-plugin.so`.
 2. Test the filter by running `curl`:
 
     ```
-    $ curl -v localhost:8080?db=2
+    $ curl -Lv localhost:8080?db=2
     * Rebuilt URL to: localhost:8080/?db=2
     *   Trying ::1...
     * TCP_NODELAY set

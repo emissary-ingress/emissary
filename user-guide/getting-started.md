@@ -1,47 +1,32 @@
+---
+    description: In this tutorial, we'll walk through the process of deploying Ambassador in Kubernetes for ingress routing.
+---
 # Getting Started with the Ambassador Edge Stack
 
-The Ambassador Edge Stack is a comprehensive, self-service edge stack for Kubernetes. It allows you to control application traffic to your services with a declarative policy engine, and provides frictionless authentication, access control, and rate limiting to your application and services
-
-You’ll also be able to rapidly onboard developers to your application, and easily manage the Ambassador Edge Stack via its administrative interface, the Edge Policy Console.
-
-To start taking advantage of the Ambassador Edge Stack, we recommend the following:
-
-1. [Install the Ambassador Edge Stack](../install) in a matter of minutes
-2. [Browse the features list](#browse-through-features) to learn about all of the capabilities
-3. [Review Concepts and Tutorials](#review-concepts-and-tutorials) to get the most out of the Ambassador Edge Stack. 
-4. [Explore Advanced Options](#explore-advanced-options) to continue learning
-
-[Learn about Ambassador](../../about/why-ambassador) and what else you can do with it.
-
-PS: Need help or have something to tell us? Check out our [support pages](../../about/support).
+The Ambassador Edge Stack is a free comprehensive, self-service edge stack that is Kubernetes-native and built on [Envoy Proxy](https://www.envoyproxy.io/). With the Ambassador Edge Stack, application developers can *independently* manage their edge (e.g., authentication, routing, rate limiting) without centralized operational intervention, reducing toil. The Ambassador Edge Stack provides a comprehensive set of capabilities for the edge ranging from traffic management (e.g., rate limiting, load balancing), security (e.g., TLS, single sign-on, rate limiting), and developer onboarding (e.g., developer portal, Swagger/OpenAPI support).
 
 ## Install the Ambassador Edge Stack
 
-The Ambassador Edge Stack (community edition) is free and available for you to download [here](../install). Check out [recommendations](../product-requirements) for the best experience using the administrative interface, the [Edge Policy Console](../../reference/dev-portal).
+The Ambassador Edge Stack installs in minutes. There are three general methods for installing the Ambassador Edge Stack:
 
-### Other Install Options
+* [Standard install](../install). If you're new to Kubernetes and/or Ambassador, use this method.
+* [Docker](../../about/quickstart). Don't have Kubernetes, but want to try out Ambassador? The Ambassador Edge Stack can run locally on your laptop in a Docker container.
+* [Helm](../helm). Helm is a popular package manager for Kubernetes. If you're using Helm, Ambassador Edge Stack comes pre-packaged as a Helm chart.
 
-There are several other options for using Ambassador for local or production instances:
+## More about the Ambassador Edge Stack
 
-* Use [Docker](../../about/quickstart) to deploy the Ambassador Edge Stack locally
-* Use [Helm](../helm) to deploy the Ambassador Edge Stack locally and in production.
+Want to learn more about the Ambassador Edge Stack? Read [Why Ambassador](../../about/why-ambassador) and review a summary of the features of the Ambassador Edge Stack below.
 
-You can also choose to deploy the [Ambassador API Gateway](../install-ambassador-oss) instead.
+![Features](../../doc-images/features-table.jpg)
 
-## Browse Through Features
-
-The following table lists all of the features available to you with the Ambassador Edge Stack. [Want to learn more?](https://www.getambassador.io/features/)
-
-![Features](../../doc-images/features-table.png)
-
-## Review Concepts and Tutorials
+## Documentation and Help
 
 Once you’ve installed the Ambassador Edge Stack, you can read about the best practices for configuration and usage in your production environment, along with tutorials and guides on just how to get you there.
 
-[Core Concepts](../../concepts/overview) cover Ambassador's architecture and how it should be used.
+We have several major sections to our documentation:
 
-[Guides and tutorials](../../docs/guides) walk you through how to configure Ambassador for specific use cases, from rate limiting to Istio integration to gRPC.
+* [Core Concepts](../../concepts/overview) cover Ambassador's architecture and how it should be used.
+* [Guides and tutorials](../../docs/guides) walk you through how to configure Ambassador for specific use cases, from rate limiting to Istio integration to gRPC.
+* The [Reference](../../reference/configuration) section contains detailed documentation on configuring and managing all aspects of Ambassador.
 
-## Explore Advanced Options
-
-Use the [Reference](../../reference/configuration) section to find detailed documentation on configuring and managing all aspects of Ambassador.
+If the documentation doesn't have the answers you need, join our [Slack community](https://d6e.co/slack)! Bug reports, feature requests, and pull requests are also gratefully accepted on our [GitHub](https://github.com/datawire/ambassador/).

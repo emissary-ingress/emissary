@@ -1,6 +1,6 @@
 # AuthService Plugin
 
-Ambassador Edge Stack supports a highly flexible mechanism for authentication. An `AuthService` manifest configures Ambassador to use an external service to check authentication and authorization for incoming requests. Each incoming request is authenticated before routing to its destination.
+The Ambassador Edge Stack supports a highly flexible mechanism for authentication. An `AuthService` manifest configures Ambassador to use an external service to check authentication and authorization for incoming requests. Each incoming request is authenticated before routing to its destination.
 
 The currently supported version of the `AuthService` resource is `getambassador.io/v2`. Earlier versions are deprecated.
 
@@ -73,9 +73,9 @@ You may use multiple `AuthService` manifests to round-robin authentication reque
 By design, the AuthService interface is highly flexible. The authentication service is the first external service invoked on an incoming request (e.g., it runs before the rate limit filter). Because the logic of authentication is encapsulated in an external service, you can use this to support a wide variety of use cases. For example:
 
 * Supporting traditional SSO authentication protocols, e.g., OAuth, OpenID Connect, etc.
-* Support HTTP basic authentication (sample implementation available at:  https://github.com/datawire/ambassador-auth-httpbasic
-* Only authenticating requests that are under a rate limit, and rejecting authentication requests above the rate limit
-* Authenticating specific services (URLs), and not others
+* Support HTTP basic authentication (sample implementation available [here](https://github.com/datawire/ambassador-auth-httpbasic).
+* Only authenticating requests that are under a rate limit, and rejecting authentication requests above the rate limit.
+* Authenticating specific services (URLs), and not others.
 
 ## AuthService and TLS
 

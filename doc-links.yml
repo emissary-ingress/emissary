@@ -61,17 +61,13 @@
   - title: Why Ambassador Edge Stack Uses Envoy Proxy (External Link)
     link: https://blog.getambassador.io/envoy-vs-nginx-vs-haproxy-why-the-open-source-ambassador-api-gateway-chose-envoy-23826aed79ef
 
-- title: Guides & Tutorials 
+- title: Guides
   items: 
-    - title: Available Guides & Tutorials
+    - title: Available Guides 
       link: /docs/guides/
       items:
-    - title: Routing
+    - title: Routing Services
       items:
-      - title: Basic Rate Limiting
-        link: /user-guide/rate-limiting-tutorial
-      - title: Advanced Rate Limiting
-        link: /user-guide/advanced-rate-limiting
       - title: Developing Custom Filters for Routing
         link: /docs/guides/filter-dev-guide
       - title: Using Knative
@@ -84,14 +80,18 @@
       items:
       - title: Encryption and Authentication  
         link:  /user-guide/security
-      - title: TLS Termination and HTTPS 
+      - title: HTTPS and TLS Termination
         link: /user-guide/tls-termination
       - title: cert-manager with Ambassador Edge Stack
         link: /user-guide/cert-manager
-      - title: Authentication
+      - title: Basic Authentication
         link: /user-guide/auth-tutorial
       - title: Single Sign-On with OAuth & OIDC
         link: /user-guide/oauth-oidc-auth
+      - title: Basic Rate Limiting
+        link: /user-guide/rate-limiting-tutorial
+      - title: Advanced Rate Limiting
+        link: /user-guide/advanced-rate-limiting
     - title: Service Mesh
       items:
       - title: Consul Integration
@@ -117,31 +117,28 @@
       - title: Monitoring Ingress with Prometheus and Grafana
         link: /user-guide/monitoring
 
-
-- title: Reference & Configurations
+- title: Reference
   items:
     - title: Configuring Ambassador Edge Stack
       link: /reference/configuration
-    - title: Core Configuration
+    - title: Configuration Format
+      items:     
+        - title: Using Custom Resource Definitions
+          link: /reference/core/crds
+        - title: Ambassador as an Ingress Controller
+          link: /reference/core/ingress-controller
+    - title: Global Module Configuration
       items:
-        - title: Global Configuration
-          link: /reference/core/ambassador
-        - title: Global Configuration - Modules
+        - title: Modules Overview
           link: /reference/modules
+        - title: ambassador Module Core Configuration
+          link: /reference/core/ambassador
         - title: Gzip compression
           link: /reference/gzip
         - title: Load Balancing Configuration
           link: /reference/core/load-balancer
-        - title: Resolvers and Service Discovery Configuration
+        - title: Service Discovery and Resolver Configuration
           link: /reference/core/resolvers
-    - title: Running Ambassador Edge Stack
-      items:  
-      - title: Running and Deployment 
-        link: /reference/running
-      - title: Ambassador Edge Stack on AWS
-        link: /reference/ambassador-with-aws
-      - title: Diagnostics
-        link: /reference/diagnostics
     - title: TLS & Cryptography
       items:
       - title: Transport Layer Security (TLS)
@@ -156,44 +153,64 @@
         link: /user-guide/sni
       - title: TLS Origination
         link: /reference/tls/origination
+    - title: Configuring Edge Control
+      items: 
+        - title: Edge Control Installation
+          link: /reference/edge-control
+        - title: Edge Control in CI
+          link: /reference/edge-control-in-ci
+    - title: Developer Portal
+      link: /reference/dev-portal
     - title: Configuring Kubernetes Services
       items:
-      - title: Mapping Services
-        link: /reference/mappings
-      - title: Canary Releases
-        link: /reference/canary
-      - title: Circuit Breakers
-        link: /reference/circuit-breakers
-      - title: Cross Origin Resource Sharing
-        link: /reference/cors
-      - title: Header-based routing
-        link: /reference/headers
-      - title: Host Header
-        link: /reference/host
-      - title: Prefix Regex
-        link: /reference/prefix_regex
-      - title: Rate Limits
-        link: /reference/rate-limits
-      - title: Redirects
-        link: /reference/redirects
-      - title: Remove Request Headers
-        link: /reference/remove_request_headers
-      - title: Remove Response Headers
-        link: /reference/remove_response_headers
-      - title: Add Request Headers
-        link: /reference/add_request_headers
-      - title: Add Response Headers
-        link: /reference/add_response_headers
-      - title: Automatic Retries
-        link: /reference/retries
-      - title: Rewrites
-        link: /reference/rewrites
-      - title: Routing TCP Connections
-        link: /reference/tcpmappings
-      - title: Timeouts
-        link: /reference/timeouts
-      - title: Traffic Shadowing
-        link: /reference/shadowing
+        - title: Mapping Services
+          link: /reference/mappings
+        - title: Canary Releases
+          link: /reference/canary
+        - title: Circuit Breakers
+          link: /reference/circuit-breakers
+        - title: Cross Origin Resource Sharing
+          link: /reference/cors
+        - title: Header-based routing
+          link: /reference/headers
+        - title: Host Header
+          link: /reference/host
+        - title: Host CRD
+          link: /reference/host-crd
+        - title: Prefix Regex
+          link: /reference/prefix_regex
+        - title: Rate Limits
+          link: /reference/rate-limits
+        - title: Redirects
+          link: /reference/redirects
+        - title: Remove Request Headers
+          link: /reference/remove_request_headers
+        - title: Remove Response Headers
+          link: /reference/remove_response_headers
+        - title: Add Request Headers
+          link: /reference/add_request_headers
+        - title: Add Response Headers
+          link: /reference/add_response_headers
+        - title: Automatic Retries
+          link: /reference/retries
+        - title: Rewrites
+          link: /reference/rewrites
+        - title: Routing TCP Connections
+          link: /reference/tcpmappings
+        - title: Timeouts
+          link: /reference/timeouts
+        - title: Traffic Shadowing
+          link: /reference/shadowing
+    - title: Running Ambassador Edge Stack
+      items:  
+      - title: Running and Deployment 
+        link: /reference/running
+      - title: Ambassador Edge Stack on AWS
+        link: /reference/ambassador-with-aws
+      - title: Diagnostics
+        link: /reference/diagnostics
+      #- title: Debugging
+      #  link: /reference/debugging  
     - title: Plugins
       items:
       - title: Available Plugins
@@ -218,18 +235,14 @@
         link: /reference/idp-support/keycloak
       - title: Okta
         link: /reference/idp-support/okta
+      - title: OneLogin
+        link: /reference/idp-support/onelogin  
       - title: Salesforce Single Sign-on
         link: /reference/idp-support/salesforce
       - title: User Account and Authentication (UAA)
         link: /reference/idp-support/uaa
-    - title: Using Custom Resource Definitions
-      link: /reference/core/crds
-    - title: Ambassador as an Ingress Controller
-      link: /reference/core/ingress-controller
     - title: Filter Reference
       link: /reference/filter-reference
-    - title: Developer Portal
-      link: /reference/dev-portal
     - title: Statistics and Monitoring
       link: /reference/statistics
 
