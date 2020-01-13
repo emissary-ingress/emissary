@@ -82,7 +82,7 @@ $ curl -L $AMBASSADOR_IP/httpbin/ip
 
 To test things out, we'll need to access the Zipkin UI. If you're on Kubernetes, get the name of the Zipkin pod:
 
-```shelll
+```shell
 $ kubectl get pods
 NAME                                   READY     STATUS    RESTARTS   AGE
 ambassador-5ffcfc798-c25dc             2/2       Running   0          1d
