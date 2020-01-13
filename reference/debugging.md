@@ -15,7 +15,7 @@ First, check to see if the [Diagnostics](../diagnostics) service is reachable. I
     The terminal should print something similar to the following:
 
     ```console
-    $ kubectl get pods
+    $ kubectl get pods -n ambassador
     NAME                         READY     STATUS    RESTARTS   AGE
     ambassador-85c4cf67b-4pfj2   1/1       Running   0          1m
     ambassador-85c4cf67b-fqp9g   1/1       Running   0          1m
