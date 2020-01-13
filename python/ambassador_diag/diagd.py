@@ -60,6 +60,8 @@ if TYPE_CHECKING:
 __version__ = Version
 
 boot_time = datetime.datetime.now()
+
+# allows 10 concurrent users, with a request timeout of 60 seconds
 tvars_cache = ExpiringDict(max_len=10, max_age_seconds=60)
 
 logging.basicConfig(
@@ -464,6 +466,11 @@ def check_ready():
 @standard_handler
 def show_overview(reqid=None):
     app.logger.debug("OV %s - showing overview" % reqid)
+
+    # getting elements in the `tvars_cache` will make sure eviction happens on `max_age_seconds` TTL
+    # for removed patch_client rather than waiting to fill `max_len`
+    for k in iter(tvars_cache):
+        tvars_cache.get(k)
 
     diag = app.diag
 
