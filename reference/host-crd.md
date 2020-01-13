@@ -36,14 +36,14 @@ acmeProvider:
     name: secret-name
 ```
 
-* In general, `email-of-registrant` mandatory when using ACME: it should be a valid email address that will reach someone responsible for certificate management.
-* ACME stores certificates in Kubernetes secrets. The name of the secret can be set using the tlsSecret element; if not supplied, a name will be automatically generated from the hostname and email.
+* In general, `email-of-registrant` is mandatory when using ACME: it should be a valid email address that will reach someone responsible for certificate management.
+* ACME stores certificates in Kubernetes secrets. The name of the secret can be set using the `tlsSecret` element; if not supplied, a name will be automatically generated from the `hostname` and `email`.
 * If the authority is not supplied, the Let’s Encrypt production environment is assumed.
 * **If the authority is the literal string “none”, TLS certificate management will be disabled.** You’ll need to manually create a TLSContext to use for your host in order to use HTTPS.
 
 ## Secure and Insecure Requests
 
-A **secure** request arrives via HTTPS; an **insecure** request does not. By default, secure requests will be routed and insecure requests will be redirected (using an HTTP 301 response) to HTTPS. The behavior of insecure requests can be overridden using the requestPolicy element of a Host:
+A **secure** request arrives via HTTPS; an **insecure** request does not. By default, secure requests will be routed and insecure requests will be redirected (using an HTTP 301 response) to HTTPS. The behavior of insecure requests can be overridden using the `requestPolicy` element of a Host:
 
 ```yaml
 requestPolicy:
@@ -62,6 +62,7 @@ If `additionalPort` is specified, Ambassador will listen on the specified `port`
 
 Some special cases to be aware of here:
 
+* **Case matters in the actions:** you must use e.g. `Reject`, not `reject`.
 * The `X-Forwarded-Proto` header is honored when determining whether a request is secure or insecure. If you are running behind a load balancer, make sure that the `X-Forwarded-Proto` header is correctly set by your load balancer!
 * ACME challenges with prefix `/.well-known/acme-challenge/` are always forced to be considered insecure, since they are not supposed to arrive over HTTPS.
 * Ambassador Edge Stack provides native handling of ACME challenges. If you are using this support, Ambassador will automatically arrange for insecure ACME challenges to be handled correctly. If you are handling ACME yourself - as you must when running Ambassador Open Source - you will need to supply appropriate Host resources and Mappings to correctly direct ACME challenges to your ACME challenge handler.
@@ -140,26 +141,24 @@ Some special cases to be aware of here:
 
   In this case, the Host resource explicitly requests no ACME handling, then states that insecure requests must be routed instead of redirected.
 
-### Split L4 Load Balancer
+5. Split L4 Load Balancer: In this scenario, a L4 load balancer terminates TLS on port 443 and relays that traffic to Ambassador on port 8443, but the load balancer also relays cleartext traffic on port 80 to Ambassador on port 8080. 
 
-In this scenario, a L4 load balancer terminates TLS on port 443 and relays that traffic to Ambassador on port 8443, but the load balancer also relays cleartext traffic on port 80 to Ambassador on port 8080. Since the load balancer is at layer 4, it cannot provide X-Forwarded-Proto, so we need to explicitly set port 8080 as insecure:
+  Since the load balancer is at layer 4, it cannot provide X-Forwarded-Proto, so we need to explicitly set port 8080 as insecure:
 
-```yaml
-apiVersion: getambassador.io/v2
-kind: Host
-metadata:
-  name: minimal-host
-spec:
-  hostname: host.example.com
-  acmeProvider:
-    authority: none
-requestPolicy:
-  insecure:
-    action: redirect
-    additionalPort: 8080
-```  
-
-Since you need to have a listener on both port 8443 and port 8080 for this scenario, but you have no TLSContext, you will also need to set the service port for Ambassador to 8443 using the Ambassador module.
+  ```yaml
+  apiVersion: getambassador.io/v2
+  kind: Host
+  metadata:
+    name: minimal-host
+  spec:
+    hostname: host.example.com
+    acmeProvider:
+      authority: none
+  requestPolicy:
+    insecure:
+      action: redirect
+      additionalPort: 8080
+  ```  
 
 ## `Host` CRD
 
