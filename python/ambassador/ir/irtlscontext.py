@@ -78,8 +78,9 @@ class IRTLSContext(IRResource):
 
     def pretty(self) -> str:
         secret_name = self.secret_info.get('secret', '-no secret-')
+        hoststr = getattr(self, "hosts", "-any-")
 
-        return f"<IRTLSContext {self.name}: hosts {self.hosts} secret {secret_name}>"
+        return f"<IRTLSContext {self.name} ns {self.namespace} fallback {self.is_fallback}: hosts {hoststr} secret {secret_name}>"
 
     def setup(self, ir: 'IR', aconf: Config) -> bool:
         if not self.get('_ambassador_enabled', False):
@@ -128,7 +129,7 @@ class IRTLSContext(IRResource):
             if key in self:
                 self.secret_info[key] = self.pop(key)
 
-        ir.logger.info(f"IRTLSContext setup good: {self.as_json()}")
+        ir.logger.info(f"IRTLSContext setup good: {self.pretty()}")
 
         return True
 
