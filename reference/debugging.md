@@ -22,8 +22,7 @@ First, check to see if the [Diagnostics](../diagnostics) service is reachable. I
     ambassador-85c4cf67b-vg6p5   1/1       Running   0          1m
     ```
 
-2. Choose a Pod that you want to examine in the Diagnostics Console with: `kubectl port-forward -n ambassador <ambassador-pod-name> 8877`.
-3. Then, check the Ambassador Deployment with the following: `kubectl get -n ambassador deployments`
+2. Then, check the Ambassador Deployment with the following: `kubectl get -n ambassador deployments`
 
     After a brief period, the terminal will print something similar to the following:
 
@@ -33,8 +32,8 @@ First, check to see if the [Diagnostics](../diagnostics) service is reachable. I
     ambassador   3         3         3            3           1m
     ```
 
-4. Check that the “desired” number of Pods equals the “current” and “available” number of Pods. If they are **not** equal, check the status of the associated Pods with the following command: `kubectl get pods -n ambassador`.
-5. Use the following command for details about the history of the Deployment: `kubectl describe -n ambassador deployment ambassador`
+3. Check that the “desired” number of Pods equals the “current” and “available” number of Pods. If they are **not** equal, check the status of the associated Pods with the following command: `kubectl get pods -n ambassador`.
+4. Use the following command for details about the history of the Deployment: `kubectl describe -n ambassador deployment ambassador`
 
     * Look for data in the “Replicas” field near the top of the output. For example: 
         `Replicas: 3 desired | 3 updated | 3 total | 3 available | 0 unavailable`
