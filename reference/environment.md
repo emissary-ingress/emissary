@@ -7,15 +7,12 @@ Use the following variables for the environment of your Ambassdor container:
 | Ambassador                              | `AMBASSADOR_ID`                  | `default`                                         | Plain string                                                                  |
 | Ambassador                              | `AMBASSADOR_NAMESPACE`           | `default` ([^1])                                  | Kubernetes namespace                                                          |
 | Ambassador                              | `AMBASSADOR_SINGLE_NAMESPACE`    | Empty                                             | Boolean; non-empty=true, empty=false                                          |
-| Ambassador Edge Stack                   | `APP_LOG_LEVEL`                  | `info`                                            | Log level                                                                     |
-| Ambassador Edge Stack                   | `APRO_HTTP_PORT`                 | `8500`                                            | TCP port number or name                                                       |
-| Ambassador Edge Stack: Developer Portal | `APRO_DEVPORTAL_CONTENT_URL`     | `https://github.com/datawire/devportal-content`   | git-remote URL                                                                |
-| Ambassador Edge Stack: Developer Portal | `AMBASSADOR_ADMIN_URL`           | `http://127.0.0.1:8877`                           | URL                                                                           |
-| Ambassador Edge Stack: Developer Portal | `AMBASSADOR_INTERNAL_URL`        | `https://127.0.0.1:8443`                          | URL                                                                           |
+| Ambassador Edge Stack                   | `AES_LOG_LEVEL`                  | `info`                                            | Log level                                                                     |
+| Ambassador Edge Stack: Developer Portal | `DEVPORTAL_CONTENT_URL`          | `https://github.com/datawire/devportal-content`   | git-remote URL                                                                |
+| Ambassador Edge Stack: Developer Portal | `DEVPORTAL_CONTENT_DIR`          | `/`                                               | Rooted Git directory                                                          |
+| Ambassador Edge Stack: Developer Portal | `DEVPORTAL_CONTENT_BRANCH`       | `master`                                          | Git branch name                                                               |
 | Ambassador Edge Stack: Developer Portal | `AMBASSADOR_URL`                 | `https://api.example.com`                         | URL                                                                           |
 | Ambassador Edge Stack: Developer Portal | `POLL_EVERY_SECS`                | `60`                                              | Integer                                                                       |
-| Ambassador Edge Stack: Filter           | `APRO_KEYPAIR_SECRET_NAME`       | `ambassador-pro-keypair`                          | Kubernetes name                                                               |
-| Ambassador Edge Stack: Filter           | `APRO_KEYPAIR_SECRET_NAMESPACE`  | Use the value of `AMBASSADOR_NAMESPACE`           | Kubernetes namespace                                                          |
 | Ambassador Edge Stack                   | `REDIS_POOL_SIZE`                | `10`                                              | Integer                                                                       |
 | Ambassador Edge Stack                   | `REDIS_SOCKET_TYPE`              | None, must be set manually                        | Go network such as `tcp` or `unix`; see [Go `net.Dial`][]                     |
 | Ambassador Edge Stack                   | `REDIS_URL`                      | None, must be set manually                        | Go network address; for TCP this is a `host:port` pair; see [Go `net.Dial`][] |
@@ -28,13 +25,6 @@ Use the following variables for the environment of your Ambassdor container:
 | Ambassador Edge Stack: RateLimit        | `STATSD_PORT`                    | `8125`                                            | Integer                                                                       |
 | Ambassador Edge Stack: RateLimit        | `GOSTATS_FLUSH_INTERVAL_SECONDS` | `5`                                               | Integer                                                                       |
 
-<!--
-
-  Intentionally omit `RLS_RUNTIME_DIR` from the above table; it exists
-  for development purposes and isn't meant to be set by end users.
-
--->
-
 ## Other Considerations
 
 **Port names:** well-known port names that are recognized by `/etc/services`, but they are ***not* Kubernetes port names.**
@@ -45,13 +35,6 @@ Use the following variables for the environment of your Ambassdor container:
 
 * The AuthService and the RateLimitService share a Redis connection pool; there will be up to `REDIS_POOL_SIZE` connections to Redis.
 * If `REDIS_PERSECOND` is true, a second Redis connection pool is created (to a potentially different Redis instance) that is only used for per-second RateLimits.
-
-
-**`APRO_KEYPAIR_SECRET`**:
-
-* If the `APRO_KEYPAIR_SECRET_NAME`/`APRO_KEYPAIR_SECRET_NAMESPACE` Kubernetes secret does not already exist when Ambassador  starts, it will be automatically created; which obviously requires permission in the ClusterRole to create secrets. If the secret already exists (either because an earlier instance of Ambassador Edge Stack already created it, or because it was created manually), then the "create" permission for secrets can be be removed from the ClusterRole. 
-
-* If manually providing the secret, it must have the "Opaque" type, with two data fields: `rsa.key` and `rsa.crt`, which contain PEM-encoded RSA private and public keys respectively.
 
 
 [^1]: This may change in a future release to reflect the Pods's
