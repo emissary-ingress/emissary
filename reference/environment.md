@@ -8,6 +8,8 @@ Use the following variables for the environment of your Ambassdor container:
 | Ambassador                 | `AMBASSADOR_NAMESPACE`           | `default` ([^1])                                  | Kubernetes namespace                                                          |
 | Ambassador                 | `AMBASSADOR_SINGLE_NAMESPACE`    | Empty                                             | Boolean; non-empty=true, empty=false                                          |
 | Ambassador general purpose | `APP_LOG_LEVEL`                  | `info`                                            | Log level                                                                     |
+| Ambassador general purpose | `APRO_HTTP_PORT`                 | `8500`                                            | TCP port number or name                                                       |
+| Developer Portal           | `APRO_DEVPORTAL_CONTENT_URL`     | `https://github.com/datawire/devportal-content`   | git-remote URL                                                                |
 | Developer Portal           | `AMBASSADOR_ADMIN_URL`           | `http://127.0.0.1:8877`                           | URL                                                                           |
 | Developer Portal           | `AMBASSADOR_INTERNAL_URL`        | `https://127.0.0.1:8443`                          | URL                                                                           |
 | Developer Portal           | `AMBASSADOR_URL`                 | `https://api.example.com`                         | URL                                                                           |
@@ -32,12 +34,6 @@ Use the following variables for the environment of your Ambassdor container:
   for development purposes and isn't meant to be set by end users.
 
 -->
-
-## Additional Variables
-
-The Developer Portal also has the variable `APRO_DEVPORTAL_CONTENT_URL`  with a default value of `https://github.com/datawire/devportal-content`, which is a git-remote URL.
-
-Filter gRPC, RateLimit gRPC, health HTTP, and debug HTTp share the variable `APRO_HTTP_PORT` with a default value of`8500`, which is a TCP port number or name.
 
 ## Other Considerations
 
