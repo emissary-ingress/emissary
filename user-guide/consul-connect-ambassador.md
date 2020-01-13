@@ -1,58 +1,20 @@
 # Consul Connect Integration with Ambassador Edge Stack
 
-## Prerequisites
+Before you begin, you must install and configure the following:
 
-### Consul Connect
-
-Installation and configuration of Consul Connect is outside of the scope of this document. Please refer to [Consul documentation](https://www.consul.io/docs/platform/k8s/index.html) for information on how to install and configure Consul Connect.
-
-### Ambassador Edge Stack
-
-Install and configure Ambassador Edge Stack. If you are using a cloud provider such as Amazon, Google, or Azure, you can type:
-
-```
-kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml
-kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-service.yaml
-```
-
-Note: If you are using GKE, you will need additional privileges:
-
-```
-kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=$(gcloud info --format="value(config.account)")
-```
-
-For more detailed instructions on installing Ambassador Edge Stack, please see the [Ambassador Edge Stack installation guide](/user-guide/getting-started).
-
-**Note:** If you have automatic sidecar injection enabled, ensure the `"consul.hashicorp.com/connect-inject":` annotation is set to `"false"` in the Ambassador Edge Stack deployment spec.
-
-```yaml
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      service: ambassador
-  strategy:
-    type: RollingUpdate
-  template:
-    metadata:
-      labels:
-        service: ambassador
-      annotations:
-        "consul.hashicorp.com/connect-inject": "false"
-```
+* Consul Connect: follow the [Consul documentation](https://www.consul.io/docs/platform/k8s/index.html) to install.
+* Ambassador Edge Stack: follow the [installation instructions](../../user-guide/install)
 
 ## 1. Install the Ambassador Edge Stack Consul Connector
-
-
 
 Ambassador Edge Stack integrates with Consul Connect via a sidecar service. This service does two things:
 
 - Talks to Consul and registers Ambassador as a Consul Service
 - Retrieves the TLS certificate issued by the Consul CA and stores it as a Kubernetes secret Ambassador will use to authenticate with upstream services.
 
-Deploy the Ambassador Consul Connector via kubectl:
+Deploy the Ambassador Consul Connector via `kubectl`:
 
-```
+```yaml
 kubectl apply -f https://getambassador.io/yaml/consul/ambassador-consul-connector.yaml
 ```
 
@@ -88,6 +50,7 @@ Ambassador Edge Stack needs to be configured to originate TLS to upstream servic
     tls: ambassador-consul
     service: https://qotm:443
   ```
+
   **Note:** All service mappings will need `tls: ambassador-consul` to authenticate with Connect-enabled upstream services.
 
 ## 3. Test the Ambassador Consul Connector
@@ -131,6 +94,7 @@ spec:
             cpu: "0.1"
             memory: 100Mi
 ```
+
 Put this YAML in a file called `qotm-deploy.yaml` and apply it with `kubectl`:
 
 ```
@@ -166,6 +130,7 @@ spec:
     name: https-qotm
     targetPort: 20000
 ```
+
 Put this YAML in a file named `qotm-service.yaml` and apply it with `kubectl`.
 
 ```
@@ -174,7 +139,6 @@ kubectl apply -f qotm-service.yaml
 
 Finally, test the service with cURL.
 
-```
+```shell
 curl -v https://{AMBASSADOR-EXTERNAL-IP}/qotm/
 ```
-

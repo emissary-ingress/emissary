@@ -1,6 +1,5 @@
 # Environment variables for the Ambassador container
 
-
 Use the following variables for the environment of your Ambassdor container:
 
 | Purpose | Variable | Default Value | Value type    |
@@ -36,7 +35,6 @@ Use the following variables for the environment of your Ambassdor container:
 ## Additional Variables
 
 The Developer Portal also has the variable `APRO_DEVPORTAL_CONTENT_URL`  with a default value of `https://github.com/datawire/devportal-content`, which is a git-remote URL.
-
 
 Filter gRPC, RateLimit gRPC, health HTTP, and debug HTTp share the variable `APRO_HTTP_PORT` with a default value of`8500`, which is a TCP port number or name.
 
