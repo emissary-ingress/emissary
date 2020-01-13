@@ -2,7 +2,7 @@
 
 Use the following variables for the environment of your Ambassdor container:
 
-| Purpose                    | Variable                         | Default Value                                     | Value type                                                                    |
+| Purpose                    | Variable                         | Default value                                     | Value type                                                                    |
 |----------------------------|----------------------------------|---------------------------------------------------|-------------------------------------------------------------------------------|
 | Ambassador                 | `AMBASSADOR_ID`                  | `default`                                         | Plain string                                                                  |
 | Ambassador                 | `AMBASSADOR_NAMESPACE`           | `default` ([^1])                                  | Kubernetes namespace                                                          |
@@ -13,7 +13,7 @@ Use the following variables for the environment of your Ambassdor container:
 | Developer Portal           | `AMBASSADOR_URL`                 | `https://api.example.com`                         | URL                                                                           |
 | Developer Portal           | `POLL_EVERY_SECS`                | `60`                                              | Integer                                                                       |
 | Filter                     | `APRO_KEYPAIR_SECRET_NAME`       | `ambassador-pro-keypair`                          | Kubernetes name                                                               |
-| Filter                     | `APRO_KEYPAIR_SECRET_NAMESPACE`  | use the value of `AMBASSADOR_NAMESPACE`           | Kubernetes namespace                                                          |
+| Filter                     | `APRO_KEYPAIR_SECRET_NAMESPACE`  | Use the value of `AMBASSADOR_NAMESPACE`           | Kubernetes namespace                                                          |
 | Filter, RateLimit          | `REDIS_POOL_SIZE`                | `10`                                              | Integer                                                                       |
 | Filter, RateLimit          | `REDIS_SOCKET_TYPE`              | None, must be set manually                        | Go network such as `tcp` or `unix`; see [Go `net.Dial`][]                     |
 | Filter, RateLimit          | `REDIS_URL`                      | None, must be set manually                        | Go network address; for TCP this is a `host:port` pair; see [Go `net.Dial`][] |
