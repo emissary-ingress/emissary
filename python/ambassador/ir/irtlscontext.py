@@ -79,8 +79,12 @@ class IRTLSContext(IRResource):
     def pretty(self) -> str:
         secret_name = self.secret_info.get('secret', '-no secret-')
         hoststr = getattr(self, "hosts", "-any-")
+        fbstr = " (fallback)" if self.is_fallback else ""
 
-        return f"<IRTLSContext {self.name} ns {self.namespace} fallback {self.is_fallback}: hosts {hoststr} secret {secret_name}>"
+        rcf = self.get('redirect_cleartext_from', None)
+        rcfstr = f" rcf {rcf}" if (rcf is not None) else ""
+
+        return f"<IRTLSContext {self.name}.{self.namespace}{rcfstr}{fbstr}: hosts {hoststr} secret {secret_name}>"
 
     def setup(self, ir: 'IR', aconf: Config) -> bool:
         if not self.get('_ambassador_enabled', False):

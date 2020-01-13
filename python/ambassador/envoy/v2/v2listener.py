@@ -86,8 +86,65 @@ ExtAuthRequestHeaders = {
     'WWW-Authenticate': True,
 }
 
+
+def jsonify(x) -> str:
+    return json.dumps(x, sort_keys=True, indent=4)
+
+
+def prettyroute(route: V2Route) -> str:
+    match = route["match"]
+
+    key = "PFX"
+    value = match.get("prefix", None)
+
+    if not value:
+        key = "SRX"
+        value = match.get("safe_regex", {}).get("regex", None)
+
+    if not value:
+        key = "URX"
+        value = match.get("unsafe_regex", None)
+
+    if not value:
+        key = "???"
+        value = "-none-"
+
+    match_str = f"{key} {value}"
+
+    headers = match.get("headers", {})
+    xfp = None
+    host = None
+
+    for header in headers:
+        name = header.get("name", None).lower()
+        exact = header.get("exact_match", None)
+
+        if not name or not exact:
+            continue
+
+        if name == "x-forwarded-proto":
+            xfp = bool(exact == "https")
+        elif name == ":authority":
+            host = exact
+
+    match_str += f" {'IN' if not xfp else ''}SECURE"
+
+    if host:
+        match_str += f" HOST {host}"
+
+    target_str = "-none-"
+
+    if route.get("route"):
+        target_str = f"ROUTE {route['route']['cluster']}"
+    elif route.get("redirect"):
+        target_str = f"REDIRECT"
+
+    return f"<V2Route {match_str} -> {target_str}>"
+
+
 def header_pattern_key(x: Dict[str, str]) -> List[Tuple[str, str]]:
     return sorted([ (k, v) for k, v in x.items() ])
+
 
 @multi
 def v2filter(irfilter: IRFilter, v2config: 'V2Config'):
@@ -496,6 +553,8 @@ class V2VirtualHost(dict):
         # because it makes more sense, because this is where we have the domain information.
         # The 1:1 correspondence that this implies between filters and domains may need to
         # change later, of course...
+        self._config.ir.logger.info(f"V2VirtualHost finalize {jsonify(self.pretty())}")
+
         match = {}
 
         if self._ctx:
@@ -777,6 +836,8 @@ class V2Listener(dict):
         self.vhosts[name] = vhost
 
     def finalize(self, enable_sni: bool) -> None:
+        self.config.ir.logger.info(f"V2Listener finalize {self.pretty()}")
+
         # OK. Assemble the high-level stuff for Envoy.
         self.address = {
             "socket_address": {
