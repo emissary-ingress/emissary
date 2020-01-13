@@ -18,6 +18,8 @@
     items: 
     - title: Upgrade to the Ambassador Edge Stack
       link: /user-guide/upgrade-to-edge-stack
+    - title: Upgrade to a Newer Version
+      link: /reference/upgrading  
     - title: Install with Helm
       link: /user-guide/helm
     - title: Install with Docker
@@ -65,6 +67,10 @@
   items: 
     - title: Available Guides 
       link: /docs/guides/
+    - title: Operator Guide
+      link: /user-guide/operators
+    - title: Developer Guide
+      linkl: /user-guide/developers
       items:
     - title: Routing Services
       items:
@@ -96,6 +102,8 @@
       items:
       - title: Consul Integration
         link: /user-guide/consul
+      - title: Consul Connect Integration
+        link: /user-guide/consul-connect-ambassador  
       - title: Istio Integration
         link: /user-guide/with-istio
       - title: Linkerd 2 Integration
@@ -122,11 +130,19 @@
     - title: Configuring Ambassador Edge Stack
       link: /reference/configuration
     - title: Configuration Format
-      items:     
+      items:
+        - title: Format Overview
+          link: /reference/config-format
+        - title: Kubernetes Service Annotations  
+          link: /reference/core/annotations/ 
         - title: Using Custom Resource Definitions
           link: /reference/core/crds
         - title: Ambassador as an Ingress Controller
           link: /reference/core/ingress-controller
+        - title: Authentication and Identity Aware Proxy
+          link: /reference/authentication
+        - title: Environmental Variables
+          link: /reference/environment  
     - title: Global Module Configuration
       items:
         - title: Modules Overview
@@ -241,12 +257,6 @@
         link: /reference/idp-support/salesforce
       - title: User Account and Authentication (UAA)
         link: /reference/idp-support/uaa
-    - title: Pro
-      items:
-        - title: Authentication and Identity Aware Proxy
-          link: /reference/pro/authentication
-        - title: Environmental Variables
-          link: /reference/pro/environment  
     - title: Filter Reference
       link: /reference/filter-reference
     - title: Statistics and Monitoring

@@ -1,4 +1,4 @@
-# Ambassador Authentication
+# Ambassador Edge Stack Authentication
 
 The Ambassador Edge Stack can operate as an Identity Aware Proxy as part of a Zero Trust security architecture in Kubernetes. In the traditional network-oriented security model, trust is assumed by your network location:  if you’re inside the network (e.g., behind the firewall), you’re trusted. If you’re outside the network, you’re not trusted until you join the network (e.g., by connecting via VPN). This trust model does not extend well to modern networks:
 
