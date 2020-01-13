@@ -518,6 +518,11 @@ ${entries}
       return
     }
 
+    if (typeof(jsyaml) === "undefined") {
+      console.error('unable to save because jsyaml not defined');
+      this.addError(`Unable to ${this.state.mode === "add" ? "create" : "save"} because of an internal error (ref: jsyaml)`);
+      return;
+    }
     let yaml = this.mergedYaml();
 
     ApiFetch('/edge_stack/api/apply',
