@@ -1,0 +1,3 @@
+FROM @AES_IMAGE@
+
+COPY ./*.so /etc/ambassador-plugins/

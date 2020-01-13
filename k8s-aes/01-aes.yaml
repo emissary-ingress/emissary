@@ -23,8 +23,11 @@ metadata:
     product: aes
 rules:
 # Edge Stack mostly needs the same permissions as Ambassador OSS,
-# but it needs extra permissions to write getambassador.io CRs and
-# to create and update secrets.
+# but:
+#  1. It needs extra permissions ("update"/"patch"/"create"/"delete")
+#     for getambassador.io resources.
+#  2. It needs extra permissions ("create"/"update") for secrets.
+#  3. It needs permission to "create" events.
 - apiGroups: [""]
   resources: [ "endpoints", "namespaces", "services" ]
   verbs: ["get", "list", "watch"]
@@ -49,6 +52,9 @@ rules:
 - apiGroups: [""]
   resources: [ "secrets" ]
   verbs: ["get", "list", "watch", "create", "update"]
+- apiGroups: [""]
+  resources: [ "events" ]
+  verbs: ["get", "list", "watch", "create"]
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -187,6 +193,7 @@ metadata:
   namespace: ambassador
   labels:
     product: aes
+    app.kubernetes.io/component: ambassador-service
 spec:
   type: LoadBalancer
   externalTrafficPolicy: Local
@@ -268,7 +275,7 @@ spec:
           value: http://127.0.0.1:8877
         - name: SCOUT_DISABLE
           value: '1'
-        - name: APP_LOG_LEVEL
+        - name: AES_LOG_LEVEL
           value: DEBUG
         image: {{env "AES_IMAGE"}}
         imagePullPolicy: Always
@@ -292,19 +299,17 @@ spec:
           periodSeconds: 3
         resources:
           limits:
-            cpu: 1
-            memory: 400Mi
+            cpu: 1000m
+            memory: 600Mi
           requests:
             cpu: 200m
-            memory: 100Mi
+            memory: 300Mi
         volumeMounts:
         - mountPath: /tmp/ambassador-pod-info
           name: ambassador-pod-info
         - mountPath: /.config/ambassador
           name: ambassador-edge-stack-secrets
           readOnly: true
-      imagePullSecrets:
-      - name: aes-pull-secret
       restartPolicy: Always
       securityContext:
         runAsUser: 8888

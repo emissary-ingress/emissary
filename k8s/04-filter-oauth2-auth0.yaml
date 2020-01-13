@@ -69,7 +69,7 @@ spec:
       path: /oauth2-auth0-nojwt-and-plugin-and-whitelist/**
       filters:
         - name: oauth2-auth0-nojwt
-        #- name: wiki-plugin
+        - name: wiki-plugin
 
 # Case 2: /oauth2-auth0-nojwt-and-k8ssecret-and-xhrerror/
 #  1. Similar Auth0 configuration to Case 1 (/oauth2-auth0-nojwt-…), but load

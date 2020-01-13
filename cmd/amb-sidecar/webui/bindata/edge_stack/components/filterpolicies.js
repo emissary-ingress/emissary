@@ -136,7 +136,7 @@ class FilterPolicies extends SortableResourceSet {
     return html`
 <div class="header_con">
   <div class="col">
-    <img alt="filters logo" class="logo" src="../images/svgs/filters.svg" width="32" height="32">
+    <img alt="filters logo" class="logo" src="../images/svgs/filters.svg">
   </div>
   <div class="col">
     <h1>FilterPolicies</h1>

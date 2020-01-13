@@ -315,7 +315,12 @@ export class SingleResource extends LitElement {
       }
     case "object":
       if (Array.isArray(original)) {
-        return updated;
+        if (updated === undefined) {
+          return original;
+        } else {
+          this.state.diff.set(pathName, "updated");
+          return updated;
+        }
       } else {
         return this.mergeObject(original, updated, path);
       }
@@ -381,7 +386,8 @@ export class SingleResource extends LitElement {
       mergeInput.spec = this.spec();
     }
     mergeInput.metadata.annotations[aes_res_changed] = "true";
-    let yaml = jsyaml.safeDump(this.merge(this.resource, mergeInput));
+    let merged = this.merge(this.resource, mergeInput);
+    let yaml = jsyaml.safeDump(merged);
     return yaml;
   }
 
@@ -556,7 +562,7 @@ ${entries}
 
   // internal
   render() {
-    return html`
+    let xyz = html`
 <link rel="stylesheet" href="../styles/oneresource.css">
 ${this.modifiedStyles() ? this.modifiedStyles() : ""}
 <form>
@@ -614,7 +620,8 @@ ${this.renderMergedYaml()}
     </div>
   </div>
 </form>
-`
+`;
+    return xyz;
   }
 
   /**
@@ -870,12 +877,20 @@ export class ResourceSet extends LitElement {
   }
 
   /**
+   * Override to extend the styles of this resource (see yaml download tab).
+   */
+  modifiedStyles() {
+    return null;
+  }
+
+  /**
    * Override renderInner to show control how the collection renders. Most of the time this should look like this:
    * See hosts.js for an example.
    */
   render() {
     return html`
 <link rel="stylesheet" href="../styles/resources.css">
+${this.modifiedStyles() ? this.modifiedStyles() : ""}
   ${this.renderInner()}
 `;
   }

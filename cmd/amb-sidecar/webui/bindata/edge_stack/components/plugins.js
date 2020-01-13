@@ -19,7 +19,12 @@ export class Plugin extends SingleResource {
     if (this.diag['ambassador_services'] == null) {
       return [];
     } else {
-      return this.diag.ambassador_services.find(s => s._source in this.diag.source_map[qname]);
+      const found = this.diag.ambassador_services.find(s => s._source in this.diag.source_map[qname]);
+      if (found) {
+        return found;
+      }
+      console.error('Could not find service with qname "' + qname + '"');
+      return [];
     }
   }
 

@@ -19,7 +19,7 @@
 
   <body class="hide_until_ready">
     <login-gate>
-      <div class="alpha">
+        <div class="alpha">
           <aes-snapshot-provider>
             <dw-tabs>
               <dw-signup></dw-signup>
@@ -33,7 +33,6 @@
               </dw-tab>
 
               <dw-tab slot="Mappings">
-                  <dw-routetable></dw-routetable>
                   <dw-mappings></dw-mappings>
               </dw-tab>
 
@@ -56,13 +55,14 @@
 
               <dw-tab slot="Debugging">
                   <dw-debugging></dw-debugging>
+                  <dw-routetable></dw-routetable>
               </dw-tab>
 
                <dw-tab slot="YAML Download">
                   <dw-yaml-dl></dw-yaml-dl>
               </dw-tab>
 
-             <dw-tab slot="APIs">
+              <dw-tab slot="APIs">
                   <dw-apis id="apis"></dw-apis>
               </dw-tab>
 
@@ -75,7 +75,7 @@
               </dw-tab>
             </dw-tabs>
           </aes-snapshot-provider>
-      </div>
+        </div>
     </login-gate>
   </body>
 
@@ -89,6 +89,7 @@
   -->
 
   <!-- Critical Vendor Scripts -->
+  <script src="../vendor/fast-json-patch.min.js"></script>
   <script type="module" src="../vendor/polyfill.js"></script>
   <script type="module" src="../vendor/lit-element.min.js"></script>
 

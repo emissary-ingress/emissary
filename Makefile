@@ -97,40 +97,86 @@ update-yaml: update-yaml-locally preflight-docs
 	fi
 .PHONY: update-yaml
 
+release/bits: release/bits/aes-plugin-runner
+release/bits/aes-plugin-runner: bin_linux_amd64/aes-plugin-runner bin_darwin_amd64/aes-plugin-runner
+	aws s3 cp --acl public-read bin_linux_amd64/aes-plugin-runner "s3://datawire-static-files/aes-plugin-runner/$(RELEASE_VERSION)/linux/amd64/aes-plugin-runner"
+	aws s3 cp --acl public-read bin_darwin_amd64/aes-plugin-runner "s3://datawire-static-files/aes-plugin-runner/$(RELEASE_VERSION)/darwin/amd64/aes-plugin-runner"
+bin_linux_amd64/aes-plugin-runner: FORCE
+	mkdir -p $(@D)
+	docker cp $$($(BUILDER)):/buildroot/bin/aes-plugin-runner $@
+bin_darwin_amd64/aes-plugin-runner: FORCE
+	mkdir -p $(@D)
+	docker cp $$($(BUILDER)):/buildroot/bin-darwin/aes-plugin-runner $@
 
-final-push: preflight-docs
-	@if [ "$$(git push --tags --dry-run 2>&1)" != "Everything up-to-date" ]; then \
-		printf "$(RED)Please run: git push --tags$(END)\n"; \
-	fi	
-	@if [ "$$(git -C $${AMBASSADOR_DOCS} push --dry-run 2>&1)" != "Everything up-to-date" ]; then \
-		printf "$(RED)Please run: git -C $${AMBASSADOR_DOCS} push$(END)\n"; \
-	fi	
-.PHONY: final-push
+release/promote-aes/.main:
+	@[[ '$(PROMOTE_FROM_VERSION)' =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]]
+	@[[ '$(PROMOTE_TO_VERSION)'   =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]]
+	@printf "$(CYN)==> $(GRN)Promoting $(BLU)%s$(GRN) to $(BLU)%s$(GRN)$(END)\n" '$(PROMOTE_FROM_VERSION)' '$(PROMOTE_TO_VERSION)'
 
-tag-rc:
-	@if [ -z "$$(git describe --exact-match HEAD)" ]; then \
-		echo Last 10 tags: ; \
-		git tag --sort v:refname | egrep '^v[0-9]' | tail -10 ; \
-		(read -p "Please enter rc tag: " TAG && echo $${TAG} > /tmp/rc.tag) ; \
-		git tag -a $$(cat /tmp/rc.tag) ; \
-		git push --tags ; \
-	fi
-.PHONY: tag-rc
+	@printf '  $(CYN)$(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_FROM_VERSION)$(END)\n'
+	docker pull $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_FROM_VERSION)
+	docker tag $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_FROM_VERSION) $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION)
+	docker push $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION)
+.PHONY: release/promote-aes/.main
 
-aes-rc: update-yaml
-	@$(MAKE) --no-print-directory tag-rc
-	@$(MAKE) --no-print-directory final-push
-	@printf "Please check your release here: https://circleci.com/gh/datawire/apro\n"
-.PHONY: aes-rc
+# To be run from a checkout at the tag you are promoting _from_.
+# At present, this is to be run by-hand.
+release/promote-aes/to-ea-latest:
+	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
+	@[[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-ea[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like an EA tag\n' "$(RELEASE_VERSION)"; exit 1)
+	@{ $(MAKE) release/promote-aes/.main \
+	  PROMOTE_FROM_VERSION="$(RELEASE_VERSION)" \
+	  PROMOTE_TO_VERSION="$$(echo "$(RELEASE_VERSION)" | sed 's/-ea.*/-ea-latest/')" \
+	; }
+	@printf '  $(CYN)edgectl (metadata)$(END)\n'
+	./ambassador/builder/build_push_cli.sh tag
+.PHONY: release/promote-aes/to-ea-latest
 
-aes-rc-now: update-yaml
-	@if [ -n "$$(git status --porcelain)" ]; then \
-		printf "$(RED)Your checkout must be clean.$(END)\n" && exit 1; \
-	fi
-	@$(MAKE) --no-print-directory tag-rc
-	@$(MAKE) --no-print-directory rc RELEASE_REGISTRY=quay.io/datawire-dev
-	@$(MAKE) --no-print-directory final-push
-.PHONY: aes-rc-now
+# To be run from a checkout at the tag you are promoting _from_.
+# At present, this is to be run by-hand.
+release/promote-aes/to-rc-latest:
+	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
+	@[[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like an RC tag\n' "$(RELEASE_VERSION)"; exit 1)
+	@{ $(MAKE) release/promote-aes/.main \
+	  PROMOTE_FROM_VERSION="$(RELEASE_VERSION)" \
+	  PROMOTE_TO_VERSION="$$(echo "$(RELEASE_VERSION)" | sed 's/-rc.*/-rc-latest/')" \
+	; }
+	@printf '  $(CYN)edgectl (metadata)$(END)\n'
+	./ambassador/builder/build_push_cli.sh tag
+.PHONY: release/promote-aes/to-rc-latest
+
+# To be run from a checkout at the tag you are promoting _to_.
+# This is normally run from CI by creating the GA tag.
+# This assumes that the version you are promoting from is the same as the OSS -rc-latest version.
+release/promote-aes/to-ga:
+	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
+	@[[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(RELEASE_VERSION)"; exit 1)
+	@set -e; {
+	  rc_latest=$(curl -sL --fail https://s3.amazonaws.com/datawire-static-files/ambassador/teststable.txt); \
+	  if ! [[ "$$rc_latest" == "$(RELEASE_VERSION)"-rc* ]]; then \
+	    printf '$(RED)ERROR: https://s3.amazonaws.com/datawire-static-files/ambassador/teststable.txt => %s does not look like a RC of %s' "$$rc_latest" "$(RELEASE_VERSION)"; \
+	    exit 1; \
+	  fi; \
+	  $(MAKE) release/promote-aes/.main \
+	    PROMOTE_FROM_VERSION="$$rc_latest" \
+	    PROMOTE_TO_VERSION="$(RELEASE_VERSION)" \
+	    ; \
+	  printf '  $(CYN)aes-plugin-runner$(END)\n'; \
+	  aws s3 cp --acl public-read "s3://datawire-static-files/aes-plugin-runner/$$rc_latest/linux/amd64/aes-plugin-runner" \
+	                              "s3://datawire-static-files/aes-plugin-runner/$(RELEASE_VERSION)/linux/amd64/aes-plugin-runner"; \
+	  aws s3 cp --acl public-read "s3://datawire-static-files/aes-plugin-runner/$$rc_latest/darwin/amd64/aes-plugin-runner" \
+	                              "s3://datawire-static-files/aes-plugin-runner/$(RELEASE_VERSION)/darwin/amd64/aes-plugin-runner"; \
+	  printf '  $(CYN)edgectl$(END)\n'; \
+	  aws s3 cp --acl public-read "s3://datawire-static-files/edgectl/$$rc_latest/linux/amd64/edgectl" \
+	                              "s3://datawire-static-files/edgectl/$(RELEASE_VERSION)/linux/amd64/edgectl"; \
+	  aws s3 cp --acl public-read "s3://datawire-static-files/edgectl/$$rc_latest/darwin/amd64/edgectl" \
+	                              "s3://datawire-static-files/edgectl/$(RELEASE_VERSION)/darwin/amd64/edgectl"; \
+	  aws s3 cp --acl public-read "s3://datawire-static-files/edgectl/$$rc_latest/windows/amd64/edgectl.exe" \
+	                              "s3://datawire-static-files/edgectl/$(RELEASE_VERSION)/windows/amd64/edgectl.exe"; \
+	}
+	@printf '  $(CYN)edgectl (metadata)$(END)\n'
+	echo "$RELEASE_VERSION" | aws s3 cp --acl public-read - s3://datawire-static-files/edgectl/stable.txt
+.PHONY: release/promote-aes/to-ga
 
 define _help.aes-targets
   $(BLD)make $(BLU)lint$(END)                -- runs golangci-lint.
@@ -148,12 +194,10 @@ define _help.aes-targets
 
   $(BLD)make $(BLU)update-yaml$(END)         -- updates the YAML in $(BLD)k8s-aes/$(END) and in $(BLD)\$$AMBASSADOR_DOCS/yaml/$(END). ($(AMBASSADOR_DOCS)/yaml/)
 
-  $(BLD)make $(BLU)final-push$(END)          -- ???
+  $(BLD)make $(BLU)release/promote-aes/to-rc-latest$(END) -- promote an early-access '-eaN' release to '-ea-latest'
 
-  $(BLD)make $(BLU)tag-rc$(END)              -- ???
+  $(BLD)make $(BLU)release/promote-aes/to-ea-latest$(END) -- promote a release candidate '-rcN' release to '-rc-latest'
 
-  $(BLD)make $(BLU)aes-rc$(END)              -- ???
-
-  $(BLD)make $(BLU)aes-rc-now$(END)          -- ???
+  $(BLD)make $(BLU)release/promote-aes/to-ga$(END) -- promote a release candidate to general availability
 endef
 _help.targets += $(NL)$(NL)$(_help.aes-targets)

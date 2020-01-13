@@ -132,7 +132,7 @@ export class Tabs extends LitElement {
       navigation a {
         padding: 0;
         text-decoration: none;
-        height: 70px;
+        height: 53px;
         transition: all .7s ease
       }
       
@@ -378,9 +378,6 @@ export class Tabs extends LitElement {
         classes += " selected";
       }
 
-      //TODO need to fix the duplicate embedding of the svg icon here and then again in each tab detail page.
-      //  We really just want the svg once, perhaps in the index.html creation of the dw-tab and then have
-      //  that used by both the tab system here and the detail page.
       links.push(html`
           <a href="#${this.tabs[idx].tabHashName()}" class="${classes}">
             <div class="selected_stripe"></div>

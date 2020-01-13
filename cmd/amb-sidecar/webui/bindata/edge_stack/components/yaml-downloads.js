@@ -24,9 +24,6 @@ form div.card {
   padding-top: 0;
   padding-bottom: 0;
 }
-.yaml-download a.cta {
-	width: 120px;
-}
 </style>
     `;
   }
@@ -52,6 +49,21 @@ export class YAMLDownloads extends ResourceSet {
     return snapshot.getChangedResources()
   }
 
+  modifiedStyles() {
+    return html`
+<style>
+.yaml-download a.cta {
+	width: 120px;
+}
+.col2 a.cta img {
+  width: 15px;
+  height: auto
+}
+</style>
+    `;
+  }
+
+
   /* cleanResource:
    * remove selected properties from the resource that are
    * Kubernetes-internal or otherwise not gitOps friendly.
@@ -66,12 +78,12 @@ export class YAMLDownloads extends ResourceSet {
      * exception handling is needed here.
      */
     delete annotations["kubectl.kubernetes.io/last-applied-configuration"];
-    delete annotations.aes_res_editable;
-    delete annotations.aes_res_changed;
+    delete annotations[aes_res_editable];
+    delete annotations[aes_res_changed];
 
     /* but add the timestamp for download.
      */
-    annotations.aes_res_downloaded = timestamp;
+    annotations[aes_res_downloaded] = timestamp;
 
     /* Delete other metadata */
     delete metadata.creationTimestamp;

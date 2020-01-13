@@ -42,7 +42,6 @@ dpath.util.merge(deployment, {
         'replicas': 1,
         'template': {
             'spec': {
-                'imagePullSecrets': [ { 'name': 'aes-pull-secret' } ],
                 'terminationGracePeriodSeconds': 0,
                 'volumes': [
                     { 'name': 'ambassador-edge-stack-secrets',
@@ -75,6 +74,16 @@ dpath.util.merge(dpath.util.get(deployment, 'spec/template/spec/containers/0'), 
           'readOnly':  True
         }
     ],
+    'resources': {
+        'limits': {
+            'cpu': '1000m',
+            'memory': '600Mi'
+        },
+        'requests': {
+            'cpu': '200m',
+            'memory': '300Mi'
+        }
+    }
 })
 
 # I don't think we really want to do this.
@@ -89,7 +98,7 @@ if which == 'apro':
         'env': [
             { 'name':  'SCOUT_DISABLE',
               'value': '1' },
-            { 'name':  'APP_LOG_LEVEL',
+            { 'name':  'AES_LOG_LEVEL',
               'value': 'DEBUG' }
         ]
     })
