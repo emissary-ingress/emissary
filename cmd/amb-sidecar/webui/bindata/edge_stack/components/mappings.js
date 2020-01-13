@@ -37,6 +37,50 @@ class Mapping extends SingleResource {
     return this.shadowRoot.querySelector('input[name="target"]')
   }
 
+  validate() {
+    super.validate();
+
+    if (this.state.labels && this.state.labels.length > 0) {
+      for(var j = 0; j < this.state.labels.length; j++) {
+        var c = this.state.labels[j];
+        for(const n in c) {
+          if (n && n.length > 0) {
+            var a = c[n];
+            for(var i = 0; i < a.length; i++) {
+              var s = a[i];
+              if (typeof s === "string" && s.length === 0) {
+                this.state.messages.push("Labels must not be empty names.");
+                return;
+              }
+              if (typeof s === "object") {
+                for(const k in s) {
+                  if (k.length === 0) {
+                    this.state.messages.push("Labels must not be empty names in either box.");
+                    return;
+                  } else {
+                    var b = s[k];
+                    for(const m in b) {
+                      var d = b[m];
+                      if (d.length === 0) {
+                        this.state.messages.push("Labels must not be empty names in either box");
+                        return;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          } else {
+            this.state.messages.push("Labels must not have empty names.")
+            return;
+          }
+        }
+      }
+
+    }
+
+  }
+
   /**
    * Implement.
    */
