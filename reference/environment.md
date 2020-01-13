@@ -8,11 +8,6 @@ Use the following variables for the environment of your Ambassdor container:
 | Ambassador                              | `AMBASSADOR_NAMESPACE`           | `default` ([^1])                                  | Kubernetes namespace                                                          |
 | Ambassador                              | `AMBASSADOR_SINGLE_NAMESPACE`    | Empty                                             | Boolean; non-empty=true, empty=false                                          |
 | Ambassador Edge Stack                   | `AES_LOG_LEVEL`                  | `info`                                            | Log level                                                                     |
-| Ambassador Edge Stack: Developer Portal | `DEVPORTAL_CONTENT_URL`          | `https://github.com/datawire/devportal-content`   | git-remote URL                                                                |
-| Ambassador Edge Stack: Developer Portal | `DEVPORTAL_CONTENT_DIR`          | `/`                                               | Rooted Git directory                                                          |
-| Ambassador Edge Stack: Developer Portal | `DEVPORTAL_CONTENT_BRANCH`       | `master`                                          | Git branch name                                                               |
-| Ambassador Edge Stack: Developer Portal | `AMBASSADOR_URL`                 | `https://api.example.com`                         | URL                                                                           |
-| Ambassador Edge Stack: Developer Portal | `POLL_EVERY_SECS`                | `60`                                              | Integer                                                                       |
 | Ambassador Edge Stack                   | `REDIS_POOL_SIZE`                | `10`                                              | Integer                                                                       |
 | Ambassador Edge Stack                   | `REDIS_SOCKET_TYPE`              | None, must be set manually                        | Go network such as `tcp` or `unix`; see [Go `net.Dial`][]                     |
 | Ambassador Edge Stack                   | `REDIS_URL`                      | None, must be set manually                        | Go network address; for TCP this is a `host:port` pair; see [Go `net.Dial`][] |
@@ -24,6 +19,11 @@ Use the following variables for the environment of your Ambassdor container:
 | Ambassador Edge Stack: RateLimit        | `STATSD_HOST`                    | `localhost`                                       | Hostname                                                                      |
 | Ambassador Edge Stack: RateLimit        | `STATSD_PORT`                    | `8125`                                            | Integer                                                                       |
 | Ambassador Edge Stack: RateLimit        | `GOSTATS_FLUSH_INTERVAL_SECONDS` | `5`                                               | Integer                                                                       |
+| Ambassador Edge Stack: Developer Portal | `AMBASSADOR_URL`                 | `https://api.example.com`                         | URL                                                                           |
+| Ambassador Edge Stack: Developer Portal | `DEVPORTAL_CONTENT_URL`          | `https://github.com/datawire/devportal-content`   | git-remote URL                                                                |
+| Ambassador Edge Stack: Developer Portal | `DEVPORTAL_CONTENT_DIR`          | `/`                                               | Rooted Git directory                                                          |
+| Ambassador Edge Stack: Developer Portal | `DEVPORTAL_CONTENT_BRANCH`       | `master`                                          | Git branch name                                                               |
+| Ambassador Edge Stack: Developer Portal | `POLL_EVERY_SECS`                | `60`                                              | Integer                                                                       |
 
 ## Other Considerations
 
