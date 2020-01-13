@@ -2,31 +2,31 @@
 
 Use the following variables for the environment of your Ambassdor container:
 
-| Purpose                    | Variable                         | Default value                                     | Value type                                                                    |
-|----------------------------|----------------------------------|---------------------------------------------------|-------------------------------------------------------------------------------|
-| Ambassador                 | `AMBASSADOR_ID`                  | `default`                                         | Plain string                                                                  |
-| Ambassador                 | `AMBASSADOR_NAMESPACE`           | `default` ([^1])                                  | Kubernetes namespace                                                          |
-| Ambassador                 | `AMBASSADOR_SINGLE_NAMESPACE`    | Empty                                             | Boolean; non-empty=true, empty=false                                          |
-| Ambassador general purpose | `APP_LOG_LEVEL`                  | `info`                                            | Log level                                                                     |
-| Ambassador general purpose | `APRO_HTTP_PORT`                 | `8500`                                            | TCP port number or name                                                       |
-| Developer Portal           | `APRO_DEVPORTAL_CONTENT_URL`     | `https://github.com/datawire/devportal-content`   | git-remote URL                                                                |
-| Developer Portal           | `AMBASSADOR_ADMIN_URL`           | `http://127.0.0.1:8877`                           | URL                                                                           |
-| Developer Portal           | `AMBASSADOR_INTERNAL_URL`        | `https://127.0.0.1:8443`                          | URL                                                                           |
-| Developer Portal           | `AMBASSADOR_URL`                 | `https://api.example.com`                         | URL                                                                           |
-| Developer Portal           | `POLL_EVERY_SECS`                | `60`                                              | Integer                                                                       |
-| Filter                     | `APRO_KEYPAIR_SECRET_NAME`       | `ambassador-pro-keypair`                          | Kubernetes name                                                               |
-| Filter                     | `APRO_KEYPAIR_SECRET_NAMESPACE`  | Use the value of `AMBASSADOR_NAMESPACE`           | Kubernetes namespace                                                          |
-| Filter, RateLimit          | `REDIS_POOL_SIZE`                | `10`                                              | Integer                                                                       |
-| Filter, RateLimit          | `REDIS_SOCKET_TYPE`              | None, must be set manually                        | Go network such as `tcp` or `unix`; see [Go `net.Dial`][]                     |
-| Filter, RateLimit          | `REDIS_URL`                      | None, must be set manually                        | Go network address; for TCP this is a `host:port` pair; see [Go `net.Dial`][] |
-| RateLimit                  | `REDIS_PERSECOND`                | `false`                                           | Boolean; [Go `strconv.ParseBool`][]                                           |
-| RateLimit                  | `REDIS_PERSECOND_SOCKET_TYPE`    | None, must be set manually (if `REDIS_PERSECOND`) | Go network such as `tcp` or `unix`; see [Go `net.Dial`][]                     |
-| RateLimit                  | `REDIS_PERSECOND_POOL_SIZE`      | None, must be set manually (if `REDIS_PERSECOND`) | Go network address; for TCP this is a `host:port` pair; see [Go `net.Dial`][] |
-| RateLimit                  | `EXPIRATION_JITTER_MAX_SECONDS`  | `300`                                             | Integer                                                                       |
-| RateLimit                  | `USE_STATSD`                     | `false`                                           | Boolean; [Go `strconv.ParseBool`][]                                           |
-| RateLimit                  | `STATSD_HOST`                    | `localhost`                                       | Hostname                                                                      |
-| RateLimit                  | `STATSD_PORT`                    | `8125`                                            | Integer                                                                       |
-| RateLimit                  | `GOSTATS_FLUSH_INTERVAL_SECONDS` | `5`                                               | Integer                                                                       |
+| Purpose                                 | Variable                         | Default value                                     | Value type                                                                    |
+|-----------------------------------------|----------------------------------|---------------------------------------------------|-------------------------------------------------------------------------------|
+| Ambassador                              | `AMBASSADOR_ID`                  | `default`                                         | Plain string                                                                  |
+| Ambassador                              | `AMBASSADOR_NAMESPACE`           | `default` ([^1])                                  | Kubernetes namespace                                                          |
+| Ambassador                              | `AMBASSADOR_SINGLE_NAMESPACE`    | Empty                                             | Boolean; non-empty=true, empty=false                                          |
+| Ambassador Edge Stack                   | `APP_LOG_LEVEL`                  | `info`                                            | Log level                                                                     |
+| Ambassador Edge Stack                   | `APRO_HTTP_PORT`                 | `8500`                                            | TCP port number or name                                                       |
+| Ambassador Edge Stack: Developer Portal | `APRO_DEVPORTAL_CONTENT_URL`     | `https://github.com/datawire/devportal-content`   | git-remote URL                                                                |
+| Ambassador Edge Stack: Developer Portal | `AMBASSADOR_ADMIN_URL`           | `http://127.0.0.1:8877`                           | URL                                                                           |
+| Ambassador Edge Stack: Developer Portal | `AMBASSADOR_INTERNAL_URL`        | `https://127.0.0.1:8443`                          | URL                                                                           |
+| Ambassador Edge Stack: Developer Portal | `AMBASSADOR_URL`                 | `https://api.example.com`                         | URL                                                                           |
+| Ambassador Edge Stack: Developer Portal | `POLL_EVERY_SECS`                | `60`                                              | Integer                                                                       |
+| Ambassador Edge Stack: Filter           | `APRO_KEYPAIR_SECRET_NAME`       | `ambassador-pro-keypair`                          | Kubernetes name                                                               |
+| Ambassador Edge Stack: Filter           | `APRO_KEYPAIR_SECRET_NAMESPACE`  | Use the value of `AMBASSADOR_NAMESPACE`           | Kubernetes namespace                                                          |
+| Ambassador Edge Stack                   | `REDIS_POOL_SIZE`                | `10`                                              | Integer                                                                       |
+| Ambassador Edge Stack                   | `REDIS_SOCKET_TYPE`              | None, must be set manually                        | Go network such as `tcp` or `unix`; see [Go `net.Dial`][]                     |
+| Ambassador Edge Stack                   | `REDIS_URL`                      | None, must be set manually                        | Go network address; for TCP this is a `host:port` pair; see [Go `net.Dial`][] |
+| Ambassador Edge Stack: RateLimit        | `REDIS_PERSECOND`                | `false`                                           | Boolean; [Go `strconv.ParseBool`][]                                           |
+| Ambassador Edge Stack: RateLimit        | `REDIS_PERSECOND_SOCKET_TYPE`    | None, must be set manually (if `REDIS_PERSECOND`) | Go network such as `tcp` or `unix`; see [Go `net.Dial`][]                     |
+| Ambassador Edge Stack: RateLimit        | `REDIS_PERSECOND_POOL_SIZE`      | None, must be set manually (if `REDIS_PERSECOND`) | Go network address; for TCP this is a `host:port` pair; see [Go `net.Dial`][] |
+| Ambassador Edge Stack: RateLimit        | `EXPIRATION_JITTER_MAX_SECONDS`  | `300`                                             | Integer                                                                       |
+| Ambassador Edge Stack: RateLimit        | `USE_STATSD`                     | `false`                                           | Boolean; [Go `strconv.ParseBool`][]                                           |
+| Ambassador Edge Stack: RateLimit        | `STATSD_HOST`                    | `localhost`                                       | Hostname                                                                      |
+| Ambassador Edge Stack: RateLimit        | `STATSD_PORT`                    | `8125`                                            | Integer                                                                       |
+| Ambassador Edge Stack: RateLimit        | `GOSTATS_FLUSH_INTERVAL_SECONDS` | `5`                                               | Integer                                                                       |
 
 <!--
 
