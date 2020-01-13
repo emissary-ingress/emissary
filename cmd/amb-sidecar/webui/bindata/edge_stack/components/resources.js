@@ -387,8 +387,11 @@ export class SingleResource extends LitElement {
     }
     mergeInput.metadata.annotations[aes_res_changed] = "true";
     let merged = this.merge(this.resource, mergeInput);
-    let yaml = jsyaml.safeDump(merged);
-    return yaml;
+    if (typeof(jsyaml) === "undefined") {
+      return "";
+    } else {
+      return jsyaml.safeDump(merged);
+    }
   }
 
   renderMergedYaml() {
