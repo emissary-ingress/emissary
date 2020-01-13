@@ -9,9 +9,6 @@
 nameOverride: ""
 # Defaults to .Release.Name-.Chart.Name unless .Release.Name contains "ambassador"
 fullnameOverride: ""
-# Defaults to .Release.Namespace
-namespaceOverride:
-createNamespace: false
 
 replicaCount: 3
 daemonSet: false
@@ -59,7 +56,7 @@ securityContext:
 
 image:
   repository: quay.io/datawire/aes
-  tag: 1.0.0-ea-latest
+  tag: 1.0.0-rc2
   pullPolicy: IfNotPresent
 
 dnsPolicy: "ClusterFirst"

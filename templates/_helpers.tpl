@@ -52,10 +52,3 @@ Define the http port of the Ambassador service
 {{- end -}}
 {{- end -}}
 {{- end -}}
-
-{{/*
-Define the http port of the Ambassador service
-*/}}
-{{- define "ambassador.namespace" -}}
-{{ default .Release.Namespace .Values.namespaceOverride }}
-{{- end -}}
