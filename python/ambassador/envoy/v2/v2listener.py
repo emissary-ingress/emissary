@@ -998,7 +998,7 @@ class V2Listener(dict):
             # Remember, also, if a precedence was set.
             route_precedence = route.get('_precedence', None)
 
-            logger.info(f"V2Listeners: route {json.dumps(dict(route), sort_keys=True, indent=4)}...")
+            logger.info(f"V2Listeners: route {prettyroute(route)}...")
 
             # Build a cleaned-up version of this route without the '_sni' and '_precedence' elements...
             insecure_route = dict(route)
