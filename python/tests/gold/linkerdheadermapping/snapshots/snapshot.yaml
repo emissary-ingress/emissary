@@ -23,7 +23,7 @@
                         "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind: Module\nname: ambassador\nconfig:\n  add_linkerd_headers: true\nambassador_id: linkerdheadermapping\n---\napiVersion: ambassador/v1\nkind: Mapping\nname: linkerdheadermapping-http-addlinkerdonly\nprefix: /target_add_linkerd_header_only/\nservice: linkerdheadermapping-http-addlinkerdonly\nambassador_id: linkerdheadermapping\n---\napiVersion: ambassador/v1\nkind: Mapping\nname: linkerdheadermapping-http-noheader\nprefix: /target_no_header/\nservice: linkerdheadermapping-http-noheader\nadd_linkerd_headers: false\nadd_request_headers:\n  fruit:\n    append: False\n    value: orange\nambassador_id: linkerdheadermapping\n---\napiVersion: ambassador/v1\nkind: Mapping\nname: linkerdheadermapping-http\nprefix: /target/\nservice: linkerdheadermapping-http\nadd_request_headers:\n  fruit:\n    append: False\n    value: banana\nambassador_id: linkerdheadermapping\n",
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v0\\nkind: Module\\nname: ambassador\\nconfig:\\n  add_linkerd_headers: true\\nambassador_id: linkerdheadermapping\\n---\\napiVersion: ambassador/v1\\nkind: Mapping\\nname: linkerdheadermapping-http-addlinkerdonly\\nprefix: /target_add_linkerd_header_only/\\nservice: linkerdheadermapping-http-addlinkerdonly\\nambassador_id: linkerdheadermapping\\n---\\napiVersion: ambassador/v1\\nkind: Mapping\\nname: linkerdheadermapping-http-noheader\\nprefix: /target_no_header/\\nservice: linkerdheadermapping-http-noheader\\nadd_linkerd_headers: false\\nadd_request_headers:\\n  fruit:\\n    append: False\\n    value: orange\\nambassador_id: linkerdheadermapping\\n---\\napiVersion: ambassador/v1\\nkind: Mapping\\nname: linkerdheadermapping-http\\nprefix: /target/\\nservice: linkerdheadermapping-http\\nadd_request_headers:\\n  fruit:\\n    append: False\\n    value: banana\\nambassador_id: linkerdheadermapping\\n\"},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"linkerdheadermapping\",\"scope\":\"AmbassadorTest\"},\"name\":\"linkerdheadermapping\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"linkerdheadermapping\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-01-10T16:54:35Z",
+                    "creationTimestamp": "2020-01-13T06:08:57Z",
                     "labels": {
                         "app.kubernetes.io/component": "ambassador-service",
                         "kat-ambassador-id": "linkerdheadermapping",
@@ -31,24 +31,24 @@
                     },
                     "name": "linkerdheadermapping",
                     "namespace": "default",
-                    "resourceVersion": "59844",
+                    "resourceVersion": "34576",
                     "selfLink": "/api/v1/namespaces/default/services/linkerdheadermapping",
-                    "uid": "e1719a49-33c9-11ea-966c-16b58b03f3a1"
+                    "uid": "2f2aa781-35cb-11ea-83a4-122f10fc3771"
                 },
                 "spec": {
-                    "clusterIP": "10.103.142.189",
+                    "clusterIP": "10.107.132.58",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "http",
-                            "nodePort": 30025,
+                            "nodePort": 31522,
                             "port": 80,
                             "protocol": "TCP",
                             "targetPort": 8080
                         },
                         {
                             "name": "https",
-                            "nodePort": 31036,
+                            "nodePort": 30707,
                             "port": 443,
                             "protocol": "TCP",
                             "targetPort": 8443
@@ -71,7 +71,7 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"linkerdheadermapping\",\"scope\":\"AmbassadorTest\",\"service\":\"linkerdheadermapping-admin\"},\"name\":\"linkerdheadermapping-admin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"linkerdheadermapping-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"linkerdheadermapping\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-01-10T16:54:35Z",
+                    "creationTimestamp": "2020-01-13T06:08:57Z",
                     "labels": {
                         "kat-ambassador-id": "linkerdheadermapping",
                         "scope": "AmbassadorTest",
@@ -79,17 +79,17 @@
                     },
                     "name": "linkerdheadermapping-admin",
                     "namespace": "default",
-                    "resourceVersion": "59854",
+                    "resourceVersion": "34581",
                     "selfLink": "/api/v1/namespaces/default/services/linkerdheadermapping-admin",
-                    "uid": "e1af1b57-33c9-11ea-966c-16b58b03f3a1"
+                    "uid": "2f3a245c-35cb-11ea-83a4-122f10fc3771"
                 },
                 "spec": {
-                    "clusterIP": "10.96.89.8",
+                    "clusterIP": "10.110.97.32",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "linkerdheadermapping-admin",
-                            "nodePort": 30997,
+                            "nodePort": 32385,
                             "port": 8877,
                             "protocol": "TCP",
                             "targetPort": 8877
@@ -112,19 +112,19 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"linkerdheadermapping\",\"scope\":\"AmbassadorTest\"},\"name\":\"linkerdheadermapping-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8110},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8473}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
                     },
-                    "creationTimestamp": "2020-01-10T16:54:36Z",
+                    "creationTimestamp": "2020-01-13T06:08:57Z",
                     "labels": {
                         "kat-ambassador-id": "linkerdheadermapping",
                         "scope": "AmbassadorTest"
                     },
                     "name": "linkerdheadermapping-http",
                     "namespace": "default",
-                    "resourceVersion": "59863",
+                    "resourceVersion": "34588",
                     "selfLink": "/api/v1/namespaces/default/services/linkerdheadermapping-http",
-                    "uid": "e20bc56e-33c9-11ea-966c-16b58b03f3a1"
+                    "uid": "2f6334a9-35cb-11ea-83a4-122f10fc3771"
                 },
                 "spec": {
-                    "clusterIP": "10.110.9.54",
+                    "clusterIP": "10.108.35.102",
                     "ports": [
                         {
                             "name": "http",
@@ -156,19 +156,19 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"linkerdheadermapping\",\"scope\":\"AmbassadorTest\"},\"name\":\"linkerdheadermapping-http-addlinkerdonly\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8112},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8475}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
                     },
-                    "creationTimestamp": "2020-01-10T16:54:37Z",
+                    "creationTimestamp": "2020-01-13T06:08:58Z",
                     "labels": {
                         "kat-ambassador-id": "linkerdheadermapping",
                         "scope": "AmbassadorTest"
                     },
                     "name": "linkerdheadermapping-http-addlinkerdonly",
                     "namespace": "default",
-                    "resourceVersion": "59882",
+                    "resourceVersion": "34597",
                     "selfLink": "/api/v1/namespaces/default/services/linkerdheadermapping-http-addlinkerdonly",
-                    "uid": "e3012d8b-33c9-11ea-966c-16b58b03f3a1"
+                    "uid": "2f922e74-35cb-11ea-83a4-122f10fc3771"
                 },
                 "spec": {
-                    "clusterIP": "10.99.6.148",
+                    "clusterIP": "10.99.116.192",
                     "ports": [
                         {
                             "name": "http",
@@ -200,19 +200,19 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"linkerdheadermapping\",\"scope\":\"AmbassadorTest\"},\"name\":\"linkerdheadermapping-http-noheader\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8111},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8474}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
                     },
-                    "creationTimestamp": "2020-01-10T16:54:36Z",
+                    "creationTimestamp": "2020-01-13T06:08:57Z",
                     "labels": {
                         "kat-ambassador-id": "linkerdheadermapping",
                         "scope": "AmbassadorTest"
                     },
                     "name": "linkerdheadermapping-http-noheader",
                     "namespace": "default",
-                    "resourceVersion": "59873",
+                    "resourceVersion": "34592",
                     "selfLink": "/api/v1/namespaces/default/services/linkerdheadermapping-http-noheader",
-                    "uid": "e27c70a8-33c9-11ea-966c-16b58b03f3a1"
+                    "uid": "2f799f80-35cb-11ea-83a4-122f10fc3771"
                 },
                 "spec": {
-                    "clusterIP": "10.103.57.37",
+                    "clusterIP": "10.97.32.8",
                     "ports": [
                         {
                             "name": "http",
