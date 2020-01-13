@@ -46,6 +46,7 @@ export class Resource extends Model {
 
     /* If resourceData does not include metadata, set it to the empty object so that the name, namespace,
      * resourcevVersion, labels and annotation fields will be set to their default values during initialization.
+     * Otherwise javascript would fail, trying to access a field of "null"
      */
     resourceData.metadata = resourceData.metadata || {};
 
@@ -64,7 +65,7 @@ export class Resource extends Model {
     /* Internal state for when the Resource is edited and is pending confirmation of the edit
      * from a future snapshot.
      */
-    this._pending    = false;
+    this._pending = false;
   }
 
   /* copySelf()
