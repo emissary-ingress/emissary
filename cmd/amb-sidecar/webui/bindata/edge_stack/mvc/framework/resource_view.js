@@ -205,8 +205,8 @@ export class ResourceView extends View {
           /* Note that the resource is pending an update (in this case, to be deleted) */
           this.model.setPendingUpdate();
 
-          /* Set a viewState of "pending" to hide all the buttons. */
-          this.viewState = "pending";
+          /* Set a viewState of "pending-delete" to show only the "pending delete" button. */
+          this.viewState = "pending-delete";
           this.requestUpdate();
         }
         else {
@@ -352,7 +352,7 @@ export class ResourceView extends View {
               <div class="row line">
                 <label class="row-col margin-right justify-right">name:</label>
                 <div class="row-col">
-                  <b class="${this.visibleWhen("list", "edit", "pending")}">${this.name}</b>
+                  <b class="${this.visibleWhen("list", "edit", "pending-delete")}">${this.name}</b>
                   
                   <input class="${this.visibleWhen("add")}" name="name" type="text" value="${this.name}"/>
                 </div>
@@ -361,7 +361,7 @@ export class ResourceView extends View {
               <div class="row line">
                 <label class="row-col margin-right justify-right">namespace:</label>
                 <div class="row-col">
-                  <div class="namespace${this.visibleWhen("list", "edit", "pending")}">(${this.namespace})</div>
+                  <div class="namespace${this.visibleWhen("list", "edit", "pending-delete")}">(${this.namespace})</div>
                   
                   <div class="namespace-input ${this.visibleWhen("add")}">
                     <div class="pararen">(</div>
@@ -388,8 +388,13 @@ export class ResourceView extends View {
               <div class="label">source</div>
             </a>
             
-            <a class="cta pending ${this.visibleWhen("pending")}">
+            <a class="cta pending ${this.visibleWhen("pending-save")}">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M14.078 7.061l2.861 2.862-10.799 10.798-3.584.723.724-3.585 10.798-10.798zm0-2.829l-12.64 12.64-1.438 7.128 7.127-1.438 12.642-12.64-5.691-5.69zm7.105 4.277l2.817-2.82-5.691-5.689-2.816 2.817 5.69 5.692z"/></svg>
+              <div class="label">pending</div>
+            </a>
+            
+            <a class="cta pending ${this.visibleWhen("pending-delete")}">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 16"><defs><style>.cls-1{fill-rule:evenodd;}</style></defs><title>delete</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"><path class="cls-1" d="M24,16H7L0,8,7,0H24V16ZM7.91,2,2.66,8,7.9,14H22V2ZM14,6.59,16.59,4,18,5.41,15.41,8,18,10.59,16.59,12,14,9.41,11.41,12,10,10.59,12.59,8,10,5.41,11.41,4,14,6.59Z"/></g></g></svg>
               <div class="label">pending</div>
             </a>
             

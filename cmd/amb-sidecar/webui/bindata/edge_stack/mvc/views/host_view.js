@@ -159,7 +159,7 @@ export class HostView extends IResourceView {
       <div class="row line">
         <div class="row-col margin-right justify-right">hostname:</div>
         <div class="row-col">
-          <span class="${this.visibleWhen("list")}">${this.hostname}</span>
+          <span class="${this.visibleWhen("list", "pending-delete")}">${this.hostname}</span>
           <input class="${this.visibleWhen("edit", "add")}" type="text" name="hostname"  value="${this.hostname}"/>
         </div>
       </div>
@@ -178,7 +178,7 @@ export class HostView extends IResourceView {
       <div class="row line">
         <div class="row-col margin-right justify-right">acme provider:</div>
         <div class="row-col">
-          <span class="${this.visibleWhen("list")}">${this.acmeProvider}</span>
+          <span class="${this.visibleWhen("list", "pending-delete")}">${this.acmeProvider}</span>
           <input
               class="${this.visibleWhen("edit", "add")}"
               type="url"
@@ -202,16 +202,16 @@ export class HostView extends IResourceView {
       <div class="row ${this.viewState !== "add" ? "line" : ""}">
         <div class="row-col margin-right justify-right">email:</div>
         <div class="row-col">
-          <span class="${this.visibleWhen("list")}">${this.acmeEmail}</span>
+          <span class="${this.visibleWhen("list", "pending-delete")}">${this.acmeEmail}</span>
           <input class="${this.visibleWhen("edit", "add")}" type="email" name="email"
                  value="${this.acmeEmail}" ?disabled="${!this.useAcme}" />
         </div>
       </div>
       
       <div class="row line">
-        <div class="row-col margin-right justify-right ${this.visibleWhen("list", "edit")}">status:</div>
+        <div class="row-col margin-right justify-right ${this.visibleWhen("list", "edit", "pending-delete")}">status:</div>
         <div class="row-col">
-          <span class="${this.visibleWhen("list", "edit")}">${hostState} ${reason}</span>
+          <span class="${this.visibleWhen("list", "edit", "pending-delete")}">${hostState} ${reason}</span>
         </div>
       </div>
       `
