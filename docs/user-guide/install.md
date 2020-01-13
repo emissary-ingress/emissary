@@ -50,8 +50,14 @@ The Ambassador Edge Stack is typically deployed to Kubernetes from the command l
     Use any of the URLs listed next to `ambassador` to access the Ambassador Edge Stack.
 
 3. Navigate to `http://<your-IP-address>` and click through the certificate warning for access the Edge Policy Console interface. The certificate warning appears because, by default, the Ambassador Edge Stack uses a self-signed certificate for HTTPS.
-    * Chrome users should click **Advanced > Proceed to website**. 
+    * Chrome users should click **Advanced > Proceed to website**.
     * Safari users should click **Show details > visit the website** and provide your password.
+
+4. To login to the [Edge Policy Console](../../about/edge-policy-console), download and install `edgectl`, the command line tool Edge Control, by following the provided instructions on the page. The Console lists the correct command to run, and provides download links for the edgectl binary.
+
+The Edge Policy Console must authenticate your session using a Kubernetes Secret in your cluster. Edge Control accesses that secret using `kubectl`, then sends a URL to your browser that contains the corresponding session key. This extra step ensures that access to the Edge Policy Console is just as secure as access to your Kubernetes cluster.
+
+For more information, see [Edge Control](../../reference/edge-control).
 
 ## Configure TLS for Automatic HTTPS
 
