@@ -70,7 +70,7 @@
     - title: Operator Guide
       link: /user-guide/operators
     - title: Developer Guide
-      linkl: /user-guide/developers
+      link: /user-guide/developers
       items:
     - title: Routing Services
       items:
@@ -102,8 +102,6 @@
       items:
       - title: Consul Integration
         link: /user-guide/consul
-      - title: Consul Connect Integration
-        link: /user-guide/consul-connect-ambassador  
       - title: Istio Integration
         link: /user-guide/with-istio
       - title: Linkerd 2 Integration
