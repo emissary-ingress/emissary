@@ -128,7 +128,10 @@ export class ResourceCollectionView extends LitElement {
     let modelClass = this.model.resourceClass();
     let viewClass  = this.viewClass();
     let child_view = new viewClass(new modelClass());
-    this.appendChild(child_view);
+    this.insertBefore(child_view, this.firstChild);
+
+    /* Begin editing the newly added ResourceView (e.g. HostView) */
+    child_view.doAdd();
   }
 
   /* onChangeSortByAttribute(event)

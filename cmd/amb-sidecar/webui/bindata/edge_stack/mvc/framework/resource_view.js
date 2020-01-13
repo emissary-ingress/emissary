@@ -92,6 +92,47 @@ export class ResourceView extends View {
     this.messages  = [];
   }
 
+  /* doAdd()
+   * This method is called on the View when the View has been newly-added to a ResourceCollectionView
+   * and needs to change to its Add mode.  This is different than the normal process when editing an
+   * existing Resource since onEdit() is called when the Edit button is pressed, and doAdd is called
+   * by the ResourceCollectionView to begin the add process.  Also, the viewState must be "add" rather
+   * than "edit", otherwise everything else is handled in the same way.
+   */
+
+  doAdd() {
+    /* Same as editing... */
+    this.onEdit();
+
+    /* Except override the viewState to indicate this is a new Resource being added, not edited. */
+    this.viewState = "add";
+  }
+
+  /* getYAMLMerge()
+  * This returns a structure containing:
+  *   the YAML of the currently rendered Resource (whether being edited or not)
+  *   and any differences from a previous version of the Resource, when editing to apply changes.
+  */
+
+  getYAMLMerge() {
+    let merge = {yaml: "", diffs: {}};
+
+    /* If the Resource is being edited, compute the differences between the currently-viewed Resource
+     * and its original.  This calls the original Resource and asks it to compute the merge and differences.
+     */
+    if (this.savedModel !== null) {
+      this.writeToModel();
+      merge = this.savedModel.computeYAMLMerge(this.model);
+    }
+    /* No savedMdel, just return the original */
+    else {
+      merge.yaml = this.model.getYAML();
+    }
+
+    // Return
+    return merge;
+  }
+
   /* nameInput()
    * This method returns the name input field, referenced below in the render() HTML.
    */
@@ -117,28 +158,69 @@ export class ResourceView extends View {
     return this.shadowRoot.getElementById("merged-yaml");
   }
 
+
   /* onCancel()
    * This method is called on the View when the View is in Edit mode, and the user clicks on the
    * Cancel button to discard the changes and return to the original state.
    */
 
   onCancel() {
+    /* Adding?  Remove the view--the Resource is not being added to the system. */
+    if (this.viewState === "add") {
+      this.parentElement.removeChild(this);
+    }
 
-    /* Swap models back, restoring listeners to the saved Model. */
-    this.model.removeListener(this);
-    this.model = this.savedModel;
-    this.model.addListener(this);
-    this.savedModel = null;
+    /* Editing? Swap models back, restoring listeners to the saved Model. */
+    if (this.viewState === "edit") {
+      this.model.removeListener(this);
+      this.model = this.savedModel;
+      this.model.addListener(this);
+      this.savedModel = null;
 
-    /* Restore to "list" state. */
-    this.viewState = "list";
+      /* Restore to "list" state. */
+      this.viewState = "list";
+    }
+  }
 
+  /* onDelete()
+   * This method is called on the View when the user has clicked the Delete button to delete the Resource.
+   * Like saving, this switches to a pending mode until the Resource has been observed to be deleted.
+   */
+
+  onDelete() {
+    if (this.viewState === "edit") {
+      let proceed = confirm(`You are about to delete the ${this.kind} named '${this.name}' in the '${this.namespace}' namespace.\n\nAre you sure?`);
+
+      if (proceed) {
+        /* Ask the Resource to delete itself. */
+        let error = this.model.doDelete();
+
+        if (error === null) {
+          /* Swap models back, restoring listeners to the saved Model. */
+          this.model.removeListener(this);
+          this.model = this.savedModel;
+          this.model.addListener(this);
+          this.savedModel = null;
+
+          /* Note that the resource is pending an update (in this case, to be deleted) */
+          this.model.setPendingUpdate();
+
+          /* Set a viewState of "pending" to hide all the buttons. */
+          this.viewState = "pending";
+          this.requestUpdate();
+        }
+        else {
+          console.log("ResourceView.onDelete() returned error ${error");
+        }
+
+      }
+    }
   }
 
   /* onEdit()
-   * This method is called on the View when the View needs to change to its Edit mode.  The View needs
-   * to create a new copy of its Model for editing, and stop listening to any updates to the old Model.
-   */
+  * This method is called on the View when the View needs to change to its Edit mode.  The View needs
+  * to create a new copy of its Model for editing, and stop listening to any updates to the old Model.
+  */
 
   onEdit() {
     /* Save the View's existing model and stop listening to it. */
@@ -154,10 +236,10 @@ export class ResourceView extends View {
   }
 
   /* onSave()
-   * This method is called on the View when the View is in Edit mode, and the user clicks on the
-   * Save button to save the changes.  Ask the modified Model to save its state, however it needs to do that.
-   * in the case of a Resource it will write back to Kubernetes with kubectl apply.
-   */
+    * This method is called on the View when the View is in Edit mode, and the user clicks on the
+    * Save button to save the changes.  Ask the modified Model to save its state, however it needs to do that.
+    * in the case of a Resource it will write back to Kubernetes with kubectl apply.
+    */
 
   onSave() {
     if (this.viewState === "add") {
@@ -167,18 +249,23 @@ export class ResourceView extends View {
     else
     if (this.viewState === "edit") {
       /* Save the changes in the resource. */
-      this.model.doSave();
+      let error = this.model.doSave();
 
-      /* Swap models back, restoring listeners to the saved Model. */
-      this.model.removeListener(this);
-      this.model = this.savedModel;
-      this.model.addListener(this);
-      this.savedModel = null;
+      if (error === null) {
+        /* Swap models back, restoring listeners to the saved Model.   Then wait for the system to update the Model
+         * which confirms the edits.
+         */
+        this.model.removeListener(this);
+        this.model = this.savedModel;
+        this.model.addListener(this);
+        this.savedModel = null;
 
-      /* Now wait for the system to come back and update the Model, which will update the View.
-       * In the future we will leave the View state as it was when edited, and watch for the
-       * snapshot data to confirm the change.
-       */
+        /* Note that the resource is pending an update */
+        this.model.setPendingUpdate();
+      }
+      else {
+        console.log("ResourceView.onSave() returned error ${error");
+      }
     }
   }
 
@@ -255,7 +342,7 @@ export class ResourceView extends View {
           <div class="col">
           
             <!-- Potentially show a crosshatch over the resource, showing that edits are pending. -->
-            <div class="${this.viewState === "off" ? "off" : (this.model.updatePending() ? "pending" : "")}">
+            <div class="${this.viewState === "off" ? "off" : (this.model.pendingUpdate() ? "pending" : "")}">
             
               <!-- Render common Resource fields: kind, name, namespace, as well as input fields when editing.   -->
               <div class="row line">
@@ -265,7 +352,7 @@ export class ResourceView extends View {
               <div class="row line">
                 <label class="row-col margin-right justify-right">name:</label>
                 <div class="row-col">
-                  <b class="${this.visibleWhen("list", "edit")}">${this.name}</b>
+                  <b class="${this.visibleWhen("list", "edit", "pending")}">${this.name}</b>
                   
                   <input class="${this.visibleWhen("add")}" name="name" type="text" value="${this.name}"/>
                 </div>
@@ -274,7 +361,7 @@ export class ResourceView extends View {
               <div class="row line">
                 <label class="row-col margin-right justify-right">namespace:</label>
                 <div class="row-col">
-                  <div class="namespace${this.visibleWhen("list", "edit")}">(${this.namespace})</div>
+                  <div class="namespace${this.visibleWhen("list", "edit", "pending")}">(${this.namespace})</div>
                   
                   <div class="namespace-input ${this.visibleWhen("add")}">
                     <div class="pararen">(</div>
@@ -299,6 +386,11 @@ export class ResourceView extends View {
             <a class="cta source ${typeof this.model.sourceURI() == 'string' ? "" : "off"}" @click=${(x)=>this.onSource(x)}>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18.83 10.83"><defs><style>.cls-2{fill:none;stroke:#000;stroke-linecap:square;stroke-miterlimit:10;stroke-width:2px;}</style></defs><title>source_2</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"><polyline class="cls-2" points="5.41 1.41 1.41 5.41 5.41 9.41"/><polyline class="cls-2" points="13.41 1.41 17.41 5.41 13.41 9.41"/></g></g></svg>
               <div class="label">source</div>
+            </a>
+            
+            <a class="cta pending ${this.visibleWhen("pending")}">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M14.078 7.061l2.861 2.862-10.799 10.798-3.584.723.724-3.585 10.798-10.798zm0-2.829l-12.64 12.64-1.438 7.128 7.127-1.438 12.642-12.64-5.691-5.69zm7.105 4.277l2.817-2.82-5.691-5.689-2.816 2.817 5.69 5.692z"/></svg>
+              <div class="label">pending</div>
             </a>
             
             <a class="cta edit ${this.visibleWhen("list", "detail", "!readOnly")}" @click=${()=>this.onEdit()}>
@@ -361,13 +453,13 @@ export class ResourceView extends View {
 
   renderYAML() {
     return;
-    /* TODO: rewrite using current YAML merge code and returned diffs, rather than this.state.* */
 
     try {
-      let yaml = this.mergedYaml();
+      let merged = this.getYAMLMerge();
       let entries = [];
       let changes = false;
-      this.state.diff.forEach((v, k) => {
+
+      merged.diffs.forEach((v, k) => {
         if (v !== "ignored") {
           changes = true;
           entries.push(html`<li><span class="yaml-path">${k}</span> <span class="yaml-change">${v}</span></li>`);
