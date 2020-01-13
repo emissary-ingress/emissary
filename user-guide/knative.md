@@ -19,6 +19,6 @@ Ambassador can watch for changes in Knative configuration in your Kubernetes clu
 
 #### Installation
 
-Install the latest Knative Serving with Ambassador handling traffic to your serverless applications by following the instructions [here](https://knative.dev/docs/install/knative-with-ambassador/).
+Install the latest Knative Serving with Ambassador to handle traffic to your serverless applications by following the instructions [here](https://knative.dev/docs/install/knative-with-ambassador/).
 
 See the [Knative documentation](https://knative.dev/docs/) for more information.
