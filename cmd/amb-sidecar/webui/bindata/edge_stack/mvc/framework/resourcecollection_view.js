@@ -54,8 +54,14 @@ export class ResourceCollectionView extends LitElement {
    * model is the ResourceCollection that is being rendered by this ResourceCollectionView.
    */
 
-  constructor() {
+  constructor(model) {
     super();
+
+    /* model is a ResourceCollection (e.g. HostCollection) */
+    this.model = model;
+
+    /* Listen to changes from this model */
+    model.addListener(this);
 
     /* sortFields is an array of {value: label} objects, where the value is the Resource property
      * on which to sort, and label is the display name for the HTML component.  For example, to allow
@@ -119,9 +125,11 @@ export class ResourceCollectionView extends LitElement {
   */
 
   onAdd() {
-    throw new Error("please implement ${this.constructor.name}.onAdd()")
+    let modelClass = this.model.resourceClass();
+    let viewClass  = this.viewClass();
+    let child_view = new viewClass(new modelClass());
+    this.appendChild(child_view);
   }
-
 
   /* onChangeSortByAttribute(event)
   * This method is called when the user has selected an attribute for sorting the ResourceCollectionView.
@@ -195,7 +203,7 @@ export class ResourceCollectionView extends LitElement {
       let description  = this.pageDescription();
 
       return html`
-        <div style="border:thick solid red">
+        <div style="border:thick solid green">
             <link rel="stylesheet" href="../styles/resources.css">
             <div class="header_con">
                 <div class="col">

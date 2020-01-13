@@ -34,13 +34,11 @@ export class HostCollectionView extends IResourceCollectionView {
    }
 
   /* constructor()
+   * Tell the superclass that the model is AllHosts.
    */
 
   constructor() {
-    super();
-
-    /* Listen to AllHosts for updates. */
-    AllHosts.addListener(this);
+    super(AllHosts);
   }
 
   /* pageDescription()

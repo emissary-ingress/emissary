@@ -44,14 +44,27 @@ export class Resource extends Model {
     /* calling Model.constructor() */
     super();
 
-    /* Initialize instance variables */
-    this.kind        = resourceData.kind;
-    this.name        = resourceData.metadata.name;
-    this.namespace   = resourceData.metadata.namespace;
-    this.version     = resourceData.metadata.resourceVersion;
-    this.labels      = resourceData.metadata.labels || {};
-    this.annotations = resourceData.metadata.annotations || {};
-    this.status      = resourceData.status || this.getEmptyStatus();
+    /* If resourceData does not include metadata, set it to the empty object so that the name, namespace,
+     * resourcevVersion, labels and annotation fields will be set to their default values during initialization.
+     */
+    resourceData.metadata = resourceData.metadata || {};
+
+    /* Initialize instance variables from resourceData.  For those fields that are unknown,
+     * initialize to default values.  This is when adding a new Resource whose values will be
+     * specified by the user.
+     */
+    this.kind        = resourceData.kind                      || "<must specify resource kind in constructor>";
+    this.name        = resourceData.metadata.name             || "<resource name>";
+    this.namespace   = resourceData.metadata.namespace        || "default";
+    this.version     = resourceData.metadata.resourceVersion  || "0";
+    this.labels      = resourceData.metadata.labels           || {};
+    this.annotations = resourceData.metadata.annotations      || {};
+    this.status      = resourceData.status                    || this.getEmptyStatus();
+
+    /* Internal state for when the Resource is edited and is pending confirmation of the edit
+     * from a future snapshot.
+     */
+    this._pending    = false;
   }
 
   /* copySelf()
@@ -98,9 +111,13 @@ export class Resource extends Model {
    */
 
   doAdd() {
+    throw Error("Not Yet Implemented");
+
     let cookie = getCookie("edge_stack_auth");
 
-    throw Error("Not Yet Implemented");
+    /* Note that we are pending confirmation from Kubernetes, and expect to see it in a future snapshot. */
+    this._pending = true;
+
   }
 
   /* doDelete()
@@ -141,9 +158,13 @@ export class Resource extends Model {
    */
 
   doSave() {
+    throw Error("Not Yet Implemented");
+
     let cookie = getCookie("edge_stack_auth");
 
-    throw Error("Not Yet Implemented");
+    /* Note that we are pending confirmation from Kubernetes, and expect to see it in a future snapshot. */
+    this._pending = true;
+
   }
 
   /* getEmptyStatus()
@@ -242,6 +263,17 @@ export class Resource extends Model {
     if (updated) {
       this.notifyListenersUpdated();
     }
+  }
+
+
+  /* updatePending()
+   * Return whether the Resource is pending an update after doSave().  This is used for rendering the
+   * Resource differently in the View if the current state in the Resource object has been added or edited and not
+   * yet resolved from a snapshot.
+   */
+
+  updatePending() {
+    return this._pending;
   }
 
   /* validate()

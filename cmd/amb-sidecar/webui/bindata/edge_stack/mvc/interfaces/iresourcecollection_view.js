@@ -44,11 +44,12 @@ export class IResourceCollectionView extends ResourceCollectionView {
     return ResourceCollectionView.styles;
   }
 
-  /* constructor()
+  /* constructor(model).
+   * model is an IResourceCollection subclass.
    */
 
-  constructor() {
-    super();
+  constructor(model) {
+    super(model);
   }
 
   /* pageDescription()

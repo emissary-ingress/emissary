@@ -4,7 +4,7 @@
  * its Resource model object, as well as state used for the different view variants (edit, add, etc.)
  */
 
-import { html } from '../../vendor/lit-element.min.js'
+import { html, css } from '../../vendor/lit-element.min.js'
 
 /* Object merge operation */
 import { objectMerge } from "../framework/utilities.js"
@@ -33,6 +33,23 @@ export class ResourceView extends View {
     return objectMerge(myProperties, View.properties);
   }
 
+  static get styles() {
+    return css`
+      .error {
+        color: red;
+      }
+      
+      div.pending {
+        background: repeating-linear-gradient(
+          -45deg,
+          #f8f8f8,
+          #f8f8f8 10px,
+          #eeeeee 10px,
+          #eeeeee 20px
+        );
+      }
+    }`
+  }
   /* constructor
    * The ResourceView constructor, which takes a Resource (model) as its parameter.
    * We cache the state from the model in the view its itself, as properties.
@@ -51,6 +68,11 @@ export class ResourceView extends View {
     /* Since we are managing a Resource view, we may have messages to display, and optional YAML */
     this.messages = [];
     this.showYAML = false;
+
+    /* For editing, we will save the existing Model while we edit a new one that will replace the old.
+     * If there is a savedModel, then there must be an edit in progress using this view.
+     */
+    this.savedModel = null;
   }
 
   /* addMessage(message)
@@ -86,6 +108,11 @@ export class ResourceView extends View {
     return this.shadowRoot.querySelector(`input[name="namespace"]`);
   }
 
+  /* yamlElement()
+   * This method returns the element that renders the YAML of the resource, either the pending changes
+   * if shown during editing, or the current values.
+   */
+
   yamlElement() {
     return this.shadowRoot.getElementById("merged-yaml");
   }
@@ -96,7 +123,16 @@ export class ResourceView extends View {
    */
 
   onCancel() {
-    throw Error("Not Yet Implemented");
+
+    /* Swap models back, restoring listeners to the saved Model. */
+    this.model.removeListener(this);
+    this.model = this.savedModel;
+    this.model.addListener(this);
+    this.savedModel = null;
+
+    /* Restore to "list" state. */
+    this.viewState = "list";
+
   }
 
   /* onEdit()
@@ -105,8 +141,6 @@ export class ResourceView extends View {
    */
 
   onEdit() {
-    throw Error("Not Yet Implemented");
-
     /* Save the View's existing model and stop listening to it. */
     this.savedModel = this.model;
     this.model.removeListener(this);
@@ -126,17 +160,9 @@ export class ResourceView extends View {
    */
 
   onSave() {
-    throw Error("Not Yet Implemented");
-
     if (this.viewState === "add") {
       /* Add the new resource to the system. */
       this.model.doAdd();
-
-      /* Remove the view.  The next snapshot will create a new Resource which then will create a corresponding
-       * View that represents the added resource.  In the future, we will not remove the view but change it to a
-       * "pending" state.
-       */
-      this.parentElement.removeChild(this);
     }
     else
     if (this.viewState === "edit") {
@@ -147,6 +173,7 @@ export class ResourceView extends View {
       this.model.removeListener(this);
       this.model = this.savedModel;
       this.model.addListener(this);
+      this.savedModel = null;
 
       /* Now wait for the system to come back and update the Model, which will update the View.
        * In the future we will leave the View state as it was when edited, and watch for the
@@ -227,40 +254,42 @@ export class ResourceView extends View {
         <div class="card ${this.viewMode === "off" ? "off" : ""}">
           <div class="col">
           
-           <!-- Render common Resource fields: kind, name, namespace, as well as input fields when editing.   -->
-         
-            <div class="row line">
-              <div class="row-col margin-right">${this.kind}:</div>
-            </div>
+            <!-- Potentially show a crosshatch over the resource, showing that edits are pending. -->
+            <div class="${this.viewState === "off" ? "off" : (this.model.updatePending() ? "pending" : "")}">
             
-            <div class="row line">
-              <label class="row-col margin-right justify-right">name:</label>
-              <div class="row-col">
-                <b class="${this.visibleWhen("list", "edit")}">${this.name}</b>
-                
-                <input class="${this.visibleWhen("add")}" name="name" type="text" value="${this.name}"/>
+              <!-- Render common Resource fields: kind, name, namespace, as well as input fields when editing.   -->
+              <div class="row line">
+                <div class="row-col margin-right">${this.kind}:</div>
               </div>
-            </div>
-            
-            <div class="row line">
-              <label class="row-col margin-right justify-right">namespace:</label>
-              <div class="row-col">
-                <div class="namespace${this.visibleWhen("list", "edit")}">(${this.namespace})</div>
-                
-                <div class="namespace-input ${this.visibleWhen("add")}">
-                  <div class="pararen">(</div>
-                  <input class="${this.visibleWhen("add")}" name="namespace" type="text" value="${this.namespace}"/>
-                  <div class="pararen">)</div>
+              
+              <div class="row line">
+                <label class="row-col margin-right justify-right">name:</label>
+                <div class="row-col">
+                  <b class="${this.visibleWhen("list", "edit")}">${this.name}</b>
+                  
+                  <input class="${this.visibleWhen("add")}" name="name" type="text" value="${this.name}"/>
                 </div>
               </div>
+              
+              <div class="row line">
+                <label class="row-col margin-right justify-right">namespace:</label>
+                <div class="row-col">
+                  <div class="namespace${this.visibleWhen("list", "edit")}">(${this.namespace})</div>
+                  
+                  <div class="namespace-input ${this.visibleWhen("add")}">
+                    <div class="pararen">(</div>
+                    <input class="${this.visibleWhen("add")}" name="namespace" type="text" value="${this.namespace}"/>
+                    <div class="pararen">)</div>
+                  </div>
+                </div>
+              </div>
+  
+              <!-- Render the customized HTML for subclasses of IResourceView, and any messages or YAML that should be displayed.  -->
+          
+              ${this.renderSelf()}
+              ${this.renderMessages()}
+              ${this.renderYAML()}
             </div>
-
-          <!-- Render the customized HTML for subclasses of IResourceView, and any messages or YAML that should be displayed.  -->
-      
-          ${this.renderSelf()}
-          ${this.renderMessages()}
-          ${this.renderYAML()}
-      
           </div>
           
           <!-- Render buttons for showing sourceURI, editing, saving, deleting, and cancelling edits. -->

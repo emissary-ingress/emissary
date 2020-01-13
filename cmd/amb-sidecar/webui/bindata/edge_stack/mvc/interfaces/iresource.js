@@ -32,9 +32,9 @@ export class IResource extends Resource {
 
   /* constructor() */
 
-  constructor(data) {
+  constructor(resourceData) {
     /* call Resource's constructor */
-    super(data);
+    super(resourceData);
   }
 
   /* copySelf()

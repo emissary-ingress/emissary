@@ -16,7 +16,7 @@ export class HostResource extends IResource {
    * and other useful state to be maintained in the Resource instance.
    */
 
-  constructor(resourceData) {
+  constructor(resourceData = { kind: "Host"}) {
     /* Define the instance variables that are part of the model. Views and other Resource users will access
      * these for rendering and modification.  All resource objects have a kind, a name, and a namespace, which
      * together are a unique identifier throughout the Kubernetes system.  They may also have annotations,
@@ -27,11 +27,21 @@ export class HostResource extends IResource {
     /* calling Resource.constructor(data) */
     super(resourceData);
 
-    /* host-specific instance variables. */
-    this.hostname     = resourceData.spec.hostname;
-    this.acmeProvider = resourceData.spec.acmeProvider.authority || "";
-    this.acmeEmail    = resourceData.spec.acmeProvider.email || "";
-    this.useAcme      = (this.acmeEmail !== "" && this.acmeProvider !== "");
+    /* If resourceData does not include a spec, set it, and it's subfield acmeProvider, to a default object so that
+     * the hostname, acmeProvider, and acmeEmail fields will be set to their default values during initialization.
+     * Otherwise javascript would fail, trying to access a field of "null"
+     */
+    resourceData.spec = resourceData.spec || { acmeProvider: {}};
+
+    /* Initialize host-specific instance variables from resourceData. For those fields that are unknown, initialize
+     * to default values.  This occurs when adding a new HostResource whose values will be specified by the user.
+     */
+    this.hostname     = resourceData.spec.hostname                || "<specify new hostname>";
+    this.acmeProvider = resourceData.spec.acmeProvider.authority  || "https://acme-v02.api.letsencrypt.org/directory";
+    this.acmeEmail    = resourceData.spec.acmeProvider.email      || "<specify your email address here>";
+
+    /* if we have a a provider and an email address, then using Acme. */
+    this.useAcme = (this.acmeEmail !== "" && this.acmeProvider !== "");
   }
 
   /* copySelf()
