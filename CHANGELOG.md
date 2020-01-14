@@ -4,7 +4,7 @@
 
 ### AMBASSADOR EDGE STACK 1.0.0
 
-Ambassador Edge Stack 1.0.0 is in **EARLY ACCESS**. Major new features include the addition of the
+Ambassador Edge Stack 1.0.0 is in **GENERAL AVAILABILITY**. Major new features include the addition of the
 `Host` CRD, which provides for a simple way to let Ambassador know what domain names it should
 expect to be handling, and enables Ambassador to manage TLS certificates natively with ACME.
 
@@ -47,7 +47,7 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
-## [1.0.0] TBD
+## [1.0.0] January 14, 2020
 [1.0.0]: https://github.com/datawire/ambassador/compare/v0.86.0...v1.0.0
 
 ### Caution!
