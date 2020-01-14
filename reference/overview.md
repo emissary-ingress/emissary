@@ -67,7 +67,7 @@ The Reference section provides detailed information on configuring and managing 
 [RateLimtingService Plugin](/reference/services/rate-limit-service)
 [TracingService Plugin](/reference/services/tracing-service)
 
-## IDP SupporT
+## IDP Support
 
 [Auth0](/reference/idp-support/auth0)
 [Azure AD](/reference/idp-support/azure)
@@ -75,7 +75,7 @@ The Reference section provides detailed information on configuring and managing 
 [Keycloak](/reference/idp-support/keycloak)
 [Okta](/reference/idp-support/okta)
 [OneLogin](/reference/idp-support/onelogin)
-[Salesforce Single Sign-on](/reference/idp-support/salesforcE)
+[Salesforce Single Sign-on](/reference/idp-support/salesforce)
 [User Account and Authentication](/reference/idp-support/uaa)
 
 ## Advanced Usage
