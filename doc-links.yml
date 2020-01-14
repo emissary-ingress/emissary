@@ -67,10 +67,6 @@
   items: 
     - title: Available Guides 
       link: /docs/guides/
-    - title: Operator Guide
-      link: /user-guide/operators
-    - title: Developer Guide
-      link: /user-guide/developers
       items:
     - title: Routing Services
       items:
