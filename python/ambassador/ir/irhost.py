@@ -125,6 +125,7 @@ class IRHost(IRResource):
                     if not pkey_ss:
                         ir.logger.error(f"Host {self.name}: continuing with invalid private key secret {pkey_name}")
 
+        ir.logger.info(f"Host setup OK: {self.pretty()}")
         return True
 
     def pretty(self) -> str:
