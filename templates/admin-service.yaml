@@ -10,6 +10,8 @@ metadata:
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/part-of: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+    # Hard-coded label for Prometheus Operator ServiceMonitor
+    service: ambassador-admin
   {{- with .Values.adminService.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
@@ -18,7 +20,7 @@ spec:
   type: {{ .Values.adminService.type }}
   ports:
     - port: {{ .Values.adminService.port }}
-      targetPort: admin
+      targetPort: ambassador-admin
       protocol: TCP
       name: admin
       {{- if (and (eq .Values.adminService.type "NodePort") (not (empty .Values.adminService.nodePort))) }}
