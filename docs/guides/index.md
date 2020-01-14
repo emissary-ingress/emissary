@@ -16,6 +16,7 @@ Guides are hands-on tutorials to walk you through configuring the Ambassador Edg
  <td style="vertical-align:top;width:55%;">
   <strong>Security</strong>
  <ul>
+  <li><a href="../../user-guide/security">Security Overview</a></li>
   <li><a href="../../user-guide/tls-termination">Transport Layer Security (TLS) Guide</a></li>
   <li><a href="../../user-guide/sni">Server Name Indication with TLS Guide</a></li>
   <li><a href="../../user-guide/auth-tutorial">Basic HTTP Authentication Guide</a></li>
@@ -58,7 +59,7 @@ Guides are hands-on tutorials to walk you through configuring the Ambassador Edg
 
 ## Advanced Guides
 
-Check out the [Operator's Guide](../../user-guide/operators) and the [Developer's Guide][../../user-guide/developers].
+Check out the [Operator's Guide](../../user-guide/operators) and the [Developer's Guide](../../user-guide/developers).
 
 ## Want to Contribute?
 

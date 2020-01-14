@@ -17,7 +17,9 @@
 set -o errexit
 set -o nounset
 
-if ! [[ -d /tmp/getambassador.io/public ]]; then
+website_branch=${1:-master}
+
+if ! [[ -d /tmp/getambassador.io-${website_branch}/public ]]; then
 	echo '[publish-website-preview] skipping: website preview was not built'
 	exit 0
 fi
@@ -27,7 +29,7 @@ set -o verbose
 npm install netlify-cli -g
 
 netlify deploy \
-	--dir=/tmp/getambassador.io/public \
+	--dir="/tmp/getambassador.io-${website_branch}/public" \
 	--message="ambassador-docs.git preview ${TRAVIS_JOB_WEB_URL}" \
 	--site=1d6f5395-6386-49af-8b47-e85aa28488f8 \
 	--auth="${NETLIFY_AUTH_TOKEN}" \
@@ -36,14 +38,18 @@ netlify deploy \
 
 cat /tmp/netlify-deploy.json
 
-jq '{
-  context: "continuous-integration/website-preview",
-  state: "success",
-  target_url: .deploy_url,
-  description: "Website preview"
-}' < /tmp/netlify-deploy.json > /tmp/github-status.json
+cat >/tmp/github-status.json <<EOF
+{
+  "context": "website-preview/${website_branch}",
+  "state": "success",
+  "target_url": $(jq .deploy_url </tmp/netlify-deploy.json),
+  "description": "Website ${website_branch} preview"
+}
+EOF
 
-curl \
+cat /tmp/github-status.json
+
+curl --fail \
 	-H "Accept: application/json" \
 	-H "Content-Type: application/json" \
 	-X POST \
