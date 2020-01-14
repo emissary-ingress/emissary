@@ -35,7 +35,14 @@ helm install --name ambassador --namespace ambassador datawire/ambassador
 
 This will install the necessary deployments, RBAC, Custom Resource Definitions, etc. for the Ambassador Edge Stack to route traffic. Details on how to configure Ambassador using the Helm chart can be found in the Helm chart [README](https://github.com/datawire/ambassador-chart/tree/master).
 
-**Note:** The Helm chart deploys the Ambassador Edge Stack, but it does not create the Edge Stack resources necessary for authentication, rate limiting, automatic HTTPS, etc.
+3. Apply additional Ambassador Edge Stack resources.
+
+The Helm chart deploys Ambassador Edge Stack itself, but does not create the additional resources necessary for authentication, rate limiting, automatic HTTPS, etc. To take full advantage of Ambassador Edge Stack, you'll need
+create these resources with `kubectl`:
+
+```
+kubectl apply -f https://www.getambassador.io/yaml/resources-migration.yaml
+```
 
 ## Upgrading an Existing Edge Stack Installation
 
@@ -96,5 +103,5 @@ The Helm chart deploys Ambassador Edge Stack itself, but does not create the add
 create these resources with `kubectl`:
 
 ```
-kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-edge-stack-resources.yaml # FIXME: this URL is broken
+kubectl apply -f https://www.getambassador.io/yaml/resources-migration.yaml
 ```
