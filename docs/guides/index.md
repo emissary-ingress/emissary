@@ -57,10 +57,6 @@ Guides are hands-on tutorials to walk you through configuring the Ambassador Edg
 </tr>
 </table>
 
-## Advanced Guides
-
-Check out the [Operator's Guide](../../user-guide/operators) and the [Developer's Guide](../../user-guide/developers).
-
 ## Want to Contribute?
 
 If you're interested in contributing to Ambassador, writing (or updating) a Guide is a great place to start. Join our [Slack channel](https://d6e.co/slack) in #ambassador-dev to get started.
