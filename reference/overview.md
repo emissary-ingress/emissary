@@ -7,11 +7,13 @@ The Reference section provides detailed information on configuring and managing 
 [Configuring Ambassador Edge Stack](../../reference/configuration)
 [Using Custom Resource Definitions](../../reference/core/crds)
 [Ambassador as an Ingress Controller](../../reference/core/ingress-controller)
+[Environment Variables](../../reference/environment)
 
 ## Global and Core Configuration
 
 [Modules Overview](../../reference/modules)
 [ambassador Module Core Configuration](../../reference/core/ambassador)
+[Kubernetes Annotations](../../reference/core/annotationsx)
 [Gzip compression](../../reference/gzip)
 [Load Balancing Configuration](../../reference/core/load-balancer)
 [Service Discovery and Resolver Configuration](../../reference/core/resolvers)
@@ -23,8 +25,9 @@ The Reference section provides detailed information on configuring and managing 
 [Diagnostics](../../reference/diagnostics)
 [Debugging](../../reference/debugging)
 
-## TLS and Cryptography	
+## TLS and Cryptography
 
+[Authentication and Identity Aware Proxy](../../reference/authentication)
 [Transport Layer Security (TLS)](../../reference/core/tls)
 [Client Certificate Validation](../../reference/tls/client-cert-validation)
 [HTTP -> HTTPS Redirection](../../reference/tls/cleartext-redirection)
