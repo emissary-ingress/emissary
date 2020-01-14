@@ -198,6 +198,11 @@ def standard_handler(f):
 
         app.logger.debug("%s handler %s" % (prefix, func_name))
 
+        # getting elements in the `tvars_cache` will make sure eviction happens on `max_age_seconds` TTL
+        # for removed patch_client rather than waiting to fill `max_len`
+        for k in iter(tvars_cache):
+            tvars_cache.get(k)
+
         # Default to the exception case
         result_to_log = "server error"
         status_to_log = 500
@@ -466,11 +471,6 @@ def check_ready():
 @standard_handler
 def show_overview(reqid=None):
     app.logger.debug("OV %s - showing overview" % reqid)
-
-    # getting elements in the `tvars_cache` will make sure eviction happens on `max_age_seconds` TTL
-    # for removed patch_client rather than waiting to fill `max_len`
-    for k in iter(tvars_cache):
-        tvars_cache.get(k)
 
     diag = app.diag
 
