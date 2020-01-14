@@ -1,7 +1,6 @@
 from typing import Tuple, Union
 
-from kat.harness import Query
-from kat.utils import ShellCommand
+from kat.harness import Query, EDGE_STACK
 
 from abstract_tests import AmbassadorTest, assert_default_errors, HTTP, Node, ServiceType
 
@@ -9,6 +8,10 @@ from abstract_tests import AmbassadorTest, assert_default_errors, HTTP, Node, Se
 class Empty(AmbassadorTest):
     single_namespace = True
     namespace = "empty-namespace"
+
+    def init(self):
+        if EDGE_STACK:
+            self.xfail = "XFailing for now"
 
     @classmethod
     def variants(cls):
