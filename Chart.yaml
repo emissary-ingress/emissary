@@ -3,7 +3,7 @@ appVersion: 1.0.0
 ossVersion: 0.86.1
 description: A Helm chart for Datawire Ambassador
 name: ambassador
-version: 5.2.1
+version: 5.2.2
 icon: https://www.getambassador.io/images/logo.png
 home: https://www.getambassador.io/
 sources:
