@@ -1,7 +1,7 @@
 - title: Welcome
   collapsable: false
   items:
-    - title: Getting Started with the Ambassador Edge Stack
+    - title: Welcome
       link: /docs/
     - title: Why the Ambassador Edge Stack?
       link: /about/why-ambassador
