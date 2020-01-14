@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"flag"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -22,6 +23,7 @@ import (
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
+	"k8s.io/klog"
 	grpchealth "google.golang.org/grpc/health"
 
 	// first-party libraries
@@ -216,6 +218,11 @@ func runE(cmd *cobra.Command, args []string) error {
 	level, _ := logrus.ParseLevel(cfg.LogLevel)
 	logrusLogger.SetLevel(level)
 	logrus.SetLevel(level) // FIXME(lukeshu): Some Lyft code still uses the global logger
+
+	// FIXME(lukeshu): Find a way to hook klog in to our logger; client-go uses klog behind our back
+	klogFlags := flag.NewFlagSet(os.Args[0], flag.PanicOnError)
+	klog.InitFlags(klogFlags)
+	klogFlags.Parse([]string{"-logtostderr=true", "-v=10"})
 
 	kubeinfo := k8s.NewKubeInfo("", "", "") // Empty file/ctx/ns for defaults
 	restconfig, err := kubeinfo.GetRestConfig()
