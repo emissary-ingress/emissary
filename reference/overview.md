@@ -86,3 +86,4 @@ The Reference section provides detailed information on configuring and managing 
 * [Filter References](../../reference/filter-reference)
 * [Statistics and Monitoring](../../reference/statistics)
 * [Developer Portal](../../reference/dev-portal)
+* [Operator's Guide](../../user-guide/operators)
