@@ -59,7 +59,7 @@ Guides are hands-on tutorials to walk you through configuring the Ambassador Edg
 
 ## Advanced Guides
 
-Check out the [Operator's Guide](../../user-guide/operators) and the [Developer's Guide][../../user-guide/developers].
+Check out the [Operator's Guide](../../user-guide/operators) and the [Developer's Guide](../../user-guide/developers).
 
 ## Want to Contribute?
 
