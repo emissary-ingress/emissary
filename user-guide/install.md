@@ -37,5 +37,5 @@ The original Ambassador API Gateway. See the [instructions](../../user-guide/ins
 If you already have the Ambassador Edge Stack, here are a few different ways you can upgrade your instance:
 
 1. [Upgrade to the Ambassador Edge Stack from the API Gateway](../../user-guide/upgrade-to-edge-stack).
-2. [Upgrade your Ambassador Instance](../reference/upgrading) to the latest version.
+2. [Upgrade your Ambassador Instance](../../reference/upgrading) to the latest version.
 3. Try out our [early access releases](../../user-guide/early-access).
