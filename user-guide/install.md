@@ -1,4 +1,4 @@
-# Install and Upgrade Overview
+# Installing the Ambassador Edge Stack
 
 The Ambassador Edge Stack can be installed in a variety of ways:
 
