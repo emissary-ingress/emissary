@@ -769,7 +769,7 @@ class AmbassadorEventWatcher(threading.Thread):
     }
 
     def __init__(self, app: DiagApp) -> None:
-        super().__init__(name="AmbassadorEventWatcher", daemon=True)
+        super().__init__(name="AEW", daemon=True)
         self.app = app
         self.logger = self.app.logger
         self.events: queue.Queue = queue.Queue()

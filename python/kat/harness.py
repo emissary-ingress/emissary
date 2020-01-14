@@ -1066,6 +1066,29 @@ class Superpod:
 
         return list(manifest)
 
+CLEARTEXT_HOST_YAML = '''
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: cleartext-host-{self.path.k8s}
+  labels:
+    scope: AmbassadorTest
+  namespace: %s
+spec:
+  ambassador_id: [ "{self.ambassador_id}" ]
+  hostname: "*"
+  selector:
+    matchLabels:
+      hostname: {self.path.k8s}
+  acmeProvider:
+    authority: none
+  requestPolicy:
+    insecure:
+      action: Route
+      additionalPort: 8080
+'''
+
 class Runner:
 
     def __init__(self, *classes, scope=None):
@@ -1213,6 +1236,15 @@ class Runner:
                 yaml = n.manifests()
 
                 if yaml is not None:
+                    add_cleartext_host = getattr(n, 'edge_stack_cleartext_host', False)
+                    is_plain_test = n.path.k8s.startswith("plain-")
+
+                    if EDGE_STACK and n.is_ambassador and add_cleartext_host and not is_plain_test:
+                        # print(f"{n.path.k8s} adding Host")
+
+                        host_yaml = CLEARTEXT_HOST_YAML % nsp
+                        yaml += host_yaml
+
                     yaml = n.format(yaml)
 
                     try:

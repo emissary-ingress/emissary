@@ -78,6 +78,7 @@ class IR:
     saved_secrets: Dict[str, SavedSecret]
     secret_handler: SecretHandler
     secret_root: str
+    sidecar_cluster_name: Optional[str]
     tls_contexts: Dict[str, IRTLSContext]
     tls_module: Optional[IRAmbassadorTLS]
     tracing: Optional[IRTracing]
@@ -143,6 +144,7 @@ class IR:
         self.saved_secrets = {}
         self.secret_info = {}
         self.services = {}
+        self.sidecar_cluster_name = None
         self.tls_contexts = {}
         self.tls_module = None
         self.tracing = None
@@ -601,6 +603,10 @@ class IR:
     def add_cluster(self, cluster: IRCluster) -> IRCluster:
         if not self.has_cluster(cluster.name):
             self.clusters[cluster.name] = cluster
+
+            if cluster.is_edge_stack_sidecar():
+                self.logger.info(f"IR: cluster {cluster.name} is the sidecar")
+                self.sidecar_cluster_name = cluster.name
 
         return self.clusters[cluster.name]
 

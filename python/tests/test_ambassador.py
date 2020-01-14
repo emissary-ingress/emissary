@@ -1,4 +1,4 @@
-from kat.harness import Runner
+from kat.harness import Runner, EDGE_STACK
 
 from abstract_tests import AmbassadorTest
 
