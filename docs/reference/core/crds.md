@@ -91,6 +91,19 @@ rules:
   verbs: ["get", "list", "watch", "create", "update"]
 ```
 
+## Annotations
+
+The Ambassador Edge Stack uses informational annotations on getambassador.io custom resources to tag, trace, and export all changes applied to resources configured via the Edge Policy Console.
+
+Namely, these annotations are:
+
+- getambassador.io/resource-editable
+- getambassador.io/resource-changed
+- getambassador.io/resource-source
+- getambassador.io/resource-downloaded
+
+None of these annotations influence the expected behavior of resources. They are purely informative. You may chose to ignore them or discard them if you describe any of your configured resources.
+
 ## Creating the CRD types within Kubernetes
 
 Before using the CRD types, you must add them to the Kubernetes API server. This is most easily done by applying [`aes-crds.yaml`](../../../yaml/aes-crds.yaml).
