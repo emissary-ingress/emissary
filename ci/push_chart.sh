@@ -21,7 +21,7 @@ if [ -z "$PUSH_CHART" ] || [ "$PUSH_CHART" = "false" ] ; then
 fi
 
 info "Pushing Helm Chart"
-helm package
+helm package $TOP_DIR
 
 # Get name of package
 export CHART_PACKAGE=$(ls *.tgz)
