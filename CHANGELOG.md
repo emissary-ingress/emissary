@@ -89,6 +89,11 @@ behavior before upgrading your CRDs.
 - There is a web user-interface for Ambassador
 - BREAKING CHANGE: `APP_LOG_LEVEL` is now `AES_LOG_LEVEL`
 
+## [1.0.0-rc5] January 14, 2020
+[1.0.0-rc5]: https://github.com/datawire/ambassador/compare/v1.0.0-rc4...v1.0.0-rc5
+
+- AES: Bugfix: Fix ACME client with multiple replicas
+
 ## [1.0.0-rc4] January 13, 2020
 [1.0.0-rc4]: https://github.com/datawire/ambassador/compare/v1.0.0-rc1...v1.0.0-rc4
 
