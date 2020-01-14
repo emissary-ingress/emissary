@@ -18,8 +18,11 @@ set -o errexit
 set -o nounset
 
 website_branch=${1:-master}
+pr_branch=${TRAVIS_PULL_REQUEST_SHA:+${TRAVIS_BRANCH:-}}
 
-case "${TRAVIS_PULL_REQUEST_SHA:+${TRAVIS_BRANCH:-}}" in
+echo "[pr-build-website-preview] website branch ${website_branch}, PR branch ${pr_branch}"
+
+case "$pr_branch" in
 	master) submodule=content;;
 	early-access)
 		case "$website_branch" in
