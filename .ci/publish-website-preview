@@ -47,6 +47,8 @@ cat >/tmp/github-status.json <<EOF
 }
 EOF
 
+cat /tmp/github-status.json
+
 curl --fail \
 	-H "Accept: application/json" \
 	-H "Content-Type: application/json" \
