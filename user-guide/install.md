@@ -24,7 +24,7 @@ See the [Docker](../../about/quickstart) instructions to try it now.
 
 ### Bare Metal
 
-If you don't have a load balancer, you can use Kubernetes' Bare Metal, which allows you to expose the Ambassador Edge Stack via NodePort. 
+If you don't have a load balancer, you can use Kubernetes' Bare Metal, which allows you to expose the Ambassador Edge Stack via NodePort.
 
 See the [Bare Metal](../../user-guide/bare-metal) instructions to try it now.
 
