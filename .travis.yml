@@ -1,10 +1,22 @@
 ---
 
+env:
+  global:
+    - CI=travis
+    - IS_CI=true
+    - E2E_CLEANUP=true
+    # - PROVIDER="kubernaut"
+    - PROVIDER="k3d"
+    # PUSH_CHART must be != "false" for pushing the chart
+    - PUSH_CHART="true"
+    - AWS_BUCKET="datawire-static-files"
+
 install:
-  - ./ci/install_deps.sh
-  - PATH=~/bin:$PATH
+  - export PATH=~/bin:$PATH
   - source ~/.gimme/envs/latest.env
-  - export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
+  - ./ci/install.sh
+  - ./ci/provider.sh setup
+  - ./ci/provider.sh create
 
 language: generic
 
@@ -12,9 +24,19 @@ branches:
   only:
   - master
   - /^v.*$/
+  - ci-test
 
 script: 
-  - cd ci && ./run_test.sh
+  - ./ci/run_test.sh
 
 after_script:
-  - kubernaut claims delete $(cat ~/kubernaut-claim.txt)
+  - ./ci/provider.sh delete
+
+deploy:
+  provider: script
+  script: bash ./ci/push_chart.sh
+  on:
+    tags: true
+    # FIXME: this is for testing. change to "branch: master" for publishing only in tags in "master"
+    # branch: master
+    all_branches: true
