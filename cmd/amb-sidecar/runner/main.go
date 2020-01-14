@@ -222,7 +222,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	// FIXME(lukeshu): Find a way to hook klog in to our logger; client-go uses klog behind our back
 	klogFlags := flag.NewFlagSet(os.Args[0], flag.PanicOnError)
 	klog.InitFlags(klogFlags)
-	klogFlags.Parse([]string{"-logtostderr=true", "-v=10"})
+	klogFlags.Parse([]string{"-logtostderr=true", "-v=4"})
 
 	kubeinfo := k8s.NewKubeInfo("", "", "") // Empty file/ctx/ns for defaults
 	restconfig, err := kubeinfo.GetRestConfig()
