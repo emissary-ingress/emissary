@@ -52,18 +52,21 @@ Format:
 
 ### Caution!
 
-All of Ambassador's CRDs have been switched to `apiVersion: getambassador.io/v2`, and
+All of Ambassador's CRDs have been switched to `apiVersion: getambassador.io/v2`, and 
 **your resources will be upgraded when you apply the new CRDs**. We recommend that you
 follow the [migration instructions](https://getambassador.io/early-access/user-guide/upgrade-to-edge-stack/) and check your installation's
 behavior before upgrading your CRDs.
 
 ### Breaking changes
 
-- When a resource specifies a service or secret name without a corresponding namespace, Ambassador uses the namespace of the resource. In the past, Ambassador would use its own namespace.
+- When a resource specifies a service or secret name without a corresponding namespace, Ambassador will now
+  look for the service or secret in the namespace of the resource that mentioned it. In the past, Ambassador
+  would look in the namespace in which Ambassador was running.
 
 ### Features
 
-- The Host CR provides an easy way to tell Ambassador about domains it should expect to handle
+- The Host CR provides an easy way to tell Ambassador about domains it should expect to handle, and 
+  how it should handle secure and insecure requests for those domains
 - Redirection from HTTP to HTTPS defaults to ON when termination contexts are present
 - Mapping and Host CRs, as well as Ingress resources, get Status updates to provide better feedback
 - Improve performance of processing events from Kubernetes
@@ -74,10 +77,9 @@ behavior before upgrading your CRDs.
 - CORS now happens before rate limiting
 - The reconfiguration engine is better protected from exceptions
 - Don’t try to check for upgrades on every UI snapshot update
-- Don’t activate the fallback TLSContext if its secret is not available
 - Reduced reconfiguration churn
 - Don't force SNI routes to be lower-priority than non-SNI routes
-- Knative mappings populate and fallback to the Ambassador namespace if unspecified
+- Knative mappings fallback to the Ambassador namespace if no namespace is specified
 - Fix `ambassador_id` handling for Knative resources
 - Treat `ambassadorId` as a synonym for `ambassador_id` (`ambassadorId` is the Protobuf 3 canonical form of `ambassador_id`)
 
