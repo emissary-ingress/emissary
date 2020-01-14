@@ -16,7 +16,7 @@ if [ -z "$TRAVIS_TAG" ]  ; then
 fi
 
 info "Pushing Helm Chart"
-helm package
+helm package $TOP_DIR
 
 # Get name of package
 export CHART_PACKAGE=$(ls *.tgz)
@@ -35,17 +35,14 @@ if [ -z "$PUSH_CHART" ] || [ "$PUSH_CHART" = "false" ] ; then
 fi
 
 info "Pushing chart to S3 bucket $AWS_BUCKET"
-aws s3api put-object \
-  --bucket "$AWS_BUCKET" \
-  --key "ambassador/$CHART_PACKAGE" \
-  --body "$CHART_PACKAGE"
+for f in "$CHART_PACKAGE" "index.yaml" ; do
+  aws s3api put-object \
+    --bucket "$AWS_BUCKET" \
+    --key "ambassador/$f" \
+    --body "$f" && passed "... ambassador/$f pushed"
+done
 
-aws s3api put-object \
-  --bucket "$AWS_BUCKET" \
-  --key "ambassador/index.yaml" \
-  --body "index.yaml"
-
-info "Cleanup"
+info "Cleaning up..."
 rm tmp.yaml index.yaml "$CHART_PACKAGE"
 
 exit 0
