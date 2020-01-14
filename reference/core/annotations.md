@@ -21,7 +21,7 @@ kubectl get mappings -A
 With annotations, you would have to describe and examine the `metadata.annotations` of every service.
 
 ## Example
-The following is an example of how to configure annotations for the example quote service from the [install documentation](../../user-guide/getting-started).
+The following is an example of how to configure annotations for the example quote service from the [install documentation](../../../user-guide/getting-started).
 
 **CRD**
 

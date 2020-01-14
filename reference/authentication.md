@@ -11,7 +11,7 @@ In the zero trust model, every request to a resource is verified, regardless of 
 
 One of the key components of a zero trust architecture is the Identity-Aware Proxy. The Ambassador Edge Stack can be deployed in front of an application or microservices, and authenticate users, check authorization, and enforce other types of security policies. Critically, the Ambassador Edge Stack operates at the application level, which means it can take advantage of domain knowledge of users to improve security. Ambassador interfaces with the Identity Provider (IdP), which is the trusted canonical source for authentication and authorization information.
 
-![IAP](/doc-images/pro-iap.png)
+![IAP](../../doc-images/pro-iap.png)
 
 ## Integrating with IdPs
 

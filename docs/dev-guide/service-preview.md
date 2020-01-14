@@ -19,7 +19,7 @@ Information about open source code used in `apictl` can be found by running `api
 
 ## Getting started
 
-In this quick start, we're going to preview a change we make to the backend service of the quote application, without impacting normal users of the application. Before getting started, make sure the [quote application is installed](../../../user-guide/install-ambassador-oss) on your cluster and you've installed the `apictl` command line tool, as explained above.
+In this quick start, we're going to preview a change we make to the backend service of the quote application, without impacting normal users of the application. Before getting started, make sure the [quote application is installed](../../../user-guide/getting-started#create-a-mapping) on your cluster and you've installed the `apictl` command line tool, as explained above.
 
 1. We're first going to get the quote backend service running locally. Clone the quote repository and build a local image.
 
