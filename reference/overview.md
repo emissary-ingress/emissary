@@ -79,7 +79,7 @@ The Reference section provides detailed information on configuring and managing 
 * [Okta](../../reference/idp-support/okta)
 * [OneLogin](../../reference/idp-support/onelogin)
 * [Salesforce Single Sign-on](../../reference/idp-support/salesforce)
-* [User Account and Authentication](../../reference/idp-support/uaa* )
+* [User Account and Authentication](../../reference/idp-support/uaa)
 
 ## Advanced Usage
 
