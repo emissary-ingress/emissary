@@ -47,7 +47,7 @@
             "name": "ambassador",
             "namespace": "default",
             "rkey": "idletimeout.default.1",
-            "serialization": "ambassador_id: idletimeout\napiVersion: ambassador/v1\nconfig:\n  idle_timeout: 30s\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: idletimeout\n  scope: AmbassadorTest\nname: ambassador\n"
+            "serialization": "ambassador_id: idletimeout\napiVersion: ambassador/v1\nconfig:\n  idle_timeout: 30s\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: idletimeout\n  scope: AmbassadorTest\nname: ambassador\nnamespace: default\n"
         },
         "idletimeout.default.2": {
             "_referenced_by": {},
@@ -65,7 +65,7 @@
             "prefix": "/config_dump",
             "rewrite": "/config_dump",
             "rkey": "idletimeout.default.2",
-            "serialization": "ambassador_id: idletimeout\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: idletimeout\n  scope: AmbassadorTest\nname: config__dump\nprefix: /config_dump\nrewrite: /config_dump\nservice: http://127.0.0.1:8001\n",
+            "serialization": "ambassador_id: idletimeout\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: idletimeout\n  scope: AmbassadorTest\nname: config__dump\nnamespace: default\nprefix: /config_dump\nrewrite: /config_dump\nservice: http://127.0.0.1:8001\n",
             "service": "http://127.0.0.1:8001"
         },
         "k8s-idletimeout-admin-default": {
