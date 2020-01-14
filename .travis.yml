@@ -19,11 +19,15 @@ install:
   - nvm use 11
   - node --version
   - source ./.ci/travis-fix-env
+  - ./.ci/install-blc
 
 script:
-  - ./.ci/pr-build-website-preview
-  - ./.ci/publish-website-preview
-  - ./.ci/blc-website-preview
+  - ./.ci/pr-build-website-preview master
+  - ./.ci/pr-build-website-preview Edge-stack-update
+  - ./.ci/publish-website-preview master
+  - ./.ci/publish-website-preview Edge-stack-update
+  - ./.ci/blc-website-preview master
+  - ./.ci/blc-website-preview Edge-stack-update
 
 deploy:
   - provider: script
