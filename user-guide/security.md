@@ -1,4 +1,4 @@
-# Securirty Overview
+# Security Overview
 
 Encryption like Transport-Level Security (TLS) and authentication at the edge of systems are essential with the current threat landscape, although implementing them can be non-trivial. Ambassador Edge Stack enables easy configuration of TLS termination, certificate rotation and associated Kubernetes configuration.
 

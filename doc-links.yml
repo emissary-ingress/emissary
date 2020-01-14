@@ -1,4 +1,5 @@
 - title: Welcome
+  link: /docs/
   collapsable: false
   items:
     - title: Why the Ambassador Edge Stack?
@@ -7,6 +8,7 @@
       link: /about/support
         
 - title: Install Ambassador Edge Stack
+  link: /user-guide/install
   items: 
   - title: Quick Start Installation Guide
     link: /user-guide/getting-started
@@ -14,8 +16,6 @@
     link: /about/edge-policy-console
   - title: Other Install & Upgrade Options
     items: 
-    - title: Install and Upgrade Overview
-      link: /user-guide/install
     - title: Upgrade to the Ambassador Edge Stack
       link: /user-guide/upgrade-to-edge-stack
     - title: Upgrade to a Newer Version
@@ -33,9 +33,8 @@
 
 
 - title: Concepts
+  link: /concepts/overview
   items: 
-  - title: Ambassador 101
-    link: /concepts/overview
   - title: Features and Benefits
     link: /about/features-and-benefits
   - title: Using Ambassador Edge Stack in Your Organization
@@ -64,14 +63,8 @@
     link: https://blog.getambassador.io/envoy-vs-nginx-vs-haproxy-why-the-open-source-ambassador-api-gateway-chose-envoy-23826aed79ef
 
 - title: Guides
+  link: /docs/guides/
   items: 
-    - title: Available Guides 
-      link: /docs/guides/
-    - title: Operator Guide
-      link: /user-guide/operators
-    - title: Developer Guide
-      link: /user-guide/developers
-      items:
     - title: Routing Services
       items:
       - title: Developing Custom Filters for Routing
@@ -124,7 +117,8 @@
         link: /user-guide/monitoring
 
 - title: Reference
-  items:
+  link: /reference/overview
+  items: 
     - title: Configuring Ambassador Edge Stack
       link: /reference/configuration
     - title: Configuration Format
