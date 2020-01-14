@@ -40,10 +40,10 @@ cat /tmp/netlify-deploy.json
 
 cat >/tmp/github-status.json <<EOF
 {
-  context: "website-preview/${website_branch}",
-  state: "success",
-  target_url: $(jq .deploy_url </tmp/netlify-deploy.json),
-  description: "Website ${website_branch} preview"
+  "context": "website-preview/${website_branch}",
+  "state": "success",
+  "target_url": $(jq .deploy_url </tmp/netlify-deploy.json),
+  "description": "Website ${website_branch} preview"
 }
 EOF
 
