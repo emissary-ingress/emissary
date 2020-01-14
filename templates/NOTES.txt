@@ -7,11 +7,11 @@ and enable authentication, rate limiting, automatic HTTPS, and other features.
 
   1. Upgrade to the v2 Custom Resource Definitions by running
 
-  kubectl apply -f https://getambassador.io/ambassador/ambassador-edge-stack-crds.yaml 
+  kubectl apply -f https://getambassador.io/yaml/aes-crds.yaml 
 
   2. Install the Ambassador Edge Stack configuration resources
 
-  kubectl apply -f https://getambassador.io/ambassador/ambassador-edge-stack-resources.yaml --namespace {{ .Release.Namespace}}
+  kubectl apply -f https://getambassador.io/yaml/resources-migration.yaml --namespace {{ .Release.Namespace}}
 
 {{- else }}
   Congratulations! You've successfully installed Ambassador!
