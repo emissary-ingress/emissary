@@ -1,8 +1,8 @@
 - title: Welcome
   collapsable: false
   items:
-    - title: Getting Started with the Ambassador Edge Stack
-      link: /user-guide/getting-started
+    - title: Welcome
+      link: /docs/
     - title: Why the Ambassador Edge Stack?
       link: /about/why-ambassador
     - title: Need help?
@@ -11,13 +11,17 @@
 - title: Install Ambassador Edge Stack
   items: 
   - title: Quick Start Installation Guide
-    link: /user-guide/install
+    link: /user-guide/getting-started
   - title: Edge Policy Console
     link: /about/edge-policy-console
   - title: Other Install & Upgrade Options
     items: 
+    - title: Install and Upgrade Overview
+      link: /user-guide/install
     - title: Upgrade to the Ambassador Edge Stack
       link: /user-guide/upgrade-to-edge-stack
+    - title: Upgrade to a Newer Version
+      link: /reference/upgrading  
     - title: Install with Helm
       link: /user-guide/helm
     - title: Install with Docker
@@ -65,6 +69,10 @@
   items: 
     - title: Available Guides 
       link: /docs/guides/
+    - title: Operator Guide
+      link: /user-guide/operators
+    - title: Developer Guide
+      link: /user-guide/developers
       items:
     - title: Routing Services
       items:
@@ -124,11 +132,19 @@
     - title: Configuring Ambassador Edge Stack
       link: /reference/configuration
     - title: Configuration Format
-      items:     
+      items:
+        - title: Format Overview
+          link: /reference/config-format
+        - title: Kubernetes Service Annotations  
+          link: /reference/core/annotations/ 
         - title: Using Custom Resource Definitions
           link: /reference/core/crds
         - title: Ambassador as an Ingress Controller
           link: /reference/core/ingress-controller
+        - title: Authentication and Identity Aware Proxy
+          link: /reference/authentication
+        - title: Environmental Variables
+          link: /reference/environment  
     - title: Global Module Configuration
       items:
         - title: Modules Overview
