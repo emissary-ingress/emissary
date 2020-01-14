@@ -31,7 +31,7 @@ rules:
 #  2. It needs extra permissions ("create"/"update") for secrets.
 #  3. It needs permission to "create" events.
 #  4. It needs permission to "get"/"create"/"update" Leases (or
-#     Endpoints, if on Kubernetes <1.11).
+#     Endpoints, if on Kubernetes <1.12).
 - apiGroups: [""]
   resources: [ "namespaces", "services" ]
   verbs: ["get", "list", "watch"]
