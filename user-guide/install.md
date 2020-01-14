@@ -1,36 +1,22 @@
 # Install and Upgrade Overview
 
-## Installation Options
-
 The Ambassador Edge Stack can be installed in a variety of ways:
 
-### Standard Install
+## Standard Install
 
 Kubernetes via YAML is the most common approach to install with our default, customizable manifest. Ambassador is designed to run in Kubernetes for production. If you're new to Kubernetes and/or Ambassador, we recommend using this method.
 
-See the [Quick Start](../../user-guide/getting-started) installtion guide to get started now.
+See the [Quick Start](../../user-guide/getting-started) installation guide to get started now.
 
-### Helm
+[![YAML](/doc-images/kubernetes.png)](/user-guide/getting-started)
 
-Helm is a package manager for Kubernetes. The Ambassador Edge Stack comes pre-packaged as a Helm chart.
+## Other Methods
 
-See the [Helm](../../user-guide/helm) instructions to try it now.
+You can also install Ambassador using Helm, Docker, Bare Metal, or the original Ambassador API Gateway.
 
-### Docker
-
-Don't have Kubernetes, but want to try out Ambassador? The Ambassador Edge Stack can run locally on your laptop in a Docker container. The Docker install will let you try Ambassador locally in seconds, but is not supported for production.
-
-See the [Docker](../../about/quickstart) instructions to try it now.
-
-### Bare Metal
-
-If you don't have a load balancer, you can use Kubernetes' Bare Metal, which allows you to expose the Ambassador Edge Stack via NodePort.
-
-See the [Bare Metal](../../user-guide/bare-metal) instructions to try it now.
-
-### The Ambassador API Gateway
-
-The original Ambassador API Gateway. See the [instructions](../../user-guide/install-ambassador-oss) to try it out now.
+| [![Helm](/doc-images/helm.png)](../../user-guide/helm) | [![Docker](/doc-images/docker.png)](/about/quickstart) | [Kubernetes Bare Metal](../../user-guide/bare-metal) | [Ambassador API Gateway](../../user-guide/install-ambassador-oss) |
+| --- | --- | --- | --- |
+| Helm is a package manager for Kubernetes. Ambassador comes pre-packaged as a Helm chart. [Deploy to Kubernetes via Helm.](/user-guide/helm) | The Docker install will let you try Ambassador locally in seconds, but is not supported for production. [Try via Docker.](/about/quickstart) | Bare Metal can expose the Ambassador Edge Stack if you don't have a load balancer in place. [Set up with Bare Metal.](../../user-guide/bare-metal) | Want to use the original API Gateway? [Set up with Ambassador API Gateway](../../user-guide/install-ambassador-oss)|
 
 ## Upgrade Options
 
