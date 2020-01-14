@@ -1,6 +1,6 @@
 # Service Preview
 
-**This page is deprecated. For the latest version, check out [Edge Control](../../reference/edge-control).**
+**This page is deprecated. For the latest version, check out [Edge Control](../../../reference/edge-control).**
 
 How do you verify that the code you've written actually works? Ambassador's *Service Preview* lets developers see exactly how their service works in a realistic enviroment -- without impacting other developers or end users. Service Preview integrates [Telepresence](https://www.telepresence.io), the popular CNCF project for local development and debugging on Kubernetes.
 
