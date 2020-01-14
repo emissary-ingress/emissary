@@ -8,7 +8,7 @@ Kubernetes via YAML is the most common approach to install with our default, cus
 
 See the [Quick Start](../../user-guide/getting-started) installation guide to get started now.
 
-[![YAML](../../doc-images/kubernetes.png)](/user-guide/getting-started)
+[![YAML](../../doc-images/kubernetes.png)](../../user-guide/getting-started)
 
 ## Other Methods
 
