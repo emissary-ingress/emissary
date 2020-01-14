@@ -76,18 +76,23 @@ func (c *Controller) Worker(ctx context.Context) error {
 		//WatchDog: TODO, // XXX: this could be a robustness win
 		Callbacks: k8sLeaderElection.LeaderCallbacks{
 			OnStartedLeading: func(ctx context.Context) {
+				// ctx will be canceled when we are no longer the leader (or
+				// are shutting down).
 				logger := dlog.GetLogger(ctx)
 				ticker := time.NewTicker(24 * time.Hour)
+				defer ticker.Stop()
 				for {
 					select {
 					case <-ctx.Done():
-						ticker.Stop()
+						// we are no longer the leader--bail out
 						return
 					case <-ticker.C:
 						c.rectify(logger)
 					case snapshot, ok := <-c.snapshotCh:
 						if !ok {
-							ticker.Stop()
+							// there's no more work to do; not only do we want the current
+							// OnStartedLeading callback to return, we walso want the
+							// leaderElector.Run() to return; so we cancel the election.
 							cancelElection()
 							return
 						}
@@ -98,6 +103,8 @@ func (c *Controller) Worker(ctx context.Context) error {
 					}
 				}
 			},
+			// client-go requires that we provide an OnStoppedLeading callback,
+			// even if there's nothing to do.  *sigh*
 			OnStoppedLeading: func() {},
 		},
 	})
