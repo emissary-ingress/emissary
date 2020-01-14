@@ -1,6 +1,7 @@
 package acmeclient
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -15,6 +16,8 @@ import (
 	"github.com/pkg/errors"
 
 	k8sSchema "k8s.io/apimachinery/pkg/runtime/schema"
+	k8sLeaderElection "k8s.io/client-go/tools/leaderelection"
+	k8sLeaderElectionResourceLock "k8s.io/client-go/tools/leaderelection/resourcelock"
 
 	ambassadorTypesV2 "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
 	k8sTypesCoreV1 "k8s.io/api/core/v1"
@@ -33,6 +36,7 @@ type Controller struct {
 
 	snapshotCh  <-chan watt.Snapshot
 	eventLogger *events.EventLogger
+	leaderLock  k8sLeaderElectionResourceLock.Interface
 
 	secretsGetter k8sClientCoreV1.SecretsGetter
 	hostsGetter   k8sClientDynamic.NamespaceableResourceInterface
@@ -46,6 +50,7 @@ func NewController(
 	httpClient *http.Client,
 	snapshotCh <-chan watt.Snapshot,
 	eventLogger *events.EventLogger,
+	leaderLock k8sLeaderElectionResourceLock.Interface,
 	secretsGetter k8sClientCoreV1.SecretsGetter,
 	dynamicClient k8sClientDynamic.Interface,
 ) *Controller {
@@ -54,29 +59,53 @@ func NewController(
 		httpClient:  httpClient,
 		snapshotCh:  snapshotCh,
 		eventLogger: eventLogger,
+		leaderLock:  leaderLock,
 
 		secretsGetter: secretsGetter,
 		hostsGetter:   dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "hosts"}),
 	}
 }
 
-func (c *Controller) Worker(logger dlog.Logger) {
-	ticker := time.NewTicker(24 * time.Hour)
-	for {
-		select {
-		case <-ticker.C:
-			c.rectify(logger)
-		case snapshot, ok := <-c.snapshotCh:
-			if !ok {
-				ticker.Stop()
-				return
-			}
-			logger.Debugln("processing snapshot change...")
-			if c.processSnapshot(snapshot) {
-				c.rectify(logger)
-			}
-		}
+func (c *Controller) Worker(ctx context.Context) error {
+	ctx, cancelElection := context.WithCancel(ctx)
+	leaderElector, err := k8sLeaderElection.NewLeaderElector(k8sLeaderElection.LeaderElectionConfig{
+		Lock:          c.leaderLock,
+		LeaseDuration: 60 * time.Second,
+		RenewDeadline: 40 * time.Second, // 2/3 of LeaseDuration
+		RetryPeriod:   8 * time.Second,  // 1/5 of RenewDeadline
+		//WatchDog: TODO, // XXX: this could be a robustness win
+		Callbacks: k8sLeaderElection.LeaderCallbacks{
+			OnStartedLeading: func(ctx context.Context) {
+				logger := dlog.GetLogger(ctx)
+				ticker := time.NewTicker(24 * time.Hour)
+				for {
+					select {
+					case <-ctx.Done():
+						ticker.Stop()
+						return
+					case <-ticker.C:
+						c.rectify(logger)
+					case snapshot, ok := <-c.snapshotCh:
+						if !ok {
+							ticker.Stop()
+							cancelElection()
+							return
+						}
+						logger.Debugln("processing snapshot change...")
+						if c.processSnapshot(snapshot) {
+							c.rectify(logger)
+						}
+					}
+				}
+			},
+			OnStoppedLeading: func() {},
+		},
+	})
+	if err != nil {
+		return err
 	}
+	leaderElector.Run(ctx)
+	return nil
 }
 
 func (c *Controller) processSnapshot(snapshot watt.Snapshot) (changed bool) {

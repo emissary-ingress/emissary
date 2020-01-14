@@ -240,6 +240,11 @@ func runE(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	acmeLock, err := acmeclient.GetLeaderElectionResourceLock(cfg, kubeinfo, eventLogger)
+	if err != nil {
+		return err
+	}
+
 	var redisPool *pool.Pool
 	var redisPoolErr error
 	if cfg.RedisURL != "" {
@@ -328,6 +333,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		http.DefaultClient, // XXX
 		snapshotStore.Subscribe(),
 		eventLogger,
+		acmeLock,
 		coreClient,
 		dynamicClient)
 	group.Go("acme_client", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
@@ -337,10 +343,7 @@ func runE(cmd *cobra.Command, args []string) error {
 			l.Errorln(err)
 			// this is non fatal (mostly just to facilitate local dev); don't `return err`
 		}
-		// acmeController.Worker() doesn't need to observe softCtx.Done() because as a
-		// snapshotStore.Subscribe()r it will notice the shutdown from snapshotStore.
-		acmeController.Worker(l)
-		return nil
+		return acmeController.Worker(dlog.WithLogger(softCtx, l))
 	})
 
 	// HTTP server
