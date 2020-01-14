@@ -32,10 +32,10 @@ Keepalive probes defined on a single mapping:
 apiVersion: getambassador.io/v1
 kind:  Mapping
 metadata:
-  name:  tour-backend
+  name:  quote-backend
 spec:
 prefix: /backend/
-service: tour
+service: quote
 keepalive:
   time: 100
   interval: 10
@@ -59,8 +59,8 @@ spec:
 apiVersion: getambassador.io/v1
 kind:  Mapping
 metadata:
-  name:  tour-backend
+  name:  quote-backend
 spec:
 prefix: /backend/
-service: tour
+service: quote
 ```

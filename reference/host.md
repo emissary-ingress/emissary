@@ -41,7 +41,7 @@ spec:
 will map requests for `/` to
 
 - the `quote2` service if the `Host` header is `quote.datawire.io`;
-- the `tour3` service if the `Host` header matches `^tour[2-9]\\.datawire\\.io$`; and to
+- the `quote3` service if the `Host` header matches `^quote[2-9]\\.datawire\\.io$`; and to
 - the `quote1` service otherwise.
 
 Note that enclosing regular expressions in quotes can be important to prevent backslashes from being doubled.

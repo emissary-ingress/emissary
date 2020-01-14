@@ -1,23 +1,25 @@
 - title: Welcome
+  link: /docs/
   collapsable: false
   items:
-    - title: Getting Started with the Ambassador Edge Stack
-      link: /user-guide/getting-started
     - title: Why the Ambassador Edge Stack?
       link: /about/why-ambassador
     - title: Need help?
       link: /about/support
         
 - title: Install Ambassador Edge Stack
+  link: /user-guide/install
   items: 
   - title: Quick Start Installation Guide
-    link: /user-guide/install
+    link: /user-guide/getting-started
   - title: Edge Policy Console
     link: /about/edge-policy-console
   - title: Other Install & Upgrade Options
     items: 
     - title: Upgrade to the Ambassador Edge Stack
       link: /user-guide/upgrade-to-edge-stack
+    - title: Upgrade to a Newer Version
+      link: /reference/upgrading  
     - title: Install with Helm
       link: /user-guide/helm
     - title: Install with Docker
@@ -31,9 +33,8 @@
 
 
 - title: Concepts
+  link: /concepts/overview
   items: 
-  - title: Ambassador 101
-    link: /concepts/overview
   - title: Features and Benefits
     link: /about/features-and-benefits
   - title: Using Ambassador Edge Stack in Your Organization
@@ -62,10 +63,8 @@
     link: https://blog.getambassador.io/envoy-vs-nginx-vs-haproxy-why-the-open-source-ambassador-api-gateway-chose-envoy-23826aed79ef
 
 - title: Guides
+  link: /docs/guides/
   items: 
-    - title: Available Guides 
-      link: /docs/guides/
-      items:
     - title: Routing Services
       items:
       - title: Developing Custom Filters for Routing
@@ -118,16 +117,25 @@
         link: /user-guide/monitoring
 
 - title: Reference
-  items:
+  link: /reference/overview
+  items: 
     - title: Configuring Ambassador Edge Stack
       link: /reference/configuration
     - title: Configuration Format
-      items:     
+      items:
+        - title: Format Overview
+          link: /reference/config-format
+        - title: Kubernetes Service Annotations  
+          link: /reference/core/annotations/ 
         - title: Using Custom Resource Definitions
           link: /reference/core/crds
         - title: Ambassador as an Ingress Controller
           link: /reference/core/ingress-controller
-    - title: Global Module Configuration
+        - title: Authentication and Identity Aware Proxy
+          link: /reference/authentication
+        - title: Environmental Variables
+          link: /reference/environment  
+    - title: Global Configuration
       items:
         - title: Modules Overview
           link: /reference/modules
@@ -153,14 +161,6 @@
         link: /user-guide/sni
       - title: TLS Origination
         link: /reference/tls/origination
-    - title: Configuring Edge Control
-      items: 
-        - title: Edge Control Installation
-          link: /reference/edge-control
-        - title: Edge Control in CI
-          link: /reference/edge-control-in-ci
-    - title: Developer Portal
-      link: /reference/dev-portal
     - title: Configuring Kubernetes Services
       items:
         - title: Mapping Services
@@ -201,16 +201,6 @@
           link: /reference/timeouts
         - title: Traffic Shadowing
           link: /reference/shadowing
-    - title: Running Ambassador Edge Stack
-      items:  
-      - title: Running and Deployment 
-        link: /reference/running
-      - title: Ambassador Edge Stack on AWS
-        link: /reference/ambassador-with-aws
-      - title: Diagnostics
-        link: /reference/diagnostics
-      - title: Debugging
-        link: /reference/debugging  
     - title: Plugins
       items:
       - title: Available Plugins
@@ -241,6 +231,24 @@
         link: /reference/idp-support/salesforce
       - title: User Account and Authentication (UAA)
         link: /reference/idp-support/uaa
+    - title: Configuring Edge Control
+      items: 
+        - title: Edge Control Installation
+          link: /reference/edge-control
+        - title: Edge Control in CI
+          link: /reference/edge-control-in-ci
+    - title: Developer Portal
+      link: /reference/dev-portal    
+    - title: Running Ambassador Edge Stack
+      items:  
+      - title: Running and Deployment 
+        link: /reference/running
+      - title: Ambassador Edge Stack on AWS
+        link: /reference/ambassador-with-aws
+      - title: Diagnostics
+        link: /reference/diagnostics
+      - title: Debugging
+        link: /reference/debugging  
     - title: Filter Reference
       link: /reference/filter-reference
     - title: Statistics and Monitoring
