@@ -127,6 +127,8 @@
 
 - title: Reference
   items:
+    - title: Reference Overview
+      link: /reference/overview
     - title: Configuring Ambassador Edge Stack
       link: /reference/configuration
     - title: Configuration Format
