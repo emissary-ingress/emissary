@@ -158,7 +158,7 @@ Some special cases to be aware of here:
       additionalPort: 8080
   ```  
 
-## `Host` CRD
+## `Host` Specification
 
 The Ambassador Edge Stack automates the creation of TLS certificates via the [Edge Policy Console](../../about/edge-policy-console), which provides HTTPS for your hosts. Note that **in order to have TLS and automatic HTTPS, your host must be an FQDN as specified in the [product requirements](../../user-guide/product-requirements) page.**
 
