@@ -223,7 +223,7 @@ spec:
             value: {{ include "ambassador.fullname" . }}-pro-redis:6379
           - name: APRO_HTTP_PORT
             value: "{{ .Values.pro.ports.auth }}"
-          - name: APP_LOG_LEVEL
+          - name: AES_LOG_LEVEL
             value: "{{ .Values.pro.logLevel  }}"
           - name: AMBASSADOR_NAMESPACE
           {{- if .Values.namespace }}
