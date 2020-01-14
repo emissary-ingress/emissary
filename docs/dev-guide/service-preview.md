@@ -24,7 +24,7 @@ In this quick start, we're going to preview a change we make to the backend serv
 1. We're first going to get the quote backend service running locally. Clone the quote repository and build a local image.
 
     ```
-    git clone https://github.com/datawire/tour
+    git clone https://github.com/datawire/quote
     cd quote
     make docker.run
     ```
@@ -46,14 +46,6 @@ In this quick start, we're going to preview a change we make to the backend serv
     apiVersion: getambassador.io/v1
     kind: Mapping
     metadata:  
-      name: quote-ui
-    spec:
-      prefix: /
-      service: quote:5000
-    ---
-    apiVersion: getambassador.io/v1
-    kind: Mapping
-    metadata:  
       name: quote-backend
     spec:
       prefix: /backend/
@@ -69,9 +61,6 @@ In this quick start, we're going to preview a change we make to the backend serv
       name: quote
     spec:
       ports:
-      - name: ui
-        port: 5000
-        targetPort: 5000
       - name: backend
         port: 8080
         targetPort: 9900
@@ -95,12 +84,7 @@ In this quick start, we're going to preview a change we make to the backend serv
             app: quote
         spec:
           containers:
-          - image: quay.io/datawire/tour:ui-$tourVersion$
-            name: quote-ui
-            ports:
-            - containerPort: 5000
-              name: http
-          - image: quay.io/datawire/tour:backend-$tourVersion$
+          - image: quay.io/datawire/quote:0.2.7
             name: quote
             ports:
             - containerPort: 8080
