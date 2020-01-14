@@ -39,7 +39,7 @@ This will install the necessary deployments, RBAC, Custom Resource Definitions, 
 
 ## Upgrading an Existing Edge Stack Installation
 
-**Note:** If your existing installation is not already running Ambassador **Edge Stack** as opposed to Ambassador Open Source, **do not use these instructions**. See "Migrating to Ambassador Edge Stack" below.
+**Note:** If your existing installation is not already running Ambassador **Edge Stack** as opposed to Ambassador API Gateway, **do not use these instructions**. See "Migrating to Ambassador Edge Stack" below.
 
 Upgrading an existing installation of Ambassador Edge Stack is a two-step process:
 
@@ -59,7 +59,7 @@ This will upgrade the image and deploy and other necessary resources for the Amb
 
 ## Migrating to Ambassador Edge Stack
 
-If you have an existing Ambassador Open Source installation, but are not yet running Ambassador Edge Stack, the upgrade process is somewhat different than above.
+If you have an existing Ambassador API Gateway installation, but are not yet running Ambassador Edge Stack, the upgrade process is somewhat different than above.
 
 **Note:** It is strongly encouraged for you to move your Ambassador release to the `ambassador` namespace as shown below. If this isn't an option for you, remove the `--namespace ambassador` argument to `helm upgrade`.
 
@@ -79,7 +79,7 @@ helm upgrade --set crds.create=false --namespace ambassador ambassador datawire/
 
 (Helm 3 will not upgrade CRDs that already exist in the cluster, and we don't want Helm 2 to upgrade them yet either.)
 
-At this point, Ambassador Edge Stack should be running with the same functionality as Ambassador Open Source, and it's safe to do any validation required. To enable the full functionality of Ambassador Edge Stack requires two more steps:
+At this point, Ambassador Edge Stack should be running with the same functionality as Ambassador API Gateway, and it's safe to do any validation required. To enable the full functionality of Ambassador Edge Stack requires two more steps:
 
 2. Upgrade CRDs for Ambassador Edge Stack. 
 
