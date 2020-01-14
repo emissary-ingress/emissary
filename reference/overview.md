@@ -12,7 +12,7 @@ The Reference section provides detailed information on configuring and managing 
 
 [Modules Overview](../../reference/modules)
 [ambassador Module Core Configuration](../../reference/core/ambassador)
-[Gzip compression](/reference/gzip)
+[Gzip compression](../../reference/gzip)
 [Load Balancing Configuration](../../reference/core/load-balancer)
 [Service Discovery and Resolver Configuration](../../reference/core/resolvers)
 
