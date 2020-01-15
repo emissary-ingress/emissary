@@ -161,7 +161,7 @@ The `crds` flags (Helm 2 only) let you configure how a release manages crds.
 
 ### Annotations
 
-Ambassador is done through Custom Resource Definitions (CRDs). If you are unable to use CRDs, Ambassador can also be configured using annotations on services. The `service.annotations` section of the values file contains commented out examples of [Ambassador Module](https://www.getambassador.io/reference/core/ambassador) and a global [TLSContext](https://www.getambassador.io/reference/core/tls) configurations which are typically created in the Ambassador service.
+Ambassador is configured using Kubernetes Custom Resource Definitions (CRDs). If you are unable to use CRDs, Ambassador can also be configured using annotations on services. The `service.annotations` section of the values file contains commented out examples of [Ambassador Module](https://www.getambassador.io/reference/core/ambassador) and a global [TLSContext](https://www.getambassador.io/reference/core/tls) configurations which are typically created in the Ambassador service.
 
 If you intend to use `service.annotations`, remember to include the `getambassador.io/config` annotation key as above.
 
@@ -171,7 +171,7 @@ Using the Prometheus Exporter has been deprecated and is no longer recommended.
 
 Please see Ambassador's [monitoring with Prometheus](https://www.getambassador.io/user-guide/monitoring/) docs for more information on using the `/metrics` endpoint for metrics collection.
 
-### Ambassador Pro (DEPRECATED: Please upgrade to Ambassador Edge Stack)
+### Ambassador Pro (NO LONGER SUPPORTED: Please upgrade to Ambassador Edge Stack)
 
 Setting `pro.enabled: true` will install Ambassador Pro as a sidecar to Ambassador with the required CRDs and redis instance.
 
@@ -181,7 +181,7 @@ You must set the `pro.licenseKey.value` to the license key issued to you. Sign u
 
 For most use cases, `pro.image` and `pro.ports` can be left as default.
 
-#### Ambassador Pro Environment (DEPRECATED: Please upgrade to Ambassador Edge Stack)
+#### Ambassador Pro Environment (NO LONGER SUPPORTED: Please upgrade to Ambassador Edge Stack)
 
 Click [here](https://www.getambassador.io/reference/pro/environment/) for full information regarding the different environment variables for Ambassador Pro.
 
