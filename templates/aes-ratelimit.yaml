@@ -1,0 +1,19 @@
+{{ if and .Values.rateLimit.create (contains "datawire/aes" .Values.image.repository) }}
+---
+apiVersion: getambassador.io/v2
+kind: RateLimitService
+metadata:
+  name: {{ include "ambassador.fullname" . }}-ratelimit
+  labels:
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/component: {{ include "ambassador.name" . }}-ratelimit
+spec:
+  {{- if hasKey .Values.env "AMBASSADOR_ID" }}
+  ambassador_id: {{ .Values.env.AMBASSADOR_ID | quote }}
+  {{- end }}
+  service: 127.0.0.1:8500
+{{ end }}

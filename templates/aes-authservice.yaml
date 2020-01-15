@@ -1,0 +1,23 @@
+{{ if and .Values.authService.create (contains "datawire/aes" .Values.image.repository) }}
+---
+apiVersion: getambassador.io/v2
+kind: AuthService
+metadata:
+  name: {{ include "ambassador.fullname" . }}-auth
+  labels:
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/component: {{ include "ambassador.name" . }}-auth
+spec:
+  proto: grpc
+  {{- if hasKey .Values.env "AMBASSADOR_ID" }}
+  ambassador_id: {{ .Values.env.AMBASSADOR_ID | quote }}
+  {{- end }}
+  auth_service: 127.0.0.1:8500
+  {{- if .Values.authService.optional_configurations }}
+  {{- toYaml .Values.authService.optional_configurations | nindent 2}}
+  {{- end }}
+{{ end }}
