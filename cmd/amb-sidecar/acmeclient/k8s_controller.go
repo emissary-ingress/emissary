@@ -77,11 +77,7 @@ func NewController(
 }
 
 func (c *Controller) anyInconsistent() bool {
-	if (len(c.dirtyHosts) > 0) || (len(c.dirtySecrets) > 0) {
-		return true
-	} else {
-		return false
-	}
+	return len(c.dirtyHosts) > 0 || len(c.dirtySecrets) > 0
 }
 
 func (c *Controller) Worker(ctx context.Context) error {
