@@ -30,6 +30,11 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/watt"
 )
 
+type ref struct {
+	Name      string
+	Namespace string
+}
+
 type Controller struct {
 	redisPool  *pool.Pool
 	httpClient *http.Client
@@ -41,8 +46,10 @@ type Controller struct {
 	secretsGetter k8sClientCoreV1.SecretsGetter
 	hostsGetter   k8sClientDynamic.NamespaceableResourceInterface
 
-	hosts   []*ambassadorTypesV2.Host
-	secrets []*k8sTypesCoreV1.Secret
+	hosts        []*ambassadorTypesV2.Host
+	dirtyHosts   map[ref]struct{}
+	secrets      []*k8sTypesCoreV1.Secret
+	dirtySecrets map[ref]struct{}
 }
 
 func NewController(
@@ -63,6 +70,9 @@ func NewController(
 
 		secretsGetter: secretsGetter,
 		hostsGetter:   dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "hosts"}),
+
+		dirtyHosts:   make(map[ref]struct{}),
+		dirtySecrets: make(map[ref]struct{}),
 	}
 }
 
@@ -137,6 +147,24 @@ func (c *Controller) Worker(ctx context.Context) error {
 	return nil
 }
 
+func getHostResourceVersion(hosts []*ambassadorTypesV2.Host, ref ref) string {
+	for _, host := range hosts {
+		if host.GetNamespace() == ref.Namespace && host.GetName() == ref.Name {
+			return host.GetResourceVersion()
+		}
+	}
+	return ""
+}
+
+func getSecretResourceVersion(secrets []*k8sTypesCoreV1.Secret, ref ref) string {
+	for _, secret := range secrets {
+		if secret.GetNamespace() == ref.Namespace && secret.GetName() == ref.Name {
+			return secret.GetResourceVersion()
+		}
+	}
+	return ""
+}
+
 func (c *Controller) processSnapshot(snapshot watt.Snapshot) (changed bool) {
 	hosts := append([]*ambassadorTypesV2.Host(nil), snapshot.Kubernetes.Host...)
 	sort.SliceStable(hosts, func(i, j int) bool {
@@ -185,6 +213,18 @@ func (c *Controller) processSnapshot(snapshot watt.Snapshot) (changed bool) {
 	}
 
 	if changed {
+		for hostRef := range c.dirtyHosts {
+			if getHostResourceVersion(hosts, hostRef) == getHostResourceVersion(c.hosts, hostRef) {
+				return false
+			}
+			delete(c.dirtyHosts, hostRef)
+		}
+		for secretRef := range c.dirtySecrets {
+			if getSecretResourceVersion(secrets, secretRef) == getSecretResourceVersion(c.secrets, secretRef) {
+				return false
+			}
+			delete(c.dirtySecrets, secretRef)
+		}
 		c.hosts = hosts
 		c.secrets = secrets
 	}
@@ -209,6 +249,7 @@ func (c *Controller) updateHost(host *ambassadorTypesV2.Host) error {
 		return errors.Wrapf(err, "update %q.%q", host.GetName(), host.GetNamespace())
 	}
 	uHost.Object["status"] = host.Status
+	c.dirtyHosts[ref{Name: host.GetName(), Namespace: host.GetNamespace()}] = struct{}{}
 
 	_, err = c.hostsGetter.Namespace(host.GetNamespace()).UpdateStatus(uHost, k8sTypesMetaV1.UpdateOptions{})
 	if err != nil {
@@ -461,7 +502,7 @@ func (c *Controller) rectifyPhase2(logger dlog.Logger, acmeHosts []*ambassadorTy
 				for _, host := range hosts {
 					secretAddOwner(secret, host)
 				}
-				if err := storeSecret(c.secretsGetter, secret); err != nil {
+				if err := c.storeSecret(c.secretsGetter, secret); err != nil {
 					c.recordHostsError(logger, hosts,
 						ambassadorTypesV2.HostPhase_ACMEUserPrivateKeyCreated,
 						err)
@@ -481,7 +522,7 @@ func (c *Controller) rectifyPhase2(logger dlog.Logger, acmeHosts []*ambassadorTy
 				if secretIsDirty {
 					logger.Debugln("rectify: Secret: updating ownership of user private key")
 					c.recordHostsEvent(hosts, "modifying private key Secret")
-					if err := storeSecret(c.secretsGetter, secret); err != nil {
+					if err := c.storeSecret(c.secretsGetter, secret); err != nil {
 						c.recordHostsError(logger, hosts,
 							ambassadorTypesV2.HostPhase_ACMEUserPrivateKeyCreated,
 							err)
@@ -770,7 +811,7 @@ func (c *Controller) rectifyPhase4(logger dlog.Logger,
 			if secretIsDirty {
 				logger.Debugln("rectify: Secret: updating Secret")
 				c.recordHostsEvent(hosts, "updating TLS Secret")
-				if err := storeSecret(c.secretsGetter, secret); err != nil {
+				if err := c.storeSecret(c.secretsGetter, secret); err != nil {
 					c.recordHostsError(logger, hosts,
 						ambassadorTypesV2.HostPhase_ACMECertificateChallenge,
 						errors.Wrapf(err, "updating tlsSecret %q.%q (hostnames=%q)",
