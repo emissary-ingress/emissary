@@ -35,15 +35,6 @@ helm install --name ambassador --namespace ambassador datawire/ambassador
 
 This will install the necessary deployments, RBAC, Custom Resource Definitions, etc. for the Ambassador Edge Stack to route traffic. Details on how to configure Ambassador using the Helm chart can be found in the Helm chart [README](https://github.com/datawire/ambassador-chart/tree/master).
 
-3. Apply additional Ambassador Edge Stack resources.
-
-The Helm chart deploys Ambassador Edge Stack itself, but does not create the additional resources necessary for authentication, rate limiting, automatic HTTPS, etc. To take full advantage of Ambassador Edge Stack, you'll need
-create these resources with `kubectl`:
-
-```
-kubectl apply -f https://www.getambassador.io/yaml/resources-migration.yaml
-```
-
 ## Upgrading an Existing Edge Stack Installation
 
 **Note:** If your existing installation is not already running Ambassador **Edge Stack** as opposed to Ambassador API Gateway, **do not use these instructions**. See "Migrating to Ambassador Edge Stack" below.
@@ -70,7 +61,16 @@ If you have an existing Ambassador API Gateway installation, but are not yet run
 
 **Note:** It is strongly encouraged for you to move your Ambassador release to the `ambassador` namespace as shown below. If this isn't an option for you, remove the `--namespace ambassador` argument to `helm upgrade`.
 
-1. Upgrade your Ambassador installation.
+1. Upgrade CRDs for Ambassador Edge Stack. 
+
+To take full advantage of Ambassador Edge Stack, you'll need the new `Host` CRD, and you'll need the new `getambassador.io/v2` version of earlier CRDs. To upgrade all the CRDs, run
+
+
+```
+kubectl apply -f https://www.getambassador.io/yaml/aes-crds.yaml
+```
+
+2. Upgrade your Ambassador installation.
 
 If you're using Helm 3, simply run
 
@@ -84,24 +84,7 @@ If you're using Helm 2, you need to modify the command slightly:
 helm upgrade --set crds.create=false --namespace ambassador ambassador datawire/ambassador
 ```
 
-(Helm 3 will not upgrade CRDs that already exist in the cluster, and we don't want Helm 2 to upgrade them yet either.)
+At this point, Ambassador Edge Stack should be running with the same functionality as Ambassador API Gateway as well as the added features of the Ambassador Edge Stack. It's safe to do any validation required and roll-back if neccessary. 
 
-At this point, Ambassador Edge Stack should be running with the same functionality as Ambassador API Gateway, and it's safe to do any validation required. To enable the full functionality of Ambassador Edge Stack requires two more steps:
-
-2. Upgrade CRDs for Ambassador Edge Stack. 
-
-To take full advantage of Ambassador Edge Stack, you'll need the new `Host` CRD, and you'll need the new `getambassador.io/v2` version of earlier CRDs. To upgrade all the CRDs, run
-
-
-```
-kubectl apply -f https://www.getambassador.io/yaml/aes-crds.yaml
-```
-
-3. Apply additional Ambassador Edge Stack resources.
-
-The Helm chart deploys Ambassador Edge Stack itself, but does not create the additional resources necessary for authentication, rate limiting, automatic HTTPS, etc. To take full advantage of Ambassador Edge Stack, you'll need
-create these resources with `kubectl`:
-
-```
-kubectl apply -f https://www.getambassador.io/yaml/resources-migration.yaml
-```
+**Note:**
+The Ambassador Edge Stack will be installed with an `AuthService` and `RateLimitService`. If you are using these plugins, set `authService.create=false` and/or `rateLimit.create=false` to avoid any conflict while testing the upgrade.
