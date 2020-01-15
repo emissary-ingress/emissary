@@ -1,11 +1,12 @@
 # Ambassador
 
-Ambassador is an open source, Kubernetes-native [microservices API gateway](https://www.getambassador.io/about/microservices-api-gateways) built on the [Envoy Proxy](https://www.envoyproxy.io/).
+The Ambassador Edge Stack is a self-service, comprehensive edge stack that is Kubernetes-native and built on [Envoy Proxy](https://www.envoyproxy.io/).
 
 ## TL;DR;
 
 ```console
-$ helm install stable/ambassador
+$ helm repo add datawire https://getambassador.io
+$ helm install ambassador datawire/ambassador
 ```
 
 ## Introduction
@@ -15,17 +16,27 @@ a [Kubernetes](http://kubernetes.io) cluster using the [Helm](https://helm.sh) p
 
 ## Prerequisites
 
-- Kubernetes 1.7+
+- Kubernetes 1.11+
+
+## Add this Helm repository to your Helm client
+
+```console
+helm repo add datawire https://getambassador.io
+```
 
 ## Installing the Chart
 
 To install the chart with the release name `my-release`:
 
 ```console
-$ helm install --name my-release stable/ambassador
+$ kubectl create namespace ambassador
+$ helm install my-release datawire/ambassador -n ambassador
 ```
 
-The command deploys Ambassador API gateway on the Kubernetes cluster in the default configuration.
+The command deploys Ambassador Edge Stack in the ambassador namespace on the Kubernetes cluster in the default configuration.
+
+It is recommended to use the ambassador namespace for easy upgrades.
+
 The [configuration](#configuration) section lists the parameters that can be configured during installation.
 
 ## Uninstalling the Chart
@@ -33,7 +44,7 @@ The [configuration](#configuration) section lists the parameters that can be con
 To uninstall/delete the `my-release` deployment:
 
 ```console
-$ helm delete --purge my-release
+$ helm uninstall my-release
 ```
 
 The command removes all the Kubernetes components associated with the chart and deletes the release.
@@ -148,7 +159,7 @@ features of The Ambassador Edge Stack.
 To install the Ambassador API Gateway, simply change the `image` to your
 desired version of the Ambassador API Gateway.
 
-### CRDs
+### CRDs (Helm 2 Only)
 
 This helm chart includes the creation of the core CRDs Ambassador uses for
 configuration. 
@@ -221,6 +232,14 @@ $ helm upgrade --install --wait my-release -f values.yaml stable/ambassador
 ---
 
 # Upgrading
+
+## To 6.0.0
+
+Introduces Ambassador Edge Stack being installed by default.
+
+### Breaking changes
+
+There are no known breaking changes in between 5.0.0 and 6.0.0 charts.
 
 ## To 5.0.0
 

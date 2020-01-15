@@ -26,7 +26,7 @@ rules:
     verbs: ["get", "list", "watch"]
   - apiGroups: [ "getambassador.io" ]
     resources: [ "*" ]
-    verbs: ["get", "list", "watch", "create"]
+    verbs: ["get", "list", "watch", "update", "patch", "create", "delete" ]
   - apiGroups: [ "apiextensions.k8s.io" ]
     resources: [ "customresourcedefinitions" ]
     verbs: ["get", "list", "watch"]
@@ -42,6 +42,9 @@ rules:
   {{- if or .Values.pro.enabled (contains "datawire/aes" .Values.image.repository) }}
   - apiGroups: [""]
     resources: [ "secrets" ]
+    verbs: ["get", "list", "watch", "create", "update"]
+  - apiGroups: [""]
+    resources: [ "events" ]
     verbs: ["get", "list", "watch", "create"]
   {{- end }}
   {{- if .Values.rbac.podSecurityPolicies }}
