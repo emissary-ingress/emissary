@@ -46,10 +46,10 @@ type Controller struct {
 	secretsGetter k8sClientCoreV1.SecretsGetter
 	hostsGetter   k8sClientDynamic.NamespaceableResourceInterface
 
-	hosts        []*ambassadorTypesV2.Host
-	dirtyHosts   map[ref]struct{}
-	secrets      []*k8sTypesCoreV1.Secret
-	dirtySecrets map[ref]struct{}
+	hosts               []*ambassadorTypesV2.Host
+	knownChangedHosts   map[ref]struct{}
+	secrets             []*k8sTypesCoreV1.Secret
+	knownChangedSecrets map[ref]struct{}
 }
 
 func NewController(
@@ -71,13 +71,13 @@ func NewController(
 		secretsGetter: secretsGetter,
 		hostsGetter:   dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "hosts"}),
 
-		dirtyHosts:   make(map[ref]struct{}),
-		dirtySecrets: make(map[ref]struct{}),
+		knownChangedHosts:   make(map[ref]struct{}),
+		knownChangedSecrets: make(map[ref]struct{}),
 	}
 }
 
 func (c *Controller) anyInconsistent() bool {
-	return len(c.dirtyHosts) > 0 || len(c.dirtySecrets) > 0
+	return len(c.knownChangedHosts) > 0 || len(c.knownChangedSecrets) > 0
 }
 
 func (c *Controller) Worker(ctx context.Context) error {
@@ -123,10 +123,10 @@ func (c *Controller) Worker(ctx context.Context) error {
 						// we are no longer the leader--bail out
 						return
 					case <-ticker.C:
-						// It seems like it should be a good idea to trigger another
-						// rectify here -- but wait! If we have any "dirty" (which really
-						// means inconsistent) Hosts or Secrets, it's not safe to rectify,
-						// so don't do anything in that case.
+						// It seems like it should be a good idea to trigger another rectify
+						// here -- but wait!  If we have any Hosts or Secrets that are known to
+						// have changes that aren't yet observed in the WATT snapshot, then it's
+						// not safe to rectify, so don't do anything in that case.
 						if !c.anyInconsistent() {
 							// It's safe to rectify! Off we go.
 							logger.Infoln("triggering rectify from timer...")
@@ -227,18 +227,22 @@ func (c *Controller) processSnapshot(snapshot watt.Snapshot) (changed bool) {
 	}
 
 	if changed {
-		for hostRef := range c.dirtyHosts {
+		// If there are any Hosts or Secrets that we know to have changed, but haven't yet observed that change
+		// in this WATT snapshot, then discard this snapshot and wait for a sufficiently up-to-date one.
+		for hostRef := range c.knownChangedHosts {
 			if getHostResourceVersion(hosts, hostRef) == getHostResourceVersion(c.hosts, hostRef) {
 				return false
 			}
-			delete(c.dirtyHosts, hostRef)
+			delete(c.knownChangedHosts, hostRef)
 		}
-		for secretRef := range c.dirtySecrets {
+		for secretRef := range c.knownChangedSecrets {
 			if getSecretResourceVersion(secrets, secretRef) == getSecretResourceVersion(c.secrets, secretRef) {
 				return false
 			}
-			delete(c.dirtySecrets, secretRef)
+			delete(c.knownChangedSecrets, secretRef)
 		}
+
+		// OK, the snapshot is sufficiently up-to-date, and contains new info.  Update our view of the world.
 		c.hosts = hosts
 		c.secrets = secrets
 	}
@@ -263,7 +267,7 @@ func (c *Controller) updateHost(host *ambassadorTypesV2.Host) error {
 		return errors.Wrapf(err, "update %q.%q", host.GetName(), host.GetNamespace())
 	}
 	if uHost.GetResourceVersion() != host.GetResourceVersion() {
-		c.dirtyHosts[ref{Name: host.GetName(), Namespace: host.GetNamespace()}] = struct{}{}
+		c.knownChangedHosts[ref{Name: host.GetName(), Namespace: host.GetNamespace()}] = struct{}{}
 	}
 	uHost.Object["status"] = host.Status
 
@@ -272,7 +276,7 @@ func (c *Controller) updateHost(host *ambassadorTypesV2.Host) error {
 		return errors.Wrapf(err, "updateStatus %q.%q", host.GetName(), host.GetNamespace())
 	}
 	if uHost.GetResourceVersion() != host.GetResourceVersion() {
-		c.dirtyHosts[ref{Name: host.GetName(), Namespace: host.GetNamespace()}] = struct{}{}
+		c.knownChangedHosts[ref{Name: host.GetName(), Namespace: host.GetNamespace()}] = struct{}{}
 	}
 
 	return err

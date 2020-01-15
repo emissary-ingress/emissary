@@ -261,7 +261,7 @@ func (c *Controller) storeSecret(secretsGetter k8sClientCoreV1.SecretsGetter, se
 		return err
 	}
 	if newSecret.GetResourceVersion() != secret.GetResourceVersion() {
-		c.dirtySecrets[ref{Name: secret.GetName(), Namespace: secret.GetNamespace()}] = struct{}{}
+		c.knownChangedSecrets[ref{Name: secret.GetName(), Namespace: secret.GetNamespace()}] = struct{}{}
 	}
 	return nil
 }
