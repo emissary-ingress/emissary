@@ -76,6 +76,14 @@ func NewController(
 	}
 }
 
+func (c *Controller) anyInconsistent() bool {
+	if (len(c.dirtyHosts) > 0) || (len(c.dirtySecrets) > 0) {
+		return true
+	} else {
+		return false
+	}
+}
+
 func (c *Controller) Worker(ctx context.Context) error {
 	ctx, cancelElection := context.WithCancel(ctx)
 	leaderElector, err := k8sLeaderElection.NewLeaderElector(k8sLeaderElection.LeaderElectionConfig{
@@ -119,7 +127,17 @@ func (c *Controller) Worker(ctx context.Context) error {
 						// we are no longer the leader--bail out
 						return
 					case <-ticker.C:
-						c.rectify(logger)
+						// It seems like it should be a good idea to trigger another
+						// rectify here -- but wait! If we have any "dirty" (which really
+						// means inconsistent) Hosts or Secrets, it's not safe to rectify,
+						// so don't do anything in that case.
+						if !c.anyInconsistent() {
+							// It's safe to rectify! Off we go.
+							logger.Infoln("triggering rectify from timer...")
+							c.rectify(logger)
+						} else {
+							logger.Infoln("skipping rectify from timer due to inconsistent snapshot...")
+						}
 					case snapshot, ok := <-c.snapshotCh:
 						if !ok {
 							// there's no more work to do; not only do we want the current
