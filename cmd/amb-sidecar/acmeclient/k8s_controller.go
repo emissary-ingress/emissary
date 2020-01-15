@@ -143,7 +143,7 @@ func (c *Controller) Worker(ctx context.Context) error {
 							return
 						}
 						logger.Debugln("processing snapshot change...")
-						if c.processSnapshot(snapshot) {
+						if c.processSnapshot(snapshot, logger) {
 							c.rectify(logger)
 						}
 					}
@@ -179,7 +179,7 @@ func getSecretResourceVersion(secrets []*k8sTypesCoreV1.Secret, ref ref) string 
 	return ""
 }
 
-func (c *Controller) processSnapshot(snapshot watt.Snapshot) (changed bool) {
+func (c *Controller) processSnapshot(snapshot watt.Snapshot, logger dlog.Logger) (changed bool) {
 	hosts := append([]*ambassadorTypesV2.Host(nil), snapshot.Kubernetes.Host...)
 	sort.SliceStable(hosts, func(i, j int) bool {
 		switch {
@@ -231,14 +231,18 @@ func (c *Controller) processSnapshot(snapshot watt.Snapshot) (changed bool) {
 		// in this WATT snapshot, then discard this snapshot and wait for a sufficiently up-to-date one.
 		for hostRef := range c.knownChangedHosts {
 			if getHostResourceVersion(hosts, hostRef) == getHostResourceVersion(c.hosts, hostRef) {
+				logger.Debugln("snapshot does not include required change to Host", hostRef)
 				return false
 			}
+			logger.Debugln("observed required change to Host", hostRef)
 			delete(c.knownChangedHosts, hostRef)
 		}
 		for secretRef := range c.knownChangedSecrets {
 			if getSecretResourceVersion(secrets, secretRef) == getSecretResourceVersion(c.secrets, secretRef) {
+				logger.Debugln("snapshot does not include required change to Secret", secretRef)
 				return false
 			}
+			logger.Debugln("observed required change to Secret", secretRef)
 			delete(c.knownChangedSecrets, secretRef)
 		}
 
