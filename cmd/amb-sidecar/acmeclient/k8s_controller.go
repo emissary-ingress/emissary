@@ -300,7 +300,7 @@ func (c *Controller) recordHostPending(logger dlog.Logger, host *ambassadorTypes
 	c.eventLogger.Namespace(host.GetNamespace()).Event(unstructureHost(host), k8sTypesCoreV1.EventTypeNormal, "Pending", reasonPending)
 }
 
-// recordHostPending records a Host as state=Ready (potentially moving it out of state=Error or
+// recordHostReady records a Host as state=Ready (potentially moving it out of state=Error or
 // state=Pending).
 //
 // After calling this method, you MUST not process the Host further until you get a new
