@@ -209,6 +209,7 @@ func (c *Controller) recordHostPending(logger dlog.Logger, host *ambassadorTypes
 	host.Status.ErrorBackoff = nil
 	if err := c.updateHost(host); err != nil {
 		logger.Errorln(err)
+		return
 	}
 	c.eventLogger.Namespace(host.GetNamespace()).Event(unstructureHost(host), k8sTypesCoreV1.EventTypeNormal, "Pending", reasonPending)
 }
@@ -223,6 +224,7 @@ func (c *Controller) recordHostReady(logger dlog.Logger, host *ambassadorTypesV2
 	host.Status.ErrorBackoff = nil
 	if err := c.updateHost(host); err != nil {
 		logger.Errorln(err)
+		return
 	}
 	c.eventLogger.Namespace(host.GetNamespace()).Event(unstructureHost(host), k8sTypesCoreV1.EventTypeNormal, "Ready", readyReason)
 }
@@ -246,6 +248,7 @@ func (c *Controller) recordHostError(logger dlog.Logger, host *ambassadorTypesV2
 
 	if err := c.updateHost(host); err != nil {
 		logger.Errorln(err)
+		return
 	}
 	c.eventLogger.Namespace(host.GetNamespace()).Event(unstructureHost(host), k8sTypesCoreV1.EventTypeWarning, "Error", err.Error())
 }
