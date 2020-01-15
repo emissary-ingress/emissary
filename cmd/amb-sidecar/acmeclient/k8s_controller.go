@@ -787,6 +787,28 @@ func (c *Controller) rectifyPhase4(logger dlog.Logger,
 				c.recordHostsEvent(hosts, fmt.Sprintf("tlsSecret %q.%q (hostnames=%q): needs updated: %v",
 					tlsSecretName, namespace, hostnames,
 					needsRenewReason))
+				if c.redisPool == nil {
+					// We need Redis to do the ACME challenge.  Why do this check so late, at the
+					// leaves?
+					//
+					// In runner/main.go, we could avoid launching the ACME client at all if we
+					// don't have Redis, but then we wouldn't get defaults fill or status fill for
+					// non-ACME Hosts.
+					//
+					// We could just bail after rectifyPhase1 if we don't have Redis, but then the
+					// user would have no indication why ACME wasn't working.
+					//
+					// We could instead record an error for ACME Hosts after rectifyPhase1, but then
+					// we might interfere with valid Hosts that would have still been good for a
+					// while, during a botched upgrade or something.
+					//
+					// So instead, we go through as much of the process as we can, until we actually
+					// need Redis, and then record an error on the Hosts that would need Redis.
+					c.recordHostsError(logger, hosts,
+						ambassadorTypesV2.HostPhase_ACMECertificateChallenge,
+						errors.New("redis is not configured"))
+					continue
+				}
 				acmeProvider := acmeProviderByTLSSecret[namespace][tlsSecretName]
 				var user acmeUser
 				var err error
