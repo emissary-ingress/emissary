@@ -1,4 +1,4 @@
-# Instio Integration
+# Istio Integration
 
 Ambassador Edge Stack and Istio: Edge Proxy and Service Mesh together in one. The Edge Stack is deployed at the edge of your network, and routes incoming traffic to your internal services (aka "north-south" traffic).  [Istio](https://istio.io/) is a service mesh for microservices, and is designed to add application-level Layer (L7) observability, routing, and resilience to service-to-service traffic (aka "east-west" traffic). Both Istio and the Ambassador Edge Stack are built using [Envoy](https://www.envoyproxy.io).
 
