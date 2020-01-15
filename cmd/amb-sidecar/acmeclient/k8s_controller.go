@@ -111,8 +111,14 @@ func (c *Controller) Worker(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	leaderElector.Run(ctx)
-	return nil
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		default:
+			leaderElector.Run(ctx)
+		}
+	}
 }
 
 func (c *Controller) processSnapshot(snapshot watt.Snapshot) (changed bool) {
