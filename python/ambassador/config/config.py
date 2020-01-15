@@ -49,6 +49,7 @@ class Config:
     ambassador_id: ClassVar[str] = os.environ.get('AMBASSADOR_ID', 'default')
     ambassador_namespace: ClassVar[str] = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
     single_namespace: ClassVar[bool] = bool(os.environ.get('AMBASSADOR_SINGLE_NAMESPACE'))
+    certs_single_namespace: ClassVar[bool] = bool(os.environ.get('AMBASSADOR_CERTS_SINGLE_NAMESPACE', os.environ.get('AMBASSADOR_SINGLE_NAMESPACE')))
     enable_endpoints: ClassVar[bool] = not bool(os.environ.get('AMBASSADOR_DISABLE_ENDPOINTS'))
 
     StorageByKind: ClassVar[Dict[str, str]] = {
