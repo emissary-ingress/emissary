@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	// k8s misc
+	k8sScheme "k8s.io/client-go/kubernetes/scheme"
 	k8sRecord "k8s.io/client-go/tools/record"
 
 	// k8s types
@@ -63,7 +64,12 @@ func (el *EventLogger) Namespace(namespace string) k8sRecord.EventRecorder {
 		WithField("event-namespace", namespace).
 		Infof)
 	eventRecorder := eventBroadcaster.NewRecorder(
-		nil, // a k8sRuntime.Scheme, only used if we try to record an event for an object without apiVersion/kind
+		// a k8sRuntime.Scheme, only used if we try to record an event
+		// for an object without apiVersion/kind.  *We* don't do that,
+		// but client-go might internally, if we pass it an
+		// EventRecorder.  So, load in client-go's internal Scheme.
+		k8sScheme.Scheme,
+
 		k8sTypesCoreV1.EventSource{
 			Component: "Ambassador Edge Stack",
 			Host:      el.hostname,
