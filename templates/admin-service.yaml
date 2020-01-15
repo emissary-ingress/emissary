@@ -20,9 +20,9 @@ spec:
   type: {{ .Values.adminService.type }}
   ports:
     - port: {{ .Values.adminService.port }}
-      targetPort: ambassador-admin
+      targetPort: admin
       protocol: TCP
-      name: admin
+      name: ambassador-admin
       {{- if (and (eq .Values.adminService.type "NodePort") (not (empty .Values.adminService.nodePort))) }}
       nodePort: {{ .Values.adminService.nodePort }}
       {{- end }}
