@@ -248,12 +248,17 @@ func (c *Controller) updateHost(host *ambassadorTypesV2.Host) error {
 	if err != nil {
 		return errors.Wrapf(err, "update %q.%q", host.GetName(), host.GetNamespace())
 	}
+	if uHost.GetResourceVersion() != host.GetResourceVersion() {
+		c.dirtyHosts[ref{Name: host.GetName(), Namespace: host.GetNamespace()}] = struct{}{}
+	}
 	uHost.Object["status"] = host.Status
-	c.dirtyHosts[ref{Name: host.GetName(), Namespace: host.GetNamespace()}] = struct{}{}
 
-	_, err = c.hostsGetter.Namespace(host.GetNamespace()).UpdateStatus(uHost, k8sTypesMetaV1.UpdateOptions{})
+	uHost, err = c.hostsGetter.Namespace(host.GetNamespace()).UpdateStatus(uHost, k8sTypesMetaV1.UpdateOptions{})
 	if err != nil {
 		return errors.Wrapf(err, "updateStatus %q.%q", host.GetName(), host.GetNamespace())
+	}
+	if uHost.GetResourceVersion() != host.GetResourceVersion() {
+		c.dirtyHosts[ref{Name: host.GetName(), Namespace: host.GetNamespace()}] = struct{}{}
 	}
 
 	return err

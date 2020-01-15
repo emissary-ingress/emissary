@@ -251,12 +251,13 @@ func secretAddOwner(secret *k8sTypesCoreV1.Secret, owner *ambassadorTypesV2.Host
 func (c *Controller) storeSecret(secretsGetter k8sClientCoreV1.SecretsGetter, secret *k8sTypesCoreV1.Secret) error {
 	secretInterface := secretsGetter.Secrets(secret.GetNamespace())
 	var err error
+	var newSecret *k8sTypesCoreV1.Secret
 	if secret.GetResourceVersion() == "" {
-		_, err = secretInterface.Create(secret)
+		newSecret, err = secretInterface.Create(secret)
 	} else {
-		_, err = secretInterface.Update(secret)
+		newSecret, err = secretInterface.Update(secret)
 	}
-	if err == nil {
+	if newSecret != nil && newSecret.GetResourceVersion() != secret.GetResourceVersion() {
 		c.dirtySecrets[ref{Name: secret.GetName(), Namespace: secret.GetNamespace()}] = struct{}{}
 	}
 	return err
