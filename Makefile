@@ -175,7 +175,7 @@ release/promote-aes/to-ga:
 	                              "s3://datawire-static-files/edgectl/$(RELEASE_VERSION)/windows/amd64/edgectl.exe"; \
 	}
 	@printf '  $(CYN)edgectl (metadata)$(END)\n'
-	echo "$RELEASE_VERSION" | aws s3 cp --acl public-read - s3://datawire-static-files/edgectl/stable.txt
+	echo "$(RELEASE_VERSION)" | aws s3 cp --acl public-read - s3://datawire-static-files/edgectl/stable.txt
 .PHONY: release/promote-aes/to-ga
 
 define _help.aes-targets
