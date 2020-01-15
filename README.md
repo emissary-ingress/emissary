@@ -111,25 +111,13 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `volumes`                          | Volumes for the ambassador service                                              | `[]`                              |
 | `licenseKey.vlaue`                 | Ambassador Edge Stack license. Empty will install in evaluation mode.           | ``                                |
 | `licenseKey.createSecret`          | Set to `false` if installing mutltiple Ambassdor Edge Stacks in a namespace.    | `true`                            |
-| `pro.enabled`                      | Installs the Ambassador Pro container as a sidecar to Ambassador                | `false`                           |
-| `pro.image.repository`             | Ambassador Pro image                                                            | `quay.io/datawire/ambassador_pro` |
-| `pro.image.tag`                    | Ambassador Pro image tag                                                        | `0.10.0`                          |
-| `pro.image.customBuildTag`         | Image for a custom build of Ambassador Pro using a `Plugin`                     | ``                                |
-| `pro.ports.auth`                   | Ambassador Pro authentication port                                              | `8500`                            |
-| `pro.ports.ratelimit`              | Ambassador Pro ratelimit port                                                   | `8500`                            |
-| `pro.logLevel`                     | Log level for Ambassador Pro                                                    | `"info"`                          |
-| `pro.licenseKey.value`             | License key for Ambassador Pro                                                  | ""                                |
-| `pro.licenseKey.secret.enabled`    | Reads the license key as a base64-encoded string in a Kubernetes secret         | `true`                            |
-| `pro.licenseKey.secret.create`     | Stores the license key as a base64-encoded string in a Kubernetes secret        | `true`                            |
-| `pro.env`                          | Set additional environment variables for Ambassador Pro. (See below)            | `{}`                              |
-| `pro.resources`                    | Set resource requests and limits from Ambassador Pro                            | `{}`                              |
-| `pro.authService.enabled`          | Enables the Ambassador Pro authentication service                               | `true`                            |
-| `pro.authService.optional_configurations` | Exposes [additional configuration options](https://www.getambassador.io/reference/services/auth-service/) for the `AuthService` | `""` | 
-| `pro.rateLimit.enabled`            | Enables the Ambassador Pro rate limit service                                   | `true`                            |
-| `pro.rateLimit.redis.annotations.deployment` | Annotations for the redis deployment                                  | `{}`                              |
-| `pro.rateLimit.redis.annotations.service` | Annotations for the redis service                                        | `{}`                              |
-| `pro.rateLimit.redis.resources`    | Set resource requests and limits for the rate limit service's redis instance    | `{}`                              |
-| `pro.devPortal.enabled`            | Enables the Ambassador Developer Portal                                         | `false`                           |
+| `redisURL`                         | URL of redis instance not created by the release                                | `""`                              |
+| `redis.create`                     | Create a basic redis instance with default configurations                       | `true`                            |
+| `redis.annotations`                | Annotations for the redis service and deployment                                | `""`                              |
+| `redis.resources`                  | Resource requests for the redis instance                                        | `""`                              |
+| `authService.create`               | Create the `AuthService` CRD for Ambassador Edge Stack                          | `true`                            |
+| `authService.optional_configurations` | Config options for the `AuthService` CRD                                     | `""`                              |
+| `rateLimit.create`                 | Create the `RateLimit` CRD for Ambassador Edge Stack                            | `true`                            |
 | `autoscaling.enabled`              | If true, creates Horizontal Pod Autoscaler                                      | `false`                           |
 | `autoscaling.minReplica`           | If autoscaling enabled, this field sets minimum replica count                   | `2`                               |
 | `autoscaling.maxReplica`           | If autoscaling enabled, this field sets maximum replica count                   | `5`                               |
@@ -159,12 +147,12 @@ features of The Ambassador Edge Stack.
 To install the Ambassador API Gateway, simply change the `image` to your
 desired version of the Ambassador API Gateway.
 
-### CRDs (Helm 2 Only)
+### CRDs 
 
 This helm chart includes the creation of the core CRDs Ambassador uses for
 configuration. 
 
-The `crds` flags let you configure how a release manages crds.
+The `crds` flags (Helm 2 only) let you configure how a release manages crds.
 - `crds.create` Can only be set on your first/master Ambassador release. 
 - `crds.enabled` Should be set on all releases using Ambassador CRDs
 - `crds.keep` Configures if the CRDs are deleted when the master release is 
@@ -173,7 +161,7 @@ The `crds` flags let you configure how a release manages crds.
 
 ### Annotations
 
-Ambassador configuration is done through annotations on Kubernetes services or Custom Resource Definitions (CRDs). The `service.annotations` section of the values file contains commented out examples of [Ambassador Module](https://www.getambassador.io/reference/core/ambassador) and a global [TLSContext](https://www.getambassador.io/reference/core/tls) configurations which are typically created in the Ambassador service.
+Ambassador is done through Custom Resource Definitions (CRDs). If you are unable to use CRDs, Ambassador can also be configured using annotations on services. The `service.annotations` section of the values file contains commented out examples of [Ambassador Module](https://www.getambassador.io/reference/core/ambassador) and a global [TLSContext](https://www.getambassador.io/reference/core/tls) configurations which are typically created in the Ambassador service.
 
 If you intend to use `service.annotations`, remember to include the `getambassador.io/config` annotation key as above.
 
@@ -183,7 +171,7 @@ Using the Prometheus Exporter has been deprecated and is no longer recommended.
 
 Please see Ambassador's [monitoring with Prometheus](https://www.getambassador.io/user-guide/monitoring/) docs for more information on using the `/metrics` endpoint for metrics collection.
 
-### Ambassador Pro
+### Ambassador Pro (DEPRECATED: Please upgrade to Ambassador Edge Stack)
 
 Setting `pro.enabled: true` will install Ambassador Pro as a sidecar to Ambassador with the required CRDs and redis instance.
 
@@ -193,7 +181,7 @@ You must set the `pro.licenseKey.value` to the license key issued to you. Sign u
 
 For most use cases, `pro.image` and `pro.ports` can be left as default.
 
-#### Ambassador Pro Environment
+#### Ambassador Pro Environment (DEPRECATED: Please upgrade to Ambassador Edge Stack)
 
 Click [here](https://www.getambassador.io/reference/pro/environment/) for full information regarding the different environment variables for Ambassador Pro.
 
@@ -218,15 +206,15 @@ Additional environment variables can be set with `pro.env`
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example,
 
 ```console
-$ helm upgrade --install --wait my-release \
+$ helm install --wait my-release \
     --set adminService.type=NodePort \
-    stable/ambassador
+    datawire/ambassador
 ```
 
 Alternatively, a YAML file that specifies the values for the above parameters can be provided while installing the chart. For example,
 
 ```console
-$ helm upgrade --install --wait my-release -f values.yaml stable/ambassador
+$ helm install --wait my-release -f values.yaml datawire/ambassador
 ```
 
 ---
@@ -239,7 +227,7 @@ Introduces Ambassador Edge Stack being installed by default.
 
 ### Breaking changes
 
-There are no known breaking changes in between 5.0.0 and 6.0.0 charts.
+Ambassador Pro support has been removed in 6.0.0. Please [upgrade to the Ambassador Edge Stack](https://www.getambassador.io/yaml/user-guide/helm).
 
 ## To 5.0.0
 

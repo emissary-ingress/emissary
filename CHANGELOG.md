@@ -9,7 +9,7 @@ Introduces Ambassador Edge Stack being installed by default.
 
 ### Breaking changes
 
-There are no known breaking changes in between 5.0.0 and 6.0.0 charts.
+Ambassador Pro support has been removed in 6.0.0. Please upgrade to the Ambassador Edge Stack.
 
 ## v5.0.0
 
