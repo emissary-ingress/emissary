@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"sort"
+	"sync"
 	"time"
 
 	"github.com/datawire/ambassador/pkg/dlog"
@@ -68,6 +69,7 @@ func NewController(
 
 func (c *Controller) Worker(ctx context.Context) error {
 	ctx, cancelElection := context.WithCancel(ctx)
+	var mu sync.Mutex
 	leaderElector, err := k8sLeaderElection.NewLeaderElector(k8sLeaderElection.LeaderElectionConfig{
 		Lock:          c.leaderLock,
 		LeaseDuration: 60 * time.Second,
@@ -76,9 +78,17 @@ func (c *Controller) Worker(ctx context.Context) error {
 		//WatchDog: TODO, // XXX: this could be a robustness win
 		Callbacks: k8sLeaderElection.LeaderCallbacks{
 			OnStartedLeading: func(ctx context.Context) {
-				// ctx will be canceled when we are no longer the leader (or
-				// are shutting down).
+				// ctx will be canceled when we are no longer the leader (or are shutting
+				// down).
+				//
+				// leaderElector.Run() doesn't wait for the OnStartedLeading callback to
+				// return, so because this callback function may not return immediately when
+				// ctx is canceled, we have to serialize with ourself.
+				mu.Lock()
+				defer mu.Unlock()
+
 				logger := dlog.GetLogger(ctx)
+
 				ticker := time.NewTicker(24 * time.Hour)
 				defer ticker.Stop()
 				for {
