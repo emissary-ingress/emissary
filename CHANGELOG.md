@@ -3,6 +3,14 @@
 This file documents all notable changes to Ambassador Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
+## v6.0.0
+
+Introduces Ambassador Edge Stack being installed by default.
+
+### Breaking changes
+
+There are no known breaking changes in between 5.0.0 and 6.0.0 charts.
+
 ## v5.0.0
 
 ### Breaking changes
