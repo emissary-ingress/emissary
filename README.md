@@ -193,7 +193,7 @@ Some environment variables are set by default. Some of these are configurable in
 | `REDIS_SOCKET_TYPE`      | `"tcp"`                           | No               |
 | `REDIS_URL`              | `{{release name}}-pro-redis:6379` | No               |
 | `APRO_HTTP_PORT`         | `8500`                            | `pro.ports.auth` |
-| `APP_LOG_LEVEL`          | `"info"`                          | `pro.logLevel`   |
+| `AES_LOG_LEVEL`          | `"info"`                          | `pro.logLevel`   |
 | `AMBASSADOR_NAMESPACE`   | `metadata.namespace`              | `namespace.name` |
 | `AMBASSADOR_ID`          | `default`                         | `env`            |
 | `AMBASSADOR_LICENSE_KEY` | `""`                              | `pro.licenseKey` |
