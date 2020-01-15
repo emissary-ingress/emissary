@@ -172,11 +172,11 @@ services:
     # don't try to watch Kubernetes for configuration changes
     - AMBASSADOR_NO_KUBEWATCH=no_kubewatch
   tour-ui:
-    image: quay.io/datawire/tour:ui-$tourVersion$
+    image: quay.io/datawire/tour:ui-0.2.6
     ports:
     - 5000
   tour-backend:
-    image: quay.io/datawire/tour:backend-$tourVersion$
+    image: quay.io/datawire/tour:backend-0.2.6
     ports:
     - 8080
 ```
@@ -242,11 +242,11 @@ services:
     # don't try to watch Kubernetes for configuration changes
     - AMBASSADOR_NO_KUBEWATCH=no_kubewatch
   tour-ui:
-    image: quay.io/datawire/tour:ui-$tourVersion$
+    image: quay.io/datawire/tour:ui-0.2.6
     ports:
     - 5000
   tour-backend:
-    image: quay.io/datawire/tour:backend-$tourVersion$
+    image: quay.io/datawire/tour:backend-0.2.6
     ports:
     - 8080
   auth:
@@ -354,11 +354,11 @@ services:
     # don't try to watch Kubernetes for configuration changes
     - AMBASSADOR_NO_KUBEWATCH=no_kubewatch
   tour-ui:
-    image: quay.io/datawire/tour:ui-$tourVersion$
+    image: quay.io/datawire/tour:ui-0.2.6
     ports:
     - 5000
   tour-backend:
-    image: quay.io/datawire/tour:backend-$tourVersion$
+    image: quay.io/datawire/tour:backend-0.2.6
     ports:
     - 8080
   auth:
