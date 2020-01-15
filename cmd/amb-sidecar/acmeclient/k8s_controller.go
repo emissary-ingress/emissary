@@ -269,7 +269,7 @@ func (c *Controller) updateHost(host *ambassadorTypesV2.Host) error {
 // Host/those Hosts until the next "rectify" iteration with a new WATT snapshot.
 //
 // It is permisible to call the same method on multiple different Hosts before calling
-// `continue`:
+// `continue`.  For example:
 //
 //	hostsDirty := false
 //	for _, host := range hosts {
