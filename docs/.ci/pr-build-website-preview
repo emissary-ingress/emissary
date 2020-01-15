@@ -17,9 +17,23 @@
 set -o errexit
 set -o nounset
 
-case "${TRAVIS_PULL_REQUEST_SHA:+${TRAVIS_BRANCH:-}}" in
+website_branch=${1:-master}
+pr_branch=${TRAVIS_PULL_REQUEST_SHA:+${TRAVIS_BRANCH:-}}
+
+echo "[pr-build-website-preview] website branch ${website_branch}, PR branch ${pr_branch}"
+
+case "$pr_branch" in
 	master) submodule=content;;
-	early-access) submodule=content-ea/early-access;;
+	early-access)
+		case "$website_branch" in
+			master) submodule=content-ea/early-access;;
+			Edge-stack-update) submodule=content;;
+			*)
+				echo "[pr-build-website-preview] skipping: wut: $website_branch"
+				exit 1
+				;;
+		esac
+		;;
 	*)
 		if [[ -z "$TRAVIS_PULL_REQUEST_SHA" ]]; then
 			echo "[pr-build-website-preview] skipping: not a PR"
@@ -32,9 +46,9 @@ esac
 
 set -o xtrace
 
-rm -rf /tmp/getambassador.io
-git clone https://d6e-automaton:${GH_TOKEN}@github.com/datawire/getambassador.io.git /tmp/getambassador.io
-cd /tmp/getambassador.io
+rm -rf "/tmp/getambassador.io-$website_branch"
+git clone --single-branch --branch="$website_branch" https://d6e-automaton:${GH_TOKEN}@github.com/datawire/getambassador.io.git "/tmp/getambassador.io-$website_branch"
+cd "/tmp/getambassador.io-$website_branch"
 git submodule update --init --reference="$TRAVIS_BUILD_DIR"
 git -C "$submodule" checkout "$TRAVIS_COMMIT"
 npm install
