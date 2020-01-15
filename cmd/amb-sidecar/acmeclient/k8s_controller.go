@@ -78,9 +78,31 @@ func (c *Controller) Worker(ctx context.Context) error {
 			OnStartedLeading: func(ctx context.Context) {
 				// ctx will be canceled when we are no longer the leader (or
 				// are shutting down).
+
 				logger := dlog.GetLogger(ctx)
-				ticker := time.NewTicker(24 * time.Hour)
+
+				// Kludge:
+				//
+				// "Ideally", there would be 3 cases that trigger us to call c.rectify()
+				//  1. there's a new WATT snapshot with changes we care about
+				//  2. a daily timer
+				//  3. one of the Host's errorBackoff has elapsed
+				//
+				// We've always had (1) and (2), but unfortunately adding (3)
+				// is a little tricky.  Or at least tedious.  The point is, I'm
+				// not up to it right now with 1.0.0 GA around the corner.
+				//
+				// So, what to do about that: Burn some CPU cycles, and crank
+				// the daily timer down to mintuely, so that we always trigger
+				// within a minute of an errorBackoff elapsing, at the cost of
+				// a bunch of no-op calls to c.rectify().
+				//
+				// A no-op c.rectify() should be cheap enough (entirely in-CPU)
+				// that until I see a benchmark saying otherwise, doing this
+				// the "right way" is pretty low priority.
+				ticker := time.NewTicker(time.Minute) // 24 * time.Hour)
 				defer ticker.Stop()
+
 				for {
 					select {
 					case <-ctx.Done():
