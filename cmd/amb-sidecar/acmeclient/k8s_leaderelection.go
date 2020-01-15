@@ -34,8 +34,10 @@ func GetLeaderElectionResourceLock(cfg types.Config, kubeinfo *k8s.KubeInfo, eve
 		return nil, err
 	}
 
-	if _, err := client.ResolveResourceType("Lease.coordination.k8s.io"); err != nil {
-		// Kubernetes <1.12 didn't have a "Lease" object, so fall back to using an Endpoints object
+	if _, err := client.ResolveResourceType("Lease.v1.coordination.k8s.io"); err != nil {
+		// Kubernetes <1.12 didn't have a "Lease" object, and was in beta in <1.14, so fall back to
+		// using an Endpoints object.  Don't consider v1beta1 to be good-enough; it isn't for our copy
+		// of client-go; require v1.
 		coreClient, err := k8sClientCoreV1.NewForConfig(restconfig)
 		if err != nil {
 			return nil, err

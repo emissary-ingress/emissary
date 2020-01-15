@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"sort"
+	"sync"
 	"time"
 
 	"github.com/datawire/ambassador/pkg/dlog"
@@ -82,6 +83,7 @@ func (c *Controller) anyInconsistent() bool {
 
 func (c *Controller) Worker(ctx context.Context) error {
 	ctx, cancelElection := context.WithCancel(ctx)
+	var mu sync.Mutex
 	leaderElector, err := k8sLeaderElection.NewLeaderElector(k8sLeaderElection.LeaderElectionConfig{
 		Lock:          c.leaderLock,
 		LeaseDuration: 60 * time.Second,
@@ -90,8 +92,14 @@ func (c *Controller) Worker(ctx context.Context) error {
 		//WatchDog: TODO, // XXX: this could be a robustness win
 		Callbacks: k8sLeaderElection.LeaderCallbacks{
 			OnStartedLeading: func(ctx context.Context) {
-				// ctx will be canceled when we are no longer the leader (or
-				// are shutting down).
+				// ctx will be canceled when we are no longer the leader (or are shutting
+				// down).
+				//
+				// leaderElector.Run() doesn't wait for the OnStartedLeading callback to
+				// return, so because this callback function may not return immediately when
+				// ctx is canceled, we have to serialize with ourself.
+				mu.Lock()
+				defer mu.Unlock()
 
 				logger := dlog.GetLogger(ctx)
 
@@ -157,8 +165,14 @@ func (c *Controller) Worker(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	leaderElector.Run(ctx)
-	return nil
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		default:
+			leaderElector.Run(ctx)
+		}
+	}
 }
 
 func getHostResourceVersion(hosts []*ambassadorTypesV2.Host, ref ref) string {
