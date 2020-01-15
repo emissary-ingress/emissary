@@ -150,11 +150,11 @@ release/promote-aes/to-rc-latest:
 # This assumes that the version you are promoting from is the same as the OSS -rc-latest version.
 release/promote-aes/to-ga:
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
-	@[[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(RELEASE_VERSION)"; exit 1)
-	@set -e; {
-	  rc_latest=$(curl -sL --fail https://s3.amazonaws.com/datawire-static-files/ambassador/teststable.txt); \
+	@[[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag$(END)\n' "$(RELEASE_VERSION)"; exit 1)
+	@set -e; { \
+	  rc_latest=$$(curl -sL --fail https://s3.amazonaws.com/datawire-static-files/ambassador/teststable.txt); \
 	  if ! [[ "$$rc_latest" == "$(RELEASE_VERSION)"-rc* ]]; then \
-	    printf '$(RED)ERROR: https://s3.amazonaws.com/datawire-static-files/ambassador/teststable.txt => %s does not look like a RC of %s' "$$rc_latest" "$(RELEASE_VERSION)"; \
+	    printf '$(RED)ERROR: https://s3.amazonaws.com/datawire-static-files/ambassador/teststable.txt => %s does not look like a RC of %s$(END)\n' "$$rc_latest" "$(RELEASE_VERSION)"; \
 	    exit 1; \
 	  fi; \
 	  $(MAKE) release/promote-aes/.main \
