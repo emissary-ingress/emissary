@@ -31,6 +31,11 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/watt"
 )
 
+type ref struct {
+	Name      string
+	Namespace string
+}
+
 type Controller struct {
 	redisPool  *pool.Pool
 	httpClient *http.Client
@@ -42,8 +47,10 @@ type Controller struct {
 	secretsGetter k8sClientCoreV1.SecretsGetter
 	hostsGetter   k8sClientDynamic.NamespaceableResourceInterface
 
-	hosts   []*ambassadorTypesV2.Host
-	secrets []*k8sTypesCoreV1.Secret
+	hosts               []*ambassadorTypesV2.Host
+	knownChangedHosts   map[ref]struct{}
+	secrets             []*k8sTypesCoreV1.Secret
+	knownChangedSecrets map[ref]struct{}
 }
 
 func NewController(
@@ -64,7 +71,14 @@ func NewController(
 
 		secretsGetter: secretsGetter,
 		hostsGetter:   dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "hosts"}),
+
+		knownChangedHosts:   make(map[ref]struct{}),
+		knownChangedSecrets: make(map[ref]struct{}),
 	}
+}
+
+func (c *Controller) anyInconsistent() bool {
+	return len(c.knownChangedHosts) > 0 || len(c.knownChangedSecrets) > 0
 }
 
 func (c *Controller) Worker(ctx context.Context) error {
@@ -89,15 +103,45 @@ func (c *Controller) Worker(ctx context.Context) error {
 
 				logger := dlog.GetLogger(ctx)
 
-				ticker := time.NewTicker(24 * time.Hour)
+				// Kludge:
+				//
+				// "Ideally", there would be 3 cases that trigger us to call c.rectify()
+				//  1. there's a new WATT snapshot with changes we care about
+				//  2. a daily timer
+				//  3. one of the Host's errorBackoff has elapsed
+				//
+				// We've always had (1) and (2), but unfortunately adding (3)
+				// is a little tricky.  Or at least tedious.  The point is, I'm
+				// not up to it right now with 1.0.0 GA around the corner.
+				//
+				// So, what to do about that: Burn some CPU cycles, and crank
+				// the daily timer down to mintuely, so that we always trigger
+				// within a minute of an errorBackoff elapsing, at the cost of
+				// a bunch of no-op calls to c.rectify().
+				//
+				// A no-op c.rectify() should be cheap enough (entirely in-CPU)
+				// that until I see a benchmark saying otherwise, doing this
+				// the "right way" is pretty low priority.
+				ticker := time.NewTicker(time.Minute) // 24 * time.Hour)
 				defer ticker.Stop()
+
 				for {
 					select {
 					case <-ctx.Done():
 						// we are no longer the leader--bail out
 						return
 					case <-ticker.C:
-						c.rectify(logger)
+						// It seems like it should be a good idea to trigger another rectify
+						// here -- but wait!  If we have any Hosts or Secrets that are known to
+						// have changes that aren't yet observed in the WATT snapshot, then it's
+						// not safe to rectify, so don't do anything in that case.
+						if !c.anyInconsistent() {
+							// It's safe to rectify! Off we go.
+							logger.Infoln("triggering rectify from timer...")
+							c.rectify(logger)
+						} else {
+							logger.Infoln("skipping rectify from timer due to inconsistent snapshot...")
+						}
 					case snapshot, ok := <-c.snapshotCh:
 						if !ok {
 							// there's no more work to do; not only do we want the current
@@ -107,7 +151,7 @@ func (c *Controller) Worker(ctx context.Context) error {
 							return
 						}
 						logger.Debugln("processing snapshot change...")
-						if c.processSnapshot(snapshot) {
+						if c.processSnapshot(snapshot, logger) {
 							c.rectify(logger)
 						}
 					}
@@ -131,7 +175,25 @@ func (c *Controller) Worker(ctx context.Context) error {
 	}
 }
 
-func (c *Controller) processSnapshot(snapshot watt.Snapshot) (changed bool) {
+func getHostResourceVersion(hosts []*ambassadorTypesV2.Host, ref ref) string {
+	for _, host := range hosts {
+		if host.GetNamespace() == ref.Namespace && host.GetName() == ref.Name {
+			return host.GetResourceVersion()
+		}
+	}
+	return ""
+}
+
+func getSecretResourceVersion(secrets []*k8sTypesCoreV1.Secret, ref ref) string {
+	for _, secret := range secrets {
+		if secret.GetNamespace() == ref.Namespace && secret.GetName() == ref.Name {
+			return secret.GetResourceVersion()
+		}
+	}
+	return ""
+}
+
+func (c *Controller) processSnapshot(snapshot watt.Snapshot, logger dlog.Logger) (changed bool) {
 	hosts := append([]*ambassadorTypesV2.Host(nil), snapshot.Kubernetes.Host...)
 	sort.SliceStable(hosts, func(i, j int) bool {
 		switch {
@@ -179,6 +241,26 @@ func (c *Controller) processSnapshot(snapshot watt.Snapshot) (changed bool) {
 	}
 
 	if changed {
+		// If there are any Hosts or Secrets that we know to have changed, but haven't yet observed that change
+		// in this WATT snapshot, then discard this snapshot and wait for a sufficiently up-to-date one.
+		for hostRef := range c.knownChangedHosts {
+			if getHostResourceVersion(hosts, hostRef) == getHostResourceVersion(c.hosts, hostRef) {
+				logger.Debugln("snapshot does not include required change to Host", hostRef)
+				return false
+			}
+			logger.Debugln("observed required change to Host", hostRef)
+			delete(c.knownChangedHosts, hostRef)
+		}
+		for secretRef := range c.knownChangedSecrets {
+			if getSecretResourceVersion(secrets, secretRef) == getSecretResourceVersion(c.secrets, secretRef) {
+				logger.Debugln("snapshot does not include required change to Secret", secretRef)
+				return false
+			}
+			logger.Debugln("observed required change to Secret", secretRef)
+			delete(c.knownChangedSecrets, secretRef)
+		}
+
+		// OK, the snapshot is sufficiently up-to-date, and contains new info.  Update our view of the world.
 		c.hosts = hosts
 		c.secrets = secrets
 	}
@@ -202,16 +284,45 @@ func (c *Controller) updateHost(host *ambassadorTypesV2.Host) error {
 	if err != nil {
 		return errors.Wrapf(err, "update %q.%q", host.GetName(), host.GetNamespace())
 	}
+	if uHost.GetResourceVersion() != host.GetResourceVersion() {
+		c.knownChangedHosts[ref{Name: host.GetName(), Namespace: host.GetNamespace()}] = struct{}{}
+	}
 	uHost.Object["status"] = host.Status
 
-	_, err = c.hostsGetter.Namespace(host.GetNamespace()).UpdateStatus(uHost, k8sTypesMetaV1.UpdateOptions{})
+	uHost, err = c.hostsGetter.Namespace(host.GetNamespace()).UpdateStatus(uHost, k8sTypesMetaV1.UpdateOptions{})
 	if err != nil {
 		return errors.Wrapf(err, "updateStatus %q.%q", host.GetName(), host.GetNamespace())
+	}
+	if uHost.GetResourceVersion() != host.GetResourceVersion() {
+		c.knownChangedHosts[ref{Name: host.GetName(), Namespace: host.GetNamespace()}] = struct{}{}
 	}
 
 	return err
 }
 
+// Hear ye, hear ye: Immediately after any of the `.recordHost*` methods except for
+// `recordHostsEvent`, you MUST immediately call `continue` to abort further processing of that
+// Host/those Hosts until the next "rectify" iteration with a new WATT snapshot.
+//
+// It is permisible to call the same method on multiple different Hosts before calling
+// `continue`.  For example:
+//
+//	hostsDirty := false
+//	for _, host := range hosts {
+//		if shouldUpdateHost(host) {
+//			c.recordHostPending(logger, host, ...)
+//			hostsDirty = true
+//		}
+//	}
+//	if hostsDirty {
+//		continue
+//	}
+
+// recordHostPending records a Host as state=Pending with the given details (potentially moving
+// it out of state=Error or state=Ready).
+//
+// After calling this method, you MUST not process the Host further until you get a new
+// snapshot reflecting the change.
 func (c *Controller) recordHostPending(logger dlog.Logger, host *ambassadorTypesV2.Host, phaseCompleted, phasePending ambassadorTypesV2.HostPhase, reasonPending string) {
 	logger.Debugf("updating pending host %d→%d", host.Status.PhaseCompleted, phaseCompleted)
 	if phaseCompleted <= host.Status.PhaseCompleted {
@@ -225,10 +336,16 @@ func (c *Controller) recordHostPending(logger dlog.Logger, host *ambassadorTypes
 	host.Status.ErrorBackoff = nil
 	if err := c.updateHost(host); err != nil {
 		logger.Errorln(err)
+		return
 	}
 	c.eventLogger.Namespace(host.GetNamespace()).Event(unstructureHost(host), k8sTypesCoreV1.EventTypeNormal, "Pending", reasonPending)
 }
 
+// recordHostReady records a Host as state=Ready (potentially moving it out of state=Error or
+// state=Pending).
+//
+// After calling this method, you MUST not process the Host further until you get a new
+// snapshot reflecting the change.
 func (c *Controller) recordHostReady(logger dlog.Logger, host *ambassadorTypesV2.Host, readyReason string) {
 	logger.Debugln("updating ready host")
 	host.Status.State = ambassadorTypesV2.HostState_Ready
@@ -239,10 +356,16 @@ func (c *Controller) recordHostReady(logger dlog.Logger, host *ambassadorTypesV2
 	host.Status.ErrorBackoff = nil
 	if err := c.updateHost(host); err != nil {
 		logger.Errorln(err)
+		return
 	}
 	c.eventLogger.Namespace(host.GetNamespace()).Event(unstructureHost(host), k8sTypesCoreV1.EventTypeNormal, "Ready", readyReason)
 }
 
+// recordHostError records a Host as state=Error with the given details (potentially moving it
+// out of state=Ready or state=Pending).
+//
+// After calling this method, you MUST not process the Host further until you get a new
+// snapshot reflecting the change.
 func (c *Controller) recordHostError(logger dlog.Logger, host *ambassadorTypesV2.Host, phase ambassadorTypesV2.HostPhase, err error) {
 	logger.Debugln("updating errored host:", err)
 	host.Status.State = ambassadorTypesV2.HostState_Error
@@ -262,10 +385,15 @@ func (c *Controller) recordHostError(logger dlog.Logger, host *ambassadorTypesV2
 
 	if err := c.updateHost(host); err != nil {
 		logger.Errorln(err)
+		return
 	}
 	c.eventLogger.Namespace(host.GetNamespace()).Event(unstructureHost(host), k8sTypesCoreV1.EventTypeWarning, "Error", err.Error())
 }
 
+// recordHostsError is a convenience wrapper around recordHostError, and calls recordHostError for each of the listed Hosts.
+//
+// After calling this method, you MUST not process any of the listed Hosts further until you
+// get a new snapshot reflecting the change.
 func (c *Controller) recordHostsError(logger dlog.Logger, hosts []*ambassadorTypesV2.Host, phase ambassadorTypesV2.HostPhase, err error) {
 	for _, host := range hosts {
 		logger := logger.WithField("host", host.GetName()+"."+host.GetNamespace())
@@ -410,11 +538,12 @@ func (c *Controller) rectifyPhase2(logger dlog.Logger, acmeHosts []*ambassadorTy
 					c.recordHostsError(logger, hosts,
 						ambassadorTypesV2.HostPhase_ACMEUserPrivateKeyCreated,
 						err)
+					continue
 				}
 				for _, host := range hosts {
 					secretAddOwner(secret, host)
 				}
-				if err := storeSecret(c.secretsGetter, secret); err != nil {
+				if err := c.storeSecret(c.secretsGetter, secret); err != nil {
 					c.recordHostsError(logger, hosts,
 						ambassadorTypesV2.HostPhase_ACMEUserPrivateKeyCreated,
 						err)
@@ -434,7 +563,7 @@ func (c *Controller) rectifyPhase2(logger dlog.Logger, acmeHosts []*ambassadorTy
 				if secretIsDirty {
 					logger.Debugln("rectify: Secret: updating ownership of user private key")
 					c.recordHostsEvent(hosts, "modifying private key Secret")
-					if err := storeSecret(c.secretsGetter, secret); err != nil {
+					if err := c.storeSecret(c.secretsGetter, secret); err != nil {
 						c.recordHostsError(logger, hosts,
 							ambassadorTypesV2.HostPhase_ACMEUserPrivateKeyCreated,
 							err)
@@ -672,6 +801,28 @@ func (c *Controller) rectifyPhase4(logger dlog.Logger,
 				c.recordHostsEvent(hosts, fmt.Sprintf("tlsSecret %q.%q (hostnames=%q): needs updated: %v",
 					tlsSecretName, namespace, hostnames,
 					needsRenewReason))
+				if c.redisPool == nil {
+					// We need Redis to do the ACME challenge.  Why do this check so late, at the
+					// leaves?
+					//
+					// In runner/main.go, we could avoid launching the ACME client at all if we
+					// don't have Redis, but then we wouldn't get defaults fill or status fill for
+					// non-ACME Hosts.
+					//
+					// We could just bail after rectifyPhase1 if we don't have Redis, but then the
+					// user would have no indication why ACME wasn't working.
+					//
+					// We could instead record an error for ACME Hosts after rectifyPhase1, but then
+					// we might interfere with valid Hosts that would have still been good for a
+					// while, during a botched upgrade or something.
+					//
+					// So instead, we go through as much of the process as we can, until we actually
+					// need Redis, and then record an error on the Hosts that would need Redis.
+					c.recordHostsError(logger, hosts,
+						ambassadorTypesV2.HostPhase_ACMECertificateChallenge,
+						errors.New("redis is not configured"))
+					continue
+				}
 				acmeProvider := acmeProviderByTLSSecret[namespace][tlsSecretName]
 				var user acmeUser
 				var err error
@@ -723,7 +874,7 @@ func (c *Controller) rectifyPhase4(logger dlog.Logger,
 			if secretIsDirty {
 				logger.Debugln("rectify: Secret: updating Secret")
 				c.recordHostsEvent(hosts, "updating TLS Secret")
-				if err := storeSecret(c.secretsGetter, secret); err != nil {
+				if err := c.storeSecret(c.secretsGetter, secret); err != nil {
 					c.recordHostsError(logger, hosts,
 						ambassadorTypesV2.HostPhase_ACMECertificateChallenge,
 						errors.Wrapf(err, "updating tlsSecret %q.%q (hostnames=%q)",
