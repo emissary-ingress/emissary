@@ -196,6 +196,29 @@ func (c *Controller) updateHost(host *ambassadorTypesV2.Host) error {
 	return err
 }
 
+// Hear ye, hear ye: Immediately after any of the `.recordHost*` methods except for
+// `recordHostsEvent`, you MUST immediately call `continue` to abort further processing of that
+// Host/those Hosts until the next "rectify" iteration with a new WATT snapshot.
+//
+// It is permisible to call the same method on multiple different Hosts before calling
+// `continue`:
+//
+//	hostsDirty := false
+//	for _, host := range hosts {
+//		if shouldUpdateHost(host) {
+//			c.recordHostPending(logger, host, ...)
+//			hostsDirty = true
+//		}
+//	}
+//	if hostsDirty {
+//		continue
+//	}
+
+// recordHostPending records a Host as state=Pending with the given details (potentially moving
+// it out of state=Error or state=Ready).
+//
+// After calling this method, you MUST not process the Host further until you get a new
+// snapshot reflecting the change.
 func (c *Controller) recordHostPending(logger dlog.Logger, host *ambassadorTypesV2.Host, phaseCompleted, phasePending ambassadorTypesV2.HostPhase, reasonPending string) {
 	logger.Debugf("updating pending host %d→%d", host.Status.PhaseCompleted, phaseCompleted)
 	if phaseCompleted <= host.Status.PhaseCompleted {
@@ -214,6 +237,11 @@ func (c *Controller) recordHostPending(logger dlog.Logger, host *ambassadorTypes
 	c.eventLogger.Namespace(host.GetNamespace()).Event(unstructureHost(host), k8sTypesCoreV1.EventTypeNormal, "Pending", reasonPending)
 }
 
+// recordHostPending records a Host as state=Ready (potentially moving it out of state=Error or
+// state=Pending).
+//
+// After calling this method, you MUST not process the Host further until you get a new
+// snapshot reflecting the change.
 func (c *Controller) recordHostReady(logger dlog.Logger, host *ambassadorTypesV2.Host, readyReason string) {
 	logger.Debugln("updating ready host")
 	host.Status.State = ambassadorTypesV2.HostState_Ready
@@ -229,6 +257,11 @@ func (c *Controller) recordHostReady(logger dlog.Logger, host *ambassadorTypesV2
 	c.eventLogger.Namespace(host.GetNamespace()).Event(unstructureHost(host), k8sTypesCoreV1.EventTypeNormal, "Ready", readyReason)
 }
 
+// recordHostError records a Host as state=Error with the given details (potentially moving it
+// out of state=Ready or state=Pending).
+//
+// After calling this method, you MUST not process the Host further until you get a new
+// snapshot reflecting the change.
 func (c *Controller) recordHostError(logger dlog.Logger, host *ambassadorTypesV2.Host, phase ambassadorTypesV2.HostPhase, err error) {
 	logger.Debugln("updating errored host:", err)
 	host.Status.State = ambassadorTypesV2.HostState_Error
@@ -253,6 +286,10 @@ func (c *Controller) recordHostError(logger dlog.Logger, host *ambassadorTypesV2
 	c.eventLogger.Namespace(host.GetNamespace()).Event(unstructureHost(host), k8sTypesCoreV1.EventTypeWarning, "Error", err.Error())
 }
 
+// recordHostsError is a convenience wrapper around recordHostError, and calls recordHostError for each of the listed Hosts.
+//
+// After calling this method, you MUST not process any of the listed Hosts further until you
+// get a new snapshot reflecting the change.
 func (c *Controller) recordHostsError(logger dlog.Logger, hosts []*ambassadorTypesV2.Host, phase ambassadorTypesV2.HostPhase, err error) {
 	for _, host := range hosts {
 		logger := logger.WithField("host", host.GetName()+"."+host.GetNamespace())
@@ -397,6 +434,7 @@ func (c *Controller) rectifyPhase2(logger dlog.Logger, acmeHosts []*ambassadorTy
 					c.recordHostsError(logger, hosts,
 						ambassadorTypesV2.HostPhase_ACMEUserPrivateKeyCreated,
 						err)
+					continue
 				}
 				for _, host := range hosts {
 					secretAddOwner(secret, host)
