@@ -4,7 +4,7 @@
 
 ## Prerequisites
 
-The Ambassador Edge Stack Helm chart is hosted by Datawire and published at https://getambassador.io.
+The Ambassador Edge Stack Helm chart is hosted by Datawire and published at `https://www.getambassador.io`.
 Start by adding this repo to your helm client with:
 
 ```bash
