@@ -1,17 +1,6 @@
 -------------------------------------------------------------------------------
 {{- if contains "datawire/aes" .Values.image.repository }}
-Congratulations! You have successfully installed The Ambassador Edge Stack and it is now configured to route traffic to your cluster!
-
-Two more steps remain to finish the installation of The Ambassaor Edge Stack 
-and enable authentication, rate limiting, automatic HTTPS, and other features.
-
-  1. Upgrade to the v2 Custom Resource Definitions by running
-
-  kubectl apply -f https://getambassador.io/yaml/aes-crds.yaml 
-
-  2. Install the Ambassador Edge Stack configuration resources
-
-  kubectl apply -f https://getambassador.io/yaml/resources-migration.yaml --namespace {{ .Release.Namespace}}
+Congratulations! You have successfully installed The Ambassador Edge Stack!
 
 {{- else }}
   Congratulations! You've successfully installed Ambassador!

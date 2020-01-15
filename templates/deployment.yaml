@@ -107,11 +107,7 @@ spec:
             {{- toYaml .Values.prometheusExporter.resources | nindent 12 }}
         {{- end }}
         - name: {{ .Chart.Name }}
-          {{- if and .Values.pro.enabled (semverCompare ">0.6.0" .Values.pro.image.tag) }}
-          image: "{{ .Values.pro.image.repository }}:amb-core-{{ .Values.pro.image.tag }}"
-          {{ else }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          {{- end }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             {{- range .Values.service.ports }}
@@ -128,18 +124,7 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
-            {{- if and .Values.pro.enabled (semverCompare ">0.6.0" .Values.pro.image.tag) }}
-            - name: AMBASSADOR_LICENSE_KEY
-            {{- if .Values.pro.licenseKey.secret.enabled }}
-              valueFrom:
-                secretKeyRef:
-                  name: ambassador-pro-license-key
-                  key: key
-            {{ else }}
-              value: {{ .Values.pro.licenseKey.value }}
-            {{- end }}
-            {{- end }}
-            {{- if and (or .Values.redis.enabled .Values.redisURL) (contains "datawire/aes" .Values.image.repository) }}
+            {{- if and (or .Values.redis.create .Values.redisURL) (contains "datawire/aes" .Values.image.repository) }}
             - name: REDIS_URL
               {{- if .Values.redisURL }}
               value: {{ .Values.redisURL }}
@@ -204,60 +189,6 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-        {{- if .Values.pro.enabled }}
-        - name: ambassador-pro
-          {{ if .Values.pro.image.customBuildTag }}
-          image: "{{ .Values.pro.image.repository }}:{{ .Values.pro.image.customBuildTag }}"
-          {{ else }}
-          image: "{{ .Values.pro.image.repository }}:amb-sidecar-{{ .Values.pro.image.tag }}"
-          {{ end }}
-          ports:
-          - name: grpc-auth
-            containerPort: {{ .Values.pro.ports.auth }}
-          - name: grpc-ratelimit
-            containerPort: {{ .Values.pro.ports.ratelimit }}
-          env:
-          - name: REDIS_SOCKET_TYPE
-            value: tcp
-          - name: REDIS_URL
-            value: {{ include "ambassador.fullname" . }}-pro-redis:6379
-          - name: APRO_HTTP_PORT
-            value: "{{ .Values.pro.ports.auth }}"
-          - name: AES_LOG_LEVEL
-            value: "{{ .Values.pro.logLevel  }}"
-          - name: AMBASSADOR_NAMESPACE
-          {{- if .Values.namespace }}
-            value: {{ .Values.namespace.name | quote }}
-          {{ else }}
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.namespace
-          {{- end }}
-          {{- if hasKey .Values.env "AMBASSADOR_ID" }}
-          - name: "AMBASSADOR_ID"
-            value: {{ .Values.env.AMBASSADOR_ID | quote }}
-          {{- end }}
-          - name: AMBASSADOR_LICENSE_KEY
-          {{- if .Values.pro.licenseKey.secret.enabled }}
-            valueFrom:
-              secretKeyRef:
-                name: ambassador-pro-license-key
-                key: key
-          {{ else }}
-            value: {{ .Values.pro.licenseKey.value }}
-          {{- end }}
-          {{- if .Values.pro.env }}
-          {{- range $key, $value := .Values.pro.env }}
-          {{- if eq $key "AMBASSADOR_ID" }}
-          {{- else}}
-          - name: {{ $key | upper | quote }}
-            value: {{ $value | quote }}
-          {{- end }}
-          {{- end }}
-          {{- end }}
-          resources:
-            {{- toYaml .Values.pro.resources | nindent 12 }}
-        {{- end }}
       {{- with .Values.sidecarContainers }}
         {{- toYaml . | nindent 8 }}
       {{- end }}

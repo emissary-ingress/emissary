@@ -1,4 +1,4 @@
-{{ if and (and .Values.redis.enabled (not .Values.pro.enabled)) (contains "datawire/aes" .Values.image.repository) }}
+{{ if and .Values.redis.create (contains "datawire/aes" .Values.image.repository) }}
 ---
 apiVersion: v1
 kind: Service
