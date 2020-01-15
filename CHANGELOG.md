@@ -105,6 +105,13 @@ behavior before upgrading your CRDs.
 - There is a web user-interface for Ambassador
 - BREAKING CHANGE: `APP_LOG_LEVEL` is now `AES_LOG_LEVEL`
 
+## [1.0.0-rc6] January 15, 2020
+[1.0.0-rc6]: https://github.com/datawire/ambassador/compare/v1.0.0-rc4...v1.0.0-rc6
+
+ - AES: Bugfix: Fix ACME client with multiple replicas
+ - AES: Bugfix: Fix ACME client race conditions with the API server and WATT
+ - AES: Bugfix: Don't crash in the ACME client if Redis is unavailable
+
 ## [1.0.0-rc4] January 13, 2020
 [1.0.0-rc4]: https://github.com/datawire/ambassador/compare/v1.0.0-rc1...v1.0.0-rc4
 

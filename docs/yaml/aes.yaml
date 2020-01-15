@@ -27,8 +27,10 @@ rules:
 #     for getambassador.io resources.
 #  2. It needs extra permissions ("create"/"update") for secrets.
 #  3. It needs permission to "create" events.
+#  4. It needs permission to "get"/"create"/"update" Leases (or
+#     Endpoints, if on Kubernetes <1.12).
 - apiGroups: [""]
-  resources: [ "endpoints", "namespaces", "services" ]
+  resources: [ "namespaces", "services" ]
   verbs: ["get", "list", "watch"]
 - apiGroups: [ "getambassador.io" ]
   resources: [ "*" ]
@@ -54,6 +56,12 @@ rules:
 - apiGroups: [""]
   resources: [ "events" ]
   verbs: ["get", "list", "watch", "create"]
+- apiGroups: ["coordination.k8s.io"]
+  resources: [ "leases" ]
+  verbs: ["get", "create", "update"]
+- apiGroups: [""]
+  resources: [ "endpoints" ]
+  verbs: ["get", "list", "watch", "create", "update"]
 ---
 apiVersion: v1
 kind: ServiceAccount

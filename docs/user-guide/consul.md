@@ -245,3 +245,4 @@ This will install into your cluster:
 For more about Ambassador Edge Stack's integration with Consul, read the [service discovery configuration](../../reference/core/resolvers) documentation.
 
 See the [TLS documentation](../../reference/core/tls#mtls-consul) for information on configuring the Ambassador Edge Stack Consul connector.
+
