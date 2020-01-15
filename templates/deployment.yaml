@@ -124,7 +124,7 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
-            {{- if and (or .Values.redis.enabled .Values.redisURL) (contains "datawire/aes" .Values.image.repository) }}
+            {{- if and (or .Values.redis.create .Values.redisURL) (contains "datawire/aes" .Values.image.repository) }}
             - name: REDIS_URL
               {{- if .Values.redisURL }}
               value: {{ .Values.redisURL }}
