@@ -302,8 +302,6 @@ required there.
 class View extends LitElement {
   static get properties()
   constructor(model)
-  minimumNumberOfAddRows()
-  minimumNumberOfEditRows()
   modifiedStyles()
   onModelNotification(model, message, parameter)
   render()

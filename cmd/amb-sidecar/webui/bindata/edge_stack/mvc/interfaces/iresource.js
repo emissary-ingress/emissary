@@ -32,9 +32,9 @@ export class IResource extends Resource {
 
   /* constructor() */
 
-  constructor(resourceData) {
+  constructor(yaml) {
     /* call Resource's constructor */
-    super(resourceData);
+    super(yaml);
   }
 
   /* copySelf()
@@ -64,15 +64,15 @@ export class IResource extends Resource {
     return super.getYAML();
   }
 
-  /* updateSelfFrom(resourceData)
+  /* updateSelfFrom(yaml)
    * Update the Resource object state from the snapshot data block for this Resource.  Compare the values in the
    * data block with the stored state in the Resource.  If the data block has different data than is currently
    * stored, update that instance variable with the new data and set a flag to return true if any changes have
    * occurred.  The Resource class's method, updateFrom, will call this method and then notify listeners as needed.
    */
 
-  updateSelfFrom(resourceData) {
-    throw new Error("Please implement ${this.constructor.name}:updateSelfFrom(resourceData)");
+  updateSelfFrom(yaml) {
+    throw new Error("Please implement ${this.constructor.name}:updateSelfFrom(yaml)");
   }
 
   /* getSpec()

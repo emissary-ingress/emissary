@@ -16,7 +16,7 @@ export class HostResource extends IResource {
    * and other useful state to be maintained in the Resource instance.
    */
 
-  constructor(resourceData = { kind: "Host"}) {
+  constructor(yaml = { kind: "Host"}) {
     /* Define the instance variables that are part of the model. Views and other Resource users will access
      * these for rendering and modification.  All resource objects have a kind, a name, and a namespace, which
      * together are a unique identifier throughout the Kubernetes system.  They may also have annotations,
@@ -25,7 +25,7 @@ export class HostResource extends IResource {
     */
 
     /* calling Resource.constructor(data) */
-    super(resourceData);
+    super(yaml);
 
   }
 
@@ -72,38 +72,38 @@ export class HostResource extends IResource {
    * occurred.  The Resource class's method, updateFrom, will call this method and then notify listeners as needed.
    */
 
-  updateSelfFrom(resourceData) {
+  updateSelfFrom(yaml) {
     let changed = false;
 
-    /* If resourceData does not include a spec, set it, and its subfield acmeProvider, to a default object so that
+    /* If yaml does not include a spec, set it, and its subfield acmeProvider, to a default object so that
      * the hostname, acmeProvider, and acmeEmail fields will be set to their default values during initialization.
      * Otherwise javascript would fail, trying to access a field of "null".  Set other fields to default values
      * if they do not exist.
      */
-    resourceData.spec                         = resourceData.spec                         || { acmeProvider: {}};
-    resourceData.spec.hostname                = resourceData.spec.hostname                || "<specify new hostname>";
-    resourceData.spec.acmeProvider.authority  = resourceData.spec.acmeProvider.authority  || "https://acme-v02.api.letsencrypt.org/directory";
-    resourceData.spec.acmeProvider.email      = resourceData.spec.acmeProvider.email      || "<specify your email address here>";
+    yaml.spec                         = yaml.spec                         || { acmeProvider: {}};
+    yaml.spec.hostname                = yaml.spec.hostname                || "<specify new hostname>";
+    yaml.spec.acmeProvider.authority  = yaml.spec.acmeProvider.authority  || "https://acme-v02.api.letsencrypt.org/directory";
+    yaml.spec.acmeProvider.email      = yaml.spec.acmeProvider.email      || "<specify your email address here>";
 
-    /* Initialize host-specific instance variables from resourceData. For those fields that are unknown, initialize
+    /* Initialize host-specific instance variables from yaml. For those fields that are unknown, initialize
      * to default values.  This occurs when adding a new HostResource whose values will be specified by the user.
      */
 
     /* Update the hostname if it has changed since the last snapshot */
-    if (this.hostname !== resourceData.spec.hostname) {
-      this.hostname = resourceData.spec.hostname;
+    if (this.hostname !== yaml.spec.hostname) {
+      this.hostname = yaml.spec.hostname;
       changed = true;
     }
 
     /* Update the acmeProvider if it has changed */
-    if (this.acmeProvider !== resourceData.spec.acmeProvider.authority) {
-      this.acmeProvider = resourceData.spec.acmeProvider.authority;
+    if (this.acmeProvider !== yaml.spec.acmeProvider.authority) {
+      this.acmeProvider = yaml.spec.acmeProvider.authority;
       changed = true;
     }
 
     /* Update the acmeEmail if it has changed. */
-    if (this.acmeEmail !== resourceData.spec.acmeProvider.email) {
-      this.acmeEmail = resourceData.spec.acmeProvider.email;
+    if (this.acmeEmail !== yaml.spec.acmeProvider.email) {
+      this.acmeEmail = yaml.spec.acmeProvider.email;
       changed = true;
     }
 

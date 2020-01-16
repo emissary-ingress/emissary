@@ -40,8 +40,8 @@ export class ResourceCollection extends Model {
     let resourceClass = this.resourceClass();
 
     /* For each of the snapshot data records for this model... */
-    for (let resourceData of this.extractResourcesFrom(snapshot)) {
-      let key = this.uniqueKeyFor(resourceData);
+    for (let yaml of this.extractResourcesFrom(snapshot)) {
+      let key = this.uniqueKeyFor(yaml);
       /* ...if we already have a model object for this data, then ask
        * that object to check if it needs to update any data fields.
        */
@@ -50,8 +50,8 @@ export class ResourceCollection extends Model {
         /* Only need to update if the existing Resource's version has changed.  Note that resourceVersion can only
          * be compared with equality, and is not necessarily a monotonically increasing value.
          */
-        if (existingResource.version !== resourceData.metadata.resourceVersion) {
-          existingResource.updateFrom(resourceData);
+        if (existingResource.version !== yaml.metadata.resourceVersion) {
+          existingResource.updateFrom(yaml);
         }
 
         /* Note that we've seen this resource, so delete this key from our set of initial object
@@ -64,7 +64,7 @@ export class ResourceCollection extends Model {
          * Resource object. After creating the object, notify all my listeners of the creation. See views/resources.js
          * for more information on how the ResourceListView uses that notification to add new child web components.
          */
-        let newResource = new resourceClass(resourceData);
+        let newResource = new resourceClass(yaml);
         this._resources.set(key, newResource);
         this.notifyListenersCreated(newResource);
       }
@@ -85,7 +85,7 @@ export class ResourceCollection extends Model {
     }
   }
 
-  /* uniqueKeyFor(resourceData)
+  /* uniqueKeyFor(yaml)
  * Return a unique key given some structured resource data (a hierarchical key/value
  * structure) that is used to determine whether a collection already has an instance of the
  * Resource or whether a new one should be created.
@@ -103,7 +103,7 @@ export class ResourceCollection extends Model {
  * Here we simply concatenate kind, name, and namespace to return the uniqueKey.
  */
 
-  uniqueKeyFor(resourceData) {
-    return resourceData.kind + "::" + resourceData.metadata.name + "::" + resourceData.metadata.namespace;
+  uniqueKeyFor(yaml) {
+    return yaml.kind + "::" + yaml.metadata.name + "::" + yaml.metadata.namespace;
   }
 }

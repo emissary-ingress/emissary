@@ -34,7 +34,7 @@ export class Resource extends Model {
    * and other useful state to be maintained in the Resource instance.
    */
 
-  constructor(resourceData) {
+  constructor(yaml) {
     /* Define the instance variables that are part of the model. Views and other Resource users will access
      * these for rendering and modification.  All resource objects have a kind, a name, and a namespace, which
      * together are a unique identifier throughout the Kubernetes system.  They may also have annotations,
@@ -45,7 +45,7 @@ export class Resource extends Model {
     super();
 
     /* Set up our instance variables, including default values if needed. */
-    this.updateFrom(resourceData);
+    this.updateFrom(yaml);
 
     /* Internal state for when the Resource is edited and is pending confirmation of the edit from a future snapshot. */
     this._pendingUpdate = false;
@@ -203,36 +203,36 @@ export class Resource extends Model {
     }
   }
 
-  /* updateFrom(resourceData)
+  /* updateFrom(yaml)
    * Update the Resource object state from the snapshot data block for this Resource.  Compare the values in the
    * data block with the stored state in the Resource.  If the data block has different data than is currently
    * stored, update that instance variable with the new data and set a flag to indicate an update has been made.
    * If any of the state has changed, notify listeners.
    */
 
-  updateFrom(resourceData) {
+  updateFrom(yaml) {
     let updated = false;
 
-    /* In the case of incomplete resourceData -- such as when adding a new Resource -- set proper defaults. */
-    resourceData.kind                     = resourceData.kind                      || "<must specify resource kind in constructor>";
-    resourceData.metadata                 = resourceData.metadata                  || {};
-    resourceData.metadata.name            = resourceData.metadata.name             || "";
-    resourceData.metadata.namespace       = resourceData.metadata.namespace        || "default";
-    resourceData.metadata.resourceVersion = resourceData.metadata.resourceVersion  || "0";
-    resourceData.metadata.labels          = resourceData.metadata.labels           || {};
-    resourceData.metadata.annotations     = resourceData.metadata.annotations      || {};
-    resourceData.status                   = resourceData.status                    || this.getEmptyStatus();
+    /* In the case of incomplete yaml -- such as when adding a new Resource -- set proper defaults. */
+    yaml.kind                     = yaml.kind                      || "<must specify resource kind in constructor>";
+    yaml.metadata                 = yaml.metadata                  || {};
+    yaml.metadata.name            = yaml.metadata.name             || "";
+    yaml.metadata.namespace       = yaml.metadata.namespace        || "default";
+    yaml.metadata.resourceVersion = yaml.metadata.resourceVersion  || "0";
+    yaml.metadata.labels          = yaml.metadata.labels           || {};
+    yaml.metadata.annotations     = yaml.metadata.annotations      || {};
+    yaml.status                   = yaml.status                    || this.getEmptyStatus();
 
     /* Copy back to our instance variables */
-    this.kind        = resourceData.kind;
-    this.name        = resourceData.metadata.name;
-    this.namespace   = resourceData.metadata.namespace;
+    this.kind        = yaml.kind;
+    this.name        = yaml.metadata.name;
+    this.namespace   = yaml.metadata.namespace;
 
     /* Since we are being updated, we know that our version is out of date; get the new version value. */
-    this.version = resourceData.metadata.resourceVersion;
+    this.version = yaml.metadata.resourceVersion;
 
     /* get the new labels value from the data, or an empty object if undefined. */
-    let new_labels = resourceData.metadata.labels || {};
+    let new_labels = yaml.metadata.labels || {};
 
     if (this.labels !== new_labels) {
       this.labels = new_labels;
@@ -240,7 +240,7 @@ export class Resource extends Model {
     }
 
     /* get the new annotations value from the data, or an empty object if undefined. */
-    let new_annotations = resourceData.metadata.annotations || {};
+    let new_annotations = yaml.metadata.annotations || {};
 
     if (this.annotations !== new_annotations) {
       this.annotations = new_annotations;
@@ -249,7 +249,7 @@ export class Resource extends Model {
 
     /* get the new status value from the data, or the emptyStatus object if undefined.  Must initialize our
      * own status as empty initially, since it is being dereferenced in the update check below. */
-    let new_status = resourceData.status || this.getEmptyStatus();
+    let new_status = yaml.status || this.getEmptyStatus();
     this.status    = this.status         || this.getEmptyStatus();
 
     if ((this.status.state       !== new_status.state) ||
@@ -259,10 +259,10 @@ export class Resource extends Model {
     }
 
     /* Give subclasses a chance to update themselves. */
-    updated = this.updateSelfFrom(resourceData) || updated;
+    updated = this.updateSelfFrom(yaml) || updated;
 
     /* Remember the full YAML for merging later, to send to Kubernetes. */
-    this._fullYAML = resourceData;
+    this._fullYAML = yaml;
 
     /* Notify listeners if any updates occurred. */
     if (updated) {

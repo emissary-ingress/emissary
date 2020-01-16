@@ -43,23 +43,6 @@ export class View extends LitElement {
     model.addListener(this);
   }
 
-  /* minimumNumberOfAddRows()
-   * minimumNumberOfEditRows()
-   *
-   * To help the UI place buttons within the rectangle border (or more precisely, to help the UI grow the rectangle
-   * border to fit all the buttons), these two functions should be overridden if the renderSelf has fewer than four
-   * rows in edit mode and/or fewer than two rows in add mode.
-   * (Override these functions if the add and edit buttons on the right side of the frame are extending below the
-   * bottom of the frame.)
-   */
-
-  minimumNumberOfAddRows() {
-    return 2;
-  }
-  minimumNumberOfEditRows() {
-    return 4;
-  }
-
   /**
    * Override to extend the styles of this resource (see yaml download tab).
    */

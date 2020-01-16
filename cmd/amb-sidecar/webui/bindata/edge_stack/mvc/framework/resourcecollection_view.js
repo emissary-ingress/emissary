@@ -76,7 +76,6 @@ export class ResourceCollectionView extends LitElement {
                         {label: "Namespace", value: "namespace"},
                         {label: "Hostname",  value: "hostname"},];
     this.sortBy = "name";
-    this.addState = "off";
   }
 
   /* doSort(attribute)
@@ -103,7 +102,7 @@ export class ResourceCollectionView extends LitElement {
 
       /* Sort our array using localeCompare.  Note that for resources to be compared, they must
        * directly implement the attribute as part of the resource, and keep the value of that attribute
-       * up to date by properly implementing IResource.updateSelfFrom(resourceData).
+       * up to date by properly implementing IResource.updateSelfFrom(yaml).
        */
 
       children.sort((child1, child2) => {

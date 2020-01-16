@@ -450,7 +450,7 @@ export class ResourceView extends View {
   renderYAML() {
     if (this.showYAML) {
       try {
-        let merged = this.getApplyYAML();
+        let yaml = this.getApplyYAML();
         let entries = [];
 
         /* this is to show differences between the original and merged YAML.  Disabled for now.

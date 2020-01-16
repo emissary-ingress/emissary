@@ -13,7 +13,7 @@
  *   this method returns the IResource class to be instantiated when adding a new item, e.g. when implementing
  *   HostCollection, the resourceClass() should return HostResource.
  *
- * - uniqueKeyFor(resourceData)
+ * - uniqueKeyFor(yaml)
  *   this method computes a unique key for the collection's Resource, to determine whether the Resource described
  *   by the data block has already been initialized and stored in the ResourceCollection.
  *
@@ -58,7 +58,7 @@ export class IResourceCollection extends ResourceCollection {
     throw new Error("Please implement ${this.constructor.name}.resourceClass()");
   }
 
-  /* uniqueKeyFor(resourceData)
+  /* uniqueKeyFor(yaml)
    * Return a unique key given some structured resource data (a hierarchical key/value
    * structure) that is used to determine whether a collection already has an instance of the
    * Resource or whether a new one should be created.
@@ -69,8 +69,8 @@ export class IResourceCollection extends ResourceCollection {
    * within Kubernetes.
    */
 
-  uniqueKeyFor(resourceData) {
-    return super.uniqueKeyFor(resourceData);
+  uniqueKeyFor(yaml) {
+    return super.uniqueKeyFor(yaml);
   }
 
   /* ====================================================================================================
