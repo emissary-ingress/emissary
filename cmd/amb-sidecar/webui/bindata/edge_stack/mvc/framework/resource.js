@@ -21,7 +21,7 @@ import { ApiFetch } from "../../components/api-fetch.js";
 import { Model } from "./model.js"
 
 /* Object merge operation */
-import { objectMerge, setUnion } from "../framework/utilities.js"
+import { objectMerge, objectCopy } from "../framework/utilities.js"
 
 /* Annotation key for sourceURI. */
 const aes_res_source = "getambassador.io/resource-source";
@@ -44,34 +44,19 @@ export class Resource extends Model {
     /* calling Model.constructor() */
     super();
 
-    /* Set up our instance variables, including default values if needed.
-     * TODO: Make sure that updateFrom, updateSelfFrom set _fullYAML correctly, in the full snapshot vs. init cases */
+    /* Set up our instance variables, including default values if needed. */
     this.updateFrom(resourceData);
 
     /* Internal state for when the Resource is edited and is pending confirmation of the edit from a future snapshot. */
     this._pendingUpdate = false;
   }
 
-  /* computeYAMLMerge(other)
-    * Compare this Resource's YAML with another's. Return a structure with a new YAML object, and a difference set.
-    * { yaml: <the new merged YAML, preserving this>, diffs: { <delta between original and other> } }
-    */
-
-  computeYAMLMerge(other) {
-    let delta    = new Map();
-    let original = this.getYAML();
-    let changed  = other.getYAML();
-    let merged   = this._mergeObject(original, changed, delta);
-
-    return { yaml: merged, diffs: delta }
-   }
-
   /* copySelf()
    * Create a copy of the Resource, with all Resource state (but not Model's listener list}
    */
 
   copySelf() {
-    return new Resource(this.getYAML());
+    return new Resource(this._fullYAML);
   }
 
   /* applyYAML(yaml)
@@ -112,8 +97,13 @@ export class Resource extends Model {
    */
 
   doAdd() {
-    let cookie = getCookie("edge_stack_auth");
-    let error  = null;
+    let yaml  = this.getYAML();
+    let error = this.applyYAML(yaml);
+
+    if (error) {
+      this.addMessage(error);
+      console.log('Model failed to apply changes: ${error}');
+    }
 
     return error;
   }
@@ -155,30 +145,32 @@ export class Resource extends Model {
    */
 
   doSave() {
-    let yaml  = this.getApplyYAML();
+    let yaml  = this.getYAML();
     let error = this.applyYAML(yaml);
 
     if (error) {
       this.addMessage(error);
-      console.log('Model failed to apply changes: ${applyErr}');
-      return false;
+      console.log('Model failed to apply changes: ${error}');
     }
 
     return error;
   }
 
-  /* getApplyYAML()
+  /* getYAML()
    * Return YAML that has the Resource's values written back into the _fullYAML, and
    * been pruned so that only the necessary attributes exist in the structure for use
-   * as the parameter to applyYAML().  TODO: finish this, right now just for testing and inspection.
+   * as the parameter to applyYAML().
    */
-  getApplyYAML() {
-    let myYAML    = this.getYAML();
-    let fullYAML  = this._fullYAML;
-    let cleanYAML = this.yamlStrip(fullYAML, this.yamlIgnorePaths());
-    /* TODO: merge in our YAML data */
+  getYAML() {
+    /* Make a copy of our full YAML, stripping out extraneous attributes */
+    let yaml  =  this.yamlStrip(this._fullYAML, this.yamlIgnorePaths());
 
-    return cleanYAML;
+    /* Write back our editable values for updating with apply. */
+    yaml.kind = this.kind;
+    yaml.metadata.name = this.name;
+    yaml.metadata.namespace = this.namespace;
+
+    return yaml;
   }
 
   /* getEmptyStatus()
@@ -192,26 +184,6 @@ export class Resource extends Model {
       "state":  "none",
       "errorReason": ""
     };
-  }
-
-  /* getYAML()
-  * Return the YAML object to JSON.stringify for the implementation of the Save function which uses kubectl apply.
-  * Like getSpec, this method must return an object to be serialized and supplied to kubectl apply.  This requires
-  * getSpec to be implemented
-  */
-  getYAML() {
-    return {
-      apiVersion: "getambassador.io/v2",
-      kind: this.kind,
-      metadata: {
-        name:            this.name,
-        namespace:       this.namespace,
-        labels:          this.labels,
-        annotations:     this.annotations,
-        resourceVersion: this.version
-      },
-      spec: this.getSpec()
-    }
   }
 
   /* sourceURI()
@@ -430,7 +402,7 @@ export class Resource extends Model {
 
   yamlStrip(originalYAML, pathsToIgnore) {
     /* Clone the existing YAML.  This does a "deep copy" of the object, recursively copying subtrees. */
-    let cleanYaml = JSON.parse(JSON.stringify(originalYAML));
+    let cleanYaml = objectCopy(originalYAML);
 
     /* For each path to ignore, remove it from the cleanYaml */
     for (let pathElements of pathsToIgnore) {

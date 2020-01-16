@@ -108,31 +108,6 @@ export class ResourceView extends View {
     this.viewState = "add";
   }
 
-  /* getYAMLMerge()
-  * This returns a structure containing:
-  *   the YAML of the currently rendered Resource (whether being edited or not)
-  *   and any differences from a previous version of the Resource, when editing to apply changes.
-  */
-
-  getYAMLMerge() {
-    let merge = {yaml: "", diffs: {}};
-
-    /* If the Resource is being edited, compute the differences between the currently-viewed Resource
-     * and its original.  This calls the original Resource and asks it to compute the merge and differences.
-     */
-    if (this.savedModel !== null) {
-      this.writeToModel();
-      merge = this.savedModel.computeYAMLMerge(this.model);
-    }
-    /* No savedModel, just return the original */
-    else {
-      merge.yaml = this.model.getYAML();
-    }
-
-    // Return
-    return merge;
-  }
-
   /* nameInput()
    * This method returns the name input field, referenced below in the render() HTML.
    */
@@ -475,19 +450,19 @@ export class ResourceView extends View {
   renderYAML() {
     if (this.showYAML) {
       try {
-        let merged = this.getYAMLMerge();
+        let merged = this.getApplyYAML();
         let entries = [];
-        let changes = false;
 
+        /* this is to show differences between the original and merged YAML.  Disabled for now.
         merged.diffs.forEach((v, k) => {
           if (v !== "ignored") {
-            changes = true;
             entries.push(html`<li><span class="yaml-path">${k}</span> <span class="yaml-change">${v}</span></li>`);
           }
         });
+        */
 
         return html`
-        <div class="yaml" id="merged-yaml" style="display: ${this.showYAML ? "block" : "none"}">
+        <div class="yaml" id="merged-yaml">
           <div class="yaml-changes"><ul>
         ${entries}
           </ul></div>

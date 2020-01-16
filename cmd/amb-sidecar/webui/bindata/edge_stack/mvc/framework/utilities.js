@@ -55,6 +55,8 @@ export function mapDiff(mapA, mapB) {
   return null;
 }
 
+
+
 /* ================================ Set Utilities ================================ */
 
 /* setIsSuperset(set, subset)
@@ -166,5 +168,18 @@ export function objectDiff(objA, objB) {
   let mapB   = new Map(Object.entries(objB));
 
   return mapDiff(mapA, mapB);
+}
+
+/* objectCopy(obj)
+ * Copy an object that is used for YAML/JSON data.  This copies the full tree of key/value pairs, where keys
+ * and values are JSON compatible. Because an object is often used for key/value storage due to its convenient
+ * literal representation, it is typically a replacement for the more appropriate Map.
+ *
+ * This leverages JSON to do all the work.
+ * TODO: make objectCopy into a true deepCopy function.
+ */
+
+export function objectCopy(obj) {
+  JSON.parse(JSON.stringify(obj));
 }
 

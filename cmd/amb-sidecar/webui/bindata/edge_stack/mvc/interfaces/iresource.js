@@ -55,6 +55,15 @@ export class IResource extends Resource {
     throw new Error("Please implement ${this.constructor.name}:getSpec()");
   }
 
+  /* getYAML()
+    * Return YAML that has the Resource's values written back into the _fullYAML, and
+    * been pruned so that only the necessary attributes exist in the structure for use
+    * as the parameter to doApplyYAML().
+    */
+  getYAML() {
+    return super.getYAML();
+  }
+
   /* updateSelfFrom(resourceData)
    * Update the Resource object state from the snapshot data block for this Resource.  Compare the values in the
    * data block with the stored state in the Resource.  If the data block has different data than is currently
@@ -83,7 +92,7 @@ export class IResource extends Resource {
     throw new Error("Please implement ${this.constructor.name}:validateSelf()");
   }
 
-  /* yamlIgnore()
+  /* yamlIgnorePaths()
    * Return an array of paths arrays to be ignored when sending YAML to Kubernetes.  This is needed because Kubernetes
    * sends extra information in the Resource object that confuses it when sent back; only the data that is needed
    * (e.g. name, namespace, kind, and desired labels/annotations/spec) should be sent back.
@@ -96,8 +105,8 @@ export class IResource extends Resource {
    * "metadata"."annotations"."kubectl.kubernetes.io/last-applied-configuration"
    */
 
-  yamlIgnore() {
-    return super.yamlIgnore();
+  yamlIgnorePaths() {
+    return super.yamlIgnorePaths();
   }
 
 

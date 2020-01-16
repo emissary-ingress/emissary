@@ -34,7 +34,7 @@ export class HostResource extends IResource {
    */
 
   copySelf() {
-    return new HostResource(this.getYAML());
+    return new HostResource(this._fullYAML);
   }
 
   /* getSpec()
@@ -50,6 +50,19 @@ export class HostResource extends IResource {
         ? {authority: this.acmeProvider, email: this.acmeEmail}
         : {authority: "none"}
     }
+  }
+
+  /* getYAML()
+    * Return YAML that has the Resource's values written back into the _fullYAML, and
+    * been pruned so that only the necessary attributes exist in the structure for use
+    * as the parameter to doApplyYAML().
+    */
+  getYAML() {
+    let yaml = super.getYAML();
+    yaml.spec = this.getSpec();
+
+    return yaml;
+
   }
 
   /* updateSelfFrom(data)
