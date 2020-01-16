@@ -1,18 +1,19 @@
-# Developing Filters
+# Developing Custom Filters for Routing
 
-Sometimes you may want Ambassador to manipulate an incoming request. Some example use cases:
+Sometimes you may want Ambassador Edge Stack to manipulate an incoming request. Some example use cases:
 
 * Inspect an incoming request, and add a custom header that can then be used for routing
 * Add custom Authorization headers
 * Validate an incoming request fits an OpenAPI specification before passing the request to a target service
 
-Ambassador supports these use cases by allowing you to execute custom logic in `Filters`. Filters are written in Golang, and managed by Ambassador Pro.
+
+Ambassador Edge Stack supports these use cases by allowing you to execute custom logic in `Filters`. Filters are written in Golang, and managed by Ambassador Edge Stack.
 
 ## Prerequisites
 
-`Plugin` `Filter`s are built as [Go plugins](https://golang.org/pkg/plugin/) and loaded directly into the Ambassador Pro container so they can run in-process with the rest of Ambassador Pro.
+`Plugin` `Filter`s are built as [Go plugins](https://golang.org/pkg/plugin/) and loaded directly into the Ambassador Edge Stack container so they can run in-process with the rest of Ambassador Edge Stack.
 
-To build a `Plugin` `Filter` into the Ambassador Pro container you will need
+To build a `Plugin` `Filter` into the Ambassador Edge Stack container you will need
 - Linux or MacOS host (Windows Subsystem for Linux is ok)
 - [Docker](https://docs.docker.com/v17.09/engine/installation/) 
 - [rsync](https://rsync.samba.org/)
@@ -36,44 +37,43 @@ We've created an example filter that you can customize for your particular use c
 
 4. Push the image to your Docker registry: `docker push $DOCKER_REGISTRY/amb-sidecar-plugin:VERSION`.
 
-5. Configure Ambassador Pro to use the plugin by creating a `Filter`
-   and `FilterPolicy` CRD, as per the [filter reference](/reference/filter-reference).
+5. Configure Ambassador Edge Stack to use the plugin by creating a `Filter`
+   and `FilterPolicy` CRD, as per the [filter reference](../../../reference/filter-reference).
 
-6. Update the standard Ambassador Pro manifest to use your Docker
+6. Update the standard Ambassador Edge Stack manifest to use your Docker
    image instead of the standard sidecar.
 
    ```patch
-      containers:
-      - name: ambassador-pro
-   -    image: quay.io/datawire/ambassador_pro:amb-sidecar-$aproVersion$
-   +    image: DOCKER_REGISTRY/amb-sidecar-plugin:VERSION
-        ports:
-        - name: ratelimit-grpc
-          containerPort: 8081
-        - name: ratelimit-debug
-          containerPort: 6070
+              value: https://127.0.0.1:8443
+            - name: AMBASSADOR_ADMIN_URL
+              value: http://127.0.0.1:8877
+   -        image: quay.io/datawire/aes:$version$
+   +        image: DOCKER_REGISTRY/aes-plugin:VERSION
+            imagePullPolicy: Always
+            livenessProbe:
+              httpGet:
    ```
 
 ## Rapid development of a custom filter
 
-During development, you may want to sidestep the deployment process for a faster development loop. The `apro-plugin-runner` helps you rapidly develop Ambassador filters locally.
+During development, you may want to sidestep the deployment process for a faster development loop. The `aes-plugin-runner` helps you rapidly develop Ambassador Edge Stack filters locally.
 
 To install the runner, download the latest version:
 
-<a class="pro-runner-dl" href="https://s3.amazonaws.com/datawire-static-files/apro-plugin-runner/$aproVersion$/darwin/amd64/apro-plugin-runner">Mac 64-bit</a> |
-<a class="pro-runner-linux-dl" href="https://s3.amazonaws.com/datawire-static-files/apro-plugin-runner/$aproVersion$/linux/amd64/apro-plugin-runner">Linux 64-bit</a>
+<a class="pro-runner-dl" href="https://s3.amazonaws.com/datawire-static-files/aes-plugin-runner/$version$/darwin/amd64/aes-plugin-runner">Mac 64-bit</a> |
+<a class="pro-runner-linux-dl" href="https://s3.amazonaws.com/datawire-static-files/aes-plugin-runner/$version$/linux/amd64/aes-plugin-runner">Linux 64-bit</a>
 
-Note that the plugin runner must match the version of Ambassador Pro that you are running. Place the binary somewhere in your `$PATH`.
+Note that the plugin runner must match the version of Ambassador Edge Stack that you are running. Place the binary somewhere in your `$PATH`.
 
-Information about open source code used in `apro-plugin-runner` can be found by running `apro-plugin-runner --version`.
+Information about open source code used in `aes-plugin-runner` can be found by running `aes-plugin-runner --version`.
 
 Now, you can quickly test and develop your filter.
 
-1. In your filter directory, type: `apro-plugin-runner :8080 ./param-plugin.so`.
+1. In your filter directory, type: `aes-plugin-runner :8080 ./param-plugin.so`.
 2. Test the filter by running `curl`:
 
     ```
-    $ curl -v localhost:8080?db=2
+    $ curl -Lv localhost:8080?db=2
     * Rebuilt URL to: localhost:8080/?db=2
     *   Trying ::1...
     * TCP_NODELAY set
@@ -91,8 +91,8 @@ Now, you can quickly test and develop your filter.
     * Connection #0 to host localhost left intact
     ```
 
-    Note in the example above the `X-Dc` header is added. This lets you inspect the changes the filter is making to your HTTP header.
+Note in the example above the `X-Dc` header is added. This lets you inspect the changes the filter is making to your HTTP header.
 
 ## Further reading
 
-For more details about configuring filters and the `plugin` interface, see the [filter reference](/reference/filter-reference).
+For more details about configuring filters and the `plugin` interface, see the [filter reference](../../../reference/filter-reference).

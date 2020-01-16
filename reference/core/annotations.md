@@ -21,26 +21,27 @@ kubectl get mappings -A
 With annotations, you would have to describe and examine the `metadata.annotations` of every service.
 
 ## Example
-The following is an example of how to configure annotations for the example tour service from the [install documentation](/user-guide/getting-started).
+The following is an example of how to configure annotations for the example quote service from the [install documentation](../../../user-guide/getting-started).
 
 **CRD**
+
 ```yaml
 ---
 apiVersion: getambassador.io/v1
 kind: Mapping
 metadata:
-  name: tour-ui
+  name: quote-backend
 spec:
-  prefix: /
-  service: tour:5000
+  prefix: /backend/
+  service: quote:5000
 ---
 apiVersion: getambassador.io/v1
 kind: Mapping
 metadata:
-  name: tour-backend
+  name: quote-backend
 spec:
   prefix: /backend/
-  service: tour:8080
+  service: quote:8080
   labels:
     ambassador:
       - request_label:
@@ -54,21 +55,21 @@ With CRDs above, we open up routes in Ambassador using two separate Ambassador `
 apiVersion: v1
 kind: Service
 metadata:
-  name: tour
+  name: quote
   annotations:
     getambassador.io/config: |
       ---
       apiVersion: ambassador/v1
       kind: Mapping
-      name: tour-ui_mapping
+      name: quote-ui_mapping
       prefix: /
-      service: tour:5000
+      service: quote:5000
       ---
       apiVersion: ambassador/v1
       kind: Mapping
-      name: tour-backend_mapping
+      name: quote-backend_mapping
       prefix: /backend/
-      service: tour:8080
+      service: quote:8080
       labels:
         ambassador:
           - request_label:
@@ -82,7 +83,7 @@ spec:
     port: 8080
     targetPort: 8080
   selector:
-    app: tour
+    app: quote
 ```
 With the annotation approach above, we can expose the exact same routes my creating the `Mapping` object as part of the Kubernetes Service. There is more overhead for creating and managing the `Mapping`s but the are created and deleted when the service is.
 

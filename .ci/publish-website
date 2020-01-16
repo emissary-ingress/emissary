@@ -18,11 +18,16 @@ set -o errexit
 set -o nounset
 set -o verbose
 
-GH_TOKEN="${GH_TOKEN:?not set}"
-TARGET_BRANCH="master"
+remote_url=https://d6e-automaton:${GH_TOKEN}@github.com/datawire/getambassador.io.git
 
 rm -rf /tmp/getambassador.io
-git clone --single-branch -b ${TARGET_BRANCH} https://d6e-automaton:${GH_TOKEN}@github.com/datawire/getambassador.io.git /tmp/getambassador.io
+git clone -b master "$remote_url" /tmp/getambassador.io
 cd /tmp/getambassador.io
 npm run pull-docs
-git push origin ${TARGET_BRANCH}
+git push origin master
+
+rm -rf "$PWD-esu"
+git worktree add "$PWD-esu" Edge-stack-update || exit 0
+cd "$PWD-esu"
+npm run pull-docs
+git push origin Edge-stack-update

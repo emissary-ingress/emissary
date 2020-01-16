@@ -1,10 +1,12 @@
 # Service Preview
 
-How do you verify that the code you've written actually works? Ambassador Pro's *Service Preview* lets developers see exactly how their service works in a realistic enviroment -- without impacting other developers or end users. Service Preview integrates [Telepresence](https://www.telepresence.io), the popular CNCF project for local development and debugging on Kubernetes.
+**This page is deprecated. For the latest version, check out [Edge Control](../../../reference/edge-control).**
+
+How do you verify that the code you've written actually works? Ambassador's *Service Preview* lets developers see exactly how their service works in a realistic enviroment -- without impacting other developers or end users. Service Preview integrates [Telepresence](https://www.telepresence.io), the popular CNCF project for local development and debugging on Kubernetes.
 
 ## Install `apictl`
 
-`apictl` is the command client for Ambassador Pro.
+`apictl` is the command client for Ambassador.
 
 Download the latest version of the client:
 
@@ -17,21 +19,21 @@ Information about open source code used in `apictl` can be found by running `api
 
 ## Getting started
 
-In this quick start, we're going to preview a change we make to the backend service of the tour application, without impacting normal users of the application. Before getting started, make sure the [tour application is installed](../../../user-guide/getting-started#3-creating-your-first-service) on your cluster and you've installed the `apictl` command line tool, as explained above.
+In this quick start, we're going to preview a change we make to the backend service of the quote application, without impacting normal users of the application. Before getting started, make sure the [quote application is installed](../../../user-guide/getting-started#create-a-mapping) on your cluster and you've installed the `apictl` command line tool, as explained above.
 
-1. We're first going to get the tour backend service running locally. Clone the tour repository and build a local image.
+1. We're first going to get the quote backend service running locally. Clone the quote repository and build a local image.
 
     ```
-    git clone https://github.com/datawire/tour
-    cd tour
+    git clone https://github.com/datawire/quote
+    cd quote
     make docker.run
     ```
 
     Note that Preview doesn't depend on a locally running container; you can just run a service locally on your laptop. We're using a container in this tutorial to minimize environmental issues with different golang environments.
 
-    In the `make` command above, we build the backend application in a docker container named `localhost:31000/tour:backend-latest` and run it on port 8080.
+    In the `make` command above, we build the backend application in a docker container named `localhost:31000/quote:backend-latest` and run it on port 8080.
 
-2. Now, in another terminal window, redeploy the tour application with the Preview sidecar. The sidecar is special process which will route requests to your local machine or to the production cluster. The `apictl traffic inject` command will automatically create the appropriate YAML to inject the sidecar. In the `tour` directory, pass the file name of the QOTM deployment:
+2. Now, in another terminal window, redeploy the quote application with the Preview sidecar. The sidecar is special process which will route requests to your local machine or to the production cluster. The `apictl traffic inject` command will automatically create the appropriate YAML to inject the sidecar. In the `quote` directory, pass the file name of the QOTM deployment:
 
    ```
    apictl traffic inject k8s/tour.yaml -d tour -s tour -p 8080 > k8s/tour-traffic-sidecar.yaml
@@ -44,18 +46,10 @@ In this quick start, we're going to preview a change we make to the backend serv
     apiVersion: getambassador.io/v1
     kind: Mapping
     metadata:  
-      name: tour-ui
-    spec:
-      prefix: /
-      service: tour:5000
-    ---
-    apiVersion: getambassador.io/v1
-    kind: Mapping
-    metadata:  
-      name: tour-backend
+      name: quote-backend
     spec:
       prefix: /backend/
-      service: tour:8080
+      service: quote:8080
         labels:
           ambassador:
             - request_label:
@@ -64,41 +58,33 @@ In this quick start, we're going to preview a change we make to the backend serv
     apiVersion: v1
     kind: Service
     metadata:
-      name: tour
+      name: quote
     spec:
       ports:
-      - name: ui
-        port: 5000
-        targetPort: 5000
       - name: backend
         port: 8080
         targetPort: 9900
       selector:
-        app: tour
+        app: quote
     ---
     apiVersion: apps/v1
     kind: Deployment
     metadata:
-      name: tour
+      name: quote
     spec:
       replicas: 1
       selector:
         matchLabels:
-          app: tour
+          app: quote
       strategy:
         type: RollingUpdate
       template:
         metadata:
           labels:
-            app: tour
+            app: quote
         spec:
           containers:
-          - image: quay.io/datawire/tour:ui-$tourVersion$
-            name: tour-ui
-            ports:
-            - containerPort: 5000
-              name: http
-          - image: quay.io/datawire/tour:backend-$tourVersion$
+          - image: quay.io/datawire/quote:0.2.7
             name: quote
             ports:
             - containerPort: 8080
@@ -109,7 +95,7 @@ In this quick start, we're going to preview a change we make to the backend serv
                 memory: 100Mi
           - env:
             - name: APPNAME
-              value: tour
+              value: quote
             - name: APPPORT
               value: "8080"
             - name: AMBASSADOR_LICENSE_KEY
@@ -124,10 +110,10 @@ In this quick start, we're going to preview a change we make to the backend serv
    - The `traffic-sidecar` container has been added to the deployment
    - In the service, `targetPort` for the `backend` port mapping has been changed to point to port 9900 which is the port the `traffic-sidecar` container is listening on
 
-4. Redeploy tour with the sidecar:
+4. Redeploy quote with the sidecar:
 
    ```
-   kubectl apply -f k8s/tour-traffic-sidecar.yaml
+   kubectl apply -f k8s/quote-traffic-sidecar.yaml
    ```
 
 5. Test to make sure that both your production and development instances of QOTM work:
@@ -143,10 +129,10 @@ In this quick start, we're going to preview a change we make to the backend serv
     apictl traffic initialize
     ```
 
-7. We need to create an `intercept` rule that tells Ambassador where to route specific requests. The following command will tell Ambassador to route any traffic for the `tour` deployment where the header `x-service-preview` is `dev` to go to port 8080 on localhost:
+7. We need to create an `intercept` rule that tells Ambassador where to route specific requests. The following command will tell Ambassador to route any traffic for the `quote` deployment where the header `x-service-preview` is `dev` to go to port 8080 on localhost:
 
     ```
-    apictl traffic intercept tour -n x-service-preview -m dev -t 8080
+    apictl traffic intercept quote -n x-service-preview -m dev -t 8080
     ```
 
 8. Requests with the header `x-service-preview: dev` will now get routed locally:

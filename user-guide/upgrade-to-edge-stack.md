@@ -1,0 +1,71 @@
+# Upgrade to the Ambassador Edge Stack
+
+If you currently have the open source API Gateway version of Ambassador, you can upgrade to the Ambassador Edge Stack with a few simple commands.
+
+**Prerequisites**:
+
+* You must have properly installed Ambassador previously following [these](../install-ambassador-oss) instructions.
+* You must have TLS configured and working properly on your Ambassador instance following [these](../tls-termination) instructions.
+
+**To upgrade your instance of Ambassador**:
+
+1. [Apply the Migration Manifest](#1-apply-the-migration-manifest)
+2. [Test the New Deployment](#2-test-the-new-deployment)
+3. [Redirect Traffic](#3-redirect-traffic)
+4. [Delete the Old Deployment](#4-delete-the-old-deployment)
+5. [Update and Restart](#5-update-and-restart)
+6. [What's Next?](#6-whats-next)
+
+## Before You Begin
+
+Make sure that you follow the steps in the given order - not doing that might crash your Ambassador installation or make it inconsistent.
+
+## 1. Apply the Migration Manifest
+
+First, install the Ambassador Edge Stack alongside your existing Ambassador installation so you can test your workload against the new deployment.
+
+Note: Make sure you apply the manifests in the same namespace as your current Ambassador installation.
+
+Use the following command to install the Ambassador Edge Stack, replacing `<namespace>` appropriately:
+
+```
+kubectl apply -n <namespace> -f https://www.getambassador.io/early-access/yaml/oss-migration.yaml
+```
+
+## 2. Test the New Deployment
+
+At this point, you have the Ambassador API Gateway and the Ambassador Edge Stack running side by side in your cluster. The Edge Stack is configured using the same configuration (Mappings, Modules, etc) as current Ambassador.
+
+Get IP address to connect to the Ambassador Edge Stack by running the following command:
+`kubectl get service test-aes -n <namespace>`
+
+Test that AES is working properly.
+
+## 3. Redirect Traffic
+
+Once you’re satisfied with the new deployment, update your current Ambassador service to redirect traffic to the Ambassador Edge Stack.
+
+Edit the current Ambassador service with `kubectl edit service -n <namespace> ambassador` and change the selector to `product: aes`.
+
+## 4. Delete the Old Deployment
+
+You can now safely delete the older Ambassador deployment and AES service.
+
+```
+kubectl delete deployment -n <namespace> ambassador
+kubectl delete service -n <namespace> test-aes
+```
+
+## 5. Update and Restart
+
+Apply the new CRDs, resources and restart the Ambassador Edge Stack pod for changes to take effect:
+
+```
+kubectl apply -n <namespace> -f https://www.getambassador.io/early-access/yaml/aes-crds.yaml && \
+kubectl apply -n <namespace> -f https://www.getambassador.io/early-access/yaml/resources-migration.yaml && \
+kubectl rollout restart deployment/aes
+```
+
+## 6. What's Next?
+
+Now that you have the Ambassador Edge Stack up and running, check out the [Getting Started](../getting-started) guide for recommendations on what to do next and take full advantage of its features.

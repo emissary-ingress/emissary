@@ -1,5 +1,10 @@
 # Upgrading to Ambassador Pro from Open Source Ambassador
 
+<div class="ambassador-pro-banner">
+All of the functionality previously available in Ambassador Pro is now available for free with the
+Ambassador Edge Stack Community Edition! <a href="/editions">Click here to learn more →</a>
+</div>
+
 If you are already using Ambassador open source, upgrading to using Ambassador Pro is straight-forward. In this demo we will walk-through integrating Ambassador Pro into your currently running Ambassador instance and show how quickly you can secure your APIs with JWT authentication.
 
 Information about open source code used in Ambassador Pro can be found in `/*.opensource.tar.gz` files in each Docker image.
@@ -44,7 +49,7 @@ ambassador-pro-redis-6db64c5685-4k8fn   1/1     Running   0          23h
 
 By default, Ambassador Pro uses ports 8500-8503.  If for whatever
 reason those assignments are problematic (perhaps you [set
-`service_port`](/reference/running/#running-as-non-root) to one of
+`service_port`](../../reference/running/#running-as-non-root) to one of
 those), you can set adjust these by setting environment variables:
 
 | Purpose                        | Variable         | Default |
@@ -55,8 +60,8 @@ those), you can set adjust these by setting environment variables:
 | RateLimitService health (HTTP) | `PORT`           | 8503    |
 
 If you have deployed Ambassador with
-[`AMBASSADOR_NAMESPACE`, `AMBASSADOR_SINGLE_NAMESPACE`](/reference/running/#namespaces), or
-[`AMBASSADOR_ID`](/reference/running/#ambassador_id)
+[`AMBASSADOR_NAMESPACE`, `AMBASSADOR_SINGLE_NAMESPACE`](../../reference/running/#namespaces), or
+[`AMBASSADOR_ID`](../../reference/running/#ambassador_id)
 set, you will also need to set them in the Pro container.
 
 **Note:** Ambassador Pro will replace your current `AuthService` implementation. Remove your current `AuthService` annotation before deploying Ambassador Pro. If you would like to keep your current `AuthService`, remove the `AuthService` annotation from the `ambassador-pro.yaml` file.
@@ -131,16 +136,16 @@ Ambassador Pro has many more features such as rate limiting, OAuth integration, 
 
 ### Enabling Rate limiting
 
-For more information on configuring rate limiting, consult the [Advanced Rate Limiting tutorial ](/user-guide/advanced-rate-limiting) for information on configuring rate limits.
+For more information on configuring rate limiting, consult the [Advanced Rate Limiting tutorial ](../advanced-rate-limiting) for information on configuring rate limits.
 
 ### Enabling Single Sign-On
 
- For more information on configuring the OAuth filter, see the [Single Sign-On with OAuth and OIDC](/user-guide/oauth-oidc-auth) documentation.
+ For more information on configuring the OAuth filter, see the [Single Sign-On with OAuth and OIDC](../oauth-oidc-auth) documentation.
 
 ### Enabling Service Preview
 
-Service Preview requires a command-line client, `apictl`. For instructions on configuring Service Preview, see the [Service Preview tutorial](/docs/dev-guide/service-preview).
+Service Preview requires a command-line client, `apictl`. For instructions on configuring Service Preview, see the [Service Preview tutorial](../../docs/dev-guide/service-preview).
 
 ### Enabling Consul Connect integration
 
-Ambassador Pro's Consul Connect integration is deployed as a separate Kubernetes service. For instructions on deploying Consul Connect, see the [Consul Connect integration guide](/user-guide/consul-connect-ambassador).
+Ambassador Pro's Consul Connect integration is deployed as a separate Kubernetes service. For instructions on deploying Consul Connect, see the [Consul Connect integration guide](../consul).

@@ -1,18 +1,15 @@
-# Filters
+# Filter Reference
 
-Filters are used to extend Ambassador to modify or intercept an HTTP
-request before sending to the backend service.  You may use any of the
-built-in Filter types, use the `Plugin` filter type to run custom code
-written in the Go programming language, or use the `External` filter
-type to call run out to custom code written in a programming language
-of your choice.
+Filters are used to extend the Ambassador Edge Stack to modify or
+intercept an HTTP request before sending to your backend service.  You
+may use any of the built-in Filter types, or use the `Plugin` filter
+type to run custom code written in the Go programming language, or use
+the `External` filter type to call run out to custom code written in a
+programming language of your choice.
 
-Filters are created with the `Filter` resource type, which contains
-global arguments to that filter.  Which Filter(s) to use for which
-HTTP requests is then configured in `FilterPolicy` resources, which
-may contain path-specific arguments to the filter.
+Filters are created with the `Filter` resource type, which contains global arguments to that filter.  Which Filter(s) to use for which HTTP requests is then configured in `FilterPolicy` resources, which may contain path-specific arguments to the filter.
 
-For more information about developing filters, see the [Filter Development Guide](/docs/guides/filter-dev-guide).
+For more information about developing filters, see the [Filter Development Guide](../../docs/guides/filter-dev-guide).
 
 ## `Filter` Definition
 
@@ -21,7 +18,7 @@ spec depends on the filter type:
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name:      "string"      # required; this is how to refer to the Filter in a FilterPolicy
@@ -34,17 +31,17 @@ spec:
     GLOBAL_FILTER_ARGUMENTS
 ```
 
-Currently, Ambassador supports four filter types: `External`, `JWT`, `OAuth2`, and `Plugin`.
+Currently, the Ambassador Edge Stack supports four filter types: `External`, `JWT`, `OAuth2`, and `Plugin`.
 
 ### Filter Type: `External`
 
-The `External` filter type exposes the Ambassador `AuthService` interface to external authentication services. This is useful in a number of situations, e.g., if you have already written a custom `AuthService`, but also want to use other filters.
+The `External` filter type exposes the Ambassador Edge Stack `AuthService` interface to external authentication services. This is useful in a number of situations, e.g., if you have already written a custom `AuthService`, but also want to use other filters.
 
 The `External` filter looks very similar to an `AuthService` annotation:
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: "example-external-filter"
@@ -97,7 +94,7 @@ in `jwksURI`.  Only RSA and `none` algorithms are supported.
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: "example-jwt-filter"
@@ -130,20 +127,19 @@ spec:
     realm:            "string"      # optional; default is "{{.metadata.name}}.{{.metadata.namespace}}"
        
     errorResponse:                  # optional
-      contentType: "string"           # deprecated; use 'headers' instead
-      headers:                        # optional; default is [{name: "Content-Type", value: "application/json"}]
-      - name: "header-name-string"      # required
-        value: "go-template-string"     # required
-      bodyTemplate: "string"          # optional; default is `{{ . | json "" }}`
+      contentType: "string"         # deprecated; use 'headers' instead
+      headers:                      # optional; default is [{name: "Content-Type", value: "application/json"}]
+      - name: "header-name-string"  # required
+        value: "go-template-string" # required
+      bodyTemplate: "string"        # optional; default is `{{ . | json "" }}`
 ```
 
  - `insecureTLS` disables TLS verification for the cases when
    `jwksURI` begins with `https://`.  This is discouraged in favor of
    either using plain `http://` or [installing a self-signed
    certificate](#installing-self-signed-certificates).
- - `renegotiateTLS` allows a remote server to request TLS
-   renegotiation.  Accepted values are "never", "onceAsClient", and
-   "freelyAsClient".
+ - `renegotiateTLS` allows a remote server to request TLS renegotiation. 
+   Accepted values are "never", "onceAsClient", and "freelyAsClient".
  - `injectRequestHeaders` injects HTTP header fields in to the request
    before sending it to the upstream service; where the header value
    can be set based on the JWT value.  The value is specified as a [Go
@@ -193,8 +189,9 @@ spec:
       starting indent level.
 
 **Note**: If you are using a templating system for your YAML that also
-makes use of Go templating (for instance, Helm), then you will need to
-escape the template strings meant to be interpreted by Ambassador Pro.
+makes use of Go templating, then you will need to
+escape the template strings meant to be interpreted by the Ambassador Edge
+Stack.
 
 [Go `text/template`]: https://golang.org/pkg/text/template/
 [Go `text/template` functions]: https://golang.org/pkg/text/template/#hdr-Functions
@@ -249,7 +246,7 @@ spec:
 #     "iat": 1516239022
 #   }
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: example-jwt-filter
@@ -325,14 +322,13 @@ spec:
 
 ### Filter Type: `OAuth2`
 
-The `OAuth2` filter type performs OAuth2 authorization against an
-identity provider implementing [OIDC Discovery](https://openid.net/specs/openid-connect-discovery-1_0.html).
+The `OAuth2` filter type performs OAuth2 authorization against an identity provider implementing [OIDC Discovery](https://openid.net/specs/openid-connect-discovery-1_0.html).
 
 #### `OAuth2` Global Arguments
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: "example-oauth2-filter"
@@ -354,6 +350,10 @@ spec:
     clientURL:             "url-string"      # required
     stateTTL:              "duration-string" # optional; default is "5m"
     clientID:              "string"          # required
+    # A client secret must be specified.
+    # This can be done by including the raw secret as a string in "secret",
+    # or by referencing Kubernetes secret with "secretName" (and "secretNamespace").
+    # It is invalid to specify both "secret" and "secretName".
     secret:                "string"          # required (unless secretName is set)
     secretName:            "string"          # required (unless secret is set)
     secretNamespace:       "string"          # optional; default is the same namespace as the Filter
@@ -400,11 +400,11 @@ General settings:
        arguments are the same as the arguments when erferring to a JWT
        Filter from a FilterPolicy.
    * `"userinfo"`: Validates the access token by polling the OIDC
-     UserInfo Endpoint.  This means that Ambassador Pro must initiate
-     an HTTP request to the identity provider for each authorized
-     request to a protected resource.  This performs poorly, but
-     functions properly with a wider range of identity providers.  It is
-     not valid to set `accessTokenJWTFilter` if
+     UserInfo Endpoint.  This means that the Ambassador Edge Stack
+     must initiate an HTTP request to the identity provider for each
+     authorized request to a protected resource.  This performs
+     poorly, but functions properly with a wider range of identity
+     providers.  It is not valid to set `accessTokenJWTFilter` if
      `accessTokenValidation: userinfo`.
    * `"auto"` attempts has it do `"jwt"` validation if
      `accessTokenJWTFilter` is set or if the Access Token parses as a
@@ -430,9 +430,9 @@ Settings that are only valid when `grantType: "AuthorizationCode"`:
      `oauth2-client-secret`.  If `secretNamespace` is not given, it
      defaults to the namespace of the Filter resource.
    * **Note**: It is invalid to set both `secret` and `secretName`.
- - `stateTTL`: (You decide this) How long Ambassador will wait for the
-   user to submit credentials to the identity provider and receive a
-   response to that effect from the identity provider
+ - `stateTTL`: (You decide this) How long the Ambassador Edge Stack will
+   wait for the user to submit credentials to the identity provider
+   and receive a response to that effect from the identity provider
 
 HTTP client settings for talking to the identity provider:
 
@@ -459,7 +459,7 @@ numbers, each with optional fraction and a unit suffix, such as
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: FilterPolicy
 metadata:
   name: "example-filter-policy"
@@ -519,13 +519,13 @@ spec:
 
  - `insteadOfRedirect`: An action to perform instead of redirecting
    the User-Agent to the identity provider.  By default, if the
-   User-Agent does not have an currently-authenticated session, then
-   Ambassador will redirect the User-Agent to the identity provider.
+   User-Agent does not have a currently-authenticated session, then the
+   Ambassador Edge Stack will redirect the User-Agent to the identity provider.
    Setting `insteadOfRedirect` allows you to modify this behavior.
    `ifRequestHeader` does nothing when `grantType:
-   "ClientCredentials"`, because Ambassador will never redirect the
-   User-Agent to the identity provider for the client credentials
-   grant type.
+   "ClientCredentials"`, because the Ambassador Edge Stack will never
+   redirect the User-Agent to the identity provider for the client
+   credentials grant type.
     * If `insteadOfRedirect` is non-`null`, then by default it will
       apply to all requests that would cause the redirect; setting the
       `ifRequestHeader` sub-argument causes it to only apply to
@@ -548,23 +548,19 @@ spec:
 
 ### Filter Type: `Plugin`
 
-The `Plugin` filter type allows you to plug in your own custom code.
-This code is compiled to a `.so` file, which you load in to the
-Ambassador Pro container at `/etc/ambassador-plugins/${NAME}.so`.
+The `Plugin` filter type allows you to plug in your own custom code. This code is compiled to a `.so` file, which you load in to the Ambassador Edge Stack container at `/etc/ambassador-plugins/${NAME}.so`.
 
 #### The Plugin Interface
 
 This code is written in the Go programming language (golang), and must
-be compiled with the exact same compiler settings as Ambassador Pro;
-and any overlapping libraries used must have their versions match
-exactly.  This information is documented in an [apro-abi.txt][] file
-for each Ambassador Pro release.
+be compiled with the exact same compiler settings as the Ambassador
+Edge Stack; and any overlapping libraries used must have their
+versions match exactly. This information is documented in the
+`/ambassador/aes-abi.txt` file in the AES docker image.
 
-[apro-abi.txt]: https://s3.amazonaws.com/datawire-static-files/apro-abi/apro-abi@$aproVersion$.txt
-
-Plugins are compiled with `go build -buildmode=plugin`, and must have
-a `main.PluginMain` function with the signature `PluginMain(w
-http.ResponseWriter, r *http.Request)`:
+Plugins are compiled with `go build -buildmode=plugin -trimpath`, and
+must have a `main.PluginMain` function with the signature
+`PluginMain(w http.ResponseWriter, r *http.Request)`:
 
 ```go
 package main
@@ -576,23 +572,19 @@ import (
 func PluginMain(w http.ResponseWriter, r *http.Request) { … }
 ```
 
-`*http.Request` is the incoming HTTP request that can be mutated or
-intercepted, which is done by `http.ResponseWriter`.
+`*http.Request` is the incoming HTTP request that can be mutated or intercepted, which is done by `http.ResponseWriter`.
 
 Headers can be mutated by calling `w.Header().Set(HEADERNAME, VALUE)`.
 Finalize changes by calling `w.WriteHeader(http.StatusOK)`.
 
-If you call `w.WriteHeader()` with any value other than 200
-(`http.StatusOK`) instead of modifying the request, the plugin has
-taken over the request, and the request will not be sent to the
-backend service.  You can call `w.Write()` to write the body of an
-error page.
+If you call `w.WriteHeader()` with any value other than 200 (`http.StatusOK`) instead of modifying the request, the plugin has
+taken over the request, and the request will not be sent to your backend service.  You can call `w.Write()` to write the body of an error page.
 
 #### `Plugin` Global Arguments
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: "example-plugin-filter"
@@ -614,7 +606,7 @@ which HTTP requests.
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: FilterPolicy
 metadata:
   name: "example-filter-policy"
@@ -627,16 +619,14 @@ spec:
     - name: "string"              # required
       namespace: "string"         # optional; default is the same namespace as the FilterPolicy
       ifRequestHeader:            # optional; default to apply this filter to all requests matching the host & path
-        name: "string"              # required
-        value: "string"             # optional; default is any non-empty string
+        name: "string"            # required
+        value: "string"           # optional; default is any non-empty string
       onDeny: "enum-string"       # optional; default is "break"
       onAllow: "enum-string"      # optional; default is "continue"
       arguments: DEPENDS          # optional
 ```
 
-The type of the `arguments` property is dependent on the which Filter
-type is being referred to; see the "Path-Specific Arguments"
-documentation for each Filter type.
+The type of the `arguments` property is dependent on the which Filter type is being referred to; see the "Path-Specific Arguments" documentation for each Filter type.
 
 When multiple `Filter`s are specified in a rule:
 
@@ -645,7 +635,7 @@ When multiple `Filter`s are specified in a rule:
    1. return a direct HTTP *response*, intended to be sent back to the
       requesting HTTP client (normally *denying* the request from
       being forwarded to the upstream service); or
-   2. return a modification to make the the HTTP *request* before
+   2. return a modification to make to the HTTP *request* before
       sending it to other filters or the upstream service (normally
       *allowing* the request to be forwarded to the upstream service
       with modifications).
@@ -683,7 +673,7 @@ configured to run on requests to `/httpbin/`.
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: param-filter # This is the name used in FilterPolicy
@@ -693,7 +683,7 @@ spec:
     name: param-filter # The plugin's `.so` file's base name
 
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: FilterPolicy
 metadata:
   name: httpbin-policy
@@ -716,30 +706,21 @@ spec:
     - name: auth0
 ```
 
-**Note:** Ambassador will choose the first `FilterPolicy` rule that matches the incoming request. 
-As in the above example, you must list your rules in the order of least to most generic.
+**Note:** The Ambassador Edge Stack will choose the first `FilterPolicy` rule that matches the incoming request. As in the above example, you must list your rules in the order of least to most generic.
 
 ## Installing self-signed certificates
 
-The `JWT` and `OAuth2` filters speak to other servers over HTTP or
-HTTPS.  If those servers are configured to speak HTTPS using a
-self-signed certificate, attempting to talk to them will result in a
-error mentioning `ERR x509: certificate signed by unknown authority`.
-You can fix this by installing that self-signed certificate in to the
-Pro container following the standard procedure for Alpine Linux 3.8:
-Copy the certificate to `/usr/local/share/ca-certificates/` and then
-run `update-ca-certificates`.  Note that the `amb-sidecar` image sets
-`USER 1000`, but that `update-ca-certificates` needs to be run as
-root.
+The `JWT` and `OAuth2` filters speak to other services over HTTP or HTTPS.  If those services are configured to speak HTTPS using a
+self-signed certificate, attempting to talk to them will result in an error mentioning `ERR x509: certificate signed by unknown authority`. You can fix this by installing that self-signed certificate in to the
+AES container following the standard procedure for Alpine Linux 3.8: Copy the certificate to `/usr/local/share/ca-certificates/` and then run `update-ca-certificates`.  Note that the `aes` image sets `USER 1000`, but that `update-ca-certificates` needs to be run as root.
 
 ```Dockerfile
-FROM quay.io/datawire/ambassador_pro:amb-sidecar-$aproVersion$
+FROM quay.io/datawire/aes:$version$
 USER root
 COPY ./my-certificate.pem /usr/local/share/ca-certificates/my-certificate.crt
 RUN update-ca-certificates
 USER 1000
 ```
 
-When deploying Ambassador Pro, refer to that custom Docker image,
-rather than to
-`quay.io/datawire/ambassador_pro:amb-sidecar-$aproVersion$`.
+When deploying the Ambassador Edge Stack, refer to that custom Docker image,
+rather than to `quay.io/datawire/aes:$version$`

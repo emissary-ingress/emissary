@@ -2,13 +2,13 @@
 
 Cross-Origin resource sharing lets users request resources (e.g., images, fonts, videos) from domains outside the original domain.
 
-CORS configuration can be set for all Ambassador mappings in the [ambassador](../modules#the-ambassador-module) module, or set per [mapping](../mappings#configuring-mappings).
+CORS configuration can be set for all Ambassador Edge Stack mappings in the [`ambassador Module`](../core/ambassador), or set per [`Mapping`](../mappings#configuring-mappings).
 
-When the CORS attribute is set at either the `Mapping` or `Module` level, Ambassador will intercept the pre-flight `OPTIONS` request and respond with the appropriate CORS headers. This means you will not need to implement any logic in your upstreams to handle these CORS `OPTIONS` requests.
+When the CORS attribute is set at either the `Mapping` or `Module` level, Ambassador Edge Stack will intercept the pre-flight `OPTIONS` request and respond with the appropriate CORS headers. This means you will not need to implement any logic in your upstreams to handle these CORS `OPTIONS` requests.
 
 The flow of the request will look similar to the following:
 ```
-Client              Ambassador      Upstream
+Client      Ambassador Edge Stack     Upstream
   |      OPTIONS       |               |
   | —————————————————> |               |
   |     CORS_RESP      |               |
@@ -72,7 +72,7 @@ The `cors` attribute enables the CORS filter. The following settings are support
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 metadata:
   name:  cors
@@ -87,7 +87,7 @@ spec:
     exposed_headers: X-Custom-Header
     max_age: "86400"
 ```
-## [AuthService](/reference/services/auth-service) and Cross-Origin Resource Sharing
+## [AuthService](../services/auth-service) and Cross-Origin Resource Sharing
 
 When you use external authorization, each incoming request is authenticated before routing to its destination, including pre-flight `OPTIONS` requests.  
 
@@ -126,12 +126,12 @@ class SecurityConfig extends WebSecurityConfigurerAdapter {
 }
 ```
 
-This is okay since CORS is being handled by Ambassador after authentication. 
+This is okay since CORS is being handled by Ambassador Edge Stack after authentication.
 
 The flow of this request will look similar to the following:
 
 ```
-Client              Ambassador        Auth          Upstream
+Client     Ambassador Edge Stack       Auth          Upstream
   |      OPTIONS       |               |               |
   | —————————————————> | ————————————> |               |
   |                    | CORS_ACCEPT_* |               |

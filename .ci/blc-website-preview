@@ -17,23 +17,27 @@
 set -o errexit
 set -o nounset
 
-if ! [[ -d /tmp/getambassador.io/public ]]; then
+website_branch=${1:-master}
+
+if ! [[ -d /tmp/getambassador.io-$website_branch/public ]]; then
 	echo '[blc-website-preview] skipping: website preview was not built'
 	exit 0
 fi
 
+if [[ -n "$TRAVIS_PULL_REQUEST_SHA" ]]; then
+	build_type=pr
+else
+	build_type=push
+fi
+
 set -o verbose
 
-cd /tmp
-git clone https://github.com/datawire/getambassador.io-blc.git
-cd getambassador.io-blc
-npm install
-
-pushd /tmp/getambassador.io/public
+pushd "/tmp/getambassador.io-$website_branch/public"
 python3 -m http.server 2>/dev/null &
 trap "kill $!" EXIT
 popd
 
+cd /tmp/getambassador.io-blc
 ./blc.js http://localhost:8000/ > /tmp/blc.txt
 
 set +o verbose
@@ -43,26 +47,26 @@ GRN=$'\033[1;32m'
 BLD=$'\033[1m'
 END=$'\033[0m'
 if [[ $num_complaints -eq 0 ]]; then
-	printf "%s======================= 0 broken-link-checker complaints =======================%s\n" "$GRN$BLD" "$END"
+	printf "%s======================= 0 broken-link-checker complaints for %s =======================%s\n" "$GRN$BLD" "$website_branch" "$END"
 else
-	printf "%s======================= %d broken-link-checker complaints ======================%s\n" "$RED$BLD" $num_complaints "$END$RED"
+	printf "%s======================= %d broken-link-checker complaints for %s ======================%s\n" "$RED$BLD" $num_complaints "$website_branch" "$END"
 	grep ^Page /tmp/blc.txt | sort -u
-	printf "%s====================== end broken-link-checker complaints ======================%s\n" "$RED$BLD" "$END"
+	printf "%s====================== end broken-link-checker complaints for %s ======================%s\n" "$RED$BLD" "$website_branch" "$END"
 fi
 set -o verbose
 
 cat >/tmp/github-status.json <<EOF
 {
-  "context": "continuous-integration/broken-link-check",
+  "context": "broken-link-check/${build_type}",
   "state": "$(if [[ $num_complaints -eq 0 ]]; then echo success; else echo failure; fi)",
   "target_url": "${TRAVIS_JOB_WEB_URL}",
-  "description": "Found ${num_complaints} bad links in the website preview"
+  "description": "Found ${num_complaints} bad links in the website ${website_branch} preview"
 }
 EOF
 
 cat /tmp/github-status.json
 
-curl \
+curl --fail \
 	-H "Accept: application/json" \
 	-H "Content-Type: application/json" \
 	-X POST \

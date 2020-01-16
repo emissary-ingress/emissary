@@ -16,26 +16,14 @@
 
 set -o errexit
 set -o nounset
-
-case "${TRAVIS_PULL_REQUEST_SHA:+${TRAVIS_BRANCH:-}}" in
-	master) submodule=content;;
-	early-access) submodule=content-ea/early-access;;
-	*)
-		if [[ -z "$TRAVIS_PULL_REQUEST_SHA" ]]; then
-			echo "[pr-build-website-preview] skipping: not a PR"
-		else
-			echo "[pr-build-website-preview] skipping: is a PR, but is in to '${TRAVIS_BRANCH}', not 'master' or 'early-access'"
-		fi
-		exit 0
-		;;
-esac
-
 set -o xtrace
 
-rm -rf /tmp/getambassador.io
-git clone https://d6e-automaton:${GH_TOKEN}@github.com/datawire/getambassador.io.git /tmp/getambassador.io
-cd /tmp/getambassador.io
+website_branch=${1:-master}
+
+rm -rf "/tmp/getambassador.io-$website_branch"
+git clone --single-branch --branch="$website_branch" https://d6e-automaton:${GH_TOKEN}@github.com/datawire/getambassador.io.git "/tmp/getambassador.io-$website_branch"
+cd "/tmp/getambassador.io-$website_branch"
 git submodule update --init --reference="$TRAVIS_BUILD_DIR"
-git -C "$submodule" checkout "$TRAVIS_COMMIT"
+git -C content checkout "$TRAVIS_COMMIT"
 npm install
 npm run build

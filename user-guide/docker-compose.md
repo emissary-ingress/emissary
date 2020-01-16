@@ -1,5 +1,7 @@
 # Deploying Ambassador to Docker Compose for local development
 
+**This page is deprecated. For Docker, check out the [Docker installation guide](../../about/quickstart).**
+
 Docker Compose is useful for local development where Minikube may be undesirable. This guide is not intended for production deployments but it is intended to allow developers to quickly try out Ambassador features in a simple, local environment.
 
 *It is important to note that any change to Ambassador's configuration using this method requires a restart of the Ambassador container and thus downtime.*
@@ -170,11 +172,11 @@ services:
     # don't try to watch Kubernetes for configuration changes
     - AMBASSADOR_NO_KUBEWATCH=no_kubewatch
   tour-ui:
-    image: quay.io/datawire/tour:ui-$tourVersion$
+    image: quay.io/datawire/tour:ui-0.2.6
     ports:
     - 5000
   tour-backend:
-    image: quay.io/datawire/tour:backend-$tourVersion$
+    image: quay.io/datawire/tour:backend-0.2.6
     ports:
     - 8080
 ```
@@ -240,11 +242,11 @@ services:
     # don't try to watch Kubernetes for configuration changes
     - AMBASSADOR_NO_KUBEWATCH=no_kubewatch
   tour-ui:
-    image: quay.io/datawire/tour:ui-$tourVersion$
+    image: quay.io/datawire/tour:ui-0.2.6
     ports:
     - 5000
   tour-backend:
-    image: quay.io/datawire/tour:backend-$tourVersion$
+    image: quay.io/datawire/tour:backend-0.2.6
     ports:
     - 8080
   auth:
@@ -352,11 +354,11 @@ services:
     # don't try to watch Kubernetes for configuration changes
     - AMBASSADOR_NO_KUBEWATCH=no_kubewatch
   tour-ui:
-    image: quay.io/datawire/tour:ui-$tourVersion$
+    image: quay.io/datawire/tour:ui-0.2.6
     ports:
     - 5000
   tour-backend:
-    image: quay.io/datawire/tour:backend-$tourVersion$
+    image: quay.io/datawire/tour:backend-0.2.6
     ports:
     - 8080
   auth:

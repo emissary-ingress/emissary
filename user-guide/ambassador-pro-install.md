@@ -1,5 +1,9 @@
 # Installing Ambassador Pro and Ambassador Dev Portal
----
+
+<div class="ambassador-pro-banner">
+All of the functionality previously available in Ambassador Pro is now available for free with the
+Ambassador Edge Stack Community Edition! <a href="/editions">Click here to learn more →</a>
+</div>
 
 For users who need additional functionality, Datawire provides two add-on products to Ambassador:
 

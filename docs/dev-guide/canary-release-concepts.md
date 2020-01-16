@@ -1,7 +1,6 @@
-# Kubernetes Canary Releases
+# Safely Testing in Production 
 
 Canary release is a technique to reduce the risk of introducing a new version of software in production by slowly rolling out the change to a small subset of users, before rolling it out to the entire infrastructure and making it available to everybody.
-
 
 ## Benefits of Canary Releases
 
@@ -61,21 +60,21 @@ metadata:
 The obvious downside to implementing Kubernetes canary releases like this is that if the application contained within the Deployment is large or resource intensive it may not be practical to deploy multiple versions of this. In addition, creating fine-grained canary releases that only route 1% or 2% of traffic is challenging, and this is a standard use case for a canary release with an application that receives a reasonable amount of traffic.
 
 
-## Flexible Kubernetes Canary Releases: Smart Routing with Ambassador
+## Flexible Kubernetes Canary Releases: Smart Routing with Ambassador Edge Stack
 
-A more effective approach to Kubernetes canary releases is to use some kind of smart proxy, load balancer or API gateway -- like Ambassador. Dynamically routing traffic at the request level means that only one Deployment is required for each of the "stable" and "canary" versions of the application. Instead of relying on a round robin load balancing implementation, the smart proxy can direct a specified percentage of Service requests to each Deployment. This is exactly how Ambassador can be configured to canary release applications.
+A more effective approach to Kubernetes canary releases is to use some kind of smart proxy, load balancer or API gateway -- like the Ambassador Edge Stack. Dynamically routing traffic at the request level means that only one Deployment is required for each of the "stable" and "canary" versions of the application. Instead of relying on a round robin load balancing implementation, the smart proxy can direct a specified percentage of Service requests to each Deployment. This is exactly how Ambassador Edge Stack can be configured to canary release applications.
 
 Using the smart routing approach requires two Kubernetes Services to be created -- one for the stable version of the app e.g. "payment", and one for the canary version of the app e.g. "payment-canary"-- and associated Deployments can be created a configured as required (the Deployments are not involved with smart routing).
 
-Ambassador itself is deployed as a Service, typically of type LoadBalancer (which by default uses the underlying platform implementation of a load balancer e.g. on AWS this is an ELB, on GCP a TCP/UDP Load Balancer etc). With the application Services and the Ambassador Service deployed all that is required to enable a canary release is the creation of appropriate Ambassador Mapping, which are defined as a Kubernetes customer resource definition (CRD).
+Ambassador Edge Stack itself is deployed as a Service, typically of type LoadBalancer (which by default uses the underlying platform implementation of a load balancer e.g. on AWS this is an ELB, on GCP a TCP/UDP Load Balancer etc). With the application Services and the Ambassador Edge Stack Service deployed all that is required to enable a canary release is the creation of appropriate Ambassador Edge Stack Mapping, which are defined as a Kubernetes custom resource definition (CRD).
 
-The example below defines the CRDs. Note the "weight: 1" property in the payment-canary mapping, which tells Ambassador to route 1% of traffic to this service for the /payment/ route. By default the remaining amount of traffic, 99% in this case, will be routed to the Mapping without a weight specified.
+The example below defines the CRDs. Note the "weight: 1" property in the payment-canary mapping, which tells Ambassador Edge Stack to route 1% of traffic to this service for the /payment/ route. By default the remaining amount of traffic, 99% in this case, will be routed to the Mapping without a weight specified.
 
-Ambassador Service config:
+Ambassador Edge Stack Service config:
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: payment
@@ -83,7 +82,7 @@ spec:
   prefix: /payment/
   service: payment-service
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: payment-canary
@@ -144,4 +143,5 @@ metadata:
 ```
 
 
-We've written more about canary releases on the [Ambassador blog](https://blog.getambassador.io). To learn more about this pattern, you can [read more here](https://blog.getambassador.io/cloud-native-patterns-canary-release-1cb8f82d371a).
+We've written more about canary releases on the [Ambassador Edge Stack blog](https://blog.getambassador.io/search?q=canary). To learn more about this pattern, you can [read more here](https://blog.getambassador.io/cloud-native-patterns-canary-release-1cb8f82d371a).
+

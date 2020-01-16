@@ -1,16 +1,16 @@
 # Rate Limiting
 
-Ambassador can validate incoming requests before routing them to a backing service. In this tutorial, we'll configure Ambassador to use a simple third party rate limit service. If you don't want to implement your own rate limiting service, Ambassador Pro integrates a [powerful, flexible rate-limiting service](/user-guide/advanced-rate-limiting).
+The Ambassador Edge Stack can validate incoming requests before routing them to a backing service. In this tutorial, we'll configure the Ambassador Edge Stack to use a simple third party rate limit service. If you don't want to implement your own rate limiting service, the Ambassador Edge Stack integrates a [powerful, flexible rate-limiting service](../advanced-rate-limiting).
 
 ## Before You Get Started
 
-This tutorial assumes you have already followed the [Ambassador Getting Started](/user-guide/getting-started) guide. If you haven't done that already, you should do that now.
+This tutorial assumes you have already followed the Ambassador Edge Stack [Getting Started](../getting-started) guide. If you haven't done that already, you should do that now.
 
-After completing [Getting Started](/user-guide/getting-started), you'll have a Kubernetes cluster running Ambassador and the Quote of the Moment service. Let's walk through adding rate limiting to this setup.
+Once completed, you'll have a Kubernetes cluster running Ambassador and the Quote of the Moment service. Let's walk through adding rate limiting to this setup.
 
 ## 1. Deploy the rate limit service
 
-Ambassador delegates the actual rate limit logic to a third party service. We've written a [simple rate limit service](https://github.com/datawire/ambassador/tree/master/docker/test-ratelimit) that:
+The Ambassador Edge Stack delegates the actual rate limit logic to a third party service. We've written a [simple rate limit service](https://github.com/datawire/ambassador/tree/master/docker/test-ratelimit) that:
 
 - listens for requests on port 5000;
 - handles gRPC `shouldRateLimit` requests;
@@ -21,7 +21,7 @@ Here's the YAML we'll start with:
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: RateLimitService
 metadata:
   name: ratelimit
@@ -70,20 +70,19 @@ spec:
             memory: 100Mi
 ```
 
-This configuration tells Ambassador about the rate limit service, notably that it is serving requests at `example-rate-limit:5000`.
+This configuration tells the Ambassador Edge Stack about the rate limit service, notably that it is serving requests at `example-rate-limit:5000`.
 
-Ambassador will see the annotations and reconfigure itself within a few seconds.
+The Ambassador Edge Stack will see the RateLimitService and reconfigure itself within a few seconds. Note that the v2 API is available for the Ambsassador Edge Stack.
 
-## 2. Configure Ambassador Mappings
+## 2. Configure Ambassador Edge Stack Mappings
 
-Ambassador only validates requests on Mappings which set rate limiting descriptors. If Ambassador cannot contact the rate limit service, it will allow the request to be processed as if there were no rate limit service configuration.
-
-We already have the `tour` service running, so let's apply some rate limits to the service. The easiest way to do that is to annotate the `tour` service. While we could use `kubectl patch` for this, it's simpler to just modify the service definition and re-apply.
+The Ambassador Edge Stack only validates requests on Mappings which set rate limiting descriptors. If Ambassador cannot contact the rate limit service, it will allow the request to be processed as if there were no rate limit service configuration.
 
 ### v1 API
-Ambassador 0.50.0 and later requires the `v1` API Version for rate limiting. The `v1` API uses the `labels` attribute to attach rate limiting descriptors. Review the [Rate Limits configuration documentation](/reference/rate-limits#request-labels) for more information.
 
-Replace the label that is applied to the `tour-backend` with:
+Ambassador 0.50.0 and later requires the `v1` API Version for rate limiting. The `v1` API uses the `labels` attribute to attach rate limiting descriptors. Review the [Rate Limits configuration documentation](../../reference/rate-limits#request-labels) for more information.
+
+Replace the label that is applied to the `service-backend` with:
 
 ```yaml
 labels:
@@ -94,16 +93,17 @@ labels:
           omit_if_not_present: true
 ```
 
-so the `Mapping` definition will now look like this:
+so the Mapping definition will now look like this:
+
 ```yaml
 ---
 apiVersion: getambassador.io/v1
 kind: Mapping
 metadata:
-  name: tour-backend
+  name: service-backend
 spec:
   prefix: /backend/
-  service: tour:8080
+  service: quote
   labels:
     ambassador:    
       - request_label_group:      
@@ -113,29 +113,29 @@ spec:
 ```
 
 ### v0 API
-Ambassador versions 0.40.2 and earlier use the `v0` API version which uses the `rate_limits` attribute to set rate limiting descriptors. Review the [Rate Limits configuration documentation](/reference/rate-limits#the-rate_limits-attribute) for more information.
 
+Ambassador versions 0.40.2 and earlier use the `v0` API version which uses the `rate_limits` attribute to set rate limiting descriptors. Review the [rate_limits mapping attribute configuration documentation](../../reference/rate-limits#the-rate_limits-attribute) for more information.
 
 ```yaml
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: tour
+  name: quote
   annotations:
     getambassador.io/config: |
       ---
       apiVersion: ambassador/v0
       kind: Mapping
-      name: tour-ui_mapping
+      name: quote-backend
       prefix: /
-      service: tour:5000
+      service: quote:5000
       ---
       apiVersion: ambassador/v0
       kind: Mapping
-      name: tour-backend_mapping
+      name: quote-backend
       prefix: /backend/
-      service: tour:8080
+      service: quote
       rate_limits:
         - descriptor: A test case
           headers:
@@ -149,21 +149,21 @@ spec:
     port: 8080
     targetPort: 8080
   selector:
-    app: tour
+    app: backend
 ```
 
-This configuration tells Ambassador about the rate limit rules to apply, notably that it needs the `x-ambassador-test-allow` header, and that it should set "A test case" as the `generic_key` descriptor when performing the gRPC request.
+This configuration tells the Ambassador Edge Stack about the rate limit rules to apply, notably that it needs the `x-ambassador-test-allow` header, and that it should set "A test case" as the `generic_key` descriptor when performing the gRPC request.
 
 Note that both `descriptor` and `headers` are optional. However, if `headers` are defined, **they must be part of the request in order to be rate limited**.
 
-Ambassador would also perform multiple requests to `example-rate-limit:5000` if we had defined multiple `rate_limits` rules on the mapping.
+Ambassador Edge Stack would also perform multiple requests to `example-rate-limit:5000` if we had defined multiple `rate_limits` rules on the mapping.
 
 ## 3. Test rate limiting
 
 If we `curl` to a rate-limited URL:
 
 ```shell
-$ curl -v -H "x-ambassador-test-allow: probably" $AMBASSADORURL/backend/
+$ curl -Lv -H "x-ambassador-test-allow: probably" $AMBASSADORURL/backend/
 ```
 
 We get a 429, since we are limited.
@@ -177,7 +177,7 @@ content-length: 0
 If we set the correct header value to the service request, we will get a quote successfully:
 
 ```shell
-$ curl -v -H "x-ambassador-test-allow: true" $AMBASSADORURL/backend/
+$ curl -Lv -H "x-ambassador-test-allow: true" $AMBASSADORURL/backend/
 
 TCP_NODELAY set
 * Connected to 35.196.173.175 (35.196.173.175) port 80 (#0)
@@ -203,4 +203,4 @@ TCP_NODELAY set
 
 ## More
 
-For more details about configuring the external rate limit service, read the documentation on [external rate limit](/reference/services/rate-limit-service) and [rate_limits mapping](/reference/rate-limits).
+For more details about configuring the external rate limit service, read the documentation on [external rate limit](../../reference/services/rate-limit-service) and [rate_limits mapping](../../reference/rate-limits).

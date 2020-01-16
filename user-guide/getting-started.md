@@ -1,278 +1,181 @@
 ---
-    description: In this tutorial, we'll walk through the process of deploying Ambassador in Kubernetes for ingress routing.
+    description: In this guide, we'll walk through the process of deploying Ambassador Edge Stack in Kubernetes for ingress routing.
 ---
-# Deploying Ambassador to Kubernetes
+# Quick Start Installation Guide
 
-In this tutorial, we'll walk through the process of deploying Ambassador in Kubernetes for ingress routing. Ambassador provides all the functionality of a traditional ingress controller (i.e., path-based routing) while exposing many additional capabilities such as [authentication](/user-guide/auth-tutorial), URL rewriting, CORS, rate limiting, and automatic metrics collection (the [mappings reference](/reference/mappings) contains a full list of supported options). For more background on Kubernetes ingress, [read this blog post](https://blog.getambassador.io/kubernetes-ingress-nodeport-load-balancers-and-ingress-controllers-6e29f1c44f2d).
+In this guide, we'll walk you through installing and configuring the Ambassador Edge Stack in your Kubernetes cluster. Within a few minutes, your cluster will be routing HTTPS requests from the Internet to a backend service. You'll also have a sense of how the Ambassador Edge Stack is managed.
 
-Ambassador is designed to allow service authors to control how their service is published to the Internet. We accomplish this by permitting a wide range of annotations on the *service*, which Ambassador reads to configure its Envoy Proxy. Below, we'll use service annotations to configure Ambassador to map `/httpbin/` to `httpbin.org`.
-
-## 1. Deploying Ambassador
-
-To deploy Ambassador in your **default** namespace, first you need to check if Kubernetes has RBAC enabled:
-
-```shell
-kubectl cluster-info dump --namespace kube-system | grep authorization-mode
-```
-
-If you see something like `--authorization-mode=Node,RBAC` in the output, then RBAC is enabled. The majority of current hosted Kubernetes providers (such as GKE) create
-clusters with RBAC enabled by default, and unfortunately the above command may not return any information indicating this.
-
-Note: If you're using Google Kubernetes Engine with RBAC, you'll need to grant permissions to the account that will be setting up Ambassador. To do this, get your official GKE username, and then grant `cluster-admin` role privileges to that username:
-
-```
-kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=$(gcloud info --format="value(config.account)")
-```
-
-If RBAC is enabled:
-
-```shell
-kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml
-```
-
-Without RBAC, you can use:
-
-```shell
-kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-no-rbac.yaml
-```
-
-We recommend downloading the YAML files and exploring the content. You will see
-that an `ambassador-admin` NodePort Service is created (which provides an
-Ambassador Diagnostic web UI), along with an ambassador ClusterRole, ServiceAccount and ClusterRoleBinding (if RBAC is enabled). An Ambassador Deployment is also created.
-
-When not installing Ambassador into the default namespace you must update the namespace used in the `ClusterRoleBinding` when RBAC is enabled.
-
-For production configurations, we recommend you download these YAML files as your starting point, and customize them accordingly.
-
-
-## 2. Defining the Ambassador Service
-
-Ambassador is deployed as a Kubernetes Service that references the ambassador
-Deployment you deployed previously. Create the following YAML and put it in a file called
-`ambassador-service.yaml`.
-
-```yaml
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: ambassador
-spec:
-  type: LoadBalancer
-  externalTrafficPolicy: Local
-  ports:
-   - port: 80
-     targetPort: 8080
-  selector:
-    service: ambassador
-```
-
-Deploy this service with `kubectl`:
-
-```shell
-$ kubectl apply -f ambassador-service.yaml
-```
-
-The YAML above creates a Kubernetes service for Ambassador of type `LoadBalancer`, and configures the `externalTrafficPolicy` to propagate [the original source IP](https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip) of the client. All HTTP traffic will be evaluated against the routing rules you create. Note that if you're not deploying in an environment where `LoadBalancer` is a supported type (such as minikube), you'll need to change this to a different type of service, e.g., `NodePort`.
-
-If you have a static IP provided by your cloud provider you can set as `loadBalancerIP`.
-
-## 3. Creating your first service
-
-Create the following YAML and put it in a file called `tour.yaml`.
-
-```yaml
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: tour
-spec:
-  ports:
-  - name: ui
-    port: 5000
-    targetPort: 5000
-  - name: backend
-    port: 8080
-    targetPort: 8080
-  selector:
-    app: tour
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: tour
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: tour
-  strategy:
-    type: RollingUpdate
-  template:
-    metadata:
-      labels:
-        app: tour
-    spec:
-      containers:
-      - name: tour-ui
-        image: quay.io/datawire/tour:ui-$tourVersion$
-        ports:
-        - name: http
-          containerPort: 5000
-      - name: quote
-        image: quay.io/datawire/tour:backend-$tourVersion$
-        ports:
-        - name: http
-          containerPort: 8080
-        resources:
-          limits:
-            cpu: "0.1"
-            memory: 100Mi
----
-apiVersion: getambassador.io/v1
-kind: Mapping
-metadata:
-  name: tour-ui
-spec:
-  prefix: /
-  service: tour:5000
----
-apiVersion: getambassador.io/v1
-kind: Mapping
-metadata:
-  name: tour-backend
-spec:
-  prefix: /backend/
-  service: tour:8080
-  labels:
-    ambassador:
-      - request_label:
-        - backend
-```
-
-Then, apply it to the Kubernetes with `kubectl`:
-
-```shell
-$ kubectl apply -f tour.yaml
-```
-
-This YAML has also been published so you can deploy it remotely:
-
-```
-kubectl apply -f https://getambassador.io/yaml/tour/tour.yaml
-```
-
-When the `Mapping` CRDs are applied, Ambassador will use them to configure routing:
-
-- The first `Mapping` causes traffic from the `/` endpoint to be routed to the `tour-ui` React application.
-- The second `Mapping` causes traffic from the `/backend/` endpoint to be routed to the `tour-backend` service.
-
-Note also the port numbers in the `service` field of the `Mapping`. This allows us to use a single service to route to both the containers running on the `tour` pod.
-
-<font color=#f9634E>**Important:**</font>
-
-Routing in Ambassador can be configured with Ambassador resources as shown above, Kubernetes service annotation, and Kubernetes Ingress resources. 
-
-Ambassador custom resources are the recommended config format and will be used throughout the documentation.
-
-See [configuration format](/reference/config-format) for more information on your configuration options.
-
-## 4. Testing the Mapping
-
-To test things out, we'll need the external IP for Ambassador (it might take some time for this to be available):
-
-```shell
-kubectl get svc -o wide ambassador
-```
-
-Eventually, this should give you something like:
-
-```
-NAME         CLUSTER-IP      EXTERNAL-IP     PORT(S)        AGE
-ambassador   10.11.12.13     35.36.37.38     80:31656/TCP   1m
-```
-
-
-You should now be able to reach the `tour-ui` application from a web browser:
-
-`http://35.36.37.38/`
-
-or on minikube:
-
-```shell
-$ minikube service list
-|-------------|----------------------|-----------------------------|
-|  NAMESPACE  |         NAME         |             URL             |
-|-------------|----------------------|-----------------------------|
-| default     | ambassador-admin     | http://192.168.99.107:30319 |
-| default     | ambassador           | http://192.168.99.107:31893 |
-|-------------|----------------------|-----------------------------|
-```
-`http://192.168.99.107:31893/`
-
-or on Docker for Mac/Windows:
-
-```shell
-$ kubectl get svc
-NAME               TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
-ambassador         LoadBalancer   10.106.108.64    localhost     80:32324/TCP     13m
-ambassador-admin   NodePort       10.107.188.149   <none>        8877:30993/TCP   14m
-tour               ClusterIP      10.107.77.153    <none>        80/TCP           13m
-kubernetes         ClusterIP      10.96.0.1        <none>        443/TCP          84d
-```
-`http://localhost/`
-
-## 5. The Diagnostics Service in Kubernetes
-
-Ambassador includes an integrated diagnostics service to help with troubleshooting. 
-
-By default, this is exposed to the internet at the URL `http://{{AMBASSADOR_HOST}}/ambassador/v0/diag/`. Go to that URL from a web browser to view the diagnostic UI.
-
-You can change the default so it is not exposed externally by default by setting `diagnostics.enabled: false` in the [ambassador `Module`](/reference/core/ambassador). 
-
-```yaml
-apiVersion: getambassador.io/v1
-kind: Module
-metadata:
-  name: ambassador
-spec:
-  config:
-    diagnostics:
-      enabled: false
-```
-
-After applying this `Module`, to view the diagnostics UI, we'll need to get the name of one of the Ambassador pods:
-
-```
-$ kubectl get pods
-NAME                          READY     STATUS    RESTARTS   AGE
-ambassador-3655608000-43x86   1/1       Running   0          2m
-ambassador-3655608000-w63zf   1/1       Running   0          2m
-```
-
-Forwarding local port 8877 to one of the pods:
-
-```
-kubectl port-forward ambassador-3655608000-43x86 8877
-```
-
-will then let us view the diagnostics at `http://localhost:8877/ambassador/v0/diag/`.
-
-## 6. Enable HTTPS
-
-Ambassador's versatile HTTPS configuration lets it support various HTTPS use cases whether simple or complex. 
-
-Follow our [enabling HTTPS guide](/user-guide/tls-termination) to quickly enable HTTPS support for your applications.
-
-
-## Next Steps
-
-We've just done a quick tour of some of the core features of Ambassador: diagnostics, routing, configuration, and authentication.
-
-- Join us on [Slack](https://d6e.co/slack);
-- Learn how to [add authentication](/user-guide/auth-tutorial) to existing services; or
-- Learn how to [add rate limiting](/user-guide/rate-limiting-tutorial) to existing services; or
-- Learn how to [add tracing](/user-guide/tracing-tutorial); or
-- Learn how to [use gRPC with Ambassador](/user-guide/grpc); or
-- Read about [configuring Ambassador](/reference/configuration).
+## Before You Begin
+
+The Ambassador Edge Stack is designed to run in Kubernetes for production. The most essential requirements are:
+
+* Kubernetes 1.11 or later
+* The `kubectl` command-line tool
+
+## Install the Ambassador Edge Stack
+
+The Ambassador Edge Stack is typically deployed to Kubernetes from the command line. If you don't have Kubernetes, you should use our [Docker](../../about/quickstart) to deploy the Ambassador Edge Stack locally.
+
+
+1. In your terminal, run the following command:
+
+    ```bash
+    kubectl apply -f https://www.getambassador.io/early-access/yaml/aes-crds.yaml && \
+    kubectl wait --for condition=established --timeout=90s crd -lproduct=aes && \
+    kubectl apply -f https://www.getambassador.io/early-access/yaml/aes.yaml && \
+    kubectl -n ambassador wait --for condition=available --timeout=90s deploy -lproduct=aes
+    ```
+
+2. Determine the IP address of your cluster by running the following command:
+
+    ```bash
+    kubectl get -n ambassador service ambassador -o 'go-template={{range .status.loadBalancer.ingress}}{{print .ip "\n"}}{{end}}'
+    ```
+
+    Your load balancer may take several minutes to provision your IP address. Repeat the provided command until you get an IP address.
+
+    Note: If you are a **Minikube user**, Minikube does not natively support load balancers. Instead, use `minikube service list`. You should see something similar to the following:
+
+    ```bash
+    (⎈ |minikube:ambassador)$ minikube service list
+    |-------------|------------------|--------------------------------|
+    |  NAMESPACE  |       NAME       |              URL               |
+    |-------------|------------------|--------------------------------|
+    | ambassador  | ambassador       | http://192.168.64.2:31230      |
+    |             |                  | http://192.168.64.2:31042      |
+    | ambassador  | ambassador-admin | No node port                   |
+    | ambassador  | ambassador-redis | No node port                   |
+    | default     | kubernetes       | No node port                   |
+    | kube-system | kube-dns         | No node port                   |
+    |-------------|------------------|--------------------------------|
+    ```
+
+    Use any of the URLs listed next to `ambassador` to access the Ambassador Edge Stack.
+
+3. Navigate to `http://<your-IP-address>` and click through the certificate warning for access the Edge Policy Console interface. The certificate warning appears because, by default, the Ambassador Edge Stack uses a self-signed certificate for HTTPS.
+    * Chrome users should click **Advanced > Proceed to website**.
+    * Safari users should click **Show details > visit the website** and provide your password.
+
+4. To login to the [Edge Policy Console](../../about/edge-policy-console), download and install `edgectl`, the command line tool Edge Control, by following the provided instructions on the page. The Console lists the correct command to run, and provides download links for the edgectl binary.
+
+The Edge Policy Console must authenticate your session using a Kubernetes Secret in your cluster. Edge Control accesses that secret using `kubectl`, then sends a URL to your browser that contains the corresponding session key. This extra step ensures that access to the Edge Policy Console is just as secure as access to your Kubernetes cluster.
+
+For more information, see [Edge Control](../../reference/edge-control).
+
+## Configure TLS for Automatic HTTPS
+
+If you have the ability to update your DNS, Ambassador can automatically configure a valid TLS certificate for you, eliminating the TLS warning. If you do not have the ability to update your DNS, skip to the next section, "Create a Mapping."
+
+1. Update your DNS so that your domain points to the IP address for your cluster. 
+
+2. In the Edge Policy Console, create a `Host` resource:
+   * On the "Hosts" tab, click the **Add** button on the right.
+   * Enter your hostname (domain) in the hostname field.
+   * Check the "Use ACME to manage TLS" box.
+   * Review the Terms of Service and check the box that you agree to the Terms of Service.
+   * Enter the email address to be associated with your TLS certificate.
+   * Click the **Save** button.
+  You'll see the newly created `Host` resource appear in the UI with a status of Pending. This will change to Ready once the certificate is fully provisioned. If you receive an error that your hostname does not qualify for ACME management, you can still configure TLS following [these instructions](../../reference/core/tls).
+
+3. Once the Host is ready, navigate to `https://<hostname>` in your browser. Note that the certificate warning has gone away. In addition, the Ambassador Edge Stack automatically will redirect HTTP connections to HTTPS.
+
+## Create a Mapping
+
+In a typical configuration workflow, Custom Resource Definitions (CRDs) are used to define the intended behavior of Ambassador Edge Stack. In this example, we'll deploy a sample service and create a `Mapping` resource. Mappings allow you to associate parts of your domain with different URLs, IP addresses, or prefixes.
+
+1. We'll start by deploying the `quote` service. Save the below configuration into a file named `quote.yaml`. This is a basic configuration that tells Kubernetes to deploy the `quote` container and create a Kubernetes `service` that points to the `quote` container.
+
+   ```
+   ---
+   apiVersion: v1
+   kind: Service
+   metadata:
+     name: quote
+     namespace: ambassador
+   spec:
+     ports:
+     - name: http
+       port: 80
+       targetPort: 8080
+     selector:
+       app: quote
+   ---
+   apiVersion: apps/v1
+   kind: Deployment
+   metadata:
+     name: quote
+     namespace: ambassador
+   spec:
+     replicas: 1
+     selector:
+       matchLabels:
+         app: quote
+     strategy:
+       type: RollingUpdate
+     template:
+       metadata:
+         labels:
+           app: quote
+       spec:
+         containers:
+         - name: backend
+           image: quay.io/datawire/quote:0.2.7
+           ports:
+           - name: http
+             containerPort: 8080
+   ```
+
+2. Deploy the `quote` service to the cluster by typing the command `kubectl apply -f quote.yaml`.
+
+3. Now, create a `Mapping` configuration that tells Ambassador to route all traffic from `/backend/` to the `quote` service. Copy the YAML and save to a file called `quote-backend.yaml`.
+
+   ```
+   ---
+   apiVersion: getambassador.io/v2
+   kind: Mapping
+   metadata:
+     name: quote-backend
+     namespace: ambassador
+   spec:
+     prefix: /backend/
+     service: quote
+   ```
+
+4. Apply the configuration to the cluster by typing the command `kubectl apply -f quote-backend.yaml`.
+
+5. Test the configuration by typing `curl -Lk https://<hostname>/backend/` or `curl -Lk https://<IP address>/backend/`. You should see something similar to the following:
+
+   ```
+   (⎈ |rdl-1:default)$ curl -Lk https://aes.ri.k36.net/backend/
+   {
+    "server": "idle-cranberry-8tbb6iks",
+    "quote": "Non-locality is the driver of truth. By summoning, we vibrate.",
+    "time": "2019-12-11T20:10:16.525471212Z"
+   }
+   ```
+
+## A single source of configuration
+
+1. In the Ambassador Edge Stack, Kubernetes serves as the single source of configuration. Changes made on the command line (via `kubectl`) are reflected in the UI, and vice versa. This enables a consistent configuration workflow. You can see this in action by navigating to the Mappings tab. You'll see an entry for the `quote-backend` Mapping that was just created on the command line.
+
+2. If you configured TLS, you can type `kubectl get hosts` to see the `Host` resource that was created:
+
+   ```
+   (⎈ |rdl-1:default)$ kubectl get hosts
+   NAME               HOSTNAME           STATE   PHASE COMPLETED   PHASE PENDING   AGE
+   aes.ri.k36.net     aes.ri.k36.net     Ready                                    158m
+   ```
+
+## Developer Onboarding
+
+The Quote service we just deployed publishes its API as a Swagger document. This API is automatically detected by the Ambassador Edge Stack and published.
+
+1. In the Edge Policy Console, navigate to the **APIs** tab. You'll see the documentation there for internal use.
+
+2. Navigate to `https://<hostname>/docs/` or `https://<IP address>/docs/` to see the externally visible Developer Portal (make sure you include the trailing `/`). This is a fully customizable portal that you can share with third parties who need to information about your APIs. 
+
+## What’s Next?
+
+The Ambassador Edge Stack has a comprehensive range of [features](/features/) to support the requirements of any edge microservice.
+
+To learn more about how the Ambassador Edge Stack works, along with use cases, best practices, and more, check out the [Ambassador](../../about/why-ambassador) story.

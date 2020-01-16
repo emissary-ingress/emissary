@@ -18,14 +18,14 @@ To use OneLogin as your IdP, you will first need to create an OIDC custom connec
 2. From the top left menu, select **Applications > Custom Connectors** and click the **New Connector** button.
 3. Give your connector a name.
 4. Select the `OpenID Connect` option as your "Sign on method."
-5. Use `http(s)://{{AMBASSADOR_URL/callback` as the value for "Redirect URI."
+5. Use `http(s)://{{AMBASSADOR_URL/.ambassador/oauth2/redirection-endpoint` as the value for "Redirect URI."
 6. Optionally provide a login URL.
 7. Click the **Save** button to create the connector. You will see a confirmation message.
 8. In the "More Actions" tab, select **Add App to Connector**.
 9. Select the connector you just created.
 10. Click the **Save** button.  
 
-You will see a success banner, which also brings you back to the main portal page. OneLogin is now configured to function as a OIDC backend for authentication with Ambassador.
+You will see a success banner, which also brings you back to the main portal page. OneLogin is now configured to function as an OIDC backend for authentication with Ambassador.
 
 ## Gather OneLogin Credentials
 
@@ -43,7 +43,7 @@ Next, configure Ambassador to require authentication with OneLogin, so you must 
 
 Now you must configure your Ambassador instance to use OneLogin.
 
-1. First, create an [OAuth Filter](/reference/filter-reference#filter-type-oauth2) with the credentials you copied earlier.  
+1. First, create an [OAuth Filter](../../filter-reference#filter-type-oauth2) with the credentials you copied earlier.  
 
 Here is an example YAML:
 
@@ -62,9 +62,9 @@ Here is an example YAML:
         secret: {{Client Secret}}
 ```
 
-2. Next, create a [FilterPolicy](/reference/filter-reference#filterpolicy-definition) to use the `Filter` you just created.
+2. Next, create a [FilterPolicy](../../filter-reference#filterpolicy-definition) to use the `Filter` you just created.
 
-Here is an example YAML:
+Some example YAML:
 
 ```yaml
 apiVersion: getambassador.io/v1beta2
@@ -90,4 +90,3 @@ kubectl apply -f oauth-policy.yaml
 ```
 
 Now any requests to `https://{{AMBASSADOR_URL}}/backend/get-quote/` will require authentication from OneLogin.
-

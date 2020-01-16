@@ -1,27 +1,27 @@
 # Transport Layer Security (TLS)
 
-Ambassador's robust TLS support exposes configuration options for different TLS use cases including:
+Ambassador Edge Stack's robust TLS support exposes configuration options for different TLS use cases including:
 
-- [Client Certification Validation](/reference/tls/client-cert-validation)
-- [HTTP -> HTTPS Redirection](/reference/tls/cleartext-redirection)
-- [Mutual TLS](/reference/tls/mtls)
-- [Server Name Indication (SNI)](/user-guide/sni)
-- [TLS Origination](/reference/tls/origination)
+- [Client Certificate Validation](../../tls/client-cert-validation)
+- [HTTP -> HTTPS Redirection](../../tls/cleartext-redirection)
+- [Mutual TLS](../../tls/mtls)
+- [Server Name Indication (SNI)](../../../user-guide/sni)
+- [TLS Origination](../../tls/origination)
 
 ## TLSContext
 
-You control TLS configuration in Ambassador using `TLSContext` resources. Multiple `TLSContext`s can be defined in your cluster and can be used for any combination of TLS use cases.
+You control TLS configuration in Ambassador Edge Stack using `TLSContext` resources. Multiple `TLSContext`s can be defined in your cluster and can be used for any combination of TLS use cases.
 
-A full schema of the `TLSContext` can be found below with descriptions of the different configuration options. Reference documentation for configuring different use cases are linked to at the top of this document.
+A full schema of the `TLSContext` can be found below with descriptions of the different configuration options. 
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: TLSContext
 metadata:
   name: tls-context-1
 spec:
-  # 'hosts' defines which the hosts for which this TLSContext is relevant.
+  # 'hosts' defines the hosts for which this TLSContext is relevant.
   # It ties into SNI. A TLSContext without "hosts" is useful only for 
   # originating TLS. 
   # type: array of strings
@@ -92,24 +92,24 @@ The `alpn_protocols` setting configures the TLS ALPN protocol. To use gRPC over 
 The `alpn_protocols` setting is also required for HTTP/2 support.
 
 ```yaml
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  TLSContext
 metadata:
   name:  tls
 spec:
-secret: ambassador-certs
-hosts: ["*"]
-alpn_protocols: h2[, http/1.1]
+  secret: ambassador-certs
+  hosts: ["*"]
+  alpn_protocols: h2[, http/1.1]
 ```
-Without setting setting alpn_protocols as shown above, HTTP2 will not be available via negotiation and will have to be explicitly requested by the client.
+Without setting alpn_protocols as shown above, HTTP2 will not be available via negotiation and will have to be explicitly requested by the client.
 
 If you leave off http/1.1, only HTTP2 connections will be supported.
 
 ### TLS Parameters
 
-The `min_tls_version` setting configures the minimum TLS protocol version that Ambassador will use to establish a secure connection. When a client using a lower version attempts to connect to the server, the handshake will result in the following error: `tls: protocol version not supported`.
+The `min_tls_version` setting configures the minimum TLS protocol version that Ambassador Edge Stack will use to establish a secure connection. When a client using a lower version attempts to connect to the server, the handshake will result in the following error: `tls: protocol version not supported`.
 
-The `max_tls_version` setting configures the maximum TLS protocol version that Ambassador will use to establish a secure connection. When a client using a higher version attempts to connect to the server, the handshake will result in the following error: `tls: server selected unsupported protocol version`.
+The `max_tls_version` setting configures the maximum TLS protocol version that Ambassador Edge Stack will use to establish a secure connection. When a client using a higher version attempts to connect to the server, the handshake will result in the following error: `tls: server selected unsupported protocol version`.
 
 The `cipher_suites` setting configures the supported [cipher list](https://commondatastorage.googleapis.com/chromium-boringssl-docs/ssl.h.html#Cipher-suite-configuration) when negotiating a TLS 1.0-1.2 connection. This setting has no effect when negotiating a TLS 1.3 connection.  When a client does not support a matching cipher a handshake error will result.
 
@@ -117,7 +117,7 @@ The `ecdh_curves` setting configures the supported ECDH curves when negotiating 
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  TLSContext
 metadata:
   name:  tls
@@ -138,9 +138,12 @@ spec:
 
 The TLS `Module` is deprecated. `TLSContext` should be used when using Ambassador version 0.50.0 and above.
 
+
+
+
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  Module
 metadata:
   name:  tls
@@ -189,50 +192,6 @@ spec:
       #
       # cacert_chain_file: /etc/cacert/tls.crt  # remember to set enabled!
 ```
-### `redirect_cleatext_from` (*Deprecated*)
 
-**Note:** Ambassador 0.84.0 now supports setting `redirect_cleartext_from` from a `TLSContext`. This should be used instead of the tls `Module` below.
 
-To configure Ambassador to do an http -> https redirect, you need to create a `tls` `Module` that sets `redirect_cleartext_from: <http_port>`.
 
-1. Create a `TLSContext` to handle TLS termination
-
-    ```yaml
-    apiVersion: ambassador/v1
-    kind: TLSContext
-    name: tls
-    hosts: ["*"]
-    secret: ambassador-cert
-    ```
-
-2. Configure a `TLS` `Module` to create the redirect listener in Ambassador on Ambassadors http port. By default, this is port `8080`
-
-    ```yaml
-    apiVersion: ambassador/v1
-    kind: Module
-    name: tls
-    config:
-      server:
-        redirect_cleartext_from: 8080
-    ```
-
-3. Verify the port assignments on the Ambassador service are correct.
-
-    The below service definition uses the default http and https port assignments
-
-    ```yaml
-    apiVersion: v1
-    kind: Service
-    metadata:
-      name: ambassador
-    spec:
-      ports:
-      - name: http
-        port: 80
-        targetPort: 8080
-      - name: https
-        port: 443
-        targetPort: 8443
-      selector:
-        service: ambassador
-    ```

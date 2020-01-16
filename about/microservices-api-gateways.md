@@ -26,7 +26,7 @@ A microservices API gateway also supports dynamically routing user requests to d
 
 At first glance, the use case described above may be fulfilled with a enterprise-focused API gateway. While this may be true, the actual emphasis of enterprise API gateways and microservices API gateways are somewhat different:
 
-| Use case      | API gateway       | Microservices API gateway                |
+| Use case      | Traditional Enterprise API gateway       | Microservices API gateway                |
 |---------------|-------------------|------------------------------|
 | Primary Purpose  | Expose, compose, and manage internal business APIs | Expose and observe internal business services |
 | Publishing Functionality | API management team or service team registers / updates gateway via admin API | Service team registers / updates gateway via declarative code as part of the deployment process |
@@ -58,3 +58,4 @@ In a traditional enterprise API gateway, routing is used to isolate or compose/a
 Traditional enterprise API gateways are designed to solve the challenges of API management. While they may appear to solve some of the challenges of adopting microservices, the reality is that a microservices workflow creates a different set of requirements. Integrating a microservices API gateway into your development workflow empowers service teams to self-publish, monitor, and update their service, quickly and safely. This will enable your organization to ship software more rapidly, and with more reliability than ever before.
 
 For further reading on how an API Gateway can accelerate continuous delivery, read [this blog post](https://blog.getambassador.io/continuous-delivery-how-can-an-api-gateway-help-or-hinder-1ff15224ec4d).
+

@@ -1,14 +1,17 @@
 # Operator Guide
 
-Unlike traditional API gateways, Ambassador has been designed to allow developers and operations to work independently from each other, with an operations team more focused towards the global deployment and configuration of the gateway. This section of the documentation focuses on the core functionality of Ambassador for operations and sysadmin teams.
+Unlike traditional API gateways, the Ambassador Edge Stack has been designed to allow developers and operations to work independently from each other. Now, operations teams can define the global deployment and configuration policy for the application. Developers can then interact directly with the Ambassador Edge Stack without relying on operations, as a result of its self-service model.
 
-# Why Should Operators or Sysadmins Use Ambassador?
-Ambassador allows developers to manage individual service/API deployments, and frees time for operations to focus on global, cross-cutting concerns such as authentication, continuous delivery integration, rate limiting and tracing.
+For more information, see the [Developer Guide](../../user-guide/developers).
 
-In more detail, Ambassador supports operations in the following ways:
+# Why Should Operators or Sysadmins Use Ambassador Edge Stack?
 
-* Is simple to [deploy and operate](/user-guide/kubernetes-integration), relying entirely on Envoy and Kubernetes for routing and scaling
-* Has extensive support for [TLS termination](/user-guide/tls-termination) and redirects
-* Integrated [diagnostics](/reference/statistics) and [tracing](/user-guide/tracing-tutorial) for troubleshooting
-* Supports running multiple Ambassadors in a cluster, with different versions, simplifying upgrades and testing
-* [Integrates with Istio](/user-guide/with-istio), if you need a service mesh
+Ambassador Edge Stack allows developers to manage individual service/API deployments, and frees time for operations to focus on global, cross-cutting concerns such as authentication, continuous delivery integration, rate limiting and tracing.
+
+In more detail, Ambassador Edge Stack supports operations in the following ways:
+
+* Is simple to [deploy and operate](../../concepts/architecture), relying entirely on Envoy and Kubernetes for routing and scaling
+* Has extensive support for [TLS termination](../../user-guide/tls-termination) and redirects
+* Integrated [diagnostics](../../reference/statistics) and [tracing](../../user-guide/tracing-tutorial) for troubleshooting
+* Supports running multiple Ambassador Edge Stacks in a cluster, with different versions, simplifying upgrades and testing
+* [Integrates with Istio](../../user-guide/with-istio), if you need a service mesh

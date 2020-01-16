@@ -1,22 +1,22 @@
-# Linkerd2 Integration
+# Linkerd 2 Integration
 
-[Linkerd2](https://www.linkerd.io) is a zero-config and ultra-lightweight service mesh. Ambassador natively supports Linkerd2 for service discovery and end-to-end TLS (including mTLS between services).
+[Linkerd 2](https://www.linkerd.io) is a zero-config and ultra-lightweight service mesh. Ambassador Edge Stack natively supports Linkerd 2 for service discovery and end-to-end TLS (including mTLS between services).
 
 ## Architecture
 
-Linkerd2 is designed for simplicity, security and performance. In the cluster it runs a control plane in its own namespace and then injects sidecar proxy containers in every Pod that should be meshed. mTLS between services is automatically handled by the control plane and the proxies.
+Linkerd 2 is designed for simplicity, security and performance. In the cluster it runs a control plane in its own namespace and then injects sidecar proxy containers in every Pod that should be meshed.
 
-Ambassador itself also needs to be meshed and then configured to add special linkerd headers to requests so as to tell Linkerd2 where to forward them.
+Ambassador Edge Stack itself also needs to be interwoven or "meshed" with Linkerd 2, and then configured to add special linkerd headers to requests so as to tell Linkerd 2 where to forward them. This ie because mTLS between services is automatically handled by the control plane and the proxies. Istio and Consul allow Ambassador to initiate mTLS connections to upstream services by grabbing a certificate from a Kubernetes Secret. However, Linkerd 2 does not work this way, so Ambassador must rely on Linkerd 2 for mTLS connections to upstream services. This means we want Linkerd 2 to inject its sidecar into Ambassador's pods, but not Istio and Consul.
 
-Through that setup, Ambassador terminates external TLS as the gateway and traffic is then immediately wrapped into mTLS by Linkerd2 again. Thus we have a full end-to-end TLS encryption chain.
+Through that setup, Ambassador Edge Stack terminates external TLS as the gateway and traffic is then immediately wrapped into mTLS by Linkerd 2 again. Thus we have a full end-to-end TLS encryption chain.
 
 ## Getting started
 
-In this guide, you will use Linkerd2 Auto-Inject to mesh a service and use Ambassador to dynamically route requests to that service based on Linkerd2's service discovery data. If you already have Ambassador installed, you will just need to install Linkerd2 and deploy your service.
+In this guide, you will use Linkerd 2 Auto-Inject to mesh a service and use Ambassador Edge Stack to dynamically route requests to that service based on Linkerd 2's service discovery data. If you already have Ambassador Edge Stack installed, you will just need to install Linkerd 2 and deploy your service.
 
-Setting up Linkerd2 requires to install three components. The first is the CLI on your local machine, the second is the actual Linkerd2 control plane in your Kubernetes Cluster. Finally you have to inject your services' Pods with Linkerd Sidecars to mesh them.
+Setting up Linkerd 2 requires to install three components. The first is the CLI on your local machine, the second is the actual Linkerd 2 control plane in your Kubernetes Cluster. Finally you have to inject your services' Pods with Linkerd Sidecars to mesh them.
 
-1. Install and configure Linkerd2 ([instructions](https://linkerd.io/2/getting-started/)). Follow the guide until Step 3. That should give you the CLI on your machine and all required pre-flight checks.
+1. Install and configure Linkerd 2 [instructions](https://linkerd.io/2/getting-started/). Follow the guide until Step 3. That should give you the CLI on your machine and all required pre-flight checks.
 
     In a nutshell these steps boil down to the following:
 
@@ -29,31 +29,31 @@ Setting up Linkerd2 requires to install three components. The first is the CLI o
     linkerd version
     ```
 
-2. Now it is time to install Linkerd2 itself. To do so execute the following command:
+2. Now it is time to install Linkerd 2 itself. To do so execute the following command:
 
     ```bash
     linkerd install --ha | kubectl apply -f -
     ```
 
-    This will install Linkerd2 in high-availability mode for the control plane. This means the controller and other components are started multiple times. Since Linkerd2 2.5 it is also made sure the components are split across different nodes, if possible.
+    This will install Linkerd 2 in high-availability mode for the control plane. This means the controller and other components are started multiple times. Since Linkerd 2.5 it is also made sure the components are split across different nodes, if possible.
 
-    Note that this simple command automatically enables mTLS by default and registers the AutoInject Webhook with your Kubernetes API Server. You now have a production ready Linkerd2 setup rolled out into your cluster!
+    Note that this simple command automatically enables mTLS by default and registers the AutoInject Webhook with your Kubernetes API Server. You now have a production ready Linkerd 2 setup rolled out into your cluster!
 
-3. Deploy Ambassador. 
+3. Deploy Ambassador Edge Stack.
 
-   **Note:** If this is your first time deploying Ambassador, reviewing the [Ambassador quick start](/user-guide/getting-started) is strongly recommended.
+   **Note:** If this is your first time deploying Ambassador Edge Stack, reviewing the Ambassador Edge Stack [getting started](../getting-started) is strongly recommended.
 
    ```
-   kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-rbac.yaml
+   kubectl apply -f https://www.getambassador.io/early-access/yaml/ambassador/ambassador-rbac.yaml
    ```
 
-   If you're on GKE, or haven't previously created the Ambassador service, please see the Quick Start.
+   If you're on GKE, or haven't previously created the Ambassador Edge Stack service, please see the Quick Start.
 
-4. Configure Ambassador to add Linkerd2 Headers to requests.
+4. Configure Ambassador Edge Stack to add Linkerd 2 Headers to requests.
 
     ```yaml
     ---
-    apiVersion: getambassador.io/v1
+    apiVersion: getambassador.io/v2
     kind: Module
     metadata:
       name: ambassador
@@ -62,11 +62,11 @@ Setting up Linkerd2 requires to install three components. The first is the CLI o
         add_linkerd_headers: true
     ```
 
-    This will tell Ambassador to add additional headers to each request forwarded to Linkerd2 with information about where to route this request to. This is a general setting. You can also set `add_linkerd_headers` per [Mapping](../../reference/mappings#mapping-configuration).
+    This will tell Ambassador Edge Stack to add additional headers to each request forwarded to Linkerd 2 with information about where to route this request to. This is a general setting. You can also set `add_linkerd_headers` per [Mapping](../../reference/mappings#mapping-configuration).
 
-## Routing to Linkerd2 Services
+## Routing to Linkerd 2 Services
 
-You'll now register a demo application with Linkerd2, and show how Ambassador can route to this application using endpoint data from Linkerd2.
+You'll now register a demo application with Linkerd 2, and show how Ambassador Edge Stack can route to this application using endpoint data from Linkerd 2.
 
 1. Enable [AutoInjection](https://linkerd.io/2/features/proxy-injection/) on the Namespace you are about to deploy to:
     ```yaml
@@ -77,7 +77,7 @@ You'll now register a demo application with Linkerd2, and show how Ambassador ca
       annotations:
         linkerd.io/inject: enabled
     ```
-    Save the above to a file called `namespace.yaml` and run `kubectl apply -f namespace.yaml`. This will enable the namespace to be handled by the AutoInjection Webhook of Linkerd2. Every time something is deployed to that namespace, the deployment is passed to the AutoInject Controller and injected with the Linkerd2 proxy sidecar automatically.
+    Save the above to a file called `namespace.yaml` and run `kubectl apply -f namespace.yaml`. This will enable the namespace to be handled by the AutoInjection Webhook of Linkerd 2. Every time something is deployed to that namespace, the deployment is passed to the AutoInject Controller and injected with the Linkerd 2 proxy sidecar automatically.
 
 2. Deploy the QOTM demo application.
 
@@ -123,9 +123,9 @@ You'll now register a demo application with Linkerd2, and show how Ambassador ca
     ```
     kubectl apply -f qotm.yaml
     ```
-    Watch via `kubectl get pod -w` as the Pod is created. Note that it starts with `0/2` containers automatically, as it has been auto-injected by the Linkerd2 Webhook.
+    Watch via `kubectl get pod -w` as the Pod is created. Note that it starts with `0/2` containers automatically, as it has been auto-injected by the Linkerd 2 Webhook.
 
-3. Verify the QOTM pod has been registered with Linkerd2. You can verify the QOTM pod is registered correctly by accessing the Linkerd2 Dashboard.
+3. Verify the QOTM pod has been registered with Linkerd 2. You can verify the QOTM pod is registered correctly by accessing the Linkerd 2 Dashboard.
 
    ```shell
    linkerd dashboard
@@ -137,7 +137,7 @@ You'll now register a demo application with Linkerd2, and show how Ambassador ca
 
    ```yaml
    ---
-   apiVersion: getambassador.io/v1
+   apiVersion: getambassador.io/v2
    kind: Mapping
    metadata:
      name: linkerd2-qotm
@@ -145,25 +145,25 @@ You'll now register a demo application with Linkerd2, and show how Ambassador ca
      prefix: /qotm-linkerd2/
      service: qotm-linkerd2
    ```
-Save the above YAML to a file named `qotm-mapping.yaml`, and apply it with 
+
+Save the above YAML to a file named `qotm-mapping.yaml`, and apply it with:
 ```
 kubectl apply -f qotm-mapping.yaml
 ``` 
-to apply this configuration to your Kubernetes cluster. Note that in the above config there is nothing special to make it work with Linkerd2. The general config for Ambassador already adds Linkerd Headers when forwarding requests to the service mesh.
+to apply this configuration to your Kubernetes cluster. Note that in the above config there is nothing special to make it work with Linkerd 2. The general config for Ambassador Edge Stack already adds Linkerd Headers when forwarding requests to the service mesh.
 
 1. Send a request to the `qotm-Linkerd2` API.
 
    ```shell
-   curl http://$AMBASSADOR_IP/qotm-Linkerd2/
+   curl -L http://$AMBASSADOR_IP/qotm-Linkerd2/
 
    {"hostname":"qotm-749c675c6c-hq58f","ok":true,"quote":"The last sentence you read is often sensible nonsense.","time":"2019-03-29T22:21:42.197663","version":"1.7"}
    ```
 
-Congratulations! You're successfully routing traffic to the QOTM application, the location of which is registered in Linkerd2. The traffic to Ambassador is not TLS secured, but from Ambassador to the QOTM an automatic mTLS connection is being used.
+Congratulations! You're successfully routing traffic to the QOTM application, the location of which is registered in Linkerd 2. The traffic to Ambassador Edge Stack is not TLS secured, but from Ambassador Edge Stack to the QOTM an automatic mTLS connection is being used.
 
-If you now [configure TLS termination in Ambassador](/reference/core/tls), you have an end-to-end secured connection.
-
+If you now [configure TLS termination](../../reference/core/tls) in Ambassador Edge Stack, you have an end-to-end secured connection.
 
 ## More information
 
-For more about Ambassador's integration with Linkerd2, read the [service discovery configuration](/reference/core/resolvers) documentation.
+For more about Ambassador Edge Stack's integration with Linkerd 2, read the [service discovery configuration](../../reference/core/resolvers) documentation.
