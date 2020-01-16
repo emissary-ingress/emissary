@@ -22,7 +22,8 @@ When using JSON logging with Envoy, Ambassador Edge Stack will automatically app
 ---
 apiVersion: getambassador.io/v2
 kind: Module
-name: ambassador
+metadata:
+  name: ambassador
 config:
   envoy_log_type: json
 ```
