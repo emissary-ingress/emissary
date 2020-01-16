@@ -59,6 +59,15 @@ $ sudo edgectl daemon
 Launching Edge Control Daemon v1.0.0-ea5 (api v1)
 ```
 
+Note: The daemon will capture DNS requests, respond to queries that have to do with connected clusters, and forward the rest to a fallback server. By default the daemon will find your primary DNS server in `/etc/resolv.conf` and use Google DNS (8.8.8.8 or 8.8.4.4) as the fallback. You can override these using `--dns` and `--fallback` as needed. For example, if Google DNS is inaccessible on your network but you have a local DNS server available on 10.0.0.1:
+
+```bash
+$ sudo edgectl daemon --fallback 10.0.0.1
+Launching Edge Control Daemon v1.0.0-ea5 (api v1)
+```
+
+It's important that the primary DNS server and the fallback server be different. Otherwise Edge Control would forward queries to itself, resulting in a DNS loop.
+
 3. Make sure everything is okay:
 
 ```bash
