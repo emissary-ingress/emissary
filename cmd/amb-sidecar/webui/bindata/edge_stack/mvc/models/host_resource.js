@@ -34,7 +34,7 @@ export class HostResource extends IResource {
    */
 
   copySelf() {
-    return new HostResource(this.fullYAML());
+    return new HostResource(this.getYAML());
   }
 
   /* getSpec()
@@ -62,9 +62,10 @@ export class HostResource extends IResource {
   updateSelfFrom(resourceData) {
     let changed = false;
 
-    /* If resourceData does not include a spec, set it, and it's subfield acmeProvider, to a default object so that
+    /* If resourceData does not include a spec, set it, and its subfield acmeProvider, to a default object so that
      * the hostname, acmeProvider, and acmeEmail fields will be set to their default values during initialization.
-     * Otherwise javascript would fail, trying to access a field of "null"
+     * Otherwise javascript would fail, trying to access a field of "null".  Set other fields to default values
+     * if they do not exist.
      */
     resourceData.spec                         = resourceData.spec                         || { acmeProvider: {}};
     resourceData.spec.hostname                = resourceData.spec.hostname                || "<specify new hostname>";

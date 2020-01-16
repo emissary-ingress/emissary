@@ -280,6 +280,22 @@ export class ResourceView extends View {
       mouseEvent.currentTarget.blur();
     }
 
+  /* onYaml()
+   * This method hides and shows the current YAML of the Resource.
+   */
+
+  onYaml(mouseEvent) {
+    if (this.showYAML) {
+      this.showYAML = false;
+    }
+    else {
+      this.showYAML = true;
+    }
+
+    /* Defocus the button */
+    mouseEvent.currentTarget.blur();
+  }
+
 
   /* readFromModel()
    * This method is called on the View when the View needs to match the current state of its Model.
@@ -457,21 +473,20 @@ export class ResourceView extends View {
    */
 
   renderYAML() {
-    return;
+    if (this.showYAML) {
+      try {
+        let merged = this.getYAMLMerge();
+        let entries = [];
+        let changes = false;
 
-    try {
-      let merged = this.getYAMLMerge();
-      let entries = [];
-      let changes = false;
+        merged.diffs.forEach((v, k) => {
+          if (v !== "ignored") {
+            changes = true;
+            entries.push(html`<li><span class="yaml-path">${k}</span> <span class="yaml-change">${v}</span></li>`);
+          }
+        });
 
-      merged.diffs.forEach((v, k) => {
-        if (v !== "ignored") {
-          changes = true;
-          entries.push(html`<li><span class="yaml-path">${k}</span> <span class="yaml-change">${v}</span></li>`);
-        }
-      });
-
-      return html`
+        return html`
         <div class="yaml" id="merged-yaml" style="display: ${this.showYAML ? "block" : "none"}">
           <div class="yaml-changes"><ul>
         ${entries}
@@ -481,8 +496,12 @@ export class ResourceView extends View {
           </div>
         </div>
         `;
-    } catch (e) {
-      return html`<pre>${e.stack}</pre>`;
+      } catch (e) {
+        return html`<pre>${e.stack}</pre>`;
+      }
+    }
+    else {
+      return html``;
     }
   }
 
