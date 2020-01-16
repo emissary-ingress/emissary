@@ -125,7 +125,7 @@ func (c *Controller) Worker(ctx context.Context) error {
 				// call rectify() again when an errorBackoff expires.
 				//
 				// So, what to do about that: As a stop-gap for not having a (2) setTimeout()-analogue:
-				// Burn some CPU cycles, and crank the (3) ticker down from daily to mintuely, so that
+				// Burn some CPU cycles, and crank the (3) ticker down from daily to minutely, so that
 				// we always trigger within a minute of an errorBackoff elapsing, at the cost of a bunch
 				// of no-op calls to c.rectify().
 				//
