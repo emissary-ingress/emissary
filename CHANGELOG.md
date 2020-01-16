@@ -4,11 +4,25 @@
 
 ### AMBASSADOR EDGE STACK 1.0.0
 
-Ambassador Edge Stack 1.0.0 is in **EARLY ACCESS**. Major new features include the addition of the
-`Host` CRD, which provides for a simple way to let Ambassador know what domain names it should
-expect to be handling, and enables Ambassador to manage TLS certificates natively with ACME.
+Ambassador Edge Stack 1.0.0 is a comprehensive, self-service solution for exposing,
+securing, and managing the boundary between end users and your Kubernetes services.
+The core of Ambassador Edge Stack is the open-source Ambassador API Gateway, built on
+the Envoy proxy.
 
-Additionally, Edge Stack provides rate limiting and authentication under a free community license.
+Ambassador Edge Stack provides all the capabilities of the Ambassador API Gateway,
+as well as additional capabilities including:
+
+- The Edge Policy Console, a graphical UI to visualize and manage all of your edge policies;
+- Security features such as automatic TLS setup via ACME integration, OAuth/OpenID Connect
+  integration, rate limiting, and fine-grained access control; and
+- Developer onboarding assistance, including an API catalog, Swagger/OpenAPI documentation
+  support, and a fully customizable developer portal.
+
+Note: Ambassador Edge Stack replaces Ambassador Pro and can be installed over existing
+instances of Ambassador Pro and Ambassador API Gateway. The Ambassador Edge Stack is free
+for all users, and includes all the functionality of the Ambassador API Gateway in addition
+to the additional capabilities mentioned above. Due to popular demand, we’re offering a free
+tier of our core features as part of the Ambassador Edge Stack, designed for startups.
 
 There is one breaking change between Ambassador 0.85.0 and Edge Stack 1.0.0: the `RateLimitService`
 protocol `pb.lyft.ratelimit.RateLimitService` is no longer supported. `RateLimitService`s must now
@@ -47,23 +61,26 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
-## [1.0.0] TBD
+## [1.0.0] January 15, 2020
 [1.0.0]: https://github.com/datawire/ambassador/compare/v0.86.0...v1.0.0
 
 ### Caution!
 
-All of Ambassador's CRDs have been switched to `apiVersion: getambassador.io/v2`, and
+All of Ambassador's CRDs have been switched to `apiVersion: getambassador.io/v2`, and 
 **your resources will be upgraded when you apply the new CRDs**. We recommend that you
 follow the [migration instructions](https://getambassador.io/early-access/user-guide/upgrade-to-edge-stack/) and check your installation's
 behavior before upgrading your CRDs.
 
 ### Breaking changes
 
-- When a resource specifies a service or secret name without a corresponding namespace, Ambassador uses the namespace of the resource. In the past, Ambassador would use its own namespace.
+- When a resource specifies a service or secret name without a corresponding namespace, Ambassador will now
+  look for the service or secret in the namespace of the resource that mentioned it. In the past, Ambassador
+  would look in the namespace in which Ambassador was running.
 
 ### Features
 
-- The Host CR provides an easy way to tell Ambassador about domains it should expect to handle
+- The Host CR provides an easy way to tell Ambassador about domains it should expect to handle, and 
+  how it should handle secure and insecure requests for those domains
 - Redirection from HTTP to HTTPS defaults to ON when termination contexts are present
 - Mapping and Host CRs, as well as Ingress resources, get Status updates to provide better feedback
 - Improve performance of processing events from Kubernetes
@@ -74,10 +91,9 @@ behavior before upgrading your CRDs.
 - CORS now happens before rate limiting
 - The reconfiguration engine is better protected from exceptions
 - Don’t try to check for upgrades on every UI snapshot update
-- Don’t activate the fallback TLSContext if its secret is not available
 - Reduced reconfiguration churn
 - Don't force SNI routes to be lower-priority than non-SNI routes
-- Knative mappings populate and fallback to the Ambassador namespace if unspecified
+- Knative mappings fallback to the Ambassador namespace if no namespace is specified
 - Fix `ambassador_id` handling for Knative resources
 - Treat `ambassadorId` as a synonym for `ambassador_id` (`ambassadorId` is the Protobuf 3 canonical form of `ambassador_id`)
 
@@ -88,6 +104,13 @@ behavior before upgrading your CRDs.
 - There is now an `edgectl` program that you can use for interacting with Ambassador from the command line
 - There is a web user-interface for Ambassador
 - BREAKING CHANGE: `APP_LOG_LEVEL` is now `AES_LOG_LEVEL`
+
+## [1.0.0-rc6] January 15, 2020
+[1.0.0-rc6]: https://github.com/datawire/ambassador/compare/v1.0.0-rc4...v1.0.0-rc6
+
+ - AES: Bugfix: Fix ACME client with multiple replicas
+ - AES: Bugfix: Fix ACME client race conditions with the API server and WATT
+ - AES: Bugfix: Don't crash in the ACME client if Redis is unavailable
 
 ## [1.0.0-rc4] January 13, 2020
 [1.0.0-rc4]: https://github.com/datawire/ambassador/compare/v1.0.0-rc1...v1.0.0-rc4
