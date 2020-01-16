@@ -227,7 +227,7 @@ Introduces Ambassador Edge Stack being installed by default.
 
 ### Breaking changes
 
-Ambassador Pro support has been removed in 6.0.0. Please [upgrade to the Ambassador Edge Stack](https://www.getambassador.io/yaml/user-guide/helm).
+Ambassador Pro support has been removed in 6.0.0. Please [upgrade to the Ambassador Edge Stack](https://www.getambassador.io/user-guide/helm).
 
 ## To 5.0.0
 
