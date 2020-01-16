@@ -59,6 +59,17 @@ $ sudo edgectl daemon
 Launching Edge Control Daemon v1.0.0-ea5 (api v1)
 ```
 
+In order to mediate traffic to your clusters, Edge Control inserts itself into the DNS for your host (this is why it requires root access to run). It intercepts queries to your system’s primary DNS server, responds to queries that have to do with connected clusters, and forwards any other queries on to a fallback DNS server.
+
+By default, the daemon intercepts queries to the primary DNS server listed in `/etc/resolv.conf`, and uses Google DNS on 8.8.8.8 or 8.8.4.4 for its fallback DNS server. You can override the choice of which DNS server to intercept using the `--dns` option, and you can override the fallback server using the `--fallback` option. For example, if `/etc/resolv.conf` is correct, but you have a local DNS server available on 10.0.0.1 that should be used for non-cluster queries, you could run
+
+```bash
+$ sudo edgectl daemon --fallback 10.0.0.1
+Launching Edge Control Daemon v1.0.0-ea5 (api v1)
+```
+
+It's important that the primary DNS server and the fallback server be different. Otherwise Edge Control would forward queries to itself, resulting in a DNS loop.
+
 3. Make sure everything is okay:
 
 ```bash
