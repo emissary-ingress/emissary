@@ -43,6 +43,18 @@ export function mapMerge(mapA, mapB) {
   return new Map([...mapA, ...mapB]);
 }
 
+/* mapDiff(mapA, mapB)
+ * Compare two Maps that represent trees of key/value pairs.  Return a change list of entries as follows:
+ * - [path, "deleted", old_value]             => At the path, the value does not exist in the new YAML.
+ * - [path, "added", new_value]               => At the path, there is a new value that didn't exist in the old YAML.
+ * - [path, "changed", old_value, new_value]  => At the path, a value was changed from old_value to new_value
+ */
+
+export function mapDiff(mapA, mapB) {
+
+  return null;
+}
+
 /* ================================ Set Utilities ================================ */
 
 /* setIsSuperset(set, subset)
@@ -139,3 +151,20 @@ export function objectMerge(objA, objB) {
 
   return result;
 }
+
+/* objectDiff(objA, objB)
+ * Compare two Objecvts that represent trees of key/value pairs.  Return a change list of entries as follows:
+ * - [path, "deleted", old_value]             => At the path, the value does not exist in the new YAML.
+ * - [path, "added", new_value]               => At the path, there is a new value that didn't exist in the old YAML.
+ * - [path, "changed", old_value, new_value]  => At the path, a value was changed from old_value to new_value
+ *
+ * This function simply calls mapDiff.
+ */
+
+export function objectDiff(objA, objB) {
+  let mapA   = new Map(Object.entries(objA));
+  let mapB   = new Map(Object.entries(objB));
+
+  return mapDiff(mapA, mapB);
+}
+

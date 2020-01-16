@@ -27,21 +27,6 @@ export class HostResource extends IResource {
     /* calling Resource.constructor(data) */
     super(resourceData);
 
-    /* If resourceData does not include a spec, set it, and it's subfield acmeProvider, to a default object so that
-     * the hostname, acmeProvider, and acmeEmail fields will be set to their default values during initialization.
-     * Otherwise javascript would fail, trying to access a field of "null"
-     */
-    resourceData.spec = resourceData.spec || { acmeProvider: {}};
-
-    /* Initialize host-specific instance variables from resourceData. For those fields that are unknown, initialize
-     * to default values.  This occurs when adding a new HostResource whose values will be specified by the user.
-     */
-    this.hostname     = resourceData.spec.hostname                || "<specify new hostname>";
-    this.acmeProvider = resourceData.spec.acmeProvider.authority  || "https://acme-v02.api.letsencrypt.org/directory";
-    this.acmeEmail    = resourceData.spec.acmeProvider.email      || "<specify your email address here>";
-
-    /* if we have a a provider and an email address, then using Acme. */
-    this.useAcme = (this.acmeEmail !== "" && this.acmeProvider !== "");
   }
 
   /* copySelf()
@@ -49,7 +34,7 @@ export class HostResource extends IResource {
    */
 
   copySelf() {
-    return new HostResource(this.getYAML());
+    return new HostResource(this.fullYAML());
   }
 
   /* getSpec()
@@ -77,6 +62,19 @@ export class HostResource extends IResource {
   updateSelfFrom(resourceData) {
     let changed = false;
 
+    /* If resourceData does not include a spec, set it, and it's subfield acmeProvider, to a default object so that
+     * the hostname, acmeProvider, and acmeEmail fields will be set to their default values during initialization.
+     * Otherwise javascript would fail, trying to access a field of "null"
+     */
+    resourceData.spec                         = resourceData.spec                         || { acmeProvider: {}};
+    resourceData.spec.hostname                = resourceData.spec.hostname                || "<specify new hostname>";
+    resourceData.spec.acmeProvider.authority  = resourceData.spec.acmeProvider.authority  || "https://acme-v02.api.letsencrypt.org/directory";
+    resourceData.spec.acmeProvider.email      = resourceData.spec.acmeProvider.email      || "<specify your email address here>";
+
+    /* Initialize host-specific instance variables from resourceData. For those fields that are unknown, initialize
+     * to default values.  This occurs when adding a new HostResource whose values will be specified by the user.
+     */
+
     /* Update the hostname if it has changed since the last snapshot */
     if (this.hostname !== resourceData.spec.hostname) {
       this.hostname = resourceData.spec.hostname;
@@ -95,10 +93,10 @@ export class HostResource extends IResource {
       changed = true;
     }
 
-    /* Are we using Acme or not? we just check to see if the authority is "none" and assume if there is an
+    /* Are we using Acme or not? we just check to see if the authority is "none" or "" and assume if there is an
      * authority, the user intends to use Acme.
      */
-    let useAcme = (this.acmeProvider !== "none");
+    let useAcme = (this.acmeProvider !== "none" && this.acmeProvider !== "");
 
     /* Update the useAcme flag if it is different than before, e.g. there is a provider now and there wasn't before,
      * or there is no longer a provider when there once was one specified.

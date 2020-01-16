@@ -124,7 +124,7 @@ export class ResourceView extends View {
       this.writeToModel();
       merge = this.savedModel.computeYAMLMerge(this.model);
     }
-    /* No savedMdel, just return the original */
+    /* No savedModel, just return the original */
     else {
       merge.yaml = this.model.getYAML();
     }

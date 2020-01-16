@@ -44,23 +44,9 @@ export class Resource extends Model {
     /* calling Model.constructor() */
     super();
 
-    /* If resourceData does not include metadata, set it to the empty object so that the name, namespace,
-     * resourcevVersion, labels and annotation fields will be set to their default values during initialization.
-     * Otherwise javascript would fail, trying to access a field of "null"
-     */
-    resourceData.metadata = resourceData.metadata || {};
-
-    /* Initialize instance variables from resourceData.  For those fields that are unknown,
-     * initialize to default values.  This is when adding a new Resource whose values will be
-     * specified by the user.
-     */
-    this.kind        = resourceData.kind                      || "<must specify resource kind in constructor>";
-    this.name        = resourceData.metadata.name             || "";
-    this.namespace   = resourceData.metadata.namespace        || "default";
-    this.version     = resourceData.metadata.resourceVersion  || "0";
-    this.labels      = resourceData.metadata.labels           || {};
-    this.annotations = resourceData.metadata.annotations      || {};
-    this.status      = resourceData.status                    || this.getEmptyStatus();
+    /* Set up our instance variables, including default values if needed.
+     * TODO: Make sure that updateFrom, updateSelfFrom set _fullYAML correctly, in the full snapshot vs. init cases */
+    this.updateFrom(resourceData);
 
     /* Internal state for when the Resource is edited and is pending confirmation of the edit from a future snapshot. */
     this._pendingUpdate = false;
@@ -101,6 +87,9 @@ export class Resource extends Model {
       headers: new Headers({'Authorization': 'Bearer ' + cookie}),
       body: JSON.stringify(yaml)
     };
+
+    /* TODO: for now, don't actually apply the YAML, still just for testing... */
+    return;
 
     /* Make the call to apply */
     ApiFetch('/edge_stack/api/apply', params).then(
@@ -166,7 +155,7 @@ export class Resource extends Model {
    */
 
   doSave() {
-    let yaml  = this.getYAML();
+    let yaml  = this.getApplyYAML();
     let error = this.applyYAML(yaml);
 
     if (error) {
@@ -179,14 +168,18 @@ export class Resource extends Model {
   }
 
   /* getApplyYAML()
-   * Return YAML that has been pruned so that only the necessary attributes exist in the structure for use
-   * as the parameter to applyYAML().
+   * Return YAML that has the Resource's values written back into the _fullYAML, and
+   * been pruned so that only the necessary attributes exist in the structure for use
+   * as the parameter to applyYAML().  TODO: finish this, right now just for testing and inspection.
    */
   getApplyYAML() {
-    /* for now, return everything */
-    return this.getYAML();
-  }
+    let myYAML    = this.getYAML();
+    let fullYAML  = this._fullYAML;
+    let cleanYAML = this.yamlStrip(fullYAML, this.yamlIgnorePaths());
+    /* TODO: merge in our YAML data */
 
+    return cleanYAML;
+  }
 
   /* getEmptyStatus()
    * Utility method for initializing the status of the resource.  Returns a dictionary that has the basic
@@ -197,7 +190,7 @@ export class Resource extends Model {
   getEmptyStatus() {
     return {
       "state":  "none",
-      "reason": ""
+      "errorReason": ""
     };
   }
 
@@ -248,6 +241,21 @@ export class Resource extends Model {
   updateFrom(resourceData) {
     let updated = false;
 
+    /* In the case of incomplete resourceData -- such as when adding a new Resource -- set proper defaults. */
+    resourceData.kind                     = resourceData.kind                      || "<must specify resource kind in constructor>";
+    resourceData.metadata                 = resourceData.metadata                  || {};
+    resourceData.metadata.name            = resourceData.metadata.name             || "";
+    resourceData.metadata.namespace       = resourceData.metadata.namespace        || "default";
+    resourceData.metadata.resourceVersion = resourceData.metadata.resourceVersion  || "0";
+    resourceData.metadata.labels          = resourceData.metadata.labels           || {};
+    resourceData.metadata.annotations     = resourceData.metadata.annotations      || {};
+    resourceData.status                   = resourceData.status                    || this.getEmptyStatus();
+
+    /* Copy back to our instance variables */
+    this.kind        = resourceData.kind;
+    this.name        = resourceData.metadata.name;
+    this.namespace   = resourceData.metadata.namespace;
+
     /* Since we are being updated, we know that our version is out of date; get the new version value. */
     this.version = resourceData.metadata.resourceVersion;
 
@@ -267,18 +275,22 @@ export class Resource extends Model {
       updated = true;
     }
 
-    /* get the new status value from the data, or the emptyStatus object if undefined. */
+    /* get the new status value from the data, or the emptyStatus object if undefined.  Must initialize our
+     * own status as empty initially, since it is being dereferenced in the update check below. */
     let new_status = resourceData.status || this.getEmptyStatus();
+    this.status    = this.status         || this.getEmptyStatus();
 
-    if ((this.status.state  !== new_status.state) ||
-      (this.status.reason !== new_status.reason) ||
-      (this.status.errorReason !== new_status.errorReason)) {
+    if ((this.status.state       !== new_status.state) ||
+        (this.status.errorReason !== new_status.errorReason)) {
       this.status = new_status;
       updated = true;
     }
 
     /* Give subclasses a chance to update themselves. */
-    updated = updated || this.updateSelfFrom(resourceData);
+    updated = this.updateSelfFrom(resourceData) || updated;
+
+    /* Remember the full YAML for merging later, to send to Kubernetes. */
+    this._fullYAML = resourceData;
 
     /* Notify listeners if any updates occurred. */
     if (updated) {
@@ -387,172 +399,75 @@ export class Resource extends Model {
     return null;
   }
 
-  /* ============================================================
-   * Private methods -- Merging YAML
-   * ============================================================
-   */
+  /* yamlIgnorePaths()
+  * Return an array of paths arrays to be ignored when sending YAML to Kubernetes.  This is needed because Kubernetes
+  * sends extra information in the Resource object that confuses it when sent back; only the data that is needed
+  * (e.g. name, namespace, kind, and desired labels/annotations/spec) should be sent back.
+  *
+  * NOTE: one would think that a full path could be described by a string with the path delimiter "."
+  * to separate the path elements.  BUT, Kubernetes allows keys in the YAML to use the same delimiter,
+  * so we have to have arrays of path elements.  e.g. you can't parse at "." to get the full path for
+  * "metadata.annotations.kubectl.kubernetes.io/last-applied-configuration"
+  * because it is really
+  * "metadata"."annotations"."kubectl.kubernetes.io/last-applied-configuration"
+  */
 
-  /* _yamlMergeStrategy(pathName)
-    * Given a pathName, this method returns whether to ignore, merge, or replace the attribute at the given
-    * path within the YAML structure.  This is the default set of cases for a standard resource; subclasses will
-    * need to override this for customization (e.g. filters require special merging).
-   */
-
-
-  _yamlMergeStrategy(pathName) {
-    switch (pathName) {
-      /* The following subtrees are written and managed by Kubernetes, so they will be ignored */
-      case "status":
-      case "metadata.uid":
-      case "metadata.selfLink":
-      case "metadata.generation":
-      case "metadata.resourceVersion":
-      case "metadata.creationTimestamp":
-      case "metadata.annotations.kubectl.kubernetes.io/last-applied-configuration":
-        return "ignore";
-
-      /* The empty path, or any other path that we don't recognize, merge the attributes. */
-      case "":
-      default:
-        return "merge";
-    }
+  yamlIgnorePaths() {
+    return [
+      ["status"],
+      ["metadata", "uid"],
+      ["metadata", "selfLink"],
+      ["metadata", "generation"],
+      ["metadata", "resourceVersion"],
+      ["metadata", "creationTimestamp"],
+      ["metadata", "annotations", "kubectl.kubernetes.io/last-applied-configuration"]
+      ];
   }
 
-  /* _recursiveMerge(original, updated, diffs, path)
-   *
-   * Merge the original and updated values based on the result of this._yamlMergeStrategy(pathName).  Subclasses
-   * may want to define their own mergeStrategies depending on the attributes in the YAML that they want to merge,
-   * replace, or ignore.
-   *
-   * Returns an object that is the merge of the original aud updated, recursively merging subtrees by traversing
-   * each object in parallel.
-   *
-   * We also track the changes that we make to the original object. This was originally for debugging, but it's also
-   * useful feedback for users.
+  /* yamlStrip(originalYaml, pathsToIgnore)
+   * Given an object, remove the subobjects named in the pathsToIgnore array.
    */
 
-  _recursiveMerge(original, updated, diffs = new Map(), path=[]) {
-    let pathName = path.join('.');
-    let strategy = this._yamlMergeStrategy(pathName);
+  yamlStrip(originalYAML, pathsToIgnore) {
+    /* Clone the existing YAML.  This does a "deep copy" of the object, recursively copying subtrees. */
+    let cleanYaml = JSON.parse(JSON.stringify(originalYAML));
 
-    /* If ignore or replace: */
-    switch (strategy) {
-      case "ignore":  diffs.set(pathName, "ignored");  return undefined;
-      case "replace": diffs.set(pathName, "replaced"); return updated;
-    }
+    /* For each path to ignore, remove it from the cleanYaml */
+    for (let pathElements of pathsToIgnore) {
+      /* Traverse down the YAML tree, starting at the top.  node will traverse down the child path,
+       * checking for existence of the attribute at that point in the tree.
+       */
+      let parent = cleanYaml;
+      let elementParent = undefined;
+      let elementName   = "";
 
-    /* If merge:
-     * We check the type of the original and the type of the updated objects to determine how to merge.
-     * Handle null as a special case because typeof null returns "object", and we want to simply update.
-     */
-
-    if (original === null) {
-      diffs.set(pathName, "updated");
-      return updated;
-    }
-
-    /* The type of the original object at this point in the tree: undefined, object, string, number, bigint, boolean? */
-    switch (typeof original) {
-      case "undefined":
-        /* original undefined - check type of updated */
-        if (typeof updated === "object") {
-          /* Special case of Array object */
-          if (Array.isArray(updated)) {
-            diffs.set(pathName, "updated");
-            return updated;
-          } else {
-            return this._mergeSubtree(original, updated, diffs, path);
-          }
-        }
-        /* Normal case: original undefined, and updated is an object.
-         * Return the updated object.
-         */
-        else {
-          diffs.set(pathName, "updated");
-          return updated;
-        }
-      case "object":
-        /* Special case of Array object. */
-        if (Array.isArray(original)) {
-          /* just return the new updated value */
-          return updated;
+      /* Walk down the path to make sure the attribute at that path exists. */
+      for (let element of pathElements) {
+        let child = parent[element];
+        if (child === undefined) {
+          elementParent = undefined;
+          break;
         }
         else {
-          /*  otherwise perform the object merge at the current path. */
-          return this._mergeSubtree(original, updated, diffs, path);
+          /* Remember the last element in the path, and its parent object */
+          elementParent = parent;
+          elementName   = element;
+
+          /* Traverse down the tree */
+          parent = child;
         }
-      /* The normal (leaf) case: values */
-      case "string":
-      case "number":
-      case "bigint":
-      case "boolean":
-        /* Return the original if same as updated, or updated isn't defined. */
-        if (original === updated || updated === undefined) {
-          /* no diff */
-          return original;
-        }
-        else {
-          /* Save diff */
-          diffs.set(pathName, "updated");
-          return updated;
-        }
-      default:
-        throw new Error(`don't know how to merge ${typeof original}`);
+      }
+      /* Was the traverse through the path successful?  Is there an object and a defined attribute
+       * at this point in the path?
+       */
+      if (elementParent !== undefined) {
+        delete elementParent[elementName];
+      }
     }
+
+    return cleanYaml;
   }
 
-  /* _mergeSubtree(original, updated, diffs, path)
-   * Merge the subtrees of two objects at a given point in the path.
-   */
-
-  _mergeSubtree(original, updated, diffs, path) {
-    /* Initialize original, updated to empty objects if undefined. */
-    original = (original === undefined ? {} : original);
-    updated  = (updated  === undefined ? {} : updated);
-
-    /* Get the set of all keys in the original and updated objects. */
-    let allKeys = setUnion(new Set(Object.keys(original)), new Set(Object.keys(updated)));
-    let result  = {};
-
-    for (let key of allKeys) {
-      let keyInOriginal = original.hasOwnProperty(key);
-      let keyInUpdated  = updated.hasOwnProperty(key);
-      let merged = undefined;
-
-      /* Do both objects have this key?
-       * If so, recursively merge at that attribute.
-       */
-      if (keyInOriginal && keyInUpdated) {
-        merged = this._recursiveMerge(original[key], updated[key], diffs, path.concat([key]));
-      }
-
-      /* Does the original have the key, and updated not? If so, continue merging the original's object's tree, and
-       * pass undefined down the updated path.
-       */
-      else if (keyInOriginal && !keyInUpdated) {
-        merged = this._recursiveMerge(original[key], undefined, diffs, path.concat([key]));
-      }
-      /* Does the updated object have a key that the original doesn't? If so, continue merging down the updated
-       * object's tree, and pass undefined down the original path.
-       */
-      else if (!keyInOriginal && keyInUpdated) {
-        merged = this._recursiveMerge(undefined, updated[key], diffs, path.concat([key]));
-      }
-      /* If we get this far then apparently Object.hasOwnProperty is broken! */
-      else {
-        throw new Error("this should be impossible");
-      }
-
-      /* If we have a result from the recursive merges above, set the
-       * result key:value to the merged
-       */
-      if (merged !== undefined) {
-        result[key] = merged;
-      }
-    }
-
-    return result;
-  }
 
 }
 

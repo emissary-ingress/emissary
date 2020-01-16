@@ -83,6 +83,24 @@ export class IResource extends Resource {
     throw new Error("Please implement ${this.constructor.name}:validateSelf()");
   }
 
+  /* yamlIgnore()
+   * Return an array of paths arrays to be ignored when sending YAML to Kubernetes.  This is needed because Kubernetes
+   * sends extra information in the Resource object that confuses it when sent back; only the data that is needed
+   * (e.g. name, namespace, kind, and desired labels/annotations/spec) should be sent back.
+   *
+   * NOTE: one would think that a full path could be described by a string with the path delimiter "."
+   * to separate the path elements.  BUT, Kubernetes allows keys in the YAML to use the same delimiter,
+   * so we have to have arrays of path elements.  e.g. you can't parse at "." to get the full path for
+   * "metadata.annotations.kubectl.kubernetes.io/last-applied-configuration"
+   * because it is really
+   * "metadata"."annotations"."kubectl.kubernetes.io/last-applied-configuration"
+   */
+
+  yamlIgnore() {
+    return super.yamlIgnore();
+  }
+
+
   /* ====================================================================================================
    * The following methods are implemented by Model, and may be useful for subclasses to use in their
    * implementation of the required interface methods.  The methods below should not be overridden by
