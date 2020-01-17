@@ -12,13 +12,13 @@ Early access releases will always have names that include the string "-ea" follo
 
 The current early access build for the Ambassador Edge Stack is `$version$`.
 
-### Installing the Ambassador Edge Stack Early Access releases
+### Installing the Ambassador Edge Stack Early Access Releases
 
 Use a Kubernetes deployment as usual, but use the image `quay.io/datawire/aes:$version$`.
 
 We recommend [testing with shadowing](../../reference/shadowing), as documented below, before switching to any new Ambassador Edge Stack release. We also recommend testing with shadowing for all early access releases before deploying in production.
 
-## Testing with shadowing
+## Testing with Shadowing
 
 One strategy for testing early access releases involves using the Ambassador Edge Stack ID and traffic shadowing. You can do the following:
 

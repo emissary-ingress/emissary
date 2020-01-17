@@ -8,7 +8,7 @@ This tutorial assumes you have already followed the Ambassador Edge Stack [Insta
 
 Once complete, you'll have a Kubernetes cluster running Ambassador Edge Stack. Let's walk through adding authentication to this setup.
 
-## 1. Deploy the authentication service
+## 1. Deploy the Authentication Service
 
 Ambassador Edge Stack delegates the actual authentication logic to a third party authentication service. We've written a [simple authentication service](https://github.com/datawire/ambassador-auth-service) that:
 
@@ -71,12 +71,13 @@ Note that the cluster does not yet contain any Ambassador Edge Stack AuthService
 The YAML above is published at getambassador.io, so if you like, you can just do
 
 ```shell
-kubectl apply -f https://www.getambassador.io/early-access/yaml/demo/demo-auth.yaml
+kubectl apply -f https://www.getambassador.io/yaml/demo/demo-auth.yaml
 ```
 
 to spin everything up. (Of course, you can also use a local file, if you prefer.)
 
-Wait for the pod to be running before continuing. The output of `kubectl get pods` should look something like -
+Wait for the pod to be running before continuing. The output of `kubectl get pods` should look something like
+
 ```console
 $ kubectl get pods
 NAME                            READY     STATUS    RESTARTS   AGE
@@ -84,10 +85,9 @@ example-auth-6c5855b98d-24clp   1/1       Running   0          4m
 ```
 Note that the `READY` field says `1/1` which means the pod is up and running.
 
-## 2. Configure Ambassador Edge Stack authentication
+## 2. Configure Ambassador Edge Stack Authentication
 
 Once the auth service is running, we need to tell Ambassador Edge Stack about it. The easiest way to do that is to map the `example-auth` service with the following:
-
 
 ```yaml
 ---
@@ -106,20 +106,19 @@ spec:
 
 This configuration tells Ambassador Edge Stack about the auth service, notably that it needs the `/extauth` prefix, and that it's OK for it to pass back the `x-qotm-session` header. Note that `path_prefix` and `allowed_headers` are optional.
 
-If the auth service uses a framework like [Gorilla Toolkit](http://www.gorillatoolkit.org) which enforces strict slashes as HTTP path separators, it is possible to end up with an infinite redirect where the auth service's framework redirects any request with non-conformant slashing. This would arise if the above example had ```path_prefix: "/extauth/"```, the auth service would see a request for ```/extauth//backend/get-quote/``` which would then be redirected to ```/extauth/backend/get-quote/``` rather than actually be handled by the
-authentication handler. For this reason, remember that the full path of the incoming request including the leading slash, will be appended to ```path_prefix``` regardless of non-conformant slashing.
+If the auth service uses a framework like [Gorilla Toolkit](http://www.gorillatoolkit.org) which enforces strict slashes as HTTP path separators, it is possible to end up with an infinite redirect where the auth service's framework redirects any request with non-conformant slashing. This would arise if the above example had ```path_prefix: "/extauth/"```, the auth service would see a request for ```/extauth//backend/get-quote/``` which would then be redirected to ```/extauth/backend/get-quote/``` rather than actually be handled by the authentication handler. For this reason, remember that the full path of the incoming request including the leading slash, will be appended to ```path_prefix``` regardless of non-conformant slashing.
 
 You can apply this file from getambassador.io with
 
 ```shell
-kubectl apply -f https://www.getambassador.io/early-access/yaml/demo/demo-auth-enable.yaml
+kubectl apply -f https://www.getambassador.io/yaml/demo/demo-auth-enable.yaml
 ```
 
 or, again, apply it from a local file if you prefer.
 
 Note that the cluster does not yet contain any Ambassador Edge Stack AuthService definition.
 
-## 3. Test authentication
+## 3. Test Authentication
 
 If we `curl` to a protected URL:
 
@@ -127,7 +126,7 @@ If we `curl` to a protected URL:
 $ curl -Lv $AMBASSADORURL/backend/get-quote/
 ```
 
-We get a 401, since we haven't authenticated.
+We get a 401 since we haven't authenticated.
 
 ```shell
 * TCP_NODELAY set

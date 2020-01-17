@@ -4,9 +4,9 @@ Unlike traditional API gateways, the Ambassador Edge Stack has been designed to 
 
 For more information, see the [Developer Guide](../../user-guide/developers).
 
-# Why Should Operators or Sysadmins Use Ambassador Edge Stack?
+## Why Should Operators or Sysadmins Use Ambassador Edge Stack?
 
-Ambassador Edge Stack allows developers to manage individual service/API deployments, and frees time for operations to focus on global, cross-cutting concerns such as authentication, continuous delivery integration, rate limiting and tracing.
+Ambassador Edge Stack allows developers to manage individual service/API deployments and frees time for operations to focus on global, cross-cutting concerns such as authentication, continuous delivery integration, rate limiting and tracing.
 
 In more detail, Ambassador Edge Stack supports operations in the following ways:
 
