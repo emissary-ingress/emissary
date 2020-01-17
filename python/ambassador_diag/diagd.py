@@ -710,7 +710,7 @@ class KubeStatus:
     def mark_live(self, kind: str, name: str, namespace: str) -> None:
         key = f"{kind}/{name}.{namespace}"
 
-        print(f"KubeStatus MASTER {os.getpid()}: mark_live {key}")
+        # print(f"KubeStatus MASTER {os.getpid()}: mark_live {key}")
         self.live[key] = True
 
     def prune(self) -> None:
@@ -721,7 +721,7 @@ class KubeStatus:
                 drop.append(key)
 
         for key in drop:
-            print(f"KubeStatus MASTER {os.getpid()}: prune {key}")
+            # print(f"KubeStatus MASTER {os.getpid()}: prune {key}")
             del(self.current_status[key])
 
         self.live = {}
@@ -731,9 +731,10 @@ class KubeStatus:
         extant = self.current_status.get(key, None)
 
         if extant == text:
-            print(f"KubeStatus MASTER {os.getpid()}: {key} == {text}")
+            # print(f"KubeStatus MASTER {os.getpid()}: {key} == {text}")
+            pass
         else:
-            print(f"KubeStatus MASTER {os.getpid()}: {key} needs {text}")
+            # print(f"KubeStatus MASTER {os.getpid()}: {key} needs {text}")
 
             # For now we're going to assume that this works.
             self.current_status[key] = text
@@ -1106,7 +1107,7 @@ class AmbassadorEventWatcher(threading.Thread):
                 kind, namespace, update = app.ir.k8s_status_updates[name]
                 text = json.dumps(update)
 
-                self.logger.info(f"K8s status update: {kind} {resource_name}.{namespace}, {text}...")
+                # self.logger.info(f"K8s status update: {kind} {resource_name}.{namespace}, {text}...")
 
                 app.kubestatus.post(kind, resource_name, namespace, text)
 
