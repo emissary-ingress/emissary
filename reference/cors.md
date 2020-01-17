@@ -33,6 +33,7 @@ The `cors` attribute enables the CORS filter. The following settings are support
       - http://foo.example
       - http://bar.example
       ```
+
 - `methods`: if present, specifies a list of allowed methods for the `Access-Control-Allow-Methods` header. Format can be either of:
     - comma-separated list, e.g.
       ```yaml
@@ -45,6 +46,7 @@ The `cors` attribute enables the CORS filter. The following settings are support
       - POST
       - OPTIONS
       ```
+
 - `headers`: if present, specifies a list of allowed headers for the `Access-Control-Allow-Headers` header. Format can be either of:
     - comma-separated list, e.g.
       ```yaml
@@ -55,7 +57,9 @@ The `cors` attribute enables the CORS filter. The following settings are support
       headers:
       - Content-Type
       ```
+
 - `credentials`: if present with a true value (boolean), will send a `true` value for the `Access-Control-Allow-Credentials` header.
+
 - `exposed_headers`: if present, specifies a list of allowed headers for the `Access-Control-Expose-Headers` header. Format can be either of:
     - comma-separated list, e.g.
       ```yaml
@@ -66,6 +70,7 @@ The `cors` attribute enables the CORS filter. The following settings are support
       exposed_headers:
       - X-Custom-Header
       ```
+
 - `max_age`: if present, indicated how long the results of the preflight request can be cached, in seconds. This value must be a string.
 
 ## Example
@@ -87,13 +92,15 @@ spec:
     exposed_headers: X-Custom-Header
     max_age: "86400"
 ```
-## [AuthService](../services/auth-service) and Cross-Origin Resource Sharing
+
+## AuthService and Cross-Origin Resource Sharing
 
 When you use external authorization, each incoming request is authenticated before routing to its destination, including pre-flight `OPTIONS` requests.  
 
-By default, many `AuthService` implementations will deny these requests. If this is the case, you will need to add some logic to your `AuthService` to accept all CORS headers.
+By default, many [`AuthService`](../services/auth-service) implementations will deny these requests. If this is the case, you will need to add some logic to your `AuthService` to accept all CORS headers.
 
-For example, a possible configuration for Spring Boot 2.0.1: 
+For example, a possible configuration for Spring Boot 2.0.1:
+
 ```java
 @EnableWebSecurity
 class SecurityConfig extends WebSecurityConfigurerAdapter {

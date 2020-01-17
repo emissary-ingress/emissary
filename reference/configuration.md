@@ -14,7 +14,7 @@ The Ambassador Edge Stack is configured in a declarative fashion, using YAML man
 
 - [`TLSContext`](../core/tls) manifests control the TLS configuration options for a number of different use cases.
 
-- [`Ingress`](../core/ingress-controller) manifests allows you to use Ambassador as a Kubernetes ingress controller. See the provided documention on configuration with Ambassador, and review the [Kubernetes documentation](https://kubernetes.io/docs/concepts/services-networking/ingress/) for detailed information on the `Ingress` resource.
+- [`Ingress`](../core/ingress-controller) manifests allows you to use Ambassador as a Kubernetes ingress controller. See the provided documentation on configuration with Ambassador, and review the [Kubernetes documentation](https://kubernetes.io/docs/concepts/services-networking/ingress/) for detailed information on the `Ingress` resource.
 
 - `LogService`manifests help you configure logging. See [Kubernertes Logging Architecture](https://kubernetes.io/docs/concepts/cluster-administration/logging/) for more details.
 
@@ -24,7 +24,7 @@ For an exhaustive list, see the [CRDs](../core/crds/#supported-crds) page.
 
 Note that each of these `kind`s are supported as both annotations and as CRDs.
 
-## Configuration sources
+## Configuration Sources
 
 The Ambassador Edge Stack assembles its configuration from YAML blocks that may be stored:
 
@@ -49,5 +49,5 @@ The Ambassador Edge Stack's configuration is assembled from multiple YAML blocks
 - Be careful of mapping collisions.
 
     If two different developers try to map `/user/` to something, this can lead to unexpected behavior. The Ambassador Edge Stack's canary-deployment logic means that it's more likely that traffic will be split between them than that it will throw an error -- again, the diagnostic service can help you here.
-    
+
 **Note:** Unless specified, mapping attributes cannot be applied to any other resource type.

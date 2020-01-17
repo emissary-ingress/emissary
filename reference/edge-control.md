@@ -52,23 +52,12 @@ GO111MODULE=on go get github.com/datawire/ambassador/cmd/edgectl`
 
 leaves you with a binary that has no embedded version number. If you really want to build from source, clone the repository and run `./builder/build_push_cli.sh build`, which will leave a binary in the `~/bin directory`. We will have a better answer for building from source soon.
 
-2. Launch the daemon component using sudo
+2. Launch the daemon component using `sudo`:
 
 ```bash
 $ sudo edgectl daemon
 Launching Edge Control Daemon v1.0.0-ea5 (api v1)
 ```
-
-In order to mediate traffic to your clusters, Edge Control inserts itself into the DNS for your host (this is why it requires root access to run). It intercepts queries to your system’s primary DNS server, responds to queries that have to do with connected clusters, and forwards any other queries on to a fallback DNS server.
-
-By default, the daemon intercepts queries to the primary DNS server listed in `/etc/resolv.conf`, and uses Google DNS on 8.8.8.8 or 8.8.4.4 for its fallback DNS server. You can override the choice of which DNS server to intercept using the `--dns` option, and you can override the fallback server using the `--fallback` option. For example, if `/etc/resolv.conf` is correct, but you have a local DNS server available on 10.0.0.1 that should be used for non-cluster queries, you could run
-
-```bash
-$ sudo edgectl daemon --fallback 10.0.0.1
-Launching Edge Control Daemon v1.0.0-ea5 (api v1)
-```
-
-It's important that the primary DNS server and the fallback server be different. Otherwise Edge Control would forward queries to itself, resulting in a DNS loop.
 
 3. Make sure everything is okay:
 
@@ -100,7 +89,7 @@ Depending on the type of cluster, your operations team may be involved. If you o
 
 ### Traffic Manager
 
-1. Install the Traffic Manager Kubernetes Deployment and Service using `kubectl`. 
+1. Install the Traffic Manager Kubernetes Deployment and Service using `kubectl`.
 2. Fill in the Traffic Manager image and your license key before applying these manifests.
 3. Save these manifests in a YAML file:
 
@@ -203,7 +192,7 @@ spec:
             - containerPort: 8000   # Application port
 ```
 
-Here is a modified set of manifests that includes the traffic agent.
+Here is a modified set of manifests that includes the traffic agent:
 
 ```yaml
 # This is hello-intercept.yaml
@@ -285,7 +274,7 @@ NAME                          READY   UP-TO-DATE   AVAILABLE   AGE
 deployment.extensions/hello   0/1     1            0           7s
 ```
 
-2.Use Edge Control to set up outbound connectivity to your cluster.
+2. Use Edge Control to set up outbound connectivity to your cluster.
 
 ```bash
 $ edgectl status
@@ -321,7 +310,7 @@ $ edgectl status
 Not connected
 ```
 
-## Usage: Intercept 
+## Usage: Intercept
 
 1. Install the traffic manager in your cluster and the traffic agent in the simple microservice as described above.
 

@@ -4,7 +4,7 @@ For the most part, the Ambassador Edge Stack is platform agnostic and will run i
 
 This is mostly true of AWS as well. The various methods of deploying Ambassador Edge Stack outlined in the [installation guide](../../user-guide/install) will all work on AWS the same way they do on any Kubernetes installation.
 
-However, Kubernetes exposes various annotations for controlling the configuration of the AWS load balancer deployed via a Kubernetes `type: LoadBalancer` service. 
+However, Kubernetes exposes various annotations for controlling the configuration of the AWS load balancer deployed via a Kubernetes `type: LoadBalancer` service.
 
 This guide goes over considerations that must be made when using these annotations with Ambassador Edge Stack.
 
@@ -28,11 +28,11 @@ AWS provides three types of load balancers:
   * Supports L4 only
   * Cannot perform SSL/TLS offload
 
-In Kubernetes, when using the AWS integration and a service of type `LoadBalancer`, the only types of load balancers that can be created are ELBs and NLBs. When `aws-load-balancer-backend-protocol` is set to `tcp`, AWS will create a L4 ELB. When `aws-load-balancer-backend-protocol` is set to `http`, AWS will create a L7 ELB.
+In Kubernetes, when using the AWS integration and the service of type `LoadBalancer`, the only types of load balancers that can be created are ELBs and NLBs. When `aws-load-balancer-backend-protocol` is set to `tcp`, AWS will create an L4 ELB. When `aws-load-balancer-backend-protocol` is set to `http`, AWS will create an L7 ELB.
 
 ## Load Balancer Annotations
 
-There are a number of `aws-load-balancer` annotations that can be configured in the Ambassador Edge Stack service to control the AWS load balancer it deploys. You can view all of them in the [Kubernetes documentation](https://kubernetes.io/docs/concepts/cluster-administration/cloud-providers/#load-balancers). This document will go over the subset that is most relevant when deploying Ambassador Edge Stack.
+There are several `aws-load-balancer` annotations that can be configured in the Ambassador Edge Stack service to control the AWS load balancer it deploys. You can view all of them in the [Kubernetes documentation](https://kubernetes.io/docs/concepts/cluster-administration/cloud-providers/#load-balancers). This document will go over the subset that is most relevant when deploying Ambassador Edge Stack.
 
 - `service.beta.kubernetes.io/aws-load-balancer-ssl-cert`: 
     Configures the load balancer to use a valid certificate ARN to terminate TLS at the Load Balancer.
@@ -99,7 +99,7 @@ In this configuration, an ELB is deployed with a multi-domain AWS Certificate Ma
 
 ## TLS Termination
 
-As with any Kubernetes environment, Ambassador Edge Stack can be configured to perform SSL offload by configuring [`TLSContext`](../core/tls#tlscontext). Refer to the [TLS Termination](../../user-guide/tls-termination) documentation for more information.
+Ambassador Edge Stack can be configured to perform SSL offload by configuring [`TLSContext`](../core/tls#tlscontext). Refer to the [TLS Termination](../../user-guide/tls-termination) documentation for more information.
 
 In AWS, you can also perform SSL offload with an ELB or ALB. If you choose to terminate TLS at the LB, Ambassador Edge Stack should be configured to listen for cleartext traffic on the default port 80.
 
@@ -109,11 +109,10 @@ Enabling HTTP -> HTTPS redirection will depend on if your load balancer is runni
 
 When running an ELB in L4 mode, you will need to listen on two ports to redirect all incoming HTTP requests to HTTPS. The first port will listen for HTTP traffic to redirect to HTTPS, while the second port will listen for HTTPS traffic.
 
-Let's say,
-- port 80 on the load balancer forwards requests to port 8080 on Ambassador Edge Stack
-- port 443 on the load balancer forwards requests to port 8443 on Ambassador Edge Stack
+Let's say:
 
-
+* port 80 on the load balancer forwards requests to port 8080 on Ambassador Edge Stack
+* port 443 on the load balancer forwards requests to port 8443 on Ambassador Edge Stack
 
 First off, configure this forwarding in your load balancer.
 

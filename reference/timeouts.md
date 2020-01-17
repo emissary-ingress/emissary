@@ -2,21 +2,21 @@
 
 Ambassador Edge Stack enables you to control timeouts in several different ways.
 
-## Request timeout: `timeout_ms`
+## Request Timeout: `timeout_ms`
 
 `timeout_ms` is the timeout for an entire user-level transaction. By default, this is 3000ms. This spans the point at which the entire downstream request has been processed (i.e., end of stream) to the point where the upstream response has been processed. This timeout includes all retries.
 
-## Idle timeout: `idle_timeout_ms`
+## Idle Timeout: `idle_timeout_ms`
 
 `idle_timeout_ms` controls how long a connection should remain open when no traffic is being sent through the connection. If not set, Ambassador Edge Stack will wait 5 minutes (300000 milliseconds).
 
-## Connect timeout: `connect_timeout_ms`
+## Connect Timeout: `connect_timeout_ms`
 
 `connect_timeout_ms` controls the connection-level timeout for Ambassador Edge Stack to an upstream service. The default is `3000m`.
 
 ### Example
 
-The various timeouts are applied onto a Mapping resource and can be combined.
+The various timeouts are applied on to a Mapping resource and can be combined.
 
 ```yaml
 ---
