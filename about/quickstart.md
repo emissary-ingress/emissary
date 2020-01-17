@@ -16,7 +16,7 @@ Ambassador Edge Stack provides live diagnostics viewable with a web browser. Whi
 
 `http://localhost:8080/ambassador/v0/diag/`
 
-You'll have to authenticate to view this page: use username `admin`, password `admin` (obviously this would be a poor choice in the real world!). We'll talk more about authentication shortly.
+You'll have to authenticate to view this page: use the username `admin`, password `admin` (obviously this would be a poor choice in the real world!). We'll talk more about authentication shortly.
 
 Some of the most important information - your Ambassador Edge Stack version, how recently Ambassador Edge Stack's configuration was updated, and how recently Envoy last reported status to Ambassador Edge Stack - is right at the top. The diagnostics overview can show you what it sees in your configuration map, and which Envoy objects were created based on your configuration.
 
@@ -44,7 +44,7 @@ You saw above that access to the diagnostic overview required you to authenticat
 
 `http://localhost:8080/qotm/quote/5` 
 
-in your brower. From the command line, you can see that 
+in your browser. From the command line, you can see that:
 
 ```shell
 curl -Lv 'http://localhost:8080/qotm/quote/5?json=true'
