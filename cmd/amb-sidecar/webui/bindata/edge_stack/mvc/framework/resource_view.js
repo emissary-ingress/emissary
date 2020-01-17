@@ -183,7 +183,12 @@ export class ResourceView extends View {
         else {
           console.log("ResourceView.onDelete() returned error ${error");
         }
+      }
 
+      /* Remove the updater if one was running */
+      if (this._updater) {
+        clearInterval(this._updater);
+        this._updater = null;
       }
     }
   }
@@ -210,7 +215,7 @@ export class ResourceView extends View {
 
     /* Start the update timer in case the user is viewing the YAML */
     if (!this._updater) {
-      this._updater = setInterval(this.updateView.bind(this), 500);
+      this._updater = setInterval(this.periodicUpdate.bind(this), 500);
     }
   }
 
@@ -247,6 +252,11 @@ export class ResourceView extends View {
       }
     }
 
+    /* Remove the updater if one was running */
+    if (this._updater) {
+      clearInterval(this._updater);
+      this._updater = null;
+    }
   }
 
   /* onSource()
@@ -481,11 +491,12 @@ export class ResourceView extends View {
     }
   }
 
-  /* update()
-   * This method is called on an interval timer when fields need to be updated on a periodic basis.
+  /* periodicUpdate()
+   * This method is called on an interval timer when the page requires updates on a periodic basis that
+   * are not related to any other event (such as a click).
    */
 
-  update() {
+  periodicUpdate() {
     /* At the moment, nothing is needed... */
   }
 
