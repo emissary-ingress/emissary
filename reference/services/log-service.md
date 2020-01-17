@@ -7,7 +7,8 @@ and the local destination of them, can be configured using the
 Module`](../../core/ambassador#the-ambassador-module).  However, the
 options there only allow for logging local to Ambassador's Pod.  By
 configuring a `LogService`, you can configure Ambassador Edge Stack to
-report its access logs to a remote service.
+report its access logs to a remote service, in addition to the usual
+`ambassador Module` configured logging.
 
 The remote access log service (or ALS) must implement the
 `AccessLogService` gRPC interface, defined in [Envoy's `als.proto`][als.proto].
