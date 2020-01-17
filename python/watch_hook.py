@@ -17,6 +17,15 @@ from ambassador.utils import SecretInfo, SavedSecret, SecretHandler
 if TYPE_CHECKING:
     from ambassador.ir.irresource import IRResource
 
+# default AES's Secret name
+# (by default, we assume it will be in the same namespace as Ambassador)
+DEFAULT_AES_SECRET_NAME = "ambassador-edge-stack"
+
+# the name of some env vars that can be used for overriding
+# the AES's Secret name/namespace
+ENV_AES_SECRET_NAME = "AMBASSADOR_AES_SECRET_NAME"
+ENV_AES_SECRET_NAMESPACE = "AMBASSADOR_AES_SECRET_NAMESPACE"
+
 
 # Fake SecretHandler for our fake IR, below.
 
@@ -137,6 +146,14 @@ class WatchHook:
 
         global_label_selector = os.environ.get('AMBASSADOR_LABEL_SELECTOR', '')
         self.logger.debug('label-selector: %s' % global_label_selector)
+
+        # watch the AES Secret if the edge stack is running
+        if self.fake.edge_stack_allowed:
+            aes_secret_name = os.getenv(ENV_AES_SECRET_NAME, DEFAULT_AES_SECRET_NAME)
+            aes_secret_namespace = os.getenv(ENV_AES_SECRET_NAMESPACE, Config.ambassador_namespace)
+            self.logger.debug(f'edge stack detected: need secret {aes_secret_name}.{aes_secret_namespace}')
+            self.add_kube_watch(f'Secret {aes_secret_name}', 'secret', namespace=aes_secret_namespace,
+                                field_selector=f"metadata.name={aes_secret_name}")
 
         # Walk hosts.
         for host in self.fake.get_hosts():
