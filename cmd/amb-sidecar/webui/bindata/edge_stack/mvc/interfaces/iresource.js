@@ -45,20 +45,9 @@ export class IResource extends Resource {
     throw new Error("Please implement ${this.constructor.name}:copySelf()");
   }
 
-  /* getSpec()
-   * Return the spec attribute of the Resource.  This method is needed for the implementation of the Save
-   * function which uses kubectl apply.  This method must return an object that will be serialized with JSON.stringify
-   * and supplied as the "spec:" portion of the Kubernetes YAML that is passed to kubectl.
-   */
-
-  getSpec() {
-    throw new Error("Please implement ${this.constructor.name}:getSpec()");
-  }
-
-  /* getYAML()
-    * Return YAML that has the Resource's values written back into the _fullYAML, and
-    * been pruned so that only the necessary attributes exist in the structure for use
-    * as the parameter to doApplyYAML().
+   /* getYAML()
+    * Return YAML that has the Resource's values written back into the _fullYAML, and has been pruned so that only
+    * the necessary attributes exist in the structure for use as the parameter to applyYAML().
     */
   getYAML() {
     return super.getYAML();
@@ -74,13 +63,6 @@ export class IResource extends Resource {
   updateSelfFrom(yaml) {
     throw new Error("Please implement ${this.constructor.name}:updateSelfFrom(yaml)");
   }
-
-  /* getSpec()
-   * Return the spec attribute of the Resource.  This method is needed for the implementation of the Save
-   * function which uses kubectl apply.  This method must return an object that will be serialized with JSON.stringify
-   * and supplied as the "spec:" portion of the Kubernetes YAML that is passed to kubectl.  See the Host class for
-   * an example implementation.
-   */
 
   /* validateSelf()
    * Validate this Resource's state by checking each object instance variable for correctness (e.g. email address

@@ -157,9 +157,10 @@ export class Resource extends Model {
   }
 
   /* getYAML()
-   * Return YAML that has the Resource's values written back into the _fullYAML, and
-   * been pruned so that only the necessary attributes exist in the structure for use
-   * as the parameter to applyYAML().
+   * Return YAML that has the Resource's values written back into the _fullYAML, and has been pruned so that only
+   * the necessary attributes exist in the structure for use as the parameter to applyYAML().  Subclasses will
+   * call super.getYAML() to fill out most of the YAML, and will only need to write those parts of the YAML
+   * that the subclass requires.
    */
   getYAML() {
     /* Make a copy of our full YAML, stripping out extraneous attributes */
@@ -250,7 +251,7 @@ export class Resource extends Model {
     /* get the new status value from the data, or the emptyStatus object if undefined.  Must initialize our
      * own status as empty initially, since it is being dereferenced in the update check below. */
     let new_status = yaml.status || this.getEmptyStatus();
-    this.status    = this.status         || this.getEmptyStatus();
+    this.status    = this.status || this.getEmptyStatus();
 
     if ((this.status.state       !== new_status.state) ||
         (this.status.errorReason !== new_status.errorReason)) {

@@ -6,6 +6,9 @@
  * See the comments in ./resource.js, ./iresource.js and ./imodel.js for more details.
  */
 
+/* For merging our spec with the rest of the resource's YAML */
+import { objectMerge } from "../framework/utilities.js"
+
 /* Interface class for Resource */
 import { IResource } from "../interfaces/iresource.js"
 
@@ -37,29 +40,21 @@ export class HostResource extends IResource {
     return new HostResource(this._fullYAML);
   }
 
-  /* getSpec()
-   * Return the spec attribute of the Host.  This method is needed for the implementation of the Save
-   * function which uses kubectl apply.  This method must return an object that will be serialized with JSON.stringify
-   * and supplied as the "spec:" portion of the Kubernetes YAML that is passed to kubectl.
-   */
-
-  getSpec() {
-    return {
-      hostname:       this.hostname,
-      acmeProvider:   this.useAcme
-        ? {authority: this.acmeProvider, email: this.acmeEmail}
-        : {authority: "none"}
-    }
-  }
 
   /* getYAML()
-    * Return YAML that has the Resource's values written back into the _fullYAML, and
-    * been pruned so that only the necessary attributes exist in the structure for use
-    * as the parameter to doApplyYAML().
-    */
+   * Return YAML that has the Resource's values written back into the _fullYAML, and has been pruned so that only
+   * the necessary attributes exist in the structure for use as the parameter to applyYAML().
+   */
   getYAML() {
     let yaml = super.getYAML();
-    yaml.spec = this.getSpec();
+
+    /* Set hostname, acmeProvider in the existing spec. Leave any other spec info there as needed,
+     * such as acmeProvider.privateKeySecret and acmeProvider.registration.  Note that these are
+     * guaranteed to exist since they are set to defaults in updateSelfFrom below if needed.
+     */
+    yaml.spec.hostname               = this.hostname;
+    yaml.spec.acmeProvider.authority = this.useAcme ? this.acmeProvider : "none";
+    yaml.spec.acmeProvider.email     = this.useAcme ? this.acmeEmail : "";
 
     return yaml;
 

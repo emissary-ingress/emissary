@@ -37,6 +37,9 @@ export function enableMVC() {
  * The spread operator (...) converts the Map into an Array which the Map constructor then uses to initialize
  * the Map with the new key:value entries.  mapB's key:value pairs override any key:value pairs that exist in
  * mapA with the same key.
+ *
+ * NOTE: This is only a shallow merge, key/value pairs at the top level of the map.  It does not recursively
+ * merge pairs throughout a Map tree.
  */
 
 export function mapMerge(mapA, mapB) {
@@ -51,7 +54,7 @@ export function mapMerge(mapA, mapB) {
  */
 
 export function mapDiff(mapA, mapB) {
-
+  throw Error("Not yet implemented")
   return null;
 }
 
@@ -139,6 +142,13 @@ export function setDifference(setA, setB) {
 
 /* ================================ Object Utilities ================================ */
 
+/* objectMerge(mapA, mapB)
+ * Return an Object of all key:value pairs that exist in objA and objB.  calls mapMerge.
+ *
+ * NOTE: This is only a shallow merge, key/value pairs at the top level of the object.  It does not recursively
+ * merge pairs throughout an Object tree.
+ */
+
 export function objectMerge(objA, objB) {
   /* Convert to maps, and merge */
   let mapA   = new Map(Object.entries(objA));
@@ -180,6 +190,6 @@ export function objectDiff(objA, objB) {
  */
 
 export function objectCopy(obj) {
-  JSON.parse(JSON.stringify(obj));
+  return JSON.parse(JSON.stringify(obj));
 }
 

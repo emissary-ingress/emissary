@@ -246,7 +246,7 @@ requiring only methods for updating state, constructing a Kubernetes Spec, and v
 class IResource extends Resource {
   constructor(data)
   updateSelfFrom(data)
-  getSpec()
+  getYAML()
   validateSelf()
 }
 ```

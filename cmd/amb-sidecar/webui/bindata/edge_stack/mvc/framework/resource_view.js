@@ -124,16 +124,6 @@ export class ResourceView extends View {
     return this.shadowRoot.querySelector(`input[name="namespace"]`);
   }
 
-  /* yamlElement()
-   * This method returns the element that renders the YAML of the resource, either the pending changes
-   * if shown during editing, or the current values.
-   */
-
-  yamlElement() {
-    return this.shadowRoot.getElementById("merged-yaml");
-  }
-
-
   /* onCancel()
    * This method is called on the View when the View is in Edit mode, and the user clicks on the
    * Cancel button to discard the changes and return to the original state.
@@ -154,6 +144,12 @@ export class ResourceView extends View {
 
       /* Restore to "list" state. */
       this.viewState = "list";
+    }
+
+    /* Remove the updater if one was running */
+    if (this._updater) {
+      clearInterval(this._updater);
+      this._updater = null;
     }
   }
 
@@ -206,8 +202,16 @@ export class ResourceView extends View {
     this.model = this.model.copySelf();
     this.model.addListener(this);
 
-    /* Change to "edit" state. */
+    /* Get the current model's state */
+    this.readFromModel();
+
+    /* Change view to "edit" state. */
     this.viewState = "edit";
+
+    /* Start the update timer in case the user is viewing the YAML */
+    if (!this._updater) {
+      this._updater = setInterval(this.updateView.bind(this), 500);
+    }
   }
 
   /* onSave()
@@ -242,6 +246,7 @@ export class ResourceView extends View {
         console.log("ResourceView.onSave() returned error ${error");
       }
     }
+
   }
 
   /* onSource()
@@ -260,12 +265,8 @@ export class ResourceView extends View {
    */
 
   onYaml(mouseEvent) {
-    if (this.showYAML) {
-      this.showYAML = false;
-    }
-    else {
-      this.showYAML = true;
-    }
+    /* Toggle showYAML */
+    this.showYAML = !this.showYAML;
 
     /* Defocus the button */
     mouseEvent.currentTarget.blur();
@@ -450,7 +451,7 @@ export class ResourceView extends View {
   renderYAML() {
     if (this.showYAML) {
       try {
-        let yaml = this.getApplyYAML();
+        let yaml = jsyaml.safeDump(this.model.getYAML())
         let entries = [];
 
         /* this is to show differences between the original and merged YAML.  Disabled for now.
@@ -480,13 +481,21 @@ export class ResourceView extends View {
     }
   }
 
+  /* update()
+   * This method is called on an interval timer when fields need to be updated on a periodic basis.
+   */
+
+  update() {
+    /* At the moment, nothing is needed... */
+  }
+
   /* validate()
- * This method is invoked on save in order to validate input prior to proceeding with the save action.
- * The model validates its current state, so anything that the View wants to validate must already be in the model.
- *
- * validate() returns a Map of fieldnames and error strings. If the dictionary is empty, there are no errors.
- *
- * For now we will have a side-effect of validate in that any errors will be added to the message list.
+   * This method is invoked on save in order to validate input prior to proceeding with the save action.
+   * The model validates its current state, so anything that the View wants to validate must already be in the model.
+   *
+   * validate() returns a Map of fieldnames and error strings. If the dictionary is empty, there are no errors.
+   *
+   * For now we will have a side-effect of validate in that any errors will be added to the message list.
   */
 
   validate() {
@@ -500,6 +509,15 @@ export class ResourceView extends View {
     errors = new Map(...errors, ...this.validateSelf());
 
     return errors;
+  }
+
+  /* yamlElement()
+ * This method returns the element that renders the YAML of the resource, either the pending changes
+ * if shown during editing, or the current values.
+ */
+
+  yamlElement() {
+    return this.shadowRoot.getElementById("merged-yaml");
   }
 }
 

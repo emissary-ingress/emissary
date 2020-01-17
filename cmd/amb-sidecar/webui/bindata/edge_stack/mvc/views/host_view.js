@@ -148,10 +148,12 @@ export class HostView extends IResourceView {
 
   renderSelf() {
     let host = this.model;
-    let spec = host.getSpec();
+    let acmeEmail = host.acmeEmail;
+    let acmeProvider = host.acmeProvider;
+
     let status = host.status || {"state": "<none>"};
     let hostState = status.state;
-    let reason = (hostState === "Error") ? `(${status.reason})` : '';
+    let reason = (hostState === "Error") ? `(${status.errorReason})` : '';
     let tos = this.isTOSShowing() ? "attribute-value" : "off";
     let editing = this.viewState === "add" || this.viewState === "edit";
 
@@ -215,6 +217,7 @@ export class HostView extends IResourceView {
         </div>
       </div>
       `
+
   }
 
   /* ================================ QuerySelector Accessors ================================ */
@@ -260,7 +263,7 @@ export class HostView extends IResourceView {
 
     /* The email changed, update the YAML if showing. */
     if (this.showYAML) {
-      this.yamlamlElement().requestUpdate();
+      this.yamlElement().requestUpdate();
     }
   }
 
@@ -297,6 +300,11 @@ export class HostView extends IResourceView {
      * will no longer be necessary.
      */
     this.writeToModel();
+
+    /* update the YAML if showing. */
+    if (this.showYAML) {
+      this.yamlElement().requestUpdate();
+    }
   }
 
   /* onTOSAgreeCheckbox
