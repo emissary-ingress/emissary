@@ -73,9 +73,6 @@ export class Resource extends Model {
       body: JSON.stringify(yaml)
     };
 
-    /* TODO: for now, don't actually apply the YAML, still just for testing... */
-    return;
-
     /* Make the call to apply */
     ApiFetch('/edge_stack/api/apply', params).then(
       r => { r.text().then(t => {
@@ -217,7 +214,7 @@ export class Resource extends Model {
     /* In the case of incomplete yaml -- such as when adding a new Resource -- set proper defaults. */
     yaml.kind                     = yaml.kind                      || "<must specify resource kind in constructor>";
     yaml.metadata                 = yaml.metadata                  || {};
-    yaml.metadata.name            = yaml.metadata.name             || "";
+    yaml.metadata.name            = yaml.metadata.name             || "<specify resource name here>";
     yaml.metadata.namespace       = yaml.metadata.namespace        || "default";
     yaml.metadata.resourceVersion = yaml.metadata.resourceVersion  || "0";
     yaml.metadata.labels          = yaml.metadata.labels           || {};

@@ -148,12 +148,6 @@ export class ResourceView extends View {
       /* Restore to "list" state. */
       this.viewState = "list";
     }
-
-    /* Remove the updater if one was running */
-    if (this._updater) {
-      clearInterval(this._updater);
-      this._updater = null;
-    }
   }
 
   /* onDelete()
@@ -210,16 +204,12 @@ export class ResourceView extends View {
     this.model = this.model.copySelf();
     this.model.addListener(this);
 
-    /* Get the current model's state */
+    /* Get the current model's state
     this.readFromModel();
+    */
 
     /* Change view to "edit" state. */
     this.viewState = "edit";
-
-    /* Start the update timer in case the user is viewing the YAML */
-    if (!this._updater) {
-      this._updater = setInterval(this.periodicUpdate.bind(this), 500);
-    }
   }
 
   /* onSave()
@@ -253,12 +243,6 @@ export class ResourceView extends View {
       else {
         console.log("ResourceView.onSave() returned error ${error");
       }
-    }
-
-    /* Remove the updater if one was running */
-    if (this._updater) {
-      clearInterval(this._updater);
-      this._updater = null;
     }
   }
 
@@ -492,15 +476,6 @@ export class ResourceView extends View {
     else {
       return html``;
     }
-  }
-
-  /* periodicUpdate()
-   * This method is called on an interval timer when the page requires updates on a periodic basis that
-   * are not related to any other event (such as a click).
-   */
-
-  periodicUpdate() {
-    /* At the moment, nothing is needed... */
   }
 
   /* validate()

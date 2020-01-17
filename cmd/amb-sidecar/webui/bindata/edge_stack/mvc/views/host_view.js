@@ -165,7 +165,7 @@ export class HostView extends IResourceView {
           <input class="${this.visibleWhen("edit", "add")}"
             type="text"
             name="hostname"
-            @change="${this.onHostnameChanged.bind(this)}"
+            @input="${this.onHostnameChanged.bind(this)}"
             value="${this.hostname}"/>
         </div>
       </div>
@@ -191,7 +191,7 @@ export class HostView extends IResourceView {
               type="url"
               size="60"
               name="provider"
-              @change="${this.onProviderChanged.bind(this)}"
+              @input="${this.onProviderChanged.bind(this)}"
               value="${this.acmeProvider}"
               ?disabled="${!this.useAcme}"
             />
@@ -217,7 +217,7 @@ export class HostView extends IResourceView {
           <input class="${this.visibleWhen("edit", "add")}"
             type="email"
             name="email"
-            @change="${this.onEmailChanged.bind(this)}"
+            @input="${this.onEmailChanged.bind(this)}"
             value="${this.acmeEmail}"
             ?disabled="${!this.useAcme}" />
         </div>

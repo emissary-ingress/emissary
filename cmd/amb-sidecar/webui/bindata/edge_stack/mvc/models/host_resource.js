@@ -70,15 +70,17 @@ export class HostResource extends IResource {
   updateSelfFrom(yaml) {
     let changed = false;
 
+
     /* If yaml does not include a spec, set it, and its subfield acmeProvider, to a default object so that
      * the hostname, acmeProvider, and acmeEmail fields will be set to their default values during initialization.
      * Otherwise javascript would fail, trying to access a field of "null".  Set other fields to default values
      * if they do not exist.
      */
+
     yaml.spec                         = yaml.spec                         || { acmeProvider: {}};
     yaml.spec.hostname                = yaml.spec.hostname                || "<specify new hostname>";
     yaml.spec.acmeProvider.authority  = yaml.spec.acmeProvider.authority  || "https://acme-v02.api.letsencrypt.org/directory";
-    yaml.spec.acmeProvider.email      = yaml.spec.acmeProvider.email      || "<specify your email address here>";
+    yaml.spec.acmeProvider.email      = yaml.spec.acmeProvider.email      || "<specify email address here>";
 
     /* Initialize host-specific instance variables from yaml. For those fields that are unknown, initialize
      * to default values.  This occurs when adding a new HostResource whose values will be specified by the user.
