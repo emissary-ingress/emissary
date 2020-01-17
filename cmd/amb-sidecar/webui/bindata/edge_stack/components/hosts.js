@@ -148,8 +148,10 @@ export class SingleHost extends SingleResource {
             let d = t.match(domain_matcher);
             if(d) { d = d[1]; } else { d = t; }
             this.tos = html`<a href="${t}" target="_blank">${d}</a>`
+            this.requestUpdate();
           } else {
-            this.tos = html`...`
+            console.error("tos-url result: " + t);
+            this.tos = html`....`
           }
         })
       })
