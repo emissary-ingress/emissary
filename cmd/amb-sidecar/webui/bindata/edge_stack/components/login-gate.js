@@ -1004,7 +1004,7 @@ navigation a.selected .label {
 
 .login .content_con .card_con .card .subtitle2 {
     font-weight: 600;
-    margin-top: 20px;
+    margin-top: 30px;
     margin-bottom: 8px
 }
 
