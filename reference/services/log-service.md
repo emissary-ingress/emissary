@@ -60,19 +60,20 @@ spec:
    accesses for before sending them to the ALS.  The logs will be
    flushed to the ALS every time this duration is reached, or when the
    buffered data reaches `flush_interval_byte_size`, whichever comes
-   first.  See the [Envoy documentation][flush_interval_time] for more
+   first.  See the [Envoy documentation on
+   `buffer_flush_interval`][buffer_flush_interval] for more
    information.
 
  - `flush_interval_byte_size` is soft size limit for the access log
    buffer.  The logs will be flushed to the ALS every time the
    buffered data reaches this size, or whenever `flush_interval_time`
-   elapses, whichever comes first.  See the [Envoy
-   documentation][flush_interval_byte_size] for more information.
+   elapses, whichever comes first.  See the [Envoy documentation on
+   `buffer_size_bytes`][buffer_size_bytes] for more information.
 
  - `grpc` must be `true`.
 
-[flush_interval_time]: https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/accesslog/v2/als.proto#envoy-api-field-config-accesslog-v2-commongrpcaccesslogconfig-flush-interval-time
-[flush_interval_byte_size]: https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/accesslog/v2/als.proto#envoy-api-field-config-accesslog-v2-commongrpcaccesslogconfig-flush-interval-byte-size
+[buffer_flush_interval]: https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/accesslog/v2/als.proto#envoy-api-field-config-accesslog-v2-commongrpcaccesslogconfig-buffer-flush-interval
+[buffer_size_bytes]: https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/accesslog/v2/als.proto#envoy-api-field-config-accesslog-v2-commongrpcaccesslogconfig-buffer-size-bytes
 
 ## Example
 
