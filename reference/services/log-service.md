@@ -21,10 +21,12 @@ kind: LogService
 metadata:
   name: example-log-service
 spec:
+  # Common to all Ambassador resources
   ambassador_id:           # optional; default is ["default"]
   - "string"
   ambassador_id: "string"  # no need for a list if there's only one value
 
+  # LogService specific
   service: "string"                 # required
   driver: "enum-string:[tcp, http]" # required
   driver_config:                    # required
@@ -39,26 +41,34 @@ spec:
 ```
 
  - `service` is where to route the access log gRPC requests to
+
  - `driver` identifies which type of accesses to log; HTTP requests (`"http"`) or
    TLS connections (`"tcp"`).
+
  - `driver_config` stores the configuration that is specific to the `driver`:
+
     * `driver: tcp` has no additional configuration; the config must
       be set as `driver_config: {}`.
+
     * `driver: http`
-	  - `additional_log_headers` identifies HTTP headers to include in
-        the access log, and when in the logged-request's lifecycle to
-        include them.
+
+       - `additional_log_headers` identifies HTTP headers to include in
+         the access log, and when in the logged-request's lifecycle to
+         include them.
+
  - `flush_interval_time` is the maximum number of seconds to buffer
    accesses for before sending them to the ALS.  The logs will be
    flushed to the ALS every time this duration is reached, or when the
    buffered data reaches `flush_interval_byte_size`, whichever comes
    first.  See the [Envoy documentation][flush_interval_time] for more
    information.
+
  - `flush_interval_byte_size` is soft size limit for the access log
    buffer.  The logs will be flushed to the ALS every time the
    buffered data reaches this size, or whenever `flush_interval_time`
    elapses, whichever comes first.  See the [Envoy
    documentation][flush_interval_byte_size] for more information.
+
  - `grpc` must be `true`.
 
 [flush_interval_time]: https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/accesslog/v2/als.proto#envoy-api-field-config-accesslog-v2-commongrpcaccesslogconfig-flush-interval-time
