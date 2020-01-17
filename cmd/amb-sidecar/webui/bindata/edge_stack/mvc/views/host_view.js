@@ -162,17 +162,23 @@ export class HostView extends IResourceView {
         <div class="row-col margin-right justify-right">hostname:</div>
         <div class="row-col">
           <span class="${this.visibleWhen("list", "pending-delete")}">${this.hostname}</span>
-          <input class="${this.visibleWhen("edit", "add")}" type="text" name="hostname"  value="${this.hostname}"/>
+          <input class="${this.visibleWhen("edit", "add")}"
+            type="text"
+            name="hostname"
+            @change="${this.onHostnameChanged.bind(this)}"
+            value="${this.hostname}"/>
         </div>
       </div>
       
       <div class="row line">
         <div class="row-col margin-right justify-right"></div>
         <div class="row-col">
-          <input type="checkbox"
+          <input
+            type="checkbox"
             name="use_acme"
+            @change="${this.onACMECheckbox.bind(this)}"
             ?disabled="${!editing}"
-            ?checked="${spec.acmeProvider.authority !== "none"}"
+            ?checked="${acmeProvider.authority !== "none"}"
           /> Use ACME to manage TLS</label>
         </div>
       </div>
@@ -181,13 +187,12 @@ export class HostView extends IResourceView {
         <div class="row-col margin-right justify-right">acme provider:</div>
         <div class="row-col">
           <span class="${this.visibleWhen("list", "pending-delete")}">${this.acmeProvider}</span>
-          <input
-              class="${this.visibleWhen("edit", "add")}"
+          <input class="${this.visibleWhen("edit", "add")}"
               type="url"
               size="60"
               name="provider"
-              value="${this.acmeProvider}"
               @change="${this.onProviderChanged.bind(this)}"
+              value="${this.acmeProvider}"
               ?disabled="${!this.useAcme}"
             />
         </div>
@@ -196,7 +201,11 @@ export class HostView extends IResourceView {
       <div class="${tos} row line">
         <div class="row-col margin-right justify-right"></div>
         <div class="row-col">
-          <input type="checkbox" name="tos_agree" ?disabled="${!this.useAcme}" />
+          <input
+            type="checkbox"
+            name="tos_agree"
+            @change="${this.onTOSAgreeCheckbox.bind(this)}"
+            ?disabled="${!this.useAcme}" />
             <span>I have agreed to to the Terms of Service at: ${this.tos}</span>
         </div>
       </div>
@@ -205,8 +214,12 @@ export class HostView extends IResourceView {
         <div class="row-col margin-right justify-right">email:</div>
         <div class="row-col">
           <span class="${this.visibleWhen("list", "pending-delete")}">${this.acmeEmail}</span>
-          <input class="${this.visibleWhen("edit", "add")}" type="email" name="email"
-                 value="${this.acmeEmail}" ?disabled="${!this.useAcme}" />
+          <input class="${this.visibleWhen("edit", "add")}"
+            type="email"
+            name="email"
+            @change="${this.onEmailChanged.bind(this)}"
+            value="${this.acmeEmail}"
+            ?disabled="${!this.useAcme}" />
         </div>
       </div>
       

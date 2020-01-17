@@ -142,6 +142,9 @@ export class ResourceView extends View {
       this.model.addListener(this);
       this.savedModel = null;
 
+      /* Restore the fields to the previous model's. */
+      this.readFromModel();
+
       /* Restore to "list" state. */
       this.viewState = "list";
     }

@@ -54,7 +54,7 @@ export function mapMerge(mapA, mapB) {
  */
 
 export function mapDiff(mapA, mapB) {
-  throw Error("Not yet implemented")
+  throw new Error("Not yet implemented");
   return null;
 }
 
