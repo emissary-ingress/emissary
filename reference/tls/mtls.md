@@ -1,6 +1,6 @@
 # Mutual TLS (mTLS)
 
-Ambassador Edge Stack can be configured to both provide certificates from upstream services, and to validate them. This behavior is called mutual TLS (mTLS) and is a commonly done when using a service mesh to enforce end-to-end TLS for all services in your cluster.
+Ambassador Edge Stack can be configured to both provide certificates from upstream services, and to validate them. This behavior is called mutual TLS (mTLS) and is commonly done when using a service mesh to enforce end-to-end TLS for all services in your cluster.
 
 To configure mTLS between Ambassador Edge Stack and your upstream services, you need to create a `TLSContext` with certificates that are signed by the Certificate Authority (CA) of your upstream service.
 
@@ -74,7 +74,7 @@ Since Consul does not expose TLS Certificates as Kubernetes secrets, we will nee
 1. Install the Ambassador Edge Stack Consul connector.
 
    ```
-   kubectl apply -f https://www.getambassador.io/early-access/yaml/consul/ambassador-consul-connector.yaml
+   kubectl apply -f https://www.getambassador.io/yaml/consul/ambassador-consul-connector.yaml
    ```
 
    This will grab the certificate issued by Consul CA and store it in a Kubernetes secret named `ambassador-consul-connect`. It will also create a Service named `ambassador-consul-connector` which will configure the following `TLSContext`:

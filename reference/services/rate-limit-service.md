@@ -1,8 +1,8 @@
 # RateLimitService Plugin
 
-Rate limiting is a powerful technique to improve the [availability and resilience of your services](https://blog.getambassador.io/rate-limiting-a-useful-tool-with-distributed-systems-6be2b1a4f5f4). In Ambassador Edge Stack, each request can have one or more *labels*. These labels are exposed to a third party service via a gRPC API. The third party service can then rate limit requests based on the request labels.
+Rate limiting is a powerful technique to improve the [availability and resilience of your services](https://blog.getambassador.io/rate-limiting-a-useful-tool-with-distributed-systems-6be2b1a4f5f4). In Ambassador Edge Stack, each request can have one or more *labels*. These labels are exposed to a third party service via a gRPC API. The third-party service can then rate limit requests based on the request labels.
 
-## Request labels
+## Request Labels
 
 Ambassador Edge Stack lets users add one or more labels to a given request. These labels are added as part of a `Mapping` object. For example:
 
@@ -97,7 +97,7 @@ If `tls` is present with a value that is not `true`, the value is assumed to be 
 
 The [Ambassador Edge Stack Rate Limiting Tutorial](../../../user-guide/rate-limiting-tutorial) has a simple rate limiting example. For a more advanced example, read the [advanced rate limiting tutorial](../../../user-guide/advanced-rate-limiting) with Ambassador Edge Stack tutorial.
 
-## Further reading
+## Further Reading
 
 * [Rate limiting: a useful tool with distributed systems](https://blog.getambassador.io/rate-limiting-a-useful-tool-with-distributed-systems-6be2b1a4f5f4)
 * [Rate limiting for API Gateways](https://blog.getambassador.io/rate-limiting-for-api-gateways-892310a2da02)

@@ -1,6 +1,6 @@
-# Ambassador Edge Stack configuration with Custom Resource Definitions (CRDs)
+# Ambassador Edge Stack Configuration with Custom Resource Definitions (CRDs)
 
-As of Ambassador 0.70, any Ambassador Edge Stack resource can be expressed as a CRD in the `getambassador.io` API group:
+Any Ambassador Edge Stack resource can be expressed as a CRD in the `getambassador.io` API group:
 
 - use `apiVersion: getambassador.io/v2`
 - use the same `kind` as you would in an attribute
@@ -37,7 +37,7 @@ Note that the `namespace` must be declared in the `metadata`, but if needed, `am
 
 ## Supported CRDs
 
-The full set of CRDs supported by the Ambassador Edge Stack:
+You can run `kubectl get ambassador-crds` The full set of CRDs supported by the Ambassador Edge Stack:
 
 | `Kind` | Kubernetes singular | Kubernetes plural |
 | :----- | :------------------ | :---------------- |
@@ -102,8 +102,8 @@ Namely, these annotations are:
 - getambassador.io/resource-source
 - getambassador.io/resource-downloaded
 
-None of these annotations influence the expected behavior of resources. They are purely informative. You may chose to ignore them or discard them if you describe any of your configured resources.
+None of these annotations influence the expected behavior of resources. They are purely informative. You may choose to ignore them or discard them if you describe any of your configured resources.
 
-## Creating the CRD types within Kubernetes
+## Creating the CRD Types Within Kubernetes
 
 Before using the CRD types, you must add them to the Kubernetes API server. This is most easily done by applying [`aes-crds.yaml`](../../../yaml/aes-crds.yaml).
