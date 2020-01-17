@@ -353,10 +353,12 @@ define _help.targets
 
     Use $(BLD)\$$GOTEST_PKGS$(END) to control which packages are passed to $(BLD)gotest$(END). ($(GOTEST_PKGS))
     Use $(BLD)\$$GOTEST_ARGS$(END) to supply additional non-package arguments. ($(GOTEST_ARGS))
+    Example: $(BLD)make gotest GOTEST_PKGS=./cmd/edgectl GOTEST_ARGS=-v$(END)  # run edgectl tests verbosely
 
   $(BLD)make $(BLU)pytest$(END)    -- runs just the Python tests inside the build container.
 
-    Use $(BLD)\$$PYTEST_ARGS$(END) to pass args to pytest. ($(PYTEST_ARGS))
+    Use $(BLD)\$$PYTEST_ARGS$(END) to pass args to $(BLD)pytest$(END). ($(PYTEST_ARGS))
+    Example: $(BLD)make pytest PYTEST_ARGS=\"-k schemas\"$(END)  # run only tests with \"schemas\" in the name
 
   $(BLD)make $(BLU)shell$(END)     -- starts a shell in the build container.
 
