@@ -181,12 +181,6 @@ export class ResourceView extends View {
           console.log("ResourceView.onDelete() returned error ${error");
         }
       }
-
-      /* Remove the updater if one was running */
-      if (this._updater) {
-        clearInterval(this._updater);
-        this._updater = null;
-      }
     }
   }
 
@@ -196,6 +190,9 @@ export class ResourceView extends View {
   */
 
   onEdit() {
+    /* Clear any error messages prior to editing. */
+    this.clearMessages();
+
     /* Save the View's existing model and stop listening to it. */
     this.savedModel = this.model;
     this.model.removeListener(this);
@@ -204,12 +201,9 @@ export class ResourceView extends View {
     this.model = this.model.copySelf();
     this.model.addListener(this);
 
-    /* Get the current model's state
-    this.readFromModel();
-    */
-
-    /* Change view to "edit" state. */
-    this.viewState = "edit";
+    /* Change view to "edit" state, and request to focus */
+    this.viewState   = "edit";
+    this._needsFocus = true;
   }
 
   /* onSave()
@@ -219,12 +213,10 @@ export class ResourceView extends View {
     */
 
   onSave() {
-    if (this.viewState === "add") {
-      /* Add the new resource to the system. */
-      this.model.doAdd();
-    }
-    else
-    if (this.viewState === "edit") {
+    /* Validate the data in the model. */
+    let validationErrors = this.validate();
+
+    if (validationErrors.size === 0) {
       /* Save the changes in the resource. */
       let error = this.model.doSave();
 
@@ -239,10 +231,18 @@ export class ResourceView extends View {
 
         /* Note that the resource is pending an update */
         this.model.setPendingUpdate();
-      }
-      else {
+      } else {
         console.log("ResourceView.onSave() returned error ${error");
       }
+    }
+    /* Have validation errors.  Add to the message list. */
+    else {
+      for (let [field, message] of validationErrors) {
+        this.addMessage(`${field}: ${message}`);
+      }
+
+      /* Messages are not yet in their own component, so request update of the entire view. */
+      this.requestUpdate();
     }
   }
 
@@ -483,9 +483,10 @@ export class ResourceView extends View {
    * and rendered.  Here it is used to focus and select the resource's name field when being edited.
   */
   updated(changedProperties) {
-    if (this.viewState === "edit" || this.viewState === "add") {
+    if (this._needsFocus) {
       this.nameInput().focus();
       this.nameInput().select();
+      this._needsFocus = false;
     }
   }
 

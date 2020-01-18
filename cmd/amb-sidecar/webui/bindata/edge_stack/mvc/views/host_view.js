@@ -10,12 +10,11 @@ import { html } from '../../vendor/lit-element.min.js'
 /* Object merge operation */
 import { objectMerge } from "../framework/utilities.js"
 
+/* HostResource constants */
+import { _defaultAcmeProvider, _defaultAcmeEmail } from "../models/host_resource.js"
+
 /* ResourceView interface class */
 import { IResourceView } from '../interfaces/iresource_view.js'
-
-const _defaultAcmeProvider = "https://acme-v02.api.letsencrypt.org/directory";
-const _defaultAcmeEmail    = "yourname@yourcompany.com";
-
 
 export class HostView extends IResourceView {
 
@@ -87,7 +86,7 @@ export class HostView extends IResourceView {
     this.hostnameInput().value = this.hostname;
     this.acmeEmailInput().value = this.acmeEmail;
     this.acmeProviderInput().value = this.acmeProvider;
-    this.useAcmeCheckbox().value = this.useAcme;
+    this.useAcmeCheckbox().checked = this.useAcme;
   }
 
   /* writeSelfToModel()
@@ -100,7 +99,7 @@ export class HostView extends IResourceView {
     this.hostname = this.hostnameInput().value;
     this.acmeEmail = this.acmeEmailInput().value;
     this.acmeProvider = this.acmeProviderInput().value;
-    this.useAcme = this.useAcmeCheckbox().value;
+    this.useAcme = this.useAcmeCheckbox().checked;
 
     /* Write back to the model */
     this.model.hostname = this.hostname;
@@ -121,22 +120,12 @@ export class HostView extends IResourceView {
   validateSelf() {
     let errors = new Map();
 
-    /*
-     * We validate that the user has agreed to the Terms of Service,
-     * which is either: (i) if we are not showing the Terms of Service,
-     * then we assume that they have already agreed, or (ii) if we are
-     * showing the TOS, then the checkbox needs to be checked.
+    /* We validate that the user has agreed to the Terms of Service, which is either:
+     * (i) if we are not showing the Terms of Service, then we assume that they have already agreed, or
+     * (ii) if we are showing the TOS, then the checkbox needs to be checked.
      */
-    if (this.useAcme && this.showTos && !this.tosAgreeCheckbox().checked) {
+    if (this.showTos && this.useAcme && !this.tosAgreeCheckbox().checked) {
       errors.set("tos", "You must agree to terms of service");
-    }
-
-    /* Validate the user's email address.  The model is responsible
-     * for correctly validating the input value.
-     */
-
-    if (this.model.validateEmail(this.acmeEmailInput().value)) {
-      errors.set("acmeEmail", "That doesn't look like a valid email address");
     }
 
     return errors;
@@ -154,6 +143,7 @@ export class HostView extends IResourceView {
     let status = host.status || {"state": "<none>"};
     let hostState = status.state;
     let reason = (hostState === "Error") ? `(${status.errorReason})` : '';
+    let acme   = (this.useAcme ? "" : "none");
     let tos = this.isTOSShowing() ? "attribute-value" : "off";
     let editing = this.viewState === "add" || this.viewState === "edit";
 
@@ -183,7 +173,7 @@ export class HostView extends IResourceView {
         </div>
       </div>
       
-      <div class="row line">
+      <div class="row line" id="acme_provider" style="display:${acme}">
         <div class="row-col margin-right justify-right">acme provider:</div>
         <div class="row-col">
           <span class="${this.visibleWhen("list", "pending-delete")}">${this.acmeProvider}</span>
@@ -198,20 +188,8 @@ export class HostView extends IResourceView {
         </div>
       </div>
       
-      <div class="${tos} row line">
-        <div class="row-col margin-right justify-right"></div>
-        <div class="row-col">
-          <input
-            type="checkbox"
-            name="tos_agree"
-            @change="${this.onTOSAgreeCheckbox.bind(this)}"
-            ?disabled="${!this.useAcme}" />
-            <span>I have agreed to to the Terms of Service at: ${this.tos}</span>
-        </div>
-      </div>
-      
-      <div class="row ${this.viewState !== "add" ? "line" : ""}">
-        <div class="row-col margin-right justify-right">email:</div>
+      <div class="row line" id="acme_email" style="display:${acme}">
+        <div class="row-col margin-right justify-right">contact email:</div>
         <div class="row-col">
           <span class="${this.visibleWhen("list", "pending-delete")}">${this.acmeEmail}</span>
           <input class="${this.visibleWhen("edit", "add")}"
@@ -223,7 +201,19 @@ export class HostView extends IResourceView {
         </div>
       </div>
       
-      <div class="row line">
+       <div class="${tos} row line" id="acm_tos" style="display:${acme}">
+        <div class="row-col margin-right justify-right"></div>
+        <div class="row-col">
+          <input
+            type="checkbox"
+            name="tos_agree"
+            @change="${this.onTOSAgreeCheckbox.bind(this)}"
+            ?disabled="${!this.useAcme}" />
+            <span>I have agreed to to the Terms of Service at: ${this.tos}</span>
+        </div>
+      </div>
+      
+     <div class="row line">
         <div class="row-col margin-right justify-right ${this.visibleWhen("list", "edit", "pending-delete")}">status:</div>
         <div class="row-col">
           <span class="${this.visibleWhen("list", "edit", "pending-delete")}">${hostState} ${reason}</span>
@@ -255,6 +245,19 @@ export class HostView extends IResourceView {
     return this.shadowRoot.querySelector('input[name="use_acme"]')
   }
 
+  acmeProviderDiv() {
+    return this.shadowRoot.getElementById("acme_provider");
+  }
+
+  acmeTOSDiv() {
+    return this.shadowRoot.getElementById("acme_tos");
+  }
+
+  acmeEmailDiv() {
+    return this.shadowRoot.getElementById("acme_email");
+
+  }
+
   /* ================================ Callback Functions ================================ */
 
   /* onACMECheckbox
@@ -264,7 +267,7 @@ export class HostView extends IResourceView {
 
   onACMECheckbox() {
     this.useAcme = this.useAcmeCheckbox().checked;
-    this.setAcmeFields(this.useAcme);
+    this.requestUpdate();
   }
 
   /* Email address has changed.  Because state is not a property,
@@ -273,6 +276,8 @@ export class HostView extends IResourceView {
   onEmailChanged() {
     /* Write back to the model for validation. */
     this.writeToModel();
+
+    /* Note that we have to check */
 
     /* The email changed, update the YAML if showing. */
     if (this.showYAML) {
@@ -286,12 +291,6 @@ export class HostView extends IResourceView {
    */
 
   onHostnameChanged() {
-    /* TODO: let the model check, and return whether it is valid. */
-
-    /* Write back to the model for validation.
-     * TODO: at some point, writing back view data to the model
-     * will be on timer and this will no longer be necessary.
-     */
     this.writeToModel();
 
     /* update the YAML if showing. */
@@ -347,26 +346,6 @@ export class HostView extends IResourceView {
 
   isTOSShowing() {
     return (this.showTos || this.viewState === "add") && this.useAcme;
-  }
-
-  /* setAcmeFields(enabled)
-   * Enable or disable the acmeProvider, acmeEmail, and tosAgree widgets,
-   * depending on whether the Acme checkbox is set.
-   */
-
-  setAcmeFields(enabled) {
-    if (enabled) {
-      /* TODO: Use previous values of acmeProvider or acmeEmail if we have a saved copy during editing */
-      this.acmeProviderInput().value =  _defaultAcmeProvider;
-      this.acmeEmailInput().value =  _defaultAcmeEmail;
-    } else {
-      /* Disabled, set the values to empty. */
-      this.acmeProviderInput().value = "";
-      this.acmeEmailInput().value = "";
-    }
-
-    /* Make sure the model reflects the view. */
-    this.writeToModel();
   }
 }
 

@@ -12,6 +12,9 @@ import { objectMerge } from "../framework/utilities.js"
 /* Interface class for Resource */
 import { IResource } from "../interfaces/iresource.js"
 
+export const _defaultAcmeProvider = "https://acme-v02.api.letsencrypt.org/directory";
+export const _defaultAcmeEmail    = "yourname@yourcompany.com";
+
 export class HostResource extends IResource {
   /* constructor()
    * Here the model initializes any internal state that is common to all Resources.
@@ -79,8 +82,8 @@ export class HostResource extends IResource {
 
     yaml.spec                         = yaml.spec                         || { acmeProvider: {}};
     yaml.spec.hostname                = yaml.spec.hostname                || "<specify new hostname>";
-    yaml.spec.acmeProvider.authority  = yaml.spec.acmeProvider.authority  || "https://acme-v02.api.letsencrypt.org/directory";
-    yaml.spec.acmeProvider.email      = yaml.spec.acmeProvider.email      || "<specify email address here>";
+    yaml.spec.acmeProvider.authority  = yaml.spec.acmeProvider.authority  || _defaultAcmeProvider;
+    yaml.spec.acmeProvider.email      = yaml.spec.acmeProvider.email      || _defaultAcmeEmail;
 
     /* Initialize host-specific instance variables from yaml. For those fields that are unknown, initialize
      * to default values.  This occurs when adding a new HostResource whose values will be specified by the user.

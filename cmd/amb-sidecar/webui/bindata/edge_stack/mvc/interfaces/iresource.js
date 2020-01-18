@@ -151,7 +151,7 @@ export class IResource extends Resource {
    */
 
   validateName(name) {
-    return super.validateName(email)
+    return super.validateName(name);
   }
 
 
@@ -168,7 +168,7 @@ export class IResource extends Resource {
   */
 
   validateURL(url) {
-    return super.validateURL();
+    return super.validateURL(url);
   }
 
 

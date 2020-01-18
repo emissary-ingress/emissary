@@ -21,7 +21,7 @@ import { ApiFetch } from "../../components/api-fetch.js";
 import { Model } from "./model.js"
 
 /* Object merge operation */
-import { objectMerge, objectCopy } from "../framework/utilities.js"
+import { mapMerge, objectCopy } from "../framework/utilities.js"
 
 /* Annotation key for sourceURI. */
 const aes_res_source = "getambassador.io/resource-source";
@@ -85,22 +85,6 @@ export class Resource extends Model {
         }
       });
       });
-
-    return error;
-  }
-
-  /* doAdd()
-   * Call the edge_stack API to add this Resource. Returns null if success, an error string if not.
-   */
-
-  doAdd() {
-    let yaml  = this.getYAML();
-    let error = this.applyYAML(yaml);
-
-    if (error) {
-      this.addMessage(error);
-      console.log('Model failed to apply changes: ${error}');
-    }
 
     return error;
   }
@@ -318,7 +302,7 @@ export class Resource extends Model {
      * validateSelf() overrides any errors returned above with the same name (i.e. name or namespace)
      */
 
-    return objectMerge(errors, this.validateSelf());
+    return mapMerge(errors, this.validateSelf());
   }
 
   /* ============================================================
