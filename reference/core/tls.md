@@ -1,6 +1,6 @@
 # Transport Layer Security (TLS)
 
-Ambassador Edge Stack's robust TLS support exposes configuration options for different TLS use cases including:
+THe Ambassador Edge Stack's robust TLS support exposes configuration options for different TLS use cases including:
 
 - [Client Certificate Validation](../../tls/client-cert-validation)
 - [HTTP -> HTTPS Redirection](../../tls/cleartext-redirection)
