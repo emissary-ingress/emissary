@@ -70,7 +70,7 @@ spec:
 - `status_on_error` (optional) status code returned when unable to communicate with auth service. 
     * `code` Defaults to 403
 
-## Canarying Multiple AuthService
+## Canarying Multiple AuthServices
 
 You may use multiple `AuthService` manifests to round-robin authentication requests among multiple services. **Note well that all services must use the same `path_prefix` and header definitions;** if you try to have different values, you'll see an error in the diagnostics service, telling you which value is being used.
 
