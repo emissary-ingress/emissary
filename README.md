@@ -109,7 +109,7 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `serviceAccount.name`              | Service account to be used                                                      | `ambassador`                      |
 | `volumeMounts`                     | Volume mounts for the ambassador service                                        | `[]`                              |
 | `volumes`                          | Volumes for the ambassador service                                              | `[]`                              |
-| `licenseKey.vlaue`                 | Ambassador Edge Stack license. Empty will install in evaluation mode.           | ``                                |
+| `licenseKey.value`                 | Ambassador Edge Stack license. Empty will install in evaluation mode.           | ``                                |
 | `licenseKey.createSecret`          | Set to `false` if installing mutltiple Ambassdor Edge Stacks in a namespace.    | `true`                            |
 | `redisURL`                         | URL of redis instance not created by the release                                | `""`                              |
 | `redis.create`                     | Create a basic redis instance with default configurations                       | `true`                            |
