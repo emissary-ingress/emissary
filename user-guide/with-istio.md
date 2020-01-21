@@ -245,7 +245,7 @@ spec:
 ```
 Note the `tls: istio-upstream`, which lets the Ambassador Edge Stack know which certificate to use when communicating with that service.
 
-In the definition above we also have TLS termination enabled; please see [the TLS termination tutorial](../tls-termination) for more details.
+In the definition above we also have TLS termination enabled; please see [the TLS termination tutorial](../tls-termination) or the [Host CRD](/reference/host-crd) for more details.
 
 ### PERMISSIVE mTLS
 
