@@ -20,9 +20,9 @@ The Ambassador Edge Stack is typically deployed to Kubernetes from the command l
 1. In your terminal, run the following command:
 
     ```bash
-    kubectl apply -f https://www.getambassador.io/early-access/yaml/aes-crds.yaml && \
+    kubectl apply -f https://www.getambassador.io/yaml/aes-crds.yaml && \
     kubectl wait --for condition=established --timeout=90s crd -lproduct=aes && \
-    kubectl apply -f https://www.getambassador.io/early-access/yaml/aes.yaml && \
+    kubectl apply -f https://www.getambassador.io/yaml/aes.yaml && \
     kubectl -n ambassador wait --for condition=available --timeout=90s deploy -lproduct=aes
     ```
 
