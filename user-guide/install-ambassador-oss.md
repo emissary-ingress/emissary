@@ -4,7 +4,7 @@ In this tutorial, we'll walk through the process of deploying the Ambassador API
 
 For more background on Kubernetes ingress, [read this blog post](https://blog.getambassador.io/kubernetes-ingress-nodeport-load-balancers-and-ingress-controllers-6e29f1c44f2d).
 
-the Ambassador API Gateway is designed to allow service authors to control how their service is published to the Internet. We accomplish this by permitting a wide range of annotations on the *service*, which Ambassador reads to configure its Envoy Proxy.
+The Ambassador API Gateway is designed to allow service authors to control how their service is published to the Internet. We accomplish this by permitting a wide range of annotations on the *service*, which Ambassador reads to configure its Envoy Proxy.
 
 Below, we'll use service annotations to configure Ambassador to map `/httpbin/` to `httpbin.org`.
 
