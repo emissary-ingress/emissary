@@ -29,7 +29,7 @@ Note: Make sure you apply the manifests in the same namespace as your current Am
 Use the following command to install the Ambassador Edge Stack, replacing `<namespace>` appropriately:
 
 ```
-kubectl apply -n <namespace> -f https://www.getambassador.io/early-access/yaml/oss-migration.yaml
+kubectl apply -n <namespace> -f https://www.getambassador.io/yaml/oss-migration.yaml
 ```
 
 ## 2. Test the New Deployment
@@ -61,8 +61,8 @@ kubectl delete service -n <namespace> test-aes
 Apply the new CRDs, resources and restart the Ambassador Edge Stack pod for changes to take effect:
 
 ```
-kubectl apply -n <namespace> -f https://www.getambassador.io/early-access/yaml/aes-crds.yaml && \
-kubectl apply -n <namespace> -f https://www.getambassador.io/early-access/yaml/resources-migration.yaml && \
+kubectl apply -n <namespace> -f https://www.getambassador.io/yaml/aes-crds.yaml && \
+kubectl apply -n <namespace> -f https://www.getambassador.io/yaml/resources-migration.yaml && \
 kubectl rollout restart deployment/aes
 ```
 
