@@ -43,7 +43,7 @@ Ambassador Edge Stack supports a number of attributes to configure and customize
 | `remove_request_headers` | Specifies a list of HTTP headers that are dropped from the request before sending to upstream. | string list |
 | `remove_response_headers` | Specifies a list of HTTP headers that are dropped from the response before sending to client. | string list |
 | `regex_headers` | Specifies a list of HTTP headers and regular expressions which mustmatch for this mapping to be used to route the request. | string list |
-| `rewrite` | Replaces the URL prefix with when talking to the service. Defaults to `""`, meaning the prefix is stripped. | string |
+| `rewrite` | Replaces the URL prefix with when talking to the service. Defaults to `"/"`, meaning the prefix is stripped. | string |
 | `retry_policy` | Performs automatic retries upon request failures. | dictionary |
 | `timeout_ms` | The timeout, in milliseconds, for requests through this Mapping. Defaults to 3000. | integer |
 | `tls` | If true, tells the system that it should use HTTPS to contact this service. (It's also possible to use tls to specify a certificate to present to the service.) | boolean |
