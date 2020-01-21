@@ -61,8 +61,8 @@ kubectl delete service -n <namespace> test-aes
 Apply the new CRDs, resources and restart the Ambassador Edge Stack pod for changes to take effect:
 
 ```
-kubectl apply -n <namespace> -f https://www.getambassador.io/early-access/yaml/aes-crds.yaml && \
-kubectl apply -n <namespace> -f https://www.getambassador.io/early-access/yaml/resources-migration.yaml && \
+kubectl apply -n <namespace> -f https://www.getambassador.io/yaml/aes-crds.yaml && \
+kubectl apply -n <namespace> -f https://www.getambassador.io/yaml/resources-migration.yaml && \
 kubectl rollout restart deployment/aes
 ```
 
@@ -71,6 +71,8 @@ kubectl rollout restart deployment/aes
 You can now access the Edge Policy Console with the following options:
 * `edgectl login -n <namespace> <AES_host>` or
 * `https://{{AES_URL}}/edge_stack/admin`
+
+If you log in with the URL, it allows you to have a `Mapping` at `prefix: /` if desired.
 
 ## 7. What's Next?
 
