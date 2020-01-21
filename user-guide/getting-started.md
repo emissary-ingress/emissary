@@ -58,9 +58,11 @@ The Ambassador Edge Stack is typically deployed to Kubernetes from the command l
 
 4. To login to the [Edge Policy Console](../../about/edge-policy-console), download and install `edgectl`, the command line tool Edge Control, by following the provided instructions on the page. The Console lists the correct command to run, and provides download links for the edgectl binary.
 
-The Edge Policy Console must authenticate your session using a Kubernetes Secret in your cluster. Edge Control accesses that secret using `kubectl`, then sends a URL to your browser that contains the corresponding session key. This extra step ensures that access to the Edge Policy Console is just as secure as access to your Kubernetes cluster.
+  The Edge Policy Console must authenticate your session using a Kubernetes Secret in your cluster. Edge Control accesses that secret using `kubectl`, then sends a URL to your browser that contains the corresponding session key. This extra step ensures that access to the Edge Policy Console is just as secure as access to your Kubernetes cluster.
 
-For more information, see [Edge Control](../../reference/edge-control).
+  For more information, see [Edge Control](../../reference/edge-control).
+
+5. To access the Edge Policy Console going forward, you can use `edgectl login -n <namespace> <AES_host>` or access it via the URL `https://{{AES_URL}}/edge_stack/admin`.
 
 ## Configure TLS for Automatic HTTPS
 
