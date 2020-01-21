@@ -1,6 +1,6 @@
 # Upgrade to the Ambassador Edge Stack
 
-If you currently have the open source API Gateway version of Ambassador, you can upgrade to the Ambassador Edge Stack with a few simple commands.
+If you currently have the open source API Gateway version of Ambassador, you can upgrade to the Ambassador Edge Stack with a few simple commands. When you upgrade to the Ambassador Edge Stack, you'll be able to access several new features, such as **automatic HTTPS/TLS termination, Swagger/OpenAPI support, API catalog, IdP support, the Edge Policy Console (a declarative interface), and many more.**
 
 **Prerequisites**:
 
