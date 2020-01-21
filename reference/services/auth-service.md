@@ -1,6 +1,12 @@
 # AuthService Plugin
 
-The Ambassador Edge Stack supports a highly flexible mechanism for authentication. An `AuthService` manifest configures Ambassador to use an external service to check authentication and authorization for incoming requests. Each incoming request is authenticated before routing to its destination.
+The Ambassador API Gateway provides a highly flexible mechanism for authentication, via the `AuthService` resource.  An `AuthService` configures Ambassador to use an external service to check authentication and authorization for incoming requests. Each incoming request is authenticated before routing to its destination.
+
+All requests are validated by the `AuthService` (unless the `Mapping` applied to the request sets `bypass_auth`).  It is not possible to combine multiple `AuthService`s.  While it is possible to create multiple `AuthService` resources, they will be load-balanced between each resource in a round-robin style. This is useful for canarying an `AuthService` change, but is not useful for deploying multiple distinct `AuthService`s.  In order to combine multiple external services (either having multiple services apply to the same request, or selecting between different services for the different requests), instead of using an `AuthService`, use [Ambassador Edge Stack `External Filter`](../../filter-reference).
+
+Because of the limitations described above, **the Ambassador Edge Stack does not support `AuthService` resources, and you should instead use an [`External` `Filter`](../../filter-reference),** which is mostly a drop-in replacement for an `AuthService`.
+
+## Configure an External AuthService
 
 The currently supported version of the `AuthService` resource is `getambassador.io/v2`. Earlier versions are deprecated.
 
@@ -64,7 +70,7 @@ spec:
 - `status_on_error` (optional) status code returned when unable to communicate with auth service. 
     * `code` Defaults to 403
 
-## Multiple AuthService resources
+## Canarying Multiple AuthService
 
 You may use multiple `AuthService` manifests to round-robin authentication requests among multiple services. **Note well that all services must use the same `path_prefix` and header definitions;** if you try to have different values, you'll see an error in the diagnostics service, telling you which value is being used.
 
