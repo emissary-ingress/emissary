@@ -52,6 +52,7 @@
 - /reference/running
 - /reference/services/access-control
 - /reference/services/auth-service
+- /reference/services/log-service
 - /reference/services/rate-limit-service
 - /reference/services/services
 - /reference/services/tracing-service
