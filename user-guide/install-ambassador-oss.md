@@ -116,6 +116,8 @@ The versatile HTTPS configuration of the Ambassador API Gateway lets it support 
 
 Follow our [enabling HTTPS guide](../tls-termination) to quickly enable HTTPS support for your applications.
 
+**Note that the Ambassador Edge Stack automatically enables HTTPs.** Read more about its configuration on the [Host CRD](/reference/host-crd) page.
+
 ## Want more?
 
 For more features, check out the latest build of the [Ambassador Edge Stack](../install).

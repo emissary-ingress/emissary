@@ -113,8 +113,6 @@ Let's say,
 - port 80 on the load balancer forwards requests to port 8080 on Ambassador Edge Stack
 - port 443 on the load balancer forwards requests to port 8443 on Ambassador Edge Stack
 
-
-
 First off, configure this forwarding in your load balancer.
 
 ```yaml

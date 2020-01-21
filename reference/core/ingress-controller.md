@@ -71,7 +71,7 @@ resource itself:
 1. Basic routing, including the `route` specification and the default backend
   functionality, is supported.
     - It's particularly easy to use a minimal `Ingress` to the Ambassador Edge Stack diagnostic UI
-2. TLS termination is supported.
+2. [TLS termination](/user-guide/tls-termination) is supported.
     - you can use multiple `Ingress` resources for SNI
 3. Using the `Ingress` resource in concert with the Ambassador Edge Stack CRDs or annotations is supported.
     - this includes the Ambassador Edge Stack annotations on the `Ingress` resource itself
