@@ -123,6 +123,8 @@ func (f *ExternalFilter) Filter(ctx context.Context, r *filterapi.FilterRequest)
 	ctx, ctxCancel := context.WithTimeout(ctx, f.Spec.Timeout)
 	defer ctxCancel()
 
+	// This f.Spec.AuthService parsing logic mimics ircluster.py
+	// as closely as possible.
 	serviceURL, err := url.Parse("random://" + f.Spec.AuthService)
 	if err != nil {
 		return nil, err

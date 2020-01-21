@@ -38,6 +38,7 @@ type IncludeBody struct {
 	AllowPartial bool `json:"max_bytes"` // required
 }
 
+// Keep these in-sync with v2listener.py
 var (
 	alwaysAllowedRequestHeaders = []string{
 		"authorization",
