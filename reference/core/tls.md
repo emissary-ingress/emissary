@@ -50,8 +50,7 @@ spec:
   # If you set 'redirect_cleartext_from' to a port number, HTTP traffic
   # to that port will be redirected to HTTPS traffic. Make sure that the
   # port number you specify matches the port on which Ambassador is
-  # listening! (If you have multiple TLSContexts, it doesn't matter which
-  # one sets this, but it's an error to specify multiple distinct ports.)
+  # listening! 
   # redirect_cleartext_from: 8080
 
   # 'cert_required' can be set to true to _require_ TLS client certificate

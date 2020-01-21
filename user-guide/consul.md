@@ -20,7 +20,7 @@ In this guide, you will register a service with Consul and use Ambassador Edge S
    kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-rbac.yaml
    ```
 
-   If you're on GKE, or haven't previously created the Ambassador Edge Stack service, please see the Quick Start.
+   If you're on GKE, or haven't previously created the Ambassador Edge Stack service, please see the [quick start guide](../getting-started).
 
 3. Configure Ambassador Edge Stack to look for services registered to Consul by creating the `ConsulResolver`:
 
