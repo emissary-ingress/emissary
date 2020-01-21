@@ -62,7 +62,7 @@ The Edge Policy Console must authenticate your session using a Kubernetes Secret
 
 For more information, see [Edge Control](../../reference/edge-control).
 
-## Configure TLS for Automatic HTTPS
+## Configure TLS Termination and Automatic HTTPS
 
 If you have the ability to update your DNS, Ambassador can automatically configure a valid TLS certificate for you, eliminating the TLS warning. If you do not have the ability to update your DNS, skip to the next section, "Create a Mapping."
 
@@ -76,7 +76,7 @@ If you have the ability to update your DNS, Ambassador can automatically configu
    * Enter the email address to be associated with your TLS certificate.
    * Click the **Save** button.
   
-  You'll see the newly created `Host` resource appear in the UI with a status of "Pending." This will change to "Ready" once the certificate is fully provisioned. If you receive an error that your hostname does not qualify for ACME management, you can still configure TLS following [these instructions](../../user-guide/tls-termination) or by reviewing configuration in the [Host CRD](/reference/host-crd).
+  You'll see the newly created `Host` resource appear in the UI with a status of "Pending." This will change to "Ready" once the certificate is fully provisioned. If you receive an error that your hostname does not qualify for ACME management, you can still configure TLS following [these instructions](../../reference/core/tls) or by reviewing configuration in the [Host CRD](/reference/host-crd).
 
 3. Once the Host is ready, navigate to `https://<hostname>` in your browser. Note that the certificate warning has gone away. In addition, the Ambassador Edge Stack automatically will redirect HTTP connections to HTTPS.
 
