@@ -67,6 +67,7 @@ The Reference section provides detailed information on configuring and managing 
 * [Available Plugins](../../reference/services/services)
 * [FilterPolicy Plugin for Access Control](../../reference/services/access-control)
 * [AuthService Plugin](../../reference/services/auth-service)
+* [LogService Plugin](../../reference/services/log-service)
 * [RateLimtingService Plugin](../../reference/services/rate-limit-service)
 * [TracingService Plugin](../../reference/services/tracing-service)
 
