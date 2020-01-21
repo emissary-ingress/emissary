@@ -17,16 +17,15 @@ import (
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/httpclient"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
 	"github.com/datawire/apro/lib/filterapi"
+	"github.com/datawire/apro/lib/filterapi/filterutil"
 )
 
-func grpcRequestToHTTPClientRequest(g *filterapi.FilterRequest, serviceURL string, allowedHeaders []string, allowRequestBody bool, ctx context.Context) (*http.Request, error) {
+func grpcRequestToHTTPClientRequest(g *filterapi.FilterRequest, serviceURL string, allowedHeaders []string, ctx context.Context) (*http.Request, error) {
 	var err error
 
-	var body string
-	if allowRequestBody {
-		body = g.GetRequest().GetHttp().GetBody()
-	}
+	body := g.GetRequest().GetHttp().GetBody()
 	h := &http.Request{
 		Method:           g.GetRequest().GetHttp().GetMethod(),
 		URL:              nil,           // see below
@@ -112,6 +111,13 @@ type ExternalFilter struct {
 	Spec crd.FilterExternal
 }
 
+func (f *ExternalFilter) handleRemoteFailure(ctx context.Context, err error) (filterapi.FilterResponse, error) {
+	if f.Spec.FailureModeAllow {
+		return &filterapi.HTTPRequestModification{}, nil
+	}
+	return middleware.NewErrorResponse(ctx, f.Spec.StatusOnError.Code, err, nil), nil
+}
+
 func (f *ExternalFilter) Filter(ctx context.Context, r *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
 	logger := dlog.GetLogger(ctx)
 	ctx, ctxCancel := context.WithTimeout(ctx, f.Spec.Timeout)
@@ -134,6 +140,31 @@ func (f *ExternalFilter) Filter(ctx context.Context, r *filterapi.FilterRequest)
 	}
 	serviceAuthority := net.JoinHostPort(serviceHost, servicePort)
 
+	if f.Spec.IncludeBody == nil {
+		if len(r.Request.Http.Body) > 0 {
+			r, err = filterutil.DeepCopyRequest(r)
+			if err != nil {
+				return nil, err
+			}
+			r.Request.Http.Body = ""
+		}
+	} else { // IncludeBody != nil
+		if len(r.Request.Http.Body) > f.Spec.IncludeBody.MaxBytes {
+			if f.Spec.IncludeBody.AllowPartial {
+				_r := r
+				r, err = filterutil.DeepCopyRequest(_r)
+				if err != nil {
+					return nil, err
+				}
+				r.Request.Http.Body = _r.Request.Http.Body[:f.Spec.IncludeBody.MaxBytes]
+			} else {
+				return middleware.NewErrorResponse(ctx, http.StatusRequestEntityTooLarge,
+					errors.Errorf("request body larger than .include_body.max_bytes=%d", f.Spec.IncludeBody.MaxBytes),
+					nil), nil
+			}
+		}
+	}
+
 	switch f.Spec.Proto {
 	case "grpc":
 		var dialOptions []grpc.DialOption
@@ -145,12 +176,11 @@ func (f *ExternalFilter) Filter(ctx context.Context, r *filterapi.FilterRequest)
 			return nil, err
 		}
 		defer grpcClientConn.Close()
-		if !f.Spec.AllowRequestBody {
-			_body := r.Request.Http.Body
-			r.Request.Http.Body = ""
-			defer func() { r.Request.Http.Body = _body }()
+		ret, err := filterapi.NewFilterClient(grpcClientConn).Filter(ctx, r)
+		if err != nil {
+			return f.handleRemoteFailure(ctx, err)
 		}
-		return filterapi.NewFilterClient(grpcClientConn).Filter(ctx, r)
+		return ret, nil
 	case "http":
 		var serviceURL string
 		if f.Spec.TLS {
@@ -160,7 +190,7 @@ func (f *ExternalFilter) Filter(ctx context.Context, r *filterapi.FilterRequest)
 		}
 		serviceURL += f.Spec.PathPrefix
 
-		httpRequest, err := grpcRequestToHTTPClientRequest(r, serviceURL, f.Spec.AllowedRequestHeaders, f.Spec.AllowRequestBody, ctx)
+		httpRequest, err := grpcRequestToHTTPClientRequest(r, serviceURL, f.Spec.AllowedRequestHeaders, ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -172,11 +202,15 @@ func (f *ExternalFilter) Filter(ctx context.Context, r *filterapi.FilterRequest)
 
 		httpResponse, err := client.Do(httpRequest)
 		if err != nil {
-			return nil, err
+			return f.handleRemoteFailure(ctx, err)
 		}
 		defer httpResponse.Body.Close()
 
-		return httpResponseToGRPCResponse(httpResponse, f.Spec.AllowedAuthorizationHeaders)
+		ret, err := httpResponseToGRPCResponse(httpResponse, f.Spec.AllowedAuthorizationHeaders)
+		if err != nil {
+			return f.handleRemoteFailure(ctx, err)
+		}
+		return ret, nil
 	default:
 		panic("should not happen")
 	}

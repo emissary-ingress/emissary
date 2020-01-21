@@ -21,11 +21,21 @@ type FilterExternal struct {
 	TLS bool `json:"tls"`
 
 	Proto                       string        `json:"proto"` // either "http" or "grpc"
-	AllowRequestBody            bool          `json:"allow_request_body"`
 	RawTimeout                  int64         `json:"timeout_ms"`
 	Timeout                     time.Duration `json:"-"`
 	AllowedRequestHeaders       []string      `json:"allowed_request_headers"`
 	AllowedAuthorizationHeaders []string      `json:"allowed_authorization_headers"`
+	DeprecatedAllowRequestBody  *bool         `json:"allow_request_body"` // deprecated in favor of include_body
+	IncludeBody                 *IncludeBody  `json:"include_body"`
+	StatusOnError               struct {
+		Code int `json:"code"`
+	} `json:"status_on_error"`
+	FailureModeAllow bool `json:"failure_mode_allow"`
+}
+
+type IncludeBody struct {
+	MaxBytes     int  `json:"max_bytes"` // required
+	AllowPartial bool `json:"max_bytes"` // required
 }
 
 var (
@@ -74,6 +84,24 @@ func (m *FilterExternal) Validate() error {
 	}
 	m.AllowedRequestHeaders = normalizeUnion(m.AllowedRequestHeaders, alwaysAllowedRequestHeaders)
 	m.AllowedAuthorizationHeaders = normalizeUnion(m.AllowedAuthorizationHeaders, alwaysAllowedAuthorizationHeaders)
+	if m.StatusOnError.Code == 0 {
+		m.StatusOnError.Code = http.StatusForbidden
+	}
+
+	// Convert deprecated fields
+	if m.DeprecatedAllowRequestBody != nil {
+		if m.IncludeBody != nil {
+			return errors.New("it is invalid to set both \"allow_request\" and \"include_body\"; \"allow_request\" is deprecated and should be replaced by \"include_body\"")
+		}
+		if *m.DeprecatedAllowRequestBody {
+			m.IncludeBody = &IncludeBody{
+				// Keep this in-sync with v2listener.py
+				MaxBytes:     4096,
+				AllowPartial: true,
+			}
+		}
+		m.DeprecatedAllowRequestBody = nil
+	}
 
 	// Validate
 
