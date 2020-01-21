@@ -72,8 +72,6 @@ You can now access the Edge Policy Console with the following options:
 * `edgectl login -n <namespace> <AES_host>` or
 * `https://{{AES_URL}}/edge_stack/admin`
 
-If you log in with the URL, it allows you to have a `Mapping` at `prefix: /` if desired.
-
 ## 7. What's Next?
 
 Now that you have the Ambassador Edge Stack up and running, check out the [Getting Started](../getting-started) guide for recommendations on what to do next and take full advantage of its features.
