@@ -2,8 +2,8 @@
 
 **IMPORTANT:** Ambassador Edge Stack requires the that the IdP returns a JWT signed by the RS256 algorithm (asymmetric key). Cloud Foundry's UAA defaults to symmetric key encryption which Ambassador Edge Stack cannot read. 
 
-You will need to provide your own asymmetric key when configuring UAA in a file called `uaa.yml`. For example:
-`uaa.yml`
+When configuring UAA, you will need to provide your own asymmetric key in a file called `uaa.yml`. For example:
+
 ```yaml
 jwt:
    token:
