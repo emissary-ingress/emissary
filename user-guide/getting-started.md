@@ -64,7 +64,7 @@ For more information, see [Edge Control](../../reference/edge-control).
 
 ## Configure TLS Termination and Automatic HTTPS
 
-If you have the ability to update your DNS, Ambassador can automatically configure a valid TLS certificate for you, eliminating the TLS warning. If you do not have the ability to update your DNS, skip to the next section, "Create a Mapping."
+**The Ambassador Edge Stack enables TLS termination by default using a self-signed certificate.** If you have the ability to update your DNS, Ambassador can automatically configure a valid TLS certificate for you, eliminating the TLS warning. If you do not have the ability to update your DNS, skip to the next section, "Create a Mapping."
 
 1. Update your DNS so that your domain points to the IP address for your cluster. 
 
