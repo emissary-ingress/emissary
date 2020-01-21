@@ -33,11 +33,12 @@ spec:
   service: luatest-http
 ```
 
-Note that the `namespace` must be declared in the `metadata`, but if needed, `ambassador_id` must be declared in the `spec`.
+Note that the `namespace` must be declared in the `metadata`, but if needed, `ambassador_id` must be declared in the `spec`.  
+You can run `kubectl get ambassador-crds` to see the CRDs you've created to configure the Ambassador Edge Stack.
 
 ## Supported CRDs
 
-You can run `kubectl get ambassador-crds` to see the full set of CRDs supported by the Ambassador Edge Stack:
+The full set of CRDs supported by the Ambassador Edge Stack are the following:
 
 | `Kind` | Kubernetes singular | Kubernetes plural |
 | :----- | :------------------ | :---------------- |
