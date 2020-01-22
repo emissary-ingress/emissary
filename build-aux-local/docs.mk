@@ -1,10 +1,10 @@
 # This is the branch from ambassador-docs.git to pull for "make pull-docs".
 # Override if you need to.
-PULL_BRANCH ?= early-access
+PULL_BRANCH ?= master
 
 # This is the branch from ambassador-docs.git to push to for "make push-docs".
 # Override if you need to.
-PUSH_BRANCH ?= early-access
+PUSH_BRANCH ?= rel/v$(shell echo "$(RELEASE_VERSION)")
 
 # ------------------------------------------------------------------------------
 # Website
