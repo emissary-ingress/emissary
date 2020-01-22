@@ -37,6 +37,60 @@ class Mapping extends SingleResource {
     return this.shadowRoot.querySelector('input[name="target"]')
   }
 
+  validate() {
+    super.validate();
+    /*
+     * Validate that the labels have no empty strings in them. The labels data structure
+     * is complex, hence the multiple nested iterations here:
+     *
+     * Array of
+     *   Object with many
+     *     String X: Array of
+     *          String X
+     *       or Object with
+     *             String X: Object with
+     *                "header": String X
+     * We need to check all the String Xs to be sure they are not empty strings.
+     */
+    if (this.state.labels && this.state.labels.length > 0) {
+      for(var j = 0; j < this.state.labels.length; j++) { // Array of..
+        var c = this.state.labels[j];  // Object..
+        for(const n in c) {  // with many..
+          if (n && n.length > 0) {  // String X: ..
+            var a = c[n];
+            for(var i = 0; i < a.length; i++) {  // ..: Array of..
+              var s = a[i];
+              if (typeof s === "string" && s.length === 0) {  // String X
+                this.state.messages.push("Labels must not be empty names.");
+                return;
+              }
+              if (typeof s === "object") {  // or Object..
+                for(const k in s) {  // with..
+                  if (k.length === 0) {  // String X: ..
+                    this.state.messages.push("Labels must not be empty names in either box.");
+                    return;
+                  } else {
+                    var b = s[k];
+                    for(const m in b) {  // ..: Object with..
+                      var d = b[m];
+                      if (d.length === 0) { // String X
+                        this.state.messages.push("Labels must not be empty names in either box");
+                        return;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          } else {
+            this.state.messages.push("Labels must not have empty names.")
+            return;
+          }
+        }
+      }
+    }
+  }
+
   /**
    * Implement.
    */

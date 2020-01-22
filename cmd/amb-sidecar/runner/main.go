@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"flag"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -22,6 +23,7 @@ import (
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
+	"k8s.io/klog"
 	grpchealth "google.golang.org/grpc/health"
 
 	// first-party libraries
@@ -217,6 +219,11 @@ func runE(cmd *cobra.Command, args []string) error {
 	logrusLogger.SetLevel(level)
 	logrus.SetLevel(level) // FIXME(lukeshu): Some Lyft code still uses the global logger
 
+	// FIXME(lukeshu): Find a way to hook klog in to our logger; client-go uses klog behind our back
+	klogFlags := flag.NewFlagSet(os.Args[0], flag.PanicOnError)
+	klog.InitFlags(klogFlags)
+	klogFlags.Parse([]string{"-logtostderr=true", "-v=4"})
+
 	kubeinfo := k8s.NewKubeInfo("", "", "") // Empty file/ctx/ns for defaults
 	restconfig, err := kubeinfo.GetRestConfig()
 	if err != nil {
@@ -236,6 +243,11 @@ func runE(cmd *cobra.Command, args []string) error {
 		coreClient,
 		dlog.WrapLogrus(logrusLogger).WithField("MAIN", "event-broadcaster"),
 	)
+	if err != nil {
+		return err
+	}
+
+	acmeLock, err := acmeclient.GetLeaderElectionResourceLock(cfg, kubeinfo, eventLogger)
 	if err != nil {
 		return err
 	}
@@ -328,6 +340,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		http.DefaultClient, // XXX
 		snapshotStore.Subscribe(),
 		eventLogger,
+		acmeLock,
 		coreClient,
 		dynamicClient)
 	group.Go("acme_client", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
@@ -337,10 +350,7 @@ func runE(cmd *cobra.Command, args []string) error {
 			l.Errorln(err)
 			// this is non fatal (mostly just to facilitate local dev); don't `return err`
 		}
-		// acmeController.Worker() doesn't need to observe softCtx.Done() because as a
-		// snapshotStore.Subscribe()r it will notice the shutdown from snapshotStore.
-		acmeController.Worker(l)
-		return nil
+		return acmeController.Worker(dlog.WithLogger(softCtx, l))
 	})
 
 	// HTTP server

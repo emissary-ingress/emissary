@@ -34,14 +34,14 @@ type Config struct {
 	AmbassadorSingleNamespace bool   `env:"AMBASSADOR_SINGLE_NAMESPACE ,parser=empty/nonempty                   "`
 
 	// General
-	HTTPPort        string `env:"APRO_HTTP_PORT    ,parser=nonempty-string       ,default=8500 "`
+	HTTPPort        string `env:"DEV_AES_HTTP_PORT ,parser=nonempty-string       ,default=8500 "`
 	LogLevel        string `env:"AES_LOG_LEVEL     ,parser=logrus.ParseLevel     ,default=info "` // log level ("error" < "warn"/"warning" < "info" < "debug" < "trace")
 	RedisPoolSize   int    `env:"REDIS_POOL_SIZE   ,parser=strconv.ParseInt      ,default=10   "`
 	RedisSocketType string `env:"REDIS_SOCKET_TYPE ,parser=nonempty-string       ,default=tcp  "`
 	RedisURL        string `env:"REDIS_URL         ,parser=possibly-empty-string               "` // if empty, disables AES features
 
 	// Rate Limit
-	RLSRuntimeDir              string `env:"RLS_RUNTIME_DIR               ,parser=nonempty-string       ,default=/tmp/amb/config "` // e.g.: "/tmp/amb-sidecar.XYZ/rls-snapshot"; same as the RUNTIME_ROOT for Lyft ratelimit.  Must point to a _symlink_ to a directory, not a real directory.  The symlink need not already exist at launch.  Unlike Lyft ratelimit, the parent doesn't need to exist at launch either.
+	RLSRuntimeDir              string `env:"DEV_RLS_RUNTIME_DIR           ,parser=nonempty-string       ,default=/tmp/amb/config "` // e.g.: "/tmp/amb-sidecar.XYZ/rls-snapshot"; same as the RUNTIME_ROOT for Lyft ratelimit.  Must point to a _symlink_ to a directory, not a real directory.  The symlink need not already exist at launch.  Unlike Lyft ratelimit, the parent doesn't need to exist at launch either.
 	RLSRuntimeSubdir           string `env:",const=true                   ,parser=nonempty-string       ,default=config          "` // directory inside of RLSRuntimeDir; same as the RUNTIME_SUBDIRECTORY for Lyft ratelimit
 	RedisPerSecond             bool   `env:"REDIS_PERSECOND               ,parser=strconv.ParseBool     ,default=false           "`
 	RedisPerSecondPoolSize     int    `env:"REDIS_PERSECOND_POOL_SIZE     ,parser=strconv.ParseInt      ,default=10              "`
@@ -50,8 +50,8 @@ type Config struct {
 	ExpirationJitterMaxSeconds int64  `env:"EXPIRATION_JITTER_MAX_SECONDS ,parser=strconv.ParseInt      ,default=300             "`
 
 	// Developer Portal
-	AmbassadorAdminURL     *url.URL      `env:"AMBASSADOR_ADMIN_URL          ,parser=absolute-URL    ,default=http://127.0.0.1:8877/                            "`
-	AmbassadorInternalURL  *url.URL      `env:"AMBASSADOR_INTERNAL_URL       ,parser=absolute-URL    ,default=https://127.0.0.1:8443/                           "`
+	AmbassadorAdminURL     *url.URL      `env:"DEV_AMBASSADOR_ADMIN_URL      ,parser=absolute-URL    ,default=http://127.0.0.1:8877/                            "`
+	AmbassadorInternalURL  *url.URL      `env:"DEV_AMBASSADOR_INTERNAL_URL   ,parser=absolute-URL    ,default=https://127.0.0.1:8443/                           "`
 	AmbassadorExternalURL  *url.URL      `env:"AMBASSADOR_URL                ,parser=absolute-URL    ,default=https://api.example.com/                          "`
 	DevPortalPollInterval  time.Duration `env:"POLL_EVERY_SECS               ,parser=integer-seconds ,default=60                                                "`
 	DevPortalContentURL    *url.URL      `env:"DEVPORTAL_CONTENT_URL         ,parser=absolute-URL    ,default=https://github.com/datawire/devportal-content.git "`
