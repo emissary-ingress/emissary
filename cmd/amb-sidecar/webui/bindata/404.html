@@ -96,6 +96,15 @@
         justify-content: center;
         margin-top: 10px;
       }
+      #browserNameChrome {
+        display: none;
+      }
+      #browserNameSafari {
+        display: none;
+      }
+      #browserNameFirefox {
+        display: none;
+      }
       #showHideWrapperChrome {
         display: none;
       }
@@ -203,10 +212,6 @@
           };
 
           window.onload = (event) => {
-            console.log('page is fully loaded');
-            console.log(window.chrome);
-            console.log(window.chrome.webstore);
-            console.log(window.chrome.runtime);
             getBrowser();
           };
 
@@ -223,7 +228,7 @@
           <h1 class="app-title">CONGRATULATIONS!</h1>
           <p class="app-subtitle">You've installed the Ambassador Edge Stack</p>
           <p class="app-text"><a class="app-link">As the blackbird flies, clicking here is<br>the quickest way to the Edge Policy Console.</a></p>
-          <p class="app-notice">Note: you will need to accept the Ambassador Edge Stack self-signed TLS certificate to establish an initial secure connection to the Edge Policy Console. Your <span id="browserNameChrome"></span> browser will display a security warning as below:</p>
+          <p class="app-notice">Note: you will need to accept the Ambassador Edge Stack self-signed TLS certificate to establish an initial secure connection to the Edge Policy Console. Your <span id="browserNameChrome">Chrome</span><span id="browserNameFirefox">Firefox</span><span id="browserNameSafari">Safari</span> browser will display a security warning as below:</p>
 <!-- Chrome instructions block -->
           <div id="showHideWrapperChrome">
             <div class="browserLogoContainer">
@@ -287,12 +292,15 @@
         (function renderBrowserWarning() {
           switch(browser) {
             case "chrome":
+              document.getElementById("browserNameChrome").style.display = "inline-block";
               document.getElementById("showHideWrapperChrome").style.display = "inline-block";
               break;
             case "safari":
+              document.getElementById("browserNameSafari").style.display = "inline-block";
               document.getElementById("showHideWrapperSafari").style.display = "inline-block";
               break;
             case "firefox":
+              document.getElementById("browserNameFirefox").style.display = "inline-block";
               document.getElementById("showHideWrapperFirefox").style.display = "inline-block";
               break;
             case "other":
