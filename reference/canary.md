@@ -10,7 +10,7 @@ Kubernetes supports a basic canary release workflow using its core objects. In t
 
 Ambassador Edge Stack supports fine-grained canary releases. Ambassador Edge Stack uses a weighted round robin scheme to route traffic between multiple services. Full metrics are collected for all services, making it easy to compare the relative performance of the canary and production. 
 
-### The `weight` annotation
+### The `weight` Attribute
 
 The `weight` attribute specifies how much traffic for a given resource will be routed using a given mapping. Its value is an integer percentage between 0 and 100. Ambassador Edge Stack will balance weights to make sure that, for every resource, the mappings for that resource will have weights adding to 100%. (In the simplest case, a single mapping is guaranteed to receive 100% of the traffic no matter whether it's assigned a `weight` or not.)
 

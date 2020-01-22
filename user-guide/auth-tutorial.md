@@ -71,7 +71,7 @@ Note that the cluster does not yet contain any Ambassador Edge Stack AuthService
 The YAML above is published at getambassador.io, so if you like, you can just do
 
 ```shell
-kubectl apply -f https://www.getambassador.io/early-access/yaml/demo/demo-auth.yaml
+kubectl apply -f https://www.getambassador.io/yaml/demo/demo-auth.yaml
 ```
 
 to spin everything up. (Of course, you can also use a local file, if you prefer.)
@@ -112,7 +112,7 @@ authentication handler. For this reason, remember that the full path of the inco
 You can apply this file from getambassador.io with
 
 ```shell
-kubectl apply -f https://www.getambassador.io/early-access/yaml/demo/demo-auth-enable.yaml
+kubectl apply -f https://www.getambassador.io/yaml/demo/demo-auth-enable.yaml
 ```
 
 or, again, apply it from a local file if you prefer.

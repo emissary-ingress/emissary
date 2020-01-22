@@ -1,6 +1,6 @@
 # Upgrade to the Ambassador Edge Stack
 
-If you currently have the open source API Gateway version of Ambassador, you can upgrade to the Ambassador Edge Stack with a few simple commands.
+If you currently have the open source API Gateway version of Ambassador, you can upgrade to the Ambassador Edge Stack with a few simple commands. When you upgrade to the Ambassador Edge Stack, you'll be able to access several new features, such as **automatic HTTPS/TLS termination, Swagger/OpenAPI support, API catalog, IdP support, the Edge Policy Console (a declarative interface), and many more.**
 
 **Prerequisites**:
 
@@ -29,7 +29,7 @@ Note: Make sure you apply the manifests in the same namespace as your current Am
 Use the following command to install the Ambassador Edge Stack, replacing `<namespace>` appropriately:
 
 ```
-kubectl apply -n <namespace> -f https://www.getambassador.io/early-access/yaml/oss-migration.yaml
+kubectl apply -n <namespace> -f https://www.getambassador.io/yaml/oss-migration.yaml
 ```
 
 ## 2. Test the New Deployment
