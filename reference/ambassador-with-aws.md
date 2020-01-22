@@ -28,7 +28,7 @@ AWS provides three types of load balancers:
   * Supports L4 only
   * Cannot perform SSL/TLS offload
 
-In Kubernetes, when using the AWS integration and a service of type `LoadBalancer`, the only types of load balancers that can be created are ELBs and NLBs. When `aws-load-balancer-backend-protocol` is set to `tcp`, AWS will create a L4 ELB. When `aws-load-balancer-backend-protocol` is set to `http`, AWS will create a L7 ELB.
+In Kubernetes, when using the AWS integration and a service of type `LoadBalancer`, the only types of load balancers that can be created are ELBs and NLBs. When `aws-load-balancer-backend-protocol` is set to `tcp`, AWS will create an L4 ELB. When `aws-load-balancer-backend-protocol` is set to `http`, AWS will create an L7 ELB.
 
 ## Load Balancer Annotations
 

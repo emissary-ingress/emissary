@@ -139,7 +139,7 @@ Some special cases to be aware of here:
 
   In this case, the Host resource explicitly requests no ACME handling, then states that insecure requests must be routed instead of redirected.
 
-5. Split L4 Load Balancer: In this scenario, a L4 load balancer terminates TLS on port 443 and relays that traffic to Ambassador on port 8443, but the load balancer also relays cleartext traffic on port 80 to Ambassador on port 8080. 
+5. Split L4 Load Balancer: In this scenario, an L4 load balancer terminates TLS on port 443 and relays that traffic to Ambassador on port 8443, but the load balancer also relays cleartext traffic on port 80 to Ambassador on port 8080. 
 
   Since the load balancer is at layer 4, it cannot provide X-Forwarded-Proto, so we need to explicitly set port 8080 as insecure:
 

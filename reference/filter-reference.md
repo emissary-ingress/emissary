@@ -219,7 +219,7 @@ spec:
         - "scope-value-2"
 ```
 
- - `scope`: A list of OAuth scope values to require be listed in the
+ - `scope`: A list of OAuth scope values required to be listed in the
    [`scope` claim][].  In addition to the normal of the `scope` claim
    (a JSON string containing a space-separated list of values), the
    JWT Filter also accepts a JSON array of values.
@@ -397,7 +397,7 @@ General settings:
        signing appropriately
 	 + This behavior can be modified by delegating to [`JWT`
        Filter](#filter-type-jwt) with `accessTokenJWTFilter`.  The
-       arguments are the same as the arguments when erferring to a JWT
+       arguments are the same as the arguments when referring to a JWT
        Filter from a FilterPolicy.
    * `"userinfo"`: Validates the access token by polling the OIDC
      UserInfo Endpoint.  This means that the Ambassador Edge Stack
@@ -440,7 +440,7 @@ HTTP client settings for talking to the identity provider:
    sets the `max-stale` Cache-Control directive on requests, and also
    ignores the `no-store` and `no-cache` Cache-Control directives on
    responses.  This is useful for maintaining good performance when
-   working with identity providers with mis-configured Cache-Control.
+   working with identity providers with misconfigured Cache-Control.
  - `insecureTLS` disables TLS verification when speaking to an
    identity provider with an `https://` `authorizationURL`.  This is
    discouraged in favor of either using plain `http://` or [installing
@@ -548,11 +548,11 @@ spec:
 
 ### Filter Type: `Plugin`
 
-The `Plugin` filter type allows you to plug in your own custom code. This code is compiled to a `.so` file, which you load in to the Ambassador Edge Stack container at `/etc/ambassador-plugins/${NAME}.so`.
+The `Plugin` filter type allows you to plug in your own custom code. This code is compiled to a `.so` file, which you load into the Ambassador Edge Stack container at `/etc/ambassador-plugins/${NAME}.so`.
 
 #### The Plugin Interface
 
-This code is written in the Go programming language (golang), and must
+This code is written in the Go programming language (Golang), and must
 be compiled with the exact same compiler settings as the Ambassador
 Edge Stack; and any overlapping libraries used must have their
 versions match exactly. This information is documented in the
@@ -626,7 +626,7 @@ spec:
       arguments: DEPENDS          # optional
 ```
 
-The type of the `arguments` property is dependent on the which Filter type is being referred to; see the "Path-Specific Arguments" documentation for each Filter type.
+The type of the `arguments` property is dependent on which Filter type is being referred to; see the "Path-Specific Arguments" documentation for each Filter type.
 
 When multiple `Filter`s are specified in a rule:
 
@@ -639,7 +639,7 @@ When multiple `Filter`s are specified in a rule:
       sending it to other filters or the upstream service (normally
       *allowing* the request to be forwarded to the upstream service
       with modifications).
- * If a filter has a `ifRequestHeader` setting, the filter is skipped
+ * If a filter has an `ifRequestHeader` setting, the filter is skipped
    unless the request (including any modifications made by earlier
    filters) matches the described header; the request must have the
    HTTP header field `name` (case-insensitive) set to `value`
@@ -657,7 +657,7 @@ When multiple `Filter`s are specified in a rule:
  * `onAllow` identifies what to do when the filter returns a
    "modification to the HTTP request":
    - `"break"`: Apply the modification to the request, then end filter
-     processing, and forward the modified request to the upstream
+     processing, and forwards the modified request to the upstream
      service.  Later filters are not called.
    - `"continue"`: Continue processing.  Apply the request
      modification, then pass the modified request to the next filter
@@ -711,7 +711,7 @@ spec:
 ## Installing self-signed certificates
 
 The `JWT` and `OAuth2` filters speak to other services over HTTP or HTTPS.  If those services are configured to speak HTTPS using a
-self-signed certificate, attempting to talk to them will result in an error mentioning `ERR x509: certificate signed by unknown authority`. You can fix this by installing that self-signed certificate in to the
+self-signed certificate, attempting to talk to them will result in an error mentioning `ERR x509: certificate signed by unknown authority`. You can fix this by installing that self-signed certificate into the
 AES container following the standard procedure for Alpine Linux 3.8: Copy the certificate to `/usr/local/share/ca-certificates/` and then run `update-ca-certificates`.  Note that the `aes` image sets `USER 1000`, but that `update-ca-certificates` needs to be run as root.
 
 ```Dockerfile

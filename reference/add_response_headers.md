@@ -29,4 +29,4 @@ spec:
   service: quote
 ```
 
-will add the protocol, client IP, and a static header to returning response to client.
+will add the protocol, client IP, and a static header to returning a response to the client.

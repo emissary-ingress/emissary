@@ -123,7 +123,7 @@ You can examine the contents of the Ambassador Pod for issues, such as if volume
 5. If something is wrong with `snapshot` or `aconf`, there is an issue with your configuration. If something is wrong with `ir` or `econf`, you should [open an issue on Github](https://github.com/datawire/ambassador/issues/new/choose).
 6. To find the main configuration for Envoy, run: `$AMBASSADOR_CONFIG_BASE_DIR/envoy/envoy.json`.
 7. For the bootstrap configuration, which has details about Envoy statistics, logging, and auth, run: `$AMBASSADOR_CONFIG_BASE_DIR/bootstrap-ads.json`.
-8. For further details, you can print the Envoy configuration that is geenerated during the Ambassador configuration. The file will be titled `envoy-N.json` where N matches the number of the `ambassador-config-N` directory number. Run the following command: `# cat envoy-2.json`
+8. For further details, you can print the Envoy configuration that is generated during the Ambassador configuration. The file will be titled `envoy-N.json` where N matches the number of the `ambassador-config-N` directory number. Run the following command: `# cat envoy-2.json`
 
     The terminal will print something similar to the following:
 

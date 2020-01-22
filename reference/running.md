@@ -52,7 +52,7 @@ spec:
 While running, Ambassador needs to use a directory within its container for generated configuration data. 
 Normally this is `/ambassador`, but in some situations - especially if running as non-root - it may be necessary to
 change to a different directory. To do so, set the environment variable `AMBASSADOR_CONFIG_BASE_DIR` to the full 
-pathname of the directory to use, as shown below in this abbreviated example:
+path name of the directory to use, as shown below in this abbreviated example:
 
 ```yaml
 env:
@@ -68,7 +68,7 @@ existing file into a directory will fail.)
 
 Ambassador can be deployed as daemonset to have one pod per node in a Kubernetes cluster. This setup is especially helpful when you have a Kubernetes cluster running on a private cloud.
 
-* In an ideal example scenario, you are running containers on Kubernetes alongside with your non containerized applications running exposed via VIP using BIG-IP or similar products. In such cases, east-west traffic is routed based on iRules to certain a set of application pools consisting of application or web servers. In this setup, alongside of traditonal application servers, two or more Ambassador pods can also be part of the application pools. In case of failure there is at least one Ambassdor pod available to BIG-IP that can take care of routing traffic to the Kubernetes cluster.
+* In an ideal example scenario, you are running containers on Kubernetes alongside with your non containerized applications running exposed via VIP using BIG-IP or similar products. In such cases, east-west traffic is routed based on iRules to certain a set of application pools consisting of application or web servers. In this setup, alongside of a traditonal application servers, two or more Ambassador pods can also be part of the application pools. In case of failure there is at least one Ambassador pod available to BIG-IP that can take care of routing traffic to the Kubernetes cluster.
 
 * In manifest files `kind: Deployment` needs to be updated to `kind: DaemonSet`  and  `replicas` should be removed in `spec` section.
 

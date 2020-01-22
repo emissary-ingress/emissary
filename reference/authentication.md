@@ -72,7 +72,7 @@ This is done by having your application direct the web browser `POST`
 form-encoded values that you need to include:
 
  1. `realm`: The `name.namespace` of the `Filter` that you want to log
-    out of.  This may be submitted as part of the POST body, or may be set as an URL query parameter.
+    out of.  This may be submitted as part of the POST body, or may be set as a URL query parameter.
  2. `_xsrf`: The value of the `ambassador_xsrf.{{realm}}` cookie
     (where `{{realm}}` is as described above).  This must be set in the POST body, the URL query part will not be checked.
 

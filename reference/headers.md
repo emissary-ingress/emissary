@@ -24,7 +24,7 @@ spec:
     x-random-header: datawire
 ```
 
-will allow requests to /backend/ to succeed only if the x-quote-mode header has the value backend and the x-random-header has the value datawire.
+will allow requests to /backend/ to succeed only if the x-quote-mode header has the value backend and the x-random-header has the value `datawire`.
 
 ### A conditional example
 

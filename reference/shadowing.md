@@ -72,4 +72,4 @@ spec:
   weight: 10
 ```
 
-In the example above, only the 10% of the traffic will be forwarded to the shadowing service.
+In the example above, only 10% of the traffic will be forwarded to the shadowing service.

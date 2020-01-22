@@ -35,7 +35,7 @@ circuit_breakers:
 
 ### `max_retries`
 
-(Default: `3`) Specifies the maximum number of parallel retries allowed to hosts.
+(Default: `3`) Specifies the maximum number of parallel retries allowed to a host.
 
 ## Examples
 
@@ -101,4 +101,4 @@ circuit_breakers:
   max_retries: 3
 ```
 
-Circuit breaker metrics are exposed in statsd. For more information about the specific statistics, see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/circuit_breaking.html).
+Circuit breaker metrics are exposed in StatsD. For more information about the specific statistics, see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/circuit_breaking.html).

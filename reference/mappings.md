@@ -22,9 +22,9 @@ Ambassador Edge Stack supports a number of attributes to configure and customize
 |-------------------------|------------------------------------------------------------------------------------------------------------|-------------|
 | `add_linkerd_headers` | When true, Ambassador Edge Stack adds the `l5d-dst-overrideheader` to the request and the service field is used as a value. Note that when `add_linkerd_headers` is set to true in the `ambassador` Module, the configuration will be applied to all mappings, including auth. `ambassador` Module and individual mapping configurations can be used together, and the latest will always take precedence over the module's configurations. | boolean |
 | `add_request_headers` | Specifies a dictionary of other HTTP headers that should be added to each request when talking to the service. | string list |
-| `add_response_headers` | Specifies a dictionary of other HTTP headers that should be added to each response when returning response to client. | string list |
+| `add_response_headers` | Specifies a dictionary of other HTTP headers that should be added to each response when returning a response to the client. | string list |
 | `cluster_idle_timeout_ms` | The timeout, in milliseconds, before an idle connection upstream is closed (may be set on a Mapping, AuthService, or in the `ambassador` Module). | integer |
-| `connect_timeout_ms` | The timeout, in milliseconds, for requests coming through the Clusterfor this Mapping. Defaults to 3000. | integer |
+| `connect_timeout_ms` | The timeout, in milliseconds, for requests coming through the Cluster for this Mapping. Defaults to 3000. | integer |
 | `cors` | Enables Cross-Origin Resource Sharing (CORS) setting on a mapping | dictionary |
 | `circuit_breakers` | Configures circuit breaking on a mapping. | dictionary |
 | `enable_ipv4` | If true, enables IPv4 DNS lookups for this mapping's service (the default is set by the ambassadorModule) | boolean |
@@ -42,12 +42,12 @@ Ambassador Edge Stack supports a number of attributes to configure and customize
 | `rate_limits` | Specifies a list rate limit rules on a mapping. | dictionary |
 | `remove_request_headers` | Specifies a list of HTTP headers that are dropped from the request before sending upstream. | string list |
 | `remove_response_headers` | Specifies a list of HTTP headers that are dropped from the response before sending to the client. | string list |
-| `regex_headers` | Specifies a list of HTTP headers and regular expressions which must match for this mapping to be used to route the request. | string list |
+| `regex_headers` | Specifies a list of HTTP headers and regular expressions that must match for this mapping to be used to route the request. | string list |
 | `rewrite` | Replaces the URL prefix with when talking to the service. Defaults to `"/"`, meaning the prefix is stripped. | string |
 | `retry_policy` | Performs automatic retries upon request failures. | dictionary |
 | `timeout_ms` | The timeout, in milliseconds, for requests through this Mapping. Defaults to 3000. | integer |
-| `tls` | If true, tells the system that it should use HTTPS to contact this service. (It's also possible to use tls to specify a certificate to present to the service.) | boolean |
-| `use_websocket` | If true, tells Ambassador Edge Stack that this service will use websockets. | boolean |
+| `tls` | If true, tells the system that it should use HTTPS to contact this service. (It's also possible to use TLS to specify a certificate to present to the service.) | boolean |
+| `use_websocket` | If true, tells Ambassador Edge Stack that this service will use web sockets. | boolean |
 
 If both `enable_ipv4` and `enable_ipv6` are set, Ambassador Edge Stack will prefer IPv6 to IPv4. See the `ambassador`[Module](../modules) documentation for more information.
 

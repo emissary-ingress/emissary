@@ -6,7 +6,7 @@ The Dev Portal will automatically discover all services known by the Ambassador 
 
 ### `/docs/`
 
-Rendered API documentation is published at the `/docs/` URL by default. In a subsequent release, support will be added for publish at alternative URLs.
+Rendered API documentation is published at the `/docs/` URL by default. In a subsequent release, support will be added for publishing at alternative URLs.
 
 ### `.ambassador-internal`
 
