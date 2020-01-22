@@ -51,7 +51,7 @@ A microservice gateway also requires monitoring and rate limiting, but for diffe
 
 A microservices application has multiple services, each of which is being independently updated. Automated pre-production testing of a moving target is necessary but not sufficient for microservices. Canary testing, where a small percentage of production traffic is routed to a new service version, is an important tool to help test an update. By limiting a new service version to a small percentage of users, the impact of a service failure is limited.
 
-In a traditional enterprise API gateway, routing is used to isolate or compose/aggregate changing API versions. Automated pre-production testing and manual post-production verification and exploration is required.
+In a traditional enterprise API gateway, routing is used to isolate or compose/aggregate changing API versions. Automated pre-production testing and manual post-production verification and exploration are required.
 
 # Summary
 
