@@ -85,6 +85,8 @@ spec:
        * if `allow_partial` is `true`, the first `max_bytes` of the body are sent to the external auth service.
        * if `false`, the message is rejected with HTTP 413 ("Payload Too Large").
 
+   Unfortunately, in order for `include_body` to function properly, the `AuthService` in [`aes.yaml`](/yaml/aes.yaml) must be edited to have `include_body` set with `max_bytes` greater than the largest `max_bytes` used by any `External` filter (so if an `External` filter has `max_bytes: 4096`, then the `AuthService` will need `max_bytes: 4097`), and `allow_partial: true`.
+
  - `status_on_error` (optional) controls the status code returned when unable to communicate with external auth service.  This is ignored if `failure_mode_allow: true`.
     * `code` (optional) defaults to 403.
 
