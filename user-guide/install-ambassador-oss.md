@@ -1,5 +1,11 @@
 # The Ambassador API Gateway
 
+**The Ambassador Edge stack is now available and includes additional functionality beyond the current Ambassador API Gateway.** These features including automatic HTTPS, the Edge Policy Console UI, OAuth/OpenID Connect authentication support, integrated rate limiting, a developer portal, and [more](https://www.getambassador.io/edge-stack-faq/).
+
+If you still want to use just the Ambassador API Gateway, don't worry! You can follow the directions below to install it. Throughout the documentation, you'll see product tags at the top of the page, so you know what features apply to the Ambassador API Gateway.
+
+## Install the Ambassador API Gateway
+
 In this tutorial, we'll walk through the process of deploying the Ambassador API Gateway in Kubernetes for ingress routing. The Ambassador API Gateway provides all the functionality of a traditional ingress controller (i.e., path-based routing) while exposing many additional capabilities such as [authentication](../auth-tutorial), URL rewriting, CORS, rate limiting, and automatic metrics collection (the [mappings reference](../../reference/mappings) contains a full list of supported options). Note that the Ambassador Edge Stack can be used as an [Ingress Controller](../../reference/core/ingress-controller).
 
 For more background on Kubernetes ingress, [read this blog post](https://blog.getambassador.io/kubernetes-ingress-nodeport-load-balancers-and-ingress-controllers-6e29f1c44f2d).

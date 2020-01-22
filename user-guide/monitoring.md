@@ -98,7 +98,7 @@ In this section, we will deploy the Prometheus Operator using the standard YAML 
 
 3. Create a `ServiceMonitor`
 
-   Finally, we need tell Prometheus where to scrape metrics from. The Prometheus Operator easily manages this using a `ServiceMonitor` CRD. To tell Prometheus to scrape metrics from Ambassador Edge Stack's `/metrics` endpoint, copy the following YAML to a file called `ambassador-monitor.yaml`, and apply it with `kubectl`.
+   Finally, we need to tell Prometheus where to scrape metrics from. The Prometheus Operator easily manages this using a `ServiceMonitor` CRD. To tell Prometheus to scrape metrics from Ambassador Edge Stack's `/metrics` endpoint, copy the following YAML to a file called `ambassador-monitor.yaml`, and apply it with `kubectl`.
 
     If you are running an Ambassador version higher than 0.71.0 and want to scrape metrics directly from the `/metrics` endpoint of Ambassador Edge Stack running in the `ambassador` namespace:
 
@@ -326,7 +326,7 @@ The Prometheus data model is, at its core, time-series based. Therefore, it make
 
 ## Additional Install Options
 
-### Statsd Exporter: Output Statistics to Ambassador Edge Stack
+### D Exporter: Output Statistics to Ambassador Edge Stack
 
 If running a pre-`0.71.0` version of Ambassador, you will need to configure Envoy to output stats to a separate collector before being scraped by Prometheus. You will use the [Prometheus StatsD Exporter](https://github.com/prometheus/statsd_exporter) to do this.
 
@@ -336,7 +336,7 @@ If running a pre-`0.71.0` version of Ambassador, you will need to configure Envo
     kubectl apply -f https://www.getambassador.io/yaml/monitoring/statsd-sink.yaml
     ```
 
-2. Configure Ambassador Edge Stack to output statistics to statsd
+2. Configure Ambassador Edge Stack to output statistics to `statsd`
 
     In the Ambassador Edge Stack deployment, add the `STATSD_ENABLED` and `STATSD_HOST` environment variables to tell Ambassador Edge Stack where to output stats.
 

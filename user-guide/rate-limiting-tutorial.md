@@ -72,7 +72,7 @@ spec:
 
 This configuration tells the Ambassador Edge Stack about the rate limit service, notably that it is serving requests at `example-rate-limit:5000`.
 
-The Ambassador Edge Stack will see the RateLimitService and reconfigure itself within a few seconds. Note that the v2 API is available for the Ambsassador Edge Stack.
+The Ambassador Edge Stack will see the RateLimitService and reconfigure itself within a few seconds. Note that the v2 API is available for the Ambassador Edge Stack.
 
 ## 2. Configure Ambassador Edge Stack Mappings
 

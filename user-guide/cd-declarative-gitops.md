@@ -31,6 +31,6 @@ To do this deployment pattern with Ambassador Edge Stack:
 1. App developer opens Pull Request in Git with proposed edge configuration changes.
 2. Operations reviews PR, offers comments and ultimately merges PR.
 3. Automated GitOps delivery pipeline applies changes to Ambassador Edge Stack.
-4. App devdeveloper tests changes.
+4. App developer tests the changes.
 
 

@@ -30,4 +30,4 @@ The Ambassador Edge Stack rate limiting configuration allows centralised operati
 
 Modern applications and APIs can experience floods of traffic over a short time period (e.g. from achieving a HackerNews front page link), and increasingly bad actors and cyber criminals are targeting public-facing services.
 
-By implementing rate limiting and load shedding capabilities at the edge a large amount of scenarios that are bad for business can be mitigated. These capabilities also make the life of the operations and development team that much easier, as the need to constantly firefight ingress traffic is reduced.
+By implementing rate limiting and load shedding capabilities at the edge, a large amount of scenarios that are bad for business can be mitigated. These capabilities also make the life of the operations and development team that much easier, as the need to constantly firefight ingress traffic is reduced.

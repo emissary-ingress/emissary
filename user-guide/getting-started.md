@@ -52,7 +52,7 @@ The Ambassador Edge Stack is typically deployed to Kubernetes from the command l
 
     Use any of the URLs listed next to `ambassador` to access the Ambassador Edge Stack.
 
-3. Navigate to `http://<your-IP-address>` and click through the certificate warning for access the Edge Policy Console interface. The certificate warning appears because, by default, the Ambassador Edge Stack uses a self-signed certificate for HTTPS.
+3. Navigate to `http://<your-IP-address>` and click through the certificate warning for access to the Edge Policy Console interface. The certificate warning appears because, by default, the Ambassador Edge Stack uses a self-signed certificate for HTTPS.
     * Chrome users should click **Advanced > Proceed to website**.
     * Safari users should click **Show details > visit the website** and provide your password.
 
@@ -132,7 +132,7 @@ In a typical configuration workflow, Custom Resource Definitions (CRDs) are used
 
 2. Deploy the `quote` service to the cluster by typing the command `kubectl apply -f quote.yaml`.
 
-3. Now, create a `Mapping` configuration that tells Ambassador to route all traffic from `/backend/` to the `quote` service. Copy the YAML and save to a file called `quote-backend.yaml`.
+3. Now, create a `Mapping` configuration that tells Ambassador to route all traffic from `/backend/` to the `quote` service. Copy the YAML and save it to a file called `quote-backend.yaml`.
 
    ```
    ---
@@ -177,7 +177,7 @@ The Quote service we just deployed publishes its API as a Swagger document. This
 
 1. In the Edge Policy Console, navigate to the **APIs** tab. You'll see the documentation there for internal use.
 
-2. Navigate to `https://<hostname>/docs/` or `https://<IP address>/docs/` to see the externally visible Developer Portal (make sure you include the trailing `/`). This is a fully customizable portal that you can share with third parties who need to information about your APIs. 
+2. Navigate to `https://<hostname>/docs/` or `https://<IP address>/docs/` to see the externally visible Developer Portal (make sure you include the trailing `/`). This is a fully customizable portal that you can share with third parties who need information about your APIs. 
 
 ## What’s Next?
 

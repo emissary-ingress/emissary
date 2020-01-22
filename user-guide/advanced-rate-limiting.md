@@ -172,7 +172,7 @@ spec:
 
 ### Bypassing a Global Rate Limit
 
-Sometimes, you may have an API that cannot handle as much load as others in your cluster. In this case, a global rate limit may not be enough to ensure this API is not overloaded with requests from a user. To protect this API, you will need to create a label that tells Ambassador Edge Stack to apply a stricter limit on requests. With the above global rate limit configuration rate limiting based off `remote_address`, you will need to add a request label to the services `Mapping`.
+Sometimes, you may have an API that cannot handle as much load as others in your cluster. In this case, a global rate limit may not be enough to ensure this API is not overloaded with requests from a user. To protect this API, you will need to create a label that tells Ambassador Edge Stack to apply a stricter limit on requests. With the above global rate limit configuration rate limiting based on `remote_address`, you will need to add a request label to the services `Mapping`.
 
 ```yaml
 apiVersion: getambassador.io/v1

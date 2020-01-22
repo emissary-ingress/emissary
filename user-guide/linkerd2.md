@@ -6,7 +6,7 @@
 
 Linkerd 2 is designed for simplicity, security and performance. In the cluster it runs a control plane in its own namespace and then injects sidecar proxy containers in every Pod that should be meshed.
 
-Ambassador Edge Stack itself also needs to be interwoven or "meshed" with Linkerd 2, and then configured to add special linkerd headers to requests so as to tell Linkerd 2 where to forward them. This ie because mTLS between services is automatically handled by the control plane and the proxies. Istio and Consul allow Ambassador to initiate mTLS connections to upstream services by grabbing a certificate from a Kubernetes Secret. However, Linkerd 2 does not work this way, so Ambassador must rely on Linkerd 2 for mTLS connections to upstream services. This means we want Linkerd 2 to inject its sidecar into Ambassador's pods, but not Istio and Consul.
+Ambassador Edge Stack itself also needs to be interwoven or "meshed" with Linkerd 2, and then configured to add special Linkerd headers to requests so as to tell Linkerd 2 where to forward them. This ie because mTLS between services is automatically handled by the control plane and the proxies. Istio and Consul allow Ambassador to initiate mTLS connections to upstream services by grabbing a certificate from a Kubernetes Secret. However, Linkerd 2 does not work this way, so Ambassador must rely on Linkerd 2 for mTLS connections to upstream services. This means we want Linkerd 2 to inject its sidecar into Ambassador's pods, but not Istio and Consul.
 
 Through that setup, Ambassador Edge Stack terminates external TLS as the gateway and traffic is then immediately wrapped into mTLS by Linkerd 2 again. Thus we have a full end-to-end TLS encryption chain.
 
@@ -131,7 +131,7 @@ You'll now register a demo application with Linkerd 2, and show how Ambassador E
    linkerd dashboard
    ```
 
-   You browser should automatically open the correct URL. Otherwise note the output from the above command and open that in a browser of your choice.
+   Your browser should automatically open the correct URL. Otherwise note the output from the above command and open that in a browser of your choice.
 
 4. Create a `Mapping` for the `qotm-Linkerd2` service.
 

@@ -142,7 +142,7 @@ spec:
 
 After adding the Ambassador Edge Stack mapping to the service, the rest of the Kubernetes deployment YAML file is pretty straightforward. We need to identify the container image to use, expose the `containerPort` to listen on the same port the Docker container is listening on, and map the service port (80) to the container port (50051).
 
-Once you have the YAML file and the correct Docker registry, deploy it to your cluster with kubectl.
+Once you have the YAML file and the correct Docker registry, deploy it to your cluster with `kubectl`.
 
 ```shell
 $ kubectl apply -f grpc_example.yaml
@@ -173,7 +173,7 @@ You will need to open the `greeter_client.py` and change `localhost:50051` to `$
     print("Greeter client received: " + response.message)
 ```
 
-After making that change, simply run the client again and you will see the gRPC service in your cluster responds!
+After making that change, simply run the client again and you will see the gRPC service in your cluster respond:
 
 ```shell
 $ python greeter_client.py
@@ -186,7 +186,7 @@ There is some extra configuration required to connect to a gRPC service through 
 
 ![](../../doc-images/grpc-tls.png)
 
-If you want to add TLS encyrption to your gRPC calls, first you need to tell Ambassador Edge Stack to add [ALPN protocols](../../reference/core/tls) which are required by HTTP/2 to do TLS.
+If you want to add TLS encryption to your gRPC calls, first you need to tell Ambassador Edge Stack to add [ALPN protocols](../../reference/core/tls) which are required by HTTP/2 to do TLS.
 
 Ex:
 ```yaml
@@ -226,7 +226,7 @@ If you want to configure authentication in another language, [gRPC provides exam
 
 ![](../../doc-images/gRPC-TLS-Originate.png)
 
-Ambassador Edge Stack can originate TLS with your gRPC service so the entire RPC channel is encyrpted. To configure this, first get some TLS certificates and configure the server to open a secure channel with them. Using self-signed certs this can be done with openssl and adding a couple of lines to the server code.
+Ambassador Edge Stack can originate TLS with your gRPC service so the entire RPC channel is encrypted. To configure this, first get some TLS certificates and configure the server to open a secure channel with them. Using self-signed certs this can be done with OpenSSL and adding a couple of lines to the server code.
 
 ```diff
 def serve():
@@ -242,7 +242,7 @@ def serve():
     server.start()
 ```
 
-Rebuild your docker container **making sure the certificates are included** and follow the same steps of testing and deploying to kubernetes. You will need to make a small change to the client code to test locally.
+Rebuild your docker container **making sure the certificates are included** and follow the same steps of testing and deploying to Kubernetes. You will need to make a small change to the client code to test locally.
 
 ```diff
 - with grpc.insecure_channel(‘localhost:$PORT’) as channel:
@@ -295,13 +295,13 @@ spec:
   secret: ambassador-cert
 ```
 
-We need to tell Ambassador Edge Stack to route to the `service:` over https and have the service listen on `443`. We also need to tell tell Ambassador Edge Stack to use ALPN protocols when originating TLS with the application, the same way we did with TLS termination. This is done by setting `alpn_protocols: ["h2"]` in a `TLSContext` telling the service to use that tls-context in the mapping by setting `tls: upstream`.
+We need to tell Ambassador Edge Stack to route to the `service:` over https and have the service listen on `443`. We also need to tell Ambassador Edge Stack to use ALPN protocols when originating TLS with the application, the same way we did with TLS termination. This is done by setting `alpn_protocols: ["h2"]` in a `TLSContext` telling the service to use that tls-context in the mapping by setting `tls: upstream`.
 
 Refer to the [TLS document](../../reference/tls/origination#advanced-configuration-using-a-tlscontext) for more information on TLS origination.
 
 ### gRPC Headers
 
-gRPC services use [HTTP/2 headers](https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-HTTP2.md). This means that some header-based routing rules will need to be rewritten to support HTTP/2 headers. For example, `host: subdomain.host.com` needs to be rewitten using the `headers: ` attribute with the `:authority` header:
+gRPC services use [HTTP/2 headers](https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-HTTP2.md). This means that some header-based routing rules will need to be rewritten to support HTTP/2 headers. For example, `host: subdomain.host.com` needs to be rewritten using the `headers: ` attribute with the `:authority` header:
 
 ```
 headers:

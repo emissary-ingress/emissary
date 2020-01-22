@@ -14,7 +14,7 @@ You will need to configure the DataDog agent so that it uses a host-port and acc
 
 ## 2. Configure Envoy JSON logging
 
-DataDog APM can [correlate traces with logs](https://docs.datadoghq.com/tracing/advanced/connect_logs_and_traces/) if you propogate the current span and trace IDs with your logs.
+DataDog APM can [correlate traces with logs](https://docs.datadoghq.com/tracing/advanced/connect_logs_and_traces/) if you propagate the current span and trace IDs with your logs.
 
 When using JSON logging with Envoy, Ambassador Edge Stack will automatically append the `dd.trace_id` and `dd.span_id` properties to all logs so that correlation works:
 

@@ -37,10 +37,10 @@ Then, apply it to the Kubernetes with `kubectl`:
 kubectl apply -f httpbin.yaml
 ```
 
-The steps above does several things:
+The steps above do several things:
 
 * It creates a Kubernetes service for the Ambassador Edge Stack, of type `LoadBalancer`. Note that if you're not deploying in an environment where `LoadBalancer` is a supported type (i.e. MiniKube), you'll need to change this to a different type of service, e.g., `NodePort`.
-* It creates a test route that will route traffic from `/httpbin/` to the public `httpbin.org` HTTP Request and Response service (which provides useful endpoint that can be used for diagnostic purposes). In the Ambassador Edge Stack, Kubernetes annotations (as shown above) are used for configuration. More commonly, you'll want to configure routes as part of your service deployment process, as shown in [this more advanced example](https://www.datawire.io/faster/canary-workflow/).
+* It creates a test route that will route traffic from `/httpbin/` to the public `httpbin.org` HTTP Request and Response service (which provides a useful endpoint that can be used for diagnostic purposes). In the Ambassador Edge Stack, Kubernetes annotations (as shown above) are used for configuration. More commonly, you'll want to configure routes as part of your service deployment process, as shown in [this more advanced example](https://www.datawire.io/faster/canary-workflow/).
 
 You can see if the two Ambassador Edge Stack services are running correctly (and also obtain the LoadBalancer IP address when this is assigned after a few minutes) by executing the following commands:
 
@@ -110,9 +110,9 @@ spec:
     app: productpage
 ```
 
-The annotation above implements an Ambassador Edge Stack mapping from the '/productpage/' URI to the Kubernetes productpage service running on port 9080 ('productpage:9080'). The 'prefix' mapping URI is taken from the context of the root of your Ambassador Edge Stack service that is acting as the ingress point (exposed externally via port 80 because it is a LoadBalancer) e.g. '35.224.41.XX/productpage/'.
+The annotation above implements an Ambassador Edge Stack mapping from the `/productpage/` URI to the Kubernetes productpage service running on port 9080 ('productpage:9080'). The 'prefix' mapping URI is taken from the context of the root of your Ambassador Edge Stack service that is acting as the ingress point (exposed externally via port 80 because it is a LoadBalancer) e.g. '35.224.41.XX/productpage/'.
 
-You can now apply this manifest from the root of the Istio GitHub repo on your local file system (taking care to wrap the apply with istioctl kube-inject):
+You can now apply this manifest from the root of the Istio GitHub repo on your local file system (taking care to wrap the apply with `istioctl kube-inject`):
 
 ```shell
 kubectl apply -f <(istioctl kube-inject -f samples/bookinfo/kube/bookinfo.yaml)
@@ -353,9 +353,9 @@ This ConfigMap YAML changes the `prometheus` ConfigMap that is on `istio-system`
         labels:  {'application': 'ambassador'}
 ```
 
-*Note:* Assuming ambassador-monitor service is runnning in default namespace.
+*Note:* Assuming ambassador-monitor service is running in the default namespace.
 
-*Note:* You can also add the scrape by hand by using kubectl edit or dashboard.
+*Note:* You can also add the scrape by hand by using `kubectl` edit or dashboard.
 
 Afer adding the `scrape`, Istio's Prometheus POD needs to be restarted:
 ```sh
@@ -368,14 +368,14 @@ More details can be found in [Statistics and Monitoring](../../reference/statist
 
 ## Grafana Dashboard
 
-Istio provides a Grafana dashboad service as well, and it is possible to import an Ambassador Edge Stack Dashboard into it, to monitor the Statistics provided by Prometheus. We're going to use [Alex Gervais'](https://twitter.com/alex_gervais) template available on [Grafana's](https://grafana.com/) website under entry [4689](https://grafana.com/dashboards/4698) as a starting point.
+Istio provides a Grafana dashboard service as well, and it is possible to import an Ambassador Edge Stack Dashboard into it, to monitor the Statistics provided by Prometheus. We're going to use [Alex Gervais'](https://twitter.com/alex_gervais) template available on [Grafana's](https://grafana.com/) website under entry [4689](https://grafana.com/dashboards/4698) as a starting point.
 
 First let's start the port-forwarding for Istio's Grafana service:
 ```sh
 $ kubectl -n istio-system port-forward $(kubectl -n istio-system get pod -l app=grafana -o jsonpath='{.items[0].metadata.name}') 3000:3000 &
 ```
 
-Now, open Grafana tool by acessing: `http://localhost:3000/`
+Now, open Grafana tool by accessing: `http://localhost:3000/`
 
 To install the Ambassador Edge Stack Dashboard:
 
