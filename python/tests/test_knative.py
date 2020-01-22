@@ -106,12 +106,12 @@ spec:
 
 
 def test_knative():
-    knative_test = KnativeTesting()
-    knative_test.test_knative()
+    if is_knative():
+        knative_test = KnativeTesting()
+        knative_test.test_knative()
+    else:
+        pytest.xfail("Knative is not supported")
 
 
 if __name__ == '__main__':
-    if is_knative():
-        test_knative()
-    else:
-        pytest.xfail("Knative is not supported")
+    test_knative()
