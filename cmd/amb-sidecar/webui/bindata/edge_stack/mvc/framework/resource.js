@@ -23,6 +23,9 @@ import { Model } from "./model.js"
 /* Object merge operation */
 import { mapMerge, objectCopy } from "../framework/utilities.js"
 
+/* Current API version. */
+const aes_api_version = "getambassador.io/v2";
+
 /* Annotation key for sourceURI. */
 const aes_res_source = "getambassador.io/resource-source";
 
@@ -148,6 +151,7 @@ export class Resource extends Model {
     let yaml  =  this.yamlStrip(this._fullYAML, this.yamlIgnorePaths());
 
     /* Write back our editable values for updating with apply. */
+    yaml.apiVersion = aes_api_version;
     yaml.kind = this.kind;
     yaml.metadata.name = this.name;
     yaml.metadata.namespace = this.namespace;

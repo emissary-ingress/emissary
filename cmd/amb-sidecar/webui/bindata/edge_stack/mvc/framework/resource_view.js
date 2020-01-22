@@ -221,16 +221,30 @@ export class ResourceView extends View {
       let error = this.model.doSave();
 
       if (error === null) {
-        /* Swap models back, restoring listeners to the saved Model.   Then wait for the system to update the Model
-         * which confirms the edits.
+        /*  Copy our YAML to the saved model so that it can be identified as existing in the
+         * ResourceCollectionView (since it is the "same" model as before, with different state).
+         * Note: the savedModel has no listeners so this will just update the model's attribute values.
          */
+
+        this.savedModel.updateFrom(this.model.getYAML());
+
+        /* Stop listening to the new model, swap, and start listening again to the savedModel (with new state),
+         * which was previously in the ResourceCollection and thus will be identified as having changed.
+         * If the resource name has changed, then the old model will disappear and a new one will take its place.
+         */
+
         this.model.removeListener(this);
         this.model = this.savedModel;
         this.model.addListener(this);
+
+        /* We believe that the save was successful.  Keep the new model and note that its state is pending. */
         this.savedModel = null;
 
         /* Note that the resource is pending an update */
         this.model.setPendingUpdate();
+
+        /* Restore to "pending-save" state. */
+        this.viewState = "pending-save";
       } else {
         console.log("ResourceView.onSave() returned error ${error");
       }
