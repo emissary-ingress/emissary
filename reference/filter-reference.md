@@ -202,7 +202,7 @@ Stack.
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: FilterPolicy
 metadata:
   name: "example-filter-policy"
