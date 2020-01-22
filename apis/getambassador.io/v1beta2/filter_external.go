@@ -76,19 +76,6 @@ func normalizeUnion(a, b []string) []string {
 }
 
 func (m *FilterExternal) Validate() error {
-	// Fill in defaults
-	if m.Proto == "" {
-		m.Proto = "http"
-	}
-	if m.RawTimeout == 0 {
-		m.RawTimeout = 5000
-	}
-	m.AllowedRequestHeaders = normalizeUnion(m.AllowedRequestHeaders, alwaysAllowedRequestHeaders)
-	m.AllowedAuthorizationHeaders = normalizeUnion(m.AllowedAuthorizationHeaders, alwaysAllowedAuthorizationHeaders)
-	if m.StatusOnError.Code == 0 {
-		m.StatusOnError.Code = http.StatusForbidden
-	}
-
 	// Convert deprecated fields
 	if m.DeprecatedAllowRequestBody != nil {
 		if m.IncludeBody != nil {
@@ -102,6 +89,19 @@ func (m *FilterExternal) Validate() error {
 			}
 		}
 		m.DeprecatedAllowRequestBody = nil
+	}
+
+	// Fill in defaults
+	if m.Proto == "" {
+		m.Proto = "http"
+	}
+	if m.RawTimeout == 0 {
+		m.RawTimeout = 5000
+	}
+	m.AllowedRequestHeaders = normalizeUnion(m.AllowedRequestHeaders, alwaysAllowedRequestHeaders)
+	m.AllowedAuthorizationHeaders = normalizeUnion(m.AllowedAuthorizationHeaders, alwaysAllowedAuthorizationHeaders)
+	if m.StatusOnError.Code == 0 {
+		m.StatusOnError.Code = http.StatusForbidden
 	}
 
 	// Validate
