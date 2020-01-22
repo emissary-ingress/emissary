@@ -96,7 +96,7 @@ spec:
 
         # kservice pod takes some time to spin up, so let's try a few times
         connection_correct_code = 000
-        for _ in range(3):
+        for _ in range(5):
             connection_correct_code = self.get_code_with_retry(req_correct)
             if connection_correct_code == 200:
                 break
