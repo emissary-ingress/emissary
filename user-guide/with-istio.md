@@ -245,7 +245,7 @@ spec:
 ```
 Note the `tls: istio-upstream`, which lets the Ambassador Edge Stack know which certificate to use when communicating with that service.
 
-In the definition above we also have TLS termination enabled; please see [the TLS termination tutorial](../tls-termination) for more details.
+In the definition above we also have TLS termination enabled; please see [the TLS termination tutorial](../tls-termination) or the [Host CRD](/reference/host-crd) for more details.
 
 ### PERMISSIVE mTLS
 
@@ -312,7 +312,7 @@ Istio also provides a Prometheus service that is an open-source monitoring and a
 
 First we need to change our Ambassador Edge Stack Deployment to use the [Prometheus StatsD Exporter](https://github.com/prometheus/statsd_exporter) as its sidecar. Do this by applying the [ambassador-rbac-prometheus.yaml](../../yaml/ambassador/ambassador-rbac-prometheus.yaml):
 ```sh
-$ kubectl apply -f https://www.getambassador.io/early-access/yaml/ambassador/ambassador-rbac-prometheus.yaml
+$ kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-rbac-prometheus.yaml
 ```
 
 This YAML is changing the StatsD container definition on our Deployment to use the Prometheus StatsD Exporter as a sidecar:
@@ -342,7 +342,7 @@ spec:
 
 Now we need to add a `scrape` configuration to Istio's Prometheus so that it can pool data from our Ambassador Edge Stack. This is done by applying the new ConfigMap:
 ```sh
-$ kubectl apply -f https://www.getambassador.io/early-access/yaml/ambassador/ambassador-istio-configmap.yaml
+$ kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-istio-configmap.yaml
 ```
 
 This ConfigMap YAML changes the `prometheus` ConfigMap that is on `istio-system` Namespace and adds the following:

@@ -1,6 +1,6 @@
 # Ambassador Edge Stack configuration with Custom Resource Definitions (CRDs)
 
-As of Ambassador 0.70, any Ambassador Edge Stack resource can be expressed as a CRD in the `getambassador.io` API group:
+Any Ambassador Edge Stack resource can be expressed as a CRD in the `getambassador.io` API group:
 
 - use `apiVersion: getambassador.io/v2`
 - use the same `kind` as you would in an attribute
@@ -33,11 +33,12 @@ spec:
   service: luatest-http
 ```
 
-Note that the `namespace` must be declared in the `metadata`, but if needed, `ambassador_id` must be declared in the `spec`.
+Note that the `namespace` must be declared in the `metadata`, but if needed, `ambassador_id` must be declared in the `spec`.  
+You can run `kubectl get ambassador-crds` to see the CRDs you've created to configure the Ambassador Edge Stack.
 
 ## Supported CRDs
 
-The full set of CRDs supported by the Ambassador Edge Stack:
+The full set of CRDs supported by the Ambassador Edge Stack are the following:
 
 | `Kind` | Kubernetes singular | Kubernetes plural |
 | :----- | :------------------ | :---------------- |
