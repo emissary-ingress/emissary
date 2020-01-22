@@ -185,7 +185,8 @@
           <script type="text/javascript">
 
           // Detects user's browser by 'duck-typing' to guide user response to browser security warnings
-          (function getBrowser() {
+          window.onload = (event) => {
+          function getBrowser() {
             if (!!window.chrome && (!!window.chrome.webstore || !!window.chrome.runtime)) {
               localStorage.setItem('browser', 'chrome');
               return "chrome";
@@ -199,7 +200,10 @@
               localStorage.setItem('browser', 'other');
               return "other";
             } 
-          })();
+          }
+          console.log('page is fully loaded');
+          };
+
           // Sets browser variable for function use and capitalizes browser name in text on page
           let browser = localStorage.getItem('browser');
           var browserCapitalized = "";
