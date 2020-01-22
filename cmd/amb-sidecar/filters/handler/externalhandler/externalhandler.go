@@ -22,7 +22,7 @@ import (
 	"github.com/datawire/apro/lib/filterapi/filterutil"
 )
 
-func grpcRequestToHTTPClientRequest(g *filterapi.FilterRequest, serviceURL string, allowedHeaders []string, ctx context.Context) (*http.Request, error) {
+func grpcRequestToHTTPClientRequest(g *filterapi.FilterRequest, serviceURL string, allowedHeaders []string, addLinkerdHeaders bool, ctx context.Context) (*http.Request, error) {
 	var err error
 
 	body := g.GetRequest().GetHttp().GetBody()
@@ -66,6 +66,9 @@ func grpcRequestToHTTPClientRequest(g *filterapi.FilterRequest, serviceURL strin
 		if _, ok := allowedHeadersMap[http.CanonicalHeaderKey(k)]; ok {
 			h.Header.Set(k, v)
 		}
+	}
+	if addLinkerdHeaders {
+		h.Header.Set("l5d-dst-override", h.URL.Host)
 	}
 
 	return h.WithContext(ctx), nil
@@ -192,7 +195,7 @@ func (f *ExternalFilter) Filter(ctx context.Context, r *filterapi.FilterRequest)
 		}
 		serviceURL += f.Spec.PathPrefix
 
-		httpRequest, err := grpcRequestToHTTPClientRequest(r, serviceURL, f.Spec.AllowedRequestHeaders, ctx)
+		httpRequest, err := grpcRequestToHTTPClientRequest(r, serviceURL, f.Spec.AllowedRequestHeaders, *f.Spec.AddLinkerdHeaders, ctx)
 		if err != nil {
 			return nil, err
 		}

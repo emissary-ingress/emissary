@@ -26,6 +26,7 @@ type FilterExternal struct {
 	AllowedRequestHeaders       []string      `json:"allowed_request_headers"`
 	AllowedAuthorizationHeaders []string      `json:"allowed_authorization_headers"`
 	DeprecatedAllowRequestBody  *bool         `json:"allow_request_body"` // deprecated in favor of include_body
+	AddLinkerdHeaders           *bool         `json:"add_linkerd_headers"`
 	IncludeBody                 *IncludeBody  `json:"include_body"`
 	StatusOnError               struct {
 		Code int `json:"code"`
@@ -102,6 +103,15 @@ func (m *FilterExternal) Validate() error {
 	m.AllowedAuthorizationHeaders = normalizeUnion(m.AllowedAuthorizationHeaders, alwaysAllowedAuthorizationHeaders)
 	if m.StatusOnError.Code == 0 {
 		m.StatusOnError.Code = http.StatusForbidden
+	}
+	if m.AddLinkerdHeaders == nil {
+		// TODO(lukeshu): Per irauth.py, this default should be
+		// `ir.ambassador_module.get('add_linkerd_headers', False)`.
+		// But getting that info to here is a pain, so for now I'm just
+		// having the default be `false`, and documenting this as a
+		// difference between AuthServices and External Filters.
+		value := false
+		m.AddLinkerdHeaders = &value
 	}
 
 	// Validate
