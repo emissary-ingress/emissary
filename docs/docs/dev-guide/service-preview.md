@@ -2,7 +2,7 @@
 
 **This page is deprecated. For the latest version, check out [Edge Control](../../../reference/edge-control).**
 
-How do you verify that the code you've written actually works? Ambassador's *Service Preview* lets developers see exactly how their service works in a realistic enviroment -- without impacting other developers or end users. Service Preview integrates [Telepresence](https://www.telepresence.io), the popular CNCF project for local development and debugging on Kubernetes.
+How do you verify that the code you've written actually works? Ambassador's *Service Preview* lets developers see exactly how their service works in a realistic environment -- without impacting other developers or end-users. Service Preview integrates [Telepresence](https://www.telepresence.io), the popular CNCF project for local development and debugging on Kubernetes.
 
 ## Install `apictl`
 
@@ -15,11 +15,11 @@ Download the latest version of the client:
 
 Make sure the client is somewhere on your PATH. In addition, place your license key in `~/.ambassador.key`.
 
-Information about open source code used in `apictl` can be found by running `apictl --version`.
+Information about open-source code used in `apictl` can be found by running `apictl --version`.
 
-## Getting started
+## Getting Started
 
-In this quick start, we're going to preview a change we make to the backend service of the quote application, without impacting normal users of the application. Before getting started, make sure the [quote application is installed](../../../user-guide/getting-started#create-a-mapping) on your cluster and you've installed the `apictl` command line tool, as explained above.
+In this quick start, we're going to preview a change we make to the backend service of the quote application, without impacting normal users of the application. Before getting started, make sure the [quote application is installed](../../../user-guide/getting-started#create-a-mapping) on your cluster and you've installed the `apictl` command-line tool, as explained above.
 
 1. We're first going to get the quote backend service running locally. Clone the quote repository and build a local image.
 
@@ -29,11 +29,11 @@ In this quick start, we're going to preview a change we make to the backend serv
     make docker.run
     ```
 
-    Note that Preview doesn't depend on a locally running container; you can just run a service locally on your laptop. We're using a container in this tutorial to minimize environmental issues with different golang environments.
+    Note that Preview doesn't depend on a locally running container; you can just run a service locally on your laptop. We're using a container in this tutorial to minimize environmental issues with different Golang environments.
 
     In the `make` command above, we build the backend application in a docker container named `localhost:31000/quote:backend-latest` and run it on port 8080.
 
-2. Now, in another terminal window, redeploy the quote application with the Preview sidecar. The sidecar is special process which will route requests to your local machine or to the production cluster. The `apictl traffic inject` command will automatically create the appropriate YAML to inject the sidecar. In the `quote` directory, pass the file name of the QOTM deployment:
+2. Now, in another terminal window, redeploy the quote application with the Preview sidecar. The sidecar is a special process that will route requests to your local machine or the production cluster. The `apictl traffic inject` command will automatically create the appropriate YAML to inject the sidecar. In the `quote` directory, pass the file name of the QOTM deployment:
 
    ```
    apictl traffic inject k8s/tour.yaml -d tour -s tour -p 8080 > k8s/tour-traffic-sidecar.yaml
@@ -112,7 +112,7 @@ In this quick start, we're going to preview a change we make to the backend serv
 
 4. Redeploy quote with the sidecar:
 
-   ```
+   ```shell
    kubectl apply -f k8s/quote-traffic-sidecar.yaml
    ```
 
@@ -151,7 +151,7 @@ In this quick start, we're going to preview a change we make to the backend serv
     ...
     ```
 
-    This will insure that the backend service will return a quote of "Service Preview rocks" every time.
+    This will ensure that the backend service will return a quote of "Service Preview rocks" every time.
 
 10. Rebuild the docker container and rerun  the `curl` above, which will now route to your (modified) local copy of the QOTM service:
 
@@ -160,10 +160,10 @@ In this quick start, we're going to preview a change we make to the backend serv
     curl -H "x-service-preview: dev" $AMBASSADOR_IP/qotm/` # will go to local Docker instance
     ```
 
-    To recap: With Preview, we can now see test and visualize changes to our service that we've mode locally, without impacting other users of the stable version of that service.
+    To recap: With Preview, we can now see test and visualize changes to our service that we've made locally, without impacting other users of the stable version of that service.
 
 ## Using Service Preview
 
-Service Preview will match HTTP headers based on the headers that are seen by the *sidecar*, and not the edge gateway. Matches are made on the whole header, e.g., a match rule of `dev` will not match in the example above, while `/backend/dev` will match.
+Service Preview will match HTTP headers based on the headers that are seen by the *sidecar* and not the edge gateway. Matches are made on the whole header, e.g., a match rule of `dev` will not match in the example above, while `/backend/dev` will match.
 
 While any HTTP header will match, in practice, using host-based routing (i.e., the `:authority` header), a custom HTTP header (e.g., the `x-service-preview` header used above), or an authentication header is recommended.
