@@ -18,7 +18,7 @@ To use Google as and IdP for Single Sign-On, you will first need to create an OA
 
 ## Set up Ambassador Edge Stack
 
-After creating an OAuth client in Google, configuring Ambassador Edge Stack to make use it for authentication is simple.
+After creating an OAuth client in Google, configuring Ambassador Edge Stack to make use of it for authentication is simple.
 
 1. Create an [OAuth Filter](../../filter-reference#filter-type-oauth2) with the credentials from above
 

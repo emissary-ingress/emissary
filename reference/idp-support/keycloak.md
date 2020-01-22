@@ -24,7 +24,7 @@ With Keycloak as your IdP, you will need to create a `Client` to handle authenti
 
 8. Click Save.
 
-9. Configure client scopes as desired in "Client Scopes" (e.g. `offline_access`). It's possible to setup Keycloak to not use scopes by removing all of them from "Assigned Default Client Scopes". 
+9. Configure client scopes as desired in "Client Scopes" (e.g. `offline_access`). It's possible to set up Keycloak to not use scopes by removing all of them from "Assigned Default Client Scopes". 
    
    **Note:** All "Assigned Default Client Scopes" must be included in the `FilterPolicy` scopes argument. 
 

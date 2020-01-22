@@ -65,7 +65,7 @@ spec:
    `buffer_flush_interval`][buffer_flush_interval] for more
    information.
 
- - `flush_interval_byte_size` is soft size limit for the access log
+ - `flush_interval_byte_size` is a soft size limit for the access log
    buffer.  The logs will be flushed to the ALS every time the
    buffered data reaches this size, or whenever `flush_interval_time`
    elapses, whichever comes first.  See the [Envoy documentation on

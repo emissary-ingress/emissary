@@ -1,6 +1,6 @@
 # Salesforce Single Sign-On
 
-## Set up Saleforce
+## Set up Salesforce
 
 To use Salesforce as your IdP, you will first need to register an OAuth application with your Salesforce tenant. This guide will walk you through the most basic setup via the "Salesforce Classic Experience".
 
@@ -28,7 +28,7 @@ After waiting for salesforce to register the application with their servers, you
 
 ## Set up Ambassador Edge Stack
 
-After configuring an OAuth application in Salesforce, configuring Ambassador Edge Stack to make use it for authentication is simple.
+After configuring an OAuth application in Salesforce, configuring Ambassador Edge Stack to make use of it for authentication is simple.
 
 1. Create an [OAuth Filter](../../filter-reference#filter-type-oauth2) with the credentials from above
 

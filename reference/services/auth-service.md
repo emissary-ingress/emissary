@@ -34,9 +34,9 @@ spec:
   cluster_idle_timeout_ms: 30000
 ```
 
-- `add_linkerd_headers` (optional) when true, adds `l5d-dst-override` to the authorization request and set the hostname of the authorization server as the header value.
+- `add_linkerd_headers` (optional) when true, adds `l5d-dst-override` to the authorization request and sets the hostname of the authorization server as the header value.
 
-- `allowed_authorization_headers` (optional) lists headers that will be sent from the auth service to the upstream service when the request is allowed, and also headers that will be sent from the auth service back to the client when the request is denied. These headers are always included:
+- `allowed_authorization_headers` (optional) lists the headers that will be sent from the auth service to the upstream service when the request is allowed, and also headers that will be sent from the auth service back to the client when the request is denied. These headers are always included:
     * `Authorization`
     * `Location`
     * `Proxy-Authenticate`
@@ -62,12 +62,12 @@ spec:
 - `include_body` (optional) controls how much of the request body to pass to the auth service, for use cases such as computing an HMAC or request signature:
     * `max_bytes` controls the amount of body data that will be passed to the auth service
     * `allow_partial` controls what happens to messages with bodies larger than `max_bytes`:
-       * if `allow_partial` is `true`, the first `max_bytes` of the body are sent to the auth service
+       * if `allow_partial` is `true`, the first `max_bytes` of the body is sent to the auth service
        * if `false`, the message is rejected.
 
 - `proto` (optional) specifies the protocol to use when communicating with the auth service. Valid options are `http` (default) or `grpc`.
 
-- `status_on_error` (optional) status code returned when unable to communicate with auth service. 
+- `status_on_error` (optional) status code returned when unable to communicate with the auth service. 
     * `code` Defaults to 403
 
 ## Canarying Multiple AuthServices
@@ -144,7 +144,7 @@ Giving the external auth service control over the response on failure allows man
 - The external auth service can choose to include a `WWW-Authenticate` header in the 401 response, to ask the client to perform HTTP Basic Auth.
 - The external auth service can issue a 301 `Redirect` to divert the client into an OAuth or OIDC authentication sequence.
 
-Finally, if Ambassador cannot reach the auth service at all, it will return a HTTP 503 status code to the client.
+Finally, if Ambassador cannot reach the auth service at all, it will return an HTTP 503 status code to the client.
 
 ## Configuring Public Mappings
 

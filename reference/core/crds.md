@@ -103,7 +103,7 @@ Namely, these annotations are:
 - getambassador.io/resource-source
 - getambassador.io/resource-downloaded
 
-None of these annotations influence the expected behavior of resources. They are purely informative. You may chose to ignore them or discard them if you describe any of your configured resources.
+None of these annotations influence the expected behavior of resources. They are purely informative. You may choose to ignore them or discard them if you describe any of your configured resources.
 
 ## Creating the CRD types within Kubernetes
 

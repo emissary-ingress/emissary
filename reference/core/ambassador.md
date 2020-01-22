@@ -4,7 +4,7 @@ Ambassador Edge Stack supports a variety of global configuration options in the 
 
 ## The `ambassador Module`
 
-If present, the `ambassador Module` defines system-wide configuration. This module can be applied on any Kubernetes service (the `ambassador` service itself is a common choice). **You may very well not need this Module.** The defaults in the `ambassador Module` are:
+If present, the `ambassador Module` defines system-wide configuration. This module can be applied to any Kubernetes service (the `ambassador` service itself is a common choice). **You may very well not need this Module.** The defaults in the `ambassador Module` are:
 
 ```yaml
 apiVersion: getambassador.io/v2
@@ -56,7 +56,7 @@ circuit_breakers
   ...
 ```
 
-`cors` sets default CORS configuration for all mappings in the cluster. See the [CORS syntax](../../cors).
+`cors` sets the default CORS configuration for all mappings in the cluster. See the [CORS syntax](../../cors).
 
 ```
 cors:
@@ -174,7 +174,7 @@ When using Linkerd, requests going to an upstream service need to include the `l
 
 ### Upstream Idle Timeout (`cluster_idle_timeout_ms`)
 
-If set, `cluster_idle_timeout_ms` specifies the timeout (in milliseconds) after which an idle connection upstream will closed. If no `cluster_idle_timeout_ms` is specified, upstream connections will never be closed due to idling.
+If set, `cluster_idle_timeout_ms` specifies the timeout (in milliseconds) after which an idle connection upstream will close. If no `cluster_idle_timeout_ms` is specified, upstream connections will never be closed due to idling.
 
 ### gRPC HTTP/1.1 bridge (`enable_grpc_http11_bridge`)
 
@@ -194,7 +194,7 @@ Enable/disable handling of incoming HTTP/1.0 and HTTP 0.9 requests.
 
 If both IPv4 and IPv6 are enabled, Ambassador Edge Stack will prefer IPv6. This can have strange effects if Ambassador Edge Stack receives `AAAA` records from a DNS lookup, but the underlying network of the pod doesn't actually support IPv6 traffic. For this reason, the default is IPv4 only.
 
-A `Mapping` can override both `enable_ipv4` and `enable_ipv6`, but if either is not stated explicitly in a `Mapping`, the values here are used. Most Ambassador Edge Stack installations will probably be able to avoid overridding these setting in `Mapping`s.
+A `Mapping` can override both `enable_ipv4` and `enable_ipv6`, but if either is not stated explicitly in a `Mapping`, the values here are used. Most Ambassador Edge Stack installations will probably be able to avoid overriding these settings in `Mapping`s.
 
 ### Readiness and Liveness probes (`readiness_probe` and `liveness_probe`)
 
@@ -230,6 +230,6 @@ The value of `xff_num_trusted_hops` indicates the number of trusted proxies in f
 
 - If `use_remote_address` is `true` and `xff_num_trusted_hops` is set to a value N that is greater than zero, the trusted client address is the Nth address from the right end of XFF. (If the XFF contains fewer than N addresses, Envoy falls back to using the immediate downstream connection’s source address as trusted client address.)
 
-Refer to [Envoy's documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_conn_man/headers.html#x-forwarded-for) for some detailed examples on this interaction.
+Refer to [Envoy's documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_conn_man/headers.html#x-forwarded-for) for some detailed examples of this interaction.
 
-**NOTE:** This value is not dynamically configurable in Envoy. A restart is required  changing the value of `xff_num_trusted_hops` for Envoy to respect the change.
+**NOTE:** This value is not dynamically configurable in Envoy. A restart is required changing the value of `xff_num_trusted_hops` for Envoy to respect the change.

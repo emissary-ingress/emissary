@@ -77,7 +77,7 @@ To configure Ambassador Edge Stack to handle this behavior you need set `redirec
 
 ## Protocol-based Redirection
 
-Ambassador Edge Stack can perform HTTP -> HTTPS redirection based off the protocol of the incoming request. This is done by checking the `x-forwarded-proto` header that can be set by an L7 load balancer or proxy sitting in front of Ambassador Edge Stack.
+Ambassador Edge Stack can perform HTTP -> HTTPS redirection based on the protocol of the incoming request. This is done by checking the `x-forwarded-proto` header that can be set by an L7 load balancer or proxy sitting in front of Ambassador Edge Stack.
 
 While port-based redirection is preferred for most use cases, using the `x-forwarded-proto` header to redirect to HTTPS is useful when the front load balancer or proxy is terminating TLS.
 

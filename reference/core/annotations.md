@@ -4,7 +4,7 @@ Ambassador configuration can be expressed as an annotation of a Kubernetes Servi
 
 ## Benefits
 
-For many people, this is the preferred format for configuring Ambassador because it directly ties the routing configuration in with the Service definition. i.e. Creating the Service creates the route in Ambassador and deleteing the service removes the route.
+For many people, this is the preferred format for configuring Ambassador because it directly ties the routing configuration in with the Service definition. i.e. Creating the Service creates the route in Ambassador and deleting the service removes the route.
 
 It also allows you to install and configure Ambassador without needing cluster permissions to add CRDs to the cluster.
 
@@ -47,7 +47,7 @@ spec:
       - request_label:
         - backend
 ```
-With CRDs above, we open up routes in Ambassador using two separate Ambassador `Mapping` resource. These objects are managed separate from the service and must be created and deleted independently.
+With CRDs above, we open up routes in Ambassador using two separate Ambassador `Mapping` resources. These objects are managed separately from the service and must be created and deleted independently.
 
 **Annotations:**
 ```yaml
@@ -85,7 +85,7 @@ spec:
   selector:
     app: quote
 ```
-With the annotation approach above, we can expose the exact same routes my creating the `Mapping` object as part of the Kubernetes Service. There is more overhead for creating and managing the `Mapping`s but the are created and deleted when the service is.
+With the annotation approach above, we can expose the exact same routes my creating the `Mapping` object as part of the Kubernetes Service. There is more overhead for creating and managing the `Mapping`s but they are created and deleted when the service is.
 
 ## CRD Translation
 
@@ -120,7 +120,7 @@ spec:
       enabled: false
 ```
 
-2. Remove the `metadata` section and resolve the indetation of `name` to be inline with `kind`
+2. Remove the `metadata` section and resolve the indentation of `name` to be inline with `kind`
 ```diff
 ---
 apiVersion: ambassador/v1

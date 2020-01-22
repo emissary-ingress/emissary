@@ -28,7 +28,7 @@ spec:
 - `config` provides additional configuration options for the selected `driver`.
 - `tag_headers` (optional) if present, specifies a list of other HTTP request headers which will be used as tags in the trace's span.
 
-Please note that you must use the HTTP/2 preudo-header names. For example:
+Please note that you must use the HTTP/2 pseudo-header names. For example:
 
 - the `host` header should be specified as the `:authority` header; and
 - the `method` header should be specified as the `:method` header.
@@ -41,7 +41,7 @@ Please note that you must use the HTTP/2 preudo-header names. For example:
 
 - `collector_endpoint` gives the API endpoint of the Zipkin service where the spans will be sent. The default value is `/api/v1/spans`
 - `trace_id_128bit` whether a 128bit trace id will be used when creating a new trace instance. Defaults to `true`. Setting to `false` will result in a 64 bit trace id being used.
-- `shared_span_context` whether client and server spans will shared the same span id. The default value is `true`.
+- `shared_span_context` whether client and server spans will share the same span id. The default value is `true`.
 
 ### `datadog` driver configurations
 

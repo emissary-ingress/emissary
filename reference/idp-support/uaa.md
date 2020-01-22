@@ -26,7 +26,7 @@ jwt:
 
 ## Configure Filter and FilterPolicy
 
-Configure you OAuth `Filter` and `FilterPolicy` with the following: 
+Configure your OAuth `Filter` and `FilterPolicy` with the following: 
 
 
    Use the id (ambassador) and secret (CLIENT_SECRET) from step 1 to configure the OAuth `Filter`.
