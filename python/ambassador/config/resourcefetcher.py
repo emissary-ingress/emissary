@@ -499,7 +499,7 @@ class ResourceFetcher:
 
         ingress_tls = ingress_spec.get('tls', [])
         for tls_count, tls in enumerate(ingress_tls):
-            tls_unique_identifier = f"{ingress_name}-{tls_count}"
+            tls_unique_identifier = f"{ingress_name}-{ingress_namespace}-{tls_count}"
 
             tls_secret = tls.get('secretName', None)
 
@@ -524,7 +524,7 @@ class ResourceFetcher:
                 if tls_hosts is not None:
                     ingress_tls_context['spec']['hosts'] = tls_hosts
 
-                self.logger.info(f"Generated TLS Context from ingress {ingress_name}: {ingress_tls_context}")
+                self.logger.info(f"Generated TLS Context from ingress {ingress_name}.{ingress_namespace}: {ingress_tls_context}")
                 self.handle_k8s_crd(ingress_tls_context)
 
         # parse ingress.spec.backend
@@ -532,7 +532,7 @@ class ResourceFetcher:
         db_service_name = default_backend.get('serviceName', None)
         db_service_port = default_backend.get('servicePort', None)
         if db_service_name is not None and db_service_port is not None:
-            db_mapping_identifier = f"{ingress_name}-default-backend"
+            db_mapping_identifier = f"{ingress_name}-{ingress_namespace}-default-backend"
 
             default_backend_mapping = {
                 'apiVersion': 'getambassador.io/v2',
@@ -551,7 +551,7 @@ class ResourceFetcher:
             if metadata_labels:
                 default_backend_mapping['metadata']['labels'] = metadata_labels
 
-            self.logger.info(f"Generated mapping from Ingress {ingress_name}: {default_backend_mapping}")
+            self.logger.info(f"Generated mapping from Ingress {ingress_name}.{ingress_namespace}: {default_backend_mapping}")
             self.handle_k8s_crd(default_backend_mapping)
 
         # parse ingress.spec.rules
@@ -573,7 +573,7 @@ class ResourceFetcher:
                     continue
 
                 unique_suffix = f"{rule_count}-{path_count}"
-                mapping_identifier = f"{ingress_name}-{unique_suffix}"
+                mapping_identifier = f"{ingress_name}-{ingress_namespace}-{unique_suffix}"
 
                 path_mapping: Dict[str, Any] = {
                     'apiVersion': 'getambassador.io/v2',
@@ -595,7 +595,7 @@ class ResourceFetcher:
                 if rule_host is not None:
                     path_mapping['spec']['host'] = rule_host
 
-                self.logger.info(f"Generated mapping from Ingress {ingress_name}: {path_mapping}")
+                self.logger.info(f"Generated mapping from Ingress {ingress_name}.{ingress_namespace}: {path_mapping}")
                 self.handle_k8s_crd(path_mapping)
 
         # let's make arrangements to update Ingress' status now
