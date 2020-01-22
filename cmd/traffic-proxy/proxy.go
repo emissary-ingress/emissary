@@ -338,9 +338,15 @@ func main() {
 		Version: Version,
 		Run:     Main,
 	}
-	cmdContext := licensekeys.InitializeCommandFlags(argparser.PersistentFlags())
+
+	cmdContext := &licensekeys.LicenseContext{}
+	if err := cmdContext.AddFlagsTo(argparser); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+
 	argparser.PersistentPreRun = func(cmd *cobra.Command, args []string) {
-		licenseClaims, err := cmdContext.KeyCheck(cmd.PersistentFlags(), false)
+		licenseClaims, err := cmdContext.GetClaims()
 		if err == nil {
 			err = licenseClaims.RequireFeature(licensekeys.FeatureTraffic)
 		}

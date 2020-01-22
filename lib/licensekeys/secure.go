@@ -12,6 +12,10 @@ import (
 	"github.com/datawire/apro/lib/jwtsupport"
 )
 
+const (
+	DefUnregisteredCustomerID = "unregistered"
+)
+
 type LicenseClaimsLatest = LicenseClaimsV2
 
 type LicenseClaims interface {
