@@ -88,11 +88,14 @@ def test_docker():
             logfile.write('No $AMBASSADOR_DOCKER_IMAGE??\n')
         else:
             if docker_start(logfile):
-                logfile.write("Demo started, sleeping 10 seconds just in case...")
-                time.sleep(10)
+                logfile.write("Demo started, first check...")
 
                 if check_http(logfile):
-                    test_status = True
+                    logfile.write("Sleeping for second check...")
+                    time.sleep(10)
+
+                    if check_http(logfile):
+                        test_status = True
 
                 docker_kill(logfile)
 
