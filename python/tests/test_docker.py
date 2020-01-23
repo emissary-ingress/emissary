@@ -2,6 +2,7 @@ import os
 
 import pexpect
 import requests
+import time
 
 DockerImage = os.environ.get("AMBASSADOR_DOCKER_IMAGE", None)
 
@@ -13,7 +14,7 @@ def docker_start(logfile) -> bool:
 
     print(os.environ["DOCKER_NETWORK"])
 
-    cmd = f'docker run --rm --network {os.environ["DOCKER_NETWORK"]} --network-alias docker-ambassador -u8888:0 {os.environ["AMBASSADOR_DOCKER_IMAGE"]} --demo'
+    cmd = f'docker run --rm --name test_docker_ambassador --network {os.environ["DOCKER_NETWORK"]} --network-alias docker-ambassador -u8888:0 {os.environ["AMBASSADOR_DOCKER_IMAGE"]} --demo'
 
     child = pexpect.spawn(cmd, encoding='utf-8')
     child.logfile = logfile
@@ -30,7 +31,7 @@ def docker_start(logfile) -> bool:
         return True
 
 def docker_kill(logfile):
-    cmd = f'docker kill ambassador'
+    cmd = f'docker kill test_docker_ambassador'
 
     child = pexpect.spawn(cmd, encoding='utf-8')
     child.logfile = logfile
@@ -39,8 +40,11 @@ def docker_kill(logfile):
 
 def check_http(logfile) -> bool:
     try:
+        logfile.write("QotM: making request\n")
         response = requests.get('http://docker-ambassador:8080/qotm/?json=true', headers={ 'Host': 'localhost' })
         text = response.text
+
+        logfile.write(f"QotM: got status {response.status_code}, text {text}\n")
 
         if response.status_code != 200:
             logfile.write(f'QotM: wanted 200 but got {response.status_code} {text}\n')
@@ -84,6 +88,9 @@ def test_docker():
             logfile.write('No $AMBASSADOR_DOCKER_IMAGE??\n')
         else:
             if docker_start(logfile):
+                logfile.write("Demo started, sleeping 10 seconds just in case...")
+                time.sleep(10)
+
                 if check_http(logfile):
                     test_status = True
 
