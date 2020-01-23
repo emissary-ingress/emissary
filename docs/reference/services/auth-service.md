@@ -93,7 +93,7 @@ You may create multiple `AuthService` manifests to round-robin authentication re
 
 ## Configuring Public Mappings
 
-An `AuthService` can be disabled for a mapping by settingn `bypass_auth` to `true`. This will tell Ambassador to allow all requests for that mapping through without interacting with the external auth service.
+An `AuthService` can be disabled for a mapping by setting `bypass_auth` to `true`. This will tell Ambassador to allow all requests for that mapping through without interacting with the external auth service.
 
 ## Example
 
