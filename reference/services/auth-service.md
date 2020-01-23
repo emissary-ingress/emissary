@@ -31,7 +31,6 @@ spec:
     code: 503
   failure_mode_allow: false
   add_linkerd_headers: true
-  cluster_idle_timeout_ms: 30000
 ```
 
 - `add_linkerd_headers` (optional) when true, adds `l5d-dst-override` to the authorization request and sets the hostname of the authorization server as the header value.
@@ -54,8 +53,6 @@ spec:
     * `X-Forwarded-For`
     * `X-Forwarded-Host`
     * `X-Forwarded-Proto`
-
-- `cluster_idle_timeout_ms` (optional) sets the timeout, in milliseconds, before an idle connection upstream is closed. The default is provided by the `ambassador Module`; if no `cluster_idle_timeout_ms` is specified, upstream connections will never be closed due to idling.
 
 - `failure_mode_allow` (optional) if requests should be allowed on auth service failure. Defaults to false
 
