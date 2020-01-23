@@ -13,7 +13,7 @@ import { objectMerge } from "../framework/utilities.js"
 import { IResource } from "../interfaces/iresource.js"
 
 export const _defaultAcmeProvider = "https://acme-v02.api.letsencrypt.org/directory";
-export const _defaultAcmeEmail    = "yourname@yourcompany.com";
+export const _defaultAcmeEmail    = "<specify contact email here>";
 
 export class HostResource extends IResource {
   /* constructor()

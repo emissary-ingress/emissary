@@ -106,6 +106,13 @@ export class ResourceCollectionView extends LitElement {
        */
 
       children.sort((child1, child2) => {
+        /* any pending adds sort to the top of the list. */
+        if (child1.model.isPending("add"))
+          return -1;
+
+        if (child2.model.isPending("add"))
+          return 1;
+
         return child1.model[attribute].localeCompare(child2.model[attribute])
       });
 
@@ -130,17 +137,10 @@ export class ResourceCollectionView extends LitElement {
     /* Set the resource's pending add flag. */
     resource.setPending("add");
 
-    /* Add the resource, which has not yet been seen in a snapshot, to our ResourceCollection.  When the
-     * ResourceCollection processes a new snapshot, it needs to consider this resource as well for updating
-     * if the resource is not pending.  As the Resource's fields are being edited by the user, the system
-     * must check to see if an existing Resource already has that Resource's kind, name, and namespace; if
-     * so a message will be added to the message section of the ResourceView indicating the conflict.
-     */
-
-    this.model.addResource(resource);
-
     /* Create the specific ResourceView needed, added it to our View at the start of the list,
-     * and begin editing the newly-added ResourceView.
+     * and begin editing the newly-added ResourceView.  Note that, while the View does have a Model (Resource)
+     * that was just created, the Resource is not represented in the ResourceCollection.\ and is thus detached
+     * and unaffected by any snapshot updates.
      */
     let viewClass  = this.viewClass();
     let child_view = new viewClass(resource);

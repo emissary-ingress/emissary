@@ -94,22 +94,9 @@ export class ResourceView extends View {
     this.messages  = [];
   }
 
-  /* onAdd()
-   * This method is called on the View when the View has been newly-added to a ResourceCollectionView
-   * and needs to change to its Add mode.  This is different than the normal process when editing an
-   * existing Resource since onEdit() is called when the Edit button is pressed, and doAdd is called
-   * by the ResourceCollectionView to begin the add process.
-   */
-
-  onAdd() {
-    /* Change view to "add" state, and request to focus */
-    this.viewState   = "add";
-    this._needsFocus = true;
-  }
-
-  /* nameInput()
-   * This method returns the name input field, referenced below in the render() HTML.
-   */
+   /* nameInput()
+    * This method returns the name input field, referenced below in the render() HTML.
+    */
 
   nameInput() {
     return this.shadowRoot.querySelector(`input[name="name"]`);
@@ -123,7 +110,20 @@ export class ResourceView extends View {
     return this.shadowRoot.querySelector(`input[name="namespace"]`);
   }
 
-  /* onCancel()
+  /* onAdd()
+   * This method is called on the View when the View has been newly-added to a ResourceCollectionView
+   * and needs to change to its Add mode.  This is different than the normal process when editing an
+   * existing Resource since onEdit() is called when the Edit button is pressed, and doAdd is called
+   * by the ResourceCollectionView to begin the add process.
+   */
+
+  onAdd() {
+    /* Change view to "add" state, and request to focus */
+    this.viewState   = "add";
+    this._needsFocus = true;
+  }
+
+   /* onCancel()
    * This method is called on the View when the View is in Edit mode, and the user clicks on the
    * Cancel button to discard the changes and return to the original state.
    */
@@ -229,16 +229,16 @@ export class ResourceView extends View {
         /* Save is invoked in two cases:
          * 1) after a new Resource has been added; doSave then creates a new Resource object in Kubernetes.
          * 2) after an existing Resource has been edited; doSave then updates that existing Resource in Kubernetes.
-         *
          * The resource's pending state indicates which case is to be run.
          */
 
         if (this.model.isPending("add")) {
-          /* Nothing needs to be done.  The model will be updated by the ResourceCollection at some point
-           * in the future.  The timeout, which is set on all Save operations, could cause the add to fail,
-           * in which case the snapshot will not include the object and it will be removed.  The ResourceCollection
-           * will not remove from the collection any Resources with pending state.
+          /* Successfully added our Resource. Now add it to the ResourceCollection so that it can be tracked
+           * when new snapshots are received.
            */
+
+          /* parentElement = ResourceCollectionView, model is ResourceCollection */
+          this.parentElement.model.addResource(this.model);
         }
         else if (this.model.isPending("edit")) {
           /*  Copy our YAML to the saved model so that it can be identified as existing in the
@@ -371,7 +371,7 @@ export class ResourceView extends View {
    */
   render() {
     /* If pending, show a crosshatch over the view content. */
-    let pending = this.model.pending("add", "delete", "save");
+    let pending = this.model.pending("delete", "save");
 
     /* Return the HTML, including calls to renderSelf() to allow subclasses to specialize. */
     return html`

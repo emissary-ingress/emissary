@@ -41,11 +41,11 @@ export class ResourceCollection extends Model {
     let key = this.uniqueKeyFor(resource.getYAML());
 
     /* Only add if this resource does not exist in the collection. */
-    if (this._resources.get(key) === null) {
-      this._resources.set(key, resource);
+    if (this._resources.get(key)) {
+      console.log("ResourceCollection.addResource: attempted to add resource that already exists")
     }
     else {
-      console.log("ResourceCollection.addResource: attempted to add resource that already exists")
+      this._resources.set(key, resource);
     }
   }
 
