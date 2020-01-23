@@ -35,7 +35,7 @@ Currently, the Ambassador Edge Stack supports four filter types: `External`, `JW
 
 ### Filter Type: `External`
 
-The `External` filter calls out to an external service speaking the [`ext_authz` protocol](/reference/services/ext_authz.md), providing a highly flexible interface to plug in your own authentication, authorization, and filtering logic.
+The `External` filter calls out to an external service speaking the [`ext_authz` protocol](/reference/services/ext_authz), providing a highly flexible interface to plug in your own authentication, authorization, and filtering logic.
 
 ```yaml
 ---
