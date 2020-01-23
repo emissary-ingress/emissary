@@ -103,25 +103,35 @@ func (c *Controller) Worker(ctx context.Context) error {
 
 				logger := dlog.GetLogger(ctx)
 
-				// Kludge:
+				// What follows is a simple event-loop.  It allows us to write our rectify() and
+				// processSnapshot() functions in a simple (well, simpler) single-threaded manner,
+				// without having to worry about multiple goroutines or signalling or anything.
 				//
-				// "Ideally", there would be 3 cases that trigger us to call c.rectify()
-				//  1. there's a new WATT snapshot with changes we care about
-				//  2. a daily timer
-				//  3. one of the Host's errorBackoff has elapsed
+				// "Ideally", there would be 3 types of events in this event loop:
+				//  1. A new WATT snapshot
+				//  2. A timed event; analogous to JavaScript's setTimeout()
+				//  3. A periodic ticker, to avoid becoming wedged in case something goes sideways and
+				//     we forget to call that setTimeout()-analogue.
 				//
-				// We've always had (1) and (2), but unfortunately adding (3)
-				// is a little tricky.  Or at least tedious.  The point is, I'm
-				// not up to it right now with 1.0.0 GA around the corner.
+				// "Naturally", I'd set the (3) ticker to 24 hours.
 				//
-				// So, what to do about that: Burn some CPU cycles, and crank
-				// the daily timer down to mintuely, so that we always trigger
-				// within a minute of an errorBackoff elapsing, at the cost of
-				// a bunch of no-op calls to c.rectify().
+				// However, it's a gap in the implementation that we don't actually have the (2)
+				// setTimeout()-analogue.  I wrote the original implementation with just (1) and (3),
+				// and now adding (2) is a little tricky.  Or at least tedious.  The point is, I didn't
+				// have time to add it with 1.0.0 GA around the corner.
 				//
-				// A no-op c.rectify() should be cheap enough (entirely in-CPU)
-				// that until I see a benchmark saying otherwise, doing this
-				// the "right way" is pretty low priority.
+				// Why do we want a (2) setTimeout()-analogue, when I didn't need one for the initial
+				// implementation?  The big reason is that we added errorBackoff, and we really want to
+				// call rectify() again when an errorBackoff expires.
+				//
+				// So, what to do about that: As a stop-gap for not having a (2) setTimeout()-analogue:
+				// Burn some CPU cycles, and crank the (3) ticker down from daily to minutely, so that
+				// we always trigger within a minute of an errorBackoff elapsing, at the cost of a bunch
+				// of no-op calls to c.rectify().
+				//
+				// A no-op c.rectify() should be cheap enough (entirely in-CPU) that until I see a
+				// benchmark saying otherwise, doing this the "right way" and adding that (2)
+				// setTimeout()-analogue is pretty low priority.
 				ticker := time.NewTicker(time.Minute) // 24 * time.Hour)
 				defer ticker.Stop()
 
@@ -300,23 +310,37 @@ func (c *Controller) updateHost(host *ambassadorTypesV2.Host) error {
 	return err
 }
 
-// Hear ye, hear ye: Immediately after any of the `.recordHost*` methods except for
-// `recordHostsEvent`, you MUST immediately call `continue` to abort further processing of that
-// Host/those Hosts until the next "rectify" iteration with a new WATT snapshot.
+// Hear ye, hear ye: Immediately after any of the `.recordHost*` methods except for `recordHostsEvent`, you MUST avoid
+// further processing of that Host/those Hosts until you have a new WATT snapshot reflecting the changes.  Because of
+// the way that each of the `rectifyPhaseXXX` methods are structured, that pretty much just means calling `continue`
+// afterward.
 //
-// It is permisible to call the same method on multiple different Hosts before calling
-// `continue`.  For example:
+// So, when mechanically reviewing the code, you should either (1) look for calling `continue` immediately after the
+// call to the `recordHostXXX` method, like:
 //
-//	hostsDirty := false
-//	for _, host := range hosts {
-//		if shouldUpdateHost(host) {
-//			c.recordHostPending(logger, host, ...)
-//			hostsDirty = true
-//		}
-//	}
-//	if hostsDirty {
-//		continue
-//	}
+// 	c.recordHostPending(logger, host,
+// 		ambassadorTypesV2.HostPhase_DefaultsFilled,
+// 		nextPhase, "waiting for Host DefaultsFilled change to be reflected in snapshot")
+// 	continue
+// 	// more code that would process the Host would go here
+//
+// or (2) you should look for calling `continue` immediately after a loop that called the `recordHostXXX` method on a
+// set of Hosts, like:
+//
+// 	hostsDirty := false
+// 	for _, host := range hosts {
+// 		if shouldUpdateHost(host) {
+// 			c.recordHostPending(logger, host, ...)
+// 			hostsDirty = true
+// 		}
+// 	}
+// 	if hostsDirty {
+// 		continue
+// 	}
+// 	// more code that would process the Hosts would go here
+//
+// And that rule of "make sure you call `continue` afterward" should save you the mental overhead of having to think too
+// much about it.
 
 // recordHostPending records a Host as state=Pending with the given details (potentially moving
 // it out of state=Error or state=Ready).
