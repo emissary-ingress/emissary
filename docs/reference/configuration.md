@@ -16,7 +16,7 @@ The Ambassador Edge Stack is configured in a declarative fashion, using YAML man
 
 - [`Ingress`](../core/ingress-controller) manifests allows you to use Ambassador as a Kubernetes ingress controller. See the provided documention on configuration with Ambassador, and review the [Kubernetes documentation](https://kubernetes.io/docs/concepts/services-networking/ingress/) for detailed information on the `Ingress` resource.
 
-- `LogService`manifests help you configure logging. See [Kubernertes Logging Architecture](https://kubernetes.io/docs/concepts/cluster-administration/logging/) for more details.
+- [`LogService`](../services/log-service) manifests configure centralized access logging.
 
 - [`TCPMapping`](../tcpmappings) manifests associate TCP mappings with Kubernetes services.
 
