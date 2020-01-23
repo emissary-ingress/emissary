@@ -24,6 +24,12 @@ if ! [[ -d /tmp/getambassador.io-$website_branch/public ]]; then
 	exit 0
 fi
 
+if [[ -n "$TRAVIS_PULL_REQUEST_SHA" ]]; then
+	build_type=pr
+else
+	build_type=push
+fi
+
 set -o verbose
 
 pushd "/tmp/getambassador.io-$website_branch/public"
@@ -51,7 +57,7 @@ set -o verbose
 
 cat >/tmp/github-status.json <<EOF
 {
-  "context": "broken-link-check/${website_branch}",
+  "context": "broken-link-check/${build_type}",
   "state": "$(if [[ $num_complaints -eq 0 ]]; then echo success; else echo failure; fi)",
   "target_url": "${TRAVIS_JOB_WEB_URL}",
   "description": "Found ${num_complaints} bad links in the website ${website_branch} preview"

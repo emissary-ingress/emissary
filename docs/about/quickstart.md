@@ -38,7 +38,7 @@ You can see details of the mapping by clicking the blue `http://localhost:8080/q
 
 ## 4. Authentication
 
-On the diagnostic overview, you can also see that Ambassador Edge Stack is configured to do authentication -- in the middle fo the overview page, you'll see the `Ambassador Services In Use` section, and you can click the `tcp://127.0.0.1:5050` link for details on the `AuthService` configuration. This demo auth service is running inside the Docker container with Ambassador Edge Stack and the Quote of the Moment service, and Ambassador Edge Stack uses it to mediate access to everything behind the Ambassador Edge Stack.
+On the diagnostic overview, you can also see that Ambassador Edge Stack is configured to do authentication -- in the middle of the overview page, you'll see the `Ambassador Services In Use` section, and you can click the `tcp://127.0.0.1:5050` link for details on the `AuthService` configuration. This demo auth service is running inside the Docker container with Ambassador Edge Stack and the Quote of the Moment service, and Ambassador Edge Stack uses it to mediate access to everything behind the Ambassador Edge Stack.
 
 You saw above that access to the diagnostic overview required you to authenticate as an administrator. Getting a random Quote of the Moment does not require authentication, but to get a specific quote, you'll have to authenticate as a demo user. To see this in action, open
 
