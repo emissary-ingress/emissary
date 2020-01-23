@@ -2,12 +2,12 @@ package runner
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"io"
 	"math/rand"
 	"net/http"
 	"os"
-	"flag"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -23,8 +23,8 @@ import (
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
-	"k8s.io/klog"
 	grpchealth "google.golang.org/grpc/health"
+	"k8s.io/klog"
 
 	// first-party libraries
 	"github.com/datawire/ambassador/pkg/dlog"
@@ -249,7 +249,7 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	acmeLock, err := acmeclient.GetLeaderElectionResourceLock(cfg, kubeinfo, eventLogger)
 	if err != nil {
-		return err
+		logrusLogger.Errorln("failed to participate in acme leader election, Ambassador Edge Stack acme client is disabled:", err)
 	}
 
 	var redisPool *pool.Pool
@@ -335,23 +335,25 @@ func runE(cmd *cobra.Command, args []string) error {
 	}
 
 	// ACME client
-	acmeController := acmeclient.NewController(
-		redisPool,
-		http.DefaultClient, // XXX
-		snapshotStore.Subscribe(),
-		eventLogger,
-		acmeLock,
-		coreClient,
-		dynamicClient)
-	group.Go("acme_client", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
-		// FIXME(lukeshu): Perhaps EnsureFallback should observe softCtx.Done()?
-		if err := acmeclient.EnsureFallback(cfg, coreClient, dynamicClient); err != nil {
-			err = errors.Wrap(err, "create fallback TLSContext and TLS Secret")
-			l.Errorln(err)
-			// this is non fatal (mostly just to facilitate local dev); don't `return err`
-		}
-		return acmeController.Worker(dlog.WithLogger(softCtx, l))
-	})
+	if acmeLock != nil {
+		acmeController := acmeclient.NewController(
+			redisPool,
+			http.DefaultClient, // XXX
+			snapshotStore.Subscribe(),
+			eventLogger,
+			acmeLock,
+			coreClient,
+			dynamicClient)
+		group.Go("acme_client", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
+			// FIXME(lukeshu): Perhaps EnsureFallback should observe softCtx.Done()?
+			if err := acmeclient.EnsureFallback(cfg, coreClient, dynamicClient); err != nil {
+				err = errors.Wrap(err, "create fallback TLSContext and TLS Secret")
+				l.Errorln(err)
+				// this is non fatal (mostly just to facilitate local dev); don't `return err`
+			}
+			return acmeController.Worker(dlog.WithLogger(softCtx, l))
+		})
+	}
 
 	// HTTP server
 	group.Go("http", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
