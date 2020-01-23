@@ -171,7 +171,7 @@ export class ResourceView extends View {
           this.savedModel = null;
 
           /* Note that the resource is pending an update (in this case, to be deleted) */
-          this.model.setPendingUpdate();
+          this.model.setPending("delete");
 
           /* Set a viewState of "pending-delete" to show only the "pending delete" button. */
           this.viewState = "pending-delete";
@@ -240,8 +240,8 @@ export class ResourceView extends View {
         /* We believe that the save was successful.  Keep the new model and note that its state is pending. */
         this.savedModel = null;
 
-        /* Note that the resource is pending an update */
-        this.model.setPendingUpdate();
+        /* Note that the resource is pending save */
+        this.model.setPending("save");
 
         /* Restore to "pending-save" state. */
         this.viewState = "pending-save";
@@ -336,16 +336,17 @@ export class ResourceView extends View {
   *
    */
   render() {
+    /* If pending, show a crosshatch over the view content. */
+    let pending = this.model.pending("add", "delete", "save");
+
     /* Return the HTML, including calls to renderSelf() to allow subclasses to specialize. */
     return html`
       <link rel="stylesheet" href="../styles/oneresource.css">
       ${this.modifiedStyles() ? this.modifiedStyles() : ""}
       <form>
-        <div class="card ${this.viewMode === "off" ? "off" : ""}">
+        <div class="card ${this.viewState === "off" ? "off" : ""}">
           <div class="col">
-          
-            <!-- Potentially show a crosshatch over the resource, showing that edits are pending. -->
-            <div class="${this.viewState === "off" ? "off" : (this.model.pendingUpdate() ? "pending" : "")}">
+            <div class="${pending ? "pending" : ""}">
             
               <!-- Render common Resource fields: kind, name, namespace, as well as input fields when editing.   -->
               <div class="row line">
@@ -355,7 +356,7 @@ export class ResourceView extends View {
               <div class="row line">
                 <label class="row-col margin-right justify-right">name:</label>
                 <div class="row-col">
-                  <b class="${this.visibleWhen("list", "pending-delete")}">${this.name}</b>
+                  <b class="${this.visibleWhen("list", "pending-save", "pending-delete")}">${this.name}</b>
                   
                   <input class="${this.visibleWhen("add", "edit")}" name="name" type="text" value="${this.name}"/>
                 </div>
@@ -364,7 +365,7 @@ export class ResourceView extends View {
               <div class="row line">
                 <label class="row-col margin-right justify-right">namespace:</label>
                 <div class="row-col">
-                  <div class="namespace${this.visibleWhen("list", "pending-delete")}">(${this.namespace})</div>
+                  <div class="namespace${this.visibleWhen("list", "pending-save", "pending-delete")}">(${this.namespace})</div>
                   
                   <div class="namespace-input ${this.visibleWhen("add", "edit")}">
                     <div class="pararen">(</div>

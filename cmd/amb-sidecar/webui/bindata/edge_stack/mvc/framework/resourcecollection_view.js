@@ -126,8 +126,15 @@ export class ResourceCollectionView extends LitElement {
   onAdd() {
     let modelClass = this.model.resourceClass();
     let viewClass  = this.viewClass();
-    let child_view = new viewClass(new modelClass());
+    let resource   = new modelClass();
+    let child_view = new viewClass(resource);
     this.insertBefore(child_view, this.firstChild);
+
+    /* Add to our ResourceCollection.  When the new Resource has been saved, this will be synced
+    *  by the ResourceCollection and updated with additional attributes.  Note that it is pending
+    *  being added to Kubernetes, to inhibit the ResourceCollection from removing it.
+    */
+    this.model.addResource(resource);
 
     /* Begin editing the newly added ResourceView (e.g. HostView) */
     child_view.doAdd();

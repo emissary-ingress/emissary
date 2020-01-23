@@ -50,8 +50,10 @@ export class Resource extends Model {
     /* Set up our instance variables, including default values if needed. */
     this.updateFrom(yaml);
 
-    /* Internal state for when the Resource is edited and is pending confirmation of the edit from a future snapshot. */
-    this._pendingUpdate = false;
+    /* Internal state for when the Resource is edited and is pending confirmation of the edit from a future snapshot.
+    *  Different operations may be pending (e.g. add, save)
+    */
+    this._pending = new Map();
   }
 
   /* copySelf()
@@ -250,6 +252,9 @@ export class Resource extends Model {
     /* Remember the full YAML for merging later, to send to Kubernetes. */
     this._fullYAML = yaml;
 
+    /* Clear any pending flags, since the resource has now been updated. */
+    this.clearAllPending();
+
     /* Notify listeners if any updates occurred. */
     if (updated) {
       this.notifyListenersUpdated();
@@ -257,30 +262,44 @@ export class Resource extends Model {
   }
 
 
-  /* clearPendingUpdate()
-  * Clear the pendingUpdate flag.
-  */
+  /* clearAllPending()
+   * Clear all pending flags.
+   */
 
-  clearPendingUpdate() {
-    return this._pendingUpdate = false;
+  clearAllPending() {
+    this._pending = new Map();
   }
 
-  /* setPendingUpdate()
-  * set the pendingUpdate flag.
-  */
+  /* clearPending(operation)
+   * Clear the pending flag for the given operation.
+   */
 
-  setPendingUpdate() {
-    return this._pendingUpdate = true;
+  clearPending(op) {
+    this._pending[op] = false;
   }
 
-  /* pendingUpdate()
-    * Return whether the Resource is pending an update after doSave().  This is used for rendering the
-    * Resource differently in the View if the current state in the Resource object has been added or edited and not
-    * yet resolved from a snapshot.
-    */
+  /* setPending(operation)
+   * Set the pending flag for the given operation.
+   */
 
-  pendingUpdate() {
-    return this._pendingUpdate;
+  setPending(op) {
+    this._pending[op] = true;
+  }
+
+  /* pending(ops)
+   * Return whether the Resource is pending any of a set of operations after adding or editing.  This is used for
+   * rendering the Resource differently in the View if the current state in the Resource object has been modified,
+   * and not yet resolved from a snapshot.  Typical call would be myResource.pending("add", "delete", "save").
+   */
+
+  pending() {
+    for (let op of [...arguments]) {
+      if (this._pending[op] === true) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /* validate()

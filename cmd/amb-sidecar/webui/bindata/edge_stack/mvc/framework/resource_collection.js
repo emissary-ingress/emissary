@@ -29,6 +29,37 @@ export class ResourceCollection extends Model {
     Snapshot.subscribe(this.onSnapshotChange.bind(this));
   }
 
+  /* addResource(resource)
+   * Add a resource to the list of resources being managed in the collection.  This is called when
+   * a new resource is added in the UX, with a new ResourceView, but has not yet been seen in the
+   * snapshot.  By adding it separately from the snapshot it can then be updated when it is seen
+   * in the snapshot later, or removed from the collection if the add operation did not succeed
+   * with Kubernetes.
+   */
+
+  addResource(resource) {
+    let key = this.uniqueKeyFor(resource.getYAML());
+
+    /* Only add if this resource does not exist in the collection. */
+    if (this._resources.get(key) === null) {
+      this._resources.set(key, resource);
+    }
+    else {
+      console.log("ResourceCollection.addResource: attempted to add resource that already exists")
+    }
+  }
+
+  /* hasResource(resource)
+   * Return true if the resource, based on its unique key, is already represented by another model
+   * that is in the ResourceCollection.
+   */
+
+  hasResource(resource) {
+    let key = this.uniqueKeyFor(resource.getYAML());
+    return (this._resources.get(key) !== null);
+  }
+
+
   /* onSnapshotChange(snapshot)
    * When new snapshot data is available, we need to create, delete, or update  models from our collection (set) of
    * models and notify the listeners of any changes.
@@ -58,8 +89,7 @@ export class ResourceCollection extends Model {
         * keys.  If any keys are left at the end of the process, that means that the objects
         * with those keys were not observed in the snapshot and thus must be removed. */
         previousKeys.delete(key);
-      }
-      else {
+      } else {
         /* ...if we do not have a model object for this Resource (as defined by the unique key), then create a new
          * Resource object. After creating the object, notify all my listeners of the creation. See views/resources.js
          * for more information on how the ResourceListView uses that notification to add new child web components.
@@ -106,4 +136,5 @@ export class ResourceCollection extends Model {
   uniqueKeyFor(yaml) {
     return yaml.kind + "::" + yaml.metadata.name + "::" + yaml.metadata.namespace;
   }
+
 }
