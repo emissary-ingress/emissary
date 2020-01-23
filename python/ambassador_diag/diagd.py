@@ -373,6 +373,24 @@ def drop_serializer_key(d: Dict[Any, Any]) -> Dict[Any, Any]:
     return d
 
 
+def filter_keys(d: Dict[Any, Any], keys_to_keep):
+    unwanted_keys = set(d) - set(keys_to_keep)
+    for unwanted_key in unwanted_keys: del d[unwanted_key]
+
+
+def filter_webui(d: Dict[Any, Any]):
+    filter_keys(d, ['system', 'route_info', 'source_map',
+                    'ambassador_resolvers', 'ambassador_services',
+                    'envoy_status', 'cluster_stats', 'loginfo', 'errors'])
+    for ambassador_resolver in d['ambassador_resolvers']:
+        filter_keys(ambassador_resolver, ['_source', 'kind'])
+    for route_info in d['route_info']:
+        filter_keys(route_info, ['diag_class', 'key', 'headers',
+                                 'precedence', 'clusters'])
+        for cluster in route_info['clusters']:
+            filter_keys(cluster, ['_hcolor', 'type_label', 'service', 'weight'])
+
+
 @app.route('/_internal/v0/ping', methods=[ 'GET' ])
 def handle_ping():
     return "ACK\n", 200
@@ -505,11 +523,14 @@ def show_overview(reqid=None):
 
     patch_client = request.args.get('patch_client', None)
     if request.args.get('json', None):
-        key = request.args.get('filter', None)
+        filter_key = request.args.get('filter', None)
 
-        if key:
-            return jsonify(tvars.get(key, None))
-        elif patch_client:
+        if filter_key == 'webui':
+            filter_webui(tvars)
+        elif filter_key:
+            return jsonify(tvars.get(filter_key, None))
+
+        if patch_client:
             # Assume this is the Admin UI. Recursively drop all "serialization"
             # keys. This avoids leaking secrets and generally makes the
             # snapshot a lot smaller without losing information that the Admin
