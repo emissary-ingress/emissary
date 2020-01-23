@@ -3,7 +3,7 @@
 By design, the `ext_authz` protocol used by [the `AuthService`](../auth-service) and by [`External` `Filters`](../../filter-reference) is highly flexible. The authentication service is the first external service invoked on an incoming request (e.g., it runs before the rate limit filter). Because the logic of authentication is encapsulated in an external service, you can use this to support a wide variety of use cases. For example:
 
 * Supporting traditional SSO authentication protocols, e.g., OAuth, OpenID Connect, etc.
-* Support HTTP basic authentication (sample implementation available [here](https://github.com/datawire/ambassador-auth-httpbasic)).
+* Supporting HTTP basic authentication (sample implementation available [here](https://github.com/datawire/ambassador-auth-httpbasic)).
 * Only authenticating requests that are under a rate limit, and rejecting authentication requests above the rate limit.
 * Authenticating specific services (URLs), and not others.
 
@@ -11,7 +11,7 @@ For each request, the external auth service may either
  1. return a direct HTTP *response*, intended to be sent back to the requesting HTTP client (normally *denying* the request from being forwarded to the upstream backend service); or
  2. return a modification to make to the HTTP *request* before sending it to the upstream backend service (normally *allowing* the request to be forwarded to the upstream backend service with modifications).
 
-The external auth service receives information about every request through Ambassador and must indicate whether the request is to be allowed, or not.  If not, the external auth service provides the HTTP response which is to be handed back to the client.  A potential control flow for Authentication is shown below.
+The external auth service receives information about every request through Ambassador and must indicate whether the request is to be allowed, or not.  If not, the external auth service provides the HTTP response which is to be handed back to the client.  A potential control flow for Authentication is shown in the image below.
 
 Giving the external auth service the ability to control the response allows many different types of auth mechanisms, for example:
 
@@ -72,7 +72,7 @@ Content-Length: 0
 
 #### The Response Returned From the External Auth Service to Ambassador
 
- - If the HTTP response returned from the external auth service to Ambassador has an HTTP status code of 200, then the request is allowed through to the upstream backend service.  **Note well** that **only** 200 indicates this; other 2XX status codes will prevent the request from being allowed through, as described below.
+ - If the HTTP response returned from the external auth service to Ambassador has an HTTP status code of 200, then the request is allowed through to the upstream backend service.  **Note well** that **only** 200 indicates this; other 2XX status codes will prevent the request from being allowed through.
 
    The 200 response should not contain anything in the body, but may contain arbitrary headers.  Any header present in the external auth service' response that is also either listed in the `allow_authorization_headers` attribute of the `AuthService` resource or in the fixed list of headers that are always included will be copied from the external auth service' response into the request going to the upstream backend service.  This allows the external auth service to inject tokens or other information into the request, or to modify headers coming from the client.
 
