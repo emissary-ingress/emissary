@@ -120,9 +120,9 @@ export class HostView extends IResourceView {
   validateSelf() {
     let errors = new Map();
 
-    /* We validate that the user has agreed to the Terms of Service, which is either:
-     * (i) if we are not showing the Terms of Service, then we assume that they have already agreed, or
-     * (ii) if we are showing the TOS, then the checkbox needs to be checked.
+    /* Validate that the user has agreed to the Terms of Service, which is either:
+     * (i) if  not showing the Terms of Service, then assume that they have already agreed, or
+     * (ii) if the TOS is shown, then the checkbox needs to be checked.
      */
     if (this.showTos && this.useAcme && !this.tosAgreeCheckbox().checked) {
       errors.set("tos", "You must agree to terms of service");

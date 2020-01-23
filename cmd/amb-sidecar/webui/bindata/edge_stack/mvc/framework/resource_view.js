@@ -70,9 +70,11 @@ export class ResourceView extends View {
     this.showYAML = false;
 
     /* For editing, we will save the existing Model while we edit a new one that will replace the old.
+    /* For editing, we will save the existing Model while we edit a new one that will replace the old.
      * If there is a savedModel, then there must be an edit in progress using this view.
      */
-    this.savedModel = null;
+    this._savedModel = null;
+    this._timeout    = null;
   }
 
   /* addMessage(message)
@@ -92,20 +94,17 @@ export class ResourceView extends View {
     this.messages  = [];
   }
 
-  /* doAdd()
+  /* onAdd()
    * This method is called on the View when the View has been newly-added to a ResourceCollectionView
    * and needs to change to its Add mode.  This is different than the normal process when editing an
    * existing Resource since onEdit() is called when the Edit button is pressed, and doAdd is called
-   * by the ResourceCollectionView to begin the add process.  Also, the viewState must be "add" rather
-   * than "edit", otherwise everything else is handled in the same way.
+   * by the ResourceCollectionView to begin the add process.
    */
 
-  doAdd() {
-    /* Same as editing... */
-    this.onEdit();
-
-    /* Except override the viewState to indicate this is a new Resource being added, not edited. */
-    this.viewState = "add";
+  onAdd() {
+    /* Change view to "add" state, and request to focus */
+    this.viewState   = "add";
+    this._needsFocus = true;
   }
 
   /* nameInput()
@@ -138,9 +137,9 @@ export class ResourceView extends View {
     /* Editing? Swap models back, restoring listeners to the saved Model. */
     if (this.viewState === "edit") {
       this.model.removeListener(this);
-      this.model = this.savedModel;
+      this.model = this._savedModel;
       this.model.addListener(this);
-      this.savedModel = null;
+      this._savedModel = null;
 
       /* Restore the fields to the previous model's. */
       this.readFromModel();
@@ -156,45 +155,48 @@ export class ResourceView extends View {
    */
 
   onDelete() {
-    if (this.viewState === "edit") {
-      let proceed = confirm(`You are about to delete the ${this.kind} named '${this.name}' in the '${this.namespace}' namespace.\n\nAre you sure?`);
+    let proceed = confirm(`You are about to delete the ${this.kind} named '${this.name}' in the '${this.namespace}' namespace.\n\nAre you sure?`);
 
-      if (proceed) {
-        /* Ask the Resource to delete itself. */
-        let error = this.model.doDelete();
+    if (proceed) {
+      /* Ask the Resource to delete itself. */
+      let error = this.model.doDelete();
 
-        if (error === null) {
-          /* Swap models back, restoring listeners to the saved Model. */
-          this.model.removeListener(this);
-          this.model = this.savedModel;
-          this.model.addListener(this);
-          this.savedModel = null;
+      if (error === null) {
+        /* Note that the resource is pending an update (in this case, to be deleted),
+         * and update the viewState to show the pending-delete button and pending visualization */
+        this.model.setPending("delete");
+        this.viewState = "pending-delete";
 
-          /* Note that the resource is pending an update (in this case, to be deleted) */
-          this.model.setPending("delete");
-
-          /* Set a viewState of "pending-delete" to show only the "pending delete" button. */
-          this.viewState = "pending-delete";
-          this.requestUpdate();
-        }
-        else {
-          console.log("ResourceView.onDelete() returned error ${error");
-        }
+        /* Start the timeout for 5 seconds to make sure that the pending delete is reset even if the backend fails */
+        this._timeout = setTimeout(this.verifyDelete.bind(this), 5000);
+      }
+      else {
+        this.addMessage("Delete failed - backend not available?");
+        console.log("ResourceView.onDelete() returned error ${error");
       }
     }
   }
 
-  /* onEdit()
-  * This method is called on the View when the View needs to change to its Edit mode.  The View needs
-  * to create a new copy of its Model for editing, and stop listening to any updates to the old Model.
-  */
+  /* verifyDelete()
+   * This method is called when the timeout finishes, to check whether the resource being deleted has in fact
+   * been successfully removed and is no longer in the snapshot.
+   */
+
+  verifyDelete() {
+  }
+
+
+    /* onEdit()
+    * This method is called on the View when the View needs to change to its Edit mode.  The View needs
+    * to create a new copy of its Model for editing, and stop listening to any updates to the old Model.
+    */
 
   onEdit() {
     /* Clear any error messages prior to editing. */
     this.clearMessages();
 
     /* Save the View's existing model and stop listening to it. */
-    this.savedModel = this.model;
+    this._savedModel = this.model;
     this.model.removeListener(this);
 
     /* Create a new model for editing, based on the state in the existing model, and start listening to it. */
@@ -208,8 +210,11 @@ export class ResourceView extends View {
 
   /* onSave()
     * This method is called on the View when the View is in Edit mode, and the user clicks on the
-    * Save button to save the changes.  Ask the modified Model to save its state, however it needs to do that.
-    * in the case of a Resource it will write back to Kubernetes with kubectl apply.
+    * Save button to save the changes.  There are two circumstances in which the Save button will be clicked:
+    * 1) a new Resource (model) has been added and Save creates a new Resource in the backend.  In this case,
+    * after the model executes doSave(), the Resource will appear (or not) in the snapshot and will be updated
+    * at that time.
+    * 2) an existing Resource is being edited and Save writes back any changes.
     */
 
   onSave() {
@@ -221,32 +226,53 @@ export class ResourceView extends View {
       let error = this.model.doSave();
 
       if (error === null) {
-        /*  Copy our YAML to the saved model so that it can be identified as existing in the
-         * ResourceCollectionView (since it is the "same" model as before, with different state).
-         * Note: the savedModel has no listeners so this will just update the model's attribute values.
+        /* Save is invoked in two cases:
+         * 1) after a new Resource has been added; doSave then creates a new Resource object in Kubernetes.
+         * 2) after an existing Resource has been edited; doSave then updates that existing Resource in Kubernetes.
+         *
+         * The resource's pending state indicates which case is to be run.
          */
 
-        this.savedModel.updateFrom(this.model.getYAML());
+        if (this.model.isPending("add")) {
+          /* Nothing needs to be done.  The model will be updated by the ResourceCollection at some point
+           * in the future.  The timeout, which is set on all Save operations, could cause the add to fail,
+           * in which case the snapshot will not include the object and it will be removed.  The ResourceCollection
+           * will not remove from the collection any Resources with pending state.
+           */
+        }
+        else if (this.model.isPending("edit")) {
+          /*  Copy our YAML to the saved model so that it can be identified as existing in the
+           * ResourceCollectionView (since it is the "same" model as before, with different state).
+           * Note: the savedModel has no listeners so this will just update the model's attribute values.
+           */
 
-        /* Stop listening to the new model, swap, and start listening again to the savedModel (with new state),
-         * which was previously in the ResourceCollection and thus will be identified as having changed.
-         * If the resource name has changed, then the old model will disappear and a new one will take its place.
+          this._savedModel.updateFrom(this.model.getYAML());
+
+          /* Stop listening to the new model, swap, and start listening again to the savedModel (with new state),
+           * which was previously in the ResourceCollection and thus will be identified as having changed.
+           * If the resource name has changed, then the old model will disappear and a new one will take its place.
+           */
+
+          this.model.removeListener(this);
+          this.model = this._savedModel;
+          this.model.addListener(this);
+
+          /* We believe that the save was successful.  Keep the new model and note that its state is pending. */
+          this._savedModel = null;
+        }
+
+        /* Note that the resource is pending save, and change the view to "pending-save" to show that the
+         * view is pending the result of the save operation.
          */
-
-        this.model.removeListener(this);
-        this.model = this.savedModel;
-        this.model.addListener(this);
-
-        /* We believe that the save was successful.  Keep the new model and note that its state is pending. */
-        this.savedModel = null;
-
-        /* Note that the resource is pending save */
         this.model.setPending("save");
-
-        /* Restore to "pending-save" state. */
         this.viewState = "pending-save";
+
+        /* Start the timeout for 5 seconds to make sure that the pending save is reset even if the backend fails */
+        this._timeout = setTimeout(this.verifySave.bind(this), 5000);
+
       } else {
-        console.log("ResourceView.onSave() returned error ${error");
+        this.addMessage("Save failed -- backend not available?");
+        console.log(`ResourceView.onSave() returned error ${error}`);
       }
     }
     /* Have validation errors.  Add to the message list. */
@@ -258,6 +284,14 @@ export class ResourceView extends View {
       /* Messages are not yet in their own component, so request update of the entire view. */
       this.requestUpdate();
     }
+  }
+
+  /* verifySave()
+   * This method is called when the timeout finishes, to check whether the resource being saved has in fact
+   * been successfully saved and has been updated by the snapshot.
+   */
+
+  verifySave() {
   }
 
   /* onSource()
@@ -417,7 +451,7 @@ export class ResourceView extends View {
               <div class="label">cancel</div>
             </a>
             
-            <a class="cta delete ${this.visibleWhen("edit")}" @click=${()=>this.onDelete()}>
+            <a class="cta delete ${this.visibleWhen("list", "detail")}" @click=${()=>this.onDelete()}>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 16"><defs><style>.cls-1{fill-rule:evenodd;}</style></defs><title>delete</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"><path class="cls-1" d="M24,16H7L0,8,7,0H24V16ZM7.91,2,2.66,8,7.9,14H22V2ZM14,6.59,16.59,4,18,5.41,15.41,8,18,10.59,16.59,12,14,9.41,11.41,12,10,10.59,12.59,8,10,5.41,11.41,4,14,6.59Z"/></g></g></svg>
               <div class="label">delete</div>
             </a>

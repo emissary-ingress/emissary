@@ -110,8 +110,14 @@ export class ResourceCollection extends Model {
      */
     for (let key of previousKeys) {
       let oldResource = this._resources.get(key);
-      this.notifyListenersDeleted(oldResource);
-      this._resources.delete(key);
+
+      /* If the resource is *not* pending an add, delete it. Otherwise it is in the collection
+       * just as any other resource, but may not have yet been seen in a snapshot.
+       */
+      if (!oldResource.isPending("add")) {
+        this.notifyListenersDeleted(oldResource);
+        this._resources.delete(key);
+      }
     }
   }
 

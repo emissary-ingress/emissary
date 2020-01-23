@@ -394,6 +394,57 @@ class IResourceCollectionView extends ResourceCollectionView {
 
 ```
 
+# How Resources are Added, Deleted, and Edited
+
+The process of deleting a Resource from a ResourceCollectionView, adding a new Resource, and editing an existing
+Resource must take into account the ongoing update process from snapshots arriving with new data.
+
+## Deleting an existing Resourcce
+
+Deleting an existing `Resource` (e.g. a `HostResource`) is the simplest case of the three.  The `Resource` is
+rendered by the `ResourceView`, which provides a `Delete` button.  When the button is pressed, the following will occur:
+- The model (e.g. the `HostResource`) will be sent a `doDelete` message, which composes a request to the edge stack with
+its resource `kind`, `name`, and `namespace`, and a delete action.
+- The view changes its state to `pending-delete` which shows a pattern over the view, and a `Pending` button
+- A timeout is set for 5 seconds, to check if the operation has succeeded. 
+- At some future time the snapshot will show that the resource no longer exists, and the `ResourceView` will
+be notified and will then remove itself from the `ResourceListView`.
+
+There are two possible error conditions:
+- the request to the edge stack to delete the resource fails.  In this case, an error message will be added
+to the message section of the `ResourceView`, and the view changes state back to "list"
+- The request to the edge stack doesn't fail but for some reason the delete itself is not successful.  In this case,
+the timeout occurs, a message is added to the message section, and the view changes state back to `list`
+
+## Adding a new Resource
+
+Adding a new `Resource` (e.g. a new `HostResource`) needs to check whether the new `Resource` being added conflicts in
+some way with an existing `Resource` in the system.  In Kubernetes, the triple `(kind, name, namespace)` is unique
+within the system, so any new `Resource` being added must not already have the same values for those attributes.
+
+The `ResourceCollectionView` is responsible for adding new `Resources`.  When the `Add` button is pressed, the following
+will occur:
+- a new instance of the appropriate `Resource` type will be created (e.g. a new `HostResource`) and its pending
+state set to `add`.
+- a new `ResourceView` of the appropriate type (e.g. `HostView`) will be created, and initialized with the `Resource`
+instantiated above.
+- The new `ResourceView` will be inserted at the beginning of the list of `ResourceViews` in the `ResourceCollectionView`,
+and the `onAdd()` method for the `ResourceView` will be called.
+- The `ResourceView` will set its view state to "add" and request the focus.  This will change the view to an
+edit mode, where the user may then change the `Resource's` attribute values.
+
+When the user is done and clicks `Save`:
+- the fields will be validated for correctness and uniqueness.  Because this `Resource` is being added, it must not
+have the same kind+name+namespace as any existing `Resource` in the system.  If there are any errors, they will be
+added to the message section of the `ResourceView`.
+- If the fields are validated, then the `doSave()` method is invoked on the new `Resource`, which sends a request
+to Kubernetes to create its new `Resource` object in the backend.
+- 
+
+## Editing an existing Resource
+
+
+
 # Examples
 
 See `HostResource`, `HostCollection` in mvc/models, and `HostView` and `HostCollectionView` in mvc/views

@@ -278,6 +278,14 @@ export class Resource extends Model {
     this._pending[op] = false;
   }
 
+  /* isPending(op)
+   * Return true if the resource is pending the given operation, false otherwise.
+   */
+
+  isPending(op) {
+    return this._pending[op] === true;
+  }
+
   /* setPending(operation)
    * Set the pending flag for the given operation.
    */
@@ -320,6 +328,15 @@ export class Resource extends Model {
 
     message = this.validateName(this.namespace);
     if (message) errors.set("namespace", message);
+
+    /* If this resource is being added, check the kind, name, and namespace against existing resources
+     * to be sure that the resource's values are unique in the system.
+     * TODO: have collection determine if this resource complies with the uniqueness criterion.
+     */
+
+    if (this.isPending("add")) {
+      console.log("Resource.validate() on add")
+    }
 
     /* Any errors from self validation? Merge the results of validateSelf with the existing results from above.
      * validateSelf() overrides any errors returned above with the same name (i.e. name or namespace)

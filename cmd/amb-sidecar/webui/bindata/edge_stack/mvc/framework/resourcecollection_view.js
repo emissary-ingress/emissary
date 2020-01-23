@@ -125,19 +125,27 @@ export class ResourceCollectionView extends LitElement {
 
   onAdd() {
     let modelClass = this.model.resourceClass();
-    let viewClass  = this.viewClass();
     let resource   = new modelClass();
-    let child_view = new viewClass(resource);
-    this.insertBefore(child_view, this.firstChild);
 
-    /* Add to our ResourceCollection.  When the new Resource has been saved, this will be synced
-    *  by the ResourceCollection and updated with additional attributes.  Note that it is pending
-    *  being added to Kubernetes, to inhibit the ResourceCollection from removing it.
-    */
+    /* Set the resource's pending add flag. */
+    resource.setPending("add");
+
+    /* Add the resource, which has not yet been seen in a snapshot, to our ResourceCollection.  When the
+     * ResourceCollection processes a new snapshot, it needs to consider this resource as well for updating
+     * if the resource is not pending.  As the Resource's fields are being edited by the user, the system
+     * must check to see if an existing Resource already has that Resource's kind, name, and namespace; if
+     * so a message will be added to the message section of the ResourceView indicating the conflict.
+     */
+
     this.model.addResource(resource);
 
-    /* Begin editing the newly added ResourceView (e.g. HostView) */
-    child_view.doAdd();
+    /* Create the specific ResourceView needed, added it to our View at the start of the list,
+     * and begin editing the newly-added ResourceView.
+     */
+    let viewClass  = this.viewClass();
+    let child_view = new viewClass(resource);
+    this.insertBefore(child_view, this.firstChild);
+    child_view.onAdd();
   }
 
   /* onChangeSortByAttribute(event)
