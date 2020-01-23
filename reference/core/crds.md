@@ -48,6 +48,7 @@ The full set of CRDs supported by the Ambassador Edge Stack are the following:
 | [`Filter`](/reference/filter-reference/) | `filter` | `filters` |
 | [`FilterPolicy`](/reference/services/access-control) | `filterpolicy` | `filterpolicies`|
 | [`Host`](/reference/host-crd/) | `host`| `hosts` |
+| [`Ingress`](/reference/core/ingress-controller/) | `ingress` | `ingresses` |
 | [`KubernetesEndpointResolver`](/reference/core/resolvers/#the-kubernetes-endpoint-resolver) | `kubernetesendpointresolver` | `kubernetesendpointresolvers` |
 | [`KubernetesServiceResolver`](/reference/core/resolvers/#the-kubernetes-service-resolver) | `kubernetesserviceresolver` | `kubernetesserviceresolvers` |
 | [`LogService`](/reference/services/log-service) | `logservice` | `logservices` |
