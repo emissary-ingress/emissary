@@ -26,3 +26,4 @@ mypy
 pexpect
 pytest
 pyyaml>=5.1
+retry
