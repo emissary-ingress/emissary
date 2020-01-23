@@ -92,6 +92,26 @@ def kube_version_json():
     return json.loads(stdout)
 
 
+def strip_version(ver: str):
+    """
+    strip_version is needed to strip a major/minor version of non-standard symbols. For example, when working with GKE,
+    `kubectl version` returns a minor version like '14+', which is not semver or any standard version, for that matter.
+    So we handle exceptions like that here.
+    :param ver: version string
+    :return: stripped version
+    """
+
+    try:
+        return int(ver)
+    except ValueError as e:
+        # GKE returns weird versions with '+' in the end
+        if ver[-1] == '+':
+            return int(ver[:-1])
+
+        # If we still have not taken care of this, raise the error
+        raise ValueError(e)
+
+
 def kube_server_version(version_json=None):
     if not version_json:
         version_json = kube_version_json()
@@ -99,8 +119,8 @@ def kube_server_version(version_json=None):
     server_json = version_json.get('serverVersion', {})
 
     if server_json:
-        server_major = server_json.get('major', None)
-        server_minor = server_json.get('minor', None)
+        server_major = strip_version(server_json.get('major', None))
+        server_minor = strip_version(server_json.get('minor', None))
 
         return f"{server_major}.{server_minor}"
     else:
@@ -114,8 +134,8 @@ def kube_client_version(version_json=None):
     client_json = version_json.get('clientVersion', {})
 
     if client_json:
-        client_major = client_json.get('major', None)
-        client_minor = client_json.get('minor', None)
+        client_major = strip_version(client_json.get('major', None))
+        client_minor = strip_version(client_json.get('minor', None))
 
         return f"{client_major}.{client_minor}"
     else:
@@ -134,7 +154,7 @@ def is_knative():
     client_version = kube_client_version(kube_json)
 
     if server_version:
-        if version.parse(server_version) < version.parse('1.11'):
+        if version.parse(server_version) < version.parse('1.14'):
             print(f"server version {server_version} is incompatible with Knative")
             is_cluster_compatible = False
         else:
@@ -143,7 +163,7 @@ def is_knative():
         print("could not determine Kubernetes server version?")
 
     if client_version:
-        if version.parse(client_version) < version.parse('1.10'):
+        if version.parse(client_version) < version.parse('1.14'):
             print(f"client version {client_version} is incompatible with Knative")
             is_cluster_compatible = False
         else:
