@@ -209,7 +209,7 @@
         link: /reference/services/access-control
       - title: AuthService Plugin
         link: /reference/services/auth-service
-      - title: Log Plugin
+      - title: LogService Plugin
         link: /reference/services/log-service
       - title: RateLimtingService Plugin
         link: /reference/services/rate-limit-service
