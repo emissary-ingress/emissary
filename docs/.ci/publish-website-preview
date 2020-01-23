@@ -24,6 +24,12 @@ if ! [[ -d /tmp/getambassador.io-${website_branch}/public ]]; then
 	exit 0
 fi
 
+if [[ -n "$TRAVIS_PULL_REQUEST_SHA" ]]; then
+	build_type=pr
+else
+	build_type=push
+fi
+
 set -o verbose
 
 npm install netlify-cli -g
@@ -40,14 +46,12 @@ cat /tmp/netlify-deploy.json
 
 cat >/tmp/github-status.json <<EOF
 {
-  "context": "website-preview/${website_branch}",
+  "context": "website-preview/${build_type}",
   "state": "success",
   "target_url": $(jq .deploy_url </tmp/netlify-deploy.json),
   "description": "Website ${website_branch} preview"
 }
 EOF
-
-cat /tmp/github-status.json
 
 curl --fail \
 	-H "Accept: application/json" \

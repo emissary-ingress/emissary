@@ -23,11 +23,8 @@ install:
 
 script:
   - ./.ci/pr-build-website-preview master
-  - ./.ci/pr-build-website-preview Edge-stack-update
   - ./.ci/publish-website-preview master
-  - ./.ci/publish-website-preview Edge-stack-update
   - ./.ci/blc-website-preview master
-  - ./.ci/blc-website-preview Edge-stack-update
 
 deploy:
   - provider: script

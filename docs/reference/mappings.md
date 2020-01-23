@@ -31,7 +31,7 @@ Ambassador Edge Stack supports a number of attributes to configure and customize
 | `enable_ipv6` | If true, enables IPv6 DNS lookups for this mapping's service (the default is set by the `ambassador` Module). | boolean |
 | `grpc` | If true, tells the system that the service will be handling gRPC calls. | boolean |
 | `headers` | Specifies a list of other HTTP headers which must appear in the request for this mapping to be used to route the request. | string list |
-| `host` | Specifies the value which must appear in the request's HTTP Hostheader for this mapping to be used to route the request. | string |
+| `host` | Specifies the value which must appear in the request's HTTP Host header for this mapping to be used to route the request. | string |
 | `host_regex`| If true, tells the system to interpret the host as a regular expression. | boolean |
 | `host_rewrite` | Forces the HTTP Host header to a specific value when talking to the service. | string |
 | `idle_timeout_ms` | The timeout, in milliseconds, after which connections through this Mapping will be terminated if no traffic is seen. Defaults to 300000 (5 minutes). | integer |
@@ -40,10 +40,10 @@ Ambassador Edge Stack supports a number of attributes to configure and customize
 | `method_regex` | If true, tells the system to interpret the method as a regular expression. | boolean |
 | `prefix_regex` | If true, tells the system to interpret the prefix as a regular expression and requires that the entire path must match the regex, not just the prefix. | boolean |
 | `rate_limits` | Specifies a list rate limit rules on a mapping. | dictionary |
-| `remove_request_headers` | Specifies a list of HTTP headers that are dropped from the request before sending to upstream. | string list |
-| `remove_response_headers` | Specifies a list of HTTP headers that are dropped from the response before sending to client. | string list |
-| `regex_headers` | Specifies a list of HTTP headers and regular expressions which mustmatch for this mapping to be used to route the request. | string list |
-| `rewrite` | Replaces the URL prefix with when talking to the service. Defaults to `""`, meaning the prefix is stripped. | string |
+| `remove_request_headers` | Specifies a list of HTTP headers that are dropped from the request before sending upstream. | string list |
+| `remove_response_headers` | Specifies a list of HTTP headers that are dropped from the response before sending to the client. | string list |
+| `regex_headers` | Specifies a list of HTTP headers and regular expressions which must match for this mapping to be used to route the request. | string list |
+| `rewrite` | Replaces the URL prefix with when talking to the service. Defaults to `"/"`, meaning the prefix is stripped. | string |
 | `retry_policy` | Performs automatic retries upon request failures. | dictionary |
 | `timeout_ms` | The timeout, in milliseconds, for requests through this Mapping. Defaults to 3000. | integer |
 | `tls` | If true, tells the system that it should use HTTPS to contact this service. (It's also possible to use tls to specify a certificate to present to the service.) | boolean |
