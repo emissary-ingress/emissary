@@ -1004,8 +1004,32 @@ navigation a.selected .label {
 
 .login .content_con .card_con .card .subtitle2 {
     font-weight: 600;
-    margin-top: 20px;
-    margin-bottom: 8px
+    margin-top: 30px;
+    margin-bottom: 10px
+}
+
+.login .content_con .card_con .card .subtitle3 {
+    margin-top: 10px;
+    margin-bottom: 10px
+}
+
+.login .content_con .card_con .card .subtitle4 {
+    margin-top: -12px;
+    margin-bottom: 10px
+}
+
+.login .content_con .card_con .card .card_option1 {
+    margin: 1px;
+    padding: 3px 0px 10px 10px;
+    border: 1px #ccc;
+    border-style: none none none solid;
+}
+
+.login .content_con .card_con .card .card_option2 {
+    margin: 1px;
+    padding: 3px 0px 0px 10px;
+    border: 1px #ccc;
+    border-style: none none none solid;
 }
 
 .login .content_con .card_con .card .card_copy {
@@ -1147,8 +1171,9 @@ Once complete, log in to Ambassador with the edgectl command</p>
     </g>
 </svg></div>
                     <div class="subtitle">Download with this CLI</div>
-                    <div class="card_copy" id="install-darwin">sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl</div>
-                    <a href="#" class="button" @click=${this.copyDarwinInstallToKeyboard.bind(this)}><?xml version="1.0" encoding="UTF-8"?>
+                    <div class="card_option1">
+                       <div class="card_copy" id="install-darwin">sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl</div>
+                       <a href="#" class="button" @click=${this.copyDarwinInstallToKeyboard.bind(this)}><?xml version="1.0" encoding="UTF-8"?>
 <svg width="16px" height="15px" viewBox="0 0 16 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <g id="Screen" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
         <g id="login" transform="translate(-640.000000, -241.000000)" fill="#505050" fill-rule="nonzero">
@@ -1158,8 +1183,14 @@ Once complete, log in to Ambassador with the edgectl command</p>
         </g>
     </g>
 </svg> Copy to Clipboard</a>
-                    <div class="subtitle2">Or download the executable:</div>
-                    <a href="https://metriton.datawire.io/downloads/darwin/edgectl" class="cta_download"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19 20"><defs><style>.cls-1{fill:#2d8fff;}</style></defs><title>download</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"><g id="Screen"><g id="login"><g id="Group-4"><g id="iconmonstr-download-19"><path id="Shape" class="cls-1" d="M9.5,17.5,2.59,10H7.77V0h3.46V10h5.18Zm7.77-.83v1.66H1.73V16.67H0V20H19V16.67Z"/></g></g></g></g></g></g></svg> Download edgectl for MacOS</a>
+                    </div>
+                    <div class="subtitle2">Or download the binary:</div>
+                    <div class="card_option2">
+                        <a href="https://metriton.datawire.io/downloads/darwin/edgectl" class="cta_download"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19 20"><defs><style>.cls-1{fill:#2d8fff;}</style></defs><title>download</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"><g id="Screen"><g id="login"><g id="Group-4"><g id="iconmonstr-download-19"><path id="Shape" class="cls-1" d="M9.5,17.5,2.59,10H7.77V0h3.46V10h5.18Zm7.77-.83v1.66H1.73V16.67H0V20H19V16.67Z"/></g></g></g></g></g></g></svg> Download edgectl for MacOS</a>
+                        <div class="subtitle3">make it executable:</div>
+                        <div class="card_copy">chmod a+x ~/Downloads/edgectl</div>
+                        <div class="subtitle4">and place it somewhere in your shell PATH.</div>
+                    </div>
                 </div>
                 <div class="card">
                     <div class="title">Linux <?xml version="1.0" encoding="UTF-8"?>
@@ -1184,8 +1215,9 @@ Once complete, log in to Ambassador with the edgectl command</p>
     </g>
 </svg></div>
                     <div class="subtitle">Download with this CLI</div>
-                    <div class="card_copy" id="install-linux">sudo curl -fL https://metriton.datawire.io/downloads/linux/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl</div>
-                    <a href="#" class="button" @click=${this.copyLinuxInstallToKeyboard.bind(this)}><?xml version="1.0" encoding="UTF-8"?>
+                    <div class="card_option1">
+                        <div class="card_copy" id="install-linux">sudo curl -fL https://metriton.datawire.io/downloads/linux/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl</div>
+                        <a href="#" class="button" @click=${this.copyLinuxInstallToKeyboard.bind(this)}><?xml version="1.0" encoding="UTF-8"?>
 <svg width="16px" height="15px" viewBox="0 0 16 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <g id="Screen" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
         <g id="login" transform="translate(-640.000000, -241.000000)" fill="#505050" fill-rule="nonzero">
@@ -1196,8 +1228,14 @@ Once complete, log in to Ambassador with the edgectl command</p>
     </g>
 </svg> Copy to Clipboard</a>
                     
-                    <div class="subtitle2">Or download the executable:</div>
-                    <a href="https://metriton.datawire.io/downloads/linux/edgectl" class="cta_download"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19 20"><defs><style>.cls-1{fill:#2d8fff;}</style></defs><title>download</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"><g id="Screen"><g id="login"><g id="Group-4"><g id="iconmonstr-download-19"><path id="Shape" class="cls-1" d="M9.5,17.5,2.59,10H7.77V0h3.46V10h5.18Zm7.77-.83v1.66H1.73V16.67H0V20H19V16.67Z"/></g></g></g></g></g></g></svg> Download edgectl for Linux</a>
+                    </div>
+                    <div class="subtitle2">Or download the binary:</div>
+                    <div class="card_option2">
+                        <a href="https://metriton.datawire.io/downloads/linux/edgectl" class="cta_download"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19 20"><defs><style>.cls-1{fill:#2d8fff;}</style></defs><title>download</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"><g id="Screen"><g id="login"><g id="Group-4"><g id="iconmonstr-download-19"><path id="Shape" class="cls-1" d="M9.5,17.5,2.59,10H7.77V0h3.46V10h5.18Zm7.77-.83v1.66H1.73V16.67H0V20H19V16.67Z"/></g></g></g></g></g></g></svg> Download edgectl for Linux</a>
+                        <div class="subtitle3">make it executable:</div>
+                        <div class="card_copy">chmod a+x ~/Downloads/edgectl</div>
+                        <div class="subtitle4">and place it somewhere in your shell PATH.</div>
+                    </div>
                 </div>
                 <div class="card">
                     <div class="title">Windows <?xml version="1.0" encoding="UTF-8"?>
@@ -1212,8 +1250,11 @@ Once complete, log in to Ambassador with the edgectl command</p>
         </g>
     </g>
 </svg></div>
-                    <div class="subtitle">Download the executable:</div>
-                    <a href="https://metriton.datawire.io/downloads/windows/edgectl.exe" class="cta_download"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19 20"><defs><style>.cls-1{fill:#2d8fff;}</style></defs><title>download</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"><g id="Screen"><g id="login"><g id="Group-4"><g id="iconmonstr-download-19"><path id="Shape" class="cls-1" d="M9.5,17.5,2.59,10H7.77V0h3.46V10h5.18Zm7.77-.83v1.66H1.73V16.67H0V20H19V16.67Z"/></g></g></g></g></g></g></svg> Download edgectl for Windows</a>
+                    <div class="subtitle">Download the binary:</div>
+                    <div class="card_option2">
+                        <a href="https://metriton.datawire.io/downloads/windows/edgectl.exe" class="cta_download"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19 20"><defs><style>.cls-1{fill:#2d8fff;}</style></defs><title>download</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"><g id="Screen"><g id="login"><g id="Group-4"><g id="iconmonstr-download-19"><path id="Shape" class="cls-1" d="M9.5,17.5,2.59,10H7.77V0h3.46V10h5.18Zm7.77-.83v1.66H1.73V16.67H0V20H19V16.67Z"/></g></g></g></g></g></g></svg> Download edgectl for Windows</a>
+                        <div class="subtitle3">and place it somewhere in your Windows System PATH.</div>
+                    </div>
                 </div>
             </div>
         </div>
