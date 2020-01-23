@@ -563,6 +563,9 @@ class V2VirtualHost(dict):
 
         if enable_sni and self._ctx and self._hostname and (self._hostname != '*'):
             match["server_names"] = [ self._hostname ]
+        
+        # Necessary if a TCPMapping is going to use the same listener as HTTPS
+        match["application_protocols"] = [ "http/1.1", "h2" ]
 
         self["filter_chain_match"] = match
 
@@ -661,6 +664,7 @@ class V2Listener(dict):
         self.vhosts: Dict[str, V2VirtualHost] = {}
         self.http_filters: List[dict] = []
         self.listener_filters: List[dict] = []
+        self.filter_chains: List[dict] = []
 
         self.config.ir.logger.info(f"V2Listener {self.name} created")
 
@@ -829,6 +833,56 @@ class V2Listener(dict):
                               use_proxy_proto=use_proxy_proto)
         self.vhosts[hostname] = vhost
 
+    # This method allows TCPMappings to co-exist on our coveted HTTPS Envoy listener
+    def add_group(self, config: 'V2Config', group: IRTCPMappingGroup) -> None:
+        # First up, which clusters do we need to talk to?
+        clusters = [{
+            'name': mapping.cluster.name,
+            'weight': mapping.weight
+        } for mapping in group.mappings]
+
+        # From that, we can sort out a basic tcp_proxy filter config.
+        tcp_filter = {
+            'name': 'envoy.tcp_proxy',
+            'config': {
+                'stat_prefix': 'ingress_tcp_%d' % group.port,
+                'weighted_clusters': {
+                    'clusters': clusters
+                }
+            }
+        }
+
+        # OK. Basic filter chain entry next.
+        chain_entry: Dict[str, Any] = {
+            'filters': [
+                tcp_filter
+            ]
+        }
+
+        # Then, if SNI is a thing, update the chain entry with the appropriate chain match.
+        # Whoa there, you mean we're just going to _assume_ SNI is enabled for these TCPMappings?!
+        # Bear with me... these TCPMappings are being folded into this V2listener, which only 
+        # serves traffic received on port 443 of the ambassador k8s Service. Since these are
+        # TCP connections being made on port 443, the only way to distinguish between them _has_
+        # to be SNI... which means only SNI-enabled TCPMappings should be folded in, which means...
+        # assume SNI! BTW, TCPMappings which specify the Ambassador's "service_port" (8443 in case of TLS)
+        # are the only ones eligible and considered for folding 
+        if group.get('tls_context', None):
+            # Apply the context to the chain...
+            chain_entry['tls_context'] = V2TLSContext(group.tls_context)
+
+            # Do we have a host match?
+            host_wanted = group.get('host') or '*'
+
+            if host_wanted != '*':
+                # Yup. Hook it in.
+                chain_entry['filter_chain_match'] = {
+                    'server_names': [ host_wanted ],
+                    'transport_protocol': 'tls'
+                }
+            # OK, once that's done, stick this into our filter chains.
+            self.filter_chains.append(chain_entry)
+
     def finalize(self, enable_sni: bool) -> None:
         self.config.ir.logger.info(f"V2Listener finalize {self.pretty()}")
 
@@ -841,7 +895,6 @@ class V2Listener(dict):
             }
         }
 
-        self.filter_chains: List[dict] = []
         need_tcp_inspector = False
 
         for vhostname, vhost in self.vhosts.items():
@@ -1118,15 +1171,6 @@ class V2Listener(dict):
                         if action == 'Redirect':
                             vhost.needs_redirect()
 
-        # OK. Finalize the world.
-        for port, listener in listeners_by_port.items():
-            listener.finalize(enable_sni)
-
-        logger.info("V2Listeners: after finalize")
-        cls.dump_listeners(logger, listeners_by_port)
-
-        for k, v in listeners_by_port.items():
-            config.listeners.append(v.as_dict())
 
         # logger.info(f"==== ENVOY LISTENERS ====: {json.dumps(config.listeners, sort_keys=True, indent=4)}")
 
@@ -1137,18 +1181,42 @@ class V2Listener(dict):
             if not isinstance(irgroup, IRTCPMappingGroup):
                 continue
 
-            # OK, good to go. Do we already have a TCP listener binding where this one does?
+            is_https_v2listener = (irlistener8443 != None and irgroup.port == irlistener8443.service_port)
+            for mapping in irgroup.mappings:
+                logger.info(f"mapping in this TCP group: {json.dumps(mapping.as_dict(), sort_keys=True, indent=4)}")
+
+            # OK, good to go. Do we already have a TCP listener binding where this one does? (1)
             group_key = irgroup.bind_to()
             listener = tcplisteners.get(group_key, None)
+
+            # We only want to fold TCPMappings into the HTTPS listener
+            # Don't add the HTTPS listener to the tcplisteners map!
+            if not listener and is_https_v2listener:
+                # (1a) Nope, but this TCPMapping has specified a value for port that equals
+                # the service_port, which is the port of the Envoy listener for HTTPS.
+                listener = listeners_by_port[irlistener8443.service_port]
 
             config.ir.logger.info("V2TCPListener: group at %s found %s listener" %
                                   (group_key, "extant" if listener else "no"))
 
-            if not listener:
-                # Nope. Make a new one and save it.
+            if not listener and not is_https_v2listener:
+                # (1b) Nope. Make a new one and save it.
                 listener = config.save_element('listener', irgroup, V2TCPListener(config, irgroup))
                 config.listeners.append(listener)
                 tcplisteners[group_key] = listener
 
             # Whether we just created this listener or not, add this irgroup to it.
+            # If this listener is a V2TCPListener, it will do normal stuff.
+            # However, if this is the irlistener8443, then add_group will add the IRTCPMappingGroup's
+            # resulting filter chain.
             listener.add_group(config, irgroup)
+
+        # OK. Finalize the world.
+        for port, listener in listeners_by_port.items():
+            listener.finalize(enable_sni)
+
+        logger.info("V2Listeners: after finalize")
+        cls.dump_listeners(logger, listeners_by_port)
+
+        for k, v in listeners_by_port.items():
+            config.listeners.append(v.as_dict())
