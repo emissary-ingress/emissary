@@ -60,6 +60,8 @@ if TYPE_CHECKING:
 __version__ = Version
 
 boot_time = datetime.datetime.now()
+
+# allows 10 concurrent users, with a request timeout of 60 seconds
 tvars_cache = ExpiringDict(max_len=10, max_age_seconds=60)
 
 logging.basicConfig(
@@ -195,6 +197,11 @@ def standard_handler(f):
         start = datetime.datetime.now()
 
         app.logger.debug("%s handler %s" % (prefix, func_name))
+
+        # getting elements in the `tvars_cache` will make sure eviction happens on `max_age_seconds` TTL
+        # for removed patch_client rather than waiting to fill `max_len`
+        for k in iter(tvars_cache):
+            tvars_cache.get(k)
 
         # Default to the exception case
         result_to_log = "server error"
@@ -366,6 +373,24 @@ def drop_serializer_key(d: Dict[Any, Any]) -> Dict[Any, Any]:
     return d
 
 
+def filter_keys(d: Dict[Any, Any], keys_to_keep):
+    unwanted_keys = set(d) - set(keys_to_keep)
+    for unwanted_key in unwanted_keys: del d[unwanted_key]
+
+
+def filter_webui(d: Dict[Any, Any]):
+    filter_keys(d, ['system', 'route_info', 'source_map',
+                    'ambassador_resolvers', 'ambassador_services',
+                    'envoy_status', 'cluster_stats', 'loginfo', 'errors'])
+    for ambassador_resolver in d['ambassador_resolvers']:
+        filter_keys(ambassador_resolver, ['_source', 'kind'])
+    for route_info in d['route_info']:
+        filter_keys(route_info, ['diag_class', 'key', 'headers',
+                                 'precedence', 'clusters'])
+        for cluster in route_info['clusters']:
+            filter_keys(cluster, ['_hcolor', 'type_label', 'service', 'weight'])
+
+
 @app.route('/_internal/v0/ping', methods=[ 'GET' ])
 def handle_ping():
     return "ACK\n", 200
@@ -498,11 +523,14 @@ def show_overview(reqid=None):
 
     patch_client = request.args.get('patch_client', None)
     if request.args.get('json', None):
-        key = request.args.get('filter', None)
+        filter_key = request.args.get('filter', None)
 
-        if key:
-            return jsonify(tvars.get(key, None))
-        elif patch_client:
+        if filter_key == 'webui':
+            filter_webui(tvars)
+        elif filter_key:
+            return jsonify(tvars.get(filter_key, None))
+
+        if patch_client:
             # Assume this is the Admin UI. Recursively drop all "serialization"
             # keys. This avoids leaking secrets and generally makes the
             # snapshot a lot smaller without losing information that the Admin
@@ -703,7 +731,7 @@ class KubeStatus:
     def mark_live(self, kind: str, name: str, namespace: str) -> None:
         key = f"{kind}/{name}.{namespace}"
 
-        print(f"KubeStatus MASTER {os.getpid()}: mark_live {key}")
+        # print(f"KubeStatus MASTER {os.getpid()}: mark_live {key}")
         self.live[key] = True
 
     def prune(self) -> None:
@@ -714,7 +742,7 @@ class KubeStatus:
                 drop.append(key)
 
         for key in drop:
-            print(f"KubeStatus MASTER {os.getpid()}: prune {key}")
+            # print(f"KubeStatus MASTER {os.getpid()}: prune {key}")
             del(self.current_status[key])
 
         self.live = {}
@@ -724,9 +752,10 @@ class KubeStatus:
         extant = self.current_status.get(key, None)
 
         if extant == text:
-            print(f"KubeStatus MASTER {os.getpid()}: {key} == {text}")
+            # print(f"KubeStatus MASTER {os.getpid()}: {key} == {text}")
+            pass
         else:
-            print(f"KubeStatus MASTER {os.getpid()}: {key} needs {text}")
+            # print(f"KubeStatus MASTER {os.getpid()}: {key} needs {text}")
 
             # For now we're going to assume that this works.
             self.current_status[key] = text
@@ -1099,7 +1128,7 @@ class AmbassadorEventWatcher(threading.Thread):
                 kind, namespace, update = app.ir.k8s_status_updates[name]
                 text = json.dumps(update)
 
-                self.logger.info(f"K8s status update: {kind} {resource_name}.{namespace}, {text}...")
+                # self.logger.info(f"K8s status update: {kind} {resource_name}.{namespace}, {text}...")
 
                 app.kubestatus.post(kind, resource_name, namespace, text)
 
