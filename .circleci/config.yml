@@ -181,7 +181,7 @@ commands:
                     if [[ "$CIRCLE_TAG" =~ ^v ]]; then
                       test_target=test
                     fi
-                    declare -p CIRCLE_TAG test_target
+                    printf 'CIRCLE_TAG=%q test_target=%q\n' "${CIRCLE_TAG:-}" "${test_target}"
 
                     export DEV_REGISTRY=quay.io/datawire-dev
                     export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
