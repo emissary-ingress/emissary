@@ -151,7 +151,7 @@ export class HostView extends IResourceView {
       <div class="row line">
         <div class="row-col margin-right justify-right">hostname:</div>
         <div class="row-col">
-          <span class="${this.visibleWhen("list", "pending-save", "pending-delete")}">${this.hostname}</span>
+          <span class="${this.visibleWhen("list")}">${this.hostname}</span>
           <input class="${this.visibleWhen("edit", "add")}"
             type="text"
             name="hostname"
@@ -176,7 +176,7 @@ export class HostView extends IResourceView {
       <div class="row line" id="acme_provider" style="display:${acme}">
         <div class="row-col margin-right justify-right">acme provider:</div>
         <div class="row-col">
-          <span class="${this.visibleWhen("list", "pending-save", "pending-delete")}">${this.acmeProvider}</span>
+          <span class="${this.visibleWhen("list")}">${this.acmeProvider}</span>
           <input class="${this.visibleWhen("edit", "add")}"
               type="url"
               size="60"
@@ -191,7 +191,7 @@ export class HostView extends IResourceView {
       <div class="row line" id="acme_email" style="display:${acme}">
         <div class="row-col margin-right justify-right">contact email:</div>
         <div class="row-col">
-          <span class="${this.visibleWhen("list", "pending-save", "pending-delete")}">${this.acmeEmail}</span>
+          <span class="${this.visibleWhen("list")}">${this.acmeEmail}</span>
           <input class="${this.visibleWhen("edit", "add")}"
             type="email"
             name="email"
@@ -214,9 +214,9 @@ export class HostView extends IResourceView {
       </div>
       
      <div class="row line">
-        <div class="row-col margin-right justify-right ${this.visibleWhen("list", "edit", "pending-save", "pending-delete")}">status:</div>
+        <div class="row-col margin-right justify-right ${this.visibleWhen("list", "edit")}">status:</div>
         <div class="row-col">
-          <span class="${this.visibleWhen("list", "edit", "pending-save", "pending-delete")}">${hostState} ${reason}</span>
+          <span class="${this.visibleWhen("list", "edit")}">${hostState} ${reason}</span>
         </div>
       </div>
       `

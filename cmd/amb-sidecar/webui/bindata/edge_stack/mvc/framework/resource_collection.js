@@ -79,10 +79,12 @@ export class ResourceCollection extends Model {
       let existingResource = this._resources.get(key);
       if (existingResource) {
         /* Only need to update if the existing Resource's version has changed.  Note that resourceVersion can only
-         * be compared with equality, and is not necessarily a monotonically increasing value.
+         * be compared with equality, and is not necessarily a monotonically increasing value.  Also, in the case
+         * of a modified or added resource, clear the pending flag so that it displays normally.
          */
         if (existingResource.version !== yaml.metadata.resourceVersion) {
           existingResource.updateFrom(yaml);
+          existingResource.clearAllPending();
         }
 
         /* Note that we've seen this resource, so delete this key from our set of initial object

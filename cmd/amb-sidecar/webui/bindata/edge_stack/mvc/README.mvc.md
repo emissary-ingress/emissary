@@ -405,7 +405,7 @@ Deleting an existing `Resource` (e.g. a `HostResource`) is the simplest case of 
 rendered by the `ResourceView`, which provides a `Delete` button.  When the button is pressed, the following will occur:
 - The model (e.g. the `HostResource`) will be sent a `doDelete` message, which composes a request to the edge stack with
 its resource `kind`, `name`, and `namespace`, and a delete action.
-- The view changes its state to `pending-delete` which shows a pattern over the view, and a `Pending` button
+- The Resource sets its pending delete flag which shows a pattern over the view, and a `Pending` button
 - A timeout is set for 5 seconds, to check if the operation has succeeded. 
 - At some future time the snapshot will show that the resource no longer exists, and the `ResourceView` will
 be notified and will then remove itself from the `ResourceListView`.
