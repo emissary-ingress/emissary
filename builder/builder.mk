@@ -147,6 +147,10 @@ gotest: test-ready
 		-e GOTEST_PKGS \
 		-e GOTEST_ARGS \
 		-it $(shell $(BUILDER)) /buildroot/builder.sh gotest-internal
+	docker exec \
+		-w /buildroot/ambassador \
+		-e GOOS=windows \
+		-it $(shell $(BUILDER)) go build -o /dev/null ./cmd/edgectl
 .PHONY: gotest
 
 test: gotest pytest
