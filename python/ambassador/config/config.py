@@ -593,10 +593,18 @@ class Config:
         storage = self.config.setdefault(storage_name, {})
 
         if resource.name in storage:
-            # Oooops.
-            self.post_error("%s defines %s %s, which is already defined by %s" %
-                            (resource, resource.kind, resource.name, storage[resource.name].location),
-                            resource=resource)
+            if resource.namespace == storage[resource.name].get('namespace'):
+                # If the name and namespace, both match, then it's definitely an error.
+                # Oooops.
+                self.post_error("%s defines %s %s, which is already defined by %s" %
+                                (resource, resource.kind, resource.name, storage[resource.name].location),
+                                resource=resource)
+            else:
+                # Here, we deal with the case when multiple resources have the same name but they exist in different
+                # namespaces. Our current data structure to store resources is a flat string. Till we move to
+                # identifying resources with both, name and namespace, we change names of any subsequent resources with
+                # the same name here.
+                resource.name = f'{resource.name}.{resource.namespace}'
 
         if allow_log:
             self.logger.debug("%s: saving %s %s" %
