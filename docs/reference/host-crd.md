@@ -1,6 +1,6 @@
 # The `Host` CRD
 
-The custom `Host` resource defines how Ambassador will be visible to the outside world. It collects all the following information in a single configuration resource:
+The custom `Host` resource defines how the Ambassador Edge Stack will be visible to the outside world. It collects all the following information in a single configuration resource:
 
 * The hostname by which Ambassador will be reachable
 * How Ambassador should handle TLS certificates

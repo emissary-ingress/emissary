@@ -59,4 +59,7 @@ kubernaut claims create --name ${CLAIM_NAME} --cluster-group main
 # Do a quick sanity check on that cluster
 kubectl --kubeconfig ${DEV_KUBECONFIG} -n default get service kubernetes
 
+# Print Kubernetes version
+kubectl --kubeconfig ${DEV_KUBECONFIG} version
+
 printf "== End:   travis-install.sh ==\n"
