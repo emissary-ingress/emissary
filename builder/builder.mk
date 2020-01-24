@@ -205,7 +205,7 @@ release/promote-oss/.main:
 # At present, this is to be run by-hand.
 release/promote-oss/to-ea-latest:
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
-	@[[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-ea[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like an EA tag\n' "$(RELEASE_VERSION)"; exit 1)
+	@[[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-ea\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like an EA tag\n' "$(RELEASE_VERSION)"; exit 1)
 	@{ $(MAKE) release/promote-oss/.main \
 	  PROMOTE_FROM_VERSION="$(RELEASE_VERSION)" \
 	  PROMOTE_TO_VERSION="$$(echo "$(RELEASE_VERSION)" | sed 's/-ea.*/-ea-latest/')" \
@@ -217,7 +217,7 @@ release/promote-oss/to-ea-latest:
 # At present, this is to be run by-hand.
 release/promote-oss/to-rc-latest:
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
-	@[[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like an RC tag\n' "$(RELEASE_VERSION)"; exit 1)
+	@[[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like an RC tag\n' "$(RELEASE_VERSION)"; exit 1)
 	@{ $(MAKE) release/promote-oss/.main \
 	  PROMOTE_FROM_VERSION="$(RELEASE_VERSION)" \
 	  PROMOTE_TO_VERSION="$$(echo "$(RELEASE_VERSION)" | sed 's/-rc.*/-rc-latest/')" \
@@ -369,18 +369,18 @@ define _help.targets
   $(BLD)make $(BLU)release/bits$(END) -- do the 'push some bits' part of a release
 
     The current commit must be tagged for this to work, and your tree must be clean.
-    If the tag is of the form 'vX.Y.Z-(ea|rc)[0-9]*'.
+    If the tag is of the form 'vX.Y.Z-(ea|rc).[0-9]*'.
 
-  $(BLD)make $(BLU)release/promote-oss/to-ea-latest$(END) -- promote an early-access '-eaN' release to '-ea-latest'
+  $(BLD)make $(BLU)release/promote-oss/to-ea-latest$(END) -- promote an early-access '-ea.N' release to '-ea-latest'
 
     The current commit must be tagged for this to work, and your tree must be clean.
-    Additionally, the tag must be of the form 'vX.Y.Z-eaN'. You must also have previously
+    Additionally, the tag must be of the form 'vX.Y.Z-ea.N'. You must also have previously
     built an EA for the same tag using $(BLD)release/bits$(END).
 
-  $(BLD)make $(BLU)release/promote-oss/to-rc-latest$(END) -- promote a release candidate '-rcN' release to '-rc-latest'
+  $(BLD)make $(BLU)release/promote-oss/to-rc-latest$(END) -- promote a release candidate '-rc.N' release to '-rc-latest'
 
     The current commit must be tagged for this to work, and your tree must be clean.
-    Additionally, the tag must be of the form 'vX.Y.Z-rcN'. You must also have previously
+    Additionally, the tag must be of the form 'vX.Y.Z-rc.N'. You must also have previously
     built an RC for the same tag using $(BLD)release/bits$(END).
 
   $(BLD)make $(BLU)release/promote-oss/to-ga$(END) -- promote a release candidate to general availability

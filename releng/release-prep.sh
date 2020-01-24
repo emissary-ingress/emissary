@@ -45,16 +45,16 @@ echo "^ these changes have been made since the last release, pick the right vers
 while true; do
 	read -p "Enter new version: " DESIRED_VERSION
 
-	if [[ "$DESIRED_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+$ ]]; then
+	if [[ "$DESIRED_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$ ]]; then
 	    # RC: good.
 	    break
-	elif [[ "$DESIRED_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+-ea[0-9]+$ ]]; then
+	elif [[ "$DESIRED_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+-ea\.[0-9]+$ ]]; then
 	    # EA: good.
 	    break
 	else
 	    echo "'$DESIRED_VERSION' is not in one of the recognized tag formats:" >&2
-	    echo " - 'SEMVER-rcN'" >&2
-	    echo " - 'SEMVER-eaN'" >&2
+	    echo " - 'SEMVER-rc.N'" >&2
+	    echo " - 'SEMVER-ea.N'" >&2
 	    echo "Note that the tag name must not start with 'v'" >&2
 	fi
 done

@@ -297,19 +297,19 @@ class AmbScout:
         #
         # EA:
         # Version:               0.50.0
-        # build.git.branch:      0.50.0-ea2
+        # build.git.branch:      0.50.0-ea.2
         # build.git.commit:      05aefd5
         # build.git.dirty:       False
-        # build.git.description: 0.50.0-ea2
-        # --> 0.50.0-ea2
+        # build.git.description: 0.50.0-ea.2
+        # --> 0.50.0-ea.2
         #
         # RC
         # Version:               0.40.0
-        # build.git.branch:      0.40.0-rc1
+        # build.git.branch:      0.40.0-rc.1
         # build.git.commit:      d450dca
         # build.git.dirty:       False
-        # build.git.description: 0.40.0-rc1
-        # --> 0.40.0-rc1
+        # build.git.description: 0.40.0-rc.1
+        # --> 0.40.0-rc.1
         #
         # GA
         # Version:               0.40.0
