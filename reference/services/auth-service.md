@@ -1,45 +1,72 @@
 # AuthService Plugin
 
-The Ambassador Edge Stack supports a highly flexible mechanism for authentication. An `AuthService` manifest configures Ambassador to use an external service to check authentication and authorization for incoming requests. Each incoming request is authenticated before routing to its destination.
+The Ambassador API Gateway provides a highly flexible mechanism for authentication, via the `AuthService` resource.  An `AuthService` configures Ambassador to use an external service to check authentication and authorization for incoming requests. Each incoming request is authenticated before routing to its destination.
+
+All requests are validated by the `AuthService` (unless the `Mapping` applied to the request sets `bypass_auth`).  It is not possible to combine multiple `AuthService`s.  While it is possible to create multiple `AuthService` resources, they will be load-balanced between each resource in a round-robin fashion. This is useful for canarying an `AuthService` change, but is not useful for deploying multiple distinct `AuthService`s.  In order to combine multiple external services (either having multiple services apply to the same request, or selecting between different services for the different requests), instead of using an `AuthService`, use [Ambassador Edge Stack `External Filter`](../../filter-reference).
+
+Because of the limitations described above, **the Ambassador Edge Stack does not support `AuthService` resources, and you should instead use an [`External` `Filter`](../../filter-reference),** which is mostly a drop-in replacement for an `AuthService`.
+
+## Configure an External AuthService
 
 The currently supported version of the `AuthService` resource is `getambassador.io/v2`. Earlier versions are deprecated.
 
 ```yaml
 ---
 apiVersion: getambassador.io/v2
-kind:  AuthService
+kind: AuthService
 metadata:
-  name:  authentication
+  name: authentication
 spec:
-  auth_service: "example-auth:3000"
-  path_prefix:  "/extauth"
-  proto: http
-  allowed_request_headers:
+  ambassador_id: string-or-string-list # optional; default is ["default"]
+
+  auth_service: "example-auth:3000" # required
+  tls: true                         # optional; default is true if `auth_service` starts with "https://" (case-insensitive), false otherwise
+  proto: http                       # optional; default is "http"
+  timeout_ms: 5000                  # optional; default is 5000
+  #allow_request_body: true         # deprecated; use include_body instead
+  include_body:                     # optional; default is null
+    max_bytes: 4096                   # required
+    allow_partial: true               # required
+  status_on_error:                  # optional
+    code: 503                         # optional; default is 403
+  failure_mode_allow: false         # optional; default is false
+
+  # the following are used only if `proto: http`; they are ignored if `proto: grpc`
+
+  path_prefix: "/path"             # optional; default is ""
+  allowed_request_headers:         # optional; default is []
   - "x-example-header"
-  allowed_authorization_headers:
+  allowed_authorization_headers:   # optional; default is []
   - "x-qotm-session"
-  include_body:
-    max_bytes: 4096
-    allow_partial: true
-  status_on_error: 
-    code: 503
-  failure_mode_allow: false
-  add_linkerd_headers: true
-  cluster_idle_timeout_ms: 30000
+  add_linkerd_headers: bool        # optional; default is based on the ambassador Module
 ```
 
-- `add_linkerd_headers` (optional) when true, adds `l5d-dst-override` to the authorization request and set the hostname of the authorization server as the header value.
+ - `auth_service` (required) is of the format `[scheme://]host[:port]`, and identifies the external auth service to talk to.  The scheme-part may be `http://` or `https://`, which influences the default value of `tls`, and of the port-part.  If no scheme-part is given, it behaves as if `http://` was given.
 
-- `allowed_authorization_headers` (optional) lists headers that will be sent from the auth service to the upstream service when the request is allowed, and also headers that will be sent from the auth service back to the client when the request is denied. These headers are always included:
-    * `Authorization`
-    * `Location`
-    * `Proxy-Authenticate`
-    * `Set-cookie`
-    * `WWW-Authenticate`
+ - `tls` (optional) is whether to use TLS or cleartext when speaking to the external auth service.  The default is based on the scheme-part of the `auth_service`.  If the value of `tls` is not a Boolean, the value is taken to be the name of a defined [`TLSContext`](https://www.getambassador.io/reference/core/tls/#tlscontext), which will determine the certificate presented to the upstream service.
 
-- `allow_request_body` is deprecated. It was exactly equivalent to `include_body` with `max_bytes` 4096 and `allow_partial` true.
+ - `proto` (optional) specifies which variant of the [`ext_authz` protocol][] to use when communicating with the external auth service.  Valid options are `http` (default) or `grpc`.
 
-- `allowed_request_headers` (optional) lists headers that will be sent from the client to the auth service. These headers are always included:
+ - `timeout_ms` (optional) is the total maximum duration in milliseconds for the request to the external auth service, before triggering `status_on_error` or `failure_mode_allow`.
+
+ - `allow_request_body` (optional, deprecated) controls whether to buffer the request body in order to pass to the external auth service.  Setting `allow_request_body: true` is exactly equivalent to `include_body: { max_bytes: 4096, allow_partial: true }`, and `allow_request_body: false` is exactly equivalent to `include_body: null`.  It is invalid to set both `allow_request_body` and `include_body`.
+
+ - `include_body` (optional) controls how much to buffer the request body to pass to the external auth service, for use cases such as computing an HMAC or request signature.  If `include_body` is `null` or unset, then the request body is not buffered at all, and an empty body is passed to the external auth service.  If `include_body` is not `null`, both of its sub-fields are required:
+    * `max_bytes` (required) controls the amount of body data that will be passed to the external auth service
+    * `allow_partial` (required) controls what happens to requests with bodies larger than `max_bytes`:
+       * if `allow_partial` is `true`, the first `max_bytes` of the body are sent to the external auth service.
+       * if `false`, the message is rejected with HTTP 413 ("Payload Too Large").
+
+ - `status_on_error` (optional) controls the status code returned when unable to communicate with external auth service.  This is ignored if `failure_mode_allow: true`.
+    * `code` (optional) defaults to 403.
+
+ - `failure_mode_allow` (optional) being set to `true` causes the request to be allowed through to the upstream backend service if there is an error communicating with the external auth service, instead of returning `status_on_error.code` to the client Defaults to false.
+
+The following fields are only used if `proto: http`; they are ignored if `proto: grpc`:
+
+ - `path_prefix` (optional) prepends a string to the request path of the request when sending it to the external auth service.  By default this is empty, and nothing is prepended.  For example, if the client makes a request to `/foo`, and `path_prefix: /bar`, then the path in the request made to the external auth service will be `/foo/bar`.
+
+ - `allowed_request_headers` (optional) lists headers that will be sent copied from the incoming request to the request made to the external auth service (case-insensitive).  In addition to the headers listed in this field, the following headers are always included:
     * `Authorization`
     * `Cookie`
     * `From`
@@ -49,101 +76,25 @@ spec:
     * `X-Forwarded-Host`
     * `X-Forwarded-Proto`
 
-- `cluster_idle_timeout_ms` (optional) sets the timeout, in milliseconds, before an idle connection upstream is closed. The default is provided by the `ambassador Module`; if no `cluster_idle_timeout_ms` is specified, upstream connections will never be closed due to idling.
+ - `allowed_authorization_headers` (optional) lists headers that will be copied from the response from the external auth service to the request sent to the upstream backend service (if the external auth service indicates that the request to the upstream backend service should be allowed).  In addition to the headers listed in this field, the following headers are always included:
+    * `Authorization`
+    * `Location`
+    * `Proxy-Authenticate`
+    * `Set-cookie`
+    * `WWW-Authenticate`
 
-- `failure_mode_allow` (optional) if requests should be allowed on auth service failure. Defaults to false
+ - `add_linkerd_headers` (optional) when true, in the request to the external auth service, adds an `l5d-dst-override` HTTP header that is set to the hostname and port number of the external auth service.  Defaults to the value set in the [`ambassador Module`](../core/ambassador).
 
-- `include_body` (optional) controls how much of the request body to pass to the auth service, for use cases such as computing an HMAC or request signature:
-    * `max_bytes` controls the amount of body data that will be passed to the auth service
-    * `allow_partial` controls what happens to messages with bodies larger than `max_bytes`:
-       * if `allow_partial` is `true`, the first `max_bytes` of the body are sent to the auth service
-       * if `false`, the message is rejected.
+[`ext_authz` protocol]: /reference/services/ext_authz
 
-- `proto` (optional) specifies the protocol to use when communicating with the auth service. Valid options are `http` (default) or `grpc`.
+## Canarying Multiple AuthServices
 
-- `status_on_error` (optional) status code returned when unable to communicate with auth service. 
-    * `code` Defaults to 403
-
-## Multiple AuthService resources
-
-You may use multiple `AuthService` manifests to round-robin authentication requests among multiple services. **Note well that all services must use the same `path_prefix` and header definitions;** if you try to have different values, you'll see an error in the diagnostics service, telling you which value is being used.
-
-## Using the AuthService API
-
-By design, the AuthService interface is highly flexible. The authentication service is the first external service invoked on an incoming request (e.g., it runs before the rate limit filter). Because the logic of authentication is encapsulated in an external service, you can use this to support a wide variety of use cases. For example:
-
-* Supporting traditional SSO authentication protocols, e.g., OAuth, OpenID Connect, etc.
-* Support HTTP basic authentication (sample implementation available [here](https://github.com/datawire/ambassador-auth-httpbasic).
-* Only authenticating requests that are under a rate limit, and rejecting authentication requests above the rate limit.
-* Authenticating specific services (URLs), and not others.
-
-## AuthService and TLS
-
-You can tell Ambassador Edge Stack to use TLS to talk to your service by using an `auth_service` with an `https://` prefix. However, you may also provide a `tls` attribute: if `tls` is present and `true`, Ambassador Edge Stack will originate TLS even if the `service` does not have the `https://` prefix.
-
-If `tls` is present with a value that is not `true`, the value is assumed to be the name of a defined TLS context, which will determine the certificate presented to the upstream service. TLS context handling is a beta feature of Ambassador Edge Stack at present; please [contact us on Slack](https://d6e.co/slack) if you need to specify TLS origination certificates.
-
-## The External Authentication Service
-
-The external auth service receives information about every request through Ambassador Edge Stack, and must indicate whether the request is to be allowed, or not. If not, the external auth service provides the response which is to be handed back to the client. The control flow for Authentication is shown below.
-
-![Authentication flow](../../../doc-images/auth-flow.png)
-
-### The Request
-
-For every incoming request, the HTTP `method` and headers are forwarded to the auth service. Only two changes are made:
-
-1. The `Content-Length` header is overwritten with `0`.
-2. The body is removed.
-
-So, for example, if the incoming request is
-
-```
-PUT /path/to/service HTTP/1.1
-Host: myservice.example.com:8080
-User-Agent: curl/7.54.0
-Accept: */*
-Content-Type: application/json
-Content-Length: 27
-
-{ "greeting": "hello world!", "spiders": "OMG no" }
-```
-
-then the request Ambassador Edge Stack will make of the auth service is:
-
-```
-PUT /path/to/service HTTP/1.1
-Host: extauth.example.com:8080
-User-Agent: curl/7.54.0
-Accept: */*
-Content-Type: application/json
-Content-Length: 0
-```
-
-**ALL** request methods will be proxied, which implies that the auth service must be able to handle any request that any client could make. If desired, Ambassador Edge Stack can add a prefix to the path before forwarding it to the auth service; see the example below.
-
-### Allowing the Request to Continue (HTTP status code 200)
-
-To tell Ambassador Edge Stack that the request should be allowed, the external auth service must return an HTTP status of 200. **Note well** that **only** 200 indicates success; other 2yz status codes will prevent the request from continuing, as below.
-
-The 200 response should not contain any body, but may contain arbitrary headers. Any header present in the response that is also listed in the `allow_headers` attribute of the `AuthService` resource will be copied from the external auth response into the request going upstream. This allows the external auth service to inject tokens or other information into the request, or to modify headers coming from the client.
-
-### Preventing the Request from Continuing (any HTTP status code other than 200)
-
-Any HTTP status code other than 200 from the external auth service tells Ambassador Edge Stack **not** to allow the request to continue. In this case, the entire response from the external auth service - including the status code, the headers, and the body - is handed back to the client verbatim. This gives the external auth service **complete** control over the entire response presented to the client.
-
-Giving the external auth service control over the response on failure allows many different types of auth mechanisms, for example:
-
-- The external auth service can simply return an error page with an HTTP 401 response.
-- The external auth service can choose to include a `WWW-Authenticate` header in the 401 response, to ask the client to perform HTTP Basic Auth.
-- The external auth service can issue a 301 `Redirect` to divert the client into an OAuth or OIDC authentication sequence.
-
-Finally, if Ambassador Edge Stack cannot reach the auth service at all, it will return a HTTP 503 status code to the client.
+You may create multiple `AuthService` manifests to round-robin authentication requests among multiple services. **Note well that all services must use the same `path_prefix` and header definitions;** if you try to have different values, you'll see an error in the diagnostics service, telling you which value is being used.
 
 ## Configuring Public Mappings
 
-Authentication can be disabled for a mapping by setting `bypass_auth` to `true`. This will tell Ambassador Edge Stack to allow all requests for that mapping through without interacting with the external auth service.
+An `AuthService` can be disabled for a mapping by setting `bypass_auth` to `true`. This will tell Ambassador to allow all requests for that mapping through without interacting with the external auth service.
 
 ## Example
 
-See [the Ambassador Edge Stack Authentication Tutorial](../../../user-guide/auth-tutorial) for an example.
+See the [Authentication Tutorial](../../../user-guide/auth-tutorial) for an example.
