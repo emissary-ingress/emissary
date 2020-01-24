@@ -182,6 +182,7 @@ commands:
                       export TEST_TARGET=test
                     fi
                     export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
+                    echo "CIRCLE_TAG ${CIRCLE_TAG}, using test target ${TEST_TARGET}"
                     make $TEST_TARGET GOTEST_PKGS=github.com/datawire/apro/...
                  - run:
                      command: ".circleci/kubernaut-unclaim.sh"
