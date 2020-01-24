@@ -55,7 +55,7 @@ class LocalScout:
         self.events = []
 
 class AmbScout:
-    reTaggedBranch: ClassVar = re.compile(r'^v?(\d+\.\d+\.\d+)(-[a-zA-Z][a-zA-Z]\d+)?$')
+    reTaggedBranch: ClassVar = re.compile(r'^v?(\d+\.\d+\.\d+)(-[a-zA-Z][a-zA-Z]\.\d+)?$')
     reGitDescription: ClassVar = re.compile(r'-(\d+)-g([0-9a-f]+)$')
 
     install_id: str
