@@ -42,7 +42,7 @@ module_version() {
     # BUILD_VERSION is of the same format, but is the version number that
     # we build into the image.  Because an image built as a "release
     # candidate" will ideally get promoted to be the GA image, we trim off
-    # the '-rcN' suffix.
+    # the '-rc.N' suffix.
     for VAR in "${TRAVIS_TAG}" "$(git describe --tags --always)"; do
         if [ -n "${VAR}" ]; then
             RELEASE_VERSION="${VAR}"
