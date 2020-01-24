@@ -68,7 +68,7 @@ existing file into a directory will fail.)
 
 Ambassador can be deployed as daemonset to have one pod per node in a Kubernetes cluster. This setup is especially helpful when you have a Kubernetes cluster running on a private cloud.
 
-* In an ideal example scenario, you are running containers on Kubernetes alongside with your non containerized applications running exposed via VIP using BIG-IP or similar products. In such cases, east-west traffic is routed based on iRules to certain a set of application pools consisting of application or web servers. In this setup, alongside of traditonal application servers, two or more Ambassador pods can also be part of the application pools. In case of failure there is at least one Ambassdor pod available to BIG-IP that can take care of routing traffic to the Kubernetes cluster.
+* In an ideal example scenario, you are running containers on Kubernetes alongside with your non-containerized applications running exposed via VIP using BIG-IP or similar products. In such cases, east-west traffic is routed based on iRules to certain a set of application pools consisting of application or web servers. In this setup, alongside traditional application servers, two or more Ambassador pods can also be part of the application pools. In case of failure there is at least one Ambassador pod available to BIG-IP that can take care of routing traffic to the Kubernetes cluster.
 
 * In manifest files `kind: Deployment` needs to be updated to `kind: DaemonSet`  and  `replicas` should be removed in `spec` section.
 
@@ -98,7 +98,21 @@ env:
   value: "true"
 ```
 
-With the Ambassador Edge Stack, if you set `AMBASSADOR_NAMESPACE` or `AMBASSADOR_SINGLE_NAMESPACE`, set it in deployment container. 
+With the Ambassador Edge Stack, if you set `AMBASSADOR_NAMESPACE` or `AMBASSADOR_SINGLE_NAMESPACE`, set it in deployment container.
+
+If you want to set a certificate for your `TLScontext` from another namespace, you can use the following:
+
+```yaml
+env:
+- name: AMBASSADOR_SINGLE_NAMESPACE
+  value: "YES"
+- name: AMBASSADOR_CERTS_SINGLE_NAMESPACE
+- name: AMBASSADOR_NAMESPACE
+  valueFrom:
+    fieldRef:
+      apiVersion: v1
+      fieldPath: metadata.namespace
+```
 
 ## `AMBASSADOR_ID`
 
