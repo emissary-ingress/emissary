@@ -11,7 +11,8 @@ class HostSingle(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        self.allow_edge_stack_redirect = True
+        self.edge_stack_cleartext_host = False
+        self.allow_edge_stack_redirect = False
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -72,7 +73,8 @@ class HostManualTLS(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        self.allow_edge_stack_redirect = True
+        self.edge_stack_cleartext_host = False
+        self.allow_edge_stack_redirect = False
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -145,11 +147,12 @@ class HostClearText(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        self.allow_edge_stack_redirect = True
+        self.edge_stack_cleartext_host = False
+        self.allow_edge_stack_redirect = False
         self.target = HTTP()
 
-        if EDGE_STACK:
-            self.xfail = "Not yet supported in Edge Stack"
+        # if EDGE_STACK:
+        #     self.xfail = "Not yet supported in Edge Stack"
 
     def manifests(self) -> str:
         return super().manifests() + self.format('''
@@ -200,7 +203,8 @@ class HostDouble(AmbassadorTest):
     target2: ServiceType
 
     def init(self):
-        self.allow_edge_stack_redirect = True
+        self.edge_stack_cleartext_host = False
+        self.allow_edge_stack_redirect = False
         self.target1 = HTTP(name="target1")
         self.target2 = HTTP(name="target2")
 
