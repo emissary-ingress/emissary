@@ -685,3 +685,48 @@ add_request_headers:
         # [2]
         assert len(self.results[2].backend.request.headers['l5d-dst-override']) > 0
         assert self.results[2].backend.request.headers['l5d-dst-override'] == ["{}:80".format(self.target_add_linkerd_header_only.path.fqdn)]
+
+
+class SameMappingDifferentNamespaces(AmbassadorTest):
+    target: ServiceType
+
+    def init(self):
+        self.target = HTTP()
+
+    def manifests(self) -> str:
+        return super().manifests() + self.format('''
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: same-mapping-1
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: same-mapping-2
+---
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: {self.target.path.k8s}
+  namespace: same-mapping-1
+spec:
+  ambassador_id: {self.ambassador_id}
+  prefix: /{self.name}-1/
+  service: {self.target.path.fqdn}.default
+---
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: {self.target.path.k8s}
+  namespace: same-mapping-2
+spec:
+  ambassador_id: {self.ambassador_id}
+  prefix: /{self.name}-2/
+  service: {self.target.path.fqdn}.default
+''')
+
+    def queries(self):
+        yield Query(self.url(self.name + "-1/"))
+        yield Query(self.url(self.name + "-2/"))
