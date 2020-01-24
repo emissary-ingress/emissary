@@ -182,6 +182,8 @@ commands:
                       test_target=test
                     fi
                     declare -p CIRCLE_TAG test_target
+
+                    export DEV_REGISTRY=quay.io/datawire-dev
                     export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
                     make "$test_target" GOTEST_PKGS=github.com/datawire/apro/...
                  - run:
