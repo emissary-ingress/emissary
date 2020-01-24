@@ -2,7 +2,7 @@ from kat.harness import Query
 from abstract_tests import AmbassadorTest, ServiceType, HTTP
 import json
 
-class IdleTimeout(AmbassadorTest):
+class ListenerIdleTimeout(AmbassadorTest):
     target: ServiceType
 
     def init(self):
@@ -16,7 +16,7 @@ kind: Module
 name: ambassador
 ambassador_id: {self.ambassador_id}
 config:
-  idle_timeout: '30s'
+  listener_idle_timeout_ms: 30000
 """)
         yield self, self.format("""
 ---
@@ -32,7 +32,7 @@ service: http://127.0.0.1:8001
         yield Query(self.url("config_dump"), phase=2)
 
     def check(self):
-        expected_val = '30s'
+        expected_val = '30.000s'
         actual_val = ''
         body = json.loads(self.results[0].body)
         for config_obj in body.get('configs'):

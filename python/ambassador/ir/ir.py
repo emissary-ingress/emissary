@@ -710,7 +710,7 @@ class IR:
 
         od['xff_num_trusted_hops'] = self.ambassador_module.get('xff_num_trusted_hops', 0)
 
-        od['idle_timeout'] = self.ambassador_module.get('idle_timeout', '0s')
+        od['listener_idle_timeout_ms'] = self.ambassador_module.get('listener_idle_timeout_ms', None)
 
         od['server_name'] = bool(self.ambassador_module.server_name != 'envoy')
 

@@ -81,7 +81,7 @@
                                         }
                                     ],
                                     "common_http_protocol_options": {
-                                        "idle_timeout": "30s"
+                                        "idle_timeout": "30.000s"
                                     },
                                     "http_filters": [
                                         {

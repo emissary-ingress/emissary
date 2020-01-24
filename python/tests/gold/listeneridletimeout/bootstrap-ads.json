@@ -27,7 +27,7 @@
         }
     },
     "node": {
-        "cluster": "idletimeout-default",
+        "cluster": "listeneridletimeout-default",
         "id": "test-id"
     },
     "static_resources": {

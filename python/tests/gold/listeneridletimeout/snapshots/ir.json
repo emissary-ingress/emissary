@@ -4,9 +4,9 @@
         "_errored": false,
         "_finalized": true,
         "_referenced_by": [
-            "idletimeout.default.1"
+            "listeneridletimeout.default.1"
         ],
-        "_rkey": "idletimeout.default.1",
+        "_rkey": "listeneridletimeout.default.1",
         "admin_port": 8001,
         "debug_mode": false,
         "default_label_domain": "ambassador",
@@ -23,15 +23,15 @@
         "enable_ipv6": false,
         "envoy_log_path": "/dev/fd/1",
         "envoy_log_type": "text",
-        "idle_timeout": "30s",
         "kind": "IRAmbassador",
+        "listener_idle_timeout_ms": 30000,
         "liveness_probe": {
             "enabled": true,
             "prefix": "/ambassador/v0/check_alive",
             "rewrite": "/ambassador/v0/check_alive",
             "service": "127.0.0.1:8877"
         },
-        "location": "idletimeout.default.1",
+        "location": "listeneridletimeout.default.1",
         "name": "ir.ambassador",
         "namespace": "default",
         "readiness_probe": {
@@ -57,7 +57,7 @@
             "_namespace": "default",
             "_port": 8877,
             "_referenced_by": [
-                "idletimeout.default.1"
+                "listeneridletimeout.default.1"
             ],
             "_resolver": "kubernetes-service",
             "_rkey": "cluster_127_0_0_1_8877_default",
@@ -68,7 +68,7 @@
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
-            "location": "idletimeout.default.1",
+            "location": "listeneridletimeout.default.1",
             "name": "cluster_127_0_0_1_8877_default",
             "namespace": "default",
             "service": "127.0.0.1:8877",
@@ -92,7 +92,7 @@
             "_namespace": "default",
             "_port": 8001,
             "_referenced_by": [
-                "idletimeout.default.2"
+                "listeneridletimeout.default.2"
             ],
             "_resolver": "kubernetes-service",
             "_rkey": "cluster_http___127_0_0_1_8001_default",
@@ -103,7 +103,7 @@
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
-            "location": "idletimeout.default.2",
+            "location": "listeneridletimeout.default.2",
             "name": "cluster_http___127_0_0_1_8001_default",
             "namespace": "default",
             "service": "127.0.0.1:8001",
@@ -148,9 +148,9 @@
             "_active": true,
             "_errored": false,
             "_referenced_by": [
-                "idletimeout.default.1"
+                "listeneridletimeout.default.1"
             ],
-            "_rkey": "idletimeout.default.1",
+            "_rkey": "listeneridletimeout.default.1",
             "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
             "group_weight": [
                 0,
@@ -161,15 +161,15 @@
             ],
             "headers": [],
             "kind": "IRHTTPMappingGroup",
-            "location": "idletimeout.default.1",
+            "location": "listeneridletimeout.default.1",
             "mappings": [
                 {
                     "_active": true,
                     "_errored": false,
                     "_referenced_by": [
-                        "idletimeout.default.1"
+                        "listeneridletimeout.default.1"
                     ],
-                    "_rkey": "idletimeout.default.1",
+                    "_rkey": "listeneridletimeout.default.1",
                     "add_request_headers": {},
                     "cluster": {
                         "_active": true,
@@ -179,7 +179,7 @@
                         "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
-                            "idletimeout.default.1"
+                            "listeneridletimeout.default.1"
                         ],
                         "_resolver": "kubernetes-service",
                         "_rkey": "cluster_127_0_0_1_8877_default",
@@ -190,7 +190,7 @@
                         "ignore_cluster": false,
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
-                        "location": "idletimeout.default.1",
+                        "location": "listeneridletimeout.default.1",
                         "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
@@ -209,7 +209,7 @@
                     "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
                     "headers": [],
                     "kind": "IRHTTPMapping",
-                    "location": "idletimeout.default.1",
+                    "location": "listeneridletimeout.default.1",
                     "name": "internal_readiness_probe_mapping",
                     "namespace": "default",
                     "precedence": 0,
@@ -239,9 +239,9 @@
             "_active": true,
             "_errored": false,
             "_referenced_by": [
-                "idletimeout.default.1"
+                "listeneridletimeout.default.1"
             ],
-            "_rkey": "idletimeout.default.1",
+            "_rkey": "listeneridletimeout.default.1",
             "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
             "group_weight": [
                 0,
@@ -252,15 +252,15 @@
             ],
             "headers": [],
             "kind": "IRHTTPMappingGroup",
-            "location": "idletimeout.default.1",
+            "location": "listeneridletimeout.default.1",
             "mappings": [
                 {
                     "_active": true,
                     "_errored": false,
                     "_referenced_by": [
-                        "idletimeout.default.1"
+                        "listeneridletimeout.default.1"
                     ],
-                    "_rkey": "idletimeout.default.1",
+                    "_rkey": "listeneridletimeout.default.1",
                     "add_request_headers": {},
                     "cluster": {
                         "_active": true,
@@ -270,7 +270,7 @@
                         "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
-                            "idletimeout.default.1"
+                            "listeneridletimeout.default.1"
                         ],
                         "_resolver": "kubernetes-service",
                         "_rkey": "cluster_127_0_0_1_8877_default",
@@ -281,7 +281,7 @@
                         "ignore_cluster": false,
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
-                        "location": "idletimeout.default.1",
+                        "location": "listeneridletimeout.default.1",
                         "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
@@ -300,7 +300,7 @@
                     "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
                     "headers": [],
                     "kind": "IRHTTPMapping",
-                    "location": "idletimeout.default.1",
+                    "location": "listeneridletimeout.default.1",
                     "name": "internal_liveness_probe_mapping",
                     "namespace": "default",
                     "precedence": 0,
@@ -330,9 +330,9 @@
             "_active": true,
             "_errored": false,
             "_referenced_by": [
-                "idletimeout.default.1"
+                "listeneridletimeout.default.1"
             ],
-            "_rkey": "idletimeout.default.1",
+            "_rkey": "listeneridletimeout.default.1",
             "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
             "group_weight": [
                 0,
@@ -343,15 +343,15 @@
             ],
             "headers": [],
             "kind": "IRHTTPMappingGroup",
-            "location": "idletimeout.default.1",
+            "location": "listeneridletimeout.default.1",
             "mappings": [
                 {
                     "_active": true,
                     "_errored": false,
                     "_referenced_by": [
-                        "idletimeout.default.1"
+                        "listeneridletimeout.default.1"
                     ],
-                    "_rkey": "idletimeout.default.1",
+                    "_rkey": "listeneridletimeout.default.1",
                     "add_request_headers": {},
                     "cluster": {
                         "_active": true,
@@ -361,7 +361,7 @@
                         "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
-                            "idletimeout.default.1"
+                            "listeneridletimeout.default.1"
                         ],
                         "_resolver": "kubernetes-service",
                         "_rkey": "cluster_127_0_0_1_8877_default",
@@ -372,7 +372,7 @@
                         "ignore_cluster": false,
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
-                        "location": "idletimeout.default.1",
+                        "location": "listeneridletimeout.default.1",
                         "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
@@ -391,7 +391,7 @@
                     "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
                     "headers": [],
                     "kind": "IRHTTPMapping",
-                    "location": "idletimeout.default.1",
+                    "location": "listeneridletimeout.default.1",
                     "name": "internal_diagnostics_probe_mapping",
                     "namespace": "default",
                     "precedence": 0,
@@ -421,9 +421,9 @@
             "_active": true,
             "_errored": false,
             "_referenced_by": [
-                "idletimeout.default.2"
+                "listeneridletimeout.default.2"
             ],
-            "_rkey": "idletimeout.default.2",
+            "_rkey": "listeneridletimeout.default.2",
             "group_id": "2cc88963a98f4f1bd9ddf846f8fe7bf145757e1c",
             "group_weight": [
                 0,
@@ -434,12 +434,12 @@
             ],
             "headers": [],
             "kind": "IRHTTPMappingGroup",
-            "location": "idletimeout.default.2",
+            "location": "listeneridletimeout.default.2",
             "mappings": [
                 {
                     "_active": true,
                     "_errored": false,
-                    "_rkey": "idletimeout.default.2",
+                    "_rkey": "listeneridletimeout.default.2",
                     "add_request_headers": {},
                     "cluster": {
                         "_active": true,
@@ -449,7 +449,7 @@
                         "_namespace": "default",
                         "_port": 8001,
                         "_referenced_by": [
-                            "idletimeout.default.2"
+                            "listeneridletimeout.default.2"
                         ],
                         "_resolver": "kubernetes-service",
                         "_rkey": "cluster_http___127_0_0_1_8001_default",
@@ -460,7 +460,7 @@
                         "ignore_cluster": false,
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
-                        "location": "idletimeout.default.2",
+                        "location": "listeneridletimeout.default.2",
                         "name": "cluster_http___127_0_0_1_8001_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8001",
@@ -479,10 +479,10 @@
                     "group_id": "2cc88963a98f4f1bd9ddf846f8fe7bf145757e1c",
                     "headers": [],
                     "kind": "Mapping",
-                    "location": "idletimeout.default.2",
+                    "location": "listeneridletimeout.default.2",
                     "metadata_labels": {
                         "app.kubernetes.io/component": "ambassador-service",
-                        "kat-ambassador-id": "idletimeout",
+                        "kat-ambassador-id": "listeneridletimeout",
                         "scope": "AmbassadorTest"
                     },
                     "name": "config__dump",
@@ -498,14 +498,14 @@
                         "/config_dump",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: idletimeout\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: idletimeout\n  scope: AmbassadorTest\nname: config__dump\nnamespace: default\nprefix: /config_dump\nrewrite: /config_dump\nservice: http://127.0.0.1:8001\n",
+                    "serialization": "ambassador_id: listeneridletimeout\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: listeneridletimeout\n  scope: AmbassadorTest\nname: config__dump\nnamespace: default\nprefix: /config_dump\nrewrite: /config_dump\nservice: http://127.0.0.1:8001\n",
                     "service": "http://127.0.0.1:8001",
                     "weight": 100
                 }
             ],
             "metadata_labels": {
                 "app.kubernetes.io/component": "ambassador-service",
-                "kat-ambassador-id": "idletimeout",
+                "kat-ambassador-id": "listeneridletimeout",
                 "scope": "AmbassadorTest"
             },
             "name": "GROUP: config__dump",
@@ -513,15 +513,15 @@
             "precedence": 0,
             "prefix": "/config_dump",
             "rewrite": "/config_dump",
-            "serialization": "ambassador_id: idletimeout\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: idletimeout\n  scope: AmbassadorTest\nname: config__dump\nnamespace: default\nprefix: /config_dump\nrewrite: /config_dump\nservice: http://127.0.0.1:8001\n"
+            "serialization": "ambassador_id: listeneridletimeout\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: listeneridletimeout\n  scope: AmbassadorTest\nname: config__dump\nnamespace: default\nprefix: /config_dump\nrewrite: /config_dump\nservice: http://127.0.0.1:8001\n"
         }
     ],
     "grpc_services": {},
     "hosts": [],
     "identity": {
-        "ambassador_id": "idletimeout",
+        "ambassador_id": "listeneridletimeout",
         "ambassador_namespace": "default",
-        "ambassador_nodename": "idletimeout-default"
+        "ambassador_nodename": "listeneridletimeout-default"
     },
     "k8s_status_updates": {},
     "listeners": [
@@ -532,7 +532,7 @@
             "hostname": "*",
             "insecure_action": "Route",
             "kind": "IRListener",
-            "location": "idletimeout.default.1",
+            "location": "listeneridletimeout.default.1",
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
@@ -542,55 +542,55 @@
         }
     ],
     "services": {
-        "k8s-idletimeout-admin-default": {
+        "k8s-listeneridletimeout-admin-default": {
             "_referenced_by": {},
-            "ambassador_id": "idletimeout",
+            "ambassador_id": "listeneridletimeout",
             "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
-            "location": "k8s-idletimeout-admin-default",
+            "location": "k8s-listeneridletimeout-admin-default",
             "metadata_labels": {
-                "kat-ambassador-id": "idletimeout",
+                "kat-ambassador-id": "listeneridletimeout",
                 "scope": "AmbassadorTest",
-                "service": "idletimeout-admin"
+                "service": "listeneridletimeout-admin"
             },
-            "name": "idletimeout-admin",
+            "name": "listeneridletimeout-admin",
             "namespace": "default",
-            "rkey": "k8s-idletimeout-admin-default",
-            "serialization": "ambassador_id: idletimeout\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: idletimeout\n  scope: AmbassadorTest\n  service: idletimeout-admin\nname: idletimeout-admin\nnamespace: default\n"
+            "rkey": "k8s-listeneridletimeout-admin-default",
+            "serialization": "ambassador_id: listeneridletimeout\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: listeneridletimeout\n  scope: AmbassadorTest\n  service: listeneridletimeout-admin\nname: listeneridletimeout-admin\nnamespace: default\n"
         },
-        "k8s-idletimeout-default": {
+        "k8s-listeneridletimeout-default": {
             "_referenced_by": {},
-            "ambassador_id": "idletimeout",
+            "ambassador_id": "listeneridletimeout",
             "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
-            "location": "k8s-idletimeout-default",
+            "location": "k8s-listeneridletimeout-default",
             "metadata_labels": {
                 "app.kubernetes.io/component": "ambassador-service",
-                "kat-ambassador-id": "idletimeout",
+                "kat-ambassador-id": "listeneridletimeout",
                 "scope": "AmbassadorTest"
             },
-            "name": "idletimeout",
+            "name": "listeneridletimeout",
             "namespace": "default",
-            "rkey": "k8s-idletimeout-default",
-            "serialization": "ambassador_id: idletimeout\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: idletimeout\n  scope: AmbassadorTest\nname: idletimeout\nnamespace: default\n"
+            "rkey": "k8s-listeneridletimeout-default",
+            "serialization": "ambassador_id: listeneridletimeout\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: listeneridletimeout\n  scope: AmbassadorTest\nname: listeneridletimeout\nnamespace: default\n"
         },
-        "k8s-idletimeout-http-default": {
+        "k8s-listeneridletimeout-http-default": {
             "_referenced_by": {},
-            "ambassador_id": "idletimeout",
+            "ambassador_id": "listeneridletimeout",
             "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
-            "location": "k8s-idletimeout-http-default",
+            "location": "k8s-listeneridletimeout-http-default",
             "metadata_labels": {
-                "kat-ambassador-id": "idletimeout",
+                "kat-ambassador-id": "listeneridletimeout",
                 "scope": "AmbassadorTest"
             },
-            "name": "idletimeout-http",
+            "name": "listeneridletimeout-http",
             "namespace": "default",
-            "rkey": "k8s-idletimeout-http-default",
-            "serialization": "ambassador_id: idletimeout\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: idletimeout\n  scope: AmbassadorTest\nname: idletimeout-http\nnamespace: default\n"
+            "rkey": "k8s-listeneridletimeout-http-default",
+            "serialization": "ambassador_id: listeneridletimeout\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: listeneridletimeout\n  scope: AmbassadorTest\nname: listeneridletimeout-http\nnamespace: default\n"
         }
     },
     "tls_contexts": []
