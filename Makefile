@@ -123,7 +123,7 @@ release/promote-aes/.main:
 # At present, this is to be run by-hand.
 release/promote-aes/to-ea-latest:
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
-	@[[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-ea[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like an EA tag\n' "$(RELEASE_VERSION)"; exit 1)
+	@[[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-ea\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like an EA tag\n' "$(RELEASE_VERSION)"; exit 1)
 	@{ $(MAKE) release/promote-aes/.main \
 	  PROMOTE_FROM_VERSION="$(RELEASE_VERSION)" \
 	  PROMOTE_TO_VERSION="$$(echo "$(RELEASE_VERSION)" | sed 's/-ea.*/-ea-latest/')" \
@@ -136,7 +136,7 @@ release/promote-aes/to-ea-latest:
 # At present, this is to be run by-hand.
 release/promote-aes/to-rc-latest:
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
-	@[[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like an RC tag\n' "$(RELEASE_VERSION)"; exit 1)
+	@[[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like an RC tag\n' "$(RELEASE_VERSION)"; exit 1)
 	@{ $(MAKE) release/promote-aes/.main \
 	  PROMOTE_FROM_VERSION="$(RELEASE_VERSION)" \
 	  PROMOTE_TO_VERSION="$$(echo "$(RELEASE_VERSION)" | sed 's/-rc.*/-rc-latest/')" \
@@ -194,9 +194,9 @@ define _help.aes-targets
 
   $(BLD)make $(BLU)update-yaml$(END)         -- updates the YAML in $(BLD)k8s-aes/$(END) and in $(BLD)\$$AMBASSADOR_DOCS/yaml/$(END). ($(AMBASSADOR_DOCS)/yaml/)
 
-  $(BLD)make $(BLU)release/promote-aes/to-rc-latest$(END) -- promote an early-access '-eaN' release to '-ea-latest'
+  $(BLD)make $(BLU)release/promote-aes/to-rc-latest$(END) -- promote an early-access '-ea.N' release to '-ea-latest'
 
-  $(BLD)make $(BLU)release/promote-aes/to-ea-latest$(END) -- promote a release candidate '-rcN' release to '-rc-latest'
+  $(BLD)make $(BLU)release/promote-aes/to-ea-latest$(END) -- promote a release candidate '-rc.N' release to '-rc-latest'
 
   $(BLD)make $(BLU)release/promote-aes/to-ga$(END) -- promote a release candidate to general availability
 endef
