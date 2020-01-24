@@ -24,6 +24,12 @@ If you see something like `--authorization-mode=Node,RBAC` in the output, then R
 kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=$(gcloud info --format="value(config.account)")
 ```
 
+Start by installing CRDs required by Ambassador:
+
+```shell
+kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-crds.yaml
+```
+
 If RBAC is enabled:
 
 ```shell
