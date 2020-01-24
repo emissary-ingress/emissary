@@ -134,9 +134,6 @@ export class ResourceCollectionView extends LitElement {
     let modelClass = this.model.resourceClass();
     let resource   = new modelClass();
 
-    /* Set the resource's pending add flag. */
-    resource.setPending("add");
-
     /* Create the specific ResourceView needed, added it to our View at the start of the list,
      * and begin editing the newly-added ResourceView.  Note that, while the View does have a Model (Resource)
      * that was just created, the Resource is not represented in the ResourceCollection.\ and is thus detached

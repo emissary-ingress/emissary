@@ -166,6 +166,9 @@ export class ResourceView extends View {
          * Rendering will see this state and show the pending-delete button and crosshatch over the view */
         this.model.setPending("delete");
 
+        /* Set the viewState to pending */
+        this.viewState = "pending";
+
         /* Start the timeout for 5 seconds to make sure that the pending delete is reset even if the backend fails */
         this._timeout = setTimeout(this.verifyDelete.bind(this), 5000);
       }
@@ -382,9 +385,8 @@ export class ResourceView extends View {
       ${this.modifiedStyles() ? this.modifiedStyles() : ""}
       <form>
         <div class="card ${this.viewState === "off" ? "off" : ""}">
-          <div class="col">
-            <div class="${pendingAny ? "pending" : ""}">
-            
+         <div class="${pendingAny ? "pending" : ""}">
+           <div class="col">
               <!-- Render common Resource fields: kind, name, namespace, as well as input fields when editing.   -->
               <div class="row line">
                 <div class="row-col margin-right">${this.kind}:</div>
@@ -393,7 +395,7 @@ export class ResourceView extends View {
               <div class="row line">
                 <label class="row-col margin-right justify-right">name:</label>
                 <div class="row-col">
-                  <b class="${this.visibleWhen("list")}">${this.name}</b>
+                  <b class="${this.visibleWhen("list", "pending")}">${this.name}</b>
                   
                   <input class="${this.visibleWhen("add", "edit")}" name="name" type="text" value="${this.name}"/>
                 </div>
@@ -402,7 +404,7 @@ export class ResourceView extends View {
               <div class="row line">
                 <label class="row-col margin-right justify-right">namespace:</label>
                 <div class="row-col">
-                  <div class="namespace${this.visibleWhen("list")}">(${this.namespace})</div>
+                  <div class="namespace${this.visibleWhen("list", "pending")}">(${this.namespace})</div>
                   
                   <div class="namespace-input ${this.visibleWhen("add", "edit")}">
                     <div class="pararen">(</div>
@@ -429,12 +431,12 @@ export class ResourceView extends View {
               <div class="label">source</div>
             </a>
             
-            <a class="cta pending ${pendingSave ? "" : "off"}">
+            <a class="cta pending ${pendingDelete ? `` : `off`}">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M14.078 7.061l2.861 2.862-10.799 10.798-3.584.723.724-3.585 10.798-10.798zm0-2.829l-12.64 12.64-1.438 7.128 7.127-1.438 12.642-12.64-5.691-5.69zm7.105 4.277l2.817-2.82-5.691-5.689-2.816 2.817 5.69 5.692z"/></svg>
               <div class="label">pending</div>
             </a>
             
-            <a class="cta pending ${pendingDelete ? "" : "off"})">
+            <a class="cta pending ${pendingSave ? `` : `off`}">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 16"><defs><style>.cls-1{fill-rule:evenodd;}</style></defs><title>delete</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"><path class="cls-1" d="M24,16H7L0,8,7,0H24V16ZM7.91,2,2.66,8,7.9,14H22V2ZM14,6.59,16.59,4,18,5.41,15.41,8,18,10.59,16.59,12,14,9.41,11.41,12,10,10.59,12.59,8,10,5.41,11.41,4,14,6.59Z"/></g></g></svg>
               <div class="label">pending</div>
             </a>
