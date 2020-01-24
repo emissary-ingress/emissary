@@ -6,11 +6,16 @@
  * See the comments in ./resource.js, ./iresource.js and ./imodel.js for more details.
  */
 
-/* For merging our spec with the rest of the resource's YAML */
-import { objectMerge } from "../framework/utilities.js"
+/* For getting the edge-stack authorization. */
+import {getCookie} from "../../components/cookies.js";
+
+/* Kubernetes operations: apply, delete. */
+import { ApiFetch } from "../../components/api-fetch.js";
 
 /* Interface class for Resource */
-import { IResource } from "../interfaces/iresource.js"
+import { IResource } from "../interfaces/iresource.js";
+
+import { html } from '../../vendor/lit-element.min.js'
 
 export const _defaultAcmeProvider = "https://acme-v02.api.letsencrypt.org/directory";
 export const _defaultAcmeEmail    = "<specify contact email here>";
@@ -147,6 +152,47 @@ export class HostResource extends IResource {
     }
 
     return errors;
+  }
+
+  /* ================================ Utility Functions ================================ */
+
+  /* fetchTOS()
+   * Here we get the Terms of Service url from the ACME provider so that we can show it to the user. We do this
+   * by calling an API on AES that then turns around and calls an API on the ACME provider. We cannot call the API
+   * on the ACME provider directly due to CORS restrictions.
+   */
+
+  fetchTOS() {
+    /*
+     * Here we get the Terms of Service url from the ACME provider
+     * so that we can show it to the user. We do this by calling
+     * an API on AES that then turns around and calls an API on
+     * the ACME provider. We cannot call the API on the ACME provider
+     * directly due to CORS restrictions.
+     */
+    let terms = html`...`;
+    let value = this.acmeProvider;
+    let url = new URL('/edge_stack/api/tos-url', window.location);
+    url.searchParams.set('ca-url', value);
+    ApiFetch(url, {
+      headers: new Headers({
+        'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
+      })
+    })
+      .then(r=>{
+        r.text().then(t=>{
+          if (r.ok) {
+            let domain_matcher = /\/\/([^\/]*)\//;
+            let d = t.match(domain_matcher);
+            if(d) { d = d[1]; } else { d = t; }
+            terms = html`<a href="${t}" target="_blank">${d}</a>`
+          } else {
+            console.error("tos-url result: " + t);
+          }
+        })
+      });
+
+    return terms;
   }
 }
 

@@ -12,7 +12,7 @@
  */
 
 /* For getting the edge-stack authorization. */
-import {getCookie} from '../../components/cookies.js';
+import {getCookie} from "../../components/cookies.js";
 
 /* Kubernetes operations: apply, delete. */
 import { ApiFetch } from "../../components/api-fetch.js";

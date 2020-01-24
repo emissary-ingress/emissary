@@ -10,14 +10,10 @@ import { html } from '../../vendor/lit-element.min.js'
 /* Object merge operation */
 import { objectMerge } from "../framework/utilities.js"
 
-/* HostResource constants */
-import { _defaultAcmeProvider, _defaultAcmeEmail } from "../models/host_resource.js"
-
 /* ResourceView interface class */
 import { IResourceView } from '../interfaces/iresource_view.js'
 
 export class HostView extends IResourceView {
-
 
   /* ====================================================================================================
    *  These functions and methods implement the IResourceView interface.
@@ -137,9 +133,6 @@ export class HostView extends IResourceView {
 
   renderSelf() {
     let host = this.model;
-    let acmeEmail = host.acmeEmail;
-    let acmeProvider = host.acmeProvider;
-
     let status = host.status || {"state": "<none>"};
     let hostState = status.state;
     let reason = (hostState === "Error") ? `(${status.errorReason})` : '';
@@ -168,7 +161,7 @@ export class HostView extends IResourceView {
             name="use_acme"
             @change="${this.onACMECheckbox.bind(this)}"
             ?disabled="${!editing}"
-            ?checked="${acmeProvider.authority !== "none"}"
+            ?checked="${this.acmeProvider !== "none"}"
           /> Use ACME to manage TLS</label>
         </div>
       </div>
@@ -261,12 +254,24 @@ export class HostView extends IResourceView {
   /* ================================ Callback Functions ================================ */
 
   /* onACMECheckbox
-   * TODO: When the checkbox changes, either hide or show the ACME
-   * provider, TOS checkbox, and email fields.
    */
 
   onACMECheckbox() {
-    this.useAcme = this.useAcmeCheckbox().checked;
+    /* Write back to the model for validation. */
+    this.writeToModel();
+
+    /* Is the ACME information being shown now?  If so, and we have a valid URL for an ACME provider,
+     * fetch the terms of service and uncheck the "I have agreed to the Terms of Service" checkbox.
+     */
+
+    if (this.useAcme) {
+      this.tos = this.model.fetchTOS();
+      this.tosAgreeCheckbox().checked = false;
+    }
+
+    /* Request an update, since the Acme checkbox controls the visibility of the ACME provider, contact email,
+     * and TOS agreement checkbox; need the update on either hide or show.
+     */
     this.requestUpdate();
   }
 
@@ -300,18 +305,13 @@ export class HostView extends IResourceView {
   }
 
   /* onProviderChanged()
-   * The ACME provider has been changed by the user.  Fetch the terms of service for the new provider,
-   * and write back to the model.
+   * The ACME provider has been changed by the user.  Write back to the model, uncheck the TOS agreement checkbox,
+   * and then fetch the terms of service for the new provider.
    */
   onProviderChanged() {
-    this.showTos = true;
-    this.fetchTermsOfService(this.acmeProviderInput().value);
-
-    /* Write back to the model for validation.
-     * NOTE: will be on timer and this
-     * will no longer be necessary.
-     */
     this.writeToModel();
+    this.tosAgreeCheckbox().checked = false;
+    this.tos = this.model.fetchTOS();
 
     /* update the YAML if showing. */
     if (this.showYAML) {
@@ -320,25 +320,14 @@ export class HostView extends IResourceView {
   }
 
   /* onTOSAgreeCheckbox
-    * TODO: When the checkbox changes, either hide or show the ACME
-    * provider, TOS checkbox, and email fields.
-    */
+   * Toggle the agree
+   */
 
   onTOSAgreeCheckbox() {
     this.tosAgreed = this.tosAgreeCheckbox().checked;
   }
 
   /* ================================ Utility Functions ================================ */
-
-  /* fetchTermsOfService()
-   * Here we get the Terms of Service url from the ACME provider so that we can show it to the user. We do this
-   * by calling an API on AES that then turns around and calls an API on the ACME provider. We cannot call the API
-   * on the ACME provider directly due to CORS restrictions.
-   */
-
-  fetchTermsOfService(acmeProviderValue) {
-    /* TODO: Let the model do this */
-  }
 
   /* isTOSShowing()
    * Are the terms of service being shown during an Add operation?

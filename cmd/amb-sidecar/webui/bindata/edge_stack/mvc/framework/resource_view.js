@@ -92,6 +92,11 @@ export class ResourceView extends View {
    */
   clearMessages() {
     this.messages  = [];
+
+    /* Request an update since the messages are not a component, and thus don't automatically get an update
+     * from the LitElement framework.
+     */
+    // this.requestUpdate();
   }
 
    /* nameInput()
@@ -197,6 +202,9 @@ export class ResourceView extends View {
     /* Clear any error messages prior to editing. */
     this.clearMessages();
 
+    /* TODO */
+    return;
+
     /* Save the View's existing model and stop listening to it. */
     this._savedModel = this.model;
     this.model.removeListener(this);
@@ -220,63 +228,74 @@ export class ResourceView extends View {
     */
 
   onSave() {
+    /* May have new messages on Save due to validation, so clear the existing messages, if any. */
     this.clearMessages();
 
     /* Validate the data in the model. */
     let validationErrors = this.validate();
 
     if (validationErrors.size === 0) {
-      /* Save the changes in the resource. */
-      let error = this.model.doSave();
+      /* ======== onSave, adding a new resource ======== */
 
-      if (error === null) {
-        /* Save is invoked in two cases:
-         * 1) after a new Resource has been added; doSave then creates a new Resource object in Kubernetes.
-         * 2) after an existing Resource has been edited; doSave then updates that existing Resource in Kubernetes.
-         * The resource's pending state indicates which case is to be run.
-         */
+      if (this.model.isPending("add")) {
+        /* parentElement = ResourceCollectionView, model is ResourceCollection */
+        let resource   = this.model;
+        let collection = this.parentElement.model;
 
-        if (this.model.isPending("add")) {
-          /* Successfully added our Resource. Now add it to the ResourceCollection so that it can be tracked
-           * when new snapshots are received.  When it is seen in the snapshot, remove the pending add flag.
-           */
-
-          /* parentElement = ResourceCollectionView, model is ResourceCollection */
-          this.parentElement.model.addResource(this.model);
-        }
-        else if (this.model.isPending("edit")) {
-          /*  Copy our YAML to the saved model so that it can be identified as existing in the
-           * ResourceCollectionView (since it is the "same" model as before, with different state).
-           * Note: the savedModel has no listeners so this will just update the model's attribute values.
-           */
-
-          this._savedModel.updateFrom(this.model.getYAML());
-
-          /* Stop listening to the new model, swap, and start listening again to the savedModel (with new state),
-           * which was previously in the ResourceCollection and thus will be identified as having changed.
-           * If the resource name has changed, then the old model will disappear and a new one will take its place.
-           */
-
-          this.model.removeListener(this);
-          this.model = this._savedModel;
-          this.model.addListener(this);
-
-          /* We believe that the save was successful.  Keep the new model and note that its state is pending. */
-          this._savedModel = null;
+        /* Further validate the Resource name, namespace, kind, and hostname for uniqueness. */
+        if (collection.hasResource(resource)) {
+          this.addMessage(`Resource named ${resource.name} in ${resource.namespace} already exists.`);
         }
 
-        /* Note that the resource is pending save.  The view will render differently, showing a "pending"
-         * crosshatch over the contents of the view, pending the result of the save operation.
+        /* Good to go, add the resource to the collection and ask the model to save itself. */
+        else {
+          collection.addResource(resource);
+
+          /* Save the new resource to Kubernetes. */
+          let error = resource.doSave();
+
+          if (error === null) {
+            /* successfully added.  Await the yaml changes in the snapshot */
+            resource.setPending("save");
+            this.viewState = "list";
+
+            /* Start the timeout for 5 seconds to make sure that the pending save is reset even if the backend fails */
+            this._timeout = setTimeout(this.verifySave.bind(this), 5000);
+
+          } else {
+            this.addMessage("Save failed -- backend not available?");
+            console.log(`ResourceView.onSave() returned error ${error}`);
+          }
+        }
+      }
+
+      /* ======== onSave, editing an existing resource ======== */
+
+      if (this.model.isPending("edit")) {
+        /* TODO */
+        return;
+
+        /*  Copy our YAML to the saved model so that it can be identified as existing in the
+         * ResourceCollectionView (since it is the "same" model as before, with different state).
+         * Note: the savedModel has no listeners so this will just update the model's attribute values.
          */
-        this.model.setPending("save");
-        this.viewState = "list";
 
-        /* Start the timeout for 5 seconds to make sure that the pending save is reset even if the backend fails */
-        this._timeout = setTimeout(this.verifySave.bind(this), 5000);
+        this._savedModel.updateFrom(this.model.getYAML());
 
-      } else {
-        this.addMessage("Save failed -- backend not available?");
-        console.log(`ResourceView.onSave() returned error ${error}`);
+        /* Save the changes in the resource. */
+        let error = this.model.doSave();
+
+        if (error === null) {
+          this.model.setPending("save");
+          this.viewState = "list";
+          /* Start the timeout for 5 seconds to make sure that the pending save is reset even if the backend fails */
+          this._timeout = setTimeout(this.verifySave.bind(this), 5000);
+        } else {
+          this.addMessage("Save failed -- backend not available?");
+          console.log(`ResourceView.onSave() returned error ${error}`);
+        }
+
+
       }
     }
     /* Have validation errors.  Add to the message list. */
@@ -329,8 +348,6 @@ export class ResourceView extends View {
    */
 
   readFromModel() {
-    this.clearMessages();
-
     /* Get the name and namespace from the model */
     this.name      = this.model.name;
     this.namespace = this.model.namespace;
@@ -338,6 +355,8 @@ export class ResourceView extends View {
     /* Set the edit fields */
     this.nameInput().value      = this.name;
     this.namespaceInput().value = this.namespace;
+
+    this.clearMessages();
 
     /* Allow subclasses to read their state from the model. */
     this.readSelfFromModel();
@@ -385,8 +404,8 @@ export class ResourceView extends View {
       ${this.modifiedStyles() ? this.modifiedStyles() : ""}
       <form>
         <div class="card ${this.viewState === "off" ? "off" : ""}">
-         <div class="${pendingAny ? "pending" : ""}">
-           <div class="col">
+          <div class="col">
+            <div class="${pendingAny ? "pending" : ""}">
               <!-- Render common Resource fields: kind, name, namespace, as well as input fields when editing.   -->
               <div class="row line">
                 <div class="row-col margin-right">${this.kind}:</div>
