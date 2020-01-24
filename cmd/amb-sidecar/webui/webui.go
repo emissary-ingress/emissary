@@ -116,7 +116,7 @@ func (fb *firstBootWizard) getSnapshot(clientSession string) Snapshot {
 	}
 
 	ret.Diag = func() json.RawMessage {
-		resp, err := http.Get(fmt.Sprintf("http://127.0.0.1:8877/ambassador/v0/diag/?json=true&patch_client=%s", clientSession))
+		resp, err := http.Get(fmt.Sprintf("http://127.0.0.1:8877/ambassador/v0/diag/?json=true&filter=webui&patch_client=%s", clientSession))
 		if err != nil {
 			return nil
 		}
