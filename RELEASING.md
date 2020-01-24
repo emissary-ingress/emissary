@@ -13,13 +13,13 @@ Note. PRs will pile up on `master`. **Don't accept PRs for which CI doesn't show
 When we get to the stage of creating a release, all the PRs that we want to merge will have been merged
 and the CI will be green.
 
-1. Once `master` has all the release drivers, tag `master` with an RC tag, e.g. `v0.77.0-rc1`. **This version tag must start with a 'v'.** For example:
-    git tag v0.77.0-rc1 master
+1. Once `master` has all the release drivers, tag `master` with an RC tag, e.g. `v0.77.0-rc.1`. **This version tag must start with a 'v'.** For example:
+    git tag v0.77.0-rc.1 master
     git push --tags origin master
 
 2. The RC tag will trigger CI to run a new build and new tests. It had better pass: if not, figure out why. Monitor https://travis-ci.com/datawire/amabassador/ until the CI for ambassador completes and is green.
 
-3. The RC build will be available as e.g. `quay.io/datawire/ambassador:0.77.0-rc1` and also as e.g. `quay.io/datawire/ambassador:0.77.0-rc-latest`. Any other testing you want to do against this image, rock on.
+3. The RC build will be available as e.g. `quay.io/datawire/ambassador:0.77.0-rc.1` and also as e.g. `quay.io/datawire/ambassador:0.77.0-rc-latest`. Any other testing you want to do against this image, rock on.
 
 4. When you're happy that the RC is ready for GA, **first** assemble the list of changes that you'll put into CHANGELOG.md: (Note: place this list in a separate file, maybe `~/temp-list.txt`, but definitely not in CHANGELOG.md at this time.
    - We always call out things contributed by the community, including who committed it
