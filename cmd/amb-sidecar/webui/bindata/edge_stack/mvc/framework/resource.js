@@ -253,7 +253,7 @@ export class Resource extends Model {
     this._fullYAML = yaml;
 
     /* Clear any pending flags, since the resource has now been updated. */
-    this.clearAllPending();
+    this.clearPending();
 
     /* Notify listeners if any updates occurred. */
     if (updated) {
@@ -262,20 +262,12 @@ export class Resource extends Model {
   }
 
 
-  /* clearAllPending()
-   * Clear all pending flags.
+  /* clearPending()
+   * Clear the pending flag.
    */
 
-  clearAllPending() {
-    this._pending = new Map();
-  }
-
-  /* clearPending(operation)
-   * Clear the pending flag for the given operation.
-   */
-
-  clearPending(op) {
-    this._pending[op] = false;
+  clearPending() {
+    this._pending = "";
   }
 
   /* setPending(operation)
@@ -283,23 +275,22 @@ export class Resource extends Model {
    */
 
   setPending(op) {
-    this._pending[op] = true;
+    this._pending = op;
   }
 
-  /* isPending(ops)
-   * Return whether the Resource is pending any of a set of operations after adding or editing.  This is used for
-   * rendering the Resource differently in the View if the current state in the Resource object has been modified,
-   * and not yet resolved from a snapshot.  Typical call would be myResource.pending("add", "delete", "save").
+  /* isPending(op)
+   * Return true if the Resource is pending that operation.  Defaults to pending any operation.
    */
 
-  isPending() {
-    for (let op of [...arguments]) {
-      if (this._pending[op] === true) {
-        return true;
-      }
+  isPending(op = "any") {
+    if (op === "any") {
+      /* Return true if there is any non-empty value for pending */
+      return this._pending !== "";
     }
-
-    return false;
+    else {
+      /* Return true if the Resource is pending the given operation */
+      return this._pending === op;
+    }
   }
 
   /* validate()

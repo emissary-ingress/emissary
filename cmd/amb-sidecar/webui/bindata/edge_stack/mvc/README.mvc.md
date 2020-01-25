@@ -396,8 +396,39 @@ class IResourceCollectionView extends ResourceCollectionView {
 
 # How Resources are Added, Deleted, and Edited
 
-The process of deleting a Resource from a ResourceCollectionView, adding a new Resource, and editing an existing
-Resource must take into account the ongoing update process from snapshots arriving with new data.
+The process of deleting a `Resource` from a `ResourceCollectionView`, adding a new `Resource`, and editing an existing
+`Resource` must take into account the ongoing update process from snapshots arriving with new data.
+
+## The ResourceView's viewState
+
+`ResourceView` is responsible for rendering a single `Resource` in a `ResourceCollectionView`.  Subclasses of `IResourceView`,
+such as `HostView`, will implement specific behavior and rendering for that type of `Resource`.
+
+The process of viewing, editing, adding and deleting `Resources` in the `ResourceCollectionView` requires a number of
+different renderings.  These renderings are controlled by the `viewState` property on the `ResourceView`.
+
+The `viewState` can have one of four different values:
+- `add`, when creating a new `Resource` that doesn't already exist in the ResourceCollection;
+- `edit`, when editing an existing `Resource`'s attributes;
+- `list`, when viewing the `Resource` in the ResourceCollectionView
+- `pending`, after the user has clicked on `Save` after an add or edit operation
+
+The "pending" `viewState` does two things:
+- it provides a "pending" crosshatch over the content of the view, to indicate that saving the state is in progress;
+- it hides all the buttons except a special "Pending" button, which, at the moment, has no operational function.
+
+Because viewState is a `LitElement` property, setting the `viewState` to a value will cause the `ResourceView` to be
+re-rendered.
+
+## The Resource pending flag
+
+The Resource class's _pending flag is a way to tell the `ResourceCollection` that a given Resource in the collection
+needs to be handled differently.  The pending flag can be set to three different string values:
+
+- `add`, when the `Resource` has been added but not yet confirmed by existence in a snapshot;
+- `save`, when the `Resource` has been edited but its new state has not yet been seen in a snapshot;
+- `delete`, when the `Resource` has been deleted from the system and is awaiting a snapshot confirming the deletion.
+
 
 ## Deleting an existing Resourcce
 

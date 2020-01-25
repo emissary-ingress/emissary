@@ -34,7 +34,6 @@ export class HostView extends IResourceView {
       acmeEmail: {type: String},    // Host
       useAcme: {type: Boolean},     // HostView
       tos: {type: String}           // HostView
-
     };
 
     /* Merge my properties with those defined by my superclasses. */

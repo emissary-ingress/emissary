@@ -83,7 +83,7 @@ export class ResourceCollection extends Model {
          * of a modified or added resource, clear the pending flag so that it displays normally.
          */
         if (existingResource.version !== yaml.metadata.resourceVersion) {
-          existingResource.clearAllPending();
+          existingResource.clearPending();
           existingResource.updateFrom(yaml);
         }
 

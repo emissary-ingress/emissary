@@ -26,6 +26,7 @@ export class ResourceView extends View {
       kind:      {type: String},  // Resource state
       name:      {type: String},  // Resource state
       namespace: {type: String},  // Resource state
+      status:    {type: String},  // ResourceView
       showYAML:  {type: Boolean}  // ResourceView
     };
 
@@ -190,6 +191,26 @@ export class ResourceView extends View {
    */
 
   verifyDelete() {
+    let model  = this.model;
+    let failed = false;
+
+    /* Pending any operation? */
+    if (model.isPending("delete")) {
+      model.clearPending();
+      failed = true;
+    }
+
+    /* Currently showing a "pending" view? */
+    if (this.viewState === "pending") {
+      this.viewState = "list";
+      failed = true;
+    }
+
+    if (failed) {
+      this.addMessage("Resource was not successfully deleted.");
+      this.requestUpdate();
+    }
+
   }
 
 
@@ -316,10 +337,31 @@ export class ResourceView extends View {
 
   /* verifySave()
    * This method is called when the timeout finishes, to check whether the resource being saved has in fact
-   * been successfully saved and has been updated by the snapshot.
+   * been successfully saved and has been updated by the snapshot.  If the model is still pending or the
+   * view is still in the pending state, clear all the flags and return the state to list, basically
+   * cancelling the operation.
    */
 
   verifySave() {
+    let model  = this.model;
+    let failed = false;
+
+    /* Pending save or add operation? */
+    if (model.isPending("save") || model.isPending("add")) {
+      model.clearPending();
+      failed = true;
+    }
+
+    /* Currently showing a "pending" view? */
+    if (this.viewState === "pending") {
+      this.viewState = "list";
+      failed = true;
+    }
+
+    if (failed) {
+      this.addMessage("Resource was not successfully saved.");
+      this.requestUpdate();
+    }
   }
 
   /* onSource()
@@ -356,6 +398,7 @@ export class ResourceView extends View {
     /* Get the name and namespace from the model */
     this.name      = this.model.name;
     this.namespace = this.model.namespace;
+    this.status    = this.model.status;
 
     /* Set the edit fields */
     this.nameInput().value      = this.name;
@@ -401,9 +444,9 @@ export class ResourceView extends View {
     let model = this.model;
 
     /* If pending, show a crosshatch over the view content. */
-    let pendingAny    = model.isPending("delete", "save", "add");
     let pendingWrite  = model.isPending("save") || this.model.isPending("add");
     let pendingDelete = model.isPending("delete");
+    let pendingAny    = pendingWrite || pendingDelete;
 
     /* Return the HTML, including calls to renderSelf() to allow subclasses to specialize. */
     return html`
