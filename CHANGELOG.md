@@ -61,6 +61,16 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [1.1.0-rc.0] January 24, 2020
+[1.1.0-rc.0]: https://github.com/datawire/ambassador/compare/v1.0.0...v1.1.0-rc.0
+
+Note that we're now using "-rc.N" rather than just "-rcN", for better compliance with
+[SemVer](https://www.semver.org/).
+
+- Feature: support resources with the same name but in different namespaces
+- Feature: support DNS overrides in `edgectl`
+- Bugfix: manage the diagnostics snapshot cache more aggressively to reduce memory footprint
+
 ## [1.0.0] January 15, 2020
 [1.0.0]: https://github.com/datawire/ambassador/compare/v0.86.0...v1.0.0
 
