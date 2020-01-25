@@ -61,7 +61,6 @@ export class HostView extends IResourceView {
      * show the checkbox or link in the Host detail display.
      */
     this.tos = html`...`;
-    this.showTos = false;
   }
 
   /* readSelfFromModel()
@@ -120,7 +119,7 @@ export class HostView extends IResourceView {
      * (i) if  not showing the Terms of Service, then assume that they have already agreed, or
      * (ii) if the TOS is shown, then the checkbox needs to be checked.
      */
-    if (this.showTos && this.useAcme && !this.tosAgreeCheckbox().checked) {
+    if (this.useAcme && !this.tosAgreeCheckbox().checked) {
       errors.set("tos", "You must agree to terms of service");
     }
 
@@ -334,7 +333,7 @@ export class HostView extends IResourceView {
    */
 
   isTOSShowing() {
-    return (this.showTos || this.viewState === "add") && this.useAcme;
+    return this.viewState === "add" && this.useAcme;
   }
 }
 

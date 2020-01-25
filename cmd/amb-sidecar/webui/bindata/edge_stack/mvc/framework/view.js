@@ -60,6 +60,11 @@ export class View extends LitElement {
       /* if updated, then set our properties to those of the model */
       case 'updated':
         this.readFromModel();
+
+        /* Switch back to list view, if we were pending an update. */
+        if (this.viewState === "pending") {
+          this.viewState = "list";
+        }
         break;
       /*
        * And if we are notified that our model has been deleted, we remove ourselves from our parent.  Again, because

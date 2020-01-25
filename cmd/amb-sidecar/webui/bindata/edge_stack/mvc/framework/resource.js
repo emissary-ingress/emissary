@@ -278,14 +278,6 @@ export class Resource extends Model {
     this._pending[op] = false;
   }
 
-  /* isPending(op)
-   * Return true if the resource is pending the given operation, false otherwise.
-   */
-
-  isPending(op) {
-    return this._pending[op] === true;
-  }
-
   /* setPending(operation)
    * Set the pending flag for the given operation.
    */
@@ -294,13 +286,13 @@ export class Resource extends Model {
     this._pending[op] = true;
   }
 
-  /* pending(ops)
+  /* isPending(ops)
    * Return whether the Resource is pending any of a set of operations after adding or editing.  This is used for
    * rendering the Resource differently in the View if the current state in the Resource object has been modified,
    * and not yet resolved from a snapshot.  Typical call would be myResource.pending("add", "delete", "save").
    */
 
-  pending() {
+  isPending() {
     for (let op of [...arguments]) {
       if (this._pending[op] === true) {
         return true;

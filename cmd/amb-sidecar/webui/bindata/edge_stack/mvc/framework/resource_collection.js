@@ -41,7 +41,7 @@ export class ResourceCollection extends Model {
     let key = this.uniqueKeyFor(resource.getYAML());
 
     /* Only add if this resource does not exist in the collection. */
-    if (this._resources.get(key)) {
+    if (this._resources.has(key)) {
       console.log("ResourceCollection.addResource: attempted to add resource that already exists")
     }
     else {
@@ -56,7 +56,7 @@ export class ResourceCollection extends Model {
 
   hasResource(resource) {
     let key = this.uniqueKeyFor(resource.getYAML());
-    return (this._resources.get(key) !== null);
+    return this._resources.has(key);
   }
 
 
@@ -83,8 +83,8 @@ export class ResourceCollection extends Model {
          * of a modified or added resource, clear the pending flag so that it displays normally.
          */
         if (existingResource.version !== yaml.metadata.resourceVersion) {
-          existingResource.updateFrom(yaml);
           existingResource.clearAllPending();
+          existingResource.updateFrom(yaml);
         }
 
         /* Note that we've seen this resource, so delete this key from our set of initial object

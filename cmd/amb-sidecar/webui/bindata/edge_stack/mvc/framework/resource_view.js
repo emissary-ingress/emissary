@@ -231,13 +231,16 @@ export class ResourceView extends View {
     /* May have new messages on Save due to validation, so clear the existing messages, if any. */
     this.clearMessages();
 
+    /* Make sure that the model has all the right state for validation. */
+    this.writeToModel();
+
     /* Validate the data in the model. */
     let validationErrors = this.validate();
 
     if (validationErrors.size === 0) {
       /* ======== onSave, adding a new resource ======== */
 
-      if (this.model.isPending("add")) {
+      if (this.viewState === "add") {
         /* parentElement = ResourceCollectionView, model is ResourceCollection */
         let resource   = this.model;
         let collection = this.parentElement.model;
@@ -255,9 +258,11 @@ export class ResourceView extends View {
           let error = resource.doSave();
 
           if (error === null) {
-            /* successfully added.  Await the yaml changes in the snapshot */
-            resource.setPending("save");
-            this.viewState = "list";
+            /* successfully added.  Await the yaml changes in the snapshot, note that we are pending an add
+             * so the resourceCollection doesn't delete it if it doesn't see the new yaml immediately.
+             */
+            resource.setPending("add");
+            this.viewState = "pending";
 
             /* Start the timeout for 5 seconds to make sure that the pending save is reset even if the backend fails */
             this._timeout = setTimeout(this.verifySave.bind(this), 5000);
@@ -271,7 +276,7 @@ export class ResourceView extends View {
 
       /* ======== onSave, editing an existing resource ======== */
 
-      if (this.model.isPending("edit")) {
+      if (this.viewState === "edit") {
         /* TODO */
         return;
 
@@ -303,10 +308,10 @@ export class ResourceView extends View {
       for (let [field, message] of validationErrors) {
         this.addMessage(`${field}: ${message}`);
       }
-
-      /* Messages are not yet in their own component, so request update of the entire view. */
-      this.requestUpdate();
     }
+
+    /* May have updated messages or changed to pending state. */
+    this.requestUpdate();
   }
 
   /* verifySave()
@@ -393,10 +398,12 @@ export class ResourceView extends View {
   *
    */
   render() {
+    let model = this.model;
+
     /* If pending, show a crosshatch over the view content. */
-    let pendingAny    = this.model.pending("delete", "save", "add");
-    let pendingSave   = this.model.isPending("save");
-    let pendingDelete = this.model.isPending("delete");
+    let pendingAny    = model.isPending("delete", "save", "add");
+    let pendingWrite  = model.isPending("save") || this.model.isPending("add");
+    let pendingDelete = model.isPending("delete");
 
     /* Return the HTML, including calls to renderSelf() to allow subclasses to specialize. */
     return html`
@@ -455,7 +462,7 @@ export class ResourceView extends View {
               <div class="label">pending</div>
             </a>
             
-            <a class="cta pending ${pendingSave ? `` : `off`}">
+            <a class="cta pending ${pendingWrite ? `` : `off`}">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 16"><defs><style>.cls-1{fill-rule:evenodd;}</style></defs><title>delete</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"><path class="cls-1" d="M24,16H7L0,8,7,0H24V16ZM7.91,2,2.66,8,7.9,14H22V2ZM14,6.59,16.59,4,18,5.41,15.41,8,18,10.59,16.59,12,14,9.41,11.41,12,10,10.59,12.59,8,10,5.41,11.41,4,14,6.59Z"/></g></g></svg>
               <div class="label">pending</div>
             </a>
