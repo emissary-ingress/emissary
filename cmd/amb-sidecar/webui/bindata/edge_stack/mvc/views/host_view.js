@@ -130,12 +130,12 @@ export class HostView extends IResourceView {
   */
 
   renderSelf() {
-    let host = this.model;
-    let status = host.status || {"state": "<none>"};
-    let hostState = status.state;
-    let reason = (hostState === "Error") ? `(${status.errorReason})` : '';
-    let acme   = (this.useAcme ? "" : "none");
-    let tos = this.isTOSShowing() ? "attribute-value" : "off";
+    let host    = this.model;
+    let status  = host.status || {"state": "<none>"};
+    let state   = status.state;
+    let reason  = (state === "Error") ? `(${status.errorReason})` : '';
+    let acme    = (this.useAcme ? "" : "none");
+    let tos     = this.isTOSShowing() ? "attribute-value" : "off";
     let editing = this.viewState === "add" || this.viewState === "edit";
 
     return html`

@@ -399,38 +399,7 @@ class IResourceCollectionView extends ResourceCollectionView {
 The process of deleting a `Resource` from a `ResourceCollectionView`, adding a new `Resource`, and editing an existing
 `Resource` must take into account the ongoing update process from snapshots arriving with new data.
 
-## The ResourceView's viewState
-
-`ResourceView` is responsible for rendering a single `Resource` in a `ResourceCollectionView`.  Subclasses of `IResourceView`,
-such as `HostView`, will implement specific behavior and rendering for that type of `Resource`.
-
-The process of viewing, editing, adding and deleting `Resources` in the `ResourceCollectionView` requires a number of
-different renderings.  These renderings are controlled by the `viewState` property on the `ResourceView`.
-
-The `viewState` can have one of four different values:
-- `add`, when creating a new `Resource` that doesn't already exist in the ResourceCollection;
-- `edit`, when editing an existing `Resource`'s attributes;
-- `list`, when viewing the `Resource` in the ResourceCollectionView
-- `pending`, after the user has clicked on `Save` after an add or edit operation
-
-The "pending" `viewState` does two things:
-- it provides a "pending" crosshatch over the content of the view, to indicate that saving the state is in progress;
-- it hides all the buttons except a special "Pending" button, which, at the moment, has no operational function.
-
-Because viewState is a `LitElement` property, setting the `viewState` to a value will cause the `ResourceView` to be
-re-rendered.
-
-## The Resource pending flag
-
-The Resource class's _pending flag is a way to tell the `ResourceCollection` that a given Resource in the collection
-needs to be handled differently.  The pending flag can be set to three different string values:
-
-- `add`, when the `Resource` has been added but not yet confirmed by existence in a snapshot;
-- `save`, when the `Resource` has been edited but its new state has not yet been seen in a snapshot;
-- `delete`, when the `Resource` has been deleted from the system and is awaiting a snapshot confirming the deletion.
-
-
-## Deleting an existing Resourcce
+## Deleting an existing Resource
 
 Deleting an existing `Resource` (e.g. a `HostResource`) is the simplest case of the three.  The `Resource` is
 rendered by the `ResourceView`, which provides a `Delete` button.  When the button is pressed, the following will occur:
@@ -439,11 +408,11 @@ its resource `kind`, `name`, and `namespace`, and a delete action.
 - The Resource sets its pending delete flag which shows a pattern over the view, and a `Pending` button
 - A timeout is set for 5 seconds, to check if the operation has succeeded. 
 - At some future time the snapshot will show that the resource no longer exists, and the `ResourceView` will
-be notified and will then remove itself from the `ResourceListView`.
+be notified and will then remove itself from the `ResourceCollectionView`.
 
 There are two possible error conditions:
 - the request to the edge stack to delete the resource fails.  In this case, an error message will be added
-to the message section of the `ResourceView`, and the view changes state back to "list"
+to the message section of the `ResourceView`, and the view changes state back to `list`
 - The request to the edge stack doesn't fail but for some reason the delete itself is not successful.  In this case,
 the timeout occurs, a message is added to the message section, and the view changes state back to `list`
 
@@ -474,6 +443,107 @@ to Kubernetes to create its new `Resource` object in the backend.
 
 ## Editing an existing Resource
 
+Editing a `Resource` is similar to adding and deleting a `Resource`.  Specifically, since a `Resource` is uniquely identified
+by Kubernetes with the triple `kind`, `name`, and `namespace`, there are two possibilities when editing an existing
+Resource, and each of these cases must be handled slightly diferently.  The first case occurs when the `Resource`'s `name`
+or `namespace` remain the same and other attributes are modified, and the second case is when the `Resource`'s `name` or
+`namespace`, or both, are modified.  The expected behavior in the second case is that the new `Resource`, with
+the new `name` and/or `namespace`, replaces the previous one.
+
+In particular, when the `Edit` button is pressed, the following will occur:
+- The `ResourceView` will create a new instance of the appropriate `Resource` type (`New`) by copying the
+existing `Resource` (`Existing`) and its attributes, including its `resourceVersion`.
+- The `ResourceView` will assign `Previous` to its `_shadowModel` instance variable, and assign `New` to its `model`.
+- The `ResourceView` will stop listening to `Previous` and begin listening to `New`.
+- The user will edit the attributes of the `Resource` as usual.
+
+Note that `Previous` (saved in the `ResourceView`'s `_shadowModel` instance variable) is still a member of the
+`ResourceCollectionView`'s `ResourceCollection`, and continues to receive updates.
+
+When the user is finished and clicks on the `Save` button, the `New` attributes are checked against `Previous`. There
+are two cases.
+
+**Case 1:** `New` and `Previous` both have the same `name` and `namespace`.  Then:
+- `New` is set to `pending save`, and replaces `Previous` in the `ResourceCollection`, to receive updates.
+- The `ResourceView` is set to `pending`.
+- `New` performs `doSave`, requesting Kubernetes to update the `Resource`.
+- When the `ResourceView` receives a notification from `New` that it has been updated, `_shadowModel` can be set
+to `null` (thus removing the reference to `Previous`) and the `pending` state can be removed on the `ResourceView`.
+
+If, however, the timer times out without having the `ResourceView` being notified that `New` has been successfully
+updated, then:
+- The `ResourceView` stops listening to `New`;
+- `Previous` replaces `New` in the `ResourceCollection`;
+- the `ResourceView` then assigns `Previous` back to its `model` instance variable;
+- the `ResourceView`'s `pending` state is removed;
+- and finally, the `ResourceView` begins listening to `Previous` again for notifications.
+
+**Case 2:** `New` and `Previous` differ in either `name`, `namespace`, or both.  Then:
+- `New`'s `name` and `namespace` are confirmed to be unique in the `ResourceCollection`.  If not, an error is returned.
+- `New` is set to `pending add`, and is added to the`ResourceCollection`, to receive updates.
+- The `ResourceView` is set to `pending`.
+- `New` performs `doSave`, requesting Kubernetes to create the new `Resource` based on `New`'s specification.
+- When the `ResourceView` receives a notification from `New` that it has been updated (i.e. that the Resource has been
+successfully added to the system), `Previous` can then be deleted from the system by calling its `doDelete` method. Then
+`_shadowModel` can be set to `null` (thus removing the reference to `Previous`) and the ResourceView's `pending` state
+is removed.
+
+If, however, the timer times out without having the `ResourceView` being notified that `New` has been successfully added
+to the system, then:
+- The `ResourceView` stops listening to `New`;
+- `New`'s pending state is cleared, which will cause it to be removed from the `ResourceCollection`.
+- the `ResourceView` assigns `Previous` back to its `model` instance variable;
+- and finally, the `ResourceView` begins listening to `Previous` again for notifications.
+
+
+## The ResourceView's viewState
+
+`ResourceView` is responsible for rendering a single `Resource` in a `ResourceCollectionView`.  Subclasses of `IResourceView`,
+such as `HostView`, will implement specific behavior and rendering for that type of `Resource`.
+
+The process of viewing, editing, adding and deleting `Resources` in the `ResourceCollectionView` requires a number of
+different renderings.  These renderings are controlled by the `viewState` property on the `ResourceView`.
+
+The `viewState` can have one of four different values:
+- `add`, when creating a new `Resource` that doesn't already exist in the ResourceCollection;
+- `edit`, when editing an existing `Resource`'s attributes;
+- `list`, when viewing the `Resource` in the ResourceCollectionView
+- `pending`, after the user has clicked on `Save` after an add or edit operation
+
+The "pending" `viewState` does two things:
+- it provides a "pending" crosshatch over the content of the view, to indicate that saving the state is in progress;
+- it hides all the buttons except a special "Pending" button, which, at the moment, has no operational function.
+
+Because viewState is a `LitElement` property, setting the `viewState` to a value will cause the `ResourceView` to be
+re-rendered.
+
+## The Resource pending flag
+
+The Resource class's _pending flag is a way to tell the `ResourceCollection` that a given Resource in the collection
+needs to be handled differently.  The pending flag can be set to three different string values:
+
+- `add`, when the `Resource` has been added but not yet confirmed by existence in a snapshot;
+- `save`, when the `Resource` has been edited but its new state has not yet been seen in a snapshot;
+- `delete`, when the `Resource` has been deleted from the system and is awaiting a snapshot confirming the deletion.
+
+The `ResourceCollection` checks the pending flag on the `Resource` when it processes a new snapshot.  If the `Resource`
+is in the `ResourceCollection` already, and the existing `Resource`'s version is not the same as the version
+seen in the snapshot, then the `Resource` is updated from the snapshot data and any pending flag is cleared.
+
+If the `Resource` in the collection has been added by the user, then it will be in the `ResourceCollection` but not
+necessarily observed in a snapshot.  Normally in this case the `Resource` would be deleted and its listeners notified.
+But in the case of being added, the `ResourceCollection` checks the pending flag and does not delete the object if
+the addition is pending.  At some point the snapshot will show the `Resource` as existing in the system, the `Resource`
+will be updated with its status, and the pending flag will be cleared.
+
+However, if the backend takes too long or fails to add, save, or delete the `Resource` for some reason, the
+timer will time out and clear the flags, cancelling the operation.  With the flags cleared:
+ 
+ - if pending `add`, the `Resource` will be removed from the `ResourceCollection` at the next snapshot cycle;
+ - if pending `save`, the `Resource` will be restored to its original state;
+ - if pending `delete`, the `Resource` will still be represented in the snapshot and not removed.
+
+This will return the system to a consistent state.
 
 
 # Examples

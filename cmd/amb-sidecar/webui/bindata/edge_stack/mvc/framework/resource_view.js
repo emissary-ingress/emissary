@@ -194,23 +194,24 @@ export class ResourceView extends View {
     let model  = this.model;
     let failed = false;
 
-    /* Pending any operation? */
+    /* Pending the delete operation? If the delete has already occurred, then it will not be pending. */
     if (model.isPending("delete")) {
       model.clearPending();
       failed = true;
     }
 
-    /* Currently showing a "pending" view? */
+    /* Currently showing a "pending" view? If the delete has already occurred, the view will have been removed
+     * from the ResourceCollectionView.
+     */
     if (this.viewState === "pending") {
       this.viewState = "list";
       failed = true;
     }
 
     if (failed) {
-      this.addMessage("Resource was not successfully deleted.");
+      alert(`${model.kind} ${model.name} was unable to be deleted.  Backend did not respond.`);
       this.requestUpdate();
     }
-
   }
 
 
@@ -222,9 +223,6 @@ export class ResourceView extends View {
   onEdit() {
     /* Clear any error messages prior to editing. */
     this.clearMessages();
-
-    /* TODO */
-    return;
 
     /* Save the View's existing model and stop listening to it. */
     this._savedModel = this.model;
@@ -276,7 +274,7 @@ export class ResourceView extends View {
           collection.addResource(resource);
 
           /* Save the new resource to Kubernetes. */
-          let error = resource.doSave();
+          let error = null; // TEST resource.doSave();
 
           if (error === null) {
             /* successfully added.  Await the yaml changes in the snapshot, note that we are pending an add
@@ -347,8 +345,13 @@ export class ResourceView extends View {
     let failed = false;
 
     /* Pending save or add operation? */
-    if (model.isPending("save") || model.isPending("add")) {
-      model.clearPending();
+    if (model.isPending("add")) {
+      alert(`${model.kind} ${model.name} was unable to be added.  Backend did not respond.`);
+      failed = true;
+    }
+
+    if (model.isPending("save")) {
+      alert(`${model.kind} ${model.name} was unable to be saved.  Backend did not respond.`);
       failed = true;
     }
 
@@ -359,7 +362,7 @@ export class ResourceView extends View {
     }
 
     if (failed) {
-      this.addMessage("Resource was not successfully saved.");
+      model.clearPending();
       this.requestUpdate();
     }
   }

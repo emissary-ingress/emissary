@@ -71,6 +71,9 @@ export class View extends LitElement {
        * this is a web component, that will queue the appropriate re-render at the correct time.
        */
       case 'deleted':
+        if (this.viewState === "pending") {
+          this.viewState = "list";
+        }
         this.parentElement.removeChild(this);
         break;
     }

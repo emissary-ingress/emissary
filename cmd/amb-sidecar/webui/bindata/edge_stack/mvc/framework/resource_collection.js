@@ -117,6 +117,7 @@ export class ResourceCollection extends Model {
        * just as any other resource, but may not have yet been seen in a snapshot.
        */
       if (!oldResource.isPending("add")) {
+        oldResource.clearPending();
         this.notifyListenersDeleted(oldResource);
         this._resources.delete(key);
       }
