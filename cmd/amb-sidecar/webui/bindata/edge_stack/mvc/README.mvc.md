@@ -445,7 +445,7 @@ to Kubernetes to create its new `Resource` object in the backend.
 
 Editing a `Resource` is similar to adding and deleting a `Resource`.  Specifically, since a `Resource` is uniquely identified
 by Kubernetes with the triple `kind`, `name`, and `namespace`, there are two possibilities when editing an existing
-Resource, and each of these cases must be handled slightly diferently.  The first case occurs when the `Resource`'s `name`
+Resource, and each of these cases must be handled slightly differently.  The first case occurs when the `Resource`'s `name`
 or `namespace` remain the same and other attributes are modified, and the second case is when the `Resource`'s `name` or
 `namespace`, or both, are modified.  The expected behavior in the second case is that the new `Resource`, with
 the new `name` and/or `namespace`, replaces the previous one.
