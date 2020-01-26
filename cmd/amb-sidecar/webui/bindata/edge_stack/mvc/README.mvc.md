@@ -16,7 +16,7 @@ notified on certain changes in that state.  Any object may listen for changes to
 The objects are called `Models` because they are intended to model the real world, in our
 case they represent (model) the state of the AES and Kubernetes.
 
-In the Admin UI, `Views` are Listeners to their corresponding `Model` objects. The `View` 
+In the Admin UI, `Views` listen to notifications from their corresponding `Model` objects. The `View` 
 defines the UI application logic that both displays the state of its `Model` and allows 
 any changes/updates of that `Model`, as required by the application, with validation and
 the ability to cancel pending updates (among other functionality).
@@ -45,9 +45,9 @@ Some of the benefits of the MVC approach include:
 
 ### Benefits
 
-The MVC implementation of `Resource` and `ResourceView` provide the building blocks for displaying, adding, and editing
-Kubernetes Resources, most importantly the CRD's (Custom Resource Definitions) that Ambassador uses to get input
-from users and communicate back to users.
+The MVC implementation of `Resource` (a `Model`) and `ResourceView` (a `View`) provide the building blocks for
+displaying, adding, and editing Kubernetes `Resources`, most importantly the CRD's (`Custom Resource Definitions`) that
+the Ambassador Edge Stack uses to get input from users and communicate back to users.
 
 There several different goals of using this kind of abstraction:
 
@@ -65,49 +65,49 @@ simplify your cluster management.  We need our UI to work well with this GitOps-
 defined by subclassing the `IResource` interface class and implementing the required methods that specialize
 that `Resource`'s state and behavior.
  
- - Ease of customization of CRD display and editing.  With MVC we can easily customize each Resource object
- (e.g. Host, Mapping, etc.) and its corresponding ResourceView so that it can be created, displayed,
-and edited in the best way for that particular Resource type.  With built-in links to other relevant resources
+ - Ease of customization of CRD display and editing.  With MVC we can easily customize each `Resource` object
+ (e.g. `Host`, `Mapping`, etc.) and its corresponding `ResourceView` so that it can be created, displayed,
+and edited in the best way for that particular `Resource` type.  With built-in links to other relevant resources
 we can make naviation much easier and in general, help new users become advanced users much faster than before.
  
 ### Resource, ResourceView, and ResourceListView
  
 There are two Model interfaces (`IResource` and `IResourceCollection`) and two corresponding View interfaces
-(`IResourceView` and `IResourceListView`) that are extended via concrete class implementations to define web
-components that work with each other.  `IResourceView` is a view on a single `Resource` and `IResourceListView`
+(`IResourceView` and `IResourceCollectionView`) that are extended via concrete class implementations to define web
+components that work with each other.  `IResourceView` is a view on a single `Resource` and `IResourceCollectionView`
 is a view on a `ResourceCollection`, both web components that work with each other.  For example, a
 `HostView` would extend `IResourceView` and define the layout and interaction behavior for a `HostResource`.
-A list of hosts, a `HostListView`, is implemented by extending `IResourceListView`, whose model is an instance
+A list of hosts, a `HostCollectionView`, is implemented by extending `IResourceListView`, whose model is an instance
 of `HostCollection`.
  
 ### New Functionality
  
-There are a number of future features we expect to be adding to the fundamental Model and View specializations
-(e.g. `ResourceListViews` and their models:
+There are a number of future features we expect to be adding to the fundamental `Model` and `View` specializations
+(e.g. `ResourceCollectionView`) and their models:
 
 - Searching/sorting/filtering can be done based on the Kubernetes metadata that is common to all `Resources`
 (`name`, `namespace`, `labels`, `annotations`), and custom searching/sorting/filtering for specific kinds.
 
-- Selection of a number of `Resources` and export the yaml.
+- Selection of a number of `Resources` to export the YAML.
 
 - Editing of a specific `Resource` and, instead of saving to Kubernetes, downloading the modified YAML.
 
-- Leveraging Kubernetes generate-id to avoid read/modify/write hazards when you edit/save a resource.
+- Leveraging Kubernetes generate-id to avoid read/modify/write hazards when you edit/save a `Resource`.
 
 - Showing all `Resources` with a non-green status to show prominently on the dashboard.
 
-    - Disallowing editing of Resources that were not created in the UI, so that we never try to write to
-Resources that are maintained via GitOps.
+- Disallowing editing of `Resources` that were not created in the UI, so that we never try to write to
+`Resources` that are maintained via GitOps.
 
 - Attaching a URI to a `Resource` that originates from `git`, so that the user can navigate directly to the
 `Resource` in the `git` repository from the `Resource` view.
 
 - Leveraging the git repo annotation to allow editing of those `Resources` by filing a PR.
 
+
 ## Implementation Details
 
 The following describes the framework, interfaces, and example classes using the Admin MVC approach.
-
 
 ### The mvc/ directory hierarchy
 
@@ -122,14 +122,14 @@ mvc            - toplevel directory, under edge_stack
 
 #### framework
 
-The basic functionality for `Model`, `ResourceCollection` and `Resource` classes is defined in
-this directory. These are the internal classes of the framework and should not need to
-be modified or overridden.
+The basic framework classes `Model`, `Resource`, `View`, `ResourceView`, `ResourceCollection`,
+and `ResourceCollectionView` are defined in this directory. These are the internal classes of the framework
+and should not need to be modified or overridden.
  
-
 #### interfaces
 
-These classes define the interface that must be implemented in concrete subclasses.
+The interface classes `IResource`, `IResourceView`, `IResourceCollection`, and `IResourceCollectionView` are defined in
+this directory. These classes define the interface that must be implemented in concrete subclasses.
 
 Interface classes only define the methods for subclasses to implement. Interface classes do 
 not define any behavior in these methods. All interface classes begin with a capital I to 
@@ -202,8 +202,8 @@ For more detail on these implementations, see the source code in the `mvc/framew
 directories.
 
 ##### Model
-The `Model` class simply defines methods for managing a group of listeners that may be notified when desired.
-A listener is simply an object that defines the method `onModelNotification(model, message, parameter)`.
+The `Model` class simply defines methods for managing a group of objects that may be notified when desired.
+To be notified, these objects must implement the method `onModelNotification(model, message, parameter)`.
 As a framework class, this will not be subclassed by the user.
 
 ```
@@ -219,9 +219,10 @@ class Model {
 ```
 
 ##### Resource
-The `Resource` class is a `Model`, so it can have listeners, and it adds state that is common among all
-`Resources` (e.g. `kind`, `name`, `namespace`, etc.) and methods for updating its state from snapshot data,
-constructing YAML for communication with Kubernetes, and validation of its internal instance variables.
+The `Resource` class is a `Model`, so it can notify other objects of any suitable events, and it adds state
+that is common among all `Resources` (e.g. `kind`, `name`, `namespace`, etc.) as well as methods for updating its
+state from snapshot data, constructing YAML for communication with the edge stack, and validation of its internal
+instance variables.
 
 ```
 class Resource extends Model {
@@ -253,7 +254,7 @@ class IResource extends Resource {
 
 ##### ResourceCollection
 
-The `ResourceCollection` class is `Model`, so it can have listeners.  It subscribes to the snapshot service, 
+The `ResourceCollection` class is `Model`, so it can notify objects of events.  It subscribes to the snapshot service, 
 extracts data from the snapshot when notified, and creates, modifies, or deletes `Resource` objects that it maintains
 in the `ResourceCollection`.
 
@@ -261,6 +262,8 @@ in the `ResourceCollection`.
 class ResourceCollection extends Model {
   constructor()
   onSnapshotChange(snapshot)
+  addResource(resource)
+  hasResource(resource)
 }
 ```
 
@@ -278,6 +281,7 @@ class IResourceCollection extends ResourceCollection {
   extractResourcesFrom(snapshot)
   resourceClass()
   uniqueKeyFor(resource)
+  ...
 }
 ```
 
@@ -294,7 +298,7 @@ directories.
 ##### View
 The `View` class defines the basic HTML framework, rendering, and model notification handling for display of
 a single `Resource` (e.g. a `HostResource`).  The `render()` method here assumes styles are imported properly
-and a common layout of the view that has list, edit, detail, and add variants.  The developer
+and a common layout of the view that has `list`, `edit`, `detail`, and `add` variants.  The developer
 should not have to subclass this but would instead subclass `IResourceView` and implement the methods
 required there.
 
@@ -310,11 +314,11 @@ class View extends LitElement {
 ```
 
 ##### ResourceView
-The `ResourceView` class is a `View` subclass that adds Resource-specific state and handling for rendering a single
-Resource object.  It handles the edit operations (edit, save, cancel) and rendering of the different variants of
-the ResourceView in these view states.  It also provides the ability to add messages to the end of the View as well
+The `ResourceView` class is a `View` subclass that adds `Resource`-specific state and handling for rendering a single
+`Resource` object.  It handles the edit operations (`edit`, `save`, `cancel`) and rendering of the different variants of
+the `ResourceView` in these view states.  It also provides the ability to add messages to the end of the `View` as well
 as an optional YAML display showing the YAML that represents the resource.  When editing, the YAML will display the
-actual structure that would be sent to Kubernetes apply.
+actual structure that the edge stack would send to Kubernetes apply.
 
 The developer will not subclass `ResourceView` but instead `IResourceView`, implementing the required methods there.
 
@@ -341,8 +345,8 @@ class ResourceView extends View {
 
 ##### IResourceView
 The `IResourceView` class is the interface class that developers will subclass for their specialized views
-for Resources.  Because most of the functionality of rendering, editing and updating Resources is handled in the
-concrete classes ResourceView and View, the developer need only implement the methods in the interface.  For
+for `Resources`.  Because most of the functionality of rendering, editing and updating `Resources` is handled in the
+concrete classes `ResourceView` and View, the developer need only implement the methods in the interface.  For
 an example, see `HostResourceView`, which extends `IResourceView`.
 
 ```
@@ -357,10 +361,10 @@ class IResourceView extends ResourceView {
 
 ##### ResourceCollectionView
 The `ResourceCollectionView` class implements the display of a list of `IResourceView` subclasses
-(e.g. `HostResourceView`).  It listens for messages from a `ResourceCollection` subclass (e.g.
+(e.g. `HostResourceView`).  It listens for notifications from a `ResourceCollection` subclass (e.g.
 `HostCollection`) which manages the list of `IResources` (e.g. `HostResources`) and creates and deletes the
 appropriate `IResourceViews` as needed.  Irt also provides sorting of these views by an attribute of the
-`IResources` being displayed (e.g. the `HostResource`'s name, namespace, or other attribute).
+`IResources` being displayed (e.g. the `HostResource`'s `name`, `namespace`, or other attribute).
 
 Developers will not subclass `ResourceCollectionView` but instead will subclass `IResourceCollectionView` and 
 implement the required methods there.
@@ -397,106 +401,12 @@ class IResourceCollectionView extends ResourceCollectionView {
 # How Resources are Added, Deleted, and Edited
 
 The process of deleting a `Resource` from a `ResourceCollectionView`, adding a new `Resource`, and editing an existing
-`Resource` must take into account the ongoing update process from snapshots arriving with new data.
+`Resource` must take into account the ongoing update process from snapshots arriving with new data.  These different
+operations require functionality to change the `ResourceView`'s appearance using its `viewState` property and to notify
+the `ResourceCollection` of pending operations on the `Resource` being added, deleted, or modified using the Resource's
+`pending` property.
 
-## Deleting an existing Resource
-
-Deleting an existing `Resource` (e.g. a `HostResource`) is the simplest case of the three.  The `Resource` is
-rendered by the `ResourceView`, which provides a `Delete` button.  When the button is pressed, the following will occur:
-- The model (e.g. the `HostResource`) will be sent a `doDelete` message, which composes a request to the edge stack with
-its resource `kind`, `name`, and `namespace`, and a delete action.
-- The Resource sets its pending delete flag which shows a pattern over the view, and a `Pending` button
-- A timeout is set for 5 seconds, to check if the operation has succeeded. 
-- At some future time the snapshot will show that the resource no longer exists, and the `ResourceView` will
-be notified and will then remove itself from the `ResourceCollectionView`.
-
-There are two possible error conditions:
-- the request to the edge stack to delete the resource fails.  In this case, an error message will be added
-to the message section of the `ResourceView`, and the view changes state back to `list`
-- The request to the edge stack doesn't fail but for some reason the delete itself is not successful.  In this case,
-the timeout occurs, a message is added to the message section, and the view changes state back to `list`
-
-## Adding a new Resource
-
-Adding a new `Resource` (e.g. a new `HostResource`) needs to check whether the new `Resource` being added conflicts in
-some way with an existing `Resource` in the system.  In Kubernetes, the triple `(kind, name, namespace)` is unique
-within the system, so any new `Resource` being added must not already have the same values for those attributes.
-
-The `ResourceCollectionView` is responsible for adding new `Resources`.  When the `Add` button is pressed, the following
-will occur:
-- a new instance of the appropriate `Resource` type will be created (e.g. a new `HostResource`) and its pending
-state set to `add`.
-- a new `ResourceView` of the appropriate type (e.g. `HostView`) will be created, and initialized with the `Resource`
-instantiated above.
-- The new `ResourceView` will be inserted at the beginning of the list of `ResourceViews` in the `ResourceCollectionView`,
-and the `onAdd()` method for the `ResourceView` will be called.
-- The `ResourceView` will set its view state to "add" and request the focus.  This will change the view to an
-edit mode, where the user may then change the `Resource's` attribute values.
-
-When the user is done and clicks `Save`:
-- the fields will be validated for correctness and uniqueness.  Because this `Resource` is being added, it must not
-have the same kind+name+namespace as any existing `Resource` in the system.  If there are any errors, they will be
-added to the message section of the `ResourceView`.
-- If the fields are validated, then the `doSave()` method is invoked on the new `Resource`, which sends a request
-to Kubernetes to create its new `Resource` object in the backend.
-- 
-
-## Editing an existing Resource
-
-Editing a `Resource` is similar to adding and deleting a `Resource`.  Specifically, since a `Resource` is uniquely identified
-by Kubernetes with the triple `kind`, `name`, and `namespace`, there are two possibilities when editing an existing
-Resource, and each of these cases must be handled slightly differently.  The first case occurs when the `Resource`'s `name`
-or `namespace` remain the same and other attributes are modified, and the second case is when the `Resource`'s `name` or
-`namespace`, or both, are modified.  The expected behavior in the second case is that the new `Resource`, with
-the new `name` and/or `namespace`, replaces the previous one.
-
-In particular, when the `Edit` button is pressed, the following will occur:
-- The `ResourceView` will create a new instance of the appropriate `Resource` type (`New`) by copying the
-existing `Resource` (`Existing`) and its attributes, including its `resourceVersion`.
-- The `ResourceView` will assign `Previous` to its `_shadowModel` instance variable, and assign `New` to its `model`.
-- The `ResourceView` will stop listening to `Previous` and begin listening to `New`.
-- The user will edit the attributes of the `Resource` as usual.
-
-Note that `Previous` (saved in the `ResourceView`'s `_shadowModel` instance variable) is still a member of the
-`ResourceCollectionView`'s `ResourceCollection`, and continues to receive updates.
-
-When the user is finished and clicks on the `Save` button, the `New` attributes are checked against `Previous`. There
-are two cases.
-
-**Case 1:** `New` and `Previous` both have the same `name` and `namespace`.  Then:
-- `New` is set to `pending save`, and replaces `Previous` in the `ResourceCollection`, to receive updates.
-- The `ResourceView` is set to `pending`.
-- `New` performs `doSave`, requesting Kubernetes to update the `Resource`.
-- When the `ResourceView` receives a notification from `New` that it has been updated, `_shadowModel` can be set
-to `null` (thus removing the reference to `Previous`) and the `pending` state can be removed on the `ResourceView`.
-
-If, however, the timer times out without having the `ResourceView` being notified that `New` has been successfully
-updated, then:
-- The `ResourceView` stops listening to `New`;
-- `Previous` replaces `New` in the `ResourceCollection`;
-- the `ResourceView` then assigns `Previous` back to its `model` instance variable;
-- the `ResourceView`'s `pending` state is removed;
-- and finally, the `ResourceView` begins listening to `Previous` again for notifications.
-
-**Case 2:** `New` and `Previous` differ in either `name`, `namespace`, or both.  Then:
-- `New`'s `name` and `namespace` are confirmed to be unique in the `ResourceCollection`.  If not, an error is returned.
-- `New` is set to `pending add`, and is added to the`ResourceCollection`, to receive updates.
-- The `ResourceView` is set to `pending`.
-- `New` performs `doSave`, requesting Kubernetes to create the new `Resource` based on `New`'s specification.
-- When the `ResourceView` receives a notification from `New` that it has been updated (i.e. that the Resource has been
-successfully added to the system), `Previous` can then be deleted from the system by calling its `doDelete` method. Then
-`_shadowModel` can be set to `null` (thus removing the reference to `Previous`) and the ResourceView's `pending` state
-is removed.
-
-If, however, the timer times out without having the `ResourceView` being notified that `New` has been successfully added
-to the system, then:
-- The `ResourceView` stops listening to `New`;
-- `New`'s pending state is cleared, which will cause it to be removed from the `ResourceCollection`.
-- the `ResourceView` assigns `Previous` back to its `model` instance variable;
-- and finally, the `ResourceView` begins listening to `Previous` again for notifications.
-
-
-## The ResourceView's viewState
+### The ResourceView's viewState
 
 `ResourceView` is responsible for rendering a single `Resource` in a `ResourceCollectionView`.  Subclasses of `IResourceView`,
 such as `HostView`, will implement specific behavior and rendering for that type of `Resource`.
@@ -505,36 +415,36 @@ The process of viewing, editing, adding and deleting `Resources` in the `Resourc
 different renderings.  These renderings are controlled by the `viewState` property on the `ResourceView`.
 
 The `viewState` can have one of four different values:
-- `add`, when creating a new `Resource` that doesn't already exist in the ResourceCollection;
+- `add`, when creating a new `Resource` that doesn't already exist in the `ResourceCollection`;
 - `edit`, when editing an existing `Resource`'s attributes;
-- `list`, when viewing the `Resource` in the ResourceCollectionView
+- `list`, when viewing the `Resource` in the `ResourceCollectionView`
 - `pending`, after the user has clicked on `Save` after an add or edit operation
 
 The "pending" `viewState` does two things:
 - it provides a "pending" crosshatch over the content of the view, to indicate that saving the state is in progress;
-- it hides all the buttons except a special "Pending" button, which, at the moment, has no operational function.
+- it hides all the buttons except a special `Pending` button, which, at the moment, has no operational function.
 
 Because viewState is a `LitElement` property, setting the `viewState` to a value will cause the `ResourceView` to be
 re-rendered.
 
-## The Resource pending flag
+### The Resource pending flag
 
-The Resource class's _pending flag is a way to tell the `ResourceCollection` that a given Resource in the collection
-needs to be handled differently.  The pending flag can be set to three different string values:
+The Resource class's `_pending` flag is a way to tell the `ResourceCollection` that a given `Resource` in the collection
+needs to be handled differently.  The `_pending` flag can be set to three different string values:
 
 - `add`, when the `Resource` has been added but not yet confirmed by existence in a snapshot;
 - `save`, when the `Resource` has been edited but its new state has not yet been seen in a snapshot;
 - `delete`, when the `Resource` has been deleted from the system and is awaiting a snapshot confirming the deletion.
 
-The `ResourceCollection` checks the pending flag on the `Resource` when it processes a new snapshot.  If the `Resource`
+The `ResourceCollection` checks the `_pending` flag on the `Resource` when it processes a new snapshot.  If the `Resource`
 is in the `ResourceCollection` already, and the existing `Resource`'s version is not the same as the version
-seen in the snapshot, then the `Resource` is updated from the snapshot data and any pending flag is cleared.
+seen in the snapshot, then the `Resource` is updated from the snapshot data and any `_pending` flag is cleared.
 
 If the `Resource` in the collection has been added by the user, then it will be in the `ResourceCollection` but not
 necessarily observed in a snapshot.  Normally in this case the `Resource` would be deleted and its listeners notified.
 But in the case of being added, the `ResourceCollection` checks the pending flag and does not delete the object if
 the addition is pending.  At some point the snapshot will show the `Resource` as existing in the system, the `Resource`
-will be updated with its status, and the pending flag will be cleared.
+will be updated with its status, and the `_pending` flag will be cleared.
 
 However, if the backend takes too long or fails to add, save, or delete the `Resource` for some reason, the
 timer will time out and clear the flags, cancelling the operation.  With the flags cleared:
@@ -545,6 +455,149 @@ timer will time out and clear the flags, cancelling the operation.  With the fla
 
 This will return the system to a consistent state.
 
+## Deleting an existing Resource
+
+Deleting an existing `Resource` (e.g. a `HostResource`) is the simplest case of the three.  The `Resource` is
+rendered by the `ResourceView`, which provides a `Delete` button.  When the button is pressed, the following will occur:
+- the model (e.g. the `HostResource`) will be sent a `doDelete` message, which composes a request to the edge stack with
+its resource `kind`, `name`, and `namespace`, and a `delete` action.
+- if the request to the edge stack to delete the resource fails or returns an error, then an alert is shown
+displaying the error to the user, and the `ResourceView` changes its `viewState` back to `list`.
+- otherwise, the `Resource` sets its `_pending` state to `delete`;
+- the `ResourceView` sets its `viewState` to `pending`, which shows a pattern over the view, and
+a `Pending` button is displayed;
+- A timer is set for 5 seconds, to check if the operation has succeeded. If the `delete` operation has succeeded,
+the timer is ignored.  However, if the `delete` has not succeeded, the timeout is used for restoring the system to
+its consistent state.
+
+At this point the system is awaiting one of two outcomes: the `Resource` has been successfully removed from the
+system, or a timeout.
+
+The succcessful outcome: at some future time the snapshot will show that the `Resource` no longer exists.  Then:
+- the `ResourceView` is notified and will then remove itself from the `ResourceCollectionView`.
+
+The timout fires: this means that the `ResourceView` has not been notified within 5 seconds that the `Resource`
+no longer exists.  Then:
+- the Resource clears its `_pending` flag.
+- the `ResourceView` resets its `viewState` to `list`.
+- an alert is shown, notifying the user that the delete failed.
+
+## Adding a new Resource
+
+Adding a new `Resource` (e.g. a new `HostResource`) needs to check whether the new `Resource` being added conflicts in
+some way with an existing `Resource` in the system.  In Kubernetes, the triple `(kind, name, namespace)` is unique
+within the system, so any new `Resource` being added must not already have the same values for those attributes.
+
+The `ResourceCollectionView` is responsible for adding new `Resources`.  When the `Add` button is pressed,
+the following will occur:
+- a new instance of the appropriate `Resource` type will be created (e.g. a new `HostResource`) and its pending
+state set to `add`.
+- a new `ResourceView` of the appropriate type (e.g. `HostView`) will be created, and initialized with the `Resource`
+instantiated above as its `model`.
+- The new `ResourceView` will be inserted at the beginning of the list of `ResourceViews` in the `ResourceCollectionView`,
+and the `onAdd()` method for the `ResourceView` will be called.
+- The `ResourceView` will set its `viewState` to `add` and request the focus.  This will change the view to an
+edit mode, where the user may then change the `Resource's` attribute values.
+
+When the user is done and clicks `Save`:
+- the ResourceView and Resource will validate its state for correctness and uniqueness.  Because this `Resource`
+is being added, it must not have the same `(kind, name, namespace)` as any existing `Resource` in the system.
+If there are any errors, they will be added to the message section of the `ResourceView`.
+- If the fields are validated, then the `doSave()` method is invoked on the new `Resource`, which sends a request
+to the edge stack to create its new `Resource` object in the backend.
+- If the request to the edge stack to add the resource fails or returns an error, then an alert is shown
+displaying the error to the user, and the `ResourceView` changes its `viewState` back to `list`.
+- otherwise, the `Resource` is added to the `ResourceCollection`, pending confirmation of its being added to the
+system by being represented in a future snapshot.  The `Resource`'s pending `add` state tells the `ResourceCollection`
+not to delete the `Resource` even if it isn't represented in a snapshot.
+- A timer is set for 5 seconds, to check if the operation has succeeded. If the add operation has succeeded,
+the timer is ignored.  However, if the add has not succeeded, the timeout is used for restoring the system to
+its consistent state.
+
+As is the case when deleting a `Resource`, There are three possible outcomes: one successful and two error conditions:
+
+The succcessful outcome: at some future time the snapshot will show that the `Resource` has been added. Then:
+- the `ResourceCollection` will update the `Resource` and notify the `ResourceView`;
+- the `Resource` will clear its `_pending` flag;
+- the `ResourceView` will reset its `viewState` to `list`.
+
+The timeout fires.  Then:
+- the `Resource` clears its _pending flag, which will allow the `ResourceCollection` to remove the `Resource` at the
+next snapshot update;
+- and the `ResourceView` changes its `viewState` back to `list`.
+
+## Editing an existing Resource
+
+Editing a `Resource` is similar to adding and deleting a `Resource`.  Specifically, since a `Resource` is uniquely
+identified by Kubernetes with the triple `(kind, name, namespace)`, there are two possibilities when editing an
+existing `Resource`, and each of these cases must be handled slightly differently.  The first case occurs when
+the `Resource`'s `name` or `namespace` remain the same and other attributes are modified, and the second case
+is when the `Resource`'s `name` or `namespace`, or both, are modified.  The expected behavior in the second case
+is that the new `Resource`, with the new `name` and/or `namespace`, replaces the previous one.
+
+In particular, when the `Edit` button is pressed, the following will occur:
+- The `ResourceView` will create a new instance of the appropriate `Resource` type (`New`) by copying the
+existing `Resource` (`Previous`) and its attributes, including its `resourceVersion`.
+- The `ResourceView` will assign `Previous` to its `_savedModel` instance variable, and assign `New` to its `model`.
+- The `ResourceView` will stop listening to `Previous` and begin listening to `New`.
+- The user will edit the attributes of the `New' ``Resource` as usual, and the edits will be applied to `New`.
+
+Note that `Previous` (saved in the `ResourceView`'s `_savedModel` instance variable) is still a member of the
+`ResourceCollectionView`'s `ResourceCollection`, and continues to receive updates from the snapshot.
+
+When the user is finished and clicks on the `Save` button, the `New` attributes are checked against `Previous`. There
+are two cases.
+
+**Case 1:** `New` and `Previous` both have the same `name` and `namespace`.  Then:
+- `New`'s `_pending` flag is set to `save`, and replaces `Previous` in the `ResourceCollection`, to receive updates.
+- The `ResourceView` `viewState` set to `pending`.
+- `New` performs `doSave`, requesting the edge stack to update the `Resource`.
+- A timer is set for 5 seconds, to check if the edit has succeeded. If the edit operation has succeeded,
+the timer is ignored.  However, if the edit has not succeeded, the timeout is used for restoring the system to
+its previous, un-edited state.
+
+At this point the system is awaiting one of two outcomes: a successful update to the `Resource`, or a timeout.
+
+The successful outcome: At some future time the snapshot will show that the `Resource` has been changed, because
+the `resourceVersion` of the snapshot data and `New` are different.  Then:
+- the `ResourceView` receives a notification of this change and refreshes to show the modified attributes;
+- `_savedModel` is set to  `null` (thus removing the reference to `Previous`)
+- the `ResourceView`'s `pending` `viewState` is reset to `list`.
+- the timer is deleted.
+
+The timout fires: this means that the `ResourceView` has not been notified within 5 seconds that `New` has been
+updated.  Then:
+- the `ResourceView` stops listening to `New`'s notifications;
+- `Previous` replaces `New` in the `ResourceCollection`;
+- the `ResourceView` then assigns `Previous` back to its `model` instance variable;
+- the `ResourceView`'s `pending` `viewState` is set back to `list`;
+- then, the `ResourceView` begins listening to `Previous` again for notifications.
+
+**Case 2:** `New` and `Previous` differ in either `name`, `namespace`, or both.  Then:
+- `New`'s `name` and `namespace` are confirmed to be unique in the `ResourceCollection`.  If not, an error is returned.
+- `New`'s `_pending` flag set to `add`, and `New` is added to the`ResourceCollection`, to receive updates.
+- the `ResourceView` `viewState` is set to `pending`.
+- `New` performs `doSave`, requesting the edge stack to create the new `Resource` based on `New`'s specification.
+- a timer is set for 5 seconds, to check if the edit has succeeded. If the edit operation has succeeded,
+the timer is ignored.  However, if the edit has not succeeded, the timeout is used for restoring the system to
+its previous, un-edited state.
+
+At this point the system is awaiting one of two outcomes: the `Resource` has been successfully added to the
+system, or a timeout.
+
+The successful outcome: the `ResourceView` receives a notification from `New` that it has been updated (i.e. that the
+`Resource` has been successfully added to the system).  Then:
+- `Previous` is deleted from the system by calling its `doDelete` method.
+- `_savedModel` is set to `null` (thus removing the reference to `Previous`);
+- `ResourceView`'s `pending` `viewState` is set back to `list`. 
+
+The timout fires: this means that the `ResourceView` has not been notified within 5 seconds that `New` has been
+successfully added to the system.  Then:
+- the `ResourceView` stops listening to `New`'s notifications;
+- `New`'s `_pending` state is cleared, which will cause it to be automatically removed from the `ResourceCollection`
+since it is not represented in the snapshot;
+- the `ResourceView` assigns `Previous` back to its `model` instance variable;
+- then, the `ResourceView` begins listening to `Previous` again for notifications.
 
 # Examples
 

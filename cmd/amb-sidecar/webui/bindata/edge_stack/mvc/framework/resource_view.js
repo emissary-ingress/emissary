@@ -224,12 +224,12 @@ export class ResourceView extends View {
     /* Clear any error messages prior to editing. */
     this.clearMessages();
 
-    /* Save the View's existing model and stop listening to it. */
-    this._savedModel = this.model;
+    /* Stop listening to updates from our model. */
     this.model.removeListener(this);
 
-    /* Create a new model for editing, based on the state in the existing model, and start listening to it. */
-    this.model = this.model.copySelf();
+    /* Save our model, make a copy for editing, and attach it to this ResourceView.. */
+    this._savedModel = this.model;
+    this.model = this._savedModel.copySelf();
     this.model.addListener(this);
 
     /* Change view to "edit" state, and request to focus */
@@ -273,20 +273,22 @@ export class ResourceView extends View {
         else {
           collection.addResource(resource);
 
-          /* Save the new resource to Kubernetes. */
-          let error = null; // TEST resource.doSave();
+          /* Save the new resource to Kubernetes. Await the yaml changes in the snapshot and note that we are
+           * pending an add so that the ResourceCollection doesn't delete it if it doesn't see the new yam
+           * immediately.
+           */
+          resource.setPending("add");
+          let error = resource.doSave();
 
           if (error === null) {
-            /* successfully added.  Await the yaml changes in the snapshot, note that we are pending an add
-             * so the resourceCollection doesn't delete it if it doesn't see the new yaml immediately.
-             */
-            resource.setPending("add");
+            /* Successfully added.  Show the pending view. */
             this.viewState = "pending";
 
             /* Start the timeout for 5 seconds to make sure that the pending save is reset even if the backend fails */
             this._timeout = setTimeout(this.verifySave.bind(this), 5000);
 
           } else {
+            resource.clearPending();
             this.addMessage("Save failed -- backend not available?");
             console.log(`ResourceView.onSave() returned error ${error}`);
           }
@@ -296,30 +298,45 @@ export class ResourceView extends View {
       /* ======== onSave, editing an existing resource ======== */
 
       if (this.viewState === "edit") {
-        /* TODO */
-        return;
+        let resource   = this.model;
+        let collection = this.parentElement.model;
 
-        /*  Copy our YAML to the saved model so that it can be identified as existing in the
-         * ResourceCollectionView (since it is the "same" model as before, with different state).
-         * Note: the savedModel has no listeners so this will just update the model's attribute values.
-         */
+        /* User has changed the resource name, namespace, or both. */
+        if (resource.name !== this._savedModel.name || resource.namespace !== this._savedModel.namespace) {
 
-        this._savedModel.updateFrom(this.model.getYAML());
+          /* Confirm that there isn't an existing Resource in the system with the new name and namespace */
+          if (collection.hasResource(this.model)) {
+            this.addMessage(`Resource named ${resource.name} in ${resource.namespace} already exists.`);
+          }
+          else {
+            /* Add the Resource to the ResourceCollection, since it is new (no longer the same Resource) */
+            collection.addResource(resource);
 
-        /* Save the changes in the resource. */
-        let error = this.model.doSave();
+            /* Save the new resource to Kubernetes. Await the yaml changes in the snapshot and note that we are
+             * pending an add so that the ResourceCollection doesn't delete it if it doesn't see the new yam
+             * immediately.
+             */
+            resource.setPending("add");
+            let error = this.model.doSave();
 
-        if (error === null) {
-          this.model.setPending("save");
-          this.viewState = "list";
-          /* Start the timeout for 5 seconds to make sure that the pending save is reset even if the backend fails */
-          this._timeout = setTimeout(this.verifySave.bind(this), 5000);
-        } else {
-          this.addMessage("Save failed -- backend not available?");
-          console.log(`ResourceView.onSave() returned error ${error}`);
+            if (error === null) {
+              this.viewState = "pending";
+
+              /* Start the timeout for 5 seconds to make sure that the pending save is reset even if the backend fails */
+              this._timeout = setTimeout(this.verifySave.bind(this), 5000);
+            }
+            else {
+              this.viewState = "list";
+              this.addMessage("Save failed -- backend not available?");
+              console.log(`ResourceView.onSave() returned error ${error}`);
+            }
+          }
         }
 
+        /* Resource name and namespace are the same. Update the existing resource. */
+        else {
 
+        }
       }
     }
     /* Have validation errors.  Add to the message list. */
