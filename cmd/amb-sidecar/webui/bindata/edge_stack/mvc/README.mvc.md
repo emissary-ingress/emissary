@@ -437,14 +437,15 @@ needs to be handled differently.  The `_pending` flag can be set to three differ
 - `delete`, when the `Resource` has been deleted from the system and is awaiting a snapshot confirming the deletion.
 
 The `ResourceCollection` checks the `_pending` flag on the `Resource` when it processes a new snapshot.  If the `Resource`
-is in the `ResourceCollection` already, and the existing `Resource`'s version is not the same as the version
-seen in the snapshot, then the `Resource` is updated from the snapshot data and any `_pending` flag is cleared.
+is in the `ResourceCollection` already, and the existing `Resource`'s `resourceVersion` is not the same as the
+`resourceVersion` seen in the snapshot, then the `Resource` is updated from the snapshot data and any `_pending`
+flag is cleared.
 
 If the `Resource` in the collection has been added by the user, then it will be in the `ResourceCollection` but not
 necessarily observed in a snapshot.  Normally in this case the `Resource` would be deleted and its listeners notified.
 But in the case of being added, the `ResourceCollection` checks the pending flag and does not delete the object if
 the addition is pending.  At some point the snapshot will show the `Resource` as existing in the system, the `Resource`
-will be updated with its status, and the `_pending` flag will be cleared.
+will be updated with its status, and the `_pending` flag will again be cleared.
 
 However, if the backend takes too long or fails to add, save, or delete the `Resource` for some reason, the
 timer will time out and clear the flags, cancelling the operation.  With the flags cleared:
@@ -490,17 +491,17 @@ within the system, so any new `Resource` being added must not already have the s
 
 The `ResourceCollectionView` is responsible for adding new `Resources`.  When the `Add` button is pressed,
 the following will occur:
-- a new instance of the appropriate `Resource` type will be created (e.g. a new `HostResource`) and its pending
-state set to `add`.
-- a new `ResourceView` of the appropriate type (e.g. `HostView`) will be created, and initialized with the `Resource`
-instantiated above as its `model`.
-- The new `ResourceView` will be inserted at the beginning of the list of `ResourceViews` in the `ResourceCollectionView`,
-and the `onAdd()` method for the `ResourceView` will be called.
+- the `ResourceCollectionView` will create a new instance of the appropriate `Resource` type (e.g. a new
+`HostResource`) and its pending state set to `add`.
+- the `ResourceCollectionView` will create a new `ResourceView` of the appropriate type (e.g. `HostView`)
+and initialized with the `Resource` instantiated above as its `model`.
+- the `ResourceCollectionView` will insert the new `ResourceView` at the beginning of its list of `ResourceViews`;
+- the `onAdd()` method for the `ResourceView` will be called.
 - The `ResourceView` will set its `viewState` to `add` and request the focus.  This will change the view to an
 edit mode, where the user may then change the `Resource's` attribute values.
 
 When the user is done and clicks `Save`:
-- the ResourceView and Resource will validate its state for correctness and uniqueness.  Because this `Resource`
+- the `ResourceView` and `Resource` will validate their state for correctness and uniqueness.  Because this `Resource`
 is being added, it must not have the same `(kind, name, namespace)` as any existing `Resource` in the system.
 If there are any errors, they will be added to the message section of the `ResourceView`.
 - If the fields are validated, then the `doSave()` method is invoked on the new `Resource`, which sends a request
@@ -514,7 +515,7 @@ not to delete the `Resource` even if it isn't represented in a snapshot.
 the timer is ignored.  However, if the add has not succeeded, the timeout is used for restoring the system to
 its consistent state.
 
-As is the case when deleting a `Resource`, There are three possible outcomes: one successful and two error conditions:
+At this point the system is awaiting one of two possible outcomes.
 
 The succcessful outcome: at some future time the snapshot will show that the `Resource` has been added. Then:
 - the `ResourceCollection` will update the `Resource` and notify the `ResourceView`;
@@ -536,11 +537,12 @@ is when the `Resource`'s `name` or `namespace`, or both, are modified.  The expe
 is that the new `Resource`, with the new `name` and/or `namespace`, replaces the previous one.
 
 In particular, when the `Edit` button is pressed, the following will occur:
-- The `ResourceView` will create a new instance of the appropriate `Resource` type (`New`) by copying the
+- the `ResourceView` will create a new instance of the appropriate `Resource` type (`New`) by copying the
 existing `Resource` (`Previous`) and its attributes, including its `resourceVersion`.
-- The `ResourceView` will assign `Previous` to its `_savedModel` instance variable, and assign `New` to its `model`.
-- The `ResourceView` will stop listening to `Previous` and begin listening to `New`.
-- The user will edit the attributes of the `New' ``Resource` as usual, and the edits will be applied to `New`.
+- the `ResourceView` will assign `Previous` to its `_savedModel` instance variable, and assign `New` to its `model`.
+- the `ResourceView` will stop listening to `Previous` and begin listening to `New`.
+- the `ResourceView` will set its `viewState` to `edit`, and request the focus; 
+- then the user will edit the attributes of the `New` `Resource` as usual, and the edits will be applied to `New`.
 
 Note that `Previous` (saved in the `ResourceView`'s `_savedModel` instance variable) is still a member of the
 `ResourceCollectionView`'s `ResourceCollection`, and continues to receive updates from the snapshot.

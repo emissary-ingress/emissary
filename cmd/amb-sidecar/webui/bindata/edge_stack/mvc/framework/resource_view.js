@@ -88,6 +88,36 @@ export class ResourceView extends View {
     this.messages.push(message)
   }
 
+  /* cancelEdit
+   * Called by doCancel and verifyEdit, this restores the view's models, notification, and viewState.
+   */
+  cancelEdit() {
+    let collection = this.parentElement.model;
+
+    /* Stop listening to the "new" model.  */
+    this.model.removeListener(this);
+
+    /* set our model again to the original "old" model, and tell the collection to replace
+     * the new model with the original.  They both have the same (kind, name, namespace) which
+     * is why this is a replacement: they are keyed by the triple as a unique key.
+     */
+    this.model = this._savedModel;
+    collection.replaceResource(this.model);
+
+    /* Start listening again to the saved model */
+    this.model.addListener(this);
+
+    /* Restore the fields to the old model's. */
+    this.readFromModel();
+
+    /* Clear our _savedModel, no longer editing. */
+    this._savedModel = null;
+
+    /* Restore to "list" state. */
+    this.viewState = "list";
+  }
+
+
   /* clearMessages()
    * This method is called to clear the message list.
    */
@@ -135,23 +165,14 @@ export class ResourceView extends View {
    */
 
   onCancel() {
-    /* Adding?  Remove the view--the Resource is not being added to the system. */
+    /* Adding?  Simply remove the view--the Resource is not being added to the system. */
     if (this.viewState === "add") {
       this.parentElement.removeChild(this);
     }
 
-    /* Editing? Swap models back, restoring listeners to the saved Model. */
+    /* Editing? Restore the original model and collection state. */
     if (this.viewState === "edit") {
-      this.model.removeListener(this);
-      this.model = this._savedModel;
-      this.model.addListener(this);
-      this._savedModel = null;
-
-      /* Restore the fields to the previous model's. */
-      this.readFromModel();
-
-      /* Restore to "list" state. */
-      this.viewState = "list";
+      this.cancelEdit();
     }
   }
 
@@ -164,13 +185,15 @@ export class ResourceView extends View {
     let proceed = confirm(`You are about to delete the ${this.kind} named '${this.name}' in the '${this.namespace}' namespace.\n\nAre you sure?`);
 
     if (proceed) {
+      let model = this.model;
+
       /* Ask the Resource to delete itself. */
-      let error = this.model.doDelete();
+      let error = model.doDelete();
 
       if (error === null) {
         /* Note that the resource is pending an update (in this case, to be deleted),
          * Rendering will see this state and show the pending-delete button and crosshatch over the view */
-        this.model.setPending("delete");
+        model.setPending("delete");
 
         /* Set the viewState to pending */
         this.viewState = "pending";
@@ -179,7 +202,7 @@ export class ResourceView extends View {
         this._timeout = setTimeout(this.verifyDelete.bind(this), 5000);
       }
       else {
-        this.addMessage("Delete failed - backend not available?");
+        alert(`${model.kind} ${model.name} was unable to be deleted.  Backend not available?`);
         console.log("ResourceView.onDelete() returned error ${error");
       }
     }
@@ -191,12 +214,12 @@ export class ResourceView extends View {
    */
 
   verifyDelete() {
-    let model  = this.model;
-    let failed = false;
+    let resource = this.model;
+    let failed   = false;
 
     /* Pending the delete operation? If the delete has already occurred, then it will not be pending. */
-    if (model.isPending("delete")) {
-      model.clearPending();
+    if (resource.isPending("delete")) {
+      resource.clearPending();
       failed = true;
     }
 
@@ -209,7 +232,7 @@ export class ResourceView extends View {
     }
 
     if (failed) {
-      alert(`${model.kind} ${model.name} was unable to be deleted.  Backend did not respond.`);
+      alert(`${resource.kind} ${resource.name} was unable to be deleted.  Backend did not respond.`);
       this.requestUpdate();
     }
   }
@@ -224,17 +247,33 @@ export class ResourceView extends View {
     /* Clear any error messages prior to editing. */
     this.clearMessages();
 
-    /* Stop listening to updates from our model. */
+    /* Stop listening to updates from our model. It will remain in the ResourceCollection and will
+     * continue to receive updates from the snapshot.
+     */
     this.model.removeListener(this);
 
-    /* Save our model, make a copy for editing, and attach it to this ResourceView.. */
+    /* Save our model, make a copy for editing, and attach it to this ResourceView. At this point the copy is
+     * not in the ResourceCollection and thus does not receive updates*/
     this._savedModel = this.model;
     this.model = this._savedModel.copySelf();
+
+    /* Start listening to our new model, which will be receiving edits from the ResourceView */
     this.model.addListener(this);
 
     /* Change view to "edit" state, and request to focus */
     this.viewState   = "edit";
     this._needsFocus = true;
+  }
+
+  /* onModelNotification(model, message, parameter)
+   * This calls the View onModelNotification, and handles some special editing cases to clean up
+   * any _savedModel or pending states.
+   */
+
+  onModelNotification(model, message, parameter) {
+    let resource = model;
+    console.log(`${model.kind} ${model.name} notifying ${message}`);
+    super.onModelNotification(model, message, parameter);
   }
 
   /* onSave()
@@ -247,6 +286,9 @@ export class ResourceView extends View {
     */
 
   onSave() {
+    let resource = this.model;
+    let error    = null;
+
     /* May have new messages on Save due to validation, so clear the existing messages, if any. */
     this.clearMessages();
 
@@ -257,28 +299,27 @@ export class ResourceView extends View {
     let validationErrors = this.validate();
 
     if (validationErrors.size === 0) {
-      /* ======== onSave, adding a new resource ======== */
+      /* ======== Adding a new resource ======== */
 
       if (this.viewState === "add") {
         /* parentElement = ResourceCollectionView, model is ResourceCollection */
-        let resource   = this.model;
+        let newResource = this.model;
         let collection = this.parentElement.model;
 
         /* Further validate the Resource name, namespace, kind, and hostname for uniqueness. */
-        if (collection.hasResource(resource)) {
-          this.addMessage(`Resource named ${resource.name} in ${resource.namespace} already exists.`);
+        if (collection.hasResource(newResource)) {
+          this.addMessage(`Resource named ${newResource.name} in ${newResource.namespace} already exists.`);
         }
 
         /* Good to go, add the resource to the collection and ask the model to save itself. */
         else {
-          collection.addResource(resource);
-
-          /* Save the new resource to Kubernetes. Await the yaml changes in the snapshot and note that we are
-           * pending an add so that the ResourceCollection doesn't delete it if it doesn't see the new yam
-           * immediately.
+          /* Add the Resource to the ResourceCollection, since it is new, and set its pending flag to "add"
+           * so that the ResourceCollection won't delete it if it isn't immediately in an upcoming snapshot.
            */
-          resource.setPending("add");
-          let error = resource.doSave();
+          collection.addResource(newResource);
+          newResource.setPending("add");
+
+          error = newResource.doSave();
 
           if (error === null) {
             /* Successfully added.  Show the pending view. */
@@ -288,54 +329,67 @@ export class ResourceView extends View {
             this._timeout = setTimeout(this.verifySave.bind(this), 5000);
 
           } else {
-            resource.clearPending();
-            this.addMessage("Save failed -- backend not available?");
-            console.log(`ResourceView.onSave() returned error ${error}`);
+            /* Clear the pending add, and allow the ResourceCollection to remove it. */
+            newResource.clearPending();
           }
         }
       }
 
-      /* ======== onSave, editing an existing resource ======== */
+      /* ======== Editing an existing resource ======== */
 
       if (this.viewState === "edit") {
-        let resource   = this.model;
-        let collection = this.parentElement.model;
+        let newResource = this.model;
+        let oldResource = this._savedModel;
+        let collection  = this.parentElement.model;
 
-        /* User has changed the resource name, namespace, or both. */
-        if (resource.name !== this._savedModel.name || resource.namespace !== this._savedModel.namespace) {
+        /* === User has changed the resource name, namespace, or both. */
+        if (newResource.name !== oldResource.name || newResource.namespace !== oldResource.namespace) {
 
           /* Confirm that there isn't an existing Resource in the system with the new name and namespace */
-          if (collection.hasResource(this.model)) {
-            this.addMessage(`Resource named ${resource.name} in ${resource.namespace} already exists.`);
-          }
-          else {
-            /* Add the Resource to the ResourceCollection, since it is new (no longer the same Resource) */
-            collection.addResource(resource);
-
-            /* Save the new resource to Kubernetes. Await the yaml changes in the snapshot and note that we are
-             * pending an add so that the ResourceCollection doesn't delete it if it doesn't see the new yam
-             * immediately.
+          if (collection.hasResource(newResource)) {
+            this.addMessage(`Resource named ${newResource.name} in ${newResource.namespace} already exists.`);
+          } else {
+            /* Add the Resource to the ResourceCollection, since it is new (no longer the same Resource),
+             * and set its pending flag to "add" so that the ResourceCollection won't delete it if it isn't
+             * immediately in an upcoming snapshot.
              */
-            resource.setPending("add");
-            let error = this.model.doSave();
+            collection.addResource(newResource);
+            newResource.setPending("add");
+
+            /* Save the new resource...*/
+            error = newResource.doSave();
 
             if (error === null) {
-              this.viewState = "pending";
+              /* ...and delete the old. */
+              error = oldResource.doDelete();
 
-              /* Start the timeout for 5 seconds to make sure that the pending save is reset even if the backend fails */
-              this._timeout = setTimeout(this.verifySave.bind(this), 5000);
-            }
-            else {
-              this.viewState = "list";
-              this.addMessage("Save failed -- backend not available?");
-              console.log(`ResourceView.onSave() returned error ${error}`);
+              if (error === null) {
+                this.viewState = "pending";
+
+                /* Start the timeout for 5 seconds to make sure that the pending save is reset even if the backend fails */
+                this._timeout = setTimeout(this.verifySave.bind(this), 5000);
+              }
             }
           }
         }
 
-        /* Resource name and namespace are the same. Update the existing resource. */
+        /* ==== Resource name and namespace are the same. Update the existing resource. */
         else {
+          /* Replace the existing resource in the ResourceCollection, to start receiving updates.  The
+           * existing Resource should be the same as is stored in _savedModel.
+           */
+          collection.replaceResource(newResource);
+          newResource.setPending("save");
 
+          /* Save the changes from the new Resource model */
+          error = newResource.doSave();
+
+          if (error === null) {
+            this.viewState = "pending";
+
+            /* Start the timeout for 5 seconds to make sure that the pending save is reset even if the backend fails */
+            this._timeout = setTimeout(this.verifySave.bind(this), 5000);
+          }
         }
       }
     }
@@ -346,6 +400,14 @@ export class ResourceView extends View {
       }
     }
 
+    /* Report an error if necessary, and revert to list view. These are only errors that are returned
+     * from the edge stack, so the Save is considered a no-op, and the */
+    if (error !== null) {
+      this.viewState = "list";
+      alert(`${resource.kind} ${resource.name} was unable to be saved.  Backend did not respond.`);
+      console.log(`ResourceView.onSave() returned error ${error}`);
+    }
+
     /* May have updated messages or changed to pending state. */
     this.requestUpdate();
   }
@@ -353,22 +415,24 @@ export class ResourceView extends View {
   /* verifySave()
    * This method is called when the timeout finishes, to check whether the resource being saved has in fact
    * been successfully saved and has been updated by the snapshot.  If the model is still pending or the
-   * view is still in the pending state, clear all the flags and return the state to list, basically
+   * view is still in the pending state, clear all the flags and return the state to list, thereby
    * cancelling the operation.
    */
 
   verifySave() {
-    let model  = this.model;
-    let failed = false;
+    let resource = this.model;
+    let failed   = false;
 
-    /* Pending save or add operation? */
-    if (model.isPending("add")) {
-      alert(`${model.kind} ${model.name} was unable to be added.  Backend did not respond.`);
+    /* Pending add operation? */
+    if (resource.isPending("add")) {
+      alert(`${resource.kind} ${resource.name} was unable to be added.  Backend did not respond.`);
       failed = true;
     }
 
-    if (model.isPending("save")) {
-      alert(`${model.kind} ${model.name} was unable to be saved.  Backend did not respond.`);
+    /* Pending save operation? */
+    if (resource.isPending("save")) {
+      this.cancelEdit();
+      alert(`${resource.kind} ${resource.name} was unable to be saved.  Backend did not respond.`);
       failed = true;
     }
 
@@ -379,7 +443,7 @@ export class ResourceView extends View {
     }
 
     if (failed) {
-      model.clearPending();
+      resource.clearPending();
       this.requestUpdate();
     }
   }
@@ -406,7 +470,6 @@ export class ResourceView extends View {
     /* Defocus the button */
     mouseEvent.currentTarget.blur();
   }
-
 
   /* readFromModel()
    * This method is called on the View when the View needs to match the current state of its Model.

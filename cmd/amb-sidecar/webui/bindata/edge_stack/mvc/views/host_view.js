@@ -80,6 +80,7 @@ export class HostView extends IResourceView {
     this.hostnameInput().value = this.hostname;
     this.acmeEmailInput().value = this.acmeEmail;
     this.acmeProviderInput().value = this.acmeProvider;
+    this.tosAgreeCheckbox().value  = this.useAcme;
     this.useAcmeCheckbox().checked = this.useAcme;
   }
 
@@ -118,7 +119,7 @@ export class HostView extends IResourceView {
      * (i) if  not showing the Terms of Service, then assume that they have already agreed, or
      * (ii) if the TOS is shown, then the checkbox needs to be checked.
      */
-    if (this.useAcme && !this.tosAgreeCheckbox().checked) {
+    if (this.useAcme && this.isTOSShowing() && !this.tosAgreeCheckbox().checked) {
       errors.set("tos", "You must agree to terms of service");
     }
 
@@ -134,7 +135,7 @@ export class HostView extends IResourceView {
     let status  = host.status || {"state": "<none>"};
     let state   = status.state;
     let reason  = (state === "Error") ? `(${status.errorReason})` : '';
-    let acme    = (this.useAcme ? "" : "none");
+    let acme    = (this.useAcme ? "": "none");
     let tos     = this.isTOSShowing() ? "attribute-value" : "off";
     let editing = this.viewState === "add" || this.viewState === "edit";
 
@@ -199,7 +200,7 @@ export class HostView extends IResourceView {
             type="checkbox"
             name="tos_agree"
             @change="${this.onTOSAgreeCheckbox.bind(this)}"
-            ?disabled="${!this.useAcme}" />
+            ?disabled="${!this.isTOSShowing()}" />
             <span>I have agreed to to the Terms of Service at: ${this.tos}</span>
         </div>
       </div>
@@ -207,7 +208,7 @@ export class HostView extends IResourceView {
      <div class="row line">
         <div class="row-col margin-right justify-right ${this.visibleWhen("list", "edit", "pending")}">status:</div>
         <div class="row-col">
-          <span class="${this.visibleWhen("list", "edit", "pending")}">${hostState} ${reason}</span>
+          <span class="${this.visibleWhen("list", "edit", "pending")}">${state} ${reason}</span>
         </div>
       </div>
       `
@@ -322,7 +323,7 @@ export class HostView extends IResourceView {
    */
 
   onTOSAgreeCheckbox() {
-    this.tosAgreed = this.tosAgreeCheckbox().checked;
+    /* nothing needed, just check the value when desired. */
   }
 
   /* ================================ Utility Functions ================================ */
@@ -332,7 +333,7 @@ export class HostView extends IResourceView {
    */
 
   isTOSShowing() {
-    return this.viewState === "add" && this.useAcme;
+    return this.useAcme && (this.viewState === "add" || this.viewState === "edit");
   }
 }
 

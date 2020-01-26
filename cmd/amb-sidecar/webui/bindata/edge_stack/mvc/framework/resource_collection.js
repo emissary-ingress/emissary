@@ -60,6 +60,17 @@ export class ResourceCollection extends Model {
   }
 
 
+  /* replaceResource(resource)
+   * replace an existing resource with the given resource.  This sets the key: value pair
+   * based on the Resource's uniqueKey.  This is the same as addResource but ignores the
+   * existence check.
+   */
+
+  replaceResource(resource) {
+    let key = this.uniqueKeyFor(resource.getYAML());
+    this._resources.set(key, resource);
+  }
+
   /* onSnapshotChange(snapshot)
    * When new snapshot data is available, we need to create, delete, or update  models from our collection (set) of
    * models and notify the listeners of any changes.
