@@ -216,7 +216,7 @@ export class SingleHost extends SingleResource {
   <div class="row-col margin-right justify-right"></div>
   <div class="row-col">
     <input type="checkbox" name="tos_agree" ?disabled="${!this.useAcme()}" />
-      <span>I have agreed to to the Terms of Service: ${this.tos}</span>
+      <span>I have agreed to to the Terms of Service at: ${this.tos}</span>
   </div>
 </div>
 

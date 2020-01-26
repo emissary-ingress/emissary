@@ -330,6 +330,7 @@ export class ResourceView extends View {
 
           } else {
             /* Clear the pending add, and allow the ResourceCollection to remove it. */
+            /* User will be notified of the error */
             newResource.clearPending();
           }
         }
@@ -354,13 +355,14 @@ export class ResourceView extends View {
              * immediately in an upcoming snapshot.
              */
             collection.addResource(newResource);
-            newResource.setPending("add");
 
             /* Save the new resource...*/
+            newResource.setPending("add");
             error = newResource.doSave();
 
             if (error === null) {
               /* ...and delete the old. */
+              oldResource.setPending("delete");
               error = oldResource.doDelete();
 
               if (error === null) {
@@ -401,7 +403,8 @@ export class ResourceView extends View {
     }
 
     /* Report an error if necessary, and revert to list view. These are only errors that are returned
-     * from the edge stack, so the Save is considered a no-op, and the */
+     * from the edge stack, so the Save is considered a no-op.
+     */
     if (error !== null) {
       this.viewState = "list";
       alert(`${resource.kind} ${resource.name} was unable to be saved.  Backend did not respond.`);
@@ -420,32 +423,46 @@ export class ResourceView extends View {
    */
 
   verifySave() {
-    let resource = this.model;
-    let failed   = false;
+    let newResource = this.model;
+    let oldResource = this._savedModel;
+    let collection  = this.parentElement.model;
 
-    /* Pending add operation? */
-    if (resource.isPending("add")) {
-      alert(`${resource.kind} ${resource.name} was unable to be added.  Backend did not respond.`);
-      failed = true;
+    /* Pending add operation? New Resource being added to the system. */
+    if (newResource.isPending("add")) {
+      alert(`${newResource.kind} ${newResource.name} was unable to be added.  Backend did not respond.`);
+      newResource.clearPending();
     }
 
-    /* Pending save operation? */
-    if (resource.isPending("save")) {
+    /* Pending save operation? Resource's properties have been changed but not name+namespace.  The
+     * newResource is awaiting an update from the snapshot  */
+    if (newResource.isPending("save")) {
+      /* Swap back the listeners and models. */
       this.cancelEdit();
-      alert(`${resource.kind} ${resource.name} was unable to be saved.  Backend did not respond.`);
-      failed = true;
+      newResource.clearPending();
+      alert(`${newResource.kind} ${newResource.name} was unable to be saved.  Backend did not respond.`);
     }
 
-    /* Currently showing a "pending" view? */
+    /* Pending replace operation?  Resource's name or namespace has been changed, so the oldResource
+     * is deleted as the newResource is added.  Possible error condition is that the newResource is
+     * successfully added but the oldResource is not removed.
+     */
+    if (oldResource != null) {
+      if (oldResource.isPending("delete")) {
+        /* Remove the resource from the collection; it will be recreated later from the snapshot */
+        collection.removeResource(oldResource);
+        oldResource.clearPending();
+
+        /* Notify the user of the issue. */
+        alert(`${oldResource.kind} ${oldResource.name} was unable to be replaced.  Backend did not respond.`);
+      }
+    }
+
+    /* Currently showing a "pending" view? If so, restore to list. */
     if (this.viewState === "pending") {
       this.viewState = "list";
-      failed = true;
     }
 
-    if (failed) {
-      resource.clearPending();
-      this.requestUpdate();
-    }
+    this.requestUpdate();
   }
 
   /* onSource()

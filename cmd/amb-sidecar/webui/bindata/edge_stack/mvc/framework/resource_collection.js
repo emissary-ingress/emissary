@@ -60,6 +60,15 @@ export class ResourceCollection extends Model {
   }
 
 
+  /* removeResource(resource)
+   * Remove an existing resource from the ResourceCollection.
+   */
+
+  removeResource(resource) {
+    let key = this.uniqueKeyFor(resource.getYAML());
+    this._resources.delete(key);
+  }
+
   /* replaceResource(resource)
    * replace an existing resource with the given resource.  This sets the key: value pair
    * based on the Resource's uniqueKey.  This is the same as addResource but ignores the

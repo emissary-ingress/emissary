@@ -201,7 +201,7 @@ export class HostView extends IResourceView {
             name="tos_agree"
             @change="${this.onTOSAgreeCheckbox.bind(this)}"
             ?disabled="${!this.isTOSShowing()}" />
-            <span>I have agreed to to the Terms of Service at: ${this.tos}</span>
+            <span>I have agreed to to the Terms of Service: ${this.tos}</span>
         </div>
       </div>
       
