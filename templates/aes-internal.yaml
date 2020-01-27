@@ -1,4 +1,4 @@
-{{ if contains "datawire/aes" .Values.image.repository }}
+{{ if .Values.enableAES }}
 ---
 # Configure DevPortal
 apiVersion: getambassador.io/v2

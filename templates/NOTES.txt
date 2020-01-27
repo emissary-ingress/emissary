@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
-{{- if contains "datawire/aes" .Values.image.repository }}
+{{- if .Values.enableAES }}
 Congratulations! You have successfully installed The Ambassador Edge Stack!
 
 {{- else }}
@@ -31,7 +31,7 @@ NOTE: It may take a few minutes for the LoadBalancer IP to be available.
   kubectl port-forward $POD_NAME 8080:80
 {{- end }}
 -------------------------------------------------------------------------------
-{{- if contains "datawire/aes" .Values.image.repository }}
+{{- if .Values.enableAES }}
   {{- if empty .Values.licenseKey.value }}
 
 NOTE: You are currently running The Ambassador Edge Stack in EVALUATION MODE. 
