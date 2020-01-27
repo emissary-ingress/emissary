@@ -40,6 +40,11 @@ type Config struct {
 	RedisSocketType string `env:"REDIS_SOCKET_TYPE ,parser=nonempty-string       ,default=tcp  "`
 	RedisURL        string `env:"REDIS_URL         ,parser=possibly-empty-string               "` // if empty, disables AES features
 
+	// License
+	// NOTE: these must match the values in the watch_hook.py
+	LicenseSecretName      string `env:"AMBASSADOR_AES_SECRET_NAME       ,parser=nonempty-string ,default=ambassador-edge-stack  "`
+	LicenseSecretNamespace string `env:"AMBASSADOR_AES_SECRET_NAMESPACE  ,parser=nonempty-string ,defaultFrom=AmbassadorNamespace"`
+
 	// Rate Limit
 	RLSRuntimeDir              string `env:"DEV_RLS_RUNTIME_DIR           ,parser=nonempty-string       ,default=/tmp/amb/config "` // e.g.: "/tmp/amb-sidecar.XYZ/rls-snapshot"; same as the RUNTIME_ROOT for Lyft ratelimit.  Must point to a _symlink_ to a directory, not a real directory.  The symlink need not already exist at launch.  Unlike Lyft ratelimit, the parent doesn't need to exist at launch either.
 	RLSRuntimeSubdir           string `env:",const=true                   ,parser=nonempty-string       ,default=config          "` // directory inside of RLSRuntimeDir; same as the RUNTIME_SUBDIRECTORY for Lyft ratelimit
