@@ -575,20 +575,20 @@ export class ResourceView extends View {
               <div class="row line">
                 <label class="row-col margin-right justify-right">name:</label>
                 <div class="row-col">
-                  <b class="${this.visibleWhen("list", "pending")}">${this.name}</b>
+                  <b class="${this.visibleWhen("list", "edit", "pending")}">${this.name}</b>
                   
-                  <input class="${this.visibleWhen("add", "edit")}" name="name" type="text" value="${this.name}"/>
+                  <input class="${this.visibleWhen("add")}" name="name" type="text" value="${this.name}"/>
                 </div>
               </div>
               
               <div class="row line">
                 <label class="row-col margin-right justify-right">namespace:</label>
                 <div class="row-col">
-                  <div class="namespace${this.visibleWhen("list", "pending")}">(${this.namespace})</div>
+                  <div class="namespace${this.visibleWhen("list", "edit", "pending")}">(${this.namespace})</div>
                   
                   <div class="namespace-input ${this.visibleWhen("add", "edit")}">
                     <div class="pararen">(</div>
-                    <input class="${this.visibleWhen("add", "edit")}" name="namespace" type="text" value="${this.namespace}"/>
+                    <input class="${this.visibleWhen("add")}" name="namespace" type="text" value="${this.namespace}"/>
                     <div class="pararen">)</div>
                   </div>
                 </div>
