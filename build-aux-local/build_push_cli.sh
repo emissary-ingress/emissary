@@ -77,7 +77,7 @@ case "$cmd" in
         ;;
     push-private)
         # Push this OS/arch binary
-        aws s3 cp --acl private \
+        aws s3 cp \
             "${EXE_PATH}" \
             "s3://datawire-static-files/${cli_name}/${RELEASE_VERSION}/$(go env GOOS)/$(go env GOARCH)/${EXE_NAME}"
         ;;
