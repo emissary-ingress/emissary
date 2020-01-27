@@ -66,6 +66,21 @@ spec:
               secretKeyRef:
                 name: hubspot-api-key
                 key: hubspotKey
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: aws
+                key: access-key-id
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: aws
+                key: secret-access-key
+          - name: AWS_HOSTED_ZONE_ID
+            valueFrom:
+              secretKeyRef:
+                name: aws
+                key: hosted-zone-id
         livenessProbe:
           httpGet:
             path: /signup/sys/healthz
@@ -77,11 +92,4 @@ spec:
             port: 8080
           periodSeconds: 60
 ---
-apiVersion: v1
-kind: Secret
-metadata:
-  name: hubspot-api-key
-  namespace: metriton
-type: Opaque
-data:
-  hubspotKey: MGMxZTkyZDAtODA0NS00YWE2LWE2ZGQtZDk1ZjQ3NWQ4ZDAw
+# Secrets `hubspot-api-key` and `aws` are stored in keybase
