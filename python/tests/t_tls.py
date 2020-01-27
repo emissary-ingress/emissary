@@ -1,3 +1,5 @@
+from typing import List
+
 import pytest
 
 from kat.harness import Query, EDGE_STACK
