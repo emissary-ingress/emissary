@@ -107,6 +107,7 @@ env:
 - name: AMBASSADOR_SINGLE_NAMESPACE
   value: "YES"
 - name: AMBASSADOR_CERTS_SINGLE_NAMESPACE
+  value: "YES"
 - name: AMBASSADOR_NAMESPACE
   valueFrom:
     fieldRef:
