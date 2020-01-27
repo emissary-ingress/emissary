@@ -218,8 +218,8 @@ commands:
       - checkout
       - run: ./get-amb-repo.sh
       - run: ln -s project/ambassador ../ambassador
-      - run: ./ambassador/builder/module_version.sh apro
-      - run: ./ambassador/builder/build_push_cli.sh build
+      - run: ./build-aux-local/module_version.sh apro
+      - run: ./build-aux-local/build_push_cli.sh build
       - run: ~/bin/edgectl version || true
       - run:
           name: "Release"
@@ -229,7 +229,7 @@ commands:
             if [[ "$CIRCLE_TAG" =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+-.*$ ]]; then
                 export AWS_ACCESS_KEY_ID=$DEPLOY_KEY_ID
                 export AWS_SECRET_ACCESS_KEY=$DEPLOY_KEY
-                ./ambassador/builder/build_push_cli.sh push
+                ./build-aux-local/build_push_cli.sh push
             fi
 
 jobs:
