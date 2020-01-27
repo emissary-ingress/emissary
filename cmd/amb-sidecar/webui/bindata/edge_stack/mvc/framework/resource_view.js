@@ -235,6 +235,9 @@ export class ResourceView extends View {
       alert(`${resource.kind} ${resource.name} was unable to be deleted.  Backend did not respond.`);
       this.requestUpdate();
     }
+
+    /* Timeout was handled so clear our timeout state. */
+    this._timeout = null;
   }
 
 
@@ -271,9 +274,17 @@ export class ResourceView extends View {
    */
 
   onModelNotification(model, message, parameter) {
-    let resource = model;
-    console.log(`${model.kind} ${model.name} notifying ${message}`);
+    /* Let View handle the update/delete model */
     super.onModelNotification(model, message, parameter);
+
+    /* Is the view waiting on a timeout? */
+    if (this._timeout != null) {
+      /* If the view receives an updated or deleted message, it can clear the timeout. */
+      if (message === "updated" || message === "deleted") {
+        clearTimeout(this._timeout);
+        this._timeout = null;
+      }
+    }
   }
 
   /* onSave()
@@ -338,12 +349,12 @@ export class ResourceView extends View {
 
       /* ======== Editing an existing resource ======== */
 
-      if (this.viewState === "edit") {
+      else if (this.viewState === "edit") {
         let newResource = this.model;
         let oldResource = this._savedModel;
         let collection  = this.parentElement.model;
 
-        /* === User has changed the resource name, namespace, or both. */
+        /* ==== User has changed the resource name, namespace, or both. ==== */
         if (newResource.name !== oldResource.name || newResource.namespace !== oldResource.namespace) {
 
           /* Confirm that there isn't an existing Resource in the system with the new name and namespace */
@@ -375,7 +386,7 @@ export class ResourceView extends View {
           }
         }
 
-        /* ==== Resource name and namespace are the same. Update the existing resource. */
+        /* ==== Resource name and namespace are the same. Update the existing resource. ==== */
         else {
           /* Replace the existing resource in the ResourceCollection, to start receiving updates.  The
            * existing Resource should be the same as is stored in _savedModel.
@@ -432,10 +443,9 @@ export class ResourceView extends View {
       alert(`${newResource.kind} ${newResource.name} was unable to be added.  Backend did not respond.`);
       newResource.clearPending();
     }
-
     /* Pending save operation? Resource's properties have been changed but not name+namespace.  The
      * newResource is awaiting an update from the snapshot  */
-    if (newResource.isPending("save")) {
+    else if (newResource.isPending("save")) {
       /* Swap back the listeners and models. */
       this.cancelEdit();
       newResource.clearPending();
@@ -462,7 +472,8 @@ export class ResourceView extends View {
       this.viewState = "list";
     }
 
-    this.requestUpdate();
+    /* Timeout was handled so clear our timeout state. */
+    this._timeout = null;
   }
 
   /* onSource()

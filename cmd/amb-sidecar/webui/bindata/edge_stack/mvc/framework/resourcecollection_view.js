@@ -210,6 +210,9 @@ export class ResourceCollectionView extends LitElement {
 
   render() {
     if (enableMVC()) {
+      /* Set debug to true to draw a green border around the ResourceCollectionView */
+      let debug = false;
+
       let logoPair  = this.pageLogo();
       let logoText  = logoPair[0];
       let logoPath  = "../images/svgs/" + logoPair[1];
@@ -217,7 +220,7 @@ export class ResourceCollectionView extends LitElement {
       let description  = this.pageDescription();
 
       return html`
-        <div style="border:thick solid green">
+        <div style=${debug ? "border:thick solid green" : ""}>
             <link rel="stylesheet" href="../styles/resources.css">
             <div class="header_con">
                 <div class="col">
