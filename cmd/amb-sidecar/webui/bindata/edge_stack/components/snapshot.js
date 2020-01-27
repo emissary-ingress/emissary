@@ -159,9 +159,7 @@ export class Snapshot extends LitElement {
     this.loading = true;
     this.loadingError = null;
     this.auth = localStorage.getItem("authenticated");
-  //  console.log(this.loggedIn);
-    console.log(localStorage.getItem("authenticated"));
-    console.log(this.auth);
+    console.log("Authenticated status is " + this.auth);
 
     if (getCookie("edge_stack_auth")) {
       this.fragment = "should-try";

@@ -1318,7 +1318,8 @@ export class LoginGate extends LitElement {
       this.authenticated = auth;
       this.loading = false;
       localStorage.setItem("authenticated", auth);
-      console.log(auth);
+
+      console.log("Authenticated status is " + this.authenticated);
     }
   }
 
