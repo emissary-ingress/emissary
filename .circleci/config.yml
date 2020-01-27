@@ -218,9 +218,11 @@ commands:
       - checkout
       - run: ./get-amb-repo.sh
       - run: ln -s project/ambassador ../ambassador
-      - run: ./ambassador/builder/module_version.sh apro
-      - run: ./ambassador/builder/build_push_cli.sh build
+      - run: ./build-aux-local/module_version.sh apro
+      - run: ./build-aux-local/build_push_cli.sh build edgectl
+      - run: ./build-aux-local/build_push_cli.sh build apictl-key
       - run: ~/bin/edgectl version || true
+      - run: ~/bin/apictl-key version || true
       - run:
           name: "Release"
           # This only runs for pre-release tags; for GA tags the
@@ -229,7 +231,8 @@ commands:
             if [[ "$CIRCLE_TAG" =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+-.*$ ]]; then
                 export AWS_ACCESS_KEY_ID=$DEPLOY_KEY_ID
                 export AWS_SECRET_ACCESS_KEY=$DEPLOY_KEY
-                ./ambassador/builder/build_push_cli.sh push
+                ./build-aux-local/build_push_cli.sh push edgectl
+                ./build-aux-local/build_push_cli.sh push-private apictl-key
             fi
 
 jobs:
