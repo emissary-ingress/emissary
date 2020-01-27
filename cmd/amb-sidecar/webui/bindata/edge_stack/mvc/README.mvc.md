@@ -547,10 +547,7 @@ existing `Resource` (`Previous`) and its attributes, including its `resourceVers
 Note that `Previous` (saved in the `ResourceView`'s `_savedModel` instance variable) is still a member of the
 `ResourceCollectionView`'s `ResourceCollection`, and continues to receive updates from the snapshot.
 
-When the user is finished and clicks on the `Save` button, the `New` attributes are checked against `Previous`. There
-are two cases.
-
-**Case 1:** `New` and `Previous` both have the same `name` and `namespace`.  Then:
+When the user is done and clicks `Save`:
 - `New`'s `_pending` flag is set to `save`, and replaces `Previous` in the `ResourceCollection`, to receive updates.
 - The `ResourceView` `viewState` set to `pending`.
 - `New` performs `doSave`, requesting the edge stack to update the `Resource`.
@@ -573,32 +570,6 @@ updated.  Then:
 - `Previous` replaces `New` in the `ResourceCollection`;
 - the `ResourceView` then assigns `Previous` back to its `model` instance variable;
 - the `ResourceView`'s `pending` `viewState` is set back to `list`;
-- then, the `ResourceView` begins listening to `Previous` again for notifications.
-
-**Case 2:** `New` and `Previous` differ in either `name`, `namespace`, or both.  Then:
-- `New`'s `name` and `namespace` are confirmed to be unique in the `ResourceCollection`.  If not, an error is returned.
-- `New`'s `_pending` flag set to `add`, and `New` is added to the`ResourceCollection`, to receive updates.
-- the `ResourceView` `viewState` is set to `pending`.
-- `New` performs `doSave`, requesting the edge stack to create the new `Resource` based on `New`'s specification.
-- a timer is set for 5 seconds, to check if the edit has succeeded. If the edit operation has succeeded,
-the timer is ignored.  However, if the edit has not succeeded, the timeout is used for restoring the system to
-its previous, un-edited state.
-
-At this point the system is awaiting one of two outcomes: the `Resource` has been successfully added to the
-system, or a timeout.
-
-The successful outcome: the `ResourceView` receives a notification from `New` that it has been updated (i.e. that the
-`Resource` has been successfully added to the system).  Then:
-- `Previous` is deleted from the system by calling its `doDelete` method.
-- `_savedModel` is set to `null` (thus removing the reference to `Previous`);
-- `ResourceView`'s `pending` `viewState` is set back to `list`. 
-
-The timout fires: this means that the `ResourceView` has not been notified within 5 seconds that `New` has been
-successfully added to the system.  Then:
-- the `ResourceView` stops listening to `New`'s notifications;
-- `New`'s `_pending` state is cleared, which will cause it to be automatically removed from the `ResourceCollection`
-since it is not represented in the snapshot;
-- the `ResourceView` assigns `Previous` back to its `model` instance variable;
 - then, the `ResourceView` begins listening to `Previous` again for notifications.
 
 # Examples

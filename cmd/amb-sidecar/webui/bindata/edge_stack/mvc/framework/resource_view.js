@@ -352,57 +352,22 @@ export class ResourceView extends View {
       else if (this.viewState === "edit") {
         let newResource = this.model;
         let oldResource = this._savedModel;
-        let collection  = this.parentElement.model;
+        let collection = this.parentElement.model;
 
-        /* ==== User has changed the resource name, namespace, or both. ==== */
-        if (newResource.name !== oldResource.name || newResource.namespace !== oldResource.namespace) {
+        /* Replace the existing resource in the ResourceCollection, to start receiving updates.  The
+         * existing Resource should be the same as is stored in _savedModel.
+         */
+        collection.replaceResource(newResource);
+        newResource.setPending("save");
 
-          /* Confirm that there isn't an existing Resource in the system with the new name and namespace */
-          if (collection.hasResource(newResource)) {
-            this.addMessage(`Resource named ${newResource.name} in ${newResource.namespace} already exists.`);
-          } else {
-            /* Add the Resource to the ResourceCollection, since it is new (no longer the same Resource),
-             * and set its pending flag to "add" so that the ResourceCollection won't delete it if it isn't
-             * immediately in an upcoming snapshot.
-             */
-            collection.addResource(newResource);
+        /* Save the changes from the new Resource model */
+        error = newResource.doSave();
 
-            /* Save the new resource...*/
-            newResource.setPending("add");
-            error = newResource.doSave();
+        if (error === null) {
+          this.viewState = "pending";
 
-            if (error === null) {
-              /* ...and delete the old. */
-              oldResource.setPending("delete");
-              error = oldResource.doDelete();
-
-              if (error === null) {
-                this.viewState = "pending";
-
-                /* Start the timeout for 5 seconds to make sure that the pending save is reset even if the backend fails */
-                this._timeout = setTimeout(this.verifySave.bind(this), 5000);
-              }
-            }
-          }
-        }
-
-        /* ==== Resource name and namespace are the same. Update the existing resource. ==== */
-        else {
-          /* Replace the existing resource in the ResourceCollection, to start receiving updates.  The
-           * existing Resource should be the same as is stored in _savedModel.
-           */
-          collection.replaceResource(newResource);
-          newResource.setPending("save");
-
-          /* Save the changes from the new Resource model */
-          error = newResource.doSave();
-
-          if (error === null) {
-            this.viewState = "pending";
-
-            /* Start the timeout for 5 seconds to make sure that the pending save is reset even if the backend fails */
-            this._timeout = setTimeout(this.verifySave.bind(this), 5000);
-          }
+          /* Start the timeout for 5 seconds to make sure that the pending save is reset even if the backend fails */
+          this._timeout = setTimeout(this.verifySave.bind(this), 5000);
         }
       }
     }
@@ -443,28 +408,13 @@ export class ResourceView extends View {
       alert(`${newResource.kind} ${newResource.name} was unable to be added.  Backend did not respond.`);
       newResource.clearPending();
     }
-    /* Pending save operation? Resource's properties have been changed but not name+namespace.  The
+    /* Pending save operation? Resource's properties have been changed (but not name+namespace).  The
      * newResource is awaiting an update from the snapshot  */
     else if (newResource.isPending("save")) {
       /* Swap back the listeners and models. */
       this.cancelEdit();
       newResource.clearPending();
       alert(`${newResource.kind} ${newResource.name} was unable to be saved.  Backend did not respond.`);
-    }
-
-    /* Pending replace operation?  Resource's name or namespace has been changed, so the oldResource
-     * is deleted as the newResource is added.  Possible error condition is that the newResource is
-     * successfully added but the oldResource is not removed.
-     */
-    if (oldResource != null) {
-      if (oldResource.isPending("delete")) {
-        /* Remove the resource from the collection; it will be recreated later from the snapshot */
-        collection.removeResource(oldResource);
-        oldResource.clearPending();
-
-        /* Notify the user of the issue. */
-        alert(`${oldResource.kind} ${oldResource.name} was unable to be replaced.  Backend did not respond.`);
-      }
     }
 
     /* Currently showing a "pending" view? If so, restore to list. */
@@ -586,7 +536,7 @@ export class ResourceView extends View {
                 <div class="row-col">
                   <div class="namespace${this.visibleWhen("list", "edit", "pending")}">(${this.namespace})</div>
                   
-                  <div class="namespace-input ${this.visibleWhen("add", "edit")}">
+                  <div class="namespace-input ${this.visibleWhen("add")}">
                     <div class="pararen">(</div>
                     <input class="${this.visibleWhen("add")}" name="namespace" type="text" value="${this.namespace}"/>
                     <div class="pararen">)</div>
