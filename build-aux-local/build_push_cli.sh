@@ -76,7 +76,8 @@ case "$cmd" in
             "s3://datawire-static-files/${cli_name}/${RELEASE_VERSION}/$(go env GOOS)/$(go env GOARCH)/${EXE_NAME}"
         ;;
     push-private)
-        # Push this OS/arch binary
+        # Push this OS/arch binary, but don't override the ACL: the defaults for our S3 bucket are 
+        # private access only.
         aws s3 cp \
             "${EXE_PATH}" \
             "s3://datawire-static-files/${cli_name}/${RELEASE_VERSION}/$(go env GOOS)/$(go env GOARCH)/${EXE_NAME}"

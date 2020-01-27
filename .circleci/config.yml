@@ -222,6 +222,7 @@ commands:
       - run: ./build-aux-local/build_push_cli.sh build edgectl
       - run: ./build-aux-local/build_push_cli.sh build apictl-key
       - run: ~/bin/edgectl version || true
+      - run: ~/bin/apictl-key version || true
       - run:
           name: "Release"
           # This only runs for pre-release tags; for GA tags the
