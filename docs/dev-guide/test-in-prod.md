@@ -18,7 +18,7 @@ This allows verification that the application is not crashing or otherwise behav
 
 This approach shifts a small amount of real user traffic from production to your application under test.
 
-The user will see the direct response from the canary version of an application from any traffic that is shifted to the canary release, and they will not trigger or see the response from the current production released version of the application. The canary results can also be verified (both the downstream response and associated upstream side effects), but it is key to understand that any side effects will be persisted.
+The user will see the direct response from the canary version of the application from any traffic that is shifted to the canary release, and they will not trigger or see the response from the current production released version of the application. The canary results can also be verified (both the downstream response and associated upstream side effects), but it is key to understand that any side effects will be persisted.
 
 In addition to allowing verification that the application is not crashing or otherwise behaving badly from an operational perspective when dealing with real user traffic and behavior, canary releasing allows user validation. For example, if a business KPI performs worse for all canaried requests, then this most likely indicates that the canaried application should not be fully released in its current form.
 
