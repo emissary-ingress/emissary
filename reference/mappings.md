@@ -47,7 +47,7 @@ Ambassador Edge Stack supports a number of attributes to configure and customize
 | `retry_policy` | Performs automatic retries upon request failures. | dictionary |
 | `timeout_ms` | The timeout, in milliseconds, for requests through this Mapping. Defaults to 3000. | integer |
 | `tls` | If true, tells the system that it should use HTTPS to contact this service. (It's also possible to use TLS to specify a certificate to present to the service.) | boolean |
-| `use_websocket` | If true, tells Ambassador Edge Stack that this service will use web sockets. | boolean |
+| `use_websocket` | If true, tells Ambassador Edge Stack that this service will use WebSockets. | boolean |
 
 If both `enable_ipv4` and `enable_ipv6` are set, Ambassador Edge Stack will prefer IPv6 to IPv4. See the `ambassador`[Module](../modules) documentation for more information.
 
