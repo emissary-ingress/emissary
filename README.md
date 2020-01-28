@@ -39,6 +39,25 @@ It is recommended to use the ambassador namespace for easy upgrades.
 
 The [configuration](#configuration) section lists the parameters that can be configured during installation.
 
+### Ambassador Edge Stack Installation
+
+This chart defaults to installing The Ambassador Edge Stack with all of its configuration objects.
+
+- A Redis instance
+- `AuthService` resource for enabling authentication
+- `RateLimitService` resource for enabling rate limiting
+- `Mapping`s for internal request routing
+
+If installing alongside another deployment of Ambassador, some of these resources can cause configuration errors since only one `AuthService` or `RateLimitService` can be configured at a time. 
+
+If you already have one of these resources configured in your cluster, please see the [configuration](#configuration) section below for information on how to disable them in the chart.
+
+### Ambassador OSS Installation
+
+This chart can still be used to install Ambassador OSS.
+
+To install OSS, change the `image` to use the OSS image and set `enableAES: false` to skip the install of any AES resources.
+
 ## Uninstalling the Chart
 
 To uninstall/delete the `my-release` deployment:
@@ -109,6 +128,7 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `serviceAccount.name`              | Service account to be used                                                      | `ambassador`                      |
 | `volumeMounts`                     | Volume mounts for the ambassador service                                        | `[]`                              |
 | `volumes`                          | Volumes for the ambassador service                                              | `[]`                              |
+| `enableAES`                        | Create the [AES configuration objects](#ambassador-edge-stack-installation)     | `true`                            |
 | `licenseKey.value`                 | Ambassador Edge Stack license. Empty will install in evaluation mode.           | ``                                |
 | `licenseKey.createSecret`          | Set to `false` if installing mutltiple Ambassdor Edge Stacks in a namespace.    | `true`                            |
 | `redisURL`                         | URL of redis instance not created by the release                                | `""`                              |
@@ -140,12 +160,6 @@ paradigm.
 By default, this chart will install the latest image of The Ambassador Edge 
 Stack which will replace your existing deployment of Ambassador with no changes
 to functionality.
-
-See the installation notes for instructions on how to enable the advanced 
-features of The Ambassador Edge Stack.
-
-To install the Ambassador API Gateway, simply change the `image` to your
-desired version of the Ambassador API Gateway.
 
 ### CRDs 
 

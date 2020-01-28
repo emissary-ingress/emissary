@@ -2,9 +2,34 @@
 {{- if .Values.enableAES }}
 Congratulations! You have successfully installed The Ambassador Edge Stack!
 
+{{- if empty .Values.licenseKey.value }}
+-------------------------------------------------------------------------------
+NOTE: You are currently running The Ambassador Edge Stack in EVALUATION MODE. 
+  
+Request a free community license key at https://SERVICE_IP/edge_stack_admin/#dashboard 
+to unlock all the features of The Ambassador Edge Stack and update the value of 
+licenseKey.value in your values.yaml file.
+{{- end }}
+
+{{- if or .Values.authService.create .Values.rateLimit.create }}
+-------------------------------------------------------------------------------
+WARNING:
+
+With your installation of the Ambassador Edge Stack, you have created a:
+{{ if .Values.authService.create }}
+- AuthService named {{include "ambassador.fullname" .}}-auth
+{{ end }}
+{{ if .Values.rateLimit.create }}
+- RateLimitService named {{include "ambassador.fullname" .}}-ratelimit
+{{ end }}
+in the {{ .Release.Namespace }} namespace.
+
+Please ensure there is not another of these resources configured in your cluster. 
+If there is, please either remove the old resource or run 
+
+helm upgrade {{ .Release.Name }} -n {{ .Release.Namespace }} --set authService.create=false --set RateLimit.create=false
 {{- else }}
   Congratulations! You've successfully installed Ambassador!
-{{- end }}
 
 For help, visit our Slack at https://d6e.co/slack or view the documentation online at https://www.getambassador.io.
 -------------------------------------------------------------------------------
@@ -30,14 +55,6 @@ NOTE: It may take a few minutes for the LoadBalancer IP to be available.
   echo "Visit http://127.0.0.1:8080 to use your application"
   kubectl port-forward $POD_NAME 8080:80
 {{- end }}
--------------------------------------------------------------------------------
-{{- if .Values.enableAES }}
-  {{- if empty .Values.licenseKey.value }}
-
-NOTE: You are currently running The Ambassador Edge Stack in EVALUATION MODE. 
-  
-Request a free community license key at https://SERVICE_IP/edge_stack_admin/#dashboard 
-to unlock all the features of The Ambassador Edge Stack and update the value of 
-licenseKey.value in your values.yaml file.
-  {{- end }}
 {{- end }}
+
+For help, visit our Slack at https://d6e.co/slack or view the documentation online at https://www.getambassador.io.
