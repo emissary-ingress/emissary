@@ -326,7 +326,7 @@ The Prometheus data model is, at its core, time-series based. Therefore, it make
 
 ## Additional Install Options
 
-### D Exporter: Output Statistics to Ambassador Edge Stack
+### StatsD Exporter: Output Statistics to Ambassador Edge Stack
 
 If running a pre-`0.71.0` version of Ambassador, you will need to configure Envoy to output stats to a separate collector before being scraped by Prometheus. You will use the [Prometheus StatsD Exporter](https://github.com/prometheus/statsd_exporter) to do this.
 
