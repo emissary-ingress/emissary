@@ -328,16 +328,17 @@ export class Debugging extends SortableResourceSet {
         filter: invert(19%) sepia(64%) saturate(4904%) hue-rotate(248deg) brightness(107%) contrast(101%);
       }
       span.sortby {
-        position: right;
+        vertical-align: center;
+        top: 3px;
         bottom: 0;
         right: 0;
       }
       div.sortby {
-        position: right;
+        position: relative;
         margin-top: 10px;
       }
       select.logSelector {
-        height: 30px;
+        height: 25px;
         width: 100px;
         border-radius: 0;
         padding-left: 15px;
