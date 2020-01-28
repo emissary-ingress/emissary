@@ -28,7 +28,7 @@ spec:
     targetPort: 9376
 ```
 
-Because a Kubernetes `service` is the fundamental abstraction by which new services are exposed to other services and end-users, Ambassador Edge Stack extends the `service` with custom mapping. For example:
+Because a Kubernetes `service` is the fundamental abstraction by which new services are exposed to other services and end-users, Ambassador Edge Stack extends the `service` with a custom mapping. For example:
 
 ```yaml
 ---
