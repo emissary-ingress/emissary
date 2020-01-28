@@ -1,6 +1,6 @@
 # Features and Benefits
 
-In cloud-native organizations, developers frequently take on responsibility for the full development lifecycle of a service, from development to QA to operations. Ambassador Edge Stack was especially designed for these organizations where developers have operational responsibility for their service(s).
+In cloud-native organizations, developers frequently take on responsibility for the full development lifecycle of a service, from development to QA to operations. Ambassador Edge Stack was specifically designed for these organizations where developers have operational responsibility for their service(s).
 
 As such, the Ambassador Edge Stack is designed to be used by both developers and operators.
 
