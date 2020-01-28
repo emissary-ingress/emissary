@@ -344,7 +344,7 @@ export class RouteTable extends LitElement {
           <td>
             <code>
               ${r.clusters.map(c => html`
-                <span style="color: ${c._hcolor}">${c.type_label ? html`${type_label}:` : html``}${c.service}</span><br/>
+                <span style="color: ${c._hcolor}">${c.type_label ? html`${c.type_label}:` : html``}${c.service}</span><br/>
               `)}
             </code>
           </td>

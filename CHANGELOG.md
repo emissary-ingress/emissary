@@ -1,5 +1,11 @@
 ## Ambassador Pro CHANGELOG
 
+## 1.0.1 (TBD)
+
+Configuration:
+
+ * Feature: `External` Filter now exactly matches the current OSS `AuthService` definiton.  It has gained `include_body` (deprecating `allow_request_body`), `status_on_error`, and `failure_mode_allow`.
+
 ## 1.0.0 (TBD)
 
 Behavior:

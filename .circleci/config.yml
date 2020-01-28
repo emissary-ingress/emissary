@@ -175,7 +175,17 @@ commands:
 #      message, please don't reenable before Dec 10th
 #                 - run: "make lint"
                  - run: "docker login -u=\"datawire-dev+aes\" -p=\"3M43T8BXB3L46H40R8W3K1JDNMIN6KP8Q5SC1SY2DRJQ7DZFE7LUJ1WE35QG3F0U\" quay.io"
-                 - run: "DEV_REGISTRY=quay.io/datawire-dev DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml make gotest GOTEST_PKGS=github.com/datawire/apro/..."
+                 # For normal commits we run `make gotest`, but if we have a tag, run `make test`
+                 - run: |
+                    test_target=gotest
+                    if [[ "$CIRCLE_TAG" =~ ^v ]]; then
+                      test_target=test
+                    fi
+                    printf 'CIRCLE_TAG=%q test_target=%q\n' "${CIRCLE_TAG:-}" "${test_target}"
+
+                    export DEV_REGISTRY=quay.io/datawire-dev
+                    export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
+                    make "$test_target" GOTEST_PKGS=github.com/datawire/apro/...
                  - run:
                      command: ".circleci/kubernaut-unclaim.sh"
                      when: "always"
@@ -208,9 +218,11 @@ commands:
       - checkout
       - run: ./get-amb-repo.sh
       - run: ln -s project/ambassador ../ambassador
-      - run: ./ambassador/builder/module_version.sh apro
-      - run: ./ambassador/builder/build_push_cli.sh build
+      - run: ./build-aux-local/module_version.sh apro
+      - run: ./build-aux-local/build_push_cli.sh build edgectl
+      - run: ./build-aux-local/build_push_cli.sh build apictl-key
       - run: ~/bin/edgectl version || true
+      - run: ~/bin/apictl-key version || true
       - run:
           name: "Release"
           # This only runs for pre-release tags; for GA tags the
@@ -219,7 +231,8 @@ commands:
             if [[ "$CIRCLE_TAG" =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+-.*$ ]]; then
                 export AWS_ACCESS_KEY_ID=$DEPLOY_KEY_ID
                 export AWS_SECRET_ACCESS_KEY=$DEPLOY_KEY
-                ./ambassador/builder/build_push_cli.sh push
+                ./build-aux-local/build_push_cli.sh push edgectl
+                ./build-aux-local/build_push_cli.sh push-private apictl-key
             fi
 
 jobs:
