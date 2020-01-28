@@ -31,11 +31,11 @@ circuit_breakers:
 
 ### `max_requests`
 
-(Default: `1024`) Specifies the maximum number of parallel outstanding requests to hosts. In practice, this is more applicable to HTTP/2 than HTTP/1.1.
+(Default: `1024`) Specifies the maximum number of parallel outstanding requests to an upstream service. In practice, this is more applicable to HTTP/2 than HTTP/1.1.
 
 ### `max_retries`
 
-(Default: `3`) Specifies the maximum number of parallel retries allowed to a host.
+(Default: `3`) Specifies the maximum number of parallel retries allowed to an upstream service.
 
 ## Examples
 
