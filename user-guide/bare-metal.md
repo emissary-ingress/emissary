@@ -1,6 +1,6 @@
 # Install with Bare Metal
 
-In cloud environments, provisioning a readily available network load balancer with Ambassador is the best option for handling ingress into your Kubernetes cluster. When running Kubernetes on a bare-metal setup, where network load balancers are not available by default, we need to consider different options for exposing Ambassador. 
+In cloud environments, provisioning a readily available network load balancer with Ambassador is the best option for handling ingress into your Kubernetes cluster. When running Kubernetes on a bare metal setup, where network load balancers are not available by default, we need to consider different options for exposing Ambassador. 
 
 ## Exposing Ambassador via NodePort
 
@@ -28,7 +28,7 @@ Using a `NodePort` leaves Ambassador isolated from the host network, allowing th
 
 ## Exposing Ambassador via Host Network
 
-When running Ambassador on a bare-metal install of Kubernetes, you have the option to configure Ambassador pods to use the network of the host they are running on. This method allows you to bind Ambassador directly to port 80 or 443 so you won't need to identify the port in requests. 
+When running Ambassador on a bare metal install of Kubernetes, you have the option to configure Ambassador pods to use the network of the host they are running on. This method allows you to bind Ambassador directly to port 80 or 443 so you won't need to identify the port in requests. 
 
 i.e `http://<External-Node-IP>:<NodePort>/` becomes `http://<External-Node-IP>/` 
 
@@ -89,4 +89,4 @@ This configuration does not require an Ambassador service be defined so you can 
 
 **Note:** Before configuring Ambassador with this method, consider some of the functionality that is lost by bypassing the Kubernetes service including only having one Ambassador able to bind to port 8080 or 8443 per node and losing any load balancing that is typically performed by Kubernetes services. 
 
-Join our [Slack channel](https://d6e.co/slack) to ask any questions you have regarding running Ambassador on a Bare Metal installation.
+Join our [Slack channel](https://d6e.co/slack) to ask any questions you have regarding running Ambassador on a bare metal installation.
