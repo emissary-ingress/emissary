@@ -15,7 +15,7 @@ kubectl create ns cert-manager
 kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v0.11.1/cert-manager-no-webhook.yaml
 ```
 
-**Note:** The resource validation webhook is not required and requires additional configuration.
+**Note:** The resource validation webhook is not mandatory, but if implemented, requires additional configuration.
 
 ## Issuing Certificates
 
