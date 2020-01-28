@@ -195,8 +195,7 @@ spec:
 
       In addition to the [standard functions available to Go `text/template`s][Go `text/template` functions], there is a `json` function that arg2 as JSON, using the arg1 string as the starting indent level.
 
-**Note**: If you are using a templating system for your YAML that also makes use of Go templating, then you will need to
-escape the template strings meant to be interpreted by the Ambassador Edge Stack.
+**Note**: If you are using a templating system for your YAML that also makes use of Go templating, then you will need to escape the template strings meant to be interpreted by the Ambassador Edge Stack.
 
 [Go `text/template`]: https://golang.org/pkg/text/template/
 [Go `text/template` functions]: https://golang.org/pkg/text/template/#hdr-Functions
