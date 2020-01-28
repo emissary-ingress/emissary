@@ -327,6 +327,15 @@ export class Debugging extends SortableResourceSet {
       .logo {
         filter: invert(19%) sepia(64%) saturate(4904%) hue-rotate(248deg) brightness(107%) contrast(101%);
       }
+      span.sortby {
+        position: right;
+        bottom: 0;
+        right: 0;
+      }
+      div.sortby {
+        position: right;
+        margin-top: 10px;
+      }
       select.logSelector {
         height: 30px;
         width: 100px;
@@ -442,15 +451,13 @@ export class Debugging extends SortableResourceSet {
             <dt>Current log level</dt>
             <dd>${this.diagd.loginfo.all}</dd>
           </dl>
-  
-          <div class="sortby">Set Log Level: 
+          <div class="sortby"><span class="sortby">Set Log Level:</span>
             <select class="logSelector" @change=${this.onChangeSortByAttribute.bind(this)}>
           ${this.sortFields.map(f => {
             return html`<option value="${f.value}">${f.label}</option>`
           })}
             </select>
           </div>
-
           <a class="cta" style="width: auto" @click=${()=>{this.setLogLevel('debug')}}><div class="label">Set log level to <q>debug</q></div></a>
           <a class="cta" style="width: auto" @click=${()=>{this.setLogLevel('info')}}><div class="label">Set log level to <q>info</q></div></a>
         </div>
