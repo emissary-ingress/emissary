@@ -16,12 +16,24 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/health"
+	"github.com/datawire/apro/cmd/apictl-key/dns"
 	"github.com/datawire/apro/lib/licensekeys"
 
 	"github.com/datawire/ambassador/pkg/dlog"
 )
 
 var hubspotKey = os.Getenv("HUBSPOT_API_KEY")
+var hostedZoneId = os.Getenv("AWS_HOSTED_ZONE_ID")
+var dnsRegistrationTLD = getEnv("DNS_REGISTRATION_TLD", ".edgestack.me")
+
+func getEnv(name, fallback string) string {
+	res := os.Getenv(name)
+	if res == "" {
+		res = fallback
+	}
+
+	return res
+}
 
 func encode(value interface{}) []byte {
 	bytes, err := json.Marshal(value)
@@ -93,6 +105,9 @@ func init() {
 	create.RunE = func(cmd *cobra.Command, args []string) error {
 		if hubspotKey == "" {
 			return errors.New("please set the HUBSPOT_API_KEY environment variable")
+		}
+		if hostedZoneId == "" {
+			return errors.New("please set the AWS_HOSTED_ZONE_ID environment variable")
 		}
 
 		// Liveness and Readiness probes
@@ -188,6 +203,9 @@ func init() {
 				panic(err)
 			}
 		})
+
+		dnsClient := dns.NewController(l, hostedZoneId, dnsRegistrationTLD)
+		http.HandleFunc("/register-domain", dnsClient.ServeHTTP)
 
 		http.HandleFunc("/downloads/darwin/edgectl", func(w http.ResponseWriter, r *http.Request) {
 			version := getEdgectlStable()
