@@ -16,7 +16,7 @@ Ambassador Edge Stack enables you to control timeouts in several different ways.
 
 ### Example
 
-The various timeouts are applied on to a Mapping resource and can be combined.
+The various timeouts are applied to a Mapping resource and can be combined.
 
 ```yaml
 ---
