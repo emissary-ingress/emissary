@@ -76,7 +76,11 @@ spec:
         {{- if .Values.enableAES}}
         - name: {{ include "ambassador.fullname" . }}-edge-stack-secrets
           secret:
+            {{- if .Values.licenseKey.secretName }}
+            secretName: {{ .Values.licenseKey.secretName }}
+            {{- else }}
             secretName: {{ include "ambassador.fullname" . }}-edge-stack
+            {{- end }}
         {{- end }}
       {{- with .Values.volumes }}
         {{- toYaml . | nindent 8 }}

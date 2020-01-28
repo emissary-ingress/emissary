@@ -231,6 +231,7 @@ enableAES: true
 licenseKey:
   value:
   createSecret: true
+  secretName:
 
 
 # The Ambassador Edge Stack uses a redis instance for managing authentication, 

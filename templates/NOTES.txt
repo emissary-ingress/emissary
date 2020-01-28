@@ -18,8 +18,7 @@ WARNING:
 With your installation of the Ambassador Edge Stack, you have created a:
 {{ if .Values.authService.create }}
 - AuthService named {{include "ambassador.fullname" .}}-auth
-{{ end }}
-{{ if .Values.rateLimit.create }}
+{{ end }} {{ if .Values.rateLimit.create }}
 - RateLimitService named {{include "ambassador.fullname" .}}-ratelimit
 {{ end }}
 in the {{ .Release.Namespace }} namespace.
@@ -28,10 +27,11 @@ Please ensure there is not another of these resources configured in your cluster
 If there is, please either remove the old resource or run 
 
 helm upgrade {{ .Release.Name }} -n {{ .Release.Namespace }} --set authService.create=false --set RateLimit.create=false
+
+{{- end }}
 {{- else }}
   Congratulations! You've successfully installed Ambassador!
 
-For help, visit our Slack at https://d6e.co/slack or view the documentation online at https://www.getambassador.io.
 -------------------------------------------------------------------------------
 To get the IP address of Ambassador, run the following commands:
 

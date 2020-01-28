@@ -131,6 +131,7 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `enableAES`                        | Create the [AES configuration objects](#ambassador-edge-stack-installation)     | `true`                            |
 | `licenseKey.value`                 | Ambassador Edge Stack license. Empty will install in evaluation mode.           | ``                                |
 | `licenseKey.createSecret`          | Set to `false` if installing mutltiple Ambassdor Edge Stacks in a namespace.    | `true`                            |
+| `licenseKey.secretName`            | Name of the secret to store Ambassador license key in.                          | ``                                |
 | `redisURL`                         | URL of redis instance not created by the release                                | `""`                              |
 | `redis.create`                     | Create a basic redis instance with default configurations                       | `true`                            |
 | `redis.annotations`                | Annotations for the redis service and deployment                                | `""`                              |
