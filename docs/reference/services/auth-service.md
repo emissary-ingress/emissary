@@ -43,7 +43,7 @@ spec:
 
  - `auth_service` (required) is of the format `[scheme://]host[:port]`, and identifies the external auth service to talk to.  The scheme-part may be `http://` or `https://`, which influences the default value of `tls`, and of the port-part.  If no scheme-part is given, it behaves as if `http://` was given.
 
- - `tls` (optional) is whether to use TLS or cleartext when speaking to the external auth service.  The default is based on the scheme-part of the `auth_service`.  If the value of `tls` is not a Boolean, the value is taken to be the name of a defined [`TLSContext`](https://www.getambassador.io/reference/core/tls/#tlscontext), which will determine the certificate presented to the upstream service.
+ - `tls` (optional) is whether to use TLS or cleartext when speaking to the external auth service.  The default is based on the scheme-part of the `auth_service`.  If the value of `tls` is not a Boolean, the value is taken to be the name of a defined [`TLSContext`](/reference/core/tls/#tlscontext), which will determine the certificate presented to the upstream service.
 
  - `proto` (optional) specifies which variant of the [`ext_authz` protocol][] to use when communicating with the external auth service.  Valid options are `http` (default) or `grpc`.
 
@@ -83,7 +83,7 @@ The following fields are only used if `proto: http`; they are ignored if `proto:
     * `Set-cookie`
     * `WWW-Authenticate`
 
- - `add_linkerd_headers` (optional) when true, in the request to the external auth service, adds an `l5d-dst-override` HTTP header that is set to the hostname and port number of the external auth service.  Defaults to the value set in the [`ambassador Module`](../core/ambassador).
+ - `add_linkerd_headers` (optional) when true, in the request to the external auth service, adds an `l5d-dst-override` HTTP header that is set to the hostname and port number of the external auth service.  Defaults to the value set in the [`ambassador Module`](../../core/ambassador).
 
 [`ext_authz` protocol]: /reference/services/ext_authz
 
