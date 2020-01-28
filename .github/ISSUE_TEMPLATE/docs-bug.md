@@ -1,5 +1,5 @@
 ---
-name: Doc Bug Fix
+name: Docs Bug Fix
 about: Template for doc updates and fixes.
 title: 
 labels: 'a:docs', 't:bug'

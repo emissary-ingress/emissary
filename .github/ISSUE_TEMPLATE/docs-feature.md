@@ -1,8 +1,8 @@
 ---
-name: Feature Request Doc
+name: Docs Feature Request
 about: Template for doc requests, updates, and fixes.
 title: 
-labels: 'a:docs', 't:feature:'
+labels: 'a:docs', 't:feature'
 assignees: 'scoyle391'
 
 ---
