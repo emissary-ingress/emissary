@@ -58,7 +58,7 @@ If you're new to the Ambassador Edge Stack and to Kubernetes, we'd recommend you
             targetPort: https
             ```
 
-### When Should I Use `Ingress` Instead of Annotations or CRDs?
+### When Should I Use an `Ingress` Instead of Annotations or CRDs?
 
 As of 0.80.0, Datawire recommends that the Ambassador Edge Stack be configured with CRDs. The `Ingress` resource is available to users who need it for integration with other ecosystem tools, or who feel that it more closely matches their workflows -- however, it is important to  recognize that the `Ingress` resource is rather more limited than the Ambassador Edge Stack `Mapping` is (for example, the `Ingress` spec has no support for rewriting or for TLS origination). **When in doubt, use CRDs.**
 
@@ -71,7 +71,7 @@ resource itself:
 1. Basic routing, including the `route` specification and the default backend
   functionality, is supported.
     - It's particularly easy to use a minimal `Ingress` to the Ambassador Edge Stack diagnostic UI
-2. TLS termination is supported.
+2. [TLS termination](/user-guide/tls-termination) is supported.
     - you can use multiple `Ingress` resources for SNI
 3. Using the `Ingress` resource in concert with the Ambassador Edge Stack CRDs or annotations is supported.
     - this includes the Ambassador Edge Stack annotations on the `Ingress` resource itself

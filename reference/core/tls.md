@@ -1,12 +1,14 @@
 # Transport Layer Security (TLS)
 
-Ambassador Edge Stack's robust TLS support exposes configuration options for different TLS use cases including:
+The Ambassador Edge Stack's robust TLS support exposes configuration options for different TLS use cases including:
 
 - [Client Certificate Validation](../../tls/client-cert-validation)
 - [HTTP -> HTTPS Redirection](../../tls/cleartext-redirection)
 - [Mutual TLS](../../tls/mtls)
 - [Server Name Indication (SNI)](../../../user-guide/sni)
 - [TLS Origination](../../tls/origination)
+
+In addition, users of the Ambassador Edge Stack can take advantage of the [Host CRD](/reference/host-crd) to expose the Ambassador Edge Stack. 
 
 ## TLSContext
 
@@ -136,6 +138,8 @@ spec:
 ## TLS `Module` (*Deprecated*)
 
 The TLS `Module` is deprecated. `TLSContext` should be used when using Ambassador version 0.50.0 and above.
+
+For users of the Ambassador Edge Stack, see the [Host CRD](/reference/host-crd) reference for more information.
 
 ```yaml
 ---
