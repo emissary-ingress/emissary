@@ -89,4 +89,4 @@ This configuration does not require a defined Ambassador service, so you can rem
 
 **Note:** Before configuring Ambassador with this method, consider some of the functionality that is lost by bypassing the Kubernetes service including only having one Ambassador able to bind to port 8080 or 8443 per node and losing any load balancing that is typically performed by Kubernetes services.
 
-Join our [Slack channel](https://d6e.co/slack) to ask any questions you have regarding running Ambassador on a Bare Metal installation.
+Join our [Slack channel](https://d6e.co/slack) to ask any questions you have regarding running Ambassador on a bare metal installation.
