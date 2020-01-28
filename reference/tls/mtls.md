@@ -1,6 +1,6 @@
 # Mutual TLS (mTLS)
 
-Ambassador Edge Stack can be configured to both provide certificates from upstream services, and to validate them. This behavior is called mutual TLS (mTLS) and is a commonly done when using a service mesh to enforce end-to-end TLS for all services in your cluster.
+Ambassador Edge Stack can be configured to both provide certificates from upstream services, and to validate them. This behavior is called mutual TLS (mTLS) and is commonly done when using a service mesh to enforce end-to-end TLS for all services in your cluster.
 
 To configure mTLS between Ambassador Edge Stack and your upstream services, you need to create a `TLSContext` with certificates that are signed by the Certificate Authority (CA) of your upstream service.
 

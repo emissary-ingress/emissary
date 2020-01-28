@@ -2,7 +2,7 @@
 
 Ambassador Edge Stack is designed so that the author of a given Kubernetes service can easily and flexibly configure how traffic gets routed to the service. The core abstraction used to support service authors is a `mapping`, which can apply to HTTP, GRPC, and Websockets at layer 7 via a `Mapping` resource, or to raw TCP connections at layer 4 via a `TCPMapping`.
 
-Ambassador Edge Stack _must_ have one or more mappings defined to provide access to any services at all. The name of the mapping must be unique. 
+Ambassador Edge Stack _must_ have one or more mappings defined to provide access to any services at all. The name of the mapping must be unique.
 
 ## Mapping Configuration
 
@@ -24,7 +24,7 @@ Ambassador Edge Stack supports a number of attributes to configure and customize
 | `add_request_headers` | Specifies a dictionary of other HTTP headers that should be added to each request when talking to the service. | string list |
 | `add_response_headers` | Specifies a dictionary of other HTTP headers that should be added to each response when returning response to client. | string list |
 | `cluster_idle_timeout_ms` | The timeout, in milliseconds, before an idle connection upstream is closed (may be set on a Mapping, AuthService, or in the `ambassador` Module). | integer |
-| `connect_timeout_ms` | The timeout, in milliseconds, for requests coming through the Clusterfor this Mapping. Defaults to 3000. | integer |
+| `connect_timeout_ms` | The timeout, in milliseconds, for requests coming through the Cluster for this Mapping. Defaults to 3000. | integer |
 | `cors` | Enables Cross-Origin Resource Sharing (CORS) setting on a mapping | dictionary |
 | `circuit_breakers` | Configures circuit breaking on a mapping. | dictionary |
 | `enable_ipv4` | If true, enables IPv4 DNS lookups for this mapping's service (the default is set by the ambassadorModule) | boolean |
@@ -46,8 +46,8 @@ Ambassador Edge Stack supports a number of attributes to configure and customize
 | `rewrite` | Replaces the URL prefix with when talking to the service. Defaults to `"/"`, meaning the prefix is stripped. | string |
 | `retry_policy` | Performs automatic retries upon request failures. | dictionary |
 | `timeout_ms` | The timeout, in milliseconds, for requests through this Mapping. Defaults to 3000. | integer |
-| `tls` | If true, tells the system that it should use HTTPS to contact this service. (It's also possible to use tls to specify a certificate to present to the service.) | boolean |
-| `use_websocket` | If true, tells Ambassador Edge Stack that this service will use websockets. | boolean |
+| `tls` | If true, tells the system that it should use HTTPS to contact this service. (It's also possible to use TLS to specify a certificate to present to the service.) | boolean |
+| `use_websocket` | If true, tells Ambassador Edge Stack that this service will use web sockets. | boolean |
 
 If both `enable_ipv4` and `enable_ipv6` are set, Ambassador Edge Stack will prefer IPv6 to IPv4. See the `ambassador`[Module](../modules) documentation for more information.
 
@@ -71,7 +71,7 @@ These attributes are less commonly used, but can be used to override Ambassador 
 
 If no `method` is given, the Mapping will apply to all HTTP `methods`.
 
-## Mapping resources and CRDs
+## Mapping Resources and CRDs
 
 Mapping resources can be defined as annotations on Kubernetes services or as independent custom resource definitions.
 
@@ -148,7 +148,7 @@ https://ambassador.example.com/resource1/baz/zing
 https://ambassador.example.com/resource1/baz/zung
 ```
 
-all share the `/resource1/` path prefix, so can be considered a single resource. On the other hand:
+all share the `/resource1/` path prefix, so it can be considered a single resource. On the other hand:
 
 ```shell
 https://ambassador.example.com/resource1/foo
@@ -209,7 +209,7 @@ Each mapping can also specify, among other things:
 
 ## Mapping Evaluation Order
 
-Ambassador Edge Stack sorts mappings such that those that are more highly constrained are evaluated before those less highly constrained. The prefix length, the request method and the constraint headers are all taken into account.
+Ambassador Edge Stack sorts mappings such that those that are more highly constrained are evaluated before those less highly constrained. The prefix length, the request method, and the constraint headers are all taken into account.
 
 If absolutely necessary, you can manually set a `precedence` on the mapping (see below). In general, you should not need to use this feature unless you're using the `regex_headers` or `host_regex` matching features. If there's any question about how Ambassador Edge Stack is ordering rules, the diagnostic service is a good first place to look: the order in which mappings appear in the diagnostic service is the order in which they are evaluated.
 
@@ -232,7 +232,7 @@ spec:
 
 ### Using `precedence`
 
-Ambassador Edge Stack sorts mappings such that those that are more highly constrained are evaluated before those less highly constrained. The prefix length, the request method and the constraint headers are all taken into account. These mechanisms, however, may not be sufficient to guarantee the correct ordering when regular expressions or highly complex constraints are in play.
+Ambassador Edge Stack sorts mappings such that those that are more highly constrained are evaluated before those less highly constrained. The prefix length, the request method, and the constraint headers are all taken into account. These mechanisms, however, may not be sufficient to guarantee the correct ordering when regular expressions or highly complex constraints are in play.
 
 For those situations, a `Mapping` can explicitly specify the `precedence`. A `Mapping` with no `precedence` is assumed to have a `precedence` of 0; the higher the `precedence` value, the earlier the `Mapping` is attempted.
 
