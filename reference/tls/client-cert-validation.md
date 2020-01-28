@@ -6,13 +6,13 @@ Ambassador Edge Stack can be configured to use a provided CA certificate to vali
 
 To configure client certificate by creating a secret to hold your client's CA certificate and setting `ca_secret` to the value of that secret:
 
-1. Create a secret to hold the client CA certificate
+1. Create a secret to hold the client CA certificate.
 
     ```shell
     kubectl create secret generic client-cacert --from-file=tls.crt=$CACERT_PATH
     ```
 
-2. Configure Ambassador Edge Stack to use this certificate for client certificate validation
+2. Configure Ambassador Edge Stack to use this certificate for client certificate validation.
 
     ```yaml
     ---
