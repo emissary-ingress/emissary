@@ -33,7 +33,7 @@ Guides are hands-on tutorials to walk you through configuring the Ambassador Edg
   <ul>
    <li><a href="../../user-guide/consul">Using Consul for service discovery and mesh</a></li>
    <li><a href="../../user-guide/with-istio">Istio</a></li>
-   <li><a href="../../user-guide/linkerd2">Linkerd2</a></li>
+   <li><a href="../../user-guide/linkerd2">Linkerd 2</a></li>
   </ul>
  </td>
  <td style="vertical-align:top;width:55%;">

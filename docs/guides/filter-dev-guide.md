@@ -6,7 +6,6 @@ Sometimes you may want Ambassador Edge Stack to manipulate an incoming request. 
 * Add custom Authorization headers
 * Validate an incoming request fits an OpenAPI specification before passing the request to a target service
 
-
 Ambassador Edge Stack supports these use cases by allowing you to execute custom logic in `Filters`. Filters are written in Golang, and managed by Ambassador Edge Stack.
 
 ## Prerequisites
@@ -54,7 +53,7 @@ We've created an example filter that you can customize for your particular use c
               httpGet:
    ```
 
-## Rapid development of a custom filter
+## Rapid Development of a Custom Filter
 
 During development, you may want to sidestep the deployment process for a faster development loop. The `aes-plugin-runner` helps you rapidly develop Ambassador Edge Stack filters locally.
 
@@ -65,7 +64,7 @@ To install the runner, download the latest version:
 
 Note that the plugin runner must match the version of Ambassador Edge Stack that you are running. Place the binary somewhere in your `$PATH`.
 
-Information about open source code used in `aes-plugin-runner` can be found by running `aes-plugin-runner --version`.
+Information about open-source code used in `aes-plugin-runner` can be found by running `aes-plugin-runner --version`.
 
 Now, you can quickly test and develop your filter.
 
@@ -93,6 +92,6 @@ Now, you can quickly test and develop your filter.
 
 Note in the example above the `X-Dc` header is added. This lets you inspect the changes the filter is making to your HTTP header.
 
-## Further reading
+## Further Reading
 
 For more details about configuring filters and the `plugin` interface, see the [filter reference](../../../reference/filter-reference).
