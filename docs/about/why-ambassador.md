@@ -10,7 +10,7 @@ Or, read the documentation on using the Ambassador Edge Stack as an [Ingress Con
 
 ## Cloud-native applications today
 
-Traditional cloud applications were built as using a monolithic approach. These applications were designed, coded, and deployed as a single unit. Today's cloud-native applications, by contrast, consist of many individual (micro)services. This results in an architecture that is:
+Traditional cloud applications were built using a monolithic approach. These applications were designed, coded, and deployed as a single unit. Today's cloud-native applications, by contrast, consist of many individual (micro)services. This results in an architecture that is:
 
 * __Heterogeneous__: Services are implemented using multiple (polyglot) languages, they are designed using multiple architecture styles, and they communicate with each other over multiple protocols.
 * __Dynamic__: Services are frequently updated and released (often without coordination), which results in a constantly-changing application.
@@ -44,7 +44,7 @@ Independent teams can create their own workflows for developing and releasing fu
 Ambassador Edge Stack takes full advantage of Kubernetes and Envoy Proxy.
 
 * All of the state required for Ambassador Edge Stack is stored directly in Kubernetes, eliminating the need for an additional database.
-* The Ambassador Edge Stack team has added extensive engineering efforts and integration testing to insure optimal performance and scale of Envoy and Kubernetes.
+* The Ambassador Edge Stack team has added extensive engineering efforts and integration testing to ensure optimal performance and scale of Envoy and Kubernetes.
 
 ## For more information
 
