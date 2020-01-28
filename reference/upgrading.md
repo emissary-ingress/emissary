@@ -13,13 +13,13 @@ If you see something like `--authorization-mode=Node,RBAC` in the output, then R
 If RBAC is enabled:
 
 ```shell
-kubectl apply -f https://www.getambassador.io/early-access/yaml/aes-crds.yaml
+kubectl apply -f https://www.getambassador.io/yaml/aes-crds.yaml
 ```
 
 If RBAC is not enabled:
 
 ```shell
-kubectl apply -f https://www.getambassador.io/early-access/yaml/aes.yaml
+kubectl apply -f https://www.getambassador.io/yaml/aes.yaml
 ```
 
 This will trigger a rolling upgrade of Ambassador Edge Stack.
