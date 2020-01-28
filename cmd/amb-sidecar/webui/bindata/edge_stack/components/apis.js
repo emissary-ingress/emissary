@@ -40,6 +40,7 @@ export class APIs extends LitElement {
     this.reset();
     this.doRefresh = true;             // true to allow auto-refreshing
     this.waitingForHackStyles = false; // true while we have a deferred hackStyles call
+    this.auth = localStorage.getItem('authenticated');
   }
 
   reset() {
@@ -67,10 +68,14 @@ export class APIs extends LitElement {
           this.apis = json;
         })
         .catch((err) => console.log(err));
+        console.log("Authenticated status is " + this.auth);
 
     if (this.doRefresh) {
-      //console.log("will reload APIs in 10 seconds");
-      setTimeout(this.loadFromServer.bind(this), 10000)
+      if (this.auth === true) {
+        //console.log("will reload APIs in 10 seconds");
+        setTimeout(this.loadFromServer.bind(this), 10000);
+        console.log(this.auth);
+      }
     }
   }
 
