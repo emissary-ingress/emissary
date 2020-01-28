@@ -7,3 +7,5 @@ service:
 
 deploymentStrategy:
   type: Recreate
+
+enableAES: false

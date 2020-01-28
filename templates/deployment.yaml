@@ -46,6 +46,9 @@ spec:
       securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.restartPolicy }}
+      restartPolicy: {{ .Values.restartPolicy }}
+      {{- end }}
       serviceAccountName: {{ include "ambassador.serviceAccountName" . }}
       {{- if .Values.priorityClassName }}
       priorityClassName: {{ .Values.priorityClassName | quote }}
@@ -73,10 +76,14 @@ spec:
             - key: ambassadorConfig
               path: ambassador-config.yaml
         {{- end }}
-        {{- if contains "datawire/aes" .Values.image.repository}}
+        {{- if .Values.enableAES}}
         - name: {{ include "ambassador.fullname" . }}-edge-stack-secrets
           secret:
+            {{- if .Values.licenseKey.secretName }}
+            secretName: {{ .Values.licenseKey.secretName }}
+            {{- else }}
             secretName: {{ include "ambassador.fullname" . }}-edge-stack
+            {{- end }}
         {{- end }}
       {{- with .Values.volumes }}
         {{- toYaml . | nindent 8 }}
@@ -124,7 +131,7 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
-            {{- if and (or .Values.redis.create .Values.redisURL) (contains "datawire/aes" .Values.image.repository) }}
+            {{- if and (or .Values.redis.create .Values.redisURL) (.Values.enableAES) }}
             - name: REDIS_URL
               {{- if .Values.redisURL }}
               value: {{ .Values.redisURL }}
@@ -179,7 +186,7 @@ spec:
               mountPath: /ambassador/ambassador-config/ambassador-config.yaml
               subPath: ambassador-config.yaml
           {{- end }}
-          {{- if contains "datawire/aes" .Values.image.repository }}
+          {{- if .Values.enableAES }}
             - name: {{ include "ambassador.fullname" . }}-edge-stack-secrets
               mountPath: /.config/ambassador
               readOnly: true

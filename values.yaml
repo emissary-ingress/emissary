@@ -163,6 +163,8 @@ serviceAccount:
 deploymentStrategy:
   type: RollingUpdate
 
+restartPolicy:
+
 initContainers: []
 
 sidecarContainers: []
@@ -224,11 +226,14 @@ crds:
 # Go to https://{ambassador-host}/edge_stack/admin/#dashboard to register
 # for a community license key.
 
+enableAES: true
+
 # Set createSecret: false is installing multiple releases of The Ambassador
 # Edge Stack in the same namespace.
 licenseKey:
   value:
   createSecret: true
+  secretName:
 
 
 # The Ambassador Edge Stack uses a redis instance for managing authentication, 

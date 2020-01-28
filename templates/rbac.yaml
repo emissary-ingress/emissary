@@ -45,7 +45,7 @@ rules:
     resources: [ "ingresses/status" ]
     verbs: ["update"]
 
-  {{- if (contains "datawire/aes" .Values.image.repository) }}
+  {{- if .Values.enableAES }}
   - apiGroups: [""]
     resources: [ "secrets" ]
     verbs: ["get", "list", "watch", "create", "update"]

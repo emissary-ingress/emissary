@@ -3,6 +3,15 @@
 This file documents all notable changes to Ambassador Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
+## v6.1.0
+
+Minor improvements including:
+
+- Adds: Option to set `restartPolicy`
+- Adds: Option to give the AES license key secret a custom name
+- Fixes: Assumption that the AES will be installed only from the `datawire/aes` repository. The `enableAES` flag now configures whether the AES is installed.
+- Clarification on how to install OSS
+
 ## v6.0.0
 
 Introduces Ambassador Edge Stack being installed by default.
