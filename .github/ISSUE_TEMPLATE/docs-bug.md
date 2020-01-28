@@ -2,7 +2,7 @@
 name: Doc Bug Fix
 about: Template for doc updates and fixes.
 title: 
-labels: 'a:docs', 't:bug
+labels: 'a:docs', 't:bug'
 assignees: 'scoyle391'
 
 ---
