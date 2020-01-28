@@ -18,13 +18,13 @@ This allows verification that the application is not crashing or otherwise behav
 
 This approach shifts a small amount of real user traffic from production to your application under test.
 
-The user will see the direct response from the canary version of application from any traffic that is shifted to the canary release, and they will not trigger or see the response from the current production released version of the application. The canary results can also be verified (both the downstream response and associated upstream side effects), but it is key to understand that any side effects will be persisted.
+The user will see the direct response from the canary version of the application from any traffic that is shifted to the canary release, and they will not trigger or see the response from the current production released version of the application. The canary results can also be verified (both the downstream response and associated upstream side effects), but it is key to understand that any side effects will be persisted.
 
 In addition to allowing verification that the application is not crashing or otherwise behaving badly from an operational perspective when dealing with real user traffic and behaviour, canary releasing allows user validation. For example, if a business KPI performs worse for all canaried requests, then this most likely indicates that the canaried application should not be fully released in its current form.
 
 ## Observability is a prerequisite for testing in production
 
-Observability is a critical requirement for testing in production. In any canary or shadow deployment, collecting key metrics around latency, traffic, errors, and saturation (the [“Four Golden Signals of Monitoring”](https://landing.google.com/sre/sre-book/chapters/monitoring-distributed-systems/#xref_monitoring_golden-signals)) provides valuable insight into the stability and performance of a new version of the service. Moreover, application developers can compare the metrics (e.g., latency) between the production version and update version. If the metrics are similar, then updates can proceed with much greater confidence.
+Observability is a critical requirement for testing in production. In any canary or shadow deployment, collecting key metrics around latency, traffic, errors, and saturation (the [“Four Golden Signals of Monitoring”](https://landing.google.com/sre/sre-book/chapters/monitoring-distributed-systems/#xref_monitoring_golden-signals)) provides valuable insight into the stability and performance of a new version of the service. Moreover, application developers can compare the metrics (e.g., latency) between the production version and updated version. If the metrics are similar, then updates can proceed with much greater confidence.
 
 ## Benefits of testing in production
 
