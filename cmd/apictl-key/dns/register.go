@@ -151,7 +151,7 @@ func (c *dnsclient) doRegister(registration registration) (string, error) {
 	sess, err := session.NewSession()
 	if err != nil {
 		c.l.WithError(err).Error("error creating aws route53 session")
-		return "", nil
+		return "", err
 	}
 	r53 := route53.New(sess)
 
