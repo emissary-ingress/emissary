@@ -110,6 +110,7 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `replicaCount`                     | Number of Ambassador replicas                                                   | `3`                               |
 | `resources`                        | CPU/memory resource requests/limits                                             | `{}`                              |
 | `securityContext`                  | Set security context for pod                                                    | `{ "runAsUser": "8888" }`         |
+| `restartPolicy`                    | Set the `restartPolicy` for pods                                                | ``                                |
 | `initContainers`                   | Containers used to initialize context for pods                                  | `[]`                              |
 | `sidecarContainers`                | Containers that share the pod context                                           | `[]`                              |
 | `livenessProbe.initialDelaySeconds` | Initial delay (s) for Ambassador pod's liveness probe                          | `30`                              |

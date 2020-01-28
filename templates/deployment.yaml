@@ -46,6 +46,9 @@ spec:
       securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.restartPolicy }}
+      restartPolicy: {{ .Values.restartPolicy }}
+      {{- end }}
       serviceAccountName: {{ include "ambassador.serviceAccountName" . }}
       {{- if .Values.priorityClassName }}
       priorityClassName: {{ .Values.priorityClassName | quote }}

@@ -163,6 +163,8 @@ serviceAccount:
 deploymentStrategy:
   type: RollingUpdate
 
+restartPolicy:
+
 initContainers: []
 
 sidecarContainers: []
