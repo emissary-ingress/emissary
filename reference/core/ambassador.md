@@ -174,7 +174,7 @@ When using Linkerd, requests going to an upstream service need to include the `l
 
 ### Upstream Idle Timeout (`cluster_idle_timeout_ms`)
 
-If set, `cluster_idle_timeout_ms` specifies the timeout (in milliseconds) after which an idle connection upstream will close. If no `cluster_idle_timeout_ms` is specified, upstream connections will never be closed due to idling.
+If set, `cluster_idle_timeout_ms` specifies the timeout (in milliseconds) after which an idle connection upstream is closed. If no `cluster_idle_timeout_ms` is specified, upstream connections will never be closed due to idling.
 
 ### gRPC HTTP/1.1 bridge (`enable_grpc_http11_bridge`)
 
