@@ -1,3 +1,5 @@
+** DO NOT READ THIS FILE ANY MORE. See the CHANGELOG.md in ambassador.git instead. **
+
 ## Ambassador Pro CHANGELOG
 
 ## 1.0.1 (TBD)
