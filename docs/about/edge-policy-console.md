@@ -1,12 +1,12 @@
 # Edge Policy Console
 
-The Ambassador Edge Stack provides you with an easy-to-use interface that so you can create custom resource defintiions, download YAML files, and visit the Developer Portal, all in one place.
+The Ambassador Edge Stack provides you with an easy-to-use interface that so you can create custom resource definitions, download YAML files, and visit the Developer Portal, all in one place.
 
 After you [install the Ambassador Edge Stack](../../user-guide/install), you can log in to the Edge Policy Console (EPC) to manage your deployment.
 
 ## Available Pages
 
-The EPC makes it easy to configure what you need for a successful deployment. However, you'll also be able to use the command line to complete any of your configuration.
+The EPC makes it easy to configure what you need for a successful deployment. However, you'll also be able to use the command line to complete any of your configurations.
 
 * [Dashboard](#dashboard)
 * [Hosts](#hosts)
@@ -41,7 +41,7 @@ See [Hosts](../../reference/host-crd) for detailed information.
 
 ### Mappings
 
-Mappings are ssociations between prefix URLs and target services.
+Mappings are associations between prefix URLs and target services.
 
 On this page, you can add new mappings and manage any existing ones. You can sort your mappings by name, namespace, and prefix.
 
