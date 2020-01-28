@@ -262,6 +262,7 @@ redis:
   #   requests:
   #     cpu: 50m
   #     memory: 128Mi
+  nodeSelector: {}
 
 authService:
   create: true
