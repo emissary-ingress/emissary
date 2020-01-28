@@ -1,6 +1,6 @@
-# Environment variables for the Ambassador container
+# Environment Variables for the Ambassador Container
 
-Use the following variables for the environment of your Ambassdor container:
+Use the following variables for the environment of your Ambassador container:
 
 | Purpose                                 | Variable                         | Default value                                     | Value type                                                                    |
 |-----------------------------------------|----------------------------------|---------------------------------------------------|-------------------------------------------------------------------------------|
@@ -35,7 +35,6 @@ Use the following variables for the environment of your Ambassdor container:
 
 * The AuthService and the RateLimitService share a Redis connection pool; there will be up to `REDIS_POOL_SIZE` connections to Redis.
 * If `REDIS_PERSECOND` is true, a second Redis connection pool is created (to a potentially different Redis instance) that is only used for per-second RateLimits.
-
 
 [^1]: This may change in a future release to reflect the Pods's
     namespace if deployed to a namespace other than `default`.
