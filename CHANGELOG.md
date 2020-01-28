@@ -61,8 +61,36 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [1.1.0-rc.0] January 24, 2020
+[1.1.0-rc.0]: https://github.com/datawire/ambassador/compare/v1.0.0...v1.1.0-rc.0
+
+Note that we're now using "-rc.N" rather than just "-rcN", for better compliance with
+[SemVer](https://www.semver.org/).
+
+### Ambassador API Gateway + Ambassador Edge Stack
+
+- Feature: support resources with the same name but in different namespaces ([#2226], [#2198])
+- Feature: support DNS overrides in `edgectl`
+- Bugfix: Reduce log noise about "kubestatus" updates
+- Bugfix: manage the diagnostics snapshot cache more aggressively to reduce memory footprint
+- Bugfix: re-enable Docker demo mode (and improve the test to make sure we don't break it again!) ([#2227])
+- Bugfix: correct potential issue with building edgectl on Windows
+- Internal: fix an error with an undefined Python type in the TLS test (thanks, [Christian Clauss](https://github.com/cclauss)!)
+
+### Ambassador Edge Stack only
+
+- Feature: make the `External` filter type fully compatible with the `AuthService` type
+- Docs: add instructions for what to do after downloading `edgectl`
+- Bugfix: make it much faster to apply the Edge Stack License
+- Bugfix: make sure the ACME terms-of-service link is always shown
+- Bugfix: make the Edge Policy Console more performant
+
+[#2198]: https://github.com/datawire/ambassador/issues/2198
+[#2226]: https://github.com/datawire/ambassador/issues/2226
+[#2227]: https://github.com/datawire/ambassador/issues/2227
+
 ## [1.0.0] January 15, 2020
-[1.0.0]: https://github.com/datawire/ambassador/compare/v0.86.0...v1.0.0
+[1.0.0]: https://github.com/datawire/ambassador/compare/v0.86.1...v1.0.0
 
 ### Caution!
 
@@ -237,7 +265,7 @@ behavior before upgrading your CRDs.
 - The reconfiguration engine is better protected from exceptions
 
 ## [0.86.1] December 10, 2019
-[0.86.1]: https://github.com/datawire/ambassador/compare/v0.84.1...v0.86.0
+[0.86.1]: https://github.com/datawire/ambassador/compare/v0.84.1...v0.86.1
 
 - Envoy updated to 1.12.2 for security fixes
 - Envoy TCP keepalives are now supported (thanks, [Bartek Kowalczyk](https://github.com/KowalczykBartek)!)
