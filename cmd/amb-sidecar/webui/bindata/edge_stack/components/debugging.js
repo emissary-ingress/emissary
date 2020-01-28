@@ -1,9 +1,10 @@
-import { LitElement, html, css } from '../vendor/lit-element.min.js'
+import { html, css } from '../vendor/lit-element.min.js'
+import {SortableResourceSet} from './resources.js';
 import { Snapshot } from './snapshot.js'
 import { getCookie } from './cookies.js';
 import {ApiFetch} from "./api-fetch.js";
 
-export class Debugging extends LitElement {
+export class Debugging extends SortableResourceSet {
   // external ////////////////////////////////////////////////////////
 
   static get properties() {
@@ -16,7 +17,11 @@ export class Debugging extends LitElement {
   }
 
   constructor() {
-    super();
+    super([
+      {value: "debug", label: "DEBUG"},
+      {value: "info", label: "INFO"},
+      {value: "trace", label: "TRACE"},
+    ]);
 
     Snapshot.subscribe(this.onSnapshotChange.bind(this));
   }
@@ -75,7 +80,7 @@ export class Debugging extends LitElement {
         align-self: center
       }
       
-      .col2 a.cta  {
+      .col2 a.cta {
         text-decoration: none;
         border: 2px #efefef solid;
         border-radius: 10px;
@@ -255,7 +260,7 @@ export class Debugging extends LitElement {
         align-self: center
       }
       
-      .col2 a.cta  {
+      .col2 a.cta {
         text-decoration: none;
         border: 2px #efefef solid;
         border-radius: 10px;
@@ -270,7 +275,7 @@ export class Debugging extends LitElement {
         cursor: pointer;
       }
       
-      .header_con .col2 a.cta  {
+      .header_con .col2 a.cta {
         border-color: #c8c8c8;
       }
       
@@ -321,6 +326,27 @@ export class Debugging extends LitElement {
 
       .logo {
         filter: invert(19%) sepia(64%) saturate(4904%) hue-rotate(248deg) brightness(107%) contrast(101%);
+      }
+      select.logSelector {
+        height: 30px;
+        width: 100px;
+        border-radius: 0;
+        padding-left: 15px;
+        margin-left: 5px;
+        border: 2px #efefef solid;
+        border-radius: 10px;
+        font-size: .8rem;
+        font-weight: 600;
+
+        /* Removes the default <select> styling */
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+
+        /* Positions background arrow image */
+        background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAh0lEQVQ4T93TMQrCUAzG8V9x8QziiYSuXdzFC7h4AcELOPQAdXYovZCHEATlgQV5GFTe1ozJlz/kS1IpjKqw3wQBVyy++JI0y1GTe7DCBbMAckeNIQKk/BanALBB+16LtnDELoMcsM/BESDlz2heDR3WePwKSLo5eoxz3z6NNcFD+vu3ij14Aqz/DxGbKB7CAAAAAElFTkSuQmCC');
+        background-repeat: no-repeat;
+        background-position: 75px center;
       }
     `;
   }
@@ -417,6 +443,14 @@ export class Debugging extends LitElement {
             <dd>${this.diagd.loginfo.all}</dd>
           </dl>
   
+          <div class="sortby">Set Log Level: 
+            <select class="logSelector" @change=${this.onChangeSortByAttribute.bind(this)}>
+          ${this.sortFields.map(f => {
+            return html`<option value="${f.value}">${f.label}</option>`
+          })}
+            </select>
+          </div>
+
           <a class="cta" style="width: auto" @click=${()=>{this.setLogLevel('debug')}}><div class="label">Set log level to <q>debug</q></div></a>
           <a class="cta" style="width: auto" @click=${()=>{this.setLogLevel('info')}}><div class="label">Set log level to <q>info</q></div></a>
         </div>
