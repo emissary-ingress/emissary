@@ -37,7 +37,7 @@ Note that the `namespace` must be declared in the `metadata`, but if needed, `am
 
 ## Supported CRDs
 
-You can run `kubectl get ambassador-crds` The full set of CRDs supported by the Ambassador Edge Stack:
+See the following table for the full set of CRDs supported by the Ambassador Edge Stack:
 
 | `Kind` | Kubernetes singular | Kubernetes plural |
 | :----- | :------------------ | :---------------- |
