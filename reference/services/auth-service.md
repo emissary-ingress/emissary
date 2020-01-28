@@ -54,7 +54,7 @@ spec:
  - `include_body` (optional) controls how much to buffer the request body to pass to the external auth service, for use cases such as computing an HMAC or request signature.  If `include_body` is `null` or unset, then the request body is not buffered at all, and an empty body is passed to the external auth service.  If `include_body` is not `null`, both of its sub-fields are required:
     * `max_bytes` (required) controls the amount of body data that will be passed to the external auth service
     * `allow_partial` (required) controls what happens to requests with bodies larger than `max_bytes`:
-       * if `allow_partial` is `true`, the first `max_bytes` of the body is sent to the external auth service.
+       * if `allow_partial` is `true`, the first `max_bytes` of the body are sent to the external auth service.
        * if `false`, the message is rejected with HTTP 413 ("Payload Too Large").
 
  - `status_on_error` (optional) controls the status code returned when unable to communicate with external auth service.  This is ignored if `failure_mode_allow: true`.
