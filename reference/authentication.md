@@ -9,13 +9,13 @@ In the zero trust model, every request to a resource is verified, regardless of 
 
 ## Identity-Aware Proxy
 
-One of the key components of a zero trust architecture is the Identity-Aware Proxy. The Ambassador Edge Stack can be deployed in front of an application or microservices, and authenticate users, check authorization, and enforce other types of security policies. Critically, the Ambassador Edge Stack operates at the application level, which means it can take advantage of domain knowledge of users to improve security. Ambassador interfaces with the Identity Provider (IdP), which is the trusted canonical source for authentication and authorization information.
+One of the key components of a zero-trust architecture is the Identity-Aware Proxy. The Ambassador Edge Stack can be deployed in front of an application or microservices, and authenticate users, check authorization, and enforce other types of security policies. Critically, the Ambassador Edge Stack operates at the application level, which means it can take advantage of domain knowledge of users to improve security. Ambassador interfaces with the Identity Provider (IdP), which is the trusted canonical source for authentication and authorization information.
 
 ![IAP](../../doc-images/pro-iap.png)
 
 ## Integrating with IdPs
 
-The Ambassador integrates with Identity Providers using OpenID Connect and OAuth2. In particular, the Ambassador Edge Stack supports the Authorization Code Flow authentication flow.  On an incoming request, the Ambassador Edge Stack will look up session information based on a cookie called `ambassador_session.NAME.NAMESPACE`, where `NAME` and `NAMESPACE` describe the [`Filter` resource](../../reference/filter-reference#filter-type-oauth2) being used. If the cookie is not present, refers to an expired session, or refers to a not-yet-authorized session, then the Ambassador Edge Stack will set the cookie and redirect the request to an IDP for user authentication.  Upon a successful authentication by the IDP, the Ambassador Edge Stack will mark the session as authorized, and redirect to the originally requested resource.  Depending on the [`accessTokenValidation` Filter setting](../../reference/filter-reference#oauth2-global-arguments) subsequent requests may be validated directly by the Ambassador Edge Stack without requiring an additional query to the IDP, or may be validated by making requests to the IDP.
+The Ambassador integrates with Identity Providers using OpenID Connect and OAuth2. In particular, the Ambassador Edge Stack supports the Authorization Code Flow authentication flow.  On an incoming request, the Ambassador Edge Stack will lookup session information based on a cookie called `ambassador_session.NAME.NAMESPACE`, where `NAME` and `NAMESPACE` describe the [`Filter` resource](../../reference/filter-reference#filter-type-oauth2) being used. If the cookie is not present, refers to an expired session, or refers to a not-yet-authorized session, then the Ambassador Edge Stack will set the cookie and redirect the request to an IdP for user authentication.  Upon a successful authentication by the IdP, the Ambassador Edge Stack will mark the session as authorized, and redirect to the originally requested resource.  Depending on the [`accessTokenValidation` Filter setting](../../reference/filter-reference#oauth2-global-arguments) subsequent requests may be validated directly by the Ambassador Edge Stack without requiring an additional query to the IdP, or can be validated by making requests to the IdP.
 
 ## OAuth 2.0 protocol
 
@@ -33,16 +33,11 @@ The `ambassador_xsrf.NAME.NAMESPACE` cookie is an opaque string that should be u
  1. When generating an HTML form, the server should read the cookie, and include a `<input type="hidden" name="_xsrf" value="COOKIE_VALUE" />` element in the form.
  2. When handling submitted form data should verify that the form value and the cookie value match.  If they do not match, it should refuse to handle the request, and return an HTTP 4XX response.
 
-Applications using request submission formats other than HTML forms
-should perform analogous steps of ensuring that the value is present
-in the request duplicated in the cookie and in either the request body
-or secure header field.  A secure header field is one that is not
-`Cookie`, is not "[simple][simple-header]", and is not explicitly
-allowed by the CORS policy.
+Applications using request submission formats other than HTML forms should perform analogous steps of ensuring that the value is present in the request duplicated in the cookie and also in either the request body or secure header field.  A secure header field is one that is not `Cookie`, is not "[simple][simple-header]", and is not explicitly allowed by the CORS policy.
 
 [simple-header]: https://www.w3.org/TR/cors/#simple-header
 
-**Note**: Prior versions of the Ambassador Edge Stack did not have a
+**Note**: Prior versions of the Ambassador Edge Stack did not have an
 `ambassador_xsrf.NAME.NAMESPACE` cookie, and instead required you to
 use the `ambassador_session.NAME.NAMESPACE` cookie.  The
 `ambassador_session.NAME.NAMESPACE` cookie should no longer be used
@@ -72,7 +67,7 @@ This is done by having your application direct the web browser `POST`
 form-encoded values that you need to include:
 
  1. `realm`: The `name.namespace` of the `Filter` that you want to log
-    out of.  This may be submitted as part of the POST body, or may be set as a URL query parameter.
+    out of.  This may be submitted as part of the POST body, or can be set as a URL query parameter.
  2. `_xsrf`: The value of the `ambassador_xsrf.{{realm}}` cookie
     (where `{{realm}}` is as described above).  This must be set in the POST body, the URL query part will not be checked.
 
@@ -129,4 +124,4 @@ function logout(realm) {
 
 ## Redis
 
-The Ambassador Edge Stack relies on Redis to store short-lived authentication credentials and rate limiting information. If the Redis data store is lost, users will need to log back in and all existing rate limits would be reset.
+The Ambassador Edge Stack relies on Redis to store short-lived authentication credentials and rate limiting information. If the Redis data store is lost, users will need to log back in and all existing rate-limits would be reset.

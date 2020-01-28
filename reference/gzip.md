@@ -1,8 +1,8 @@
 # Gzip Compression
 
-Gzip enables Ambassador Edge Stack to compress upstream data upon client request. Compression is useful in situations where large payloads need to be transmitted without compromising the response time. Compression can also save on bandwidth costs at the expense of increased compute cost.
+Gzip enables Ambassador Edge Stack to compress upstream data upon client request. Compression is useful in situations where large payloads need to be transmitted without compromising the response time. Compression can also save on bandwidth costs at the expense of increased computing costs.
 
-## How does it work?
+## How Does it Work?
 
 When the gzip filter is enabled, request and response headers are inspected to determine whether or not the content should be compressed. If so, and the request and response headers allow, the content is compressed and then sent to the client with the appropriate headers. It also uses the zlib module, which provides `Deflate` compression and decompression code.
 
@@ -16,7 +16,7 @@ For more details see [Envoy - Gzip](https://www.envoyproxy.io/docs/envoy/latest/
 - `compression_strategy`: A value used for selecting the zlib compression strategy which is directly related to the characteristics of the content. Most of the time “DEFAULT” will be the best choice, though there are situations in which changing this parameter might produce better results. For example, run-length encoding (RLE) is typically used when the content is known for having sequences in which the same data occurs many consecutive times. For more information about each strategy, please refer to the zlib manual.
 - `window_bits`: A value from 9 to 15 that represents the base two logarithmic of the compressor’s window size. Larger window results in better compression at the expense of memory usage. The default is 12 which will produce a 4096 bytes window. For more details about this parameter, please refer to zlib manual > deflateInit2.
 - `content_type`: A set of strings that specify which mime-types yield compression; e.g., application/json, text/html, etc. When this field is not defined, compression will be applied to the following mime-types: “application/javascript”, “application/json”, “application/xhtml+xml”, “image/svg+xml”, “text/css”, “text/html”, “text/plain”, “text/xml”.
-- `disable_on_etag_header`: A Boolean, if true, disables compression when the response contains an etag header. When it is false, the filter will preserve weak etags and remove the ones that require strong validation.
+- `disable_on_etag_header`: A Boolean, if true, disables compression when the response contains an `etag` header. When it is false, the filter will preserve weak `etag`s and remove the ones that require strong validation.
 - `remove_accept_encoding_header`: A Boolean, if true, removes accept-encoding from the request headers before dispatching it to the upstream so that responses do not get compressed before reaching the filter.
 
 ## Example

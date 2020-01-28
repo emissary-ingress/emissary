@@ -10,7 +10,7 @@ Ambassador Edge Stack makes it easy to direct this information to a statistics a
 - `envoy.cluster.usersvc_cluster.upstream_rq_2xx` is the total number of requests to which `usersvc` responded with an HTTP response indicating success. This value divided by the prior one, taken on an rolling window basis, represents the recent success rate of the service. There are corresponding `4xx` and `5xx` counters that can help clarify the nature of unsuccessful requests.
 - `envoy.cluster.usersvc_cluster.upstream_rq_time` is a StatsD timer that tracks the latency in milliseconds of `usersvc` from Ambassador Edge Stack's perspective. StatsD timers include information about means, standard deviations, and decile values.
 
-## Exposing statistics via StatsD
+## Exposing Statistics via StatsD
 
 Statistics can be exposed via the ubiquitous and well-tested [StatsD](https://github.com/etsy/statsd) protocol.
 
@@ -56,11 +56,11 @@ This sets up Graphite access at `http://localhost:8080/`.
 
 You can optionally also add the `statsd-sink` service and Prometheus exporter as a sidecar on the Ambassador Edge Stack pod. If you do this, make sure to set `STATSD_HOST: localhost` so that UDP packets are routed to the sidecar.
 
-### Configuring metrics mappings for Prometheus
+### Configuring Metrics Mappings for Prometheus
 
 It may be desirable to change how metrics produced by the `statsd-sink` are named, labeled and grouped.
 
-For example, by default each service that the API Gateway serves will create a new metric using its name. For the service called `usersvc` you will see this metric: `envoy.cluster.usersvc_cluster.upstream_rq_total`. This may lead to problems if you are trying to create a single aggregate that is the sum of all similar metrics from different services. In this case it is common to differentiate the metrics for an individual service with a `label`. This can be done using a mapping.
+For example, by default, each service that the API Gateway serves will create a new metric using its name. For the service called `usersvc` you will see this metric: `envoy.cluster.usersvc_cluster.upstream_rq_total`. This may lead to problems if you are trying to create a single aggregate that is the sum of all similar metrics from different services. In this case, it is common to differentiate the metrics for an individual service with a `label`. This can be done using a mapping.
 
 [Follow this guide](https://github.com/prometheus/statsd_exporter/tree/v0.6.0#metric-mapping-and-configuration) to learn how to modify your mappings.
 
@@ -79,7 +79,7 @@ If you deploy Prometheus using Helm the value that you should change is `prometh
         cluster_name: "$1"
 ```
 
-#### Configuring for kubectl
+#### Configuring for `kubectl`
 
 In the [`ambassador-rbac-prometheus.yaml`](../../yaml/ambassador/ambassador-rbac-prometheus.yaml) example template there is a `ConfigMap` that should be updated. Add your mapping to the `configuration` property.
 
@@ -104,19 +104,19 @@ data:
 
 If you don't already have a Prometheus setup, the [Prometheus operator](https://github.com/coreos/prometheus-operator) is a powerful way to create and deploy Prometheus instances. Use the following YAML to quickly configure the Prometheus Operator with Ambassador Edge Stack:
 
-- [`statsd-sink.yaml`](https://github.com/datawire/ambassador/blob/master/deployments/statsd-sink/prometheus/statsd-sink.yaml) Creates the statsd-sink service that collects stats date from Ambassador Edge Stack and translates it to Prometheus metrics. It also creates a `ServiceMonitor` that adds `statsd-sink` as a Prometheus target.
-- [`prometheus.yaml`](https://github.com/datawire/ambassador/blob/master/deployments/statsd-sink/prometheus/prometheus.yaml) Deploys the Prometheus Operator and creates a `Prometheus` object that collects data from the location defined by the `ServiceMonitor`. 
+- [`statsd-sink.yaml`](https://github.com/datawire/ambassador/blob/master/deployments/statsd-sink/prometheus/statsd-sink.yaml) Creates the `statsd-sink` service that collects stats date from Ambassador Edge Stack and translates it to Prometheus metrics. It also creates a `ServiceMonitor` that adds `statsd-sink` as a Prometheus target.
+- [`prometheus.yaml`](https://github.com/datawire/ambassador/blob/master/deployments/statsd-sink/prometheus/prometheus.yaml) Deploys the Prometheus Operator and creates a `Prometheus` object that collects data from the location defined by the `ServiceMonitor`.
 
 Make sure that the `ServiceMonitor` is in the same namespace as Ambassador Edge Stack. A walk-through of the basics of configuring the Prometheus operator with Ambassador Edge Stack and Envoy is available [here](http://www.datawire.io/faster/ambassador-prometheus/).
 
-Ensure `STATSD_ENABLED` is set to `"true"` and apply the yaml with kubectl.
+Ensure `STATSD_ENABLED` is set to `"true"` and apply the YAML with `kubectl`.
 
 ```
 kubectl apply -f statsd-sink.yaml
 kubectl apply -f prometheus.yaml
 ```
 
-Wait for a minute after the pods spin up and then access the Prometheus dashboard by port-forwarding the prometheus pod and going to `http://localhost:9090/` on a web-browser.
+Wait for a minute after the pods spin up and then access the Prometheus dashboard by port-forwarding the Prometheus pod and going to `http://localhost:9090/` on a web-browser.
 
 ```
 kubectl port-forward prometheus-prometheus-0 9090
@@ -136,7 +136,9 @@ If you're using Grafana, [Alex Gervais](https://twitter.com/alex_gervais) has wr
 
 If you are a user of the [Datadog](https://www.datadoghq.com/) monitoring system, pulling in Ambassador Edge Stack statistics is very easy. Replace the sample API key in the YAML file with your own, then launch the DogStatsD agent:
 
+```
     kubectl apply -f statsd-sink/datadog/dd-statsd-sink.yaml
+```
 
 This sets up the `statsd-sink` service and a deployment of the DogStatsD agent that automatically forwards Ambassador Edge Stack stats to your Datadog account.
 
@@ -160,6 +162,3 @@ Next, add the `DOGSTATSD` environment variable to your deployment to tell Envoy 
         imagePullPolicy: IfNotPresent
 <redacted>
 ```
-
-
-
