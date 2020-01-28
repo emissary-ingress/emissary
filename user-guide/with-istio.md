@@ -1,6 +1,6 @@
 # Istio Integration
 
-Ambassador Edge Stack and Istio: Edge Proxy and Service Mesh together in one. The Edge Stack is deployed at the edge of your network, and routes incoming traffic to your internal services (aka "north-south" traffic).  [Istio](https://istio.io/) is a service mesh for microservices, and is designed to add application-level Layer (L7) observability, routing, and resilience to service-to-service traffic (aka "east-west" traffic). Both Istio and the Ambassador Edge Stack are built using [Envoy](https://www.envoyproxy.io).
+Ambassador Edge Stack and Istio: Edge Proxy and Service Mesh together in one. The Edge Stack is deployed at the edge of your network and routes incoming traffic to your internal services (aka "north-south" traffic). [Istio](https://istio.io/) is a service mesh for microservices, and is designed to add application-level Layer (L7) observability, routing, and resilience to service-to-service traffic (aka "east-west" traffic). Both Istio and the Ambassador Edge Stack are built using [Envoy](https://www.envoyproxy.io).
 
 Ambassador Edge Stack and Istio can be deployed together on Kubernetes. In this configuration, incoming traffic from outside the cluster is first routed through the Ambassador Edge Stack, which then routes the traffic to Istio-powered services. The Ambassador Edge Stack handles authentication, edge routing, TLS termination, and other traditional edge functions.
 
@@ -37,10 +37,10 @@ Then, apply it to the Kubernetes with `kubectl`:
 kubectl apply -f httpbin.yaml
 ```
 
-The steps above does several things:
+The steps above do several things:
 
 * It creates a Kubernetes service for the Ambassador Edge Stack, of type `LoadBalancer`. Note that if you're not deploying in an environment where `LoadBalancer` is a supported type (i.e. MiniKube), you'll need to change this to a different type of service, e.g., `NodePort`.
-* It creates a test route that will route traffic from `/httpbin/` to the public `httpbin.org` HTTP Request and Response service (which provides useful endpoint that can be used for diagnostic purposes). In the Ambassador Edge Stack, Kubernetes annotations (as shown above) are used for configuration. More commonly, you'll want to configure routes as part of your service deployment process, as shown in [this more advanced example](https://www.datawire.io/faster/canary-workflow/).
+* It creates a test route that will route traffic from `/httpbin/` to the public `httpbin.org` HTTP Request and Response service (which provides a useful endpoint that can be used for diagnostic purposes). In the Ambassador Edge Stack, Kubernetes annotations (as shown above) are used for configuration. More commonly, you'll want to configure routes as part of your service deployment process, as shown in [this more advanced example](https://www.datawire.io/faster/canary-workflow/).
 
 You can see if the two Ambassador Edge Stack services are running correctly (and also obtain the LoadBalancer IP address when this is assigned after a few minutes) by executing the following commands:
 
@@ -83,7 +83,7 @@ If you're seeing a similar response, then everything is working great!
 
 (Bonus: If you want to use a little bit of awk magic to export the LoadBalancer IP to a variable AMBASSADOR_IP, then you can type `export AMBASSADOR_IP=$(kubectl get services ambassador | tail -1 | awk '{ print $4 }')` and use `curl -L $AMBASSADOR_IP/httpbin/ip`
 
-2. Now you are going to modify the bookinfo demo `bookinfo.yaml` manifest to include the necessary Ambassador annotations. See below.
+2. Now you are going to modify the `bookinfo` demo `bookinfo.yaml` manifest to include the necessary Ambassador annotations. See below.
 
 ```yaml
 ---
@@ -112,7 +112,7 @@ spec:
 
 The annotation above implements an Ambassador Edge Stack mapping from the '/productpage/' URI to the Kubernetes productpage service running on port 9080 ('productpage:9080'). The 'prefix' mapping URI is taken from the context of the root of your Ambassador Edge Stack service that is acting as the ingress point (exposed externally via port 80 because it is a LoadBalancer) e.g. '35.224.41.XX/productpage/'.
 
-You can now apply this manifest from the root of the Istio GitHub repo on your local file system (taking care to wrap the apply with istioctl kube-inject):
+You can now apply this manifest from the root of the Istio GitHub repo on your local file system (taking care to wrap the apply with `istioctl kube-inject`):
 
 ```shell
 kubectl apply -f <(istioctl kube-inject -f samples/bookinfo/kube/bookinfo.yaml)
@@ -124,7 +124,7 @@ kubectl apply -f <(istioctl kube-inject -f samples/bookinfo/kube/bookinfo.yaml)
 
 ## Automatic Sidecar Injection
 
-Newer versions of Istio support Kubernetes initializers to [automatically inject the Istio sidecar](https://istio.io/docs/setup/kubernetes/additional-setup/sidecar-injection/#automatic-sidecar-injection). You don't need to inject the Istio sidecar into the pods of the Ambassador Edge Stack -- Ambassador Edge Stack's Envoy instance will automatically route to the appropriate service(s). Ambassador Edge Stack's pods are configured to skip sidecar injection, using an annotation as [explained in the documentation](https://istio.io/docs/setup/kubernetes/additional-setup/sidecar-injection/#policy).
+Newer versions of Istio support Kubernetes initializers to [automatically inject the Istio sidecar](https://istio.io/docs/setup/kubernetes/additional-setup/sidecar-injection/#automatic-sidecar-injection). You don't need to inject the Istio sidecar into the pods of the Ambassador Edge Stack -- Ambassador's Envoy instance will automatically route to the appropriate service(s). Ambassador Edge Stack's pods are configured to skip sidecar injection, using an annotation as [explained in the documentation](https://istio.io/docs/setup/kubernetes/additional-setup/sidecar-injection/#policy).
 
 ## Istio Mutual TLS
 
@@ -266,7 +266,6 @@ spec:
   alpn_protocols: "istio"
 ```
 
-
 ### Istio RBAC Authorization
 
 While using `istio.default` secret works for mutual TLS only, to be able to interop with [Istio RBAC Authorization](https://istio.io/docs/concepts/security/#authorization) the Ambassador Edge Stack needs to have Istio certificate that matches service account that the Ambassador Edge Stack deployment is using (by default the service account is `ambassador`).
@@ -283,7 +282,7 @@ So if your Ambassador Edge Stack deployment uses `ambassador` service account, t
 
 Istio provides a tracing mechanism based on Zipkin, which is one of the drivers supported by the Ambassador Edge Stack. In order to achieve an end-to-end tracing, it is possible to integrate the Ambassador Edge Stack with Istio's Zipkin.
 
-First confirm that Istio's Zipkin is up and running in the `istio-system` Namespace:
+First, confirm that Istio's Zipkin is up and running in the `istio-system` Namespace:
 
 ```shell
 $ kubectl get service zipkin -n istio-system
@@ -304,18 +303,20 @@ spec:
   config: {}
 ```
 
-*Note:* We are using the DNS entry `zipkin.istio-system` as well as the port that our service is running, in this case `9411`. Please see [Distributed Tracing](../../reference/services/tracing-service) for more details on Tracing configuration.
+*Note:* We are using the DNS entry `zipkin.istio-system` as well as the port that our service is running, in this case, `9411`. Please see [Distributed Tracing](../../reference/services/tracing-service) for more details on Tracing configuration.
 
 ## Monitoring/Statistics Integration
 
 Istio also provides a Prometheus service that is an open-source monitoring and alerting system which is supported by the Ambassador Edge Stack as well. It is possible to integrate the Ambassador Edge Stack into Istio's Prometheus to have all statistics and monitoring in a single place.
 
-First we need to change our Ambassador Edge Stack Deployment to use the [Prometheus StatsD Exporter](https://github.com/prometheus/statsd_exporter) as its sidecar. Do this by applying the [ambassador-rbac-prometheus.yaml](../../yaml/ambassador/ambassador-rbac-prometheus.yaml):
+First, we need to change our Ambassador Edge Stack Deployment to use the [Prometheus StatsD Exporter](https://github.com/prometheus/statsd_exporter) as its sidecar. Do this by applying the [ambassador-rbac-prometheus.yaml](../../yaml/ambassador/ambassador-rbac-prometheus.yaml):
+
 ```sh
 $ kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-rbac-prometheus.yaml
 ```
 
 This YAML is changing the StatsD container definition on our Deployment to use the Prometheus StatsD Exporter as a sidecar:
+
 ```yaml
       - name: statsd-sink
         image: datawire/prom-statsd-exporter:0.6.0
@@ -323,6 +324,7 @@ This YAML is changing the StatsD container definition on our Deployment to use t
 ```
 
 Next, a Service needs to be created pointing to our `Prometheus StatsD Exporter` sidecar:
+
 ```yaml
 apiVersion: v1
 kind: Service
@@ -341,11 +343,13 @@ spec:
 ```
 
 Now we need to add a `scrape` configuration to Istio's Prometheus so that it can pool data from our Ambassador Edge Stack. This is done by applying the new ConfigMap:
+
 ```sh
 $ kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-istio-configmap.yaml
 ```
 
 This ConfigMap YAML changes the `prometheus` ConfigMap that is on `istio-system` Namespace and adds the following:
+
 ```yaml
     - job_name: 'ambassador'
       static_configs:
@@ -353,11 +357,12 @@ This ConfigMap YAML changes the `prometheus` ConfigMap that is on `istio-system`
         labels:  {'application': 'ambassador'}
 ```
 
-*Note:* Assuming ambassador-monitor service is runnning in default namespace.
+*Note:* Assuming ambassador-monitor service is running in the default namespace.
 
-*Note:* You can also add the scrape by hand by using kubectl edit or dashboard.
+*Note:* You can also add the scrape by hand by using `kubectl` edit, or the dashboard.
 
-Afer adding the `scrape`, Istio's Prometheus POD needs to be restarted:
+After adding the `scrape`, Istio's Prometheus POD needs to be restarted:
+
 ```sh
 $ export PROMETHEUS_POD=`kubectl get pods -n istio-system | grep prometheus | awk '{print $1}'`
 $ kubectl delete pod $PROMETHEUS_POD -n istio-system
@@ -365,17 +370,17 @@ $ kubectl delete pod $PROMETHEUS_POD -n istio-system
 
 More details can be found in [Statistics and Monitoring](../../reference/statistics).
 
-
 ## Grafana Dashboard
 
-Istio provides a Grafana dashboad service as well, and it is possible to import an Ambassador Edge Stack Dashboard into it, to monitor the Statistics provided by Prometheus. We're going to use [Alex Gervais'](https://twitter.com/alex_gervais) template available on [Grafana's](https://grafana.com/) website under entry [4689](https://grafana.com/dashboards/4698) as a starting point.
+Istio provides a Grafana dashboard service as well, and it is possible to import an Ambassador Edge Stack Dashboard into it, to monitor the Statistics provided by Prometheus. We're going to use [Alex Gervais'](https://twitter.com/alex_gervais) template available on [Grafana's](https://grafana.com/) website under entry [4689](https://grafana.com/dashboards/4698) as a starting point.
 
-First let's start the port-forwarding for Istio's Grafana service:
+First, let's start the port-forwarding for Istio's Grafana service:
+
 ```sh
 $ kubectl -n istio-system port-forward $(kubectl -n istio-system get pod -l app=grafana -o jsonpath='{.items[0].metadata.name}') 3000:3000 &
 ```
 
-Now, open Grafana tool by acessing: `http://localhost:3000/`
+Now, open Grafana tool by accessing: `http://localhost:3000/`
 
 To install the Ambassador Edge Stack Dashboard:
 
