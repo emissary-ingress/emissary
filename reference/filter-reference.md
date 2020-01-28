@@ -689,7 +689,7 @@ When multiple `Filter`s are specified in a rule:
  * `onAllow` identifies what to do when the filter returns a
    "modification to the HTTP request":
    - `"break"`: Apply the modification to the request, then end filter
-     processing, and forwards the modified request to the upstream
+     processing, and forward the modified request to the upstream
      service.  Later filters are not called.
    - `"continue"`: Continue processing.  Apply the request
      modification, then pass the modified request to the next filter
