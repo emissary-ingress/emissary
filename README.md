@@ -85,6 +85,7 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `deploymentAnnotations`            | Additional annotations for ambassador DaemonSet/Deployment                      | `{}`                              |
 | `podLabels`                        | Additional labels for ambassador pods                                           |                                   |
 | `affinity`                         | Affinity for ambassador pods                                                    | `{}`                              |
+| `nodeSelector`                     | NodeSelector for ambassador pods                                                | `{}`                              |
 | `priorityClassName`                | The name of the priorityClass for the ambassador DaemonSet/Deployment           | `""`                              |
 | `rbac.create`                      | If `true`, create and use RBAC resources                                        | `true`                            |
 | `rbac.podSecurityPolicies`         | pod security polices to bind to                                                 |                                   |
@@ -115,6 +116,7 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `redis.create`                     | Create a basic redis instance with default configurations                       | `true`                            |
 | `redis.annotations`                | Annotations for the redis service and deployment                                | `""`                              |
 | `redis.resources`                  | Resource requests for the redis instance                                        | `""`                              |
+| `redis.nodeSelector`               | NodeSelector for redis pods                                                     | `{}`                              |
 | `authService.create`               | Create the `AuthService` CRD for Ambassador Edge Stack                          | `true`                            |
 | `authService.optional_configurations` | Config options for the `AuthService` CRD                                     | `""`                              |
 | `rateLimit.create`                 | Create the `RateLimit` CRD for Ambassador Edge Stack                            | `true`                            |
