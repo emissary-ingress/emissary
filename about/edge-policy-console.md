@@ -1,6 +1,6 @@
 # Edge Policy Console
 
-The Ambassador Edge Stack provides you with an easy-to-use interface that so you can create custom resource definitiions, download YAML files, and visit the Developer Portal, all in one place.
+The Ambassador Edge Stack provides you with an easy-to-use interface that so you can create custom resource definitions, download YAML files, and visit the Developer Portal, all in one place.
 
 After you [install the Ambassador Edge Stack](../../user-guide/install), you can log in to the Edge Policy Console (EPC) to manage your deployment.
 
