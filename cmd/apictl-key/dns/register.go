@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"math/rand"
+	"net"
 	"net/http"
 	"time"
 
@@ -24,9 +25,28 @@ type registration struct {
 	Ip    string
 }
 
+var privateIPBlocks []*net.IPNet
+
 func init() {
 	// Make sure our generator is truly random
 	rand.Seed(time.Now().UnixNano())
+
+	for _, cidr := range []string{
+		"127.0.0.0/8",    // IPv4 loopback
+		"10.0.0.0/8",     // RFC1918
+		"172.16.0.0/12",  // RFC1918
+		"192.168.0.0/16", // RFC1918
+		"169.254.0.0/16", // RFC3927 link-local
+		"::1/128",        // IPv6 loopback
+		"fe80::/10",      // IPv6 link-local
+		"fc00::/7",       // IPv6 unique local addr
+	} {
+		_, block, err := net.ParseCIDR(cidr)
+		if err != nil {
+			panic(fmt.Errorf("parse error on %q: %v", cidr, err))
+		}
+		privateIPBlocks = append(privateIPBlocks, block)
+	}
 }
 
 func NewController(l *logrus.Logger, hostedZoneId string, dnsRegistrationTLD string) http.Handler {
@@ -71,8 +91,56 @@ func (c *dnsclient) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *dnsclient) verifyIPIsReady(ip string) error {
-	// TODO: "ping-back" mechanism where we check the ambassador installation is publicly accessible.
+	if !c.isPublicIP(ip) {
+		return fmt.Errorf("ip address is not public")
+	}
+
+	var transport = &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		DialContext: (&net.Dialer{
+			Timeout: 3 * time.Second,
+		}).DialContext,
+	}
+	var client = &http.Client{
+		// 3s timeout
+		Timeout:   3 * time.Second,
+		Transport: transport,
+		// Don't follow redirects
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+
+	// GET http://{IP}/.well-known/acme-challenge/
+	//  --> should return 404
+	//  --> should return header "server: envoy"
+	response, err := client.Get(fmt.Sprintf("http://%s/.well-known/acme-challenge/", ip))
+	if err != nil {
+		return err
+	}
+	if response.StatusCode != 404 || response.Header.Get("server") != "envoy" {
+		return fmt.Errorf("failed to validate the target ip is running AES")
+	}
 	return nil
+}
+
+func (c *dnsclient) isPublicIP(ipString string) bool {
+	ip := net.ParseIP(ipString)
+	if ip == nil {
+		// it's not even an IP!
+		return false
+	}
+	if ip.IsUnspecified() || ip.IsLoopback() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() {
+		// local interfaces
+		return false
+	}
+	for _, block := range privateIPBlocks {
+		// private ip ranges
+		if block.Contains(ip) {
+			return false
+		}
+	}
+	return true
 }
 
 func (c *dnsclient) doRegister(registration registration) (string, error) {
