@@ -1,6 +1,6 @@
 ---
 name: Docs Feature Request
-about: Template for doc requests, updates, and fixes.
+about: Template for doc feature requests.
 title: 
 labels: 'a:docs', 't:feature'
 assignees: 'scoyle391'
