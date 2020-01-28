@@ -1,11 +1,6 @@
 # Filter Reference
 
-Filters are used to extend the Ambassador Edge Stack to modify or
-intercept an HTTP request before sending to your backend service.  You
-may use any of the built-in Filter types, or use the `Plugin` filter
-type to run custom code written in the Go programming language, or use
-the `External` filter type to call run out to custom code written in a
-programming language of your choice.
+Filters are used to extend the Ambassador Edge Stack to modify or intercept an HTTP request before sending to your backend service.  You may use any of the built-in Filter types, or use the `Plugin` filter type to run custom code written in the Go programming language, or use the `External` filter type to call run out to custom code written in a programming language of your choice.
 
 Filters are created with the `Filter` resource type, which contains global arguments to that filter.  Which Filter(s) to use for which HTTP requests is then configured in `FilterPolicy` resources, which may contain path-specific arguments to the filter.
 
@@ -124,12 +119,7 @@ This `.spec.External` is mostly identical to an [`AuthService`](../services/auth
 
 ### Filter Type: `JWT`
 
-The `JWT` filter type performs JWT validation on a [Bearer token]
-present in the HTTP header.  If the Bearer token JWT doesn't validate,
-or has insufficient scope, an RFC 6750-complaint error response with a
-`WWW-Authenticate` header is returned.  The list of acceptable signing
-keys is loaded from a JWK Set that is loaded over HTTP, as specified
-in `jwksURI`.  Only RSA and `none` algorithms are supported.
+The `JWT` filter type performs JWT validation on a [Bearer token] present in the HTTP header.  If the Bearer token JWT doesn't validate, or has insufficient scope, an RFC 6750-complaint error response with a `WWW-Authenticate` header is returned. The list of acceptable signing keys is loaded from a JWK Set that is loaded over HTTP, as specified in `jwksURI`.  Only RSA and `none` algorithms are supported.
 
 [Bearer token]: https://tools.ietf.org/html/rfc6750
 
@@ -232,9 +222,8 @@ spec:
       starting indent level.
 
 **Note**: If you are using a templating system for your YAML that also
-makes use of Go templating, then you will need to
-escape the template strings meant to be interpreted by the Ambassador Edge
-Stack.
+makes use of Go templating, then you will need to escape the template 
+strings meant to be interpreted by the Ambassador EdgeStack.
 
 [Go `text/template`]: https://golang.org/pkg/text/template/
 [Go `text/template` functions]: https://golang.org/pkg/text/template/#hdr-Functions
@@ -262,7 +251,7 @@ spec:
         - "scope-value-2"
 ```
 
- - `scope`: A list of OAuth scope values required to be listed in the
+ - `scope`: A list of OAuth scope values that Ambassador will require to be listed in the
    [`scope` claim][].  In addition to the normal of the `scope` claim
    (a JSON string containing a space-separated list of values), the
    JWT Filter also accepts a JSON array of values.
