@@ -22,7 +22,7 @@ To use Azure as your IdP, you will first need to register an OAuth application w
 
 ## Set up Ambassador Edge Stack
 
-After configuring an OAuth application in Azure AD, configuring Ambassador Edge Stack to make use for authentication is simple.
+After configuring an OAuth application in Azure AD, configuring Ambassador Edge Stack to make use of it for authentication is simple.
 
 1. Create an [OAuth Filter](../../filter-reference#filter-type-oauth2) with the credentials from above
 
