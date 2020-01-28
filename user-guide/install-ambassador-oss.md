@@ -1,6 +1,6 @@
 # The Ambassador API Gateway
 
-**The Ambassador Edge stack is now available and includes additional functionality beyond the current Ambassador API Gateway.** These features including automatic HTTPS, the Edge Policy Console UI, OAuth/OpenID Connect authentication support, integrated rate limiting, a developer portal, and [more](https://www.getambassador.io/edge-stack-faq/).
+**The Ambassador Edge stack is now available and includes additional functionality beyond the current Ambassador API Gateway.** These features including automatic HTTPS, the Edge Policy Console UI, OAuth/OpenID Connect authentication support, integrated rate limiting, a developer portal, and [more](/edge-stack-faq/).
 
 If you still want to use just the Ambassador API Gateway, don't worry! You can follow the directions below to install it. Throughout the documentation, you'll see product tags at the top of the page, so you know what features apply to the Ambassador API Gateway.
 
