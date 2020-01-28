@@ -53,7 +53,7 @@ In this section, we will deploy the Prometheus Operator using the standard YAML 
     First, create RBAC resources for your Prometheus instance
 
     ```
-    kubectl apply -f https://www.getambassador.io/early-access/yaml/monitoring/prometheus-rbac.yaml
+    kubectl apply -f https://www.getambassador.io/yaml/monitoring/prometheus-rbac.yaml
     ```
 
     Then, copy the YAML below, and save it in a file called `prometheus.yaml`
@@ -333,7 +333,7 @@ If running a pre-`0.71.0` version of Ambassador, you will need to configure Envo
 1. Deploy the StatsD Exporter in the `default` namespace
 
     ```
-    kubectl apply -f https://www.getambassador.io/early-access/yaml/monitoring/statsd-sink.yaml
+    kubectl apply -f https://www.getambassador.io/yaml/monitoring/statsd-sink.yaml
     ```
 
 2. Configure Ambassador Edge Stack to output statistics to statsd
