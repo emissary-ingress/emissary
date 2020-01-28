@@ -6,7 +6,7 @@ Looking for early access to the Ambassador Edge Stack? [Click here to get starte
 
 From time to time, the Ambassador Edge Stack may ship early access releases to test major changes. **Early access releases are not supported for production use** but are intended to gain early feedback from our community before shipping a release.
 
-Early access releases will always have names that include the string "-ea" followed by a build number. For example, `$version$`.
+Early access releases will always have names that include the string "-ea.$buildnumber" -- for example, `$version$`.
 
 ## Early Access Status
 

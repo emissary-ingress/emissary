@@ -1,6 +1,6 @@
 # Upgrade to the Ambassador Edge Stack
 
-If you currently have the open-source API Gateway version of Ambassador, you can upgrade to the Ambassador Edge Stack with a few simple commands.
+If you currently have the open source API Gateway version of Ambassador, you can upgrade to the Ambassador Edge Stack with a few simple commands. When you upgrade to the Ambassador Edge Stack, you'll be able to access several new features, such as **automatic HTTPS/TLS termination, Swagger/OpenAPI support, API catalog, IdP support, the Edge Policy Console (a declarative interface), and many more.**
 
 **Prerequisites**:
 
@@ -66,6 +66,12 @@ kubectl apply -n <namespace> -f https://www.getambassador.io/yaml/resources-migr
 kubectl rollout restart deployment/aes
 ```
 
-## 6. What's Next?
+## 6. Access the Edge Policy Console
+
+You can now access the Edge Policy Console with the following options:
+* `edgectl login -n <namespace> <AES_host>` or
+* `https://{{AES_URL}}/edge_stack/admin`
+
+## 7. What's Next?
 
 Now that you have the Ambassador Edge Stack up and running, check out the [Getting Started](../getting-started) guide for recommendations on what to do next and take full advantage of its features.

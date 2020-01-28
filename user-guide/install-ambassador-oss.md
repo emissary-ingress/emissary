@@ -10,7 +10,7 @@ In this tutorial, we'll walk through the process of deploying the Ambassador API
 
 For more background on Kubernetes ingress, [read this blog post](https://blog.getambassador.io/kubernetes-ingress-nodeport-load-balancers-and-ingress-controllers-6e29f1c44f2d).
 
-the Ambassador API Gateway is designed to allow service authors to control how their service is published to the Internet. We accomplish this by permitting a wide range of annotations on the *service*, which Ambassador reads to configure its Envoy Proxy.
+The Ambassador API Gateway is designed to allow service authors to control how their service is published to the Internet. We accomplish this by permitting a wide range of annotations on the *service*, which Ambassador reads to configure its Envoy Proxy.
 
 Below, we'll use service annotations to configure Ambassador to map `/httpbin/` to `httpbin.org`.
 
@@ -28,6 +28,12 @@ If you see something like `--authorization-mode=Node,RBAC` in the output, then R
 
 ```shell
 kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=$(gcloud info --format="value(config.account)")
+```
+
+Start by installing CRDs required by Ambassador:
+
+```shell
+kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-crds.yaml
 ```
 
 If RBAC is enabled:
@@ -119,6 +125,8 @@ will then let us view the diagnostics at `http://localhost:8877/ambassador/v0/di
 The versatile HTTPS configuration of the Ambassador API Gateway lets it support various HTTPS use cases whether simple or complex.
 
 Follow our [enabling HTTPS guide](../tls-termination) to quickly enable HTTPS support for your applications.
+
+**Note that the Ambassador Edge Stack automatically enables HTTPs.** Read more about its configuration on the [Host CRD](/reference/host-crd) page.
 
 ## Want More?
 
