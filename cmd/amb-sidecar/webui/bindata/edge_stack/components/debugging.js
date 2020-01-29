@@ -457,8 +457,8 @@ export class Debugging extends LitElement {
           </dl>
           <div class="logDiv"><span class="logLabel">Set Log Level:</span>
             <select class="logSelector" @change=${this.setLogLevel.bind(this)}>
-            ${this.logOptions.map(item => {
-              return html`<option value="${item.value}">${item.label}</option>`
+            ${this.logOptions.map(f => {
+              return html`<option value="${f.value}.value}">${f.label}</option>`
             })}
             </select>
           </div>
@@ -528,7 +528,9 @@ export class Debugging extends LitElement {
     this.redisInUse = snapshot.getRedisInUse();
   }
 
-  setLogLevel(level) {
+  setLogLevel(e) {
+    this.level = e.target.logOptions[e.target.selectedIndex].value;
+    console.log(this.level);
     let formdata = new FormData();
     formdata.append('loglevel', level);
 
