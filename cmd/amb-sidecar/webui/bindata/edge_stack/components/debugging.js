@@ -1,10 +1,9 @@
-import { html, css } from '../vendor/lit-element.min.js'
-import {SortableResourceSet} from './resources.js';
+import { LitElement, html, css } from '../vendor/lit-element.min.js'
 import { Snapshot } from './snapshot.js'
 import { getCookie } from './cookies.js';
 import {ApiFetch} from "./api-fetch.js";
 
-export class Debugging extends SortableResourceSet {
+export class Debugging extends LitElement {
   // external ////////////////////////////////////////////////////////
 
   static get properties() {
@@ -453,8 +452,8 @@ export class Debugging extends SortableResourceSet {
             <dd>${this.diagd.loginfo.all}</dd>
           </dl>
           <div class="sortby"><span class="sortby">Set Log Level:</span>
-            <select class="logSelector" @change=${this.onChangeSortByAttribute.bind(this)}>
-          ${this.sortFields.map(f => {
+            <select class="logSelector" @change=${this.setLogLevel.bind(this)}>
+          ${this.selectLog.map(f => {
             return html`<option value="${f.value}">${f.label}</option>`
           })}
             </select>
