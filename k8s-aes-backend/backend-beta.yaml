@@ -30,6 +30,7 @@ metadata:
       rewrite: /register-domain
       name: aes-backend-domain-beta
       service: aes-backend-beta
+      timeout_ms: 30000 # This upstream API relies on AWS... which is not always reliably fast
 spec:
   type: ClusterIP
   ports:
