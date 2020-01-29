@@ -177,6 +177,7 @@ commands:
                  - run: "docker login -u=\"datawire-dev+aes\" -p=\"3M43T8BXB3L46H40R8W3K1JDNMIN6KP8Q5SC1SY2DRJQ7DZFE7LUJ1WE35QG3F0U\" quay.io"
                  # For normal commits we run `make gotest`, but if we have a tag, run `make test`
                  - run: |
+                    env | egrep '^CI'
                     test_target=gotest
                     if [[ "$CIRCLE_TAG" =~ ^v ]]; then
                       test_target=test
