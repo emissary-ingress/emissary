@@ -14,14 +14,16 @@ The Ambassador Edge Stack is designed to run in Kubernetes for production. The m
 
 ## Install the Ambassador Edge Stack
 
-The Ambassador Edge Stack is typically deployed to Kubernetes from the command line. If you don't have Kubernetes, you should use our [Docker](../../about/quickstart) to deploy the Ambassador Edge Stack locally.
+The Ambassador Edge Stack is typically deployed to Kubernetes from the command line. If you don't have Kubernetes, you should use our [Docker](../../about/quickstart) to deploy the Ambassador Edge Stack locally. Or, if you're a Minikube user, `[check out these directions].`
 
 When you install Edge Control to manage your Edge Stack, it will:
+
 * Obtain a TLS certificate
 * Configure automatic TLS and HTTPS
 * Generate a domain name for you to access your Edge Policy Console and complete advanced configuration
 
 **To get started:**
+
 1. Install Edge Control for your operating system: <link>
 2. Open your terminal and run the following command: `edgectl install`
 3. Provide an email address so you can be notified before your domain and certificate expire.
@@ -49,10 +51,10 @@ Edge Control will automatically configure TLS **if your cluster is publicly acce
 
 **To get started:**
 
-1. Ensure your cluster is publicly accessible by following <url to documentation page about how to make your cluster publicly accessible following these directions: <url to documentation page about how to make your cluster publicly accessible>
+1. Ensure your cluster is publicly accessible by following these directions: `url to documentation page about how to make your cluster publicly accessible`
 2. Run the command `edgectl install`. It will print something similar to the following:
 
-```shell
+```bash
 $ edgectl install
 -> Installing the Ambassador Edge Stack 1.0.
 -> Automatically configuring TLS.
@@ -61,11 +63,7 @@ $ edgectl install
 Congratulations, you’ve successfully installed the Ambassador Edge Stack in your Kubernetes cluster. Visit http://192.168.64.2:31334 to access your Edge Stack installation and for additional configuration.
 ```
 
-
-
-Then, a browser window should open to the correct URL.
-
-
+3. Your browser will automatically open to your newly provisioned URL.
 
 ## Create a Mapping
 
