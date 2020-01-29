@@ -16,11 +16,15 @@ export class Debugging extends LitElement {
   }
 
   constructor() {
-    super([
+    super();
+
+    const logOptions = [
       {value: "debug", label: "DEBUG"},
       {value: "info", label: "INFO"},
-      {value: "trace", label: "TRACE"},
-    ]);
+      {value: "trace", label: "TRACE"}
+    ];
+
+    this.logOptions = logOptions;
 
     Snapshot.subscribe(this.onSnapshotChange.bind(this));
   }
@@ -326,13 +330,13 @@ export class Debugging extends LitElement {
       .logo {
         filter: invert(19%) sepia(64%) saturate(4904%) hue-rotate(248deg) brightness(107%) contrast(101%);
       }
-      span.sortby {
+      span.logLabel {
         vertical-align: center;
         top: 3px;
         bottom: 0;
         right: 0;
       }
-      div.sortby {
+      div.logDiv {
         position: relative;
         margin-top: 10px;
       }
@@ -451,11 +455,11 @@ export class Debugging extends LitElement {
             <dt>Current log level</dt>
             <dd>${this.diagd.loginfo.all}</dd>
           </dl>
-          <div class="sortby"><span class="sortby">Set Log Level:</span>
+          <div class="logDiv"><span class="logLabel">Set Log Level:</span>
             <select class="logSelector" @change=${this.setLogLevel.bind(this)}>
-          ${this.selectLog.map(f => {
-            return html`<option value="${f.value}">${f.label}</option>`
-          })}
+            ${this.logOptions.map(item => {
+              return html`<option value="${item.value}">${item.label}</option>`
+            })}
             </select>
           </div>
           <a class="cta" style="width: auto" @click=${()=>{this.setLogLevel('debug')}}><div class="label">Set log level to <q>debug</q></div></a>
