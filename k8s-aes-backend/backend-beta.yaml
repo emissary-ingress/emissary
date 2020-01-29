@@ -20,7 +20,7 @@ metadata:
       ambassador_id: metriton-beta
       prefix: /downloads
       rewrite: /downloads
-      name: aes-backend-beta
+      name: aes-backend-download-beta
       service: aes-backend-beta
       ---
       apiVersion: ambassador/v1
@@ -28,8 +28,9 @@ metadata:
       ambassador_id: metriton-beta
       prefix: /register-domain
       rewrite: /register-domain
-      name: aes-backend-beta
+      name: aes-backend-domain-beta
       service: aes-backend-beta
+      timeout_ms: 30000 # This upstream API relies on AWS... which is not always reliably fast
 spec:
   type: ClusterIP
   ports:
