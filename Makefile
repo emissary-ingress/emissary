@@ -77,7 +77,8 @@ preflight-docs:
 update-yaml: update-yaml-locally preflight-docs
 	@printf "$(CYN)==> $(GRN)Checking whether AMBASSADOR_DOCS is up to date$(END)\n"
 	git -C "$${AMBASSADOR_DOCS}" fetch --all --prune --tags
-	@printf "$(GRN)In another terminal, verify that your AMBASSADOR_DOCS ($(AMBASSADOR_DOCS)) checkout is up-to-date with the desired branch (probably $(BLU)early-access$(GRN))$(END)\n"
+	@printf "$(GRN)In another terminal, verify that your AMBASSADOR_DOCS ($(AMBASSADOR_DOCS))\n"
+	@printf "$(GRN)checkout is up-to-date with the desired branch (probably $(BLU)ambassador.git/docs$(GRN) branch=$(BLU)master$(GRN))$(END)\n"
 	@read -s -p "$$(printf '$(GRN)Press $(BLU)enter$(GRN) once you have verified this:$(END)')"
 	@echo
 	@printf "$(CYN)==> $(GRN)Updating AMBASSADOR_DOCS YAML$(END)\n"
