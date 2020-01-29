@@ -529,7 +529,7 @@ export class Debugging extends LitElement {
   }
 
   setLogLevel(e) {
-    this.level = e.target.logOptions[e.target.selectedIndex].value;
+    this.level = e.target.options[e.target.selectedIndex].value;
     console.log(this.level);
     let formdata = new FormData();
     formdata.append('loglevel', level);
