@@ -49,7 +49,7 @@ spec:
 
 ## Changing the Configuration Directory
 
-While running, Ambassador needs to use a directory within its container for generated configuration data. Normally this is `/ambassador`, but in some situations - especially if running as non-root - it may be necessary to change to a different directory. To do so, set the environment variable `AMBASSADOR_CONFIG_BASE_DIR` to the full path name of the directory to use, as shown below in this abbreviated example:
+While running, Ambassador needs to use a directory within its container for generated configuration data. Normally this is `/ambassador`, but in some situations - especially if running as non-root - it may be necessary to change to a different directory. To do so, set the environment variable `AMBASSADOR_CONFIG_BASE_DIR` to the full pathname of the directory to use, as shown below in this abbreviated example:
 
 ```yaml
 env:
