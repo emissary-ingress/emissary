@@ -2,7 +2,7 @@
 
 TLS encryption is one of the basic requirements of having a secure system. Ambassador Edge Stack automatically enables TLS termination/HTTPs, making TLS encryption easy and centralizing TLS termination for all of your services in Kubernetes automatically during configuration if you have a fully qualified domain name (FQDN).
 
-However, if you don't have a FQDN for your Ambassador Edge Stack, you can manually enable TLS. This guide will show you how to quickly enable TLS termination in Ambassador Edge Stack with a self-signed certificate.
+However, if you don't have an FQDN for your Ambassador Edge Stack, you can manually enable TLS. This guide will show you how to quickly enable TLS termination in Ambassador Edge Stack with a self-signed certificate.
 
 **Note** that these instructions do not work with the Ambassador API Gateway.
 

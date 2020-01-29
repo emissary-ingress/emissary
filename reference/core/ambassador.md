@@ -57,7 +57,7 @@ circuit_breakers
   ...
 ```
 
-`cors` sets default CORS configuration for all mappings in the cluster. See the [CORS syntax](../../cors).
+`cors` sets the default CORS configuration for all mappings in the cluster. See the [CORS syntax](../../cors).
 
 ```
 cors:
@@ -170,7 +170,7 @@ When using Linkerd, requests going to an upstream service need to include the `l
 
 ### Upstream Idle Timeout (`cluster_idle_timeout_ms`)
 
-If set, `cluster_idle_timeout_ms` specifies the timeout (in milliseconds) after which an idle connection upstream will closed. If no `cluster_idle_timeout_ms` is specified, upstream connections will never be closed due to idling.
+If set, `cluster_idle_timeout_ms` specifies the timeout (in milliseconds) after which an idle connection upstream is closed. If no `cluster_idle_timeout_ms` is specified, upstream connections will never be closed due to idling.
 
 ### gRPC HTTP/1.1 bridge (`enable_grpc_http11_bridge`)
 
@@ -226,6 +226,6 @@ The value of `xff_num_trusted_hops` indicates the number of trusted proxies in f
 
 * If `use_remote_address` is `true` and `xff_num_trusted_hops` is set to a value N that is greater than zero, the trusted client address is the Nth address from the right end of XFF. (If the XFF contains fewer than N addresses, Envoy falls back to using the immediate downstream connection’s source address as a trusted client address.)
 
-Refer to [Envoy's documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_conn_man/headers.html#x-forwarded-for) for some detailed examples in this interaction.
+Refer to [Envoy's documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_conn_man/headers.html#x-forwarded-for) for some detailed examples of this interaction.
 
 **NOTE:** This value is not dynamically configurable in Envoy. A restart is required changing the value of `xff_num_trusted_hops` for Envoy to respect the change.

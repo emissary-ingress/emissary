@@ -4,7 +4,7 @@ Ambassador configuration can be expressed as an annotation of a Kubernetes Servi
 
 ## Benefits
 
-For many people, this is the preferred format for configuring Ambassador because it directly ties the routing configuration in with the Service definition. i.e. Creating the Service creates the route in Ambassador and deleteing the service removes the route.
+For many people, this is the preferred format for configuring Ambassador because it directly ties the routing configuration in with the Service definition. i.e. Creating the Service creates the route in Ambassador and deleting the service removes the route.
 
 It also allows you to install and configure Ambassador without needing cluster permissions to add CRDs to the cluster.
 
