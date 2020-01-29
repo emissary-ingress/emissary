@@ -175,17 +175,10 @@ commands:
 #      message, please don't reenable before Dec 10th
 #                 - run: "make lint"
                  - run: "docker login -u=\"datawire-dev+aes\" -p=\"3M43T8BXB3L46H40R8W3K1JDNMIN6KP8Q5SC1SY2DRJQ7DZFE7LUJ1WE35QG3F0U\" quay.io"
-                 # For normal commits we run `make gotest`, but if we have a tag, run `make test`
                  - run: |
-                    test_target=gotest
-                    if [[ "$CIRCLE_TAG" =~ ^v ]]; then
-                      test_target=test
-                    fi
-                    printf 'CIRCLE_TAG=%q test_target=%q\n' "${CIRCLE_TAG:-}" "${test_target}"
-
                     export DEV_REGISTRY=quay.io/datawire-dev
                     export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
-                    make "$test_target" GOTEST_PKGS=github.com/datawire/apro/...
+                    make test GOTEST_PKGS=github.com/datawire/apro/...
                  - run:
                      command: ".circleci/kubernaut-unclaim.sh"
                      when: "always"
