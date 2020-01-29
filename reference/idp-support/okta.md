@@ -2,7 +2,7 @@
 
 1. Create an OIDC application
 
-   **Note:** If you have a [standard Okta account](https://www.okta.com) you must first navigate to your Okta Org's admin portal (step 1). [Developer accounts](https://developer.okta.com) can skip to step 2.
+   **Note:** If you have a [standard Okta account](https://www.okta.com) you must first navigate to your Okta Org's admin portal (step 1). [Developer accounts](https://developer.okta.com) can skip to Step 2.
    
    - Go to your org and click `Admin` in the top right corner to access the admin portal
    - Select `Applications`

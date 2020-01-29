@@ -1,8 +1,8 @@
 # Google Single Sign-On
 
-## Create an OAuth client in the Google API console
+## Create an OAuth client in the Google API Console
 
-To use Google as and IdP for Single Sign-On, you will first need to create an OAuth web application in the Google API Console.
+To use Google as an IdP for Single Sign-On, you will first need to create an OAuth web application in the Google API Console.
 
 1. Open the [Credentials page](https://console.developers.google.com/apis/credentials) in the API Console
 2. Click `Create credentials > OAuth client ID`.
@@ -14,7 +14,6 @@ To use Google as and IdP for Single Sign-On, you will first need to create an OA
    ```
 5. Click `Create` 
 6. Record the `client ID` and `client secret` in the pop-up window. You will need these when configuring Ambassador Edge Stack
-
 
 ## Set up Ambassador Edge Stack
 
@@ -63,6 +62,3 @@ After creating an OAuth client in Google, configuring Ambassador Edge Stack to m
     ```
 
 Now any requests to `https://{{AMBASSADOR_URL}}/backend/get-quote/` will require authentication from Google.
-
-
-
