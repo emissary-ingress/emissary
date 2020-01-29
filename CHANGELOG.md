@@ -4,7 +4,13 @@ releases. Please keep it up to date.
 
 ## Ambassador Pro CHANGELOG
 
-## 1.0.1 (TBD)
+## 1.1.1 (TBD)
+
+Other
+
+ * Bugfix: `aes-plugin-runner --version` now works properly.
+
+## 1.1.0 (2020-01-28)
 
 Configuration:
 
