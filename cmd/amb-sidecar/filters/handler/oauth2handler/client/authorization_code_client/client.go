@@ -100,7 +100,7 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger dlog.Logger, httpClien
 			return strings.NewReader(request.GetRequest().GetHttp().GetBody())
 		})
 		if err == nil {
-			// continue with (authrorization != nil)
+			// continue with (authorization != nil)
 		} else if err == rfc6749client.ErrNoAccessToken {
 			// This indicates a programming error; we've already checked that there is an access token.
 			panic(err)
