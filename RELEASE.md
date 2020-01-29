@@ -20,11 +20,11 @@ Instead of above, you can do:
 make aes-rc-now
 ```
 
-### If you made changes to the `apictl-key serve` command, then:
+### If you made changes to the `apictl-key serve-aes-backend` command, then:
 
-1. To deploy a new aes backend, run:
+1. To build and push a new aes backend, run:
 
 ```
-PROD_KUBECONFIG=<prod-kubeconfig-file> make deploy-aes-backend
+make aes-backend-push AES_BACKEND_RELEASE_REGISTRY=gcr.io/datawireio AES_BACKEND_RELEASE_VERSION=$RELEASE_VERSION
 ```
 
