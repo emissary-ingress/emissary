@@ -1,4 +1,6 @@
-** DO NOT READ THIS FILE ANY MORE. See the CHANGELOG.md in ambassador.git instead. **
+Information in this file will be used to build the merged release notes for GA
+releases. Please keep it up to date.
+------------------------------------------------------------------------------
 
 ## Ambassador Pro CHANGELOG
 
