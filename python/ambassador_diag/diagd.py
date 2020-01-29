@@ -177,9 +177,28 @@ class DiagApp (Flask):
     def check_scout(self, what: str) -> None:
         self.watcher.post("SCOUT", (what, self.ir))
 
+
+# get the "templates" directory, or raise "FileNotFoundError" if not found
+def get_templates_dir():
+    res_dir = None
+    try:
+        # this will fail when not in a distribution
+        res_dir = resource_filename(Requirement.parse("ambassador"), "templates")
+    except:
+        pass
+
+    maybe_dirs = [
+        res_dir,
+        os.path.join(os.path.dirname(__file__), "..", "templates")
+    ]
+    for d in maybe_dirs:
+        if d and os.path.isdir(d):
+            return d
+    raise FileNotFoundError
+
+
 # Get the Flask app defined early. Setup happens later.
-app = DiagApp(__name__,
-              template_folder=resource_filename(Requirement.parse("ambassador"), "templates"))
+app = DiagApp(__name__, template_folder=get_templates_dir())
 
 
 ######## DECORATORS

@@ -61,11 +61,12 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
-## [1.1.0-rc.0] January 24, 2020
-[1.1.0-rc.0]: https://github.com/datawire/ambassador/compare/v1.0.0...v1.1.0-rc.0
+## [1.1.0] January 28, 2020
+[1.1.0]: https://github.com/datawire/ambassador/compare/v1.0.0...v1.1.0
 
-Note that we're now using "-rc.N" rather than just "-rcN", for better compliance with
-[SemVer](https://www.semver.org/).
+(Note that Ambassador 1.1.0 is identical to Ambassador 1.1.0-rc.0, from January 24, 2020.
+ Also, we're now using "-rc.N" rather than just "-rcN", for better compliance with
+ [SemVer](https://www.semver.org/).
 
 ### Ambassador API Gateway + Ambassador Edge Stack
 

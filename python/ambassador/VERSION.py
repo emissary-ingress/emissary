@@ -15,8 +15,15 @@
 import os
 from typing import NamedTuple
 
-with open(os.path.join(os.path.dirname(__file__), "..", "ambassador.version")) as version:
-    exec(version.read())
+try:
+    with open(os.path.join(os.path.dirname(__file__), "..", "ambassador.version")) as version:
+        exec(version.read())
+except FileNotFoundError:
+    BUILD_VERSION = "dirty"
+    GIT_COMMIT = "dirty"
+    GIT_BRANCH = "master"
+    GIT_DIRTY = True
+    GIT_DESCRIPTION = "dirty"
 
 class GitInfo(NamedTuple):
     commit: str
