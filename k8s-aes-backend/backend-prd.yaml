@@ -15,27 +15,26 @@ metadata:
       apiVersion: ambassador/v1
       kind: Mapping
       name: aes-backend-signup-beta
-      ambassador_id: metriton-beta
+      ambassador_id: metriton
       prefix: /beta/signup
       rewrite: /signup
       service: aes-backend-beta
       ---
       apiVersion: ambassador/v1
       kind: Mapping
-      ambassador_id: metriton-beta
+      ambassador_id: metriton
       prefix: /beta/downloads
       rewrite: /downloads
-      name: aes-backend-beta
+      name: aes-backend-download-beta
       service: aes-backend-beta
       ---
       apiVersion: ambassador/v1
       kind: Mapping
-      ambassador_id: metriton-beta
+      ambassador_id: metriton
       prefix: /beta/register-domain
       rewrite: /register-domain
-      name: aes-backend-beta
+      name: aes-backend-domain-beta
       service: aes-backend-beta
-
       ---
       apiVersion: ambassador/v1
       kind: Mapping
@@ -50,7 +49,7 @@ metadata:
       ambassador_id: metriton
       prefix: /downloads
       rewrite: /downloads
-      name: aes-backend
+      name: aes-backend-download
       service: aes-backend
 spec:
   type: ClusterIP
