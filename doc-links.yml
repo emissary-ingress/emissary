@@ -19,15 +19,17 @@
     - title: Upgrade to the Ambassador Edge Stack
       link: /user-guide/upgrade-to-edge-stack
     - title: Upgrade to a Newer Version
-      link: /reference/upgrading  
+      link: /reference/upgrading
+    - title: Install the Ambassador API Gateway
+      link: /user-guide/install-ambassador-oss    
     - title: Install with Helm
       link: /user-guide/helm
     - title: Install with Docker
       link: /about/quickstart
     - title: Install with Bare Metal
       link: /user-guide/bare-metal
-    - title: Install the Ambassador API Gateway
-      link: /user-guide/install-ambassador-oss  
+    - title: Install Manually
+      link: /user-guide/manual-install  
     - title: Early Access Releases
       link: /user-guide/early-access
 
