@@ -6,11 +6,11 @@ This section is intended for operators running the Ambassador Edge Stack, and co
 
 The Ambassador Edge Stack relies on Kubernetes for reliability, availability, and scalability. This means that features such as Kubernetes readiness and liveness probes, rolling updates, and the Horizontal Pod Autoscaling should be utilized to manage the Ambassador Edge Stack.
 
-## Default configuration
+## Default Configuration
 
 The default configuration of the Ambassador Edge Stack includes default [resource limits](https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/#resource-requests-and-limits-of-pod-and-container), as well as [readiness and liveness probes](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/). These values should be adjusted for your specific environment.
 
-## Running as non-root
+## Running as Non-root
 
 Starting with Ambassador 0.35, we support running the Ambassador Edge Stack as non-root. This is the recommended configuration, and will be the default configuration in future releases. We recommend you configure the Ambassador Edge Stack to run as non-root as follows:
 
@@ -47,12 +47,9 @@ spec:
 
 * If you are using `redirect_cleartext_from`, change the value of this field to point to your cleartext port (e.g., 8080) and set `service_port` to be your TLS port (e.g., 8443).
 
-## Changing the configuration directory
+## Changing the Configuration Directory
 
-While running, Ambassador needs to use a directory within its container for generated configuration data. 
-Normally this is `/ambassador`, but in some situations - especially if running as non-root - it may be necessary to
-change to a different directory. To do so, set the environment variable `AMBASSADOR_CONFIG_BASE_DIR` to the full 
-path name of the directory to use, as shown below in this abbreviated example:
+While running, Ambassador needs to use a directory within its container for generated configuration data. Normally this is `/ambassador`, but in some situations - especially if running as non-root - it may be necessary to change to a different directory. To do so, set the environment variable `AMBASSADOR_CONFIG_BASE_DIR` to the full path name of the directory to use, as shown below in this abbreviated example:
 
 ```yaml
 env:
@@ -60,15 +57,13 @@ env:
   value: /tmp/ambassador-config
 ```
 
-With `AMBASSADOR_CONFIG_BASE_DIR` set as above, Ambassador will create and use the directory `/tmp/ambassador-config`
-for its generated data. (Note that, while the directory will be created if it does not exist, attempts to turn an
-existing file into a directory will fail.)
+With `AMBASSADOR_CONFIG_BASE_DIR` set as above, Ambassador will create and use the directory `/tmp/ambassador-config` for its generated data. (Note that, while the directory will be created if it does not exist, attempts to turn an existing file into a directory will fail.)
 
-## Running as daemonset
+## Running as `daemonset`
 
-Ambassador can be deployed as daemonset to have one pod per node in a Kubernetes cluster. This setup is especially helpful when you have a Kubernetes cluster running on a private cloud.
+Ambassador can be deployed as `daemonset` to have one pod per node in a Kubernetes cluster. This setup is especially helpful when you have a Kubernetes cluster running on a private cloud.
 
-* In an ideal example scenario, you are running containers on Kubernetes alongside with your non containerized applications running exposed via VIP using BIG-IP or similar products. In such cases, east-west traffic is routed based on iRules to certain a set of application pools consisting of application or web servers. In this setup, alongside of a traditonal application servers, two or more Ambassador pods can also be part of the application pools. In case of failure there is at least one Ambassador pod available to BIG-IP that can take care of routing traffic to the Kubernetes cluster.
+* In an ideal example scenario, you are running containers on Kubernetes alongside with your non-containerized applications running exposed via VIP using BIG-IP or similar products. In such cases, east-west traffic is routed based on iRules to certain a set of application pools consisting of application or web servers. In this setup, alongside traditional application servers, two or more Ambassador pods can also be part of the application pools. In case of failure, there is at least one Ambassador pod available to BIG-IP that can take care of routing traffic to the Kubernetes cluster.
 
 * In manifest files `kind: Deployment` needs to be updated to `kind: DaemonSet`  and  `replicas` should be removed in `spec` section.
 
@@ -98,7 +93,7 @@ env:
   value: "true"
 ```
 
-With the Ambassador Edge Stack, if you set `AMBASSADOR_NAMESPACE` or `AMBASSADOR_SINGLE_NAMESPACE`, set it in deployment container. 
+With the Ambassador Edge Stack, if you set `AMBASSADOR_NAMESPACE` or `AMBASSADOR_SINGLE_NAMESPACE`, set it in deployment container.
 
 ## `AMBASSADOR_ID`
 
@@ -165,7 +160,7 @@ spec:
   service: demo4
 ```
 
-The list syntax (shown in `mapping-used-2` above) permits including a given object in the configuration for multiple Ambassador instances. In this case `mapping-used-2` will be included in the configuration for `ambassador-1` and also for `ambassador-2`.
+The list syntax (shown in `mapping-used-2` above) permits including a given object in the configuration for multiple Ambassador instances. In this case, `mapping-used-2` will be included in the configuration for `ambassador-1` and also for `ambassador-2`.
 
 **Note well that _any_ object can and should have an `ambassador_id` included** so, for example, it is _fully supported_ to use `ambassador_id` to qualify the `ambassador Module`, `TLS`, and `AuthService` objects. You will need to set Ambassador_id in all resources you want to use for the Ambassador Edge Stack.
 
@@ -175,7 +170,7 @@ If no `AMBASSADOR_ID` is assigned to an Ambassador Edge Stack, it will use the I
 
 By default, the Ambassador Edge Stack will verify the TLS certificates provided by the Kubernetes API. In some situations, the cluster may be deployed with self-signed certificates. In this case, set `AMBASSADOR_VERIFY_SSL_FALSE` to `true` to disable verifying the TLS certificates.
 
-## Configuration From the Filesystem
+## Configuration from the Filesystem
 
 If desired, the Ambassador Edge Stack can be configured from YAML files in the directory `$AMBASSADOR_CONFIG_BASE_DIR/ambassador-config` (by default, `/ambassador/ambassador-config`, which is empty in the images built by Datawire). You could volume mount an external configuration directory here, for example, or use a custom Dockerfile to build configuration directly into a Docker image.
 
@@ -183,7 +178,7 @@ Note well that while the Ambassador Edge Stack will read its initial configurati
 
 Also note that the YAML files in the configuration directory must contain the Ambassador Edge Stack resources, not Kubernetes resources with annotations.
 
-## Log levels and debugging
+## Log Levels and Debugging
 
 The Ambassador API Gateway and the Ambassador Edge Stack support more verbose debugging levels. If using the Ambassador API Gateway, the [diagnostics](../diagnostics) service has a button to enable debug logging. Be aware that if you're running Ambassador on multiple pods, the debug log levels are not enabled for all pods -- they are configured on a per-pod basis.
 
@@ -197,10 +192,9 @@ The Ambassador Edge Stack uses some TCP ports in the range 8000-8499 internally,
 
 The Ambassador Edge Stack integrates Scout, a service that periodically checks with Datawire servers to advise of available updates. Scout also sends anonymized usage data and the Ambassador Edge Stack version. This information is important to us as we prioritize test coverage, bug fixes, and feature development. Note that the Ambassador Edge Stack will run regardless of the status of Scout (i.e., our uptime has zero impact on your uptime.)
 
-We do not recommend you disable Scout, since we use this mechanism to notify users of new releases (including critical fixes and security issues). This check can be disabled by setting the environment
-variable `SCOUT_DISABLE` to `1` in your Ambassador Edge Stack deployment.
+We do not recommend you disable Scout, since we use this mechanism to notify users of new releases (including critical fixes and security issues). This check can be disabled by setting the environment variable `SCOUT_DISABLE` to `1` in your Ambassador Edge Stack deployment.
   
-Each Ambassador Edge Stack installation generates a unique cluster ID based on the UID of its Kubernetes namespace and its Ambassador Edge Stack ID: the resulting cluster ID is a UUID which cannot be used to reveal the namespace name nor Ambassador Edge Stack ID itself. Ambassador Edge Stack needs RBAC permission to get namespaces for this purpose, as shown in the  default YAML files provided by Datawire; if not granted this permission it will generate a UUID based only on the Ambassador Edge Stack ID. To disable cluster ID generation entirely, set the environment variable `AMBASSADOR_CLUSTER_ID` to a UUID that will be used for the cluster ID.
+Each Ambassador Edge Stack installation generates a unique cluster ID based on the UID of its Kubernetes namespace and its Ambassador Edge Stack ID: the resulting cluster ID is a UUID which cannot be used to reveal the namespace name nor Ambassador Edge Stack ID itself. Ambassador Edge Stack needs RBAC permission to get namespaces for this purpose, as shown in the default YAML files provided by Datawire; if not granted this permission it will generate a UUID based only on the Ambassador Edge Stack ID. To disable cluster ID generation entirely, set the environment variable `AMBASSADOR_CLUSTER_ID` to a UUID that will be used for the cluster ID.
 
 Unless disabled, the Ambassador Edge Stack will also report the following anonymized information back to Datawire:
 
@@ -260,7 +254,7 @@ Unless disabled, the Ambassador Edge Stack will also report the following anonym
 | `request_hr_elapsed` | string | human-readable version of `request_elapsed` (e.g. "3 hours 35 minutes 20 seconds" | 
 | `request_ok_count` | int | lower bound for how many requests have succeeded (not a 4xx or 5xx) | 
 | `request_total_count` | int | lower bound for how many requests were handled in total | 
-| `statsd` | bool | is statsd enabled? |
+| `statsd` | bool | is StatsD enabled? |
 | `server_name` | bool | is the `server_name` response header overridden? |
 | `service_resource_total` | int | total count of service resources loaded from all discovery sources | 
 | `tls_origination_count` | int | count of TLS origination contexts |

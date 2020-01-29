@@ -2,7 +2,7 @@
 
 Ambassador Edge Stack is designed so that the author of a given Kubernetes service can easily and flexibly configure how traffic gets routed to the service. The core abstraction used to support service authors is a `mapping`, which can apply to HTTP, GRPC, and Websockets at layer 7 via a `Mapping` resource, or to raw TCP connections at layer 4 via a `TCPMapping`.
 
-Ambassador Edge Stack _must_ have one or more mappings defined to provide access to any services at all. The name of the mapping must be unique. 
+Ambassador Edge Stack _must_ have one or more mappings defined to provide access to any services at all. The name of the mapping must be unique.
 
 ## Mapping Configuration
 
@@ -71,7 +71,7 @@ These attributes are less commonly used, but can be used to override Ambassador 
 
 If no `method` is given, the Mapping will apply to all HTTP `methods`.
 
-## Mapping resources and CRDs
+## Mapping Resources and CRDs
 
 Mapping resources can be defined as annotations on Kubernetes services or as independent custom resource definitions.
 
@@ -148,7 +148,7 @@ https://ambassador.example.com/resource1/baz/zing
 https://ambassador.example.com/resource1/baz/zung
 ```
 
-all share the `/resource1/` path prefix, so can be considered a single resource. On the other hand:
+all share the `/resource1/` path prefix, so it can be considered a single resource. On the other hand:
 
 ```shell
 https://ambassador.example.com/resource1/foo
@@ -209,7 +209,7 @@ Each mapping can also specify, among other things:
 
 ## Mapping Evaluation Order
 
-Ambassador Edge Stack sorts mappings such that those that are more highly constrained are evaluated before those less highly constrained. The prefix length, the request method and the constraint headers are all taken into account.
+Ambassador Edge Stack sorts mappings such that those that are more highly constrained are evaluated before those less highly constrained. The prefix length, the request method, and the constraint headers are all taken into account.
 
 If absolutely necessary, you can manually set a `precedence` on the mapping (see below). In general, you should not need to use this feature unless you're using the `regex_headers` or `host_regex` matching features. If there's any question about how Ambassador Edge Stack is ordering rules, the diagnostic service is a good first place to look: the order in which mappings appear in the diagnostic service is the order in which they are evaluated.
 
@@ -232,7 +232,7 @@ spec:
 
 ### Using `precedence`
 
-Ambassador Edge Stack sorts mappings such that those that are more highly constrained are evaluated before those less highly constrained. The prefix length, the request method and the constraint headers are all taken into account. These mechanisms, however, may not be sufficient to guarantee the correct ordering when regular expressions or highly complex constraints are in play.
+Ambassador Edge Stack sorts mappings such that those that are more highly constrained are evaluated before those less highly constrained. The prefix length, the request method, and the constraint headers are all taken into account. These mechanisms, however, may not be sufficient to guarantee the correct ordering when regular expressions or highly complex constraints are in play.
 
 For those situations, a `Mapping` can explicitly specify the `precedence`. A `Mapping` with no `precedence` is assumed to have a `precedence` of 0; the higher the `precedence` value, the earlier the `Mapping` is attempted.
 

@@ -107,7 +107,7 @@ The terminal will print something similar to the following:
 You can examine the contents of the Ambassador Pod for issues, such as if volume mounts are correct and TLS certificates are present in the required directory, to determine if the Pod has the latest Ambassador configuration, or if the generated Envoy configuration is correct or as expected. In these instructions, we will look for problems related to the Envoy configuration.
 
 1. To look into an Ambassador Pod, use the container shell with the `kube-exec` and the `/bin/sh` commands. For example, `kubectl exec -it -n ambassador <ambassador-pod-name> -- /bin/sh`
-2. Determine the latest configuration. If you haven't overridden the configuration directory, the latest configuration will be in `/ambassador/snapshots`. If you have overridden it, Ambassador saves  configurations in `$AMBASSADOR_CONFIG_BASE_DIR/snapshots`.
+2. Determine the latest configuration. If you haven't overridden the configuration directory, the latest configuration will be in `/ambassador/snapshots`. If you have overridden it, Ambassador saves configurations in `$AMBASSADOR_CONFIG_BASE_DIR/snapshots`.
 
     In the snapshots directory:
 
