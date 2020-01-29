@@ -20,7 +20,7 @@ Instead of above, you can do:
 make aes-rc-now
 ```
 
-### If you made changes to the `apictl-key serve` command, then:
+### If you made changes to the `apictl-key serve-aes-backend` command, then:
 
 1. To build and push a new aes backend, run:
 

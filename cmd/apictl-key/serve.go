@@ -90,7 +90,8 @@ func (p *HubspotUsageProbe) Check() bool {
 func init() {
 	create := &cobra.Command{
 		Use:   "serve-aes-backend",
-		Short: "Start the AES-backend server, allowing for registering license keys using the hubspot workflow; generating *.edgestack.me domain names; and more",
+		Short: "Start the AES-backend server",
+		Long:  "Start the AES-backend server, allowing for registering license keys using the hubspot workflow; generating *.edgestack.me domain names; and more",
 	}
 
 	logrusFormatter := &logrus.TextFormatter{
