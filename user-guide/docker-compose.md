@@ -35,7 +35,7 @@ services:
     - AMBASSADOR_NO_KUBEWATCH=no_kubewatch
 ```
 
-Note the mounted volume. When Ambassador bootstraps on container startup it checks the `/ambassador/ambassador-config` directory for configuration files. We will use this behavior to configure ambassador.
+Note the mounted volume. When Ambassador bootstraps on container startup it checks the `/ambassador/ambassador-config` directory for configuration files. We will use this behavior to configure Ambassador.
 
 Note also the `AMBASSADOR_NO_KUBEWATCH` environment variable. Without this, Ambassador will try to use the Kubernetes API to watch for service changes, which won't work in Docker.
 
@@ -44,14 +44,14 @@ Note also the `AMBASSADOR_NO_KUBEWATCH` environment variable. Without this, Amba
 Ambassador will interpret a total absence of configuration information as meaning that it should wait for dynamic configuration, so we'll give it a bare-bones configuration to get started.
 
 Create a `config` folder (which must match the mounted volume in the `docker-compose.yaml` file) and add a file called `ambassador.yaml` to the directory.
-(Note: Configuration files can have any name or combined into the same yaml file)
+(Note: Configuration files can have any name or combined into the same YAML file)
 
 ```bash
 mkdir config
 touch config/ambassador.yaml
 ```
 
-Set the contents of the `config/ambassador.yaml` to this yaml configuration:
+Set the contents of the `config/ambassador.yaml` to this YAML configuration:
 
 ```yaml
 ---
@@ -87,7 +87,7 @@ x-envoy-upstream-service-time: 10
 
 Let's turn off the diagnostics page to demonstrate how we will enable and configure Ambassador.
 
-Edit the contents of the `config/ambassador.yaml` to this yaml configuration:
+Edit the contents of the `config/ambassador.yaml` to this YAML configuration:
 
 ```yaml
 ---
@@ -100,7 +100,7 @@ config:
     enabled: false
 ```
 
-Now restart ambassador and test the diagnostics endpoint to ensure our configuration is in use:
+Now restart Ambassador and test the diagnostics endpoint to ensure our configuration is in use:
 
 ```bash
 # restart the container to pick up new configuration settings
@@ -134,7 +134,7 @@ service: httpbin.org
 host_rewrite: httpbin.org   
 ```
 
-Once again, restart ambassador and test the new mapping:
+Once again, restart Ambassador and test the new mapping:
 
 ```bash
 # restart the container to pick up new configuration settings
@@ -219,7 +219,7 @@ Go to `http://localhost:8080/` in your browser and see the tour-ui application.
 
 ## 4. Add Authentication
 
-The authentication module can be used to verify the identity and other security concerns at the entrypoint to the docker-compose cluster.
+The authentication module can be used to verify the identity and other security concerns at the entry point to the docker-compose cluster.
 
 We will use the `datawire/ambassador-auth-service` container as an example.
 
@@ -413,4 +413,4 @@ In a browser you can go to `http://localhost:16686/` and search for traces. To m
 
 ## Next Steps
 
-We have demonstrated that all the configurations that would normally be stored in kubernetes annotations can be saved as a yaml document in a volume mapped to `/ambassador/ambassador-config` within the Ambassador docker container. Hopefully this guide can be used to test new configurations locally before moving to a Kubernetes cluster. Of course, there will be differences between docker-compose and the Kubernetes implementation and one should be sure to test thoroughly in the latter before moving to production.
+We have demonstrated that all the configurations that would normally be stored in Kubernetes annotations can be saved as a YAML document in a volume mapped to `/ambassador/ambassador-config` within the Ambassador docker container. Hopefully this guide can be used to test new configurations locally before moving to a Kubernetes cluster. Of course, there will be differences between docker-compose and the Kubernetes implementation and one should be sure to test thoroughly in the latter before moving to production.

@@ -110,7 +110,7 @@ spec:
     app: productpage
 ```
 
-The annotation above implements an Ambassador Edge Stack mapping from the '/productpage/' URI to the Kubernetes productpage service running on port 9080 ('productpage:9080'). The 'prefix' mapping URI is taken from the context of the root of your Ambassador Edge Stack service that is acting as the ingress point (exposed externally via port 80 because it is a LoadBalancer) e.g. '35.224.41.XX/productpage/'.
+The annotation above implements an Ambassador Edge Stack mapping from the `/productpage/` URI to the Kubernetes productpage service running on port 9080 ('productpage:9080'). The 'prefix' mapping URI is taken from the context of the root of your Ambassador Edge Stack service that is acting as the ingress point (exposed externally via port 80 because it is a LoadBalancer) e.g. '35.224.41.XX/productpage/'.
 
 You can now apply this manifest from the root of the Istio GitHub repo on your local file system (taking care to wrap the apply with `istioctl kube-inject`):
 
