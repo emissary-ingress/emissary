@@ -65,7 +65,7 @@ Istio creates and stores its TLS certificates in a form that Ambassador Edge Sta
      tls: istio-upstream
    ```
 
-Ambassador Edge Stack will now use the certificate stored in the `istio.default` secret to originate TLS to istio-powered services. See the [Ambassador Edge Stack with Istio](../../../user-guide/with-istio#istio-mutual-tls) documentation for an example with more information.
+Ambassador Edge Stack will now use the certificate stored in the `istio.default` secret to originate TLS to Istio-powered services. See the [Ambassador Edge Stack with Istio](../../../user-guide/with-istio#istio-mutual-tls) documentation for an example with more information.
 
 ## Consul mTLS
 

@@ -91,7 +91,7 @@ The following fields are only used if `proto: http`; they are ignored if `proto:
 
  - `path_prefix` (optional) prepends a string to the request path of the request when sending it to the external auth service.  By default this is empty, and nothing is prepended.  For example, if the client makes a request to `/foo`, and `path_prefix: /bar`, then the path in the request made to the external auth service will be `/foo/bar`.
 
- - `allowed_request_headers` (optional) lists headers that will be sent copied from the incoming request to the request made to the external auth service (case-insensitive).  In addition to the headers listed in this field, the following headers are always included:
+ - `allowed_request_headers` (optional) lists the headers that will be sent copied from the incoming request to the request made to the external auth service (case-insensitive).  In addition to the headers listed in this field, the following headers are always included:
     * `Authorization`
     * `Cookie`
     * `From`
@@ -101,7 +101,7 @@ The following fields are only used if `proto: http`; they are ignored if `proto:
     * `X-Forwarded-Host`
     * `X-Forwarded-Proto`
 
- - `allowed_authorization_headers` (optional) lists headers that will be copied from the response from the external auth service to the request sent to the upstream backend service (if the external auth service indicates that the request to the upstream backend service should be allowed).  In addition to the headers listed in this field, the following headers are always included:
+ - `allowed_authorization_headers` (optional) lists the headers that will be copied from the response from the external auth service to the request sent to the upstream backend service (if the external auth service indicates that the request to the upstream backend service should be allowed).  In addition to the headers listed in this field, the following headers are always included:
     * `Authorization`
     * `Location`
     * `Proxy-Authenticate`
@@ -223,7 +223,7 @@ spec:
         - "scope-value-2"
 ```
 
- - `scope`: A list of OAuth scope values required to be listed in the [`scope` claim][].  In addition to the normal of the `scope` claim (a JSON string containing a space-separated list of values), the JWT Filter also accepts a JSON array of values.
+ - `scope`: A list of OAuth scope values that Ambassador will require to be listed in the [`scope` claim][].  In addition to the normal of the `scope` claim (a JSON string containing a space-separated list of values), the JWT Filter also accepts a JSON array of values.
 
 [`scope` claim]: https://tools.ietf.org/html/draft-ietf-oauth-token-exchange-19#section-4.2
 
@@ -375,12 +375,9 @@ General settings:
  - `accessTokenValidation`: How to verify the liveness and scope of Access Tokens issued by the identity provider.  Valid values are either `"auto"`, `"jwt"`, or `"userinfo"`.  Empty or unset is equivalent to `"auto"`.
    * `"jwt"`: Validates the Access Token as a JWT.
      + By default: It accepts the RS256, RS384, or RS512 signature algorithms, and validates the signature against the JWKS from OIDC Discovery.  It then validates the `exp`, `iat`, `nbf`, `iss` (with the Issuer from OIDC Discovery), and `scope` claims: if present, none of the scopes are required to be present.  This relies on the identity provider using non-encrypted signed JWTs as Access Tokens, and configuring the signing appropriately
-	 + This behavior can be modified by delegating to [`JWT` Filter](#filter-type-jwt) with `accessTokenJWTFilter`. The arguments are the same as the arguments when rerferring to a JWT Filter from a FilterPolicy.
-   * `"userinfo"`: Validates the access token by polling the OIDC UserInfo Endpoint. This means that the Ambassador Edge Stack
-     must initiate an HTTP request to the identity provider for each authorized request to a protected resource.  This performs
-     poorly, but functions properly with a wider range of identity providers.  It is not valid to set `accessTokenJWTFilter` if `accessTokenValidation: userinfo`.
-   * `"auto"` attempts to do `"jwt"` validation if `accessTokenJWTFilter` is set or if the Access Token parses as a
-     JWT and the signature is valid, and otherwise falls back to`"userinfo"` validation.
+	 + This behavior can be modified by delegating to [`JWT` Filter](#filter-type-jwt) with `accessTokenJWTFilter`. The arguments are the same as the arguments when referring to a JWT Filter from a FilterPolicy.
+   * `"userinfo"`: Validates the access token by polling the OIDC UserInfo Endpoint. This means that the Ambassador Edge Stack must initiate an HTTP request to the identity provider for each authorized request to a protected resource.  This performs poorly, but functions properly with a wider range of identity providers.  It is not valid to set `accessTokenJWTFilter` if `accessTokenValidation: userinfo`.
+   * `"auto"` attempts to do `"jwt"` validation if `accessTokenJWTFilter` is set or if the Access Token parses as a JWT and the signature is valid, and otherwise falls back to `"userinfo"` validation.
 
 Settings that are only valid when `grantType: "AuthorizationCode"`:
 
@@ -396,12 +393,11 @@ Settings that are only valid when `grantType: "AuthorizationCode"`:
 
 HTTP client settings for talking to the identity provider:
 
- - `maxStale`: How long to keep stale cached OIDC replies for. This sets the `max-stale` Cache-Control directive on requests, and also ignores the `no-store` and `no-cache` Cache-Control directives on responses.  This is useful for maintaining good performance when working with identity providers with mis-configured Cache-Control.
- - `insecureTLS` disables TLS verification when speaking to an identity provider with an `https://` `authorizationURL`.  This is
-   discouraged in favor of either using plain `http://` or [installing a self-signed certificate](#installing-self-signed-certificates).
+ - `maxStale`: How long to keep stale cached OIDC replies for. This sets the `max-stale` Cache-Control directive on requests, and also ignores the `no-store` and `no-cache` Cache-Control directives on responses.  This is useful for maintaining good performance when working with identity providers with misconfigured Cache-Control.
+ - `insecureTLS` disables TLS verification when speaking to an identity provider with an `https://` `authorizationURL`.  This is discouraged in favor of either using plain `http://` or [installing a self-signed certificate](#installing-self-signed-certificates).
  - `renegotiateTLS` allows a remote server to request TLS renegotiation.  Accepted values are "never", "onceAsClient", and "freelyAsClient".
 
-`"duration-string"` strings are parsed as a sequence of decimal numbers, each with optional fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m". Valid time units are "ns", "us" (or"µs"), "ms", "s", "m", "h".  See [Go `time.ParseDuration`](https://golang.org/pkg/time/#ParseDuration).
+`"duration-string"` strings are parsed as a sequence of decimal numbers, each with optional fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m". Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".  See [Go `time.ParseDuration`](https://golang.org/pkg/time/#ParseDuration).
 
 #### `OAuth2` Path-Specific Arguments
 
@@ -539,8 +535,7 @@ When multiple `Filter`s are specified in a rule:
  * Each filter may either
    1. return a direct HTTP *response*, intended to be sent back to the requesting HTTP client (normally *denying* the request from
       being forwarded to the upstream service); or
-   2. return a modification to make to the HTTP *request* before sending it to other filters or the upstream service (normally
-      *allowing* the request to be forwarded to the upstream service with modifications).
+   2. return a modification to make to the HTTP *request* before sending it to other filters or the upstream service (normally *allowing* the request to be forwarded to the upstream service with modifications).
  * If a filter has an `ifRequestHeader` setting, the filter is skipped unless the request (including any modifications made by earlier filters) matches the described header; the request must have the HTTP header field `name` (case-insensitive) set to `value` (case-sensitive); or have `name` set to any non-empty string if `value` is unset.
  * `onDeny` identifies what to do when the filter returns an "HTTP response":
    - `"break"`: End processing, and return the response directly to

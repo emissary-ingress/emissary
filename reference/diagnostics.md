@@ -13,7 +13,7 @@ Some of the most important information (your Ambassador Edge Stack version, how 
 
 ## Health Status
 
-Ambassador Edge Stack displays the health of your services on the Dashboard of your Edge Policy Console. Health is computed as successful requests / total requests and expressed as a percentage. The total requests come from Envoy `upstream_rq_pending_total` stat. Successful requests are calculated by substracting `upstream_rq_4xx` and `upstream_rq_5xx` from the total.
+Ambassador Edge Stack displays the health of your services on the Dashboard of your Edge Policy Console. Health is computed as successful requests / total requests and expressed as a percentage. The "total requests" comes from Envoy `upstream_rq_pending_total` stat. "Successful requests" is calculated by substracting `upstream_rq_4xx` and `upstream_rq_5xx` from the total.
 
 * Red is used when the success rate ranges from 0% - 70%.
 * Yellow is used when the success rate ranges from 70% - 90%.
