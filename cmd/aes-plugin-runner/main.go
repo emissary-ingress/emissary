@@ -62,7 +62,7 @@ func main() {
 Copyright 2019 Datawire. All rights reserved.
 
 Information about open source code used in this executable is found at
-<https://s3.amazonaws.com/datawire-static-files/{{.Name}}/{{.Version}}/{{.GOOS}/{{.GOARCH}/{{.Name}}.opensource.tar.gz>.
+<https://s3.amazonaws.com/datawire-static-files/{{.Name}}/{{.Version}}/{{.GOOS}}/{{.GOARCH}}/{{.Name}}.opensource.tar.gz>.
 
 Information about open source code used in the Docker image used by
 '--docker' is found in the '/{{.Name}}.opensource.tar.gz' file in
