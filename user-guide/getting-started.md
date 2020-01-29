@@ -16,73 +16,56 @@ The Ambassador Edge Stack is designed to run in Kubernetes for production. The m
 
 The Ambassador Edge Stack is typically deployed to Kubernetes from the command line. If you don't have Kubernetes, you should use our [Docker](../../about/quickstart) to deploy the Ambassador Edge Stack locally.
 
+When you install Edge Control to manage your Edge Stack, it will:
+* Obtain a TLS certificate
+* Configure automatic TLS and HTTPS
+* Generate a domain name for you to access your Edge Policy Console and complete advanced configuration
 
-1. In your terminal, run the following command:
+**To get started:**
+1. Install Edge Control for your operating system: <link>
+2. Open your terminal and run the following command: `edgectl install`
+3. Provide an email address so you can be notified before your domain and certificate expire.
+  Your terminal will print something similar to the following:
 
-    ```bash
-    kubectl apply -f https://www.getambassador.io/yaml/aes-crds.yaml && \
-    kubectl wait --for condition=established --timeout=90s crd -lproduct=aes && \
-    kubectl apply -f https://www.getambassador.io/yaml/aes.yaml && \
-    kubectl -n ambassador wait --for condition=available --timeout=90s deploy -lproduct=aes
-    ```
+  ```shell
+  $ edgectl install
+  -> Installing the Ambassador Edge Stack 1.0.
+  -> Remote Kubernetes cluster detected.
+  -> Provisioning a cloud load balancer. (This may take a minute, depending on your cloud provider.)
+  -> Automatically configuring TLS.
+  Please enter an email address. We’ll use this email address to notify you prior to domain and certification expiration [None]: john@example.com.
+  -> Obtaining a TLS certificate from Let’s Encrypt.
 
-2. Determine the IP address of your cluster by running the following command:
+  Congratulations, you’ve successfully installed the Ambassador Edge Stack in your Kubernetes cluster. Visit https://random-word-3421.edgestack.me to access your Edge Stack installation and for additional configuration.
+  ```
 
-    ```bash
-    kubectl get -n ambassador service ambassador -o 'go-template={{range .status.loadBalancer.ingress}}{{print .ip "\n"}}{{end}}'
-    ```
+Your new [Edge Policy Console](/about/edge-policy-console) will open automatically in your browser at the provided link.
 
-    Your load balancer may take several minutes to provision your IP address. Repeat the provided command until you get an IP address.
+### Minikube Users
 
-    Note: If you are a **Minikube user**, Minikube does not natively support load balancers. Instead, use `minikube service list`. You should see something similar to the following:
+If you're a Minikube user, Edge Control will not be able to provide a domain name. However, you will still be given an IP address to access the Edge Policy Console.
 
-    ```bash
-    (⎈ |minikube:ambassador)$ minikube service list
-    |-------------|------------------|--------------------------------|
-    |  NAMESPACE  |       NAME       |              URL               |
-    |-------------|------------------|--------------------------------|
-    | ambassador  | ambassador       | http://192.168.64.2:31230      |
-    |             |                  | http://192.168.64.2:31042      |
-    | ambassador  | ambassador-admin | No node port                   |
-    | ambassador  | ambassador-redis | No node port                   |
-    | default     | kubernetes       | No node port                   |
-    | kube-system | kube-dns         | No node port                   |
-    |-------------|------------------|--------------------------------|
-    ```
+Edge Control will automatically configure TLS **if your cluster is publicly accessible.**
 
-    Use any of the URLs listed next to `ambassador` to access the Ambassador Edge Stack.
+**To get started:**
 
-3. Navigate to `http://<your-IP-address>` and click through the certificate warning for access the Edge Policy Console interface. The certificate warning appears because, by default, the Ambassador Edge Stack uses a self-signed certificate for HTTPS.
-    * Chrome users should click **Advanced > Proceed to website**.
-    * Safari users should click **Show details > visit the website** and provide your password.
+1. Ensure your cluster is publicly accessible by following <url to documentation page about how to make your cluster publicly accessible following these directions: <url to documentation page about how to make your cluster publicly accessible>
+2. Run the command `edgectl install`. It will print something similar to the following:
 
-4. To login to the [Edge Policy Console](../../about/edge-policy-console), download and install `edgectl`, the command line tool Edge Control, by following the provided instructions on the page. The Console lists the correct command to run, and provides download links for the edgectl binary.
+```shell
+$ edgectl install
+-> Installing the Ambassador Edge Stack 1.0.
+-> Automatically configuring TLS.
+-> Cluster is not publicly accessible. Please ensure your cluster is publicly accessible if you would like to use automatic TLS. <url to documentation page about how to make your cluster publicly accessible>
 
-  The Edge Policy Console must authenticate your session using a Kubernetes Secret in your cluster. Edge Control accesses that secret using `kubectl`, then sends a URL to your browser that contains the corresponding session key. This extra step ensures that access to the Edge Policy Console is just as secure as access to your Kubernetes cluster.
+Congratulations, you’ve successfully installed the Ambassador Edge Stack in your Kubernetes cluster. Visit http://192.168.64.2:31334 to access your Edge Stack installation and for additional configuration.
+```
 
-  For more information, see [Edge Control](../../reference/edge-control).
 
-5. To access the Edge Policy Console going forward, you can access it using one of the following options:
-* `edgectl login -n <namespace> <AES_host>` or
-* `https://{{AES_URL}}/edge_stack/admin`
 
-## Configure TLS Termination and Automatic HTTPS
+Then, a browser window should open to the correct URL.
 
-**The Ambassador Edge Stack enables TLS termination by default using a self-signed certificate. See the [Host CRD](/reference/host-crd) for more information about disabling TLS.** If you have the ability to update your DNS, Ambassador can automatically configure a valid TLS certificate for you, eliminating the TLS warning. If you do not have the ability to update your DNS, skip to the next section, "Create a Mapping."
 
-1. Update your DNS so that your domain points to the IP address for your cluster. 
-
-2. In the Edge Policy Console, create a `Host` resource:
-   * On the "Hosts" tab, click the **Add** button on the right.
-   * Enter your hostname (domain) in the hostname field.
-   * Check the "Use ACME to manage TLS" box.
-   * Review the Terms of Service and check the box that you agree to the Terms of Service.
-   * Enter the email address to be associated with your TLS certificate.
-   * Click the **Save** button.
-  
-  You'll see the newly created `Host` resource appear in the UI with a status of "Pending." This will change to "Ready" once the certificate is fully provisioned. If you receive an error that your hostname does not qualify for ACME management, you can still configure TLS following [these instructions](../../reference/core/tls) or by reviewing configuration in the [Host CRD](/reference/host-crd).
-
-3. Once the Host is ready, navigate to `https://<hostname>` in your browser. Note that the certificate warning has gone away. In addition, the Ambassador Edge Stack automatically will redirect HTTP connections to HTTPS.
 
 ## Create a Mapping
 
@@ -90,7 +73,7 @@ In a typical configuration workflow, Custom Resource Definitions (CRDs) are used
 
 1. We'll start by deploying the `quote` service. Save the below configuration into a file named `quote.yaml`. This is a basic configuration that tells Kubernetes to deploy the `quote` container and create a Kubernetes `service` that points to the `quote` container.
 
-   ```
+   ```yaml
    ---
    apiVersion: v1
    kind: Service
@@ -132,7 +115,7 @@ In a typical configuration workflow, Custom Resource Definitions (CRDs) are used
 
 2. Deploy the `quote` service to the cluster by typing the command `kubectl apply -f quote.yaml`.
 
-3. Now, create a `Mapping` configuration that tells Ambassador to route all traffic from `/backend/` to the `quote` service. Copy the YAML and save to a file called `quote-backend.yaml`.
+3. Now, create a `Mapping` configuration that tells Ambassador to route all traffic from `/backend/` to the `quote` service. Copy the following YAML and save it to a file called `quote-backend.yaml`.
 
    ```
    ---
@@ -159,11 +142,13 @@ In a typical configuration workflow, Custom Resource Definitions (CRDs) are used
    }
    ```
 
-## A single source of configuration
+## A Single Source of Configuration
 
-1. In the Ambassador Edge Stack, Kubernetes serves as the single source of configuration. Changes made on the command line (via `kubectl`) are reflected in the UI, and vice versa. This enables a consistent configuration workflow. You can see this in action by navigating to the Mappings tab. You'll see an entry for the `quote-backend` Mapping that was just created on the command line.
+In the Ambassador Edge Stack, Kubernetes serves as the single source of configuration. Changes made on the command line (via `kubectl`) are reflected in the Edge Policy Console, and vice versa. This enables a consistent configuration workflow.
 
-2. If you configured TLS, you can type `kubectl get hosts` to see the `Host` resource that was created:
+1. To see this in action,  navigate to the **Mappings** tab. You'll see an entry for the `quote-backend` Mapping that was just created on the command line.
+
+2. Type `kubectl get hosts` to see the `Host` resource that was created:
 
    ```
    (⎈ |rdl-1:default)$ kubectl get hosts
@@ -177,7 +162,7 @@ The Quote service we just deployed publishes its API as a Swagger document. This
 
 1. In the Edge Policy Console, navigate to the **APIs** tab. You'll see the documentation there for internal use.
 
-2. Navigate to `https://<hostname>/docs/` or `https://<IP address>/docs/` to see the externally visible Developer Portal (make sure you include the trailing `/`). This is a fully customizable portal that you can share with third parties who need to information about your APIs. 
+2. Navigate to `https://<hostname>/docs/` or `https://<IP address>/docs/` to see the externally visible Developer Portal (make sure you include the trailing `/`). This is a fully customizable portal that you can share with third parties who need information about your APIs.
 
 ## What’s Next?
 
