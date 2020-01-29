@@ -456,7 +456,7 @@ export class Debugging extends LitElement {
             <dd>${this.diagd.loginfo.all}</dd>
           </dl>
           <div class="logDiv"><span class="logLabel">Set Log Level:</span>
-            <select class="logSelector" @change=${this.setLogLevel.bind(this)}>
+            <select class="logSelector" @change=${()=>{this.setLogLevel.bind(this)}}>
             ${this.logOptions.map(f => {
               return html`<option value="${f.value}.value}">${f.label}</option>`
             })}
