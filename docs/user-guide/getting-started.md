@@ -1,9 +1,15 @@
 ---
-    description: In this guide, we'll walk through the process of deploying Ambassador Edge Stack in Kubernetes for ingress routing.
+   description: In this guide, we'll walk through the process of deploying Ambassador Edge Stack in Kubernetes for ingress routing.
 ---
 # Quick Start Installation Guide
 
 In this guide, we'll walk you through installing and configuring the Ambassador Edge Stack in your Kubernetes cluster. Within a few minutes, your cluster will be routing HTTPS requests from the Internet to a backend service. You'll also have a sense of how the Ambassador Edge Stack is managed.
+
+Different options for installation include:
+Quick install (recommended!)
+Install via Minikube
+Install in CI 
+Manual Install
 
 ## Before You Begin
 
@@ -11,6 +17,7 @@ The Ambassador Edge Stack is designed to run in Kubernetes for production. The m
 
 * Kubernetes 1.11 or later
 * The `kubectl` command-line tool
+* Edge Control
 
 ## Install the Ambassador Edge Stack
 
@@ -27,21 +34,24 @@ When you install Edge Control to manage your Edge Stack, it will:
 1. Install Edge Control for your operating system: <link>
 2. Open your terminal and run the following command: `edgectl install`
 3. Provide an email address so you can be notified before your domain and certificate expire.
-  Your terminal will print something similar to the following:
 
-  ```shell
-  $ edgectl install
-  -> Installing the Ambassador Edge Stack 1.0.
-  -> Remote Kubernetes cluster detected.
-  -> Provisioning a cloud load balancer. (This may take a minute, depending on your cloud provider.)
-  -> Automatically configuring TLS.
-  Please enter an email address. We’ll use this email address to notify you prior to domain and certification expiration [None]: john@example.com.
-  -> Obtaining a TLS certificate from Let’s Encrypt.
+ ```shell
+ $ edgectl install
+ -> Installing the Ambassador Edge Stack 1.0.
+ -> Remote Kubernetes cluster detected.
+ -> Provisioning a cloud load balancer. (This may take a minute, depending on your cloud provider.)
+ -> Automatically configuring TLS.
+ Please enter an email address. We’ll use this email address to notify you prior to domain and certification expiration [None]: john@example.com.
+```
 
-  Congratulations, you’ve successfully installed the Ambassador Edge Stack in your Kubernetes cluster. Visit https://random-word-3421.edgestack.me to access your Edge Stack installation and for additional configuration.
-  ```
+4. Once you enter your email address, your terminal will print something similar to the following:
+```
+ -> Obtaining a TLS certificate from Let’s Encrypt.
 
-Your new [Edge Policy Console](/about/edge-policy-console) will open automatically in your browser at the provided link.
+ Congratulations, you’ve successfully installed the Ambassador Edge Stack in your Kubernetes cluster. Visit https://random-word-3421.edgestack.me to access your Edge Stack installation and for additional configuration.
+ ```
+
+Your new [Edge Policy Console](/about/edge-policy-console) will open automatically in your browser at the provided URL.
 
 ### Minikube Users
 
@@ -65,94 +75,106 @@ Congratulations, you’ve successfully installed the Ambassador Edge Stack in yo
 
 3. Your browser will automatically open to your newly provisioned URL.
 
+### Install in CI
+
+Installing the Ambassador Edge Stack in your Continuous Integration tool requires additional configuration. This method does not automatically configure TLS termination for you, and therefore not a domain name. However, these can still be achieved with the Host CRD.
+
+To install the Ambassador Edge Stack in CI, run the following command:
+
+```
+$ edgectl install --ci
+```
+
+You must then configure your own TLS certificate using the [Host CRD](/reference/host-crd). Read more about [Edge Control in CI](/reference/edge-control-in-ci).
+
 ## Create a Mapping
 
 In a typical configuration workflow, Custom Resource Definitions (CRDs) are used to define the intended behavior of Ambassador Edge Stack. In this example, we'll deploy a sample service and create a `Mapping` resource. Mappings allow you to associate parts of your domain with different URLs, IP addresses, or prefixes.
 
 1. We'll start by deploying the `quote` service. Save the below configuration into a file named `quote.yaml`. This is a basic configuration that tells Kubernetes to deploy the `quote` container and create a Kubernetes `service` that points to the `quote` container.
 
-   ```yaml
-   ---
-   apiVersion: v1
-   kind: Service
-   metadata:
-     name: quote
-     namespace: ambassador
-   spec:
-     ports:
-     - name: http
-       port: 80
-       targetPort: 8080
-     selector:
-       app: quote
-   ---
-   apiVersion: apps/v1
-   kind: Deployment
-   metadata:
-     name: quote
-     namespace: ambassador
-   spec:
-     replicas: 1
-     selector:
-       matchLabels:
-         app: quote
-     strategy:
-       type: RollingUpdate
-     template:
-       metadata:
-         labels:
-           app: quote
-       spec:
-         containers:
-         - name: backend
-           image: quay.io/datawire/quote:0.2.7
-           ports:
-           - name: http
-             containerPort: 8080
-   ```
+  ```yaml
+  ---
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: quote
+    namespace: ambassador
+  spec:
+    ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+    selector:
+      app: quote
+  ---
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: quote
+    namespace: ambassador
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        app: quote
+    strategy:
+      type: RollingUpdate
+    template:
+      metadata:
+        labels:
+          app: quote
+      spec:
+        containers:
+        - name: backend
+          image: quay.io/datawire/quote:0.2.7
+          ports:
+          - name: http
+            containerPort: 8080
+  ```
 
 2. Deploy the `quote` service to the cluster by typing the command `kubectl apply -f quote.yaml`.
 
 3. Now, create a `Mapping` configuration that tells Ambassador to route all traffic from `/backend/` to the `quote` service. Copy the following YAML and save it to a file called `quote-backend.yaml`.
 
-   ```
-   ---
-   apiVersion: getambassador.io/v2
-   kind: Mapping
-   metadata:
-     name: quote-backend
-     namespace: ambassador
-   spec:
-     prefix: /backend/
-     service: quote
-   ```
+  ```yaml
+  ---
+  apiVersion: getambassador.io/v2
+  kind: Mapping
+  metadata:
+    name: quote-backend
+    namespace: ambassador
+  spec:
+    prefix: /backend/
+    service: quote
+  ```
 
 4. Apply the configuration to the cluster by typing the command `kubectl apply -f quote-backend.yaml`.
 
 5. Test the configuration by typing `curl -Lk https://<hostname>/backend/` or `curl -Lk https://<IP address>/backend/`. You should see something similar to the following:
 
-   ```
-   (⎈ |rdl-1:default)$ curl -Lk https://aes.ri.k36.net/backend/
-   {
-    "server": "idle-cranberry-8tbb6iks",
-    "quote": "Non-locality is the driver of truth. By summoning, we vibrate.",
-    "time": "2019-12-11T20:10:16.525471212Z"
-   }
-   ```
+  ```
+  (⎈ |rdl-1:default)$ curl -Lk https://aes.ri.k36.net/backend/
+  {
+   "server": "idle-cranberry-8tbb6iks",
+   "quote": "Non-locality is the driver of truth. By summoning, we vibrate.",
+   "time": "2019-12-11T20:10:16.525471212Z"
+  }
+  ```
 
 ## A Single Source of Configuration
 
 In the Ambassador Edge Stack, Kubernetes serves as the single source of configuration. Changes made on the command line (via `kubectl`) are reflected in the Edge Policy Console, and vice versa. This enables a consistent configuration workflow.
 
-1. To see this in action,  navigate to the **Mappings** tab. You'll see an entry for the `quote-backend` Mapping that was just created on the command line.
+1. To see this in action, navigate to the **Mappings** tab. You'll see an entry for the `quote-backend` Mapping that was just created on the command line.
 
 2. Type `kubectl get hosts` to see the `Host` resource that was created:
 
-   ```
-   (⎈ |rdl-1:default)$ kubectl get hosts
-   NAME               HOSTNAME           STATE   PHASE COMPLETED   PHASE PENDING   AGE
-   aes.ri.k36.net     aes.ri.k36.net     Ready                                    158m
-   ```
+```  
+  (⎈ |rdl-1:default)$ kubectl get hosts
+  NAME               HOSTNAME           STATE   PHASE COMPLETED   PHASE PENDING   AGE
+ blackbird-penguin-123.edgestack.me      blackbird-penguin-123.edgestack.me      Ready                                    158m
+ ```
 
 ## Developer Onboarding
 
