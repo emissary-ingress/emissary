@@ -8,7 +8,7 @@ This tutorial assumes you have already followed the Ambassador Edge Stack [Getti
 
 After completing the Getting Started guide you will have a Kubernetes cluster running Ambassador Edge Stack and the Quote of the Moment service. Let's walk through adding tracing to this setup.
 
-## 1. Configure the DataDog agent
+## 1. Configure the DataDog Agent
 
 You will need to configure the DataDog agent so that it uses a host-port and accepts non-local APM traffic, you can follow the DataDog [documentation](https://docs.datadoghq.com/agent/kubernetes/daemonset_setup/?tab=k8sfile#apm-and-distributed-tracing) on how to do this.
 
@@ -47,7 +47,7 @@ spec:
 
 ## 4. Generate some requests
 
-Use `curl` to generate a few requests to an existing Ambassador Edge Stack mapping. You may need to perform many requests since only a subset of random requests are sampled and instrumented with traces.
+Use `curl` to generate a few requests to an existing Ambassador Edge Stack mapping. You may need to perform many requests, since only a subset of random requests are sampled and instrumented with traces.
 
 ```shell
 $ curl -L $AMBASSADOR_IP/httpbin/ip
@@ -60,4 +60,3 @@ Once you have made some requests you should be able to [view your traces](https:
 ## More
 
 For more details about configuring the external tracing service, read the documentation on [external tracing](../../reference/services/tracing-service).
-

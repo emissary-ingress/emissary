@@ -14,7 +14,7 @@ Then, please review the following recommendations for the Ambassador Edge Stack:
 
 ## Port Assignments
 
-The Ambassador Edge Stack uses the following ports to listen for HTTP/HTTPS traffic automatically via TCP: 
+The Ambassador Edge Stack uses the following ports to listen for HTTP/HTTPS traffic automatically via TCP:
 
 | Port | Process | Function |
 | :--- | :------ | :------- |

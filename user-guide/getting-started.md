@@ -14,8 +14,7 @@ The Ambassador Edge Stack is designed to run in Kubernetes for production. The m
 
 ## Install the Ambassador Edge Stack
 
-The Ambassador Edge Stack is typically deployed to Kubernetes from the command line. If you don't have Kubernetes, you should use our [Docker](../../about/quickstart) to deploy the Ambassador Edge Stack locally.
-
+The Ambassador Edge Stack is typically deployed to Kubernetes from the command line. If you don't have Kubernetes, you should use our [Docker](../../about/quickstart) image to deploy the Ambassador Edge Stack locally.
 
 1. In your terminal, run the following command:
 
@@ -56,7 +55,7 @@ The Ambassador Edge Stack is typically deployed to Kubernetes from the command l
     * Chrome users should click **Advanced > Proceed to website**.
     * Safari users should click **Show details > visit the website** and provide your password.
 
-4. To login to the [Edge Policy Console](../../about/edge-policy-console), download and install `edgectl`, the command line tool Edge Control, by following the provided instructions on the page. The Console lists the correct command to run, and provides download links for the edgectl binary.
+4. To login to the [Edge Policy Console](../../about/edge-policy-console), download and install `edgectl`, the command line tool Edge Control, by following the provided instructions on the page. The Console lists the correct command to run and provides download links for the `edgectl` binary.
 
   The Edge Policy Console must authenticate your session using a Kubernetes Secret in your cluster. Edge Control accesses that secret using `kubectl`, then sends a URL to your browser that contains the corresponding session key. This extra step ensures that access to the Edge Policy Console is just as secure as access to your Kubernetes cluster.
 
@@ -82,7 +81,7 @@ The Ambassador Edge Stack is typically deployed to Kubernetes from the command l
   
   You'll see the newly created `Host` resource appear in the UI with a status of "Pending." This will change to "Ready" once the certificate is fully provisioned. If you receive an error that your hostname does not qualify for ACME management, you can still configure TLS following [these instructions](../../reference/core/tls) or by reviewing configuration in the [Host CRD](/reference/host-crd).
 
-3. Once the Host is ready, navigate to `https://<hostname>` in your browser. Note that the certificate warning has gone away. In addition, the Ambassador Edge Stack automatically will redirect HTTP connections to HTTPS.
+3. Once the Host is ready, navigate to `https://<hostname>` in your browser. Note that the certificate warning has gone away. Additionally, the Ambassador Edge Stack automatically will redirect HTTP connections to HTTPS.
 
 ## Create a Mapping
 
@@ -90,7 +89,7 @@ In a typical configuration workflow, Custom Resource Definitions (CRDs) are used
 
 1. We'll start by deploying the `quote` service. Save the below configuration into a file named `quote.yaml`. This is a basic configuration that tells Kubernetes to deploy the `quote` container and create a Kubernetes `service` that points to the `quote` container.
 
-   ```
+   ```yaml
    ---
    apiVersion: v1
    kind: Service
@@ -134,7 +133,7 @@ In a typical configuration workflow, Custom Resource Definitions (CRDs) are used
 
 3. Now, create a `Mapping` configuration that tells Ambassador to route all traffic from `/backend/` to the `quote` service. Copy the YAML and save it to a file called `quote-backend.yaml`.
 
-   ```
+   ```yaml
    ---
    apiVersion: getambassador.io/v2
    kind: Mapping

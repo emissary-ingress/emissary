@@ -94,6 +94,7 @@ The HTTP-01 challenge verifies ownership of the domain by sending a request for 
 3. Apply both the `ClusterIssuer` and `Certificate`
 
     After applying both of these YAML manifests, you will notice that cert-manager has spun up a temporary pod named `cm-acme-http-solver-xxxx` but no certificate has been issued. Check the cert-manager logs and you will see a log message that looks like this:
+
     ```shell
     $ kubectl logs cert-manager-756d6d885d-v7gmg
     ...

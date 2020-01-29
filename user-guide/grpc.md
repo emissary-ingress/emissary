@@ -2,7 +2,7 @@
 
 Ambassador Edge Stack makes it easy to access your services from outside your application. This includes gRPC services, although a little bit of additional configuration is required: by default, Envoy connects to upstream services using HTTP/1.x and then upgrades to HTTP/2 whenever possible. However, gRPC is built on HTTP/2 and most gRPC servers do not speak HTTP/1.x at all. Ambassador Edge Stack must tell its underlying Envoy that your gRPC service only wants to speak to that HTTP/2, using the `grpc` attribute of a `Mapping`.
 
-## Writing a gRPC service for Ambassador Edge Stack
+## Writing a gRPC Service for Ambassador Edge Stack
 
 There are many examples and walkthroughs on how to write gRPC applications so that is not what this article will aim to accomplish. If you do not yet have a service written you can find examples of gRPC services in all supported languages here: [gRPC Quickstart](https://grpc.io/docs/quickstart/)
 
@@ -61,7 +61,7 @@ $ docker push <docker_reg>/grpc_example
 
 ### Mapping gRPC Services
 
-Ambassador Edge Stack `Mapping`s are based on URL prefixes; for gRPC, the URL prefix is the full service name, including the package path (`package.service`). These are defined in the `.proto` definition file. In the example [proto definition file](https://github.com/grpc/grpc/blob/master/examples/protos/helloworld.proto) we see:
+Ambassador Edge Stack `Mapping`s are based on URL prefixes; for gRPC, the URL prefix is the full-service name, including the package path (`package.service`). These are defined in the `.proto` definition file. In the example [proto definition file](https://github.com/grpc/grpc/blob/master/examples/protos/helloworld.proto) we see:
 
 ```
 package helloworld;
@@ -87,6 +87,7 @@ spec:
 Note the `grpc: true` line - this is what tells Envoy to use HTTP/2 so the request can communicate with your backend service. Also note that you'll need `prefix` and `rewrite` the same here, since the gRPC service needs the package and service to be in the request to do the right thing.
 
 ### Deploying to Kubernetes
+
 `grpc_example.yaml`
 
 ```yaml
@@ -148,7 +149,7 @@ Once you have the YAML file and the correct Docker registry, deploy it to your c
 $ kubectl apply -f grpc_example.yaml
 ```
 
-### Testing the deployment
+### Testing the Deployment
 
 Make sure to test your Kubernetes deployment before making more advanced changes (like adding TLS). To test any service with Ambassador Edge Stack, we will need the hostname of the running Ambassador Edge Stack service which you can get with:
 
@@ -188,7 +189,8 @@ There is some extra configuration required to connect to a gRPC service through 
 
 If you want to add TLS encryption to your gRPC calls, first you need to tell Ambassador Edge Stack to add [ALPN protocols](../../reference/core/tls) which are required by HTTP/2 to do TLS.
 
-Ex:
+For example:
+
 ```yaml
 ---
 apiVersion: getambassador.io/v2
@@ -214,13 +216,13 @@ Next, you need to change the client code slightly and tell it to open a secure R
 
 `grpc.ssl_channel_credentials(root_certificates=None, private_key=None, certificate_chain=None)`returns the root certificate that will be used to validate the certificate and public key sent by Ambassador Edge Stack. The default values of `None` tells the gRPC runtime to grab the root certificate from the default location packaged with gRPC and ignore the private key and certificate chain fields. Generally, passing no arguments to the method that requests credentials gives the same behavior. Refer to the languages [API Reference](https://grpc.io/docs/) if this is not the case.  
 
-Ambassador Edge Stack is now terminating TLS from the gRPC client and proxying the call to the application over cleartext. 
+Ambassador Edge Stack is now terminating TLS from the gRPC client and proxying the call to the application over cleartext.
 
 ![](../../doc-images/gRPC-TLS-Ambassador.png)
 
 Refer to the Ambassador Edge Stack [TLS termination guide](../tls-termination) for more information on the TLS module.
 
-If you want to configure authentication in another language, [gRPC provides examples](https://grpc.io/docs/guides/auth.html) with proper syntax for other languages. 
+If you want to configure authentication in another language, [gRPC provides examples](https://grpc.io/docs/guides/auth.html) with proper syntax for other languages.
 
 #### Originating TLS with gRPC Service
 
@@ -307,6 +309,7 @@ gRPC services use [HTTP/2 headers](https://github.com/grpc/grpc/blob/master/doc/
 headers:
   :authority: subdomain.host.com
 ```
+
 ## Note
 
 Some [Kubernetes ingress controllers](https://kubernetes.io/docs/concepts/services-networking/ingress/) do not support HTTP/2 fully. As a result, if you are running Ambassador with an ingress controller in front, you may find that gRPC requests fail even with correct Ambassador Edge Stack configuration.

@@ -2,9 +2,7 @@
 
 `Ambassador Edge Stack` uses certified Ambassador builds. These builds are based on the Ambassador API Gateway builds, but undergo additional testing. In addition, bug fixes and security issues may be backported to Ambassador Edge Stack builds under specific situations.
 
-
-
-## Certified build testing
+## Certified Build Testing
 
 In general, certified builds undergo several types of testing.
 

@@ -202,7 +202,7 @@ CoreOS has published a full [API reference](https://coreos.com/operators/prometh
 
 ### Grafana
 
-Grafana is an open source graphing tool for plotting data points. Grafana allows you to create dynamic dashboards for monitoring your ingress traffic stats collected from Prometheus.
+Grafana is an open-source graphing tool for plotting data points. Grafana allows you to create dynamic dashboards for monitoring your ingress traffic stats collected from Prometheus.
 
 We have published a [sample dashboard](https://grafana.com/grafana/dashboards/4698) you can use for monitoring your ingress traffic. Since the stats from the `/metrics` and `/stats` endpoints are different, you will see a section in the dashboard for each use case.
 
@@ -299,6 +299,7 @@ spec:     
   prefix: /grafana/
   service: grafana.{{GRAFANA_NAMESPACE}}
 ```
+
 Now, access Grafana by going to `{AMBASSADOR_IP}/grafana/` and logging in with `username: admin` : `password: admin`.
 
 Import the [provided dashboard](https://grafana.com/dashboards/10434) by clicking the plus sign in the left side-bar, clicking `New Dashboard` in the top left, selecting `Import Dashboard`, and entering the dashboard ID(10434).
@@ -316,6 +317,7 @@ To view the full set of stats available to Prometheus you can access the Prometh
 ```
 kubectl port-forward -n monitoring service/prometheus 9090
 ```
+
 and going to `http://localhost:9090/` from a web browser
 
 In the UI, click the dropdown and see all of the stats Prometheus is able to scrape from Ambassador Edge Stack.
