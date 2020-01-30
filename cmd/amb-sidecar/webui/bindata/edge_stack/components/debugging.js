@@ -462,9 +462,9 @@ export class Debugging extends LitElement {
             <select class="logSelector" 
             
             @change=${this.onChangeSetLogLevel.bind(this)}>
-              <option ?selected=${this.setLogLevel('debug')} value="debug">DEBUG</option>
-              <option ?selected=${this.setLogLevel('info')} value="info">INFO</option>
-              <option ?selected=${this.setLogLevel==="trace"} value="trace">TRACE</option>
+              <option ?selected=${this.value==='debug'} value="debug">DEBUG</option>
+              <option ?selected=${this.value==='info'} value="info">INFO</option>
+              <option ?selected=${this.value==='trace'} value="trace">TRACE</option>
             </select>
           </div>
 
