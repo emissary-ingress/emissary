@@ -14,9 +14,9 @@ helm repo add datawire https://www.getambassador.io
 
 ## Install with Helm
 
-When you run the Helm chart, it also installs the Ambassador Edge Stack. You can deploy it with either the Helm 2 or Helm 3 chart.
+When you run the Helm chart, it installs the Ambassador Edge Stack. You can deploy it with either the Helm 2 or Helm 3 chart.
 
-1. If you are installing the Ambassador Edge Stack **for the first time on your host**, create the `ambassador` namespace for the Ambassador Edge Stack:
+1. If you are installing the Ambassador Edge Stack **for the first time on your cluster**, create the `ambassador` namespace for the Ambassador Edge Stack:
 
    ```
    kubectl create namespace ambassador
