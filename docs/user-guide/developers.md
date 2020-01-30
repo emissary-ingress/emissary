@@ -1,10 +1,10 @@
 # Developer Guide
 
-Ambassador Edge Stack has been designed to be managed by developers and frontline application engineers that are working within independent product (service) focused teams. This section of the documentation focuses on the core functionality of Ambassador Edge Stack for application developers.
+Ambassador Edge Stack has been designed to be managed by developers and frontline application engineers that are working within an independent product (service) focused teams. This section of the documentation focuses on the core functionality of Ambassador Edge Stack for application developers.
 
-# Why Should Developers Use Ambassador Edge Stack?
+## Why Should Developers Use Ambassador Edge Stack?
 
-The decentralized control plane and ability to locate configuration close to each team's Kubernetes service code enables rapid rollout of new APIs and features, and the ability for developers to manage the deployment, testing and monitoring in production.
+The decentralized control plane and ability to locate configuration close to each team's Kubernetes service code enables rapid rollout of new APIs and features, and the ability for developers to manage the deployment, testing, and monitoring in production.
 
 In more detail, Ambassador Edge Stack supports developers in the following ways:
 
