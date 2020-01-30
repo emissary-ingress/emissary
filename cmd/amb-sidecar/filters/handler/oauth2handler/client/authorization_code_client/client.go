@@ -16,7 +16,6 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/mediocregopher/radix.v2/redis"
 	"github.com/pkg/errors"
-	uuid "github.com/satori/go.uuid"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	rfc6749client "github.com/datawire/apro/client/rfc6749"
@@ -28,6 +27,12 @@ import (
 	"github.com/datawire/apro/lib/filterapi"
 	"github.com/datawire/apro/lib/filterapi/filterutil"
 	"github.com/datawire/apro/lib/jwtsupport"
+)
+
+const (
+	sessionBits = 256
+	xsrfBits    = 256
+	stateBits   = 256
 )
 
 const (
@@ -127,18 +132,17 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger dlog.Logger, httpClien
 			return middleware.NewErrorResponse(ctx, http.StatusForbidden,
 				errors.Errorf("no %q cookie", c.sessionCookieName()), nil)
 		}
-		var originalURL string
+		var originalURL *url.URL
 		if authorization != nil {
 			logger.Debugln("already logged in; redirecting to original log-in-time URL")
-			originalURL, err = checkState(sessionInfo.sessionData.Request.State, c.PublicKey)
+			originalURL, err = readState(sessionInfo.sessionData.Request.State)
 			if err != nil {
 				// This should never happen--we read the state directly from what we
-				// stored into Redis.
+				// stored in Redis.
 				return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
 					errors.Wrapf(err, "invalid state"), nil)
 			}
-			u, _ := url.Parse(originalURL)
-			if u.Path == "/.ambassador/oauth2/redirection-endpoint" {
+			if originalURL.Path == "/.ambassador/oauth2/redirection-endpoint" {
 				// Avoid a redirect loop.  This "shouldn't" happen; we "shouldn't"
 				// have generated (in .handleUnauthenticatedProxyRequest) a
 				// sessionData.Request.State with this URL with this path.  However,
@@ -156,7 +160,7 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger dlog.Logger, httpClien
 				return middleware.NewErrorResponse(ctx, http.StatusBadRequest,
 					err, nil)
 			}
-			originalURL, err = checkState(sessionInfo.sessionData.Request.State, c.PublicKey)
+			originalURL, err = readState(sessionInfo.sessionData.Request.State)
 			if err != nil {
 				// This should never happen--the state matched what we stored in Redis
 				// (validated in .ParseAuthorizationResponse()).  For this to happen, either
@@ -175,7 +179,7 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger dlog.Logger, httpClien
 		return &filterapi.HTTPResponse{
 			StatusCode: http.StatusSeeOther,
 			Header: http.Header{
-				"Location": {originalURL},
+				"Location": {originalURL.String()},
 			},
 			Body: "",
 		}
@@ -270,7 +274,7 @@ func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Co
 	//scope["offline_access"] = struct{}{}
 
 	// Build the sessionID and the associated cookie
-	sessionInfo.sessionID, err = randomString(256)
+	sessionInfo.sessionID, err = randomString(sessionBits)
 	if err != nil {
 		return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
 			errors.Wrap(err, "failed to generate session ID"), nil)
@@ -301,7 +305,7 @@ func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Co
 		HttpOnly: true,
 	}
 
-	sessionInfo.xsrfToken, err = randomString(256)
+	sessionInfo.xsrfToken, err = randomString(xsrfBits)
 	if err != nil {
 		return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
 			errors.Wrap(err, "failed to generate XSRF token"), nil)
@@ -333,7 +337,7 @@ func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Co
 	}
 
 	// Build the full request
-	state, err := sessionInfo.c.signState(originalURL)
+	state, err := genState(originalURL)
 	if err != nil {
 		return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
 			err, nil)
@@ -466,53 +470,53 @@ func (c *OAuth2Client) saveSession(redisClient *redis.Client, sessionID, xsrfTok
 	return nil
 }
 
-func (c *OAuth2Client) signState(originalURL *url.URL) (string, error) {
-	t := jwt.New(jwt.SigningMethodRS256)
-	t.Claims = jwt.MapClaims{
-		"exp":          time.Now().Add(c.Spec.StateTTL).Unix(), // time when the token will expire (10 minutes from now)
-		"jti":          uuid.Must(uuid.NewV4(), nil).String(),  // a unique identifier for the token
-		"iat":          time.Now().Unix(),                      // when the token was issued/created (now)
-		"nbf":          0,                                      // time before which the token is not yet valid (2 minutes ago)
-		"redirect_url": originalURL.String(),                   // original request url
-	}
-
-	var ret string
-	var err error
-	if c.PrivateKey == nil {
-		err = errors.New("could not read internal Secret from Kubernetes")
-	} else {
-		ret, err = t.SignedString(c.PrivateKey)
-	}
-
-	if err != nil {
-		return "", errors.Wrap(err, "failed to sign state")
-	}
-	return ret, nil
-}
-
-func checkState(state string, pubkey *rsa.PublicKey) (string, error) {
-	if pubkey == nil {
-		return "", errors.New("could not read internal Secret from Kubernetes")
-	}
-	if state == "" {
-		return "", errors.New("empty state param")
-	}
-
-	token, err := jwtsupport.SanitizeParse(jwt.Parse(state, func(t *jwt.Token) (interface{}, error) {
-		if _, ok := t.Method.(*jwt.SigningMethodRSA); !ok {
-			return "", errors.Errorf("unexpected signing method %v", t.Header["redirect_url"])
-		}
-		return pubkey, nil
-	}))
-
+func genState(originalURL *url.URL) (string, error) {
+	securePart, err := randomString(stateBits)
 	if err != nil {
 		return "", err
 	}
+	practicalPart := originalURL.String()
+	return securePart + ":" + practicalPart, nil
+}
 
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !(ok && token.Valid) {
-		return "", errors.New("state token validation failed")
+func readState(state string) (*url.URL, error) {
+	v0str, v0err := readStateV0(state)
+	v1str, v1err := readStateV1(state)
+
+	var urlStr string
+	switch {
+	case v0err == nil:
+		urlStr = v0str
+	case v1err == nil:
+		urlStr = v1str
+	default:
+		return nil, v1err
 	}
+	return url.Parse(urlStr)
+}
 
-	return claims["redirect_url"].(string), nil
+// readState for states created by AES <1.2.0
+func readStateV0(state string) (string, error) {
+	// Don't bother doing crypto validation on the JWT--it's
+	// already been validated by doing a string-compare with the
+	// state stored in Redis.
+	claims := jwt.MapClaims{}
+	if _, _, err := jwtsupport.SanitizeParseUnverified(new(jwt.Parser).ParseUnverified(state, &claims)); err != nil {
+		return "", err
+	}
+	redirectURL, ok := claims["redirect_url"].(string)
+	if !ok {
+		return "", errors.New("malformed state")
+	}
+	return redirectURL, nil
+}
+
+// readState for states created by AES >=1.2.0
+func readStateV1(state string) (string, error) {
+	// then try parsing it as an AES 1.2.0+ state
+	parts := strings.SplitN(state, ":", 2)
+	if len(parts) != 2 {
+		return "", errors.New("malformed state")
+	}
+	return parts[1], nil
 }
