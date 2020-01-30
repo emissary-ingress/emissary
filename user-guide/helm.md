@@ -56,7 +56,7 @@ This will install the necessary deployments, RBAC, Custom Resource Definitions, 
 
 ## Upgrading an Existing Ambassador Edge Stack Installation
 
-**Note:** If your existing installation is running the Ambassador API Gateway, **do not use these instructions**. See [Migrating to the Ambassador Edge Stack]<LINK> instead.
+**Note:** If your existing installation is running the Ambassador API Gateway, **do not use these instructions**. See [Migrating to the Ambassador Edge Stack](#migrating-to-the-ambassador-edge-stack) instead.
 
 Upgrading an existing installation of the Ambassador Edge Stack is a two-step process:
 
