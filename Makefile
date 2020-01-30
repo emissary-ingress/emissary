@@ -131,7 +131,9 @@ release/promote-aes/to-ea-latest:
 	  PROMOTE_TO_VERSION="$$(echo "$(RELEASE_VERSION)" | sed 's/-ea.*/-ea-latest/')" \
 	; }
 	@printf '  $(CYN)edgectl (metadata)$(END)\n'
-	./ambassador/builder/build_push_cli.sh tag
+	./build-aux-local/build_push_cli.sh tag edgectl
+	@printf '  $(CYN)apictl-key (metadata)$(END)\n'
+	./build-aux-local/build_push_cli.sh tag apictl-key
 .PHONY: release/promote-aes/to-ea-latest
 
 # To be run from a checkout at the tag you are promoting _from_.
@@ -144,7 +146,9 @@ release/promote-aes/to-rc-latest:
 	  PROMOTE_TO_VERSION="$$(echo "$(RELEASE_VERSION)" | sed 's/-rc.*/-rc-latest/')" \
 	; }
 	@printf '  $(CYN)edgectl (metadata)$(END)\n'
-	./ambassador/builder/build_push_cli.sh tag
+	./build-aux-local/build_push_cli.sh tag edgectl
+	@printf '  $(CYN)apictl-key (metadata)$(END)\n'
+	./build-aux-local/build_push_cli.sh tag apictl-key
 .PHONY: release/promote-aes/to-rc-latest
 
 # To be run from a checkout at the tag you are promoting _to_.
