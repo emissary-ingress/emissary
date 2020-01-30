@@ -1,4 +1,4 @@
-# Copyright 2018 Datawire. All rights reserved.
+# Copyright 2018-2020 Datawire. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,6 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License
+
+########
+# This is the ambassador CLI. Despite the impression given by its name, it is actually
+# primarily a debugging tool at this point: the most useful thing to do with it is to
+# run "ambassador dump --watt path-to-watt-snapshot-file" and have it spit out the IR,
+# etc.
+########
 
 from typing import Optional
 from typing import cast as typecast
@@ -26,11 +33,11 @@ import traceback
 import clize
 from clize import Parameter
 
-from . import Scout, Config, IR, Diagnostics, Version
-from .config.resourcefetcher import ResourceFetcher
-from .envoy import EnvoyConfig, V2Config
+from ambassador import Scout, Config, IR, Diagnostics, Version
+from ambassador.config.resourcefetcher import ResourceFetcher
+from ambassador.envoy import EnvoyConfig, V2Config
 
-from .utils import RichStatus, NullSecretHandler
+from ambassador.utils import RichStatus, NullSecretHandler
 
 __version__ = Version
 
