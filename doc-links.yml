@@ -237,6 +237,8 @@
         link: /reference/idp-support/uaa
     - title: Configuring Edge Control
       items: 
+        - title: Download Edge Control
+          link: /reference/edgectl-download
         - title: Edge Control Installation
           link: /reference/edge-control
         - title: Edge Control in CI
