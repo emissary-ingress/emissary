@@ -18,17 +18,12 @@ export class Debugging extends LitElement {
 
   constructor() {
     super();
-
-    const logOptions = [
-      {value: "debug", label: "DEBUG"},
-      {value: "info", label: "INFO"},
-      {value: "trace", label: "TRACE"}
-    ];
-
-    this.logOptions = logOptions;
     
-
     Snapshot.subscribe(this.onSnapshotChange.bind(this));
+  }
+
+  reset() {
+    this.shadowRoot.querySelectorAll('select').forEach((el)=>{el.value = el.querySelector('option[selected]').value;});
   }
 
   static get styles() {
