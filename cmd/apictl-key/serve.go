@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -126,8 +125,7 @@ func init() {
 			return errors.New("please set the AWS_HOSTED_ZONE_ID environment variable")
 		}
 
-		router := mux.NewRouter()
-
+		mux := http.NewServeMux()
 		// Liveness and Readiness probes
 		healthprobe := health.MultiProbe{
 			Logger: dlog.WrapLogrus(l),
@@ -142,10 +140,10 @@ func init() {
 				w.WriteHeader(http.StatusInternalServerError)
 			}
 		})
-		router.HandleFunc("/signup/sys/readyz", healthprobeHandler)
-		router.HandleFunc("/signup/sys/healthz", healthprobeHandler)
+		mux.HandleFunc("/signup/sys/readyz", healthprobeHandler)
+		mux.HandleFunc("/signup/sys/healthz", healthprobeHandler)
 
-		router.HandleFunc("/signup", func(w http.ResponseWriter, r *http.Request) {
+		mux.HandleFunc("/signup", func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Access-Control-Allow-Origin", "*")
 			w.Header().Set("Access-Control-Allow-Methods", "POST")
 			w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
@@ -232,27 +230,27 @@ func init() {
 		}
 
 		dnsClient := dns.NewController(l, hostedZoneId, dnsRegistrationTLD, ds)
-		router.HandleFunc("/register-domain", dnsClient.ServeHTTP)
+		mux.HandleFunc("/register-domain", dnsClient.ServeHTTP)
 
-		router.HandleFunc("/downloads/darwin/edgectl", func(w http.ResponseWriter, r *http.Request) {
+		mux.HandleFunc("/downloads/darwin/edgectl", func(w http.ResponseWriter, r *http.Request) {
 			version := getEdgectlStable()
 			url := fmt.Sprintf("https://datawire-static-files.s3.amazonaws.com/edgectl/%s/darwin/amd64/edgectl", version)
 			http.Redirect(w, r, url, http.StatusFound) // 302
 		})
 
-		router.HandleFunc("/downloads/linux/edgectl", func(w http.ResponseWriter, r *http.Request) {
+		mux.HandleFunc("/downloads/linux/edgectl", func(w http.ResponseWriter, r *http.Request) {
 			version := getEdgectlStable()
 			url := fmt.Sprintf("https://datawire-static-files.s3.amazonaws.com/edgectl/%s/linux/amd64/edgectl", version)
 			http.Redirect(w, r, url, http.StatusFound) // 302
 		})
 
-		router.HandleFunc("/downloads/windows/edgectl", func(w http.ResponseWriter, r *http.Request) {
+		mux.HandleFunc("/downloads/windows/edgectl", func(w http.ResponseWriter, r *http.Request) {
 			version := getEdgectlStable()
 			url := fmt.Sprintf("https://datawire-static-files.s3.amazonaws.com/edgectl/%s/windows/amd64/edgectl.exe", version)
 			http.Redirect(w, r, url, http.StatusFound) // 302
 		})
 
-		router.HandleFunc("/downloads/windows/edgectl.exe", func(w http.ResponseWriter, r *http.Request) {
+		mux.HandleFunc("/downloads/windows/edgectl.exe", func(w http.ResponseWriter, r *http.Request) {
 			version := getEdgectlStable()
 			url := fmt.Sprintf("https://datawire-static-files.s3.amazonaws.com/edgectl/%s/windows/amd64/edgectl.exe", version)
 			http.Redirect(w, r, url, http.StatusFound) // 302
@@ -263,7 +261,7 @@ func init() {
 
 		httpServer := &http.Server{
 			Addr:    ":8080",
-			Handler: router,
+			Handler: mux,
 		}
 		go func() {
 			if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
