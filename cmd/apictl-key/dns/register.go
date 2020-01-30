@@ -3,6 +3,7 @@ package dns
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/datawire/apro/cmd/apictl-key/datasource"
 	"github.com/sirupsen/logrus"
 	"math/rand"
 	"net"
@@ -18,6 +19,7 @@ type dnsclient struct {
 	l                  *logrus.Logger
 	hostedZoneId       string
 	dnsRegistrationTLD string
+	datasource         datasource.Datasource
 }
 
 type registration struct {
@@ -49,41 +51,62 @@ func init() {
 	}
 }
 
-func NewController(l *logrus.Logger, hostedZoneId string, dnsRegistrationTLD string) http.Handler {
+func NewController(l *logrus.Logger, hostedZoneId string, dnsRegistrationTLD string, datasource datasource.Datasource) http.Handler {
 	return &dnsclient{
 		l:                  l,
 		hostedZoneId:       hostedZoneId,
 		dnsRegistrationTLD: dnsRegistrationTLD,
+		datasource:         datasource,
 	}
 }
 
 func (c *dnsclient) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	remoteIp, _, _ := net.SplitHostPort(r.RemoteAddr)
+
 	decoder := json.NewDecoder(r.Body)
 
 	// Decode the registration request:
 	//   {"email":"alex@datawire.io","ip":"34.94.127.81"}
 	var registration registration
-	err := decoder.Decode(&registration)
-	if err != nil {
+	if err := decoder.Decode(&registration); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
+	// TODO: Validate email
+
 	// Check the IP is public and is serving an AES install
-	err = c.verifyIPIsReady(registration.Ip)
-	if err != nil {
+	if err := c.verifyIPIsReady(registration.Ip); err != nil {
 		http.Error(w, err.Error(), http.StatusPreconditionFailed)
 		return
 	}
 
+	var domainName string
+	for {
+		// Generate a random domain name
+		domainName = fmt.Sprintf("%s%s", generateRandomName(), c.dnsRegistrationTLD)
+
+		// Validate it is not already registered
+		exists, err := c.datasource.DomainExists(domainName)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if !exists {
+			break
+		}
+	}
+
 	// Do register a DNS entry
-	domainName, err := c.doRegister(registration)
-	if err != nil {
+	if err := c.doRegister(domainName, registration.Ip); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// TODO: Keep track of this DNS and IP registration: save this info in a database somewhere
+	if err := c.datasource.AddDomain(domainName, registration.Ip, registration.Email, remoteIp); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	// If all is good, return 200OK and the generated domain name in plain text.
 	w.WriteHeader(http.StatusOK)
@@ -116,6 +139,7 @@ func (c *dnsclient) verifyIPIsReady(ip string) error {
 	//  --> should return header "server: envoy"
 	response, err := client.Get(fmt.Sprintf("http://%s/.well-known/acme-challenge/", ip))
 	if err != nil {
+		// TODO: Better error message & retry
 		return err
 	}
 	if response.StatusCode != 404 || response.Header.Get("server") != "envoy" {
@@ -143,15 +167,12 @@ func (c *dnsclient) isPublicIP(ipString string) bool {
 	return true
 }
 
-func (c *dnsclient) doRegister(registration registration) (string, error) {
-	// Generate a random domain name
-	domainName := fmt.Sprintf("%s%s", generateRandomName(), c.dnsRegistrationTLD)
-
+func (c *dnsclient) doRegister(domainName string, ip string) error {
 	// Start a route53 session
 	sess, err := session.NewSession()
 	if err != nil {
 		c.l.WithError(err).Error("error creating aws route53 session")
-		return "", err
+		return err
 	}
 	r53 := route53.New(sess)
 
@@ -165,13 +186,12 @@ func (c *dnsclient) doRegister(registration registration) (string, error) {
 						Name: aws.String(domainName),
 						ResourceRecords: []*route53.ResourceRecord{
 							{
-								Value: aws.String(registration.Ip),
+								Value: aws.String(ip),
 							},
 						},
 						TTL:  aws.Int64(60),
 						Type: aws.String("A"),
 					},
-					// TODO: Save a TXT record as well?
 				},
 			},
 		},
@@ -182,9 +202,9 @@ func (c *dnsclient) doRegister(registration registration) (string, error) {
 	result, err := r53.ChangeResourceRecordSets(input)
 	if err != nil {
 		c.l.WithError(err).Error("error creating dns entry")
-		return "", err
+		return err
 	}
 	c.l.Infof(result.String())
 
-	return domainName, nil
+	return nil
 }
