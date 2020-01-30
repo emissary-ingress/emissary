@@ -35,14 +35,14 @@ deploy: $(foreach i,$(images) aes-example-plugins, docker/$i.docker.push.dev )
 	  set -a && . ./k8s-env.sh; \
 	  go run github.com/datawire/ambassador/cmd/edgectl license "$$AMBASSADOR_LICENSE_KEY"; \
 	  kubectl --namespace=ambassador set image deployment/ambassador aes="$$AES_EXAMPLE_PLUGINS_IMAGE"; \
-	  go run github.com/datawire/ambassador/cmd/kubeapply --timeout=3m30s --filename=k8s; \
+	  go run github.com/datawire/ambassador/cmd/kubeapply --timeout=6m --filename=k8s; \
 	}
 apply: | $(foreach i,$(images) aes-example-plugins, docker/$i.docker.push.dev )
 	@PS4=; set -ex; { \
 	  set -a && . ./k8s-env.sh; \
 	  go run github.com/datawire/ambassador/cmd/edgectl license "$$AMBASSADOR_LICENSE_KEY"; \
 	  kubectl --namespace=ambassador set image deployment/ambassador aes="$$AES_EXAMPLE_PLUGINS_IMAGE"; \
-	  go run github.com/datawire/ambassador/cmd/kubeapply --timeout=3m30s --filename=k8s; \
+	  go run github.com/datawire/ambassador/cmd/kubeapply --timeout=6m --filename=k8s; \
 	}
 .PHONY: deploy apply
 
