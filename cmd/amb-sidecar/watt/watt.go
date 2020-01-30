@@ -82,25 +82,23 @@ func (ss *SnapshotStore) Subscribe() <-chan Snapshot {
 	upstream := ss.makeSubscriberCh()
 	downstream := make(chan Snapshot)
 
-	go coalesce(upstream, downstream)
+	go func(){
+do_read:
+		item, ok := <-upstream
+did_read:
+		if !ok {
+			close(downstream)
+			return
+		}
+		select {
+		case downstream <- item:
+			goto do_read
+		case item, ok = <-upstream:
+			goto did_read
+		}
+	}()
 
 	return downstream
-}
-
-func coalesce(upstream <-chan Snapshot, downstream chan<- Snapshot) {
-do_read:
-	item, ok := <-upstream
-did_read:
-	if !ok {
-		close(downstream)
-		return
-	}
-	select {
-	case downstream <- item:
-		goto do_read
-	case item, ok = <-upstream:
-		goto did_read
-	}
 }
 
 func (ss *SnapshotStore) ServeHTTP(w http.ResponseWriter, r *http.Request) {

@@ -2,19 +2,17 @@ package runner
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"io"
 	"math/rand"
 	"net/http"
 	"os"
-	"flag"
 	"path/filepath"
 	"strings"
-	"sync"
 	"time"
 
 	// 3rd-party libraries
-	"github.com/fsnotify/fsnotify"
 	"github.com/lyft/goruntime/loader"
 	"github.com/mediocregopher/radix.v2/pool"
 	"github.com/pkg/errors"
@@ -23,8 +21,8 @@ import (
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
-	"k8s.io/klog"
 	grpchealth "google.golang.org/grpc/health"
+	"k8s.io/klog"
 
 	// first-party libraries
 	"github.com/datawire/ambassador/pkg/dlog"
@@ -69,12 +67,11 @@ import (
 	"github.com/datawire/apro/lib/filterapi"
 )
 
-var licenseClaims *licensekeys.LicenseClaimsLatest
-
-var licenseWatch struct {
-	Filename string
-	Callback func()
-}
+// license globals
+var (
+	licenseContext *licensekeys.LicenseContext
+	licenseClaims  *licensekeys.LicenseClaimsLatest
+)
 
 var limit *limiter.LimiterImpl
 var logrusLogger *logrus.Logger
@@ -88,7 +85,12 @@ func Main(version string) {
 		SilenceUsage:  true, // our FlagErrorFunc wil handle it
 	}
 
-	cmdContext := licensekeys.InitializeCommandFlags(argparser.PersistentFlags())
+	licenseContext = &licensekeys.LicenseContext{}
+	if err := licenseContext.AddFlagsTo(argparser); err != nil {
+		logrusLogger.Errorln("shut down with error:", err)
+		os.Exit(2)
+		return
+	}
 
 	argparser.SetFlagErrorFunc(func(cmd *cobra.Command, err error) error {
 		if err == nil {
@@ -109,90 +111,11 @@ func Main(version string) {
 	logrusLogger.SetFormatter(logrusFormatter)
 	logrus.SetFormatter(logrusFormatter) // FIXME(lukeshu): Some Lyft code still uses the global logger
 
-	argparser.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
-		// License key validation
-		application := "ambassador-sidecar"
-		keyCheck := func(reset bool) *licensekeys.LicenseClaimsLatest {
-			claims, err := cmdContext.KeyCheck(cmd.PersistentFlags(), reset)
-			if err != nil {
-				logrusLogger.Errorln(err)
-				claims = licensekeys.NewCommunityLicenseClaims()
-				claims.CustomerID = "unregistered"
-				limit.SetUnregisteredLicenseHardLimits(true)
-			} else {
-				limit.SetUnregisteredLicenseHardLimits(false)
-			}
-			limit.SetClaims(claims)
-			go metriton.PhoneHome(claims, limit, application, version)
-			return claims
-		}
-
-		limit = limiter.NewLimiterImpl()
-		licenseClaims = keyCheck(false)
-		go metriton.PhoneHomeEveryday(licenseClaims, limit, application, version)
-
-		if cmdContext.Keyfile != "" {
-			licenseWatch.Filename = cmdContext.Keyfile
-			licenseWatch.Callback = func() {
-				logrusLogger.Infof("Refreshing license key, %s changed", cmdContext.Keyfile)
-				licenseClaims = keyCheck(true)
-			}
-		}
-		return nil
-	}
-
 	err := argparser.Execute()
 	if err != nil {
 		logrusLogger.Errorln("shut down with error:", err)
 		os.Exit(1)
 	}
-}
-
-func triggerOnChange(ctx context.Context, watchFile string, trigger func()) {
-	file := filepath.Clean(watchFile)
-	dir, _ := filepath.Split(file)
-
-	watcher, err := fsnotify.NewWatcher()
-	if err != nil {
-		logrusLogger.Errorf("Failed to create watch on %s: Changes might require a restart: %v", file, err)
-	}
-	defer watcher.Close()
-
-	eventsWG := sync.WaitGroup{}
-	eventsWG.Add(1)
-	go func() {
-		defer eventsWG.Done()
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case event, ok := <-watcher.Events:
-				if !ok {
-					return
-				}
-				if event.Op&fsnotify.Rename == fsnotify.Rename {
-					if trigger != nil {
-						trigger()
-					}
-				} else if filepath.Clean(event.Name) == file &&
-					event.Op&fsnotify.Remove&fsnotify.Remove != 0 {
-					return
-				}
-			case err, ok := <-watcher.Errors:
-				if ok {
-					logrusLogger.Errorln(err)
-				}
-				return
-			}
-		}
-	}()
-
-	logrusLogger.Infof("Creating watch on %s", dir)
-	err = watcher.Add(dir)
-	if err != nil {
-		logrusLogger.Errorf("Failed to create watch on %s: Changes might require a restart: %v", dir, err)
-	}
-	eventsWG.Wait()
 }
 
 func runE(cmd *cobra.Command, args []string) error {
@@ -208,6 +131,26 @@ func runE(cmd *cobra.Command, args []string) error {
 		return fatal[len(fatal)-1]
 	}
 	logrusLogger.Info("Ambassador Edge Stack configuation loaded")
+
+	// License key validation
+	application := "ambassador-sidecar"
+	limit = limiter.NewLimiterImpl()
+
+	keyCheck := func() *licensekeys.LicenseClaimsLatest {
+		claims, err := licenseContext.GetClaims()
+		if err != nil {
+			logrusLogger.Errorln(err)
+			limit.SetUnregisteredLicenseHardLimits(true)
+		} else {
+			limit.SetUnregisteredLicenseHardLimits(false)
+		}
+		limit.SetClaims(claims)
+		go metriton.PhoneHome(claims, limit, application, cmd.Version)
+		return claims
+	}
+	licenseClaims = keyCheck()
+
+	go metriton.PhoneHomeEveryday(licenseClaims, limit, application, cmd.Version)
 
 	if err := os.MkdirAll(filepath.Dir(cfg.RLSRuntimeDir), 0777); err != nil {
 		return err
@@ -249,8 +192,10 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	acmeLock, err := acmeclient.GetLeaderElectionResourceLock(cfg, kubeinfo, eventLogger)
 	if err != nil {
-		return err
+		logrusLogger.Errorln("failed to participate in acme leader election, Ambassador Edge Stack acme client is disabled:", err)
 	}
+
+	snapshotStore := watt.NewSnapshotStore(http.DefaultClient /* XXX */)
 
 	var redisPool *pool.Pool
 	var redisPoolErr error
@@ -263,9 +208,6 @@ func runE(cmd *cobra.Command, args []string) error {
 	if redisPool == nil {
 		logrusLogger.Errorln("redis is not configured, Ambassador Edge Stack advanced features are disabled")
 	}
-
-	snapshotStore := watt.NewSnapshotStore(http.DefaultClient /* XXX */)
-
 	// ... and then set the limiter's redis pool
 	limit.SetRedisPool(redisPool)
 
@@ -280,12 +222,85 @@ func runE(cmd *cobra.Command, args []string) error {
 	// canceled on not-so-graceful shutdown.  When in doubt, use
 	// softCtx.
 
-	if licenseWatch.Filename != "" {
+	if licenseContext.Keyfile != "" {
 		group.Go("license_refresh", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
-			triggerOnChange(softCtx, licenseWatch.Filename, licenseWatch.Callback)
+			l.Infof("license_secret_watch: watching license file %q", licenseContext.Keyfile)
+			triggerOnChange(softCtx, licenseContext.Keyfile, func() {
+				l.Infof("license_secret_watch: %s changed: refreshing license file", licenseContext.Keyfile)
+				licenseContext.Clear()
+				licenseClaims = keyCheck()
+			})
 			return nil
 		})
 	}
+
+	// keep watching for changes in the license
+	logrus.Infof("license_secret_watch: installing license secrets watcher...")
+	group.Go("license_secret_watch", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
+		name := cfg.LicenseSecretName
+		namespace := cfg.LicenseSecretNamespace
+
+		l.Infof("license_secret_watch: starting the AES secret %s/%s watcher", namespace, name)
+
+		snapshotCh := snapshotStore.Subscribe()
+		for snapshot := range snapshotCh {
+
+			currentlyRegistered := licenseClaims.CustomerID != licensekeys.DefUnregisteredCustomerID
+			licenseInSnapshot := &licensekeys.LicenseContext{}
+
+			l.Infof("license_secret_watch: inspecting new snapshot: looking for %s/%s within %d secrets",
+				namespace, name, len(snapshot.Kubernetes.Secret))
+			if len(snapshot.Kubernetes.Secret) > 0 {
+				for _, sec := range snapshot.Kubernetes.Secret {
+					secretName := sec.Name
+					secretNamespace := sec.Namespace
+
+					if secretName == name && secretNamespace == namespace {
+						// we found the secret: we currently assume the mere presence of
+						// the Secret means the license has all the claims
+						l.Infof("license_secret_watch: AES secret found (%s/%s): getting license data", namespace, name)
+
+						secretData := sec.Data
+						secretLicenseKey, ok := secretData[licensekeys.DefaultSecretLicenseField]
+						if !ok {
+							l.Errorf("license_secret_watch: no %q on Secret: skipping", licensekeys.DefaultSecretLicenseField)
+							continue
+						}
+						if len(secretLicenseKey) == 0 {
+							l.Warnf("license_secret_watch: empty decoded license data")
+							continue
+						}
+
+						l.Infof("license_secret_watch: decoding license data, checking and getting claims")
+						licenseInSnapshot.SetKey(secretLicenseKey)
+						break
+					} else {
+						l.Infof("license_secret_watch: ignoring secret %s/%s", secretNamespace, secretName)
+					}
+				}
+			}
+
+			if licenseInSnapshot.HasKey() {
+				// we did not have a license but there is a license in the current Snapshot
+				if !currentlyRegistered {
+					l.Infof("license_secret_watch: license has been added")
+					licenseContext.CopyKeyFrom(licenseInSnapshot)
+					licenseClaims = keyCheck()
+				}
+			} else {
+				// we had a license but there is no license in the current Snapshot:
+				// the license has been removed, so apply the community license.
+				// note well: if the license file is still mounted then keycheck() will return a license
+				if currentlyRegistered {
+					l.Infof("license_secret_watch: license has been removed: reverting to community license")
+					licenseContext.Clear()
+					licenseClaims = keyCheck()
+				}
+			}
+		}
+		l.Info("license_secret_watch: AES secret watcher is done")
+		return nil
+	})
 
 	group.Go("watt_shutdown", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
 		// Wait for shutdown to be initiated...
@@ -335,23 +350,25 @@ func runE(cmd *cobra.Command, args []string) error {
 	}
 
 	// ACME client
-	acmeController := acmeclient.NewController(
-		redisPool,
-		http.DefaultClient, // XXX
-		snapshotStore.Subscribe(),
-		eventLogger,
-		acmeLock,
-		coreClient,
-		dynamicClient)
-	group.Go("acme_client", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
-		// FIXME(lukeshu): Perhaps EnsureFallback should observe softCtx.Done()?
-		if err := acmeclient.EnsureFallback(cfg, coreClient, dynamicClient); err != nil {
-			err = errors.Wrap(err, "create fallback TLSContext and TLS Secret")
-			l.Errorln(err)
-			// this is non fatal (mostly just to facilitate local dev); don't `return err`
-		}
-		return acmeController.Worker(dlog.WithLogger(softCtx, l))
-	})
+	if acmeLock != nil {
+		acmeController := acmeclient.NewController(
+			redisPool,
+			http.DefaultClient, // XXX
+			snapshotStore.Subscribe(),
+			eventLogger,
+			acmeLock,
+			coreClient,
+			dynamicClient)
+		group.Go("acme_client", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
+			// FIXME(lukeshu): Perhaps EnsureFallback should observe softCtx.Done()?
+			if err := acmeclient.EnsureFallback(cfg, coreClient, dynamicClient); err != nil {
+				err = errors.Wrap(err, "create fallback TLSContext and TLS Secret")
+				l.Errorln(err)
+				// this is non fatal (mostly just to facilitate local dev); don't `return err`
+			}
+			return acmeController.Worker(dlog.WithLogger(softCtx, l))
+		})
+	}
 
 	// HTTP server
 	group.Go("http", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {

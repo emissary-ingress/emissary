@@ -1,6 +1,7 @@
 package licensekeys
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -8,7 +9,15 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	flag "github.com/spf13/pflag"
+	"github.com/spf13/cobra"
+)
+
+const (
+	// Field in the Secret where the license is stored
+	DefaultSecretLicenseField = "license-key"
+
+	// Environment variable where users can pass the license
+	DefaultLicenseEnvVar = "AMBASSADOR_LICENSE_KEY"
 )
 
 // userConfigDir returns the default directory to use for
@@ -81,55 +90,81 @@ func defaultLicenseFile() (string, error) {
 	return filename, nil
 }
 
-type cmdContext struct {
-	defaultKeyfile    string
-	defaultKeyfileErr error
-
+// LicenseContext is a license, provided in a string or in a file
+type LicenseContext struct {
 	Keyfile string
 	key     string
 }
 
-func (ctx *cmdContext) KeyCheck(flags *flag.FlagSet, ignoreLoadedKey bool) (*LicenseClaimsLatest, error) {
-	var keysource string
-	if ignoreLoadedKey {
-		ctx.key = ""
-	}
+// Clear clears any license loaded (this does not affect the env var or license file)
+func (ctx *LicenseContext) Clear() {
+	ctx.SetKey([]byte{})
+}
 
-	if ctx.key == "" {
-		if !flags.Changed("license-file") && ctx.defaultKeyfileErr != nil {
-			return nil, errors.Wrap(ctx.defaultKeyfileErr, "error determining license key file")
-		}
-		if ctx.Keyfile == "" {
-			return nil, errors.New("no license key or license key file specified")
-		}
+func (ctx *LicenseContext) SetKey(k []byte) {
+	ctx.key = string(k)
+}
+
+func (ctx *LicenseContext) CopyKeyFrom(c *LicenseContext) {
+	ctx.key = c.key
+}
+
+// HasKey returns True if the current context does have a key (ignoring the license file)
+func (ctx LicenseContext) HasKey() bool {
+	if ctx.key != "" {
+		return true
+	}
+	if e := os.Getenv(DefaultLicenseEnvVar); len(e) > 0 {
+		return true
+	}
+	return false
+}
+
+// String implements the Stringer
+func (ctx LicenseContext) String() string {
+	if ctx.key != "" {
+		return fmt.Sprintf("str:%s...", ctx.key[:10])
+	}
+	if e := os.Getenv(DefaultLicenseEnvVar); len(e) > 0 {
+		return fmt.Sprintf("%q...", ctx.key[:10])
+	}
+	return "(no key)"
+}
+
+// GetClaims checks that the license contained in the key or in the keyfile is valid
+func (ctx *LicenseContext) GetClaims() (*LicenseClaimsLatest, error) {
+	k := ""
+	if ctx.key != "" {
+		k = ctx.key
+	} else if e := os.Getenv(DefaultLicenseEnvVar); len(e) > 0 {
+		k = e
+	} else if ctx.Keyfile != "" {
 		key, err := ioutil.ReadFile(ctx.Keyfile)
-		if err != nil {
-			return nil, errors.Wrap(err, "error reading license key")
-		}
-		ctx.key = strings.TrimSpace(string(key))
-		keysource = "file " + ctx.Keyfile
-	} else {
-		if flags.Changed("license-key") {
-			keysource = "command line"
-		} else {
-			keysource = "environment"
+		if err == nil {
+			k = strings.TrimSpace(string(key))
 		}
 	}
 
-	claims, err := ParseKey(ctx.key)
-	if err != nil {
-		return nil, errors.Wrapf(err, "error validating license key from %s", keysource)
+	if k != "" {
+		if claim, err := ParseKey(k); err == nil {
+			return claim, nil
+		}
 	}
 
+	claims := NewCommunityLicenseClaims()
+	claims.CustomerID = DefUnregisteredCustomerID
 	return claims, nil
 }
 
-func InitializeCommandFlags(flags *flag.FlagSet) *cmdContext {
-	ctx := &cmdContext{}
-	ctx.defaultKeyfile, ctx.defaultKeyfileErr = defaultLicenseFile()
+// AddFlagsTo adds license flags to the command line parser
+func (ctx *LicenseContext) AddFlagsTo(cmd *cobra.Command) error {
+	defaultKeyfile, err := defaultLicenseFile()
+	if err != nil {
+		return err
+	}
 
-	flags.StringVar(&ctx.key, "license-key", os.Getenv("AMBASSADOR_LICENSE_KEY"), "ambassador license key")
-	flags.StringVar(&ctx.Keyfile, "license-file", ctx.defaultKeyfile, "ambassador license file")
-
-	return ctx
+	flags := cmd.PersistentFlags()
+	flags.StringVar(&ctx.key, "license-key", "", "ambassador license key")
+	flags.StringVar(&ctx.Keyfile, "license-file", defaultKeyfile, "ambassador license file")
+	return nil
 }
