@@ -1,12 +1,12 @@
 # Edge Policy Console
 
-The Ambassador Edge Stack provides you with an easy-to-use interface that so you can create custom resource defintiions, download YAML files, and visit the Developer Portal, all in one place.
+The Ambassador Edge Stack provides you with an easy-to-use interface that so you can create custom resource definitions, download YAML files, and visit the Developer Portal, all in one place.
 
 After you [install the Ambassador Edge Stack](../../user-guide/install), you can log in to the Edge Policy Console (EPC) to manage your deployment.
 
 ## Available Pages
 
-The EPC makes it easy to configure what you need for a successful deployment. However, you'll also be able to use the command line to complete any of your configuration.
+The EPC makes it easy to configure what you need for a successful deployment. However, you'll also be able to use the command line to complete any of your configurations.
 
 * [Dashboard](#dashboard)
 * [Hosts](#hosts)
@@ -41,7 +41,7 @@ See [Hosts](../../reference/host-crd) for detailed information.
 
 ### Mappings
 
-Mappings are ssociations between prefix URLs and target services.
+Mappings are associations between prefix URLs and target services.
 
 On this page, you can add new mappings and manage any existing ones. You can sort your mappings by name, namespace, and prefix.
 
@@ -67,7 +67,7 @@ See [rate limits](../../reference/rate-limits) for more information.
 
 Special plugin services enhance the functionality of Ambassador Edge Stack. These plugin services are called when Ambassador handles requests.
 
-On this page you can add a new plugin or manage existing plugins.
+On this page, you can add a new plugin or manage existing plugins.
 
 See [Plugins](../../reference/services/services) for detailed information.
 
@@ -79,7 +79,7 @@ This page shows all of the current Resolvers that are in use to discover your se
 
 The Debugging page provides an overview of everything that is happening on your deployment of the Ambassador Edge Stack.
 
-The **system info** box shows information such as IDs, system statuses, and other high level details.
+The **system info** box shows information such as IDs, system statuses, and other high-level details.
 
 The **logging level** box has two buttons, `set log level to debug` and `set log level to info` which controls how verbose your logging is.
 

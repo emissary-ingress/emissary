@@ -50,11 +50,11 @@ requestPolicy:
     additionalPort: insecure-port
 ```
 
-The `insecure-action` can be one of
+The `insecure-action` can be one of:
 
-  `Redirect` (the default): redirect to HTTPS
-  `Route`: go ahead and route as normal; this will allow handling HTTP requests normally
-  `Reject`: reject the request with a 400 response
+* `Redirect` (the default): redirect to HTTPS
+* `Route`: go ahead and route as normal; this will allow handling HTTP requests normally
+* `Reject`: reject the request with a 400 response
 
 If `additionalPort` is specified, Ambassador will listen on the specified `port` and treat any request arriving on that port as insecure.
 
@@ -139,7 +139,7 @@ Some special cases to be aware of here:
 
   In this case, the Host resource explicitly requests no ACME handling, then states that insecure requests must be routed instead of redirected.
 
-5. Split L4 Load Balancer: In this scenario, a L4 load balancer terminates TLS on port 443 and relays that traffic to Ambassador on port 8443, but the load balancer also relays cleartext traffic on port 80 to Ambassador on port 8080. 
+5. Split L4 Load Balancer: In this scenario, an L4 load balancer terminates TLS on port 443 and relays that traffic to Ambassador on port 8443, but the load balancer also relays cleartext traffic on port 80 to Ambassador on port 8080.
 
   Since the load balancer is at layer 4, it cannot provide X-Forwarded-Proto, so we need to explicitly set port 8080 as insecure:
 
@@ -166,5 +166,4 @@ The Host CRD defines how Ambassador will be visible to the outside world. A mini
 
 ### CRD Specification
 
-The `Host` CRD is formally described by its protobuf specification. Developers who need access to the specification can find it at https://github.com/datawire/ambassador/blob/master/api/getambassador.io/v2/Host.proto.
-
+The `Host` CRD is formally described by its protobuf specification. Developers who need access to the specification can find it [here](https://github.com/datawire/ambassador/blob/master/api/getambassador.io/v2/Host.proto).
