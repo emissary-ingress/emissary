@@ -36,7 +36,7 @@ podDisruptionBudget: {}
 
 # Additional container environment variable
 env:
-  {}
+  AMBASSADOR_SINGLENAMESPACE: "true"
   # Exposing statistics via StatsD
   # STATSD_ENABLED: true
   # STATSD_HOST: statsd-sink
@@ -56,7 +56,7 @@ securityContext:
 
 image:
   repository: quay.io/datawire/aes
-  tag: 1.0.0
+  tag: 1.1.0
   pullPolicy: IfNotPresent
 
 dnsPolicy: "ClusterFirst"
@@ -148,7 +148,11 @@ rbac:
   create: true
   podSecurityPolicies:
     {}
-
+  # Name of the RBAC resources defaults to the name of the release. 
+  # Set nameOverride when installing Ambassador with cluster-wide scope in
+  # different namespaces with the same release name to avoid conflicts.
+  nameOverride: ambassador-ci
+  
 scope:
   # tells Ambassador to only use resources in the namespace or namespace set by namespace.name
   singleNamespace: false

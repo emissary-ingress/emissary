@@ -3,6 +3,12 @@
 This file documents all notable changes to Ambassador Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
+## v6.1.1
+
+Minor Improvements:
+
+- Adds: Option to override the name of the RBAC resources
+
 ## v6.1.0
 
 Minor improvements including:
