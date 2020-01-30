@@ -1,4 +1,8 @@
-docker.tag.dev = $(DEV_REGISTRY)/e2e-test:$(shell tr : - < $<)
+KUBECONFIG = $(DEV_KUBECONFIG)
+export KUBECONFIG
+
+#docker.tag.dev = $(DEV_REGISTRY)/e2e-test:$(shell tr : - < $<)
+docker.tag.dev = $(DEV_REGISTRY)/kubeapply:$(shell tr : - < $<)
 include build-aux/teleproxy.mk
 include build-aux/docker.mk
 include build-aux/common.mk
@@ -28,6 +32,10 @@ venv/bin/activate: %/bin/activate:
 	virtualenv --python=python3 $*
 venv/bin/consul-kube: %/bin/consul-kube: | %/bin/activate
 	$*/bin/pip install git+https://github.com/tradel/consul-kube
+
+images: $(foreach i,$(images) aes-example-plugins, docker/$i.docker.tag.dev )
+push:   $(foreach i,$(images) aes-example-plugins, docker/$i.docker.push.dev )
+.PHONY: images push
 
 # UAA's ~3m bootup time is the main motivator for the big --timeout
 deploy: $(foreach i,$(images) aes-example-plugins, docker/$i.docker.push.dev )

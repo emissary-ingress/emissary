@@ -19,6 +19,7 @@ export BUILDER_PORTMAPS=-p 8080:8080 -p 8877:8877 -p 8500:8500
 OSS_HOME ?= ambassador
 include ${OSS_HOME}/Makefile
 $(call module,apro,.)
+include ${SOURCE_apro}/build-aux-local/e2e-test.mk
 
 tools/golangci-lint = $(CURDIR)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/golangci-lint
 $(tools/golangci-lint): $(CURDIR)/build-aux/bin-go/golangci-lint/go.mod
@@ -39,7 +40,7 @@ format: $(tools/golangci-lint)
 	(cd vendor-ratelimit && $(tools/golangci-lint) run --fix ./...) || true
 .PHONY: format
 
-deploy: test-ready
+deploy: push preflight-cluster
 	@docker exec -e AES_IMAGE=$(AMB_IMAGE) -it $(shell $(BUILDER)) sh -x -c '\
 	  kubectl apply -f ./apro/k8s-aes/00-aes-crds-kube$(if $(DEV_KUBE110),1.10,1.11).yaml && \
 	  kubectl wait --for condition=established --timeout=90s crd -lproduct=aes && \
