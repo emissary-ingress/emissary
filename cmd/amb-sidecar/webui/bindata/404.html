@@ -278,7 +278,7 @@
     </div>
     <script type="text/javascript">
       let link = document.getElementsByClassName("app-link")[0]
-      link.setAttribute("href", `https://{window.location.host}/edge_stack/admin`)
+      link.setAttribute("href", `https://${window.location.host}/edge_stack/admin`)
       if (window.location.protocol == 'http:') {
         document.getElementsByClassName('app-notice')[0].removeAttribute('style');
       }
