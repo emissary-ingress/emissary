@@ -14,7 +14,7 @@ In addition, users of the Ambassador Edge Stack can take advantage of the [Host 
 
 You control TLS configuration in Ambassador Edge Stack using `TLSContext` resources. Multiple `TLSContext`s can be defined in your cluster and can be used for any combination of TLS use cases.
 
-A full schema of the `TLSContext` can be found below with descriptions of the different configuration options. 
+A full schema of the `TLSContext` can be found below with descriptions of the different configuration options.
 
 ```yaml
 ---
@@ -57,7 +57,7 @@ spec:
   # If you set 'redirect_cleartext_from' to a port number, HTTP traffic
   # to that port will be redirected to HTTPS traffic. Make sure that the
   # port number you specify matches the port on which Ambassador is
-  # listening! 
+  # listening!
   # redirect_cleartext_from: 8080
 
   # 'cert_required' can be set to true to _require_ TLS client certificate
@@ -70,14 +70,14 @@ spec:
   # if you want to do GRPC over TLS; typically it will be set to "h2" for that
   # case.
   # type: string (comma-separated list)
-  # 
+  #
   # alpn_protocols: None
 
-  # 'min_tls_version' sets the minimum acceptable TLS version: v1.0, v1.1, 
+  # 'min_tls_version' sets the minimum acceptable TLS version: v1.0, v1.1,
   # v1.2, or v1.3. It defaults to v1.0.
   # min_tls_version: v1.0
 
-  # 'max_tls_version' sets the maximum acceptable TLS version: v1.0, v1.1, 
+  # 'max_tls_version' sets the maximum acceptable TLS version: v1.0, v1.1,
   # v1.2, or v1.3. It defaults to v1.3.
   # max_tls_version: v1.3
 
@@ -197,6 +197,3 @@ spec:
       #
       # cacert_chain_file: /etc/cacert/tls.crt  # remember to set enabled!
 ```
-
-
-

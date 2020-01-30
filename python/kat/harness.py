@@ -458,7 +458,7 @@ class Node(ABC):
             # Yeah, I know, brutal hack.
             envstuff = ["env", f"AMBASSADOR_NAMESPACE={ambassador_namespace}"]
 
-            cmd = ["python", "/buildroot/ambassador/python/mockery.py", k8s_yaml_path,
+            cmd = ["mockery", k8s_yaml_path,
                    "-w", "python /ambassador/watch_hook.py",
                    "--kat", self.ambassador_id,
                    "--diff", gold_path]

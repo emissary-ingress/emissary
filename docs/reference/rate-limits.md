@@ -2,7 +2,7 @@
 
 Rate limits are a powerful way to improve availability and scalability for your microservices. With Ambassador Edge Stack, individual requests can be annotated with metadata, called labels.  These labels can then be passed to a third party [rate limiting service](../services/rate-limit-service) which can then rate limit based on this data. If you do not want to write your own rate limiting service, [Ambassador Edge Stack](../../user-guide/install) includes an integrated, flexible rate limiting service.
 
-## Request labels
+## Request Labels
 
 In Ambassador 0.50 and later, each mapping in Ambassador Edge Stack can have multiple `labels` which annotate a given request. These labels are then passed to a rate limiting service through a gRPC interface. These labels have the `labels` attribute:
 
@@ -39,7 +39,7 @@ Let's digest the above example:
 * The `string_request_label` simply adds the string `catalog` to every incoming request to the given mapping. The string is referenced with the key `generic_key`.
 * The `header_request_label` adds a specific HTTP header value to the request, in this case, the method. Note that HTTP/2 request headers must be used here (e.g., the `host` header needs to be specified as the `:authority` header).
 * Multiple labels can be part of a single named label, e.g., `multi_request_label` specifies two different headers to be added
-* When an HTTP header is not present, the entire named label is omitted. The `omit_if_not_present: true` is an explicit notation to remind end users of this limitation. `false` is *not* a supported value. This limitation will be removed in future versions of Ambassador Edge Stack.
+* When an HTTP header is not present, the entire named label is omitted. The `omit_if_not_present: true` is an explicit notation to remind end-users of this limitation. `false` is *not* a supported value. This limitation will be removed in future versions of Ambassador Edge Stack.
 
 Ambassador Edge Stack supports several special labels:
 
@@ -68,7 +68,7 @@ config:
       - default
 ```
 
-This will annotate every request with the string `default`, creating a key for a rate limiting service based off of the appropriate rate limit.
+This will annotate every request with the string `default`, creating a key for a rate limiting service based on the appropriate rate limit.
 
 ## The `rate_limits` attribute
 

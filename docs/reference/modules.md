@@ -2,7 +2,7 @@
 
 Modules let you enable and configure special behaviors for Ambassador Edge Stack, in ways that may apply to Ambassador Edge Stack as a whole or which may apply only to some mappings. The actual configuration possible for a given module depends on the module.
 
-## Module configuration
+## Module Configuration
 
 Modules can be added as annotations to an existing Kubernetes service, e.g., the Ambassador Edge Stack service. They can also be implemented as independent Kubernetes Custom Resource Definitions (CRDs). Here is a sample configuration of the core `ambassador Module`:
 
@@ -49,11 +49,11 @@ spec:
 
 **Note:** Modules are named resources. A `Module` with `name: ambassador` is distinctly different than a `Module` with `name: my-module`.
  
-## The `ambassador` module
+## The `ambassador` Module
 
 The [`ambassador`](../core/ambassador) module covers general configuration options for Ambassador Edge Stack as a whole. These configuration options generally pertain to routing, protocol support, and the like. Most of these options are likely of interest to operations.
 
-## The `tls` module
+## The `tls` Module
 
 The `tls` module is now deprecated. Use the [TLSContext](../core/tls) manifest type instead.
 

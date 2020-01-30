@@ -1,4 +1,4 @@
-# Ambassador Edge Stack configuration with Custom Resource Definitions (CRDs)
+# Ambassador Edge Stack Configuration with Custom Resource Definitions (CRDs)
 
 Any Ambassador Edge Stack resource can be expressed as a CRD in the `getambassador.io` API group:
 
@@ -33,7 +33,8 @@ spec:
   service: luatest-http
 ```
 
-Note that the `namespace` must be declared in the `metadata`, but if needed, `ambassador_id` must be declared in the `spec`.  
+Note that the `namespace` must be declared in the `metadata`, but if needed, `ambassador_id` must be declared in the `spec`.
+
 You can run `kubectl get ambassador-crds` to see the CRDs you've created to configure the Ambassador Edge Stack.
 
 ## Supported CRDs
@@ -42,21 +43,22 @@ The full set of CRDs supported by the Ambassador Edge Stack are the following:
 
 | `Kind` | Kubernetes singular | Kubernetes plural |
 | :----- | :------------------ | :---------------- |
-| `AuthService` | `authservice` | `authservices` |
-| `ConsulResolver` | `consulresolver` | `consulresolvers` |
-| `Filter` | `filter` | `filters` |
-| `FilterPolicy` | `filterpolicy` | `filterpolicies`|
-| `Host` | `host`| `hosts` |
-| `KubernetesEndpointResolver` | `kubernetesendpointresolver` | `kubernetesendpointresolvers` |
-| `KubernetesServiceResolver` | `kubernetesserviceresolver` | `kubernetesserviceresolvers` |
-| `LogService` | `logservice` | `logservices` |
-| `Mapping` | `mapping` | `mappings` |
-| `Module` | `module` | `modules` |
-| `RateLimit` | `ratelimit` | `ratelimits` |
-| `RateLimitService` | `ratelimitservice` | `ratelimitservices` |
-| `TCPMapping` | `tcpmapping` | `tcpmappings` |
-| `TLSContext` | `tlscontext` | `tlscontexts` |
-| `TracingService` | `tracingservice` | `tracingservices` |
+| [`AuthService`](/reference/services/auth-service) | `authservice` | `authservices` |
+| [`ConsulResolver`](/reference/core/resolvers/#the-consul-resolver) | `consulresolver` | `consulresolvers` |
+| [`Filter`](/reference/filter-reference/) | `filter` | `filters` |
+| [`FilterPolicy`](/reference/services/access-control) | `filterpolicy` | `filterpolicies`|
+| [`Host`](/reference/host-crd/) | `host`| `hosts` |
+| [`Ingress`](/reference/core/ingress-controller/) | `ingress` | `ingresses` |
+| [`KubernetesEndpointResolver`](/reference/core/resolvers/#the-kubernetes-endpoint-resolver) | `kubernetesendpointresolver` | `kubernetesendpointresolvers` |
+| [`KubernetesServiceResolver`](/reference/core/resolvers/#the-kubernetes-service-resolver) | `kubernetesserviceresolver` | `kubernetesserviceresolvers` |
+| [`LogService`](/reference/services/log-service) | `logservice` | `logservices` |
+| [`Mapping`](/reference/mappings/) | `mapping` | `mappings` |
+| [`Module`](/reference/modules/#module-configuration) | `module` | `modules` |
+| [`RateLimit`](/user-guide/advanced-rate-limiting/) | `ratelimit` | `ratelimits` |
+| [`RateLimitService`](/reference/services/rate-limit-service) | `ratelimitservice` | `ratelimitservices` |
+| [`TCPMapping`](/reference/tcpmappings/#tcpmapping) | `tcpmapping` | `tcpmappings` |
+| [`TLSContext`](/reference/core/tls/#tlscontext) | `tlscontext` | `tlscontexts` |
+| [`TracingService`](/reference/services/tracing-service) | `tracingservice` | `tracingservices` |
 
 So, for example, if you're using CRDs, then `kubectl get mappings` should show all your `Mapping` custom resources.
 
@@ -103,8 +105,8 @@ Namely, these annotations are:
 - getambassador.io/resource-source
 - getambassador.io/resource-downloaded
 
-None of these annotations influence the expected behavior of resources. They are purely informative. You may chose to ignore them or discard them if you describe any of your configured resources.
+None of these annotations influence the expected behavior of resources. They are purely informative. You may choose to ignore them or discard them if you describe any of your configured resources.
 
-## Creating the CRD types within Kubernetes
+## Creating the CRD Types Within Kubernetes
 
 Before using the CRD types, you must add them to the Kubernetes API server. This is most easily done by applying [`aes-crds.yaml`](../../../yaml/aes-crds.yaml).
