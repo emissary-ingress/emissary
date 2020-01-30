@@ -26,11 +26,11 @@ import traceback
 import clize
 from clize import Parameter
 
-from . import Scout, Config, IR, Diagnostics, Version
-from .config.resourcefetcher import ResourceFetcher
-from .envoy import EnvoyConfig, V2Config
+from ambassador import Scout, Config, IR, Diagnostics, Version
+from ambassador.config.resourcefetcher import ResourceFetcher
+from ambassador.envoy import EnvoyConfig, V2Config
 
-from .utils import RichStatus, NullSecretHandler
+from ambassador.utils import RichStatus, NullSecretHandler
 
 __version__ = Version
 
