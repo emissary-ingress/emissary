@@ -7,13 +7,13 @@ If you could use one persistent cluster and application for every test, you woul
 To avoid this bottleneck, your CI system must be able to test different changesets concurrently without tests interfering with one another. The outbound and intercept features of Edge Control make this possible. The key requirements are
 
 - the microservice being tested must be an HTTP service, and
-- it must be possible to set a test-run-specific HTTP header for requests to the microservice being tested. Ideally that header would pass through from where requests enter the system all the way to the microservice being tested.
+- it must be possible to set a test-run-specific HTTP header for requests to the microservice being tested. Ideally, that header would pass through from where requests enter the system all the way to the microservice being tested.
 
 The CI job that performs system tests of MyService would look roughly like this
 
 1. Install the required software (`edgectl`, `kubectl`, etc.).
 2. Perform the usual CI steps (build the microservice and perform unit/local tests).
-3. Set up access to the shared cluster, so that e.g., `kubectl get pods` talks to right place.
+3. Set up access to the shared cluster, so that e.g., `kubectl get pods` talks to the right place.
 4. Launch the Edge Control Daemon and connect to the cluster
    ```console
    sudo edgectl daemon

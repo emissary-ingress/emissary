@@ -22,15 +22,15 @@ printf "== Begin: travis-script.sh ==\n"
 if [[ -n "$TRAVIS_TAG" ]]; then
     if [[ "$TRAVIS_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
         COMMIT_TYPE=GA
-    elif [[ "$TRAVIS_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+$ ]]; then
+    elif [[ "$TRAVIS_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$ ]]; then
         COMMIT_TYPE=RC
-    elif [[ "$TRAVIS_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-ea[0-9]+$ ]]; then
+    elif [[ "$TRAVIS_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-ea\.[0-9]+$ ]]; then
         COMMIT_TYPE=EA
     else
         echo "TRAVIS_TAG '$TRAVIS_TAG' is not in one of the recognized tag formats:" >&2
         echo " - 'vSEMVER'" >&2
-        echo " - 'vSEMVER-rcN'" >&2
-        echo " - 'vSEMVER-eaN'" >&2
+        echo " - 'vSEMVER-rc.N'" >&2
+        echo " - 'vSEMVER-ea.N'" >&2
         echo "Note that the tag name must start with a lowercase 'v'" >&2
         exit 1
     fi

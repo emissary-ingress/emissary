@@ -894,7 +894,7 @@ class ResourceFetcher:
             self.logger.debug("ignoring K8s Secret with no name")
             skip = True
 
-        if not skip and (Config.single_namespace and (resource_namespace != Config.ambassador_namespace)):
+        if not skip and (Config.single_namespace and (resource_namespace != Config.ambassador_namespace) and Config.certs_single_namespace):
             # This should never happen in actual usage, since we shouldn't be given things
             # in the wrong namespace. However, in development, this can happen a lot.
             self.logger.debug("ignoring K8s Secret in wrong namespace")

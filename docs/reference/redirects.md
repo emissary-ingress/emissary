@@ -1,6 +1,6 @@
 # Redirects
 
-### Host Redirect
+## Host Redirect
 
 To effect an HTTP 301 `Redirect`, the `Mapping` **must** set `host_redirect` to `true`, with `service` set to the host to which the client should be redirected:
 

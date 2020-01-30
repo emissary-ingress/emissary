@@ -2,9 +2,9 @@
 
 Circuit breakers are a powerful technique to improve resilience. By preventing additional connections or requests to an overloaded service, circuit breakers limit the ["blast radius"](https://www.ibm.com/garage/method/practices/manage/practice_limited_blast_radius/) of an overloaded service. By design, Ambassador Edge Stack circuit breakers are distributed, i.e., different Ambassador Edge Stack instances do not coordinate circuit breaker information.
 
-## Circuit breaker configuration
+## Circuit Breaker Configuration
 
-Circuit breaking configuration can be set for all Ambassador Edge Stack mappings in the [`ambassador Module`](../core/ambassador), or set per [`Mapping`](../mappings#configuring-mappings).
+Circuit breaking configuration can be set for all Ambassador Edge Stack mappings in the [`ambassador Module`](../core/ambassador) or set per [`Mapping`](../mappings#configuring-mappings).
 
 The `circuit_breakers` attribute configures circuit breaking. The following fields are supported:
 
@@ -19,7 +19,7 @@ circuit_breakers:
 
 ### `priority`
 
-(Default: `default`) Specifies the priority to which the circuit breaker settings apply to; can be set to either `default` or `high`.
+(Default: `default`) Specifies the priority to which the circuit breaker settings apply to; it can be set to either `default` or `high`.
 
 ### `max_connections`
 
@@ -31,11 +31,11 @@ circuit_breakers:
 
 ### `max_requests`
 
-(Default: `1024`) Specifies the maximum number of parallel outstanding requests to hosts. In practice, this is more applicable to HTTP/2 than HTTP/1.1.
+(Default: `1024`) Specifies the maximum number of parallel outstanding requests to an upstream service. In practice, this is more applicable to HTTP/2 than HTTP/1.1.
 
 ### `max_retries`
 
-(Default: `3`) Specifies the maximum number of parallel retries allowed to hosts.
+(Default: `3`) Specifies the maximum number of parallel retries allowed to an upstream service.
 
 ## Examples
 
@@ -77,16 +77,16 @@ prefix: /backend/
 service: quote
 ```
 
-## Circuit breakers and automatic retries
+## Circuit Breakers and Automatic Retries
 
 Circuit breakers are best used in conjunction with [automatic retries](../retries). Here are some examples:
 
 * You've configured automatic retries for failed requests to a service. Your service is under heavy load, and starting to time out on servicing requests. In this case, automatic retries can exacerbate your problem, increasing the total request volume by 2x or more. By aggressively circuit breaking, you can mitigate failure in this scenario.
 * To circuit break when services are slow, you can combine circuit breakers with retries. Reduce the time out for retries, and then set a circuit breaker that detects many retries. In this setup, if your service doesn't respond quickly, a flood of retries will occur, which can then trip the circuit breaker.
 
-Note that setting circuit breaker thresholds requires careful monitoring and experimentation. We recommend you start with conservative values for circuit breakers, and adjust them over time.
+Note that setting circuit breaker thresholds requires careful monitoring and experimentation. We recommend you start with conservative values for circuit breakers and adjust them over time.
 
-## More information about circuit breakers
+## More About Circuit Breakers
 
 Responses from a broken circuit contain the `x-envoy-overloaded` header.
 
@@ -101,4 +101,4 @@ circuit_breakers:
   max_retries: 3
 ```
 
-Circuit breaker metrics are exposed in statsd. For more information about the specific statistics, see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/circuit_breaking.html).
+Circuit breaker metrics are exposed in StatsD. For more information about the specific statistics, see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/circuit_breaking.html).

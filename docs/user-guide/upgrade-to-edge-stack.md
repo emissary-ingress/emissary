@@ -34,9 +34,9 @@ kubectl apply -n <namespace> -f https://www.getambassador.io/yaml/oss-migration.
 
 ## 2. Test the New Deployment
 
-At this point, you have the Ambassador API Gateway and the Ambassador Edge Stack running side by side in your cluster. The Edge Stack is configured using the same configuration (Mappings, Modules, etc) as current Ambassador.
+At this point, you have the Ambassador API Gateway and the Ambassador Edge Stack running side by side in your cluster. The Edge Stack is configured using the same configuration (Mappings, Modules, etc) as your current Ambassador.
 
-Get IP address to connect to the Ambassador Edge Stack by running the following command:
+Get the IP address to connect to the Ambassador Edge Stack by running the following command:
 `kubectl get service test-aes -n <namespace>`
 
 Test that AES is working properly.

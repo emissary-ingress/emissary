@@ -709,6 +709,9 @@ class IR:
         od['service_resource_total'] = len(list(self.services.keys()))
 
         od['xff_num_trusted_hops'] = self.ambassador_module.get('xff_num_trusted_hops', 0)
+
+        od['listener_idle_timeout_ms'] = self.ambassador_module.get('listener_idle_timeout_ms', None)
+
         od['server_name'] = bool(self.ambassador_module.server_name != 'envoy')
 
         od['custom_ambassador_id'] = bool(self.ambassador_id != 'default')

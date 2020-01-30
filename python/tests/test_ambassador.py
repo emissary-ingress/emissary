@@ -31,6 +31,7 @@ import t_consul
 #import t_circuitbreaker
 import t_envoy_logs
 import t_ingress
+import t_listeneridletimeout
 
 # pytest will find this because Runner is a toplevel callable object in a file
 # that pytest is willing to look inside.
