@@ -2,7 +2,7 @@
 
 Since Ambassador Edge Stack's configuration is entirely stored in Kubernetes resources, no special process is necessary to upgrade Ambassador Edge Stack. If you're using the YAML files supplied by Datawire, you'll be able to upgrade simply by repeating the following `kubectl apply` commands.
 
-First determine if Kubernetes has RBAC enabled:
+First, determine if Kubernetes has RBAC enabled:
 
 ```shell
 kubectl cluster-info dump --namespace kube-system | grep authorization-mode

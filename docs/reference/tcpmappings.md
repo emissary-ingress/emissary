@@ -24,10 +24,10 @@ Ambassador Edge Stack can manage TCP connections using TLS:
 
 | Attribute                 | Description               |
 | :------------------------ | :------------------------ |
-| [`host`](../host) | (optional) enables TLS _termination_, and specifies the hostname that must be presented using SNI for this `TCPMapping` to match -- **FORCES TLS TERMINATION**, see below |
+| [`host`](../host) | (optional) enables TLS _termination_ and specifies the hostname that must be presented using SNI for this `TCPMapping` to match -- **FORCES TLS TERMINATION**, see below |
 | [`tls`](#using-tls)       | (optional) enables TLS _origination_, and may specify the name of a `TLSContext` that will determine the certificate to offer to the upstream service | 
 
-Ambassador Edge Stack supports multiple deployment patterns for your services. These patterns are designed to let you safely release new versions of your service, while minimizing its impact on production users.
+Ambassador Edge Stack supports multiple deployment patterns for your services. These patterns are designed to let you safely release new versions of your service while minimizing its impact on production users.
 
 | Attribute                 | Description               |
 | :------------------------ | :------------------------ |
@@ -41,7 +41,7 @@ The name of the mapping must be unique.
 
 This leaves four cases:
 
-#### Neither `host` nor `tls` are set
+#### Neither `host` Nor `tls` are Set
 
 In this case, Ambassador Edge Stack simply proxies bytes between the client and the upstream. TLS may or may not be involved, and Ambassador Edge Stack doesn't care. You should specify the port to use for the upstream connection; if you don't, Ambassador Edge Stack will guess port 80.
 
@@ -73,13 +73,13 @@ spec:
 
 could proxy a CockroachDB connection.
 
-#### `host` is set, but `tls` is not
+#### `host` is Set, But `tls` is Not
 
 In this case, Ambassador Edge Stack will terminate the TLS connection, require that the host offered with SNI match the `host` attribute, and then make a **cleartext** connection to the upstream host. You should specify the port to use for the upstream connection; if you don't, Ambassador Edge Stack will guess port **80**.
 
 This can be useful for doing host-based TLS proxying of arbitrary protocols, allowing the upstream to not have to care about TLS.
 
-Note that this case **requires** that you have created a termination `TLSContext` that has a `host` that matches the `host` in the `TCPMapping`. (This is the same rule as when you do TLS termination with SNI in an HTTP `Mapping`.)
+Note that this case **requires** that you have created a termination `TLSContext` that has a `host` that matches the `host` in the `TCPMapping`. (This is the same rule as TLS termination with SNI in an HTTP `Mapping`.)
 
 Example:
 
@@ -116,13 +116,13 @@ spec:
 
 The example above will accept a TLS connection with SNI on port 2222. If the client requests SNI host `my-host-1`, the decrypted traffic will be relayed to `upstream-host-1`, port 9999. If the client requests SNI host `my-host-2`, the decrypted traffic will be relayed to `upstream-host-2`, port 9999. Any other SNI host will cause the TLS handshake to fail.
 
-#### `host` and `tls` are both set
+#### `host` and `tls` are Both Set
 
 In this case, Ambassador Edge Stack will terminate the incoming TLS connection, require that the host offered with SNI match the `host` attribute, and then make a **TLS** connection to the upstream host. You should specify the port to use for the upstream connection; if you don't, Ambassador Edge Stack will guess port **443**.
 
 This is useful for doing host routing while maintaining end-to-end encryption.
 
-Note that this case **requires** that you have created a termination `TLSContext` that has a `host` that matches the `host` in the `TCPMapping`. (This is the same rule as when you do TLS termination with SNI in an HTTP `Mapping`.)
+Note that this case **requires** that you have created a termination `TLSContext` that has a `host` that matches the `host` in the `TCPMapping`. (This is the same rule as TLS termination with SNI in an HTTP `Mapping`.)
 
 Example:
 
@@ -166,7 +166,7 @@ spec:
   service: upstream-host-2:9999
 ```
 
-The example above will accept a TLS connection with SNI on port 2222. 
+The example above will accept a TLS connection with SNI on port 2222.
 
 If the client requests SNI host `my-host-1`, the traffic will be relayed over a TLS connection to `upstream-host-1`, port 9999. No client certificate will be offered for this connection.
 
@@ -174,7 +174,7 @@ If the client requests SNI host `my-host-2`, the decrypted traffic will be relay
 
 Any other SNI host will cause the TLS handshake to fail.
 
-#### host is not set, but `tls` is
+#### Host is Not Set, But `tls` is
 
 Here, Ambassador Edge Stack will accept the connection **without terminating TLS**, then relay traffic over a **TLS** connection upstream. This is probably useful only to accept unencrypted traffic and force it to be encrypted when it leaves Ambassador Edge Stack.
 
@@ -209,7 +209,7 @@ The example above will accept **any** connection to port 2222 and relay it over 
 
 - You can mix and match as long as you think about how the protocols interact.
 
-#### Required attributes for `TCPMapping`s:
+#### Required Attributes for `TCPMapping`s
 
 - `name` is a string identifying the `Mapping` (e.g. in diagnostics)
 - `port` is an integer specifying which port to listen on for connections

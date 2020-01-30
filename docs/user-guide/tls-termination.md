@@ -2,7 +2,7 @@
 
 TLS encryption is one of the basic requirements of having a secure system. Ambassador Edge Stack automatically enables TLS termination/HTTPs, making TLS encryption easy and centralizing TLS termination for all of your services in Kubernetes automatically during configuration if you have a fully qualified domain name (FQDN).
 
-However, if you don't have a FQDN for your Ambassador Edge Stack, you can manually enable TLS. This guide will show you how to quickly enable TLS termination in Ambassador Edge Stack with a self-signed certificate.
+However, if you don't have an FQDN for your Ambassador Edge Stack, you can manually enable TLS. This guide will show you how to quickly enable TLS termination in Ambassador Edge Stack with a self-signed certificate.
 
 **Note** that these instructions do not work with the Ambassador API Gateway.
 
@@ -11,7 +11,7 @@ However, if you don't have a FQDN for your Ambassador Edge Stack, you can manual
 This guide requires you have the following installed:
 
 - A Kubernetes cluster v1.11 or newer
-- The Kubernetes command line tool, [`kubectl`](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
+- The Kubernetes command-line tool, [`kubectl`](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
 - [openssl](https://www.openssl.org/source/)
 
 ## Install Ambassador Edge Stack
@@ -110,7 +110,7 @@ curl -Lk https://{{AMBASSADOR_IP}}/backend/
 
 ## Next Steps
 
-This guide walked you through how to enable basic TLS termination in Ambassador Edge Stack using a self-signed certificate for simplicity. 
+This guide walked you through how to enable basic TLS termination in Ambassador Edge Stack using a self-signed certificate for simplicity.
 
 ### Get a Valid Certificate from a Certificate Authority
 
@@ -118,6 +118,6 @@ While a self-signed certificate is a simple and quick way to get Ambassador Edge
 
 In Kubernetes, Jetstack's `cert-manager` provides a simple way to manage certificates from Let's Encrypt. See our documentation for more information on how to [use `cert-manager` with Ambassador Edge Stack](../cert-manager).
 
-### Enable advanced TLS options
+### Enable Advanced TLS options
 
 Ambassador Edge Stack exposes configuration for many more advanced options around TLS termination, origination, client certificate validation, and SNI support. See the full [TLS reference](../../reference/core/tls) for more information.

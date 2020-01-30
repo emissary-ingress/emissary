@@ -4,7 +4,7 @@ Ambassador Edge Stack supports a variety of global configuration options in the 
 
 ## The `ambassador Module`
 
-If present, the `ambassador Module` defines system-wide configuration. This module can be applied on any Kubernetes service (the `ambassador` service itself is a common choice). **You may very well not need this Module.** The defaults in the `ambassador Module` are:
+If present, the `ambassador Module` defines system-wide configuration. This module can be applied to any Kubernetes service (the `ambassador` service itself is a common choice). **You may very well not need this Module.** The defaults in the `ambassador Module` are:
 
 ```yaml
 apiVersion: getambassador.io/v2
@@ -48,16 +48,17 @@ spec:
 | `x_forwarded_proto_redirect` | Ambassador lets through only the HTTP requests with `X-FORWARDED-PROTO: https` header set, and redirects all the other requests to HTTPS if this field is set to true. Note that `use_remote_address` must be set to false for this feature to work as expected. | `x_forwarded_proto_redirect: false` |
 | `xff_num_trusted_hops` | Controls the how Envoy sets the trusted client IP address of a request. If you have a proxy in front of Ambassador, Envoy will set the trusted client IP to the address of that proxy. To preserve the orginal client IP address, setting `x_num_trusted_hops: 1` will tell Envoy to use the client IP address in `X-Forwarded-For`. Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/v1.11.2/configuration/http_conn_man/headers#x-forwarded-for) for more information. | `xff_num_trusted_hops: 0` |
 
-### Additional `config` field examples
+### Additional `config` Field Examples
 
-`circuit_breakers` sets the global circuit breaking configuration that Ambassador will use for all mappings, unless overridden in a mapping. More information at the [circuit breaking reference](../../circuit-breakers). 
+`circuit_breakers` sets the global circuit breaking configuration that Ambassador will use for all mappings, unless overridden in a mapping. More information at the [circuit breaking reference](../../circuit-breakers).
+
 ```
 circuit_breakers
   max_connections: 2048
   ...
 ```
 
-`cors` sets default CORS configuration for all mappings in the cluster. See the [CORS syntax](../../cors).
+`cors` sets the default CORS configuration for all mappings in the cluster. See the [CORS syntax](../../cors).
 
 ```
 cors:
@@ -67,7 +68,7 @@ cors:
   ...
 ```
 
-The `diagnostics` service (at /ambassador/v0/diag/) defaults on, but you can disable the api route. It will remain accessible on diag_port.
+The `diagnostics` service (at /ambassador/v0/diag/) defaults on, but you can disable the API route. It will remain accessible on diag_port.
 
 ```
 diagnostics:
@@ -75,7 +76,7 @@ diagnostics:
 ```
 
 `keepalive` sets the global keepalive settings.
-Ambassador will use for all mappings, unless overridden in a
+Ambassador will use for all mappings unless overridden in a
 mapping. No default value is provided by Ambassador.
 More information at https://www.envoyproxy.io/docs/envoy/latest/api-v2/api/v2/core/address.proto#envoy-api-msg-core-tcpkeepalive
 
@@ -86,13 +87,13 @@ keepalive:
   probes: 100
 ```
 
-`liveness_probe` defaults on, but you can disable the api route. It will remain accessible on diag_port.
+`liveness_probe` defaults on, but you can disable the API route. It will remain accessible on diag_port.
 ```
 liveness_probe:
       enabled: true
 ```
 
-`load_balancer` sets the global load balancing type and policy that Ambassador will use for all mappings, unless overridden in a mapping. Defaults to round robin with Kubernetes. More information at the [load balancer reference](../load-balancer).
+`load_balancer` sets the global load balancing type and policy that Ambassador will use for all mappings unless overridden in a mapping. Defaults to round-robin with Kubernetes. More information at the [load balancer reference](../load-balancer).
 
 ```
 load_balancer:
@@ -100,7 +101,7 @@ load_balancer:
   ...
 ```
 
-`readiness_probe` defaults on, but you can disable the api route. It will remain accessible on diag_port.
+`readiness_probe` defaults on, but you can disable the API route. It will remain accessible on diag_port.
 ```
 readiness_probe:
   enabled: true
@@ -162,12 +163,7 @@ Some caveats around the embedded scripts:
 * They're inlined in the Ambassador Edge Stack YAML, so you likely won't want to write complex logic in here
 * They're run on every request/response to every URL
 
-
-
 If you need more flexible and configurable options, Ambassador Edge Stack supports a [pluggable Filter system](../../filter-reference).
-
-
-
 
 ### Linkerd Interoperability (`add_linkerd_headers`)
 
@@ -175,7 +171,7 @@ When using Linkerd, requests going to an upstream service need to include the `l
 
 ### Upstream Idle Timeout (`cluster_idle_timeout_ms`)
 
-If set, `cluster_idle_timeout_ms` specifies the timeout (in milliseconds) after which an idle connection upstream will closed. If no `cluster_idle_timeout_ms` is specified, upstream connections will never be closed due to idling.
+If set, `cluster_idle_timeout_ms` specifies the timeout (in milliseconds) after which an idle connection upstream is closed. If no `cluster_idle_timeout_ms` is specified, upstream connections will never be closed due to idling.
 
 ### gRPC HTTP/1.1 bridge (`enable_grpc_http11_bridge`)
 
@@ -189,7 +185,7 @@ The gRPC-Web specification requires a server-side proxy to translate between gRP
 
 ### HTTP/1.0 support (`enable_http10`)
 
-Enable/disable handling of incoming HTTP/1.0 and HTTP 0.9 requests.
+Enable/disable the handling of incoming HTTP/1.0 and HTTP 0.9 requests.
 
 ### Listener Idle Timeout (`listener_idle_timeout_ms`)
 
@@ -199,7 +195,7 @@ Controls how Envoy configures the tcp idle timeout on the http listener. Default
 
 If both IPv4 and IPv6 are enabled, Ambassador Edge Stack will prefer IPv6. This can have strange effects if Ambassador Edge Stack receives `AAAA` records from a DNS lookup, but the underlying network of the pod doesn't actually support IPv6 traffic. For this reason, the default is IPv4 only.
 
-A `Mapping` can override both `enable_ipv4` and `enable_ipv6`, but if either is not stated explicitly in a `Mapping`, the values here are used. Most Ambassador Edge Stack installations will probably be able to avoid overridding these setting in `Mapping`s.
+A `Mapping` can override both `enable_ipv4` and `enable_ipv6`, but if either is not stated explicitly in a `Mapping`, the values here are used. Most Ambassador Edge Stack installations will probably be able to avoid overriding these settings in `Mapping`s.
 
 ### Readiness and Liveness probes (`readiness_probe` and `liveness_probe`)
 
@@ -231,10 +227,10 @@ The value of `xff_num_trusted_hops` indicates the number of trusted proxies in f
 
 `xff_num_trusted_hops` behavior is determined by the value of `use_remote_address` (which defaults to `true` in Ambassador Edge Stack).
 
-- If `use_remote_address` is `false` and `xff_num_trusted_hops` is set to a value N that is greater than zero, the trusted client address is the (N+1)th address from the right end of XFF. (If the XFF contains fewer than N+1 addresses, Envoy falls back to using the immediate downstream connection’s source address as trusted client address.)
+* If `use_remote_address` is `false` and `xff_num_trusted_hops` is set to a value N that is greater than zero, the trusted client address is the (N+1)th address from the right end of XFF. (If the XFF contains fewer than N+1 addresses, Envoy falls back to using the immediate downstream connection’s source address as a trusted client address.)
 
-- If `use_remote_address` is `true` and `xff_num_trusted_hops` is set to a value N that is greater than zero, the trusted client address is the Nth address from the right end of XFF. (If the XFF contains fewer than N addresses, Envoy falls back to using the immediate downstream connection’s source address as trusted client address.)
+* If `use_remote_address` is `true` and `xff_num_trusted_hops` is set to a value N that is greater than zero, the trusted client address is the Nth address from the right end of XFF. (If the XFF contains fewer than N addresses, Envoy falls back to using the immediate downstream connection’s source address as a trusted client address.)
 
-Refer to [Envoy's documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_conn_man/headers.html#x-forwarded-for) for some detailed examples on this interaction.
+Refer to [Envoy's documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_conn_man/headers.html#x-forwarded-for) for some detailed examples of this interaction.
 
-**NOTE:** This value is not dynamically configurable in Envoy. A restart is required  changing the value of `xff_num_trusted_hops` for Envoy to respect the change.
+**NOTE:** This value is not dynamically configurable in Envoy. A restart is required changing the value of `xff_num_trusted_hops` for Envoy to respect the change.
