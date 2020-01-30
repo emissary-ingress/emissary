@@ -1,10 +1,10 @@
 # Single Sign-On with OAuth & OIDC
 
-Ambassador Edge Stack adds native support for configuring single sign-on with OAuth and OIDC authentication schemes for single sign-on with an external identity providers (IDP). Ambassador Edge Stack has been tested with Keycloak, Auth0, Okta, and UAA although other OAuth/OIDC-compliant identity providers should work. Please contact us on [Slack](https://d6e.co/slack) if you have questions about IDPs not listed below.
+Ambassador Edge Stack adds native support for configuring single sign-on with OAuth and OIDC authentication schemes for single sign-on with an external identity provider (IdP). Ambassador Edge Stack has been tested with Keycloak, Auth0, Okta, and UAA although other OAuth/OIDC-compliant identity providers should work. Please contact us on [Slack](https://d6e.co/slack) if you have questions about IdPs not listed below.
 
-## 1. Configure an OAuth2 filter
+## 1. Configure an OAuth2 Filter
 
-First, configure an OAuth2 filter for your identity provider. For information on how to configure your IDP, see the IDP configuration section below.
+First, configure an OAuth2 filter for your identity provider. For information on how to configure your IdP, see the IdP configuration section below.
 
 ```yaml
 ---
@@ -16,9 +16,9 @@ metadata:
 spec:
   OAuth2:
     authorizationURL: PROVIDER_URL ## URL where Ambassador Edge Stack can find OAuth2 descriptor
-    clientURL: AMBASSADOR_URL ## URL your IDP will redirect back to. Typically the same as the requests host.
+    clientURL: AMBASSADOR_URL ## URL your IdP will redirect back to. Typically the same as the requests host.
     audience: AUDIENCE ## OIDC Audience
-    clientID: CLIENT_ID ## OAuth2 client from your IDP
+    clientID: CLIENT_ID ## OAuth2 client from your IdP
     secret: CLIENT_SECRET ## Secret used to access OAuth2 client
 ```
 
@@ -49,9 +49,9 @@ spec:
 
 Save the configuration to a file and apply it to the cluster: `kubectl apply -f httpbin-filter-policy.yaml`. For more information about filters and filter policies, consult the [filter reference](../../reference/filter-reference).
 
-## IDP Configuration
+## IdP Configuration
 
-You will need to configure your IDP to handle authentication requests. The way to do this varies by IDP.
+You will need to configure your IdP to handle authentication requests. The way to do this varies by IdP.
 
 - [Auth0](../../reference/idp-support/auth0)
 - [Google](../../reference/idp-support/google)
@@ -63,7 +63,7 @@ You will need to configure your IDP to handle authentication requests. The way t
 
 Ambassador Edge Stack supports authentication for multiple domains where each domain is issued its own access token. For example, imagine you're hosting both `domain1.example.com` and `domain2.example.com` on the same cluster. With multi-domain support, users will receive separate authentication tokens for `domain1` and `domain2`.
 
-To configure multi-domain access, you will need to create another authentication endpoint with your IDP and create another `Filter` for the new domain.
+To configure multi-domain access, you will need to create another authentication endpoint with your IdP and create another `Filter` for the new domain.
 
 Example:
 

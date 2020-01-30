@@ -66,7 +66,7 @@ The following fields are only used if `proto: http`; they are ignored if `proto:
 
  - `path_prefix` (optional) prepends a string to the request path of the request when sending it to the external auth service.  By default this is empty, and nothing is prepended.  For example, if the client makes a request to `/foo`, and `path_prefix: /bar`, then the path in the request made to the external auth service will be `/foo/bar`.
 
- - `allowed_request_headers` (optional) lists headers that will be sent copied from the incoming request to the request made to the external auth service (case-insensitive).  In addition to the headers listed in this field, the following headers are always included:
+ - `allowed_request_headers` (optional) lists the headers that will be sent copied from the incoming request to the request made to the external auth service (case-insensitive).  In addition to the headers listed in this field, the following headers are always included:
     * `Authorization`
     * `Cookie`
     * `From`
@@ -76,7 +76,7 @@ The following fields are only used if `proto: http`; they are ignored if `proto:
     * `X-Forwarded-Host`
     * `X-Forwarded-Proto`
 
- - `allowed_authorization_headers` (optional) lists headers that will be copied from the response from the external auth service to the request sent to the upstream backend service (if the external auth service indicates that the request to the upstream backend service should be allowed).  In addition to the headers listed in this field, the following headers are always included:
+ - `allowed_authorization_headers` (optional) lists the headers that will be copied from the response from the external auth service to the request sent to the upstream backend service (if the external auth service indicates that the request to the upstream backend service should be allowed).  In addition to the headers listed in this field, the following headers are always included:
     * `Authorization`
     * `Location`
     * `Proxy-Authenticate`
