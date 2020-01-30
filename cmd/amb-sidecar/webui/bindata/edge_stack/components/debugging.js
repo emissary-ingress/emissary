@@ -25,6 +25,7 @@ export class Debugging extends LitElement {
     ];
 
     this.logOptions = logOptions;
+    this.level = this.logOptions[0].value;
 
     Snapshot.subscribe(this.onSnapshotChange.bind(this));
   }
@@ -528,7 +529,8 @@ export class Debugging extends LitElement {
     this.redisInUse = snapshot.getRedisInUse();
   }
 
-  setLogLevel(e,level) {
+  setLogLevel(e) {
+    console.log(level);
     this.level = e.target.options[e.target.selectedIndex].value;
     console.log(this.level);
     let formdata = new FormData();
