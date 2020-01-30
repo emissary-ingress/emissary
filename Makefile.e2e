@@ -92,6 +92,16 @@ bin_linux_amd64/kubectl:
 %.docker: %.docker.stamp $(COPY_IFCHANGED)
 	$(COPY_IFCHANGED) $< $@
 
+uaa_cache_tag = quay.io/datawire/ambassador_pro-buildcache:model-cluster-uaa-$(firstword $(shell sha1sum $*/Dockerfile))
+docker/model-cluster-uaa.docker.stamp: %.docker.stamp: %/Dockerfile
+	@PS4=; set -ex; { \
+	    if docker run --rm --entrypoint=true $(uaa_cache_tag); then \
+	        docker image inspect $(uaa_cache_tag) --format='{{.Id}}' > $@; \
+	    else \
+	        docker build --iidfile=$@ $*; \
+	    fi; \
+	}
+
 define docker.rule
   # Trigger rebuilds
   docker/$(image).docker.stamp: $(shell find docker/$(image)/)
