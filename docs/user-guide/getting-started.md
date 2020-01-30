@@ -6,6 +6,7 @@
 In this guide, we'll walk you through installing and configuring the Ambassador Edge Stack in your Kubernetes cluster. Within a few minutes, your cluster will be routing HTTPS requests from the Internet to a backend service. You'll also have a sense of how the Ambassador Edge Stack is managed.
 
 Different options for installation include:
+
 * Quick install (recommended!)
 * Install via Minikube
 * Install in CI
@@ -17,7 +18,7 @@ The Ambassador Edge Stack is designed to run in Kubernetes for production. The m
 
 * Kubernetes 1.11 or later
 * The `kubectl` command-line tool
-* Edge Control
+* [Edge Control](/reference/edgectl-download)
 
 ## Install the Ambassador Edge Stack
 
@@ -25,13 +26,15 @@ The Ambassador Edge Stack is typically deployed to Kubernetes from the command l
 
 When you install Edge Control to manage your Edge Stack, it will:
 
+* Generate a domain name for you to access your Edge Policy Console and complete
+  advanced configuration
 * Obtain a TLS certificate
 * Configure automatic TLS and HTTPS
-* Generate a domain name for you to access your Edge Policy Console and complete advanced configuration
 
 **To get started:**
 
-1. Install Edge Control for your operating system: <link>
+1. Install Edge Control for your operating system
+   [here](/reference/edgectl-download). When complete, return to these instructions.
 2. Open your terminal and run the following command: `edgectl install`
 3. Provide an email address so you can be notified before your domain and certificate expire.
 
@@ -172,8 +175,8 @@ In the Ambassador Edge Stack, Kubernetes serves as the single source of configur
 
 ```  
   (⎈ |rdl-1:default)$ kubectl get hosts
-  NAME               HOSTNAME           STATE   PHASE COMPLETED   PHASE PENDING   AGE
- blackbird-penguin-123.edgestack.me      blackbird-penguin-123.edgestack.me      Ready                                    158m
+ NAME                          HOSTNAME                      STATE   PHASE COMPLETED   PHASE PENDING   AGE
+ blackbird-123.edgestack.me    blackbird-123.edgestack.me    Ready                                     158m
  ```
 
 ## Developer Onboarding
@@ -188,4 +191,5 @@ The Quote service we just deployed publishes its API as a Swagger document. This
 
 The Ambassador Edge Stack has a comprehensive range of [features](/features/) to support the requirements of any edge microservice.
 
-To learn more about how the Ambassador Edge Stack works, along with use cases, best practices, and more, check out the [Ambassador](../../about/why-ambassador) story.
+To learn more about how the Ambassador Edge Stack works, along with use cases, best practices, and more, check out the [Welcome page](/docs/) or read the
+[Ambassador Story](/about/why-ambassador).
