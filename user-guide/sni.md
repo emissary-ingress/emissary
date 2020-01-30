@@ -40,7 +40,7 @@ Ambassador Edge Stack will check if any of the `TLSContext` resources have a mat
 
 ## Examples
 
-### Multiple certificates
+### Multiple Certificates
 
 In this configuration:
 
@@ -90,7 +90,7 @@ spec:
   secret: external-secret
 ```
 
-### Multiple mappings with a fallback
+### Multiple Mappings with a Fallback
 
 In this configuration:
 
