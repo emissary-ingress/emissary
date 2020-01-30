@@ -7,10 +7,10 @@ In this guide, we'll walk you through installing and configuring the Ambassador 
 
 Different options for installation include:
 
-* Quick install (recommended!)
-* Install via Minikube
-* Install in CI
-* Manual Install
+* [Quick install (recommended!)](#quick-install)
+* [Install via Minikube](#minikube-users)
+* [Install in CI](#install-in-ci)
+* Or, you can [install manually](/user-guide/manual-install)
 
 ## Before You Begin
 
@@ -20,9 +20,9 @@ The Ambassador Edge Stack is designed to run in Kubernetes for production. The m
 * The `kubectl` command-line tool
 * [Edge Control](/reference/edgectl-download)
 
-## Install the Ambassador Edge Stack
+## Quick Install
 
-The Ambassador Edge Stack is typically deployed to Kubernetes from the command line. If you don't have Kubernetes, you should use our [Docker](../../about/quickstart) image to deploy the Ambassador Edge Stack locally. Or, if you're a Minikube user, `[check out these directions].`
+The Ambassador Edge Stack is typically deployed to Kubernetes from the command line. If you don't have Kubernetes, you should use our [Docker](../../about/quickstart) image to deploy the Ambassador Edge Stack locally. Or, if you're a Minikube user, [check out these directions](#minikube-users).
 
 When you install Edge Control to manage your Edge Stack, it will:
 
@@ -47,8 +47,10 @@ When you install Edge Control to manage your Edge Stack, it will:
  Please enter an email address. We’ll use this email address to notify you prior to domain and certification expiration [None]: john@example.com.
 ```
 
-4. Once you enter your email address, your terminal will print something similar to the following:
-```
+4. Once you enter your email address, your terminal will print something similar
+   to the following:
+
+```shell
  -> Obtaining a TLS certificate from Let’s Encrypt.
 
  Congratulations, you’ve successfully installed the Ambassador Edge Stack in your Kubernetes cluster. Visit https://random-word-3421.edgestack.me to access your Edge Stack installation and for additional configuration.
