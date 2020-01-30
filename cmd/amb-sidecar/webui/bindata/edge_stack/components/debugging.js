@@ -11,7 +11,8 @@ export class Debugging extends LitElement {
       diagd: {type: Object},
       licenseClaims: { type: Object },
       featuresOverLimit: { type: Object },
-      redisInUse: { type: Boolean }
+      redisInUse: { type: Boolean },
+
     };
   }
 
@@ -25,7 +26,6 @@ export class Debugging extends LitElement {
     ];
 
     this.logOptions = logOptions;
-    this.level = this.logOptions[0].value;
 
     Snapshot.subscribe(this.onSnapshotChange.bind(this));
   }
@@ -529,10 +529,9 @@ export class Debugging extends LitElement {
     this.redisInUse = snapshot.getRedisInUse();
   }
 
-  setLogLevel(e) {
-    console.log(level);
-    this.level = e.target.options[e.target.selectedIndex].value;
-    console.log(this.level);
+  setLogLevel(level) {
+    console.log("This.level is " + this.level);
+    console.log("level is " + level);
     let formdata = new FormData();
     formdata.append('loglevel', level);
 
