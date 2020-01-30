@@ -111,6 +111,8 @@ spec:
   selector:
     matchLabels:
       app: uaa
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
