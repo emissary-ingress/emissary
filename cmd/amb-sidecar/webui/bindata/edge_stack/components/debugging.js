@@ -26,7 +26,7 @@ export class Debugging extends LitElement {
     ];
 
     this.logOptions = logOptions;
-    this.level = this.logOptions[0].value;
+    
 
     Snapshot.subscribe(this.onSnapshotChange.bind(this));
   }
@@ -456,6 +456,7 @@ export class Debugging extends LitElement {
           <dl>
             <dt>Current log level</dt>
             <dd>${this.diagd.loginfo.all}</dd>
+            <dd>${this.level}</dd>
           </dl>
           <div class="logDiv"><span class="logLabel">Set Log Level:</span>
             <select class="logSelector" @change=${this.onChangeSetLogLevel.bind(this)}>
@@ -532,15 +533,15 @@ export class Debugging extends LitElement {
 
   onChangeSetLogLevel(e) {
     this.level = e.target.options[e.target.selectedIndex].value;
-    console.log("This.level inside onChangeSetLogLevel is " + this.level);
-    this.setLogLevel();
+    console.log("this.level in onChangeSetLogLevel is " + this.level);
+    this.setLogLevel(this.level);
   }
 
   setLogLevel(level) {
-    console.log("This.level inside setLogLevel is " + this.level);
+    console.log("level in setLogLevel is " + level);
     let formdata = new FormData();
-    formdata.append('loglevel', this.level);
-    console.log("This.level inside formdata.append is " + this.level);
+    formdata.append('loglevel', level);
+    console.log("level in formdata.append is " + level);
 
     ApiFetch('/edge_stack/api/log-level', {
       method: 'POST',
