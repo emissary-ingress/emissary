@@ -459,12 +459,16 @@ export class Debugging extends LitElement {
             <dd>${this.level}</dd>
           </dl>
           <div class="logDiv"><span class="logLabel">Set Log Level:</span>
-            <select class="logSelector" @change=${this.onChangeSetLogLevel.bind(this)}>
-            ${this.logOptions.map(f => {
-              return html`<option value="${f.value}">${f.label}</option>`
-            })}
+            <select class="logSelector" 
+            
+            @change=${this.onChangeSetLogLevel.bind(this)}>
+              <option ?selected=${this.value==="debug"}>DEBUG</option>
+              <option ?selected=${this.value==="info"}>INFO</option>
+              <option ?selected=${this.value==="trace"}>TRACE</option>
             </select>
           </div>
+
+
           <a class="cta" style="width: auto" @click=${()=>{this.setLogLevel('debug')}}><div class="label">Set log level to <q>debug</q></div></a>
           <a class="cta" style="width: auto" @click=${()=>{this.setLogLevel('info')}}><div class="label">Set log level to <q>info</q></div></a>
         </div>
