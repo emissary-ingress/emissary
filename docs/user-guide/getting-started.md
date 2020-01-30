@@ -6,10 +6,10 @@
 In this guide, we'll walk you through installing and configuring the Ambassador Edge Stack in your Kubernetes cluster. Within a few minutes, your cluster will be routing HTTPS requests from the Internet to a backend service. You'll also have a sense of how the Ambassador Edge Stack is managed.
 
 Different options for installation include:
-Quick install (recommended!)
-Install via Minikube
-Install in CI 
-Manual Install
+* Quick install (recommended!)
+* Install via Minikube
+* Install in CI
+* Manual Install
 
 ## Before You Begin
 

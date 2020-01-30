@@ -1,5 +1,11 @@
 # The Ambassador API Gateway
 
+**The Ambassador Edge stack is now available and includes additional functionality beyond the current Ambassador API Gateway.** These features including automatic HTTPS, the Edge Policy Console UI, OAuth/OpenID Connect authentication support, integrated rate limiting, a developer portal, and [more](/edge-stack-faq/).
+
+If you still want to use just the Ambassador API Gateway, don't worry! You can follow the directions below to install it. Throughout the documentation, you'll see product tags at the top of the page, so you know what features apply to the Ambassador API Gateway.
+
+## Install the Ambassador API Gateway
+
 In this tutorial, we'll walk through the process of deploying the Ambassador API Gateway in Kubernetes for ingress routing. The Ambassador API Gateway provides all the functionality of a traditional ingress controller (i.e., path-based routing) while exposing many additional capabilities such as [authentication](../auth-tutorial), URL rewriting, CORS, rate limiting, and automatic metrics collection (the [mappings reference](../../reference/mappings) contains a full list of supported options). Note that the Ambassador Edge Stack can be used as an [Ingress Controller](../../reference/core/ingress-controller).
 
 For more background on Kubernetes ingress, [read this blog post](https://blog.getambassador.io/kubernetes-ingress-nodeport-load-balancers-and-ingress-controllers-6e29f1c44f2d).
@@ -16,7 +22,7 @@ To deploy Ambassador in your **default** namespace, first you need to check if K
 kubectl cluster-info dump --namespace kube-system | grep authorization-mode
 ```
 
-If you see something like `--authorization-mode=Node,RBAC` in the output, then RBAC is enabled. The majority of current hosted Kubernetes providers (such as GKE) create clusters with RBAC enabled by default, and unfortunately the above command may not return any information indicating this.
+If you see something like `--authorization-mode=Node,RBAC` in the output, then RBAC is enabled. The majority of current hosted Kubernetes providers (such as GKE) create clusters with RBAC enabled by default, and unfortunately, the above command may not return any information indicating this.
 
 **Note:** If you're using Google Kubernetes Engine with RBAC, you'll need to grant permissions to the account that will be setting up the Ambassador API Gateway. To do this, get your official GKE username, and then grant `cluster-admin` role privileges to that username:
 
@@ -42,9 +48,7 @@ Without RBAC, you can use:
 kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-no-rbac.yaml
 ```
 
-We recommend downloading the YAML files and exploring the content. You will see
-that an `ambassador-admin` NodePort Service is created (which provides an
-Ambassador ODD Diagnostic web UI), along with an ambassador ClusterRole, ServiceAccount and ClusterRoleBinding (if RBAC is enabled). An Ambassador Deployment is also created.
+We recommend downloading the YAML files and exploring the content. You will see that an `ambassador-admin` NodePort Service is created (which provides an Ambassador ODD Diagnostic web UI), along with an ambassador ClusterRole, ServiceAccount, and ClusterRoleBinding (if RBAC is enabled). An Ambassador Deployment is also created.
 
 When not installing the Ambassador API Gateway into the default namespace you must update the namespace used in the `ClusterRoleBinding` when RBAC is enabled.
 
@@ -82,7 +86,7 @@ If you have a static IP provided by your cloud provider you can set as `loadBala
 
 ## 3. The Diagnostics Service in Kubernetes
 
-the Ambassador API Gateway includes an integrated diagnostics service to help with troubleshooting. 
+the Ambassador API Gateway includes an integrated diagnostics service to help with troubleshooting.
 
 By default, this is exposed to the internet at the URL `http://{{AMBASSADOR_HOST}}/ambassador/v0/diag/`. Go to that URL from a web browser to view the diagnostic UI.
 
@@ -124,6 +128,6 @@ Follow our [enabling HTTPS guide](../tls-termination) to quickly enable HTTPS su
 
 **Note that the Ambassador Edge Stack automatically enables HTTPs.** Read more about its configuration on the [Host CRD](/reference/host-crd) page.
 
-## Want more?
+## Want More?
 
 For more features, check out the latest build of the [Ambassador Edge Stack](../install).
