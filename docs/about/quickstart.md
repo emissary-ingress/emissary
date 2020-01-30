@@ -44,7 +44,7 @@ You saw above that access to the diagnostic overview required you to authenticat
 
 `http://localhost:8080/qotm/quote/5` 
 
-in your brower. From the command line, you can see that 
+in your browser. From the command line, you can see that:
 
 ```shell
 curl -Lv 'http://localhost:8080/qotm/quote/5?json=true'

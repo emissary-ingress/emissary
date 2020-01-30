@@ -2,7 +2,7 @@
 
 Before [installing](../install) the Ambassador Edge Stack, make sure you have, at a very minimum the following:
 
-* A Clean, running Kubernetes cluster v1.11 or higher
+* A clean, running Kubernetes cluster v1.11 or higher
 * `Kubectl`
 
 Then, please review the following recommendations for the Ambassador Edge Stack:
@@ -14,7 +14,7 @@ Then, please review the following recommendations for the Ambassador Edge Stack:
 
 ## Port Assignments
 
-The Ambassador Edge Stack uses the following ports to listen for HTTP/HTTPS traffic automatically via TCP: 
+The Ambassador Edge Stack uses the following ports to listen for HTTP/HTTPS traffic automatically via TCP:
 
 | Port | Process | Function |
 | :--- | :------ | :------- |
