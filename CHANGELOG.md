@@ -1,3 +1,7 @@
+Information in this file will be used to build the merged release notes for GA
+releases. Please keep it up to date.
+------------------------------------------------------------------------------
+
 ## Ambassador Pro CHANGELOG
 
 ## 1.1.1 (TBD)
