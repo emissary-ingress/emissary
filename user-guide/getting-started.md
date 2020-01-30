@@ -21,7 +21,7 @@ The Ambassador Edge Stack is designed to run in Kubernetes for production. The m
 
 ## Install the Ambassador Edge Stack
 
-The Ambassador Edge Stack is typically deployed to Kubernetes from the command line. If you don't have Kubernetes, you should use our [Docker](../../about/quickstart) to deploy the Ambassador Edge Stack locally. Or, if you're a Minikube user, `[check out these directions].`
+The Ambassador Edge Stack is typically deployed to Kubernetes from the command line. If you don't have Kubernetes, you should use our [Docker](../../about/quickstart) image to deploy the Ambassador Edge Stack locally. Or, if you're a Minikube user, `[check out these directions].`
 
 When you install Edge Control to manage your Edge Stack, it will:
 
