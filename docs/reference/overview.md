@@ -71,7 +71,7 @@ The Reference section provides detailed information on configuring and managing 
 * [RateLimtingService Plugin](../../reference/services/rate-limit-service)
 * [TracingService Plugin](../../reference/services/tracing-service)
 
-## IDP Support
+## IdP Support
 
 * [Auth0](../../reference/idp-support/auth0)
 * [Azure AD](../../reference/idp-support/azure)
