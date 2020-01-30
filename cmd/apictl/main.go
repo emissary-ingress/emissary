@@ -21,14 +21,18 @@ var Version = "(unknown version)"
 var licenseClaims *licensekeys.LicenseClaimsLatest
 
 func init() {
-	cmdContext := licensekeys.InitializeCommandFlags(apictl.PersistentFlags())
+	cmdContext := &licensekeys.LicenseContext{}
+	if err := cmdContext.AddFlagsTo(apictl); err != nil {
+		panic(err)
+	}
+
 	apictl.PersistentPreRun = func(cmd *cobra.Command, args []string) {
 		cmd.SilenceUsage = true // https://github.com/spf13/cobra/issues/340
 		if cmd.Name() == "help" {
 			return
 		}
 		var err error
-		licenseClaims, err = cmdContext.KeyCheck(cmd.PersistentFlags(), false)
+		licenseClaims, err = cmdContext.GetClaims()
 		if err == nil {
 			go metriton.PhoneHome(licenseClaims, nil, "apictl", Version)
 			return

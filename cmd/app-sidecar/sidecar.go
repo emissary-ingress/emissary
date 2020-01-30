@@ -101,9 +101,14 @@ func main() {
 		Version: Version,
 		RunE:    Main,
 	}
-	cmdContext := licensekeys.InitializeCommandFlags(argparser.PersistentFlags())
+
+	licenseContext := &licensekeys.LicenseContext{}
+	if err := licenseContext.AddFlagsTo(argparser); err != nil {
+		panic(err)
+	}
+
 	argparser.PersistentPreRun = func(cmd *cobra.Command, args []string) {
-		licenseClaims, err := cmdContext.KeyCheck(cmd.PersistentFlags(), false)
+		licenseClaims, err := licenseContext.GetClaims()
 		if err == nil {
 			err = licenseClaims.RequireFeature(licensekeys.FeatureTraffic)
 		}
