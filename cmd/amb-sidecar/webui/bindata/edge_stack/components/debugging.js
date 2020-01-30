@@ -26,6 +26,7 @@ export class Debugging extends LitElement {
     ];
 
     this.logOptions = logOptions;
+    this.level = this.logOptions[0].value;
 
     Snapshot.subscribe(this.onSnapshotChange.bind(this));
   }
@@ -457,9 +458,9 @@ export class Debugging extends LitElement {
             <dd>${this.diagd.loginfo.all}</dd>
           </dl>
           <div class="logDiv"><span class="logLabel">Set Log Level:</span>
-            <select class="logSelector" @change=${()=>{this.setLogLevel.bind(this)}}>
+            <select class="logSelector" @change=${this.onChangeSetLogLevel.bind(this)}>
             ${this.logOptions.map(f => {
-              return html`<option value="${f.value}.value}">${f.label}</option>`
+              return html`<option value="${f.value}">${f.label}</option>`
             })}
             </select>
           </div>
@@ -529,11 +530,17 @@ export class Debugging extends LitElement {
     this.redisInUse = snapshot.getRedisInUse();
   }
 
+  onChangeSetLogLevel(e) {
+    this.level = e.target.options[e.target.selectedIndex].value;
+    console.log("This.level inside onChangeSetLogLevel is " + this.level);
+    this.setLogLevel();
+  }
+
   setLogLevel(level) {
-    console.log("This.level is " + this.level);
-    console.log("level is " + level);
+    console.log("This.level inside setLogLevel is " + this.level);
     let formdata = new FormData();
-    formdata.append('loglevel', level);
+    formdata.append('loglevel', this.level);
+    console.log("This.level inside formdata.append is " + this.level);
 
     ApiFetch('/edge_stack/api/log-level', {
       method: 'POST',
