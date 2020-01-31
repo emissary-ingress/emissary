@@ -24,6 +24,9 @@ export class Debugging extends LitElement {
 
   reset() {
     this.shadowRoot.querySelectorAll('select').forEach((el)=>{el.value = el.querySelector('option[selected]').value;});
+    console.log(this.shadowRoot.querySelectorAll('select'));
+    console.log(el.value);
+    console.log(el.querySelector('option[selected]').value);
   }
 
   static get styles() {
