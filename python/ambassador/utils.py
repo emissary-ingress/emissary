@@ -244,8 +244,8 @@ class PeriodicTrigger(threading.Thread):
 
 class SecretInfo:
     def __init__(self, name: str, namespace: str, secret_type: str,
-                 tls_crt: Optional[str], tls_key: Optional[str]=None, user_key: Optional[str]=None,
-                 decode_b64=True) -> None:
+                 tls_crt: Optional[str]=None, tls_key: Optional[str]=None, user_key: Optional[str]=None,
+                 root_crt: Optional[str]=None, decode_b64=True) -> None:
         self.name = name
         self.namespace = namespace
         self.secret_type = secret_type
@@ -260,9 +260,13 @@ class SecretInfo:
             if user_key and not user_key.startswith('-----BEGIN'):
                 user_key = self.decode(user_key)
 
+            if root_crt and not root_crt.startswith('-----BEGIN'):
+                root_crt = self.decode(root_crt)
+
         self.tls_crt = tls_crt
         self.tls_key = tls_key
         self.user_key = user_key
+        self.root_crt = root_crt
 
     @staticmethod
     def decode(b64_pem: str) -> Optional[str]:
@@ -301,18 +305,28 @@ class SecretInfo:
             'secret_type': self.secret_type,
             'tls_crt': self.fingerprint(self.tls_crt),
             'tls_key': self.fingerprint(self.tls_key),
-            'user_key': self.fingerprint(self.user_key)
+            'user_key': self.fingerprint(self.user_key),
+            'root_crt': self.fingerprint(self.root_crt)
         }
 
     @classmethod
     def from_aconf_secret(cls, aconf_object: 'ACResource') -> 'SecretInfo':
+        tls_crt = aconf_object.get('tls_crt', None)
+        if not tls_crt:
+            tls_crt = aconf_object.get('cert-chain_pem')
+
+        tls_key = aconf_object.get('tls_key', None)
+        if not tls_key:
+            tls_key = aconf_object.get('key_pem')
+
         return SecretInfo(
             aconf_object.name,
             aconf_object.namespace,
             aconf_object.secret_type,
-            aconf_object.tls_crt,
-            aconf_object.get('tls_key', None),
-            aconf_object.get('user_key', None)
+            tls_crt,
+            tls_key,
+            aconf_object.get('user_key', None),
+            aconf_object.get('root-cert_pem', None)
         )
 
     @classmethod
@@ -348,19 +362,23 @@ class SecretInfo:
                 return None
 
             cert = None
+        elif secret_type == 'istio.io/key-and-cert':
+            resource.ir.logger.error(f"{resource.kind} {resource.name}: found data but handler for istio key not finished yet")
 
         return SecretInfo(secret_name, namespace, secret_type, tls_crt=tls_crt, tls_key=tls_key, user_key=user_key)
 
 
 class SavedSecret:
     def __init__(self, secret_name: str, namespace: str,
-                 cert_path: Optional[str], key_path: Optional[str], user_path: Optional[str],
+                 cert_path: Optional[str], key_path: Optional[str],
+                 user_path: Optional[str], root_cert_path: Optional[str],
                  cert_data: Optional[Dict]) -> None:
         self.secret_name = secret_name
         self.namespace = namespace
         self.cert_path = cert_path
         self.key_path = key_path
         self.user_path = user_path
+        self.root_cert_path = root_cert_path
         self.cert_data = cert_data
 
     @property
@@ -371,8 +389,8 @@ class SavedSecret:
         return bool((bool(self.cert_path) or bool(self.user_path)) and (self.cert_data is not None))
 
     def __str__(self) -> str:
-        return "<SavedSecret %s.%s -- cert_path %s, key_path %s, user_path %s, cert_data %s>" % (
-                  self.secret_name, self.namespace, self.cert_path, self.key_path, self.user_path,
+        return "<SavedSecret %s.%s -- cert_path %s, key_path %s, user_path %s, root_cert_path %s, cert_data %s>" % (
+                  self.secret_name, self.namespace, self.cert_path, self.key_path, self.user_path, self.root_cert_path,
                   "present" if self.cert_data else "absent"
                 )
 
@@ -413,19 +431,21 @@ class SecretHandler:
         tls_crt = secret_info.tls_crt
         tls_key = secret_info.tls_key
         user_key = secret_info.user_key
+        root_crt = secret_info.root_crt
 
-        return self.cache_internal(name, namespace, tls_crt, tls_key, user_key)
+        return self.cache_internal(name, namespace, tls_crt, tls_key, user_key, root_crt)
 
-    def cache_internal(self, name: str, namespace: str,tls_crt: str, tls_key: str, user_key: str) -> SavedSecret:
+    def cache_internal(self, name: str, namespace: str, tls_crt: str, tls_key: str, user_key: str, root_crt: str) -> SavedSecret:
         h = hashlib.new('sha1')
 
         tls_crt_path = None
         tls_key_path = None
         user_key_path = None
+        root_crt_path = None
         cert_data = None
 
-        # Don't save if it has neither a tls_crt or a user_key.
-        if tls_crt or user_key:
+        # Don't save if it has neither a tls_crt or a user_key or the root_crt
+        if tls_crt or user_key or root_crt:
             for el in [tls_crt, tls_key, user_key]:
                 if el:
                     h.update(el.encode('utf-8'))
@@ -451,15 +471,20 @@ class SecretHandler:
                 user_key_path = os.path.join(secret_dir, f'{hd}.user')
                 open(user_key_path, "w").write(user_key)
 
+            if root_crt:
+                root_crt_path = os.path.join(secret_dir, f'{hd}.root.crt')
+                open(root_crt_path, "w").write(root_crt)
+
             cert_data = {
                 'tls_crt': tls_crt,
                 'tls_key': tls_key,
                 'user_key': user_key,
+                'root_crt': root_crt,
             }
 
-            self.logger.debug(f"saved secret {name}.{namespace}: {tls_crt_path}, {tls_key_path}")
+            self.logger.debug(f"saved secret {name}.{namespace}: {tls_crt_path}, {tls_key_path}, {root_crt_path}")
 
-        return SavedSecret(name, namespace, tls_crt_path, tls_key_path, user_key_path, cert_data)
+        return SavedSecret(name, namespace, tls_crt_path, tls_key_path, user_key_path, root_crt_path, cert_data)
 
     # secret_info_from_k8s takes a K8s Secret and returns a SecretInfo (or None if something
     # is wrong).

@@ -878,7 +878,7 @@ class ResourceFetcher:
 
         skip = False
 
-        if (secret_type != 'kubernetes.io/tls') and (secret_type != 'Opaque'):
+        if (secret_type != 'kubernetes.io/tls') and (secret_type != 'Opaque') and (secret_type != 'istio.io/key-and-cert'):
             self.logger.debug("ignoring K8s Secret with unknown type %s" % secret_type)
             skip = True
 
@@ -908,7 +908,7 @@ class ResourceFetcher:
 
         found_any = False
 
-        for key in [ 'tls.crt', 'tls.key', 'user.key' ]:
+        for key in [ 'tls.crt', 'tls.key', 'user.key', 'cert-chain.pem', 'key.pem', 'root-cert.pem' ]:
             if data.get(key, None):
                 found_any = True
                 break
