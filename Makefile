@@ -57,8 +57,12 @@ deploy-aes-backend: images
 
 update-yaml-locally: sync
 	@printf "$(CYN)==> $(GRN)Updating development YAML$(END)\n"
-	@printf '  $(CYN)k8s-aes/00-aes-crds.yaml$(END)\n'
-	docker exec $(shell $(BUILDER)) python apro/fix-crds.py ambassador/docs/yaml/ambassador/ambassador-crds.yaml apro/k8s-aes-src/00-aes-crds.yaml > k8s-aes/00-aes-crds.yaml
+	@printf '  $(CYN)k8s-aes/00-aes-crds-kube1.10.yaml$(END)\n'
+	docker exec $(shell $(BUILDER)) python apro/fix-crds.py 1.10 ambassador/docs/yaml/ambassador/ambassador-crds.yaml apro/k8s-aes-src/00-aes-crds.yaml > k8s-aes/00-aes-crds-kube1.10.yaml
+	@printf '  $(CYN)k8s-aes/00-aes-crds-kube1.11.yaml$(END)\n'
+	docker exec $(shell $(BUILDER)) python apro/fix-crds.py 1.11 ambassador/docs/yaml/ambassador/ambassador-crds.yaml apro/k8s-aes-src/00-aes-crds.yaml > k8s-aes/00-aes-crds-kube1.11.yaml
+	@printf '  $(CYN)k8s-aes/00-aes-crds-kube1.16.yaml$(END)\n'
+	docker exec $(shell $(BUILDER)) python apro/fix-crds.py 1.16 ambassador/docs/yaml/ambassador/ambassador-crds.yaml apro/k8s-aes-src/00-aes-crds.yaml > k8s-aes/00-aes-crds-kube1.16.yaml
 	@printf '  $(CYN)k8s-aes/01-aes.yaml$(END)\n'
 	docker exec $(shell $(BUILDER)) python apro/fix-yaml.py apro ambassador/docs/yaml/ambassador/ambassador-rbac.yaml apro/k8s-aes-src/01-aes.yaml > k8s-aes/01-aes.yaml
 	@printf "$(CYN)==> $(GRN)Checking whether those changes were no-op$(END)\n"
@@ -82,7 +86,7 @@ update-yaml: update-yaml-locally preflight-docs
 	@echo
 	@printf "$(CYN)==> $(GRN)Updating AMBASSADOR_DOCS YAML$(END)\n"
 	@printf '  $(CYN)$${AMBASSADOR_DOCS}/yaml/aes-crds.yaml$(END)\n'
-	cp k8s-aes/00-aes-crds.yaml $${AMBASSADOR_DOCS}/yaml/aes-crds.yaml
+	cp k8s-aes/00-aes-crds-kube1.11.yaml $${AMBASSADOR_DOCS}/yaml/aes-crds.yaml
 	@printf '  $(CYN)$${AMBASSADOR_DOCS}/yaml/aes.yaml$(END)\n'
 	docker exec $(shell $(BUILDER)) python apro/fix-yaml.py edge_stack ambassador/docs/yaml/ambassador/ambassador-rbac.yaml apro/k8s-aes-src/01-aes.yaml > $${AMBASSADOR_DOCS}/yaml/aes.yaml
 	@printf '  $(CYN)$${AMBASSADOR_DOCS}/yaml/oss-migration.yaml$(END)\n'
