@@ -2,6 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: aes-backend-postgresql
+  namespace: aes-backend
 spec:
   type: ClusterIP
   ports:
@@ -15,6 +16,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: aes-backend-postgresql
+  namespace: aes-backend
   labels:
     component: aes-backend-postgresql
 spec:

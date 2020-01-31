@@ -1,8 +1,15 @@
+# @TEMPLATE@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: aes-backend
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: aes-backend
+  namespace: aes-backend
 spec:
   type: ClusterIP
   ports:
@@ -16,6 +23,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: aes-backend
+  namespace: aes-backend
   labels:
     app: aes-backend
 spec:
@@ -30,7 +38,7 @@ spec:
     spec:
       containers:
       - name: aes-backend
-        image: ${AES_BACKEND_IMAGE}
+        image: {{env "AES_BACKEND_IMAGE"}}
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
