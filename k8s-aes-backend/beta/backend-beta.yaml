@@ -85,6 +85,20 @@ spec:
               secretKeyRef:
                 name: aws
                 key: hosted-zone-id
+          - name: POSTGRES_DB
+            value: metriton
+          - name: POSTGRES_HOST
+            value: metriton-postgresql-beta
+          - name: POSTGRES_USER
+            valueFrom:
+              secretKeyRef:
+                key: username
+                name: metriton-database-beta
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: password
+                name: metriton-database-beta
         livenessProbe:
           httpGet:
             path: /signup/sys/healthz
