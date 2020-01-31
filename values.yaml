@@ -151,7 +151,7 @@ rbac:
   # Name of the RBAC resources defaults to the name of the release. 
   # Set nameOverride when installing Ambassador with cluster-wide scope in
   # different namespaces with the same release name to avoid conflicts.
-  nameOverride: ambassador-ci
+  nameOverride:
   
 scope:
   # tells Ambassador to only use resources in the namespace or namespace set by namespace.name
