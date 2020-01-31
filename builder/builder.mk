@@ -48,7 +48,7 @@ sync: preflight
 	@test -n "$(DEV_KUBECONFIG)" || (printf "$${KUBECONFIG_ERR}\n"; exit 1)
 	@if [ "$(DEV_KUBECONFIG)" != '-skip-for-release-' ]; then \
 		printf "$(CYN)==> $(GRN)Checking for test cluster$(END)\n" ;\
-		kubectl --kubeconfig $(DEV_KUBECONFIG) -n default get service kubernetes > /dev/null || (printf "$${KUBECTL_ERR}\n"; exit 1) ;\
+		kubectl --kubeconfig $(DEV_KUBECONFIG) -n default get service kubernetes > /dev/null || { printf "$${KUBECTL_ERR}\n"; exit 1; } ;\
 		cat $(DEV_KUBECONFIG) | docker exec -i $$($(BUILDER)) sh -c "cat > /buildroot/kubeconfig.yaml" ;\
 	else \
 		printf "$(CYN)==> $(RED)Skipping test cluster checks$(END)\n" ;\
