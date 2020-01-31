@@ -113,7 +113,6 @@ Some special cases to be aware of here:
     hostname: host.example.com
     acmeProvider:
       authoriry: none
-
     requestPolicy:
       insecure:
         action: reject
