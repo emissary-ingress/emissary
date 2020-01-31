@@ -12,21 +12,25 @@ export class Debugging extends LitElement {
       licenseClaims: { type: Object },
       featuresOverLimit: { type: Object },
       redisInUse: { type: Boolean },
-
     };
   }
 
   constructor() {
     super();
-    
+    this.reset();
     Snapshot.subscribe(this.onSnapshotChange.bind(this));
   }
 
   reset() {
-    this.shadowRoot.querySelectorAll('select').forEach((el)=>{el.value = el.querySelector('option[selected]').value;});
-    console.log(this.shadowRoot.querySelectorAll('select'));
-    console.log(el.value);
-    console.log(el.querySelector('option[selected]').value);
+   // this.shadowRoot.querySelectorAll('select').forEach((f)=>{f.value = f.querySelector('option[selected]').value;});
+   
+    let el = this.shadowRoot.querySelectorAll('select').forEach((el)=>{el.value = el.querySelector('option[selected]').value;});
+    console.log(el); // undefined
+    console.log(this.shadowRoot.querySelectorAll('select').length);
+    console.log(this.querySelectorAll('select').length);
+
+    //console.log(this.shadowRoot.querySelectorAll('select').forEach((f)=>{f.value = f.querySelector('option[selected]').value;}));
+
   }
 
   static get styles() {
@@ -457,8 +461,8 @@ export class Debugging extends LitElement {
             <dd>${this.level}</dd>
           </dl>
           <div class="logDiv"><span class="logLabel">Set Log Level:</span>
-            <select class="logSelector" 
-            
+            <select class="logSelector"
+
             @change=${this.onChangeSetLogLevel.bind(this)}>
               <option ?selected=${this.value==='debug'} value="debug">DEBUG</option>
               <option ?selected=${this.value==='info'} value="info">INFO</option>
