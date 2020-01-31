@@ -30,8 +30,8 @@ The acmeProvider element in a Host defines how Ambassador should handle TLS cert
 acmeProvider:
   authority: url-to-provider
   email: email-of-registrant
-  tlsSecret:
-    name: secret-name
+tlsSecret:
+  name: secret-name
 ```
 
 * In general, `email-of-registrant` is mandatory when using ACME: it should be a valid email address that will reach someone responsible for certificate management.
