@@ -55,7 +55,7 @@ endif
 
 sync: build-container
 	$(container-rsync) --exclude-from=${CURDIR}/build/sync-excludes.txt -r . $(container.ID):$(CURDIR)
-	$(container-rsync) -r $(shell go env GOPATH)/pkg/mod/cache/download/ $(container.ID):/mnt/goproxy/
+	$(container-rsync) -r $(firstword $(subst :, ,$(shell go env GOPATH)))/pkg/mod/cache/download/ $(container.ID):/mnt/goproxy/
 
 .common-pkgs.txt: aes-abi.pkgs.txt download-go
 	@bash -c 'comm -12 <(go list -m all|cut -d" " -f1|sort) <(< $< cut -d" " -f1|sort)' > $@
