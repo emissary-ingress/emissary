@@ -80,7 +80,7 @@ Some special cases to be aware of here:
     acmeProvider: <as needed>
     requestPolicy:
       insecure:
-        action: redirect
+        action: Redirect
   ```
 
   Since this is the default, the `requestPolicy` element could also simply be dropped.
@@ -97,7 +97,7 @@ Some special cases to be aware of here:
     acmeProvider: <as needed>
     requestPolicy:
       insecure:
-        action: reject
+        action: Reject
   ```
 
   We need to make sure to set the `acmeProvider` appropriately for Ambassador to manage certificates for both of the previous cases.
@@ -115,7 +115,7 @@ Some special cases to be aware of here:
       authoriry: none
     requestPolicy:
       insecure:
-        action: reject
+        action: Reject
   ```
 
   This configuration relies on the load balancer to set `X-Forwarded-Proto` correctly, so that Ambassador can tell insecure requests from secure requests. We also need to explicitly set the `acmeProvider` to none, so that Ambassador doesn’t try to do certificate management when it shouldn’t.
@@ -133,7 +133,7 @@ Some special cases to be aware of here:
       authority: none
     requestPolicy:
       insecure:
-        action: route
+        action: Route
   ```
 
   In this case, the Host resource explicitly requests no ACME handling, then states that insecure requests must be routed instead of redirected.
@@ -153,7 +153,7 @@ Some special cases to be aware of here:
       authority: none
     requestPolicy:
       insecure:
-        action: redirect
+        action: Redirect
         additionalPort: 8080
   ```
 
