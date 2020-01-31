@@ -454,9 +454,9 @@ export class Debugging extends LitElement {
           </dl>
           <div class="logDiv"><span class="logLabel">Set Log Level:</span>
             <select id="logSelector" @change=${this.onChangeSetLogLevel.bind(this)}>
-              <option ?selected=${this.level==="debug"} value="debug">DEBUG</option>
-              <option ?selected=${this.level==="info"} value="info">INFO</option>
-              <option ?selected=${this.level==="trace"} value="trace">TRACE</option>
+              <option ?selected=${this.value==="debug"} value="debug">DEBUG</option>
+              <option ?selected=${this.value==="info"} value="info">INFO</option>
+              <option ?selected=${this.value==="trace"} value="trace">TRACE</option>
             </select>
           </div>
         </div>
@@ -534,7 +534,7 @@ export class Debugging extends LitElement {
     let formdata = new FormData();
     formdata.append('loglevel', level);
     console.log("level in formdata.append is " + level);
-    console.log("Selected label on reset will be " + this.shadowRoot.querySelectorAll('select').forEach((el)=>{el.value = el.querySelector('options[selected]').value;}));
+    console.log("Selected label on reset will be " + this.shadowRoot.querySelectorAll('select').forEach((el)=>{el.value = el.querySelector('option[selected]').value;}));
 
     ApiFetch('/edge_stack/api/log-level', {
       method: 'POST',
