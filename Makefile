@@ -40,7 +40,11 @@ format: $(tools/golangci-lint)
 .PHONY: format
 
 deploy: test-ready
-	@docker exec -e AES_IMAGE=$(AMB_IMAGE) -it $(shell $(BUILDER)) kubeapply -f apro/k8s-aes
+	@docker exec -e AES_IMAGE=$(AMB_IMAGE) -it $(shell $(BUILDER)) sh -x -c '\
+	  kubectl apply -f ./apro/k8s-aes/00-aes-crds-kube$(if $(DEV_KUBE110),1.10,1.11).yaml && \
+	  kubectl wait --for condition=established --timeout=90s crd -lproduct=aes && \
+	  kubeapply -f ./apro/k8s-aes/01-aes.yaml && \
+	  kubectl -n ambassador wait --for condition=available --timeout=90s deploy -lproduct=aes'
 	@printf "$(GRN)Your ambassador service IP:$(END) $(BLD)$$(docker exec -it $(shell $(BUILDER)) kubectl get -n ambassador service ambassador -o 'go-template={{range .status.loadBalancer.ingress}}{{print .ip "\n"}}{{end}}')$(END)\n"
 .PHONY: deploy
 
@@ -192,6 +196,9 @@ define _help.aes-targets
   $(BLD)make $(BLU)format$(END)              -- runs golangci-lint with --fix.
 
   $(BLD)make $(BLU)deploy$(END)              -- deploys AES to $(BLD)\$$DEV_REGISTRY$(END) and $(BLD)\$$DEV_KUBECONFIG$(END). ($(DEV_REGISTRY) and $(DEV_KUBECONFIG))
+
+    Set $(BLD)\$$DEV_KUBE110$(END) to a non-empty value in order to deploy version of
+    the YAML mutilated to be compatible with Kubernetes 1.10 (hint: Kubernaut).
 
   $(BLD)make $(BLU)deploy-aes-backend$(END)  -- ???
 
