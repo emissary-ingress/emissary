@@ -57,6 +57,10 @@ aes-backend-push: aes-backend-image
 	docker push $(AES_BACKEND_IMAGE)
 .PHONY: aes-backend-push
 
+aes-backend-deploy: aes-backend-push
+	@docker exec -e AES_BACKEND_IMAGE=$(AES_BACKEND_IMAGE) -it $(shell $(BUILDER)) kubeapply -f apro/k8s-aes-backend/sbox
+.PHONY: aes-backend-deploy
+
 update-yaml-locally: sync
 	@printf "$(CYN)==> $(GRN)Updating development YAML$(END)\n"
 	@printf '  $(CYN)k8s-aes/00-aes-crds.yaml$(END)\n'
@@ -198,6 +202,8 @@ define _help.aes-targets
     Pushing a release build can be achieved by setting
      AES_BACKEND_RELEASE_REGISTRY=gcr.io/datawireio
      AES_BACKEND_RELEASE_VERSION=x.y.z
+
+  $(BLD)make $(BLU)aes-backend-deploy$(END)  -- deploys the $(BLD)aes-backend$(END) sandbox (sbox) to $(BLD)\$$DEV_REGISTRY$(END) and $(BLD)\$$DEV_KUBECONFIG$(END). ($(DEV_REGISTRY) and $(DEV_KUBECONFIG))
 
   $(BLD)make $(BLU)update-yaml-locally$(END) -- updates the YAML in $(BLD)k8s-aes/$(END).
 

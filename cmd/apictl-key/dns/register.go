@@ -69,19 +69,28 @@ func (c *dnsclient) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	//   {"email":"alex@datawire.io","ip":"34.94.127.81"}
 	var registration registration
 	if err := decoder.Decode(&registration); err != nil {
+		c.l.WithError(err).Warn("failed to parse http request")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	// TODO: Validate email
+	// Check the Email is present. We don't actually check it's valid tho
+	if registration.Email == "" {
+		c.l.Warn("email is missing from registration request")
+		http.Error(w, "email is required", http.StatusBadRequest)
+		return
+	}
 
 	// Check the IP is public and is serving an AES install
 	if err := c.verifyIPIsReady(registration.Ip); err != nil {
+		c.l.WithError(err).Warn("failed to verify ip is in ready state")
 		http.Error(w, err.Error(), http.StatusPreconditionFailed)
 		return
 	}
 
 	var domainName string
+	attempt := 1
+	const maxAttempts = 5
 	for {
 		// Generate a random domain name
 		domainName = fmt.Sprintf("%s%s", generateRandomName(), c.dnsRegistrationTLD)
@@ -89,22 +98,32 @@ func (c *dnsclient) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// Validate it is not already registered
 		exists, err := c.datasource.DomainExists(domainName)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			c.l.WithError(err).Error("failed to verify the domain was not already registered")
+			http.Error(w, "domain name registration failed", http.StatusInternalServerError)
 			return
 		}
 		if !exists {
 			break
+		} else if attempt == maxAttempts {
+			c.l.Errorf("failed to generate a unique and unused domain name after %d attempts", attempt)
+			http.Error(w, "domain name registration failed", http.StatusInternalServerError)
+			return
+		} else {
+			attempt++
 		}
 	}
 
 	// Do register a DNS entry
 	if err := c.doRegister(domainName, registration.Ip); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		c.l.WithError(err).Error("failed to register the dns record")
+		http.Error(w, "domain name registration failed", http.StatusInternalServerError)
 		return
 	}
 
+	// Save the registration information in database
 	if err := c.datasource.AddDomain(domainName, registration.Ip, registration.Email, remoteIp); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		c.l.WithError(err).Errorf("failed to persists the domain registration request; a dns record '%s' was registered and must be cleaned up manually", domainName)
+		http.Error(w, "domain name registration failed", http.StatusInternalServerError)
 		return
 	}
 
@@ -134,18 +153,29 @@ func (c *dnsclient) verifyIPIsReady(ip string) error {
 		},
 	}
 
-	// GET http://{IP}/.well-known/acme-challenge/
-	//  --> should return 404
-	//  --> should return header "server: envoy"
-	response, err := client.Get(fmt.Sprintf("http://%s/.well-known/acme-challenge/", ip))
-	if err != nil {
-		// TODO: Better error message & retry
-		return err
+	attempt := 1
+	const maxAttempts = 5
+	for {
+		// GET http://{IP}/.well-known/acme-challenge/
+		//  --> should return 404
+		//  --> should return header "server: envoy"
+		response, err := client.Get(fmt.Sprintf("http://%s/.well-known/acme-challenge/", ip))
+		defer response.Body.Close()
+		if err == nil && (response.StatusCode != 404 || response.Header.Get("server") != "envoy") {
+			err = fmt.Errorf("failed to validate the target ip is running AES")
+		}
+		if err != nil {
+			c.l.WithError(err).Warnf("error while attempting to validate the target IP %d/%d", attempt, maxAttempts)
+			// Retry a few times... it's a new installation of AES and initialization might not be complete
+			if attempt == maxAttempts {
+				return err
+			}
+			attempt++
+			// Don't sleep; we need to make sure we can handle the original HTTP request in <30 seconds
+		} else {
+			return nil
+		}
 	}
-	if response.StatusCode != 404 || response.Header.Get("server") != "envoy" {
-		return fmt.Errorf("failed to validate the target ip is running AES")
-	}
-	return nil
 }
 
 func (c *dnsclient) isPublicIP(ipString string) bool {
