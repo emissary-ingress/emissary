@@ -1,5 +1,5 @@
-import { LitElement, html, css } from '../vendor/lit-element.min.js'
-import { Snapshot } from './snapshot.js'
+import { LitElement, html, css } from '/edge_stack/vendor/lit-element.min.js';
+import { Snapshot } from './snapshot.js';
 import { getCookie } from './cookies.js';
 import {ApiFetch} from "./api-fetch.js";
 
@@ -22,16 +22,8 @@ export class Debugging extends LitElement {
   }
 
   reset() {
-   // this.shadowRoot.querySelectorAll('select').forEach((f)=>{f.value = f.querySelector('option[selected]').value;});
-   
-    let el = this.shadowRoot.querySelectorAll('select').forEach((el)=>{el.value = el.querySelector('option[selected]').value;});
-    console.log(el); // undefined
-    console.log(this.shadowRoot.querySelectorAll('select').length);
-    console.log(this.querySelectorAll('select').length);
-
-    //console.log(this.shadowRoot.querySelectorAll('select').forEach((f)=>{f.value = f.querySelector('option[selected]').value;}));
-
-  }
+   this.shadowRoot.querySelectorAll('select').forEach((el)=>{el.value = el.querySelector('option[selected]').value;});
+  } 
 
   static get styles() {
     return css`
@@ -344,7 +336,7 @@ export class Debugging extends LitElement {
         position: relative;
         margin-top: 10px;
       }
-      select.logSelector {
+      select#logSelector {
         height: 25px;
         width: 100px;
         border-radius: 0;
@@ -461,18 +453,12 @@ export class Debugging extends LitElement {
             <dd>${this.level}</dd>
           </dl>
           <div class="logDiv"><span class="logLabel">Set Log Level:</span>
-            <select class="logSelector"
-
-            @change=${this.onChangeSetLogLevel.bind(this)}>
-              <option ?selected=${this.value==='debug'} value="debug">DEBUG</option>
-              <option ?selected=${this.value==='info'} value="info">INFO</option>
-              <option ?selected=${this.value==='trace'} value="trace">TRACE</option>
+            <select id="logSelector" @change=${this.onChangeSetLogLevel.bind(this)}>
+              <option ?selected=${this.value==="debug"} value="debug">DEBUG</option>
+              <option ?selected=${this.value==="info"} value="info">INFO</option>
+              <option ?selected=${this.value==="trace"} value="trace">TRACE</option>
             </select>
           </div>
-
-
-          <a class="cta" style="width: auto" @click=${()=>{this.setLogLevel('debug')}}><div class="label">Set log level to <q>debug</q></div></a>
-          <a class="cta" style="width: auto" @click=${()=>{this.setLogLevel('info')}}><div class="label">Set log level to <q>info</q></div></a>
         </div>
       </div>
 
@@ -548,6 +534,7 @@ export class Debugging extends LitElement {
     let formdata = new FormData();
     formdata.append('loglevel', level);
     console.log("level in formdata.append is " + level);
+    console.log("Selected label on reset will be " + this.shadowRoot.querySelectorAll('select').forEach((el)=>{el.value = el.querySelector('option[selected]').value;}));
 
     ApiFetch('/edge_stack/api/log-level', {
       method: 'POST',
