@@ -43,7 +43,7 @@ push: .docker.stamp
 download-go:
 	go list ./...
 download-docker:
-	docker pull $(go.DOCKER_IMAGE)
+	docker pull $(go.DOCKER_IMAGE) || docker run --rm --entrypoint=true $(go.DOCKER_IMAGE)
 .PHONY: download-go download-docker
 
 build-container:
