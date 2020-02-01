@@ -706,7 +706,7 @@ kind: Namespace
 metadata:
   name: same-mapping-2
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: {self.target.path.k8s}
@@ -716,7 +716,7 @@ spec:
   prefix: /{self.name}-1/
   service: {self.target.path.fqdn}.default
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: {self.target.path.k8s}

@@ -13,7 +13,7 @@ spec:
     plural: authservices
     singular: authservice
   scope: Namespaced
-  version: v1
+  version: v2
   versions:
   - name: v1
     served: true
@@ -35,7 +35,7 @@ spec:
     plural: consulresolvers
     singular: consulresolver
   scope: Namespaced
-  version: v1
+  version: v2
   versions:
   - name: v1
     served: true
@@ -92,7 +92,7 @@ spec:
     plural: kubernetesendpointresolvers
     singular: kubernetesendpointresolver
   scope: Namespaced
-  version: v1
+  version: v2
   versions:
   - name: v1
     served: true
@@ -114,7 +114,7 @@ spec:
     plural: kubernetesserviceresolvers
     singular: kubernetesserviceresolver
   scope: Namespaced
-  version: v1
+  version: v2
   versions:
   - name: v1
     served: true
@@ -136,7 +136,7 @@ spec:
     plural: logservices
     singular: logservice
   scope: Namespaced
-  version: v1
+  version: v2
   versions:
   - name: v1
     served: true
@@ -173,7 +173,7 @@ spec:
   scope: Namespaced
   subresources:
     status: {}
-  version: v1
+  version: v2
   versions:
   - name: v1
     served: true
@@ -195,7 +195,7 @@ spec:
     plural: modules
     singular: module
   scope: Namespaced
-  version: v1
+  version: v2
   versions:
   - name: v1
     served: true
@@ -217,7 +217,7 @@ spec:
     plural: ratelimitservices
     singular: ratelimitservice
   scope: Namespaced
-  version: v1
+  version: v2
   versions:
   - name: v1
     served: true
@@ -239,7 +239,7 @@ spec:
     plural: tcpmappings
     singular: tcpmapping
   scope: Namespaced
-  version: v1
+  version: v2
   versions:
   - name: v1
     served: true
@@ -261,7 +261,7 @@ spec:
     plural: tlscontexts
     singular: tlscontext
   scope: Namespaced
-  version: v1
+  version: v2
   versions:
   - name: v1
     served: true
@@ -283,7 +283,7 @@ spec:
     plural: tracingservices
     singular: tracingservice
   scope: Namespaced
-  version: v1
+  version: v2
   versions:
   - name: v1
     served: true
