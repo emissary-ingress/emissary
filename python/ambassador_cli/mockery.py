@@ -329,8 +329,8 @@ class MockSecretHandler(SecretHandler):
               help="include AConf in diff when using --diff-path")
 @click_option('--update/--no-update', default=False,
               help="update the diff path when finished")
-@click.argument('k8s-yaml-path')
-def main(k8s_yaml_path: str, debug: bool, force_pod_labels: bool, update: bool,
+@click.argument('k8s-yaml-paths', nargs=-1)
+def main(k8s_yaml_paths: List[str], debug: bool, force_pod_labels: bool, update: bool,
          source: List[str], labels: List[str], namespace: Optional[str], watch: str,
          include_ir: bool, include_aconf: bool,
          diff_path: Optional[str]=None, kat_name: Optional[str]=None) -> None:
@@ -344,7 +344,7 @@ def main(k8s_yaml_path: str, debug: bool, force_pod_labels: bool, update: bool,
 
     logger = logging.getLogger('mockery')
 
-    logger.debug(f"reading from {k8s_yaml_path}")
+    logger.debug(f"reading from {k8s_yaml_paths}")
 
     if not source:
         source = [
@@ -403,7 +403,8 @@ def main(k8s_yaml_path: str, debug: bool, force_pod_labels: bool, update: bool,
                 outfile.write("\n")
 
     # Pull in the YAML.
-    manifest = parse_yaml(open(k8s_yaml_path, "r").read())
+    input_yaml = ''.join([ open(x, "r").read() for x in k8s_yaml_paths ])
+    manifest = parse_yaml(input_yaml)
 
     w = Mockery(logger, debug, source, ",".join(labels), namespace, watch)
 
