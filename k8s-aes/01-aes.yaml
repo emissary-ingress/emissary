@@ -283,8 +283,6 @@ spec:
           value: http://127.0.0.1:8877
         - name: SCOUT_DISABLE
           value: '1'
-        - name: AES_LOG_LEVEL
-          value: DEBUG
         image: {{env "AES_IMAGE"}}
         imagePullPolicy: Always
         livenessProbe:
