@@ -17,10 +17,12 @@ export class IResourceCollectionView extends ResourceCollectionView {
     /* For reference, subclasses implement the static function properties() by returning a Map
      * that lists the properties in the subclass, and merging with the parent's properties():
 
-*     first, import object merge:
-*     import { objectMerge } from "../framework/utilities.js"
+     * first, import object merge:
 
-      in properties():
+     import { objectMerge } from "../framework/utilities.js"
+
+     * then, in properties():
+
       let myProperties = {
         someProperty:     {type: String},
         ...

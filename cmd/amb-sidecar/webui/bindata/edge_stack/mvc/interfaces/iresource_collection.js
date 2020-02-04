@@ -51,7 +51,7 @@ export class IResourceCollection extends ResourceCollection {
   }
 
   /* resourceClass()
-   * Return the class of the resource that is being czollected from the snapshot.
+   * Return the class of the resource that is being collected from the snapshot.
    */
 
   resourceClass() {
