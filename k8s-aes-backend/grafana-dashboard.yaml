@@ -1,0 +1,483 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: json-dashboards
+  namespace: grafana
+data:
+  aes-domains.json: |-
+    {
+      "annotations": {
+        "list": [
+          {
+            "builtIn": 1,
+            "datasource": "-- Grafana --",
+            "enable": true,
+            "hide": true,
+            "iconColor": "rgba(0, 211, 255, 1)",
+            "name": "Annotations & Alerts",
+            "type": "dashboard"
+          }
+        ]
+      },
+      "editable": true,
+      "gnetId": null,
+      "graphTooltip": 0,
+      "links": [],
+      "panels": [
+        {
+          "alert": {
+            "alertRuleTags": {},
+            "conditions": [
+              {
+                "evaluator": {
+                  "params": [
+                    18000
+                  ],
+                  "type": "gt"
+                },
+                "operator": {
+                  "type": "and"
+                },
+                "query": {
+                  "params": [
+                    "A",
+                    "5m",
+                    "now"
+                  ]
+                },
+                "reducer": {
+                  "params": [],
+                  "type": "last"
+                },
+                "type": "query"
+              },
+              {
+                "evaluator": {
+                  "params": [
+                    2
+                  ],
+                  "type": "gt"
+                },
+                "operator": {
+                  "type": "or"
+                },
+                "query": {
+                  "params": [
+                    "B",
+                    "30m",
+                    "now"
+                  ]
+                },
+                "reducer": {
+                  "params": [],
+                  "type": "last"
+                },
+                "type": "query"
+              }
+            ],
+            "executionErrorState": "keep_state",
+            "for": "5m",
+            "frequency": "5m",
+            "handler": 1,
+            "message": "There's an increase in number of generated AES domains. We might reach Letsencrypt and AWS R53 limits soon.",
+            "name": "Domain registrations alert",
+            "noDataState": "no_data",
+            "notifications": []
+          },
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": "metriton-postgresql",
+          "decimals": 0,
+          "fill": 1,
+          "fillGradient": 0,
+          "gridPos": {
+            "h": 10,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "hiddenSeries": false,
+          "id": 2,
+          "legend": {
+            "alignAsTable": false,
+            "avg": false,
+            "current": false,
+            "hideEmpty": false,
+            "hideZero": false,
+            "max": false,
+            "min": false,
+            "rightSide": false,
+            "show": false,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "nullPointMode": "connected",
+          "options": {
+            "dataLinks": []
+          },
+          "percentage": false,
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": true,
+          "targets": [
+            {
+              "format": "time_series",
+              "group": [
+                {
+                  "params": [
+                    "1m",
+                    "previous"
+                  ],
+                  "type": "time"
+                }
+              ],
+              "hide": false,
+              "metricColumn": "none",
+              "rawQuery": false,
+              "rawSql": "SELECT\n  $__timeGroupAlias(creation_time,1m,previous),\n  sum(count(id)) OVER (ORDER BY $__timeGroup(creation_time,1m,previous)) AS \"Number of domains\"\nFROM aes_domains\nGROUP BY 1\nORDER BY 1",
+              "refId": "A",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "id"
+                    ],
+                    "type": "column"
+                  },
+                  {
+                    "params": [
+                      "count"
+                    ],
+                    "type": "aggregate"
+                  },
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "window"
+                  },
+                  {
+                    "params": [
+                      "Number of domains"
+                    ],
+                    "type": "alias"
+                  }
+                ]
+              ],
+              "table": "aes_domains",
+              "timeColumn": "creation_time",
+              "timeColumnType": "timestamptz",
+              "where": []
+            },
+            {
+              "format": "time_series",
+              "group": [
+                {
+                  "params": [
+                    "1m",
+                    "0"
+                  ],
+                  "type": "time"
+                }
+              ],
+              "hide": false,
+              "metricColumn": "none",
+              "rawQuery": false,
+              "rawSql": "SELECT\n  $__timeGroupAlias(creation_time,1m,0),\n  (CASE WHEN count(id) >= lag(count(id)) OVER (ORDER BY $__timeGroup(creation_time,1m,0)) THEN count(id) - lag(count(id)) OVER (ORDER BY $__timeGroup(creation_time,1m,0)) WHEN lag(count(id)) OVER (ORDER BY $__timeGroup(creation_time,1m,0)) IS NULL THEN NULL ELSE count(id) END) AS \"Increase in number of domains\"\nFROM aes_domains\nGROUP BY 1\nORDER BY 1",
+              "refId": "B",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "id"
+                    ],
+                    "type": "column"
+                  },
+                  {
+                    "params": [
+                      "count"
+                    ],
+                    "type": "aggregate"
+                  },
+                  {
+                    "params": [
+                      "increase"
+                    ],
+                    "type": "window"
+                  },
+                  {
+                    "params": [
+                      "Increase in number of domains"
+                    ],
+                    "type": "alias"
+                  }
+                ]
+              ],
+              "table": "aes_domains",
+              "timeColumn": "creation_time",
+              "timeColumnType": "timestamptz",
+              "where": []
+            }
+          ],
+          "thresholds": [
+            {
+              "colorMode": "critical",
+              "fill": true,
+              "line": true,
+              "op": "gt",
+              "value": 18000
+            }
+          ],
+          "timeFrom": null,
+          "timeRegions": [],
+          "timeShift": null,
+          "title": "Domain registrations",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "decimals": 0,
+              "format": "short",
+              "label": "Number of domains",
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": false
+            }
+          ],
+          "yaxis": {
+            "align": false,
+            "alignLevel": null
+          }
+        },
+        {
+          "alert": {
+            "alertRuleTags": {},
+            "conditions": [
+              {
+                "evaluator": {
+                  "params": [
+                    5000
+                  ],
+                  "type": "gt"
+                },
+                "operator": {
+                  "type": "and"
+                },
+                "query": {
+                  "params": [
+                    "A",
+                    "168h",
+                    "now"
+                  ]
+                },
+                "reducer": {
+                  "params": [],
+                  "type": "last"
+                },
+                "type": "query"
+              }
+            ],
+            "executionErrorState": "keep_state",
+            "for": "5m",
+            "frequency": "5m",
+            "handler": 1,
+            "message": "There's an high number of generated AES domains in the last 7 days. We might reach Letsencrypt and AWS R53 limits soon.",
+            "name": "Domain registrations in the last 7 days alert",
+            "noDataState": "ok",
+            "notifications": []
+          },
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": "metriton-postgresql",
+          "decimals": 0,
+          "fill": 1,
+          "fillGradient": 0,
+          "gridPos": {
+            "h": 10,
+            "w": 24,
+            "x": 0,
+            "y": 10
+          },
+          "hiddenSeries": false,
+          "id": 3,
+          "legend": {
+            "alignAsTable": false,
+            "avg": false,
+            "current": false,
+            "hideEmpty": false,
+            "hideZero": false,
+            "max": false,
+            "min": false,
+            "rightSide": false,
+            "show": false,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "nullPointMode": "connected",
+          "options": {
+            "dataLinks": []
+          },
+          "percentage": false,
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": true,
+          "targets": [
+            {
+              "format": "time_series",
+              "group": [
+                {
+                  "params": [
+                    "1m",
+                    "previous"
+                  ],
+                  "type": "time"
+                }
+              ],
+              "hide": false,
+              "metricColumn": "none",
+              "rawQuery": false,
+              "rawSql": "SELECT\n  $__timeGroupAlias(creation_time,1m,previous),\n  sum(count(id)) OVER (ORDER BY $__timeGroup(creation_time,1m,previous)) AS \"Number of domains\"\nFROM aes_domains\nWHERE\n  $__timeFilter(creation_time)\nGROUP BY 1\nORDER BY 1",
+              "refId": "A",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "id"
+                    ],
+                    "type": "column"
+                  },
+                  {
+                    "params": [
+                      "count"
+                    ],
+                    "type": "aggregate"
+                  },
+                  {
+                    "params": [
+                      "sum"
+                    ],
+                    "type": "window"
+                  },
+                  {
+                    "params": [
+                      "Number of domains"
+                    ],
+                    "type": "alias"
+                  }
+                ]
+              ],
+              "table": "aes_domains",
+              "timeColumn": "creation_time",
+              "timeColumnType": "timestamptz",
+              "where": [
+                {
+                  "name": "$__timeFilter",
+                  "params": [],
+                  "type": "macro"
+                }
+              ]
+            }
+          ],
+          "thresholds": [
+            {
+              "colorMode": "critical",
+              "fill": true,
+              "line": true,
+              "op": "gt",
+              "value": 5000
+            }
+          ],
+          "timeFrom": "7d",
+          "timeRegions": [],
+          "timeShift": null,
+          "title": "Domain registrations in the last 7 days",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "decimals": 0,
+              "format": "short",
+              "label": "Number of domains",
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": false
+            }
+          ],
+          "yaxis": {
+            "align": false,
+            "alignLevel": null
+          }
+        }
+      ],
+      "schemaVersion": 22,
+      "style": "dark",
+      "tags": [],
+      "templating": {
+        "list": []
+      },
+      "time": {
+        "from": "now-30m",
+        "to": "now"
+      },
+      "timepicker": {},
+      "timezone": "",
+      "title": "AES Domains",
+      "uid": "MoEO8H8Zk",
+      "version": 1
+    }
