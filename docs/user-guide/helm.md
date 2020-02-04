@@ -49,7 +49,7 @@ Your terminal should print something similar to the following:
    Congratulations, you’ve successfully installed the Ambassador Edge Stack in your Kubernetes cluster. Visit https://random-word.edgestack.me to access your Edge Stack installation and for additional configuration.
 ```
 
-The command `edgectl` is part of [Edge Control](/reference/edge-control), which automatically configures TLS for your instance and provisions a domain name for your Ambassador Edge Stack.
+[Edge Control](/reference/edge-control) (`edgectl`) automatically configures TLS for your instance and provisions a domain name for your Ambassador Edge Stack.
 
 This will install the necessary deployments, RBAC, Custom Resource Definitions, etc. for the Ambassador Edge Stack to route traffic. Details on how to configure Ambassador using the Helm chart can be found in the Helm chart [README](https://github.com/datawire/ambassador-chart/tree/master).
 
