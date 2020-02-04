@@ -96,9 +96,9 @@
                                         "virtual_hosts": [
                                             {
                                                 "domains": [
-                                                    "hostcleartext"
+                                                    "*"
                                                 ],
-                                                "name": "ambassador-listener-8080-hostcleartext",
+                                                "name": "ambassador-listener-8080-hostcleartext-forced-star",
                                                 "routes": [
                                                     {
                                                         "match": {

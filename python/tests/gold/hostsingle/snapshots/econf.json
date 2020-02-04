@@ -98,9 +98,9 @@
                                         "virtual_hosts": [
                                             {
                                                 "domains": [
-                                                    "hostsingle"
+                                                    "*"
                                                 ],
-                                                "name": "ambassador-listener-8443-hostsingle",
+                                                "name": "ambassador-listener-8443-hostsingle-forced-star",
                                                 "routes": [
                                                     {
                                                         "match": {
