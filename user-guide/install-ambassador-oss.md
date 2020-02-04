@@ -137,7 +137,7 @@ Follow our [enabling HTTPS guide](../tls-termination) to quickly enable HTTPS su
 
 The following will install the open-source Ambassador API Gateway with Helm.
 
-The Helm chart at https://github.com/datawire-ambassador-chart installed the Ambassador Edge Stack by default. You can still install the Ambassador API Gateway with that chart.
+The Helm chart at https://github.com/datawire/ambassador-chart installed the Ambassador Edge Stack by default. You can still install the Ambassador API Gateway with that chart.
 
 Both Helm 2 and Helm 3 are supported. To enable CRD creation in Helm 2, the `crd-install` hook is included in the CRD manifests. When installing with Helm 3, the following message will be output to `stderr`:
 ```bash
