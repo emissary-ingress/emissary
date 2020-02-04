@@ -38,3 +38,8 @@ _e2etest-cleanup:
 # at the same time.
 	kubectl --kubeconfig=$(DEV_KUBECONFIG) delete deployments uaa keycloak || true
 .PHONY: _e2etest-cleanup
+
+define _help.e2e-targets
+  $(BLD)make $(BLU)e2etest$(END)             -- runs just the Go e2e tests.
+endef
+_help.targets += $(NL)$(NL)$(_help.e2e-targets)
