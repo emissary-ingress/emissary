@@ -57,7 +57,7 @@ metadata:
       requestPolicy:
         insecure:
           action: Route
-          additionalPort: 8080
+          # additionalPort: 8080
   labels:
     scope: AmbassadorTest
 spec:
@@ -98,7 +98,7 @@ metadata:
       requestPolicy:
         insecure:
           action: Route
-          additionalPort: 8080
+          # additionalPort: 8080
   labels:
     scope: AmbassadorTest
 spec:
