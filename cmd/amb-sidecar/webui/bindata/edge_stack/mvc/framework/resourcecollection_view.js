@@ -5,9 +5,6 @@
  * as needed.
  */
 
-/* Debug flag */
-import { enableMVC } from "./utilities.js"
-
 /* LitElement superclass. */
 import { LitElement, html, css } from '../../vendor/lit-element.min.js'
 
@@ -209,10 +206,6 @@ export class ResourceCollectionView extends LitElement {
    */
 
   render() {
-    if (enableMVC()) {
-      /* Set debug to true to draw a green border around the ResourceCollectionView */
-      let debug = false;
-
       let logoPair  = this.pageLogo();
       let logoText  = logoPair[0];
       let logoPath  = "../images/svgs/" + logoPair[1];
@@ -220,7 +213,7 @@ export class ResourceCollectionView extends LitElement {
       let description  = this.pageDescription();
 
       return html`
-        <div style=${debug ? "border:thick solid green" : ""}>
+        <div>
             <link rel="stylesheet" href="../styles/resources.css">
             <div class="header_con">
                 <div class="col">
@@ -254,9 +247,6 @@ export class ResourceCollectionView extends LitElement {
             <slot name="add"></slot>
             <slot></slot>
         </div>`
-    } else {
-      return html``
-    }
   }
 
   /* sortMenu()

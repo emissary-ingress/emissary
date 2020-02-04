@@ -6,29 +6,6 @@
 
 import { hasDebugBackend } from "../../components/api-fetch.js"
 
-/* ================================ Debugging  ================================ */
-
-/* enableMVC()
- * To enable MVC to display in those pages that have new MVC views, set this
- * to true.  If using WebStorm for debugging with the instructions in
- * apro/README.ui.dev-loop.md, option #4, then it's more convenient to use
- * hasDebugBackend, which will enable MVC when debugging locally.
- *
- * Set this to false to keep the new MVC code from being run.
- *
- * to see a use of enableMVC(), see edge_stack/mvc/framework/resourcecollection_view.js where
- * it is used to disable/enable drawing ResourceCollections entirely.  When enabled,
- * both the existing views and the new MVC views of the resources may be seen in the
- * same page for comparison.  This is done by including both the existing component
- * and the new MVC component in the same tab-slot in edge_stack/admin/index.html, and using
- * enableMVC to render (or not) the MVC component.
- */
-
-export function enableMVC() {
-  return true;
-  /* return hasDebugBackend */
-}
-
 /* ================================ Map Utilities ================================ */
 
 /* mapMerge(mapA, mapB)
