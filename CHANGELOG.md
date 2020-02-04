@@ -8,6 +8,7 @@ releases. Please keep it up to date.
 
 - Bugfix: The RBAC for `Ingress` now supports the `networking.k8s.io` `apiGroup`
 - Change: The `OAuth2` Filter no longer sets cookies when `insteadOfRedirect` triggers
+- Change: The `OAuth2` Filter more frequently adjusts the cookies
 
 ## 1.1.1 (TBD)
 
