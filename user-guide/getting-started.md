@@ -7,7 +7,7 @@ In this guide, we'll walk you through installing and configuring the Ambassador 
 
 Different options for installation include:
 
-* [Quick install (recommended!)](#quick-install)
+* **[Quick Install (recommended!)](#quick-install)**
 * [Install via Minikube](#minikube-users)
 * [Install in CI](#install-in-ci)
 * Or, you can [install manually](/user-guide/manual-install)
@@ -20,24 +20,25 @@ The Ambassador Edge Stack is designed to run in Kubernetes for production. The m
 * The `kubectl` command-line tool
 * [Edge Control](/reference/edgectl-download)
 
-## Quick Install
+## Quick Install (Recommended!)
 
 The Ambassador Edge Stack is typically deployed to Kubernetes from the command line. If you don't have Kubernetes, you should use our [Docker](../../about/quickstart) image to deploy the Ambassador Edge Stack locally. Or, if you're a Minikube user, [check out these directions](#minikube-users).
 
-When you use Edge Control to install the Ambassador Edge Stack on your publicly
+When you use Edge Control on your publicly
 accessible cluster, it will:
 
-* Generate a domain name for you to access the Edge Policy Console and complete
-  advanced configuration
-* Obtain a TLS certificate
-* Configure automatic TLS and HTTPS
+1. Install the Ambassador Edge Stack
+2. Generate a domain name for you to access the Edge Policy Console and complete
+   advanced configuration
+3. Obtain a TLS certificate for that domain name
+4. Configure automatic TLS and HTTPS using that certificate
 
-**To get started:**
+Install Edge Control for your operating system [here](/reference/edgectl-download). When complete, return to these instructions.
 
-1. Install Edge Control for your operating system.
-   [here](/reference/edgectl-download). When complete, return to these instructions.
-2. Open your terminal and run the following command: `edgectl install`
-3. Provide an email address so you can be notified before your domain and certificate expire.
+**To install the Ambassador Edge Stack:**
+
+1. Run the following command: `edgectl install`
+2. Provide an email address so you can be notified before your domain and certificate expire.
 
  ```shell
  $ edgectl install
