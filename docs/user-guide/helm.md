@@ -1,6 +1,6 @@
 # Installing the Ambassador Edge Stack with Helm
 
-[Helm](https://helm.sh) is a package manager for Kubernetes that automates the release and management of software on Kubernetes. The Ambassador Edge Stack can be installed via a Helm chart with a few simple steps, depending on if you are deploying for the first time, upgrading the Ambassador Edge Stack from an existing installation, or migrating from the Ambassador API Gateway .
+[Helm](https://helm.sh) is a package manager for Kubernetes that automates the release and management of software on Kubernetes. The Ambassador Edge Stack can be installed via a Helm chart with a few simple steps, depending on if you are deploying for the first time, upgrading the Ambassador Edge Stack from an existing installation, or migrating from the Ambassador API Gateway.
 
 ## Before You Begin
 
@@ -14,7 +14,8 @@ helm repo add datawire https://www.getambassador.io
 
 ## Install with Helm
 
-When you run the Helm chart, it installs the Ambassador Edge Stack. You can deploy it with either the Helm 2 or Helm 3 chart.
+When you run the Helm chart, it installs the Ambassador Edge Stack. You can
+deploy it with either version of the tool. 
 
 1. If you are installing the Ambassador Edge Stack **for the first time on your cluster**, create the `ambassador` namespace for the Ambassador Edge Stack:
 

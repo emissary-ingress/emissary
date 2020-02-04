@@ -24,16 +24,17 @@ The Ambassador Edge Stack is designed to run in Kubernetes for production. The m
 
 The Ambassador Edge Stack is typically deployed to Kubernetes from the command line. If you don't have Kubernetes, you should use our [Docker](../../about/quickstart) image to deploy the Ambassador Edge Stack locally. Or, if you're a Minikube user, [check out these directions](#minikube-users).
 
-When you use Edge Control to install the Ambassador Edge Stack, it will:
+When you use Edge Control to install the Ambassador Edge Stack on your publicly
+accessible cluster, it will:
 
-* Generate a domain name for you to access your Edge Policy Console and complete
+* Generate a domain name for you to access the Edge Policy Console and complete
   advanced configuration
 * Obtain a TLS certificate
 * Configure automatic TLS and HTTPS
 
 **To get started:**
 
-1. Install Edge Control for your operating system
+1. Install Edge Control for your operating system.
    [here](/reference/edgectl-download). When complete, return to these instructions.
 2. Open your terminal and run the following command: `edgectl install`
 3. Provide an email address so you can be notified before your domain and certificate expire.
@@ -89,7 +90,7 @@ To install the Ambassador Edge Stack in CI, run the following command:
 edgectl install --ci
 ```
 
-You must then configure your own TLS certificate using the [Host CRD](/reference/host-crd). Read more about [Edge Control in CI](/reference/edge-control-in-ci).
+You must then configure your own TLS certificate using the [Host CRD](/reference/host-crd).
 
 ## Create a Mapping
 
