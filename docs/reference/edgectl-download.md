@@ -1,21 +1,22 @@
 # Downloads
 
-You can download `edgectl`, the executable for Edge Control on a macOS, Linux, or
-Windows operating machine.
+Edge Control is available for macOS, Linux, and Windows.
 
-On macOS and Linux, you have the option to install `edgectl` via a curl command or by downloading and executing a binary file.
 
 ## macOS
 
 1. To download by curl command, run the following in your command line:
 
-```shell
-sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl
-```
+    ```shell
+    sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl
+    ```
 
-2. Or, download the binary file [here](https://metriton.datawire.io/downloads/darwin/edgectl)
+2. Or, download the [binary file](https://metriton.datawire.io/downloads/darwin/edgectl).
+
 3. Make it executable with the command `chmod a+x ~/Downloads/edgectl`
+
 4. Move the file to somewhere in your shell PATH.
+
 5. Return to the [Quick Start Guide](/user-guide/install) to finish the
    `edgectl` install process.
 
