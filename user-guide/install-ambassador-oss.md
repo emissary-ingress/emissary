@@ -135,15 +135,27 @@ Follow our [enabling HTTPS guide](../tls-termination) to quickly enable HTTPS su
 
 ## Helm
 
-The following will install the open-source Ambassador API Gateway with Helm.
+In the following instructions, we'll install the open-source Ambassador API
+Gateway with Helm. 
 
-The Helm chart at https://github.com/datawire/ambassador-chart installed the Ambassador Edge Stack by default. You can still install the Ambassador API Gateway with that chart.
+Although the [Helm chart](https://github.com/datawire-ambassador-chart) installs
+the Ambassador Edge Stack by default, the Ambassador API Gateway is still
+available for installation for both Helm 2 and Helm 3.
 
-Both Helm 2 and Helm 3 are supported. To enable CRD creation in Helm 2, the `crd-install` hook is included in the CRD manifests. When installing with Helm 3, the following message will be output to `stderr`:
+With Helm 2, you must enable CRD creation with the `crd-install` hook that is
+included in the CRD manifests. When installing with Helm 3, the following
+message will be output to `stderr`:
+
 ```bash
 manifest_sorter.go:175: info: skipping unknown hook: "crd-install"
 ```
-Since this hook is required for Helm 2 support it **IS NOT AN ERROR AND CAN BE SAFELY IGNORED**.
+
+Because this hook is required for Helm 2 support, it **IS NOT AN ERROR AND CAN BE SAFELY IGNORED**.
+
+**To get started on Helm:**
+1. Add the Datawire repo to your Helm repositories
+2. Install the Ambassador API Gateway
+
 
 ### 1. Add the Datawire repo to your Helm repositories
 
@@ -153,20 +165,27 @@ helm repo add datawire https://www.getambassador.io
 
 ### 2. Install Ambassador API Gateway
 
-The Ambassador Edge Stack is installed by default. To install the Ambassador API Gateway you need to change the `image` to point to the OSS image and set `enableAES: false` in the `values.yaml` file. See below:
+The Ambassador Edge Stack is installed by default. To install the Ambassador API
+Gateway instead,  change the `image` to point to the OSS image and set
+`enableAES: false` in the `values.yaml` file.
+
+For example:
+
 ```yaml
 image:
   repositoy: quay.io/datawire/ambassador
   tag: $version$
-
 enableAES: false
 ```
-Install the chart using the `values.yaml` file:
+
+Then, install the chart using the `values.yaml` file:
+
 ```
 helm install ambassador datawire/ambassador -f values.yaml
 ```
 
-This can also be done with the `--set` flag:
+You can also install the chart with the `--set` flag:
+
 ```
 helm install ambassador datawire/ambassador --set image.repository=quay.io/datawire/ambassador --set image.tag=$version$ --set enableAES=false
 ```
