@@ -161,7 +161,7 @@ export class ResourceCollectionView extends LitElement {
   */
 
   onModelNotification(model, message, parameter) {
-    /* Create a new dw-host web component and add it as a child. Because this view is a web component, adding
+    /* Create a new view web component and add it as a child. Because this view is a web component, adding
      * that child component queues the appropriate re-render at the correct time,and are rendered in our <slot>.
     */
     if (message === 'created') {
