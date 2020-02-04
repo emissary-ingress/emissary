@@ -24,7 +24,7 @@ The Ambassador Edge Stack is designed to run in Kubernetes for production. The m
 
 The Ambassador Edge Stack is typically deployed to Kubernetes from the command line. If you don't have Kubernetes, you should use our [Docker](../../about/quickstart) image to deploy the Ambassador Edge Stack locally. Or, if you're a Minikube user, [check out these directions](#minikube-users).
 
-When you install Edge Control to manage your Edge Stack, it will:
+When you use Edge Control to install the Ambassador Edge Stack, it will:
 
 * Generate a domain name for you to access your Edge Policy Console and complete
   advanced configuration
@@ -66,19 +66,18 @@ Edge Control will automatically configure TLS **if your cluster is publicly acce
 
 **To get started:**
 
-1. Ensure your cluster is publicly accessible by following these directions: `url to documentation page about how to make your cluster publicly accessible`
-2. Run the command `edgectl install`. It will print something similar to the following:
+Run the command `edgectl install`. It will print something similar to the following:
 
 ```bash
 $ edgectl install
 -> Installing the Ambassador Edge Stack 1.0.
 -> Automatically configuring TLS.
--> Cluster is not publicly accessible. Please ensure your cluster is publicly accessible if you would like to use automatic TLS. <url to documentation page about how to make your cluster publicly accessible>
+-> Cluster is not publicly accessible. Please ensure your cluster is publicly accessible if you would like to use automatic TLS.
 
 Congratulations, you’ve successfully installed the Ambassador Edge Stack in your Kubernetes cluster. Visit http://192.168.64.2:31334 to access your Edge Stack installation and for additional configuration.
 ```
 
-3. Your browser will automatically open to your newly provisioned URL.
+Your browser will automatically open to your newly provisioned URL.
 
 ### Install in CI
 
@@ -86,8 +85,8 @@ Installing the Ambassador Edge Stack in your Continuous Integration tool require
 
 To install the Ambassador Edge Stack in CI, run the following command:
 
-```
-$ edgectl install --ci
+```bash
+edgectl install --ci
 ```
 
 You must then configure your own TLS certificate using the [Host CRD](/reference/host-crd). Read more about [Edge Control in CI](/reference/edge-control-in-ci).
