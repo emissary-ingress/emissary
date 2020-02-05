@@ -149,7 +149,7 @@ export class ResourceView extends View {
   /* onAdd()
    * This method is called on the View when the View has been newly-added to a ResourceCollectionView
    * and needs to change to its Add mode.  This is different than the normal process when editing an
-   * existing Resource since onEdit() is called when the Edit button is pressed, and doAdd is called
+   * existing Resource since onEdit() is called when the Edit button is pressed, and onAdd is called
    * by the ResourceCollectionView to begin the add process.
    */
 
