@@ -206,7 +206,7 @@ commands:
      # wipe out artifacts that are useful for debugging.
      - run: make clobber
      - run: "git clean -ndx; test -z \"$(git clean -ndx)\""
-  "edgectl":
+  "cli-tools":
     steps:
       - checkout
       - run: ./get-amb-repo.sh
@@ -262,16 +262,16 @@ jobs:
       - release
 #      - clobber
 
-  "macOS-edgectl":
+  "macOS-cli-tools":
     macos:
       xcode: "10.1.0"
     steps:
       - pip-install:
           packages: awscli
       - install-go
-      - edgectl
+      - cli-tools
 
-  "Ubuntu-edgectl":
+  "Ubuntu-cli-tools":
     machine:
       # If you bump this, be sure to bump install-python.executor-key
       # below.
@@ -280,9 +280,9 @@ jobs:
       - pip-install:
           packages: awscli
       - install-go
-      - edgectl
+      - cli-tools
 
-  "Windows-edgectl":
+  "Windows-cli-tools":
     executor:
       name: win/vs2019
       shell: bash
@@ -297,20 +297,20 @@ jobs:
             mv /c/go /c/go-112
             unzip -q /tmp/go.zip -d /c/
             go version
-      - edgectl
+      - cli-tools
 
 workflows:
   "APro CI":
     jobs:
-      - "Windows-edgectl":
+      - "Windows-cli-tools":
           filters:
             tags:
               only: /.*/
-      - "Ubuntu-edgectl":
+      - "Ubuntu-cli-tools":
           filters:
             tags:
               only: /.*/
-      - "macOS-edgectl":
+      - "macOS-cli-tools":
           filters:
             tags:
               only: /.*/
