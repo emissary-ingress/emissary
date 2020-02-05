@@ -198,6 +198,10 @@ export class ResourceCollectionView extends LitElement {
     return false;
   }
 
+  firstUpdated() {
+    this.model.notifyMeAboutAllCreates(this);
+  }
+
   /* render()
    * Render the list.  Key requirements:
    *   a) include the add-button

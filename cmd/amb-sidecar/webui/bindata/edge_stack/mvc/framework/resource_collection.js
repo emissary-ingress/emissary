@@ -144,6 +144,13 @@ export class ResourceCollection extends Model {
     }
   }
 
+  /* 
+  notifyMeAboutAllCreates(aListener) {
+    for(let [k, v] of this._resources) {
+      aListener.onModelNotification(v, 'created', null);
+    }
+  }
+
   /* uniqueKeyFor(yaml)
  * Return a unique key given some structured resource data (a hierarchical key/value
  * structure) that is used to determine whether a collection already has an instance of the
