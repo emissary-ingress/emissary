@@ -1,10 +1,10 @@
-# Using Ambassador Edge Stack in your organization
+# Using Ambassador Edge Stack in Your Organization
 
 Ambassador Edge Stack can be used in a variety of situations. We've documented a few common use cases:
 
-## Transitioning from a monolith to microservices
+## Transitioning From a Monolith to Microservices
 
-The "strangler" pattern is a common approach to incrementally migrating from a monolith to microservices. Ambassador Edge Stack can be deployed as a facade to both the monolith and microservices, enabling a migration to Kubernetes and microservices without impacting end users. [Read more here](https://blog.getambassador.io/using-api-gateways-to-facilitate-your-transition-from-monolith-to-microservices-5e630da24717).
+The "strangler" pattern is a common approach to incrementally migrating from a monolith to microservices. Ambassador Edge Stack can be deployed as a facade to both the monolith and microservices, enabling the migration to Kubernetes and microservices without impacting end-users. [Read more here](https://blog.getambassador.io/using-api-gateways-to-facilitate-your-transition-from-monolith-to-microservices-5e630da24717).
 
 ## Testing
 

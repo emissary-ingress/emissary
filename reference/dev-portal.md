@@ -6,7 +6,7 @@ The Dev Portal will automatically discover all services known by the Ambassador 
 
 ### `/docs/`
 
-Rendered API documentation is published at the `/docs/` URL by default. In a subsequent release, support will be added for publish at alternative URLs.
+All rendered API documentation is published at the `/docs/` URL by default. In a subsequent release, support will be added for publishing at alternative URLs.
 
 ### `.ambassador-internal`
 
@@ -14,7 +14,7 @@ By default, `.ambassador-internal` is not publicly exposed by the Ambassador Edg
 
  Note that these URLs are not publicly exposed by the Ambassador Edge Stack, and are internal-only.
 
-## Dev Portal configuration
+## Dev Portal Configuration
 
 The Dev Portal supports configuring the following environment variables for configuration:
 
