@@ -155,7 +155,7 @@ Some special cases to be aware of here:
       insecure:
         action: Redirect
         additionalPort: 8080
-  ```
+  ```  
 
 ## `Host` Specification
 
