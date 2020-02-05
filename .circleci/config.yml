@@ -235,8 +235,8 @@ jobs:
     macos:
       xcode: "10.1.0"
     steps:
-      - run: |
-          echo 'export MAKEFLAGS="-j$(sysctl -n hw.ncpu)"' >> "${BASH_ENV}"
+      #- run: |
+      #    echo 'export MAKEFLAGS="-j$(sysctl -n hw.ncpu)"' >> "${BASH_ENV}"
       - pip-install:
           packages: awscli
       - install-go
@@ -250,8 +250,8 @@ jobs:
       # below.
       image: "ubuntu-1604:201903-01"
     steps:
-      - run: |
-          echo 'export MAKEFLAGS="-j$(nproc)"' >> "${BASH_ENV}"
+      #- run: |
+      #    echo 'export MAKEFLAGS="-j$(nproc)"' >> "${BASH_ENV}"
       - pip-install:
           packages: awscli
       - install-go

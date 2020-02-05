@@ -27,7 +27,7 @@ e2etest-only:
 	$(MAKE) deploy
 	$(MAKE) -f $(SOURCE_apro)/build-aux-local/Makefile.e2e apply
 	$(MAKE) -f $(SOURCE_apro)/build-aux-local/Makefile.e2e proxy
-	$(MAKE) -f $(SOURCE_apro)/build-aux-local/Makefile.e2e -j1 check
+	$(MAKE) -f $(SOURCE_apro)/build-aux-local/Makefile.e2e check
 .PHONY: e2etest-only
 
 pytest-only: _e2etest-cleanup
