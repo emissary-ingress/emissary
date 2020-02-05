@@ -123,11 +123,11 @@ export class ResourceCollectionView extends LitElement {
     this.sortBy = attribute;
   }
 
-  /* onAdd()
+  /* onAddButton()
   * This method is called when the user has clicked on the Add button, to create a new Resource in the collection.
   */
 
-  onAdd() {
+  onAddButton() {
     let modelClass = this.model.resourceClass();
     let resource   = new modelClass();
 
@@ -232,7 +232,7 @@ export class ResourceCollectionView extends LitElement {
                 </div>
                 
                  <div class="col2">
-                    <a class="cta add ${this.readOnly() ? "off" : ""}" @click=${this.onAdd.bind(this)}>
+                    <a class="cta add ${this.readOnly() ? "off" : ""}" @click=${this.onAddButton.bind(this)}>
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30"><defs><style>.cls-a{fill:none;stroke:#000;stroke-linecap:square;stroke-miterlimit:10;stroke-width:2px;}</style></defs><title>add_1</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"><line class="cls-a" x1="15" y1="9" x2="15" y2="21"/><line class="cls-a" x1="9" y1="15" x2="21" y2="15"/><circle class="cls-a" cx="15" cy="15" r="14"/></g></g></svg>
                       <div class="label">add</div>
                     </a>

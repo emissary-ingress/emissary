@@ -159,12 +159,12 @@ export class ResourceView extends View {
     this._needsFocus = true;
   }
 
-   /* onCancel()
+   /* onCancelButton()
    * This method is called on the View when the View is in Edit mode, and the user clicks on the
    * Cancel button to discard the changes and return to the original state.
    */
 
-  onCancel() {
+  onCancelButton() {
     /* Adding?  Simply remove the view--the Resource is not being added to the system. */
     if (this.viewState === "add") {
       this.parentElement.removeChild(this);
@@ -176,12 +176,12 @@ export class ResourceView extends View {
     }
   }
 
-  /* onDelete()
+  /* onDeleteButton()
    * This method is called on the View when the user has clicked the Delete button to delete the Resource.
    * Like saving, this switches to a pending mode until the Resource has been observed to be deleted.
    */
 
-  onDelete() {
+  onDeleteButton() {
     let proceed = confirm(`You are about to delete the ${this.kind} named '${this.name}' in the '${this.namespace}' namespace.\n\nAre you sure?`);
 
     if (proceed) {
@@ -199,7 +199,7 @@ export class ResourceView extends View {
         this.viewState = "pending";
 
         /* Start the timeout for 5 seconds to make sure that the pending delete is reset even if the backend fails */
-        this._timeout = setTimeout(this.verifyDelete.bind(this), 5000);
+        this._timeout = setTimeout(this.onDeleteTimeout.bind(this), 5000);
       }
       else {
         alert(`${model.kind} ${model.name} was unable to be deleted.  Backend not available?`);
@@ -208,12 +208,12 @@ export class ResourceView extends View {
     }
   }
 
-  /* verifyDelete()
+  /* onDeleteTimeout()
    * This method is called when the timeout finishes, to check whether the resource being deleted has in fact
    * been successfully removed and is no longer in the snapshot.
    */
 
-  verifyDelete() {
+  onDeleteTimeout() {
     let resource = this.model;
     let failed   = false;
 
@@ -241,12 +241,12 @@ export class ResourceView extends View {
   }
 
 
-    /* onEdit()
+    /* onEditButton()
     * This method is called on the View when the View needs to change to its Edit mode.  The View needs
     * to create a new copy of its Model for editing, and stop listening to any updates to the old Model.
     */
 
-  onEdit() {
+  onEditButton() {
     /* Clear any error messages prior to editing. */
     this.clearMessages();
 
@@ -287,7 +287,7 @@ export class ResourceView extends View {
     }
   }
 
-  /* onSave()
+  /* onSaveButton()
     * This method is called on the View when the View is in Edit mode, and the user clicks on the
     * Save button to save the changes.  There are two circumstances in which the Save button will be clicked:
     * 1) a new Resource (model) has been added and Save creates a new Resource in the backend.  In this case,
@@ -296,7 +296,7 @@ export class ResourceView extends View {
     * 2) an existing Resource is being edited and Save writes back any changes.
     */
 
-  onSave() {
+  onSaveButton() {
     let resource = this.model;
     let error    = null;
 
@@ -337,7 +337,7 @@ export class ResourceView extends View {
             this.viewState = "pending";
 
             /* Start the timeout for 5 seconds to make sure that the pending save is reset even if the backend fails */
-            this._timeout = setTimeout(this.verifySave.bind(this), 5000);
+            this._timeout = setTimeout(this.onSaveTimeout.bind(this), 5000);
 
           } else {
             /* Clear the pending add, and allow the ResourceCollection to remove it. */
@@ -367,7 +367,7 @@ export class ResourceView extends View {
           this.viewState = "pending";
 
           /* Start the timeout for 5 seconds to make sure that the pending save is reset even if the backend fails */
-          this._timeout = setTimeout(this.verifySave.bind(this), 5000);
+          this._timeout = setTimeout(this.onSaveTimeout.bind(this), 5000);
         }
       }
     }
@@ -391,14 +391,14 @@ export class ResourceView extends View {
     this.requestUpdate();
   }
 
-  /* verifySave()
+  /* onSaveTimeout()
    * This method is called when the timeout finishes, to check whether the resource being saved has in fact
    * been successfully saved and has been updated by the snapshot.  If the model is still pending or the
    * view is still in the pending state, clear all the flags and return the state to list, thereby
    * cancelling the operation.
    */
 
-  verifySave() {
+  onSaveTimeout() {
     let newResource = this.model;
     let oldResource = this._savedModel;
     let collection  = this.parentElement.model;
@@ -426,22 +426,22 @@ export class ResourceView extends View {
     this._timeout = null;
   }
 
-  /* onSource()
+  /* onSourceButton()
    * This method opens a window on the Resource's source URI.
    */
 
-    onSource(mouseEvent) {
+  onSourceButton(mouseEvent) {
       window.open(this.model.sourceURI());
 
       /* Defocus the button */
       mouseEvent.currentTarget.blur();
     }
 
-  /* onYaml()
+  /* onYamlButton()
    * This method hides and shows the current YAML of the Resource.
    */
 
-  onYaml(mouseEvent) {
+  onYamlButton(mouseEvent) {
     /* Toggle showYAML */
     this.showYAML = !this.showYAML;
 
@@ -556,7 +556,7 @@ export class ResourceView extends View {
            
           <div class="col2">
           
-            <a class="cta source ${typeof this.model.sourceURI() == 'string' ? "" : "off"}" @click=${(x)=>this.onSource(x)}>
+            <a class="cta source ${typeof this.model.sourceURI() == 'string' ? "" : "off"}" @click=${(x)=>this.onSourceButton(x)}>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18.83 10.83"><defs><style>.cls-2{fill:none;stroke:#000;stroke-linecap:square;stroke-miterlimit:10;stroke-width:2px;}</style></defs><title>source_2</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"><polyline class="cls-2" points="5.41 1.41 1.41 5.41 5.41 9.41"/><polyline class="cls-2" points="13.41 1.41 17.41 5.41 13.41 9.41"/></g></g></svg>
               <div class="label">source</div>
             </a>
@@ -571,27 +571,27 @@ export class ResourceView extends View {
               <div class="label">pending</div>
             </a>
             
-            <a class="cta edit ${this.visibleWhen("list", "detail")}" @click=${()=>this.onEdit()}>
+            <a class="cta edit ${this.visibleWhen("list", "detail")}" @click=${()=>this.onEditButton()}>
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M14.078 7.061l2.861 2.862-10.799 10.798-3.584.723.724-3.585 10.798-10.798zm0-2.829l-12.64 12.64-1.438 7.128 7.127-1.438 12.642-12.64-5.691-5.69zm7.105 4.277l2.817-2.82-5.691-5.689-2.816 2.817 5.69 5.692z"/></svg>
               <div class="label">edit</div>
             </a>
             
-            <a class="cta save ${this.visibleWhen("edit", "add")}" @click=${()=>this.onSave()}>
+            <a class="cta save ${this.visibleWhen("edit", "add")}" @click=${()=>this.onSaveButton()}>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Asset 1</title><g id="Layer_2" data-name="Layer 2"><g id="iconmonstr"><path id="save-2" d="M13,3h3V8H13ZM24,4V24H0V0H20ZM7,9H17V2H7ZM22,4.83,19.17,2H19v9H5V2H2V22H22Z"/></g></g></svg>
               <div class="label">save</div>
             </a>
             
-            <a class="cta cancel ${this.visibleWhen("edit", "add")}" @click=${()=>this.onCancel()}>
+            <a class="cta cancel ${this.visibleWhen("edit", "add")}" @click=${()=>this.onCancelButton()}>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>cancel</title><g id="Layer_2" data-name="Layer 2"><g id="iconmonstr"><polygon id="x-mark-2" points="24 21.08 14.81 11.98 23.91 2.81 21.08 0 11.99 9.18 2.81 0.09 0 2.9 9.19 12.01 0.09 21.19 2.9 24 12.01 14.81 21.19 23.91 24 21.08"/></g></g></svg>
               <div class="label">cancel</div>
             </a>
             
-            <a class="cta delete ${this.visibleWhen("list", "detail")}" @click=${()=>this.onDelete()}>
+            <a class="cta delete ${this.visibleWhen("list", "detail")}" @click=${()=>this.onDeleteButton()}>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 16"><defs><style>.cls-1{fill-rule:evenodd;}</style></defs><title>delete</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"><path class="cls-1" d="M24,16H7L0,8,7,0H24V16ZM7.91,2,2.66,8,7.9,14H22V2ZM14,6.59,16.59,4,18,5.41,15.41,8,18,10.59,16.59,12,14,9.41,11.41,12,10,10.59,12.59,8,10,5.41,11.41,4,14,6.59Z"/></g></g></svg>
               <div class="label">delete</div>
             </a>
             
-            <a class="cta edit ${this.visibleWhen("list", "detail", "edit", "add")}" @click=${(e)=>this.onYaml(e.target.checked)}>
+            <a class="cta edit ${this.visibleWhen("list", "detail", "edit", "add")}" @click=${(e)=>this.onYamlButton(e.target.checked)}>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"><title>zoom</title><g class="nc-icon-wrapper" stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" fill="#000000" stroke="#000000"><line data-color="color-2" x1="59" y1="59" x2="42.556" y2="42.556" fill="none" stroke-miterlimit="10"/><circle cx="27" cy="27" r="22" fill="none" stroke="#000000" stroke-miterlimit="10"/></g></svg>
               <div class="label">yaml</div>
             </a>
