@@ -80,6 +80,18 @@ func aesInstall(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	// Grab Ambassador's install ID as the cluster ID we'll send going forward.
+	// Note: Using "kubectl exec" has the side effect of making sure the Pod is
+	// Running (though not necessarily Ready). This should be good enough to
+	// report the "deploy" status to metrics.
+	for {
+		if clusterID, err := i.CaptureKubectl("get cluster ID", "-n", "ambassador", "exec", "deploy/ambassador", "python3", "kubewatch.py"); err == nil {
+			metrics.SetClusterID(strings.TrimSpace(clusterID))
+			break
+		}
+		time.Sleep(500 * time.Millisecond) // FIXME: Time out at some point...
+	}
+
 	_ = metrics.Report("deploy") // TODO: Send cluster type and Helm version
 
 	ipAddress := ""
@@ -269,6 +281,7 @@ func (i *Installer) CaptureKubectl(name string, args ...string) (res string, err
 		err = errors.Wrap(err, name)
 	}
 	res = string(resAsBytes)
+	fmt.Println(res)
 	return
 }
 
@@ -294,10 +307,19 @@ func NewMetrics() *Metrics {
 	return &Metrics{scout}
 }
 
+func (m *Metrics) SetClusterID(clusterID string) {
+	fmt.Println("\n-> [Metrics] Cluster ID (AES install ID) is", clusterID)
+	if m.scout != nil {
+		m.scout.SetClusterID(clusterID)
+	}
+}
+
 func (m *Metrics) Report(eventName string, meta ...ScoutMeta) error {
 	fmt.Println("\n-> [Metrics]", eventName)
 	if m.scout != nil {
-		_ = m.scout.Report(eventName, meta...)
+		if err := m.scout.Report(eventName, meta...); err != nil {
+			fmt.Println("            ", err)
+		}
 	}
 	return nil
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -16,6 +17,7 @@ type Scout struct {
 	mode       string
 	installID  string
 	newInstall bool
+	clusterID  string
 }
 
 type ScoutMeta struct {
@@ -64,7 +66,14 @@ func NewScout(mode string) (*Scout, error) {
 		return nil, err
 	}
 
-	return &Scout{mode, installID, newInstall}, nil
+	return &Scout{mode, installID, newInstall, ""}, nil
+}
+
+func (s *Scout) SetClusterID(clusterID string) {
+	if s.clusterID != "" {
+		panic(fmt.Sprintf("trying to replace cluster ID %q with %q", s.clusterID, clusterID))
+	}
+	s.clusterID = clusterID
 }
 
 func (s *Scout) Report(action string, meta ...ScoutMeta) error {
@@ -76,6 +85,9 @@ func (s *Scout) Report(action string, meta ...ScoutMeta) error {
 		"mode":        s.mode,
 		"new_install": s.newInstall,
 		"action":      action,
+	}
+	if s.clusterID != "" {
+		metadata["aes_install_id"] = s.clusterID
 	}
 	for _, metaItem := range meta {
 		metadata[metaItem.Key] = metaItem.Value
@@ -92,8 +104,8 @@ func (s *Scout) Report(action string, meta ...ScoutMeta) error {
 	if err != nil {
 		panic(err)
 	}
-	// metritonEndpoint := "https://kubernaut.io/scout"
-	metritonEndpoint := "https://metriton.kubernaut.io/beta/scout"
+	// metritonEndpoint := "https://metriton.datawire.io/scout"   // Prod URL
+	metritonEndpoint := "https://metriton.datawire.io/beta/scout" // Beta URL
 	resp, err := http.Post(metritonEndpoint, "application/json", bytes.NewBuffer(body))
 	if err != nil {
 		return errors.Wrap(err, "scout report")
