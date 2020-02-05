@@ -42,7 +42,7 @@ export class ResourceCollection extends Model {
 
     /* Only add if this resource does not exist in the collection. */
     if (this._resources.has(key)) {
-      console.log("ResourceCollection.addResource: attempted to add resource that already exists")
+      console.log("ResourceCollection.addResource: attempted to add resource that already exists: " + key)
     }
     else {
       this._resources.set(key, resource);
