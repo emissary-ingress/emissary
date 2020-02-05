@@ -133,7 +133,7 @@ export class ResourceCollectionView extends LitElement {
 
     /* Create the specific ResourceView needed, added it to our View at the start of the list,
      * and begin editing the newly-added ResourceView.  Note that, while the View does have a Model (Resource)
-     * that was just created, the Resource is not represented in the ResourceCollection.\ and is thus detached
+     * that was just created, the Resource is not represented in the ResourceCollection and is thus detached
      * and unaffected by any snapshot updates.
      */
     let viewClass  = this.viewClass();
