@@ -73,7 +73,7 @@ class EndpointGrpcTest(AmbassadorTest):
     def manifests(self) -> str:
         return super().manifests() + self.format('''
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: KubernetesEndpointResolver
 metadata:
     name: my-endpoint
