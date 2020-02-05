@@ -3,16 +3,16 @@ package main
 import (
 	"encoding/json"
 	"os/exec"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/datawire/ambassador/pkg/consulwatch"
-	"github.com/datawire/ambassador/pkg/limiter"
-	"github.com/datawire/ambassador/pkg/watt"
-
 	"github.com/datawire/ambassador/pkg/k8s"
+	"github.com/datawire/ambassador/pkg/limiter"
 	"github.com/datawire/ambassador/pkg/supervisor"
+	"github.com/datawire/ambassador/pkg/watt"
 )
 
 type WatchHook func(p *supervisor.Process, snapshot string) WatchSet
@@ -182,16 +182,37 @@ func (a *aggregator) setKubernetesResources(event k8sEvent) {
 }
 
 func (a *aggregator) generateSnapshot() (string, error) {
+	errors := make(map[string][]watt.Error, len(a.errors))
+	for source, errs := range a.errors {
+		errors[source] = errs
+	}
+
 	k8sResources := make(map[string][]k8s.Resource)
-	for _, submap := range a.kubernetesResources {
+	for _, submap := range a.kubernetesResources { // keyed by watchID
 		for k, v := range submap {
 			k8sResources[k] = append(k8sResources[k], v...)
+			for _, resource := range v {
+				// FIXME(lukeshu): Which resources to look for annotations on is hard-coded; it probably
+				// should be specifiable from the outside like normal resource watches.  This is putting
+				// a business-logic decision in the systems-logic code.
+				//
+				// A regexp because I don't want to hard-code "v1beta1" for ingresses.
+				if resource.QKind() == "Service.v1." || regexp.MustCompile(`^Ingress\.[^.]+\.networking\.k8s\.io$`).MatchString(resource.QKind()) {
+					annotationResources, annotationErrs := parseAnnotationResources(resource)
+					for _, annotationResource := range annotationResources {
+						k8sResources[annotationResource.Kind()] = append(k8sResources[annotationResource.Kind()], annotationResource)
+					}
+					for _, annotationErr := range annotationErrs {
+						errors[annotationErr.Source] = append(errors[annotationErr.Source], annotationErr)
+					}
+				}
+			}
 		}
 	}
 	s := watt.Snapshot{
 		Consul:     watt.ConsulSnapshot{Endpoints: a.consulEndpoints},
 		Kubernetes: k8sResources,
-		Errors:     a.errors,
+		Errors:     errors,
 	}
 
 	jsonBytes, err := json.MarshalIndent(s, "", "    ")

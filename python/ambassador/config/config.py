@@ -422,15 +422,6 @@ class Config:
             return RichStatus.fromError("must have apiVersion, kind, and name")
 
         apiVersion = resource.apiVersion
-        originalApiVersion = apiVersion
-
-        # The Canonical API Version for our resources always starts with "getambassador.io/",
-        # but it used to always start with "ambassador/". Translate as needed for backward
-        # compatibility.
-
-        if apiVersion.startswith('ambassador/'):
-            apiVersion = apiVersion.replace('ambassador/', 'getambassador.io/')
-            resource.apiVersion = apiVersion
 
         is_ambassador = False
 
@@ -453,7 +444,7 @@ class Config:
             status = Config.SupportedVersions.get(version, 'is not supported')
 
             if status != 'ok':
-                self.post_notice(f"apiVersion {originalApiVersion} {status}", resource=resource)
+                self.post_notice(f"apiVersion {apiVersion} {status}", resource=resource)
 
         if resource.kind.lower() in Config.NoSchema:
             return RichStatus.OK(msg=f"no schema for {resource.kind} so calling it good")

@@ -124,7 +124,7 @@ class DiagApp (Flask):
 
     def setup(self, snapshot_path: str, bootstrap_path: str, ads_path: str,
               config_path: Optional[str], ambex_pid: int, kick: Optional[str], banner_endpoint: Optional[str],
-              k8s=False, do_checks=True, no_envoy=False, reload=False, debug=False, verbose=False,
+              do_checks=True, no_envoy=False, reload=False, debug=False, verbose=False,
               notices=None, validation_retries=5, allow_fs_commands=False, local_scout=False,
               report_action_keys=False):
         self.estats = EnvoyStats()
@@ -135,7 +135,6 @@ class DiagApp (Flask):
         self.notice_path = notices
         self.notices = Notices(self.notice_path)
         self.notices.reset()
-        self.k8s = k8s
         self.validation_retries = validation_retries
         self.allow_fs_commands = allow_fs_commands
         self.local_scout = local_scout
@@ -958,7 +957,7 @@ class AmbassadorEventWatcher(threading.Thread):
 
         aconf = Config()
         fetcher = ResourceFetcher(app.logger, aconf)
-        fetcher.load_from_filesystem(path, k8s=app.k8s, recurse=True)
+        fetcher.load_from_filesystem(path, recurse=True)
 
         if not fetcher.elements:
             self.logger.debug("no configuration resources found at %s" % path)
@@ -1003,7 +1002,7 @@ class AmbassadorEventWatcher(threading.Thread):
 
         aconf = Config()
         fetcher = ResourceFetcher(app.logger, aconf)
-        fetcher.parse_yaml(serialization, k8s=True)
+        fetcher.parse_yaml(serialization)
 
         if not fetcher.elements:
             self.logger.debug("no configuration found in snapshot %s" % snapshot)
@@ -1444,7 +1443,7 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
 
 def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
           *, dev_magic=False, config_path=None, ambex_pid=0, kick=None,
-          banner_endpoint="http://127.0.0.1:8500/banner", k8s=False,
+          banner_endpoint="http://127.0.0.1:8500/banner",
           no_checks=False, no_envoy=False, reload=False, debug=False, verbose=False,
           workers=None, port=Constants.DIAG_PORT, host='0.0.0.0', notices=None,
           validation_retries=5, allow_fs_commands=False, local_scout=False,
@@ -1456,7 +1455,6 @@ def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
     :param bootstrap_path: Path to which to write bootstrap Envoy configuration
     :param ads_path: Path to which to write ADS Envoy configuration
     :param config_path: Optional configuration path to scan for Ambassador YAML files
-    :param k8s: If True, assume config_path contains Kubernetes resources (only relevant with config_path)
     :param ambex_pid: Optional PID to signal with HUP after updating Envoy configuration
     :param kick: Optional command to run after updating Envoy configuration
     :param banner_endpoint: Optional endpoint of extra banner to include
@@ -1501,7 +1499,7 @@ def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
 
     # Create the application itself.
     app.setup(snapshot_path, bootstrap_path, ads_path, config_path, ambex_pid, kick, banner_endpoint,
-              k8s, not no_checks, no_envoy, reload, debug, verbose, notices,
+              not no_checks, no_envoy, reload, debug, verbose, notices,
               validation_retries, allow_fs_commands, local_scout, report_action_keys)
 
     if not workers:

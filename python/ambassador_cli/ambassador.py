@@ -112,7 +112,7 @@ def file_checker(path: str) -> bool:
 
 
 def dump(config_dir_path: Parameter.REQUIRED, *,
-         secret_dir_path=None, watt=False, debug=False, debug_scout=False, k8s=False, recurse=False,
+         secret_dir_path=None, watt=False, debug=False, debug_scout=False, recurse=False,
          aconf=False, ir=False, v2=False, diag=False, features=False):
     """
     Dump various forms of an Ambassador configuration for debugging
@@ -125,7 +125,6 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
     :param watt: If set, input must be a WATT snapshot
     :param debug: If set, generate debugging output
     :param debug_scout: If set, generate debugging output
-    :param k8s: If set, assume configuration files are annotated K8s manifests
     :param recurse: If set, recurse into directories below config_dir_path
     :param aconf: If set, dump the Ambassador config
     :param ir: If set, dump the IR
@@ -169,7 +168,7 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
         if watt:
             fetcher.parse_watt(open(config_dir_path, "r").read())
         else:
-            fetcher.load_from_filesystem(config_dir_path, k8s=k8s, recurse=True)
+            fetcher.load_from_filesystem(config_dir_path, recurse=True)
 
         aconf.load_all(fetcher.sorted())
 
@@ -233,7 +232,7 @@ def validate(config_dir_path: Parameter.REQUIRED, **kwargs):
 
 
 def config(config_dir_path: Parameter.REQUIRED, output_json_path: Parameter.REQUIRED, *,
-           debug=False, debug_scout=False, check=False, k8s=False, ir=None, aconf=None,
+           debug=False, debug_scout=False, check=False, ir=None, aconf=None,
            exit_on_error=False):
     """
     Generate an Envoy configuration
@@ -243,7 +242,6 @@ def config(config_dir_path: Parameter.REQUIRED, output_json_path: Parameter.REQU
     :param debug: If set, generate debugging output
     :param debug_scout: If set, generate debugging output when talking to Scout
     :param check: If set, generate configuration only if it doesn't already exist
-    :param k8s: If set, assume configuration files are annotated K8s manifests
     :param exit_on_error: If set, will exit with status 1 on any configuration error
     :param ir: Pathname to which to dump the IR (not dumped if not present)
     :param aconf: Pathname to which to dump the aconf (not dumped if not present)
@@ -295,7 +293,7 @@ def config(config_dir_path: Parameter.REQUIRED, output_json_path: Parameter.REQU
 
             aconf = Config()
             fetcher = ResourceFetcher(logger, aconf)
-            fetcher.load_from_filesystem(config_dir_path, k8s=k8s)
+            fetcher.load_from_filesystem(config_dir_path)
             aconf.load_all(fetcher.sorted())
 
             if dump_aconf:
