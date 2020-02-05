@@ -144,7 +144,6 @@ export class ResourceCollection extends Model {
     }
   }
 
-  /* 
   notifyMeAboutAllCreates(aListener) {
     for(let [k, v] of this._resources) {
       aListener.onModelNotification(v, 'created', null);
