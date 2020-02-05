@@ -33,7 +33,8 @@ export class HostView extends IResourceView {
       acmeProvider: {type: String}, // Host
       acmeEmail: {type: String},    // Host
       useAcme: {type: Boolean},     // HostView
-      tos: {type: String}           // HostView
+      tos: {type: String},          // HostView
+      agreed: {type: Boolean}       // HostView
     };
 
     /* Merge my properties with those defined by my superclasses. */
@@ -52,14 +53,11 @@ export class HostView extends IResourceView {
     *  which hasn't been instantiated.
     */
     this.hostname     = model.hostname;
-    this.useAcme      = model.useAcme;
     this.acmeProvider = model.acmeProvider;
     this.acmeEmail    = model.acmeEmail;
-
-    /* The Host object has a Terms of Service checkbox. Once the user has agreed to the TOS, we no longer
-     * show the checkbox or link in the Host detail display.
-     */
-    this.tos = html`...`;
+    this.useAcme      = model.useAcme;
+    this.tos          = model.getTermsOfService();
+    this.agreed       = model.agreed_terms_of_service;
   }
 
   /* readSelfFromModel()
@@ -75,12 +73,14 @@ export class HostView extends IResourceView {
     this.acmeProvider = this.model.acmeProvider;
     this.acmeEmail = this.model.acmeEmail;
     this.useAcme = this.model.useAcme;
+    this.tos = this.model.getTermsOfService();
+    this.agreed = this.model.agreed_terms_of_service;
 
     /* Set the fields of the form.  The DOM must be generated before calling readFromModel. */
     this.hostnameInput().value = this.hostname;
     this.acmeEmailInput().value = this.acmeEmail;
     this.acmeProviderInput().value = this.acmeProvider;
-    this.tosAgreeCheckbox().value  = this.useAcme;
+    this.tosAgreeCheckbox().checked  = this.agreed;
     this.useAcmeCheckbox().checked = this.useAcme;
   }
 
@@ -95,12 +95,15 @@ export class HostView extends IResourceView {
     this.acmeEmail = this.acmeEmailInput().value;
     this.acmeProvider = this.acmeProviderInput().value;
     this.useAcme = this.useAcmeCheckbox().checked;
+    this.agreed = this.tosAgreeCheckbox().checked;
 
     /* Write back to the model */
     this.model.hostname = this.hostname;
-    this.model.acmeProvider = this.acmeProvider;
+    this.model.setAcmeProvider(this.acmeProvider);
     this.model.acmeEmail = this.acmeEmail;
     this.model.useAcme = this.useAcme;
+    this.model.agreed_terms_of_service = this.agred;
+
   }
 
   /* validateSelf()
@@ -200,7 +203,8 @@ export class HostView extends IResourceView {
             type="checkbox"
             name="tos_agree"
             @change="${this.onTOSAgreeCheckbox.bind(this)}"
-            ?disabled="${!this.isTOSShowing()}" />
+            ?disabled="${!this.isTOSShowing()}"
+            ?checked="${this.agreed}" />
             <span>I have agreed to to the Terms of Service: ${this.tos}</span>
         </div>
       </div>
@@ -264,7 +268,7 @@ export class HostView extends IResourceView {
      */
 
     if (this.useAcme) {
-      this.tos = this.model.fetchTOS();
+      this.tos = this.model.getTermsOfService();
       this.tosAgreeCheckbox().checked = false;
     }
 
@@ -310,7 +314,7 @@ export class HostView extends IResourceView {
   onProviderChanged() {
     this.writeToModel();
     this.tosAgreeCheckbox().checked = false;
-    this.tos = this.model.fetchTOS();
+    this.tos = this.model.getTermsOfService();
 
     /* update the YAML if showing. */
     if (this.showYAML) {

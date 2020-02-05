@@ -37,7 +37,7 @@ export class HostResource extends IResource {
 
     /* calling Resource.constructor(data) */
     super(yaml);
-
+    this.cached_terms_of_service = null;
   }
 
   /* copySelf()
@@ -47,7 +47,6 @@ export class HostResource extends IResource {
   copySelf() {
     return new HostResource(this._fullYAML);
   }
-
 
   /* getYAML()
    * Return YAML that has the Resource's values written back into the _fullYAML, and has been pruned so that only
@@ -78,7 +77,6 @@ export class HostResource extends IResource {
   updateSelfFrom(yaml) {
     let changed = false;
 
-
     /* If yaml does not include a spec, set it, and its subfield acmeProvider, to a default object so that
      * the hostname, acmeProvider, and acmeEmail fields will be set to their default values during initialization.
      * Otherwise javascript would fail, trying to access a field of "null".  Set other fields to default values
@@ -87,6 +85,7 @@ export class HostResource extends IResource {
 
     yaml.spec                         = yaml.spec                         || { acmeProvider: {}};
     yaml.spec.hostname                = yaml.spec.hostname                || "<specify new hostname>";
+    let has_acmeProvider              = (yaml.spec.acmeProvider.authority || false) !== false;
     yaml.spec.acmeProvider.authority  = yaml.spec.acmeProvider.authority  || _defaultAcmeProvider;
     yaml.spec.acmeProvider.email      = yaml.spec.acmeProvider.email      || _defaultAcmeEmail;
 
@@ -103,6 +102,8 @@ export class HostResource extends IResource {
     /* Update the acmeProvider if it has changed */
     if (this.acmeProvider !== yaml.spec.acmeProvider.authority) {
       this.acmeProvider = yaml.spec.acmeProvider.authority;
+      this.cached_terms_of_service = null;
+      this.agreed_terms_of_service = has_acmeProvider;
       changed = true;
     }
 
@@ -126,6 +127,13 @@ export class HostResource extends IResource {
     }
 
     return changed;
+  }
+
+  setAcmeProvider(value) {
+    if (this.acmeProvider !== value) {
+      this.acmeProvider = value;
+      this.cached_terms_of_service = null;
+    }
   }
 
   /* validateSelf()
@@ -156,13 +164,13 @@ export class HostResource extends IResource {
 
   /* ================================ Utility Functions ================================ */
 
-  /* fetchTOS()
+  /* getTermsOfService()
    * Here we get the Terms of Service url from the ACME provider so that we can show it to the user. We do this
    * by calling an API on AES that then turns around and calls an API on the ACME provider. We cannot call the API
    * on the ACME provider directly due to CORS restrictions.
    */
 
-  fetchTOS() {
+  getTermsOfService() {
     /*
      * Here we get the Terms of Service url from the ACME provider
      * so that we can show it to the user. We do this by calling
@@ -170,29 +178,59 @@ export class HostResource extends IResource {
      * the ACME provider. We cannot call the API on the ACME provider
      * directly due to CORS restrictions.
      */
-    let terms = html`...`;
-    let value = this.acmeProvider;
-    let url = new URL('/edge_stack/api/tos-url', window.location);
-    url.searchParams.set('ca-url', value);
-    ApiFetch(url, {
-      headers: new Headers({
-        'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
-      })
-    })
-      .then(r=>{
-        r.text().then(t=>{
-          if (r.ok) {
-            let domain_matcher = /\/\/([^\/]*)\//;
-            let d = t.match(domain_matcher);
-            if(d) { d = d[1]; } else { d = t; }
-            terms = html`<a href="${t}" target="_blank">${d}</a>`
-          } else {
-            console.error("tos-url result: " + t);
-          }
+    if( this.cached_terms_of_service ) {
+      /* if we have a cached copy, return that */
+      return this.cached_terms_of_service;
+    } else {
+      let value = this.acmeProvider;
+      /* if there is no acmeProvider, then there are no terms of service */
+      if(!(this.acmeProvider !== "none" && this.acmeProvider !== "")) {
+        this.cached_terms_of_service = html`<em>none</em>`;
+        return this.cached_terms_of_service;
+      } else {
+        /* otherwise, if there is an acmeProvider, then make the async API call
+         * to get the terms of service */
+        let url = new URL('/edge_stack/api/tos-url', window.location);
+        url.searchParams.set('ca-url', value);
+        ApiFetch(url, {
+          headers: new Headers({
+            'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
+          })
         })
-      });
-
-    return terms;
+          .then(r => {
+            /* when the async call to the API returns, the original call
+             * to getTermsOfServiceURL() will have already returned (see below),
+             * so when we get a good result from the API, we store it
+             * in the cache and then notify our listeners that we've
+             * changed. The listeners will then re-call getTermsOfServiceURL()
+             * and retrieve the cached value. */
+            r.text().then(t => {
+              if (r.ok) {
+                let domain_matcher = /\/\/([^\/]*)\//;
+                let d = t.match(domain_matcher);
+                if (d) {
+                  d = d[1];
+                } else {
+                  d = t;
+                }
+                this.cached_terms_of_service = html`<a href="${t}" target="_blank">${d}</a>`;
+                this.notifyListenersUpdated();
+              } else {
+                console.error("not-understood tos-url result: " + t);
+              }
+            })
+          });
+        /* we didn't have a cached copy, so we made the async call to the API
+         * to fetch the value. While that async call is happening, the rest of
+         * the UI continues executing, so we have to return a filler value. Later,
+         * we (the model) notify the view that we've been updated (because the
+         * async API call has returned a value and we've stored that value in
+         * the cache), the view can call this function again and get the cached
+         * (real) value.
+         */
+        return html`<em>...loading...</em>`;
+      }
+    }
   }
 }
 
