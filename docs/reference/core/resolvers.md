@@ -2,7 +2,7 @@
 
 Service discovery is how cloud applications and their microservices are located on the network. In a cloud environment, services are ephemeral, existing only as long as they are needed and in use, so a real-time service discovery mechanism is required. Ambassador Edge Stack uses information from service discovery to determine where to route incoming requests.
 
-## Ambassador Edge Stack support for service discovery
+## Ambassador Edge Stack Support for Service Discovery
 
 Ambassador Edge Stack supports different mechanisms for service discovery. These mechanisms are:
 
@@ -10,19 +10,19 @@ Ambassador Edge Stack supports different mechanisms for service discovery. These
 * Kubernetes endpoint-level discovery.
 * Consul endpoint-level discovery.
 
-### Kubernetes service-level discovery
+### Kubernetes Service-Level Discovery
 
 By default, Ambassador Edge Stack uses Kubernetes DNS and service-level discovery. In a `Mapping` resource, specifying `service: foo` will prompt Ambassador Edge Stack to look up the DNS address of the `foo` Kubernetes service. Traffic will be routed to the `foo` service. Kubernetes will then load balance that traffic between multiple pods. For more details on Kubernetes networking and how this works, see our blog post on [Session affinity, load balancing controls, gRPC-Web, and Ambassador](https://blog.getambassador.io/session-affinity-load-balancing-controls-grpc-web-and-ambassador-0-52-2b916b396d0c).
 
-### Kubernetes endpoint-level discovery
+### Kubernetes Endpoint-Level Discovery
 
-Ambassador Edge Stack can also watch Kubernetes endpoints. This bypasses the Kubernetes service routing layer, and enables the use of advanced load balancing controls such as session affinity and maglev. For more details, see the [load balancing reference](../load-balancer).
+Ambassador Edge Stack can also watch Kubernetes endpoints. This bypasses the Kubernetes service routing layer and enables the use of advanced load balancing controls such as session affinity and maglev. For more details, see the [load balancing reference](../load-balancer).
 
-### Consul endpoint-level discovery
+### Consul Endpoint-Level Discovery
 
 Ambassador natively integrates with [Consul](https://www.consul.io) for endpoint-level service discovery. In this mode, Ambassador obtains endpoint information from Consul. One of the primary use cases for this architecture is in hybrid cloud environments that run a mixture of Kubernetes services as well as VMs, as Consul can serve as the single global registry for all services.
 
-## The `Resolver` resource
+## The `Resolver` Resource
 
 The `Resolver` resource is used to configure the discovery service strategy for Ambassador Edge Stack.
 
@@ -122,6 +122,5 @@ spec:
   load_balancer:
     policy: round_robin
 ```
-
 
 The YAML configuration above will configure Ambassador Edge Stack to use Kubernetes Service Discovery to route to the Consul Service Discovery to route to the `bar` service on requests with `prefix: /bar/`.

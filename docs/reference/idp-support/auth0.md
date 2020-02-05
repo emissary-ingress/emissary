@@ -22,7 +22,6 @@ With Auth0 as your IdP, you will need to create an `Application` to handle authe
 
 ## Configure Filter and FilterPolicy
 
-
 Update the Auth0 `Filter` and `FilterPolicy`. You can get the `ClientID` and `secret` from your application settings:
 
 
@@ -68,6 +67,5 @@ Update the Auth0 `Filter` and `FilterPolicy`. You can get the `ClientID` and `se
                - "openid"
    ```
 
-  **Note:** By default, Auth0 requires the `openid` scope. 
-
-
+  **Note:** By default, Auth0 requires the `openid` scope.
+  
