@@ -61,7 +61,7 @@ image?
        ```sh
        DEV_WEBUI_DIR=${PWD}/cmd/amb-sidecar/webui/bindata \
        POD_NAMESPACE=ambassador \
-       APRO_HTTP_PORT=8501 \
+       DEV_AES_HTTP_PORT=8501 \
        DEV_WEBUI_PORT=9000 \
        go run ./cmd/amb-sidecar
        ```
@@ -93,10 +93,10 @@ Q: Do you have to re-do the spoofing each time you restart the local sidecar?
  all snapshot requests to the backend in the cluster.
 
        ```sh
-       DEV_WEBUI_SNAPSHOT_HOST=<my-cluster-host-or-ip> \
+       DEV_WEBUI_SNAPSHOT_HOST=${MY_CLUSTER_HOST_OR_IP} \
        DEV_WEBUI_DIR=${PWD}/cmd/amb-sidecar/webui/bindata \
        POD_NAMESPACE=ambassador \
-       APRO_HTTP_PORT=8501 \
+       DEV_AES_HTTP_PORT=8501 \
        DEV_WEBUI_PORT=9000 \
        go run ./cmd/amb-sidecar
        ```
@@ -136,7 +136,7 @@ Refresh (or shift-refresh) your browser as necessary to get the updated files.
        DEV_WEBUI_SNAPSHOT_HOST=<my-cluster-host-or-ip> \
        DEV_WEBUI_DIR=${PWD}/cmd/amb-sidecar/webui/bindata \
        POD_NAMESPACE=ambassador \
-       APRO_HTTP_PORT=8501 \
+       DEV_AES_HTTP_PORT=8501 \
        DEV_WEBUI_PORT=9000 \
        go run ./cmd/amb-sidecar
        ```
