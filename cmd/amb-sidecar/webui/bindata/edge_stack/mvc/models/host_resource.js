@@ -1,105 +1,85 @@
 /*
  * HostResource
- * This is the HostResource class, an implementation of IResource.  It implements the Host-specific state and methods
+ * This class implements the Host-specific state and methods
  * that are needed to model a single Host CRD.
- *
- * See the comments in ./resource.js, ./iresource.js and ./imodel.js for more details.
  */
 
-/* For getting the edge-stack authorization. */
+/* These three imports are needed for the getTermsOfService() method which makes an API
+ * call to the Ambassador back-end and then returns an html fragment. */
 import {getCookie} from "../../components/cookies.js";
-
-/* Kubernetes operations: apply, delete. */
 import { ApiFetch } from "../../components/api-fetch.js";
-
-/* Interface class for Resource */
-import { IResource } from "../interfaces/iresource.js";
-
 import { html } from '../../vendor/lit-element.min.js'
+
+/* The interface class we extend. */
+import { IResource } from "../interfaces/iresource.js";
 
 export const _defaultAcmeProvider = "https://acme-v02.api.letsencrypt.org/directory";
 export const _defaultAcmeEmail    = "<specify contact email here>";
 
 export class HostResource extends IResource {
-  /* constructor()
-   * Here the model initializes any internal state that is common to all Resources.
-   * Typically a concrete Resource class would initialize the Resource kind, name, namespace,
-   * and other useful state to be maintained in the Resource instance.
-   */
-
+  /* override and extend method from interface */
   constructor(yaml = { kind: "Host"}) {
-    /* Define the instance variables that are part of the model. Views and other Resource users will access
+    /*
+     * Define the instance variables that are part of the model. Views and other Resource users will access
      * these for rendering and modification.  All resource objects have a kind, a name, and a namespace, which
      * together are a unique identifier throughout the Kubernetes system.  They may also have annotations,
-     * labels, and a status, which are also saved as object state.  A HostResource adds a hostname,
+     * labels, and a status, which are also saved as instance variables (but handled by the internal
+     * framework classes we inherit from, thus we don't have to deal with them).  The only thing we have
+     * to deal with are the instance variables specific to a Host: hostname,
      * an acmeProvider and email, and a flag specifying whether acme is being used.
     */
-
-    /* calling Resource.constructor(data) */
     super(yaml);
-    this.cached_terms_of_service = null;
+
+    this.hostname     = this.hostname     || "";  /* we use this conditional initialization..         */
+    this.acmeProvider = this.acmeProvider || "";  /* ..scheme because the super(yaml) will..          */
+    this.acmeEmail    = this.acmeEmail    || "";  /* ..call updateSelfFrom() which will usually..     */
+    this.useAcme      = this.useAcme      || false; /* ..initialize the variables and we don't want.. */
+    this.cached_terms_of_service = null;          /* ..to override that initialization if it happens  */
   }
 
-  /* copySelf()
-   * Create a copy of the Resource, with all Resource state (but not Model's listener list}
-   */
-
+  /* override */
   copySelf() {
     return new HostResource(this._fullYAML);
   }
 
-  /* getYAML()
-   * Return YAML that has the Resource's values written back into the _fullYAML, and has been pruned so that only
-   * the necessary attributes exist in the structure for use as the parameter to applyYAML().
-   */
+  /* override and extend */
   getYAML() {
     let yaml = super.getYAML();
-
-    /* Set hostname, acmeProvider in the existing spec. Leave any other spec info there as needed,
+    /*
+     * Set hostname, acmeProvider in the existing spec. Leave any other spec info there as needed,
      * such as acmeProvider.privateKeySecret and acmeProvider.registration.  Note that these are
-     * guaranteed to exist since they are set to defaults in updateSelfFrom below if needed.
+     * guaranteed to exist since they are set to defaults in updateSelfFrom() if needed.
      */
     yaml.spec.hostname               = this.hostname;
     yaml.spec.acmeProvider.authority = this.useAcme ? this.acmeProvider : "none";
     yaml.spec.acmeProvider.email     = this.useAcme ? this.acmeEmail : "";
 
     return yaml;
-
   }
 
-  /* updateSelfFrom(data)
-   * Update the HostResource object state from the snapshot data block for this HostResource.  Compare the values
-   * in the data block with the stored state in the Host.  If the data block has different data than is currently
-   * stored, update that instance variable with the new data and set a flag to return true if any changes have
-   * occurred.  The Resource class's method, updateFrom, will call this method and then notify listeners as needed.
-   */
-
+  /* override */
   updateSelfFrom(yaml) {
     let changed = false;
-
-    /* If yaml does not include a spec, set it, and its subfield acmeProvider, to a default object so that
+    /*
+     * If yaml does not include a spec, set it, and its subfield acmeProvider, to a default object so that
      * the hostname, acmeProvider, and acmeEmail fields will be set to their default values during initialization.
      * Otherwise javascript would fail, trying to access a field of "null".  Set other fields to default values
      * if they do not exist.
      */
-
     yaml.spec                         = yaml.spec                         || { acmeProvider: {}};
     yaml.spec.hostname                = yaml.spec.hostname                || "<specify new hostname>";
     let has_acmeProvider              = (yaml.spec.acmeProvider.authority || false) !== false;
     yaml.spec.acmeProvider.authority  = yaml.spec.acmeProvider.authority  || _defaultAcmeProvider;
     yaml.spec.acmeProvider.email      = yaml.spec.acmeProvider.email      || _defaultAcmeEmail;
-
-    /* Initialize host-specific instance variables from yaml. For those fields that are unknown, initialize
-     * to default values.  This occurs when adding a new HostResource whose values will be specified by the user.
+    /*
+     * Initialize host-specific instance variables from yaml. For those fields that are unknown, initialize
+     * to default values (this occurs when adding a new HostResource whose values will be specified by the user).
      */
-
-    /* Update the hostname if it has changed since the last snapshot */
     if (this.hostname !== yaml.spec.hostname) {
       this.hostname = yaml.spec.hostname;
       changed = true;
     }
 
-    /* Update the acmeProvider if it has changed */
     if (this.acmeProvider !== yaml.spec.acmeProvider.authority) {
       this.acmeProvider = yaml.spec.acmeProvider.authority;
       this.cached_terms_of_service = null;
@@ -107,7 +87,6 @@ export class HostResource extends IResource {
       changed = true;
     }
 
-    /* Update the acmeEmail if it has changed. */
     if (this.acmeEmail !== yaml.spec.acmeProvider.email) {
       this.acmeEmail = yaml.spec.acmeProvider.email;
       changed = true;
@@ -129,21 +108,7 @@ export class HostResource extends IResource {
     return changed;
   }
 
-  setAcmeProvider(value) {
-    if (this.acmeProvider !== value) {
-      this.acmeProvider = value;
-      this.cached_terms_of_service = null;
-    }
-  }
-
-  /* validateSelf()
-   * Validate this HostResource's state by checking each object instance variable for correctness (e.g. email address
-   * format, URL format, date/time, name restrictions).  Returns a dictionary of property: errorString if there
-   * are any errors. If the dictionary is empty, there are no errors.
-   *
-   * in a HostResource, we need to validate the hostname, the acmeProvider, and the acmeEmail.
-   */
-
+  /* override */
   validateSelf() {
     let errors  = new Map();
     let message = null;
@@ -164,20 +129,23 @@ export class HostResource extends IResource {
 
   /* ================================ Utility Functions ================================ */
 
+  /* setAcmeProvider()
+   * when changing the ACME provider, we have to clear the cached terms of service because the terms of service
+   * url is linked to the specific ACME provider
+   */
+  setAcmeProvider(value) {
+    if (this.acmeProvider !== value) {
+      this.acmeProvider = value;
+      this.cached_terms_of_service = null;
+    }
+  }
+
   /* getTermsOfService()
    * Here we get the Terms of Service url from the ACME provider so that we can show it to the user. We do this
    * by calling an API on AES that then turns around and calls an API on the ACME provider. We cannot call the API
    * on the ACME provider directly due to CORS restrictions.
    */
-
   getTermsOfService() {
-    /*
-     * Here we get the Terms of Service url from the ACME provider
-     * so that we can show it to the user. We do this by calling
-     * an API on AES that then turns around and calls an API on
-     * the ACME provider. We cannot call the API on the ACME provider
-     * directly due to CORS restrictions.
-     */
     if( this.cached_terms_of_service ) {
       /* if we have a cached copy, return that */
       return this.cached_terms_of_service;

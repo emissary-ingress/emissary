@@ -1,61 +1,53 @@
 /*
  * IResourceCollectionView
- * This is the Interface class to the ResourceCollectionView.
  */
 
 import { ResourceCollectionView } from "../framework/resourcecollection_view.js"
 
 export class IResourceCollectionView extends ResourceCollectionView {
 
-  /* properties()
-   * These are the properties of the ResourceCollectionView. LitElement manages these declared properties and
+  /* properties
+   * These are the properties of the ResourceView, which reflect the properties of the underlying Resource,
+   * and also include transient state (e.g. viewState). LitElement manages these declared properties and
    * provides various services depending on how they are used.  For further details on LitElement, see
    * https://lit-element.polymer-project.org/guide/properties
    */
-
   static get properties() {
-    /* For reference, subclasses implement the static function properties() by returning a Map
-     * that lists the properties in the subclass, and merging with the parent's properties():
-
+    /* Note that you MUST implement your subclasses static function properties() by returning a Map
+     * that lists the properties in the subclass, and merging with the parent's properties(). This
+     * whole MVC framework will NOT work if you fail to merge with the parent's properties.
+     *
      * first, import object merge:
-
-     import { objectMerge } from "../framework/utilities.js"
-
-     * then, in properties():
-
-      let myProperties = {
-        someProperty:     {type: String},
-        ...
-      };
-
-      return objectMerge(myProperties, ResourceCollectionView.properties());
+     *   import { objectMerge } from "../framework/utilities.js"
+     *
+     * then, implement your static get properties that merges with the superclass's get properties:
+     *   static get properties() {
+     *     let myProperties = {
+     *       someProperty: {type: String}
+     *     };
+     *     return objectMerge(myProperties, IResourceCollectionView.properties);
+     *   }
      */
-
-    /* The interface simply returns the properties of the ResourceCollectionView. */
     return ResourceCollectionView.properties;
   }
 
   /* styles
-   * These are the styles of the ResourceCollectionView. LitElement allows each Element to provide
+   * These are the styles of the IResourceCollectionView. LitElement allows each Element to provide
    * additional css style specifications that are valid only for that LitElement.
-   *
-   * The interface simply returns the styles of the ResourceCollectionView.
    */
-
   static get styles() {
     return ResourceCollectionView.styles;
   }
 
-  /* constructor(model).
+  /* constructor(model)
    * model is an IResourceCollection subclass.
    */
-
   constructor(model) {
     super(model);
   }
 
   /* pageDescription()
-   * Return the text describing the contents of the ResourceCollection being viewed
+   * Return the text describing the contents of the IResourceCollection being viewed
    * e.g. "Hosts are domains that are managed by Ambassador Edge Stack, e.g., example.org"
    */
   pageDescription() {
@@ -63,7 +55,7 @@ export class IResourceCollectionView extends ResourceCollectionView {
   }
 
   /* pageLogo()
-  * Return the alternate text and logo filename in an array [] of the ResourceCollection being viewed
+  * Return the alternate text and logo filename in an array [] of the IResourceCollection being viewed
   * e.g. ["Hosts Logo", "hosts.svg"]
   */
   pageLogo() {
@@ -71,25 +63,25 @@ export class IResourceCollectionView extends ResourceCollectionView {
   }
 
   /* pageTitle()
-  * Return the title of the ResourceCollection being viewed (e.g. "Hosts").
+  * Return the title of the IResourceCollection being viewed (e.g. "Hosts").
   */
   pageTitle() {
     throw new Error("please implement ${this.constructor.name}.pageTitle()")
   }
 
-  /* readOnly()
-  * Override to true to hide the Add button.  Defaults to false.
-  */
-  readOnly() {
-    return super.readOnly();
-  }
-
   /* viewClass()
-   * Return the viewClass that the subclass uses to create a new view in the ResourceCollectionView.
+   * Return the IView class to create a new single-resource view in the IResourceCollectionView.
    * e.g. for a HostCollection, return HostView.
    */
   viewClass() {
     throw new Error("please implement ${this.constructor.name}.viewClass()")
+  }
+
+  /* readOnly()
+   * Defaults to false. Override to true to hide the Add button.
+   */
+  readOnly() {
+    return super.readOnly();
   }
 }
 

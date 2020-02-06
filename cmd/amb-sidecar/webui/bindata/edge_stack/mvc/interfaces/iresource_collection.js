@@ -34,7 +34,6 @@ export class IResourceCollection extends ResourceCollection {
    */
 
   /* constructor()
-   * Simply calls ResourceCollection to initialize the object state.
    */
   constructor() {
     super();
@@ -42,10 +41,8 @@ export class IResourceCollection extends ResourceCollection {
 
   /* extractResourcesFrom(snapshot)
    * Given a snapshot as received from the backend via snapshot.js, return a list of resource data blocks
-   * given the resource's class name (e.g. Host, Mapping, Filter...).  Since this is a ResourceCollection superclass
-   * from which other ResourceCollection classes will inherit, they must implement their own extractResourcesFrom methods.
+   * given the resource's class name (e.g. Host, Mapping, Filter...).
    */
-
   extractResourcesFrom(snapshot) {
     throw new Error("please implement ${this.constructor.name}.extractResourcesFrom(snapshot)")
   }
@@ -53,7 +50,6 @@ export class IResourceCollection extends ResourceCollection {
   /* resourceClass()
    * Return the class of the resource that is being collected from the snapshot.
    */
-
   resourceClass() {
     throw new Error("Please implement ${this.constructor.name}.resourceClass()");
   }
@@ -68,13 +64,12 @@ export class IResourceCollection extends ResourceCollection {
    * which always has kind, name, and namespace attributes, which together uniquely identify a Resource
    * within Kubernetes.
    */
-
   uniqueKeyFor(yaml) {
     return super.uniqueKeyFor(yaml);
   }
 
   /* ====================================================================================================
-   *  Subclasses do not implement these methods.  They are implemented by Model and may be used by
+   *  Subclasses do not implement the following methods.  They are implemented by Model and may be used by
    *  subclasses directly.
    * ====================================================================================================
    */
@@ -83,11 +78,9 @@ export class IResourceCollection extends ResourceCollection {
    *  model is notifying it for any of the  messages listed in the message set.  if the message set is
    *  null, then add this listener for all messages.
    */
-
   addListener(listener, messageSet = null) {
     super.addListener(listener, messageSet);
   }
-
 
   /* Remove a listener from the given messages, or from all messages if null */
   removeListener(listener, messageSet = null) {
@@ -100,7 +93,6 @@ export class IResourceCollection extends ResourceCollection {
    * who have subscribed to the message will be notified. Listeners that have subscribed to all messages
    * will also receive a callback. Includes a notification message, the model itself, and an optional parameter.
    */
-
   notifyListeners(notifyingModel = this, message, parameter = null) {
     super.notifyListeners(notifyingModel, message, parameter);
   }

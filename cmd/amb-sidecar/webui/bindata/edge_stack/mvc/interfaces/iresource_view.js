@@ -4,7 +4,6 @@
  * its Resource model object, as well as state used for the different view variants (edit, add, etc.)
  */
 
-/* ResourceView superclass. */
 import { ResourceView } from '../framework/resource_view.js'
 
 export class IResourceView extends ResourceView {
@@ -20,45 +19,43 @@ export class IResourceView extends ResourceView {
    * provides various services depending on how they are used.  For further details on LitElement, see
    * https://lit-element.polymer-project.org/guide/properties
    */
-
   static get properties() {
-    /* For reference, subclasses implement the static function properties() by returning a Map
-     * that lists the properties in the subclass, and merging with the parent's properties():
-
-*     first, import object merge:
-*     import { objectMerge } from "../framework/utilities.js"
-
-      static get properties() {
-      let myProperties = {
-        hostname:     {type: String},   // Host
-        acmeProvider: {type: String},   // Host
-        acmeEmail:    {type: String},   // Host
-        tos:          {type: String},   // HostView
-        showTos:      {type: Boolean}   // HostView
-      };
-
-      return objectMerge(myProperties, ResourceView.properties);
+    /* Note that you MUST implement your subclasses static function properties() by returning a Map
+     * that lists the properties in the subclass, and merging with the parent's properties(). This
+     * whole MVC framework will NOT work if you fail to merge with the parent's properties.
+     *
+     * first, import object merge:
+     *   import { objectMerge } from "../framework/utilities.js"
+     *
+     * then, implement your static get properties that merges with the superclass's get properties:
+     *   static get properties() {
+     *     let myProperties = {
+     *       hostname:     {type: String},   // Host
+     *       acmeProvider: {type: String},   // Host
+     *       acmeEmail:    {type: String},   // Host
+     *       tos:          {type: String},   // HostView
+     *       showTos:      {type: Boolean}   // HostView
+     *     };
+     *     return objectMerge(myProperties, IResourceView.properties);
+     *   }
      */
-
-
-    /* The interface simply returns the properties of the ResourceView. */
     return ResourceView.properties;
   }
 
   /* constructor(model)
-   * The IResourceView constructor, which takes a Resource (model) as its parameter.
+   * Load view state from the model state. Don't call
+   *  readFromModel() yet, since that method updates the UI but
+   *  the UI components haven't been instantiated.
    */
-
   constructor(model) {
     super(model);
   }
 
   /* readSelfFromModel()
    * This method is called on the View when the View needs to match the current state of its Model.
-   * Generally this happens during initialization and during editing when the Cancel button is pressed and the
-   * View reverts to displaying the original Model's state.
+   * Generally this happens (a) during initialization and (b) during editing when the Cancel button
+   * is pressed and the View reverts to displaying the original Model's state.
    */
-
   readSelfFromModel() {
     throw new Error("please implement ${this.constructor.name}.readSelfFromModel()")
   }
@@ -67,36 +64,25 @@ export class IResourceView extends ResourceView {
    * This method is called on the View when the View has new, validated state that should be written back
    * to the Model.  This happens during a Save operation after the user has modified the View.
    */
-
   writeSelfToModel() {
     throw new Error("please implement ${this.constructor.name}.writeSelfToModel()")
   }
 
-  /* renderSelf()
-  * This method is invoked on save in order to validate input prior to proceeding with the save action.
-  * The model validates its current state, so anything that the View wants to validate must already be in the model.
-  *
-  * validateSelf() returns a Map of fieldnames and error strings. If the dictionary is empty, there are no errors.
-  *
-  * For now we will have a side-effect of validate in that any errors will be added to the message list.
-  */
+  /* validateSelf()
+   * This method is invoked on a Save in order to validate input prior to proceeding with the save action.
+   * Returns a Map of field names and error strings. If the dictionary is empty, there are no errors.
+   */
+  validateSelf() {
+    throw new Error("please implement ${this.constructor.name}.validateSelf()")
+  }
 
+  /* renderSelf()
+   * This method renders the view within the HTML framework set up by ResourceView.render().
+   */
   renderSelf() {
     throw new Error("please implement ${this.constructor.name}.renderSelf()")
   }
 
 
-  /* validateSelf()
-   * This method is invoked on save in order to validate input prior to proceeding with the save action.
-   * The model validates its current state, so anything that the View wants to validate must already be in the model.
-   *
-   * validateSelf() returns a Map of fieldnames and error strings. If the dictionary is empty, there are no errors.
-   *
-   * For now we will have a side-effect of validate in that any errors will be added to the message list.
-   */
-
-  validateSelf() {
-    throw new Error("please implement ${this.constructor.name}.validateSelf()")
-  }
 }
 

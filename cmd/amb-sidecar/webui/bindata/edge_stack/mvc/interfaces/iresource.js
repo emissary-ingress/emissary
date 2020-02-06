@@ -1,6 +1,8 @@
 /**
  * IResource
- * This is the Resource interface class that defines the methods that any Resource subclass should implement.
+ * This is the Resource interface class that defines the methods that any Resource subclass must implement
+ * as well as listing all the superclass methods that a subclass can utilize.
+ *
  * A Resource is a Model that maintains basic Kubernetes resource state and implements code to create
  * instances of that Resource from snapshot data.
  *
@@ -14,13 +16,8 @@
  * collection of objects).  However, this distinction is not made consistently throughout the documentation.
  * Here we will use the term Resource to indicate a chunk of data--a kind, name, namespace, metadata, and
  * a spec--that we display and modify in the Web user interface.
- *
- * This class is the generic interface for all Kubernetes resource that are created, viewed, modified
- * and deleted in the Web UI.  For example implementations, see the Host class, which is a concrete implementation
- * of the IResource interface.
  */
 
-/* Interface class for Model */
 import { Resource } from "../framework/resource.js"
 
 export class IResource extends Resource {
@@ -30,17 +27,17 @@ export class IResource extends Resource {
    * ====================================================================================================
    */
 
-  /* constructor() */
-
+  /* constructor()
+   * The constructor is internally implemented by calling this.updateSelfFrom(yaml) and
+   * thus typically all the instance variables are initialized by that method.
+   */
   constructor(yaml) {
-    /* call Resource's constructor */
     super(yaml);
   }
 
   /* copySelf()
-  *  Return a new instance that is a copy of the Resource object, with the same state.
-  */
-
+   * Return a new instance with the same state.
+   */
   copySelf() {
     throw new Error("Please implement ${this.constructor.name}:copySelf()");
   }
@@ -57,9 +54,9 @@ export class IResource extends Resource {
    * Update the Resource object state from the snapshot data block for this Resource.  Compare the values in the
    * data block with the stored state in the Resource.  If the data block has different data than is currently
    * stored, update that instance variable with the new data and set a flag to return true if any changes have
-   * occurred.  The Resource class's method, updateFrom, will call this method and then notify listeners as needed.
+   * occurred.
+   * This method is called from Resource.updateFrom() which will also notify listeners as needed.
    */
-
   updateSelfFrom(yaml) {
     throw new Error("Please implement ${this.constructor.name}:updateSelfFrom(yaml)");
   }
@@ -69,7 +66,6 @@ export class IResource extends Resource {
    * format, URL format, date/time, name restrictions).  Returns a dictionary of property: errorString if there
    * are any errors. If the dictionary is empty, there are no errors.
    */
-
   validateSelf() {
     throw new Error("Please implement ${this.constructor.name}:validateSelf()");
   }
@@ -86,7 +82,6 @@ export class IResource extends Resource {
    * because it is really
    * "metadata"."annotations"."kubectl.kubernetes.io/last-applied-configuration"
    */
-
   yamlIgnorePaths() {
     return super.yamlIgnorePaths();
   }
@@ -94,7 +89,7 @@ export class IResource extends Resource {
 
   /* ====================================================================================================
    * The following methods are implemented by Model, and may be useful for subclasses to use in their
-   * implementation of the required interface methods.  The methods below should not be overridden by
+   * implementation of the required interface methods.  These methods should not be overridden by
    * subclasses.
    * ====================================================================================================
    */
@@ -103,11 +98,9 @@ export class IResource extends Resource {
    *  model is notifying it for any of the  messages listed in the message set.  if the message set is
    *  null, then add this listener for all messages.
    */
-
   addListener(listener, messageSet = null) {
     super.addListener(listener, messageSet);
   }
-
 
   /* Remove a listener from the given messages, or from all messages if null */
   removeListener(listener, messageSet = null) {
@@ -120,7 +113,6 @@ export class IResource extends Resource {
    * who have subscribed to the message will be notified. Listeners that have subscribed to all messages
    * will also receive a callback. Includes a notification message, the model itself, and an optional parameter.
    */
-
   notifyListeners(notifyingModel = this, message, parameter = null) {
     super.notifyListeners(notifyingModel, message, parameter);
   }
@@ -141,7 +133,7 @@ export class IResource extends Resource {
 
   /* ====================================================================================================
    * The following methods are implemented by Resource, and may be useful for subclasses to use in their
-   * implementation of the required interface methods.  The methods below should not be overridden by
+   * implementation of the required interface methods.  These methods should not be overridden by
    * subclasses.
    * ====================================================================================================
    */
@@ -149,16 +141,13 @@ export class IResource extends Resource {
   /* validateName(name)
    * returns null if name is valid, error string if not.
    */
-
   validateName(name) {
     return super.validateName(name);
   }
 
-
   /* validateEmail(email)
    * returns null if email is valid, error string if not.
    */
-
   validateEmail(email) {
     return super.validateEmail(email);
   }
@@ -166,11 +155,9 @@ export class IResource extends Resource {
   /* _validateURL(url)
   * returns null if url is valid, error string if not.
   */
-
   validateURL(url) {
     return super.validateURL(url);
   }
-
 
 }
 

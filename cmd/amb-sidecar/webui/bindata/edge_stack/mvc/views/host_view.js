@@ -6,11 +6,7 @@
  */
 
 import { html } from '../../vendor/lit-element.min.js'
-
-/* Object merge operation */
 import { objectMerge } from "../framework/utilities.js"
-
-/* ResourceView interface class */
 import { IResourceView } from '../interfaces/iresource_view.js'
 
 export class HostView extends IResourceView {
@@ -20,13 +16,7 @@ export class HostView extends IResourceView {
    * ====================================================================================================
    */
 
-  /* properties
-   * These are the properties of the HostView, which reflect the properties of the underlying Resource,
-   * and also include transient state (e.g. viewState). LitElement manages these declared properties and
-   * provides various services depending on how they are used.  For further details on LitElement, see
-   * https://lit-element.polymer-project.org/guide/properties
-   */
-
+  /* extend. See the explanation in IResourceView. */
   static get properties() {
     let myProperties = {
       hostname: {type: String},     // Host
@@ -36,22 +26,14 @@ export class HostView extends IResourceView {
       tos: {type: String},          // HostView
       agreed: {type: Boolean}       // HostView
     };
-
-    /* Merge my properties with those defined by my superclasses. */
     return objectMerge(myProperties, IResourceView.properties);
   }
 
-  /* constructor(model)
-   * The IResourceView constructor, which takes a Resource (model) as its parameter.
-   */
-
+  /* extend */
   constructor(model) {
     super(model);
 
-    /* Cache state from the model. Don't call
-    *  readFromModel yet, since that updates the UI
-    *  which hasn't been instantiated.
-    */
+    /* see comment in IResourceView */
     this.hostname     = model.hostname;
     this.acmeProvider = model.acmeProvider;
     this.acmeEmail    = model.acmeEmail;
@@ -60,13 +42,7 @@ export class HostView extends IResourceView {
     this.agreed       = model.agreed_terms_of_service;
   }
 
-  /* readSelfFromModel()
-   * This method is called on the View when the View needs to match the current state of its Model.
-   * Generally this happens during initialization and during editing when the Cancel button is pressed and the
-   * View reverts to displaying the original Model's state.  The ResourceView assumes that the HostView
-   * has nameInput() and namespaceInput()
-   */
-
+  /* override */
   readSelfFromModel() {
     /* Get the values from the model. */
     this.hostname = this.model.hostname;
@@ -84,11 +60,7 @@ export class HostView extends IResourceView {
     this.useAcmeCheckbox().checked = this.useAcme;
   }
 
-  /* writeSelfToModel()
-   * This method is called on the View when the View has new, validated state that should be written back
-   * to the Model.  This happens during a Save operation after the user has modified the View.
-   */
-
+  /* override */
   writeSelfToModel() {
     /* Get the values from the form.  The DOM must be generated before calling writeToModel. */
     this.hostname = this.hostnameInput().value;
@@ -106,15 +78,7 @@ export class HostView extends IResourceView {
 
   }
 
-  /* validateSelf()
-   * This method is invoked on save in order to validate input prior to proceeding with the save action.
-   * The model validates its current state, so anything that the View wants to validate must already be in the model.
-   *
-   * validateSelf() returns a Map of fieldnames and error strings. If the dictionary is empty, there are no errors.
-   *
-   * For now we will have a side-effect of validate in that any errors will be added to the message list.
-   */
-
+  /* override */
   validateSelf() {
     let errors = new Map();
 
@@ -129,10 +93,7 @@ export class HostView extends IResourceView {
     return errors;
   }
 
-  /* renderSelf()
-  * This method renders the Host view within the HTML framework set up by ResourceView.render().
-  */
-
+  /* override */
   renderSelf() {
     let host    = this.model;
     let status  = host.status || {"state": "<none>"};
@@ -256,17 +217,12 @@ export class HostView extends IResourceView {
 
   /* ================================ Callback Functions ================================ */
 
-  /* onACMECheckbox
-   */
-
   onACMECheckbox() {
-    /* Write back to the model for validation. */
     this.writeToModel();
 
     /* Is the ACME information being shown now?  If so, and we have a valid URL for an ACME provider,
      * fetch the terms of service and uncheck the "I have agreed to the Terms of Service" checkbox.
      */
-
     if (this.useAcme) {
       this.tos = this.model.getTermsOfService();
       this.tosAgreeCheckbox().checked = false;
@@ -282,52 +238,49 @@ export class HostView extends IResourceView {
   * we have to manually request the update.
   */
   onEmailChanged() {
-    /* Write back to the model for validation. */
     this.writeToModel();
 
-    /* Note that we have to check */
-
-    /* The email changed, update the YAML if showing. */
+    /* Because showYAML state is not a lit-element property,
+     * we have to manually request an update if the YAML is
+     * showing (because the YAML will change when the email
+     * changes). */
     if (this.showYAML) {
       this.yamlElement().requestUpdate();
     }
   }
-
-  /* onHostnameChanged()
-   * This is called when the hostname field changes in an Edit or Add dialog to check if the new hostname can
-   * be used with ACME. If it can be, we check the checkbox, otherwise we uncheck it.
-   */
 
   onHostnameChanged() {
     this.writeToModel();
 
-    /* update the YAML if showing. */
+    /* Because showYAML state is not a lit-element property,
+     * we have to manually request an update if the YAML is
+     * showing (because the YAML will change when the email
+     * changes). */
     if (this.showYAML) {
       this.yamlElement().requestUpdate();
     }
   }
 
-  /* onProviderChanged()
-   * The ACME provider has been changed by the user.  Write back to the model, uncheck the TOS agreement checkbox,
-   * and then fetch the terms of service for the new provider.
-   */
   onProviderChanged() {
     this.writeToModel();
+
+    /* When the ACME provider changes, we assume that the user has not agreed to the
+     * new provider's terms of service. Also we have to get those new terms of service
+     * to display to the user. */
     this.tosAgreeCheckbox().checked = false;
     this.tos = this.model.getTermsOfService();
 
-    /* update the YAML if showing. */
+    /* Because showYAML state is not a lit-element property,
+     * we have to manually request an update if the YAML is
+     * showing (because the YAML will change when the email
+     * changes). */
     if (this.showYAML) {
       this.yamlElement().requestUpdate();
     }
   }
 
-  /* onTOSAgreeCheckbox
-   * Toggle the agree
-   */
-
   onTOSAgreeCheckbox() {
-    /* nothing needed, just check the value when desired. */
+    /* nothing needed here as the verify function checks the DOM element directly */
   }
 
   /* ================================ Utility Functions ================================ */
@@ -335,11 +288,7 @@ export class HostView extends IResourceView {
   /* isTOSShowing()
    * Are the terms of service being shown during an Add operation?
    */
-
   isTOSShowing() {
     return this.useAcme && (this.viewState === "add" || this.viewState === "edit");
   }
 }
-
-/* Bind our custom elements to the HostView. */
-customElements.define('dw-mvc-host', HostView);
