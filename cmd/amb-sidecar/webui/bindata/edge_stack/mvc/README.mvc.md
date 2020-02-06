@@ -15,6 +15,6 @@ _(that you don't need to know, but you want to know anyway...)_
 
 * [Ambassador --> Model --> View](docs/ambassador_to_model_to_view.md)
 * [UI updates View --> Model --> Ambassador](docs/ui_update_to_ambassador.md)
-* MOREMORE [UI adds new View --> Model --> Ambassador] 
-* MOREMORE [UI deletes View --> Model --> Ambassador]
+* [UI adds new View --> Model --> Ambassador](docs/ui_add_to_ambassador.md)
+* [UI deletes View --> Model --> Ambassador](docs/ui_delete_to_ambassador.md)
 

@@ -61,9 +61,9 @@ is the behavior we want: the user is editing view B' so we don't want the view t
 ### When the User presses Save to end the Edit session
 
 (1) When the user presses Save to end the Edit session, view B' (2) swaps its model B' (the new data)
-into the model collection and (3) save the old data model B. (4) The new model B' uses the API call
+into the model collection and (3) saves the old data model B. (4) The new model B' uses the API call
 to send the new data to Ambassador. And finally, the new model B' and the view B' are
-marked as "pending" (indicated by `/////`) and a five second timer is started.
+marked as "pending" (indicated by `/////`) and (5) a five second timer is started.
 
                        [models]               [views]
                       +---------+           +---------+
@@ -74,8 +74,8 @@ marked as "pending" (indicated by `/////`) and a five second timer is started.
                 +-(4)--(2) B' |---------------|  B' |<-----(1)
                       | +/////+ |      +- - - +/////+ |
                       |         |      |    |         |
-                      |         |  +-----+  |         |
-                      |         | (3) B  |  |         |
+         (5)          |         |  +-----+  |         |
+       [timer]        |         | (3) B  |  |         |
                       |         |  +-----+  |         |
                       | +-----+ |           | +-----+ |
                       | |  Q  |---------------|  Q  | |
