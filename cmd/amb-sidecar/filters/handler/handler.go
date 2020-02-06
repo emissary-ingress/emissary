@@ -135,6 +135,9 @@ func (c *FilterMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Spec:       filterSpec,
 		}
 		filterImpl.ServeHTTP(w, r)
+	case "/.ambassador/oauth2/redirection-endpoint":
+		middleware.ServeErrorResponse(w, ctx, http.StatusBadRequest,
+			errors.New("invalid state parameter; could not match to an OAuth2 Filter"), nil)
 	default:
 		http.NotFound(w, r)
 	}
