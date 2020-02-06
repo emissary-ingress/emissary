@@ -135,7 +135,7 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger dlog.Logger, httpClien
 		var originalURL *url.URL
 		if authorization != nil {
 			logger.Debugln("already logged in; redirecting to original log-in-time URL")
-			originalURL, err = readState(sessionInfo.sessionData.Request.State)
+			originalURL, err = ReadState(sessionInfo.sessionData.Request.State)
 			if err != nil {
 				// This should never happen--we read the state directly from what we
 				// stored in Redis.
@@ -160,7 +160,7 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger dlog.Logger, httpClien
 				return middleware.NewErrorResponse(ctx, http.StatusBadRequest,
 					err, nil)
 			}
-			originalURL, err = readState(sessionInfo.sessionData.Request.State)
+			originalURL, err = ReadState(sessionInfo.sessionData.Request.State)
 			if err != nil {
 				// This should never happen--the state matched what we stored in Redis
 				// (validated in .ParseAuthorizationResponse()).  For this to happen, either
@@ -479,7 +479,7 @@ func genState(originalURL *url.URL) (string, error) {
 	return securePart + ":" + practicalPart, nil
 }
 
-func readState(state string) (*url.URL, error) {
+func ReadState(state string) (*url.URL, error) {
 	v0str, v0err := readStateV0(state)
 	v1str, v1err := readStateV1(state)
 
@@ -498,8 +498,8 @@ func readState(state string) (*url.URL, error) {
 // readState for states created by AES <1.2.0
 func readStateV0(state string) (string, error) {
 	// Don't bother doing crypto validation on the JWT--it's
-	// already been validated by doing a string-compare with the
-	// state stored in Redis.
+	// validated by doing a string-compare with the state stored
+	// in Redis.
 	claims := jwt.MapClaims{}
 	if _, _, err := jwtsupport.SanitizeParseUnverified(new(jwt.Parser).ParseUnverified(state, &claims)); err != nil {
 		return "", err
