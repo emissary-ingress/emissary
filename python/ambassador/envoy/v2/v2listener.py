@@ -953,18 +953,17 @@ class V2Listener(dict):
                 if irlistener.insecure_addl_port not in first_irlistener_by_port:
                     first_irlistener_by_port[irlistener.insecure_addl_port] = irlistener
 
-                # This insecure vhost can _only_ have a hostname of "*", since (by definition)
-                # there is no SNI associated with it.
-                #
-                # Also, no, it is not a bug to have action=None. There is no secure action
-                # for this vhost.
-                listener.make_vhost(name=vhostname,
-                                    hostname=vhostname,
-                                    context=None,
-                                    secure=False,
-                                    action=None,
-                                    insecure_action=irlistener.insecure_action,
-                                    use_proxy_proto=irlistener.use_proxy_proto)
+                # Do we already have a VHost for this hostname?
+                if vhostname not in listener.vhosts:
+                    # Nope, add one. Also, no, it is not a bug to have action=None.
+                    # There is no secure action for this vhost.
+                    listener.make_vhost(name=vhostname,
+                                        hostname=vhostname,
+                                        context=None,
+                                        secure=False,
+                                        action=None,
+                                        insecure_action=irlistener.insecure_action,
+                                        use_proxy_proto=irlistener.use_proxy_proto)
 
         logger.debug(f"V2Listeners: after IRListeners")
         cls.dump_listeners(logger, listeners_by_port)
