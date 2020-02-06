@@ -495,7 +495,7 @@ func ReadState(state string) (*url.URL, error) {
 	return url.Parse(urlStr)
 }
 
-// readState for states created by AES <1.2.0
+// readState for states created by AES <1.1.1
 func readStateV0(state string) (string, error) {
 	// Don't bother doing crypto validation on the JWT--it's
 	// validated by doing a string-compare with the state stored
@@ -511,9 +511,9 @@ func readStateV0(state string) (string, error) {
 	return redirectURL, nil
 }
 
-// readState for states created by AES >=1.2.0
+// readState for states created by AES >=1.1.1
 func readStateV1(state string) (string, error) {
-	// then try parsing it as an AES 1.2.0+ state
+	// then try parsing it as an AES 1.1.1+ state
 	parts := strings.SplitN(state, ":", 2)
 	if len(parts) != 2 {
 		return "", errors.New("malformed state")
