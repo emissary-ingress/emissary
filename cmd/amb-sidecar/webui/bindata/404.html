@@ -193,7 +193,73 @@
             
           <script type="text/javascript">
 
-          // Detects user's browser by 'duck-typing' to guide user response to browser security warnings
+/**
+ * session.js 0.4.1
+ * (c) 2012 Iain, CodeJoust
+ * session.js is freely distributable under the MIT license.
+ * Portions of session.js are inspired or borrowed from Underscore.js, and quirksmode.org demo javascript.
+ * This version uses google's jsapi library for location services.
+ * For details, see: https://github.com/codejoust/session.js
+ */
+ function getBrowser(win, doc, nav){
+ 
+  // Browser (and OS) detection
+  var detectBrowser = {
+    detect: function(){
+      return {
+        browser: this.search(this.data.browser),
+        version: this.search(navigator.userAgent) || this.search(navigator.appVersion),
+        os: this.search(this.data.os)
+    } },
+    search: function(data) {
+      if (typeof data === "object"){
+        // search for string match
+        for(var i = 0; i < data.length; i++) {
+          var dataString = data[i].string,
+              dataProp   = data[i].prop;
+          this.version_string = data[i].versionSearch || data[i].identity;
+          if (dataString){
+            if (dataString.indexOf(data[i].subString) != -1){
+              return data[i].identity;
+            }
+          } else if (dataProp){
+            return data[i].identity;
+          }
+        }
+      } else {
+        // search for version number
+        var index = data.indexOf(this.version_string);
+        if (index == -1) return;
+        return parseFloat(data.substr(index + this.version_string.length + 1));
+      }
+    },
+    data: {
+      browser: [
+        { string: navigator.userAgent, subString: "Chrome", identity: "Chrome" },
+        { string: navigator.userAgent, subString: "OmniWeb", versionSearch: "OmniWeb/", identity: "OmniWeb" },
+        { string: navigator.vendor, subString: "Apple", identity: "Safari", versionSearch: "Version" },
+        { prop:   window.opera, identity: "Opera", versionSearch: "Version" },
+        { string: navigator.vendor, subString: "iCab",identity: "iCab" },
+        { string: navigator.vendor, subString: "KDE", identity: "Konqueror" },
+        { string: navigator.userAgent, subString: "Firefox", identity: "Firefox" },
+        { string: navigator.vendor, subString: "Camino", identity: "Camino" },
+        { string: navigator.userAgent, subString: "Netscape", identity: "Netscape" },
+        { string: navigator.userAgent, subString: "MSIE", identity: "Explorer", versionSearch: "MSIE" },
+        { string: navigator.userAgent, subString: "Gecko", identity: "Mozilla", versionSearch: "rv" },
+        { string: navigator.userAgent, subString: "Mozilla", identity: "Netscape", versionSearch: "Mozilla" }
+      ],
+      os: [
+        { string: navigator.platform, subString: "Win", identity: "Windows" },
+        { string: navigator.platform, subString: "Mac", identity: "Mac" },
+        { string: navigator.userAgent, subString: "iPhone", identity: "iPhone/iPod" },
+        { string: navigator.userAgent, subString: "iPad", identitiy: "iPad" },
+        { string: navigator.platform, subString: "Linux", identity: "Linux" },
+        { string: navigator.userAgent, subString: "Android", identity: "Android" }
+      ]}
+  };         console.log(nav.subString);
+};
+
+/*          // Detects user's browser by 'duck-typing' to guide user response to browser security warnings
 
           function getBrowser() {
             if (!!window.chrome && (!!window.chrome.webstore || !!window.chrome.runtime)) {
@@ -210,13 +276,13 @@
               return "other";
             } 
           };
-
+*/
           window.onload = (event) => {
             getBrowser();
           };
 
           // Sets browser variable for function use and capitalizes browser name in text on page
-          let browser = localStorage.getItem('browser');
+       //   let browser = localStorage.getItem('browser');
           
           </script>
 
@@ -283,8 +349,9 @@
         document.getElementsByClassName('app-notice')[0].removeAttribute('style');
       }
 
+      console.log(this.browser);
       // Self-executing function to display appropriate browser warning info
-      if (browser) {
+      if (this.browser) {
         (function renderBrowserWarning() {
           switch(browser) {
             case "chrome":
