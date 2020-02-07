@@ -32,6 +32,11 @@ e2etest-only:
 
 pytest-only: _e2etest-cleanup
 _e2etest-cleanup:
+# test_docker.py and a few others get super-duper unhappy if teleproxy
+# is running.  IDK why... (it it spams the same line repeatedly to
+# stderr so many thousands of times that my terminal's scrollback
+# loses the "why")
+	$(MAKE) -f $(SOURCE_apro)/build-aux-local/Makefile.e2e unproxy || true
 # Delete the big things left over from the e2e tests.  This isn't
 # meant to be hygenic; it's just that both the full KAT deployments
 # and the full e2e deployments don't both fit in a Kubernaut cluster
