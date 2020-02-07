@@ -9,6 +9,7 @@ releases. Please keep it up to date.
 Other
 
  * Bugfix: `aes-plugin-runner --version` now works properly.
+ * Bugfix: Only serve the custom CONGRATULATIONS! 404 page on /
  * Change: The `OAuth2` Filter `stateTTL` setting is now ignored; the lifetime of state-tokens is now managed automatically.
 
 ## 1.1.0 (2020-01-28)
