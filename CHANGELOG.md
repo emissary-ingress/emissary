@@ -9,7 +9,7 @@ releases. Please keep it up to date.
 Other
 
  * Bugfix: `aes-plugin-runner --version` now works properly.
-
+ * Bugfix: The RBAC for `Ingress` now supports the `networking.k8s.io` `apiGroup`
 ## 1.1.0 (2020-01-28)
 
 Configuration:
