@@ -175,17 +175,10 @@ commands:
 #      message, please don't reenable before Dec 10th
 #                 - run: "make lint"
                  - run: "docker login -u=\"datawire-dev+aes\" -p=\"3M43T8BXB3L46H40R8W3K1JDNMIN6KP8Q5SC1SY2DRJQ7DZFE7LUJ1WE35QG3F0U\" quay.io"
-                 # For normal commits we run `make gotest`, but if we have a tag, run `make test`
                  - run: |
-                    test_target=gotest
-                    if [[ "$CIRCLE_TAG" =~ ^v ]]; then
-                      test_target=test
-                    fi
-                    printf 'CIRCLE_TAG=%q test_target=%q\n' "${CIRCLE_TAG:-}" "${test_target}"
-
                     export DEV_REGISTRY=quay.io/datawire-dev
                     export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
-                    make "$test_target" GOTEST_PKGS=github.com/datawire/apro/...
+                    make test GOTEST_PKGS=github.com/datawire/apro/...
                  - run:
                      command: ".circleci/kubernaut-unclaim.sh"
                      when: "always"
@@ -213,7 +206,7 @@ commands:
      # wipe out artifacts that are useful for debugging.
      - run: make clobber
      - run: "git clean -ndx; test -z \"$(git clean -ndx)\""
-  "edgectl":
+  "cli-tools":
     steps:
       - checkout
       - run: ./get-amb-repo.sh
@@ -223,6 +216,8 @@ commands:
       - run: ./build-aux-local/build_push_cli.sh build apictl-key
       - run: ~/bin/edgectl version || true
       - run: ~/bin/apictl-key version || true
+      - store_artifacts:
+          path: ~/bin
       - run:
           name: "Release"
           # This only runs for pre-release tags; for GA tags the
@@ -269,16 +264,16 @@ jobs:
       - release
 #      - clobber
 
-  "macOS-edgectl":
+  "macOS-cli-tools":
     macos:
       xcode: "10.1.0"
     steps:
       - pip-install:
           packages: awscli
       - install-go
-      - edgectl
+      - cli-tools
 
-  "Ubuntu-edgectl":
+  "Ubuntu-cli-tools":
     machine:
       # If you bump this, be sure to bump install-python.executor-key
       # below.
@@ -287,9 +282,9 @@ jobs:
       - pip-install:
           packages: awscli
       - install-go
-      - edgectl
+      - cli-tools
 
-  "Windows-edgectl":
+  "Windows-cli-tools":
     executor:
       name: win/vs2019
       shell: bash
@@ -304,20 +299,20 @@ jobs:
             mv /c/go /c/go-112
             unzip -q /tmp/go.zip -d /c/
             go version
-      - edgectl
+      - cli-tools
 
 workflows:
   "APro CI":
     jobs:
-      - "Windows-edgectl":
+      - "Windows-cli-tools":
           filters:
             tags:
               only: /.*/
-      - "Ubuntu-edgectl":
+      - "Ubuntu-cli-tools":
           filters:
             tags:
               only: /.*/
-      - "macOS-edgectl":
+      - "macOS-cli-tools":
           filters:
             tags:
               only: /.*/
