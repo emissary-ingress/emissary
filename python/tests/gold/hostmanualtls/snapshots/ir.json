@@ -49,6 +49,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
+            "_is_sidecar": false,
             "_namespace": "default",
             "_port": 8877,
             "_referenced_by": [
@@ -83,6 +84,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "hostmanualtls-http",
+            "_is_sidecar": false,
             "_namespace": "default",
             "_port": 80,
             "_referenced_by": [
@@ -169,6 +171,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
                         "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
@@ -259,6 +262,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
                         "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
@@ -349,6 +353,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
                         "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
@@ -436,6 +441,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "hostmanualtls-http",
+                        "_is_sidecar": false,
                         "_namespace": "default",
                         "_port": 80,
                         "_referenced_by": [
@@ -520,6 +526,27 @@
             "acmeProvider": {
                 "authority": "none"
             },
+            "context": {
+                "_active": true,
+                "_errored": false,
+                "_referenced_by": [
+                    "manual-host.default.1"
+                ],
+                "_rkey": "manual-host.default.1",
+                "hosts": [
+                    "hostmanualtls"
+                ],
+                "is_fallback": false,
+                "kind": "IRTLSContext",
+                "location": "manual-host.default.1",
+                "name": "manual-host-context",
+                "namespace": "default",
+                "secret_info": {
+                    "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/manual-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt",
+                    "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/manual-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key",
+                    "secret": "manual-secret"
+                }
+            },
             "hostname": "hostmanualtls",
             "kind": "Host",
             "location": "manual-host.default.1",
@@ -581,9 +608,9 @@
                 }
             },
             "hostname": "hostmanualtls",
-            "insecure_action": "Redirect",
+            "insecure_action": "Reject",
             "kind": "IRListener",
-            "location": "manual-host.default.1",
+            "location": "manual-context.default.1",
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
@@ -664,6 +691,27 @@
                 "scope": "AmbassadorTest"
             },
             "name": "manual-context",
+            "namespace": "default",
+            "secret_info": {
+                "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/manual-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt",
+                "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/manual-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key",
+                "secret": "manual-secret"
+            }
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "manual-host.default.1"
+            ],
+            "_rkey": "manual-host.default.1",
+            "hosts": [
+                "hostmanualtls"
+            ],
+            "is_fallback": false,
+            "kind": "IRTLSContext",
+            "location": "manual-host.default.1",
+            "name": "manual-host-context",
             "namespace": "default",
             "secret_info": {
                 "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/manual-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt",

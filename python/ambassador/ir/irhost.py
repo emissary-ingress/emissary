@@ -60,52 +60,45 @@ class IRHost(IRResource):
 
                 if tls_ss:
                     # OK, we have a TLS secret! Fire up a TLS context for it, if one doesn't
-                    # already exist, and if the ACME provider isn't set to "none".
+                    # already exist.
 
-                    acme = self.get("acmeProvider") or {}
+                    ctx_name = f"{self.name}-context"
 
-                    acme_authority = acme.get('authority') or 'none'
-
-                    if acme_authority.lower() != "none":
-                        ctx_name = f"{self.name}-context"
-
-                        if ir.has_tls_context(ctx_name):
-                            ir.logger.info(f"Host {self.name}: TLSContext {ctx_name} already exists")
-                        else:
-                            ir.logger.info(f"Host {self.name}: creating TLSContext {ctx_name}")
-
-                            new_ctx = dict(
-                                rkey=self.rkey,
-                                name=ctx_name,
-                                namespace=self.namespace,
-                                location=self.location,
-                                hosts=[ self.hostname or self.name ],
-                                secret=tls_name
-                            )
-
-                            if not os.environ.get('AMBASSADOR_NO_TLS_REDIRECT', None):
-                                new_ctx['redirect_cleartext_from'] = 8080
-
-                            ctx = IRTLSContext(ir, aconf, **new_ctx)
-
-                            match_labels = self.get('matchLabels')
-
-                            if not match_labels:
-                                match_labels = self.get('match_labels')
-
-                            if match_labels:
-                                ctx['metadata_labels'] = match_labels
-
-                            if ctx.is_active():
-                                self.context = ctx
-                                ctx.referenced_by(self)
-                                ctx.sourced_by(self)
-
-                                ir.save_tls_context(ctx)
-                            else:
-                                ir.logger.error(f"Host {self.name}: new TLSContext {ctx_name} is not valid")
+                    if ir.has_tls_context(ctx_name):
+                        ir.logger.info(f"Host {self.name}: TLSContext {ctx_name} already exists")
                     else:
-                        ir.logger.info(f"Host {self.name}: not creating TLSContext since ACME authority is none")
+                        ir.logger.info(f"Host {self.name}: creating TLSContext {ctx_name}")
+
+                        new_ctx = dict(
+                            rkey=self.rkey,
+                            name=ctx_name,
+                            namespace=self.namespace,
+                            location=self.location,
+                            hosts=[ self.hostname or self.name ],
+                            secret=tls_name
+                        )
+
+                        # if not os.environ.get('AMBASSADOR_NO_TLS_REDIRECT', None):
+                        #     new_ctx['redirect_cleartext_from'] = 8080
+
+                        ctx = IRTLSContext(ir, aconf, **new_ctx)
+
+                        match_labels = self.get('matchLabels')
+
+                        if not match_labels:
+                            match_labels = self.get('match_labels')
+
+                        if match_labels:
+                            ctx['metadata_labels'] = match_labels
+
+                        if ctx.is_active():
+                            self.context = ctx
+                            ctx.referenced_by(self)
+                            ctx.sourced_by(self)
+
+                            ir.save_tls_context(ctx)
+                        else:
+                            ir.logger.error(f"Host {self.name}: new TLSContext {ctx_name} is not valid")
                 else:
                     ir.logger.error(f"Host {self.name}: continuing with invalid TLS secret {tls_name}")
                     return False
@@ -167,3 +160,41 @@ class HostFactory:
                     ir.save_host(host)
                 else:
                     ir.logger.info(f"HostFactory: not saving inactive host {host.pretty()}")
+
+        if ir.edge_stack_allowed:
+            # We're running Edge Stack. Figure out how many hosts we have, and whether
+            # we have any termination contexts.
+            host_count = len(ir.get_hosts() or [])
+            contexts = ir.get_tls_contexts() or []
+
+            found_termination_context = False
+            for ctx in contexts:
+                if ctx.get('hosts'):  # not None and not the empty list
+                    found_termination_context = True
+
+            ir.logger.info(f"HostFactory: FTC {found_termination_context}, host_count {host_count}")
+
+            if (host_count == 0) and not found_termination_context:
+                # We have no Hosts and no termination contexts, so we know that this is an unconfigured
+                # installation. Set up the fallback TLSContext so we can redirect people to the UI.
+                ir.logger.info("Creating fallback context")
+                ctx_name = "fallback-self-signed-context"
+                tls_name = "fallback-self-signed-cert"
+
+                new_ctx = dict(
+                    rkey=f"{ctx_name}.99999",
+                    name=ctx_name,
+                    location="-internal-",
+                    hosts=["*"],
+                    secret=tls_name,
+                    is_fallback=True
+                )
+
+                if not os.environ.get('AMBASSADOR_NO_TLS_REDIRECT', None):
+                    new_ctx['redirect_cleartext_from'] = 8080
+
+                ctx = IRTLSContext(ir, aconf, **new_ctx)
+
+                assert ctx.is_active()
+                if ctx.resolve_secret(tls_name):
+                    ir.save_tls_context(ctx)
