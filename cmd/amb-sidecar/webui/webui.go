@@ -17,7 +17,6 @@ import (
 	"path"
 	"sort"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/datawire/ambassador/pkg/dlog"
@@ -297,11 +296,18 @@ func (fb *firstBootWizard) forbidden(w http.ResponseWriter, r *http.Request) {
 
 //nolint:gocyclo
 func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if !strings.HasPrefix(r.URL.Path, "/edge_stack/") {
-		// prevent navigating to /404.html and getting a 200 response
+	if r.URL.Path == "/" {
+		// Short-circuit: the '/' prefix gets the funky Congrats page.
 		fb.notFound(w, r)
 		return
 	}
+
+	if r.URL.Path == "/404.html" {
+		// Short-circuit: if you ask for the 404 page, you shouldn't get a 200!
+		fb.notFound(w, r)
+		return
+	}
+
 	if fb.cfg.DevWebUIWebstorm != "" {
 		/* When developing locally with NetBrains WebStorm, it opens Chrome at post 63342, so
 		 * we need to allow Chrome to CORS request to this local go server. Chrome does pre-flight
@@ -480,8 +486,14 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			middleware.ServeErrorResponse(w, r.Context(), http.StatusMethodNotAllowed,
 				errors.New("method not allowed"), nil)
 		}
+	case "/":
+		// This is "impossible", but just in case...
+		fb.notFound(w, r)
 	default:
 		var fi os.FileInfo
+
+		// Don't forget that we'll do special things for "/" and "/404.html" up at the top
+		// of this method!
 
 		// OK. Is this a directory with an index.html in it?
 		cleaned := path.Clean(r.URL.Path)
@@ -511,11 +523,8 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			openFile.Close()
 		}
 
-		if err != nil { // was if os.IsNotExist(err), but why limit it?
-			// use our custom 404 handler instead of http.FileServer's
-			fb.notFound(w, r)
-			return
-		}
+		// Don't forget that we'll do special things for "/" and "/404.html" up at the top
+		// of this method!
 
 		http.FileServer(fb.staticfiles).ServeHTTP(w, r)
 	}
