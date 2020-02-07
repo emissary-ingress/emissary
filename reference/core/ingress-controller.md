@@ -8,19 +8,29 @@ If you're new to the Ambassador Edge Stack and to Kubernetes, we'd recommend you
 
 ### What is Required to Use the `Ingress` Resource?
 
+- Know what version of Kubernetes you are using.
+
+   In Kubernetes 1.13 and below, the `Ingress` was only included in the `extensions` api.
+
+   Starting in Kubernetes 1.14, the `Ingress` was added to the new `networking.k8s.io` api.
+
+   **Note:** If you are using 1.14 and above, it is recommended to use `apiVersion: networking.k8s.io/v1beta1` when defining `Ingresses`. Since both are still supported in all 1.14+ versions of Kubernetes, this document will use `extensions/v1beta1` for compatibility reasons.
+
 - You will need RBAC permissions to create `Ingress` resources.
 
 - The Ambassador Edge Stack will need RBAC permissions to get, list, watch, and update `Ingress` resources.
 
-  You can see this in the [`aes-crds.yaml`](../../../yaml/aes-crds.yaml)
+  You can see this in the [`aes-crds.yaml`](../../../yaml/aes.yaml)
   file, but this is the critical rule to add to the Ambassador Edge Stack's `Role` or `ClusterRole`:
 
-      - apiGroups: [ "extensions" ]
+      - apiGroups: [ "extensions", "networking.k8s.io" ]
         resources: [ "ingresses" ]
         verbs: ["get", "list", "watch"]
-      - apiGroups: [ "extensions" ]
+      - apiGroups: [ "extensions", "networking.k8s.io" ]
         resources: [ "ingresses/status" ]
         verbs: ["update"]
+
+   **Note:** This is included by default in all recent versions of the Ambassador install YAML
 
 - You must create your `Ingress` resource with the correct `ingress.class`.
 
