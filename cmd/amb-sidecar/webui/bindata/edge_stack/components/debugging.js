@@ -17,14 +17,11 @@ export class Debugging extends LitElement {
 
   constructor() {
     super();
-  //  this.reset();
+
     Snapshot.subscribe(this.onSnapshotChange.bind(this));
   }
 
- /* reset() {
-   this.shadowRoot.querySelectorAll('select').forEach((el)=>{el.value = el.querySelector('option[selected]').value;});
-  } 
-*/
+
   static get styles() {
     return css`
       * {
@@ -534,7 +531,6 @@ export class Debugging extends LitElement {
     let formdata = new FormData();
     formdata.append('loglevel', level);
     console.log("level in formdata.append is " + level);
-   // console.log("Selected label on reset will be " + this.shadowRoot.querySelectorAll('select').forEach((el)=>{el.value = el.querySelector('option[selected]').value;}));
 
     ApiFetch('/edge_stack/api/log-level', {
       method: 'POST',
