@@ -523,6 +523,11 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			openFile.Close()
 		}
 
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+
 		// Don't forget that we'll do special things for "/" and "/404.html" up at the top
 		// of this method!
 
