@@ -94,7 +94,7 @@ For example, this `Ingress` resource
 
 ```yaml
 ---
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   annotations:
@@ -127,7 +127,7 @@ This means that the following YAML:
 
 ```yaml
 ---
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   annotations:
@@ -158,7 +158,7 @@ will set up the Ambassador Edge Stack to do canary routing where 50% of the traf
 An `Ingress` resource must provide at least some routes or a [default backend](https://kubernetes.io/docs/concepts/services-networking/ingress/#default-backend). The default backend provides for a simple way to direct all traffic to some upstream service:
 
 ```yaml
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   annotations:
@@ -187,7 +187,7 @@ spec:
 
 ```yaml
 ---
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   annotations:
@@ -242,7 +242,7 @@ Read more from Kubernetes [here](https://kubernetes.io/docs/concepts/services-ne
 ### TLS Termination
 
 ```yaml
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   annotations:
