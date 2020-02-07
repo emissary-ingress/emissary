@@ -29,8 +29,10 @@ So here's how it really works:
 
 ### When the User starts Editing
 
-(1) When the user starts an edit session on view B, view B (2) makes a copy of model B (the new copy is
-model B'), and then (3) changes itself (view B) to use model B' as its model. (4) View B (now B') keeps a pointer
+(1) When the user starts an edit session on view B (the Edit button calls `onEditButton()`), 
+view B (2) makes a copy of model B (the new copy is
+model B'), and then (3) changes itself (view B) to use model B' as its model (`this.model`). 
+(4) View B keeps a pointer (`this._savedModel`)
 to the original model B for reasons that will become clear in a bit.
 
                        [models]               [views]
@@ -39,7 +41,7 @@ to the original model B for reasons that will become clear in a bit.
       Host A          | |  A  |---------------|  A  | |
       Host B          | +-----+ |           | +-----+ |
       Host Q          | +-----+ - - - -(4)- - +-----+ |
-                      | |  B  |        +-(3)--|  B' |<-----(1)
+                      | |  B  |        +-(3)--|  B  |<-----(1)
                       | +-----+ |      |    | +-----+ |
                       |         |      v    |         |
                       |         |  +-----+  |         |
@@ -60,8 +62,10 @@ is the behavior we want: the user is editing view B' so we don't want the view t
 
 ### When the User presses Save to end the Edit session
 
-(1) When the user presses Save to end the Edit session, view B' (2) swaps its model B' (the new data)
-into the model collection and (3) saves the old data model B. (4) The new model B' uses the API call
+(1) When the user presses Save to end the Edit session (the Save button calls `onSaveButton()`), 
+view B' (2) swaps its model B' (the new data)
+into the model collection and (3) saves the old data model B (`this._savedModel`). 
+(4) The new model B' uses the API call
 to send the new data to Ambassador. And finally, the new model B' and the view B' are
 marked as "pending" (indicated by `/////`) and (5) a five second timer is started.
 
@@ -131,7 +135,7 @@ old model B is deleted.
                       | +-----+ |           | +-----+ |
                       |         |           |         |
                       |         |    (2)    |         |
-                      |         | XXX B XXX |         |
+                      |         |    /B/    |         |
                       |         |           |         |
                       | +-----+ |           | +-----+ |
                       | |  Q  |---------------|  Q  | |
@@ -155,13 +159,13 @@ the collection model and (3) discard the new data (model B') and (4) reset the v
                       | +-----+ |            | +-----+ |
                       |         |            |         |
                       |         |    (3)     |         |
-                      |         | XXX B' XXX |         |
+                      |         |    /B'/    |         |
                       |         |            |         |
                       | +-----+ |            | +-----+ |
                       | |  Q  |----------------|  Q  | |
                       | +-----+ |            | +-----+ |
                       +---------+            +---------+
-                      
+    
 
 ### When the User presses Cancel to end the Edit session
 
@@ -179,13 +183,12 @@ the view to the data in model B.
                       | +-----+ |            | +-----+ |
                       |         |            |         |
                       |         |    (3)     |         |
-                      |         | XXX B' XXX |         |
+                      |         |    /B'/    |         |
                       |         |            |         |
                       | +-----+ |            | +-----+ |
                       | |  Q  |----------------|  Q  | |
                       | +-----+ |            | +-----+ |
                       +---------+            +---------+
-
 
 
  

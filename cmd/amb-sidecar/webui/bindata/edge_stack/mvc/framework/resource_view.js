@@ -89,7 +89,7 @@ export class ResourceView extends View {
   }
 
   /* cancelEdit
-   * Called by doCancel and verifyEdit, this restores the view's models, notification, and viewState.
+   * Called by doCancelButton and onSaveTimeout, this restores the view's models, notification, and viewState.
    */
   cancelEdit() {
     let collection = this.parentElement.model;

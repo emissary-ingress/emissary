@@ -74,7 +74,10 @@ export class ResourceCollection extends Model {
    * based on the Resource's uniqueKey.  This is the same as addResource but ignores the
    * existence check.
    */
-
+  /*TODO BRUCE: this needs fixing because if the model gets replaced but the model had other views
+   * listening to it, now those other views are listening to the model that is no longer "live" and
+   * thus they won't get future updates. So this replace must also move over the listeners.
+   */
   replaceResource(resource) {
     let key = this.uniqueKeyFor(resource.getYAML());
     this._resources.set(key, resource);

@@ -1,9 +1,6 @@
 # UI delete View --> Model --> Ambassador
 
-(1) When the user uses the UI to delete an item (via `onDeleteButton()`), the simple explanation
-is that (2) the to-be-deleted model X uses the API to delete itself from Ambassador,
-and then (3) the model X is deleted from the collection model which notifies its listening view X,
-which is (4) then deleted from the collection view.
+(1) When the user uses the UI to delete an item (via `onDeleteButton()`):
 
                        [models]         [views]
                       +---------+     +---------+
@@ -17,6 +14,11 @@ which is (4) then deleted from the collection view.
                       | |  X  |---------|  X  |<-----(1)
                       | +-----+ |     | +-----+ |
                       +---------+     +---------+
+
+the simple explanation
+is that (2) the to-be-deleted model X uses the API to delete itself from Ambassador,
+and then (3) the model X is deleted from the collection model which notifies its listening view X,
+which is (4) then deleted from the collection view.
 
                        [models]         [views]
                       +---------+     +---------+
@@ -40,10 +42,9 @@ So here's how it really works:
 
 ### When the User presses Delete
 
-(1) When the user presses the Delete button, the view X handles the button press by
+(1) When the user presses the Delete button (calls `onDeleteButton()`), the view X handles the button press by
 (2) sending `doDelete()` to the model X which then (3) makes the asynchronous API call to 
-Ambassador to do the delete. The model X and view X are marked as "pending" and (4) a
-five second timer is started.
+Ambassador to do the delete. 
 
                        [models]         [views]
                       +---------+     +---------+
@@ -57,6 +58,9 @@ five second timer is started.
                 +-(3)--(2) X  |---------|  X  |<-----(1)
                       | +-----+ |     | +-----+ |
                       +---------+     +---------+
+
+then the model X and view X are marked as "pending" and (4) a
+five second timer is started.
 
                        [models]         [views]
                       +---------+     +---------+
@@ -76,13 +80,16 @@ five second timer is started.
 
 The snapshot data arrives every second (currently). The snapshot may continue to contain new
 data for X even though we are trying to delete X: for example, a background Kubernetes process might
-be updating fields of X. However, while model X is marked as "pending", 
-the normal snapshot updates do not update the model. 
+be updating fields of X. In this race condition case, model X will be updated with new data, thus
+clearing the pending state of model X and view X, and then if moments later model X is deleted, it
+will be deleted (see next section). The net result of this race condition will be a little confusing
+to the user:
+1. user presses the delete button
+2. the CRD shows the cross-hatch pending state
+3. very briefly, the CRD clears its pending state and has new values
+4. and then the CRD vanishes from the screen
 
-_Note: this is a bug: we actually should 
-update model X and, via notifications, view X even when pending because if the timer expires and we
-return X to "real" (see below), then we would want X to have the correct real values._
-
+This race condition is rare enough that we aren't going to worry about it.
 
 #### When the Snapshot has data showing the delete happened
 
