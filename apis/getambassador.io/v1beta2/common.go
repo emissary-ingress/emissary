@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
+	"regexp"
 	"text/template"
 
 	"github.com/pkg/errors"
@@ -48,13 +49,28 @@ func (aid AmbassadorID) Matches(envVar string) bool {
 }
 
 type HeaderFieldSelector struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
+	Name          string         `json:"name"`
+	Value         string         `json:"value"`
+	ValueRegex    *regexp.Regexp `json:"-"`
+	RawValueRegex string         `json:"valueRegex"`
 }
 
-func (selector HeaderFieldSelector) Validate() error {
+func (selector *HeaderFieldSelector) Validate() error {
 	if selector.Name == "" && selector.Value != "" {
 		return errors.New("has .value but not a .name")
+	}
+	if selector.Name == "" && selector.RawValueRegex != "" {
+		return errors.New("has .value but not a .name")
+	}
+	if selector.Value != "" && selector.RawValueRegex != "" {
+		return errors.New("has both .value and .valueRegex")
+	}
+	if selector.RawValueRegex != "" {
+		re, err := regexp.Compile(selector.RawValueRegex)
+		if err != nil {
+			return errors.Wrap(err, ".valueRegex")
+		}
+		selector.ValueRegex = re
 	}
 	return nil
 }
@@ -64,10 +80,14 @@ func (selector HeaderFieldSelector) Matches(header http.Header) bool {
 		return true
 	}
 	value := header.Get(selector.Name)
-	if selector.Value == "" {
+	switch {
+	case selector.ValueRegex != nil:
+		return selector.ValueRegex.MatchString(value)
+	case selector.Value != "":
+		return value == selector.Value
+	default:
 		return value != ""
 	}
-	return value == selector.Value
 }
 
 type HeaderFieldTemplate struct {
