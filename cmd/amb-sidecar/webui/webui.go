@@ -342,8 +342,13 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		fb.registerActivity(w, r)
+		jsonBytes, err := json.Marshal(certmagic.HostQualifies(r.FormValue("hostname")))
+		if err != nil {
+			middleware.ServeErrorResponse(w, r.Context(), http.StatusInternalServerError, err, nil)
+			return
+		}
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		json.NewEncoder(w).Encode(certmagic.HostQualifies(r.FormValue("hostname")))
+		w.Write(jsonBytes)
 	case "/edge_stack/api/config/ambassador-cluster-id":
 		// no authentication for this one
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
@@ -367,8 +372,13 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			fb.forbidden(w, r)
 			return
 		}
+		jsonBytes, err := json.Marshal(fb.getSnapshot(r.URL.Query().Get("client_session")))
+		if err != nil {
+			middleware.ServeErrorResponse(w, r.Context(), http.StatusInternalServerError, err, nil)
+			return
+		}
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		json.NewEncoder(w).Encode(fb.getSnapshot(r.URL.Query().Get("client_session")))
+		w.Write(jsonBytes)
 	case "/edge_stack/api/activity":
 		if !fb.isAuthorized(r) {
 			fb.forbidden(w, r)
