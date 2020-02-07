@@ -87,19 +87,19 @@ return X to "real" (see below), then we would want X to have the correct real va
 #### When the Snapshot has data showing the delete happened
 
 (1) When the snapshot data arrives without Host X, we know that the delete succeeded. Thus
-we (2) delete the model X which the notifies its listeners that it is deleted, one of which 
-is (3) the view X which then deletes itself. 
+the collection model (2) deletes the model X and then (3) notifies its listeners that model X was deleted. 
+One listener is the collection view which then (4) deletes the corresponding view X.
 
                        [models]         [views]
                       +---------+     +---------+
-    [snapshot] =(1)=> | +-----+ |-----| +-----+ |
+    [snapshot] =(1)=> | +-----+ |-(3)-| +-----+ |
       Host A          | |  A  |---------|  A  | |
       Host B          | +-----+ |     | +-----+ |
                       | +-----+ |     | +-----+ |
                       | |  B  |---------|  B  | |
                       | +-----+ |     | +-----+ |
                       |         |     |         |
-                      |(2) /X/  |     |(3) /X/  |
+                      |(2) /X/  |     |(4) /X/  |
                       |         |     |         |
                       +---------+     +---------+
 
@@ -109,7 +109,7 @@ is (3) the view X which then deletes itself.
 (1) If the timer expires before we receive a snapshot without the Host X, then we assume that something went
 wrong with the delete, i.e., that it has failed. And thus we clear the pending flags on model X and view X.
 
-    [timer]==(1)===>    [models]        [views]
+                        [models]        [views]
                       +---------+     +---------+
     [snapshot]        | +-----+ |-----| +-----+ |
       Host A          | |  A  |---------|  A  | |
@@ -118,6 +118,6 @@ wrong with the delete, i.e., that it has failed. And thus we clear the pending f
                       | |  B  |---------|  B  | |
                       | +-----+ |     | +-----+ |
                       | +-----+ |     | +-----+ |
-                      | |  X  |---------|  X  | |
+                      | |  X  |---------|  X  |<===(1)==[timer]
                       | +-----+ |     | +-----+ |
                       +---------+     +---------+

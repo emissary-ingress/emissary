@@ -99,7 +99,7 @@ successfully completed the add, so model X' and view X' "pending" flags are remo
 wrong with the add, i.e., that it has failed. And thus we (2) remove the new model X' from the collection
 model, which notifies the new view X' which (3) removes the view X' from the collection view.
 
-    [timer]==(1)===>    [models]               [views]
+                        [models]               [views]
                       +---------+            +---------+
     [snapshot]        | +-----+ |------------| +-----+ |
       Host A          | |  A  |----------------|  A  | |
@@ -108,7 +108,7 @@ model, which notifies the new view X' which (3) removes the view X' from the col
                       | |  B  |----------------|  B  | |
                       | +-----+ |            | +-----+ |
                       |         |            |         |
-                      |(2)      |            |(3)      |
+                      |(2)      |            |(3)     <===(1)==[timer]
                       |         |            |         |
                       +---------+            +---------+
                       

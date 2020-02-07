@@ -11,7 +11,7 @@
 * [Quick Start: How to implement a new Model+View](docs/implementing_model_and_view.md)
 
 ### Internal Implementation Details
-_(that you don't need to know, but you want to know anyway...)_
+_(details that you don't need to know but, as a curious developer, you want to know...)_
 
 * [Ambassador --> Model --> View](docs/ambassador_to_model_to_view.md)
 * [UI updates View --> Model --> Ambassador](docs/ui_update_to_ambassador.md)
