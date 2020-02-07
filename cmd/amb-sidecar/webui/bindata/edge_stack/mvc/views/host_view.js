@@ -292,3 +292,6 @@ export class HostView extends IResourceView {
     return this.useAcme && (this.viewState === "add" || this.viewState === "edit");
   }
 }
+
+/* Bind our custom elements to the HostView. */
+customElements.define('dw-mvc-host', HostView);
