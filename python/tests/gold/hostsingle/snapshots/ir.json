@@ -49,6 +49,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
+            "_is_sidecar": false,
             "_namespace": "default",
             "_port": 8877,
             "_referenced_by": [
@@ -83,6 +84,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "hostsingle-http",
+            "_is_sidecar": false,
             "_namespace": "default",
             "_port": 80,
             "_referenced_by": [
@@ -169,6 +171,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
                         "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
@@ -259,6 +262,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
                         "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
@@ -349,6 +353,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
                         "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
@@ -436,6 +441,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "hostsingle-http",
+                        "_is_sidecar": false,
                         "_namespace": "default",
                         "_port": 80,
                         "_referenced_by": [
@@ -535,7 +541,6 @@
                 "location": "edgy-host.default.1",
                 "name": "edgy-host-context",
                 "namespace": "default",
-                "redirect_cleartext_from": 8080,
                 "secret_info": {
                     "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/edgy-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt",
                     "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/edgy-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key",
@@ -591,7 +596,6 @@
                 "location": "edgy-host.default.1",
                 "name": "edgy-host-context",
                 "namespace": "default",
-                "redirect_cleartext_from": 8080,
                 "secret_info": {
                     "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/edgy-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt",
                     "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/edgy-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key",
@@ -678,7 +682,6 @@
             "location": "edgy-host.default.1",
             "name": "edgy-host-context",
             "namespace": "default",
-            "redirect_cleartext_from": 8080,
             "secret_info": {
                 "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/edgy-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt",
                 "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/edgy-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key",

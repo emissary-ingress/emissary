@@ -52,6 +52,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
+            "_is_sidecar": false,
             "_namespace": "default",
             "_port": 8877,
             "_referenced_by": [
@@ -86,6 +87,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "redirecttestswithproxyproto-http",
+            "_is_sidecar": false,
             "_namespace": "default",
             "_port": 80,
             "_referenced_by": [
@@ -172,6 +174,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
                         "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
@@ -262,6 +265,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
                         "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
@@ -352,6 +356,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
                         "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
@@ -439,6 +444,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "redirecttestswithproxyproto-http",
+                        "_is_sidecar": false,
                         "_namespace": "default",
                         "_port": 80,
                         "_referenced_by": [
