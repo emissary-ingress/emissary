@@ -136,6 +136,14 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 				return
 			}
 		}
+		useSessionCookies := *c.Spec.UseSessionCookies.Value
+		if !c.Spec.UseSessionCookies.IfRequestHeader.Matches(filterutil.GetHeader(request)) {
+			useSessionCookies = !useSessionCookies
+		}
+		maxAge := int(sessionExpiry.Seconds())
+		if useSessionCookies {
+			maxAge = 0 // unset
+		}
 		cookies = append(cookies,
 			&http.Cookie{
 				Name:  sessionInfo.c.sessionCookieName(),
@@ -152,8 +160,8 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 
 				// How long should the User-Agent retain the cookie?  If unset, it will expire at the end of the
 				// "session" (when they close their browser).
-				Expires: time.Time{},                  // as a time (low precedence)
-				MaxAge:  int(sessionExpiry.Seconds()), // as a duration (high precedence)
+				Expires: time.Time{}, // as a time (low precedence)
+				MaxAge:  maxAge,      // as a duration (high precedence)
 
 				// Whether to send the cookie for non-TLS requests.
 				// TODO(lukeshu): consider using originalURL.Scheme
@@ -177,8 +185,8 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 
 				// How long should the User-Agent retain the cookie?  If unset, it will expire at the end of the
 				// "session" (when they close their browser).
-				Expires: time.Time{},                  // as a time (low precedence)
-				MaxAge:  int(sessionExpiry.Seconds()), // as a duration (high precedence)
+				Expires: time.Time{}, // as a time (low precedence)
+				MaxAge:  maxAge,      // as a duration (high precedence)
 
 				// Whether to send the cookie for non-TLS requests.
 				// TODO(lukeshu): consider using originalURL.Scheme

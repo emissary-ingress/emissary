@@ -10,6 +10,7 @@ releases. Please keep it up to date.
 - Change: The `OAuth2` Filter no longer sets cookies when `insteadOfRedirect` triggers
 - Change: The `OAuth2` Filter more frequently adjusts the cookies
 - Feature: `ifRequestHeader` can now have `valueRegex` instead of `value`
+- Feature: The `OAuth2` Filter now has `useSessionCookies` option to have cookies expire when the browser closes, rather than at a fixed duration
 
 ## 1.1.1 (TBD)
 
