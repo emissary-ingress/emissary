@@ -3,7 +3,7 @@ PLUGIN_DIR ?= .
 DOCKER_REGISTRY ?= localhost:31000
 DOCKER_IMAGE ?= $(DOCKER_REGISTRY)/aes-custom:$(shell git describe --tags --always --dirty)
 
-AES_VERSION ?= 1.0.0
+AES_VERSION ?= 1.1.1
 AES_IMAGE ?= quay.io/datawire/aes:$(AES_VERSION)
 
 all: .docker.stamp
