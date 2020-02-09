@@ -1,4 +1,4 @@
-#!python
+#!/usr/bin/env python3
 
 # Copyright 2019-2020 Datawire. All rights reserved.
 #
@@ -21,6 +21,22 @@
 ########
 
 import sys
+
+# The Python interpreter unconditionally prepends the directory
+# containing the script (following symlinks) to the import path.  This
+# isn't a problem when being called from setuptools entrypoint stubs,
+# but is when this file is called as a script directly; the Python
+# interpreter confuses `(gitroot)/python/ambassador_cli/ambassador.py`
+# for `(gitroot)/python/ambassador/__init__.py`.
+#
+# It seems that 'ambassador' is the only name for which this confusion
+# can happen:
+#
+#    comm -12 \
+#        <(find -name '__init__.py' -printf '%h\0' | xargs -0 basename --multiple -- | sort -u) \
+#        <(find -name '*.py' -executable -print0 | xargs -0 basename --multiple --suffix=.py -- | sort -u)
+if __name__ == "__main__":
+    del sys.path[0]
 
 import functools
 import glob

@@ -1,5 +1,3 @@
-#!python
-
 # Copyright 2020 Datawire. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -306,5 +304,3 @@ class ReconfigStats:
         self.logger.info(f"CACHE: incremental checks: {self.checks}, errors {self.errors}")
         self.logger.info(f"CACHE: last_complete {self.isofmt(self.last_complete, now_pc, now_dt)}")
         self.logger.info(f"CACHE: last_check {self.isofmt(self.last_check, now_pc, now_dt)}")
-
-
