@@ -591,7 +591,7 @@ export class ResourceView extends View {
               <div class="label">delete</div>
             </a>
             
-            <a class="cta edit ${this.visibleWhen("list", "edit", "add")}" @click=${(e)=>this.onYamlButton(e.target.checked)}>
+            <a class="cta edit ${this.visibleWhen("list", "edit", "add")}" @click=${(e)=>this.onYamlButton(e)}>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"><title>zoom</title><g class="nc-icon-wrapper" stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" fill="#000000" stroke="#000000"><line data-color="color-2" x1="59" y1="59" x2="42.556" y2="42.556" fill="none" stroke-miterlimit="10"/><circle cx="27" cy="27" r="22" fill="none" stroke="#000000" stroke-miterlimit="10"/></g></svg>
               <div class="label">yaml</div>
             </a>
