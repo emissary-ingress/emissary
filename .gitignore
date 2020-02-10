@@ -1,5 +1,7 @@
 # Created by ./configure
 BUILD
+!/BUILD
+!/python/**/BUILD
 /vendor
 
 # local files
