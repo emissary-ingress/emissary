@@ -837,9 +837,9 @@ class V2Listener(dict):
     def finalize(self, enable_sni: bool) -> None:
         self.config.ir.logger.info(f"V2Listener finalize {self.pretty()}")
 
-        # Check if ENVOY_BIND_ADDRESS is set, and if so, bind Envoy to that external address.
-        if "ENVOY_BIND_ADDRESS" in environ:
-            envoy_bind_address = environ.get("ENVOY_BIND_ADDRESS")
+        # Check if AMBASSADOR_ENVOY_BIND_ADDRESS is set, and if so, bind Envoy to that external address.
+        if "AMBASSADOR_ENVOY_BIND_ADDRESS" in environ:
+            envoy_bind_address = environ.get("AMBASSADOR_ENVOY_BIND_ADDRESS")
         else:
             envoy_bind_address = "0.0.0.0"
 

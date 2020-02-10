@@ -283,9 +283,9 @@ trap 'handle_chld' CHLD # Notify when a job status changes
 
 trap 'log "Received SIGINT (Control-C?); shutting down"; ambassador_exit 1' INT
 
-# Check if DIAGD_HOST is set, and if so, bind diagd server to that address.
-if [[ -n "${DIAGD_HOST}" ]]; then
-    diagd_flags+=('--host' "${DIAGD_HOST}")
+# Check if AMBASSADOR_DIAGD_BIND_ADDRESS is set, and if so, bind diagd server to that address.
+if [[ -n "${AMBASSADOR_DIAGD_BIND_ADDRESS}" ]]; then
+    diagd_flags+=('--host' "${AMBASSADOR_DIAGD_BIND_ADDRESS}")
 fi
 
 ################################################################################
