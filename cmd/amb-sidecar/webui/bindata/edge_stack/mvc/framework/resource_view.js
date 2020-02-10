@@ -692,13 +692,4 @@ export class ResourceView extends View {
     return errors;
   }
 
-  /* yamlElement()
- * This method returns the element that renders the YAML of the resource, either the pending changes
- * if shown during editing, or the current values.
- */
-
-  yamlElement() {
-    return this.shadowRoot.getElementById("merged-yaml");
-  }
 }
-

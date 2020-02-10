@@ -239,26 +239,10 @@ export class HostView extends IResourceView {
   */
   onEmailChanged() {
     this.writeToModel();
-
-    /* Because showYAML state is not a lit-element property,
-     * we have to manually request an update if the YAML is
-     * showing (because the YAML will change when the email
-     * changes). */
-    if (this.showYAML) {
-      this.yamlElement().requestUpdate();
-    }
   }
 
   onHostnameChanged() {
     this.writeToModel();
-
-    /* Because showYAML state is not a lit-element property,
-     * we have to manually request an update if the YAML is
-     * showing (because the YAML will change when the email
-     * changes). */
-    if (this.showYAML) {
-      this.yamlElement().requestUpdate();
-    }
   }
 
   onProviderChanged() {
@@ -269,14 +253,6 @@ export class HostView extends IResourceView {
      * to display to the user. */
     this.tosAgreeCheckbox().checked = false;
     this.tos = this.model.getTermsOfService();
-
-    /* Because showYAML state is not a lit-element property,
-     * we have to manually request an update if the YAML is
-     * showing (because the YAML will change when the email
-     * changes). */
-    if (this.showYAML) {
-      this.yamlElement().requestUpdate();
-    }
   }
 
   onTOSAgreeCheckbox() {
