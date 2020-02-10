@@ -19,6 +19,10 @@ indent_size = 2
 [*.md]
 indent_style = space
 
+[*.py]
+indent_style = space
+indent_size = 4
+
 [*.js]
 indent_style = tab
 

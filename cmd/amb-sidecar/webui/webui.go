@@ -11,6 +11,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"os"
 	"path"
@@ -75,6 +76,8 @@ type firstBootWizard struct {
 
 	privkey *rsa.PrivateKey
 	pubkey  *rsa.PublicKey
+
+	devProxy *httputil.ReverseProxy
 }
 
 func (fb *firstBootWizard) getSnapshot(clientSession string) Snapshot {
@@ -152,7 +155,7 @@ func New(
 ) http.Handler {
 	var files http.FileSystem = http.Dir(cfg.DevWebUIDir)
 
-	return &firstBootWizard{
+	fb := &firstBootWizard{
 		cfg:         cfg,
 		staticfiles: files,
 		hostsGetter: dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "hosts"}),
@@ -166,6 +169,24 @@ func New(
 		privkey: privkey,
 		pubkey:  pubkey,
 	}
+
+	if cfg.DevWebUISnapshotHost != "" {
+		// We use this http client for the UI inner dev loop in order to proxy
+		// requests to the snapshot api endpoint through to the in-cluster
+		// deployment.
+		fb.devProxy = &httputil.ReverseProxy{
+			Director: func(req *http.Request) {
+				req.URL.Scheme = "https"
+				req.URL.Host = cfg.DevWebUISnapshotHost
+			},
+			Transport: &http.Transport{
+				// #nosec G402
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			},
+		}
+	}
+
+	return fb
 }
 
 func getTermsOfServiceURL(httpClient *http.Client, caURL string) (string, error) {
@@ -274,16 +295,6 @@ func (fb *firstBootWizard) forbidden(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "Ambassador Edge Stack admin webui API forbidden")
 }
 
-// We use this http client for the UI inner dev loop in order to proxy
-// requests to the snapshot api endpoint through to the in-cluster
-// deployment.
-var devProxyClient = &http.Client{
-	Transport: &http.Transport{
-		// #nosec G402
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	},
-}
-
 //nolint:gocyclo
 func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if !strings.HasPrefix(r.URL.Path, "/edge_stack/") {
@@ -331,8 +342,13 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		fb.registerActivity(w, r)
+		jsonBytes, err := json.Marshal(certmagic.HostQualifies(r.FormValue("hostname")))
+		if err != nil {
+			middleware.ServeErrorResponse(w, r.Context(), http.StatusInternalServerError, err, nil)
+			return
+		}
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		json.NewEncoder(w).Encode(certmagic.HostQualifies(r.FormValue("hostname")))
+		w.Write(jsonBytes)
 	case "/edge_stack/api/config/ambassador-cluster-id":
 		// no authentication for this one
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
@@ -348,46 +364,21 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, os.Getenv("DEV_WEBUI_PORT"))
 		io.WriteString(w, "\n")
 	case "/edge_stack/api/snapshot":
-		clientSession := r.URL.Query().Get("client_session")
-		snapshotHost := fb.cfg.DevWebUISnapshotHost
-		if snapshotHost != "" {
-			req, err := http.NewRequest("GET",
-				fmt.Sprintf("https://%s/edge_stack/api/snapshot?client_session=%s", snapshotHost, clientSession),
-				nil)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			req.Header = r.Header
-
-			resp, err := devProxyClient.Do(req)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-
-			defer resp.Body.Close()
-
-			// headers
-
-			for name, values := range resp.Header {
-				w.Header()[name] = values
-			}
-
-			// status (must come after setting headers and before copying body)
-			w.WriteHeader(resp.StatusCode)
-
-			// body
-			io.Copy(w, resp.Body)
+		if fb.devProxy != nil {
+			fb.devProxy.ServeHTTP(w, r)
 			return
 		}
-
 		if !fb.isAuthorized(r) {
 			fb.forbidden(w, r)
 			return
 		}
+		jsonBytes, err := json.Marshal(fb.getSnapshot(r.URL.Query().Get("client_session")))
+		if err != nil {
+			middleware.ServeErrorResponse(w, r.Context(), http.StatusInternalServerError, err, nil)
+			return
+		}
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		json.NewEncoder(w).Encode(fb.getSnapshot(clientSession))
+		w.Write(jsonBytes)
 	case "/edge_stack/api/activity":
 		if !fb.isAuthorized(r) {
 			fb.forbidden(w, r)
@@ -464,6 +455,10 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Write(output.Bytes())
 	case "/edge_stack/api/log-level":
+		if fb.devProxy != nil {
+			fb.devProxy.ServeHTTP(w, r)
+			return
+		}
 		if !fb.isAuthorized(r) {
 			fb.forbidden(w, r)
 			return
