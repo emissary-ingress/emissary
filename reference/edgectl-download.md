@@ -2,6 +2,7 @@
 
 Edge Control is available for macOS, Linux, and Windows.
 
+Ensure that you have 
 
 ## macOS
 
@@ -12,12 +13,11 @@ Edge Control is available for macOS, Linux, and Windows.
     ```
 
 2. Or, download the [binary file](https://metriton.datawire.io/downloads/darwin/edgectl).
-
-3. Make it executable with the command `chmod a+x ~/Downloads/edgectl`
-
-4. Move the file to somewhere in your shell PATH.
-
-5. Return to the [Quick Start Guide](/user-guide/install) to finish the
+3. Move the file into your PATH with `sudo mv ./edgectl /usr/local/bin/edgectl`
+   * If you need to, print your PATH with `echo $PATH`
+4. Ensure the file is executable with the command `chmod a+x /usr/local/bin/edgectl`
+5. Run the executable with `./edgectl`
+6. Return to the [Quick Start Guide](/user-guide/install) to finish the
    `edgectl` install process.
 
 ## Linux
@@ -30,9 +30,8 @@ sudo curl -fL https://metriton.datawire.io/downloads/linux/edgectl -o
 ```
 
 2. Or, download the binary file [here](https://metriton.datawire.io/downloads/linux/edgectl)
-3. Make it executable with the command `chmod a+x ~/Downloads/edgectl`
-4. Move the file to somewhere in your shell PATH.
-5. Return to the [Quick Start Guide](/user-guide/install) to finish the
+3. Move the file to somewhere in your shell PATH.
+4. Return to the [Quick Start Guide](/user-guide/install) to finish the
    `edgectl` install process.
 
 ## Windows
