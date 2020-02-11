@@ -206,13 +206,18 @@
           <div class="right-side">
             
           <script type="text/javascript">
-
+          console.log("string1");
           let body = document.getElementById("body");
+          console.log("string2");
           let loadingMsg = document.getElementById("msg");
+          console.log("string3");
 
           document.addEventListener("DOMContentLoaded", function(event) { 
+            console.log("string4");
              body.style.display = 'block';
+             console.log("string5");
              loadingMsg.style.display = 'none';
+             console.log("string6");
           });
 
 /*          var BrowserDetect = {
@@ -339,27 +344,43 @@
       </main>   
     </div>
     <script type="text/javascript">
+      console.log("string7");
       let link = document.getElementsByClassName("app-link")[0]
+      console.log("string8");
       link.setAttribute("href", `https://${window.location.host}/edge_stack/admin`)
       if (window.location.protocol == 'http:') {
+        console.log("string9");
         document.getElementsByClassName('app-notice')[0].removeAttribute('style');
+        console.log("string10");
       }
 
       var BrowserDetect = {
           init: function () {
+            console.log("string11");
             this.browser = this.searchString(this.dataBrowser) || "Other";
+            console.log("string12");
           },
           searchString: function (data) {
+            console.log("string13");
             for (var i=0;i<data.length;i++)	{
+              console.log("string14");
               var dataString = data[i].string;
+              console.log("string15");
               var dataProp = data[i].prop;
+              console.log("string16");
               this.versionSearchString = data[i].versionSearch || data[i].identity;
+              console.log("string17");
               if (dataString) {
+                console.log("string18");
                 if (dataString.indexOf(data[i].subString) != -1)
+                console.log("string19");
                   return data[i].identity;
+                  console.log("string20");
               }
               else if (dataProp)
+              console.log("string21");
                 return data[i].identity;
+                console.log("string22");
             } 
           },
 
@@ -388,39 +409,64 @@
         };
 
       BrowserDetect.init();
+      console.log("string24");
       let browserDetected = BrowserDetect.browser;
+      console.log("string25");
       localStorage.setItem('browser', browserDetected);
+      console.log("string26");
 
       // Sets browser variable for function use
       let browser = localStorage.getItem('browser');
+      console.log("string27");
 
       console.log(browser);
+      console.log("string28");
       console.log(navigator.userAgent);
+      console.log("string29");
       // Self-executing function to display appropriate browser warning info
       function renderBrowserWarning(browser) {
+        console.log("string30");
           switch(browser) {
             case "Chrome":
+            console.log("string31");
               document.getElementById("browserNameChrome").style.display = "inline-block";
+              console.log("string32");
               document.getElementById("showHideWrapperChrome").style.display = "inline-block";
+              console.log("string33");
               break;
+              console.log("string34");
             case "Safari":
               document.getElementById("browserNameSafari").style.display = "inline-block";
+              console.log("string35");
               document.getElementById("showHideWrapperSafari").style.display = "inline-block";
+              console.log("string36");
               break;
+              console.log("string37");
+              console.log("string38");
             case "Firefox":
               document.getElementById("browserNameFirefox").style.display = "inline-block";
+              console.log("string39");
               document.getElementById("showHideWrapperFirefox").style.display = "inline-block";
+              console.log("string40");
               break;
+              console.log("string41");
             case "Edge":
               document.getElementById("browserNameMSEdge").style.display = "inline-block";
+              console.log("string42");
               document.getElementById("showHideWrapperMSEdge").style.display = "inline-block";
+              console.log("string43");
               break;
+              console.log("string44");
             case "Other":
               document.getElementById("showHideWrapperOther").style.display = "inline-block";
+              console.log("string45");
               break;
+              console.log("string46");
           }
         }; 
+        console.log("string47");
       renderBrowserWarning(browser);
+      console.log("string48");
     </script>
   </div>
   </body>
