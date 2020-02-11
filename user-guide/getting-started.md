@@ -40,12 +40,6 @@ Install Edge Control for your operating system [here](/reference/edgectl-downloa
 **To install the Ambassador Edge Stack:**
 
 1. Run the following command: `edgectl install`
-
-  * If your installation "hangs" for several minutes while acquiring a DNS
-    hostname, open a new window and run the command
-    `sudo killall -HUP mDNSResponder`
-  * Note that this will require your password.
-
 2. Provide an email address so you can be notified before your domain and
    certificate expire.
 
