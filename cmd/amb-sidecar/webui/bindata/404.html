@@ -366,14 +366,15 @@
           dataBrowser: [
             {
               string: navigator.userAgent,
-              subString: "Chrome",
-              identity: "Chrome"
+              subString: "Edge",
+              identity: "Edge",
+            //  versionSearch: "Edge"
             },
             {
               string: navigator.vendor,
               subString: "Apple",
               identity: "Safari",
-              versionSearch: "Version"
+            //  versionSearch: "Version"
             },
             {
               string: navigator.userAgent,
@@ -382,9 +383,8 @@
             },
             {
               string: navigator.userAgent,
-              subString: "MSIE",
-              identity: "Explorer",
-              versionSearch: "MSIE"
+              subString: "Chrome",
+              identity: "Chrome"
             },
           ]
         };
@@ -415,7 +415,7 @@
               document.getElementById("browserNameFirefox").style.display = "inline-block";
               document.getElementById("showHideWrapperFirefox").style.display = "inline-block";
               break;
-            case "MSEdge":
+            case "Edge":
               document.getElementById("browserNameMSEdge").style.display = "inline-block";
               document.getElementById("showHideWrapperMSEdge").style.display = "inline-block";
               break;
