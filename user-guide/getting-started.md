@@ -10,7 +10,9 @@ Different options for installation include:
 * **[Quick Install (recommended!)](#quick-install)**
 * [Install via Minikube](#minikube-users)
 * [Install in CI](#install-in-ci)
-* Or, you can [install manually](/user-guide/manual-install)
+
+Or, you can [install manually](/user-guide/manual-install) if you want to
+customize your configuration.
 
 ## Before You Begin
 
@@ -65,7 +67,8 @@ Install Edge Control for your operating system [here](/reference/edgectl-downloa
  Congratulations, you’ve successfully installed the Ambassador Edge Stack in your Kubernetes cluster. Visit https://random-word-3421.edgestack.me to access your Edge Stack installation and for additional configuration.
  ```
 
-Your new [Edge Policy Console](/about/edge-policy-console) will open automatically in your browser at the provided URL.
+Your new [Edge Policy Console](/about/edge-policy-console) will open
+automatically in your browser at the provided URL. **Note that the provided `edgestack.me` domain name will expire after 90 days**.
 
 ### Minikube Users
 
