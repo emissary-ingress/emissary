@@ -1202,8 +1202,8 @@ class V2Listener(dict):
                  "vhosts": { k: v.pretty() for k, v in self.vhosts.items() } }
 
     @classmethod
-    def dump_listeners(cls, logger, listeners_by_port) -> None:
-        pretty = { k: v.pretty() for k, v in listeners_by_port.items() }
+    def dump_listeners(cls, logger, v2listener_by_port) -> None:
+        pretty = { k: v.pretty() for k, v in v2listener_by_port.items() }
 
         logger.debug(f"V2Listeners: {dump_json(pretty, pretty=True)}")
 
@@ -1221,7 +1221,7 @@ class V2Listener(dict):
         # The highest-level thing that defines an Envoy listener is a port, so start
         # with that.
 
-        listeners_by_port = V2ListenerCollection(config)
+        v2listener_by_port = V2ListenerCollection(config)
 
         # Also, in Edge Stack, the magic extremely-low-precedence / Mapping is always routed,
         # rather than being redirected. If a user doesn't want this behavior, they can override
@@ -1237,7 +1237,7 @@ class V2Listener(dict):
                 logger.debug(f"V2Listeners: working on {irlistener.pretty()}")
 
             # Grab a new V2Listener for this IRListener...
-            listener = listeners_by_port.get(irlistener.service_port, irlistener.use_proxy_proto)
+            listener = v2listener_by_port.get(irlistener.service_port, irlistener.use_proxy_proto)
             listener.add_irlistener(irlistener)
 
             # What VirtualHost hostname are we trying to work with here?
@@ -1252,7 +1252,7 @@ class V2Listener(dict):
 
             if (irlistener.insecure_addl_port is not None) and (irlistener.insecure_addl_port > 0):
                 # Make sure we have a listener on the right port for this.
-                listener = listeners_by_port.get(irlistener.insecure_addl_port, irlistener.use_proxy_proto)
+                listener = v2listener_by_port.get(irlistener.insecure_addl_port, irlistener.use_proxy_proto)
 
                 if irlistener.insecure_addl_port not in first_irlistener_by_port:
                     first_irlistener_by_port[irlistener.insecure_addl_port] = irlistener
@@ -1270,10 +1270,10 @@ class V2Listener(dict):
 
         if log_debug:
             logger.debug(f"V2Listeners: after IRListeners")
-            cls.dump_listeners(logger, listeners_by_port)
+            cls.dump_listeners(logger, v2listener_by_port)
 
         # Make sure that each listener has a '*' vhost.
-        for port, listener in listeners_by_port.items():
+        for port, listener in v2listener_by_port.items():
             if not '*' in listener.vhosts:
                 # Force the first VHost to '*'. I know, this is a little weird, but it's arguably
                 # the least surprising thing to do in most situations.
@@ -1286,7 +1286,7 @@ class V2Listener(dict):
             # If we're running Edge Stack, and we're not an intercept agent, make sure we have
             # a listener on port 8080, so that we have a place to stand for ACME.
 
-            if 8080 not in listeners_by_port:
+            if 8080 not in v2listener_by_port:
                 # Check for a listener on the main service port to see if the proxy proto
                 # is enabled.
                 main_listener = first_irlistener_by_port.get(config.ir.ambassador_module.service_port, None)
@@ -1295,8 +1295,8 @@ class V2Listener(dict):
                 # Force a listener on 8080 with a VHost for '*' that rejects everything. The ACME
                 # hole-puncher will override the reject for ACME, and nothing else will get through.
                 if log_debug:
-                    logger.debug(f"V2Listeners: listeners_by_port has no 8080, forcing Edge Stack listener on 8080")
-                listener = listeners_by_port.get(8080, use_proxy_proto)
+                    logger.debug(f"V2Listeners: v2listener_by_port has no 8080, forcing Edge Stack listener on 8080")
+                listener = v2listener_by_port.get(8080, use_proxy_proto)
 
                 # Remember, it is not a bug to have action=None. There is no secure action
                 # for this vhost.
@@ -1364,7 +1364,7 @@ class V2Listener(dict):
             # We now have a secure route and an insecure route, so we need to walk all listeners
             # and all vhosts, and match up the routes with the vhosts.
 
-            for port, listener in listeners_by_port.items():
+            for port, listener in v2listener_by_port.items():
                 for vhostkey, vhost in listener.vhosts.items():
                     # For each vhost, we need to look at things for the secure world as well
                     # as the insecure world, depending on what the action is exactly (and note
@@ -1436,14 +1436,14 @@ class V2Listener(dict):
                             vhost.needs_redirect()
 
         # OK. Finalize the world.
-        for port, listener in listeners_by_port.items():
+        for port, listener in v2listener_by_port.items():
             listener.finalize()
 
         if log_debug:
             logger.debug("V2Listeners: after finalize")
-            cls.dump_listeners(logger, listeners_by_port)
+            cls.dump_listeners(logger, v2listener_by_port)
 
-        for k, v in listeners_by_port.items():
+        for k, v in v2listener_by_port.items():
             config.listeners.append(v.as_dict())
 
         # logger.info(f"==== ENVOY LISTENERS ====: {dump_json(config.listeners, pretty=True)}")
