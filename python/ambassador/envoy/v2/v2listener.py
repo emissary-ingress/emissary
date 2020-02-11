@@ -964,9 +964,7 @@ class V2Listener(dict):
         logger.debug(f"V2Listeners: after IRListeners")
         cls.dump_listeners(logger, listeners_by_port)
 
-        # Make sure that each listener has a '*' vhost, and remember if we have a
-        # listener on 8080. (Why do we need to remember this? Because
-
+        # Make sure that each listener has a '*' vhost.
         for port, listener in listeners_by_port.items():
             if not '*' in listener.vhosts:
                 # Force the first VHost to '*'. I know, this is a little weird, but it's arguably
