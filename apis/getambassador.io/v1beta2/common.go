@@ -53,6 +53,7 @@ type HeaderFieldSelector struct {
 	Value         string         `json:"value"`
 	ValueRegex    *regexp.Regexp `json:"-"`
 	RawValueRegex string         `json:"valueRegex"`
+	Negate        bool           `json:"negate"`
 }
 
 func (selector *HeaderFieldSelector) Validate() error {
@@ -80,14 +81,19 @@ func (selector HeaderFieldSelector) Matches(header http.Header) bool {
 		return true
 	}
 	value := header.Get(selector.Name)
+	var ret bool
 	switch {
 	case selector.ValueRegex != nil:
-		return selector.ValueRegex.MatchString(value)
+		ret = selector.ValueRegex.MatchString(value)
 	case selector.Value != "":
-		return value == selector.Value
+		ret = value == selector.Value
 	default:
-		return value != ""
+		ret = value != ""
 	}
+	if selector.Negate {
+		ret = !ret
+	}
+	return ret
 }
 
 type HeaderFieldTemplate struct {
