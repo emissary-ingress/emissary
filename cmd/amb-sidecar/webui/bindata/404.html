@@ -368,13 +368,11 @@
               string: navigator.userAgent,
               subString: "Edge",
               identity: "Edge",
-            //  versionSearch: "Edge"
             },
             {
               string: navigator.vendor,
               subString: "Apple",
               identity: "Safari",
-            //  versionSearch: "Version"
             },
             {
               string: navigator.userAgent,
@@ -389,14 +387,12 @@
           ]
         };
 
-          window.onload = (event) => {
-            BrowserDetect.init();
-            let browserDetected = BrowserDetect.browser;
-            localStorage.setItem('browser', browserDetected);
-          };
+      BrowserDetect.init();
+      let browserDetected = BrowserDetect.browser;
+      localStorage.setItem('browser', browserDetected);
 
-          // Sets browser variable for function use
-          let browser = localStorage.getItem('browser');
+      // Sets browser variable for function use
+      let browser = localStorage.getItem('browser');
 
       console.log(browser);
       console.log(navigator.userAgent);
