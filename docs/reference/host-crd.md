@@ -67,9 +67,15 @@ Some special cases to be aware of here:
 
 ## Load Balancers, the `Host` Resource, and `X-Forwarded-Proto`
 
-In a typical installation, Ambassador will be running behind a load balancer. The configuration of the load balancer can affect how Ambassador sees requests arriving from the outside world, which can in turn affect whether Ambassador considers the request secure or insecure. As such:
+In a typical installation, Ambassador runs behind a load balancer. The
+configuration of the load balancer can affect how Ambassador sees requests
+arriving from the outside world, which can in turn can affect whether Ambassador
+considers the request secure or insecure. As such:
 
-- **We recommend layer 4 load balancers** unless your workload includes long-lived connections with multiple requests arriving over the same connection (for example, a workload with many requests carried over a small number of long-lived gRPC connections).
+- **We recommend layer 4 load balancers** unless your workload includes
+  long-lived connections with multiple requests arriving over the same
+  connection. For example, a workload with many requests carried over a small
+  number of long-lived gRPC connections.
 - **Ambassador fully supports TLS termination at the load balancer** with a single exception, listed below.
 - If you are using a layer 7 load balancer, **it is critical that the system be configured correctly**:
   - The load balancer must correctly handle `X-Forwarded-For` and `X-Forwarded-Proto`.
@@ -83,9 +89,9 @@ In the discussion below, "L4 LB" refers to a layer 4 load balancer, while "L7 LB
 
 1. HTTPS-only, TLS terminated at Ambassador, not redirecting cleartext:
 
-  This example is the same with no LB or with an L4 LB. It also covers an L4 LB that terminates TLS, then re-originates TLS from the load balancer to Ambassador.
+  This example is the same with a L4 LB, or without a load balancer. It also covers an L4 LB that terminates TLS, then re-originates TLS from the load balancer to Ambassador.
 
-  In this situation, Ambassador does everything on its own, and insecure requests are flatly rejected. 
+  In this situation, Ambassador does everything on its own, and insecure requests are flatly rejected.
 
   ```yaml
   apiVersion: getambassador.io/v2
@@ -100,9 +106,9 @@ In the discussion below, "L4 LB" refers to a layer 4 load balancer, while "L7 LB
         action: Reject
   ```
 
-  The `acmeProvider` must be set appropriately for your certificate-management needs -- it could be set to allow Edge Stack to manage certificates for you (this is the default), or you could set `acmeProvider.authority` to `none` to manage certificates by hand.
+  The `acmeProvider` must be set appropriately for your certificate-management needs; by default, it is set to allow the Ambassador Edge Stack to manage certificates for you. Or, you could set `acmeProvider.authority` to `none` if you want to manage certificates by hand.
 
-  An example using ACME with Let's Encrypt (this is the default `acmeProvider`):
+  An example using the default `acmeProvider`, ACME with Let's Encrypt:
 
   ```yaml
   apiVersion: getambassador.io/v2
@@ -116,9 +122,9 @@ In the discussion below, "L4 LB" refers to a layer 4 load balancer, while "L7 LB
         action: Reject
   ```
 
-  An example using managing certificates by hand:
+  An example managing certificates by hand:
 
-  ```
+  ```yaml
   ---
   apiVersion: getambassador.io/v2
   kind: Host
@@ -142,9 +148,9 @@ In the discussion below, "L4 LB" refers to a layer 4 load balancer, while "L7 LB
 
 2. HTTPS-only, TLS terminated at Ambassador, redirecting cleartext from port 8080:
 
-  This example is the same with no LB or with an L4 LB.
+This example is the same for an L4 LB, or without a load balancer at all.
 
-  ```yaml
+ ```yaml
   apiVersion: getambassador.io/v2
   kind: Host
   metadata:
@@ -164,7 +170,7 @@ In the discussion below, "L4 LB" refers to a layer 4 load balancer, while "L7 LB
 
 3. HTTP-only:
 
-  This example is the same with no LB or with an L4 LB.
+  This example is the same with an L4 LB, or without a load balancer at all.
 
   ```yaml
   apiVersion: getambassador.io/v2
@@ -224,9 +230,9 @@ In the discussion below, "L4 LB" refers to a layer 4 load balancer, while "L7 LB
   - `client -> L7 LB -> L7 LB -> Ambassador` would require `xff_num_trusted_hops: 2`
   - etc.
 
-  If using an L7 LB, **we recommend having the LB handle TLS termination and redirection of cleartext**. For this use case, you can use a `Host` with no TLS, but still turn on redirection as a failsafe:
+  If using an L7 LB, **we recommend that the LB handle TLS termination and redirection of cleartext**. For this use case, you can use a `Host` without TLS, but still turn on redirection as a failsafe:
 
-  ```
+  ```yaml
   ---
   apiVersion: getambassador.io/v2
   kind: Host
