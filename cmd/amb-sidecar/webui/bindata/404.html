@@ -215,7 +215,7 @@
              loadingMsg.style.display = 'none';
           });
 
-          var BrowserDetect = {
+/*          var BrowserDetect = {
           init: function () {
             this.browser = this.searchString(this.dataBrowser) || "Other";
           },
@@ -267,7 +267,7 @@
 
           // Sets browser variable for function use
           let browser = localStorage.getItem('browser');
-          
+*/          
           </script>
 
 <!-- Body text -->
@@ -344,6 +344,59 @@
       if (window.location.protocol == 'http:') {
         document.getElementsByClassName('app-notice')[0].removeAttribute('style');
       }
+
+      var BrowserDetect = {
+          init: function () {
+            this.browser = this.searchString(this.dataBrowser) || "Other";
+          },
+          searchString: function (data) {
+            for (var i=0;i<data.length;i++)	{
+              var dataString = data[i].string;
+              var dataProp = data[i].prop;
+              this.versionSearchString = data[i].versionSearch || data[i].identity;
+              if (dataString) {
+                if (dataString.indexOf(data[i].subString) != -1)
+                  return data[i].identity;
+              }
+              else if (dataProp)
+                return data[i].identity;
+            } 
+          },
+
+          dataBrowser: [
+            {
+              string: navigator.userAgent,
+              subString: "Chrome",
+              identity: "Chrome"
+            },
+            {
+              string: navigator.vendor,
+              subString: "Apple",
+              identity: "Safari",
+              versionSearch: "Version"
+            },
+            {
+              string: navigator.userAgent,
+              subString: "Firefox",
+              identity: "Firefox"
+            },
+            {
+              string: navigator.userAgent,
+              subString: "MSIE",
+              identity: "Explorer",
+              versionSearch: "MSIE"
+            },
+          ]
+        };
+
+          window.onload = (event) => {
+            BrowserDetect.init();
+            let browserDetected = BrowserDetect.browser;
+            localStorage.setItem('browser', browserDetected);
+          };
+
+          // Sets browser variable for function use
+          let browser = localStorage.getItem('browser');
 
       console.log(browser);
       console.log(navigator.userAgent);
