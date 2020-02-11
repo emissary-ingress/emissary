@@ -977,6 +977,26 @@ class V2Listener(dict):
                 first_vhost._hostname = '*'
                 first_vhost._name = f"{first_vhost._name}-forced-star"
 
+        if config.ir.edge_stack_allowed:
+            # If we're running Edge Stack, make sure we have a listener on port 8080, so that
+            # we have a place to stand for ACME.
+            listener = listeners_by_port[8080]
+
+            # Given the listener, if it has no vhost for '*' (which can only happen if it didn't
+            # exist before), add one that rejects everything. The ACME hole-puncher will override
+            # the reject for ACME, and nothing else will get through.
+            if '*' not in listener.vhosts:
+                logger.info(f"V2Listeners: forcing Edge Stack listener on 8080")
+                # Remember, it is not a bug to have action=None. There is no secure action
+                # for this vhost.
+                listener.make_vhost(name="forced-8080",
+                                    hostname="*",
+                                    context=None,
+                                    secure=False,
+                                    action=None,
+                                    insecure_action='Reject',
+                                    use_proxy_proto=irlistener8443.use_proxy_proto)
+
         # OK. We have all the listeners. Time to walk the routes (note that they are already ordered).
         for route in config.routes:
             # If this an SNI route, remember the host[s] to which it pertains.
