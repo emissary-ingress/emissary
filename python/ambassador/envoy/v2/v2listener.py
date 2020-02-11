@@ -1358,8 +1358,8 @@ class V2Listener(dict):
                 "https_redirect": True
             }
 
-            # We now have a secure route and an insecure route, so we need to walk all v2listeners
-            # and all vhosts, and match up the routes with the vhosts.
+            # We now have a secure_route, an insecure_route, and a redirect_route; so we need to
+            # walk all v2listeners and all vhosts, and match up the routes with the vhosts.
 
             for port, v2listener in v2listener_by_port.items():
                 for vhostkey, vhost in v2listener.vhosts.items():
@@ -1368,7 +1368,7 @@ class V2Listener(dict):
                     # that we can have an action of None if we're looking at a vhost created
                     # by an insecure_addl_port).
 
-                    candidates: List[Tuple[bool, DictifiedV2Route, str]] = []
+                    candidates: List[Tuple[bool, DictifiedV2Route, str]] = [] # list of (secure: bool, route: dict, action: Enum["Redirect","Reject","Route"]) tuples
                     vhostname = vhost._hostname
 
                     if vhost._action is not None:
@@ -1376,7 +1376,7 @@ class V2Listener(dict):
 
                     if vhost._insecure_action == "Redirect":
                         candidates.append(( False, redirect_route, "Redirect" ))
-                    elif vhost._insecure_action is not None:
+                    elif vhost._insecure_action is not None:  # "Reject" or "Route"
                         candidates.append((False, insecure_route, vhost._insecure_action))
 
                     for secure, route, action in candidates:
@@ -1423,6 +1423,15 @@ class V2Listener(dict):
                                     f"V2Listeners: {v2listener.name} {vhostname} {variant}: Accept as {action}")
                             vhost.routes.append(route)
                         else:
+                            # FIXME(lukeshu): Just discarding the route means that we're potentially
+                            # exposing paths on a lower-precedence insecure_action!="Reject" route
+                            # that wouldn't normally be exposed.  Instead, we should have a
+                            # "reject_route" that has Envoy serve a 404 (via direct-response?).
+                            # Right now, the only way this could happen is if the other
+                            # lower-precedence route is the ACME route or the AES magic "/" route,
+                            # so it's not a bug yet, as we're not concerned about exposing paths on
+                            # those.  But if there ever becomes a way that the user can set a
+                            # route's insecure_action, then this will be a bug.
                             if log_debug:
                                 logger.debug(
                                     f"V2Listeners: {v2listener.name} {vhostname} {variant}: Drop")
