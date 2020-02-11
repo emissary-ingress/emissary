@@ -85,9 +85,22 @@ It's important to realize that Envoy manages the `X-Forwarded-Proto` header such
 
 ## Use Cases and Examples
 
-In the discussion below, "L4 LB" refers to a layer 4 load balancer, while "L7 LB" refers to a layer 7 load balancer.
+In the definitions below, "L4 LB" refers to a layer 4 load balancer, while "L7
+LB" refers to a layer 7 load balancer.
 
-1. HTTPS-only, TLS terminated at Ambassador, not redirecting cleartext:
+* [HTTPS-only, TLS terminated at Ambassador, not redirecting cleartext]
+* HTTPS-only, TLS terminated at Ambassador, redirecting cleartext from port 8080]
+* HTTP-only
+* L4 LB, HTTPS-only, TLS terminated at Ambassador, not redirecting cleartext
+* L4 LB, HTTPS-only, TLS terminated at Ambassador, redirecting cleartext from port 8080
+* L4 LB, HTTP-only
+* L4 LB, TLS terminated at LB, LB speaks cleartext to Ambassador
+* L4 LB, TLS terminated at LB, LB speaks TLS to Ambassador
+* L4 split LB, TLS terminated at Ambassador
+* L4 split LB, TLS terminated at LB
+* L7 LB
+
+### HTTPS-only, TLS terminated at Ambassador, not redirecting cleartext
 
   This example is the same with a L4 LB, or without a load balancer. It also covers an L4 LB that terminates TLS, then re-originates TLS from the load balancer to Ambassador.
 
@@ -146,7 +159,7 @@ In the discussion below, "L4 LB" refers to a layer 4 load balancer, while "L7 LB
 
   With the configuration above, the system will look for a TLS secret in `manual-secret-for-foo`, but it will not run ACME for it.
 
-2. HTTPS-only, TLS terminated at Ambassador, redirecting cleartext from port 8080:
+### HTTPS-only, TLS terminated at Ambassador, redirecting cleartext from port 8080
 
 This example is the same for an L4 LB, or without a load balancer at all.
 
@@ -168,7 +181,7 @@ This example is the same for an L4 LB, or without a load balancer at all.
 
   If you do not set `insecure.additionalPort`, Ambassador won't listen on port 8080 at all. However, with the `Redirect` action still in place, Ambassador will still redirect requests that arrive on port 8443 with an `X-Forwarded-Proto` of `http`.
 
-3. HTTP-only:
+### HTTP-only
 
   This example is the same with an L4 LB, or without a load balancer at all.
 
@@ -188,41 +201,41 @@ This example is the same for an L4 LB, or without a load balancer at all.
 
   In this case, the Host resource explicitly requests no ACME handling and no TLS, then states that insecure requests must be routed instead of redirected.
 
-4. L4 LB, HTTPS-only, TLS terminated at Ambassador, not redirecting cleartext:
+### L4 LB, HTTPS-only, TLS terminated at Ambassador, not redirecting cleartext
 
   Configure this exactly like case 1. Leave `xff_num_trusted_hops` in the `ambassador` module at its default of 0.
 
-5. L4 LB, HTTPS-only, TLS terminated at Ambassador, redirecting cleartext from port 8080:
+### L4 LB, HTTPS-only, TLS terminated at Ambassador, redirecting cleartext from port 8080
 
   This use case is not supported by Ambassador 1.1.1. It will be supported in a forthcoming release.
 
-6. L4 LB, HTTP-only:
+### L4 LB, HTTP-only
 
   Configure this exactly like case 3. Leave `xff_num_trusted_hops` in the `ambassador` module at its default of 0.
 
-7. L4 LB, TLS terminated at LB, LB speaks cleartext to Ambassador:
+### L4 LB, TLS terminated at LB, LB speaks cleartext to Ambassador
 
   Configure this exactly like case 3, since by the time the connection arrives at Ambassador, it will appear to be insecure. Leave `xff_num_trusted_hops` in the `ambassador` module at its default of 0.
 
-8. L4 LB, TLS terminated at LB, LB speaks TLS to Ambassador:
+### L4 LB, TLS terminated at LB, LB speaks TLS to Ambassador
 
   Configure this exactly like case 1. Leave `xff_num_trusted_hops` in the `ambassador` module at its default of 0.
 
   Note that since Ambassador _is_ terminating TLS, managing Ambassador's TLS certificate will be important.
 
-9. L4 split LB, TLS terminated at Ambassador:
+### L4 split LB, TLS terminated at Ambassador
 
   In this scenario, an L4 load balancer terminates TLS on port 443 and relays that traffic as cleartext to Ambassador on port 8443, but the load balancer also relays cleartext traffic on port 80 to Ambassador on port 8080. (This could also be two L4 load balancers working in concert.)
 
   Configure this exactly like case 2. Leave `xff_num_trusted_hops` in the `ambassador` module at its default of 0.
 
-10. L4 split LB, TLS terminated at LB:
+### L4 split LB, TLS terminated at LB
 
   In this scenario, an L4 load balancer terminates TLS on port 443 and relays that traffic as cleartext to Ambassador on port 8443, but the load balancer also relays cleartext traffic on port 80 to Ambassador on port 8080. (This could also be two L4 load balancers working in concert.)
 
   This case is not supported in Ambassador 1.1.1. It will be supported in a forthcoming release.
 
-11. L7 LB
+### L7 LB
 
   In general, L7 load balancers will be expected to provide a correct `X-Forwarded-Proto` header, and will require `xff_num_trusted_hops` set to the depth of the L7 LB stack in front of Ambassador. 
 
