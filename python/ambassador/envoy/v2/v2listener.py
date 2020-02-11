@@ -642,7 +642,7 @@ class V2ListenerCollection:
         return listener
 
     def __contains__(self, port: int) -> bool:
-        return bool(self.listeners.get(port, None))
+        return port in self.listeners
 
     def items(self):
         return self.listeners.items()
@@ -921,12 +921,8 @@ class V2Listener(dict):
         # the Mapping.
 
         first_irlistener_by_port: Dict[int, IRListener] = {}
-        irlistener8443 = None
 
         for irlistener in config.ir.listeners:
-            if not irlistener8443 and (irlistener.service_port == 8443):
-                irlistener8443 = irlistener
-
             if irlistener.service_port not in first_irlistener_by_port:
                 first_irlistener_by_port[irlistener.service_port] = irlistener
 
@@ -968,7 +964,9 @@ class V2Listener(dict):
         logger.debug(f"V2Listeners: after IRListeners")
         cls.dump_listeners(logger, listeners_by_port)
 
-        # Make sure that each listener has a '*' vhost.
+        # Make sure that each listener has a '*' vhost, and remember if we have a
+        # listener on 8080. (Why do we need to remember this? Because
+
         for port, listener in listeners_by_port.items():
             if not '*' in listener.vhosts:
                 # Force the first VHost to '*'. I know, this is a little weird, but it's arguably
@@ -980,13 +978,19 @@ class V2Listener(dict):
         if config.ir.edge_stack_allowed:
             # If we're running Edge Stack, make sure we have a listener on port 8080, so that
             # we have a place to stand for ACME.
-            listener = listeners_by_port[8080]
 
-            # Given the listener, if it has no vhost for '*' (which can only happen if it didn't
-            # exist before), add one that rejects everything. The ACME hole-puncher will override
-            # the reject for ACME, and nothing else will get through.
-            if '*' not in listener.vhosts:
-                logger.info(f"V2Listeners: forcing Edge Stack listener on 8080")
+            if 8080 not in listeners_by_port:
+                # Force a listener on 8080 with a VHost for '*' that rejects everything. The ACME
+                # hole-puncher will override the reject for ACME, and nothing else will get through.
+
+                logger.info(f"V2Listeners: listeners_by_port has no 8080, forcing Edge Stack listener on 8080")
+                listener = listeners_by_port[8080]
+
+                # Check for a listener on the main service port to see if the proxy proto
+                # is enabled.
+                main_listener = first_irlistener_by_port.get(config.ir.ambassador_module.service_port, None)
+                use_proxy_proto = main_listener.use_proxy_proto if main_listener else False
+
                 # Remember, it is not a bug to have action=None. There is no secure action
                 # for this vhost.
                 listener.make_vhost(name="forced-8080",
@@ -995,7 +999,7 @@ class V2Listener(dict):
                                     secure=False,
                                     action=None,
                                     insecure_action='Reject',
-                                    use_proxy_proto=irlistener8443.use_proxy_proto)
+                                    use_proxy_proto=use_proxy_proto)
 
         # OK. We have all the listeners. Time to walk the routes (note that they are already ordered).
         for route in config.routes:
