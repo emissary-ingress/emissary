@@ -203,7 +203,7 @@ This example is the same for an L4 LB, or without a load balancer at all.
 
 ### L4 LB, HTTPS-only, TLS terminated at Ambassador, not redirecting cleartext
 
-  Configure this exactly like case 1. Leave `xff_num_trusted_hops` in the `ambassador` module at its default of 0.
+  Configure this exactly like [case 1](#https-only-tls-terminated-at-ambassador-not-redirecting-cleartext). Leave `xff_num_trusted_hops` in the `ambassador` module at its default of 0.
 
 ### L4 LB, HTTPS-only, TLS terminated at Ambassador, redirecting cleartext from port 8080
 
@@ -211,15 +211,15 @@ This example is the same for an L4 LB, or without a load balancer at all.
 
 ### L4 LB, HTTP-only
 
-  Configure this exactly like case 3. Leave `xff_num_trusted_hops` in the `ambassador` module at its default of 0.
+  Configure this exactly like [case 3](#http-only). Leave `xff_num_trusted_hops` in the `ambassador` module at its default of 0.
 
 ### L4 LB, TLS terminated at LB, LB speaks cleartext to Ambassador
 
-  Configure this exactly like case 3, since by the time the connection arrives at Ambassador, it will appear to be insecure. Leave `xff_num_trusted_hops` in the `ambassador` module at its default of 0.
+  Configure this exactly like [case 3](#http-only), since by the time the connection arrives at Ambassador, it will appear to be insecure. Leave `xff_num_trusted_hops` in the `ambassador` module at its default of 0.
 
 ### L4 LB, TLS terminated at LB, LB speaks TLS to Ambassador
 
-  Configure this exactly like case 1. Leave `xff_num_trusted_hops` in the `ambassador` module at its default of 0.
+  Configure this exactly like [case 1](#https-only-tls-terminated-at-ambassador-not-redirecting-cleartext). Leave `xff_num_trusted_hops` in the `ambassador` module at its default of 0.
 
   Note that since Ambassador _is_ terminating TLS, managing Ambassador's TLS certificate will be important.
 
@@ -227,7 +227,7 @@ This example is the same for an L4 LB, or without a load balancer at all.
 
   In this scenario, an L4 load balancer terminates TLS on port 443 and relays that traffic as cleartext to Ambassador on port 8443, but the load balancer also relays cleartext traffic on port 80 to Ambassador on port 8080. (This could also be two L4 load balancers working in concert.)
 
-  Configure this exactly like case 2. Leave `xff_num_trusted_hops` in the `ambassador` module at its default of 0.
+  Configure this exactly like [case 2](#https-only-tls-terminated-at-ambassador-redirecting-cleartext-from-port-8080). Leave `xff_num_trusted_hops` in the `ambassador` module at its default of 0.
 
 ### L4 split LB, TLS terminated at LB
 
