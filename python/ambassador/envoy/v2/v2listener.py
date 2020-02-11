@@ -1382,22 +1382,18 @@ class V2Listener(dict):
                     for secure, route, action in candidates:
                         variant = "secure" if secure else "insecure"
 
-                        if route["match"].get("prefix", None) == "/.well-known/acme-challenge/":
+                        if route["match"].get("prefix", None) == "/.well-known/acme-challenge/" and not secure:
                             # We need to be sure to route ACME challenges, no matter what else is going
                             # on (this is the infamous ACME hole-puncher mentioned everywhere).
                             if log_debug:
-                                logger.debug(f"V2Listeners: {v2listener.name} {vhostname} force Route for ACME challenge")
+                                logger.debug(f"V2Listeners: {v2listener.name} {vhostname} insecure: force Route for ACME challenge")
                             action = "Route"
 
                             # We have to force the correct route entry, too, just in case. (Note that right now,
                             # the user can't create a Mapping that forces redirection. When they can do this
                             # per-Mapping, well, really, we can't force them to not redirect if they explicitly
                             # ask for it, and that'll be OK.)
-
-                            if secure:
-                                route = secure_route
-                            else:
-                                route = insecure_route
+                            route = insecure_route
                         elif ('*' not in route_hosts) and (vhostname != '*') and (vhostname not in route_hosts):
                             # Drop this because the host is mismatched.
                             if log_debug:
