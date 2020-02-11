@@ -112,7 +112,7 @@ metadata:
   name: external-grpc-mapping
 spec:
   prefix: /external-grpc/
-  service: httpbin.org:80
+  service: httpbin.default.svc.cluster.local
   host_rewrite: httpbin.org
   timeout_ms: 5000
 ---
@@ -122,6 +122,6 @@ metadata:
   name: external-http-mapping
 spec:
   prefix: /external-http/
-  service: httpbin.org:80
+  service: httpbin.default.svc.cluster.local
   host_rewrite: httpbin.org
   timeout_ms: 5000

@@ -183,9 +183,26 @@ func TestJWTErrorResponse(t *testing.T) {
 					"WWW-Authenticate": "",
 				},
 				Body: httpbinHeaders{
+					// The "Content-Length: 0" header is a bit of a mystery.  It didn't used to be
+					// there, now it is there.  We don't know what changed, but our expectation
+					// going forward is that it will be there.
+					//
+					// What we know:
+					//
+					//  - It wasn't there on 2020-01-22
+					//    https://github.com/datawire/apro/pull/892#issuecomment-577223992
+					//  - On 2020-02-03 it appeared (the tests had scarcely been run between those times).
+					//  - During this time, the load-balancer in front of httpbin.org was changed to
+					//    insert an `X-Amzn-Trace-Id` header.  Perhaps before that change it
+					//    stripped the Content-Length header?  (Dependency on their load-balancer is
+					//    now removed by running our own httpbin in the cluster.)
+					//  - Perhaps it's a difference betwee GKE vs Kubernaut?  I don't remember for
+					//    sure, but the 2020-01-22 run might have been on GKE, and the later runs
+					//    are on Kubernaut.
 					Headers: map[string]string{
 						"Accept-Encoding":                "gzip",
 						"Authorization":                  "Bearer eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJleHAiOjE2MTYyMzkwMjIsImlhdCI6MTUxNjIzOTAyMiwibmFtZSI6IkpvaG4gRG9lIiwic2NvcGUiOiJvcGVuaWQgbXlzY29wZSIsInN1YiI6IjEyMzQ1Njc4OTAifQ.",
+						"Content-Length":                 "0",
 						"Host":                           "httpbin.org",
 						"User-Agent":                     "Go-http-client/1.1",
 						"X-Authorization":                "Authenticated JWT; sub=1234567890; name=\"John Doe\"",

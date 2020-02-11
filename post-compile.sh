@@ -76,8 +76,11 @@ sudo mv /tmp/edge-stack-mappings.yaml /ambassador/init-config
 # Hack to have ambassador.version contain the apro.version info,
 # because teaching VERSION.py to read apro.version seems like it will
 # take too much work in the short term.
-sudo cp -f /buildroot/ambassador.version /buildroot/ambassador/python/ambassador.version.bak
-sudo cp -f /buildroot/ambassador/python/{apro,ambassador}.version
+#
+# 2020-01-30: Removing this hack speeds up builds.  Since they're
+# released in lockstep, it shouldn't matter anymore?
+#sudo cp -f /buildroot/ambassador.version /buildroot/ambassador/python/ambassador.version.bak
+#sudo cp -f /buildroot/ambassador/python/{apro,ambassador}.version
 
 {
   echo "# _GOVERSION=$(go version /ambassador/sidecars/amb-sidecar | sed 's/.*go//')"

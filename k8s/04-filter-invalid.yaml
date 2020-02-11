@@ -13,7 +13,7 @@ metadata:
   name: invalid-mapping
 spec:
   prefix: /invalid/
-  service: httpbin.org:80
+  service: httpbin.default.svc.cluster.local
   host_rewrite: httpbin.org
   timeout_ms: 5000
 ---

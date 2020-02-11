@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/datawire/ambassador/pkg/dlog"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/mediocregopher/radix.v2/pool"
 	"github.com/pkg/errors"
 
@@ -21,10 +20,10 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/jwthandler"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/client/authorization_code_client"
 	"github.com/datawire/apro/cmd/amb-sidecar/limiter"
 	"github.com/datawire/apro/lib/filterapi"
 	"github.com/datawire/apro/lib/filterapi/filterutil"
-	"github.com/datawire/apro/lib/jwtsupport"
 	"github.com/datawire/apro/lib/mapstructure"
 	"github.com/datawire/apro/lib/util"
 )
@@ -135,6 +134,9 @@ func (c *FilterMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Spec:       filterSpec,
 		}
 		filterImpl.ServeHTTP(w, r)
+	case "/.ambassador/oauth2/redirection-endpoint":
+		middleware.ServeErrorResponse(w, ctx, http.StatusBadRequest,
+			errors.New("invalid state parameter; could not match to an OAuth2 Filter"), nil)
 	default:
 		http.NotFound(w, r)
 	}
@@ -362,15 +364,9 @@ func (c *FilterMux) ruleForURL(u *url.URL) *crd.Rule {
 	case "/.ambassador/oauth2/logout":
 		return nil
 	case "/.ambassador/oauth2/redirection-endpoint":
-		claims := jwt.MapClaims{}
-		_, _, err := jwtsupport.SanitizeParseUnverified(new(jwt.Parser).ParseUnverified(u.Query().Get("state"), claims))
+		_u, err := authorization_code_client.ReadState(u.Query().Get("state"))
 		if err == nil {
-			if redirectURLstr, ok := claims["redirect_url"].(string); ok {
-				_u, err := url.Parse(redirectURLstr)
-				if err == nil {
-					u = _u
-				}
-			}
+			u = _u
 		}
 		return findRule(c.Controller, u.Host, u.Path)
 	default:
