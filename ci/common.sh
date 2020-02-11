@@ -117,3 +117,20 @@ wait_pod_missing() {
   return 0
 }
 
+cleanup () {
+  info "Cleaning up..."
+
+  $EXE_KUBECTL delete -f $MANIFESTS_DIR/backend.yaml
+  kill_background
+
+  $EXE_HELM3 uninstall ambassador > /dev/null
+  $EXE_HELM2 del --purge "ambassador-helm2"
+
+  wait_pod_missing "-l app.kubernetes.io/instance=ambassador" || abort "pod still running"
+  passed "helm 3 chart uninstalled"
+
+  wait_pod_missing "-l app.kubernetes.io/instance=ambassador-helm2" || abort "pod still running"
+  passed "helm 2 chart uninstalled"
+
+  rm -rf "$VALUES_DIR"
+}

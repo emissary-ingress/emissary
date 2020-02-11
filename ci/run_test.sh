@@ -80,12 +80,15 @@ info "Testing Helm 3 releases"
 for v_file in $VALUES_DIR/* ; do
   info "Upgrading the Ambassador release with new values file..."
   $EXE_HELM3 upgrade ambassador "$TOP_DIR" --wait -f "$v_file" 2>&1 > /dev/null
-  passed "Release upgraded with $v_file"
-  
-  info "Testing we can reach the backend api"
-  $EXE_KUBECTL port-forward service/ambassador 8443:443 2>&1 > /dev/null &
-  wait_url https://localhost:8443/backend/ || abort "could not reach /backend (on 8443 for service/ambassador)"
-  kill_background
+  if [ $? -ne 0 ]; then
+    failed "Upgrade Ambassador release failed" && cleanup && exit 1
+  else
+    passed "Release upgraded with $v_file"
+    info "Testing we can reach the backend api"
+    $EXE_KUBECTL port-forward service/ambassador 8443:443 2>&1 > /dev/null &
+    wait_url https://localhost:8443/backend/ || abort "could not reach /backend (on 8443 for service/ambassador)"
+    kill_background
+  fi
 done
 passed "Testing Helm 3 releases"
 
@@ -97,18 +100,4 @@ $EXE_KUBECTL port-forward service/ambassador-helm2 9443:443 2>&1 > /dev/null &
 wait_url https://localhost:9443/backend/ || abort "could not reach /backend (on 9443 for service/ambassador-helm2)"
 passed "Testing Helm 2 releases"
 
-info "Cleaning up..."
-
-$EXE_KUBECTL delete -f $MANIFESTS_DIR/backend.yaml
-kill_background
-
-$EXE_HELM3 uninstall ambassador > /dev/null
-$EXE_HELM2 del --purge "ambassador-helm2"
-
-wait_pod_missing "-l app.kubernetes.io/instance=ambassador" || abort "pod still running"
-passed "helm 3 chart uninstalled"
-
-wait_pod_missing "-l app.kubernetes.io/instance=ambassador-helm2" || abort "pod still running"
-passed "helm 2 chart uninstalled"
-
-rm -rf "$VALUES_DIR"
+cleanup
