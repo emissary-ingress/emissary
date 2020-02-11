@@ -129,7 +129,10 @@ class ListenerFactory:
             request_policy = host.get('requestPolicy', {})
             insecure_policy = request_policy.get('insecure', {})
             insecure_action = insecure_policy.get('action', 'Redirect')
-            insecure_addl_port = insecure_policy.get('additionalPort', None)
+            insecure_addl_port = insecure_policy.get('additionalPort', 8080)
+
+            if insecure_addl_port < 0:
+                insecure_addl_port = None
 
             # The presence of a TLSContext matching our hostname is good enough
             # to go on here, so let's see if there is one.
