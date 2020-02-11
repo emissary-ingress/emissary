@@ -82,6 +82,9 @@
       #browserNameFirefox {
         display: none;
       }
+      #browserNameMSEdge {
+        display: none;
+      }
       .dropdown {
         border: 1px solid #ede7f3;
         box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
@@ -345,8 +348,7 @@
       console.log(browser);
       console.log(navigator.userAgent);
       // Self-executing function to display appropriate browser warning info
-      if (browser) {
-        (function renderBrowserWarning() {
+      function renderBrowserWarning(browser) {
           switch(browser) {
             case "Chrome":
               document.getElementById("browserNameChrome").style.display = "inline-block";
@@ -368,8 +370,7 @@
               document.getElementById("showHideWrapperOther").style.display = "inline-block";
               break;
           }
-        })(); 
-      };
+        }); 
     </script>
   </div>
   </body>
