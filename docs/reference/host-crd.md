@@ -88,17 +88,17 @@ It's important to realize that Envoy manages the `X-Forwarded-Proto` header such
 In the definitions below, "L4 LB" refers to a layer 4 load balancer, while "L7
 LB" refers to a layer 7 load balancer.
 
-* [HTTPS-only, TLS terminated at Ambassador, not redirecting cleartext]
-* HTTPS-only, TLS terminated at Ambassador, redirecting cleartext from port 8080]
-* HTTP-only
-* L4 LB, HTTPS-only, TLS terminated at Ambassador, not redirecting cleartext
-* L4 LB, HTTPS-only, TLS terminated at Ambassador, redirecting cleartext from port 8080
-* L4 LB, HTTP-only
-* L4 LB, TLS terminated at LB, LB speaks cleartext to Ambassador
-* L4 LB, TLS terminated at LB, LB speaks TLS to Ambassador
-* L4 split LB, TLS terminated at Ambassador
-* L4 split LB, TLS terminated at LB
-* L7 LB
+* [HTTPS-only, TLS terminated at Ambassador, not redirecting cleartext](#https-only-tls-terminated-at-ambassador-not-redirecting-cleartext)
+* [HTTPS-only, TLS terminated at Ambassador, redirecting cleartext from port 8080](#https-only-tls-terminated-at-ambassador-redirecting-cleartext-from-port-8080)
+* [HTTP-only](#http-only)
+* [L4 LB, HTTPS-only, TLS terminated at Ambassador, not redirecting cleartext](#l4-lb-https-only-tls-terminated-at-ambassador-not-redirecting-cleartext)
+* [L4 LB, HTTPS-only, TLS terminated at Ambassador, redirecting cleartext from port 8080](#l4-lb-https-only-tls-terminated-at-ambassador-redirecting-cleartext-from-port-8080)
+* [L4 LB, HTTP-only](#l4-lb-http-only)
+* [L4 LB, TLS terminated at LB, LB speaks cleartext to Ambassador](#l4-lb-tls-terminated-at-lb-lb-speaks-cleartext-to-ambassador)
+* [L4 LB, TLS terminated at LB, LB speaks TLS to Ambassador](#l4-lb-tls-terminated-at-lb-lb-speaks-tls-to-ambassador)
+* [L4 split LB, TLS terminated at Ambassador](#l4-split-lb-tls-terminated-at-ambassador)
+* [L4 split LB, TLS terminated at LB](#l4-split-lb-tls-terminated-at-lb)
+* [L7 LB](#l7-lb)
 
 ### HTTPS-only, TLS terminated at Ambassador, not redirecting cleartext
 
