@@ -7,7 +7,7 @@ import json
 import os
 import yaml
 
-import dpath
+import dpath.util
 
 def fix_labels(crd):
     labels = crd['metadata'].get('labels', {})
