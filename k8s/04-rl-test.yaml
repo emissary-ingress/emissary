@@ -5,6 +5,6 @@ metadata:
   name: rl-test
 spec:
   prefix: /rl/
-  service: httpbin.org
+  service: httpbin.default.svc.cluster.local
   rate_limits:
   - descriptor: rldesc

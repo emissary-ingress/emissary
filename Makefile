@@ -19,6 +19,7 @@ export BUILDER_PORTMAPS=-p 8080:8080 -p 8877:8877 -p 8500:8500
 OSS_HOME ?= ambassador
 include ${OSS_HOME}/Makefile
 $(call module,apro,.)
+include ${SOURCE_apro}/build-aux-local/e2e-test.mk
 
 tools/golangci-lint = $(CURDIR)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/golangci-lint
 $(tools/golangci-lint): $(CURDIR)/build-aux/bin-go/golangci-lint/go.mod
@@ -39,8 +40,12 @@ format: $(tools/golangci-lint)
 	(cd vendor-ratelimit && $(tools/golangci-lint) run --fix ./...) || true
 .PHONY: format
 
-deploy: test-ready
-	@docker exec -e AES_IMAGE=$(AMB_IMAGE) -it $(shell $(BUILDER)) kubeapply -f apro/k8s-aes
+deploy: push preflight-cluster
+	@docker exec -e AES_IMAGE=$(AMB_IMAGE) -it $(shell $(BUILDER)) sh -x -c '\
+	  kubectl apply -f ./apro/k8s-aes/00-aes-crds-kube$(if $(DEV_KUBE110),1.10,1.11).yaml && \
+	  kubectl wait --for condition=established --timeout=90s crd -lproduct=aes && \
+	  kubeapply -f ./apro/k8s-aes/01-aes.yaml && \
+	  kubectl -n ambassador wait --for condition=available --timeout=90s deploy -lproduct=aes'
 	@printf "$(GRN)Your ambassador service IP:$(END) $(BLD)$$(docker exec -it $(shell $(BUILDER)) kubectl get -n ambassador service ambassador -o 'go-template={{range .status.loadBalancer.ingress}}{{print .ip "\n"}}{{end}}')$(END)\n"
 .PHONY: deploy
 
@@ -63,8 +68,12 @@ aes-backend-deploy: aes-backend-push
 
 update-yaml-locally: sync
 	@printf "$(CYN)==> $(GRN)Updating development YAML$(END)\n"
-	@printf '  $(CYN)k8s-aes/00-aes-crds.yaml$(END)\n'
-	docker exec $(shell $(BUILDER)) python apro/fix-crds.py ambassador/docs/yaml/ambassador/ambassador-crds.yaml apro/k8s-aes-src/00-aes-crds.yaml > k8s-aes/00-aes-crds.yaml
+	@printf '  $(CYN)k8s-aes/00-aes-crds-kube1.10.yaml$(END)\n'
+	docker exec $(shell $(BUILDER)) python apro/fix-crds.py 1.10 ambassador/docs/yaml/ambassador/ambassador-crds.yaml apro/k8s-aes-src/00-aes-crds.yaml > k8s-aes/00-aes-crds-kube1.10.yaml
+	@printf '  $(CYN)k8s-aes/00-aes-crds-kube1.11.yaml$(END)\n'
+	docker exec $(shell $(BUILDER)) python apro/fix-crds.py 1.11 ambassador/docs/yaml/ambassador/ambassador-crds.yaml apro/k8s-aes-src/00-aes-crds.yaml > k8s-aes/00-aes-crds-kube1.11.yaml
+	@printf '  $(CYN)k8s-aes/00-aes-crds-kube1.16.yaml$(END)\n'
+	docker exec $(shell $(BUILDER)) python apro/fix-crds.py 1.16 ambassador/docs/yaml/ambassador/ambassador-crds.yaml apro/k8s-aes-src/00-aes-crds.yaml > k8s-aes/00-aes-crds-kube1.16.yaml
 	@printf '  $(CYN)k8s-aes/01-aes.yaml$(END)\n'
 	docker exec $(shell $(BUILDER)) python apro/fix-yaml.py apro ambassador/docs/yaml/ambassador/ambassador-rbac.yaml apro/k8s-aes-src/01-aes.yaml > k8s-aes/01-aes.yaml
 	@printf "$(CYN)==> $(GRN)Checking whether those changes were no-op$(END)\n"
@@ -88,7 +97,7 @@ update-yaml: update-yaml-locally preflight-docs
 	@echo
 	@printf "$(CYN)==> $(GRN)Updating AMBASSADOR_DOCS YAML$(END)\n"
 	@printf '  $(CYN)$${AMBASSADOR_DOCS}/yaml/aes-crds.yaml$(END)\n'
-	cp k8s-aes/00-aes-crds.yaml $${AMBASSADOR_DOCS}/yaml/aes-crds.yaml
+	cp k8s-aes/00-aes-crds-kube1.11.yaml $${AMBASSADOR_DOCS}/yaml/aes-crds.yaml
 	@printf '  $(CYN)$${AMBASSADOR_DOCS}/yaml/aes.yaml$(END)\n'
 	docker exec $(shell $(BUILDER)) python apro/fix-yaml.py edge_stack ambassador/docs/yaml/ambassador/ambassador-rbac.yaml apro/k8s-aes-src/01-aes.yaml > $${AMBASSADOR_DOCS}/yaml/aes.yaml
 	@printf '  $(CYN)$${AMBASSADOR_DOCS}/yaml/oss-migration.yaml$(END)\n'
@@ -194,6 +203,9 @@ define _help.aes-targets
   $(BLD)make $(BLU)format$(END)              -- runs golangci-lint with --fix.
 
   $(BLD)make $(BLU)deploy$(END)              -- deploys AES to $(BLD)\$$DEV_REGISTRY$(END) and $(BLD)\$$DEV_KUBECONFIG$(END). ($(DEV_REGISTRY) and $(DEV_KUBECONFIG))
+
+    Set $(BLD)\$$DEV_KUBE110$(END) to a non-empty value in order to deploy version of
+    the YAML mutilated to be compatible with Kubernetes 1.10 (hint: Kubernaut).
 
   $(BLD)make $(BLU)aes-backend-image$(END)   -- creates the $(BLD)aes-backend$(END) image from the build container.
 
