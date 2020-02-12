@@ -56,7 +56,13 @@ The `insecure-action` can be one of:
 * `Route`: go ahead and route as normal; this will allow handling HTTP requests normally
 * `Reject`: reject the request with a 400 response
 
-If `additionalPort` is specified, Ambassador will listen on the specified `port` and treat any request arriving on that port as insecure.
+The `additionalPort` element tells Ambassador to listen on the specified `insecure-port` and treat any request arriving on that port as insecure. **By default, `additionalPort` will be set to 8080 for any `Host` using TLS.** To disable this redirection entirely, set `additionalPort` explicitly to `-1`:
+
+```yaml
+requestPolicy:
+  insecure:
+    additionalPort: -1   # This is how to disable the default redirection from 8080.
+```
 
 Some special cases to be aware of here:
 
