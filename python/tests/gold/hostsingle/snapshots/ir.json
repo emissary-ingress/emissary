@@ -495,7 +495,7 @@
                         "/target/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id:\n- hostsingle\napiVersion: getambassador.io/v1\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgy-target-mapping.default\n  hostname: edgy.example.com\n  kat-ambassador-id: hostsingle\n  scope: AmbassadorTest\nname: edgy-target-mapping\nnamespace: default\nprefix: /target/\nservice: hostsingle-http\n",
+                    "serialization": "ambassador_id:\n- hostsingle\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgy-target-mapping.default\n  hostname: edgy.example.com\n  kat-ambassador-id: hostsingle\n  scope: AmbassadorTest\nname: edgy-target-mapping\nnamespace: default\nprefix: /target/\nservice: hostsingle-http\n",
                     "service": "hostsingle-http",
                     "weight": 100
                 }
@@ -511,7 +511,7 @@
             "precedence": 0,
             "prefix": "/target/",
             "rewrite": "/",
-            "serialization": "ambassador_id:\n- hostsingle\napiVersion: getambassador.io/v1\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgy-target-mapping.default\n  hostname: edgy.example.com\n  kat-ambassador-id: hostsingle\n  scope: AmbassadorTest\nname: edgy-target-mapping\nnamespace: default\nprefix: /target/\nservice: hostsingle-http\n"
+            "serialization": "ambassador_id:\n- hostsingle\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgy-target-mapping.default\n  hostname: edgy.example.com\n  kat-ambassador-id: hostsingle\n  scope: AmbassadorTest\nname: edgy-target-mapping\nnamespace: default\nprefix: /target/\nservice: hostsingle-http\n"
         }
     ],
     "grpc_services": {},
@@ -524,7 +524,7 @@
             ],
             "_rkey": "edgy-host.default.1",
             "acmeProvider": {
-                "authority": "ACME"
+                "authority": "none"
             },
             "context": {
                 "_active": true,
@@ -604,6 +604,7 @@
             },
             "hostname": "hostsingle",
             "insecure_action": "Redirect",
+            "insecure_addl_port": 8080,
             "kind": "IRListener",
             "location": "edgy-host.default.1",
             "name": "ir.listener",

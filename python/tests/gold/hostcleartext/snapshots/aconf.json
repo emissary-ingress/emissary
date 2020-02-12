@@ -64,7 +64,7 @@
             "ambassador_id": [
                 "hostcleartext"
             ],
-            "apiVersion": "getambassador.io/v1",
+            "apiVersion": "getambassador.io/v2",
             "generation": 1,
             "kind": "Mapping",
             "location": "cleartext-target-mapping.default.1",
@@ -78,7 +78,7 @@
             "namespace": "default",
             "prefix": "/target/",
             "rkey": "cleartext-target-mapping.default.1",
-            "serialization": "ambassador_id:\n- hostcleartext\napiVersion: getambassador.io/v1\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: cleartext-target-mapping.default\n  hostname: host-cleartext\n  kat-ambassador-id: hostcleartext\n  scope: AmbassadorTest\nname: cleartext-target-mapping\nnamespace: default\nprefix: /target/\nservice: hostcleartext-http\n",
+            "serialization": "ambassador_id:\n- hostcleartext\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: cleartext-target-mapping.default\n  hostname: host-cleartext\n  kat-ambassador-id: hostcleartext\n  scope: AmbassadorTest\nname: cleartext-target-mapping\nnamespace: default\nprefix: /target/\nservice: hostcleartext-http\n",
             "service": "hostcleartext-http"
         },
         "k8s-hostcleartext-admin-default": {
@@ -168,7 +168,7 @@
             "ambassador_id": [
                 "hostcleartext"
             ],
-            "apiVersion": "getambassador.io/v1",
+            "apiVersion": "getambassador.io/v2",
             "generation": 1,
             "kind": "Mapping",
             "metadata_labels": {

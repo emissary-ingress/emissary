@@ -8,6 +8,10 @@ from abstract_tests import AmbassadorTest, ServiceType, HTTP
 # Host where a TLSContext with the inferred name already exists
 
 class HostSingle(AmbassadorTest):
+    """
+    HostSingle: a single Host with a manually-configured TLS. Since the Host is handling the
+    TLSContext, we expect both OSS and Edge Stack to redirect cleartext from 8080 to 8443 here.
+    """
     target: ServiceType
 
     def init(self):
@@ -39,12 +43,12 @@ spec:
   ambassador_id: [ {self.ambassador_id} ]
   hostname: {self.path.fqdn}
   acmeProvider:
-    authority: ACME
+    authority: none
+  tlsSecret:
+    name: edgy-secret
   selector:
     matchLabels:
       hostname: edgy.example.com
-  tlsSecret:
-    name: edgy-secret
 ---
 apiVersion: getambassador.io/v2
 kind: Mapping
@@ -63,13 +67,15 @@ spec:
 
     def queries(self):
         yield Query(self.url("target/"), insecure=True)
-    #
-    # def check(self):
-    #     for r in self.results:
-    #         assert r.headers.get('Lua-Scripts-Enabled', None) == ['Processed']
+        yield Query(self.url("target/", scheme="http"), expected=301)
 
 
-class HostManualTLS(AmbassadorTest):
+class HostManualContext(AmbassadorTest):
+    """
+    A single Host with a manually-specified TLS secret and a manually-specified TLSContext,
+    too. Since the Host is _not_ handling the TLSContext, we do _not_ expect automatic redirection
+    on port 8080.
+    """
     target: ServiceType
 
     def init(self):
@@ -111,7 +117,7 @@ spec:
 apiVersion: getambassador.io/v2
 kind: TLSContext
 metadata:
-  name: manual-context
+  name: manual-host-context
   labels:
     kat-ambassador-id: {self.ambassador_id}
 spec:
@@ -119,6 +125,8 @@ spec:
   hosts:
   - {self.path.fqdn}
   secret: manual-secret
+  min_tls_version: v1.2
+  max_tls_version: v1.3
 ---
 apiVersion: getambassador.io/v2
 kind: Mapping
@@ -136,23 +144,31 @@ spec:
         return "https"
 
     def queries(self):
-        yield Query(self.url("target/"), insecure=True)
-    #
-    # def check(self):
-    #     for r in self.results:
-    #         assert r.headers.get('Lua-Scripts-Enabled', None) == ['Processed']
+        yield Query(self.url("target/"), insecure=True,
+                    minTLSv="v1.2", maxTLSv="v1.3")
 
+        yield Query(self.url("target/"), insecure=True,
+                    minTLSv="v1.0",  maxTLSv="v1.0",
+                    error=["tls: server selected unsupported protocol version 303",
+                           "tls: no supported versions satisfy MinVersion and MaxVersion",
+                           "tls: protocol version not supported"])
+
+        if EDGE_STACK:
+            yield Query(self.url("target/", scheme="http"), expected=404)
+        else:
+            yield Query(self.url("target/", scheme="http"), error=[ "EOF", "connection refused" ])
 
 class HostClearText(AmbassadorTest):
+    """
+    A single Host specifying cleartext only. Since it's just cleartext, no redirection comes
+    into play.
+    """
     target: ServiceType
 
     def init(self):
         self.edge_stack_cleartext_host = False
         self.allow_edge_stack_redirect = False
         self.target = HTTP()
-
-        # if EDGE_STACK:
-        #     self.xfail = "Not yet supported in Edge Stack"
 
     def manifests(self) -> str:
         return super().manifests() + self.format('''
@@ -192,13 +208,18 @@ spec:
 
     def queries(self):
         yield Query(self.url("target/"), insecure=True)
-    #
-    # def check(self):
-    #     for r in self.results:
-    #         assert r.headers.get('Lua-Scripts-Enabled', None) == ['Processed']
+        yield Query(self.url("target/", scheme="https"),
+                    error=[ "EOF", "connection refused" ])
 
 
 class HostDouble(AmbassadorTest):
+    """
+    HostDouble: two Hosts with manually-configured TLS secrets, and Mappings specifying host matches.
+    Since the Hosts are handling TLSContexts, we expect both OSS and Edge Stack to redirect cleartext
+    from 8080 to 8443 here.
+
+    XXX In the future, the hostname matches should be unnecessary.
+    """
     target1: ServiceType
     target2: ServiceType
 
@@ -207,9 +228,6 @@ class HostDouble(AmbassadorTest):
         self.allow_edge_stack_redirect = False
         self.target1 = HTTP(name="target1")
         self.target2 = HTTP(name="target2")
-
-        if EDGE_STACK:
-            self.xfail = "Not yet supported in Edge Stack"
 
     def manifests(self) -> str:
         return super().manifests() + self.format('''
@@ -257,7 +275,7 @@ spec:
   ambassador_id: [ {self.ambassador_id} ]
   hostname: tls-context-host-1
   acmeProvider:
-    authority: ACME
+    authority: none
   hostname: tls-context-host-1
   selector:
     matchLabels:
@@ -275,7 +293,7 @@ spec:
   ambassador_id: [ {self.ambassador_id} ]
   hostname: tls-context-host-2
   acmeProvider:
-    authority: ACME
+    authority: none
   hostname: tls-context-host-2
   selector:
     matchLabels:
@@ -330,6 +348,14 @@ spec:
                     expected=200,
                     insecure=True,
                     sni=True)
+
+        # Setting the Host header really shouldn't be necessary here.
+        yield Query(self.url("target/", scheme="http"),
+                    headers={ "Host": "tls-context-host-1" },
+                    expected=301)
+        yield Query(self.url("target/", scheme="http"),
+                    headers={ "Host": "tls-context-host-2" },
+                    expected=301)
 
     def check(self):
         # XXX Ew. If self.results[0].json is empty, the harness won't convert it to a response.

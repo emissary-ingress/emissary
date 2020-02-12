@@ -31,7 +31,7 @@
             "ambassador_id": [
                 "hostdouble"
             ],
-            "apiVersion": "getambassador.io/v1",
+            "apiVersion": "getambassador.io/v2",
             "generation": 1,
             "host": "tls-context-host-1",
             "kind": "Mapping",
@@ -46,13 +46,13 @@
             "namespace": "default",
             "prefix": "/target/",
             "rkey": "host-1-mapping.default.1",
-            "serialization": "ambassador_id:\n- hostdouble\napiVersion: getambassador.io/v1\ngeneration: 1\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: host-1-mapping.default\n  hostname: tls-context-host-1\n  kat-ambassador-id: hostdouble\n  scope: AmbassadorTest\nname: host-1-mapping\nnamespace: default\nprefix: /target/\nservice: hostdouble-http-target1\n",
+            "serialization": "ambassador_id:\n- hostdouble\napiVersion: getambassador.io/v2\ngeneration: 1\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: host-1-mapping.default\n  hostname: tls-context-host-1\n  kat-ambassador-id: hostdouble\n  scope: AmbassadorTest\nname: host-1-mapping\nnamespace: default\nprefix: /target/\nservice: hostdouble-http-target1\n",
             "service": "hostdouble-http-target1"
         },
         "host-1.default.1": {
             "_referenced_by": {},
             "acmeProvider": {
-                "authority": "ACME"
+                "authority": "none"
             },
             "ambassador_id": [
                 "hostdouble"
@@ -75,7 +75,7 @@
                     "hostname": "tls-context-host-1"
                 }
             },
-            "serialization": "acmeProvider:\n  authority: ACME\nambassador_id:\n- hostdouble\napiVersion: getambassador.io/v2\ngeneration: 1\nhostname: tls-context-host-1\nkind: Host\nmetadata_labels:\n  ambassador_crd: host-1.default\n  kat-ambassador-id: hostdouble\n  scope: AmbassadorTest\nname: host-1\nnamespace: default\nselector:\n  matchLabels:\n    hostname: tls-context-host-1\ntlsSecret:\n  name: test-tlscontext-secret-1\n",
+            "serialization": "acmeProvider:\n  authority: none\nambassador_id:\n- hostdouble\napiVersion: getambassador.io/v2\ngeneration: 1\nhostname: tls-context-host-1\nkind: Host\nmetadata_labels:\n  ambassador_crd: host-1.default\n  kat-ambassador-id: hostdouble\n  scope: AmbassadorTest\nname: host-1\nnamespace: default\nselector:\n  matchLabels:\n    hostname: tls-context-host-1\ntlsSecret:\n  name: test-tlscontext-secret-1\n",
             "tlsSecret": {
                 "name": "test-tlscontext-secret-1"
             }
@@ -85,7 +85,7 @@
             "ambassador_id": [
                 "hostdouble"
             ],
-            "apiVersion": "getambassador.io/v1",
+            "apiVersion": "getambassador.io/v2",
             "generation": 1,
             "host": "tls-context-host-2",
             "kind": "Mapping",
@@ -100,13 +100,13 @@
             "namespace": "default",
             "prefix": "/target/",
             "rkey": "host-2-mapping.default.1",
-            "serialization": "ambassador_id:\n- hostdouble\napiVersion: getambassador.io/v1\ngeneration: 1\nhost: tls-context-host-2\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: host-2-mapping.default\n  hostname: tls-context-host-2\n  kat-ambassador-id: hostdouble\n  scope: AmbassadorTest\nname: host-2-mapping\nnamespace: default\nprefix: /target/\nservice: hostdouble-http-target2\n",
+            "serialization": "ambassador_id:\n- hostdouble\napiVersion: getambassador.io/v2\ngeneration: 1\nhost: tls-context-host-2\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: host-2-mapping.default\n  hostname: tls-context-host-2\n  kat-ambassador-id: hostdouble\n  scope: AmbassadorTest\nname: host-2-mapping\nnamespace: default\nprefix: /target/\nservice: hostdouble-http-target2\n",
             "service": "hostdouble-http-target2"
         },
         "host-2.default.1": {
             "_referenced_by": {},
             "acmeProvider": {
-                "authority": "ACME"
+                "authority": "none"
             },
             "ambassador_id": [
                 "hostdouble"
@@ -129,7 +129,7 @@
                     "hostname": "tls-context-host-2"
                 }
             },
-            "serialization": "acmeProvider:\n  authority: ACME\nambassador_id:\n- hostdouble\napiVersion: getambassador.io/v2\ngeneration: 1\nhostname: tls-context-host-2\nkind: Host\nmetadata_labels:\n  ambassador_crd: host-2.default\n  kat-ambassador-id: hostdouble\n  scope: AmbassadorTest\nname: host-2\nnamespace: default\nselector:\n  matchLabels:\n    hostname: tls-context-host-2\ntlsSecret:\n  name: test-tlscontext-secret-2\n",
+            "serialization": "acmeProvider:\n  authority: none\nambassador_id:\n- hostdouble\napiVersion: getambassador.io/v2\ngeneration: 1\nhostname: tls-context-host-2\nkind: Host\nmetadata_labels:\n  ambassador_crd: host-2.default\n  kat-ambassador-id: hostdouble\n  scope: AmbassadorTest\nname: host-2\nnamespace: default\nselector:\n  matchLabels:\n    hostname: tls-context-host-2\ntlsSecret:\n  name: test-tlscontext-secret-2\n",
             "tlsSecret": {
                 "name": "test-tlscontext-secret-2"
             }
@@ -240,7 +240,7 @@
     "hosts": {
         "host-1": {
             "acmeProvider": {
-                "authority": "ACME"
+                "authority": "none"
             },
             "ambassador_id": [
                 "hostdouble"
@@ -267,7 +267,7 @@
         },
         "host-2": {
             "acmeProvider": {
-                "authority": "ACME"
+                "authority": "none"
             },
             "ambassador_id": [
                 "hostdouble"
@@ -298,7 +298,7 @@
             "ambassador_id": [
                 "hostdouble"
             ],
-            "apiVersion": "getambassador.io/v1",
+            "apiVersion": "getambassador.io/v2",
             "generation": 1,
             "host": "tls-context-host-1",
             "kind": "Mapping",
@@ -317,7 +317,7 @@
             "ambassador_id": [
                 "hostdouble"
             ],
-            "apiVersion": "getambassador.io/v1",
+            "apiVersion": "getambassador.io/v2",
             "generation": 1,
             "host": "tls-context-host-2",
             "kind": "Mapping",

@@ -545,7 +545,7 @@
                         "GET",
                         ":authority-tls-context-host-2"
                     ],
-                    "serialization": "ambassador_id:\n- hostdouble\napiVersion: getambassador.io/v1\ngeneration: 1\nhost: tls-context-host-2\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: host-2-mapping.default\n  hostname: tls-context-host-2\n  kat-ambassador-id: hostdouble\n  scope: AmbassadorTest\nname: host-2-mapping\nnamespace: default\nprefix: /target/\nservice: hostdouble-http-target2\n",
+                    "serialization": "ambassador_id:\n- hostdouble\napiVersion: getambassador.io/v2\ngeneration: 1\nhost: tls-context-host-2\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: host-2-mapping.default\n  hostname: tls-context-host-2\n  kat-ambassador-id: hostdouble\n  scope: AmbassadorTest\nname: host-2-mapping\nnamespace: default\nprefix: /target/\nservice: hostdouble-http-target2\n",
                     "service": "hostdouble-http-target2",
                     "sni": true,
                     "tls_context": {
@@ -583,7 +583,7 @@
             "precedence": 0,
             "prefix": "/target/",
             "rewrite": "/",
-            "serialization": "ambassador_id:\n- hostdouble\napiVersion: getambassador.io/v1\ngeneration: 1\nhost: tls-context-host-2\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: host-2-mapping.default\n  hostname: tls-context-host-2\n  kat-ambassador-id: hostdouble\n  scope: AmbassadorTest\nname: host-2-mapping\nnamespace: default\nprefix: /target/\nservice: hostdouble-http-target2\n",
+            "serialization": "ambassador_id:\n- hostdouble\napiVersion: getambassador.io/v2\ngeneration: 1\nhost: tls-context-host-2\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: host-2-mapping.default\n  hostname: tls-context-host-2\n  kat-ambassador-id: hostdouble\n  scope: AmbassadorTest\nname: host-2-mapping\nnamespace: default\nprefix: /target/\nservice: hostdouble-http-target2\n",
             "sni": true,
             "tls_context": {
                 "_active": true,
@@ -704,7 +704,7 @@
                         "GET",
                         ":authority-tls-context-host-1"
                     ],
-                    "serialization": "ambassador_id:\n- hostdouble\napiVersion: getambassador.io/v1\ngeneration: 1\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: host-1-mapping.default\n  hostname: tls-context-host-1\n  kat-ambassador-id: hostdouble\n  scope: AmbassadorTest\nname: host-1-mapping\nnamespace: default\nprefix: /target/\nservice: hostdouble-http-target1\n",
+                    "serialization": "ambassador_id:\n- hostdouble\napiVersion: getambassador.io/v2\ngeneration: 1\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: host-1-mapping.default\n  hostname: tls-context-host-1\n  kat-ambassador-id: hostdouble\n  scope: AmbassadorTest\nname: host-1-mapping\nnamespace: default\nprefix: /target/\nservice: hostdouble-http-target1\n",
                     "service": "hostdouble-http-target1",
                     "sni": true,
                     "tls_context": {
@@ -742,7 +742,7 @@
             "precedence": 0,
             "prefix": "/target/",
             "rewrite": "/",
-            "serialization": "ambassador_id:\n- hostdouble\napiVersion: getambassador.io/v1\ngeneration: 1\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: host-1-mapping.default\n  hostname: tls-context-host-1\n  kat-ambassador-id: hostdouble\n  scope: AmbassadorTest\nname: host-1-mapping\nnamespace: default\nprefix: /target/\nservice: hostdouble-http-target1\n",
+            "serialization": "ambassador_id:\n- hostdouble\napiVersion: getambassador.io/v2\ngeneration: 1\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: host-1-mapping.default\n  hostname: tls-context-host-1\n  kat-ambassador-id: hostdouble\n  scope: AmbassadorTest\nname: host-1-mapping\nnamespace: default\nprefix: /target/\nservice: hostdouble-http-target1\n",
             "sni": true,
             "tls_context": {
                 "_active": true,
@@ -777,7 +777,7 @@
             ],
             "_rkey": "host-1.default.1",
             "acmeProvider": {
-                "authority": "ACME"
+                "authority": "none"
             },
             "context": {
                 "_active": true,
@@ -822,7 +822,7 @@
             ],
             "_rkey": "host-2.default.1",
             "acmeProvider": {
-                "authority": "ACME"
+                "authority": "none"
             },
             "context": {
                 "_active": true,
@@ -909,6 +909,7 @@
             },
             "hostname": "tls-context-host-1",
             "insecure_action": "Redirect",
+            "insecure_addl_port": 8080,
             "kind": "IRListener",
             "location": "host-1.default.1",
             "name": "ir.listener",
@@ -945,6 +946,7 @@
             },
             "hostname": "tls-context-host-2",
             "insecure_action": "Redirect",
+            "insecure_addl_port": 8080,
             "kind": "IRListener",
             "location": "host-2.default.1",
             "name": "ir.listener",
