@@ -11,7 +11,8 @@ class HostSingle(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        self.allow_edge_stack_redirect = True
+        self.edge_stack_cleartext_host = False
+        self.allow_edge_stack_redirect = False
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -45,7 +46,7 @@ spec:
   tlsSecret:
     name: edgy-secret
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: edgy-target-mapping
@@ -72,7 +73,8 @@ class HostManualTLS(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        self.allow_edge_stack_redirect = True
+        self.edge_stack_cleartext_host = False
+        self.allow_edge_stack_redirect = False
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -106,7 +108,7 @@ spec:
   tlsSecret:
     name: manual-secret
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: TLSContext
 metadata:
   name: manual-context
@@ -118,7 +120,7 @@ spec:
   - {self.path.fqdn}
   secret: manual-secret
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: manual-target-mapping
@@ -145,11 +147,12 @@ class HostClearText(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        self.allow_edge_stack_redirect = True
+        self.edge_stack_cleartext_host = False
+        self.allow_edge_stack_redirect = False
         self.target = HTTP()
 
-        if EDGE_STACK:
-            self.xfail = "Not yet supported in Edge Stack"
+        # if EDGE_STACK:
+        #     self.xfail = "Not yet supported in Edge Stack"
 
     def manifests(self) -> str:
         return super().manifests() + self.format('''
@@ -172,7 +175,7 @@ spec:
     insecure: 
       action: Route
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: cleartext-target-mapping
@@ -200,7 +203,8 @@ class HostDouble(AmbassadorTest):
     target2: ServiceType
 
     def init(self):
-        self.allow_edge_stack_redirect = True
+        self.edge_stack_cleartext_host = False
+        self.allow_edge_stack_redirect = False
         self.target1 = HTTP(name="target1")
         self.target2 = HTTP(name="target2")
 
@@ -279,7 +283,7 @@ spec:
   tlsSecret:
     name: test-tlscontext-secret-2
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: host-1-mapping
@@ -291,7 +295,7 @@ spec:
   prefix: /target/
   service: {self.target1.path.fqdn}
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: host-2-mapping

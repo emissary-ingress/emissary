@@ -95,9 +95,6 @@
                 "filter_chains": [
                     {
                         "filter_chain_match": {
-                            "server_names": [
-                                "tls-context-host-1"
-                            ],
                             "transport_protocol": "tls"
                         },
                         "filters": [
@@ -128,9 +125,9 @@
                                         "virtual_hosts": [
                                             {
                                                 "domains": [
-                                                    "tls-context-host-1"
+                                                    "*"
                                                 ],
-                                                "name": "ambassador-listener-8443-tls-context-host-1",
+                                                "name": "ambassador-listener-8443-tls-context-host-1-forced-star",
                                                 "routes": [
                                                     {
                                                         "match": {
@@ -249,6 +246,57 @@
                                                                     "numerator": 100
                                                                 },
                                                                 "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                                                            }
+                                                        },
+                                                        "redirect": {
+                                                            "https_redirect": true
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "tls-context-host-2",
+                                                                    "name": ":authority"
+                                                                },
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/target/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_hostdouble_http_target2_default"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_hostdouble_http_target2_default",
+                                                            "prefix_rewrite": "/",
+                                                            "priority": null,
+                                                            "timeout": "3.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "tls-context-host-2",
+                                                                    "name": ":authority"
+                                                                }
+                                                            ],
+                                                            "prefix": "/target/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_hostdouble_http_target2_default"
                                                             }
                                                         },
                                                         "redirect": {

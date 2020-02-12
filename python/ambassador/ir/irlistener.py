@@ -118,7 +118,7 @@ class ListenerFactory:
         hosts = ir.get_hosts() or []
 
         for host in hosts:
-            ir.logger.info(f"ListenerFactory: consider Host {host.pretty()}")
+            ir.logger.debug(f"ListenerFactory: consider Host {host.pretty()}")
 
             hostname = host.hostname
             request_policy = host.get('requestPolicy', {})
@@ -253,13 +253,13 @@ class ListenerFactory:
 
     @classmethod
     def dump_info(cls, ir, what, listeners, unused_contexts):
-        ir.logger.info(f"ListenerFactory: {what}")
+        ir.logger.debug(f"ListenerFactory: {what}")
 
         pretty_listeners = {k: v.pretty() for k, v in listeners.items()}
-        ir.logger.info(f"listeners: {json.dumps(pretty_listeners, sort_keys=True, indent=4)}")
+        ir.logger.debug(f"listeners: {json.dumps(pretty_listeners, sort_keys=True, indent=4)}")
 
         pretty_contexts = {k: v.pretty() for k, v in unused_contexts.items()}
-        ir.logger.info(f"unused_contexts: {json.dumps(pretty_contexts, sort_keys=True, indent=4)}")
+        ir.logger.debug(f"unused_contexts: {json.dumps(pretty_contexts, sort_keys=True, indent=4)}")
 
     @classmethod
     def finalize(cls, ir: 'IR', aconf: Config) -> None:
