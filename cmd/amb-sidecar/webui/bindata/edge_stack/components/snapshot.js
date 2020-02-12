@@ -158,8 +158,8 @@ export class Snapshot extends LitElement {
     this.setAuthenticated = useContext('auth-state', null)[1];
     this.loading = true;
     this.loadingError = null;
-    this.auth = localStorage.getItem("authenticated");
-    console.log("Authenticated status is " + this.auth);
+//    this.auth = localStorage.getItem("authenticated");
+//    console.log("Authenticated status is " + this.auth);
 
     if (getCookie("edge_stack_auth")) {
       this.fragment = "should-try";
@@ -190,10 +190,10 @@ export class Snapshot extends LitElement {
             this.setAuthenticated(false);
             this.setSnapshot(new SnapshotWrapper(this.currentSnapshot.data, {}));
             if( Snapshot.theTimeoutId === 0 ) { // if we aren't already waiting to fetch a new snapshot...
-              if (this.auth === true) {
+//              if (this.auth === true) {
                 Snapshot.theTimeoutId = setTimeout(this.fetchData.bind(this), 1000); // fetch a new snapshot every second
-              console.log("Authenticated status is " + this.auth);
-              }
+//              console.log("Authenticated status is " + this.auth);
+//              }
             }
           }
         } else {
