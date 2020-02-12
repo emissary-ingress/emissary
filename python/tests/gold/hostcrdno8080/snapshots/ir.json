@@ -80,18 +80,18 @@
                 "tcp://127.0.0.1:8877"
             ]
         },
-        "cluster_hostcrdsingle_http_default": {
+        "cluster_hostcrdno8080_http_default": {
             "_active": true,
             "_errored": false,
-            "_hostname": "hostcrdsingle-http",
+            "_hostname": "hostcrdno8080-http",
             "_is_sidecar": false,
             "_namespace": "default",
             "_port": 80,
             "_referenced_by": [
-                "hostcrdsingle-target-mapping.default.1"
+                "hostcrdno8080-target-mapping.default.1"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_hostcrdsingle_http_default",
+            "_rkey": "cluster_hostcrdno8080_http_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -99,20 +99,20 @@
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
-            "location": "hostcrdsingle-target-mapping.default.1",
-            "name": "cluster_hostcrdsingle_http_default",
+            "location": "hostcrdno8080-target-mapping.default.1",
+            "name": "cluster_hostcrdno8080_http_default",
             "namespace": "default",
-            "service": "hostcrdsingle-http",
+            "service": "hostcrdno8080-http",
             "targets": [
                 {
-                    "ip": "hostcrdsingle-http.default",
+                    "ip": "hostcrdno8080-http.default",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
             ],
             "type": "strict_dns",
             "urls": [
-                "tcp://hostcrdsingle-http:80"
+                "tcp://hostcrdno8080-http:80"
             ]
         }
     },
@@ -417,9 +417,9 @@
             "_active": true,
             "_errored": false,
             "_referenced_by": [
-                "hostcrdsingle-target-mapping.default.1"
+                "hostcrdno8080-target-mapping.default.1"
             ],
-            "_rkey": "hostcrdsingle-target-mapping.default.1",
+            "_rkey": "hostcrdno8080-target-mapping.default.1",
             "group_id": "ef2f76a27cdb850e84f8f5c00ce17c4798f7e065",
             "group_weight": [
                 0,
@@ -430,25 +430,25 @@
             ],
             "headers": [],
             "kind": "IRHTTPMappingGroup",
-            "location": "hostcrdsingle-target-mapping.default.1",
+            "location": "hostcrdno8080-target-mapping.default.1",
             "mappings": [
                 {
                     "_active": true,
                     "_errored": false,
-                    "_rkey": "hostcrdsingle-target-mapping.default.1",
+                    "_rkey": "hostcrdno8080-target-mapping.default.1",
                     "add_request_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
-                        "_hostname": "hostcrdsingle-http",
+                        "_hostname": "hostcrdno8080-http",
                         "_is_sidecar": false,
                         "_namespace": "default",
                         "_port": 80,
                         "_referenced_by": [
-                            "hostcrdsingle-target-mapping.default.1"
+                            "hostcrdno8080-target-mapping.default.1"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_hostcrdsingle_http_default",
+                        "_rkey": "cluster_hostcrdno8080_http_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -456,33 +456,33 @@
                         "ignore_cluster": false,
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
-                        "location": "hostcrdsingle-target-mapping.default.1",
-                        "name": "cluster_hostcrdsingle_http_default",
+                        "location": "hostcrdno8080-target-mapping.default.1",
+                        "name": "cluster_hostcrdno8080_http_default",
                         "namespace": "default",
-                        "service": "hostcrdsingle-http",
+                        "service": "hostcrdno8080-http",
                         "targets": [
                             {
-                                "ip": "hostcrdsingle-http.default",
+                                "ip": "hostcrdno8080-http.default",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
                         ],
                         "type": "strict_dns",
                         "urls": [
-                            "tcp://hostcrdsingle-http:80"
+                            "tcp://hostcrdno8080-http:80"
                         ]
                     },
                     "group_id": "ef2f76a27cdb850e84f8f5c00ce17c4798f7e065",
                     "headers": [],
                     "kind": "Mapping",
-                    "location": "hostcrdsingle-target-mapping.default.1",
+                    "location": "hostcrdno8080-target-mapping.default.1",
                     "metadata_labels": {
-                        "ambassador_crd": "hostcrdsingle-target-mapping.default",
-                        "hostname": "hostcrdsingle",
-                        "kat-ambassador-id": "hostcrdsingle",
+                        "ambassador_crd": "hostcrdno8080-target-mapping.default",
+                        "hostname": "hostcrdno8080",
+                        "kat-ambassador-id": "hostcrdno8080",
                         "scope": "AmbassadorTest"
                     },
-                    "name": "hostcrdsingle-target-mapping",
+                    "name": "hostcrdno8080-target-mapping",
                     "namespace": "default",
                     "precedence": 0,
                     "prefix": "/target/",
@@ -495,23 +495,23 @@
                         "/target/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id:\n- hostcrdsingle\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: hostcrdsingle-target-mapping.default\n  hostname: hostcrdsingle\n  kat-ambassador-id: hostcrdsingle\n  scope: AmbassadorTest\nname: hostcrdsingle-target-mapping\nnamespace: default\nprefix: /target/\nservice: hostcrdsingle-http\n",
-                    "service": "hostcrdsingle-http",
+                    "serialization": "ambassador_id:\n- hostcrdno8080\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: hostcrdno8080-target-mapping.default\n  hostname: hostcrdno8080\n  kat-ambassador-id: hostcrdno8080\n  scope: AmbassadorTest\nname: hostcrdno8080-target-mapping\nnamespace: default\nprefix: /target/\nservice: hostcrdno8080-http\n",
+                    "service": "hostcrdno8080-http",
                     "weight": 100
                 }
             ],
             "metadata_labels": {
-                "ambassador_crd": "hostcrdsingle-target-mapping.default",
-                "hostname": "hostcrdsingle",
-                "kat-ambassador-id": "hostcrdsingle",
+                "ambassador_crd": "hostcrdno8080-target-mapping.default",
+                "hostname": "hostcrdno8080",
+                "kat-ambassador-id": "hostcrdno8080",
                 "scope": "AmbassadorTest"
             },
-            "name": "GROUP: hostcrdsingle-target-mapping",
+            "name": "GROUP: hostcrdno8080-target-mapping",
             "namespace": "default",
             "precedence": 0,
             "prefix": "/target/",
             "rewrite": "/",
-            "serialization": "ambassador_id:\n- hostcrdsingle\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: hostcrdsingle-target-mapping.default\n  hostname: hostcrdsingle\n  kat-ambassador-id: hostcrdsingle\n  scope: AmbassadorTest\nname: hostcrdsingle-target-mapping\nnamespace: default\nprefix: /target/\nservice: hostcrdsingle-http\n"
+            "serialization": "ambassador_id:\n- hostcrdno8080\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: hostcrdno8080-target-mapping.default\n  hostname: hostcrdno8080\n  kat-ambassador-id: hostcrdno8080\n  scope: AmbassadorTest\nname: hostcrdno8080-target-mapping\nnamespace: default\nprefix: /target/\nservice: hostcrdno8080-http\n"
         }
     ],
     "grpc_services": {},
@@ -520,9 +520,9 @@
             "_active": true,
             "_errored": false,
             "_referenced_by": [
-                "hostcrdsingle-host.default.1"
+                "hostcrdno8080-host.default.1"
             ],
-            "_rkey": "hostcrdsingle-host.default.1",
+            "_rkey": "hostcrdno8080-host.default.1",
             "acmeProvider": {
                 "authority": "none"
             },
@@ -530,45 +530,50 @@
                 "_active": true,
                 "_errored": false,
                 "_referenced_by": [
-                    "hostcrdsingle-host.default.1"
+                    "hostcrdno8080-host.default.1"
                 ],
-                "_rkey": "hostcrdsingle-host.default.1",
+                "_rkey": "hostcrdno8080-host.default.1",
                 "hosts": [
-                    "hostcrdsingle"
+                    "hostcrdno8080"
                 ],
                 "is_fallback": false,
                 "kind": "IRTLSContext",
-                "location": "hostcrdsingle-host.default.1",
-                "name": "hostcrdsingle-host-context",
+                "location": "hostcrdno8080-host.default.1",
+                "name": "hostcrdno8080-host-context",
                 "namespace": "default",
                 "secret_info": {
-                    "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrdsingle-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt",
-                    "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrdsingle-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key",
-                    "secret": "hostcrdsingle-secret"
+                    "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrdno8080-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt",
+                    "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrdno8080-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key",
+                    "secret": "hostcrdno8080-secret"
                 }
             },
-            "hostname": "hostcrdsingle",
+            "hostname": "hostcrdno8080",
             "kind": "Host",
-            "location": "hostcrdsingle-host.default.1",
-            "name": "hostcrdsingle-host",
+            "location": "hostcrdno8080-host.default.1",
+            "name": "hostcrdno8080-host",
             "namespace": "default",
+            "requestPolicy": {
+                "insecure": {
+                    "additionalPort": -1
+                }
+            },
             "selector": {
                 "matchLabels": {
-                    "hostname": "hostcrdsingle"
+                    "hostname": "hostcrdno8080"
                 }
             },
             "tlsSecret": {
-                "name": "hostcrdsingle-secret"
+                "name": "hostcrdno8080-secret"
             }
         }
     ],
     "identity": {
-        "ambassador_id": "hostcrdsingle",
+        "ambassador_id": "hostcrdno8080",
         "ambassador_namespace": "default",
-        "ambassador_nodename": "hostcrdsingle-default"
+        "ambassador_nodename": "hostcrdno8080-default"
     },
     "k8s_status_updates": {
-        "hostcrdsingle-target-mapping.default": [
+        "hostcrdno8080-target-mapping.default": [
             "Mapping",
             "default",
             {
@@ -585,28 +590,28 @@
                 "_active": true,
                 "_errored": false,
                 "_referenced_by": [
-                    "hostcrdsingle-host.default.1"
+                    "hostcrdno8080-host.default.1"
                 ],
-                "_rkey": "hostcrdsingle-host.default.1",
+                "_rkey": "hostcrdno8080-host.default.1",
                 "hosts": [
-                    "hostcrdsingle"
+                    "hostcrdno8080"
                 ],
                 "is_fallback": false,
                 "kind": "IRTLSContext",
-                "location": "hostcrdsingle-host.default.1",
-                "name": "hostcrdsingle-host-context",
+                "location": "hostcrdno8080-host.default.1",
+                "name": "hostcrdno8080-host-context",
                 "namespace": "default",
                 "secret_info": {
-                    "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrdsingle-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt",
-                    "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrdsingle-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key",
-                    "secret": "hostcrdsingle-secret"
+                    "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrdno8080-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt",
+                    "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrdno8080-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key",
+                    "secret": "hostcrdno8080-secret"
                 }
             },
-            "hostname": "hostcrdsingle",
+            "hostname": "hostcrdno8080",
             "insecure_action": "Redirect",
-            "insecure_addl_port": 8080,
+            "insecure_addl_port": -1,
             "kind": "IRListener",
-            "location": "hostcrdsingle-host.default.1",
+            "location": "hostcrdno8080-host.default.1",
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
@@ -616,55 +621,55 @@
         }
     ],
     "services": {
-        "k8s-hostcrdsingle-admin-default": {
+        "k8s-hostcrdno8080-admin-default": {
             "_referenced_by": {},
-            "ambassador_id": "hostcrdsingle",
+            "ambassador_id": "hostcrdno8080",
             "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
-            "location": "k8s-hostcrdsingle-admin-default",
+            "location": "k8s-hostcrdno8080-admin-default",
             "metadata_labels": {
-                "kat-ambassador-id": "hostcrdsingle",
+                "kat-ambassador-id": "hostcrdno8080",
                 "scope": "AmbassadorTest",
-                "service": "hostcrdsingle-admin"
+                "service": "hostcrdno8080-admin"
             },
-            "name": "hostcrdsingle-admin",
+            "name": "hostcrdno8080-admin",
             "namespace": "default",
-            "rkey": "k8s-hostcrdsingle-admin-default",
-            "serialization": "ambassador_id: hostcrdsingle\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: hostcrdsingle\n  scope: AmbassadorTest\n  service: hostcrdsingle-admin\nname: hostcrdsingle-admin\nnamespace: default\n"
+            "rkey": "k8s-hostcrdno8080-admin-default",
+            "serialization": "ambassador_id: hostcrdno8080\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: hostcrdno8080\n  scope: AmbassadorTest\n  service: hostcrdno8080-admin\nname: hostcrdno8080-admin\nnamespace: default\n"
         },
-        "k8s-hostcrdsingle-default": {
+        "k8s-hostcrdno8080-default": {
             "_referenced_by": {},
-            "ambassador_id": "hostcrdsingle",
+            "ambassador_id": "hostcrdno8080",
             "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
-            "location": "k8s-hostcrdsingle-default",
+            "location": "k8s-hostcrdno8080-default",
             "metadata_labels": {
                 "app.kubernetes.io/component": "ambassador-service",
-                "kat-ambassador-id": "hostcrdsingle",
+                "kat-ambassador-id": "hostcrdno8080",
                 "scope": "AmbassadorTest"
             },
-            "name": "hostcrdsingle",
+            "name": "hostcrdno8080",
             "namespace": "default",
-            "rkey": "k8s-hostcrdsingle-default",
-            "serialization": "ambassador_id: hostcrdsingle\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: hostcrdsingle\n  scope: AmbassadorTest\nname: hostcrdsingle\nnamespace: default\n"
+            "rkey": "k8s-hostcrdno8080-default",
+            "serialization": "ambassador_id: hostcrdno8080\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: hostcrdno8080\n  scope: AmbassadorTest\nname: hostcrdno8080\nnamespace: default\n"
         },
-        "k8s-hostcrdsingle-http-default": {
+        "k8s-hostcrdno8080-http-default": {
             "_referenced_by": {},
-            "ambassador_id": "hostcrdsingle",
+            "ambassador_id": "hostcrdno8080",
             "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
-            "location": "k8s-hostcrdsingle-http-default",
+            "location": "k8s-hostcrdno8080-http-default",
             "metadata_labels": {
-                "kat-ambassador-id": "hostcrdsingle",
+                "kat-ambassador-id": "hostcrdno8080",
                 "scope": "AmbassadorTest"
             },
-            "name": "hostcrdsingle-http",
+            "name": "hostcrdno8080-http",
             "namespace": "default",
-            "rkey": "k8s-hostcrdsingle-http-default",
-            "serialization": "ambassador_id: hostcrdsingle\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: hostcrdsingle\n  scope: AmbassadorTest\nname: hostcrdsingle-http\nnamespace: default\n"
+            "rkey": "k8s-hostcrdno8080-http-default",
+            "serialization": "ambassador_id: hostcrdno8080\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: hostcrdno8080\n  scope: AmbassadorTest\nname: hostcrdno8080-http\nnamespace: default\n"
         }
     },
     "tls_contexts": [
@@ -672,21 +677,21 @@
             "_active": true,
             "_errored": false,
             "_referenced_by": [
-                "hostcrdsingle-host.default.1"
+                "hostcrdno8080-host.default.1"
             ],
-            "_rkey": "hostcrdsingle-host.default.1",
+            "_rkey": "hostcrdno8080-host.default.1",
             "hosts": [
-                "hostcrdsingle"
+                "hostcrdno8080"
             ],
             "is_fallback": false,
             "kind": "IRTLSContext",
-            "location": "hostcrdsingle-host.default.1",
-            "name": "hostcrdsingle-host-context",
+            "location": "hostcrdno8080-host.default.1",
+            "name": "hostcrdno8080-host-context",
             "namespace": "default",
             "secret_info": {
-                "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrdsingle-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt",
-                "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrdsingle-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key",
-                "secret": "hostcrdsingle-secret"
+                "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrdno8080-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt",
+                "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrdno8080-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key",
+                "secret": "hostcrdno8080-secret"
             }
         }
     ]
