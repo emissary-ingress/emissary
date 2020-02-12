@@ -17,12 +17,12 @@ func TestTLSSecretExists(t *testing.T) {
 	for {
 		select {
 		case <-timeout:
-			t.Fatal("timed out")
+			fatal(t, "timed out")
 		case <-tick:
 			fmt.Println("Checking for secret...")
 			data, err := kubectlGetSecret("", "ambassador-consul-connect")
 			if err != nil {
-				t.Fatal(err)
+				fatal(t, err)
 			} else if data != "" {
 				fmt.Println(data)
 				return

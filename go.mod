@@ -47,7 +47,6 @@ require (
 	k8s.io/apimachinery v0.0.0-20191004115801-a2eda9f80ab8
 	k8s.io/client-go v0.0.0-20191004120905-f06fe3961ca9
 	k8s.io/klog v0.4.0
-	sigs.k8s.io/yaml v1.1.0
 )
 
 // Point at the local checkouts
