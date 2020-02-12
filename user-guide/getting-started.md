@@ -123,7 +123,7 @@ In a typical configuration workflow, Custom Resource Definitions (CRDs) are used
        spec:
          containers:
          - name: backend
-           image: quay.io/datawire/quote:0.2.7
+           image: quay.io/datawire/quote:$quoteVersion$
            ports:
            - name: http
              containerPort: 8080
