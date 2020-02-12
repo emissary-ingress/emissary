@@ -141,6 +141,11 @@ class ListenerFactory:
                                       (host.name, ctx.name, hostname))
                         # Skip this Host, something weird is going on.
                         continue
+
+                    # Force additionalPort to 8080 if it's not set at all.
+                    if insecure_addl_port is None:
+                        ir.logger.info(f"ListenerFactory: Host {hostname} has TLS active, defaulting additionalPort to 8080")
+                        insecure_addl_port = 8080
                 else:
                     # Huh. This is actually a different kind of "impossible".
                     ctx = host.context
