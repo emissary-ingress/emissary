@@ -937,7 +937,7 @@ export class SortableResourceSet extends ResourceSet {
   static get properties() {
     return {
       sortFields: { type: Array },
-      sortBy: { type: String }
+      sortBy: { type: String },
     };
   }
 
