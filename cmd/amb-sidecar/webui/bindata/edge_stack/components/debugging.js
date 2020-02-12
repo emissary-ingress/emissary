@@ -1,5 +1,5 @@
-import { LitElement, html, css } from '../vendor/lit-element.min.js'
-import { Snapshot } from './snapshot.js'
+import { LitElement, html, css } from '/edge_stack/vendor/lit-element.min.js';
+import { Snapshot } from './snapshot.js';
 import { getCookie } from './cookies.js';
 import {ApiFetch} from "./api-fetch.js";
 
@@ -11,7 +11,7 @@ export class Debugging extends LitElement {
       diagd: {type: Object},
       licenseClaims: { type: Object },
       featuresOverLimit: { type: Object },
-      redisInUse: { type: Boolean }
+      redisInUse: { type: Boolean },
     };
   }
 
@@ -20,6 +20,7 @@ export class Debugging extends LitElement {
 
     Snapshot.subscribe(this.onSnapshotChange.bind(this));
   }
+
 
   static get styles() {
     return css`
@@ -75,7 +76,7 @@ export class Debugging extends LitElement {
         align-self: center
       }
       
-      .col2 a.cta  {
+      .col2 a.cta {
         text-decoration: none;
         border: 2px #efefef solid;
         border-radius: 10px;
@@ -255,7 +256,7 @@ export class Debugging extends LitElement {
         align-self: center
       }
       
-      .col2 a.cta  {
+      .col2 a.cta {
         text-decoration: none;
         border: 2px #efefef solid;
         border-radius: 10px;
@@ -270,7 +271,7 @@ export class Debugging extends LitElement {
         cursor: pointer;
       }
       
-      .header_con .col2 a.cta  {
+      .header_con .col2 a.cta {
         border-color: #c8c8c8;
       }
       
@@ -321,6 +322,37 @@ export class Debugging extends LitElement {
 
       .logo {
         filter: invert(19%) sepia(64%) saturate(4904%) hue-rotate(248deg) brightness(107%) contrast(101%);
+      }
+      span.logLabel {
+        vertical-align: center;
+        top: 3px;
+        bottom: 0;
+        right: 0;
+      }
+      div.logDiv {
+        position: relative;
+        margin-top: 10px;
+      }
+      select#logSelector {
+        height: 25px;
+        width: 100px;
+        border-radius: 0;
+        padding-left: 15px;
+        margin-left: 5px;
+        border: 2px #efefef solid;
+        border-radius: 10px;
+        font-size: .8rem;
+        font-weight: 600;
+
+        /* Removes the default <select> styling */
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+
+        /* Positions background arrow image */
+        background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAh0lEQVQ4T93TMQrCUAzG8V9x8QziiYSuXdzFC7h4AcELOPQAdXYovZCHEATlgQV5GFTe1ozJlz/kS1IpjKqw3wQBVyy++JI0y1GTe7DCBbMAckeNIQKk/BanALBB+16LtnDELoMcsM/BESDlz2heDR3WePwKSLo5eoxz3z6NNcFD+vu3ij14Aqz/DxGbKB7CAAAAAElFTkSuQmCC');
+        background-repeat: no-repeat;
+        background-position: 75px center;
       }
     `;
   }
@@ -415,10 +447,15 @@ export class Debugging extends LitElement {
           <dl>
             <dt>Current log level</dt>
             <dd>${this.diagd.loginfo.all}</dd>
+            
           </dl>
-  
-          <a class="cta" style="width: auto" @click=${()=>{this.setLogLevel('debug')}}><div class="label">Set log level to <q>debug</q></div></a>
-          <a class="cta" style="width: auto" @click=${()=>{this.setLogLevel('info')}}><div class="label">Set log level to <q>info</q></div></a>
+          <div class="logDiv"><span class="logLabel">Set Log Level:</span>
+            <select id="logSelector" @change=${this.onChangeSetLogLevel.bind(this)}>
+              <option ?selected=${this.diagd.loginfo.all==="debug"} value="debug">DEBUG</option>
+              <option ?selected=${this.diagd.loginfo.all==="info"} value="info">INFO</option>
+              <option ?selected=${this.diagd.loginfo.all==="trace"} value="trace">TRACE</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -481,6 +518,11 @@ export class Debugging extends LitElement {
     this.licenseClaims = snapshot.getLicense().Claims || {};
     this.featuresOverLimit = snapshot.getLicense().FeaturesOverLimit || [];
     this.redisInUse = snapshot.getRedisInUse();
+  }
+
+  onChangeSetLogLevel(e) {
+    this.level = e.target.options[e.target.selectedIndex].value;
+    this.setLogLevel(this.level);
   }
 
   setLogLevel(level) {
