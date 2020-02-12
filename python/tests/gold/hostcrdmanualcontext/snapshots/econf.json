@@ -33,7 +33,7 @@
                 "dns_lookup_family": "V4_ONLY",
                 "lb_policy": "ROUND_ROBIN",
                 "load_assignment": {
-                    "cluster_name": "cluster_hostcleartext_http_default",
+                    "cluster_name": "cluster_hostcrdmanualcontext_http_default",
                     "endpoints": [
                         {
                             "lb_endpoints": [
@@ -41,7 +41,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "hostcleartext-http.default",
+                                                "address": "hostcrdmanualcontext-http.default",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }
@@ -52,7 +52,7 @@
                         }
                     ]
                 },
-                "name": "cluster_hostcleartext_http_default",
+                "name": "cluster_hostcrdmanualcontext_http_default",
                 "type": "STRICT_DNS"
             }
         ],
@@ -61,13 +61,15 @@
                 "address": {
                     "socket_address": {
                         "address": "0.0.0.0",
-                        "port_value": 8080,
+                        "port_value": 8443,
                         "protocol": "TCP"
                     }
                 },
                 "filter_chains": [
                     {
-                        "filter_chain_match": {},
+                        "filter_chain_match": {
+                            "transport_protocol": "tls"
+                        },
                         "filters": [
                             {
                                 "config": {
@@ -98,7 +100,7 @@
                                                 "domains": [
                                                     "*"
                                                 ],
-                                                "name": "ambassador-listener-8080-hostcleartext-forced-star",
+                                                "name": "ambassador-listener-8443-hostcrdmanualcontext-forced-star",
                                                 "routes": [
                                                     {
                                                         "match": {
@@ -137,11 +139,8 @@
                                                                 "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
                                                             }
                                                         },
-                                                        "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877_default",
-                                                            "prefix_rewrite": "/ambassador/v0/check_ready",
-                                                            "priority": null,
-                                                            "timeout": "10.000s"
+                                                        "redirect": {
+                                                            "https_redirect": true
                                                         }
                                                     },
                                                     {
@@ -181,11 +180,8 @@
                                                                 "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
                                                             }
                                                         },
-                                                        "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877_default",
-                                                            "prefix_rewrite": "/ambassador/v0/check_alive",
-                                                            "priority": null,
-                                                            "timeout": "10.000s"
+                                                        "redirect": {
+                                                            "https_redirect": true
                                                         }
                                                     },
                                                     {
@@ -225,11 +221,8 @@
                                                                 "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
                                                             }
                                                         },
-                                                        "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877_default",
-                                                            "prefix_rewrite": "/ambassador/v0/",
-                                                            "priority": null,
-                                                            "timeout": "10.000s"
+                                                        "redirect": {
+                                                            "https_redirect": true
                                                         }
                                                     },
                                                     {
@@ -247,11 +240,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_hostcleartext_http_default"
+                                                                "runtime_key": "routing.traffic_shift.cluster_hostcrdmanualcontext_http_default"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_hostcleartext_http_default",
+                                                            "cluster": "cluster_hostcrdmanualcontext_http_default",
                                                             "prefix_rewrite": "/",
                                                             "priority": null,
                                                             "timeout": "3.000s"
@@ -266,14 +259,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_hostcleartext_http_default"
+                                                                "runtime_key": "routing.traffic_shift.cluster_hostcrdmanualcontext_http_default"
                                                             }
                                                         },
-                                                        "route": {
-                                                            "cluster": "cluster_hostcleartext_http_default",
-                                                            "prefix_rewrite": "/",
-                                                            "priority": null,
-                                                            "timeout": "3.000s"
+                                                        "redirect": {
+                                                            "https_redirect": true
                                                         }
                                                     }
                                                 ]
@@ -288,11 +278,34 @@
                                 "name": "envoy.http_connection_manager"
                             }
                         ],
+                        "tls_context": {
+                            "common_tls_context": {
+                                "tls_certificates": [
+                                    {
+                                        "certificate_chain": {
+                                            "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/manual-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt"
+                                        },
+                                        "private_key": {
+                                            "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/manual-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key"
+                                        }
+                                    }
+                                ],
+                                "tls_params": {
+                                    "tls_maximum_protocol_version": "TLSv1_3",
+                                    "tls_minimum_protocol_version": "TLSv1_2"
+                                }
+                            }
+                        },
                         "use_proxy_proto": false
                     }
                 ],
-                "listener_filters": [],
-                "name": "ambassador-listener-8080"
+                "listener_filters": [
+                    {
+                        "config": {},
+                        "name": "envoy.listener.tls_inspector"
+                    }
+                ],
+                "name": "ambassador-listener-8443"
             }
         ]
     }

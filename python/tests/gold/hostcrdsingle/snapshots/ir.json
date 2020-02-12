@@ -37,7 +37,7 @@
             "service": "127.0.0.1:8877"
         },
         "server_name": "envoy",
-        "service_port": 8080,
+        "service_port": 8443,
         "use_ambassador_namespace_for_service_resolution": false,
         "use_proxy_proto": false,
         "use_remote_address": true,
@@ -80,18 +80,18 @@
                 "tcp://127.0.0.1:8877"
             ]
         },
-        "cluster_hostcleartext_http_default": {
+        "cluster_hostcrdsingle_http_default": {
             "_active": true,
             "_errored": false,
-            "_hostname": "hostcleartext-http",
+            "_hostname": "hostcrdsingle-http",
             "_is_sidecar": false,
             "_namespace": "default",
             "_port": 80,
             "_referenced_by": [
-                "cleartext-target-mapping.default.1"
+                "edgy-target-mapping.default.1"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_hostcleartext_http_default",
+            "_rkey": "cluster_hostcrdsingle_http_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -99,20 +99,20 @@
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
-            "location": "cleartext-target-mapping.default.1",
-            "name": "cluster_hostcleartext_http_default",
+            "location": "edgy-target-mapping.default.1",
+            "name": "cluster_hostcrdsingle_http_default",
             "namespace": "default",
-            "service": "hostcleartext-http",
+            "service": "hostcrdsingle-http",
             "targets": [
                 {
-                    "ip": "hostcleartext-http.default",
+                    "ip": "hostcrdsingle-http.default",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
             ],
             "type": "strict_dns",
             "urls": [
-                "tcp://hostcleartext-http:80"
+                "tcp://hostcrdsingle-http:80"
             ]
         }
     },
@@ -417,9 +417,9 @@
             "_active": true,
             "_errored": false,
             "_referenced_by": [
-                "cleartext-target-mapping.default.1"
+                "edgy-target-mapping.default.1"
             ],
-            "_rkey": "cleartext-target-mapping.default.1",
+            "_rkey": "edgy-target-mapping.default.1",
             "group_id": "ef2f76a27cdb850e84f8f5c00ce17c4798f7e065",
             "group_weight": [
                 0,
@@ -430,25 +430,25 @@
             ],
             "headers": [],
             "kind": "IRHTTPMappingGroup",
-            "location": "cleartext-target-mapping.default.1",
+            "location": "edgy-target-mapping.default.1",
             "mappings": [
                 {
                     "_active": true,
                     "_errored": false,
-                    "_rkey": "cleartext-target-mapping.default.1",
+                    "_rkey": "edgy-target-mapping.default.1",
                     "add_request_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
-                        "_hostname": "hostcleartext-http",
+                        "_hostname": "hostcrdsingle-http",
                         "_is_sidecar": false,
                         "_namespace": "default",
                         "_port": 80,
                         "_referenced_by": [
-                            "cleartext-target-mapping.default.1"
+                            "edgy-target-mapping.default.1"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_hostcleartext_http_default",
+                        "_rkey": "cluster_hostcrdsingle_http_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -456,33 +456,33 @@
                         "ignore_cluster": false,
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
-                        "location": "cleartext-target-mapping.default.1",
-                        "name": "cluster_hostcleartext_http_default",
+                        "location": "edgy-target-mapping.default.1",
+                        "name": "cluster_hostcrdsingle_http_default",
                         "namespace": "default",
-                        "service": "hostcleartext-http",
+                        "service": "hostcrdsingle-http",
                         "targets": [
                             {
-                                "ip": "hostcleartext-http.default",
+                                "ip": "hostcrdsingle-http.default",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
                         ],
                         "type": "strict_dns",
                         "urls": [
-                            "tcp://hostcleartext-http:80"
+                            "tcp://hostcrdsingle-http:80"
                         ]
                     },
                     "group_id": "ef2f76a27cdb850e84f8f5c00ce17c4798f7e065",
                     "headers": [],
                     "kind": "Mapping",
-                    "location": "cleartext-target-mapping.default.1",
+                    "location": "edgy-target-mapping.default.1",
                     "metadata_labels": {
-                        "ambassador_crd": "cleartext-target-mapping.default",
-                        "hostname": "host-cleartext",
-                        "kat-ambassador-id": "hostcleartext",
+                        "ambassador_crd": "edgy-target-mapping.default",
+                        "hostname": "edgy.example.com",
+                        "kat-ambassador-id": "hostcrdsingle",
                         "scope": "AmbassadorTest"
                     },
-                    "name": "cleartext-target-mapping",
+                    "name": "edgy-target-mapping",
                     "namespace": "default",
                     "precedence": 0,
                     "prefix": "/target/",
@@ -495,23 +495,23 @@
                         "/target/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id:\n- hostcleartext\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: cleartext-target-mapping.default\n  hostname: host-cleartext\n  kat-ambassador-id: hostcleartext\n  scope: AmbassadorTest\nname: cleartext-target-mapping\nnamespace: default\nprefix: /target/\nservice: hostcleartext-http\n",
-                    "service": "hostcleartext-http",
+                    "serialization": "ambassador_id:\n- hostcrdsingle\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgy-target-mapping.default\n  hostname: edgy.example.com\n  kat-ambassador-id: hostcrdsingle\n  scope: AmbassadorTest\nname: edgy-target-mapping\nnamespace: default\nprefix: /target/\nservice: hostcrdsingle-http\n",
+                    "service": "hostcrdsingle-http",
                     "weight": 100
                 }
             ],
             "metadata_labels": {
-                "ambassador_crd": "cleartext-target-mapping.default",
-                "hostname": "host-cleartext",
-                "kat-ambassador-id": "hostcleartext",
+                "ambassador_crd": "edgy-target-mapping.default",
+                "hostname": "edgy.example.com",
+                "kat-ambassador-id": "hostcrdsingle",
                 "scope": "AmbassadorTest"
             },
-            "name": "GROUP: cleartext-target-mapping",
+            "name": "GROUP: edgy-target-mapping",
             "namespace": "default",
             "precedence": 0,
             "prefix": "/target/",
             "rewrite": "/",
-            "serialization": "ambassador_id:\n- hostcleartext\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: cleartext-target-mapping.default\n  hostname: host-cleartext\n  kat-ambassador-id: hostcleartext\n  scope: AmbassadorTest\nname: cleartext-target-mapping\nnamespace: default\nprefix: /target/\nservice: hostcleartext-http\n"
+            "serialization": "ambassador_id:\n- hostcrdsingle\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgy-target-mapping.default\n  hostname: edgy.example.com\n  kat-ambassador-id: hostcrdsingle\n  scope: AmbassadorTest\nname: edgy-target-mapping\nnamespace: default\nprefix: /target/\nservice: hostcrdsingle-http\n"
         }
     ],
     "grpc_services": {},
@@ -520,36 +520,55 @@
             "_active": true,
             "_errored": false,
             "_referenced_by": [
-                "cleartext-host.default.1"
+                "edgy-host.default.1"
             ],
-            "_rkey": "cleartext-host.default.1",
+            "_rkey": "edgy-host.default.1",
             "acmeProvider": {
                 "authority": "none"
             },
-            "hostname": "hostcleartext",
-            "kind": "Host",
-            "location": "cleartext-host.default.1",
-            "name": "cleartext-host",
-            "namespace": "default",
-            "requestPolicy": {
-                "insecure": {
-                    "action": "Route"
+            "context": {
+                "_active": true,
+                "_errored": false,
+                "_referenced_by": [
+                    "edgy-host.default.1"
+                ],
+                "_rkey": "edgy-host.default.1",
+                "hosts": [
+                    "hostcrdsingle"
+                ],
+                "is_fallback": false,
+                "kind": "IRTLSContext",
+                "location": "edgy-host.default.1",
+                "name": "edgy-host-context",
+                "namespace": "default",
+                "secret_info": {
+                    "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/edgy-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt",
+                    "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/edgy-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key",
+                    "secret": "edgy-secret"
                 }
             },
+            "hostname": "hostcrdsingle",
+            "kind": "Host",
+            "location": "edgy-host.default.1",
+            "name": "edgy-host",
+            "namespace": "default",
             "selector": {
                 "matchLabels": {
-                    "hostname": "host-cleartext"
+                    "hostname": "edgy.example.com"
                 }
+            },
+            "tlsSecret": {
+                "name": "edgy-secret"
             }
         }
     ],
     "identity": {
-        "ambassador_id": "hostcleartext",
+        "ambassador_id": "hostcrdsingle",
         "ambassador_namespace": "default",
-        "ambassador_nodename": "hostcleartext-default"
+        "ambassador_nodename": "hostcrdsingle-default"
     },
     "k8s_status_updates": {
-        "cleartext-target-mapping.default": [
+        "edgy-target-mapping.default": [
             "Mapping",
             "default",
             {
@@ -562,69 +581,113 @@
             "_active": true,
             "_errored": false,
             "_rkey": "ir.listener",
-            "hostname": "hostcleartext",
-            "insecure_action": "Route",
+            "context": {
+                "_active": true,
+                "_errored": false,
+                "_referenced_by": [
+                    "edgy-host.default.1"
+                ],
+                "_rkey": "edgy-host.default.1",
+                "hosts": [
+                    "hostcrdsingle"
+                ],
+                "is_fallback": false,
+                "kind": "IRTLSContext",
+                "location": "edgy-host.default.1",
+                "name": "edgy-host-context",
+                "namespace": "default",
+                "secret_info": {
+                    "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/edgy-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt",
+                    "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/edgy-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key",
+                    "secret": "edgy-secret"
+                }
+            },
+            "hostname": "hostcrdsingle",
+            "insecure_action": "Redirect",
+            "insecure_addl_port": 8080,
             "kind": "IRListener",
-            "location": "cleartext-host.default.1",
+            "location": "edgy-host.default.1",
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
             "secure_action": "Route",
-            "service_port": 8080,
+            "service_port": 8443,
             "use_proxy_proto": false
         }
     ],
     "services": {
-        "k8s-hostcleartext-admin-default": {
+        "k8s-hostcrdsingle-admin-default": {
             "_referenced_by": {},
-            "ambassador_id": "hostcleartext",
+            "ambassador_id": "hostcrdsingle",
             "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
-            "location": "k8s-hostcleartext-admin-default",
+            "location": "k8s-hostcrdsingle-admin-default",
             "metadata_labels": {
-                "kat-ambassador-id": "hostcleartext",
+                "kat-ambassador-id": "hostcrdsingle",
                 "scope": "AmbassadorTest",
-                "service": "hostcleartext-admin"
+                "service": "hostcrdsingle-admin"
             },
-            "name": "hostcleartext-admin",
+            "name": "hostcrdsingle-admin",
             "namespace": "default",
-            "rkey": "k8s-hostcleartext-admin-default",
-            "serialization": "ambassador_id: hostcleartext\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: hostcleartext\n  scope: AmbassadorTest\n  service: hostcleartext-admin\nname: hostcleartext-admin\nnamespace: default\n"
+            "rkey": "k8s-hostcrdsingle-admin-default",
+            "serialization": "ambassador_id: hostcrdsingle\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: hostcrdsingle\n  scope: AmbassadorTest\n  service: hostcrdsingle-admin\nname: hostcrdsingle-admin\nnamespace: default\n"
         },
-        "k8s-hostcleartext-default": {
+        "k8s-hostcrdsingle-default": {
             "_referenced_by": {},
-            "ambassador_id": "hostcleartext",
+            "ambassador_id": "hostcrdsingle",
             "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
-            "location": "k8s-hostcleartext-default",
+            "location": "k8s-hostcrdsingle-default",
             "metadata_labels": {
                 "app.kubernetes.io/component": "ambassador-service",
-                "kat-ambassador-id": "hostcleartext",
+                "kat-ambassador-id": "hostcrdsingle",
                 "scope": "AmbassadorTest"
             },
-            "name": "hostcleartext",
+            "name": "hostcrdsingle",
             "namespace": "default",
-            "rkey": "k8s-hostcleartext-default",
-            "serialization": "ambassador_id: hostcleartext\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: hostcleartext\n  scope: AmbassadorTest\nname: hostcleartext\nnamespace: default\n"
+            "rkey": "k8s-hostcrdsingle-default",
+            "serialization": "ambassador_id: hostcrdsingle\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: hostcrdsingle\n  scope: AmbassadorTest\nname: hostcrdsingle\nnamespace: default\n"
         },
-        "k8s-hostcleartext-http-default": {
+        "k8s-hostcrdsingle-http-default": {
             "_referenced_by": {},
-            "ambassador_id": "hostcleartext",
+            "ambassador_id": "hostcrdsingle",
             "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
-            "location": "k8s-hostcleartext-http-default",
+            "location": "k8s-hostcrdsingle-http-default",
             "metadata_labels": {
-                "kat-ambassador-id": "hostcleartext",
+                "kat-ambassador-id": "hostcrdsingle",
                 "scope": "AmbassadorTest"
             },
-            "name": "hostcleartext-http",
+            "name": "hostcrdsingle-http",
             "namespace": "default",
-            "rkey": "k8s-hostcleartext-http-default",
-            "serialization": "ambassador_id: hostcleartext\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: hostcleartext\n  scope: AmbassadorTest\nname: hostcleartext-http\nnamespace: default\n"
+            "rkey": "k8s-hostcrdsingle-http-default",
+            "serialization": "ambassador_id: hostcrdsingle\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: hostcrdsingle\n  scope: AmbassadorTest\nname: hostcrdsingle-http\nnamespace: default\n"
         }
     },
-    "tls_contexts": []
+    "tls_contexts": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "edgy-host.default.1"
+            ],
+            "_rkey": "edgy-host.default.1",
+            "hosts": [
+                "hostcrdsingle"
+            ],
+            "is_fallback": false,
+            "kind": "IRTLSContext",
+            "location": "edgy-host.default.1",
+            "name": "edgy-host-context",
+            "namespace": "default",
+            "secret_info": {
+                "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/edgy-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt",
+                "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/edgy-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key",
+                "secret": "edgy-secret"
+            }
+        }
+    ]
 }

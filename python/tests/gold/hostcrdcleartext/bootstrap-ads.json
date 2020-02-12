@@ -27,7 +27,7 @@
         }
     },
     "node": {
-        "cluster": "hostcleartext-default",
+        "cluster": "hostcrdcleartext-default",
         "id": "test-id"
     },
     "static_resources": {

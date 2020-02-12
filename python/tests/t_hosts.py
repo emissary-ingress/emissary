@@ -7,9 +7,9 @@ from abstract_tests import AmbassadorTest, ServiceType, HTTP
 # Mappings without host attributes (infer via Host resource)
 # Host where a TLSContext with the inferred name already exists
 
-class HostSingle(AmbassadorTest):
+class HostCRDSingle(AmbassadorTest):
     """
-    HostSingle: a single Host with a manually-configured TLS. Since the Host is handling the
+    HostCRDSingle: a single Host with a manually-configured TLS. Since the Host is handling the
     TLSContext, we expect both OSS and Edge Stack to redirect cleartext from 8080 to 8443 here.
     """
     target: ServiceType
@@ -70,7 +70,7 @@ spec:
         yield Query(self.url("target/", scheme="http"), expected=301)
 
 
-class HostManualContext(AmbassadorTest):
+class HostCRDManualContext(AmbassadorTest):
     """
     A single Host with a manually-specified TLS secret and a manually-specified TLSContext,
     too. Since the Host is _not_ handling the TLSContext, we do _not_ expect automatic redirection
@@ -158,7 +158,7 @@ spec:
         else:
             yield Query(self.url("target/", scheme="http"), error=[ "EOF", "connection refused" ])
 
-class HostClearText(AmbassadorTest):
+class HostCRDClearText(AmbassadorTest):
     """
     A single Host specifying cleartext only. Since it's just cleartext, no redirection comes
     into play.
@@ -212,9 +212,9 @@ spec:
                     error=[ "EOF", "connection refused" ])
 
 
-class HostDouble(AmbassadorTest):
+class HostCRDDouble(AmbassadorTest):
     """
-    HostDouble: two Hosts with manually-configured TLS secrets, and Mappings specifying host matches.
+    HostCRDDouble: two Hosts with manually-configured TLS secrets, and Mappings specifying host matches.
     Since the Hosts are handling TLSContexts, we expect both OSS and Edge Stack to redirect cleartext
     from 8080 to 8443 here.
 

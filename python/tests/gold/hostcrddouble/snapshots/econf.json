@@ -33,7 +33,7 @@
                 "dns_lookup_family": "V4_ONLY",
                 "lb_policy": "ROUND_ROBIN",
                 "load_assignment": {
-                    "cluster_name": "cluster_hostdouble_http_target1_default",
+                    "cluster_name": "cluster_hostcrddouble_http_target1_default",
                     "endpoints": [
                         {
                             "lb_endpoints": [
@@ -41,7 +41,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "hostdouble-http-target1.default",
+                                                "address": "hostcrddouble-http-target1.default",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }
@@ -52,7 +52,7 @@
                         }
                     ]
                 },
-                "name": "cluster_hostdouble_http_target1_default",
+                "name": "cluster_hostcrddouble_http_target1_default",
                 "type": "STRICT_DNS"
             },
             {
@@ -60,7 +60,7 @@
                 "dns_lookup_family": "V4_ONLY",
                 "lb_policy": "ROUND_ROBIN",
                 "load_assignment": {
-                    "cluster_name": "cluster_hostdouble_http_target2_default",
+                    "cluster_name": "cluster_hostcrddouble_http_target2_default",
                     "endpoints": [
                         {
                             "lb_endpoints": [
@@ -68,7 +68,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "hostdouble-http-target2.default",
+                                                "address": "hostcrddouble-http-target2.default",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }
@@ -79,7 +79,7 @@
                         }
                     ]
                 },
-                "name": "cluster_hostdouble_http_target2_default",
+                "name": "cluster_hostcrddouble_http_target2_default",
                 "type": "STRICT_DNS"
             }
         ],
@@ -271,11 +271,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_hostdouble_http_target2_default"
+                                                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target2_default"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_hostdouble_http_target2_default",
+                                                            "cluster": "cluster_hostcrddouble_http_target2_default",
                                                             "prefix_rewrite": "/",
                                                             "priority": null,
                                                             "timeout": "3.000s"
@@ -296,7 +296,7 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_hostdouble_http_target2_default"
+                                                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target2_default"
                                                             }
                                                         },
                                                         "redirect": {
@@ -322,11 +322,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_hostdouble_http_target1_default"
+                                                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target1_default"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_hostdouble_http_target1_default",
+                                                            "cluster": "cluster_hostcrddouble_http_target1_default",
                                                             "prefix_rewrite": "/",
                                                             "priority": null,
                                                             "timeout": "3.000s"
@@ -347,7 +347,7 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_hostdouble_http_target1_default"
+                                                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target1_default"
                                                             }
                                                         },
                                                         "redirect": {
@@ -563,11 +563,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_hostdouble_http_target2_default"
+                                                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target2_default"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_hostdouble_http_target2_default",
+                                                            "cluster": "cluster_hostcrddouble_http_target2_default",
                                                             "prefix_rewrite": "/",
                                                             "priority": null,
                                                             "timeout": "3.000s"
@@ -588,7 +588,7 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_hostdouble_http_target2_default"
+                                                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target2_default"
                                                             }
                                                         },
                                                         "redirect": {
@@ -738,7 +738,7 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_hostdouble_http_target2_default"
+                                                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target2_default"
                                                             }
                                                         },
                                                         "redirect": {
@@ -760,7 +760,7 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_hostdouble_http_target1_default"
+                                                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target1_default"
                                                             }
                                                         },
                                                         "redirect": {
@@ -882,7 +882,7 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_hostdouble_http_target2_default"
+                                                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target2_default"
                                                             }
                                                         },
                                                         "redirect": {

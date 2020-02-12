@@ -27,7 +27,7 @@
         }
     },
     "node": {
-        "cluster": "hostmanualtls-default",
+        "cluster": "hostcrdmanualcontext-default",
         "id": "test-id"
     },
     "static_resources": {

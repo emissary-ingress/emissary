@@ -80,10 +80,10 @@
                 "tcp://127.0.0.1:8877"
             ]
         },
-        "cluster_hostdouble_http_target1_default": {
+        "cluster_hostcrddouble_http_target1_default": {
             "_active": true,
             "_errored": false,
-            "_hostname": "hostdouble-http-target1",
+            "_hostname": "hostcrddouble-http-target1",
             "_is_sidecar": false,
             "_namespace": "default",
             "_port": 80,
@@ -91,7 +91,7 @@
                 "host-1-mapping.default.1"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_hostdouble_http_target1_default",
+            "_rkey": "cluster_hostcrddouble_http_target1_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -100,25 +100,25 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "host-1-mapping.default.1",
-            "name": "cluster_hostdouble_http_target1_default",
+            "name": "cluster_hostcrddouble_http_target1_default",
             "namespace": "default",
-            "service": "hostdouble-http-target1",
+            "service": "hostcrddouble-http-target1",
             "targets": [
                 {
-                    "ip": "hostdouble-http-target1.default",
+                    "ip": "hostcrddouble-http-target1.default",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
             ],
             "type": "strict_dns",
             "urls": [
-                "tcp://hostdouble-http-target1:80"
+                "tcp://hostcrddouble-http-target1:80"
             ]
         },
-        "cluster_hostdouble_http_target2_default": {
+        "cluster_hostcrddouble_http_target2_default": {
             "_active": true,
             "_errored": false,
-            "_hostname": "hostdouble-http-target2",
+            "_hostname": "hostcrddouble-http-target2",
             "_is_sidecar": false,
             "_namespace": "default",
             "_port": 80,
@@ -126,7 +126,7 @@
                 "host-2-mapping.default.1"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_hostdouble_http_target2_default",
+            "_rkey": "cluster_hostcrddouble_http_target2_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -135,19 +135,19 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "host-2-mapping.default.1",
-            "name": "cluster_hostdouble_http_target2_default",
+            "name": "cluster_hostcrddouble_http_target2_default",
             "namespace": "default",
-            "service": "hostdouble-http-target2",
+            "service": "hostcrddouble-http-target2",
             "targets": [
                 {
-                    "ip": "hostdouble-http-target2.default",
+                    "ip": "hostcrddouble-http-target2.default",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
             ],
             "type": "strict_dns",
             "urls": [
-                "tcp://hostdouble-http-target2:80"
+                "tcp://hostcrddouble-http-target2:80"
             ]
         }
     },
@@ -482,7 +482,7 @@
                     "cluster": {
                         "_active": true,
                         "_errored": false,
-                        "_hostname": "hostdouble-http-target2",
+                        "_hostname": "hostcrddouble-http-target2",
                         "_is_sidecar": false,
                         "_namespace": "default",
                         "_port": 80,
@@ -490,7 +490,7 @@
                             "host-2-mapping.default.1"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_hostdouble_http_target2_default",
+                        "_rkey": "cluster_hostcrddouble_http_target2_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -499,19 +499,19 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "host-2-mapping.default.1",
-                        "name": "cluster_hostdouble_http_target2_default",
+                        "name": "cluster_hostcrddouble_http_target2_default",
                         "namespace": "default",
-                        "service": "hostdouble-http-target2",
+                        "service": "hostcrddouble-http-target2",
                         "targets": [
                             {
-                                "ip": "hostdouble-http-target2.default",
+                                "ip": "hostcrddouble-http-target2.default",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
                         ],
                         "type": "strict_dns",
                         "urls": [
-                            "tcp://hostdouble-http-target2:80"
+                            "tcp://hostcrddouble-http-target2:80"
                         ]
                     },
                     "group_id": "71750be2fb62d17e512edea00a02eef7a9ff2120",
@@ -528,7 +528,7 @@
                     "metadata_labels": {
                         "ambassador_crd": "host-2-mapping.default",
                         "hostname": "tls-context-host-2",
-                        "kat-ambassador-id": "hostdouble",
+                        "kat-ambassador-id": "hostcrddouble",
                         "scope": "AmbassadorTest"
                     },
                     "name": "host-2-mapping",
@@ -545,8 +545,8 @@
                         "GET",
                         ":authority-tls-context-host-2"
                     ],
-                    "serialization": "ambassador_id:\n- hostdouble\napiVersion: getambassador.io/v2\ngeneration: 1\nhost: tls-context-host-2\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: host-2-mapping.default\n  hostname: tls-context-host-2\n  kat-ambassador-id: hostdouble\n  scope: AmbassadorTest\nname: host-2-mapping\nnamespace: default\nprefix: /target/\nservice: hostdouble-http-target2\n",
-                    "service": "hostdouble-http-target2",
+                    "serialization": "ambassador_id:\n- hostcrddouble\napiVersion: getambassador.io/v2\ngeneration: 1\nhost: tls-context-host-2\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: host-2-mapping.default\n  hostname: tls-context-host-2\n  kat-ambassador-id: hostcrddouble\n  scope: AmbassadorTest\nname: host-2-mapping\nnamespace: default\nprefix: /target/\nservice: hostcrddouble-http-target2\n",
+                    "service": "hostcrddouble-http-target2",
                     "sni": true,
                     "tls_context": {
                         "_active": true,
@@ -575,7 +575,7 @@
             "metadata_labels": {
                 "ambassador_crd": "host-2-mapping.default",
                 "hostname": "tls-context-host-2",
-                "kat-ambassador-id": "hostdouble",
+                "kat-ambassador-id": "hostcrddouble",
                 "scope": "AmbassadorTest"
             },
             "name": "GROUP: host-2-mapping",
@@ -583,7 +583,7 @@
             "precedence": 0,
             "prefix": "/target/",
             "rewrite": "/",
-            "serialization": "ambassador_id:\n- hostdouble\napiVersion: getambassador.io/v2\ngeneration: 1\nhost: tls-context-host-2\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: host-2-mapping.default\n  hostname: tls-context-host-2\n  kat-ambassador-id: hostdouble\n  scope: AmbassadorTest\nname: host-2-mapping\nnamespace: default\nprefix: /target/\nservice: hostdouble-http-target2\n",
+            "serialization": "ambassador_id:\n- hostcrddouble\napiVersion: getambassador.io/v2\ngeneration: 1\nhost: tls-context-host-2\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: host-2-mapping.default\n  hostname: tls-context-host-2\n  kat-ambassador-id: hostcrddouble\n  scope: AmbassadorTest\nname: host-2-mapping\nnamespace: default\nprefix: /target/\nservice: hostcrddouble-http-target2\n",
             "sni": true,
             "tls_context": {
                 "_active": true,
@@ -641,7 +641,7 @@
                     "cluster": {
                         "_active": true,
                         "_errored": false,
-                        "_hostname": "hostdouble-http-target1",
+                        "_hostname": "hostcrddouble-http-target1",
                         "_is_sidecar": false,
                         "_namespace": "default",
                         "_port": 80,
@@ -649,7 +649,7 @@
                             "host-1-mapping.default.1"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_hostdouble_http_target1_default",
+                        "_rkey": "cluster_hostcrddouble_http_target1_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -658,19 +658,19 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "host-1-mapping.default.1",
-                        "name": "cluster_hostdouble_http_target1_default",
+                        "name": "cluster_hostcrddouble_http_target1_default",
                         "namespace": "default",
-                        "service": "hostdouble-http-target1",
+                        "service": "hostcrddouble-http-target1",
                         "targets": [
                             {
-                                "ip": "hostdouble-http-target1.default",
+                                "ip": "hostcrddouble-http-target1.default",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
                         ],
                         "type": "strict_dns",
                         "urls": [
-                            "tcp://hostdouble-http-target1:80"
+                            "tcp://hostcrddouble-http-target1:80"
                         ]
                     },
                     "group_id": "69a164aa0a3ba53d424d34d69c5edd5466f561ee",
@@ -687,7 +687,7 @@
                     "metadata_labels": {
                         "ambassador_crd": "host-1-mapping.default",
                         "hostname": "tls-context-host-1",
-                        "kat-ambassador-id": "hostdouble",
+                        "kat-ambassador-id": "hostcrddouble",
                         "scope": "AmbassadorTest"
                     },
                     "name": "host-1-mapping",
@@ -704,8 +704,8 @@
                         "GET",
                         ":authority-tls-context-host-1"
                     ],
-                    "serialization": "ambassador_id:\n- hostdouble\napiVersion: getambassador.io/v2\ngeneration: 1\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: host-1-mapping.default\n  hostname: tls-context-host-1\n  kat-ambassador-id: hostdouble\n  scope: AmbassadorTest\nname: host-1-mapping\nnamespace: default\nprefix: /target/\nservice: hostdouble-http-target1\n",
-                    "service": "hostdouble-http-target1",
+                    "serialization": "ambassador_id:\n- hostcrddouble\napiVersion: getambassador.io/v2\ngeneration: 1\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: host-1-mapping.default\n  hostname: tls-context-host-1\n  kat-ambassador-id: hostcrddouble\n  scope: AmbassadorTest\nname: host-1-mapping\nnamespace: default\nprefix: /target/\nservice: hostcrddouble-http-target1\n",
+                    "service": "hostcrddouble-http-target1",
                     "sni": true,
                     "tls_context": {
                         "_active": true,
@@ -734,7 +734,7 @@
             "metadata_labels": {
                 "ambassador_crd": "host-1-mapping.default",
                 "hostname": "tls-context-host-1",
-                "kat-ambassador-id": "hostdouble",
+                "kat-ambassador-id": "hostcrddouble",
                 "scope": "AmbassadorTest"
             },
             "name": "GROUP: host-1-mapping",
@@ -742,7 +742,7 @@
             "precedence": 0,
             "prefix": "/target/",
             "rewrite": "/",
-            "serialization": "ambassador_id:\n- hostdouble\napiVersion: getambassador.io/v2\ngeneration: 1\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: host-1-mapping.default\n  hostname: tls-context-host-1\n  kat-ambassador-id: hostdouble\n  scope: AmbassadorTest\nname: host-1-mapping\nnamespace: default\nprefix: /target/\nservice: hostdouble-http-target1\n",
+            "serialization": "ambassador_id:\n- hostcrddouble\napiVersion: getambassador.io/v2\ngeneration: 1\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: host-1-mapping.default\n  hostname: tls-context-host-1\n  kat-ambassador-id: hostcrddouble\n  scope: AmbassadorTest\nname: host-1-mapping\nnamespace: default\nprefix: /target/\nservice: hostcrddouble-http-target1\n",
             "sni": true,
             "tls_context": {
                 "_active": true,
@@ -861,9 +861,9 @@
         }
     ],
     "identity": {
-        "ambassador_id": "hostdouble",
+        "ambassador_id": "hostcrddouble",
         "ambassador_namespace": "default",
-        "ambassador_nodename": "hostdouble-default"
+        "ambassador_nodename": "hostcrddouble-default"
     },
     "k8s_status_updates": {
         "host-1-mapping.default": [
@@ -958,71 +958,71 @@
         }
     ],
     "services": {
-        "k8s-hostdouble-admin-default": {
+        "k8s-hostcrddouble-admin-default": {
             "_referenced_by": {},
-            "ambassador_id": "hostdouble",
+            "ambassador_id": "hostcrddouble",
             "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
-            "location": "k8s-hostdouble-admin-default",
+            "location": "k8s-hostcrddouble-admin-default",
             "metadata_labels": {
-                "kat-ambassador-id": "hostdouble",
+                "kat-ambassador-id": "hostcrddouble",
                 "scope": "AmbassadorTest",
-                "service": "hostdouble-admin"
+                "service": "hostcrddouble-admin"
             },
-            "name": "hostdouble-admin",
+            "name": "hostcrddouble-admin",
             "namespace": "default",
-            "rkey": "k8s-hostdouble-admin-default",
-            "serialization": "ambassador_id: hostdouble\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: hostdouble\n  scope: AmbassadorTest\n  service: hostdouble-admin\nname: hostdouble-admin\nnamespace: default\n"
+            "rkey": "k8s-hostcrddouble-admin-default",
+            "serialization": "ambassador_id: hostcrddouble\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: hostcrddouble\n  scope: AmbassadorTest\n  service: hostcrddouble-admin\nname: hostcrddouble-admin\nnamespace: default\n"
         },
-        "k8s-hostdouble-default": {
+        "k8s-hostcrddouble-default": {
             "_referenced_by": {},
-            "ambassador_id": "hostdouble",
+            "ambassador_id": "hostcrddouble",
             "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
-            "location": "k8s-hostdouble-default",
+            "location": "k8s-hostcrddouble-default",
             "metadata_labels": {
                 "app.kubernetes.io/component": "ambassador-service",
-                "kat-ambassador-id": "hostdouble",
+                "kat-ambassador-id": "hostcrddouble",
                 "scope": "AmbassadorTest"
             },
-            "name": "hostdouble",
+            "name": "hostcrddouble",
             "namespace": "default",
-            "rkey": "k8s-hostdouble-default",
-            "serialization": "ambassador_id: hostdouble\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: hostdouble\n  scope: AmbassadorTest\nname: hostdouble\nnamespace: default\n"
+            "rkey": "k8s-hostcrddouble-default",
+            "serialization": "ambassador_id: hostcrddouble\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: hostcrddouble\n  scope: AmbassadorTest\nname: hostcrddouble\nnamespace: default\n"
         },
-        "k8s-hostdouble-http-target1-default": {
+        "k8s-hostcrddouble-http-target1-default": {
             "_referenced_by": {},
-            "ambassador_id": "hostdouble",
+            "ambassador_id": "hostcrddouble",
             "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
-            "location": "k8s-hostdouble-http-target1-default",
+            "location": "k8s-hostcrddouble-http-target1-default",
             "metadata_labels": {
-                "kat-ambassador-id": "hostdouble",
+                "kat-ambassador-id": "hostcrddouble",
                 "scope": "AmbassadorTest"
             },
-            "name": "hostdouble-http-target1",
+            "name": "hostcrddouble-http-target1",
             "namespace": "default",
-            "rkey": "k8s-hostdouble-http-target1-default",
-            "serialization": "ambassador_id: hostdouble\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: hostdouble\n  scope: AmbassadorTest\nname: hostdouble-http-target1\nnamespace: default\n"
+            "rkey": "k8s-hostcrddouble-http-target1-default",
+            "serialization": "ambassador_id: hostcrddouble\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: hostcrddouble\n  scope: AmbassadorTest\nname: hostcrddouble-http-target1\nnamespace: default\n"
         },
-        "k8s-hostdouble-http-target2-default": {
+        "k8s-hostcrddouble-http-target2-default": {
             "_referenced_by": {},
-            "ambassador_id": "hostdouble",
+            "ambassador_id": "hostcrddouble",
             "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
-            "location": "k8s-hostdouble-http-target2-default",
+            "location": "k8s-hostcrddouble-http-target2-default",
             "metadata_labels": {
-                "kat-ambassador-id": "hostdouble",
+                "kat-ambassador-id": "hostcrddouble",
                 "scope": "AmbassadorTest"
             },
-            "name": "hostdouble-http-target2",
+            "name": "hostcrddouble-http-target2",
             "namespace": "default",
-            "rkey": "k8s-hostdouble-http-target2-default",
-            "serialization": "ambassador_id: hostdouble\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: hostdouble\n  scope: AmbassadorTest\nname: hostdouble-http-target2\nnamespace: default\n"
+            "rkey": "k8s-hostcrddouble-http-target2-default",
+            "serialization": "ambassador_id: hostcrddouble\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: hostcrddouble\n  scope: AmbassadorTest\nname: hostcrddouble-http-target2\nnamespace: default\n"
         }
     },
     "tls_contexts": [
