@@ -642,7 +642,7 @@ class V2ListenerCollection:
         return listener
 
     def __contains__(self, port: int) -> bool:
-        return bool(self.listeners.get(port, None))
+        return port in self.listeners
 
     def items(self):
         return self.listeners.items()
@@ -925,12 +925,8 @@ class V2Listener(dict):
         # the Mapping.
 
         first_irlistener_by_port: Dict[int, IRListener] = {}
-        irlistener8443 = None
 
         for irlistener in config.ir.listeners:
-            if not irlistener8443 and (irlistener.service_port == 8443):
-                irlistener8443 = irlistener
-
             if irlistener.service_port not in first_irlistener_by_port:
                 first_irlistener_by_port[irlistener.service_port] = irlistener
 
@@ -950,7 +946,7 @@ class V2Listener(dict):
                                 insecure_action=irlistener.insecure_action,
                                 use_proxy_proto=irlistener.use_proxy_proto)
 
-            if irlistener.insecure_addl_port is not None:
+            if (irlistener.insecure_addl_port is not None) and (irlistener.insecure_addl_port > 0):
                 # Make sure we have a listener on the right port for this.
                 listener = listeners_by_port[irlistener.insecure_addl_port]
 
@@ -980,6 +976,32 @@ class V2Listener(dict):
                 first_vhost = listener.first_vhost
                 first_vhost._hostname = '*'
                 first_vhost._name = f"{first_vhost._name}-forced-star"
+
+        if config.ir.edge_stack_allowed:
+            # If we're running Edge Stack, make sure we have a listener on port 8080, so that
+            # we have a place to stand for ACME.
+
+            if 8080 not in listeners_by_port:
+                # Force a listener on 8080 with a VHost for '*' that rejects everything. The ACME
+                # hole-puncher will override the reject for ACME, and nothing else will get through.
+
+                logger.info(f"V2Listeners: listeners_by_port has no 8080, forcing Edge Stack listener on 8080")
+                listener = listeners_by_port[8080]
+
+                # Check for a listener on the main service port to see if the proxy proto
+                # is enabled.
+                main_listener = first_irlistener_by_port.get(config.ir.ambassador_module.service_port, None)
+                use_proxy_proto = main_listener.use_proxy_proto if main_listener else False
+
+                # Remember, it is not a bug to have action=None. There is no secure action
+                # for this vhost.
+                listener.make_vhost(name="forced-8080",
+                                    hostname="*",
+                                    context=None,
+                                    secure=False,
+                                    action=None,
+                                    insecure_action='Reject',
+                                    use_proxy_proto=use_proxy_proto)
 
         # OK. We have all the listeners. Time to walk the routes (note that they are already ordered).
         for route in config.routes:
@@ -1059,21 +1081,19 @@ class V2Listener(dict):
                         variant = "secure" if secure else "insecure"
 
                         if route["match"].get("prefix", None) == "/.well-known/acme-challenge/":
-                            # ACME challenges can never be secure.
-                            if secure:
-                                logger.debug(
-                                    f"V2Listeners: {listener.name} {vhostname} secure: force Reject for ACME challenge")
-                                action = "Reject"
-                            else:
-                                # Force the action to "Route" for the insecure side of the world.
-                                logger.debug(
-                                    f"V2Listeners: {listener.name} {vhostname} insecure: force Route for ACME challenge")
-                                action = "Route"
+                            # We need to be sure to route ACME challenges, no matter what else is going
+                            # on (this is the infamous ACME hole-puncher mentioned everywhere).
+                            logger.debug(f"V2Listeners: {listener.name} {vhostname} force Route for ACME challenge")
+                            action = "Route"
 
-                                # Force the actual route entry, instead of using the redirect_route, too.
-                                # (Note that right now, the user can't create a Mapping that forces redirection.
-                                # When they can do this per-Mapping, well, really, we can't force them to not
-                                # redirect if they explicitly ask for it, and that'll be OK.)
+                            # We have to force the correct route entry, too, just in case. (Note that right now,
+                            # the user can't create a Mapping that forces redirection. When they can do this
+                            # per-Mapping, well, really, we can't force them to not redirect if they explicitly
+                            # ask for it, and that'll be OK.)
+
+                            if secure:
+                                route = secure_route
+                            else:
                                 route = insecure_route
                         elif route_hosts and (vhostname != '*') and (vhostname not in route_hosts):
                             # Drop this because the host is mismatched.

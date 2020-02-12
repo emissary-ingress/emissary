@@ -78,9 +78,6 @@ class IRHost(IRResource):
                             secret=tls_name
                         )
 
-                        # if not os.environ.get('AMBASSADOR_NO_TLS_REDIRECT', None):
-                        #     new_ctx['redirect_cleartext_from'] = 8080
-
                         ctx = IRTLSContext(ir, aconf, **new_ctx)
 
                         match_labels = self.get('matchLabels')
@@ -105,6 +102,32 @@ class IRHost(IRResource):
 
         if self.get('acmeProvider', None):
             acme = self.acmeProvider
+
+            if ir.edge_stack_allowed:
+                authority = acme.get('authority', None)
+
+                if authority and (authority.lower() != 'none'):
+                    # ACME is active. Are they trying to not set insecure.additionalPort?
+                    request_policy = self.get('requestPolicy', {})
+                    insecure_policy = request_policy.get('insecure', {})
+
+                    # Default the additionalPort to 8080. This can be overridden by the user
+                    # explicitly setting it to -1.
+                    insecure_addl_port = insecure_policy.get('additionalPort', 8080)
+
+                    if insecure_addl_port < 0:
+                        # Bzzzt.
+                        self.post_error("ACME requires insecure.additionalPort to function; forcing to 8080")
+                        insecure_policy['additionalPort'] = 8080
+
+                        if 'action' not in insecure_policy:
+                            # No action when we're overriding the additionalPort already means that we
+                            # default the action to Reject (the hole-puncher will do the right thing).
+                            insecure_policy['action'] = 'Reject'
+
+                        request_policy['insecure'] = insecure_policy
+                        self['requestPolicy'] = request_policy
+
             pkey_secret = acme.get('privateKeySecret', None)
 
             if pkey_secret:

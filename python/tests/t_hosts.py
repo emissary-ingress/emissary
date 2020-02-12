@@ -7,7 +7,11 @@ from abstract_tests import AmbassadorTest, ServiceType, HTTP
 # Mappings without host attributes (infer via Host resource)
 # Host where a TLSContext with the inferred name already exists
 
-class HostSingle(AmbassadorTest):
+class HostCRDSingle(AmbassadorTest):
+    """
+    HostCRDSingle: a single Host with a manually-configured TLS. Since the Host is handling the
+    TLSContext, we expect both OSS and Edge Stack to redirect cleartext from 8080 to 8443 here.
+    """
     target: ServiceType
 
     def init(self):
@@ -21,7 +25,7 @@ class HostSingle(AmbassadorTest):
 apiVersion: v1
 kind: Secret
 metadata:
-  name: edgy-secret
+  name: {self.name.k8s}-secret
   labels:
     kat-ambassador-id: {self.ambassador_id}
 type: kubernetes.io/tls
@@ -32,26 +36,26 @@ data:
 apiVersion: getambassador.io/v2
 kind: Host
 metadata:
-  name: edgy-host
+  name: {self.name.k8s}-host
   labels:
     kat-ambassador-id: {self.ambassador_id}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   hostname: {self.path.fqdn}
   acmeProvider:
-    authority: ACME
+    authority: none
+  tlsSecret:
+    name: {self.name.k8s}-secret
   selector:
     matchLabels:
-      hostname: edgy.example.com
-  tlsSecret:
-    name: edgy-secret
+      hostname: {self.path.fqdn}
 ---
 apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
-  name: edgy-target-mapping
+  name: {self.name.k8s}-target-mapping
   labels:
-    hostname: edgy.example.com
+    hostname: {self.path.fqdn}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   prefix: /target/
@@ -63,13 +67,85 @@ spec:
 
     def queries(self):
         yield Query(self.url("target/"), insecure=True)
-    #
-    # def check(self):
-    #     for r in self.results:
-    #         assert r.headers.get('Lua-Scripts-Enabled', None) == ['Processed']
+        yield Query(self.url("target/", scheme="http"), expected=301)
 
 
-class HostManualTLS(AmbassadorTest):
+class HostCRDNo8080(AmbassadorTest):
+    """
+    HostCRDNo8080: a single Host with manually-configured TLS that explicitly turns off redirection
+    from 8080.
+    """
+    target: ServiceType
+
+    def init(self):
+        self.edge_stack_cleartext_host = False
+        self.allow_edge_stack_redirect = False
+        self.target = HTTP()
+
+    def manifests(self) -> str:
+        return super().manifests() + self.format('''
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {self.name.k8s}-secret
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+type: kubernetes.io/tls
+data:
+  tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURwakNDQW82Z0F3SUJBZ0lKQUpxa1Z4Y1RtQ1FITUEwR0NTcUdTSWIzRFFFQkN3VUFNR2d4Q3pBSkJnTlYKQkFZVEFsVlRNUXN3Q1FZRFZRUUlEQUpOUVRFUE1BMEdBMVVFQnd3R1FtOXpkRzl1TVJFd0R3WURWUVFLREFoRQpZWFJoZDJseVpURVVNQklHQTFVRUN3d0xSVzVuYVc1bFpYSnBibWN4RWpBUUJnTlZCQU1NQ1d4dlkyRnNhRzl6CmREQWVGdzB4T0RFd01UQXhNREk1TURKYUZ3MHlPREV3TURjeE1ESTVNREphTUdneEN6QUpCZ05WQkFZVEFsVlQKTVFzd0NRWURWUVFJREFKTlFURVBNQTBHQTFVRUJ3d0dRbTl6ZEc5dU1SRXdEd1lEVlFRS0RBaEVZWFJoZDJseQpaVEVVTUJJR0ExVUVDd3dMUlc1bmFXNWxaWEpwYm1jeEVqQVFCZ05WQkFNTUNXeHZZMkZzYUc5emREQ0NBU0l3CkRRWUpLb1pJaHZjTkFRRUJCUUFEZ2dFUEFEQ0NBUW9DZ2dFQkFMcTZtdS9FSzlQc1Q0YkR1WWg0aEZPVnZiblAKekV6MGpQcnVzdXcxT05MQk9jT2htbmNSTnE4c1FyTGxBZ3NicDBuTFZmQ1pSZHQ4UnlOcUFGeUJlR29XS3IvZAprQVEybVBucjBQRHlCTzk0UHo4VHdydDBtZEtEU1dGanNxMjlOYVJaT0JqdStLcGV6RytOZ3pLMk04M0ZtSldUCnFYdTI3ME9pOXlqb2VGQ3lPMjdwUkdvcktkQk9TcmIwd3ozdFdWUGk4NFZMdnFKRWprT0JVZjJYNVF3b25XWngKMktxVUJ6OUFSZVVUMzdwUVJZQkJMSUdvSnM4U042cjF4MSt1dTNLdTVxSkN1QmRlSHlJbHpKb2V0aEp2K3pTMgowN0pFc2ZKWkluMWNpdXhNNzNPbmVRTm1LUkpsL2NEb3BLemswSldRSnRSV1NnbktneFNYWkRrZjJMOENBd0VBCkFhTlRNRkV3SFFZRFZSME9CQllFRkJoQzdDeVRpNGFkSFVCd0wvTkZlRTZLdnFIRE1COEdBMVVkSXdRWU1CYUEKRkJoQzdDeVRpNGFkSFVCd0wvTkZlRTZLdnFIRE1BOEdBMVVkRXdFQi93UUZNQU1CQWY4d0RRWUpLb1pJaHZjTgpBUUVMQlFBRGdnRUJBSFJvb0xjcFdEa1IyMEhENEJ5d1BTUGRLV1hjWnN1U2tXYWZyekhoYUJ5MWJZcktIR1o1CmFodFF3L1gwQmRnMWtidlpZUDJSTzdGTFhBSlNTdXVJT0NHTFVwS0pkVHE1NDREUThNb1daWVZKbTc3UWxxam0KbHNIa2VlTlRNamFOVjdMd0MzalBkMERYelczbGVnWFRoYWpmZ2dtLzBJZXNGRzBVWjFEOTJHNURmc0hLekpSagpNSHZyVDNtVmJGZjkrSGJhRE4yT2g5VjIxUWhWSzF2M0F2dWNXczhUWCswZHZFZ1dtWHBRcndEd2pTMU04QkRYCldoWjVsZTZjVzhNYjhnZmRseG1JckpnQStuVVZzMU9EbkJKS1F3MUY4MVdkc25tWXdweVUrT2xVais4UGt1TVoKSU4rUlhQVnZMSWJ3czBmamJ4UXRzbTArZVBpRnN2d0NsUFk9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+  tls.key: LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2Z0lCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktnd2dnU2tBZ0VBQW9JQkFRQzZ1cHJ2eEN2VDdFK0cKdzdtSWVJUlRsYjI1ejh4TTlJejY3ckxzTlRqU3dUbkRvWnAzRVRhdkxFS3k1UUlMRzZkSnkxWHdtVVhiZkVjagphZ0JjZ1hocUZpcS8zWkFFTnBqNTY5RHc4Z1R2ZUQ4L0U4SzdkSm5TZzBsaFk3S3R2VFdrV1RnWTd2aXFYc3h2CmpZTXl0alBOeFppVms2bDd0dTlEb3ZjbzZIaFFzanR1NlVScUt5blFUa3EyOU1NOTdWbFQ0dk9GUzc2aVJJNUQKZ1ZIOWwrVU1LSjFtY2RpcWxBYy9RRVhsRTkrNlVFV0FRU3lCcUNiUEVqZXE5Y2RmcnJ0eXJ1YWlRcmdYWGg4aQpKY3lhSHJZU2IvczB0dE95UkxIeVdTSjlYSXJzVE85enAza0RaaWtTWmYzQTZLU3M1TkNWa0NiVVZrb0p5b01VCmwyUTVIOWkvQWdNQkFBRUNnZ0VBSVFsZzNpamNCRHViK21Eb2syK1hJZDZ0V1pHZE9NUlBxUm5RU0NCR2RHdEIKV0E1Z2NNNTMyVmhBV0x4UnR6dG1ScFVXR0dKVnpMWlpNN2ZPWm85MWlYZHdpcytkYWxGcWtWVWFlM2FtVHVQOApkS0YvWTRFR3Nnc09VWSs5RGlZYXRvQWVmN0xRQmZ5TnVQTFZrb1JQK0FrTXJQSWFHMHhMV3JFYmYzNVp3eFRuCnd5TTF3YVpQb1oxWjZFdmhHQkxNNzlXYmY2VFY0WXVzSTRNOEVQdU1GcWlYcDNlRmZ4L0tnNHhtYnZtN1JhYzcKOEJ3Z3pnVmljNXlSbkVXYjhpWUh5WGtyazNTL0VCYUNEMlQwUjM5VmlVM1I0VjBmMUtyV3NjRHowVmNiVWNhKwpzeVdyaVhKMHBnR1N0Q3FWK0dRYy9aNmJjOGt4VWpTTWxOUWtudVJRZ1FLQmdRRHpwM1ZaVmFzMTA3NThVT00rCnZUeTFNL0V6azg4cWhGb21kYVFiSFRlbStpeGpCNlg3RU9sRlkya3JwUkwvbURDSEpwR0MzYlJtUHNFaHVGSUwKRHhSQ2hUcEtTVmNsSytaaUNPaWE1ektTVUpxZnBOcW15RnNaQlhJNnRkNW9mWk42aFpJVTlJR2RUaGlYMjBONwppUW01UnZlSUx2UHVwMWZRMmRqd2F6Ykgvd0tCZ1FERU1MN21Mb2RqSjBNTXh6ZnM3MW1FNmZOUFhBMVY2ZEgrCllCVG4xS2txaHJpampRWmFNbXZ6dEZmL1F3Wkhmd3FKQUVuNGx2em5ncUNzZTMvUElZMy8zRERxd1p2NE1vdy8KRGdBeTBLQmpQYVJGNjhYT1B1d0VuSFN1UjhyZFg2UzI3TXQ2cEZIeFZ2YjlRRFJuSXc4a3grSFVreml4U0h5Ugo2NWxESklEdlFRS0JnUURpQTF3ZldoQlBCZk9VYlpQZUJydmhlaVVycXRob29BemYwQkJCOW9CQks1OHczVTloCjdQWDFuNWxYR3ZEY2x0ZXRCbUhEK3RQMFpCSFNyWit0RW5mQW5NVE5VK3E2V0ZhRWFhOGF3WXR2bmNWUWdTTXgKd25oK1pVYm9udnVJQWJSajJyTC9MUzl1TTVzc2dmKy9BQWM5RGs5ZXkrOEtXY0Jqd3pBeEU4TGxFUUtCZ0IzNwoxVEVZcTFoY0I4Tk1MeC9tOUtkN21kUG5IYUtqdVpSRzJ1c1RkVWNxajgxdklDbG95MWJUbVI5Si93dXVQczN4ClhWekF0cVlyTUtNcnZMekxSQWgyZm9OaVU1UDdKYlA5VDhwMFdBN1N2T2h5d0NobE5XeisvRlltWXJxeWcxbngKbHFlSHRYNU03REtJUFhvRndhcTlZYVk3V2M2K1pVdG4xbVNNajZnQkFvR0JBSTgwdU9iTkdhRndQTVYrUWhiZApBelkrSFNGQjBkWWZxRytzcTBmRVdIWTNHTXFmNFh0aVRqUEFjWlg3RmdtT3Q5Uit3TlFQK0dFNjZoV0JpKzBWCmVLV3prV0lXeS9sTVZCSW0zVWtlSlRCT3NudTFVaGhXbm5WVDhFeWhEY1FxcndPSGlhaUo3bFZSZmRoRWFyQysKSnpaU0czOHVZUVlyc0lITnRVZFgySmdPCi0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0K
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: {self.name.k8s}-host
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: {self.path.fqdn}
+  acmeProvider:
+    authority: none
+  tlsSecret:
+    name: {self.name.k8s}-secret
+  selector:
+    matchLabels:
+      hostname: {self.path.fqdn}
+  requestPolicy:
+    insecure:
+      additionalPort: -1
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: {self.name.k8s}-target-mapping
+  labels:
+    hostname: {self.path.fqdn}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  prefix: /target/
+  service: {self.target.path.fqdn}
+''')
+
+    def scheme(self) -> str:
+        return "https"
+
+    def queries(self):
+        yield Query(self.url("target/"), insecure=True)
+
+        if EDGE_STACK:
+            yield Query(self.url("target/", scheme="http"), expected=404)
+        else:
+            yield Query(self.url("target/", scheme="http"), error=[ "EOF", "connection refused" ])
+
+
+class HostCRDManualContext(AmbassadorTest):
+    """
+    A single Host with a manually-specified TLS secret and a manually-specified TLSContext,
+    too. Since the Host is _not_ handling the TLSContext, we do _not_ expect automatic redirection
+    on port 8080.
+    """
     target: ServiceType
 
     def init(self):
@@ -111,7 +187,7 @@ spec:
 apiVersion: getambassador.io/v2
 kind: TLSContext
 metadata:
-  name: manual-context
+  name: manual-host-context
   labels:
     kat-ambassador-id: {self.ambassador_id}
 spec:
@@ -119,6 +195,8 @@ spec:
   hosts:
   - {self.path.fqdn}
   secret: manual-secret
+  min_tls_version: v1.2
+  max_tls_version: v1.3
 ---
 apiVersion: getambassador.io/v2
 kind: Mapping
@@ -136,23 +214,31 @@ spec:
         return "https"
 
     def queries(self):
-        yield Query(self.url("target/"), insecure=True)
-    #
-    # def check(self):
-    #     for r in self.results:
-    #         assert r.headers.get('Lua-Scripts-Enabled', None) == ['Processed']
+        yield Query(self.url("target/"), insecure=True,
+                    minTLSv="v1.2", maxTLSv="v1.3")
 
+        yield Query(self.url("target/"), insecure=True,
+                    minTLSv="v1.0",  maxTLSv="v1.0",
+                    error=["tls: server selected unsupported protocol version 303",
+                           "tls: no supported versions satisfy MinVersion and MaxVersion",
+                           "tls: protocol version not supported"])
 
-class HostClearText(AmbassadorTest):
+        if EDGE_STACK:
+            yield Query(self.url("target/", scheme="http"), expected=404)
+        else:
+            yield Query(self.url("target/", scheme="http"), error=[ "EOF", "connection refused" ])
+
+class HostCRDClearText(AmbassadorTest):
+    """
+    A single Host specifying cleartext only. Since it's just cleartext, no redirection comes
+    into play.
+    """
     target: ServiceType
 
     def init(self):
         self.edge_stack_cleartext_host = False
         self.allow_edge_stack_redirect = False
         self.target = HTTP()
-
-        # if EDGE_STACK:
-        #     self.xfail = "Not yet supported in Edge Stack"
 
     def manifests(self) -> str:
         return super().manifests() + self.format('''
@@ -192,13 +278,18 @@ spec:
 
     def queries(self):
         yield Query(self.url("target/"), insecure=True)
-    #
-    # def check(self):
-    #     for r in self.results:
-    #         assert r.headers.get('Lua-Scripts-Enabled', None) == ['Processed']
+        yield Query(self.url("target/", scheme="https"),
+                    error=[ "EOF", "connection refused" ])
 
 
-class HostDouble(AmbassadorTest):
+class HostCRDDouble(AmbassadorTest):
+    """
+    HostCRDDouble: two Hosts with manually-configured TLS secrets, and Mappings specifying host matches.
+    Since the Hosts are handling TLSContexts, we expect both OSS and Edge Stack to redirect cleartext
+    from 8080 to 8443 here.
+
+    XXX In the future, the hostname matches should be unnecessary.
+    """
     target1: ServiceType
     target2: ServiceType
 
@@ -207,9 +298,6 @@ class HostDouble(AmbassadorTest):
         self.allow_edge_stack_redirect = False
         self.target1 = HTTP(name="target1")
         self.target2 = HTTP(name="target2")
-
-        if EDGE_STACK:
-            self.xfail = "Not yet supported in Edge Stack"
 
     def manifests(self) -> str:
         return super().manifests() + self.format('''
@@ -257,7 +345,7 @@ spec:
   ambassador_id: [ {self.ambassador_id} ]
   hostname: tls-context-host-1
   acmeProvider:
-    authority: ACME
+    authority: none
   hostname: tls-context-host-1
   selector:
     matchLabels:
@@ -275,7 +363,7 @@ spec:
   ambassador_id: [ {self.ambassador_id} ]
   hostname: tls-context-host-2
   acmeProvider:
-    authority: ACME
+    authority: none
   hostname: tls-context-host-2
   selector:
     matchLabels:
@@ -330,6 +418,14 @@ spec:
                     expected=200,
                     insecure=True,
                     sni=True)
+
+        # Setting the Host header really shouldn't be necessary here.
+        yield Query(self.url("target/", scheme="http"),
+                    headers={ "Host": "tls-context-host-1" },
+                    expected=301)
+        yield Query(self.url("target/", scheme="http"),
+                    headers={ "Host": "tls-context-host-2" },
+                    expected=301)
 
     def check(self):
         # XXX Ew. If self.results[0].json is empty, the harness won't convert it to a response.
