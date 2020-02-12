@@ -35,13 +35,17 @@ accessible cluster, it will:
 3. Obtain a TLS certificate for that domain name
 4. Configure automatic TLS and HTTPS using that certificate
 
-Install Edge Control for your operating system [here](/reference/edgectl-download). When complete, return to these instructions.
-
 **To install the Ambassador Edge Stack:**
 
-1. Run the following command: `edgectl install`
-2. Provide an email address so you can be notified before your domain and
-   certificate expire.
+1. Download the `edgectl`file  for your operating system following [these instructions](/reference/edgectl-download).
+2. Move the file into your PATH (for Windows users, move it into the Windows
+   Systems parth).
+   * If you need to, print your PATH with `echo $PATH`
+3. Ensure the file is executable with the command `chmod a+x /usr/local/bin/edgectl`
+4. Run the executable file with the command `./edgectl`
+5. Now, run the following command: `edgectl install`
+
+Your terminal will print something similar to the following:
 
  ```shell
  $ edgectl install
@@ -52,8 +56,7 @@ Install Edge Control for your operating system [here](/reference/edgectl-downloa
  Please enter an email address. We’ll use this email address to notify you prior to domain and certification expiration [None]: john@example.com.
 ```
 
-3. Once you enter your email address, your terminal will print something similar
-   to the following:
+6. Provide an email address as required by the ACME TLS certificate provider, Let's Encrypt. Then your terminal will print something similar to the following:
 
 ```shell
  -> Obtaining a TLS certificate from Let’s Encrypt.
@@ -62,7 +65,7 @@ Install Edge Control for your operating system [here](/reference/edgectl-downloa
  ```
 
 Your new [Edge Policy Console](/about/edge-policy-console) will open
-automatically in your browser at the provided URL. **Note that the provided `edgestack.me` domain name will expire after 90 days**.
+automatically in your browser at the provided URL. **Note that the provided `random-word.edgestack.me` domain name will expire after 90 days**.
 
 ### Minikube Users
 
