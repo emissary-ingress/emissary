@@ -4,9 +4,11 @@ releases. Please keep it up to date.
 
 ## Ambassador Pro CHANGELOG
 
-## 1.1.1 (TBD)
+## 1.1.2 (TBD)
 
-Other
+ * Bugfix: The RBAC for `Ingress` now supports the `networking.k8s.io` `apiGroup`
+
+## 1.1.1 (TBD)
 
  * Bugfix: `aes-plugin-runner --version` now works properly.
  * Change: The `OAuth2` Filter `stateTTL` setting is now ignored; the lifetime of state-tokens is now managed automatically.
