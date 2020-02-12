@@ -5,15 +5,6 @@
 
 In this guide, we'll walk you through installing and configuring the Ambassador Edge Stack in your Kubernetes cluster. Within a few minutes, your cluster will be routing HTTPS requests from the Internet to a backend service. You'll also have a sense of how the Ambassador Edge Stack is managed.
 
-Different options for installation include:
-
-* **[Quick Install (recommended!)](#quick-install)**
-* [Install via Minikube](#minikube-users)
-* [Install in CI](#install-in-ci)
-
-Or, you can [install manually](/user-guide/manual-install) if you want to
-customize your configuration.
-
 ## Before You Begin
 
 The Ambassador Edge Stack is designed to run in Kubernetes for production. The most essential requirements are:
@@ -201,5 +192,8 @@ The Quote service we just deployed publishes its API as a Swagger document. This
 
 The Ambassador Edge Stack has a comprehensive range of [features](/features/) to support the requirements of any edge microservice.
 
-To learn more about how the Ambassador Edge Stack works, along with use cases, best practices, and more, check out the [Welcome page](/docs/) or read the
+To learn more about how the Ambassador Edge Stack works, along with use cases,
+best practices, and more, check out the [Welcome page](/docs/) or read the
 [Ambassador Story](/about/why-ambassador).
+
+For a custom configuration, you can install the Ambassador Edge Stack [manually](/user-guide/manual-install).
