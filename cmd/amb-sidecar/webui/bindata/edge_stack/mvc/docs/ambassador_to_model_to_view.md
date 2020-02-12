@@ -167,7 +167,7 @@ so it wants to delete model Q.
 
 (3) The collection model determines that it has a models for Q so it tells that model to update
 its data from the snapshot (updates to Q'). 
-(4) The Q model notifies its listeners that it has changed via `notifyListenersCreated()`.
+(4) The Q model notifies its listeners that it has changed via `notifyListenersUpdated()`.
 
                        [models]         [views]
                       +---------+     +---------+

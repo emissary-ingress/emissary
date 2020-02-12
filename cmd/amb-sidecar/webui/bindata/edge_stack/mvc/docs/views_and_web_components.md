@@ -1,6 +1,6 @@
 # Views and Custom Web-Components
 
-The instances of `IResourceView` and `IResourceColelctionView` are 
+The instances of `IResourceView` and `IResourceCollectionView` are 
 [lit-element](https://lit-element.polymer-project.org/) custom web-components
 and are inserted into the browser's DOM just like any other DOM element.
 
@@ -16,7 +16,7 @@ view fields look like they change from read-only to writeable and back again:
 
 ![Read-write form-field DOM elements](images/image2.png)
 
-To make this magic work, your view subclass, has to do two things:
+To make this magic work, your view subclass has to do two things:
 
 1. It has to manage the two sets of DOM elements and instance variables and ensure that the same values
 are reflected in both sets. For example, see [HostView](../views/host_view.js) methods `readSelfFromModel()` and

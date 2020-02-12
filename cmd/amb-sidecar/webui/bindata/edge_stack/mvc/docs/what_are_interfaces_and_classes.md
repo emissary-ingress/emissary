@@ -3,7 +3,7 @@
 Our MVC framework is divided into three parts:
 1. **Interfaces** are classes that define the methods that you must implement in order to participate in the
 the framework.
-2. **Framework Classes** are the internal implementation classes, hidden by the scenes, that you don't need
+2. **Framework Classes** are the internal implementation classes, working behind the scenes, that you don't need
 to know about but, being the curious developer you are, you surely do want to know about them so this documentation
 explains how they work (even though you don't need to know).
 3. **Your Model and View Classes** are your concrete implementations of the various interfaces for your
