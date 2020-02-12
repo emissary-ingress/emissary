@@ -55,7 +55,7 @@ spec:
     image: consul:1.4.3
   restartPolicy: Always
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: ConsulResolver
 metadata:
   name: {self.path.k8s}-resolver

@@ -49,6 +49,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
+            "_is_sidecar": false,
             "_namespace": "empty-namespace",
             "_port": 8877,
             "_referenced_by": [
@@ -135,6 +136,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
                         "_namespace": "empty-namespace",
                         "_port": 8877,
                         "_referenced_by": [
@@ -225,6 +227,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
                         "_namespace": "empty-namespace",
                         "_port": 8877,
                         "_referenced_by": [
@@ -315,6 +318,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
                         "_namespace": "empty-namespace",
                         "_port": 8877,
                         "_referenced_by": [
