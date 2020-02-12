@@ -14,9 +14,6 @@
 from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 from typing import cast as typecast
 
-import sys
-
-import copy
 import json
 
 from multi import multi
@@ -549,20 +546,21 @@ class V2VirtualHost(dict):
     def append_route(self, route: V2Route):
         self["routes"].append(route)
 
-    def finalize(self, enable_sni: bool) -> None:
+    def finalize(self) -> None:
         # Even though this is called V2VirtualHost, we track the filter_chain_match here,
         # because it makes more sense, because this is where we have the domain information.
         # The 1:1 correspondence that this implies between filters and domains may need to
         # change later, of course...
-        self._config.ir.logger.info(f"V2VirtualHost finalize {jsonify(self.pretty())}")
+        self._config.ir.logger.debug(f"V2VirtualHost finalize {jsonify(self.pretty())}")
 
         match = {}
 
         if self._ctx:
             match["transport_protocol"] = "tls"
 
-        if enable_sni and self._ctx and self._hostname and (self._hostname != '*'):
-            match["server_names"] = [ self._hostname ]
+        # Make sure we include a server name match if the hostname isn't "*".
+        if self._hostname and (self._hostname != '*'):
+                match["server_names"] = [ self._hostname ]
 
         self["filter_chain_match"] = match
 
@@ -584,7 +582,7 @@ class V2VirtualHost(dict):
                     # Uh whut? how is Edge Stack running exactly?
                     raise Exception("Edge Stack claims to be running, but we have no sidecar cluster??")
 
-                self._config.ir.logger.info(f"V2VirtualHost finalize punching a hole for ACME")
+                self._config.ir.logger.debug(f"V2VirtualHost finalize punching a hole for ACME")
 
                 self["routes"].insert(0, {
                     "match": {
@@ -599,7 +597,7 @@ class V2VirtualHost(dict):
                 })
 
         for route in self["routes"]:
-            self._config.ir.logger.info(f"VHost Route {prettyroute(route)}")
+            self._config.ir.logger.debug(f"VHost Route {prettyroute(route)}")
 
     def pretty(self) -> str:
         ctx_name = "-none-"
@@ -644,7 +642,7 @@ class V2ListenerCollection:
         return listener
 
     def __contains__(self, port: int) -> bool:
-        return bool(self.listeners.get(port, None))
+        return port in self.listeners
 
     def items(self):
         return self.listeners.items()
@@ -659,10 +657,11 @@ class V2Listener(dict):
         self.access_log: List[dict] = []
         self.upgrade_configs: Optional[List[dict]] = None
         self.vhosts: Dict[str, V2VirtualHost] = {}
+        self.first_vhost: Optional[V2VirtualHost] = None
         self.http_filters: List[dict] = []
         self.listener_filters: List[dict] = []
 
-        self.config.ir.logger.info(f"V2Listener {self.name} created")
+        self.config.ir.logger.debug(f"V2Listener {self.name} created")
 
         # Assemble filters
         for f in self.config.ir.filters:
@@ -742,7 +741,7 @@ class V2Listener(dict):
             if not log_format:
                 log_format = 'ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"'
 
-            self.config.ir.logger.info("V2Listener: Using log_format '%s'" % log_format)
+            self.config.ir.logger.debug("V2Listener: Using log_format '%s'" % log_format)
             self.access_log.append({
                 'name': 'envoy.file_access_log',
                 'config': {
@@ -810,7 +809,7 @@ class V2Listener(dict):
     # Weirdly, the action is optional but the insecure_action is not. This is not a typo.
     def make_vhost(self, name: str, hostname: str, context: Optional[IRTLSContext], secure: bool,
                    action: Optional[str], insecure_action: str, use_proxy_proto: bool) -> None:
-        self.config.ir.logger.info("V2Listener %s: adding VHost %s for host %s, secure %s, insecure %s)" %
+        self.config.ir.logger.debug("V2Listener %s: adding VHost %s for host %s, secure %s, insecure %s)" %
                                    (self.name, name, hostname, action, insecure_action))
 
         vhost = self.vhosts.get(hostname)
@@ -833,7 +832,10 @@ class V2Listener(dict):
                               use_proxy_proto=use_proxy_proto)
         self.vhosts[hostname] = vhost
 
-    def finalize(self, enable_sni: bool) -> None:
+        if not self.first_vhost:
+            self.first_vhost = vhost
+
+    def finalize(self) -> None:
         self.config.ir.logger.info(f"V2Listener finalize {self.pretty()}")
 
         # OK. Assemble the high-level stuff for Envoy.
@@ -850,7 +852,7 @@ class V2Listener(dict):
 
         for vhostname, vhost in self.vhosts.items():
             # Finalize this VirtualHost...
-            vhost.finalize(enable_sni)
+            vhost.finalize()
 
             # ...then build up the Envoy structures around it.
             filter_chain = {
@@ -905,7 +907,7 @@ class V2Listener(dict):
     def dump_listeners(cls, logger, listeners_by_port) -> None:
         pretty = { k: v.pretty() for k, v in listeners_by_port.items() }
 
-        logger.info(f"V2Listeners: {json.dumps(pretty, sort_keys=True, indent=4)}")
+        logger.debug(f"V2Listeners: {json.dumps(pretty, sort_keys=True, indent=4)}")
 
     @classmethod
     def generate(cls, config: 'V2Config') -> None:
@@ -918,29 +920,23 @@ class V2Listener(dict):
 
         listeners_by_port = V2ListenerCollection(config)
 
-        # While doing this, figure out how many distinct hostnames we need to pay attention to.
-        # If it's more than one, we'll actually do SNI matching, but if it's only one, we won't
-        # (this is because Envoy's error reporting for SNI mismatches isn't very graceful).
-        distinct_domains: Dict[str, bool] = {}
-
         # Also, in Edge Stack, the magic extremely-low-precedence / Mapping is always routed,
         # rather than being redirected. If a user doesn't want this behavior, they can override
         # the Mapping.
 
-        irlistener8443 = None
+        first_irlistener_by_port: Dict[int, IRListener] = {}
 
         for irlistener in config.ir.listeners:
-            if not irlistener8443 and (irlistener.service_port == 8443):
-                irlistener8443 = irlistener
+            if irlistener.service_port not in first_irlistener_by_port:
+                first_irlistener_by_port[irlistener.service_port] = irlistener
 
-            logger.info(f"V2Listeners: working on {irlistener.pretty()}")
+            logger.debug(f"V2Listeners: working on {irlistener.pretty()}")
             # What port is this?
             listener = listeners_by_port[irlistener.service_port]
             listener.add_irlistener(irlistener)
 
             # What VirtualHost hostname are we trying to work with here?
             vhostname = irlistener.hostname or "*"
-            distinct_domains[vhostname] = True
 
             listener.make_vhost(name=vhostname,
                                 hostname=vhostname,
@@ -950,34 +946,53 @@ class V2Listener(dict):
                                 insecure_action=irlistener.insecure_action,
                                 use_proxy_proto=irlistener.use_proxy_proto)
 
-            if irlistener.insecure_addl_port is not None:
+            if (irlistener.insecure_addl_port is not None) and (irlistener.insecure_addl_port > 0):
                 # Make sure we have a listener on the right port for this.
                 listener = listeners_by_port[irlistener.insecure_addl_port]
 
-                # ...and make sure we have a VHost for '*'.
-                if '*' not in listener.vhosts:
-                    # This insecure vhost can _only_ have a hostname of "*", since (by definition)
-                    # there is no SNI associated with it.
-                    #
-                    # Also, no, it is not a bug to have action=None. There is no secure action
-                    # for this vhost.
-                    listener.make_vhost(name="redirector",
-                                        hostname="*",
+                if irlistener.insecure_addl_port not in first_irlistener_by_port:
+                    first_irlistener_by_port[irlistener.insecure_addl_port] = irlistener
+
+                # Do we already have a VHost for this hostname?
+                if vhostname not in listener.vhosts:
+                    # Nope, add one. Also, no, it is not a bug to have action=None.
+                    # There is no secure action for this vhost.
+                    listener.make_vhost(name=vhostname,
+                                        hostname=vhostname,
                                         context=None,
                                         secure=False,
                                         action=None,
                                         insecure_action=irlistener.insecure_action,
                                         use_proxy_proto=irlistener.use_proxy_proto)
 
+        logger.debug(f"V2Listeners: after IRListeners")
+        cls.dump_listeners(logger, listeners_by_port)
+
+        # Make sure that each listener has a '*' vhost.
+        for port, listener in listeners_by_port.items():
+            if not '*' in listener.vhosts:
+                # Force the first VHost to '*'. I know, this is a little weird, but it's arguably
+                # the least surprising thing to do in most situations.
+                first_vhost = listener.first_vhost
+                first_vhost._hostname = '*'
+                first_vhost._name = f"{first_vhost._name}-forced-star"
+
         if config.ir.edge_stack_allowed:
             # If we're running Edge Stack, make sure we have a listener on port 8080, so that
             # we have a place to stand for ACME.
-            listener = listeners_by_port[8080]
 
-            # Given the listener, if it has no vhost for '*', add one that rejects everything.
-            # The ACME hole-puncher will override the reject for ACME, and nothing else will
-            # get through.
-            if '*' not in listener.vhosts:
+            if 8080 not in listeners_by_port:
+                # Force a listener on 8080 with a VHost for '*' that rejects everything. The ACME
+                # hole-puncher will override the reject for ACME, and nothing else will get through.
+
+                logger.info(f"V2Listeners: listeners_by_port has no 8080, forcing Edge Stack listener on 8080")
+                listener = listeners_by_port[8080]
+
+                # Check for a listener on the main service port to see if the proxy proto
+                # is enabled.
+                main_listener = first_irlistener_by_port.get(config.ir.ambassador_module.service_port, None)
+                use_proxy_proto = main_listener.use_proxy_proto if main_listener else False
+
                 # Remember, it is not a bug to have action=None. There is no secure action
                 # for this vhost.
                 listener.make_vhost(name="forced-8080",
@@ -986,13 +1001,7 @@ class V2Listener(dict):
                                     secure=False,
                                     action=None,
                                     insecure_action='Reject',
-                                    use_proxy_proto=irlistener8443.use_proxy_proto)
-
-        num_distinct_domains = len(distinct_domains.keys())
-        enable_sni = (num_distinct_domains > 1)
-
-        logger.info(f"V2Listeners: distinct domain count {num_distinct_domains}, global SNI {'enabled' if enable_sni else 'disabled'}")
-        cls.dump_listeners(logger, listeners_by_port)
+                                    use_proxy_proto=use_proxy_proto)
 
         # OK. We have all the listeners. Time to walk the routes (note that they are already ordered).
         for route in config.routes:
@@ -1004,7 +1013,7 @@ class V2Listener(dict):
             # Remember, also, if a precedence was set.
             route_precedence = route.get('_precedence', None)
 
-            logger.info(f"V2Listeners: route {prettyroute(route)}...")
+            logger.debug(f"V2Listeners: route {prettyroute(route)}...")
 
             # Build a cleaned-up version of this route without the '_sni' and '_precedence' elements...
             insecure_route = dict(route)
@@ -1072,34 +1081,29 @@ class V2Listener(dict):
                         variant = "secure" if secure else "insecure"
 
                         if route["match"].get("prefix", None) == "/.well-known/acme-challenge/":
-                            # ACME challenges can never be secure.
-                            if secure:
-                                logger.info(
-                                    f"V2Listeners: {listener.name} {vhostname} secure: force Reject for ACME challenge")
-                                action = "Reject"
-                            else:
-                                # Force the action to "Route" for the insecure side of the world.
-                                logger.info(
-                                    f"V2Listeners: {listener.name} {vhostname} insecure: force Route for ACME challenge")
-                                action = "Route"
+                            # We need to be sure to route ACME challenges, no matter what else is going
+                            # on (this is the infamous ACME hole-puncher mentioned everywhere).
+                            logger.debug(f"V2Listeners: {listener.name} {vhostname} force Route for ACME challenge")
+                            action = "Route"
 
-                                # Force the actual route entry, instead of using the redirect_route, too.
-                                # (Note that right now, the user can't create a Mapping that forces redirection.
-                                # When they can do this per-Mapping, well, really, we can't force them to not
-                                # redirect if they explicitly ask for it, and that'll be OK.)
+                            # We have to force the correct route entry, too, just in case. (Note that right now,
+                            # the user can't create a Mapping that forces redirection. When they can do this
+                            # per-Mapping, well, really, we can't force them to not redirect if they explicitly
+                            # ask for it, and that'll be OK.)
+
+                            if secure:
+                                route = secure_route
+                            else:
                                 route = insecure_route
                         elif route_hosts and (vhostname != '*') and (vhostname not in route_hosts):
                             # Drop this because the host is mismatched.
-                            logger.info(
+                            logger.debug(
                                 f"V2Listeners: {listener.name} {vhostname} {variant}: force Reject (rhosts {route_hostlist}, vhost {vhostname})")
                             action = "Reject"
-                        # elif action == "Reject":
-                        #     logger.info(
-                        #         f"V2Listeners: {listener.name} {vhostname} {variant}: Drop due to Reject action")
                         elif (config.ir.edge_stack_allowed and
                               (route["match"].get("prefix", None) == "/") and
                               (route_precedence == -1000000)):
-                            logger.info(
+                            logger.debug(
                                 f"V2Listeners: {listener.name} {vhostname} {variant}: force Route for fallback Mapping")
                             action = "Route"
 
@@ -1107,14 +1111,13 @@ class V2Listener(dict):
                             # (If the user overrides the fallback with their own route at precedence -1000000,
                             # uh.... y'know what, on their own head be it.)
                             route = insecure_route
-                        # else:
 
                         if action != 'Reject':
-                            logger.info(
+                            logger.debug(
                                 f"V2Listeners: {listener.name} {vhostname} {variant}: Accept as {action}")
                             vhost.append_route(route)
                         else:
-                            logger.info(
+                            logger.debug(
                                 f"V2Listeners: {listener.name} {vhostname} {variant}: Drop")
 
                         # Also, remember if we're redirecting so that the VHost finalizer can DTRT
@@ -1124,9 +1127,9 @@ class V2Listener(dict):
 
         # OK. Finalize the world.
         for port, listener in listeners_by_port.items():
-            listener.finalize(enable_sni)
+            listener.finalize()
 
-        logger.info("V2Listeners: after finalize")
+        logger.debug("V2Listeners: after finalize")
         cls.dump_listeners(logger, listeners_by_port)
 
         for k, v in listeners_by_port.items():

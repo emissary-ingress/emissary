@@ -678,7 +678,7 @@ redirect_cleartext_from: 8081
 
         for err, found in errors_that_should_be_found.items():
             if not found:
-                unknown_errors.append(f"Missing error {text}")
+                unknown_errors.append(f"Missing error {err}")
 
         assert not unknown_errors, f"Problems with errors: {unknown_errors}"
 

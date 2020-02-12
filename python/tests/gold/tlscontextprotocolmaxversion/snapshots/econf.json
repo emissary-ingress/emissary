@@ -98,9 +98,9 @@
                                         "virtual_hosts": [
                                             {
                                                 "domains": [
-                                                    "tls-context-host-1"
+                                                    "*"
                                                 ],
-                                                "name": "ambassador-listener-8443-tls-context-host-1",
+                                                "name": "ambassador-listener-8443-tls-context-host-1-forced-star",
                                                 "routes": [
                                                     {
                                                         "match": {
