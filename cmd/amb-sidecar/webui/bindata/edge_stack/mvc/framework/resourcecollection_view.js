@@ -160,6 +160,10 @@ export class ResourceCollectionView extends LitElement {
   onModelNotification(model, message, parameter) {
     /* Create a new view web component and add it as a child. Because this view is a web component, adding
      * that child component queues the appropriate re-render at the correct time,and are rendered in our <slot>.
+     * TODO: if message is created, check to see that the model does not already have a corresponding view.
+     * TODO: if it does, then do not create the view.  This is to handle a possible race condition with
+     * TODO: firstUpdated possibly running after views have already been created for some of the models.
+     * TODO: This has not been observed but is theoretically possible depending on when the callback occurs.
     */
     if (message === 'created') {
       let viewClass = this.viewClass();
