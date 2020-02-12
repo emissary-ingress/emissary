@@ -74,7 +74,7 @@ export class HostView extends IResourceView {
     this.model.setAcmeProvider(this.acmeProvider);
     this.model.acmeEmail = this.acmeEmail;
     this.model.useAcme = this.useAcme;
-    this.model.agreed_terms_of_service = this.agred;
+    this.model.agreed_terms_of_service = this.agreed;
 
   }
 
