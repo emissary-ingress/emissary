@@ -84,7 +84,7 @@ In this quick start, we're going to preview a change we make to the backend serv
             app: quote
         spec:
           containers:
-          - image: quay.io/datawire/quote:0.2.7
+          - image: quay.io/datawire/quote:$quoteVersion$
             name: quote
             ports:
             - containerPort: 8080
