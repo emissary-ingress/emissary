@@ -4,6 +4,10 @@ releases. Please keep it up to date.
 
 # Ambassador Edge Stack CHANGELOG
 
+## 1.1.2 (TBD)
+
+ * Bugfix: The RBAC for `Ingress` now supports the `networking.k8s.io` `apiGroup`
+
 ## 1.1.1 (TBD)
 
 - Feature: The Policy Console can now set the log level to "trace" (in addition to "info" or "debug")
