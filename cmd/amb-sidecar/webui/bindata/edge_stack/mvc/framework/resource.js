@@ -51,9 +51,10 @@ export class Resource extends Model {
     this.updateFrom(yaml);
 
     /* Internal state for when the Resource is edited and is pending confirmation of the edit from a future snapshot.
-    *  Different operations may be pending (e.g. add, save)
+    *  Different operations may be pending (e.g. add, save).  The state is a string representing the pending
+    *  operator, e.g. "add".  If nothing is pending, this._pending is the empty string.
     */
-    this._pending = new Map();
+    this._pending = "";
   }
 
   /* copySelf()
