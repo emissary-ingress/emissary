@@ -171,7 +171,7 @@ export class Snapshot extends LitElement {
           lastCookie = currentCookie; // store latest cookie
           return cookieChanged;
         }
-  //      console.log("cookieChanged is " + cookieChanged);
+        console.log("cookieChanged is " + cookieChanged);
   //      console.log("currentCookie is" + currentCookie);
       };  
     }();
@@ -194,9 +194,11 @@ export class Snapshot extends LitElement {
 
 
   fetchData() {
-      if( Snapshot.theTimeoutId !== 0 ) {
+      if( Snapshot.theTimeoutId !== 0 && cookieChanged ) {
         clearTimeout(Snapshot.theTimeoutId); // it's ok to clear a timeout that has already expired
         Snapshot.theTimeoutId = 0;
+        console.log("string1");
+        console.log(cookieChanged);
       }
     ApiFetch(`/edge_stack/api/snapshot?client_session=${this.snapshotPatches ? this.clientSession : ''}`, {
       headers: {
@@ -204,21 +206,28 @@ export class Snapshot extends LitElement {
       }
     })
       .then((response) => {
+        console.log("string2");
         if (response.status === 400 || response.status === 401 || response.status === 403) {
+          console.log("string3");
           if (this.fragment === "should-try") {
+            console.log("string4");
             updateCredentials(window.location.hash.slice(1));
+            console.log("string5");
             this.fragment = "trying";
+            console.log("string6");
             setTimeout(this.fetchData.bind(this), 0); // try again immediately
+            console.log("string7");
           } else {
             this.fragment = "";
+            console.log("string8");
             this.setAuthenticated(false);
             this.setSnapshot(new SnapshotWrapper(this.currentSnapshot.data, {}));
             if( Snapshot.theTimeoutId === 0 ) { // if we aren't already waiting to fetch a new snapshot...
-              
+              console.log("string9");
 //              if (this.auth === true) {
-                Snapshot.theTimeoutId = setTimeout(this.fetchData.bind(this), 1000); // fetch a new snapshot every second
+              Snapshot.theTimeoutId = setTimeout(this.fetchData.bind(this), 1000); // fetch a new snapshot every second
 //              console.log("Authenticated status is " + this.auth);
-                console.log("fetching 1000...");
+              console.log("fetching 1000...");
 //              }
             }
           }
