@@ -44,7 +44,8 @@ spec:
         ports:
         - containerPort: 80
       - name: traffic-sidecar
-        image: {{env "SIDECAR_IMAGE"}}
+        image: {{env "AES_IMAGE"}}
+        command: ["app-sidecar"]
         env:
         - name: APPNAME
           value: intercepted

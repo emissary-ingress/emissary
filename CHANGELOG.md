@@ -6,7 +6,8 @@ releases. Please keep it up to date.
 
 ## 1.1.2 (TBD)
 
- * Bugfix: The RBAC for `Ingress` now supports the `networking.k8s.io` `apiGroup`
+- Bugfix: The RBAC for `Ingress` now supports the `networking.k8s.io` `apiGroup`
+- Change: There is no longer a separate app-sidecar image; it is now combined in to the main aes image; set `command: ["app-sidecar"]` to use that functionality.
 
 ## 1.1.1 (TBD)
 

@@ -6,6 +6,7 @@ mkdir -p /buildroot/bin-darwin
 (cd /buildroot/apro && GOOS=darwin go build -trimpath ${BUILD_VERSION:+ -ldflags "-X main.Version=$BUILD_VERSION" } -o /buildroot/bin-darwin ./cmd/aes-plugin-runner)
 
 sudo install -D -t /opt/ambassador/bin/ \
+     /buildroot/bin/app-sidecar \
      /buildroot/bin/amb-sidecar \
      /buildroot/bin/aes-plugin-runner
 sudo ln -sf /opt/ambassador/bin/amb-sidecar /ambassador/sidecars/
