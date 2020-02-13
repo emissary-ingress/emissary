@@ -349,7 +349,6 @@ spec:
 
     # Settings for grantType=="AuthorizationCode"
     clientURL:             "url-string"      # required
-    stateTTL:              "duration-string" # optional; default is "5m"
     clientID:              "string"          # required
     # A client secret must be specified.
     # This can be done by including the raw secret as a string in "secret",
@@ -389,7 +388,6 @@ Settings that are only valid when `grantType: "AuthorizationCode"`:
    * As a Kubernetes `generic` Secret, named by `secretName`/`secretNamespace`.  The Kubernetes secret must of
      the `generic` type, with the value stored under the key`oauth2-client-secret`.  If `secretNamespace` is not given, it defaults to the namespace of the Filter resource.
    * **Note**: It is invalid to set both `secret` and `secretName`.
- - `stateTTL`: (You decide this) How long the Ambassador Edge Stack will wait for the user to submit credentials to the identity provider and receive a response to that effect from the identity provider
 
 HTTP client settings for talking to the identity provider:
 
