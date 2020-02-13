@@ -29,7 +29,7 @@ import re
 from collections import OrderedDict
 
 import click
-import dpath
+import dpath.util
 
 def lookup(x: Any, path: str) -> Optional[Any]:
     try:

@@ -377,7 +377,6 @@ class TLSContextFactory:
         # are just ACResources; they need to be turned into IRTLSContexts.
         tls_contexts = aconf.get_config('tls_contexts')
 
-        found_termination_context = False
         if tls_contexts is not None:
             for config in tls_contexts.values():
                 ctx = IRTLSContext(ir, aconf, **config)
@@ -387,29 +386,3 @@ class TLSContextFactory:
                     ctx.sourced_by(config)
 
                     ir.save_tls_context(ctx)
-
-                    if ctx.get('hosts'):  # not None and not the empty list
-                        found_termination_context = True
-
-        if ir.edge_stack_allowed and not found_termination_context:
-            # Edge Stack always wants a termination context
-            ctx_name = "fallback-self-signed-context"
-            tls_name = "fallback-self-signed-cert"
-
-            new_ctx = dict(
-                rkey=f"{ctx_name}.99999",
-                name=ctx_name,
-                location="-internal-",
-                hosts=["*"],
-                secret=tls_name,
-                is_fallback=True
-            )
-
-            if not os.environ.get('AMBASSADOR_NO_TLS_REDIRECT', None):
-                new_ctx['redirect_cleartext_from'] = 8080
-
-            ctx = IRTLSContext(ir, aconf, **new_ctx)
-
-            assert ctx.is_active()
-            if ctx.resolve_secret(tls_name):
-                ir.save_tls_context(ctx)

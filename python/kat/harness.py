@@ -1106,7 +1106,7 @@ spec:
   requestPolicy:
     insecure:
       action: Route
-      additionalPort: 8080
+      # additionalPort: 8080
 '''
 
 class Runner:
