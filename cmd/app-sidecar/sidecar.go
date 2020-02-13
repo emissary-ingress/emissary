@@ -1,16 +1,19 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	_log "log"
-	"math"
 	"net/url"
 	"os"
-	"time"
+	"os/signal"
+	"syscall"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/datawire/apro/cmd/app-sidecar/longpoll"
 	"github.com/datawire/apro/lib/licensekeys"
@@ -128,6 +131,33 @@ func main() {
 func Main(flags *cobra.Command, args []string) error {
 	os.Mkdir("temp", 0775)
 
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	wg, ctx := errgroup.WithContext(context.Background())
+	wg.Go(func() error { return signalHandler(ctx, sigs) })
+	wg.Go(func() error { return sidecar(ctx) })
+	return wg.Wait()
+}
+
+func signalHandler(ctx context.Context, sigs <-chan os.Signal) error {
+	defer func() {
+		go func() {
+			// keep logging signals
+			for sig := range sigs {
+				log.Printf("received signal %v", sig)
+			}
+		}()
+	}()
+
+	select {
+	case sig := <-sigs:
+		return errors.Errorf("received signal %v", sig)
+	case <-ctx.Done():
+		return nil
+	}
+}
+
+func sidecar(ctx context.Context) error {
 	empty := make([]InterceptInfo, 0)
 	intercepts := empty
 
@@ -139,8 +169,8 @@ func Main(flags *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-		<-time.After(time.Duration(math.MaxInt64)) // Block forever-ish
-		// not reached for a long time
+		<-ctx.Done() // Block forever (or until shutdown)
+		return nil
 	}
 
 	log.SetPrefix(fmt.Sprintf("%s(%s) ", log.Prefix(), appName))
@@ -156,16 +186,20 @@ func Main(flags *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-		e := <-c.EventsChan
-		if e == nil {
-			log.Print("No connection to the proxy")
-			intercepts = empty
-		} else {
-			err := json.Unmarshal(e.Data, &intercepts)
-			if err != nil {
-				log.Println("Failed to unmarshal event", string(e.Data))
-				log.Println("Because", err)
+		select {
+		case <-ctx.Done():
+			return nil
+		case e := <-c.EventsChan:
+			if e == nil {
+				log.Print("No connection to the proxy")
 				intercepts = empty
+			} else {
+				err := json.Unmarshal(e.Data, &intercepts)
+				if err != nil {
+					log.Println("Failed to unmarshal event", string(e.Data))
+					log.Println("Because", err)
+					intercepts = empty
+				}
 			}
 		}
 	}
