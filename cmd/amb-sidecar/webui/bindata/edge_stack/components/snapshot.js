@@ -159,7 +159,7 @@ export class Snapshot extends LitElement {
     this.loading = true;
     this.loadingError = null;
 
-    this.cookieChanged;
+    this.cookieChanged = false;
 
     this.checkCookie = function() {
       var lastCookie = document.cookie; // 'static' memory between function calls
@@ -170,11 +170,11 @@ export class Snapshot extends LitElement {
         if (currentCookie != lastCookie) {
           console.log("cookie changed");
           this.cookieChanged = true;
+          console.log(this.cookieChanged);
+          console.log(cookieChanged);
           this.lastCookie = this.currentCookie; // store latest cookie
           return this.cookieChanged;
         }
-        console.log("cookieChanged is " + cookieChanged);
-        console.log("currentCookie is" + currentCookie);
       };  
     }();
 
@@ -183,6 +183,8 @@ export class Snapshot extends LitElement {
     console.log('cookie changed is ' + this.cookieChanged);
     console.log("document.cookie is" + document.cookie);
     console.log("lastCookie is" + this.lastCookie);
+    console.log("cookieChanged is " + this.cookieChanged);
+    console.log("currentCookie is" + this.currentCookie);
     
 
     
