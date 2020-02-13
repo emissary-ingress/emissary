@@ -26,16 +26,16 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"data\":{\"tls.crt\":\"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURwakNDQW82Z0F3SUJBZ0lKQUpxa1Z4Y1RtQ1FITUEwR0NTcUdTSWIzRFFFQkN3VUFNR2d4Q3pBSkJnTlYKQkFZVEFsVlRNUXN3Q1FZRFZRUUlEQUpOUVRFUE1BMEdBMVVFQnd3R1FtOXpkRzl1TVJFd0R3WURWUVFLREFoRQpZWFJoZDJseVpURVVNQklHQTFVRUN3d0xSVzVuYVc1bFpYSnBibWN4RWpBUUJnTlZCQU1NQ1d4dlkyRnNhRzl6CmREQWVGdzB4T0RFd01UQXhNREk1TURKYUZ3MHlPREV3TURjeE1ESTVNREphTUdneEN6QUpCZ05WQkFZVEFsVlQKTVFzd0NRWURWUVFJREFKTlFURVBNQTBHQTFVRUJ3d0dRbTl6ZEc5dU1SRXdEd1lEVlFRS0RBaEVZWFJoZDJseQpaVEVVTUJJR0ExVUVDd3dMUlc1bmFXNWxaWEpwYm1jeEVqQVFCZ05WQkFNTUNXeHZZMkZzYUc5emREQ0NBU0l3CkRRWUpLb1pJaHZjTkFRRUJCUUFEZ2dFUEFEQ0NBUW9DZ2dFQkFMcTZtdS9FSzlQc1Q0YkR1WWg0aEZPVnZiblAKekV6MGpQcnVzdXcxT05MQk9jT2htbmNSTnE4c1FyTGxBZ3NicDBuTFZmQ1pSZHQ4UnlOcUFGeUJlR29XS3IvZAprQVEybVBucjBQRHlCTzk0UHo4VHdydDBtZEtEU1dGanNxMjlOYVJaT0JqdStLcGV6RytOZ3pLMk04M0ZtSldUCnFYdTI3ME9pOXlqb2VGQ3lPMjdwUkdvcktkQk9TcmIwd3ozdFdWUGk4NFZMdnFKRWprT0JVZjJYNVF3b25XWngKMktxVUJ6OUFSZVVUMzdwUVJZQkJMSUdvSnM4U042cjF4MSt1dTNLdTVxSkN1QmRlSHlJbHpKb2V0aEp2K3pTMgowN0pFc2ZKWkluMWNpdXhNNzNPbmVRTm1LUkpsL2NEb3BLemswSldRSnRSV1NnbktneFNYWkRrZjJMOENBd0VBCkFhTlRNRkV3SFFZRFZSME9CQllFRkJoQzdDeVRpNGFkSFVCd0wvTkZlRTZLdnFIRE1COEdBMVVkSXdRWU1CYUEKRkJoQzdDeVRpNGFkSFVCd0wvTkZlRTZLdnFIRE1BOEdBMVVkRXdFQi93UUZNQU1CQWY4d0RRWUpLb1pJaHZjTgpBUUVMQlFBRGdnRUJBSFJvb0xjcFdEa1IyMEhENEJ5d1BTUGRLV1hjWnN1U2tXYWZyekhoYUJ5MWJZcktIR1o1CmFodFF3L1gwQmRnMWtidlpZUDJSTzdGTFhBSlNTdXVJT0NHTFVwS0pkVHE1NDREUThNb1daWVZKbTc3UWxxam0KbHNIa2VlTlRNamFOVjdMd0MzalBkMERYelczbGVnWFRoYWpmZ2dtLzBJZXNGRzBVWjFEOTJHNURmc0hLekpSagpNSHZyVDNtVmJGZjkrSGJhRE4yT2g5VjIxUWhWSzF2M0F2dWNXczhUWCswZHZFZ1dtWHBRcndEd2pTMU04QkRYCldoWjVsZTZjVzhNYjhnZmRseG1JckpnQStuVVZzMU9EbkJKS1F3MUY4MVdkc25tWXdweVUrT2xVais4UGt1TVoKSU4rUlhQVnZMSWJ3czBmamJ4UXRzbTArZVBpRnN2d0NsUFk9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K\",\"tls.key\":\"LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2Z0lCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktnd2dnU2tBZ0VBQW9JQkFRQzZ1cHJ2eEN2VDdFK0cKdzdtSWVJUlRsYjI1ejh4TTlJejY3ckxzTlRqU3dUbkRvWnAzRVRhdkxFS3k1UUlMRzZkSnkxWHdtVVhiZkVjagphZ0JjZ1hocUZpcS8zWkFFTnBqNTY5RHc4Z1R2ZUQ4L0U4SzdkSm5TZzBsaFk3S3R2VFdrV1RnWTd2aXFYc3h2CmpZTXl0alBOeFppVms2bDd0dTlEb3ZjbzZIaFFzanR1NlVScUt5blFUa3EyOU1NOTdWbFQ0dk9GUzc2aVJJNUQKZ1ZIOWwrVU1LSjFtY2RpcWxBYy9RRVhsRTkrNlVFV0FRU3lCcUNiUEVqZXE5Y2RmcnJ0eXJ1YWlRcmdYWGg4aQpKY3lhSHJZU2IvczB0dE95UkxIeVdTSjlYSXJzVE85enAza0RaaWtTWmYzQTZLU3M1TkNWa0NiVVZrb0p5b01VCmwyUTVIOWkvQWdNQkFBRUNnZ0VBSVFsZzNpamNCRHViK21Eb2syK1hJZDZ0V1pHZE9NUlBxUm5RU0NCR2RHdEIKV0E1Z2NNNTMyVmhBV0x4UnR6dG1ScFVXR0dKVnpMWlpNN2ZPWm85MWlYZHdpcytkYWxGcWtWVWFlM2FtVHVQOApkS0YvWTRFR3Nnc09VWSs5RGlZYXRvQWVmN0xRQmZ5TnVQTFZrb1JQK0FrTXJQSWFHMHhMV3JFYmYzNVp3eFRuCnd5TTF3YVpQb1oxWjZFdmhHQkxNNzlXYmY2VFY0WXVzSTRNOEVQdU1GcWlYcDNlRmZ4L0tnNHhtYnZtN1JhYzcKOEJ3Z3pnVmljNXlSbkVXYjhpWUh5WGtyazNTL0VCYUNEMlQwUjM5VmlVM1I0VjBmMUtyV3NjRHowVmNiVWNhKwpzeVdyaVhKMHBnR1N0Q3FWK0dRYy9aNmJjOGt4VWpTTWxOUWtudVJRZ1FLQmdRRHpwM1ZaVmFzMTA3NThVT00rCnZUeTFNL0V6azg4cWhGb21kYVFiSFRlbStpeGpCNlg3RU9sRlkya3JwUkwvbURDSEpwR0MzYlJtUHNFaHVGSUwKRHhSQ2hUcEtTVmNsSytaaUNPaWE1ektTVUpxZnBOcW15RnNaQlhJNnRkNW9mWk42aFpJVTlJR2RUaGlYMjBONwppUW01UnZlSUx2UHVwMWZRMmRqd2F6Ykgvd0tCZ1FERU1MN21Mb2RqSjBNTXh6ZnM3MW1FNmZOUFhBMVY2ZEgrCllCVG4xS2txaHJpampRWmFNbXZ6dEZmL1F3Wkhmd3FKQUVuNGx2em5ncUNzZTMvUElZMy8zRERxd1p2NE1vdy8KRGdBeTBLQmpQYVJGNjhYT1B1d0VuSFN1UjhyZFg2UzI3TXQ2cEZIeFZ2YjlRRFJuSXc4a3grSFVreml4U0h5Ugo2NWxESklEdlFRS0JnUURpQTF3ZldoQlBCZk9VYlpQZUJydmhlaVVycXRob29BemYwQkJCOW9CQks1OHczVTloCjdQWDFuNWxYR3ZEY2x0ZXRCbUhEK3RQMFpCSFNyWit0RW5mQW5NVE5VK3E2V0ZhRWFhOGF3WXR2bmNWUWdTTXgKd25oK1pVYm9udnVJQWJSajJyTC9MUzl1TTVzc2dmKy9BQWM5RGs5ZXkrOEtXY0Jqd3pBeEU4TGxFUUtCZ0IzNwoxVEVZcTFoY0I4Tk1MeC9tOUtkN21kUG5IYUtqdVpSRzJ1c1RkVWNxajgxdklDbG95MWJUbVI5Si93dXVQczN4ClhWekF0cVlyTUtNcnZMekxSQWgyZm9OaVU1UDdKYlA5VDhwMFdBN1N2T2h5d0NobE5XeisvRlltWXJxeWcxbngKbHFlSHRYNU03REtJUFhvRndhcTlZYVk3V2M2K1pVdG4xbVNNajZnQkFvR0JBSTgwdU9iTkdhRndQTVYrUWhiZApBelkrSFNGQjBkWWZxRytzcTBmRVdIWTNHTXFmNFh0aVRqUEFjWlg3RmdtT3Q5Uit3TlFQK0dFNjZoV0JpKzBWCmVLV3prV0lXeS9sTVZCSW0zVWtlSlRCT3NudTFVaGhXbm5WVDhFeWhEY1FxcndPSGlhaUo3bFZSZmRoRWFyQysKSnpaU0czOHVZUVlyc0lITnRVZFgySmdPCi0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0K\"},\"kind\":\"Secret\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"tlsoriginationsecret\",\"scope\":\"AmbassadorTest\"},\"name\":\"test-origination-secret\",\"namespace\":\"default\"},\"type\":\"kubernetes.io/tls\"}\n"
                     },
-                    "creationTimestamp": "2020-01-13T06:09:54Z",
+                    "creationTimestamp": "2020-02-04T21:20:19Z",
                     "labels": {
                         "kat-ambassador-id": "tlsoriginationsecret",
                         "scope": "AmbassadorTest"
                     },
                     "name": "test-origination-secret",
                     "namespace": "default",
-                    "resourceVersion": "35735",
+                    "resourceVersion": "37789",
                     "selfLink": "/api/v1/namespaces/default/secrets/test-origination-secret",
-                    "uid": "5123b158-35cb-11ea-83a4-122f10fc3771"
+                    "uid": "2521b004-4794-11ea-829a-062d8f98984d"
                 },
                 "type": "kubernetes.io/tls"
             }
@@ -46,9 +46,58 @@
                 "kind": "Service",
                 "metadata": {
                     "annotations": {
+                        "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind: Module\nambassador_id: tlsoriginationsecret\nname: tls\nconfig:\n  upstream:\n    secret: test-origination-secret\n  upstream-files:\n    cert_chain_file: /tmp/ambassador/snapshots/default/secrets-decoded/test-origination-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt\n    private_key_file: /tmp/ambassador/snapshots/default/secrets-decoded/test-origination-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key\n\n---\napiVersion: ambassador/v0\nkind: Mapping\nname: tlsoriginationsecret-http\nprefix: /TLSOriginationSecret/\nservice: tlsoriginationsecret-http\ntls: upstream\nambassador_id: tlsoriginationsecret\n\n---\napiVersion: ambassador/v0\nkind: Mapping\nname: tlsoriginationsecret-http-files\nprefix: /TLSOriginationSecret-files/\nservice: tlsoriginationsecret-http\ntls: upstream-files\nambassador_id: tlsoriginationsecret\n",
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v0\\nkind: Module\\nambassador_id: tlsoriginationsecret\\nname: tls\\nconfig:\\n  upstream:\\n    secret: test-origination-secret\\n  upstream-files:\\n    cert_chain_file: /tmp/ambassador/snapshots/default/secrets-decoded/test-origination-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt\\n    private_key_file: /tmp/ambassador/snapshots/default/secrets-decoded/test-origination-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key\\n\\n---\\napiVersion: ambassador/v0\\nkind: Mapping\\nname: tlsoriginationsecret-http\\nprefix: /TLSOriginationSecret/\\nservice: tlsoriginationsecret-http\\ntls: upstream\\nambassador_id: tlsoriginationsecret\\n\\n---\\napiVersion: ambassador/v0\\nkind: Mapping\\nname: tlsoriginationsecret-http-files\\nprefix: /TLSOriginationSecret-files/\\nservice: tlsoriginationsecret-http\\ntls: upstream-files\\nambassador_id: tlsoriginationsecret\\n\"},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"tlsoriginationsecret\",\"scope\":\"AmbassadorTest\"},\"name\":\"tlsoriginationsecret\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"tlsoriginationsecret\"},\"type\":\"NodePort\"}}\n"
+                    },
+                    "creationTimestamp": "2020-02-04T21:20:18Z",
+                    "labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "tlsoriginationsecret",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "tlsoriginationsecret",
+                    "namespace": "default",
+                    "resourceVersion": "37779",
+                    "selfLink": "/api/v1/namespaces/default/services/tlsoriginationsecret",
+                    "uid": "24fd2456-4794-11ea-829a-062d8f98984d"
+                },
+                "spec": {
+                    "clusterIP": "10.98.255.43",
+                    "externalTrafficPolicy": "Cluster",
+                    "ports": [
+                        {
+                            "name": "http",
+                            "nodePort": 31987,
+                            "port": 80,
+                            "protocol": "TCP",
+                            "targetPort": 8080
+                        },
+                        {
+                            "name": "https",
+                            "nodePort": 32467,
+                            "port": 443,
+                            "protocol": "TCP",
+                            "targetPort": 8443
+                        }
+                    ],
+                    "selector": {
+                        "service": "tlsoriginationsecret"
+                    },
+                    "sessionAffinity": "None",
+                    "type": "NodePort"
+                },
+                "status": {
+                    "loadBalancer": {}
+                }
+            },
+            {
+                "apiVersion": "v1",
+                "kind": "Service",
+                "metadata": {
+                    "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"tlsoriginationsecret\",\"scope\":\"AmbassadorTest\",\"service\":\"tlsoriginationsecret-admin\"},\"name\":\"tlsoriginationsecret-admin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"tlsoriginationsecret-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"tlsoriginationsecret\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-01-13T06:09:54Z",
+                    "creationTimestamp": "2020-02-04T21:20:19Z",
                     "labels": {
                         "kat-ambassador-id": "tlsoriginationsecret",
                         "scope": "AmbassadorTest",
@@ -56,17 +105,17 @@
                     },
                     "name": "tlsoriginationsecret-admin",
                     "namespace": "default",
-                    "resourceVersion": "35728",
+                    "resourceVersion": "37784",
                     "selfLink": "/api/v1/namespaces/default/services/tlsoriginationsecret-admin",
-                    "uid": "510a6883-35cb-11ea-83a4-122f10fc3771"
+                    "uid": "25111325-4794-11ea-829a-062d8f98984d"
                 },
                 "spec": {
-                    "clusterIP": "10.108.252.35",
+                    "clusterIP": "10.106.247.222",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "tlsoriginationsecret-admin",
-                            "nodePort": 30675,
+                            "nodePort": 32678,
                             "port": 8877,
                             "protocol": "TCP",
                             "targetPort": 8877
@@ -87,33 +136,33 @@
                 "kind": "Service",
                 "metadata": {
                     "annotations": {
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"tlsoriginationsecret\",\"scope\":\"AmbassadorTest\"},\"name\":\"tlsoriginationsecret-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8122},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8485}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"tlsoriginationsecret\",\"scope\":\"AmbassadorTest\"},\"name\":\"tlsoriginationsecret-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8123},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8486}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
                     },
-                    "creationTimestamp": "2020-01-13T06:09:54Z",
+                    "creationTimestamp": "2020-02-04T21:20:19Z",
                     "labels": {
                         "kat-ambassador-id": "tlsoriginationsecret",
                         "scope": "AmbassadorTest"
                     },
                     "name": "tlsoriginationsecret-http",
                     "namespace": "default",
-                    "resourceVersion": "35737",
+                    "resourceVersion": "37791",
                     "selfLink": "/api/v1/namespaces/default/services/tlsoriginationsecret-http",
-                    "uid": "5132d3e3-35cb-11ea-83a4-122f10fc3771"
+                    "uid": "252d9839-4794-11ea-829a-062d8f98984d"
                 },
                 "spec": {
-                    "clusterIP": "10.110.201.138",
+                    "clusterIP": "10.100.138.151",
                     "ports": [
                         {
                             "name": "http",
                             "port": 80,
                             "protocol": "TCP",
-                            "targetPort": 8122
+                            "targetPort": 8123
                         },
                         {
                             "name": "https",
                             "port": 443,
                             "protocol": "TCP",
-                            "targetPort": 8485
+                            "targetPort": 8486
                         }
                     ],
                     "selector": {
@@ -121,55 +170,6 @@
                     },
                     "sessionAffinity": "None",
                     "type": "ClusterIP"
-                },
-                "status": {
-                    "loadBalancer": {}
-                }
-            },
-            {
-                "apiVersion": "v1",
-                "kind": "Service",
-                "metadata": {
-                    "annotations": {
-                        "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind: Module\nambassador_id: tlsoriginationsecret\nname: tls\nconfig:\n  upstream:\n    secret: test-origination-secret\n  upstream-files:\n    cert_chain_file: /tmp/ambassador/snapshots/default/secrets-decoded/test-origination-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt\n    private_key_file: /tmp/ambassador/snapshots/default/secrets-decoded/test-origination-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key\n\n---\napiVersion: ambassador/v0\nkind: Mapping\nname: tlsoriginationsecret-http\nprefix: /TLSOriginationSecret/\nservice: tlsoriginationsecret-http\ntls: upstream\nambassador_id: tlsoriginationsecret\n\n---\napiVersion: ambassador/v0\nkind: Mapping\nname: tlsoriginationsecret-http-files\nprefix: /TLSOriginationSecret-files/\nservice: tlsoriginationsecret-http\ntls: upstream-files\nambassador_id: tlsoriginationsecret\n",
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v0\\nkind: Module\\nambassador_id: tlsoriginationsecret\\nname: tls\\nconfig:\\n  upstream:\\n    secret: test-origination-secret\\n  upstream-files:\\n    cert_chain_file: /tmp/ambassador/snapshots/default/secrets-decoded/test-origination-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt\\n    private_key_file: /tmp/ambassador/snapshots/default/secrets-decoded/test-origination-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key\\n\\n---\\napiVersion: ambassador/v0\\nkind: Mapping\\nname: tlsoriginationsecret-http\\nprefix: /TLSOriginationSecret/\\nservice: tlsoriginationsecret-http\\ntls: upstream\\nambassador_id: tlsoriginationsecret\\n\\n---\\napiVersion: ambassador/v0\\nkind: Mapping\\nname: tlsoriginationsecret-http-files\\nprefix: /TLSOriginationSecret-files/\\nservice: tlsoriginationsecret-http\\ntls: upstream-files\\nambassador_id: tlsoriginationsecret\\n\"},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"tlsoriginationsecret\",\"scope\":\"AmbassadorTest\"},\"name\":\"tlsoriginationsecret\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"tlsoriginationsecret\"},\"type\":\"NodePort\"}}\n"
-                    },
-                    "creationTimestamp": "2020-01-13T06:09:53Z",
-                    "labels": {
-                        "app.kubernetes.io/component": "ambassador-service",
-                        "kat-ambassador-id": "tlsoriginationsecret",
-                        "scope": "AmbassadorTest"
-                    },
-                    "name": "tlsoriginationsecret",
-                    "namespace": "default",
-                    "resourceVersion": "35719",
-                    "selfLink": "/api/v1/namespaces/default/services/tlsoriginationsecret",
-                    "uid": "50d7a219-35cb-11ea-83a4-122f10fc3771"
-                },
-                "spec": {
-                    "clusterIP": "10.97.107.205",
-                    "externalTrafficPolicy": "Cluster",
-                    "ports": [
-                        {
-                            "name": "http",
-                            "nodePort": 30332,
-                            "port": 80,
-                            "protocol": "TCP",
-                            "targetPort": 8080
-                        },
-                        {
-                            "name": "https",
-                            "nodePort": 32664,
-                            "port": 443,
-                            "protocol": "TCP",
-                            "targetPort": 8443
-                        }
-                    ],
-                    "selector": {
-                        "service": "tlsoriginationsecret"
-                    },
-                    "sessionAffinity": "None",
-                    "type": "NodePort"
                 },
                 "status": {
                     "loadBalancer": {}

@@ -57,7 +57,7 @@ metadata:
       requestPolicy:
         insecure:
           action: Route
-          additionalPort: 8080
+          # additionalPort: 8080
   labels:
     scope: AmbassadorTest
 spec:
@@ -98,6 +98,8 @@ metadata:
       requestPolicy:
         insecure:
           action: Route
+          # Since this is cleartext already, additionalPort: 8080 is technically
+          # an error. Leave it in to make sure it's a harmless no-op error.
           additionalPort: 8080
   labels:
     scope: AmbassadorTest
