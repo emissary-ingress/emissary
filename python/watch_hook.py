@@ -231,12 +231,15 @@ class WatchHook:
             # If the edge stack is allowed, make sure we watch for our fallback context.
             self.add_kube_watch("Fallback TLSContext", "TLSContext", namespace=Config.ambassador_namespace)
 
+        ambassador_basedir = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', '/ambassador')
+
+        if os.path.exists(os.path.join(ambassador_basedir, '.ambassadorinstallations_ok')):
+            self.add_kube_watch("AmbassadorInstallations", "ambassadorinstallations.getambassador.io", Config.ambassador_namespace)
+
         ambassador_knative_requested = (os.environ.get("AMBASSADOR_KNATIVE_SUPPORT", "-unset-").lower() == 'true')
 
         if ambassador_knative_requested:
             self.logger.debug('Looking for Knative support...')
-
-            ambassador_basedir = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', '/ambassador')
 
             if os.path.exists(os.path.join(ambassador_basedir, '.knative_clusteringress_ok')):
                 # Watch for clusteringresses.networking.internal.knative.dev in any namespace and with any labels.
