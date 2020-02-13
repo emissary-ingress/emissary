@@ -20,7 +20,7 @@ class HostCRDSingle(AmbassadorTest):
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return super().manifests() + self.format('''
+        return self.format('''
 ---
 apiVersion: v1
 kind: Secret
@@ -60,7 +60,7 @@ spec:
   ambassador_id: [ {self.ambassador_id} ]
   prefix: /target/
   service: {self.target.path.fqdn}
-''')
+''') +  super().manifests()
 
     def scheme(self) -> str:
         return "https"
@@ -83,7 +83,7 @@ class HostCRDNo8080(AmbassadorTest):
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return super().manifests() + self.format('''
+        return self.format('''
 ---
 apiVersion: v1
 kind: Secret
@@ -126,7 +126,7 @@ spec:
   ambassador_id: [ {self.ambassador_id} ]
   prefix: /target/
   service: {self.target.path.fqdn}
-''')
+''') + super().manifests()
 
     def scheme(self) -> str:
         return "https"
@@ -154,7 +154,7 @@ class HostCRDManualContext(AmbassadorTest):
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return super().manifests() + self.format('''
+        return self.format('''
 ---
 apiVersion: v1
 kind: Secret
@@ -208,7 +208,7 @@ spec:
   ambassador_id: [ {self.ambassador_id} ]
   prefix: /target/
   service: {self.target.path.fqdn}
-''')
+''') + super().manifests()
 
     def scheme(self) -> str:
         return "https"
@@ -241,7 +241,7 @@ class HostCRDClearText(AmbassadorTest):
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return super().manifests() + self.format('''
+        return self.format('''
 ---
 apiVersion: getambassador.io/v2
 kind: Host
@@ -271,7 +271,7 @@ spec:
   ambassador_id: [ {self.ambassador_id} ]
   prefix: /target/
   service: {self.target.path.fqdn}
-''')
+''') + super().manifests()
 
     def scheme(self) -> str:
         return "http"
@@ -300,7 +300,7 @@ class HostCRDDouble(AmbassadorTest):
         self.target2 = HTTP(name="target2")
 
     def manifests(self) -> str:
-        return super().manifests() + self.format('''
+        return self.format('''
 ---
 apiVersion: v1
 data:
@@ -394,7 +394,7 @@ spec:
   host: "tls-context-host-2"
   prefix: /target/
   service: {self.target2.path.fqdn}
-''')
+''') + super().manifests()
 
     def scheme(self) -> str:
         return "https"

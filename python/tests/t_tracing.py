@@ -16,7 +16,7 @@ class TracingTest(AmbassadorTest):
         # self.no_tracing = AmbassadorTest(name="ambassador-no-tracing")
 
     def manifests(self) -> str:
-        return super().manifests() + """
+        return """
 ---
 apiVersion: v1
 kind: Service
@@ -54,7 +54,7 @@ spec:
         ports:
         - name: http
           containerPort: 9411
-"""
+""" + super().manifests()
 
     def config(self):
         # Use self.target here, because we want this mapping to be annotated
@@ -125,7 +125,7 @@ class TracingTestShortTraceId(AmbassadorTest):
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return super().manifests() + """
+        return """
 ---
 apiVersion: v1
 kind: Service
@@ -163,7 +163,7 @@ spec:
         ports:
         - name: http
           containerPort: 9411
-"""
+""" + super().manifests()
 
     def config(self):
         # Use self.target here, because we want this mapping to be annotated
@@ -216,7 +216,7 @@ class TracingExternalAuthTest(AmbassadorTest):
         self.auth = AHTTP(name="auth")
         
     def manifests(self) -> str:
-        return super().manifests() + """
+        return """
 ---
 apiVersion: v1
 kind: Service
@@ -254,7 +254,7 @@ spec:
         ports:
         - name: http
           containerPort: 9411
-"""
+""" + super().manifests()
 
     def config(self):
         yield self.target, self.format("""

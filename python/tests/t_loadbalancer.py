@@ -160,7 +160,7 @@ class GlobalLoadBalancing(AmbassadorTest):
 
     def manifests(self) -> str:
         backend = self.name.lower() + '-backend'
-        return super().manifests() + \
+        return \
                LOADBALANCER_POD.format(name='{}-1'.format(self.path.k8s), backend=backend, backend_env='{}-1'.format(self.path.k8s), environ=os.environ) + \
                LOADBALANCER_POD.format(name='{}-2'.format(self.path.k8s), backend=backend, backend_env='{}-2'.format(self.path.k8s), environ=os.environ) + \
                LOADBALANCER_POD.format(name='{}-3'.format(self.path.k8s), backend=backend, backend_env='{}-3'.format(self.path.k8s), environ=os.environ) + """
@@ -178,7 +178,8 @@ spec:
     targetPort: 8080
   selector:
     backend: {backend}
-""".format(backend=backend)
+""".format(backend=backend) + \
+    super().manifests()
 
     def config(self):
         yield self, self.format("""
@@ -307,7 +308,7 @@ class PerMappingLoadBalancing(AmbassadorTest):
 
     def manifests(self) -> str:
         backend = self.name.lower() + '-backend'
-        return super().manifests() + \
+        return \
                LOADBALANCER_POD.format(name='{}-1'.format(self.path.k8s), backend=backend, backend_env='{}-1'.format(self.path.k8s), environ=os.environ) + \
                LOADBALANCER_POD.format(name='{}-2'.format(self.path.k8s), backend=backend, backend_env='{}-2'.format(self.path.k8s), environ=os.environ) + \
                LOADBALANCER_POD.format(name='{}-3'.format(self.path.k8s), backend=backend, backend_env='{}-3'.format(self.path.k8s), environ=os.environ) + """
@@ -325,7 +326,8 @@ spec:
     targetPort: 8080
   selector:
     backend: {backend}
-""".format(backend=backend)
+""".format(backend=backend) + \
+    super().manifests()
 
     def config(self):
         for policy in ['ring_hash', 'maglev']:
