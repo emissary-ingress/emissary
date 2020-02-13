@@ -67,7 +67,7 @@ Format:
 ### Ambassador API Gateway + Ambassador Edge Stack
 
 - Bugfix: Load explicitly referenced secrets in another namespace, even when `AMBASSADOR_SINGLE_NAMESPACE` (thanks, [Thibault Cohen](https://github.com/titilambert)!) ([#2202])
-- Bugfix: Fix HostSupport for choosing cleartext or TLS ([#2279])
+- Bugfix: Fix Host support for choosing cleartext or TLS ([#2279])
 - Bugfix: Fix intermittent error when rendering `/ambassador/v0/diag/`
 - Internal: Various CLI tooling improvements
 
