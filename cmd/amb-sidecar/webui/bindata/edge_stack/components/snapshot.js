@@ -171,13 +171,14 @@ export class Snapshot extends LitElement {
           lastCookie = currentCookie; // store latest cookie
           return cookieChanged;
         }
-        console.log("cookieChanged is " + cookieChanged);
+  //      console.log("cookieChanged is " + cookieChanged);
   //      console.log("currentCookie is" + currentCookie);
       };  
     }();
 
     window.setInterval(this.checkCookie, 1000);
-  //  console.log('cookie checked');
+    console.log('cookie checked');
+    console.log('cookie changed is ')
   //  console.log("document.cookie is" + document.cookie);
    // console.log("lastCookie is" + lastCookie);
     
@@ -194,11 +195,11 @@ export class Snapshot extends LitElement {
 
 
   fetchData() {
-      if( Snapshot.theTimeoutId !== 0 && cookieChanged ) {
+      if( this.cookieChanged == true ) {
         clearTimeout(Snapshot.theTimeoutId); // it's ok to clear a timeout that has already expired
         Snapshot.theTimeoutId = 0;
         console.log("string1");
-        console.log(cookieChanged);
+        console.log(this.cookieChanged);
       }
     ApiFetch(`/edge_stack/api/snapshot?client_session=${this.snapshotPatches ? this.clientSession : ''}`, {
       headers: {
