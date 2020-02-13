@@ -10,7 +10,7 @@ class RateLimitV0Test(AmbassadorTest):
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return super().manifests() + """
+        return """
 ---
 apiVersion: v1
 kind: Service
@@ -52,7 +52,7 @@ spec:
           limits:
             cpu: "0.1"
             memory: 100Mi
-"""
+""" + super().manifests()
 
     def config(self):
         # Use self.target here, because we want this mapping to be annotated
@@ -127,7 +127,7 @@ class RateLimitV1Test(AmbassadorTest):
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return super().manifests() + """
+        return """
 ---
 apiVersion: v1
 kind: Service
@@ -169,7 +169,7 @@ spec:
           limits:
             cpu: "0.1"
             memory: 100Mi
-"""
+""" + super().manifests()
 
     def config(self):
         # Use self.target here, because we want this mapping to be annotated
@@ -220,7 +220,7 @@ class RateLimitV1WithTLSTest(AmbassadorTest):
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return super().manifests() + """
+        return """
 ---
 apiVersion: v1
 kind: Service
@@ -274,7 +274,7 @@ kind: Secret
 metadata:
   name: ratelimit-tls-secret
 type: kubernetes.io/tls
-"""
+""" + super().manifests()
 
     def config(self):
         # Use self.target here, because we want this mapping to be annotated

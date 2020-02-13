@@ -71,7 +71,7 @@ class EndpointGrpcTest(AmbassadorTest):
         self.target = EGRPC()
 
     def manifests(self) -> str:
-        return super().manifests() + self.format('''
+        return self.format('''
 ---
 apiVersion: getambassador.io/v2
 kind: KubernetesEndpointResolver
@@ -79,7 +79,7 @@ metadata:
     name: my-endpoint
 spec:    
     ambassador_id: endpointgrpctest 
-''')
+''') + super().manifests()
 
     def config(self):
         yield self, self.format("""

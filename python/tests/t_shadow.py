@@ -19,9 +19,7 @@ class ShadowTestCANFLAKE(MappingTest):
         self.options = None
 
     def manifests(self) -> str:
-        s = super().manifests() or ""
-
-        return s + """
+        return """
 ---
 apiVersion: v1
 kind: Service
@@ -59,7 +57,7 @@ spec:
         ports:
         - name: http
           containerPort: 3000
-"""
+""" + super().manifests()
 
     def config(self):
         yield self.target, self.format("""

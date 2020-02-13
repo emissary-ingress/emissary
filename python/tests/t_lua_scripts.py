@@ -14,7 +14,7 @@ class LuaTest(AmbassadorTest):
 """
 
     def manifests(self) -> str:
-        return super().manifests() + self.format('''
+        return self.format('''
 ---
 apiVersion: getambassador.io/v2
 kind: Module
@@ -36,7 +36,7 @@ spec:
   ambassador_id: {self.ambassador_id}
   prefix: /target/
   service: {self.target.path.fqdn}
-''')
+''') + super().manifests()
 
     def queries(self):
         yield Query(self.url("target/"))
