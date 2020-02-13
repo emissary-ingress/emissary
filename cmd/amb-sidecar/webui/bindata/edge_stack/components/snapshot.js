@@ -161,13 +161,37 @@ export class Snapshot extends LitElement {
 //    this.auth = localStorage.getItem("authenticated");
 //    console.log("Authenticated status is " + this.auth);
 
+    this.checkCookie = function() {
+      var lastCookie = document.cookie; // 'static' memory between function calls
+      var cookieChanged = false;
+      return function() {
+        var currentCookie = document.cookie;
+        if (currentCookie != lastCookie) {
+          cookieChanged = true;
+          lastCookie = currentCookie; // store latest cookie
+          return cookieChanged;
+        }
+  //      console.log("cookieChanged is " + cookieChanged);
+  //      console.log("currentCookie is" + currentCookie);
+      };  
+    }();
+
+    window.setInterval(this.checkCookie, 1000);
+  //  console.log('cookie checked');
+  //  console.log("document.cookie is" + document.cookie);
+   // console.log("lastCookie is" + lastCookie);
+    
+
+    
+
     if (getCookie("edge_stack_auth")) {
       this.fragment = "should-try";
     } else {
       updateCredentials(window.location.hash.slice(1));
       this.fragment = "trying";
     }
-  }
+  } 
+
 
   fetchData() {
       if( Snapshot.theTimeoutId !== 0 ) {
@@ -190,9 +214,11 @@ export class Snapshot extends LitElement {
             this.setAuthenticated(false);
             this.setSnapshot(new SnapshotWrapper(this.currentSnapshot.data, {}));
             if( Snapshot.theTimeoutId === 0 ) { // if we aren't already waiting to fetch a new snapshot...
+              
 //              if (this.auth === true) {
                 Snapshot.theTimeoutId = setTimeout(this.fetchData.bind(this), 1000); // fetch a new snapshot every second
 //              console.log("Authenticated status is " + this.auth);
+                console.log("fetching 1000...");
 //              }
             }
           }
