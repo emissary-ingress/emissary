@@ -8,8 +8,11 @@ import (
 	_log "log"
 	"net/url"
 	"os"
+	"os/exec"
 	"os/signal"
+	"strconv"
 	"syscall"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -128,16 +131,70 @@ func main() {
 	}
 }
 
+func getAppPort() (uint32, error) {
+	str := os.Getenv("APPPORT")
+	if str == "" {
+		log.Print("ERROR: APPPORT env var not configured.")
+		log.Print("(I don't know what port your app uses)")
+		log.Print("Please set APPPORT in your k8s manifest.")
+		time.Sleep(24 * time.Hour)
+		os.Exit(1)
+	}
+	num, err := strconv.ParseUint(str, 10, 32)
+	if err != nil {
+		return 0, err
+	}
+	return uint32(num), nil
+}
+
 func Main(flags *cobra.Command, args []string) error {
+	appPort, err := getAppPort()
+	if err != nil {
+		return err
+	}
+	if err := os.Mkdir("/run/amb", 0777); err != nil {
+		return err
+	}
+	if err := os.Chdir("/run/amb"); err != nil {
+		return err
+	}
+	err = func() error {
+		file, err := os.OpenFile("bootstrap-ads.yaml", os.O_CREATE|os.O_WRONLY, 0666)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+		return writeBootstrapADSYAML(file, appPort)
+	}()
+	if err != nil {
+		return err
+	}
+	if err := os.Mkdir("data", 0777); err != nil {
+		return err
+	}
+	if err := ioutil.WriteFile("data/listener.json", []byte(listenerJSON), 0666); err != nil {
+		return err
+	}
+	if err := ioutil.WriteFile("data/route.json", []byte(routeJSON), 0666); err != nil {
+		return err
+	}
+
 	if err := os.Mkdir("temp", 0775); err != nil {
 		return err
+	}
+
+	envoyLogLevel := os.Getenv("APP_LOG_LEVEL")
+	if envoyLogLevel == "" {
+		envoyLogLevel = "info"
 	}
 
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	wg, ctx := errgroup.WithContext(context.Background())
 	wg.Go(func() error { return signalHandler(ctx, sigs) })
+	wg.Go(func() error { return ambex(ctx) })
 	wg.Go(func() error { return sidecar(ctx) })
+	wg.Go(func() error { return envoy(ctx, envoyLogLevel) })
 	return wg.Wait()
 }
 
@@ -157,6 +214,20 @@ func signalHandler(ctx context.Context, sigs <-chan os.Signal) error {
 	case <-ctx.Done():
 		return nil
 	}
+}
+
+func envoy(ctx context.Context, logLevel string) error {
+	// Envoy's output goes to the pod's log
+	cmd := exec.CommandContext(ctx, "envoy", "-l", logLevel, "-c", "bootstrap-ads.yaml")
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return errors.Wrap(cmd.Run(), "envoy")
+}
+
+func ambex(ctx context.Context) error {
+	// Ambex's output is thrown away
+	return errors.Wrap(exec.CommandContext(ctx, "ambex", "-watch", "data").Run(), "ambex")
 }
 
 func sidecar(ctx context.Context) error {
