@@ -14,6 +14,8 @@
 from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 from typing import cast as typecast
 
+from os import environ
+
 import json
 
 from multi import multi
@@ -838,10 +840,16 @@ class V2Listener(dict):
     def finalize(self) -> None:
         self.config.ir.logger.info(f"V2Listener finalize {self.pretty()}")
 
+        # Check if AMBASSADOR_ENVOY_BIND_ADDRESS is set, and if so, bind Envoy to that external address.
+        if "AMBASSADOR_ENVOY_BIND_ADDRESS" in environ:
+            envoy_bind_address = environ.get("AMBASSADOR_ENVOY_BIND_ADDRESS")
+        else:
+            envoy_bind_address = "0.0.0.0"
+
         # OK. Assemble the high-level stuff for Envoy.
         self.address = {
             "socket_address": {
-                "address": "0.0.0.0",
+                "address": envoy_bind_address,
                 "port_value": self.service_port,
                 "protocol": "TCP"
             }
