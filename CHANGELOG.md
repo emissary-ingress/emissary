@@ -7,6 +7,7 @@ releases. Please keep it up to date.
 ## 1.1.2 (TBD)
 
 - Bugfix: The RBAC for `Ingress` now supports the `networking.k8s.io` `apiGroup`
+- Bugfix: Quiet Dev Portal debug logs
 - Change: There is no longer a separate app-sidecar image; it is now combined in to the main aes image; set `command: ["app-sidecar"]` to use that functionality.
 - Change: The `OAuth2` Filter no longer sets cookies when `insteadOfRedirect` triggers
 - Change: The `OAuth2` Filter more frequently adjusts the cookies
