@@ -158,29 +158,31 @@ export class Snapshot extends LitElement {
     this.setAuthenticated = useContext('auth-state', null)[1];
     this.loading = true;
     this.loadingError = null;
-//    this.auth = localStorage.getItem("authenticated");
-//    console.log("Authenticated status is " + this.auth);
+
+    this.cookieChanged;
 
     this.checkCookie = function() {
       var lastCookie = document.cookie; // 'static' memory between function calls
-      var cookieChanged = false;
+      console.log("lastCookie is " + lastCookie);
       return function() {
-        var currentCookie = document.cookie;
+        var currentCookie = 100;;
+        console.log("currentCookie is " + currentCookie);
         if (currentCookie != lastCookie) {
-          cookieChanged = true;
-          lastCookie = currentCookie; // store latest cookie
-          return cookieChanged;
+          console.log("cookie changed");
+          this.cookieChanged = true;
+          this.lastCookie = this.currentCookie; // store latest cookie
+          return this.cookieChanged;
         }
-  //      console.log("cookieChanged is " + cookieChanged);
-  //      console.log("currentCookie is" + currentCookie);
+        console.log("cookieChanged is " + cookieChanged);
+        console.log("currentCookie is" + currentCookie);
       };  
     }();
 
-    window.setInterval(this.checkCookie, 1000);
-    console.log('cookie checked');
-    console.log('cookie changed is ')
-  //  console.log("document.cookie is" + document.cookie);
-   // console.log("lastCookie is" + lastCookie);
+    window.setInterval(this.checkCookie, 10000);
+//    console.log('cookie checked');
+    console.log('cookie changed is ' + this.cookieChanged);
+    console.log("document.cookie is" + document.cookie);
+    console.log("lastCookie is" + this.lastCookie);
     
 
     
