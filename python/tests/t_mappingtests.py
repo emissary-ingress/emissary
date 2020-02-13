@@ -694,7 +694,7 @@ class SameMappingDifferentNamespaces(AmbassadorTest):
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return super().manifests() + self.format('''
+        return self.format('''
 ---
 apiVersion: v1
 kind: Namespace
@@ -725,7 +725,7 @@ spec:
   ambassador_id: {self.ambassador_id}
   prefix: /{self.name}-2/
   service: {self.target.path.fqdn}.default
-''')
+''') + super().manifests()
 
     def queries(self):
         yield Query(self.url(self.name + "-1/"))
