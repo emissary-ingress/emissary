@@ -11,11 +11,11 @@ The Ambassador Edge Stack is designed to run in Kubernetes for production. The m
 
 * Kubernetes 1.11 or later
 * The `kubectl` command-line tool
-* [Edge Control](/reference/edgectl-download)
+* Edge Control
 
 ## Quick Install (Recommended!)
 
-The Ambassador Edge Stack is typically deployed to Kubernetes from the command line. If you don't have Kubernetes, you should use our [Docker](../../about/quickstart) image to deploy the Ambassador Edge Stack locally. Or, if you're a Minikube user, [check out these directions](#minikube-users).
+The Ambassador Edge Stack is typically deployed to Kubernetes from the command line. If you don't have Kubernetes, you should use our [Docker](../../about/quickstart) image to deploy the Ambassador Edge Stack locally.
 
 When you use Edge Control on your publicly
 accessible cluster, it will:
@@ -28,68 +28,52 @@ accessible cluster, it will:
 
 **To install the Ambassador Edge Stack:**
 
-1. Download the `edgectl`file  for your operating system following [these instructions](/reference/edgectl-download).
+1. Download the `edgectl`file for your operating system:
+
+* [MacOS](https://metriton.datawire.io/downloads/darwin/edgectl)
+* [Linux](https://metriton.datawire.io/downloads/linux/edgectl)
+* [Windows](https://metriton.datawire.io/downloads/windows/edgectl.exe)
+* or use a [curl command](/reference/edgectl-download).
+
 2. Move the file into your PATH (for Windows users, move it into the Windows
-   Systems parth).
-   * If you need to, print your PATH with `echo $PATH`
+   Systems path).
+   * Print your PATH with `echo $PATH`
 3. Ensure the file is executable with the command `chmod a+x /usr/local/bin/edgectl`
 4. Run the executable file with the command `./edgectl`
 5. Now, run the following command: `edgectl install`
 
-Your terminal will print something similar to the following:
+    Your terminal will print something similar to the following:
 
- ```shell
- $ edgectl install
- -> Installing the Ambassador Edge Stack 1.0.
- -> Remote Kubernetes cluster detected.
- -> Provisioning a cloud load balancer. (This may take a minute, depending on your cloud provider.)
- -> Automatically configuring TLS.
- Please enter an email address. We’ll use this email address to notify you prior to domain and certification expiration [None]: john@example.com.
-```
+    ```shell
+    $ edgectl install
+    -> Installing the Ambassador Edge Stack $version$.
+    -> Remote Kubernetes cluster detected.
+    -> Provisioning a cloud load balancer. (This may take a minute, depending on your cloud provider.)
+    -> Automatically configuring TLS.
+    Please enter an email address. We’ll use this email address to notify you prior to domain and certification expiration [None]: john@example.com.
+    ```
+
+    Minikube users will see something similar to the following:
+
+    ```bash
+    $ edgectl install
+    -> Installing the Ambassador Edge Stack 1.0.
+    -> Automatically configuring TLS.
+    -> Cluster is not publicly accessible. Please ensure your cluster is publicly accessible if you would like to use automatic TLS.
+
+    Congratulations, you’ve successfully installed the Ambassador Edge Stack in your Kubernetes cluster. Visit http://192.168.64.2:31334 to access your Edge Stack installation and for additional configuration.
+    ```
 
 6. Provide an email address as required by the ACME TLS certificate provider, Let's Encrypt. Then your terminal will print something similar to the following:
 
-```shell
- -> Obtaining a TLS certificate from Let’s Encrypt.
+    ```shell
+    -> Obtaining a TLS certificate from Let’s Encrypt.
 
- Congratulations, you’ve successfully installed the Ambassador Edge Stack in your Kubernetes cluster. Visit https://random-word-3421.edgestack.me to access your Edge Stack installation and for additional configuration.
- ```
+    Congratulations, you’ve successfully installed the Ambassador Edge Stack in your Kubernetes cluster. Visit https://random-word-3421.edgestack.me to access your Edge Stack installation and for additional configuration.
+    ```
 
 Your new [Edge Policy Console](/about/edge-policy-console) will open
-automatically in your browser at the provided URL. **Note that the provided `random-word.edgestack.me` domain name will expire after 90 days**.
-
-### Minikube Users
-
-If you're a Minikube user, Edge Control will not be able to provide a domain name. However, you will still be given an IP address to access the Edge Policy Console.
-
-Edge Control will automatically configure TLS **if your cluster is publicly accessible.**
-
-**To get started:**
-
-Run the command `edgectl install`. It will print something similar to the following:
-
-```bash
-$ edgectl install
--> Installing the Ambassador Edge Stack 1.0.
--> Automatically configuring TLS.
--> Cluster is not publicly accessible. Please ensure your cluster is publicly accessible if you would like to use automatic TLS.
-
-Congratulations, you’ve successfully installed the Ambassador Edge Stack in your Kubernetes cluster. Visit http://192.168.64.2:31334 to access your Edge Stack installation and for additional configuration.
-```
-
-Your browser will automatically open to your newly provisioned URL.
-
-### Install in CI
-
-Installing the Ambassador Edge Stack in your Continuous Integration tool requires additional configuration. This method does not automatically configure TLS termination for you, and therefore not a domain name. However, these can still be achieved with the Host CRD.
-
-To install the Ambassador Edge Stack in CI, run the following command:
-
-```bash
-edgectl install --ci
-```
-
-You must then configure your own TLS certificate using the [Host CRD](/reference/host-crd).
+automatically in your browser at the provided URL or IP address. **Note that the provided `random-word.edgestack.me` domain name will expire after 90 days**.
 
 ## Create a Mapping
 

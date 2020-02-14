@@ -69,7 +69,7 @@ The Ambassador Edge Stack is typically deployed to Kubernetes from the command l
 
 **The Ambassador Edge Stack enables TLS termination by default using a self-signed certificate. See the [Host CRD](/reference/host-crd) for more information about disabling TLS.** If you have the ability to update your DNS, Ambassador can automatically configure a valid TLS certificate for you, eliminating the TLS warning. If you do not have the ability to update your DNS, skip to the next section, "Create a Mapping."
 
-1. Update your DNS so that your domain points to the IP address for your cluster. 
+1. Update your DNS so that your domain points to the IP address for your cluster.
 
 2. In the Edge Policy Console, create a `Host` resource:
    * On the "Hosts" tab, click the **Add** button on the right.
@@ -81,7 +81,21 @@ The Ambassador Edge Stack is typically deployed to Kubernetes from the command l
   
   You'll see the newly created `Host` resource appear in the UI with a status of "Pending." This will change to "Ready" once the certificate is fully provisioned. If you receive an error that your hostname does not qualify for ACME management, you can still configure TLS following [these instructions](../../reference/core/tls) or by reviewing configuration in the [Host CRD](/reference/host-crd).
 
-3. Once the Host is ready, navigate to `https://<hostname>` in your browser. Note that the certificate warning has gone away. Additionally, the Ambassador Edge Stack automatically will redirect HTTP connections to HTTPS.
+3. Once the Host is ready, navigate to `https://<hostname>` in your browser.
+   Note that the certificate warning has gone away. Additionally, the Ambassador
+   Edge Stack automatically will redirect HTTP connections to HTTPS.
+
+### Install in CI
+
+Installing the Ambassador Edge Stack in your Continuous Integration tool requires additional configuration. This method does not automatically configure TLS termination for you, and therefore not a domain name. However, these can still be achieved with the Host CRD.
+
+To install the Ambassador Edge Stack in CI, run the following command:
+
+```bash
+edgectl install --ci
+```
+
+You must then configure your own TLS certificate using the [Host CRD](/reference/host-crd).
 
 ## Create a Mapping
 
