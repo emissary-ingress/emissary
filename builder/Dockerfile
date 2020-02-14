@@ -84,7 +84,6 @@ RUN pip install -r requirements.txt
 
 # XXX: this will go away
 RUN mkdir -p /ambassador/sidecars && \
-    ln -s /buildroot/bin/watt /ambassador/watt && \
     ln -s /buildroot/ambassador/python/post_update.py /ambassador/post_update.py && \
     ln -s /buildroot/ambassador/python/watch_hook.py /ambassador/watch_hook.py && \
     ln -s /buildroot/ambassador/python/kubewatch.py /ambassador/kubewatch.py
@@ -114,9 +113,9 @@ COPY --from=envoy /usr/local/bin/envoy /usr/local/bin/envoy
 COPY --from=artifacts /usr/lib/python3.7/site-packages /usr/lib/python3.7/site-packages
 COPY --from=artifacts /usr/lib/libyaml* /usr/lib/
 
-COPY --from=artifacts /buildroot/bin/ambex /buildroot/bin/ambex
-COPY --from=artifacts /buildroot/bin/watt /buildroot/bin/watt
-COPY --from=artifacts /buildroot/bin/kubestatus /buildroot/bin/kubestatus
+COPY --from=artifacts /opt/ambassador /opt/ambassador
+RUN ln -s /opt/ambassador/bin/* /usr/local/bin/
+
 COPY --from=artifacts /usr/bin/kubectl /usr/bin/kubectl
 COPY --from=artifacts /buildroot/ambassador/python /buildroot/ambassador/python
 COPY --from=artifacts /buildroot/bin/capabilities_wrapper /usr/local/bin/wrapper
@@ -128,8 +127,6 @@ COPY --from=artifacts /buildroot/ambassador/demo/config /ambassador/ambassador-d
 COPY --from=artifacts /buildroot/ambassador/demo/services /ambassador/demo-services
 
 WORKDIR /ambassador
-
-ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/buildroot/bin
 
 # XXX: is this still necessary or will the above copy inherit the
 #       correct permissions?
