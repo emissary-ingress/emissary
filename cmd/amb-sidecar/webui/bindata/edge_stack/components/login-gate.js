@@ -1317,8 +1317,7 @@ export class LoginGate extends LitElement {
     if( this.authenticated !== auth ) {
       this.authenticated = auth;
       this.loading = false;
-//      localStorage.setItem("authenticated", auth);
-//      console.log("Authenticated status is " + this.authenticated);
+
     }
   }
 
@@ -1327,7 +1326,7 @@ export class LoginGate extends LitElement {
     //fetch('http://localhost:9000/edge_stack/api/config/pod-namespace', { mode:'no-cors'})
       .then(data => data.text()).then(body => {
         this.namespace = body;
-        //this.loading = false;
+        this.loading = false;
         this.hasError = false;
       })
       .catch((err) => {
