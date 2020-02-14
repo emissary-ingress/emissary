@@ -25,9 +25,9 @@ e2etest-only:
 # same time.
 	kubectl --kubeconfig=$(DEV_KUBECONFIG) delete namespaces alt-namespace evil-namespace other-namespace plain-namespace same-ingress-1 same-ingress-2 same-mapping-1 same-mapping-2 secret-namespace-ingress tcp-namespace watt-rapid || true
 	$(MAKE) deploy
-	$(MAKE) -f $(SOURCE_apro)/build-aux-local/Makefile.e2e apply
-	$(MAKE) -f $(SOURCE_apro)/build-aux-local/Makefile.e2e proxy
-	$(MAKE) -f $(SOURCE_apro)/build-aux-local/Makefile.e2e check
+	AES_IMAGE=$(AMB_IMAGE) $(MAKE) -f $(SOURCE_apro)/build-aux-local/Makefile.e2e apply
+	AES_IMAGE=$(AMB_IMAGE) $(MAKE) -f $(SOURCE_apro)/build-aux-local/Makefile.e2e proxy
+	AES_IMAGE=$(AMB_IMAGE) $(MAKE) -f $(SOURCE_apro)/build-aux-local/Makefile.e2e check
 .PHONY: e2etest-only
 
 pytest-only: _e2etest-cleanup

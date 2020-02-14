@@ -50,7 +50,8 @@ spec:
           value: "8080"
         - name: AMBASSADOR_LICENSE_KEY
           value: {{env "AMBASSADOR_LICENSE_KEY"}}
-        image: {{env "SIDECAR_IMAGE"}}
+        image: {{env "AES_IMAGE"}}
+        command: ["app-sidecar"]
         name: traffic-sidecar
         ports:
         - containerPort: 9900
