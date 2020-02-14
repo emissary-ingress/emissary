@@ -159,39 +159,11 @@ export class Snapshot extends LitElement {
     this.loading = true;
     this.loadingError = null;
 
-/*    this.cookieChanged = false;
-
-    this.checkCookie = function() {
-      var lastCookie = document.cookie; // 'static' memory between function calls
-      console.log("lastCookie is " + lastCookie);
-      return function() {
-        var currentCookie = 100;;
-        console.log("currentCookie is " + currentCookie);
-        if (currentCookie != lastCookie) {
-          console.log("cookie changed");
-          this.cookieChanged = true;
-          console.log(this.cookieChanged);
-          console.log(cookieChanged);
-          this.lastCookie = this.currentCookie; // store latest cookie
-          return this.cookieChanged;
-        }
-      };  
-    }();
-
-    window.setInterval(this.checkCookie, 10000);
-//    console.log('cookie checked');
-    console.log('cookie changed is ' + this.cookieChanged);
-    console.log("document.cookie is" + document.cookie);
-    console.log("lastCookie is" + this.lastCookie);
-    console.log("cookieChanged is " + this.cookieChanged);
-    console.log("currentCookie is" + this.currentCookie);
-*/
-
     if (getCookie("edge_stack_auth")) {  // presence of cookie shows that user is authenticated
       this.cookieStatus = "should-try"; // fetching should be possible
     } else {
       updateCredentials(window.location.hash.slice(1)); // cookie not confirmed, check for cookie 
-      this.cookieStatus = "trying"; // string indicates checking for cookie
+      this.cookieStatus = "trying"; // update string to checking for cookie
     }
   }     
 
@@ -202,8 +174,8 @@ export class Snapshot extends LitElement {
         'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
       }
     })
-      .then(this.fetchResponseAttempt.bind(this)) // fetch call successfully sent, proceed to function
-      .catch(this.fetchResponseError.bind(this)) // fetch call not successfully sent
+      .then(this.fetchResponse.bind(this)) // so far so good, proceed to function
+      .catch(this.fetchResponseError.bind(this)) // failed, handle error
   }
 
   queueNextSnapshotPoll() {
@@ -218,26 +190,25 @@ export class Snapshot extends LitElement {
     }
   }
 
-  fetchResponseAttempt(response) {
+  fetchResponse(response) {
     if (response.status === 400 || response.status === 401 || response.status === 403) { // server did not process due to client-side error
       if (this.cookieStatus === "should-try") { // user is authorized but because of error check for cookie again
         updateCredentials(window.location.hash.slice(1)); // checking for cookie
-        this.cookieStatus = "trying"; // update string to checking cookie status
+        this.cookieStatus = "trying"; // update string to checking for cookie
         setTimeout(this.fetchData.bind(this), 0); // try fetching again immediately
       } else {
         this.cookieStatus = ""; // reset, cookie is absent and is not currently being checked
         this.setAuthenticated(false); // user is not authorized 
         this.setSnapshot(new SnapshotWrapper(this.currentSnapshot.data, {})); // wrap up current snapshot in convenient package for next submission
-    //    this.queueNextSnapshotPoll(); // start snapshot polling to fetch snapshot
       }
     } else {
       response.text()
         .then(this.handleResponseText.bind(this)) // valid response text is received, proceed to function
-        .catch(this.handleResponseTextError.bind(this)) // error response text is received
+        .catch(this.handleResponseTextError.bind(this)) // error response text is received, handle error
     }
   }
 
-  fetchResponseError(err) { // fetch call was unsuccessful, register error and request update
+  fetchResponseError(err) { // fetch was unsuccessful, register error and request update
     this.loadingError = err;
     this.requestUpdate(); // per yaml-downloads.js, update the page
     console.error('error fetching snapshot', err);
@@ -248,7 +219,7 @@ export class Snapshot extends LitElement {
     this.queueNextSnapshotPoll(); // keep polling to allow authenticated user's multiple open tabs to all be logged in
     try {
         json = JSON.parse(text);  // parse response
-    } catch(err) {  // if not successful, register error and request update
+    } catch(err) {  // if parsing not successful, register error and request update
       this.loadingError = err;
       this.requestUpdate(); // per yaml-downloads.js, update the page
       console.error('error parsing snapshot', err);
