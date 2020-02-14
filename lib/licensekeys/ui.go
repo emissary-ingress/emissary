@@ -140,10 +140,9 @@ func (ctx *LicenseContext) GetClaims() (*LicenseClaimsLatest, error) {
 		k = e
 	} else if ctx.Keyfile != "" {
 		key, err := ioutil.ReadFile(ctx.Keyfile)
-		if err != nil {
-			return nil, errors.Wrap(err, "error reading license key")
+		if err == nil {
+			k = strings.TrimSpace(string(key))
 		}
-		k = strings.TrimSpace(string(key))
 	}
 
 	if k != "" {
