@@ -1,16 +1,22 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	_log "log"
-	"math"
 	"net/url"
 	"os"
+	"os/exec"
+	"os/signal"
+	"strconv"
+	"syscall"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/datawire/apro/cmd/app-sidecar/longpoll"
 	"github.com/datawire/apro/lib/licensekeys"
@@ -125,9 +131,106 @@ func main() {
 	}
 }
 
-func Main(flags *cobra.Command, args []string) error {
-	os.Mkdir("temp", 0775)
+func getAppPort() (uint32, error) {
+	str := os.Getenv("APPPORT")
+	if str == "" {
+		log.Print("ERROR: APPPORT env var not configured.")
+		log.Print("(I don't know what port your app uses)")
+		log.Print("Please set APPPORT in your k8s manifest.")
+		time.Sleep(24 * time.Hour)
+		os.Exit(1)
+	}
+	num, err := strconv.ParseUint(str, 10, 32)
+	if err != nil {
+		return 0, err
+	}
+	return uint32(num), nil
+}
 
+func Main(flags *cobra.Command, args []string) error {
+	appPort, err := getAppPort()
+	if err != nil {
+		return err
+	}
+	if err := os.Mkdir("/run/amb", 0777); err != nil {
+		return err
+	}
+	if err := os.Chdir("/run/amb"); err != nil {
+		return err
+	}
+	err = func() error {
+		file, err := os.OpenFile("bootstrap-ads.yaml", os.O_CREATE|os.O_WRONLY, 0666)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+		return writeBootstrapADSYAML(file, appPort)
+	}()
+	if err != nil {
+		return err
+	}
+	if err := os.Mkdir("data", 0777); err != nil {
+		return err
+	}
+	if err := ioutil.WriteFile("data/listener.json", []byte(listenerJSON), 0666); err != nil {
+		return err
+	}
+	if err := ioutil.WriteFile("data/route.json", []byte(routeJSON), 0666); err != nil {
+		return err
+	}
+
+	if err := os.Mkdir("temp", 0775); err != nil {
+		return err
+	}
+
+	envoyLogLevel := os.Getenv("APP_LOG_LEVEL")
+	if envoyLogLevel == "" {
+		envoyLogLevel = "info"
+	}
+
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	wg, ctx := errgroup.WithContext(context.Background())
+	wg.Go(func() error { return signalHandler(ctx, sigs) })
+	wg.Go(func() error { return ambex(ctx) })
+	wg.Go(func() error { return sidecar(ctx) })
+	wg.Go(func() error { return envoy(ctx, envoyLogLevel) })
+	return wg.Wait()
+}
+
+func signalHandler(ctx context.Context, sigs <-chan os.Signal) error {
+	defer func() {
+		go func() {
+			// keep logging signals
+			for sig := range sigs {
+				log.Printf("received signal %v", sig)
+			}
+		}()
+	}()
+
+	select {
+	case sig := <-sigs:
+		return errors.Errorf("received signal %v", sig)
+	case <-ctx.Done():
+		return nil
+	}
+}
+
+func envoy(ctx context.Context, logLevel string) error {
+	// Envoy's output goes to the pod's log
+	cmd := exec.CommandContext(ctx, "envoy", "-l", logLevel, "-c", "bootstrap-ads.yaml")
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return errors.Wrap(cmd.Run(), "envoy")
+}
+
+func ambex(ctx context.Context) error {
+	// Ambex's output is thrown away
+	return errors.Wrap(exec.CommandContext(ctx, "ambex", "-watch", "data").Run(), "ambex")
+}
+
+func sidecar(ctx context.Context) error {
 	empty := make([]InterceptInfo, 0)
 	intercepts := empty
 
@@ -139,8 +242,8 @@ func Main(flags *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-		<-time.After(time.Duration(math.MaxInt64)) // Block forever-ish
-		// not reached for a long time
+		<-ctx.Done() // Block forever (or until shutdown)
+		return nil
 	}
 
 	log.SetPrefix(fmt.Sprintf("%s(%s) ", log.Prefix(), appName))
@@ -156,16 +259,20 @@ func Main(flags *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-		e := <-c.EventsChan
-		if e == nil {
-			log.Print("No connection to the proxy")
-			intercepts = empty
-		} else {
-			err := json.Unmarshal(e.Data, &intercepts)
-			if err != nil {
-				log.Println("Failed to unmarshal event", string(e.Data))
-				log.Println("Because", err)
+		select {
+		case <-ctx.Done():
+			return nil
+		case e := <-c.EventsChan:
+			if e == nil {
+				log.Print("No connection to the proxy")
 				intercepts = empty
+			} else {
+				err := json.Unmarshal(e.Data, &intercepts)
+				if err != nil {
+					log.Println("Failed to unmarshal event", string(e.Data))
+					log.Println("Because", err)
+					intercepts = empty
+				}
 			}
 		}
 	}

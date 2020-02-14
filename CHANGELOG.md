@@ -2,21 +2,36 @@ Information in this file will be used to build the merged release notes for GA
 releases. Please keep it up to date.
 ------------------------------------------------------------------------------
 
-## Ambassador Pro CHANGELOG
+# Ambassador Edge Stack CHANGELOG
+
+## 1.1.2 (TBD)
+
+- Bugfix: The RBAC for `Ingress` now supports the `networking.k8s.io` `apiGroup`
+- Change: There is no longer a separate app-sidecar image; it is now combined in to the main aes image; set `command: ["app-sidecar"]` to use that functionality.
+- Change: The `OAuth2` Filter no longer sets cookies when `insteadOfRedirect` triggers
+- Change: The `OAuth2` Filter more frequently adjusts the cookies
+- Feature: `ifRequestHeader` can now have `valueRegex` instead of `value`
+- Feature: The `OAuth2` Filter now has `useSessionCookies` option to have cookies expire when the browser closes, rather than at a fixed duration
+- Feature: `ifRequestHeader` now has `negate: bool` to invert the match
 
 ## 1.1.1 (TBD)
 
-Other
-
- * Bugfix: `aes-plugin-runner --version` now works properly.
+- Feature: The Policy Console can now set the log level to "trace" (in addition to "info" or "debug")
+- Bugfix: Don't have the Policy Console poll for snapshots when logged out
+- Bugfix: Do a better job of noticing when the license key changes
+- Bugfix: `aes-plugin-runner --version` now works properly
+- Bugfix: Only serve the custom CONGRATULATIONS! 404 page on `/`
+- Change: The `OAuth2` Filter `stateTTL` setting is now ignored; the lifetime of state-tokens is now managed automatically
 
 ## 1.1.0 (2020-01-28)
 
-Configuration:
+- Feature: `External` Filter now exactly matches the current OSS `AuthService` definiton.  It has gained `include_body` (deprecating `allow_request_body`), `status_on_error`, and `failure_mode_allow`.
+- Docs: add instructions for what to do after downloading `edgectl`
+- Bugfix: make it much faster to apply the Edge Stack License
+- Bugfix: make sure the ACME terms-of-service link is always shown
+- Bugfix: make the Edge Policy Console more performant
 
- * Feature: `External` Filter now exactly matches the current OSS `AuthService` definiton.  It has gained `include_body` (deprecating `allow_request_body`), `status_on_error`, and `failure_mode_allow`.
-
-## 1.0.0 (TBD)
+## 1.0.0 (2020-01-15)
 
 Behavior:
 

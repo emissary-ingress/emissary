@@ -81,7 +81,8 @@ spec:
         - name: PORT
           value: "8000"
       - name: traffic-sidecar
-        image: {{env "SIDECAR_IMAGE"}}
+        image: {{env "AES_IMAGE"}}
+        command: ["app-sidecar"]
         ports:
         - containerPort: 9900
         env:

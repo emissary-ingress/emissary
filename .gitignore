@@ -46,6 +46,9 @@ node_modules/
 # Remove the tail of this list when the commit making the change gets
 # far enough in to the past.
 
+# 2020-02-13
+/docker/app-sidecar/ambex
+/docker/app-sidecar/app-sidecar
 # 2019-10-24
 /k8s*/??-ambassador-certs.yaml
 # 2019-10-19

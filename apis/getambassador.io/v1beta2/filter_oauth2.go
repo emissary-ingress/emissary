@@ -24,14 +24,14 @@ type FilterOAuth2 struct {
 	GrantType string `json:"grantType"`
 
 	// grantType=AuthorizationCode
-	RawClientURL    string        `json:"clientURL"` // formerly tenant.tenantUrl
-	ClientURL       *url.URL      `json:"-"`         // calculated from RawClientURL
-	RawStateTTL     string        `json:"stateTTL"`
-	StateTTL        time.Duration `json:"-"` // calculated from RawStateTTL
-	ClientID        string        `json:"clientID"`
-	Secret          string        `json:"secret"`
-	SecretName      string        `json:"secretName"`
-	SecretNamespace string        `json:"secretNamespace"`
+	RawClientURL       string             `json:"clientURL"` // formerly tenant.tenantUrl
+	ClientURL          *url.URL           `json:"-"`         // calculated from RawClientURL
+	DeprecatedStateTTL string             `json:"stateTTL"`
+	ClientID           string             `json:"clientID"`
+	Secret             string             `json:"secret"`
+	SecretName         string             `json:"secretName"`
+	SecretNamespace    string             `json:"secretNamespace"`
+	UseSessionCookies  *UseSessionCookies `json:"useSessionCookies"`
 
 	RawMaxStale string        `json:"maxStale"`
 	MaxStale    time.Duration `json:"-"` // calculated from RawMaxStale
@@ -44,6 +44,19 @@ type FilterOAuth2 struct {
 
 	AccessTokenValidation string             `json:"accessTokenValidation"`
 	AccessTokenJWTFilter  JWTFilterReference `json:"accessTokenJWTFilter"`
+}
+
+type UseSessionCookies struct {
+	Value           *bool               `json:"value"`
+	IfRequestHeader HeaderFieldSelector `json:"ifRequestHeader"`
+}
+
+func (m *UseSessionCookies) Validate() error {
+	if m.Value == nil {
+		value := true
+		m.Value = &value
+	}
+	return m.IfRequestHeader.Validate()
 }
 
 type JWTFilterReference struct {
@@ -77,16 +90,6 @@ func (m *FilterOAuth2) Validate(namespace string, secretsGetter coreV1client.Sec
 		}
 		m.ClientURL = u
 
-		if m.RawStateTTL == "" {
-			m.StateTTL = 5 * time.Minute
-		} else {
-			d, err := time.ParseDuration(m.RawStateTTL)
-			if err != nil {
-				return errors.Wrapf(err, "parsing stateTTL: %q", m.RawStateTTL)
-			}
-			m.StateTTL = d
-		}
-
 		if m.SecretName != "" {
 			if m.Secret != "" {
 				return errors.New("it is invalid to set both 'secret' and 'secretName'")
@@ -104,12 +107,19 @@ func (m *FilterOAuth2) Validate(namespace string, secretsGetter coreV1client.Sec
 			}
 			m.Secret = string(secretVal)
 		}
+
+		if m.UseSessionCookies == nil {
+			value := false
+			m.UseSessionCookies = &UseSessionCookies{
+				Value: &value,
+			}
+		}
+		if err := m.UseSessionCookies.Validate(); err != nil {
+			return errors.Wrap(err, "useSessionCookies")
+		}
 	case GrantType_ClientCredentials:
 		if m.RawClientURL != "" {
 			return errors.New("it is invalid to set 'clientURL' when 'grantType==ClientCredentials'")
-		}
-		if m.RawStateTTL != "" {
-			return errors.New("it is invalid to set 'stateTTL' when 'grantType==ClientCredentials'")
 		}
 		if m.ClientID != "" {
 			return errors.New("it is invalid to set 'clientID' when 'grantType==ClientCredentials'")

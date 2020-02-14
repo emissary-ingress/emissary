@@ -27,6 +27,19 @@ import (
 	"github.com/datawire/apro/lib/testutil"
 )
 
+const (
+	// So we want to give the test enough time to do its stuff,
+	// and be forgiving of external servers being slow.  But we
+	// also want all of the TestCanAuthorizeRequests sub-tests to
+	// finish within `go test`'s default 10m timeout.  The timeout
+	// below is the timeout for the actual test portion; it's
+	// another 10-14s for cleanup and ffmpeg to happen after that.
+	// Currently there are 14 sub-tests, so the upper bound for
+	// this is around (600s/14)-14s = 28s.  Let's make it
+	// shorter--fail fast.
+	usualTimeout = 15 * time.Second
+)
+
 type logWriter struct {
 	t    *testing.T
 	name string
@@ -197,7 +210,7 @@ func TestCanAuthorizeRequests(t *testing.T) {
 				for casename := range jsonData {
 					casename := casename // capture loop variable
 					t.Run(casename, func(t *testing.T) {
-						browserTest(t, 60*time.Second, fmt.Sprintf(`tests.standardTest(browsertab, require("./%s"), "%s")`, fileInfo.Name(), casename))
+						browserTest(t, usualTimeout, fmt.Sprintf(`tests.standardTest(browsertab, require("./%s"), "%s")`, fileInfo.Name(), casename))
 					})
 				}
 			})
@@ -209,7 +222,7 @@ func TestCanBeChainedWithOtherFilters(t *testing.T) {
 	ensureNPMInstalled(t)
 
 	t.Run("run", func(t *testing.T) {
-		browserTest(t, 60*time.Second, `tests.chainTest(browsertab, require("./idp_auth0.js"), "Auth0 (/oauth2-auth0-nojwt-and-plugin-and-whitelist)")`)
+		browserTest(t, usualTimeout, `tests.chainTest(browsertab, require("./idp_auth0.js"), "Auth0 (/oauth2-auth0-nojwt-and-plugin-and-whitelist)")`)
 	})
 }
 
@@ -217,7 +230,7 @@ func TestCanBeTurnedOffForSpecificPaths(t *testing.T) {
 	ensureNPMInstalled(t)
 
 	t.Run("run", func(t *testing.T) {
-		browserTest(t, 60*time.Second, `tests.disableTest(browsertab, require("./idp_auth0.js"), "Auth0 (/oauth2-auth0-nojwt-and-plugin-and-whitelist)")`)
+		browserTest(t, usualTimeout, `tests.disableTest(browsertab, require("./idp_auth0.js"), "Auth0 (/oauth2-auth0-nojwt-and-plugin-and-whitelist)")`)
 	})
 }
 
@@ -236,7 +249,7 @@ func TestCanUseComplexJWTValidation(t *testing.T) {
 			sessionFilename := filepath.Join(dirname, "session-id.txt")
 			xsrfFilename := filepath.Join(dirname, "xsrf-token.txt")
 
-			browserTest(t, 60*time.Second, fmt.Sprintf(`tests.writeSessionID(browsertab, require("./idp_auth0.js"), "Auth0 (/oauth2-auth0-complexjwt)", %q, %q)`, sessionFilename, xsrfFilename))
+			browserTest(t, usualTimeout, fmt.Sprintf(`tests.writeSessionID(browsertab, require("./idp_auth0.js"), "Auth0 (/oauth2-auth0-complexjwt)", %q, %q)`, sessionFilename, xsrfFilename))
 			assert.Bool(!t.Failed())
 
 			sessionID, err := ioutil.ReadFile(sessionFilename)

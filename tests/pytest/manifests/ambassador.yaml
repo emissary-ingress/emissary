@@ -79,13 +79,13 @@ spec:
       allowPrivilegeEscalation: false
       readOnlyRootFilesystem: true  
       {capabilities_block}
-    livenessProbe:
-      httpGet:
-        path: /ambassador/v0/check_alive
-        port: 8877
-      initialDelaySeconds: 30
-      periodSeconds: 10
-      failureThreshold: 30
+    #livenessProbe:
+    #  httpGet:
+    #    path: /ambassador/v0/check_alive
+    #    port: 8877
+    #  initialDelaySeconds: 30
+    #  periodSeconds: 10
+    #  failureThreshold: 30
     readinessProbe:
       httpGet:
         path: /ambassador/v0/check_ready
