@@ -179,7 +179,7 @@ summarize-sync() {
             break
         fi
         line="${lines[$i]}"
-        printf "  ${CYN}${line}${END}\n"
+        printf "  ${CYN}%s${END}\n" "$line"
     done
     if [ -n "${PARTIAL}" ]; then
         printf "  ${CYN}...${END}\n"

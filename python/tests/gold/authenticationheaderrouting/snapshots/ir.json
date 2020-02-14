@@ -49,6 +49,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
+            "_is_sidecar": false,
             "_namespace": "default",
             "_port": 8877,
             "_referenced_by": [
@@ -83,6 +84,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "authenticationheaderrouting-headerroutingauth",
+            "_is_sidecar": false,
             "_namespace": "default",
             "_port": 80,
             "_referenced_by": [
@@ -116,6 +118,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "authenticationheaderrouting-http-target1",
+            "_is_sidecar": false,
             "_namespace": "default",
             "_port": 80,
             "_referenced_by": [
@@ -150,6 +153,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "authenticationheaderrouting-http-target2",
+            "_is_sidecar": false,
             "_namespace": "default",
             "_port": 80,
             "_referenced_by": [
@@ -202,6 +206,7 @@
                 "_active": true,
                 "_errored": false,
                 "_hostname": "authenticationheaderrouting-headerroutingauth",
+                "_is_sidecar": false,
                 "_namespace": "default",
                 "_port": 80,
                 "_referenced_by": [
@@ -302,6 +307,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
                         "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
@@ -392,6 +398,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
                         "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
@@ -482,6 +489,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
                         "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
@@ -576,6 +584,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "authenticationheaderrouting-http-target2",
+                        "_is_sidecar": false,
                         "_namespace": "default",
                         "_port": 80,
                         "_referenced_by": [
@@ -678,6 +687,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "authenticationheaderrouting-http-target1",
+                        "_is_sidecar": false,
                         "_namespace": "default",
                         "_port": 80,
                         "_referenced_by": [

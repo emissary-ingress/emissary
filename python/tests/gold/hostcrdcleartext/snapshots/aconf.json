@@ -1,0 +1,226 @@
+{
+    "_errors": {},
+    "_notices": {},
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "cleartext-host.default.1": {
+            "_referenced_by": {},
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "ambassador_id": [
+                "hostcrdcleartext"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "hostname": "hostcrdcleartext",
+            "kind": "Host",
+            "location": "cleartext-host.default.1",
+            "metadata_labels": {
+                "ambassador_crd": "cleartext-host.default",
+                "kat-ambassador-id": "hostcrdcleartext",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cleartext-host",
+            "namespace": "default",
+            "requestPolicy": {
+                "insecure": {
+                    "action": "Route"
+                }
+            },
+            "rkey": "cleartext-host.default.1",
+            "selector": {
+                "matchLabels": {
+                    "hostname": "host-cleartext"
+                }
+            },
+            "serialization": "acmeProvider:\n  authority: none\nambassador_id:\n- hostcrdcleartext\napiVersion: getambassador.io/v2\ngeneration: 1\nhostname: hostcrdcleartext\nkind: Host\nmetadata_labels:\n  ambassador_crd: cleartext-host.default\n  kat-ambassador-id: hostcrdcleartext\n  scope: AmbassadorTest\nname: cleartext-host\nnamespace: default\nrequestPolicy:\n  insecure:\n    action: Route\nselector:\n  matchLabels:\n    hostname: host-cleartext\n"
+        },
+        "cleartext-target-mapping.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": [
+                "hostcrdcleartext"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "location": "cleartext-target-mapping.default.1",
+            "metadata_labels": {
+                "ambassador_crd": "cleartext-target-mapping.default",
+                "hostname": "host-cleartext",
+                "kat-ambassador-id": "hostcrdcleartext",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cleartext-target-mapping",
+            "namespace": "default",
+            "prefix": "/target/",
+            "rkey": "cleartext-target-mapping.default.1",
+            "serialization": "ambassador_id:\n- hostcrdcleartext\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: cleartext-target-mapping.default\n  hostname: host-cleartext\n  kat-ambassador-id: hostcrdcleartext\n  scope: AmbassadorTest\nname: cleartext-target-mapping\nnamespace: default\nprefix: /target/\nservice: hostcrdcleartext-http\n",
+            "service": "hostcrdcleartext-http"
+        },
+        "k8s-hostcrdcleartext-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "hostcrdcleartext",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-hostcrdcleartext-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "hostcrdcleartext",
+                "scope": "AmbassadorTest",
+                "service": "hostcrdcleartext-admin"
+            },
+            "name": "hostcrdcleartext-admin",
+            "namespace": "default",
+            "rkey": "k8s-hostcrdcleartext-admin-default",
+            "serialization": "ambassador_id: hostcrdcleartext\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: hostcrdcleartext\n  scope: AmbassadorTest\n  service: hostcrdcleartext-admin\nname: hostcrdcleartext-admin\nnamespace: default\n"
+        },
+        "k8s-hostcrdcleartext-default": {
+            "_referenced_by": {},
+            "ambassador_id": "hostcrdcleartext",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-hostcrdcleartext-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "hostcrdcleartext",
+                "scope": "AmbassadorTest"
+            },
+            "name": "hostcrdcleartext",
+            "namespace": "default",
+            "rkey": "k8s-hostcrdcleartext-default",
+            "serialization": "ambassador_id: hostcrdcleartext\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: hostcrdcleartext\n  scope: AmbassadorTest\nname: hostcrdcleartext\nnamespace: default\n"
+        },
+        "k8s-hostcrdcleartext-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "hostcrdcleartext",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-hostcrdcleartext-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "hostcrdcleartext",
+                "scope": "AmbassadorTest"
+            },
+            "name": "hostcrdcleartext-http",
+            "namespace": "default",
+            "rkey": "k8s-hostcrdcleartext-http-default",
+            "serialization": "ambassador_id: hostcrdcleartext\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: hostcrdcleartext\n  scope: AmbassadorTest\nname: hostcrdcleartext-http\nnamespace: default\n"
+        }
+    },
+    "hosts": {
+        "cleartext-host": {
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "ambassador_id": [
+                "hostcrdcleartext"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "hostname": "hostcrdcleartext",
+            "kind": "Host",
+            "metadata_labels": {
+                "ambassador_crd": "cleartext-host.default",
+                "kat-ambassador-id": "hostcrdcleartext",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cleartext-host",
+            "namespace": "default",
+            "requestPolicy": {
+                "insecure": {
+                    "action": "Route"
+                }
+            },
+            "selector": {
+                "matchLabels": {
+                    "hostname": "host-cleartext"
+                }
+            }
+        }
+    },
+    "mappings": {
+        "cleartext-target-mapping": {
+            "ambassador_id": [
+                "hostcrdcleartext"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "metadata_labels": {
+                "ambassador_crd": "cleartext-target-mapping.default",
+                "hostname": "host-cleartext",
+                "kat-ambassador-id": "hostcrdcleartext",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cleartext-target-mapping",
+            "namespace": "default",
+            "prefix": "/target/",
+            "service": "hostcrdcleartext-http"
+        }
+    },
+    "service": {
+        "k8s-hostcrdcleartext-admin-default": {
+            "ambassador_id": "hostcrdcleartext",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "hostcrdcleartext",
+                "scope": "AmbassadorTest",
+                "service": "hostcrdcleartext-admin"
+            },
+            "name": "hostcrdcleartext-admin",
+            "namespace": "default"
+        },
+        "k8s-hostcrdcleartext-default": {
+            "ambassador_id": "hostcrdcleartext",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "hostcrdcleartext",
+                "scope": "AmbassadorTest"
+            },
+            "name": "hostcrdcleartext",
+            "namespace": "default"
+        },
+        "k8s-hostcrdcleartext-http-default": {
+            "ambassador_id": "hostcrdcleartext",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "hostcrdcleartext",
+                "scope": "AmbassadorTest"
+            },
+            "name": "hostcrdcleartext-http",
+            "namespace": "default"
+        }
+    }
+}
