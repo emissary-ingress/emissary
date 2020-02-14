@@ -208,6 +208,11 @@ class IRTLSContext(IRResource):
                 self.secret_info['cert_chain_file'] = ss.cert_path
                 self.secret_info['private_key_file'] = ss.key_path
 
+                if ss.root_cert_path:
+                    self.secret_info['cacert_chain_file'] = ss.root_cert_path
+
+        self.ir.logger.debug("TLSContext - successfully processed the cert_chain_file, private_key_file, and cacert_chain_file: %s" % self.secret_info)
+
         # OK. Repeat for the ca_secret_name.
         ca_secret_name = self.secret_info.get('ca_secret')
 
