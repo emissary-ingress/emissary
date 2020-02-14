@@ -187,7 +187,25 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger dlog.Logger, httpClien
 		if authorization != nil {
 			return sessionInfo.handleAuthenticatedProxyRequest(ctx, logger, httpClient, discovered, request, authorization)
 		} else {
-			return sessionInfo.handleUnauthenticatedProxyRequest(ctx, logger, httpClient, oauthClient, discovered, request)
+			filterResp := sessionInfo.handleUnauthenticatedProxyRequest(ctx, logger, httpClient, oauthClient, discovered, request)
+			if httpResp, httpRespOK := filterResp.(*filterapi.HTTPResponse); httpRespOK && httpResp.StatusCode/100 == 3 && sessionInfo.c.Arguments.InsteadOfRedirect != nil {
+				noRedirect := sessionInfo.c.Arguments.InsteadOfRedirect.IfRequestHeader.Matches(filterutil.GetHeader(request))
+				if noRedirect {
+					if sessionInfo.c.Arguments.InsteadOfRedirect.HTTPStatusCode != 0 {
+						return middleware.NewErrorResponse(ctx, sessionInfo.c.Arguments.InsteadOfRedirect.HTTPStatusCode,
+							errors.New("session cookie is either missing, or refers to an expired or non-authenticated session"),
+							nil)
+					} else {
+						ret, err := sessionInfo.c.RunFilters(sessionInfo.c.Arguments.InsteadOfRedirect.Filters, dlog.WithLogger(ctx, logger), request)
+						if err != nil {
+							return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+								errors.Wrap(err, "insteadOfRedirect.filters"), nil)
+						}
+						return ret
+					}
+				}
+			}
+			return filterResp
 		}
 	}
 }
@@ -352,24 +370,6 @@ func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Co
 	if err != nil {
 		return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
 			err, nil)
-	}
-
-	if sessionInfo.c.Arguments.InsteadOfRedirect != nil {
-		noRedirect := sessionInfo.c.Arguments.InsteadOfRedirect.IfRequestHeader.Matches(filterutil.GetHeader(request))
-		if noRedirect {
-			if sessionInfo.c.Arguments.InsteadOfRedirect.HTTPStatusCode != 0 {
-				return middleware.NewErrorResponse(ctx, sessionInfo.c.Arguments.InsteadOfRedirect.HTTPStatusCode,
-					errors.New("session cookie is either missing, or refers to an expired or non-authenticated session"),
-					nil)
-			} else {
-				ret, err := sessionInfo.c.RunFilters(sessionInfo.c.Arguments.InsteadOfRedirect.Filters, dlog.WithLogger(ctx, logger), request)
-				if err != nil {
-					return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-						errors.Wrap(err, "insteadOfRedirect.filters"), nil)
-				}
-				return ret
-			}
-		}
 	}
 
 	return &filterapi.HTTPResponse{
