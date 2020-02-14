@@ -14,10 +14,9 @@ import (
 )
 
 type Scout struct {
-	mode       string
-	installID  string
-	newInstall bool
-	clusterID  string
+	installID string
+	index     int
+	metadata  map[string]interface{}
 }
 
 type ScoutMeta struct {
@@ -25,9 +24,14 @@ type ScoutMeta struct {
 	Value interface{}
 }
 
-func NewScout(mode string) (*Scout, error) {
-	var installID string
-	var newInstall bool
+func NewScout(mode string) (s *Scout) {
+	// Fixed (growing) metadata passed with every report
+	metadata := make(map[string]interface{})
+	metadata["mode"] = mode
+	metadata["trace_id"] = uuid.New().String()
+
+	// The result
+	s = &Scout{metadata: metadata}
 
 	// Get or create the persistent install ID for Edge Control
 	err := func() error {
@@ -37,43 +41,47 @@ func NewScout(mode string) (*Scout, error) {
 		// definitely different on MacOS.
 		home, err := os.UserHomeDir()
 		if err != nil {
-			return errors.Wrap(err, "install ID")
+			return err
 		}
 		configDir := filepath.Join(home, ".config", "edgectl")
 		if err := os.MkdirAll(configDir, 0755); err != nil {
-			return errors.Wrap(err, "install ID")
+			return err
 		}
 		idFilename := filepath.Join(configDir, "id")
 
 		// Try to read an existing install ID
 		if installIDBytes, err := ioutil.ReadFile(idFilename); err == nil {
-			installID = string(installIDBytes)
+			s.installID = string(installIDBytes)
 			// Validate UUID format
-			if _, err := uuid.Parse(installID); err == nil {
-				newInstall = false
+			if _, err := uuid.Parse(s.installID); err == nil {
+				metadata["new_install"] = false
 				return nil
 			} // else the value is not a UUID
 		} // else file doesn't exist, etc.
 
 		// Try to create a new install ID
-		installID = uuid.New().String()
-		if err := ioutil.WriteFile(idFilename, []byte(installID), 0755); err != nil {
-			return errors.Wrap(err, "install ID")
+		s.installID = uuid.New().String()
+		metadata["new_install"] = true
+		if err := ioutil.WriteFile(idFilename, []byte(s.installID), 0755); err != nil {
+			return err
 		}
 		return nil
 	}()
 	if err != nil {
-		return nil, err
+		s.installID = "00000000-0000-0000-0000-000000000000"
+		metadata["new_install"] = true
+		metadata["install_id_error"] = err.Error()
 	}
 
-	return &Scout{mode, installID, newInstall, ""}, nil
+	return
 }
 
-func (s *Scout) SetClusterID(clusterID string) {
-	if s.clusterID != "" {
-		panic(fmt.Sprintf("trying to replace cluster ID %q with %q", s.clusterID, clusterID))
+func (s *Scout) SetMetadatum(key string, value interface{}) {
+	oldValue, ok := s.metadata[key]
+	if ok {
+		panic(fmt.Sprintf("trying to replace metadata[%q] = %q with %q", key, oldValue, value))
 	}
-	s.clusterID = clusterID
+	s.metadata[key] = value
 }
 
 func (s *Scout) Report(action string, meta ...ScoutMeta) error {
@@ -81,13 +89,18 @@ func (s *Scout) Report(action string, meta ...ScoutMeta) error {
 		return nil
 	}
 
+	// Construct the report's metadata. Include the fixed (growing) set of
+	// metadata in the Scout structure and the pairs passed as arguments to this
+	// call. Also include and increment the index, which can be used to
+	// determine the correct order of reported events for this installation
+	// attempt (correlated by the trace_id set at the start).
+	s.index++
 	metadata := map[string]interface{}{
-		"mode":        s.mode,
-		"new_install": s.newInstall,
-		"action":      action,
+		"action": action,
+		"index":  s.index,
 	}
-	if s.clusterID != "" {
-		metadata["aes_install_id"] = s.clusterID
+	for metaKey, metaValue := range s.metadata {
+		metadata[metaKey] = metaValue
 	}
 	for _, metaItem := range meta {
 		metadata[metaItem.Key] = metaItem.Value
