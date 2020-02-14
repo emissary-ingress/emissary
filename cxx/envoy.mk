@@ -5,14 +5,14 @@ include $(OSS_HOME)/build-aux/prelude.mk
 YES_I_AM_OK_WITH_COMPILING_ENVOY ?=
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make update-base`.
-	_git_remote_urls := $(shell git remote | xargs -n1 git remote get-url --all)
-	IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
+  _git_remote_urls := $(shell git remote | xargs -n1 git remote get-url --all)
+  IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
   ENVOY_REPO ?= $(if $(IS_PRIVATE),git@github.com:datawire/envoy-private.git,git://github.com/datawire/envoy.git)
   ENVOY_COMMIT ?= d17d947caef13f1bdd235c3fccff77814883bb46
   ENVOY_COMPILATION_MODE ?= opt
-	# Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes
+  # Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes
   BASE_ENVOY_RELVER ?= 7
-	ENVOY_DOCKER_TAG ?= $(if $(IS_PRIVATE),quay.io/datawire/ambassador-base-private:envoy-$(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE),quay.io/datawire/ambassador-base:envoy-$(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE))
+  ENVOY_DOCKER_TAG ?= $(if $(IS_PRIVATE),quay.io/datawire/ambassador-base-private:envoy-$(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE),quay.io/datawire/ambassador-base:envoy-$(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE))
 
   BASE_VERSION.envoy ?= $(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE)
 # END LIST OF VARIABLES REQUIRING `make update-base`.
@@ -59,7 +59,7 @@ $(srcdir)/envoy: FORCE
 $(srcdir)/envoy-build-image.txt: $(srcdir)/envoy $(WRITE_IFCHANGED) FORCE
 	@PS4=; set -ex -o pipefail; { \
 	    pushd $</ci; \
-			echo "$$(pwd)"; \
+	    echo "$$(pwd)"; \
 	    . envoy_build_sha.sh; \
 	    popd; \
 	    echo docker.io/envoyproxy/envoy-build-ubuntu@sha256:$$ENVOY_BUILD_SHA | $(WRITE_IFCHANGED) $@; \
