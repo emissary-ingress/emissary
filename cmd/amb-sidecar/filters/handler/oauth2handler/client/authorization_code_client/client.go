@@ -358,14 +358,9 @@ func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Co
 		noRedirect := sessionInfo.c.Arguments.InsteadOfRedirect.IfRequestHeader.Matches(filterutil.GetHeader(request))
 		if noRedirect {
 			if sessionInfo.c.Arguments.InsteadOfRedirect.HTTPStatusCode != 0 {
-				ret := middleware.NewErrorResponse(ctx, sessionInfo.c.Arguments.InsteadOfRedirect.HTTPStatusCode,
+				return middleware.NewErrorResponse(ctx, sessionInfo.c.Arguments.InsteadOfRedirect.HTTPStatusCode,
 					errors.New("session cookie is either missing, or refers to an expired or non-authenticated session"),
 					nil)
-				ret.Header["Set-Cookie"] = []string{
-					sessionCookie.String(),
-					xsrfCookie.String(),
-				}
-				return ret
 			} else {
 				ret, err := sessionInfo.c.RunFilters(sessionInfo.c.Arguments.InsteadOfRedirect.Filters, dlog.WithLogger(ctx, logger), request)
 				if err != nil {
