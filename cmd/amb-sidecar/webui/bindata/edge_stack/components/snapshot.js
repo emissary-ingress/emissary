@@ -207,7 +207,7 @@ export class Snapshot extends LitElement {
 
   fetchData() {
       if( Snapshot.theTimeoutId !== 0 ) {
-        this.clearTimeout(Snapshot.theTimeoutId).bind(this);
+        this.clearTimeout(Snapshot.theTimeoutId);
       }
     ApiFetch(`/edge_stack/api/snapshot?client_session=${this.snapshotPatches ? this.clientSession : ''}`, {
       headers: {
@@ -247,7 +247,7 @@ export class Snapshot extends LitElement {
 
   handleValidText(text) {
     var json;
-    queueNextSnapshotPoll();
+    this.queueNextSnapshotPoll();
     try {
         json = JSON.parse(text);
     } catch(err) {
