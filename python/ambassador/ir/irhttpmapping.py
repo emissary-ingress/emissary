@@ -5,7 +5,7 @@ from typing import Any, ClassVar, Dict, List, Optional, Type, Union, TYPE_CHECKI
 
 from ..config import Config
 
-from .irbasemapping import IRBaseMapping
+from .irbasemapping import IRBaseMapping, qualify_service_name
 from .irbasemappinggroup import IRBaseMappingGroup
 from .irhttpmappinggroup import IRHTTPMappingGroup
 from .ircors import IRCORS
@@ -124,6 +124,7 @@ class IRHTTPMapping (IRBaseMapping):
                  rkey: str,      # REQUIRED
                  name: str,      # REQUIRED
                  location: str,  # REQUIRED
+                 service: str,   # REQUIRED
                  namespace: Optional[str] = None,
                  metadata_labels: Optional[Dict[str, str]] = None,
                  kind: str="IRHTTPMapping",
@@ -207,15 +208,11 @@ class IRHTTPMapping (IRBaseMapping):
         # Remember that we may need to add the Linkerd headers, too.
         add_linkerd_headers = new_args.get('add_linkerd_headers', False)
 
-        if add_linkerd_headers:
-            # Yup. We need the service info for this...
+        service = qualify_service_name(ir, service, namespace)
+        svc = Service(ir.logger, service)
 
-            if 'service' in kwargs:
-                svc = Service(ir.logger, kwargs['service'])
-                add_request_hdrs['l5d-dst-override'] = svc.hostname_port
-            else: 
-                # Uh. This is pretty much impossible.
-                self.post_error("Service is required for HTTP Mappings")
+        if add_linkerd_headers:
+            add_request_hdrs['l5d-dst-override'] = svc.hostname_port
 
         # XXX BRUTAL HACK HERE:
         # If we _don't_ have an origination context, but our IR has an agent_origination_ctx,
@@ -245,7 +242,7 @@ class IRHTTPMapping (IRBaseMapping):
 
         # ...and then init the superclass.
         super().__init__(
-            ir=ir, aconf=aconf, rkey=rkey, location=location,
+            ir=ir, aconf=aconf, rkey=rkey, location=location, service=service,
             kind=kind, name=name, namespace=namespace, metadata_labels=metadata_labels,
             apiVersion=apiVersion, headers=hdrs, add_request_headers=add_request_hdrs,
             precedence=precedence, rewrite=rewrite, cluster_tag=cluster_tag,

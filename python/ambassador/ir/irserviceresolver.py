@@ -120,15 +120,6 @@ class IRServiceResolver(IRResource):
     @resolve.when("KubernetesServiceResolver")
     def _k8s_svc_resolver(self, ir: 'IR', cluster: 'IRCluster', svc_name: str, svc_namespace: str, port: int) -> Optional[SvcEndpointSet]:
         # The K8s service resolver always returns a single endpoint.
-
-        fully_qualified = "." in svc_name or "localhost" == svc_name
-        if not ir.ambassador_module.use_ambassador_namespace_for_service_resolution and not fully_qualified and svc_namespace:
-            # The target service name is not fully qualified.
-            # We are most likely targeting a simple k8s svc with kube-dns resolution.
-            # Make sure we actually resolve the service it's namespace, not the Ambassador process namespace.
-            svc_name = f"{svc_name}.{svc_namespace}"
-            ir.logger.debug("KubernetesServiceResolver use_ambassador_namespace_for_service_resolution %s, fully qualified %s, upstream hostname %s" % (ir.ambassador_module.use_ambassador_namespace_for_service_resolution, fully_qualified, svc_name))
-
         return [ {
             'ip': svc_name,
             'port': port,
