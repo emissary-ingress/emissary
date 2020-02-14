@@ -243,6 +243,11 @@ class PeriodicTrigger(threading.Thread):
 
 
 class SecretInfo:
+    """
+    SecretInfo encapsulates a secret, including its name, its namespace, and all of its
+    ciphertext elements. Pretty much everything in Ambassador that worries about secrets
+    uses a SecretInfo.
+    """
     def __init__(self, name: str, namespace: str, secret_type: str,
                  tls_crt: Optional[str], tls_key: Optional[str]=None, user_key: Optional[str]=None,
                  decode_b64=True) -> None:
@@ -266,6 +271,12 @@ class SecretInfo:
 
     @staticmethod
     def decode(b64_pem: str) -> Optional[str]:
+        """
+        Do base64 decoding of a cryptographic element.
+
+        :param b64_pem: Base64-encoded PEM element
+        :return: Decoded PEM element
+        """
         utf8_pem = None
         pem = None
 
@@ -283,6 +294,15 @@ class SecretInfo:
 
     @staticmethod
     def fingerprint(pem: Optional[str]) -> str:
+        """
+        Generate and return a cryptographic fingerprint of a PEM element.
+
+        The fingerprint is the uppercase hex SHA-1 signature of the element's UTF-8
+        representation.
+
+        :param pem: PEM element
+        :return: fingerprint string
+        """
         if not pem:
             return '<none>'
 
@@ -295,6 +315,11 @@ class SecretInfo:
         return f'{keytype}: {hd}'
 
     def to_dict(self) -> Dict[str, Any]:
+        """
+        Return the dictionary representation of this SecretInfo.
+
+        :return: dict
+        """
         return {
             'name': self.name,
             'namespace': self.namespace,
@@ -306,6 +331,13 @@ class SecretInfo:
 
     @classmethod
     def from_aconf_secret(cls, aconf_object: 'ACResource') -> 'SecretInfo':
+        """
+        Convert an ACResource containing a secret into a SecretInfo. This is used by the IR.save_secret_info()
+        to convert saved secrets into SecretInfos.
+
+        :param aconf_object: a ACResource containing a secret
+        :return: SecretInfo
+        """
         return SecretInfo(
             aconf_object.name,
             aconf_object.namespace,
@@ -319,7 +351,25 @@ class SecretInfo:
     def from_dict(cls, resource: 'IRResource',
                   secret_name: str, namespace: str, source: str,
                   cert_data: Optional[Dict[str, Any]], secret_type="kubernetes.io/tls") -> Optional['SecretInfo']:
+        """
+        Given a secret's name and namespace, and a dictionary of configuration elements, return
+        a SecretInfo for the secret.
 
+        The "source" parameter needs some explanation. When working with secrets in most environments
+        where Ambassador runs, secrets will be loaded from some external system (e.g. Kubernetes),
+        and serialized to disk, and the disk serialization is the thing we can actually read the
+        dictionary of secret data from. The "source" parameter is the thing we read to get the actual
+        dictionary -- in our example above, "source" would be the pathname of the serialization on
+        disk, rather than the Kubernetes resource name.
+
+        :param resource: owning IRResource
+        :param secret_name: name of secret
+        :param namespace: namespace of secret
+        :param source: source of data
+        :param cert_data: dictionary of secret info (public and private key, etc.)
+        :param secret_type: Kubernetes-style secret type
+        :return:
+        """
         tls_crt = None
         tls_key = None
         user_key = None
@@ -353,6 +403,14 @@ class SecretInfo:
 
 
 class SavedSecret:
+    """
+    SavedSecret collects information about a secret saved locally, including its name, namespace,
+    paths to its elements on disk, and a copy of its cert data dictionary.
+
+    It's legal for a SavedSecret to have paths, etc, of None, representing a secret for which we
+    found no information. SavedSecret will evaluate True as a boolean if - and only if - it has
+    the minimal information needed to represent a real secret.
+    """
     def __init__(self, secret_name: str, namespace: str,
                  cert_path: Optional[str], key_path: Optional[str], user_path: Optional[str],
                  cert_data: Optional[Dict]) -> None:
@@ -378,6 +436,30 @@ class SavedSecret:
 
 
 class SecretHandler:
+    """
+    SecretHandler: manage secrets for Ambassador. There are two fundamental rules at work here:
+
+    - The Python part of Ambassador doesn’t get to talk directly to Kubernetes. Part of this is
+      because the Python K8s client isn’t maintained all that well. Part is because, for testing,
+      we need to be able to separate secrets from Kubernetes.
+    - Most of the handling of secrets (e.g. saving the actual bits of the certs) need to be
+      common code paths, so that testing them outside of Kube gives results that are valid inside
+      Kube.
+
+    To work within these rules, you’re required to pass a SecretHandler when instantiating an IR.
+    The SecretHandler mediates access to secrets outside Ambassador, and to the cache of secrets
+    we've already loaded.
+
+    SecretHandler subclasses will typically only need to override load_secret: the other methods
+    of SecretHandler generally won't need to change, and arguably should not be considered part
+    of the public interface of SecretHandler.
+
+    Finally, note that SecretHandler itself is deliberately written to work correctly with
+    secrets as they're handed over from watt, which means that it can be instantiated directly
+    and handed to the IR when we're running "for real" in Kubernetes with watt. Other things
+    (like mockery and the watch_hook) use subclasses to manage specific needs that they have.
+    """
+
     logger: logging.Logger
     source_root: str
     cache_dir: str
@@ -389,11 +471,20 @@ class SecretHandler:
         self.version = version
 
     def load_secret(self, resource: 'IRResource', secret_name: str, namespace: str) -> Optional[SecretInfo]:
-        # This is the fallback load_secret implementation; it is expected that subclasses
-        # will override this.
-        #
-        # All this one does is return None, meaning that it couldn't find the requested
-        # secret (because, well, it doesn't really look).
+        """
+        load_secret: given a secret’s name and namespace, pull it from wherever it really lives,
+        write it to disk, and return a SecretInfo telling the rest of Ambassador where it got written.
+
+        This is the fallback load_secret implementation, which doesn't do anything: it is written
+        assuming that ir.save_secret_info has already filled ir.saved_secrets with any secrets handed in
+        from watt, so that load_secrets will never be called for those secrets. Therefore, if load_secrets
+        gets called at all, it's for a secret that wasn't found, and it should just return None.
+
+        :param resource: referencing resource (so that we can correctly default the namespace)
+        :param secret_name: name of the secret
+        :param namespace: namespace, if any specific namespace was given
+        :return: Optional[SecretInfo]
+        """
 
         self.logger.debug("SecretHandler (%s %s): load secret %s in namespace %s" %
                           (resource.kind, resource.name, secret_name, namespace))
@@ -401,13 +492,35 @@ class SecretHandler:
         return None
 
     def still_needed(self, resource: 'IRResource', secret_name: str, namespace: str) -> None:
-        # This is the fallback no-op still_needed implementation, which honestly most things in
-        # the IR can use -- probably the watch_hook is all that'll need to override this.
+        """
+        still_needed: remember that a given secret is still needed, so that we can tell watt to
+        keep paying attention to it.
+
+        The default implementation doesn't do much of anything, because it assumes that we're
+        not running in the watch_hook, so watt has already been told everything it needs to be
+        told. This should be OK for everything that's not the watch_hook.
+
+        :param resource: referencing resource
+        :param secret_name: name of the secret
+        :param namespace: namespace of the secret
+        :return: None
+        """
 
         self.logger.debug("SecretHandler (%s %s): secret %s in namespace %s is still needed" %
                           (resource.kind, resource.name, secret_name, namespace))
 
     def cache_secret(self, resource: 'IRResource', secret_info: SecretInfo) -> SavedSecret:
+        """
+        cache_secret: stash the SecretInfo from load_secret into Ambassador’s internal cache,
+        so that we don’t have to call load_secret again if we need it again.
+
+        The default implementation should be usable by everything that's not the watch_hook.
+
+        :param resource: referencing resource
+        :param secret_info: SecretInfo returned from load_secret
+        :return: SavedSecret
+        """
+
         name = secret_info.name
         namespace = secret_info.namespace
         tls_crt = secret_info.tls_crt
@@ -461,11 +574,13 @@ class SecretHandler:
 
         return SavedSecret(name, namespace, tls_crt_path, tls_key_path, user_key_path, cert_data)
 
-    # secret_info_from_k8s takes a K8s Secret and returns a SecretInfo (or None if something
-    # is wrong).
     def secret_info_from_k8s(self, resource: 'IRResource',
                              secret_name: str, namespace: str, source: str,
                              serialization: Optional[str]) -> Optional[SecretInfo]:
+        """
+        secret_info_from_k8s is NO LONGER USED.
+        """
+
         objects: Optional[List[Any]] = None
 
         self.logger.debug(f"getting secret info for secret {secret_name} from k8s")
@@ -554,6 +669,7 @@ class NullSecretHandler(SecretHandler):
 
 
 class FSSecretHandler(SecretHandler):
+    # XXX NO LONGER USED
     def load_secret(self, resource: 'IRResource', secret_name: str, namespace: str) -> Optional[SecretInfo]:
         self.logger.debug("FSSecretHandler (%s %s): load secret %s in namespace %s" %
                           (resource.kind, resource.name, secret_name, namespace))
@@ -604,6 +720,7 @@ class FSSecretHandler(SecretHandler):
 
 
 class KubewatchSecretHandler(SecretHandler):
+    # XXX NO LONGER USED
     def load_secret(self, resource: 'IRResource', secret_name: str, namespace: str) -> Optional[SecretInfo]:
         self.logger.debug("FSSecretHandler (%s %s): load secret %s in namespace %s" %
                           (resource.kind, resource.name, secret_name, namespace))
