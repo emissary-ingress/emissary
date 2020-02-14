@@ -138,7 +138,7 @@ export class Snapshot extends LitElement {
       data: Object,
       loading: Boolean,
       loadingError: Boolean,
-      fragment: String,
+      cookieStatus: String,
     };
   }
 
@@ -187,11 +187,11 @@ export class Snapshot extends LitElement {
     console.log("currentCookie is" + this.currentCookie);
 */
 
-    if (getCookie("edge_stack_auth")) {
-      this.fragment = "should-try";
+    if (getCookie("edge_stack_auth")) {  // presence of cookie shows that user is authenticated
+      this.cookieStatus = "should-try"; // fetching should be possible
     } else {
-      updateCredentials(window.location.hash.slice(1));
-      this.fragment = "trying";
+      updateCredentials(window.location.hash.slice(1)); // cookie not confirmed, check for cookie 
+      this.cookieStatus = "trying"; // string indicates checking for cookie
     }
   }     
 
@@ -202,8 +202,8 @@ export class Snapshot extends LitElement {
         'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
       }
     })
-      .then(this.fetchResponseAttempt.bind(this)) // fetch call successful, proceed to function
-      .catch(this.fetchResponseError.bind(this)) // fetch call unsuccessful, proceed to error handling function
+      .then(this.fetchResponseAttempt.bind(this)) // fetch call successfully sent, proceed to function
+      .catch(this.fetchResponseError.bind(this)) // fetch call not successfully sent
   }
 
   queueNextSnapshotPoll() {
@@ -220,26 +220,26 @@ export class Snapshot extends LitElement {
 
   fetchResponseAttempt(response) {
     if (response.status === 400 || response.status === 401 || response.status === 403) { // server did not process due to client-side error
-      if (this.fragment === "should-try") { // user is authorized
-        updateCredentials(window.location.hash.slice(1));
-        this.fragment = "trying";
-        setTimeout(this.fetchData.bind(this), 0); // try again immediately
+      if (this.cookieStatus === "should-try") { // user is authorized but because of error check for cookie again
+        updateCredentials(window.location.hash.slice(1)); // checking for cookie
+        this.cookieStatus = "trying"; // update string to checking cookie status
+        setTimeout(this.fetchData.bind(this), 0); // try fetching again immediately
       } else {
-        this.fragment = "";
+        this.cookieStatus = ""; // reset, cookie is absent and is not currently being checked
         this.setAuthenticated(false); // user is not authorized 
         this.setSnapshot(new SnapshotWrapper(this.currentSnapshot.data, {})); // wrap up current snapshot in convenient package for next submission
-        this.queueNextSnapshotPoll(); // initiate snapshot pinging
+        this.queueNextSnapshotPoll(); // start snapshot pinging to watch for cookie
       }
     } else {
       response.text()
         .then(this.handleResponseText.bind(this)) // valid response text is received, proceed to function
-        .catch(this.handleResponseTextError.bind(this)) // error response text is received, proceed to error handling
+        .catch(this.handleResponseTextError.bind(this)) // error response text is received
     }
   }
 
   fetchResponseError(err) { // fetch call was unsuccessful, register error and request update
     this.loadingError = err;
-    this.requestUpdate();
+    this.requestUpdate(); // per yaml-downloads.js, update the page
     console.error('error fetching snapshot', err);
   }
 
@@ -248,34 +248,34 @@ export class Snapshot extends LitElement {
     this.queueNextSnapshotPoll();
     try {
         json = JSON.parse(text);  // parse response
-    } catch(err) {   // if not successful, register error and request update
+    } catch(err) {  // if not successful, register error and request update
       this.loadingError = err;
-      this.requestUpdate();
+      this.requestUpdate(); // per yaml-downloads.js, update the page
       console.error('error parsing snapshot', err);
       return
     }
-    if (this.fragment === "trying") {  // user auth is in process of being updated, proceed to next step
-      window.location.hash = "";
+    if (this.cookieStatus === "trying") {  // checking for cookie
+      window.location.hash = ""; // following cookie check, reset cookie hash to blank
     }
-    this.fragment = ""; // user is authenticated, fragment status is cleared out
+    this.cookieStatus = ""; // as user is authenticated, reset status string
     this.setAuthenticated(true);
     this.setSnapshot(new SnapshotWrapper(this.currentSnapshot.data, json || {}));  // wrap up current snapshot in convenient package for next submission
-    if (this.loading) { // 
-      this.loading = false;
-      this.loadingError = null;
-      this.requestUpdate();
-      this.recordUserActivity(); // authenticated user's cookie is registered by API post
+    if (this.loading) { // page is loading
+      this.loading = false;  // stop loading
+      this.loadingError = null; // reset value to default
+      this.requestUpdate(); // per yaml-downloads.js, update the page
+      this.recordUserActivity(); // post user changes on page
     } else {
-      if( this.loadingError ) { // 
-        this.loadingError = null;
-        this.requestUpdate();
+      if( this.loadingError ) { // if page load unsuccessful
+        this.loadingError = null; // reset to default
+        this.requestUpdate(); // per yaml-downloads.js, update the page
       }
     }
   }
 
-  recordUserActivity() {
+  recordUserActivity() {  // post user changes on page
     document.onclick = () => {
-      ApiFetch('/edge_stack/api/activity', {
+      ApiFetch('/edge_stack/api/activity', {  
         method: 'POST',
         headers: new Headers({
           'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
@@ -286,7 +286,7 @@ export class Snapshot extends LitElement {
 
   handleResponseTextError(err) {
     this.loadingError = err;
-    this.requestUpdate();
+    this.requestUpdate(); // per yaml-downloads.js, update the page
     console.error('error reading snapshot', err);
     this.queueNextSnapshotPoll();
   }
