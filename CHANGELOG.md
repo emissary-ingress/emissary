@@ -8,6 +8,11 @@ releases. Please keep it up to date.
 
 - Bugfix: The RBAC for `Ingress` now supports the `networking.k8s.io` `apiGroup`
 - Change: There is no longer a separate app-sidecar image; it is now combined in to the main aes image; set `command: ["app-sidecar"]` to use that functionality.
+- Change: The `OAuth2` Filter no longer sets cookies when `insteadOfRedirect` triggers
+- Change: The `OAuth2` Filter more frequently adjusts the cookies
+- Feature: `ifRequestHeader` can now have `valueRegex` instead of `value`
+- Feature: The `OAuth2` Filter now has `useSessionCookies` option to have cookies expire when the browser closes, rather than at a fixed duration
+- Feature: `ifRequestHeader` now has `negate: bool` to invert the match
 
 ## 1.1.1 (TBD)
 
