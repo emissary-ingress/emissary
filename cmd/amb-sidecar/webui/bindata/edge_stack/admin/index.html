@@ -18,13 +18,65 @@
   </head>
 
   <body class="hide_until_ready">
-    <login-gate>
-      <div>
-        <aes-snapshot-provider>
-            "Hello world"
-        </aes-snapshot-provider>
-      </div>
-    </login-gate>
+      <login-gate>
+          <div class="alpha">
+            <aes-snapshot-provider>
+              <dw-tabs>
+                <dw-signup></dw-signup>
+  
+                <dw-tab slot="Dashboard">
+                    <dw-dashboard></dw-dashboard>
+                </dw-tab>
+  
+                <dw-tab slot="Hosts">
+                  <dw-mvc-hosts></dw-mvc-hosts>
+                </dw-tab>
+  
+                <dw-tab slot="Mappings">
+                    <dw-mappings></dw-mappings>
+                </dw-tab>
+  
+                <dw-tab slot="Filters">
+                    <dw-filters></dw-filters>
+                    <dw-filterpolicies></dw-filterpolicies>
+                </dw-tab>
+  
+                <dw-tab slot="Rate Limits">
+                    <dw-limits></dw-limits>
+                </dw-tab>
+  
+                <dw-tab slot="Plugins">
+                    <dw-plugins></dw-plugins>
+                </dw-tab>
+  
+                <dw-tab slot="Resolvers">
+                    <dw-resolvers></dw-resolvers>
+                </dw-tab>
+  
+                <dw-tab slot="Debugging">
+                    <dw-debugging></dw-debugging>
+                    <dw-routetable></dw-routetable>
+                </dw-tab>
+  
+                 <dw-tab slot="YAML Download">
+                    <dw-yaml-dl></dw-yaml-dl>
+                </dw-tab>
+  
+                <dw-tab slot="APIs">
+                    <dw-apis id="apis"></dw-apis>
+                </dw-tab>
+  
+                <dw-tab slot="Documentation">
+                    <dw-documentation></dw-documentation>
+                </dw-tab>
+  
+                <dw-tab slot="Support">
+                    <dw-support></dw-support>
+                </dw-tab>
+              </dw-tabs>
+            </aes-snapshot-provider>
+          </div>
+      </login-gate>
   </body>
 
   <!--
