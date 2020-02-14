@@ -111,8 +111,8 @@ RUN apk --no-cache add bash curl python3 libcap
 RUN ln -s /usr/bin/python3 /usr/bin/python
 
 COPY --from=envoy /usr/local/bin/envoy /usr/local/bin/envoy
-COPY --from=builder /usr/lib/python3.7/site-packages /usr/lib/python3.7/site-packages
-COPY --from=builder /usr/lib/libyaml* /usr/lib/
+COPY --from=artifacts /usr/lib/python3.7/site-packages /usr/lib/python3.7/site-packages
+COPY --from=artifacts /usr/lib/libyaml* /usr/lib/
 
 COPY --from=artifacts /buildroot/bin/ambex /buildroot/bin/ambex
 COPY --from=artifacts /buildroot/bin/watt /buildroot/bin/watt
