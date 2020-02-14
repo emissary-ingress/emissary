@@ -22,8 +22,8 @@ Download by curl command with:
    /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl
    ```
 
-Or, download the binary file [here](https://metriton.datawire.io/downloads/linux/edgectl).
+Or, download the [binary file(https://metriton.datawire.io/downloads/linux/edgectl).
 
 ## Windows
 
-Download the binary file [here](https://metriton.datawire.io/downloads/windows/edgectl.exe).
+Download the [binary file](https://metriton.datawire.io/downloads/windows/edgectl.exe).
