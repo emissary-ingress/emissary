@@ -61,6 +61,11 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## Next release
+
+- Bugfix: Support Istio mTLS secrets natively ([#1475]). Thanks to Phil Peble.
+- Bugfix: TLS custom secret with period in name doesn't work ([#1255]). Thanks to Phil Peble.
+
 ## [1.1.1] February 12, 2020
 [1.1.1]: https://github.com/datawire/ambassador/compare/v1.1.0...v1.1.1
 
