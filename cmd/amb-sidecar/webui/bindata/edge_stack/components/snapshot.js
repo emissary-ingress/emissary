@@ -228,7 +228,7 @@ export class Snapshot extends LitElement {
         this.cookieStatus = ""; // reset, cookie is absent and is not currently being checked
         this.setAuthenticated(false); // user is not authorized 
         this.setSnapshot(new SnapshotWrapper(this.currentSnapshot.data, {})); // wrap up current snapshot in convenient package for next submission
-        this.queueNextSnapshotPoll(); // start snapshot pinging to watch for cookie
+    //    this.queueNextSnapshotPoll(); // start snapshot polling to fetch snapshot
       }
     } else {
       response.text()
@@ -245,7 +245,7 @@ export class Snapshot extends LitElement {
 
   handleResponseText(text) {  // valid response text received
     var json;
-    this.queueNextSnapshotPoll();
+    this.queueNextSnapshotPoll(); // keep polling to allow authenticated user's multiple open tabs to all be logged in
     try {
         json = JSON.parse(text);  // parse response
     } catch(err) {  // if not successful, register error and request update
