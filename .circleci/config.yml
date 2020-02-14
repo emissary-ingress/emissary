@@ -179,6 +179,7 @@ commands:
                     export DEV_REGISTRY=quay.io/datawire-dev
                     export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
                     export DEV_KUBE110=yes
+                    export KAT_REQ_LIMIT=600
                     make test GOTEST_PKGS=github.com/datawire/apro/...
                  - run:
                      command: ".circleci/kubernaut-unclaim.sh"
