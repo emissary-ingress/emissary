@@ -193,6 +193,17 @@ export class Snapshot extends LitElement {
       updateCredentials(window.location.hash.slice(1));
       this.fragment = "trying";
     }
+  }     
+
+  fetchData() {
+    this.clearTimeout(Snapshot.theTimeoutId); // snapshot reset to not ping while data is being fetched
+    ApiFetch(`/edge_stack/api/snapshot?client_session=${this.snapshotPatches ? this.clientSession : ''}`, {
+      headers: {
+        'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
+      }
+    })
+      .then(this.fetchResponseAttempt.bind(this))
+      .catch(this.fetchResponseError.bind(this))
   }
 
   queueNextSnapshotPoll() {
@@ -202,50 +213,37 @@ export class Snapshot extends LitElement {
   }
 
   clearTimeout() { // it's ok to clear a timeout that has already expired
-    Snapshot.theTimeoutId = 0;
-  }      
-
-  fetchData() {
-      if( Snapshot.theTimeoutId !== 0 ) {
-        this.clearTimeout(Snapshot.theTimeoutId);
-      }
-    ApiFetch(`/edge_stack/api/snapshot?client_session=${this.snapshotPatches ? this.clientSession : ''}`, {
-      headers: {
-        'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
-      }
-    })
-      .then(this.handleFetchResponse.bind(this))
-      .catch(this.handleFetchResponseError.bind(this))
-      this.queueNextSnapshotPoll();
+    if( Snapshot.theTimeoutId !== 0 ) {
+      Snapshot.theTimeoutId = 0;
+    }
   }
 
-  handleFetchResponse(response) {
-    if (response.status === 400 || response.status === 401 || response.status === 403) {
-      if (this.fragment === "should-try") {
+  fetchResponseAttempt(response) {
+    if (response.status === 400 || response.status === 401 || response.status === 403) { // server would not process due to client-side error
+      if (this.fragment === "should-try") { // user is authorized so try to update credentials and request again
         updateCredentials(window.location.hash.slice(1));
         this.fragment = "trying";
         setTimeout(this.fetchData.bind(this), 0); // try again immediately
       } else {
         this.fragment = "";
-        this.setAuthenticated(false);
-        this.setSnapshot(new SnapshotWrapper(this.currentSnapshot.data, {}));
-        this.queueNextSnapshotPoll();
+        this.setAuthenticated(false); // user is not authorized 
+        this.setSnapshot(new SnapshotWrapper(this.currentSnapshot.data, {})); // wrap up current snapshot in convenient package for next submission
+        this.queueNextSnapshotPoll(); // initiate snapshot pinging
       }
     } else {
       response.text()
-        .then(this.handleValidText.bind(this))
-        .catch(this.handleValidTextError.bind(this))
-        this.queueNextSnapshotPoll();
+        .then(this.handleResponseText.bind(this))
+        .catch(this.handleResponseTextError.bind(this))
     }
   }
 
-  handleFetchResponseError(err) {
+  fetchResponseError(err) {
     this.loadingError = err;
     this.requestUpdate();
     console.error('error fetching snapshot', err);
   }
 
-  handleValidText(text) {
+  handleResponseText(text) {
     var json;
     this.queueNextSnapshotPoll();
     try {
@@ -286,10 +284,11 @@ export class Snapshot extends LitElement {
     }
   }  
 
-  handleValidTextError(err) {
+  handleResponseTextError(err) {
     this.loadingError = err;
     this.requestUpdate();
     console.error('error reading snapshot', err);
+    this.queueNextSnapshotPoll();
   }
 
   firstUpdated() {
