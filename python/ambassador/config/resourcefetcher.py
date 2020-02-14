@@ -300,6 +300,7 @@ class ResourceFetcher:
         namespace = metadata.get('namespace') or 'default'
         metadata_labels: Optional[Dict[str, str]] = metadata.get('labels')
         generation = metadata.get('generation', 1)
+        annotations = metadata.get('annotations', {})
 
         if not self.check_k8s_dup(kind, namespace, name):
             return
@@ -320,6 +321,16 @@ class ResourceFetcher:
         if apiVersion.startswith('networking.internal.knative.dev') and kind.lower() == 'ingress':
             self.logger.debug(f"Renaming kind {kind} to KnativeIngress")
             kind = 'KnativeIngress'
+
+            # Let's not parse KnativeIngress if it's not meant for us.
+            # We only need to ignore KnativeIngress iff networking.knative.dev/ingress.class is present in annotation.
+            # If it's not there, then we accept all ingress classes.
+            if 'networking.knative.dev/ingress.class' in annotations:
+                if annotations.get('networking.knative.dev/ingress.class').lower() != 'ambassador.ingress.networking.knative.dev':
+                    self.logger.debug(f'Ignoring KnativeIngress {name}; set networking.knative.dev/ingress.class '
+                                      f'annotation to ambassador.ingress.networking.knative.dev for ambassador to '
+                                      f'parse it.')
+                    return
 
         if not name:
             self.logger.debug(f'{self.location}: ignoring K8s {kind} CRD, no name')
