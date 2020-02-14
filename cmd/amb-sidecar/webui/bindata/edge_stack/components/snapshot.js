@@ -195,16 +195,19 @@ export class Snapshot extends LitElement {
     }
   }
 
-  snapshotPerSec() {
+  queueNextSnapshotPoll() {
     if( Snapshot.theTimeoutId === 0 ) { // if we aren't already waiting to fetch a new snapshot...
     Snapshot.theTimeoutId = setTimeout(this.fetchData.bind(this), 1000); // fetch a new snapshot every second
     }
   }
 
+  clearTimeout() { // it's ok to clear a timeout that has already expired
+    Snapshot.theTimeoutId = 0;
+  }      
+
   fetchData() {
       if( Snapshot.theTimeoutId !== 0 ) {
-        clearTimeout(Snapshot.theTimeoutId); // it's ok to clear a timeout that has already expired
-        Snapshot.theTimeoutId = 0;
+        this.clearTimeout(Snapshot.theTimeoutId).bind(this);
       }
     ApiFetch(`/edge_stack/api/snapshot?client_session=${this.snapshotPatches ? this.clientSession : ''}`, {
       headers: {
@@ -213,7 +216,7 @@ export class Snapshot extends LitElement {
     })
       .then(this.handleFetchResponse.bind(this))
       .catch(this.handleFetchResponseError.bind(this))
-      this.snapshotPerSec();
+      this.queueNextSnapshotPoll();
   }
 
   handleFetchResponse(response) {
@@ -226,13 +229,13 @@ export class Snapshot extends LitElement {
         this.fragment = "";
         this.setAuthenticated(false);
         this.setSnapshot(new SnapshotWrapper(this.currentSnapshot.data, {}));
-        this.snapshotPerSec();
+        this.queueNextSnapshotPoll();
       }
     } else {
       response.text()
         .then(this.handleValidText.bind(this))
         .catch(this.handleValidTextError.bind(this))
-        this.snapshotPerSec();
+        this.queueNextSnapshotPoll();
     }
   }
 
@@ -244,9 +247,7 @@ export class Snapshot extends LitElement {
 
   handleValidText(text) {
     var json;
-    if( Snapshot.theTimeoutId === 0 ) { // if we aren't already waiting to fetch a new snapshot...
-      Snapshot.theTimeoutId = setTimeout(this.fetchData.bind(this), 1000); // fetch a new snapshot every second
-    }
+    queueNextSnapshotPoll();
     try {
         json = JSON.parse(text);
     } catch(err) {
@@ -258,7 +259,6 @@ export class Snapshot extends LitElement {
     if (this.fragment === "trying") {
       window.location.hash = "";
     }
-
     this.fragment = "";
     this.setAuthenticated(true);
     this.setSnapshot(new SnapshotWrapper(this.currentSnapshot.data, json || {}));
@@ -266,14 +266,7 @@ export class Snapshot extends LitElement {
       this.loading = false;
       this.loadingError = null;
       this.requestUpdate();
-      document.onclick = () => {
-        ApiFetch('/edge_stack/api/activity', {
-          method: 'POST',
-          headers: new Headers({
-            'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
-          }),
-        });
-      }
+      this.recordUserActivity();
     } else {
       if( this.loadingError ) {
         this.loadingError = null;
@@ -282,14 +275,22 @@ export class Snapshot extends LitElement {
     }
   }
 
+  recordUserActivity() {
+    document.onclick = () => {
+      ApiFetch('/edge_stack/api/activity', {
+        method: 'POST',
+        headers: new Headers({
+          'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
+        }),
+      });
+    }
+  }  
+
   handleValidTextError(err) {
     this.loadingError = err;
     this.requestUpdate();
     console.error('error reading snapshot', err);
   }
-  
-  
-
 
   firstUpdated() {
     this.loading = true;
