@@ -202,8 +202,8 @@ export class Snapshot extends LitElement {
         'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
       }
     })
-      .then(this.fetchResponseAttempt.bind(this))
-      .catch(this.fetchResponseError.bind(this))
+      .then(this.fetchResponseAttempt.bind(this)) // fetch call successful, proceed to function
+      .catch(this.fetchResponseError.bind(this)) // fetch call unsuccessful, proceed to error handling function
   }
 
   queueNextSnapshotPoll() {
@@ -219,8 +219,8 @@ export class Snapshot extends LitElement {
   }
 
   fetchResponseAttempt(response) {
-    if (response.status === 400 || response.status === 401 || response.status === 403) { // server would not process due to client-side error
-      if (this.fragment === "should-try") { // user is authorized so try to update credentials and request again
+    if (response.status === 400 || response.status === 401 || response.status === 403) { // server did not process due to client-side error
+      if (this.fragment === "should-try") { // user is authorized
         updateCredentials(window.location.hash.slice(1));
         this.fragment = "trying";
         setTimeout(this.fetchData.bind(this), 0); // try again immediately
@@ -232,41 +232,41 @@ export class Snapshot extends LitElement {
       }
     } else {
       response.text()
-        .then(this.handleResponseText.bind(this))
-        .catch(this.handleResponseTextError.bind(this))
+        .then(this.handleResponseText.bind(this)) // valid response text is received, proceed to function
+        .catch(this.handleResponseTextError.bind(this)) // error response text is received, proceed to error handling
     }
   }
 
-  fetchResponseError(err) {
+  fetchResponseError(err) { // fetch call was unsuccessful, register error and request update
     this.loadingError = err;
     this.requestUpdate();
     console.error('error fetching snapshot', err);
   }
 
-  handleResponseText(text) {
+  handleResponseText(text) {  // valid response text received
     var json;
     this.queueNextSnapshotPoll();
     try {
-        json = JSON.parse(text);
-    } catch(err) {
+        json = JSON.parse(text);  // parse response
+    } catch(err) {   // if not successful, register error and request update
       this.loadingError = err;
       this.requestUpdate();
       console.error('error parsing snapshot', err);
       return
     }
-    if (this.fragment === "trying") {
+    if (this.fragment === "trying") {  // user auth is in process of being updated, proceed to next step
       window.location.hash = "";
     }
-    this.fragment = "";
+    this.fragment = ""; // user is authenticated, fragment status is cleared out
     this.setAuthenticated(true);
-    this.setSnapshot(new SnapshotWrapper(this.currentSnapshot.data, json || {}));
-    if (this.loading) {
+    this.setSnapshot(new SnapshotWrapper(this.currentSnapshot.data, json || {}));  // wrap up current snapshot in convenient package for next submission
+    if (this.loading) { // 
       this.loading = false;
       this.loadingError = null;
       this.requestUpdate();
-      this.recordUserActivity();
+      this.recordUserActivity(); // authenticated user's cookie is registered by API post
     } else {
-      if( this.loadingError ) {
+      if( this.loadingError ) { // 
         this.loadingError = null;
         this.requestUpdate();
       }
