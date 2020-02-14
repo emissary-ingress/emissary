@@ -18,13 +18,13 @@ However, the whole `ADS` thing is a bit of a pain:
 Rather than do all that logic by hand, we'll use the Envoy `go-control-plane` for the heavy lifting. This is also something of a pain, given that it's not well documented, but here's the deal:
 
 - The root of the world is a `SnapshotCache`:
-  - `import github.com/envoyproxy/go-control-plane/pkg/cache`, then refer to `cache.SnapshotCache`.
+  - `import github.com/datawire/ambassador/pkg/envoy-control-plane/cache`, then refer to `cache.SnapshotCache`.
   - A collection of internally consistent configuration objects is a `Snapshot` (`cache.Snapshot`).
   - `Snapshot`s are collected in the `SnapshotCache`.
   - A given `SnapshotCache` can hold configurations for multiple Envoys, identified by the Envoy `nodeID`, which must be configured for the Envoy.
 - The `SnapshotCache` can only hold `go-control-plane` configuration objects, so you have to build these up to hand to the `SnapshotCache`.
 - The gRPC stuff is handled by a `Server`:
-  - `import github.com/envoyproxy/go-control-plane/pkg/server`, then refer
+  - `import github.com/datawire/ambassador/pkg/envoy-control-plane/server`, then refer
     to `server.Server`.
   - Our `runManagementServer` function (largely ripped off from the `go-control-plane` tests) gets this running. It takes a `SnapshotCache` (cleverly called `config` for no reason I understand) and a standard Go `gRPCServer` as arguments.
   - _ALL_ the gRPC madness is handled by the `Server`, with the assistance of the methods in its `callback` object.
