@@ -129,7 +129,9 @@ func main() {
 }
 
 func Main(flags *cobra.Command, args []string) error {
-	os.Mkdir("temp", 0775)
+	if err := os.Mkdir("temp", 0775); err != nil {
+		return err
+	}
 
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
