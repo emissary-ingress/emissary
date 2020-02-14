@@ -42,7 +42,7 @@ and one services.
 
 ## 2. Install Ambassador
 
-Follow the first section of [installation of Ambassador API](install-ambassador-oss.md) guide to install Ambassador API.
+Follow the first section of [installation of Ambassador API](../user-guide/install-ambassador-oss.md) guide to install Ambassador API.
 Stop before defining the ambassador service.
 
 Ambassador needs to be deployed as `NodePort` instead of `LoadBalancer` to work with the L7 load balancer and the ingress.
@@ -157,7 +157,7 @@ Now the service health is determined by contacting ambassador-admin service
 
 ### Enabling HTTP -> HTTPS 
 
-- Configure Ambassador to [redirect traffic from HTTP to HTTPS](../reference/tls/cleartext-redirection.md#protocol-based-redirection). 
+- Configure Ambassador to [redirect traffic from HTTP to HTTPS](/tls/cleartext-redirection.md#protocol-based-redirection). 
 - you need to restart ambassador to effect the changes
 
 The result should be that http://www.example.com will redirect to https://www.example.com. 
