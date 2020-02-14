@@ -344,7 +344,7 @@
                                                 "domains": [
                                                     "*"
                                                 ],
-                                                "name": "ambassador-listener-8080-redirector",
+                                                "name": "ambassador-listener-8080-*",
                                                 "routes": [
                                                     {
                                                         "match": {

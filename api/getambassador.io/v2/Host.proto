@@ -126,7 +126,7 @@ message InsecureRequestPolicy {
   InsecureRequestAction action = 1;
 
   // Is there an additional insecure port we should listen on?
-  uint32 additionalPort = 2;
+  int32 additionalPort = 2;
 }
 
 enum InsecureRequestAction {
