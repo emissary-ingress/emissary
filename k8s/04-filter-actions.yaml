@@ -6,7 +6,7 @@ metadata:
 spec:
   prefix: /filter-actions/on/
   rewrite: /
-  service: httpbin.org:80
+  service: httpbin.default.svc.cluster.local
   host_rewrite: httpbin.org
   timeout_ms: 5000
 ---
@@ -33,7 +33,7 @@ metadata:
 spec:
   prefix: /filter-actions/if/
   rewrite: /
-  service: httpbin.org:80
+  service: httpbin.default.svc.cluster.local
   host_rewrite: httpbin.org
   timeout_ms: 5000
 ---

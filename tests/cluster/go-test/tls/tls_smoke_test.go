@@ -27,7 +27,13 @@ func TestTLSSmoketest(t *testing.T) {
 		ExpectedStatusCode int
 		ExpectedHeader     http.Header
 	}{
-		"cleartext-root":  {"http://" + testAmbassadorHostname + "/", http.StatusMovedPermanently, http.Header{"Location": {"https://" + testAmbassadorHostname + "/"}}},
+		// Currently, when there are no Hosts or TLSContexts configured, it does *not* redirect cleartext to
+		// TLS; instead showing an informative 404 HTML page that explains that when going to `https://` there
+		// will be a scary browser warning because no TLS has been configured yet, so it will be using the
+		// self-signed fallback certificate.  This may change in the future with `edgectl install`.
+		//
+		//"cleartext-root":  {"http://" + testAmbassadorHostname + "/", http.StatusMovedPermanently, http.Header{"Location": {"https://" + testAmbassadorHostname + "/"}}},
+		"cleartext-root":  {"http://" + testAmbassadorHostname + "/", http.StatusNotFound, nil},
 		"encrypted-root":  {"https://" + testAmbassadorHostname + "/", http.StatusNotFound, nil},
 		"cleartext-webui": {"http://" + testAmbassadorHostname + "/edge_stack/admin/", http.StatusMovedPermanently, http.Header{"Location": {"https://" + testAmbassadorHostname + "/edge_stack/admin/"}}},
 		"encrypted-webui": {"https://" + testAmbassadorHostname + "/edge_stack/admin/", http.StatusOK, http.Header{"Content-Type": {"text/html; charset=utf-8"}}},

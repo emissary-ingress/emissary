@@ -178,6 +178,8 @@ commands:
                  - run: |
                     export DEV_REGISTRY=quay.io/datawire-dev
                     export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
+                    export DEV_KUBE110=yes
+                    export KAT_REQ_LIMIT=600
                     make test GOTEST_PKGS=github.com/datawire/apro/...
                  - run:
                      command: ".circleci/kubernaut-unclaim.sh"
@@ -206,7 +208,7 @@ commands:
      # wipe out artifacts that are useful for debugging.
      - run: make clobber
      - run: "git clean -ndx; test -z \"$(git clean -ndx)\""
-  "edgectl":
+  "cli-tools":
     steps:
       - checkout
       - run: ./get-amb-repo.sh
@@ -216,6 +218,24 @@ commands:
       - run: ./build-aux-local/build_push_cli.sh build apictl-key
       - run: ~/bin/edgectl version || true
       - run: ~/bin/apictl-key version || true
+      - store_artifacts:
+          path: ~/bin
+      - run:
+          name: "Dirty check"
+          command: |
+            # On Windows, `git status` doesn't record no-op
+            # line-ending changes in to the index, so things show as
+            # dirty even if they aren't.  Trying to `add` them does
+            # trigger the appropriate index update.  So do a `git add`
+            # *before* the `git status --porcelain` to work around
+            # Windows being terrible; we'd otherwise put the `git add`
+            # inside of the `if` block to help generate better output
+            # for `git diff`.
+            git add .
+            if [[ -n "$(git status --porcelain)" ]]; then
+               PAGER= git diff --cached
+               exit 1
+            fi
       - run:
           name: "Release"
           # This only runs for pre-release tags; for GA tags the
@@ -234,8 +254,8 @@ jobs:
     macos:
       xcode: "10.1.0"
     steps:
-      - run: |
-          echo 'export MAKEFLAGS="-j$(sysctl -n hw.ncpu)"' >> "${BASH_ENV}"
+      #- run: |
+      #    echo 'export MAKEFLAGS="-j$(sysctl -n hw.ncpu)"' >> "${BASH_ENV}"
       - pip-install:
           packages: awscli
       - install-go
@@ -249,8 +269,8 @@ jobs:
       # below.
       image: "ubuntu-1604:201903-01"
     steps:
-      - run: |
-          echo 'export MAKEFLAGS="-j$(nproc)"' >> "${BASH_ENV}"
+      #- run: |
+      #    echo 'export MAKEFLAGS="-j$(nproc)"' >> "${BASH_ENV}"
       - pip-install:
           packages: awscli
       - install-go
@@ -262,16 +282,16 @@ jobs:
       - release
 #      - clobber
 
-  "macOS-edgectl":
+  "macOS-cli-tools":
     macos:
       xcode: "10.1.0"
     steps:
       - pip-install:
           packages: awscli
       - install-go
-      - edgectl
+      - cli-tools
 
-  "Ubuntu-edgectl":
+  "Ubuntu-cli-tools":
     machine:
       # If you bump this, be sure to bump install-python.executor-key
       # below.
@@ -280,9 +300,9 @@ jobs:
       - pip-install:
           packages: awscli
       - install-go
-      - edgectl
+      - cli-tools
 
-  "Windows-edgectl":
+  "Windows-cli-tools":
     executor:
       name: win/vs2019
       shell: bash
@@ -297,20 +317,20 @@ jobs:
             mv /c/go /c/go-112
             unzip -q /tmp/go.zip -d /c/
             go version
-      - edgectl
+      - cli-tools
 
 workflows:
   "APro CI":
     jobs:
-      - "Windows-edgectl":
+      - "Windows-cli-tools":
           filters:
             tags:
               only: /.*/
-      - "Ubuntu-edgectl":
+      - "Ubuntu-cli-tools":
           filters:
             tags:
               only: /.*/
-      - "macOS-edgectl":
+      - "macOS-cli-tools":
           filters:
             tags:
               only: /.*/

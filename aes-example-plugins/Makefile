@@ -3,7 +3,7 @@ PLUGIN_DIR ?= .
 DOCKER_REGISTRY ?= localhost:31000
 DOCKER_IMAGE ?= $(DOCKER_REGISTRY)/aes-custom:$(shell git describe --tags --always --dirty)
 
-AES_VERSION ?= 1.0.0
+AES_VERSION ?= 1.1.1
 AES_IMAGE ?= quay.io/datawire/aes:$(AES_VERSION)
 
 all: .docker.stamp
@@ -26,6 +26,7 @@ go.DOCKER_IMAGE = golang:$(AES_GOVERSION)$(if $(filter 2,$(words $(subst ., ,$(A
 # Docker, so that we can put it at an arbitrary path without fuss.
 go.GOBUILD  = docker exec -i $(shell docker ps -q -f label=component=plugin-builder) go build -trimpath
 
+container-rsync = rsync --blocking-io -e 'docker exec -i'
 container.ID = $(shell docker ps -q -f label=component=plugin-builder)
 
 .var.AES_IMAGE: .var.%: FORCE
@@ -43,7 +44,7 @@ push: .docker.stamp
 download-go:
 	go list ./...
 download-docker:
-	docker pull $(go.DOCKER_IMAGE)
+	docker pull $(go.DOCKER_IMAGE) || docker run --rm --entrypoint=true $(go.DOCKER_IMAGE)
 .PHONY: download-go download-docker
 
 build-container:
@@ -53,9 +54,8 @@ ifeq "$(container.ID)" ""
 endif
 
 sync: build-container
-  # rsync -e 'docker exec -i' -r $$(go env GOPATH)/pkg/mod/cache/download $(container.ID):/mnt/goproxy
-	rsync --exclude-from=${CURDIR}/build/sync-excludes.txt -e 'docker exec -i' -r . $(container.ID):$(CURDIR)
-	rsync -e 'docker exec -i' -r $(shell go env GOPATH)/pkg/mod/cache/download/ $(container.ID):/mnt/goproxy/
+	$(container-rsync) --exclude-from=${CURDIR}/build/sync-excludes.txt -r . $(container.ID):$(CURDIR)
+	$(container-rsync) -r $(firstword $(subst :, ,$(shell go env GOPATH)))/pkg/mod/cache/download/ $(container.ID):/mnt/goproxy/
 
 .common-pkgs.txt: aes-abi.pkgs.txt download-go
 	@bash -c 'comm -12 <(go list -m all|cut -d" " -f1|sort) <(< $< cut -d" " -f1|sort)' > $@
@@ -68,7 +68,7 @@ version-check: .common-pkgs.txt aes-abi.pkgs.txt
 
 %.so: $(PLUGIN_DIR)/%.go download-go download-docker version-check sync
 	$(go.GOBUILD) -buildmode=plugin -o $@ $<
-	rsync -e 'docker exec -i' -r $(container.ID):${CURDIR}/ .
+	$(container-rsync) -r $(container.ID):${CURDIR}/ .
 
 clean:
 	rm -f -- *.so .docker.stamp .common-pkgs.txt .tmp.* .var.* Dockerfile aes-abi*

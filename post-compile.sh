@@ -1,11 +1,16 @@
+#!/hint/bash
 set -e
 
 eval "$(grep BUILD_VERSION /buildroot/apro.version 2>/dev/null)"
 mkdir -p /buildroot/bin-darwin
 (cd /buildroot/apro && GOOS=darwin go build -trimpath ${BUILD_VERSION:+ -ldflags "-X main.Version=$BUILD_VERSION" } -o /buildroot/bin-darwin ./cmd/aes-plugin-runner)
 
-sudo cp /buildroot/bin/amb-sidecar /ambassador/sidecars
-sudo cp /buildroot/bin/aes-plugin-runner /ambassador
+sudo install -D -t /opt/ambassador/bin/ \
+     /buildroot/bin/app-sidecar \
+     /buildroot/bin/amb-sidecar \
+     /buildroot/bin/aes-plugin-runner
+sudo ln -sf /opt/ambassador/bin/amb-sidecar /ambassador/sidecars/
+sudo ln -sf /opt/ambassador/bin/aes-plugin-runner /ambassador/
 sudo touch /ambassador/.edge_stack
 
 sudo mkdir -p /ambassador/webui/bindata && sudo rsync -a --delete /buildroot/apro/cmd/amb-sidecar/webui/bindata/  /ambassador/webui/bindata
@@ -76,8 +81,11 @@ sudo mv /tmp/edge-stack-mappings.yaml /ambassador/init-config
 # Hack to have ambassador.version contain the apro.version info,
 # because teaching VERSION.py to read apro.version seems like it will
 # take too much work in the short term.
-sudo cp -f /buildroot/ambassador.version /buildroot/ambassador/python/ambassador.version.bak
-sudo cp -f /buildroot/ambassador/python/{apro,ambassador}.version
+#
+# 2020-01-30: Removing this hack speeds up builds.  Since they're
+# released in lockstep, it shouldn't matter anymore?
+#sudo cp -f /buildroot/ambassador.version /buildroot/ambassador/python/ambassador.version.bak
+#sudo cp -f /buildroot/ambassador/python/{apro,ambassador}.version
 
 {
   echo "# _GOVERSION=$(go version /ambassador/sidecars/amb-sidecar | sed 's/.*go//')"

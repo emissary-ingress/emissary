@@ -7,7 +7,7 @@ import json
 import os
 import yaml
 
-import dpath
+import dpath.util
 
 def fix_labels(crd):
     labels = crd['metadata'].get('labels', {})
@@ -98,8 +98,8 @@ if which == 'apro':
         'env': [
             { 'name':  'SCOUT_DISABLE',
               'value': '1' },
-            { 'name':  'AES_LOG_LEVEL',
-              'value': 'DEBUG' }
+            # { 'name':  'AES_LOG_LEVEL',
+            #   'value': 'DEBUG' }
         ]
     })
 elif which == 'edge_stack':
