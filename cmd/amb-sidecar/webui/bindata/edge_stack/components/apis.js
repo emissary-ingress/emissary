@@ -1,5 +1,6 @@
 import { LitElement, html, css } from '../vendor/lit-element.min.js'
 import {ApiFetch} from "./api-fetch.js";
+import {getCookie} from './cookies.js';
 
 export class APIs extends LitElement {
 
@@ -69,8 +70,10 @@ export class APIs extends LitElement {
         .catch((err) => console.log(err));
 
     if (this.doRefresh) {
+      if (getCookie("edge_stack_auth")) {  // if user is authenticated start fetching
         console.log("will reload APIs in 10 seconds");
         setTimeout(this.loadFromServer.bind(this), 10000);
+      }  
     }
   }
 
