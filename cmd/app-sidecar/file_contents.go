@@ -1,4 +1,13 @@
-# Base config for an ADS management server on 18000, admin port on 19000
+package main
+
+import (
+	"io"
+	"text/template"
+)
+
+func writeBootstrapADSYAML(w io.Writer, appPort uint32) error {
+	t := template.New("bootstrap-ads.yaml")
+	template.Must(t.Parse(`# Base config for an ADS management server on 18000, admin port on 19000
 admin:
   access_log_path: /dev/null
   address:
@@ -219,3 +228,81 @@ static_resources:
               socket_address:
                 address: telepresence-proxy
                 port_value: 9015
+
+  - name: app
+    connect_timeout: 1s
+    type: STATIC
+    load_assignment:
+      cluster_name: app
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 127.0.0.1
+                port_value: {{ .AppPort }}
+`))
+	return t.Execute(w, map[string]interface{}{
+		"AppPort": appPort,
+	})
+}
+
+const listenerJSON = `{
+  "@type": "/envoy.api.v2.Listener",
+  "name": "test-listener",
+  "address": {
+    "socket_address": {
+      "address": "0.0.0.0",
+      "port_value": 9900
+    }
+  },
+  "filter_chains": [
+    {
+      "filters": [
+        {
+          "name": "envoy.http_connection_manager",
+          "config": {
+            "stat_prefix": "sidecar",
+            "http_filters": [
+              {
+                "name": "envoy.router"
+              }
+            ],
+            "rds": {
+              "route_config_name": "application_route",
+              "config_source": {
+                "ads": {
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+`
+
+const routeJSON = `{
+  "@type": "/envoy.api.v2.RouteConfiguration",
+  "name": "application_route",
+  "virtual_hosts": [
+    {
+      "name": "all-the-hosts",
+      "domains": [
+        "*"
+      ],
+      "routes": [
+        {
+          "match": {
+            "prefix": "/"
+          },
+          "route": {
+            "cluster": "app"
+          }
+        }
+      ]
+    }
+  ]
+}
+`

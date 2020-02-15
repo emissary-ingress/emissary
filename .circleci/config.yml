@@ -179,6 +179,7 @@ commands:
                     export DEV_REGISTRY=quay.io/datawire-dev
                     export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
                     export DEV_KUBE110=yes
+                    export KAT_REQ_LIMIT=600
                     make test GOTEST_PKGS=github.com/datawire/apro/...
                  - run:
                      command: ".circleci/kubernaut-unclaim.sh"
@@ -219,6 +220,22 @@ commands:
       - run: ~/bin/apictl-key version || true
       - store_artifacts:
           path: ~/bin
+      - run:
+          name: "Dirty check"
+          command: |
+            # On Windows, `git status` doesn't record no-op
+            # line-ending changes in to the index, so things show as
+            # dirty even if they aren't.  Trying to `add` them does
+            # trigger the appropriate index update.  So do a `git add`
+            # *before* the `git status --porcelain` to work around
+            # Windows being terrible; we'd otherwise put the `git add`
+            # inside of the `if` block to help generate better output
+            # for `git diff`.
+            git add .
+            if [[ -n "$(git status --porcelain)" ]]; then
+               PAGER= git diff --cached
+               exit 1
+            fi
       - run:
           name: "Release"
           # This only runs for pre-release tags; for GA tags the

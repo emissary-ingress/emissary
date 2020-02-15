@@ -10,7 +10,6 @@ include build-aux/common.mk
 .DEFAULT_GOAL = check
 
 # "Release"-ish images
-images += app-sidecar
 images += consul_connect_integration
 images += traffic-proxy
 # Purely testing images
@@ -73,7 +72,6 @@ docker/aes-example-plugins.docker.stamp: FORCE
 	docker image inspect aes-example-plugins --format='{{.Id}}' > $@
 
 # "Release"-ish binaries
-bins += github.com/datawire/apro/cmd/app-sidecar
 bins += github.com/datawire/apro/cmd/consul_connect_integration
 bins += github.com/datawire/apro/cmd/traffic-proxy
 # Purely testing binaries
@@ -127,10 +125,8 @@ define docker.rule
 endef
 $(foreach image,$(images),$(eval $(docker.rule)))
 
-docker/app-sidecar.docker.stamp: docker/app-sidecar/ambex
 docker/consul_connect_integration.docker.stamp: docker/consul_connect_integration/kubectl
 
 clean: $(foreach i,$(images), docker/$i/clean )
-	rm -f docker/app-sidecar/ambex
 	rm -f docker/consul_connect_integration/kubectl
 	rm -rf bin_linux_amd64

@@ -257,8 +257,9 @@ func munge(res k8s.Resource) error {
 
 	// inject the sidecar container
 	podSpec["containers"] = append(typecastList(podSpec["containers"]), map[string]interface{}{
-		"name":  "traffic-sidecar",
-		"image": getenvDefault("SIDECAR_IMAGE", "quay.io/datawire/aes:app-sidecar-"+Version),
+		"name":    "traffic-sidecar",
+		"image":   getenvDefault("AES_IMAGE", "quay.io/datawire/aes:"+Version),
+		"command": []string{"app-sidecar"},
 		"env": []map[string]string{
 			{"name": "APPNAME", "value": res.QName()},
 			{"name": "APPPORT", "value": app_port},

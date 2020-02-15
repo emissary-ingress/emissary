@@ -1,6 +1,8 @@
 /**
  * IResource
- * This is the Resource interface class that defines the methods that any Resource subclass should implement.
+ * This is the Resource interface class that defines the methods that any Resource subclass must implement
+ * as well as listing all the superclass methods that a subclass can utilize.
+ *
  * A Resource is a Model that maintains basic Kubernetes resource state and implements code to create
  * instances of that Resource from snapshot data.
  *
@@ -14,13 +16,8 @@
  * collection of objects).  However, this distinction is not made consistently throughout the documentation.
  * Here we will use the term Resource to indicate a chunk of data--a kind, name, namespace, metadata, and
  * a spec--that we display and modify in the Web user interface.
- *
- * This class is the generic interface for all Kubernetes resource that are created, viewed, modified
- * and deleted in the Web UI.  For example implementations, see the Host class, which is a concrete implementation
- * of the IResource interface.
  */
 
-/* Interface class for Model */
 import { Resource } from "../framework/resource.js"
 
 export class IResource extends Resource {
@@ -30,33 +27,38 @@ export class IResource extends Resource {
    * ====================================================================================================
    */
 
-  /* constructor() */
-
-  constructor(data) {
-    /* call Resource's constructor */
-    super(data);
+  /* constructor()
+   * The constructor is internally implemented by calling this.updateSelfFrom(yaml) and
+   * thus typically all the instance variables are initialized by that method.
+   */
+  constructor(yaml) {
+    super(yaml);
   }
 
-  /* updateSelfFrom(resourceData)
+  /* copySelf()
+   * Return a new instance with the same state.
+   */
+  copySelf() {
+    throw new Error("Please implement ${this.constructor.name}:copySelf()");
+  }
+
+   /* getYAML()
+    * Return YAML that has the Resource's values written back into the _fullYAML, and has been pruned so that only
+    * the necessary attributes exist in the structure for use as the parameter to applyYAML().
+    */
+  getYAML() {
+    return super.getYAML();
+  }
+
+  /* updateSelfFrom(yaml)
    * Update the Resource object state from the snapshot data block for this Resource.  Compare the values in the
    * data block with the stored state in the Resource.  If the data block has different data than is currently
    * stored, update that instance variable with the new data and set a flag to return true if any changes have
-   * occurred.  The Resource class's method, updateFrom, will call this method and then notify listeners as needed.
+   * occurred.
+   * This method is called from Resource.updateFrom() which will also notify listeners as needed.
    */
-
-  updateSelfFrom(resourceData) {
-    throw new Error("Please implement Resource:updateSelfFrom(resourceData)");
-  }
-
-  /* getSpec()
-   * Return the spec attribute of the Resource.  This method is needed for the implementation of the Save
-   * function which uses kubectl apply.  This method must return an object that will be serialized with JSON.stringify
-   * and supplied as the "spec:" portion of the Kubernetes YAML that is passed to kubectl.  See the Host class for
-   * an example implementation.
-   */
-
-  getSpec() {
-    throw new Error("Please implement Resource:getSpec()");
+  updateSelfFrom(yaml) {
+    throw new Error("Please implement ${this.constructor.name}:updateSelfFrom(yaml)");
   }
 
   /* validateSelf()
@@ -64,26 +66,41 @@ export class IResource extends Resource {
    * format, URL format, date/time, name restrictions).  Returns a dictionary of property: errorString if there
    * are any errors. If the dictionary is empty, there are no errors.
    */
-
   validateSelf() {
-    throw new Error("Please implement Resource:validateSelf()");
+    throw new Error("Please implement ${this.constructor.name}:validateSelf()");
   }
 
+  /* yamlIgnorePaths()
+   * Return an array of paths arrays to be ignored when sending YAML to Kubernetes.  This is needed because Kubernetes
+   * sends extra information in the Resource object that confuses it when sent back; only the data that is needed
+   * (e.g. name, namespace, kind, and desired labels/annotations/spec) should be sent back.
+   *
+   * NOTE: one would think that a full path could be described by a string with the path delimiter "."
+   * to separate the path elements.  BUT, Kubernetes allows keys in the YAML to use the same delimiter,
+   * so we have to have arrays of path elements.  e.g. you can't parse at "." to get the full path for
+   * "metadata.annotations.kubectl.kubernetes.io/last-applied-configuration"
+   * because it is really
+   * "metadata"."annotations"."kubectl.kubernetes.io/last-applied-configuration"
+   */
+  yamlIgnorePaths() {
+    return super.yamlIgnorePaths();
+  }
+
+
   /* ====================================================================================================
-   *  Subclasses do not implement these methods.  They are implemented by Model and may be used by
-   *  subclasses directly.
+   * The following methods are implemented by Model, and may be useful for subclasses to use in their
+   * implementation of the required interface methods.  These methods should not be overridden by
+   * subclasses.
    * ====================================================================================================
    */
 
-  /* Add a new listener for changes.  The Listener's onModelNotification method will be called when the
+  /* Add a new listener for changes.  The listener's onModelNotification method will be called when the
    *  model is notifying it for any of the  messages listed in the message set.  if the message set is
    *  null, then add this listener for all messages.
    */
-
   addListener(listener, messageSet = null) {
     super.addListener(listener, messageSet);
   }
-
 
   /* Remove a listener from the given messages, or from all messages if null */
   removeListener(listener, messageSet = null) {
@@ -92,11 +109,10 @@ export class IResource extends Resource {
 
   /* Notify listeners of a update in the model with the given message.  Only listeners who have subscribed
    * to the message will be notified.  Listeners that have subscribed to all messages will also be notified.
-   * The Listener's onModelNotification(model, message, parameter) method will be called.  Only Listeners
+   * The listener's onModelNotification(model, message, parameter) method will be called.  Only Listeners
    * who have subscribed to the message will be notified. Listeners that have subscribed to all messages
    * will also receive a callback. Includes a notification message, the model itself, and an optional parameter.
    */
-
   notifyListeners(notifyingModel = this, message, parameter = null) {
     super.notifyListeners(notifyingModel, message, parameter);
   }
@@ -116,24 +132,22 @@ export class IResource extends Resource {
 
 
   /* ====================================================================================================
-   *  Subclasses do not implement these methods.  They are implemented by Resource and may be used by
-   *  subclasses directly.
+   * The following methods are implemented by Resource, and may be useful for subclasses to use in their
+   * implementation of the required interface methods.  These methods should not be overridden by
+   * subclasses.
    * ====================================================================================================
    */
 
   /* validateName(name)
    * returns null if name is valid, error string if not.
    */
-
   validateName(name) {
-    return super.validateName(email)
+    return super.validateName(name);
   }
-
 
   /* validateEmail(email)
    * returns null if email is valid, error string if not.
    */
-
   validateEmail(email) {
     return super.validateEmail(email);
   }
@@ -141,11 +155,9 @@ export class IResource extends Resource {
   /* _validateURL(url)
   * returns null if url is valid, error string if not.
   */
-
   validateURL(url) {
-    return super.validateURL();
+    return super.validateURL(url);
   }
-
 
 }
 

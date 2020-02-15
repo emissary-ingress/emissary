@@ -8,7 +8,7 @@
  * Listeners are notified of changes through the Listeners onModelNotification method:
  * onModelNotification(notifyingModel, message, parameter).
  *
- * There is no Listener interface; any object that defines onModelNotification can be a listener.
+ * Any object that defines onModelNotification can be a listener.
  *
  * Standard messages are:
  *    notifyingModel 'created'  = has been created
@@ -19,10 +19,11 @@
  * Listeners may subscribe to all messages or a selected list of messages.c
  */
 
-/* Utility functions for sets. */
-import { union } from "./set.js"
+/* Utility functions . */
+import { setUnion } from "../framework/utilities.js"
 
 export class Model {
+
   /* constructor()
    * Here the model initializes any internal state including any structures for storing Listeners
    * that have subscribed to the Model.
@@ -38,7 +39,8 @@ export class Model {
     this._listenersToAll      = new Set();
   }
 
-  /* Add a new listener for changes.  The Listener's onModelNotification method will be called when the
+  /* addListener(listener, messageSet = null)
+   * Add a new listener for changes.  The listener's onModelNotification method will be called when the
    *  model is notifying it for any of the  messages listed in the message set.  if the message set is
    *  null, then add this listener for all messages.
    */
@@ -57,7 +59,10 @@ export class Model {
   }
 
 
-  /* Remove a listener from the given messages, or from all messages if null */
+  /* removeListener(listener, messageSet = null)
+   * Remove a listener from the given messages, or from all messages if null
+   */
+
   removeListener(listener, messageSet = null) {
     /* Complete removal */
     if (messageSet === null) {
@@ -79,9 +84,10 @@ export class Model {
     }
   }
 
-  /* Notify listeners of a update in the model with the given message.  Only listeners who have subscribed
+  /* notifyListeners(notifyingModel, message, parameter)
+   * Notify listeners of a update in the model with the given message.  Only listeners who have subscribed
    * to the message will be notified.  Listeners that have subscribed to all messages will also be notified.
-   * The Listener's onModelNotification(model, message, parameter) method will be called.  Only Listeners
+   * The listener's onModelNotification(model, message, parameter) method will be called.  Only listeners
    * who have subscribed to the message will be notified. Listeners that have subscribed to all messages
    * will also receive a callback. Includes a notification message, the model itself, and an optional parameter.
    */
@@ -92,26 +98,38 @@ export class Model {
     }
   }
 
-  /* Convenience methods for updated, created, deleted. */
-  notifyListenersUpdated(notifyingModel) {
+  /* notifyListenerUpdated(notifyingModel)
+   * Convenience methods for notifying listeners of an updated model.
+   */
+
+  notifyListenersUpdated(notifyingModel = this) {
     this.notifyListeners(notifyingModel, 'updated');
   }
 
-  notifyListenersCreated(notifyingModel) {
+  /* notifyListenersCreated(notifyingModel)
+   * Convenience methods for notifying listeners of a newly-created model.
+   */
+
+  notifyListenersCreated(notifyingModel = this) {
     this.notifyListeners(notifyingModel, 'created');
   }
 
-  notifyListenersDeleted(notifyingModel) {
+  /* notifyListenersDeleted(notifyingModel)
+   * Convenience method for notifying listeners of a deleted model.
+   */
+
+  notifyListenersDeleted(notifyingModel = this) {
     this.notifyListeners(notifyingModel, 'deleted');
   }
 
-  /* Return the listeners for a given message, or an empty set if none. */
+  /* _listenersForMessage(message)
+   * Return the listeners for a given message, or an empty set if none.
+   */
+
   _listenersForMessage(message) {
     let allListeners = this._listenersToAll;
     let msgListeners = this._listenersByMessage.has(message) ? this._listenersByMessage[message] : new Set();
 
-    return union(allListeners, msgListeners);
+    return setUnion(allListeners, msgListeners);
   }
-
-
 }
