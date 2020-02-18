@@ -183,7 +183,7 @@ func (f *fetcher) Retrieve() {
 }
 
 func (f *fetcher) _retrieve(reason string) {
-	f.logger.Info("Iteration started ", reason, " ")
+	f.logger.Debug("Iteration started ", reason, " ")
 	requestURL, err := f.cfg.AmbassadorAdminURL.Parse("/ambassador/v0/diag/?json=true")
 	if err != nil {
 		// This should _never_ happen; cfg has alread been
@@ -256,7 +256,7 @@ func (f *fetcher) _retrieve(reason string) {
 					"prefix":      prefix,
 					"rewrite":     rewrite,
 					"clusterName": clusterName,
-				}).Info("Found internal mapping, skipping")
+				}).Debug("Found internal mapping, skipping")
 				continue
 			}
 			f.logger.WithFields(log.Fields{
@@ -264,7 +264,7 @@ func (f *fetcher) _retrieve(reason string) {
 				"namespace": namespace,
 				"baseURL":   baseURL,
 				"prefix":    prefix,
-			}).Info("Found mapping")
+			}).Debug("Found mapping")
 			// Get the OpenAPI documentation:
 			var doc []byte
 			requestURL, err := f.cfg.AmbassadorInternalURL.Parse(prefix + "/.ambassador-internal/openapi-docs")
@@ -293,10 +293,10 @@ func (f *fetcher) _retrieve(reason string) {
 	for _, service := range f.diff.NewRound() {
 		f.logger.WithFields(log.Fields{
 			"name": service.Name, "namespace": service.Namespace,
-		}).Info("Deleting old service we didn't find in this iteration")
+		}).Debug("Deleting old service we didn't find in this iteration")
 		f.store.DeleteService(service)
 	}
-	f.logger.Info("Iteration done")
+	f.logger.Debug("Iteration done")
 }
 
 func (f *fetcher) observeInternalMapping(mappingName, prefix, rewrite string) bool {
