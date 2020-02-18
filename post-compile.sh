@@ -45,38 +45,6 @@ cat > /tmp/edge-stack-mappings.yaml <<EOF
 apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
-  name: edgestack-fallback-mapping
-  namespace: _automatic_
-  labels:
-    product: aes
-    ambassador_diag_class: private
-spec:
-  ambassador_id: [ "_automatic_" ]
-  prefix: /
-  rewrite: /edge_stack_ui/
-  service: 127.0.0.1:8500
-  precedence: -1000000
-  timeout_ms: 60000
----
-apiVersion: getambassador.io/v2
-kind: Mapping
-metadata:
-  name: edgestack-direct-mapping
-  namespace: _automatic_
-  labels:
-    product: aes
-    ambassador_diag_class: private
-spec:
-  ambassador_id: [ "_automatic_" ]
-  prefix: /edge_stack/
-  rewrite: /edge_stack_ui/edge_stack/
-  service: 127.0.0.1:8500
-  precedence: 1000000
-  timeout_ms: 60000
----
-apiVersion: getambassador.io/v2
-kind: Mapping
-metadata:
   name: ambassador-edge-stack
   namespace: _automatic_
   labels:
