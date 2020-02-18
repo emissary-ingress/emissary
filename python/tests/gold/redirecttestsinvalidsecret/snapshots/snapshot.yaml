@@ -21,58 +21,9 @@
                 "kind": "Service",
                 "metadata": {
                     "annotations": {
-                        "getambassador.io/config": "---\napiVersion: ambassador/v1\nkind: Module\nname: tls\nambassador_id: redirecttestsinvalidsecret\nconfig:\n  server:\n    enabled: True\n    secret: does-not-exist-secret\n    redirect_cleartext_from: 8080\n",
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v1\\nkind: Module\\nname: tls\\nambassador_id: redirecttestsinvalidsecret\\nconfig:\\n  server:\\n    enabled: True\\n    secret: does-not-exist-secret\\n    redirect_cleartext_from: 8080\\n\"},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"redirecttestsinvalidsecret\",\"scope\":\"AmbassadorTest\"},\"name\":\"redirecttestsinvalidsecret\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"redirecttestsinvalidsecret\"},\"type\":\"NodePort\"}}\n"
-                    },
-                    "creationTimestamp": "2020-02-04T21:20:07Z",
-                    "labels": {
-                        "app.kubernetes.io/component": "ambassador-service",
-                        "kat-ambassador-id": "redirecttestsinvalidsecret",
-                        "scope": "AmbassadorTest"
-                    },
-                    "name": "redirecttestsinvalidsecret",
-                    "namespace": "default",
-                    "resourceVersion": "37576",
-                    "selfLink": "/api/v1/namespaces/default/services/redirecttestsinvalidsecret",
-                    "uid": "1e6b7500-4794-11ea-829a-062d8f98984d"
-                },
-                "spec": {
-                    "clusterIP": "10.101.246.122",
-                    "externalTrafficPolicy": "Cluster",
-                    "ports": [
-                        {
-                            "name": "http",
-                            "nodePort": 30988,
-                            "port": 80,
-                            "protocol": "TCP",
-                            "targetPort": 8080
-                        },
-                        {
-                            "name": "https",
-                            "nodePort": 30585,
-                            "port": 443,
-                            "protocol": "TCP",
-                            "targetPort": 8443
-                        }
-                    ],
-                    "selector": {
-                        "service": "redirecttestsinvalidsecret"
-                    },
-                    "sessionAffinity": "None",
-                    "type": "NodePort"
-                },
-                "status": {
-                    "loadBalancer": {}
-                }
-            },
-            {
-                "apiVersion": "v1",
-                "kind": "Service",
-                "metadata": {
-                    "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"redirecttestsinvalidsecret\",\"scope\":\"AmbassadorTest\",\"service\":\"redirecttestsinvalidsecret-admin\"},\"name\":\"redirecttestsinvalidsecret-admin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"redirecttestsinvalidsecret-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"redirecttestsinvalidsecret\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-02-04T21:20:08Z",
+                    "creationTimestamp": "2020-02-19T23:20:33Z",
                     "labels": {
                         "kat-ambassador-id": "redirecttestsinvalidsecret",
                         "scope": "AmbassadorTest",
@@ -80,17 +31,17 @@
                     },
                     "name": "redirecttestsinvalidsecret-admin",
                     "namespace": "default",
-                    "resourceVersion": "37583",
+                    "resourceVersion": "56726",
                     "selfLink": "/api/v1/namespaces/default/services/redirecttestsinvalidsecret-admin",
-                    "uid": "1eac2ef1-4794-11ea-829a-062d8f98984d"
+                    "uid": "6da7f5d5-536e-11ea-85dd-167682b5c255"
                 },
                 "spec": {
-                    "clusterIP": "10.103.29.226",
+                    "clusterIP": "10.108.210.127",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "redirecttestsinvalidsecret-admin",
-                            "nodePort": 31066,
+                            "nodePort": 30313,
                             "port": 8877,
                             "protocol": "TCP",
                             "targetPort": 8877
@@ -112,33 +63,33 @@
                 "metadata": {
                     "annotations": {
                         "getambassador.io/config": "---\napiVersion: ambassador/v1\nkind: Mapping\nname: tls_target_mapping\nprefix: /tls-target/\nservice: redirecttestsinvalidsecret-http\nambassador_id: redirecttestsinvalidsecret\n",
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v1\\nkind: Mapping\\nname: tls_target_mapping\\nprefix: /tls-target/\\nservice: redirecttestsinvalidsecret-http\\nambassador_id: redirecttestsinvalidsecret\\n\"},\"labels\":{\"kat-ambassador-id\":\"redirecttestsinvalidsecret\",\"scope\":\"AmbassadorTest\"},\"name\":\"redirecttestsinvalidsecret-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8119},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8482}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v1\\nkind: Mapping\\nname: tls_target_mapping\\nprefix: /tls-target/\\nservice: redirecttestsinvalidsecret-http\\nambassador_id: redirecttestsinvalidsecret\\n\"},\"labels\":{\"kat-ambassador-id\":\"redirecttestsinvalidsecret\",\"scope\":\"AmbassadorTest\"},\"name\":\"redirecttestsinvalidsecret-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8120},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8483}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
                     },
-                    "creationTimestamp": "2020-02-04T21:20:08Z",
+                    "creationTimestamp": "2020-02-19T23:20:34Z",
                     "labels": {
                         "kat-ambassador-id": "redirecttestsinvalidsecret",
                         "scope": "AmbassadorTest"
                     },
                     "name": "redirecttestsinvalidsecret-http",
                     "namespace": "default",
-                    "resourceVersion": "37592",
+                    "resourceVersion": "56736",
                     "selfLink": "/api/v1/namespaces/default/services/redirecttestsinvalidsecret-http",
-                    "uid": "1eee1aa0-4794-11ea-829a-062d8f98984d"
+                    "uid": "6e0a2238-536e-11ea-85dd-167682b5c255"
                 },
                 "spec": {
-                    "clusterIP": "10.111.15.85",
+                    "clusterIP": "10.103.135.166",
                     "ports": [
                         {
                             "name": "http",
                             "port": 80,
                             "protocol": "TCP",
-                            "targetPort": 8119
+                            "targetPort": 8120
                         },
                         {
                             "name": "https",
                             "port": 443,
                             "protocol": "TCP",
-                            "targetPort": 8482
+                            "targetPort": 8483
                         }
                     ],
                     "selector": {
@@ -146,6 +97,55 @@
                     },
                     "sessionAffinity": "None",
                     "type": "ClusterIP"
+                },
+                "status": {
+                    "loadBalancer": {}
+                }
+            },
+            {
+                "apiVersion": "v1",
+                "kind": "Service",
+                "metadata": {
+                    "annotations": {
+                        "getambassador.io/config": "---\napiVersion: ambassador/v1\nkind: Module\nname: tls\nambassador_id: redirecttestsinvalidsecret\nconfig:\n  server:\n    enabled: True\n    secret: does-not-exist-secret\n    redirect_cleartext_from: 8080\n",
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v1\\nkind: Module\\nname: tls\\nambassador_id: redirecttestsinvalidsecret\\nconfig:\\n  server:\\n    enabled: True\\n    secret: does-not-exist-secret\\n    redirect_cleartext_from: 8080\\n\"},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"redirecttestsinvalidsecret\",\"scope\":\"AmbassadorTest\"},\"name\":\"redirecttestsinvalidsecret\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"redirecttestsinvalidsecret\"},\"type\":\"NodePort\"}}\n"
+                    },
+                    "creationTimestamp": "2020-02-19T23:20:33Z",
+                    "labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "redirecttestsinvalidsecret",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "redirecttestsinvalidsecret",
+                    "namespace": "default",
+                    "resourceVersion": "56720",
+                    "selfLink": "/api/v1/namespaces/default/services/redirecttestsinvalidsecret",
+                    "uid": "6d8b0088-536e-11ea-85dd-167682b5c255"
+                },
+                "spec": {
+                    "clusterIP": "10.111.5.75",
+                    "externalTrafficPolicy": "Cluster",
+                    "ports": [
+                        {
+                            "name": "http",
+                            "nodePort": 31318,
+                            "port": 80,
+                            "protocol": "TCP",
+                            "targetPort": 8080
+                        },
+                        {
+                            "name": "https",
+                            "nodePort": 30810,
+                            "port": 443,
+                            "protocol": "TCP",
+                            "targetPort": 8443
+                        }
+                    ],
+                    "selector": {
+                        "service": "redirecttestsinvalidsecret"
+                    },
+                    "sessionAffinity": "None",
+                    "type": "NodePort"
                 },
                 "status": {
                     "loadBalancer": {}

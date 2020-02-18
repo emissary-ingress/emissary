@@ -10234,8 +10234,10 @@
             ],
             "_rkey": "plain-simplemapping-http-cors-http.plain-namespace.1",
             "cors": {
-                "allow_origin": [
-                    "*"
+                "allow_origin_string_match": [
+                    {
+                        "exact": "*"
+                    }
                 ],
                 "filter_enabled": {
                     "default_value": {
@@ -10298,8 +10300,10 @@
                         ]
                     },
                     "cors": {
-                        "allow_origin": [
-                            "*"
+                        "allow_origin_string_match": [
+                            {
+                                "exact": "*"
+                            }
                         ],
                         "filter_enabled": {
                             "default_value": {
@@ -10354,8 +10358,10 @@
             ],
             "_rkey": "plain-simplemapping-grpc-cors-grpc.plain-namespace.1",
             "cors": {
-                "allow_origin": [
-                    "*"
+                "allow_origin_string_match": [
+                    {
+                        "exact": "*"
+                    }
                 ],
                 "filter_enabled": {
                     "default_value": {
@@ -10418,8 +10424,10 @@
                         ]
                     },
                     "cors": {
-                        "allow_origin": [
-                            "*"
+                        "allow_origin_string_match": [
+                            {
+                                "exact": "*"
+                            }
                         ],
                         "filter_enabled": {
                             "default_value": {
@@ -11102,8 +11110,10 @@
             "auto_host_rewrite": true,
             "case_sensitive": false,
             "cors": {
-                "allow_origin": [
-                    "*"
+                "allow_origin_string_match": [
+                    {
+                        "exact": "*"
+                    }
                 ],
                 "filter_enabled": {
                     "default_value": {
@@ -11173,8 +11183,10 @@
                         ]
                     },
                     "cors": {
-                        "allow_origin": [
-                            "*"
+                        "allow_origin_string_match": [
+                            {
+                                "exact": "*"
+                            }
                         ],
                         "filter_enabled": {
                             "default_value": {
@@ -11241,8 +11253,10 @@
             "auto_host_rewrite": true,
             "case_sensitive": false,
             "cors": {
-                "allow_origin": [
-                    "*"
+                "allow_origin_string_match": [
+                    {
+                        "exact": "*"
+                    }
                 ],
                 "filter_enabled": {
                     "default_value": {
@@ -11312,8 +11326,10 @@
                         ]
                     },
                     "cors": {
-                        "allow_origin": [
-                            "*"
+                        "allow_origin_string_match": [
+                            {
+                                "exact": "*"
+                            }
                         ],
                         "filter_enabled": {
                             "default_value": {

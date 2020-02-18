@@ -25,16 +25,16 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"data\":{\"tls.crt\":\"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUR1RENDQXFDZ0F3SUJBZ0lKQUowWDU3ZXlwQk5UTUEwR0NTcUdTSWIzRFFFQkN3VUFNSEV4Q3pBSkJnTlYKQkFZVEFsVlRNUXN3Q1FZRFZRUUlEQUpOUVRFUE1BMEdBMVVFQnd3R1FtOXpkRzl1TVJFd0R3WURWUVFLREFoRQpZWFJoZDJseVpURVVNQklHQTFVRUN3d0xSVzVuYVc1bFpYSnBibWN4R3pBWkJnTlZCQU1NRW0xaGMzUmxjaTVrCllYUmhkMmx5WlM1cGJ6QWVGdzB4T1RBeE1UQXhPVEF6TXpCYUZ3MHlOREF4TURreE9UQXpNekJhTUhFeEN6QUoKQmdOVkJBWVRBbFZUTVFzd0NRWURWUVFJREFKTlFURVBNQTBHQTFVRUJ3d0dRbTl6ZEc5dU1SRXdEd1lEVlFRSwpEQWhFWVhSaGQybHlaVEVVTUJJR0ExVUVDd3dMUlc1bmFXNWxaWEpwYm1jeEd6QVpCZ05WQkFNTUVtMWhjM1JsCmNpNWtZWFJoZDJseVpTNXBiekNDQVNJd0RRWUpLb1pJaHZjTkFRRUJCUUFEZ2dFUEFEQ0NBUW9DZ2dFQkFPdlEKVjVad1NmcmQ1Vndtelo5SmNoOTdyUW40OXA2b1FiNkVIWjF5T2EyZXZBNzE2NWpkMHFqS1BPMlgyRk80MVg4QgpwQWFLZExnMmltaC9wL2NXN2JncjNHNnRHVEZVMVZHanllTE1EV0Q1MGV2TTYydnpYOFRuYVV6ZFRHTjFOdTM2CnJaM2JnK0VLcjhFYjI1b2RabEpyMm1mNktSeDdTcjZzT1N4NlE1VHhSb3NycmZ0d0tjejI5cHZlMGQ4b0NiZGkKRFJPVlZjNXpBaW0zc2Nmd3VwRUJrQzYxdlpKMzhmaXYwRENYOVpna3BMdEZKUTllTEVQSEdKUGp5ZmV3alNTeQovbk52L21Sc2J6aUNtQ3R3Z3BmbFRtODljK3EzSWhvbUE1YXhZQVFjQ0NqOXBvNUhVZHJtSUJKR0xBTVZ5OWJ5CkZnZE50aFdBeHZCNHZmQXl4OXNDQXdFQUFhTlRNRkV3SFFZRFZSME9CQllFRkdUOVAvOHBQeGI3UVJVeFcvV2gKaXpkMnNnbEtNQjhHQTFVZEl3UVlNQmFBRkdUOVAvOHBQeGI3UVJVeFcvV2hpemQyc2dsS01BOEdBMVVkRXdFQgovd1FGTUFNQkFmOHdEUVlKS29aSWh2Y05BUUVMQlFBRGdnRUJBS3NWT2Fyc01aSXhLOUpLUzBHVHNnRXNjYThqCllhTDg1YmFsbndBbnBxMllSMGNIMlhvd2dLYjNyM3VmbVRCNERzWS9RMGllaENKeTMzOUJyNjVQMVBKMGgvemYKZEZOcnZKNGlvWDVMWnc5YkowQVFORCtZUTBFK010dFppbE9DbHNPOVBCdm1tUEp1dWFlYVdvS2pWZnNOL1RjMAoycUxVM1pVMHo5bmhYeDZlOWJxYUZLSU1jYnFiVk9nS2p3V0ZpbDlkRG4vQ29KbGFUUzRJWjlOaHFjUzhYMXd0ClQybWQvSUtaaEtKc3A3VlBGeDU5ZWhuZ0VPakZocGhzd20xdDhnQWVxL1A3SkhaUXlBUGZYbDNyZDFSQVJuRVIKQUpmVUxET2tzWFNFb2RTZittR0NrVWh1b2QvaDhMTUdXTFh6Q2d0SHBKMndaVHA5a1ZWVWtKdkpqSVU9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K\"},\"kind\":\"Secret\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"tlscontextstest\",\"scope\":\"AmbassadorTest\"},\"name\":\"test-tlscontexts-secret\",\"namespace\":\"default\"},\"type\":\"Opaque\"}\n"
                     },
-                    "creationTimestamp": "2020-02-04T21:20:15Z",
+                    "creationTimestamp": "2020-02-19T23:20:42Z",
                     "labels": {
                         "kat-ambassador-id": "tlscontextstest",
                         "scope": "AmbassadorTest"
                     },
                     "name": "test-tlscontexts-secret",
                     "namespace": "default",
-                    "resourceVersion": "37721",
+                    "resourceVersion": "56891",
                     "selfLink": "/api/v1/namespaces/default/secrets/test-tlscontexts-secret",
-                    "uid": "22e52dd5-4794-11ea-829a-062d8f98984d"
+                    "uid": "72ead33f-536e-11ea-85dd-167682b5c255"
                 },
                 "type": "Opaque"
             }
@@ -45,9 +45,58 @@
                 "kind": "Service",
                 "metadata": {
                     "annotations": {
+                        "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind: Module\nname: tls\nambassador_id: tlscontextstest\nconfig:\n  upstream:\n    enabled: True\n    secret: test-tlscontexts-secret\n\n---\napiVersion: ambassador/v0\nkind: Mapping\nname: tlscontextstest-http\nprefix: /TLSContextsTest/\nservice: tlscontextstest-http\nambassador_id: tlscontextstest\n",
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v0\\nkind: Module\\nname: tls\\nambassador_id: tlscontextstest\\nconfig:\\n  upstream:\\n    enabled: True\\n    secret: test-tlscontexts-secret\\n\\n---\\napiVersion: ambassador/v0\\nkind: Mapping\\nname: tlscontextstest-http\\nprefix: /TLSContextsTest/\\nservice: tlscontextstest-http\\nambassador_id: tlscontextstest\\n\"},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"tlscontextstest\",\"scope\":\"AmbassadorTest\"},\"name\":\"tlscontextstest\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"tlscontextstest\"},\"type\":\"NodePort\"}}\n"
+                    },
+                    "creationTimestamp": "2020-02-19T23:20:42Z",
+                    "labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "tlscontextstest",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "tlscontextstest",
+                    "namespace": "default",
+                    "resourceVersion": "56875",
+                    "selfLink": "/api/v1/namespaces/default/services/tlscontextstest",
+                    "uid": "72976793-536e-11ea-85dd-167682b5c255"
+                },
+                "spec": {
+                    "clusterIP": "10.96.197.15",
+                    "externalTrafficPolicy": "Cluster",
+                    "ports": [
+                        {
+                            "name": "http",
+                            "nodePort": 31406,
+                            "port": 80,
+                            "protocol": "TCP",
+                            "targetPort": 8080
+                        },
+                        {
+                            "name": "https",
+                            "nodePort": 31339,
+                            "port": 443,
+                            "protocol": "TCP",
+                            "targetPort": 8443
+                        }
+                    ],
+                    "selector": {
+                        "service": "tlscontextstest"
+                    },
+                    "sessionAffinity": "None",
+                    "type": "NodePort"
+                },
+                "status": {
+                    "loadBalancer": {}
+                }
+            },
+            {
+                "apiVersion": "v1",
+                "kind": "Service",
+                "metadata": {
+                    "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"tlscontextstest\",\"scope\":\"AmbassadorTest\",\"service\":\"tlscontextstest-admin\"},\"name\":\"tlscontextstest-admin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"tlscontextstest-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"tlscontextstest\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-02-04T21:20:15Z",
+                    "creationTimestamp": "2020-02-19T23:20:42Z",
                     "labels": {
                         "kat-ambassador-id": "tlscontextstest",
                         "scope": "AmbassadorTest",
@@ -55,17 +104,17 @@
                     },
                     "name": "tlscontextstest-admin",
                     "namespace": "default",
-                    "resourceVersion": "37715",
+                    "resourceVersion": "56884",
                     "selfLink": "/api/v1/namespaces/default/services/tlscontextstest-admin",
-                    "uid": "22ba9a4b-4794-11ea-829a-062d8f98984d"
+                    "uid": "72bb2325-536e-11ea-85dd-167682b5c255"
                 },
                 "spec": {
-                    "clusterIP": "10.96.3.28",
+                    "clusterIP": "10.102.244.35",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "tlscontextstest-admin",
-                            "nodePort": 31390,
+                            "nodePort": 30839,
                             "port": 8877,
                             "protocol": "TCP",
                             "targetPort": 8877
@@ -86,33 +135,33 @@
                 "kind": "Service",
                 "metadata": {
                     "annotations": {
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"tlscontextstest\",\"scope\":\"AmbassadorTest\"},\"name\":\"tlscontextstest-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8121},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8484}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"tlscontextstest\",\"scope\":\"AmbassadorTest\"},\"name\":\"tlscontextstest-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8122},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8485}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
                     },
-                    "creationTimestamp": "2020-02-04T21:20:16Z",
+                    "creationTimestamp": "2020-02-19T23:20:43Z",
                     "labels": {
                         "kat-ambassador-id": "tlscontextstest",
                         "scope": "AmbassadorTest"
                     },
                     "name": "tlscontextstest-http",
                     "namespace": "default",
-                    "resourceVersion": "37729",
+                    "resourceVersion": "56901",
                     "selfLink": "/api/v1/namespaces/default/services/tlscontextstest-http",
-                    "uid": "2370e90e-4794-11ea-829a-062d8f98984d"
+                    "uid": "738b95b3-536e-11ea-85dd-167682b5c255"
                 },
                 "spec": {
-                    "clusterIP": "10.99.104.248",
+                    "clusterIP": "10.105.111.70",
                     "ports": [
                         {
                             "name": "http",
                             "port": 80,
                             "protocol": "TCP",
-                            "targetPort": 8121
+                            "targetPort": 8122
                         },
                         {
                             "name": "https",
                             "port": 443,
                             "protocol": "TCP",
-                            "targetPort": 8484
+                            "targetPort": 8485
                         }
                     ],
                     "selector": {
@@ -120,55 +169,6 @@
                     },
                     "sessionAffinity": "None",
                     "type": "ClusterIP"
-                },
-                "status": {
-                    "loadBalancer": {}
-                }
-            },
-            {
-                "apiVersion": "v1",
-                "kind": "Service",
-                "metadata": {
-                    "annotations": {
-                        "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind: Module\nname: tls\nambassador_id: tlscontextstest\nconfig:\n  upstream:\n    enabled: True\n    secret: test-tlscontexts-secret\n\n---\napiVersion: ambassador/v0\nkind: Mapping\nname: tlscontextstest-http\nprefix: /TLSContextsTest/\nservice: tlscontextstest-http\nambassador_id: tlscontextstest\n",
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v0\\nkind: Module\\nname: tls\\nambassador_id: tlscontextstest\\nconfig:\\n  upstream:\\n    enabled: True\\n    secret: test-tlscontexts-secret\\n\\n---\\napiVersion: ambassador/v0\\nkind: Mapping\\nname: tlscontextstest-http\\nprefix: /TLSContextsTest/\\nservice: tlscontextstest-http\\nambassador_id: tlscontextstest\\n\"},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"tlscontextstest\",\"scope\":\"AmbassadorTest\"},\"name\":\"tlscontextstest\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"tlscontextstest\"},\"type\":\"NodePort\"}}\n"
-                    },
-                    "creationTimestamp": "2020-02-04T21:20:14Z",
-                    "labels": {
-                        "app.kubernetes.io/component": "ambassador-service",
-                        "kat-ambassador-id": "tlscontextstest",
-                        "scope": "AmbassadorTest"
-                    },
-                    "name": "tlscontextstest",
-                    "namespace": "default",
-                    "resourceVersion": "37707",
-                    "selfLink": "/api/v1/namespaces/default/services/tlscontextstest",
-                    "uid": "2263db56-4794-11ea-829a-062d8f98984d"
-                },
-                "spec": {
-                    "clusterIP": "10.107.188.31",
-                    "externalTrafficPolicy": "Cluster",
-                    "ports": [
-                        {
-                            "name": "http",
-                            "nodePort": 31716,
-                            "port": 80,
-                            "protocol": "TCP",
-                            "targetPort": 8080
-                        },
-                        {
-                            "name": "https",
-                            "nodePort": 30820,
-                            "port": 443,
-                            "protocol": "TCP",
-                            "targetPort": 8443
-                        }
-                    ],
-                    "selector": {
-                        "service": "tlscontextstest"
-                    },
-                    "sessionAffinity": "None",
-                    "type": "NodePort"
                 },
                 "status": {
                     "loadBalancer": {}

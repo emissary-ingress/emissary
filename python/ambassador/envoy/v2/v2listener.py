@@ -662,6 +662,7 @@ class V2Listener(dict):
         self.first_vhost: Optional[V2VirtualHost] = None
         self.http_filters: List[dict] = []
         self.listener_filters: List[dict] = []
+        self.traffic_direction: str = "UNSPECIFIED"
 
         self.config.ir.logger.debug(f"V2Listener {self.name} created")
 
@@ -731,7 +732,8 @@ class V2Listener(dict):
 
             self.access_log.append({
                 'name': 'envoy.file_access_log',
-                'config': {
+                'typed_config': {
+                    '@type': 'type.googleapis.com/envoy.config.accesslog.v2.FileAccessLog',
                     'path': self.config.ir.ambassador_module.envoy_log_path,
                     'json_format': json_format
                 }
@@ -746,7 +748,8 @@ class V2Listener(dict):
             self.config.ir.logger.debug("V2Listener: Using log_format '%s'" % log_format)
             self.access_log.append({
                 'name': 'envoy.file_access_log',
-                'config': {
+                'typed_config': {
+                    '@type': 'type.googleapis.com/envoy.config.accesslog.v2.FileAccessLog',
                     'path': self.config.ir.ambassador_module.envoy_log_path,
                     'format': log_format + '\n'
                 }
@@ -788,9 +791,8 @@ class V2Listener(dict):
         if self.config.ir.tracing:
             self.base_http_config["generate_request_id"] = True
 
-            self.base_http_config["tracing"] = {
-                "operation_name": "egress"
-            }
+            self.base_http_config["tracing"] = {}
+            self.traffic_direction = "OUTBOUND"
 
             req_hdrs = self.config.ir.tracing.get('tag_headers', [])
 
@@ -886,7 +888,10 @@ class V2Listener(dict):
             filter_chain["filters"] = [
                 {
                     "name": "envoy.http_connection_manager",
-                    "config": http_config
+                    "typed_config": {
+                        "@type": "type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager",
+                        **http_config
+                    }
                 }
             ]
 
@@ -903,7 +908,8 @@ class V2Listener(dict):
             "name": self.name,
             "address": self.address,
             "filter_chains": self.filter_chains,
-            "listener_filters": self.listener_filters
+            "listener_filters": self.listener_filters,
+            "traffic_direction": self.traffic_direction
         }
 
     def pretty(self) -> dict:
