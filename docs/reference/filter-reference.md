@@ -323,7 +323,10 @@ spec:
 
 ### Filter Type: `OAuth2`
 
-The `OAuth2` filter type performs OAuth2 authorization against an identity provider implementing [OIDC Discovery](https://openid.net/specs/openid-connect-discovery-1_0.html).
+The `OAuth2` filter type performs OAuth2 authorization against an identity
+provider implementing [OIDC
+Discovery](https://openid.net/specs/openid-connect-discovery-1_0.html), and more
+frequently adjusting session cookies.
 
 #### `OAuth2` Global Arguments
 
@@ -357,6 +360,7 @@ spec:
     secret:                "string"          # required (unless secretName is set)
     secretName:            "string"          # required (unless secret is set)
     secretNamespace:       "string"          # optional; default is the same namespace as the Filter
+    useSessionCookies:     "bool"            # required; sets cookies to expire when browser closes, rather than at a fixed duration
 
     # HTTP client settings for talking with the identity provider
     insecureTLS:           bool              # optional; default is false
@@ -419,7 +423,8 @@ spec:
         insteadOfRedirect:        # optional; default is to do a redirect to the identity provider
           ifRequestHeader:        # optional; default is to return httpStatusCode for all requests that would redirect-to-identity-provider
             name: "string"        # required
-            value: "string"       # optional; default is any non-empty string
+            valueRegex: "regex"   # optional; will do a regex-match
+            negate: "bool"        # optional; invert the match
           # option 1:
           httpStatusCode: integer # optional; default is 403 (unless `filters` is set)
           # option 2:
@@ -427,8 +432,9 @@ spec:
           - name: "string"          # required
             namespace: "string"     # optional; default is the same namespace as the FilterPolicy
             ifRequestHeader:        # optional; default to apply this filter to all requests matching the host & path
-              name: "string"          # required
-              value: "string"         # optional; default is any non-empty string
+              name: "string"        # required
+              valueRegex: "regex"   # optional; will do a regex-match
+              negate: "bool"        # optional; invert the match
             onDeny: "enum-string"   # optional; default is "break"
             onAllow: "enum-string"  # optional; default is "continue"
             arguments: DEPENDS      # optional
@@ -444,7 +450,14 @@ spec:
 
    The ordering of scope values does not matter, and is ignored.
 
- - `insteadOfRedirect`: An action to perform instead of redirecting the User-Agent to the identity provider.  By default, if the User-Agent does not have a currently-authenticated session, then the Ambassador Edge Stack will redirect the User-Agent to the identity provider. Setting `insteadOfRedirect` allows you to modify this behavior. `ifRequestHeader` does nothing when `grantType: "ClientCredentials"`, because the Ambassador Edge Stack will never redirect the User-Agent to the identity provider for the client credentials grant type.
+ - `insteadOfRedirect`: An action to perform instead of redirecting the
+   User-Agent to the identity provider. By default, if the User-Agent does not
+   have a currently-authenticated session, then the Ambassador Edge Stack will
+   redirect the User-Agent to the identity provider without setting cookies by default. Setting
+   `insteadOfRedirect` allows you to modify this behavior. `ifRequestHeader`
+   does nothing when `grantType: "ClientCredentials"`, because the Ambassador
+   Edge Stack will never redirect the User-Agent to the identity provider for
+   the client credentials grant type.
     * If `insteadOfRedirect` is non-`null`, then by default it will apply to all requests that would cause the redirect; setting the `ifRequestHeader` sub-argument causes it to only apply to
       requests that have the HTTP header field `name`(case-insensitive) set to `value` (case-sensitive); or requests that have `name` set to any non-empty string if `value` is unset.
     * By default, it serves an authorization-denied error page; by default HTTP 403 ("Forbidden"), but this can be configured by the `httpStatusCode` sub-argument.
@@ -519,7 +532,8 @@ spec:
       namespace: "string"         # optional; default is the same namespace as the FilterPolicy
       ifRequestHeader:            # optional; default to apply this filter to all requests matching the host & path
         name: "string"            # required
-        value: "string"           # optional; default is any non-empty string
+        valueRegex: "regex"       # optional; will do a regex-match
+        negate: "bool"            # optional; invert the match
       onDeny: "enum-string"       # optional; default is "break"
       onAllow: "enum-string"      # optional; default is "continue"
       arguments: DEPENDS          # optional
