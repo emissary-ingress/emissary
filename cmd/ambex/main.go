@@ -51,23 +51,24 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/fsnotify/fsnotify"
+	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 
-	log "github.com/sirupsen/logrus"
-
-	v2 "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
-	core "github.com/datawire/ambassador/pkg/api/envoy/api/v2/core"
-	"github.com/datawire/ambassador/pkg/envoy-control-plane/cache"
-	"github.com/datawire/ambassador/pkg/envoy-control-plane/server"
-
-	bootstrap "github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v2"
-	discovery "github.com/datawire/ambassador/pkg/api/envoy/service/discovery/v2"
-
-	"github.com/fsnotify/fsnotify"
-
+	// protobuf library
 	"github.com/gogo/protobuf/jsonpb"
 	"github.com/gogo/protobuf/proto"
 	"github.com/gogo/protobuf/types"
+
+	// envoy control plane
+	"github.com/datawire/ambassador/pkg/envoy-control-plane/cache"
+	"github.com/datawire/ambassador/pkg/envoy-control-plane/server"
+
+	// envoy protobuf
+	v2 "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
+	core "github.com/datawire/ambassador/pkg/api/envoy/api/v2/core"
+	bootstrap "github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v2"
+	discovery "github.com/datawire/ambassador/pkg/api/envoy/service/discovery/v2"
 )
 
 const (
