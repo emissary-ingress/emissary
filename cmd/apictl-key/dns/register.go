@@ -219,7 +219,20 @@ func (c *dnsclient) doRegister(domainName string, ip string) error {
 								Value: aws.String(ip),
 							},
 						},
-						TTL:  aws.Int64(60),
+						TTL:  aws.Int64(5),
+						Type: aws.String("A"),
+					},
+				},
+				{
+					Action: aws.String("CREATE"), // Create!, don't update...
+					ResourceRecordSet: &route53.ResourceRecordSet{
+						Name: aws.String(fmt.Sprintf("*.%s", domainName)), // Saving a second wildcard record, helping bust dns caches
+						ResourceRecords: []*route53.ResourceRecord{
+							{
+								Value: aws.String(ip),
+							},
+						},
+						TTL:  aws.Int64(5),
 						Type: aws.String("A"),
 					},
 				},
