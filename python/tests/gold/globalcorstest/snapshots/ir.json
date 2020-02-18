@@ -10,8 +10,10 @@
         "admin_port": 8001,
         "cors": {
             "allow_methods": "POST, GET, OPTIONS",
-            "allow_origin": [
-                "http://foo.example.com"
+            "allow_origin_string_match": [
+                {
+                    "exact": "http://foo.example.com"
+                }
             ],
             "filter_enabled": {
                 "default_value": {
@@ -538,8 +540,10 @@
             "_rkey": "globalcorstest.default.3",
             "cors": {
                 "allow_methods": "POST, GET, OPTIONS",
-                "allow_origin": [
-                    "http://bar.example.com"
+                "allow_origin_string_match": [
+                    {
+                        "exact": "http://bar.example.com"
+                    }
                 ],
                 "filter_enabled": {
                     "default_value": {
@@ -604,8 +608,10 @@
                     },
                     "cors": {
                         "allow_methods": "POST, GET, OPTIONS",
-                        "allow_origin": [
-                            "http://bar.example.com"
+                        "allow_origin_string_match": [
+                            {
+                                "exact": "http://bar.example.com"
+                            }
                         ],
                         "filter_enabled": {
                             "default_value": {

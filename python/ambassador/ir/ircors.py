@@ -28,18 +28,15 @@ class IRCORS (IRResource):
     def setup(self, ir: 'IR', aconf: Config) -> bool:
         # 'origins' cannot be treated like other keys, because if it's a
         # list, then it remains as is, but if it's a string, then it's
-        # converted to a list
+        # converted to a list.  It has already been validated by the
+        # JSON schema to either be a string or a list of strings.
         origins = self.pop('origins', None)
 
         if origins is not None:
-            if type(origins) is list:
-                self.allow_origin = origins
-            elif type(origins) is str:
-                self.allow_origin = origins.split(',')
-            else:
-                self.post_error(RichStatus.fromError("invalid CORS origin - {}".format(origins),
-                                                     module=self))
-                return False
+            if type(origins) is not list:
+                origins = origins.split(',')
+
+            self.allow_origin_string_match = [{'exact': origin} for origin in origins]
 
         for from_key, to_key in [ ( 'max_age', 'max_age' ),
                                   ( 'credentials', 'allow_credentials' ),
