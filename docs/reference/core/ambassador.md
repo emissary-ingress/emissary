@@ -68,12 +68,25 @@ cors:
   ...
 ```
 
-The `diagnostics` service (at /ambassador/v0/diag/) defaults on, but you can disable the API route. It will remain accessible on diag_port.
+`diagnostics` configures Ambassador's diagnostics services.
+
+- Both API Gateway and Edge Stack provide low-level diagnostics at `/ambassador/v0/diag/`.
+- Ambassador Edge Stack also provides the higher-level Edge Policy Console at `/edge_stack/admin/`.
+
+By default, both services are enabled: 
 
 ```
 diagnostics:
   enabled: true
 ```
+
+Setting `diagnostics.enabled` to `false` will disable the routes for both services (they will remain accessible from inside the Ambassador pod on port 8877):
+
+```
+diagnostics:
+  enabled: false
+```
+
 
 `keepalive` sets the global keepalive settings.
 Ambassador will use for all mappings unless overridden in a
