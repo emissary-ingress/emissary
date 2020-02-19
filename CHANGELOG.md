@@ -4,6 +4,10 @@ releases. Please keep it up to date.
 
 # Ambassador Edge Stack CHANGELOG
 
+## next (TBD)
+
+- Bugfix: The Edge Policy Console now honors the `diagnostics.enabled` setting in the `ambassador` Module
+
 ## 1.2.1 (2020-03-03)
 
 - Bugfix: The `aes-plugin-runner` binary for GNU/Linux is now statically linked (instead of being linked against musl libc), so it should now work on either musl libc or GNU libc systems
