@@ -97,6 +97,24 @@ func aesInstall(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	if clusterNodeLabels, err := i.CaptureKubectl("get node labels", "get", "no", "-Lkubernetes.io/hostname"); err == nil {
+		clusterInfo := "unknown"
+		if strings.Contains(clusterNodeLabels, "docker-desktop") {
+			clusterInfo = "docker-desktop"
+		} else if strings.Contains(clusterNodeLabels, "minikube") {
+			clusterInfo = "minikube"
+		} else if strings.Contains(clusterNodeLabels, "gke") {
+			clusterInfo = "gke"
+		} else if strings.Contains(clusterNodeLabels, "aks") {
+			clusterInfo = "aks"
+		} else if strings.Contains(clusterNodeLabels, "compute") {
+			clusterInfo = "eks"
+		} else if strings.Contains(clusterNodeLabels, "ec2") {
+			clusterInfo = "ec2"
+		}
+		i.SetMetadatum("Cluster Info", "cluster_info", clusterInfo)
+	}
+
 	if err := i.ShowKubectl("install CRDs", "apply", "-f", "https://www.getambassador.io/yaml/aes-crds.yaml"); err != nil {
 		return err
 	}
@@ -127,7 +145,13 @@ func aesInstall(cmd *cobra.Command, args []string) error {
 		time.Sleep(500 * time.Millisecond) // FIXME: Time out at some point...
 	}
 
-	i.Report("deploy") // TODO: Send cluster type and Helm version
+	if managedDeployment, err := i.CaptureKubectl("get deployment labels", "get", "-n", "ambassador", "deployments", "ambassador", "-Lapp.kubernetes.io/managed-by"); err == nil {
+		if strings.Contains(managedDeployment, "Helm") {
+			i.SetMetadatum("Cluster Info", "managed", "helm")
+		}
+	}
+
+	i.Report("deploy")
 
 	ipAddress := ""
 	for {
