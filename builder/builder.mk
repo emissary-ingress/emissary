@@ -18,7 +18,9 @@ module = $(eval MODULES += $(1))$(eval SOURCE_$(1)=$(abspath $(2)))
 
 BUILDER_HOME := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-BUILDER = BUILDER_NAME=$(NAME) $(abspath $(BUILDER_HOME)/builder.sh)
+BUILDER_NAME ?= $(NAME)
+
+BUILDER = BUILDER_NAME=$(BUILDER_NAME) $(abspath $(BUILDER_HOME)/builder.sh)
 DBUILD = $(abspath $(BUILDER_HOME)/dbuild.sh)
 
 all: help
@@ -31,7 +33,7 @@ export DOCKER_ERR=$(RED)ERROR: cannot find docker, please make sure docker is in
 
 # the name of the Docker network
 # note: use your local k3d/microk8s/kind network for running tests
-DOCKER_NETWORK ?= $(NAME)
+DOCKER_NETWORK ?= $(BUILDER_NAME)
 
 preflight:
 ifeq ($(strip $(shell $(BUILDER))),)
