@@ -184,6 +184,7 @@ commands:
                  - run:
                      command: ".circleci/kubernaut-unclaim.sh"
                      when: "always"
+                 - run: "PAGER= git diff --cached"
                  - run: "git status && test -z \"$(git status --porcelain)\""
                  - save-logs
   "release":
