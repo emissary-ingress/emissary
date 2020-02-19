@@ -35,6 +35,7 @@ from .irfilter import IRFilter
 from .ircluster import IRCluster
 from .irbasemappinggroup import IRBaseMappingGroup
 from .irbasemapping import IRBaseMapping
+from .irhttpmapping import IRHTTPMapping
 from .irhost import IRHost, HostFactory
 from .irmappingfactory import MappingFactory
 from .irratelimit import IRRateLimit
@@ -62,6 +63,9 @@ class IR:
     ambassador_nodename: str
     aconf: Config
     clusters: Dict[str, IRCluster]
+    agent_active: bool
+    agent_service: Optional[str]
+    agent_port: Optional[int]
     edge_stack_allowed: bool
     file_checker: Callable[[str], bool]
     filters: List[IRFilter]
@@ -82,7 +86,6 @@ class IR:
     tls_contexts: Dict[str, IRTLSContext]
     tls_module: Optional[IRAmbassadorTLS]
     tracing: Optional[IRTracing]
-    wizard_allowed: bool
 
     def __init__(self, aconf: Config, secret_handler=None, file_checker=None, logger=None, watch_only=False) -> None:
         self.ambassador_id = Config.ambassador_id
@@ -152,8 +155,10 @@ class IR:
         # Copy k8s_status_updates from our aconf.
         self.k8s_status_updates = aconf.k8s_status_updates
 
-        # Check on the edge stack. Note that the Edge Stack touchfile is _not_ within
-        # $AMBASSADOR_CONFIG_BASE_DIR: it stays in /ambassador no matter what.
+        # Check on the intercept agent and edge stack. Note that the Edge Stack touchfile is _not_
+        # within $AMBASSADOR_CONFIG_BASE_DIR: it stays in /ambassador no matter what.
+
+        self.agent_active = (os.environ.get("AGENT_SERVICE", None) != None)
         self.edge_stack_allowed = os.path.exists('/ambassador/.edge_stack')
 
         # OK, time to get this show on the road. First things first: set up the
@@ -184,24 +189,33 @@ class IR:
         # ...then grab whatever we know about Hosts...
         HostFactory.load_all(self, aconf)
 
+        # ...then set up for the intercept agent, if that's a thing.
+        self.agent_init(aconf)
+
+        # Finally, finalize all the Host stuff (including the !*@#&!* fallback context).
+        HostFactory.finalize(self, aconf)
+
         # Now we can finalize the Ambassador module, to tidy up secrets et al. We do this
         # here so that secrets and TLS contexts are available.
         if not self.ambassador_module.finalize(self, aconf):
             # Uhoh.
             self.ambassador_module.set_active(False)    # This can't be good.
 
-        self.wizard_allowed = self.edge_stack_allowed and self.ambassador_module.get('allow-wizard', True)
         _activity_str = 'watching' if watch_only else 'starting'
-        _mode_str = 'Edge Stack' if self.edge_stack_allowed else 'OSS'
-        _wizard_str = ''
+        _mode_str = 'OSS'
 
-        if self.edge_stack_allowed:
-            _wizard_str = f"; wizard {'allowed' if self.wizard_allowed else 'not allowed'}"
+        if self.agent_active:
+            _mode_str = 'Intercept Agent'
+        elif self.edge_stack_allowed:
+            _mode_str = 'Edge Stack'
 
-        self.logger.info(f"IR: {_activity_str} {_mode_str}{_wizard_str}")
+        self.logger.info(f"IR: {_activity_str} {_mode_str}")
 
-        # Next up, initialize our IRServiceResolvers.
+        # Next up, initialize our IRServiceResolvers...
         IRServiceResolverFactory.load_all(self, aconf)
+
+        # ...and then we can finalize the agent, if that's a thing.
+        self.agent_finalize(aconf)
 
         # Once here, if we're only watching, we're done.
         if watch_only:
@@ -296,6 +310,124 @@ class IR:
     # a common container that can hold errors.
     def post_error(self, rc: Union[str, RichStatus], resource: Optional[IRResource]=None, rkey: Optional[str]=None):
         self.aconf.post_error(rc, resource=resource, rkey=rkey)
+
+    def agent_init(self, aconf: Config) -> None:
+        """
+        Initialize as the Intercept Agent, if we're doing that.
+
+        THIS WHOLE METHOD NEEDS TO GO AWAY: instead, just configure the agent with CRDs as usual.
+        However, that's just too painful to contemplate without `edgectl inject-agent`.
+
+        :param aconf: Config to work with
+        :return: None
+        """
+
+        # Intercept stuff is an Edge Stack thing.
+        if not (self.edge_stack_allowed and self.agent_active):
+            self.logger.info("Intercept agent not active, skipping initialization")
+            return
+
+        self.agent_service = os.environ.get("AGENT_SERVICE", None)
+
+        if self.agent_service is None:
+            # This is technically impossible, but whatever.
+            self.logger.info("Intercept agent active but no AGENT_SERVICE? skipping initialization")
+            self.agent_active = False
+            return
+
+        self.logger.info(f"Intercept agent active for {self.agent_service}, initializing")
+
+        # We're going to either create a Host to terminate TLS, or to do cleartext. In neither
+        # case will we do ACME.
+        host_args = {
+            "hostname": "*",
+            "selector": {
+                "matchLabels": {
+                    "intercept": self.agent_service
+                }
+            },
+            "acmeProvider": {
+                "authority": "none"
+            }
+        }
+
+        # Have they asked us to do TLS?
+        agent_termination_secret = os.environ.get("AGENT_TLS_TERM_SECRET", None)
+
+        if agent_termination_secret is not None:
+            # Yup.
+            host_args["tlsSecret"] = { "name": agent_termination_secret }
+        else:
+            # No termination secret, so do cleartext.
+            host_args["requestPolicy"] = {
+                "insecure": {
+                    "action": "Route"
+                }
+            }
+
+        host = IRHost(self, aconf, rkey=self.ambassador_module.rkey, location=self.ambassador_module.location,
+                      name="agent-host",
+                      **host_args)
+
+        if host.is_active():
+            host.referenced_by(self.ambassador_module)
+            host.sourced_by(self.ambassador_module)
+
+            self.logger.info(f"Intercept agent: saving host {host.pretty()}")
+            self.save_host(host)
+        else:
+            self.logger.info(f"Intercept agent: not saving inactive host {host.pretty()}")
+
+        # How about originating TLS?
+        agent_origination_secret = os.environ.get("AGENT_TLS_ORIG_SECRET", None)
+
+        if agent_origination_secret is not None:
+            # Uhhhh. Synthesize a TLSContext for this, I guess.
+            #
+            # XXX What if they already have a context with this name?
+            ctx = IRTLSContext(self, aconf, rkey=self.ambassador_module.rkey, location=self.ambassador_module.location,
+                               name="agent-origination-context",
+                               secret=agent_origination_secret)
+
+            ctx.referenced_by(self.ambassador_module)
+            self.save_tls_context(ctx)
+
+    def agent_finalize(self, aconf) -> None:
+        if not (self.edge_stack_allowed and self.agent_active):
+            self.logger.info(f"Intercept agent not active, skipping finalization")
+            return
+
+        self.logger.info(f"Intercept agent active for {self.agent_service}, finalizing")
+
+        agent_port_str = os.environ.get("AGENT_PORT", None)
+
+        if agent_port_str is None:
+            self.post_error("Intercept agent requires both AGENT_SERVICE and AGENT_PORT to be set")
+            self.agent_active = False
+            return
+
+        agent_port = -1
+
+        try:
+            agent_port = int(agent_port_str)
+        except:
+            self.post_error(f"Intercept agent port {agent_port_str} is not valid")
+            self.agent_active = False
+            return
+
+        self.logger.info(f"Intercept agent active for {self.agent_service}:{agent_port}, adding fallback mapping")
+
+        # XXX What if they already have a mapping with this name?
+        mapping = IRHTTPMapping(self, aconf, rkey=self.ambassador_module.rkey, location=self.ambassador_module.location,
+                                name="agent-fallback-mapping",
+                                metadata_labels={"ambassador_diag_class": "private"},
+                                prefix="/",
+                                rewrite="/",
+                                service=f"127.0.0.1:{agent_port}",
+                                precedence=-1000000)
+
+        mapping.referenced_by(self.ambassador_module)
+        self.add_mapping(aconf, mapping)
 
     def save_resource(self, resource: IRResource) -> IRResource:
         if resource.is_active():
