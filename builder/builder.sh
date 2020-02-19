@@ -69,7 +69,7 @@ bootstrap() {
 
     if [ -z "$(builder)" ] ; then
         printf "${CYN}==> ${GRN}Bootstrapping build image${END}\n"
-        ${DBUILD} --target builder ${DIR} -t builder
+        ${DBUILD} --build-arg envoy="${ENVOY_DOCKER_TAG}" --target builder ${DIR} -t builder
         if [ "$(uname -s)" == Darwin ]; then
             DOCKER_GID=$(stat -f "%g" /var/run/docker.sock)
         else
@@ -356,11 +356,11 @@ case "${cmd}" in
             docker rmi -f "${name}" &> /dev/null
             docker commit -c 'ENTRYPOINT [ "/bin/bash" ]' $(builder) "${name}"
             printf "${CYN}==> ${GRN}Building ${BLU}${BUILDER_NAME}${END}\n"
-            ${DBUILD} ${DIR} --build-arg artifacts=${name} --target ambassador -t ${BUILDER_NAME}
+            ${DBUILD} ${DIR} --build-arg artifacts=${name} --build-arg envoy="${ENVOY_DOCKER_TAG}" --target ambassador -t ${BUILDER_NAME}
             printf "${CYN}==> ${GRN}Building ${BLU}kat-client${END}\n"
-            ${DBUILD} ${DIR} --build-arg artifacts=${name} --target kat-client -t kat-client
+            ${DBUILD} ${DIR} --build-arg artifacts=${name} --build-arg envoy="${ENVOY_DOCKER_TAG}" --target kat-client -t kat-client
             printf "${CYN}==> ${GRN}Building ${BLU}kat-server${END}\n"
-            ${DBUILD} ${DIR} --build-arg artifacts=${name} --target kat-server -t kat-server
+            ${DBUILD} ${DIR} --build-arg artifacts=${name} --build-arg envoy="${ENVOY_DOCKER_TAG}" --target kat-server -t kat-server
         fi
         dexec rm -f /buildroot/image.dirty
         ;;
