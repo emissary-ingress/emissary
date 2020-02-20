@@ -1,4 +1,17 @@
 {
+    "layered_runtime": {
+        "layers": [
+            {
+                "name": "static_layer",
+                "static_layer": {
+                    "envoy.deprecated_features:envoy.api.v2.route.HeaderMatcher.regex_match": true,
+                    "envoy.deprecated_features:envoy.api.v2.route.RouteMatch.regex": true,
+                    "envoy.deprecated_features:envoy.config.filter.http.ext_authz.v2.ExtAuthz.use_alpha": true,
+                    "envoy.deprecated_features:envoy.config.trace.v2.ZipkinConfig.HTTP_JSON_V1": true
+                }
+            }
+        ]
+    },
     "static_resources": {
         "clusters": [
             {
@@ -2321,8 +2334,12 @@
                     ]
                 },
                 "name": "cluster_https___plain_tlsorigination_grp-0",
-                "tls_context": {
-                    "common_tls_context": {}
+                "transport_socket": {
+                    "name": "envoy.transport_sockets.tls",
+                    "typed_config": {
+                        "@type": "type.googleapis.com/envoy.api.v2.auth.UpstreamTlsContext",
+                        "common_tls_context": {}
+                    }
                 },
                 "type": "STRICT_DNS"
             },
@@ -2351,8 +2368,12 @@
                     ]
                 },
                 "name": "cluster_https___plain_tlsorigination_htt-0",
-                "tls_context": {
-                    "common_tls_context": {}
+                "transport_socket": {
+                    "name": "envoy.transport_sockets.tls",
+                    "typed_config": {
+                        "@type": "type.googleapis.com/envoy.api.v2.auth.UpstreamTlsContext",
+                        "common_tls_context": {}
+                    }
                 },
                 "type": "STRICT_DNS"
             },
@@ -2543,8 +2564,12 @@
                     ]
                 },
                 "name": "cluster_plain_tlsorigination_grpc_explic-0",
-                "tls_context": {
-                    "common_tls_context": {}
+                "transport_socket": {
+                    "name": "envoy.transport_sockets.tls",
+                    "typed_config": {
+                        "@type": "type.googleapis.com/envoy.api.v2.auth.UpstreamTlsContext",
+                        "common_tls_context": {}
+                    }
                 },
                 "type": "STRICT_DNS"
             },
@@ -2573,8 +2598,12 @@
                     ]
                 },
                 "name": "cluster_plain_tlsorigination_http_explic-0",
-                "tls_context": {
-                    "common_tls_context": {}
+                "transport_socket": {
+                    "name": "envoy.transport_sockets.tls",
+                    "typed_config": {
+                        "@type": "type.googleapis.com/envoy.api.v2.auth.UpstreamTlsContext",
+                        "common_tls_context": {}
+                    }
                 },
                 "type": "STRICT_DNS"
             }
@@ -2593,14 +2622,17 @@
                         "filter_chain_match": {},
                         "filters": [
                             {
-                                "config": {
+                                "name": "envoy.http_connection_manager",
+                                "typed_config": {
+                                    "@type": "type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager",
                                     "access_log": [
                                         {
-                                            "config": {
+                                            "name": "envoy.file_access_log",
+                                            "typed_config": {
+                                                "@type": "type.googleapis.com/envoy.config.accesslog.v2.FileAccessLog",
                                                 "format": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n",
                                                 "path": "/dev/fd/1"
-                                            },
-                                            "name": "envoy.file_access_log"
+                                            }
                                         }
                                     ],
                                     "http_filters": [
@@ -3881,7 +3913,9 @@
                                                                 "runtime_key": "routing.traffic_shift.cluster_http___plain_simplemapping_http_-15"
                                                             }
                                                         },
-                                                        "response_headers_to_remove": "x-envoy-upstream-service-time",
+                                                        "response_headers_to_remove": [
+                                                            "x-envoy-upstream-service-time"
+                                                        ],
                                                         "route": {
                                                             "cluster": "cluster_http___plain_simplemapping_http_-15",
                                                             "prefix_rewrite": "/",
@@ -3901,7 +3935,9 @@
                                                                 "runtime_key": "routing.traffic_shift.cluster_http___plain_simplemapping_http_-15"
                                                             }
                                                         },
-                                                        "response_headers_to_remove": "x-envoy-upstream-service-time",
+                                                        "response_headers_to_remove": [
+                                                            "x-envoy-upstream-service-time"
+                                                        ],
                                                         "route": {
                                                             "cluster": "cluster_http___plain_simplemapping_http_-15",
                                                             "prefix_rewrite": "/",
@@ -3927,7 +3963,9 @@
                                                                 "runtime_key": "routing.traffic_shift.cluster_http___plain_simplemapping_grpc_-15"
                                                             }
                                                         },
-                                                        "response_headers_to_remove": "x-envoy-upstream-service-time",
+                                                        "response_headers_to_remove": [
+                                                            "x-envoy-upstream-service-time"
+                                                        ],
                                                         "route": {
                                                             "cluster": "cluster_http___plain_simplemapping_grpc_-15",
                                                             "prefix_rewrite": "/",
@@ -3947,7 +3985,9 @@
                                                                 "runtime_key": "routing.traffic_shift.cluster_http___plain_simplemapping_grpc_-15"
                                                             }
                                                         },
-                                                        "response_headers_to_remove": "x-envoy-upstream-service-time",
+                                                        "response_headers_to_remove": [
+                                                            "x-envoy-upstream-service-time"
+                                                        ],
                                                         "route": {
                                                             "cluster": "cluster_http___plain_simplemapping_grpc_-15",
                                                             "prefix_rewrite": "/",
@@ -6312,8 +6352,10 @@
                                                         "route": {
                                                             "cluster": "cluster_http___plain_simplemapping_http_-13",
                                                             "cors": {
-                                                                "allow_origin": [
-                                                                    "*"
+                                                                "allow_origin_string_match": [
+                                                                    {
+                                                                        "exact": "*"
+                                                                    }
                                                                 ],
                                                                 "filter_enabled": {
                                                                     "default_value": {
@@ -6343,8 +6385,10 @@
                                                         "route": {
                                                             "cluster": "cluster_http___plain_simplemapping_http_-13",
                                                             "cors": {
-                                                                "allow_origin": [
-                                                                    "*"
+                                                                "allow_origin_string_match": [
+                                                                    {
+                                                                        "exact": "*"
+                                                                    }
                                                                 ],
                                                                 "filter_enabled": {
                                                                     "default_value": {
@@ -6380,8 +6424,10 @@
                                                         "route": {
                                                             "cluster": "cluster_http___plain_simplemapping_grpc_-13",
                                                             "cors": {
-                                                                "allow_origin": [
-                                                                    "*"
+                                                                "allow_origin_string_match": [
+                                                                    {
+                                                                        "exact": "*"
+                                                                    }
                                                                 ],
                                                                 "filter_enabled": {
                                                                     "default_value": {
@@ -6411,8 +6457,10 @@
                                                         "route": {
                                                             "cluster": "cluster_http___plain_simplemapping_grpc_-13",
                                                             "cors": {
-                                                                "allow_origin": [
-                                                                    "*"
+                                                                "allow_origin_string_match": [
+                                                                    {
+                                                                        "exact": "*"
+                                                                    }
                                                                 ],
                                                                 "filter_enabled": {
                                                                     "default_value": {
@@ -6767,13 +6815,17 @@
                                                                 }
                                                             }
                                                         ],
-                                                        "response_headers_to_remove": "x-envoy-upstream-service-time",
+                                                        "response_headers_to_remove": [
+                                                            "x-envoy-upstream-service-time"
+                                                        ],
                                                         "route": {
                                                             "auto_host_rewrite": true,
                                                             "cluster": "cluster_http___plain_simplemapping_http_-10",
                                                             "cors": {
-                                                                "allow_origin": [
-                                                                    "*"
+                                                                "allow_origin_string_match": [
+                                                                    {
+                                                                        "exact": "*"
+                                                                    }
                                                                 ],
                                                                 "filter_enabled": {
                                                                     "default_value": {
@@ -6818,13 +6870,17 @@
                                                                 }
                                                             }
                                                         ],
-                                                        "response_headers_to_remove": "x-envoy-upstream-service-time",
+                                                        "response_headers_to_remove": [
+                                                            "x-envoy-upstream-service-time"
+                                                        ],
                                                         "route": {
                                                             "auto_host_rewrite": true,
                                                             "cluster": "cluster_http___plain_simplemapping_http_-10",
                                                             "cors": {
-                                                                "allow_origin": [
-                                                                    "*"
+                                                                "allow_origin_string_match": [
+                                                                    {
+                                                                        "exact": "*"
+                                                                    }
                                                                 ],
                                                                 "filter_enabled": {
                                                                     "default_value": {
@@ -6875,13 +6931,17 @@
                                                                 }
                                                             }
                                                         ],
-                                                        "response_headers_to_remove": "x-envoy-upstream-service-time",
+                                                        "response_headers_to_remove": [
+                                                            "x-envoy-upstream-service-time"
+                                                        ],
                                                         "route": {
                                                             "auto_host_rewrite": true,
                                                             "cluster": "cluster_http___plain_simplemapping_grpc_-10",
                                                             "cors": {
-                                                                "allow_origin": [
-                                                                    "*"
+                                                                "allow_origin_string_match": [
+                                                                    {
+                                                                        "exact": "*"
+                                                                    }
                                                                 ],
                                                                 "filter_enabled": {
                                                                     "default_value": {
@@ -6926,13 +6986,17 @@
                                                                 }
                                                             }
                                                         ],
-                                                        "response_headers_to_remove": "x-envoy-upstream-service-time",
+                                                        "response_headers_to_remove": [
+                                                            "x-envoy-upstream-service-time"
+                                                        ],
                                                         "route": {
                                                             "auto_host_rewrite": true,
                                                             "cluster": "cluster_http___plain_simplemapping_grpc_-10",
                                                             "cors": {
-                                                                "allow_origin": [
-                                                                    "*"
+                                                                "allow_origin_string_match": [
+                                                                    {
+                                                                        "exact": "*"
+                                                                    }
                                                                 ],
                                                                 "filter_enabled": {
                                                                     "default_value": {
@@ -8048,15 +8112,15 @@
                                     ],
                                     "use_remote_address": true,
                                     "xff_num_trusted_hops": 0
-                                },
-                                "name": "envoy.http_connection_manager"
+                                }
                             }
                         ],
                         "use_proxy_proto": false
                     }
                 ],
                 "listener_filters": [],
-                "name": "ambassador-listener-8080"
+                "name": "ambassador-listener-8080",
+                "traffic_direction": "UNSPECIFIED"
             }
         ]
     }

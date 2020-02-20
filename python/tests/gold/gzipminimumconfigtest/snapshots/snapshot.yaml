@@ -20,58 +20,9 @@
                 "kind": "Service",
                 "metadata": {
                     "annotations": {
-                        "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind: Module\nname: ambassador\nconfig:\n  gzip:\n    enabled: true\nambassador_id: gzipminimumconfigtest\n\n---\napiVersion: ambassador/v0\nkind: Mapping\nname: gzipminimumconfigtest-http\nprefix: /target/\nservice: gzipminimumconfigtest-http\nambassador_id: gzipminimumconfigtest\n",
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v0\\nkind: Module\\nname: ambassador\\nconfig:\\n  gzip:\\n    enabled: true\\nambassador_id: gzipminimumconfigtest\\n\\n---\\napiVersion: ambassador/v0\\nkind: Mapping\\nname: gzipminimumconfigtest-http\\nprefix: /target/\\nservice: gzipminimumconfigtest-http\\nambassador_id: gzipminimumconfigtest\\n\"},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"gzipminimumconfigtest\",\"scope\":\"AmbassadorTest\"},\"name\":\"gzipminimumconfigtest\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"gzipminimumconfigtest\"},\"type\":\"NodePort\"}}\n"
-                    },
-                    "creationTimestamp": "2020-02-04T21:19:41Z",
-                    "labels": {
-                        "app.kubernetes.io/component": "ambassador-service",
-                        "kat-ambassador-id": "gzipminimumconfigtest",
-                        "scope": "AmbassadorTest"
-                    },
-                    "name": "gzipminimumconfigtest",
-                    "namespace": "default",
-                    "resourceVersion": "36481",
-                    "selfLink": "/api/v1/namespaces/default/services/gzipminimumconfigtest",
-                    "uid": "0eb63f9a-4794-11ea-829a-062d8f98984d"
-                },
-                "spec": {
-                    "clusterIP": "10.97.119.235",
-                    "externalTrafficPolicy": "Cluster",
-                    "ports": [
-                        {
-                            "name": "http",
-                            "nodePort": 30560,
-                            "port": 80,
-                            "protocol": "TCP",
-                            "targetPort": 8080
-                        },
-                        {
-                            "name": "https",
-                            "nodePort": 32701,
-                            "port": 443,
-                            "protocol": "TCP",
-                            "targetPort": 8443
-                        }
-                    ],
-                    "selector": {
-                        "service": "gzipminimumconfigtest"
-                    },
-                    "sessionAffinity": "None",
-                    "type": "NodePort"
-                },
-                "status": {
-                    "loadBalancer": {}
-                }
-            },
-            {
-                "apiVersion": "v1",
-                "kind": "Service",
-                "metadata": {
-                    "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"gzipminimumconfigtest\",\"scope\":\"AmbassadorTest\",\"service\":\"gzipminimumconfigtest-admin\"},\"name\":\"gzipminimumconfigtest-admin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"gzipminimumconfigtest-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"gzipminimumconfigtest\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-02-04T21:19:41Z",
+                    "creationTimestamp": "2020-02-19T23:20:04Z",
                     "labels": {
                         "kat-ambassador-id": "gzipminimumconfigtest",
                         "scope": "AmbassadorTest",
@@ -79,17 +30,17 @@
                     },
                     "name": "gzipminimumconfigtest-admin",
                     "namespace": "default",
-                    "resourceVersion": "36486",
+                    "resourceVersion": "55595",
                     "selfLink": "/api/v1/namespaces/default/services/gzipminimumconfigtest-admin",
-                    "uid": "0ec1c579-4794-11ea-829a-062d8f98984d"
+                    "uid": "5c24b7bc-536e-11ea-85dd-167682b5c255"
                 },
                 "spec": {
-                    "clusterIP": "10.97.143.101",
+                    "clusterIP": "10.98.52.125",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "gzipminimumconfigtest-admin",
-                            "nodePort": 32521,
+                            "nodePort": 30425,
                             "port": 8877,
                             "protocol": "TCP",
                             "targetPort": 8877
@@ -112,19 +63,19 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"gzipminimumconfigtest\",\"scope\":\"AmbassadorTest\"},\"name\":\"gzipminimumconfigtest-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8095},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8458}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
                     },
-                    "creationTimestamp": "2020-02-04T21:19:41Z",
+                    "creationTimestamp": "2020-02-19T23:20:04Z",
                     "labels": {
                         "kat-ambassador-id": "gzipminimumconfigtest",
                         "scope": "AmbassadorTest"
                     },
                     "name": "gzipminimumconfigtest-http",
                     "namespace": "default",
-                    "resourceVersion": "36493",
+                    "resourceVersion": "55602",
                     "selfLink": "/api/v1/namespaces/default/services/gzipminimumconfigtest-http",
-                    "uid": "0ed336e5-4794-11ea-829a-062d8f98984d"
+                    "uid": "5c31f048-536e-11ea-85dd-167682b5c255"
                 },
                 "spec": {
-                    "clusterIP": "10.109.77.126",
+                    "clusterIP": "10.99.50.253",
                     "ports": [
                         {
                             "name": "http",
@@ -144,6 +95,55 @@
                     },
                     "sessionAffinity": "None",
                     "type": "ClusterIP"
+                },
+                "status": {
+                    "loadBalancer": {}
+                }
+            },
+            {
+                "apiVersion": "v1",
+                "kind": "Service",
+                "metadata": {
+                    "annotations": {
+                        "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind: Module\nname: ambassador\nconfig:\n  gzip:\n    enabled: true\nambassador_id: gzipminimumconfigtest\n\n---\napiVersion: ambassador/v0\nkind: Mapping\nname: gzipminimumconfigtest-http\nprefix: /target/\nservice: gzipminimumconfigtest-http\nambassador_id: gzipminimumconfigtest\n",
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v0\\nkind: Module\\nname: ambassador\\nconfig:\\n  gzip:\\n    enabled: true\\nambassador_id: gzipminimumconfigtest\\n\\n---\\napiVersion: ambassador/v0\\nkind: Mapping\\nname: gzipminimumconfigtest-http\\nprefix: /target/\\nservice: gzipminimumconfigtest-http\\nambassador_id: gzipminimumconfigtest\\n\"},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"gzipminimumconfigtest\",\"scope\":\"AmbassadorTest\"},\"name\":\"gzipminimumconfigtest\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"gzipminimumconfigtest\"},\"type\":\"NodePort\"}}\n"
+                    },
+                    "creationTimestamp": "2020-02-19T23:20:04Z",
+                    "labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "gzipminimumconfigtest",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "gzipminimumconfigtest",
+                    "namespace": "default",
+                    "resourceVersion": "55591",
+                    "selfLink": "/api/v1/namespaces/default/services/gzipminimumconfigtest",
+                    "uid": "5c1bbba3-536e-11ea-85dd-167682b5c255"
+                },
+                "spec": {
+                    "clusterIP": "10.104.158.21",
+                    "externalTrafficPolicy": "Cluster",
+                    "ports": [
+                        {
+                            "name": "http",
+                            "nodePort": 32412,
+                            "port": 80,
+                            "protocol": "TCP",
+                            "targetPort": 8080
+                        },
+                        {
+                            "name": "https",
+                            "nodePort": 31429,
+                            "port": 443,
+                            "protocol": "TCP",
+                            "targetPort": 8443
+                        }
+                    ],
+                    "selector": {
+                        "service": "gzipminimumconfigtest"
+                    },
+                    "sessionAffinity": "None",
+                    "type": "NodePort"
                 },
                 "status": {
                     "loadBalancer": {}
