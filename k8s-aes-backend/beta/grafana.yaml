@@ -1,0 +1,196 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: grafana
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-beta-notifiers
+  namespace: grafana
+data:
+  notifier.yaml: |-
+    apiVersion: 1
+    notifiers:
+      - type: pagerduty
+        name: pagerduty-notifier
+        uid: pagerduty-notifier
+        is_default: true
+        send_reminder: false
+        settings:
+          integrationKey: ${PAGERDUTY_INTEGRATION_KEY}
+          severity: warning
+          autoResolve: true
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-beta-datasources
+  namespace: grafana
+data:
+  metriton-postgresql.yaml: |-
+    apiVersion: 1
+    datasources:
+      - type: postgres
+        name: metriton-postgresql
+        editable: false
+        url: metriton-postgresql-beta.metriton:5432
+        database: metriton
+        user: ${METRITON_POSTGRESQL_USER}
+        secureJsonData:
+          password: ${METRITON_POSTGRESQL_PASSWORD}
+        jsonData:
+          sslmode: disable
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-beta-dashboards
+  namespace: grafana
+data:
+  local-file.yaml: |-
+    apiVersion: 1
+    providers:
+    - type: file
+      name: local
+      disableDeletion: true
+      editable: false
+      updateIntervalSeconds: 10
+      allowUiUpdates: false
+      options:
+        path: /dashboards
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: grafana-beta
+  namespace: grafana
+  labels:
+    app: grafana-beta
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana-beta
+  template:
+    metadata:
+      labels:
+        app: grafana-beta
+    spec:
+      containers:
+        - name: grafana
+          image: grafana/grafana:6.6.0
+          ports:
+            - containerPort: 3000
+              protocol: TCP
+          env:
+            - name: GF_SERVER_ROOT_URL
+              value: 'https://metriton.datawire.io/beta/grafana'
+            - name: GF_SERVER_SERVE_FROM_SUB_PATH
+              value: 'true'
+            - name: GF_AUTH_DISABLE_SIGNOUT_MENU
+              value: 'false'
+            - name: GF_AUTH_ANONYMOUS_ENABLED
+              value: 'false'
+            - name: GF_LOG_LEVEL
+              value: 'warn'
+            - name: GF_LOG_MODE
+              value: 'console'
+            - name: GF_SECURITY_ALLOW_SIGN_UP
+              value: 'false'
+            - name: GF_SECURITY_ADMIN_USER
+              valueFrom:
+                secretKeyRef:
+                  key: admin-user
+                  name: grafana-secrets-beta # Secret `grafana-secrets-beta` is stored in keybase
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: admin-password
+                  name: grafana-secrets-beta # Secret `grafana-secrets-beta` is stored in keybase
+            - name: METRITON_POSTGRESQL_USER
+              valueFrom:
+                secretKeyRef:
+                  key: metriton-postgresql-user
+                  name: grafana-secrets-beta # Secret `grafana-secrets-beta` is stored in keybase
+            - name: METRITON_POSTGRESQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: metriton-postgresql-password
+                  name: grafana-secrets-beta # Secret `grafana-secrets-beta` is stored in keybase
+            - name: PAGERDUTY_INTEGRATION_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: pagerduty-integration-key
+                  name: grafana-secrets-beta # Secret `grafana-secrets-beta` is stored in keybase
+          resources:
+            requests:
+              cpu: 10m
+          volumeMounts:
+            - name: grafana-storage
+              mountPath: /var/lib/grafana
+            - name: grafana-notifiers
+              mountPath: /etc/grafana/provisioning/notifiers
+              readOnly: false
+            - name: grafana-datasources
+              mountPath: /etc/grafana/provisioning/datasources
+              readOnly: false
+            - name: grafana-dashboards
+              mountPath: /etc/grafana/provisioning/dashboards
+              readOnly: false
+            - name: json-dashboards
+              mountPath: /dashboards
+              readOnly: false
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+              scheme: HTTP
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          imagePullPolicy: IfNotPresent
+      volumes:
+        - name: grafana-storage
+          emptyDir: {}
+        - name: grafana-notifiers
+          configMap:
+            defaultMode: 420
+            name: grafana-beta-notifiers
+        - name: grafana-datasources
+          configMap:
+            defaultMode: 420
+            name: grafana-beta-datasources
+        - name: grafana-dashboards
+          configMap:
+            defaultMode: 420
+            name: grafana-beta-dashboards
+        - name: json-dashboards
+          configMap:
+            defaultMode: 420
+            name: json-dashboards
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana-beta
+  namespace: grafana
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v1
+      kind: Mapping
+      name: grafana-beta
+      ambassador_id: metriton
+      prefix: /beta/grafana
+      rewrite: /beta/grafana
+      service: grafana-beta.grafana:80
+spec:
+  ports:
+    - port: 80
+      targetPort: 3000
+  selector:
+    app: grafana-beta
