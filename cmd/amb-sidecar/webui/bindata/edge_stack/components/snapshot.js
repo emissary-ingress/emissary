@@ -138,7 +138,7 @@ export class Snapshot extends LitElement {
       data: Object,
       loading: Boolean,
       loadingError: Boolean,
-      fragment: String,
+      URLfragment: String, // when edgectl login opens a browser tab the cookie is set to this token; once set use cookie
     };
   }
 
@@ -159,97 +159,109 @@ export class Snapshot extends LitElement {
     this.loading = true;
     this.loadingError = null;
 
-    if (getCookie("edge_stack_auth")) {
-      this.fragment = "should-try";
+    if (getCookie("edge_stack_auth")) {  // if cookie is available, use cookie
+      this.URLfragment = "should-try"; // cookie is not available, try the fragment
     } else {
-      updateCredentials(window.location.hash.slice(1));
-      this.fragment = "trying";
+      updateCredentials(window.location.hash.slice(1)); // update login credentials with fragment
+      this.URLfragment = "trying"; // try fragment, if it works save it to the cookie
     }
-  }
+  }     
 
   fetchData() {
-      if( Snapshot.theTimeoutId !== 0 ) {
-        clearTimeout(Snapshot.theTimeoutId); // it's ok to clear a timeout that has already expired
-        Snapshot.theTimeoutId = 0;
-      }
+    this.resetTimeout(); // snapshot reset to not ping while data is being fetched
     ApiFetch(`/edge_stack/api/snapshot?client_session=${this.snapshotPatches ? this.clientSession : ''}`, {
       headers: {
         'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
       }
     })
-      .then((response) => {
-        if (response.status === 400 || response.status === 401 || response.status === 403) {
-          if (this.fragment === "should-try") {
-            updateCredentials(window.location.hash.slice(1));
-            this.fragment = "trying";
-            setTimeout(this.fetchData.bind(this), 0); // try again immediately
-          } else {
-            this.fragment = "";
-            this.setAuthenticated(false);
-            this.setSnapshot(new SnapshotWrapper(this.currentSnapshot.data, {}));
-            if( Snapshot.theTimeoutId === 0 ) { // if we aren't already waiting to fetch a new snapshot...
-              Snapshot.theTimeoutId = setTimeout(this.fetchData.bind(this), 1000); // fetch a new snapshot every second
-            }
-          }
-        } else {
-          response.text()
-            .then((text) => {
-              var json;
-              if( Snapshot.theTimeoutId === 0 ) { // if we aren't already waiting to fetch a new snapshot...
-                Snapshot.theTimeoutId = setTimeout(this.fetchData.bind(this), 1000); // fetch a new snapshot every second
-              }
-              try {
-                  json = JSON.parse(text);
-              } catch(err) {
-                this.loadingError = err;
-                this.requestUpdate();
-                console.error('error parsing snapshot', err);
-                return
-              }
-              if (this.fragment === "trying") {
-                window.location.hash = "";
-              }
+      .then(this.fetchResponse.bind(this)) // so far so good, proceed to function
+      .catch(this.fetchResponseError.bind(this)) // failed, handle error
+  }
 
-              this.fragment = "";
-              this.setAuthenticated(true);
-              this.setSnapshot(new SnapshotWrapper(this.currentSnapshot.data, json || {}));
-              if (this.loading) {
-                this.loading = false;
-                this.loadingError = null;
-                this.requestUpdate();
-                document.onclick = () => {
-                  ApiFetch('/edge_stack/api/activity', {
-                    method: 'POST',
-                    headers: new Headers({
-                      'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
-                    }),
-                  });
-                }
-              } else {
-                if( this.loadingError ) {
-                  this.loadingError = null;
-                  this.requestUpdate();
-                }
-              }
-            })
-            .catch((err) => {
-              this.loadingError = err;
-              this.requestUpdate();
-              console.error('error reading snapshot', err);
-              if( Snapshot.theTimeoutId === 0 ) { // if we aren't already waiting to fetch a new snapshot...
-                Snapshot.theTimeoutId = setTimeout(this.fetchData.bind(this), 1000); // fetch a new snapshot every second
-              }
-            })
-        }
-      })
-      .catch((err) => {
-        this.loadingError = err;
-        this.requestUpdate();
-        console.error('error fetching snapshot', err);
-        if( Snapshot.theTimeoutId === 0 ) { // if we aren't already waiting to fetch a new snapshot...
-          Snapshot.theTimeoutId = setTimeout(this.fetchData.bind(this), 1000); // fetch a new snapshot every second
-        }
-      })
+  queueNextSnapshotPoll() {
+    if( Snapshot.theTimeoutId === 0 ) { // if we aren't already waiting to fetch a new snapshot...
+    Snapshot.theTimeoutId = setTimeout(this.fetchData.bind(this), 1000); // fetch a new snapshot every second
+    }
+  }
+
+  resetTimeout() {
+    if( Snapshot.theTimeoutId !== 0 ) {
+      clearTimeout(Snapshot.theTimeoutId); // it's ok to clear a timeout that has already expired
+      Snapshot.theTimeoutId = 0;
+    }
+  }
+
+  fetchResponse(response) {
+    if (response.status === 400 || response.status === 401 || response.status === 403) { // indicates user may be unauthorized, invalid/expired token
+      if (this.URLfragment === "should-try") { // cookie is not available, try the fragment
+        updateCredentials(window.location.hash.slice(1)); // update login credentials with fragment 
+        this.URLfragment = "trying"; // try fragment, if it works save it to cookie
+        setTimeout(this.fetchData.bind(this), 0); // try fetching again immediately
+      } else {
+        this.URLfragment = ""; // fragment did not work, logged out status
+        this.setAuthenticated(false); // user is not authorized 
+        this.setSnapshot(new SnapshotWrapper(this.currentSnapshot.data, {})); // wrap up current snapshot in convenient package for next submission
+      }
+    } else {
+      response.text()
+        .then(this.handleResponseText.bind(this)) // valid response text is received, proceed to function
+        .catch(this.handleResponseTextError.bind(this)) // error response text is received, handle error
+    }
+  }
+
+  fetchResponseError(err) { // fetch was unsuccessful
+    this.loadingError = err;
+    this.requestUpdate(); // update the page
+    console.error('error fetching snapshot', err);
+    this.queueNextSnapshotPoll();
+  }
+
+  handleResponseText(text) {  // valid response text received
+    var json;
+    this.queueNextSnapshotPoll(); // keep polling to allow authenticated user's multiple open tabs to all be logged in
+    try {
+        json = JSON.parse(text);  // parse response
+    } catch(err) {  // if parsing not successful, register error and request update
+      this.loadingError = err;
+      this.requestUpdate(); // update the page
+      console.error('error parsing snapshot', err);
+      return
+    }
+    if (this.URLfragment === "trying") {  // try fragment, if it works save it to cookie
+      window.location.hash = ""; // clear fragment
+    }
+    this.URLfragment = ""; // clear fragment
+    this.setAuthenticated(true);
+    this.setSnapshot(new SnapshotWrapper(this.currentSnapshot.data, json || {}));  // wrap up current snapshot in convenient package for next submission
+    if (this.loading) { // page is loading
+      this.loading = false;  // stop loading
+      this.loadingError = null; // reset value to default
+      this.requestUpdate(); // pdate the page
+      this.recordUserActivity(); // post user changes on page
+    } else {
+      if( this.loadingError ) { // if page load unsuccessful
+        this.loadingError = null; // reset to default
+        this.requestUpdate(); // update the page
+      }
+    }
+  }
+
+  recordUserActivity() {  // post user changes on page
+    document.onclick = () => {
+      ApiFetch('/edge_stack/api/activity', {  
+        method: 'POST',
+        headers: new Headers({
+          'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
+        }),
+      });
+    }
+  }  
+
+  handleResponseTextError(err) {
+    this.loadingError = err;
+    this.requestUpdate(); // update the page
+    console.error('error reading snapshot', err);
+    this.queueNextSnapshotPoll();
   }
 
   firstUpdated() {
