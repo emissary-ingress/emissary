@@ -6,6 +6,7 @@ releases. Please keep it up to date.
 
 ## 1.1.2 (TBD)
 
+- Change: The `ambassador` service now defaults the `externalTrafficPolicy` to `Cluster` instead of `Local`. This is a safer setting for GKE where the `Local` policy can cause outages when ambassador is updated. See https://stackoverflow.com/questions/60121956/are-hitless-rolling-updates-possible-on-gke-with-externaltrafficpolicy-local for details.
 - Bugfix: The RBAC for `Ingress` now supports the `networking.k8s.io` `apiGroup`
 - Bugfix: Quiet Dev Portal debug logs
 - Change: There is no longer a separate app-sidecar image; it is now combined in to the main aes image; set `command: ["app-sidecar"]` to use that functionality.
