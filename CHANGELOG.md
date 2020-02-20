@@ -61,10 +61,36 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
-## Next release
+## [1.2.0-rc.0] February 19, 2020
+[1.2.0-rc.0]: https://github.com/datawire/ambassador/compare/v1.1.1...v1.2.0-rc.0
 
-- Bugfix: Support Istio mTLS secrets natively ([#1475]). Thanks to Phil Peble.
-- Bugfix: TLS custom secret with period in name doesn't work ([#1255]). Thanks to Phil Peble.
+### Ambassador API Gateway + Ambassador Edge Stack
+
+- Feature: add idle_timeout_ms support for common HTTP listener (thanks, Jordan Neufeld!) ([#2155])
+- Feature: allow override of bind addresses, including for IPv6! (thanks to [Josue Diaz](https://github.com/josuesdiaz)!) ([#2293])
+- Bugfix: Support Istio mTLS secrets natively (thanks, [Phil Peble](https://github.com/ppeble)!) ([#1475])
+- Bugfix: TLS custom secret with period in name doesn't work (thanks, [Phil Peble](https://github.com/ppeble)!) ([#1255])
+- Bugfix: Honor ingress.class when running with Knative
+- Internal: Fix CRD-versioning issue in CI tests (thanks, [Ricky Taylor](https://github.com/ricky26)!)
+- Upgrade: Switch to Envoy 1.13.0, and switch away from deprecated configuration elements
+
+### Ambassador Edge Stack only
+
+- Feature: `edgectl install` provides a much cleaner, quicker experience when installing Ambassador Edge Stack
+- Feature: Ambassador Edge Stack supports the Ambassador operator for automated management and upgrade
+- Feature: `ifRequestHeader` can now have `valueRegex` instead of `value`
+- Feature: The `OAuth2` Filter now has `useSessionCookies` option to have cookies expire when the browser closes, rather than at a fixed duration
+- Feature: `ifRequestHeader` now has `negate: bool` to invert the match
+- Bugfix: The RBAC for `Ingress` now supports the `networking.k8s.io` `apiGroup`
+- Bugfix: Quiet Dev Portal debug logs
+- Change: The intercept agent is now incorporated into the `aes` image
+- Change: The `OAuth2` Filter no longer sets cookies when `insteadOfRedirect` triggers
+- Change: The `OAuth2` Filter more frequently adjusts the cookies
+
+[#1475]: https://github.com/datawire/ambassador/issues/1475
+[#1255]: https://github.com/datawire/ambassador/issues/1255
+[#2155]: https://github.com/datawire/ambassador/issues/2155
+[#2293]: https://github.com/datawire/ambassador/issues/2293
 
 ## [1.1.1] February 12, 2020
 [1.1.1]: https://github.com/datawire/ambassador/compare/v1.1.0...v1.1.1
