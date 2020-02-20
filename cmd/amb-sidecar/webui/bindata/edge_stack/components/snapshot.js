@@ -201,7 +201,6 @@ export class Snapshot extends LitElement {
         this.URLfragment = ""; // fragment did not work, logged out status
         this.setAuthenticated(false); // user is not authorized 
         this.setSnapshot(new SnapshotWrapper(this.currentSnapshot.data, {})); // wrap up current snapshot in convenient package for next submission
-        this.queueNextSnapshotPoll();
       }
     } else {
       response.text()
