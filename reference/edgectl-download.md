@@ -4,7 +4,7 @@ Edge Control is available for macOS, Linux, and Windows.
 
 ## macOS
 
-Download by curl command with:
+Download with the curl command:
 
       ```shell
       sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl
@@ -12,17 +12,16 @@ Download by curl command with:
 
 Or, download the [binary file](https://metriton.datawire.io/downloads/darwin/edgectl).
 
-
 ## Linux
 
-Download by curl command with:
+Download with the curl command
 
    ```shell
    sudo curl -fL https://metriton.datawire.io/downloads/linux/edgectl -o
    /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl
    ```
 
-Or, download the [binary file(https://metriton.datawire.io/downloads/linux/edgectl).
+Or, download the [binary file](https://metriton.datawire.io/downloads/linux/edgectl).
 
 ## Windows
 

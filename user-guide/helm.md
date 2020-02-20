@@ -82,25 +82,25 @@ If you have an existing Ambassador API Gateway installation but are not yet runn
 
 1. Upgrade CRDs for the Ambassador Edge Stack.
 
-To take full advantage of the Ambassador Edge Stack, you'll need the new `Host` CRD, and you'll need the new `getambassador.io/v2` version of earlier CRDs. To upgrade all the CRDs, run
+   To take full advantage of the Ambassador Edge Stack, you'll need the new `Host` CRD, and you'll need the new `getambassador.io/v2` version of earlier CRDs. To upgrade all the CRDs, run
 
-   ```
-   kubectl apply -f https://www.getambassador.io/yaml/aes-crds.yaml
-   ```
+      ```
+      kubectl apply -f https://www.getambassador.io/yaml/aes-crds.yaml
+      ```
 
 2. Upgrade your Ambassador installation.
 
-If you're using **Helm 3**, simply run
+   If you're using **Helm 3**, simply run
 
-   ```
-   helm upgrade --namespace ambassador ambassador datawire/ambassador
-   ```
+      ```
+      helm upgrade --namespace ambassador ambassador datawire/ambassador
+      ```
 
-If you're using **Helm 2**, you need to modify the command slightly:
+   If you're using **Helm 2**, you need to modify the command slightly:
 
-   ```
-   helm upgrade --set crds.create=false --namespace ambassador ambassador datawire/ambassador
-   ```
+      ```
+      helm upgrade --set crds.create=false --namespace ambassador ambassador datawire/ambassador
+      ```
 
 At this point, the Ambassador Edge Stack should be running with the same functionality as Ambassador API Gateway as well as the added features of the Ambassador Edge Stack. It's safe to do any validation required and roll-back if necessary.
 
