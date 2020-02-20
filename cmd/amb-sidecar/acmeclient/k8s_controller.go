@@ -412,7 +412,7 @@ func (c *Controller) recordHostError(logger dlog.Logger, host *ambassadorTypesV2
 	// others as well. The goal is to try ACME again much sooner for this case,
 	// as we expect NXDOMAIN to be resolved quickly. We ran into this when
 	// giving users *.edgestack.me domain names with `edgectl install`.
-	isAcmeNxDomain := strings.Contains(host.Status.ErrorReason, "NXDOMAIN")
+	isAcmeNxDomain := strings.Contains(host.Status.ErrorReason, "NXDOMAIN") || strings.Contains(host.Status.ErrorReason, "urn:ietf:params:acme:error:dns")
 
 	nextBackoff := getNextBackoff(prevBackoff, isAcmeNxDomain)
 	host.Status.ErrorBackoff = &nextBackoff
