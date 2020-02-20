@@ -242,12 +242,8 @@
           link: /reference/edge-control
         - title: Edge Control in CI
           link: /reference/edge-control-in-ci
-    - title: Azure Integration Configuration
-      items: 
-      - title: Azure Reference Architecture
-        link: /reference/aks-architecture 
-      - title: Azure Advanced Configuration
-        link: /reference/ask-advanced-config
+    - title: Azure Configuration with the Ambassador Operator
+      link: /reference/aks-architecture 
     - title: Developer Portal
       link: /reference/dev-portal    
     - title: Running Ambassador Edge Stack
