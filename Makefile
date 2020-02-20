@@ -14,7 +14,7 @@ ifneq ($(strip $(OUTPUT)),)
 $(info $(OUTPUT))
 endif
 
-export BUILDER_PORTMAPS=-p 8080:8080 -p 8877:8877 -p 8500:8500
+# export BUILDER_PORTMAPS=-p 8080:8080 -p 8877:8877 -p 8500:8500
 
 OSS_HOME ?= ambassador
 include ${OSS_HOME}/Makefile
@@ -49,16 +49,22 @@ deploy: push preflight-cluster
 	@printf "$(GRN)Your ambassador service IP:$(END) $(BLD)$$(docker exec -it $(shell $(BUILDER)) kubectl get -n ambassador service ambassador -o 'go-template={{range .status.loadBalancer.ingress}}{{print .ip "\n"}}{{end}}')$(END)\n"
 .PHONY: deploy
 
-AES_BACKEND_IMAGE=gcr.io/datawireio/aes-backend:$(RELEASE_VERSION)
-
-# XXX: should make base a make variable
-deploy-aes-backend: images
+aes-backend-image: images
 	cat Dockerfile.aes-backend | docker build -t aes-backend --build-arg artifacts=$(SNAPSHOT) -
+.PHONY: aes-backend-image
+
+AES_BACKEND_IMAGE_ID=$(shell docker images -q aes-backend:latest)
+AES_BACKEND_RELEASE_REGISTRY ?= $(DEV_REGISTRY)
+AES_BACKEND_RELEASE_VERSION ?= $(AES_BACKEND_IMAGE_ID)
+AES_BACKEND_IMAGE=$(AES_BACKEND_RELEASE_REGISTRY)/aes-backend:$(AES_BACKEND_RELEASE_VERSION)
+aes-backend-push: aes-backend-image
 	docker tag aes-backend $(AES_BACKEND_IMAGE)
 	docker push $(AES_BACKEND_IMAGE)
-	@if [ -z "$(PROD_KUBECONFIG)" ]; then echo please set PROD_KUBECONFIG && exit 1; fi
-	cat k8s-aes-backend/*.yaml | AES_BACKEND_IMAGE=$(AES_BACKEND_IMAGE) envsubst | kubectl --kubeconfig="$(PROD_KUBECONFIG)" apply -f -
-.PHONY: deploy-aes-backend
+.PHONY: aes-backend-push
+
+aes-backend-deploy: aes-backend-push
+	@docker exec -e AES_BACKEND_IMAGE=$(AES_BACKEND_IMAGE) -it $(shell $(BUILDER)) kubeapply -f apro/k8s-aes-backend/sbox
+.PHONY: aes-backend-deploy
 
 update-yaml-locally: sync
 	@printf "$(CYN)==> $(GRN)Updating development YAML$(END)\n"
@@ -201,7 +207,15 @@ define _help.aes-targets
     Set $(BLD)\$$DEV_KUBE110$(END) to a non-empty value in order to deploy version of
     the YAML mutilated to be compatible with Kubernetes 1.10 (hint: Kubernaut).
 
-  $(BLD)make $(BLU)deploy-aes-backend$(END)  -- ???
+  $(BLD)make $(BLU)aes-backend-image$(END)   -- creates the $(BLD)aes-backend$(END) image from the build container.
+
+  $(BLD)make $(BLU)aes-backend-push$(END)    -- pushes the $(BLD)aes-backend$(END) image to $(BLD)\$$DEV_REGISTRY$(END). ($(DEV_REGISTRY))
+
+    Pushing a release build can be achieved by setting
+     AES_BACKEND_RELEASE_REGISTRY=gcr.io/datawireio
+     AES_BACKEND_RELEASE_VERSION=x.y.z
+
+  $(BLD)make $(BLU)aes-backend-deploy$(END)  -- deploys the $(BLD)aes-backend$(END) sandbox (sbox) to $(BLD)\$$DEV_REGISTRY$(END) and $(BLD)\$$DEV_KUBECONFIG$(END). ($(DEV_REGISTRY) and $(DEV_KUBECONFIG))
 
   $(BLD)make $(BLU)update-yaml-locally$(END) -- updates the YAML in $(BLD)k8s-aes/$(END).
 
