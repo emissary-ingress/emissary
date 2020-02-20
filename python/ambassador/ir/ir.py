@@ -374,6 +374,7 @@ class IR:
             host.sourced_by(self.ambassador_module)
 
             self.logger.info(f"Intercept agent: saving host {host.pretty()}")
+            self.logger.info(host.as_json())
             self.save_host(host)
         else:
             self.logger.info(f"Intercept agent: not saving inactive host {host.pretty()}")
@@ -391,6 +392,9 @@ class IR:
 
             ctx.referenced_by(self.ambassador_module)
             self.save_tls_context(ctx)
+            
+            self.logger.info(f"Intercept agent: saving TLSContext {ctx.name}")
+            self.logger.info(ctx.as_json())
 
     def agent_finalize(self, aconf) -> None:
         if not (self.edge_stack_allowed and self.agent_active):
@@ -417,6 +421,10 @@ class IR:
 
         self.logger.info(f"Intercept agent active for {self.agent_service}:{agent_port}, adding fallback mapping")
 
+        # XXX OMG this is a crock. Don't use precedence -1000000 for this, because otherwise Edge
+        # Control might decide it's the Edge Policy Console fallback mapping and force it to be
+        # routed insecure. !*@&#*!@&#* We need per-mapping security settings.
+        #
         # XXX What if they already have a mapping with this name?
         mapping = IRHTTPMapping(self, aconf, rkey=self.ambassador_module.rkey, location=self.ambassador_module.location,
                                 name="agent-fallback-mapping",
@@ -424,7 +432,7 @@ class IR:
                                 prefix="/",
                                 rewrite="/",
                                 service=f"127.0.0.1:{agent_port}",
-                                precedence=-1000000)
+                                precedence=-999999) # No, really. See comment above.
 
         mapping.referenced_by(self.ambassador_module)
         self.add_mapping(aconf, mapping)
