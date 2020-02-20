@@ -1,10 +1,12 @@
-# Installing Ambassador with Helm
+# Installing the Ambassador Edge Stack with Helm
 
-[Helm](https://helm.sh) is a package manager for Kubernetes that automates the release and management of software on Kubernetes. The Ambassador Edge Stack can be installed via a Helm chart with a few simple steps, depending on if you are deploying for the first time, or upgrading from an existing installation.
+[Helm](https://helm.sh) is a package manager for Kubernetes that automates the release and management of software on Kubernetes. The Ambassador Edge Stack can be installed via a Helm chart with a few simple steps, depending on if you are deploying for the first time, upgrading the Ambassador Edge Stack from an existing installation, or migrating from the Ambassador API Gateway.
 
-## Prerequisites
+## Before You Begin
 
-The Ambassador Edge Stack Helm chart is hosted by Datawire and published at `https://www.getambassador.io`. Start by adding this repo to your helm client with:
+The Ambassador Edge Stack Helm chart is hosted by Datawire and published at `https://www.getambassador.io`.
+
+Start by adding this repo to your helm client with the following command:
 
 ```bash
 helm repo add datawire https://www.getambassador.io
@@ -16,33 +18,51 @@ manifest_sorter.go:175: info: skipping unknown hook: "crd-install"
 ```
 Since this hook is required for Helm 2 support it **IS NOT AN ERROR AND CAN BE SAFELY IGNORED**.
 
-## First Time Installation
+## Install with Helm
 
-If you are installing the Ambassador Edge Stack for the first time on your host, complete the following directions:
+When you run the Helm chart, it installs the Ambassador Edge Stack. You can
+deploy it with either version of the tool. 
 
-1. Create the `ambassador` namespace for the Ambassador Edge Stack:
+1. If you are installing the Ambassador Edge Stack **for the first time on your cluster**, create the `ambassador` namespace for the Ambassador Edge Stack:
 
    ```
    kubectl create namespace ambassador
    ```
 
-2. If you are using Helm 3, install the Ambassador Edge Stack Chart with the following command:
+2. **Helm 3 users:** Install the Ambassador Edge Stack Chart with the following command:
 
    ```
    helm install ambassador --namespace ambassador datawire/ambassador
    ```
 
-   If you are using Helm 2, use the following command instead:
+3. **Helm 2 users**: Install the Ambassador Edge Stack Chart with the following command:
 
    ```
    helm install --name ambassador --namespace ambassador datawire/ambassador
    ```
 
+4. Finish the installation by running the following command: `edgectl install`
+5. Provide an email address when prompted to receive notices if your domain or TLS certificate is about to expire.
+
+Your terminal should print something similar to the following:
+```
+   $ edgectl install
+   -> Installing the Ambassador Edge Stack 1.0.
+   -> Existing Ambassador Edge Stack installation detected.
+   -> Automatically configuring TLS.
+   Please enter an email address. We’ll use this email address to notify you prior to domain and certification expiration [None]: john@example.com.
+   -> Obtaining a TLS certificate from Let’s Encrypt.
+
+   Congratulations, you’ve successfully installed the Ambassador Edge Stack in your Kubernetes cluster. Visit https://random-word.edgestack.me to access your Edge Stack installation and for additional configuration.
+```
+
+[Edge Control](/reference/edge-control) (`edgectl`) automatically configures TLS for your instance and provisions a domain name for your Ambassador Edge Stack.
+
 This will install the necessary deployments, RBAC, Custom Resource Definitions, etc. for the Ambassador Edge Stack to route traffic. Details on how to configure Ambassador using the Helm chart can be found in the Helm chart [README](https://github.com/datawire/ambassador-chart/tree/master).
 
-## Upgrading an Existing Edge Stack Installation
+## Upgrading an Existing Ambassador Edge Stack Installation
 
-**Note:** If your existing installation is not already running the Ambassador **Edge Stack** as opposed to Ambassador API Gateway, **do not use these instructions**. See "Migrating to the Ambassador Edge Stack" below.
+**Note:** If your existing installation is running the Ambassador API Gateway, **do not use these instructions**. See [Migrating to the Ambassador Edge Stack](#migrating-to-the-ambassador-edge-stack) instead.
 
 Upgrading an existing installation of the Ambassador Edge Stack is a two-step process:
 
@@ -76,13 +96,13 @@ If you have an existing Ambassador API Gateway installation but are not yet runn
 
 2. Upgrade your Ambassador installation.
 
-   If you're using Helm 3, simply run
+   If you're using **Helm 3**, simply run
 
    ```
    helm upgrade --namespace ambassador ambassador datawire/ambassador
    ```
 
-   If you're using Helm 2, you need to modify the command slightly:
+   If you're using **Helm 2**, you need to modify the command slightly:
 
    ```
    helm upgrade --set crds.create=false --namespace ambassador ambassador datawire/ambassador
