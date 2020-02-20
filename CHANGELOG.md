@@ -61,8 +61,8 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
-## [1.2.0-rc.0] February 19, 2020
-[1.2.0-rc.0]: https://github.com/datawire/ambassador/compare/v1.1.1...v1.2.0-rc.0
+## [1.2.0-rc.1] February 20, 2020
+[1.2.0-rc.1]: https://github.com/datawire/ambassador/compare/v1.1.1...v1.2.0-rc.1
 
 ### Ambassador API Gateway + Ambassador Edge Stack
 
@@ -76,6 +76,7 @@ Format:
 
 ### Ambassador Edge Stack only
 
+- Change: The `ambassador` service now uses the default `externalTrafficPolicy` of `Cluster` rather than explicitly setting it to`Local`. This is a safer setting for GKE where the `Local` policy can cause outages when ambassador is updated. See https://stackoverflow.com/questions/60121956/are-hitless-rolling-updates-possible-on-gke-with-externaltrafficpolicy-local for details.
 - Feature: `edgectl install` provides a much cleaner, quicker experience when installing Ambassador Edge Stack
 - Feature: Ambassador Edge Stack supports the Ambassador operator for automated management and upgrade
 - Feature: `ifRequestHeader` can now have `valueRegex` instead of `value`
@@ -83,6 +84,7 @@ Format:
 - Feature: `ifRequestHeader` now has `negate: bool` to invert the match
 - Bugfix: The RBAC for `Ingress` now supports the `networking.k8s.io` `apiGroup`
 - Bugfix: Quiet Dev Portal debug logs
+- Bugfix: The Edge Policy Console is much less chatty when logged out
 - Change: The intercept agent is now incorporated into the `aes` image
 - Change: The `OAuth2` Filter no longer sets cookies when `insteadOfRedirect` triggers
 - Change: The `OAuth2` Filter more frequently adjusts the cookies
