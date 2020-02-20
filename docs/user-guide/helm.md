@@ -12,6 +12,12 @@ Start by adding this repo to your helm client with the following command:
 helm repo add datawire https://www.getambassador.io
 ```
 
+Both Helm 2 and Helm 3 are supported. To enable CRD creation in Helm 2, the `crd-install` hook is included in the CRD manifests. When installing with Helm 3, the following message will be output to `stderr`:
+```bash
+manifest_sorter.go:175: info: skipping unknown hook: "crd-install"
+```
+Since this hook is required for Helm 2 support it **IS NOT AN ERROR AND CAN BE SAFELY IGNORED**.
+
 ## Install with Helm
 
 When you run the Helm chart, it installs the Ambassador Edge Stack. You can
@@ -84,23 +90,23 @@ If you have an existing Ambassador API Gateway installation but are not yet runn
 
    To take full advantage of the Ambassador Edge Stack, you'll need the new `Host` CRD, and you'll need the new `getambassador.io/v2` version of earlier CRDs. To upgrade all the CRDs, run
 
-      ```
-      kubectl apply -f https://www.getambassador.io/yaml/aes-crds.yaml
-      ```
+   ```
+   kubectl apply -f https://www.getambassador.io/yaml/aes-crds.yaml
+   ```
 
 2. Upgrade your Ambassador installation.
 
    If you're using **Helm 3**, simply run
 
-      ```
-      helm upgrade --namespace ambassador ambassador datawire/ambassador
-      ```
+   ```
+   helm upgrade --namespace ambassador ambassador datawire/ambassador
+   ```
 
    If you're using **Helm 2**, you need to modify the command slightly:
 
-      ```
-      helm upgrade --set crds.create=false --namespace ambassador ambassador datawire/ambassador
-      ```
+   ```
+   helm upgrade --set crds.create=false --namespace ambassador ambassador datawire/ambassador
+   ```
 
 At this point, the Ambassador Edge Stack should be running with the same functionality as Ambassador API Gateway as well as the added features of the Ambassador Edge Stack. It's safe to do any validation required and roll-back if necessary.
 

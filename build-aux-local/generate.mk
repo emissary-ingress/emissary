@@ -11,11 +11,13 @@ generate:
 	$(MAKE) _generate
 _generate:
 	$(MAKE) $(generate/files)
+	$(MAKE) $(OSS_HOME)/pkg/envoy-control-plane
 generate-clean: ## Delete generated sources that get committed to git
 generate-clean:
 	rm -rf $(OSS_HOME)/api/envoy
 	rm -rf $(OSS_HOME)/pkg/api $(OSS_HOME)/python/ambassador/proto
 	rm -f $(OSS_HOME)/tools/sandbox/grpc_web/*_pb.js
+	rm -rf $(OSS_HOME)/pkg/envoy-control-plane
 .PHONY: generate _generate generate-clean
 
 #
@@ -97,7 +99,62 @@ $(tools/protoc-gen-go-json): $(OSS_HOME)/go.mod
 	go build -o $@ github.com/mitchellh/protoc-gen-go-json
 
 #
-# `make generate` rules
+# `make generate` vendor rules
+
+# TODO(lukeshu): Figure out a sane way of selecting an appropriate ENVOY_GO_CONTROL_PLANE_COMMIT for
+# our version of Envoy.
+#
+# I was tempted to use "v0.9.0^" because it's the last version that used gogo/protobuf instead of
+# golang/protobuf.  However, because the Envoy 1.11 -> 1.12 upgrade included
+# https://github.com/envoyproxy/envoy/pull/8163 continuing to use the gogo/protobuf-based version is
+# very difficult.  To the point that using the golang/protobuf version and editing it to work with
+# gogo/protobuf is easier than getting the gogo/protobuf version to work with the newer proto files.
+#
+# Also, note that we disable the call to SetDeterministic since it's totally broken in gogo/protobuf
+# 1.3.0 and 1.3.1 (the latest version at the time of this writing), because gogo cherry-picked
+# https://github.com/golang/protobuf/pull/650 and https://github.com/golang/protobuf/pull/656 but
+# not https://github.com/golang/protobuf/pull/658 ; and is even more broken than it was in pre-#658
+# golang/protobuf because protoc-gen-gogofast always generates a `Marshal` method, meaning that it
+# is 100% impossible to use SetDeterministic with gogofast.
+
+ENVOY_GO_CONTROL_PLANE_COMMIT = v0.9.0
+$(OSS_HOME)/pkg/envoy-control-plane: FORCE
+	rm -rf $@
+	@PS4=; set -ex; { \
+	  unset GIT_DIR GIT_WORK_TREE; \
+	  tmpdir=$$(mktemp -d); \
+	  trap 'rm -rf "$$tmpdir"' EXIT; \
+	  cd "$$tmpdir"; \
+	  git init .; \
+	  git remote add origin https://github.com/envoyproxy/go-control-plane; \
+	  git fetch --tags --all; \
+	  git checkout $(ENVOY_GO_CONTROL_PLANE_COMMIT); \
+	  find pkg -name '*.go' -exec sed -E -i.bak \
+	    -e 's,github\.com/envoyproxy/go-control-plane/pkg,github.com/datawire/ambassador/pkg/envoy-control-plane,g' \
+	    -e 's,github\.com/envoyproxy/go-control-plane/envoy,github.com/datawire/ambassador/pkg/api/envoy,g' \
+	    -e 's,^[[:space:]]*"github.com/datawire/ambassador/pkg/api/[^"]*/([^/"]*)",\1 &,' \
+	    \
+	    -e 's,^[[:space:]]*"github\.com/golang/protobuf/ptypes",ptypes "github.com/gogo/protobuf/types",g' \
+	    -e 's,^[[:space:]]*"github\.com/golang/protobuf/ptypes/any",any "github.com/gogo/protobuf/types",g' \
+	    -e 's,^[[:space:]]*"github\.com/golang/protobuf/ptypes/struct",struct "github.com/gogo/protobuf/types",g' \
+	    -e 's,"github\.com/golang/protobuf/ptypes(/any|/struct)?","github.com/gogo/protobuf/types",g' \
+	    -e 's,github\.com/golang/protobuf/,github.com/gogo/protobuf/,g' \
+	    -- {} +; \
+	  sed -i.bak /SetDeterministic/d pkg/server/server.go; \
+	  find pkg -name '*.bak' -delete; \
+	  mv $$(git ls-files ':[A-Z]*' ':!Dockerfile*' ':!Makefile') pkg; \
+	  mv pkg $(abspath $@); \
+	}
+	cd $(OSS_HOME) && go fmt ./pkg/envoy-control-plane/...
+
+#
+# `make generate` protobuf rules
+
+# TODO(lukeshu): Bring this in-line with
+#   https://github.com/envoyproxy/envoy/pull/8155 /
+#   https://github.com/envoyproxy/go-control-plane/pull/226
+# instead of the old
+#   https://github.com/envoyproxy/go-control-plane/blob/v0.9.0%5E/build/generate_protos.sh
 
 # This proto_path list is largely based on 'imports=()' in
 # https://github.com/envoyproxy/go-control-plane/blob/0e75602d5e36e96eafbe053999c0569edec9fe07/build/generate_protos.sh
@@ -216,7 +273,7 @@ $(OSS_HOME)/vendor: FORCE
 	  cd $(@D); \
 	  GO111MODULE=off go list -f='{{ range .Imports }}{{ . }}{{ "\n" }}{{ end }}' ./... | \
 	    sort -u | \
-	    sed -n 's,^github\.com/datawire/ambassador/pkg/api,pkg/api,p' | \
+	    sed -E -n 's,^github\.com/datawire/ambassador/pkg/(api|envoy-control-plane),pkg/\1,p' | \
 	      while read -r dir; do \
 	        mkdir -p "$$dir"; \
 	        echo "$$dir" | sed 's,.*/,package ,' > "$${dir}/vendor_bootstrap_hack.go"; \

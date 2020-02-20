@@ -56,9 +56,11 @@ class V2Config (EnvoyConfig):
         V2Bootstrap.generate(self)
 
     def as_dict(self) -> Dict[str, Any]:
+        bootstrap_config, ads_config = self.split_config()
+
         d = {
-            'bootstrap': self.bootstrap,
-            'static_resources': self.static_resources
+            'bootstrap': bootstrap_config,
+            **ads_config
         }
 
         return d
@@ -66,7 +68,27 @@ class V2Config (EnvoyConfig):
     def split_config(self) -> Tuple[Dict[str, Any], Dict[str, Any]]:
         ads_config = {
             '@type': '/envoy.config.bootstrap.v2.Bootstrap',
-            'static_resources': self.static_resources
+            'static_resources': self.static_resources,
+            'layered_runtime': {
+                'layers': [
+                    {
+                        'name': 'static_layer',
+                        'static_layer': {
+                            # For now, we enable the deprecated & disallowed_by_default "HTTP_JSON_V1" Zipkin
+                            # collector_endpoint_version because it repesents the Zipkin v1 API, while the
+                            # non-deprecated options HTTP_JSON and HTTP_PROTO are the Zipkin v2 API; switching
+                            # top one of them would change how Envoy talks to the outside world.
+                            'envoy.deprecated_features:envoy.config.trace.v2.ZipkinConfig.HTTP_JSON_V1': True,
+                            # Give our users more time to migrate to v2; we've said that we'll continue
+                            # supporting both for a while even after we change the default.
+                            'envoy.deprecated_features:envoy.config.filter.http.ext_authz.v2.ExtAuthz.use_alpha': True,
+                            # We haven't yet told users that we'll be deprecating `regex_type: unsafe`.
+                            'envoy.deprecated_features:envoy.api.v2.route.RouteMatch.regex': True,         # HTTP path
+                            'envoy.deprecated_features:envoy.api.v2.route.HeaderMatcher.regex_match': True # HTTP header
+                        }
+                    }
+                ]
+            }
         }
 
         bootstrap_config = dict(self.bootstrap)

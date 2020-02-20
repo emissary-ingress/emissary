@@ -37,7 +37,7 @@ cert-manager supports two kinds of ACME challenges that verify domain ownership 
 
 #### HTTP-01 Challenge
 
-The HTTP-01 challenge verifies ownership of the domain by sending a request for a specific file on that domain. cert-manager accomplishes this by sending a request to a temporary pod with the prefix `/.well-known/acme-challenge`. To perform this challenge:
+The HTTP-01 challenge verifies ownership of the domain by sending a request for a specific file on that domain. cert-manager accomplishes this by sending a request to a temporary pod with the prefix `/.well-known/acme-challenge/`. To perform this challenge:
 
 1. Create a `ClusterIssuer`:
 
@@ -109,9 +109,9 @@ The HTTP-01 challenge verifies ownership of the domain by sending a request for 
     Error preparing issuer for certificate default/ambassador-certs: http-01 self check failed for domain "example.com
     ```
 
-4. Create a Mapping for the `/.well-known/acme-challenge` route.
+4. Create a Mapping for the `/.well-known/acme-challenge/` route.
 
-cert-manager uses an `Ingress` resource to issue the challenge to `/.well-known/acme-challenge` but, since Ambassador is not an `Ingress`, we will need to create a `Mapping` so the cert-manager can reach the temporary pod.
+cert-manager uses an `Ingress` resource to issue the challenge to `/.well-known/acme-challenge/` but, since Ambassador is not an `Ingress`, we will need to create a `Mapping` so the cert-manager can reach the temporary pod.
  
 ```yaml
     ---
@@ -120,7 +120,7 @@ cert-manager uses an `Ingress` resource to issue the challenge to `/.well-known/
     metadata:
       name: acme-challenge-mapping
     spec:
-      prefix: /.well-known/acme-challenge
+      prefix: /.well-known/acme-challenge/
       rewrite: ""
       service: acme-challenge-service
 
