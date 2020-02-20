@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -404,7 +405,16 @@ func (c *Controller) recordHostError(logger dlog.Logger, host *ambassadorTypesV2
 	if host.Status.ErrorBackoff != nil {
 		prevBackoff = *host.Status.ErrorBackoff
 	}
-	nextBackoff := getNextBackoff(prevBackoff)
+
+	// This heuristic tries to detect whether the error is that the ACME
+	// provider got NXDOMAIN for the provided hostname. It specifically handles
+	// the error message returned by Let's Encrypt in Feb 2020, but it may cover
+	// others as well. The goal is to try ACME again much sooner for this case,
+	// as we expect NXDOMAIN to be resolved quickly. We ran into this when
+	// giving users *.edgestack.me domain names with `edgectl install`.
+	isAcmeNxDomain := strings.Contains(host.Status.ErrorReason, "NXDOMAIN")
+
+	nextBackoff := getNextBackoff(prevBackoff, isAcmeNxDomain)
 	host.Status.ErrorBackoff = &nextBackoff
 
 	if err := c.updateHost(host); err != nil {
@@ -920,15 +930,29 @@ func (c *Controller) rectifyPhase4(logger dlog.Logger,
 	logger.Debugln("rectify: finished")
 }
 
-func getNextBackoff(prevBackoff time.Duration) time.Duration {
+func getNextBackoff(prevBackoff time.Duration, isAcmeNxdomain bool) time.Duration {
 	// The letsencrypt ratelimit is 5 failures per account, per
 	// hostname, per hour.  So we could be pretty safe with, say,
 	// a 15m backoff.  But let's do an exponential backoff anyway,
 	// starting at 10m, and maxing out at 24h.
 	if prevBackoff == 0 {
-		return 10 * time.Minute
+		if isAcmeNxdomain {
+			// If the ACME server responds that it got an
+			// NXDOMAIN, then we want to start off with a
+			// particularly small backoff, because it will
+			// likely be resolved quickly...
+			return 1 * time.Minute
+		}
+		return 5 * time.Minute
 	}
-	ret := prevBackoff * 2
+	var ret time.Duration
+	if isAcmeNxdomain {
+		// ...but then we'll grow the backoff slightly more
+		// aggressively, to avoid hitting the rate-limit.
+		ret = prevBackoff * 3
+	} else {
+		ret = prevBackoff * 2
+	}
 	if ret > 24*time.Hour {
 		return 24 * time.Hour
 	}

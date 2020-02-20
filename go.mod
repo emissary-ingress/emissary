@@ -5,6 +5,7 @@ go 1.13
 require (
 	github.com/Jeffail/gabs v1.2.0
 	github.com/aclements/go-moremath v0.0.0-20180329182055-b1aff36309c7
+	github.com/aws/aws-sdk-go v1.23.0
 	github.com/datawire/ambassador v0.83.1-ea10
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/die-net/lrucache v0.0.0-20181227122439-19a39ef22a11
@@ -12,11 +13,13 @@ require (
 	github.com/go-acme/lego/v3 v3.1.0
 	github.com/gobwas/glob v0.2.3
 	github.com/gogo/protobuf v1.3.0
+	github.com/golang-migrate/migrate/v4 v4.8.0
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/mux v1.7.3
 	github.com/gregjones/httpcache v0.0.0-20170728041850-787624de3eb7
 	github.com/hashicorp/consul/api v1.1.0
 	github.com/influxdata/tdigest v0.0.0-20181121200506-bf2b5ad3c0a9
+	github.com/jackc/pgx v3.6.2+incompatible
 	github.com/jcuga/golongpoll v0.0.0-20180711123949-939e3befd837
 	github.com/jpillora/backoff v1.0.0
 	github.com/lyft/goruntime v0.1.8
