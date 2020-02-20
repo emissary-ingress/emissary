@@ -52,6 +52,7 @@ metadata:
 spec:
   config:
     x_forwarded_proto_redirect: true
+    use_remote_address: false
 ```
 
 Note: Setting `x_forwarded_proto_redirect: true` will impact all your Ambassador Edge Stack mappings. Every HTTP request to Ambassador Edge Stack will only be allowed to pass if it has an `X-FORWARDED-PROTO: https` header.
