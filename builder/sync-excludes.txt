@@ -1,5 +1,10 @@
 *.version
 *.tmp
+*.log
+*.stamp
+*.tap
+*.webm
+*.o
 .git
 *.egg-info
 __pycache__
@@ -7,10 +12,21 @@ __pycache__
 .mypy_cache
 .dmypy.json
 go.sum
+
+bin/
+node_modules/
+venv/
+
+# absolute names
 /Makefile
 /builder/
-/bin_linux_amd64/
-/bin_darwin_amd64/
 /cxx/envoy/
-/ambassador/
 /vendor/
+/docker/
+
+# absolute names (apro.git)
+/aes-example-plugins/
+/ambassador/
+/bin_darwin_amd64/
+/bin_linux_amd64/
+/tests/cluster/go-test/consul/new_root.*

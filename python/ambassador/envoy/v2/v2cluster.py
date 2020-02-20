@@ -74,13 +74,20 @@ class V2Cluster(dict):
             # minimal `tls_context` to enable HTTPS origination.
 
             if ctx.get('_ambassador_enabled', False):
-                fields['tls_context'] = {
+                envoy_ctx = {
                     'common_tls_context': {}
                 }
             else:
                 envoy_ctx = V2TLSContext(ctx=ctx, host_rewrite=cluster.get('host_rewrite', None))
-                if envoy_ctx:
-                    fields['tls_context'] = envoy_ctx
+
+            if envoy_ctx:
+                fields['transport_socket'] = {
+                    'name': 'envoy.transport_sockets.tls',
+                    'typed_config': {
+                        '@type': 'type.googleapis.com/envoy.api.v2.auth.UpstreamTlsContext',
+                        **envoy_ctx
+                    }
+                }
 
 
         keepalive = cluster.get('keepalive', None)

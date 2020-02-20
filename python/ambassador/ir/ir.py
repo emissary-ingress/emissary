@@ -325,7 +325,7 @@ class IR:
 
         for secret_key, aconf_secret in aconf_secrets.items():
             # Ignore anything that doesn't at least have a public half.
-            if aconf_secret.get('tls_crt'):
+            if aconf_secret.get('tls_crt') or aconf_secret.get('cert-chain_pem'):
                 secret_info = SecretInfo.from_aconf_secret(aconf_secret)
                 secret_name = secret_info.name
                 secret_namespace = secret_info.namespace
@@ -395,7 +395,7 @@ class IR:
         if not secret_info:
             self.logger.error(f"Secret {ss_key} unknown")
 
-            ss = SavedSecret(secret_name, namespace, None, None, None, None)
+            ss = SavedSecret(secret_name, namespace, None, None, None, None, None)
         else:
             self.logger.debug(f"resolve_secret {ss_key}: found secret, asking handler to cache")
 
@@ -709,6 +709,9 @@ class IR:
         od['service_resource_total'] = len(list(self.services.keys()))
 
         od['xff_num_trusted_hops'] = self.ambassador_module.get('xff_num_trusted_hops', 0)
+
+        od['listener_idle_timeout_ms'] = self.ambassador_module.get('listener_idle_timeout_ms', None)
+
         od['server_name'] = bool(self.ambassador_module.server_name != 'envoy')
 
         od['custom_ambassador_id'] = bool(self.ambassador_id != 'default')

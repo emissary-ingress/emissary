@@ -69,7 +69,7 @@ bootstrap() {
 
     if [ -z "$(builder)" ] ; then
         printf "${CYN}==> ${GRN}Bootstrapping build image${END}\n"
-        ${DBUILD} --target builder ${DIR} -t builder
+        ${DBUILD} --build-arg envoy="${ENVOY_DOCKER_TAG}" --target builder ${DIR} -t builder
         if [ "$(uname -s)" == Darwin ]; then
             DOCKER_GID=$(stat -f "%g" /var/run/docker.sock)
         else
@@ -81,7 +81,7 @@ bootstrap() {
         fi
 
         echo_on
-        $DOCKER_RUN --network "${DOCKER_NETWORK}" --network-alias "builder" --group-add ${DOCKER_GID} -d --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(builder_volume):/home/dw ${BUILDER_MOUNTS} --cap-add NET_ADMIN -lbuilder -l${BUILDER_NAME} ${BUILDER_PORTMAPS} -e BUILDER_NAME=${BUILDER_NAME} --entrypoint tail builder -f /dev/null > /dev/null
+        $DOCKER_RUN --name "builder-${BUILDER_NAME}" --network "${DOCKER_NETWORK}" --network-alias "builder" --group-add ${DOCKER_GID} -d --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(builder_volume):/home/dw ${BUILDER_MOUNTS} --cap-add NET_ADMIN -lbuilder -l${BUILDER_NAME} ${BUILDER_PORTMAPS} -e BUILDER_NAME=${BUILDER_NAME} --entrypoint tail builder -f /dev/null > /dev/null
         echo_off
 
         printf "${GRN}Started build container ${BLU}$(builder)${END}\n"
@@ -179,7 +179,7 @@ summarize-sync() {
             break
         fi
         line="${lines[$i]}"
-        printf "  ${CYN}${line}${END}\n"
+        printf "  ${CYN}%s${END}\n" "$line"
     done
     if [ -n "${PARTIAL}" ]; then
         printf "  ${CYN}...${END}\n"
@@ -356,11 +356,11 @@ case "${cmd}" in
             docker rmi -f "${name}" &> /dev/null
             docker commit -c 'ENTRYPOINT [ "/bin/bash" ]' $(builder) "${name}"
             printf "${CYN}==> ${GRN}Building ${BLU}${BUILDER_NAME}${END}\n"
-            ${DBUILD} ${DIR} --build-arg artifacts=${name} --target ambassador -t ${BUILDER_NAME}
+            ${DBUILD} ${DIR} --build-arg artifacts=${name} --build-arg envoy="${ENVOY_DOCKER_TAG}" --target ambassador -t ${BUILDER_NAME}
             printf "${CYN}==> ${GRN}Building ${BLU}kat-client${END}\n"
-            ${DBUILD} ${DIR} --build-arg artifacts=${name} --target kat-client -t kat-client
+            ${DBUILD} ${DIR} --build-arg artifacts=${name} --build-arg envoy="${ENVOY_DOCKER_TAG}" --target kat-client -t kat-client
             printf "${CYN}==> ${GRN}Building ${BLU}kat-server${END}\n"
-            ${DBUILD} ${DIR} --build-arg artifacts=${name} --target kat-server -t kat-server
+            ${DBUILD} ${DIR} --build-arg artifacts=${name} --build-arg envoy="${ENVOY_DOCKER_TAG}" --target kat-server -t kat-server
         fi
         dexec rm -f /buildroot/image.dirty
         ;;

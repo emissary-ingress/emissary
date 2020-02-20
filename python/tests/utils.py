@@ -172,7 +172,7 @@ metadata:
 def create_qotm_mapping(namespace):
     qotm_mapping = f"""
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name:  qotm-mapping

@@ -95,21 +95,21 @@ Once you've sorted out how to move data around:
 3. From inside the build shell, run
 
    ```
-   python ambassador/python/mockery.py $path_to_your_file
+   mockery $path_to_your_file
    ```
 
    If you're using a non-default `ambassador_id` you need to provide it in the
    environment:
 
    ```
-   AMBASSADOR_ID=whatever python ambassador/python/mockery.py $path_to_your_file
+   AMBASSADOR_ID=whatever mockery $path_to_your_file
    ```
 
    Finally, if you're trying to mimic `KAT`, copy the `/tmp/k8s-AmbassadorTest.yaml`
    file from a KAT run to use as input, then
 
    ```
-   python ambassador/python/mockery.py --kat $kat_test_name $path_to_k8s_AmbassadorTest.yaml
+   mockery --kat $kat_test_name $path_to_k8s_AmbassadorTest.yaml
    ```
 
    where `$kat_test_name` is the class name of a `KAT` test class, like `LuaTest` or

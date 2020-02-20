@@ -49,6 +49,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 8877,
             "_referenced_by": [
@@ -83,6 +84,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "echo.websocket.org",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -119,6 +121,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "httpbin.org",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -156,6 +159,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-addreqheadersmapping-grpc-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -190,6 +194,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-addreqheadersmapping-http-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -224,6 +229,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-canarydiffmapping-grpc-0-grpc-canary.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -259,6 +265,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-canarydiffmapping-grpc-0-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -294,6 +301,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-canarydiffmapping-grpc-100-grpc-canary.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -329,6 +337,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-canarydiffmapping-grpc-100-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -364,6 +373,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-canarydiffmapping-grpc-10-grpc-canary.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -399,6 +409,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-canarydiffmapping-grpc-10-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -434,6 +445,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-canarydiffmapping-grpc-50-grpc-canary.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -469,6 +481,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-canarydiffmapping-grpc-50-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -504,6 +517,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-canarydiffmapping-http-0-http-canary.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -539,6 +553,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-canarydiffmapping-http-0-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -574,6 +589,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-canarydiffmapping-http-100-http-canary.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -609,6 +625,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-canarydiffmapping-http-100-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -644,6 +661,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-canarydiffmapping-http-10-http-canary.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -679,6 +697,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-canarydiffmapping-http-10-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -714,6 +733,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-canarydiffmapping-http-50-http-canary.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -749,6 +769,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-canarydiffmapping-http-50-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -784,6 +805,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-canarymapping-grpc-0-grpc-canary.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -818,6 +840,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-canarymapping-grpc-0-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -852,6 +875,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-canarymapping-grpc-100-grpc-canary.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -886,6 +910,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-canarymapping-grpc-100-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -920,6 +945,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-canarymapping-grpc-10-grpc-canary.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -954,6 +980,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-canarymapping-grpc-10-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -988,6 +1015,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-canarymapping-grpc-50-grpc-canary.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -1022,6 +1050,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-canarymapping-grpc-50-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -1056,6 +1085,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-canarymapping-http-0-http-canary.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -1090,6 +1120,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-canarymapping-http-0-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -1124,6 +1155,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-canarymapping-http-100-http-canary.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -1158,6 +1190,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-canarymapping-http-100-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -1192,6 +1225,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-canarymapping-http-10-http-canary.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -1226,6 +1260,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-canarymapping-http-10-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -1260,6 +1295,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-canarymapping-http-50-http-canary.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -1294,6 +1330,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-canarymapping-http-50-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -1328,6 +1365,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-headerroutingtest-grpc-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -1362,6 +1400,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-headerroutingtest-grpc-grpc-target2.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -1396,6 +1435,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-headerroutingtest-http-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -1430,6 +1470,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-headerroutingtest-http-http-target2.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -1464,6 +1505,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-hostheadermapping-grpc-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -1498,6 +1540,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-hostheadermapping-http-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -1532,6 +1575,7 @@
             "_active": false,
             "_errored": false,
             "_hostname": "plain-invalidportmapping-grpc-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -1559,6 +1603,7 @@
             "_active": false,
             "_errored": false,
             "_hostname": "plain-invalidportmapping-http-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -1586,6 +1631,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simpleingresswithannotations-grpc-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -1620,6 +1666,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simpleingresswithannotations-http-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -1654,6 +1701,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-addrequestheaders-aoo-tyu-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -1688,6 +1736,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-addrequestheaders-foo-bar-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -1722,6 +1771,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-addrequestheaders-moo-arf-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -1756,6 +1806,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-addrequestheaders-xoo-dwe-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -1790,6 +1841,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-addrequestheaders-zoo-bar-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -1824,6 +1876,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-addresponseheaders-aoo-tyu-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -1858,6 +1911,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-addresponseheaders-foo-bar-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -1892,6 +1946,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-addresponseheaders-moo-arf-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -1926,6 +1981,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-addresponseheaders-xoo-dwe-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -1960,6 +2016,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-addresponseheaders-zoo-bar-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -1994,6 +2051,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-all-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -2028,6 +2086,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-autohostrewrite-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -2062,6 +2121,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-casesensitive-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -2096,6 +2156,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-cors-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -2130,6 +2191,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -2164,6 +2226,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-removeresponseheaders-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -2198,6 +2261,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-rewrite-foo-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -2232,6 +2296,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-rewrite-slash-foo-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -2266,6 +2331,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-usewebsocket-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -2300,6 +2366,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-http-addrequestheaders-aoo-tyu-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -2334,6 +2401,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-http-addrequestheaders-foo-bar-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -2368,6 +2436,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-http-addrequestheaders-moo-arf-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -2402,6 +2471,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-http-addrequestheaders-xoo-dwe-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -2436,6 +2506,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-http-addrequestheaders-zoo-bar-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -2470,6 +2541,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-http-addresponseheaders-aoo-tyu-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -2504,6 +2576,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-http-addresponseheaders-foo-bar-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -2538,6 +2611,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-http-addresponseheaders-moo-arf-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -2572,6 +2646,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-http-addresponseheaders-xoo-dwe-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -2606,6 +2681,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-http-addresponseheaders-zoo-bar-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -2640,6 +2716,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-http-all-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -2674,6 +2751,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-http-autohostrewrite-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -2708,6 +2786,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-http-casesensitive-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -2742,6 +2821,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-http-cors-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -2776,6 +2856,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-http-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -2810,6 +2891,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-http-removeresponseheaders-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -2844,6 +2926,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-http-rewrite-foo-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -2878,6 +2961,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-http-rewrite-slash-foo-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -2912,6 +2996,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemapping-http-usewebsocket-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -2946,6 +3031,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-tlsorigination-grpc-implicit-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 443,
             "_referenced_by": [
@@ -2996,6 +3082,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-tlsorigination-http-implicit-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 443,
             "_referenced_by": [
@@ -3046,6 +3133,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-hostheadermappingingress-grpc-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -3080,6 +3168,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-hostheadermappingingress-http-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -3114,6 +3203,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simpleingresswithannotations-grpc-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -3148,6 +3238,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simpleingresswithannotations-http-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -3182,6 +3273,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemappingingress-grpc-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -3216,6 +3308,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-simplemappingingress-http-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 80,
             "_referenced_by": [
@@ -3250,6 +3343,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-tlsorigination-grpc-explicit-grpc.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 443,
             "_referenced_by": [
@@ -3300,6 +3394,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "plain-tlsorigination-http-explicit-http.plain-namespace",
+            "_is_sidecar": false,
             "_namespace": "plain-namespace",
             "_port": 443,
             "_referenced_by": [
@@ -3411,6 +3506,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-addresponseheaders-zoo-bar-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -3518,6 +3614,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-addresponseheaders-xoo-dwe-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -3619,6 +3716,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-addresponseheaders-moo-arf-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -3720,6 +3818,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-addresponseheaders-foo-bar-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -3825,6 +3924,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-addresponseheaders-aoo-tyu-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -3932,6 +4032,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-addresponseheaders-zoo-bar-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -4039,6 +4140,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-addresponseheaders-xoo-dwe-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -4140,6 +4242,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-addresponseheaders-moo-arf-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -4241,6 +4344,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-addresponseheaders-foo-bar-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -4346,6 +4450,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-addresponseheaders-aoo-tyu-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -4452,6 +4557,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-addrequestheaders-zoo-bar-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -4558,6 +4664,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-addrequestheaders-xoo-dwe-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -4658,6 +4765,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-addrequestheaders-moo-arf-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -4758,6 +4866,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-addrequestheaders-foo-bar-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -4862,6 +4971,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-addrequestheaders-aoo-tyu-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -4968,6 +5078,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-addrequestheaders-zoo-bar-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -5074,6 +5185,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-addrequestheaders-xoo-dwe-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -5174,6 +5286,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-addrequestheaders-moo-arf-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -5274,6 +5387,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-addrequestheaders-foo-bar-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -5378,6 +5492,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-addrequestheaders-aoo-tyu-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -5473,6 +5588,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-removeresponseheaders-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -5570,6 +5686,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-removeresponseheaders-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -5667,6 +5784,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simpleingresswithannotations-http-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -5764,6 +5882,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simpleingresswithannotations-grpc-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -5861,6 +5980,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-rewrite-slash-foo-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -5956,6 +6076,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-rewrite-slash-foo-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -6053,6 +6174,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-autohostrewrite-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -6150,6 +6272,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-autohostrewrite-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -6245,6 +6368,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simpleingresswithannotations-http-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -6342,6 +6466,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simpleingresswithannotations-grpc-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -6441,6 +6566,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-casesensitive-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -6538,6 +6664,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-casesensitive-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -6633,6 +6760,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-usewebsocket-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -6730,6 +6858,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-usewebsocket-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -6827,6 +6956,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-rewrite-foo-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -6922,6 +7052,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-rewrite-foo-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -7024,6 +7155,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-hostheadermappingingress-http-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -7136,6 +7268,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-hostheadermappingingress-grpc-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -7241,6 +7374,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-tlsorigination-http-implicit-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 443,
                         "_referenced_by": [
@@ -7352,6 +7486,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-tlsorigination-http-explicit-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 443,
                         "_referenced_by": [
@@ -7465,6 +7600,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-tlsorigination-grpc-implicit-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 443,
                         "_referenced_by": [
@@ -7576,6 +7712,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-tlsorigination-grpc-explicit-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 443,
                         "_referenced_by": [
@@ -7689,6 +7826,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "httpbin.org",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -7795,6 +7933,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "httpbin.org",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -7903,6 +8042,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-canarydiffmapping-http-100-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -7969,6 +8109,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-canarydiffmapping-http-100-http-canary.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -8068,6 +8209,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-canarydiffmapping-grpc-100-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -8134,6 +8276,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-canarydiffmapping-grpc-100-grpc-canary.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -8259,6 +8402,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "httpbin.org",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -8385,6 +8529,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "httpbin.org",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -8483,6 +8628,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemappingingress-http-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -8580,6 +8726,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemappingingress-grpc-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -8679,6 +8826,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-canarydiffmapping-http-50-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -8745,6 +8893,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-canarydiffmapping-http-50-http-canary.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -8844,6 +8993,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-canarydiffmapping-http-10-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -8910,6 +9060,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-canarydiffmapping-http-10-http-canary.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -9009,6 +9160,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-canarydiffmapping-grpc-50-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -9075,6 +9227,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-canarydiffmapping-grpc-50-grpc-canary.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -9174,6 +9327,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-canarydiffmapping-grpc-10-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -9240,6 +9394,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-canarydiffmapping-grpc-10-grpc-canary.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -9364,6 +9519,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-addreqheadersmapping-http-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -9486,6 +9642,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-addreqheadersmapping-grpc-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -9584,6 +9741,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 8877,
                         "_referenced_by": [
@@ -9674,6 +9832,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 8877,
                         "_referenced_by": [
@@ -9763,6 +9922,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-canarydiffmapping-http-0-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -9829,6 +9989,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-canarydiffmapping-http-0-http-canary.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -9928,6 +10089,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-canarydiffmapping-grpc-0-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -9994,6 +10156,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-canarydiffmapping-grpc-0-grpc-canary.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -10071,8 +10234,10 @@
             ],
             "_rkey": "plain-simplemapping-http-cors-http.plain-namespace.1",
             "cors": {
-                "allow_origin": [
-                    "*"
+                "allow_origin_string_match": [
+                    {
+                        "exact": "*"
+                    }
                 ],
                 "filter_enabled": {
                     "default_value": {
@@ -10103,6 +10268,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-cors-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -10134,8 +10300,10 @@
                         ]
                     },
                     "cors": {
-                        "allow_origin": [
-                            "*"
+                        "allow_origin_string_match": [
+                            {
+                                "exact": "*"
+                            }
                         ],
                         "filter_enabled": {
                             "default_value": {
@@ -10190,8 +10358,10 @@
             ],
             "_rkey": "plain-simplemapping-grpc-cors-grpc.plain-namespace.1",
             "cors": {
-                "allow_origin": [
-                    "*"
+                "allow_origin_string_match": [
+                    {
+                        "exact": "*"
+                    }
                 ],
                 "filter_enabled": {
                     "default_value": {
@@ -10222,6 +10392,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-cors-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -10253,8 +10424,10 @@
                         ]
                     },
                     "cors": {
-                        "allow_origin": [
-                            "*"
+                        "allow_origin_string_match": [
+                            {
+                                "exact": "*"
+                            }
                         ],
                         "filter_enabled": {
                             "default_value": {
@@ -10329,6 +10502,7 @@
                         "_active": false,
                         "_errored": false,
                         "_hostname": "plain-invalidportmapping-http-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -10417,6 +10591,7 @@
                         "_active": false,
                         "_errored": false,
                         "_hostname": "plain-invalidportmapping-grpc-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -10512,6 +10687,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-hostheadermapping-http-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -10622,6 +10798,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-hostheadermapping-grpc-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -10732,6 +10909,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-headerroutingtest-http-http-target2.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -10841,6 +11019,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-headerroutingtest-grpc-grpc-target2.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -10931,8 +11110,10 @@
             "auto_host_rewrite": true,
             "case_sensitive": false,
             "cors": {
-                "allow_origin": [
-                    "*"
+                "allow_origin_string_match": [
+                    {
+                        "exact": "*"
+                    }
                 ],
                 "filter_enabled": {
                     "default_value": {
@@ -10970,6 +11151,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-all-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -11001,8 +11183,10 @@
                         ]
                     },
                     "cors": {
-                        "allow_origin": [
-                            "*"
+                        "allow_origin_string_match": [
+                            {
+                                "exact": "*"
+                            }
                         ],
                         "filter_enabled": {
                             "default_value": {
@@ -11069,8 +11253,10 @@
             "auto_host_rewrite": true,
             "case_sensitive": false,
             "cors": {
-                "allow_origin": [
-                    "*"
+                "allow_origin_string_match": [
+                    {
+                        "exact": "*"
+                    }
                 ],
                 "filter_enabled": {
                     "default_value": {
@@ -11108,6 +11294,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-all-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -11139,8 +11326,10 @@
                         ]
                     },
                     "cors": {
-                        "allow_origin": [
-                            "*"
+                        "allow_origin_string_match": [
+                            {
+                                "exact": "*"
+                            }
                         ],
                         "filter_enabled": {
                             "default_value": {
@@ -11219,6 +11408,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-headerroutingtest-http-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -11314,6 +11504,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-headerroutingtest-grpc-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -11410,6 +11601,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-canarymapping-http-100-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -11474,6 +11666,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-canarymapping-http-100-http-canary.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -11570,6 +11763,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-canarymapping-grpc-100-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -11634,6 +11828,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-canarymapping-grpc-100-grpc-canary.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -11730,6 +11925,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "echo.websocket.org",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -11831,6 +12027,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "echo.websocket.org",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -11987,6 +12184,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-canarymapping-http-50-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -12051,6 +12249,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-canarymapping-http-50-http-canary.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -12147,6 +12346,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-canarymapping-http-10-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -12211,6 +12411,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-canarymapping-http-10-http-canary.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -12307,6 +12508,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-canarymapping-grpc-50-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -12371,6 +12573,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-canarymapping-grpc-50-grpc-canary.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -12467,6 +12670,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-canarymapping-grpc-10-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -12531,6 +12735,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-canarymapping-grpc-10-grpc-canary.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -12627,6 +12832,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-canarymapping-http-0-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -12691,6 +12897,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-canarymapping-http-0-http-canary.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -12787,6 +12994,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-canarymapping-grpc-0-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -12851,6 +13059,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-canarymapping-grpc-0-grpc-canary.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -12999,6 +13208,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-http.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -13094,6 +13304,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-grpc.plain-namespace",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 80,
                         "_referenced_by": [
@@ -13192,6 +13403,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
                         "_namespace": "plain-namespace",
                         "_port": 8877,
                         "_referenced_by": [
@@ -13260,13 +13472,6 @@
         "ambassador_nodename": "plain-plain-namespace"
     },
     "k8s_status_updates": {
-        "hostheadermappingingress-grpc": [
-            "Ingress",
-            "plain-namespace",
-            {
-                "loadBalancer": {}
-            }
-        ],
         "hostheadermappingingress-grpc-0-0.plain-namespace": [
             "Mapping",
             "plain-namespace",
@@ -13274,7 +13479,7 @@
                 "state": "Running"
             }
         ],
-        "hostheadermappingingress-http": [
+        "hostheadermappingingress-grpc.plain-namespace": [
             "Ingress",
             "plain-namespace",
             {
@@ -13288,7 +13493,7 @@
                 "state": "Running"
             }
         ],
-        "simpleingresswithannotations-grpc": [
+        "hostheadermappingingress-http.plain-namespace": [
             "Ingress",
             "plain-namespace",
             {
@@ -13302,7 +13507,7 @@
                 "state": "Running"
             }
         ],
-        "simpleingresswithannotations-http": [
+        "simpleingresswithannotations-grpc.plain-namespace": [
             "Ingress",
             "plain-namespace",
             {
@@ -13316,7 +13521,7 @@
                 "state": "Running"
             }
         ],
-        "simplemappingingress-grpc": [
+        "simpleingresswithannotations-http.plain-namespace": [
             "Ingress",
             "plain-namespace",
             {
@@ -13330,7 +13535,7 @@
                 "state": "Running"
             }
         ],
-        "simplemappingingress-http": [
+        "simplemappingingress-grpc.plain-namespace": [
             "Ingress",
             "plain-namespace",
             {
@@ -13342,6 +13547,13 @@
             "plain-namespace",
             {
                 "state": "Running"
+            }
+        ],
+        "simplemappingingress-http.plain-namespace": [
+            "Ingress",
+            "plain-namespace",
+            {
+                "loadBalancer": {}
             }
         ]
     },
