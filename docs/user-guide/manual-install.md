@@ -1,9 +1,14 @@
 ---
     description: In this guide, we'll walk through the process of deploying Ambassador Edge Stack in Kubernetes for ingress routing.
 ---
-# Quick Start Installation Guide
+# Manual Installation Guide
 
-In this guide, we'll walk you through installing and configuring the Ambassador Edge Stack in your Kubernetes cluster. Within a few minutes, your cluster will be routing HTTPS requests from the Internet to a backend service. You'll also have a sense of how the Ambassador Edge Stack is managed.
+In this guide, we'll walk you through installing, configuring, and customizing
+the Ambassador Edge Stack in your Kubernetes cluster.
+
+The manual install process does require more user configuration than the [quick
+start method](/user-guide/getting-started), but it does allow you to control the
+aspects of your base Edge Stack installation.
 
 ## Before You Begin
 

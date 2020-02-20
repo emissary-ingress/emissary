@@ -35,14 +35,22 @@ accessible cluster, it will:
 * [Windows](https://metriton.datawire.io/downloads/windows/edgectl.exe)
 * or use a [curl command](/reference/edgectl-download).
 
+If using macOS, you may encounter a security block. To change this you need to enable permissions to download files
+outside of the app store. To change this:
+
+  * Go to **System Preferences > Security & Privacy**.
+  * Click the **Open Anywway** button.
+  * Click the **Open** button.
+
 2. Move the file into your PATH (for Windows users, move it into the Windows
    Systems path).
    * Print your PATH with `echo $PATH`
-3. Ensure the file is executable with the command `chmod a+x /usr/local/bin/edgectl`
-4. Run the executable file with the command `./edgectl`
-5. Now, run the following command: `edgectl install`
+   * For Linux and MacOS, ensure the file is executable with the command `chmod a+x /usr/local/bin/edgectl`
+   * Run the executable file with the command `./edgectl`
+3. Now, run the following command: `edgectl install`
 
-    Your terminal will print something similar to the following:
+    Your terminal will print something similar to the following as it provisions
+    a load balancer, configures TLS, and provides you with an `edgestack.me` subdomain:
 
     ```shell
     $ edgectl install
@@ -64,13 +72,17 @@ accessible cluster, it will:
     Congratulations, you’ve successfully installed the Ambassador Edge Stack in your Kubernetes cluster. Visit http://192.168.64.2:31334 to access your Edge Stack installation and for additional configuration.
     ```
 
-6. Provide an email address as required by the ACME TLS certificate provider, Let's Encrypt. Then your terminal will print something similar to the following:
+4. Provide an email address as required by the ACME TLS certificate provider, Let's Encrypt. Then your terminal will print something similar to the following:
 
     ```shell
     -> Obtaining a TLS certificate from Let’s Encrypt.
 
     Congratulations, you’ve successfully installed the Ambassador Edge Stack in your Kubernetes cluster. Visit https://random-word-3421.edgestack.me to access your Edge Stack installation and for additional configuration.
     ```
+
+    The `random-word-1234.edgestack.me` is a provided subdomain that allows the
+    Ambassador Edge Stack to automatically provision TLS and HTTPS for a domain
+    name, so you can get started right away.
 
 Your new [Edge Policy Console](/about/edge-policy-console) will open
 automatically in your browser at the provided URL or IP address. **Note that the provided `random-word.edgestack.me` domain name will expire after 90 days**.
