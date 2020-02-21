@@ -11,6 +11,7 @@ Then, please review the following recommendations for the Ambassador Edge Stack:
 * Resource Recommendations
 * Version Control
 * Requirements for the Edge Policy Console
+* VM Recommendations
 
 ## Port Assignments
 
@@ -58,3 +59,26 @@ The Edge Policy Console will work best in the following browsers:
 * Chrome 61+
 * Safari 11+
 * Opera 41
+
+## VM Recommendations
+
+If you are using a VM to run the Ambassador Edge Stack, we recommend VM sizes
+with 8 or more vCPU, such as D8s-v3 or higher.
+
+These models sizes provide better latency for traffic, while keeping
+reconfiguration times under control.
+
+The following table shows the reconfiguration latency of a new mapping in
+different VM sizes, measured at the same time the `Mapping` is
+applied in the system, until it is effectively available.
+
+| Machine Model    | vCPUs | mem | mbps | Num Nodes | Reconfiguration latency |
+|------------------|-------|-----|------|-----------|-------------------------|
+| Standard_A4_v2   | 4     | 8   | 1000 | 3         | 5.7s                    |
+| Standard_A8_v2   | 8     | 16  | 2000 | 3         | 5.6s                    |
+| Standard_D8s_v3  | 8     | 32  | 4000 | 3         | 3.4s                    |
+| Standard_DS4_v2  | 8     | 28  | 6000 | 3         | 1.2s                    |
+| Standard_F16s_v2 | 16    | 32  | 7000 | 3         | 2.3s                    |
+| Standard_E16_v3  | 16    | 128 | 8000 | 3         | 2.3s                    |
+
+[Read more about general purpose VMs](https://docs.microsoft.com/en-us/azure/virtual-machines/sizes-general#av2-series).
