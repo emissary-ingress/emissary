@@ -9,43 +9,16 @@ integrations, and provides a reference architecture for ease of use. [Read more]
 
 A Kubernetes operator is a software extension that makes it easier to manage and automate your Kubernetes-based applications, in the spirit of a human operator. Operators complete actions such as deploying, upgrading and maintaining applications. and many others. Read more about Kubernetes Operators [here](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/).
 
-This document covers the following for the Operator:
-* Configuration
-* Installation
-* Troubleshooting
+This document covers the configuration and the installation of the Operator for:
 
-## Operator Configuration
+* Helm chart
+* The Ambassador Edge Stack
 
-You can configure the Operator to best fit your environment:
-
-1. Automatic updates for Helm
-2. Automatic updates for Ambassador
-3. Custom configurations
-
-### Helm Updates via Operator
-
-After the AmbassadorInstallation is created for the first time, the Operator will then use the list of releases available for the Ambassador Helm Chart for determining the most recent version that can be installed, using the optional Version Syntax for filtering the releases that are acceptable. It will then install Ambassador, using any extra arguments provided in the `AmbassadorInstallation`, like the `baseImage`, the `logLevel` or any of the helmValues.
-
-For example:
-
-```shell
-$ cat <<EOF | kubectl apply -n ambassador -f -
-apiVersion: getambassador.io/v2
-kind: AmbassadorInstallation
-metadata:
-  name: ambassador
-spec:
-  version: 1.1.0
-EOF
-```
-
-After applying an AmbassadorInstallation customer resource like this in a new cluster, the Operator will install a new instance of Ambassador 1.1.0 in the `ambassador` namespace, immediately. Removing this AmbassadorInstallation will uninstall Ambassador from this namespace.
-
-### Ambassador Updates via Operator
+## Operator Configuration for Ambassador Edge Stack
 
 After the initial installation of Ambassador, the Operator will check for updates every 24 hours and delay the update until the Update Window allow the update to proceed. It will use the Version Syntax for determining if any new release is acceptable. When a new release is available and acceptable, the Operator will upgrade the Ambassador installation.
 
-### Custom Configurations: Version Syntax and Update Window
+### Version Syntax and Update Window
 
 To specify version numbers, use SemVer for the version number for any level of
 precision. This can optionally end in `*`.  For example:
@@ -82,13 +55,6 @@ examples of `updateWindow` are:
 
 The Operator cannot guarantee minute time granularity, so specifying a minute in the crontab expression can lead to some updates happening sooner/later than expected.
 
-## Install the AES Operator
-
-You can install the AES Operator in a number of ways:
-
-* Manually
-* Helm Chart
-* OperatorHub.io
 
 ### Install Manually
 
@@ -112,7 +78,7 @@ Then, create the `AmbassadorInstallation` Custom Resource schema and apply it to
 3. Edit the `amb-install.yaml` and optionally complete configurations such as Version constraint or UpdateWindow:
 4. Finally, apply your `AmbassadorInstallation` CRD to the AES Operator schema with the following command: `kubectl apply -n ambassador -f amb-install.yaml`
 
-### Install via Helm Chart
+## Install via Helm Chart
 
 You can also install the AES Operator from a Helm Chart. The following Helm values are supported:
 
@@ -126,6 +92,26 @@ You can also install the AES Operator from a Helm Chart. The following Helm valu
 2. Run the following command: `$ helm install datawire/ambassador-operator`
 3. Once the new Operator is working, create a new CRD called `AmbassadorInstallation` based on the following YAML:
 
-### Verify Configuration
+### Helm Configuration
+
+After the AmbassadorInstallation is created for the first time, the Operator will then use the list of releases available for the Ambassador Helm Chart for determining the most recent version that can be installed, using the optional Version Syntax for filtering the releases that are acceptable. It will then install Ambassador, using any extra arguments provided in the `AmbassadorInstallation`, like the `baseImage`, the `logLevel` or any of the helmValues.
+
+For example:
+
+```shell
+$ cat <<EOF | kubectl apply -n ambassador -f -
+apiVersion: getambassador.io/v2
+kind: AmbassadorInstallation
+metadata:
+  name: ambassador
+spec:
+  version: 1.1.0
+EOF
+```
+
+After applying an AmbassadorInstallation customer resource like this in a new cluster, the Operator will install a new instance of Ambassador 1.1.0 in the `ambassador` namespace, immediately. Removing this AmbassadorInstallation will uninstall Ambassador from this namespace.
+
+
+## Verify Configuration
 
 **To verify that everything was installed and configured correctly,** you can visually confirm the set up in the Edge Policy Console on the “Debugging” tab. Alternatively, you can check the Operator pod in your cluster to check its health and run status.
