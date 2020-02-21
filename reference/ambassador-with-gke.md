@@ -1,12 +1,12 @@
 # Install with Google Kubernetes Engine (GKE) Ingress 
 
 Google offers a [L7 load balancer](https://cloud.google.com/kubernetes-engine/docs/concepts/ingress) to 
-leverage network services like managed SSL certificates, SSL offloading or the Google content delivery network. 
+leverage network services such as managed SSL certificates, SSL offloading or the Google content delivery network. 
 A L7 load balancer in front of Ambassador can be configured by hand or by using the ingress-gce resource. Using the 
 ingress resource also allows you to create google managed SSL certificates through kubernetes.
 
-With this setup HTTPS will be terminated at the Google load balancer. The load balancer will be created and configured by 
-the ingress-gce resource. The load balancer consistes of a set of 
+With this setup, HTTPS will be terminated at the Google load balancer. The load balancer will be created and configured by 
+the ingress-gce resource. The load balancer consists of a set of 
 [forwarding rules](https://cloud.google.com/load-balancing/docs/forwarding-rule-concepts#https_lb) and a set of
 [backend service](https://cloud.google.com/load-balancing/docs/backend-service). 
 In this setup the ingress resource creates two forwarding rules, one for HTTP and one for HTTPS. The HTTPS
@@ -42,7 +42,7 @@ and one services.
 
 ## 2. Install Ambassador
 
-Follow the first section of [installation of Ambassador API](install-ambassador-oss.md) guide to install Ambassador API.
+Follow the first section of [installation of Ambassador API](/user-guide/install-ambassador-oss) guide to install Ambassador API.
 Stop before defining the ambassador service.
 
 Ambassador needs to be deployed as `NodePort` instead of `LoadBalancer` to work with the L7 load balancer and the ingress.
@@ -157,7 +157,7 @@ Now the service health is determined by contacting ambassador-admin service
 
 ### Enabling HTTP -> HTTPS 
 
-- Configure Ambassador to [redirect traffic from HTTP to HTTPS](../reference/tls/cleartext-redirection.md#protocol-based-redirection). 
+- Configure Ambassador to [redirect traffic from HTTP to HTTPS](/reference/tls/cleartext-redirection/#protocol-based-redirection). 
 - you need to restart ambassador to effect the changes
 
 The result should be that http://www.example.com will redirect to https://www.example.com. 

@@ -252,6 +252,8 @@
         link: /reference/running
       - title: Ambassador Edge Stack on AWS
         link: /reference/ambassador-with-aws
+      - title: Ambassador on GKE
+        link: /reference/ambassador-with-gke
       - title: Diagnostics
         link: /reference/diagnostics
       - title: Debugging
