@@ -1,6 +1,11 @@
 # Install Ambassador with Docker
 
-In this Docker quickstart guide, we'll get Ambassador Edge Stack running locally with a demo configuration. In the next section, we'll then walk through how to deploy Ambassador Edge Stack in Kubernetes with a custom configuration.
+In this Docker quickstart guide, we'll get Ambassador Edge Stack running locally
+with a demo configuration. In the next section, we'll then walk through how to
+deploy Ambassador Edge Stack in Kubernetes with a custom configuration.
+
+**Note**: the Edge Policy Console is not supported on the Docker quickstart and
+cannot be accessed.
 
 ## 1. Running the Demo Configuration
 
@@ -16,7 +21,11 @@ Ambassador Edge Stack provides live diagnostics viewable with a web browser. Whi
 
 `http://localhost:8080/ambassador/v0/diag/`
 
-You'll have to authenticate to view this page: use the username `admin`, password `admin` (obviously this would be a poor choice in the real world!). We'll talk more about authentication shortly.
+You'll have to authenticate to view this page: use the username `admin`,
+password `admin` (obviously this would be a poor choice in the real world!).
+We'll talk more about authentication shortly.
+
+To access the Diagnostics page with authentication, use `curl http://localhost:8080/ambassador/v0/diag/ -u admin:admin`
 
 Some of the most important information - your Ambassador Edge Stack version, how recently Ambassador Edge Stack's configuration was updated, and how recently Envoy last reported status to Ambassador Edge Stack - is right at the top. The diagnostics overview can show you what it sees in your configuration map, and which Envoy objects were created based on your configuration.
 
