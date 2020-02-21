@@ -244,6 +244,8 @@
           link: /reference/edge-control
         - title: Edge Control in CI
           link: /reference/edge-control-in-ci
+    - title: Azure Kubernetes Service Architecture
+      link: /reference/aks-architecture
     - title: Developer Portal
       link: /reference/dev-portal    
     - title: Running Ambassador Edge Stack
