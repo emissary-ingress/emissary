@@ -244,8 +244,6 @@
           link: /reference/edge-control
         - title: Edge Control in CI
           link: /reference/edge-control-in-ci
-    - title: Azure Configuration with the Ambassador Operator
-      link: /reference/aks-architecture 
     - title: Developer Portal
       link: /reference/dev-portal    
     - title: Running Ambassador Edge Stack
