@@ -39,7 +39,7 @@ spec:
 EOF
 ```
 
-After applying a CR like this in a new cluster, the Operator will install immediately a new instance of Ambassador 1.1.0 in the `ambassador` namespace. Removing this AmbassadorInstallation will uninstall in this namespace.
+After applying an AmbassadorInstallation customer resource like this in a new cluster, the Operator will install a new instance of Ambassador 1.1.0 in the `ambassador` namespace, immediately. Removing this AmbassadorInstallation will uninstall Ambassador from this namespace.
 
 ### Ambassador Updates via Operator
 
