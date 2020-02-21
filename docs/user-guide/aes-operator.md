@@ -15,7 +15,8 @@ This document covers installing the Operator:
 * [Manually](#install-the-operator)
 * via [Helm chart](#install-via-helm-chart)
 
-And also provides [configuration](#operator-configuration) details.
+And also shows how the Operator [automatically
+updates](#updates-by-the-operator) versions.
 
 ## Install the Operator
 
@@ -105,9 +106,14 @@ You can also install the AES Operator from a Helm Chart. The following Helm valu
     EOF
     ```
 
-## Operator Configuration
+## Updates by the Operator
 
-After the AmbassadorInstallation is created for the first time, the Operator will then use the list of releases available for the Ambassador Helm Chart for determining the most recent version that can be installed, using the optional Version Syntax for filtering the releases that are acceptable. It will then install Ambassador, using any extra arguments provided in the `AmbassadorInstallation`, like the `baseImage`, the `logLevel` or any of the helmValues.
+After the `AmbassadorInstallation` is created for the first time, the Operator
+will then use the list of releases available for the Ambassador Helm Chart for
+determining the most recent version that can be installed, using the optional
+Version Syntax for filtering the releases that are acceptable. 
+
+It will then install Ambassador, using any extra arguments provided in the `AmbassadorInstallation`, like the `baseImage`, the `logLevel` or any of the `helmValues`.
 
 For example:
 
@@ -122,8 +128,8 @@ spec:
 EOF
 ```
 
-After applying an `AmbassadorInstallation` customer resource like this in a new cluster, the Operator will install a new instance of Ambassador 1.1.0 in the `ambassador` namespace, immediately. Removing this AmbassadorInstallation will uninstall Ambassador from this namespace.
+After applying an `AmbassadorInstallation` customer resource like this in a new cluster, the Operator will install a new instance of Ambassador 1.2.0 in the `ambassador` namespace, immediately. Removing this `AmbassadorInstallation` will uninstall Ambassador from this namespace.
 
-### Verify Configuration
+## Verify Configuration
 
 **To verify that everything was installed and configured correctly,** you can visually confirm the set up in the Edge Policy Console on the “Debugging” tab. Alternatively, you can check the Operator pod in your cluster to check its health and run status.
