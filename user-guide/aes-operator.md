@@ -1,1 +1,141 @@
 # The Ambassador Edge Stack Operator
+
+The Ambassador Edge Stack Operator is a Kubernetes Operator that controls the
+complete lifecycle of your Ambassador installation in your cluster. It also
+automates many of the repeatable tasks you have to perform for the Ambassador
+Edge Stack. Once installed, the AES Operator will automatically complete rapid
+installations, seamless upgrades to new versions of Ambassador, Azure
+integrations, and provides a reference architecture for ease of use. [Read more](https://github.com/datawire/ambassador-operator/blob/master/README.md#version-syntax).
+
+A Kubernetes operator is a software extension that makes it easier to manage and automate your Kubernetes-based applications, in the spirit of a human operator. Operators complete actions such as deploying, upgrading and maintaining applications. and many others. Read more about Kubernetes Operators [here](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/).
+
+This document covers the following for the Operator:
+* Configuration
+* Installation
+* Troubleshooting
+
+## Operator Configuration
+
+You can configure the Operator to best fit your environment:
+
+1. Automatic updates for Helm
+2. Automatic updates for Ambassador
+3. Custom configurations
+
+### Helm Updates via Operator
+
+After the AmbassadorInstallation is created for the first time, the Operator will then use the list of releases available for the Ambassador Helm Chart for determining the most recent version that can be installed, using the optional Version Syntax for filtering the releases that are acceptable. It will then install Ambassador, using any extra arguments provided in the `AmbassadorInstallation`, like the `baseImage`, the `logLevel` or any of the helmValues.
+
+For example:
+
+```shell
+$ cat <<EOF | kubectl apply -n ambassador -f -
+apiVersion: getambassador.io/v2
+kind: AmbassadorInstallation
+metadata:
+  name: ambassador
+spec:
+  version: 1.1.0
+EOF
+```
+
+After applying a CR like this in a new cluster, the Operator will install immediately a new instance of Ambassador 1.1.0 in the `ambassador` namespace. Removing this AmbassadorInstallation will uninstall in this namespace.
+
+### Ambassador Updates via Operator
+
+After the initial installation of Ambassador, the Operator will check for updates every 24 hours and delay the update until the Update Window allow the update to proceed. It will use the Version Syntax for determining if any new release is acceptable. When a new release is available and acceptable, the Operator will upgrade the Ambassador installation.
+
+### Custom Configurations: Version Syntax and Update Window
+
+To specify version numbers, use SemVer for the version number for any level of
+precision. This can optionally end in `*`.  For example:
+
+* `1.0` = exactly version 1.0
+* `1.1` = exactly version 1.1
+* `1.1.*` = version 1.1 and any bug fix versions 1.1.1, 1.1.2, 1.1.3, etc.
+* `2.*` = version 2.0 and any incremental and bug fix versions 2.0, 2.0.1, 2.0.2, 2.1, 2.2, 2.2.1, etc.
+* `*` = all versions.
+* `3.0-ea` = version 3.0-ea1 and any subsequent EA releases on 3.0. Also selects the final 3.0 once the final GA version is released.
+* `4.*-ea` = version 4.0-ea1 and any subsequent EA release on 4.0. This also selects:
+    * the final GA 4.0.
+    * any incremental and bug fix versions 4.* and 4
+    * the most recent 4.* EA release (i.e., if 4.0.5 is the last GA version and
+      there is a 4.1-EA3, then this selects 4.1-EA3 over the 4.0.5 GA).
+
+Read more about SemVer [here](https://github.com/Masterminds/semver#basic-comparisons).
+
+`updateWindow` is an optional item that will control when the updates can take
+place. This is used to force system updates to happen late at night if that’s
+what the sysadmins want.
+
+There can be any number of `updateWindow` entries (separated by commas).
+Never turns off automatic updates even if there are other entries in the
+comma-separated list. Never is used by sysadmins to disable all updates during
+blackout periods by doing a `kubectl` apply or using our Edge Policy Console to
+set this.
+
+Each `updateWindow` is in crontab format (see https://crontab.guru/) Some
+examples of `updateWindow` are:
+
+* `0-6 * * * SUN`: every Sunday, from 0am to 6am
+* `5 1 * * *`: every first day of the month, at 5am
+
+The Operator cannot guarantee minute time granularity, so specifying a minute in the crontab expression can lead to some updates happening sooner/later than expected.
+
+## Install the AES Operator
+
+You can install the AES Operator in a number of ways:
+
+* Manually
+* Helm Chart
+* OperatorHub.io
+
+### Install Manually
+
+Start by installing the operator:
+
+1. Create the Operator Custom Resource schema with the following command: `kubectl apply -f https://github.com/datawire/ambassador-operator/releases/download/latest/ambassador-operator-crds.yaml`
+2. Install the actual CRD for the Ambassador Operator in the `ambassador` namespace with the following command: `kubectl apply -n ambassador -f https://github.com/datawire/ambassador-operator/releases/download/latest/ambassador-operator.yaml`
+3. To install the Ambassador Operator CRD in a different namespace, you can specify it in `NS` and then run the following command:
+
+```shell
+$ NS="custom-namespace"
+$ curl -L https://github.com/datawire/ambassador-operator/releases/download/latest/ambassador-operator.yaml | \
+    sed -e "s/namespace: ambassador/namespace: $NS/g" | \
+    kubectl apply -n $NS -f -
+```
+
+Then, create the `AmbassadorInstallation` Custom Resource schema and apply it to the AES Operator.
+
+1. To create the `AmbassadorInstallation` Custom Resource schema, use the following YAML as your guideline: [https://github.com/datawire/ambassador-operator#the-operator-custom-resource-cr](https://github.com/datawire/ambassador-operator#the-operator-custom-resource-cr).
+2. Save that file as `amb-install.yaml`
+3. Edit the `amb-install.yaml` and optionally complete configurations such as Version constraint or UpdateWindow:
+4. Finally, apply your `AmbassadorInstallation` CRD to the AES Operator schema with the following command: `kubectl apply -n ambassador -f amb-install.yaml`
+
+### Install via OperatorHub.io
+
+You can install the AES Operator from the Operator Hub, where makers of Kubernetes operators can share their configurations with the community.
+
+**To install from this site:**
+
+1. Navigate to  operatorhub.io and search for “Ambassador Edge Stack.”
+2. Click on the tile.
+3. Click the **Install** button and follow the directions to finish the installation.
+4. Once the new Operator is working, create a new CRD called
+   `AmbassadorInstallation` based on the following YAML:
+
+
+
+### Install via Helm Chart
+
+You can also install the AES Operator from a Helm Chart.
+
+**To do so:**
+
+1. Add the Helm repository to your Helm client with `helm repo add datawire https://getambassador.io`
+2. Run the following command: `$ helm install stable/ambassador-operator`
+3. Once the new Operator is working, create a new CRD called `AmbassadorInstallation` based on the following YAML:
+
+### Verify Configuration
+
+**To verify that everything was installed and configured correctly,** you can visually confirm the set up in the Edge Policy Console on the “Debugging” tab. Alternatively, you can check the Operator pod in your cluster to check its health and run status.
