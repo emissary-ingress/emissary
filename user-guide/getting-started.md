@@ -39,7 +39,7 @@ If using macOS, you may encounter a security block. To change this you need to e
 outside of the app store. To change this:
 
   * Go to **System Preferences > Security & Privacy**.
-  * Click the **Open Anywway** button.
+  * Click the **Open Anyway** button.
   * Click the **Open** button.
 
 2. Move the file into your PATH (for Windows users, move it into the Windows
