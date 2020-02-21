@@ -8,7 +8,7 @@ installations and seamless upgrades to new versions of Ambassador.  [Read
 more](https://github.com/datawire/ambassador-operator/blob/master/README.md#version-syntax)
 about the benefits of the Operator.
 
-A Kubernetes operator is a software extension that makes it easier to manage and automate your Kubernetes-based applications, in the spirit of a human operator. Operators complete actions such as deploying, upgrading and maintaining applications. and many others. Read more about Kubernetes Operators [here](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/).
+A Kubernetes operator is a software extension that makes it easier to manage and automate your Kubernetes-based applications, in the spirit of a human operator. Operators complete actions such as deploying, upgrading and maintaining applications, and many others. Read more about Kubernetes Operators [here](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/).
 
 This document covers installing the Operator:
 
@@ -42,7 +42,7 @@ Then, create the `AmbassadorInstallation` Custom Resource schema and apply it to
 
 ### Configuration for the Ambassador Edge Stack
 
-After the initial installation of Ambassador, the Operator will check for updates every 24 hours and delay the update until the Update Window allow the update to proceed. It will use the Version Syntax for determining if any new release is acceptable. When a new release is available and acceptable, the Operator will upgrade Ambassador.
+After the initial installation of Ambassador, the Operator will check for updates every 24 hours and delay the update until the Update Window allows the update to proceed. It will use the Version Syntax for determining if any new release is acceptable. When a new release is available and acceptable, the Operator will upgrade Ambassador.
 
 ### Version Syntax and Update Window
 
@@ -64,12 +64,11 @@ precision. This can optionally end in `*`.  For example:
 Read more about SemVer [here](https://github.com/Masterminds/semver#basic-comparisons).
 
 `updateWindow` is an optional item that will control when the updates can take
-place. This is used to force system updates to happen late at night if that’s
-what the sysadmins want.
+place. This is used to force system updates to happen during specified times.
 
 There can be any number of `updateWindow` entries (separated by commas).
-Never turns off automatic updates even if there are other entries in the
-comma-separated list. Never is used by sysadmins to disable all updates during
+`Never` turns off automatic updates even if there are other entries in the
+comma-separated list. `Never` is used by sysadmins to disable all updates during
 blackout periods by doing a `kubectl` apply or using our Edge Policy Console to
 set this.
 
