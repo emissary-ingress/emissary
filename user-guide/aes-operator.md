@@ -1,7 +1,7 @@
 # The Ambassador Edge Stack Operator
 
 The Ambassador Edge Stack Operator is a Kubernetes Operator that controls the
-complete lifecycle of your Ambassador installation in your cluster. It also
+complete lifecycle of Ambassador in your cluster. It also
 automates many of the repeatable tasks you have to perform for the Ambassador
 Edge Stack. Once installed, the AES Operator will automatically complete rapid
 installations and seamless upgrades to new versions of Ambassador.  [Read
@@ -10,10 +10,12 @@ about the benefits of the Operator.
 
 A Kubernetes operator is a software extension that makes it easier to manage and automate your Kubernetes-based applications, in the spirit of a human operator. Operators complete actions such as deploying, upgrading and maintaining applications. and many others. Read more about Kubernetes Operators [here](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/).
 
-This document covers the configuration and the installation of the Operator for:
+This document covers installing the Operator:
 
-* The Ambassador Edge Stack
-* Helm chart
+* [Manually](#install-the-operator)
+* via [Helm chart](#install-via-helm-chart)
+
+And also provides [configuration](#operator-configuration) details.
 
 ## Install the Operator
 
@@ -40,7 +42,7 @@ Then, create the `AmbassadorInstallation` Custom Resource schema and apply it to
 
 ### Configuration for the Ambassador Edge Stack
 
-After the initial installation of Ambassador, the Operator will check for updates every 24 hours and delay the update until the Update Window allow the update to proceed. It will use the Version Syntax for determining if any new release is acceptable. When a new release is available and acceptable, the Operator will upgrade the Ambassador installation.
+After the initial installation of Ambassador, the Operator will check for updates every 24 hours and delay the update until the Update Window allow the update to proceed. It will use the Version Syntax for determining if any new release is acceptable. When a new release is available and acceptable, the Operator will upgrade Ambassador.
 
 ### Version Syntax and Update Window
 
@@ -79,7 +81,7 @@ examples of `updateWindow` are:
 
 The Operator cannot guarantee minute time granularity, so specifying a minute in the crontab expression can lead to some updates happening sooner/later than expected.
 
-### Install via Helm Chart
+## Install via Helm Chart
 
 You can also install the AES Operator from a Helm Chart. The following Helm values are supported:
 
@@ -104,7 +106,7 @@ You can also install the AES Operator from a Helm Chart. The following Helm valu
     EOF
     ```
 
-## Configuration
+## Operator Configuration
 
 After the AmbassadorInstallation is created for the first time, the Operator will then use the list of releases available for the Ambassador Helm Chart for determining the most recent version that can be installed, using the optional Version Syntax for filtering the releases that are acceptable. It will then install Ambassador, using any extra arguments provided in the `AmbassadorInstallation`, like the `baseImage`, the `logLevel` or any of the helmValues.
 
@@ -123,6 +125,6 @@ EOF
 
 After applying an `AmbassadorInstallation` customer resource like this in a new cluster, the Operator will install a new instance of Ambassador 1.1.0 in the `ambassador` namespace, immediately. Removing this AmbassadorInstallation will uninstall Ambassador from this namespace.
 
-## Verify Configuration
+### Verify Configuration
 
 **To verify that everything was installed and configured correctly,** you can visually confirm the set up in the Edge Policy Console on the “Debugging” tab. Alternatively, you can check the Operator pod in your cluster to check its health and run status.
