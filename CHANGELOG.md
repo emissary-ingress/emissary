@@ -66,8 +66,8 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
-## [1.2.0-rc.1] February 20, 2020
-[1.2.0-rc.1]: https://github.com/datawire/ambassador/compare/v1.1.1...v1.2.0-rc.1
+## [1.2.0-rc.2] February 21, 2020
+[1.2.0-rc.2]: https://github.com/datawire/ambassador/compare/v1.1.1...v1.2.0-rc.2
 
 ### Ambassador API Gateway + Ambassador Edge Stack
 
@@ -78,6 +78,7 @@ Format:
 - Bugfix: Honor ingress.class when running with Knative
 - Internal: Fix CRD-versioning issue in CI tests (thanks, [Ricky Taylor](https://github.com/ricky26)!)
 - Bugfix: Stop using deprecated Envoy configuration elements
+- Bugfix: Resume building a debuggable Envoy binary
 
 ### Ambassador Edge Stack only
 
