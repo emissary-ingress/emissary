@@ -133,7 +133,7 @@ You can also install the AES Operator from a Helm Chart.
 **To do so:**
 
 1. Add the Helm repository to your Helm client with `helm repo add datawire https://getambassador.io`
-2. Run the following command: `$ helm install stable/ambassador-operator`
+2. Run the following command: `$ helm install datawire/ambassador-operator`
 3. Once the new Operator is working, create a new CRD called `AmbassadorInstallation` based on the following YAML:
 
 ### Verify Configuration
