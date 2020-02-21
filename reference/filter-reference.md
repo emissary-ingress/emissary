@@ -357,6 +357,14 @@ spec:
     secret:                "string"          # required (unless secretName is set)
     secretName:            "string"          # required (unless secret is set)
     secretNamespace:       "string"          # optional; default is the same namespace as the Filter
+    useSessionCookies:                       # optional; default is { value: false }
+      value: bool                              # optional: default is true
+      ifRequestHeader:                         # optional; default to apply "useSessionCookies.value" to all requests
+        name: "string"                           # required
+        negate: bool                             # optional; default is false
+        # It is invalid to specify both "value" and "valueRegex".
+        value: "string"                          # optional; default is any non-empty string
+        valueRegex: "regex-string"               # optional; default is any non-empty string
 
     # HTTP client settings for talking with the identity provider
     insecureTLS:           bool              # optional; default is false
@@ -388,6 +396,34 @@ Settings that are only valid when `grantType: "AuthorizationCode"`:
    * As a Kubernetes `generic` Secret, named by `secretName`/`secretNamespace`.  The Kubernetes secret must of
      the `generic` type, with the value stored under the key`oauth2-client-secret`.  If `secretNamespace` is not given, it defaults to the namespace of the Filter resource.
    * **Note**: It is invalid to set both `secret` and `secretName`.
+ - By default, any cookies set by the Ambassador Edge Stack will be
+   set to expire when the session expires naturally.
+   `useSessionCookies` may be used to cause session cookies to be used
+   instead; the cookies will be deleted when the user closes their web
+   browser.  This may mean that the cookies are deleted sooner than
+   normal if the user closes their web browser, on the other hand it
+   may mean that cookies persist for longer than normal if the use
+   does not close their browser often.  The cookies being deleted
+   sooner may or may not affect user-perceived behavior, depending on
+   the behavior of the identity provider.  The cookies persisting
+   longer will not affect behavior of the system; the Ambassador Edge
+   Stack validates whether the session is expired when considering the
+   cookie.  If `useSessionCookies` is non-`null`, then by default it
+   will have the cookies for all requests be session cookies or not
+   according to the `useSessionCookies.value` sub-argument.  Setting
+   the `ifRequestHeader` sub-argument to use `value` for requests that
+   have (and `!value` for requests that don't have) the HTTP header
+   field `name` (case-insensitive) either set to (if `negate: false`)
+   or not set to (if `negate: true`)
+    + a non-emtpy string if neither `value` nor `valueRegex` are set
+    + the exact string `value` (case-sensitive) (if `value` is set)
+    + a string that matches the regular expression `valueRegex` (if
+      `valueRegex` is set).  This uses [RE2][] syntax (always, not
+      obeying [`regex_type`][] in the Ambassador module) but does
+      not support the `\C` escape sequence.
+
+[RE2]: https://github.com/google/re2/wiki/Syntax
+[`regex_type`]: /reference/core/ambassador/#regular-expressions-regex_type
 
 HTTP client settings for talking to the identity provider:
 
@@ -419,7 +455,10 @@ spec:
         insteadOfRedirect:          # optional; default is to do a redirect to the identity provider
           ifRequestHeader:            # optional; default is to return httpStatusCode for all requests that would redirect-to-identity-provider
             name: "string"              # required
+            negate: bool                # optional; default is false
+            # It is invalid to specify both "value" and "valueRegex".
             value: "string"             # optional; default is any non-empty string
+            valueRegex: "regex-string"  # optional; default is any non-empty string
           # option 1:
           httpStatusCode: integer     # optional; default is 403 (unless `filters` is set)
           # option 2:
@@ -428,7 +467,10 @@ spec:
             namespace: "string"         # optional; default is the same namespace as the FilterPolicy
             ifRequestHeader:            # optional; default to apply this filter to all requests matching the host & path
               name: "string"              # required
+              negate: bool                # optional; default is false
+              # It is invalid to specify both "value" and "valueRegex".
               value: "string"             # optional; default is any non-empty string
+              valueRegex: "regex-string"  # optional; default is any non-empty string
             onDeny: "enum-string"       # optional; default is "break"
             onAllow: "enum-string"      # optional; default is "continue"
             arguments: DEPENDS          # optional
@@ -457,9 +499,14 @@ spec:
       apply to all requests that would cause the redirect; setting the
       `ifRequestHeader` sub-argument causes it to only apply to
       requests that have the HTTP header field
-      `name`(case-insensitive) set to `value` (case-sensitive); or
-      requests that have `name` set to any non-empty string if `value`
-      is unset.
+      `name` (case-insensitive) either set to (if `negate: false`) or
+      not set to (if `negate: true`)
+       + a non-emtpy string if neither `value` nor `valueRegex` are set
+       + the exact string `value` (case-sensitive) (if `value` is set)
+       + a string that matches the regular expression `valueRegex` (if
+         `valueRegex` is set).  This uses [RE2][] syntax (always, not
+         obeying [`regex_type`][] in the Ambassador module) but does
+         not support the `\C` escape sequence.
     * By default, it serves an authorization-denied error page; by default HTTP 403 ("Forbidden"), but this can be configured by the `httpStatusCode` sub-argument.
     * Instead of serving that simple error page, it can instead be configured to call out to a list of other Filters, by setting the `filters` list. The syntax and semantics of this list are the same as `.spec.rules[].filters` in a [`FilterPolicy`](#filterpolicy-definition). Be aware that if one of these filters modify the request rather than returning a response, then the request will be allowed through to the backend service, even though the `OAuth2` Filter denied it.
     * It is invalid to specify both `httpStatusCode` and `filters`.
@@ -532,7 +579,10 @@ spec:
       namespace: "string"         # optional; default is the same namespace as the FilterPolicy
       ifRequestHeader:            # optional; default to apply this filter to all requests matching the host & path
         name: "string"              # required
+        negate: bool                # optional; default is false
+        # It is invalid to specify both "value" and "valueRegex".
         value: "string"             # optional; default is any non-empty string
+        valueRegex: "regex-string"  # optional; default is any non-empty string
       onDeny: "enum-string"       # optional; default is "break"
       onAllow: "enum-string"      # optional; default is "continue"
       arguments: DEPENDS          # optional
@@ -549,10 +599,14 @@ When multiple `Filter`s are specified in a rule:
    2. return a modification to make to the HTTP *request* before sending it to other filters or the upstream service (normally *allowing* the request to be forwarded to the upstream service with modifications).
  * If a filter has an `ifRequestHeader` setting, the filter is skipped
    unless the request (including any modifications made by earlier
-   filters) matches the described header; the request must have the
-   HTTP header field `name` (case-insensitive) set to `value`
-   (case-sensitive); or have `name` set to any non-empty string if
-   `value` is unset.
+   filters) has the HTTP header field `name` (case-insensitive) either
+   set to (if `negate: false`) or not set to (if `negate: true`)
+    + a non-emtpy string if neither `value` nor `valueRegex` are set
+    + the exact string `value` (case-sensitive) (if `value` is set)
+    + a string that matches the regular expression `valueRegex` (if
+      `valueRegex` is set).  This uses [RE2][] syntax (always, not
+      obeying [`regex_type`][] in the Ambassador module) but does not
+      support the `\C` escape sequence.
  * `onDeny` identifies what to do when the filter returns an "HTTP response":
    - `"break"`: End processing, and return the response directly to
      the requesting HTTP client.  Later filters are not called.  The request is not forwarded to the upstream service.
