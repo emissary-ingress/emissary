@@ -72,7 +72,7 @@ Format:
 - Bugfix: TLS custom secret with period in name doesn't work (thanks, [Phil Peble](https://github.com/ppeble)!) ([#1255])
 - Bugfix: Honor ingress.class when running with Knative
 - Internal: Fix CRD-versioning issue in CI tests (thanks, [Ricky Taylor](https://github.com/ricky26)!)
-- Upgrade: Switch to Envoy 1.13.0, and switch away from deprecated configuration elements
+- Bugfix: Stop using deprecated Envoy configuration elements
 
 ### Ambassador Edge Stack only
 
