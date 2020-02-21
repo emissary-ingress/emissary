@@ -449,7 +449,7 @@ spec:
    User-Agent does not have a currently-authenticated session, then
    the Ambassador Edge Stack will redirect the User-Agent to the
    identity provider. Setting `insteadOfRedirect` allows you to modify
-   this behavior. `ifRequestHeader` does nothing when `grantType:
+   this behavior. `insteadOfRedirect` does nothing when `grantType:
    "ClientCredentials"`, because the Ambassador Edge Stack will never
    redirect the User-Agent to the identity provider for the client
    credentials grant type.
