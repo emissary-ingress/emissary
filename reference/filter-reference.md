@@ -413,25 +413,25 @@ spec:
     filters:
     - name: "example-oauth2-filter"
       arguments:
-        scopes:                   # optional; default is ["openid"] for `grantType=="AuthorizationCode"`; [] for `grantType=="ClientCredentials"`
+        scopes:                     # optional; default is ["openid"] for `grantType=="AuthorizationCode"`; [] for `grantType=="ClientCredentials"`
         - "scope1"
         - "scope2"
-        insteadOfRedirect:        # optional; default is to do a redirect to the identity provider
-          ifRequestHeader:        # optional; default is to return httpStatusCode for all requests that would redirect-to-identity-provider
-            name: "string"        # required
-            value: "string"       # optional; default is any non-empty string
+        insteadOfRedirect:          # optional; default is to do a redirect to the identity provider
+          ifRequestHeader:            # optional; default is to return httpStatusCode for all requests that would redirect-to-identity-provider
+            name: "string"              # required
+            value: "string"             # optional; default is any non-empty string
           # option 1:
-          httpStatusCode: integer # optional; default is 403 (unless `filters` is set)
+          httpStatusCode: integer     # optional; default is 403 (unless `filters` is set)
           # option 2:
-          filters:                # optional; default is to use `httpStatusCode` instead
-          - name: "string"          # required
-            namespace: "string"     # optional; default is the same namespace as the FilterPolicy
-            ifRequestHeader:        # optional; default to apply this filter to all requests matching the host & path
-              name: "string"          # required
-              value: "string"         # optional; default is any non-empty string
-            onDeny: "enum-string"   # optional; default is "break"
-            onAllow: "enum-string"  # optional; default is "continue"
-            arguments: DEPENDS      # optional
+          filters:                    # optional; default is to use `httpStatusCode` instead
+          - name: "string"              # required
+            namespace: "string"         # optional; default is the same namespace as the FilterPolicy
+            ifRequestHeader:            # optional; default to apply this filter to all requests matching the host & path
+              name: "string"              # required
+              value: "string"             # optional; default is any non-empty string
+            onDeny: "enum-string"       # optional; default is "break"
+            onAllow: "enum-string"      # optional; default is "continue"
+            arguments: DEPENDS          # optional
 ```
 
  - `scopes`: A list of OAuth scope values to include in the scope of the authorization request.  If one of the scope values for a path is not granted, then access to that resource is forbidden; if the `scopes` argument lists `foo`, but the authorization response from the provider does not include `foo` in the scope, then it will be taken to mean that the authorization server forbade access to this path, as the authenticated user does not have the `foo` resource scope.
@@ -518,8 +518,8 @@ spec:
     - name: "string"              # required
       namespace: "string"         # optional; default is the same namespace as the FilterPolicy
       ifRequestHeader:            # optional; default to apply this filter to all requests matching the host & path
-        name: "string"            # required
-        value: "string"           # optional; default is any non-empty string
+        name: "string"              # required
+        value: "string"             # optional; default is any non-empty string
       onDeny: "enum-string"       # optional; default is "break"
       onAllow: "enum-string"      # optional; default is "continue"
       arguments: DEPENDS          # optional
