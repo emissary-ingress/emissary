@@ -42,7 +42,7 @@ and one services.
 
 ## 2. Install Ambassador
 
-Follow the first section of [installation of Ambassador API](../user-guide/install-ambassador-oss) guide to install Ambassador API.
+Follow the first section of [installation of Ambassador API](/user-guide/install-ambassador-oss) guide to install Ambassador API.
 Stop before defining the ambassador service.
 
 Ambassador needs to be deployed as `NodePort` instead of `LoadBalancer` to work with the L7 load balancer and the ingress.
