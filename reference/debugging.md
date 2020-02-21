@@ -107,7 +107,7 @@ The terminal will print something similar to the following:
 You can examine the contents of the Ambassador Pod for issues, such as if volume mounts are correct and TLS certificates are present in the required directory, to determine if the Pod has the latest Ambassador configuration, or if the generated Envoy configuration is correct or as expected. In these instructions, we will look for problems related to the Envoy configuration.
 
 1. To look into an Ambassador Pod, use the container shell with the `kube-exec` and the `/bin/sh` commands. For example, `kubectl exec -it -n ambassador <ambassador-pod-name> -- /bin/sh`
-2. Determine the latest configuration. If you haven't overridden the configuration directory, the latest configuration will be in `/ambassador/snapshots`. If you have overridden it, Ambassador saves  configurations in `$AMBASSADOR_CONFIG_BASE_DIR/snapshots`.
+2. Determine the latest configuration. If you haven't overridden the configuration directory, the latest configuration will be in `/ambassador/snapshots`. If you have overridden it, Ambassador saves configurations in `$AMBASSADOR_CONFIG_BASE_DIR/snapshots`.
 
     In the snapshots directory:
 
@@ -123,7 +123,7 @@ You can examine the contents of the Ambassador Pod for issues, such as if volume
 5. If something is wrong with `snapshot` or `aconf`, there is an issue with your configuration. If something is wrong with `ir` or `econf`, you should [open an issue on Github](https://github.com/datawire/ambassador/issues/new/choose).
 6. To find the main configuration for Envoy, run: `$AMBASSADOR_CONFIG_BASE_DIR/envoy/envoy.json`.
 7. For the bootstrap configuration, which has details about Envoy statistics, logging, and auth, run: `$AMBASSADOR_CONFIG_BASE_DIR/bootstrap-ads.json`.
-8. For further details, you can print the Envoy configuration that is geenerated during the Ambassador configuration. The file will be titled `envoy-N.json` where N matches the number of the `ambassador-config-N` directory number. Run the following command: `# cat envoy-2.json`
+8. For further details, you can print the Envoy configuration that is generated during the Ambassador configuration. The file will be titled `envoy-N.json` where N matches the number of the `ambassador-config-N` directory number. Run the following command: `# cat envoy-2.json`
 
     The terminal will print something similar to the following:
 

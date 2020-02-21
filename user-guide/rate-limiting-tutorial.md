@@ -1,6 +1,6 @@
 # Rate Limiting
 
-The Ambassador Edge Stack can validate incoming requests before routing them to a backing service. In this tutorial, we'll configure the Ambassador Edge Stack to use a simple third party rate limit service. If you don't want to implement your own rate limiting service, the Ambassador Edge Stack integrates a [powerful, flexible rate-limiting service](../advanced-rate-limiting).
+The Ambassador Edge Stack can validate incoming requests before routing them to a backing service. In this tutorial, we'll configure the Ambassador Edge Stack to use a simple third party rate limit service. If you don't want to implement your own rate limiting service, the Ambassador Edge Stack integrates a [powerful, flexible rate limiting service](../advanced-rate-limiting).
 
 ## Before You Get Started
 
@@ -8,7 +8,7 @@ This tutorial assumes you have already followed the Ambassador Edge Stack [Getti
 
 Once completed, you'll have a Kubernetes cluster running Ambassador and the Quote of the Moment service. Let's walk through adding rate limiting to this setup.
 
-## 1. Deploy the rate limit service
+## 1. Deploy the Rate Limit Service
 
 The Ambassador Edge Stack delegates the actual rate limit logic to a third party service. We've written a [simple rate limit service](https://github.com/datawire/ambassador/tree/master/docker/test-ratelimit) that:
 
@@ -72,7 +72,7 @@ spec:
 
 This configuration tells the Ambassador Edge Stack about the rate limit service, notably that it is serving requests at `example-rate-limit:5000`.
 
-The Ambassador Edge Stack will see the RateLimitService and reconfigure itself within a few seconds. Note that the v2 API is available for the Ambsassador Edge Stack.
+The Ambassador Edge Stack will see the RateLimitService and reconfigure itself within a few seconds. Note that the v2 API is available for the Ambassador Edge Stack.
 
 ## 2. Configure Ambassador Edge Stack Mappings
 
@@ -158,7 +158,7 @@ Note that both `descriptor` and `headers` are optional. However, if `headers` ar
 
 Ambassador Edge Stack would also perform multiple requests to `example-rate-limit:5000` if we had defined multiple `rate_limits` rules on the mapping.
 
-## 3. Test rate limiting
+## 3. Test Rate Limiting
 
 If we `curl` to a rate-limited URL:
 
