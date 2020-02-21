@@ -4,8 +4,9 @@ The Ambassador Edge Stack Operator is a Kubernetes Operator that controls the
 complete lifecycle of your Ambassador installation in your cluster. It also
 automates many of the repeatable tasks you have to perform for the Ambassador
 Edge Stack. Once installed, the AES Operator will automatically complete rapid
-installations, seamless upgrades to new versions of Ambassador, Azure
-integrations, and provides a reference architecture for ease of use. [Read more](https://github.com/datawire/ambassador-operator/blob/master/README.md#version-syntax).
+installations and seamless upgrades to new versions of Ambassador.  [Read
+more](https://github.com/datawire/ambassador-operator/blob/master/README.md#version-syntax)
+about the benefits of the Operator.
 
 A Kubernetes operator is a software extension that makes it easier to manage and automate your Kubernetes-based applications, in the spirit of a human operator. Operators complete actions such as deploying, upgrading and maintaining applications. and many others. Read more about Kubernetes Operators [here](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/).
 
@@ -99,7 +100,7 @@ You can also install the AES Operator from a Helm Chart. The following Helm valu
     metadata:
       name: ambassador
     spec:
-      version: 1.1.0
+      version: 1.2.0
     EOF
     ```
 
@@ -116,7 +117,7 @@ kind: AmbassadorInstallation
 metadata:
   name: ambassador
 spec:
-  version: 1.1.0
+  version: 1.2.0
 EOF
 ```
 
