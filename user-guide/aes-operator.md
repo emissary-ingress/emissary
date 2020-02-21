@@ -112,23 +112,13 @@ Then, create the `AmbassadorInstallation` Custom Resource schema and apply it to
 3. Edit the `amb-install.yaml` and optionally complete configurations such as Version constraint or UpdateWindow:
 4. Finally, apply your `AmbassadorInstallation` CRD to the AES Operator schema with the following command: `kubectl apply -n ambassador -f amb-install.yaml`
 
-### Install via OperatorHub.io
-
-You can install the AES Operator from the Operator Hub, where makers of Kubernetes operators can share their configurations with the community.
-
-**To install from this site:**
-
-1. Navigate to  operatorhub.io and search for “Ambassador Edge Stack.”
-2. Click on the tile.
-3. Click the **Install** button and follow the directions to finish the installation.
-4. Once the new Operator is working, create a new CRD called
-   `AmbassadorInstallation` based on the following YAML:
-
-
-
 ### Install via Helm Chart
 
-You can also install the AES Operator from a Helm Chart.
+You can also install the AES Operator from a Helm Chart. The following Helm values are supported:
+
+* `image.name`: Operator image name
+* `image.pullPolicy`: Operator image pull policy
+* `namespace`: namespace in which to install the Operator
 
 **To do so:**
 
