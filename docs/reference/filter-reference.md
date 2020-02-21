@@ -444,9 +444,22 @@ spec:
 
    The ordering of scope values does not matter, and is ignored.
 
- - `insteadOfRedirect`: An action to perform instead of redirecting the User-Agent to the identity provider.  By default, if the User-Agent does not have a currently-authenticated session, then the Ambassador Edge Stack will redirect the User-Agent to the identity provider. Setting `insteadOfRedirect` allows you to modify this behavior. `ifRequestHeader` does nothing when `grantType: "ClientCredentials"`, because the Ambassador Edge Stack will never redirect the User-Agent to the identity provider for the client credentials grant type.
-    * If `insteadOfRedirect` is non-`null`, then by default it will apply to all requests that would cause the redirect; setting the `ifRequestHeader` sub-argument causes it to only apply to
-      requests that have the HTTP header field `name`(case-insensitive) set to `value` (case-sensitive); or requests that have `name` set to any non-empty string if `value` is unset.
+ - `insteadOfRedirect`: An action to perform instead of redirecting
+   the User-Agent to the identity provider.  By default, if the
+   User-Agent does not have a currently-authenticated session, then
+   the Ambassador Edge Stack will redirect the User-Agent to the
+   identity provider. Setting `insteadOfRedirect` allows you to modify
+   this behavior. `ifRequestHeader` does nothing when `grantType:
+   "ClientCredentials"`, because the Ambassador Edge Stack will never
+   redirect the User-Agent to the identity provider for the client
+   credentials grant type.
+    * If `insteadOfRedirect` is non-`null`, then by default it will
+      apply to all requests that would cause the redirect; setting the
+      `ifRequestHeader` sub-argument causes it to only apply to
+      requests that have the HTTP header field
+      `name`(case-insensitive) set to `value` (case-sensitive); or
+      requests that have `name` set to any non-empty string if `value`
+      is unset.
     * By default, it serves an authorization-denied error page; by default HTTP 403 ("Forbidden"), but this can be configured by the `httpStatusCode` sub-argument.
     * Instead of serving that simple error page, it can instead be configured to call out to a list of other Filters, by setting the `filters` list. The syntax and semantics of this list are the same as `.spec.rules[].filters` in a [`FilterPolicy`](#filterpolicy-definition). Be aware that if one of these filters modify the request rather than returning a response, then the request will be allowed through to the backend service, even though the `OAuth2` Filter denied it.
     * It is invalid to specify both `httpStatusCode` and `filters`.
@@ -534,7 +547,12 @@ When multiple `Filter`s are specified in a rule:
    1. return a direct HTTP *response*, intended to be sent back to the requesting HTTP client (normally *denying* the request from
       being forwarded to the upstream service); or
    2. return a modification to make to the HTTP *request* before sending it to other filters or the upstream service (normally *allowing* the request to be forwarded to the upstream service with modifications).
- * If a filter has an `ifRequestHeader` setting, the filter is skipped unless the request (including any modifications made by earlier filters) matches the described header; the request must have the HTTP header field `name` (case-insensitive) set to `value` (case-sensitive); or have `name` set to any non-empty string if `value` is unset.
+ * If a filter has an `ifRequestHeader` setting, the filter is skipped
+   unless the request (including any modifications made by earlier
+   filters) matches the described header; the request must have the
+   HTTP header field `name` (case-insensitive) set to `value`
+   (case-sensitive); or have `name` set to any non-empty string if
+   `value` is unset.
  * `onDeny` identifies what to do when the filter returns an "HTTP response":
    - `"break"`: End processing, and return the response directly to
      the requesting HTTP client.  Later filters are not called.  The request is not forwarded to the upstream service.
