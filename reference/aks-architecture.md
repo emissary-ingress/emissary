@@ -1,1 +1,0 @@
-# Azure Kubernetes Service Architecture
