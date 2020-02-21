@@ -30,17 +30,16 @@ accessible cluster, it will:
 
 1. Download the `edgectl`file for your operating system:
 
-* [MacOS](https://metriton.datawire.io/downloads/darwin/edgectl)
-* [Linux](https://metriton.datawire.io/downloads/linux/edgectl)
-* [Windows](https://metriton.datawire.io/downloads/windows/edgectl.exe)
-* or use a [curl command](/reference/edgectl-download).
+   * [MacOS](https://metriton.datawire.io/downloads/darwin/edgectl)
+   * [Linux](https://metriton.datawire.io/downloads/linux/edgectl)
+   * [Windows](https://metriton.datawire.io/downloads/windows/edgectl.exe)
+   * or use a [curl command](/reference/edgectl-download).
 
-If using macOS, you may encounter a security block. To change this you need to enable permissions to download files
-outside of the app store. To change this:
+   If using macOS, you may encounter a security block. To change this you need to enable permissions to download files outside of the app store. To change this:
 
-  * Go to **System Preferences > Security & Privacy**.
-  * Click the **Open Anyway** button.
-  * Click the **Open** button.
+     * Go to **System Preferences > Security & Privacy**.
+     * Click the **Open Anyway** button.
+     * Click the **Open** button.
 
 2. Move the file into your PATH (for Windows users, move it into the Windows
    Systems path).
@@ -52,7 +51,7 @@ outside of the app store. To change this:
     Your terminal will print something similar to the following as it provisions
     a load balancer, configures TLS, and provides you with an `edgestack.me` subdomain:
 
-    ```shell
+    ```
     $ edgectl install
     -> Installing the Ambassador Edge Stack $version$.
     -> Remote Kubernetes cluster detected.
@@ -63,9 +62,9 @@ outside of the app store. To change this:
 
     Minikube users will see something similar to the following:
 
-    ```bash
+    ```
     $ edgectl install
-    -> Installing the Ambassador Edge Stack 1.0.
+    -> Installing the Ambassador Edge Stack $version$.
     -> Automatically configuring TLS.
     -> Cluster is not publicly accessible. Please ensure your cluster is publicly accessible if you would like to use automatic TLS.
 
