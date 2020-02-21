@@ -24,20 +24,25 @@ for all users, and includes all the functionality of the Ambassador API Gateway 
 to the additional capabilities mentioned above. Due to popular demand, we’re offering a free
 tier of our core features as part of the Ambassador Edge Stack, designed for startups.
 
-There is one breaking change between Ambassador 0.85.0 and Edge Stack 1.0.0: the `RateLimitService`
-protocol `pb.lyft.ratelimit.RateLimitService` is no longer supported. `RateLimitService`s must now
-use the `envoy.service.ratelimit.v2.RateLimitService`.
-
 ### UPCOMING PROTOCOL CHANGES
 
-*In a future version*, Ambassador will change the version of the GRPC protocol used to
-communicate with `AuthService`s:
+*In a future version*, Ambassador will change the version of the gRPC service name used to
+communicate with `AuthService`s and `RateLimitService`s:
 
-| Resource | Current version | Upcoming version |
-| :------- | :-------------- | :--------------- |
-| `AuthService` | `envoy.service.auth.v2alpha` | `envoy.service.auth.v2` |
+| Resource           | Current service name                       | Upcoming service name                         |
+| :----------------- | :----------------------------------------- | :-------------------------------------------- |
+| `AuthService`      | `envoy.service.auth.v2alpha.Authorization` | `envoy.service.auth.v2.Authorization`         |
+| `RateLimitService` | `pb.lyft.ratelimit.RateLimitService`       | `envoy.service.ratelimit.v2.RateLimitService` |
 
-These changes will not take effect until at least Ambassador 1.1.0. We expect to support both protocol versions during a transition period.
+- In some future version of Ambassador, there will be settings to control which name is
+  used; with the default being the current name; it will be opt-in to the new names.
+- In some future version of Ambassador after that, *no sooner than Ambassador 1.3.0*, the
+  default values of those setting swill change; making them opt-out from the new names.
+- In some future version of Ambassador after that, *no sooner than Ambassador 1.4.0*, the
+  settings will go away, and Ambassador will always use the new names.
+
+Note that Ambassador Edge Stack `External` Filters already unconditionally use the newer
+`envoy.service.auth.v2.Authorization` name.
 
 ## RELEASE NOTES
 
