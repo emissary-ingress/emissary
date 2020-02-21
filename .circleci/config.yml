@@ -5,7 +5,15 @@ orbs:
 # Secure environement variables set from the Web UI:
 # - DEPLOY_KEY_ID (AWS S3)
 # - DEPLOY_KEY (AWS S3)
-# - DOCKER_TOKEN (Quay)
+#
+# - DEV_REGISTRY (Quay)
+# - DOCKER_BUILD_USERNAME (Quay)
+# - DOCKER_BUILD_PASSWORD (Quay)
+#
+# - RELEASE_REGISTRY (Quay)
+# - DOCKER_RELEASE_USERNAME (Quay) (optional)
+# - DOCKER_RELEASE_PASSWORD (Quay) (optional)
+#
 # - KUBERNAUT_TOKEN (Kubernaut)
 
 commands:
@@ -174,9 +182,9 @@ commands:
 # RHS: disabling this because it gave me an incomprehensible error
 #      message, please don't reenable before Dec 10th
 #                 - run: "make lint"
-                 - run: "docker login -u=\"datawire-dev+aes\" -p=\"3M43T8BXB3L46H40R8W3K1JDNMIN6KP8Q5SC1SY2DRJQ7DZFE7LUJ1WE35QG3F0U\" quay.io"
                  - run: |
-                    export DEV_REGISTRY=quay.io/datawire-dev
+                    docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY}"
+                 - run: |
                     export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
                     export DEV_KUBE110=yes
                     export KAT_REQ_LIMIT=600
@@ -195,11 +203,13 @@ commands:
             if [[ "$CIRCLE_TAG" =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+(-.*)?$ ]]; then
                 export AWS_ACCESS_KEY_ID=$DEPLOY_KEY_ID
                 export AWS_SECRET_ACCESS_KEY=$DEPLOY_KEY
-                docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" quay.io
+                if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
+                    docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY}"
+                fi
                 if [[ "$CIRCLE_TAG" == *-* ]]; then
-                  DEV_KUBECONFIG="-skip-for-release-" RELEASE_REGISTRY=quay.io/datawire make release/bits
+                  DEV_KUBECONFIG="-skip-for-release-" make release/bits
                 else
-                  DEV_KUBECONFIG="-skip-for-release-" RELEASE_REGISTRY=quay.io/datawire make release/promote-aes/to-ga
+                  DEV_KUBECONFIG="-skip-for-release-" make release/promote-aes/to-ga
                 fi
             fi
   "clobber":

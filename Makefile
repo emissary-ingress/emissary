@@ -41,11 +41,18 @@ format: $(tools/golangci-lint)
 .PHONY: format
 
 deploy: push preflight-cluster
-	@docker exec -e AES_IMAGE=$(AMB_IMAGE) -it $(shell $(BUILDER)) sh -x -c '\
-	  kubectl apply -f ./apro/k8s-aes/00-aes-crds-kube$(if $(DEV_KUBE110),1.10,1.11).yaml && \
-	  kubectl wait --for condition=established --timeout=90s crd -lproduct=aes && \
-	  kubeapply -f ./apro/k8s-aes/01-aes.yaml && \
-	  kubectl -n ambassador wait --for condition=available --timeout=90s deploy -lproduct=aes'
+	@docker exec \
+	  -e AES_IMAGE=$(AMB_IMAGE) \
+	  -e DEV_USE_IMAGEPULLSECRET \
+	  -e DEV_REGISTRY \
+	  -e DOCKER_BUILD_USERNAME \
+	  -e DOCKER_BUILD_PASSWORD \
+	  -it $(shell $(BUILDER)) \
+	  sh -x -c '\
+	    kubectl apply -f ./apro/k8s-aes/00-aes-crds-kube$(if $(DEV_KUBE110),1.10,1.11).yaml && \
+	    kubectl wait --for condition=established --timeout=90s crd -lproduct=aes && \
+	    kubeapply -f ./apro/k8s-aes/01-aes.yaml && \
+	    kubectl -n ambassador wait --for condition=available --timeout=90s deploy -lproduct=aes'
 	@printf "$(GRN)Your ambassador service IP:$(END) $(BLD)$$(docker exec -it $(shell $(BUILDER)) kubectl get -n ambassador service ambassador -o 'go-template={{range .status.loadBalancer.ingress}}{{print .ip "\n"}}{{end}}')$(END)\n"
 .PHONY: deploy
 

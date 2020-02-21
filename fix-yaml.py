@@ -118,8 +118,11 @@ def transform_apro_file(which, apro_file):
         if line.startswith('#===='):
             continue
 
-        if line.startswith('# @TEMPLATE@'):
-            continue
+        if line.startswith('#devmagic:'):
+            if which == 'edge_stack':
+                continue
+            else:
+                line = line[len('#devmagic:'):]
 
         ret += line
     return ret
@@ -129,15 +132,11 @@ def main(which, oss_path, apro_path):
         sys.stderr.write('only apro and edge_stack are valid\n')
         sys.exit(1)
 
-    if which == 'apro':
-        sys.stdout.write('# @TEMPLATE@\n')
     sys.stdout.write('# GENERATED FILE: edits made by hand will not be preserved.\n')
 
     sys.stdout.write(transform_apro_file(which, open(apro_path, "r")))
 
     sys.stdout.write(transform_oss_file(which, open(oss_path, "r")))
-
-    sys.stdout.write('\n')
 
 if __name__ == "__main__":
     main(sys.argv[1], sys.argv[2], sys.argv[3])
