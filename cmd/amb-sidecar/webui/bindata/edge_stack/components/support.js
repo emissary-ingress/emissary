@@ -160,7 +160,7 @@ img {
          ? html`<div style="text-align: center;">
                   Licensed to ${this.licenseClaims.customer_email || this.licenseClaims.customer_id}
                   through ${new Date(this.licenseClaims.exp * 1000).toLocaleDateString()}
-                  ${this.hasOldLicense() ? html`<p style="font-size:90%; color:gray;">You have a older-generation license. Please contact Support for<br/>an upgraded Ambassador Edge Stack license key to enable more features.</p>` : html``}
+                  ${this.hasOldLicense() ? html`<p style="font-size:90%; color:gray;">You have a older-generation license. Please contact Support for<br/>an upgraded Ambassador Edge Stack license key.</p>` : html``}
                 </div>`
          : html`<div style="text-align: center;">Running in evaluation mode. Use the dashboard to get a <a href="#dashboard">free Community license</a>.</div>`
        }
