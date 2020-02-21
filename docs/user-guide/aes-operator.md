@@ -11,10 +11,33 @@ A Kubernetes operator is a software extension that makes it easier to manage and
 
 This document covers the configuration and the installation of the Operator for:
 
-* Helm chart
 * The Ambassador Edge Stack
+* Helm chart
 
-## Operator Configuration for Ambassador Edge Stack
+## Install the Operator
+
+Start by installing the operator:
+
+1. Create the Operator Custom Resource schema with the following command: `kubectl apply -f https://github.com/datawire/ambassador-operator/releases/download/latest/ambassador-operator-crds.yaml`
+2. Install the actual CRD for the Ambassador Operator in the `ambassador` namespace with the following command: `kubectl apply -n ambassador -f https://github.com/datawire/ambassador-operator/releases/download/latest/ambassador-operator.yaml`
+3. To install the Ambassador Operator CRD in a different namespace, you can specify it in `NS` and then run the following command:
+
+```shell
+$ NS="custom-namespace"
+$ curl -L https://github.com/datawire/ambassador-operator/releases/download/latest/ambassador-operator.yaml | \
+    sed -e "s/namespace: ambassador/namespace: $NS/g" | \
+    kubectl apply -n $NS -f -
+```
+
+Then, create the `AmbassadorInstallation` Custom Resource schema and apply it to the AES Operator.
+
+1. To create the `AmbassadorInstallation` Custom Resource schema, use the following YAML as your guideline: [https://github.com/datawire/ambassador-operator#the-operator-custom-resource-cr](https://github.com/datawire/ambassador-operator#the-operator-custom-resource-cr).
+2. Save that file as `amb-install.yaml`
+3. Edit the `amb-install.yaml` and optionally complete configurations such as Version constraint or UpdateWindow:
+4. Finally, apply your `AmbassadorInstallation` CRD to the AES Operator schema
+   with the following command: `kubectl apply -n ambassador -f amb-install.yaml`
+
+### Configuration for the Ambassador Edge Stack
 
 After the initial installation of Ambassador, the Operator will check for updates every 24 hours and delay the update until the Update Window allow the update to proceed. It will use the Version Syntax for determining if any new release is acceptable. When a new release is available and acceptable, the Operator will upgrade the Ambassador installation.
 
@@ -56,28 +79,6 @@ examples of `updateWindow` are:
 The Operator cannot guarantee minute time granularity, so specifying a minute in the crontab expression can lead to some updates happening sooner/later than expected.
 
 
-### Install Manually
-
-Start by installing the operator:
-
-1. Create the Operator Custom Resource schema with the following command: `kubectl apply -f https://github.com/datawire/ambassador-operator/releases/download/latest/ambassador-operator-crds.yaml`
-2. Install the actual CRD for the Ambassador Operator in the `ambassador` namespace with the following command: `kubectl apply -n ambassador -f https://github.com/datawire/ambassador-operator/releases/download/latest/ambassador-operator.yaml`
-3. To install the Ambassador Operator CRD in a different namespace, you can specify it in `NS` and then run the following command:
-
-```shell
-$ NS="custom-namespace"
-$ curl -L https://github.com/datawire/ambassador-operator/releases/download/latest/ambassador-operator.yaml | \
-    sed -e "s/namespace: ambassador/namespace: $NS/g" | \
-    kubectl apply -n $NS -f -
-```
-
-Then, create the `AmbassadorInstallation` Custom Resource schema and apply it to the AES Operator.
-
-1. To create the `AmbassadorInstallation` Custom Resource schema, use the following YAML as your guideline: [https://github.com/datawire/ambassador-operator#the-operator-custom-resource-cr](https://github.com/datawire/ambassador-operator#the-operator-custom-resource-cr).
-2. Save that file as `amb-install.yaml`
-3. Edit the `amb-install.yaml` and optionally complete configurations such as Version constraint or UpdateWindow:
-4. Finally, apply your `AmbassadorInstallation` CRD to the AES Operator schema with the following command: `kubectl apply -n ambassador -f amb-install.yaml`
-
 ## Install via Helm Chart
 
 You can also install the AES Operator from a Helm Chart. The following Helm values are supported:
@@ -110,7 +111,6 @@ EOF
 ```
 
 After applying an AmbassadorInstallation customer resource like this in a new cluster, the Operator will install a new instance of Ambassador 1.1.0 in the `ambassador` namespace, immediately. Removing this AmbassadorInstallation will uninstall Ambassador from this namespace.
-
 
 ## Verify Configuration
 
