@@ -30,9 +30,10 @@
       link: /user-guide/bare-metal
     - title: Install Manually
       link: /user-guide/manual-install  
+    - title: Ambassador Edge Stack Operator
+      link: /user-guide/aes-operator   
     - title: Early Access Releases
       link: /user-guide/early-access
-
 
 - title: Concepts
   link: /concepts/overview
