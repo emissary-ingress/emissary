@@ -48,6 +48,6 @@ spec:
 
 The `example-service` service must now support TLS v1.3 for Ambassador Edge Stack to connect.
 
-**Note**: 
+**Note**:
 
 A `TLSContext` requires a certificate be provided even if not using it to terminate TLS. For origination purposes, this certificate can simply be self-signed unless mTLS is required.

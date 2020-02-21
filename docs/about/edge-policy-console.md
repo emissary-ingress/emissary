@@ -67,7 +67,7 @@ See [rate limits](../../reference/rate-limits) for more information.
 
 Special plugin services enhance the functionality of Ambassador Edge Stack. These plugin services are called when Ambassador handles requests.
 
-On this page you can add a new plugin or manage existing plugins.
+On this page, you can add a new plugin or manage existing plugins.
 
 See [Plugins](../../reference/services/services) for detailed information.
 
@@ -79,7 +79,7 @@ This page shows all of the current Resolvers that are in use to discover your se
 
 The Debugging page provides an overview of everything that is happening on your deployment of the Ambassador Edge Stack.
 
-The **system info** box shows information such as IDs, system statuses, and other high level details.
+The **system info** box shows information such as IDs, system statuses, and other high-level details.
 
 The **logging level** box has two buttons, `set log level to debug` and `set log level to info` which controls how verbose your logging is.
 

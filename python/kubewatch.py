@@ -245,6 +245,13 @@ def main(debug):
                          ' To enable Ingress support, configure RBAC to allow Ambassador to read Ingress resources,' +
                          ' then restart the Ambassador pod.')
 
+        # Check for our operator's CRD now
+        if check_crd_type('ambassadorinstallations.getambassador.io'):
+            touch_file('.ambassadorinstallations_ok')
+            logger.debug('ambassadorinstallations.getambassador.io CRD available')
+        else:
+            logger.debug('ambassadorinstallations.getambassador.io CRD not available')
+
         # Have we been asked to do Knative support?
         if os.environ.get('AMBASSADOR_KNATIVE_SUPPORT', '').lower() == 'true':
             # Yes. Check for their CRD types.

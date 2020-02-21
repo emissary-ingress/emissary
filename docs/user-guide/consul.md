@@ -8,7 +8,7 @@ In this architecture, Consul serves as the source of truth for your entire data 
 
 ![ambassador-consul](../../doc-images/consul-ambassador.png)
 
-## Getting started
+## Getting Started
 
 In this guide, you will register a service with Consul and use Ambassador Edge Stack to dynamically route requests to that service based on Consul's service discovery data. If you already have Ambassador Edge Stack installed, you will just need to configure the `ConsulResolver` in step 3.
 
@@ -127,6 +127,7 @@ You'll now register a demo application with Consul, and show how Ambassador Edge
      load_balancer:
        policy: round_robin
    ```
+
 Save the above YAML to a file named `qotm-mapping.yaml`, and use `kubectl apply -f qotm-mapping.yaml` to apply this configuration to your Kubernetes cluster. Note that in the above config:
 
    - `resolver` must be set to the `ConsulResolver` that you created in the previous step
@@ -153,6 +154,7 @@ Ambassador Edge Stack can also use certificates stored in Consul to originate en
    ```
    
 This will install into your cluster:
+
    - RBAC resources.
    - The Consul connector service.
    - A `TLSContext` named `ambassador-consul` to load the `ambassador-consul-connect` secret into Ambassador Edge Stack.
@@ -240,9 +242,8 @@ This will install into your cluster:
    {"hostname":"qotm-6c6dc4f67d-hbznl","ok":true,"quote":"A principal idea is omnipresent, much like candy.","time":"2019-04-17T19:27:54.758361","version":"1.7"}
    ```
 
-## More information
+## More Information
 
 For more about Ambassador Edge Stack's integration with Consul, read the [service discovery configuration](../../reference/core/resolvers) documentation.
 
 See the [TLS documentation](../../reference/core/tls#mtls-consul) for information on configuring the Ambassador Edge Stack Consul connector.
-

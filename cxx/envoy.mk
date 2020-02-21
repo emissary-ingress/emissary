@@ -3,19 +3,25 @@ srcdir := $(OSS_HOME)/cxx
 include $(OSS_HOME)/build-aux/prelude.mk
 
 YES_I_AM_OK_WITH_COMPILING_ENVOY ?=
+YES_I_AM_UPDATING_THE_BASE_IMAGES ?=
+
+_git_remote_urls := $(shell git remote | xargs -n1 git remote get-url --all)
+IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make update-base`.
-	_git_remote_urls := $(shell git remote | xargs -n1 git remote get-url --all)
-	IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
   ENVOY_REPO ?= $(if $(IS_PRIVATE),git@github.com:datawire/envoy-private.git,git://github.com/datawire/envoy.git)
   ENVOY_COMMIT ?= d17d947caef13f1bdd235c3fccff77814883bb46
   ENVOY_COMPILATION_MODE ?= opt
-	# Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes
+  # Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes
   BASE_ENVOY_RELVER ?= 7
-	ENVOY_DOCKER_TAG ?= $(if $(IS_PRIVATE),quay.io/datawire/ambassador-base-private:envoy-$(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE),quay.io/datawire/ambassador-base:envoy-$(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE))
 
-  BASE_VERSION.envoy ?= $(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE)
+  ENVOY_DOCKER_REPO ?= quay.io/datawire/ambassador-base$(if $(IS_PRIVATE),-private)
+  ENVOY_DOCKER_VERSION ?= $(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE)
+  ENVOY_DOCKER_TAG ?= $(ENVOY_DOCKER_REPO):envoy-$(ENVOY_DOCKER_VERSION)
 # END LIST OF VARIABLES REQUIRING `make update-base`.
+
+# for builder.sh...
+export ENVOY_DOCKER_TAG
 
 #
 # Envoy build
@@ -59,7 +65,7 @@ $(srcdir)/envoy: FORCE
 $(srcdir)/envoy-build-image.txt: $(srcdir)/envoy $(WRITE_IFCHANGED) FORCE
 	@PS4=; set -ex -o pipefail; { \
 	    pushd $</ci; \
-			echo "$$(pwd)"; \
+	    echo "$$(pwd)"; \
 	    . envoy_build_sha.sh; \
 	    popd; \
 	    echo docker.io/envoyproxy/envoy-build-ubuntu@sha256:$$ENVOY_BUILD_SHA | $(WRITE_IFCHANGED) $@; \
@@ -100,12 +106,12 @@ ENVOY_BASH.deps = $(srcdir)/envoy-build-container.txt
 $(OSS_HOME)/bin_linux_amd64/envoy-static: $(ENVOY_BASH.deps) FORCE
 	mkdir -p $(@D)
 	@PS4=; set -ex; { \
-	    if docker run --rm --entrypoint=true $(BASE_IMAGE.envoy); then \
-	        rsync -Pav --blocking-io -e 'docker run --rm -i' $$(docker image inspect $(BASE_IMAGE.envoy) --format='{{.Id}}' | sed 's/^sha256://'):/usr/local/bin/envoy $@; \
+	    if docker run --rm --entrypoint=true $(ENVOY_DOCKER_TAG); then \
+	        rsync -Pav --blocking-io -e 'docker run --rm -i' $$(docker image inspect $(ENVOY_DOCKER_TAG) --format='{{.Id}}' | sed 's/^sha256://'):/usr/local/bin/envoy $@; \
 	    else \
 	        if [ -z '$(YES_I_AM_UPDATING_THE_BASE_IMAGES)' ]; then \
 	            { set +x; } &>/dev/null; \
-	            echo 'error: failed to pull $(BASE_IMAGE.envoy), but $$YES_I_AM_UPDATING_THE_BASE_IMAGES is not set'; \
+	            echo 'error: failed to pull $(ENVOY_DOCKER_TAG), but $$YES_I_AM_UPDATING_THE_BASE_IMAGES is not set'; \
 	            echo '       If you are trying to update the base images, then set that variable to a non-empty value.'; \
 	            echo '       If you are not trying to update the base images, then check your network connection and Docker credentials.'; \
 	            exit 1; \
@@ -116,7 +122,7 @@ $(OSS_HOME)/bin_linux_amd64/envoy-static: $(ENVOY_BASH.deps) FORCE
 	            exit 1; \
 	        fi; \
 	        $(call ENVOY_BASH.cmd, \
-	            docker exec --workdir=/root/envoy $$(cat $(srcdir)/envoy-build-container.txt) /bin/bash -c "export CC=/opt/llvm/bin/clang && export CXX=/opt/llvm/bin/clang++ && bazel build --verbose_failures -c $(ENVOY_COMPILATION_MODE) --config=clang //source/exe:envoy-static;" \
+	            docker exec --workdir=/root/envoy $$(cat $(srcdir)/envoy-build-container.txt) /bin/bash -c "export CC=/opt/llvm/bin/clang && export CXX=/opt/llvm/bin/clang++ && bazel build --verbose_failures -c $(ENVOY_COMPILATION_MODE) --config=clang //source/exe:envoy-static;"; \
 	            rsync -Pav --blocking-io -e 'docker exec -i' $$(cat $(srcdir)/envoy-build-container.txt):/root/envoy/bazel-bin/source/exe/envoy-static $@; \
 	        ); \
 	    fi; \

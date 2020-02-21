@@ -16,12 +16,12 @@ cache:
     - $HOME/.cache/pip
     - $HOME/.npm
 
-# Do not run in Travis CI when the branch name starts with "nobuild". Primarily
-# intended for documentation updates but may be used as an escape hatch for
-# other purposes.
+# Only run for commits on master and shared/*.
 branches:
-  except:
-    - /^nobuild.*$/
+  only:
+    - master
+    - /^shared\/.*/
+    - /^v[0-9]+\.[0-9]+\.[0-9]+(-.*)?$/
 
 services:
   - docker

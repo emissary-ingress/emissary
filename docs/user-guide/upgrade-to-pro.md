@@ -5,15 +5,15 @@ All of the functionality previously available in Ambassador Pro is now available
 Ambassador Edge Stack Community Edition! <a href="/editions">Click here to learn more →</a>
 </div>
 
-If you are already using Ambassador open source, upgrading to using Ambassador Pro is straight-forward. In this demo we will walk-through integrating Ambassador Pro into your currently running Ambassador instance and show how quickly you can secure your APIs with JWT authentication.
+If you are already using Ambassador open-source, upgrading to using Ambassador Pro is straight-forward. In this demo, we will walk-through integrating Ambassador Pro into your currently running Ambassador instance and show how quickly you can secure your APIs with JWT authentication.
 
-Information about open source code used in Ambassador Pro can be found in `/*.opensource.tar.gz` files in each Docker image.
+Information about open-source code used in Ambassador Pro can be found in `/*.opensource.tar.gz` files in each Docker image.
 
-## 1. Clone the Ambassador Pro configuration repository
+## 1. Clone the Ambassador Pro Configuration Repository
 
-Ambassador Pro is a module that communicates with Ambassador, exposing the various Pro services to Ambassador. Ambassador Pro is typically deployed as a sidecar service to Ambassador, allowing for it to communicate with Ambassador locally. While this is the recommended deployment topology, for evaluation purposes it is simpler to deploy Ambassador Pro as a separate service in your Kubernetes cluster. 
+Ambassador Pro is a module that communicates with Ambassador, exposing the various Pro services to Ambassador. Ambassador Pro is typically deployed as a sidecar service to Ambassador, allowing for it to communicate with Ambassador locally. While this is the recommended deployment topology, for evaluation purposes it is simpler to deploy Ambassador Pro as a separate service in your Kubernetes cluster.
 
-We provide a reference architecture to demonstrate how easy it is to use the services provided by Ambassador Pro. 
+We provide a reference architecture to demonstrate how easy it is to use the services provided by Ambassador Pro.
 
 ```
 git clone https://github.com/datawire/pro-ref-arch
@@ -66,7 +66,6 @@ set, you will also need to set them in the Pro container.
 
 **Note:** Ambassador Pro will replace your current `AuthService` implementation. Remove your current `AuthService` annotation before deploying Ambassador Pro. If you would like to keep your current `AuthService`, remove the `AuthService` annotation from the `ambassador-pro.yaml` file.
 
-
 ## 4. Configure JWT Authentication
 
 Now that you have Ambassador Pro running, we'll show a few features of Ambassador Pro. We'll start by configuring Ambassador Pro's JWT authentication filter.
@@ -77,7 +76,7 @@ make apply-jwt
 
 This will configure the following `FilterPolicy`:
 
-```
+```yaml
 ---
 apiVersion: getambassador.io/v1beta2
 kind: FilterPolicy
@@ -130,13 +129,13 @@ $ curl -k --header "Authorization: Bearer eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.ey
 
 **Important:** Many modules in the reference architecture assume HTTPS. You will need to adjust the `cURL` requests if your Ambassador installation is not secured with TLS.
 
-## 5. Configure additional Ambassador Pro services
+## 5. Configure Additional Ambassador Pro Services
 
 Ambassador Pro has many more features such as rate limiting, OAuth integration, and more.
 
 ### Enabling Rate limiting
 
-For more information on configuring rate limiting, consult the [Advanced Rate Limiting tutorial ](../advanced-rate-limiting) for information on configuring rate limits.
+For more information on configuring rate limiting, consult the [Advanced Rate Limiting Tutorial](../advanced-rate-limiting) for information on configuring rate limits.
 
 ### Enabling Single Sign-On
 

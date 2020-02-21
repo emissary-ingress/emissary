@@ -15,7 +15,7 @@ kubectl create ns cert-manager
 kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v0.11.1/cert-manager-no-webhook.yaml
 ```
 
-**Note:** The resource validation webhook is not required and requires addition configuration.
+**Note:** The resource validation webhook is not mandatory, but if implemented, requires additional configuration.
 
 ## Issuing Certificates
 
@@ -23,7 +23,7 @@ cert-manager issues certificates from a CA such as [Let's Encrypt](https://letse
 
 ### Issuer
 
-An `Issuer` or `ClusterIssuer` identifies which Certificate Authority cert-manager will use to issue a certificate. `Issuer` is a namespaced resource allowing for you to use different CAs in each namespace, a `ClusterIssuer` is used to issue certificates in any namespace. Configuration depends on which ACME [challenge](#challenge) you are using.
+An `Issuer` or `ClusterIssuer` identifies which Certificate Authority cert-manager will use to issue a certificate. `Issuer` is a namespaced resource allowing you to use different CAs in each namespace, a `ClusterIssuer` is used to issue certificates in any namespace. Configuration depends on which ACME [challenge](#challenge) you are using.
 
 ### Certificate
 
@@ -33,11 +33,11 @@ By duplicating issuers, certificates, and secrets one can support multiple domai
 
 ### Challenge
 
-cert-manager supports two kinds of ACME challenges which verify domain ownership in different ways: HTTP-01 and DNS-01.
+cert-manager supports two kinds of ACME challenges that verify domain ownership in different ways: HTTP-01 and DNS-01.
 
 #### HTTP-01 Challenge
 
-The HTTP-01 challenge verifies ownership of the domain by sending a request for a specific file on that domain. cert-manager accomplishes this by sending a request to a temporary pod with the prefix `/.well-known/acme-challenge`. To perform this challenge:
+The HTTP-01 challenge verifies ownership of the domain by sending a request for a specific file on that domain. cert-manager accomplishes this by sending a request to a temporary pod with the prefix `/.well-known/acme-challenge/`. To perform this challenge:
 
 1. Create a `ClusterIssuer`:
 
@@ -94,6 +94,7 @@ The HTTP-01 challenge verifies ownership of the domain by sending a request for 
 3. Apply both the `ClusterIssuer` and `Certificate`
 
     After applying both of these YAML manifests, you will notice that cert-manager has spun up a temporary pod named `cm-acme-http-solver-xxxx` but no certificate has been issued. Check the cert-manager logs and you will see a log message that looks like this:
+
     ```shell
     $ kubectl logs cert-manager-756d6d885d-v7gmg
     ...
@@ -108,9 +109,9 @@ The HTTP-01 challenge verifies ownership of the domain by sending a request for 
     Error preparing issuer for certificate default/ambassador-certs: http-01 self check failed for domain "example.com
     ```
 
-4. Create a Mapping for the `/.well-known/acme-challenge` route.
+4. Create a Mapping for the `/.well-known/acme-challenge/` route.
 
-cert-manager uses an `Ingress` resource to issue the challenge to `/.well-known/acme-challenge` but, since Ambassador is not an `Ingress`, we will need to create a `Mapping` so the cert-manager can reach the temporary pod.
+cert-manager uses an `Ingress` resource to issue the challenge to `/.well-known/acme-challenge/` but, since Ambassador is not an `Ingress`, we will need to create a `Mapping` so the cert-manager can reach the temporary pod.
  
 ```yaml
     ---
@@ -119,7 +120,7 @@ cert-manager uses an `Ingress` resource to issue the challenge to `/.well-known/
     metadata:
       name: acme-challenge-mapping
     spec:
-      prefix: /.well-known/acme-challenge
+      prefix: /.well-known/acme-challenge/
       rewrite: ""
       service: acme-challenge-service
 

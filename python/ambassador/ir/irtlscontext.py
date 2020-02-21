@@ -208,6 +208,11 @@ class IRTLSContext(IRResource):
                 self.secret_info['cert_chain_file'] = ss.cert_path
                 self.secret_info['private_key_file'] = ss.key_path
 
+                if ss.root_cert_path:
+                    self.secret_info['cacert_chain_file'] = ss.root_cert_path
+
+        self.ir.logger.debug("TLSContext - successfully processed the cert_chain_file, private_key_file, and cacert_chain_file: %s" % self.secret_info)
+
         # OK. Repeat for the ca_secret_name.
         ca_secret_name = self.secret_info.get('ca_secret')
 
@@ -372,7 +377,6 @@ class TLSContextFactory:
         # are just ACResources; they need to be turned into IRTLSContexts.
         tls_contexts = aconf.get_config('tls_contexts')
 
-        found_termination_context = False
         if tls_contexts is not None:
             for config in tls_contexts.values():
                 ctx = IRTLSContext(ir, aconf, **config)
@@ -382,29 +386,3 @@ class TLSContextFactory:
                     ctx.sourced_by(config)
 
                     ir.save_tls_context(ctx)
-
-                    if ctx.get('hosts'):  # not None and not the empty list
-                        found_termination_context = True
-
-        if ir.edge_stack_allowed and not found_termination_context:
-            # Edge Stack always wants a termination context
-            ctx_name = "fallback-self-signed-context"
-            tls_name = "fallback-self-signed-cert"
-
-            new_ctx = dict(
-                rkey=f"{ctx_name}.99999",
-                name=ctx_name,
-                location="-internal-",
-                hosts=["*"],
-                secret=tls_name,
-                is_fallback=True
-            )
-
-            if not os.environ.get('AMBASSADOR_NO_TLS_REDIRECT', None):
-                new_ctx['redirect_cleartext_from'] = 8080
-
-            ctx = IRTLSContext(ir, aconf, **new_ctx)
-
-            assert ctx.is_active()
-            if ctx.resolve_secret(tls_name):
-                ir.save_tls_context(ctx)
