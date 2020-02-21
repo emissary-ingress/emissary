@@ -22,12 +22,12 @@ Start by installing the operator:
 2. Install the actual CRD for the Ambassador Operator in the `ambassador` namespace with the following command: `kubectl apply -n ambassador -f https://github.com/datawire/ambassador-operator/releases/download/latest/ambassador-operator.yaml`
 3. To install the Ambassador Operator CRD in a different namespace, you can specify it in `NS` and then run the following command:
 
-```shell
-$ NS="custom-namespace"
-$ curl -L https://github.com/datawire/ambassador-operator/releases/download/latest/ambassador-operator.yaml | \
-    sed -e "s/namespace: ambassador/namespace: $NS/g" | \
-    kubectl apply -n $NS -f -
-```
+    ```shell
+    $ NS="custom-namespace"
+    $ curl -L https://github.com/datawire/ambassador-operator/releases/download/latest/ambassador-operator.yaml | \
+        sed -e "s/namespace: ambassador/namespace: $NS/g" | \
+        kubectl apply -n $NS -f -
+    ```
 
 Then, create the `AmbassadorInstallation` Custom Resource schema and apply it to the AES Operator.
 
@@ -46,17 +46,17 @@ After the initial installation of Ambassador, the Operator will check for update
 To specify version numbers, use SemVer for the version number for any level of
 precision. This can optionally end in `*`.  For example:
 
-* `1.0` = exactly version 1.0
-* `1.1` = exactly version 1.1
-* `1.1.*` = version 1.1 and any bug fix versions 1.1.1, 1.1.2, 1.1.3, etc.
-* `2.*` = version 2.0 and any incremental and bug fix versions 2.0, 2.0.1, 2.0.2, 2.1, 2.2, 2.2.1, etc.
-* `*` = all versions.
-* `3.0-ea` = version 3.0-ea1 and any subsequent EA releases on 3.0. Also selects the final 3.0 once the final GA version is released.
-* `4.*-ea` = version 4.0-ea1 and any subsequent EA release on 4.0. This also selects:
-    * the final GA 4.0.
-    * any incremental and bug fix versions 4.* and 4
-    * the most recent 4.* EA release (i.e., if 4.0.5 is the last GA version and
-      there is a 4.1-EA3, then this selects 4.1-EA3 over the 4.0.5 GA).
+  * `1.0` = exactly version 1.0
+  * `1.1` = exactly version 1.1
+  * `1.1.*` = version 1.1 and any bug fix versions 1.1.1, 1.1.2, 1.1.3, etc.
+  * `2.*` = version 2.0 and any incremental and bug fix versions 2.0, 2.0.1, 2.0.2, 2.1, 2.2, 2.2.1, etc.
+  * `*` = all versions.
+  * `3.0-ea` = version 3.0-ea1 and any subsequent EA releases on 3.0. Also selects the final 3.0 once the final GA version is released.
+  * `4.*-ea` = version 4.0-ea1 and any subsequent EA release on 4.0. This also selects:
+      * the final GA 4.0.
+      * any incremental and bug fix versions 4.* and 4
+      * the most recent 4.* EA release (i.e., if 4.0.5 is the last GA version and
+        there is a 4.1-EA3, then this selects 4.1-EA3 over the 4.0.5 GA).
 
 Read more about SemVer [here](https://github.com/Masterminds/semver#basic-comparisons).
 
@@ -78,8 +78,7 @@ examples of `updateWindow` are:
 
 The Operator cannot guarantee minute time granularity, so specifying a minute in the crontab expression can lead to some updates happening sooner/later than expected.
 
-
-## Install via Helm Chart
+### Install via Helm Chart
 
 You can also install the AES Operator from a Helm Chart. The following Helm values are supported:
 
@@ -90,16 +89,27 @@ You can also install the AES Operator from a Helm Chart. The following Helm valu
 **To do so:**
 
 1. Add the Helm repository to your Helm client with `helm repo add datawire https://getambassador.io`
-2. Run the following command: `$ helm install datawire/ambassador-operator`
+2. Run the following command: `helm install datawire/ambassador-operator`
 3. Once the new Operator is working, create a new CRD called `AmbassadorInstallation` based on the following YAML:
 
-### Helm Configuration
+    ```yaml
+    $ cat <<EOF | kubectl apply -n ambassador -f -
+    apiVersion: getambassador.io/v2
+    kind: AmbassadorInstallation
+    metadata:
+      name: ambassador
+    spec:
+      version: 1.1.0
+    EOF
+    ```
+
+## Configuration
 
 After the AmbassadorInstallation is created for the first time, the Operator will then use the list of releases available for the Ambassador Helm Chart for determining the most recent version that can be installed, using the optional Version Syntax for filtering the releases that are acceptable. It will then install Ambassador, using any extra arguments provided in the `AmbassadorInstallation`, like the `baseImage`, the `logLevel` or any of the helmValues.
 
 For example:
 
-```shell
+```yaml
 $ cat <<EOF | kubectl apply -n ambassador -f -
 apiVersion: getambassador.io/v2
 kind: AmbassadorInstallation
@@ -110,7 +120,7 @@ spec:
 EOF
 ```
 
-After applying an AmbassadorInstallation customer resource like this in a new cluster, the Operator will install a new instance of Ambassador 1.1.0 in the `ambassador` namespace, immediately. Removing this AmbassadorInstallation will uninstall Ambassador from this namespace.
+After applying an `AmbassadorInstallation` customer resource like this in a new cluster, the Operator will install a new instance of Ambassador 1.1.0 in the `ambassador` namespace, immediately. Removing this AmbassadorInstallation will uninstall Ambassador from this namespace.
 
 ## Verify Configuration
 
