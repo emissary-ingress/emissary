@@ -8,7 +8,7 @@ rules:
 # but it needs extra permissions to write getambassador.io CRs and
 # to create and update secrets.
 - apiGroups: [""]
-  resources: [ "endpoints", "namespaces", "services" ]
+  resources: [ "namespaces", "services" ]
   verbs: ["get", "list", "watch"]
 - apiGroups: [ "getambassador.io" ]
   resources: [ "*" ]
@@ -30,6 +30,15 @@ rules:
   verbs: ["update"]
 - apiGroups: [""]
   resources: [ "secrets" ]
+  verbs: ["get", "list", "watch", "create", "update"]
+- apiGroups: [""]
+  resources: [ "events" ]
+  verbs: ["get", "list", "watch", "create"]
+- apiGroups: ["coordination.k8s.io"]
+  resources: [ "leases" ]
+  verbs: ["get", "create", "update"]
+- apiGroups: [""]
+  resources: [ "endpoints" ]
   verbs: ["get", "list", "watch", "create", "update"]
 ---
 apiVersion: v1
