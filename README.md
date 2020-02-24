@@ -96,7 +96,7 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `env`                              | Any additional environment variables for ambassador pods                        | `{}`                              |
 | `image.pullPolicy`                 | Ambassador image pull policy                                                    | `IfNotPresent`                    |
 | `image.repository`                 | Ambassador image                                                                | `quay.io/datawire/aes`            |
-| `image.tag`                        | Ambassador image tag                                                            | `1.1.1`                           |
+| `image.tag`                        | Ambassador image tag                                                            | `1.2.0`                           |
 | `imagePullSecrets`                 | Image pull secrets                                                              | `[]`                              |
 | `namespace.name`                   | Set the `AMBASSADOR_NAMESPACE` environment variable                             | `metadata.namespace`              |
 | `scope.singleNamespace`            | Set the `AMBASSADOR_SINGLE_NAMESPACE` environment variable and create namespaced RBAC if `rbac.enabled: true` | `false`|
