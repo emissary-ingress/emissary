@@ -163,7 +163,7 @@ In a typical configuration workflow, Custom Resource Definitions (CRDs) are used
 
 ## A Single Source of Configuration
 
-In the Ambassador Edge Stack, Kubernetes serves as the single source of configuration. Changes made on the command line (via `kubectl`) are reflected in the Edge Policy Console, and vice versa. This enables a consistent configuration workflow.
+In the Ambassador Edge Stack, Kubernetes serves as the single source of configuration. Changes made on the command line (via `kubectl`) are reflected in the Edge Policy Console, and vice versa.
 
 1. To see this in action, navigate to the **Mappings** tab. You'll see an entry for the `quote-backend` Mapping that was just created on the command line.
 
