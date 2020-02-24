@@ -16,7 +16,7 @@ releases. Please keep it up to date.
 - Feature: The `OAuth2` Filter now has `useSessionCookies` option to have cookies expire when the browser closes, rather than at a fixed duration
 - Feature: `ifRequestHeader` now has `negate: bool` to invert the match
 
-## 1.1.1 (TBD)
+## 1.1.1 (2020-02-12)
 
 - Feature: The Policy Console can now set the log level to "trace" (in addition to "info" or "debug")
 - Bugfix: Don't have the Policy Console poll for snapshots when logged out
