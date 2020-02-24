@@ -1,0 +1,53 @@
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: aes-backend-signup
+  namespace: metriton
+spec:
+  prefix: /signup
+  rewrite: /signup
+  service: aes-backend
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: aes-backend-download
+  namespace: metriton
+spec:
+  prefix: /downloads
+  rewrite: /downloads
+  service: aes-backend
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: aes-backend-domain
+  namespace: metriton
+spec:
+  prefix: /register-domain
+  rewrite: /register-domain
+  service: aes-backend
+  timeout_ms: 30000 # This upstream API relies on AWS... which is not always reliably fast
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: edgestack-me-redirect
+  namespace: metriton
+spec:
+  prefix: /
+  host: edgestack.me
+  service: getambassador.io
+  host_redirect: true
+  path_redirect: /edgestack.me/welcome.html
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: grafana-prd
+  namespace: metriton
+spec:
+  prefix: /grafana
+  rewrite: /grafana
+  service: grafana-prd.grafana:80
