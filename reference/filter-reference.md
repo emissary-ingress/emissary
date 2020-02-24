@@ -357,6 +357,14 @@ spec:
     secret:                "string"          # required (unless secretName is set)
     secretName:            "string"          # required (unless secret is set)
     secretNamespace:       "string"          # optional; default is the same namespace as the Filter
+    useSessionCookies:                       # optional; default is { value: false }
+      value: bool                              # optional: default is true
+      ifRequestHeader:                         # optional; default to apply "useSessionCookies.value" to all requests
+        name: "string"                           # required
+        negate: bool                             # optional; default is false
+        # It is invalid to specify both "value" and "valueRegex".
+        value: "string"                          # optional; default is any non-empty string
+        valueRegex: "regex-string"               # optional; default is any non-empty string
 
     # HTTP client settings for talking with the identity provider
     insecureTLS:           bool              # optional; default is false
@@ -374,7 +382,7 @@ General settings:
  - `accessTokenValidation`: How to verify the liveness and scope of Access Tokens issued by the identity provider.  Valid values are either `"auto"`, `"jwt"`, or `"userinfo"`.  Empty or unset is equivalent to `"auto"`.
    * `"jwt"`: Validates the Access Token as a JWT.
      + By default: It accepts the RS256, RS384, or RS512 signature algorithms, and validates the signature against the JWKS from OIDC Discovery.  It then validates the `exp`, `iat`, `nbf`, `iss` (with the Issuer from OIDC Discovery), and `scope` claims: if present, none of the scopes are required to be present.  This relies on the identity provider using non-encrypted signed JWTs as Access Tokens, and configuring the signing appropriately
-	 + This behavior can be modified by delegating to [`JWT` Filter](#filter-type-jwt) with `accessTokenJWTFilter`. The arguments are the same as the arguments when referring to a JWT Filter from a FilterPolicy.
+     + This behavior can be modified by delegating to [`JWT` Filter](#filter-type-jwt) with `accessTokenJWTFilter`. The arguments are the same as the arguments when referring to a JWT Filter from a FilterPolicy.
    * `"userinfo"`: Validates the access token by polling the OIDC UserInfo Endpoint. This means that the Ambassador Edge Stack must initiate an HTTP request to the identity provider for each authorized request to a protected resource.  This performs poorly, but functions properly with a wider range of identity providers.  It is not valid to set `accessTokenJWTFilter` if `accessTokenValidation: userinfo`.
    * `"auto"` attempts to do `"jwt"` validation if `accessTokenJWTFilter` is set or if the Access Token parses as a JWT and the signature is valid, and otherwise falls back to `"userinfo"` validation.
 
@@ -388,6 +396,23 @@ Settings that are only valid when `grantType: "AuthorizationCode"`:
    * As a Kubernetes `generic` Secret, named by `secretName`/`secretNamespace`.  The Kubernetes secret must of
      the `generic` type, with the value stored under the key`oauth2-client-secret`.  If `secretNamespace` is not given, it defaults to the namespace of the Filter resource.
    * **Note**: It is invalid to set both `secret` and `secretName`.
+* By default, any cookies set by the Ambassador Edge Stack will be set to expire when the session expires naturally. Use the `useSessionCookies` setting to specify expiration on session cookies instead; the cookies will be deleted when the user closes their web browser.  
+		* However, this can prematurely delete cookie if the user closes their web browser. Conversely, it also means that cookies can persist for longer than normal if the user does not close their browser.
+		* Any prematurely deleted cookies may or may not affect user-perceived behavior, depending on
+		   the behavior of the identity provider.  
+		* Any cookies persisting longer will not affect behavior of the system; the Ambassador Edge
+		   Stack validates whether the session is expired when considering the
+		   cookie.  
+	* If `useSessionCookies` is non-`null`, then by default it will have the cookies for all requests be session cookies or not  according to the `useSessionCookies.value` sub-argument.  Setting the `ifRequestHeader` sub-argument to use `value` for requests that have (and `!value` for requests that don't have) the HTTP header field `name` (case-insensitive) either set to (if `negate: false`) or not set to (if `negate: true`)
+    + a non-emtpy string if neither `value` nor `valueRegex` are set
+    + the exact string `value` (case-sensitive) (if `value` is set)
+    + a string that matches the regular expression `valueRegex` (if
+      `valueRegex` is set).  This uses [RE2][] syntax (always, not
+      obeying [`regex_type`][] in the Ambassador module) but does
+      not support the `\C` escape sequence.
+
+[RE2]: https://github.com/google/re2/wiki/Syntax
+[`regex_type`]: /reference/core/ambassador/#regular-expressions-regex_type
 
 HTTP client settings for talking to the identity provider:
 
@@ -413,25 +438,31 @@ spec:
     filters:
     - name: "example-oauth2-filter"
       arguments:
-        scopes:                   # optional; default is ["openid"] for `grantType=="AuthorizationCode"`; [] for `grantType=="ClientCredentials"`
+        scopes:                     # optional; default is ["openid"] for `grantType=="AuthorizationCode"`; [] for `grantType=="ClientCredentials"`
         - "scope1"
         - "scope2"
-        insteadOfRedirect:        # optional; default is to do a redirect to the identity provider
-          ifRequestHeader:        # optional; default is to return httpStatusCode for all requests that would redirect-to-identity-provider
-            name: "string"        # required
-            value: "string"       # optional; default is any non-empty string
+        insteadOfRedirect:          # optional; default is to do a redirect to the identity provider
+          ifRequestHeader:            # optional; default is to return httpStatusCode for all requests that would redirect-to-identity-provider
+            name: "string"              # required
+            negate: bool                # optional; default is false
+            # It is invalid to specify both "value" and "valueRegex".
+            value: "string"             # optional; default is any non-empty string
+            valueRegex: "regex-string"  # optional; default is any non-empty string
           # option 1:
-          httpStatusCode: integer # optional; default is 403 (unless `filters` is set)
+          httpStatusCode: integer     # optional; default is 403 (unless `filters` is set)
           # option 2:
-          filters:                # optional; default is to use `httpStatusCode` instead
-          - name: "string"          # required
-            namespace: "string"     # optional; default is the same namespace as the FilterPolicy
-            ifRequestHeader:        # optional; default to apply this filter to all requests matching the host & path
-              name: "string"          # required
-              value: "string"         # optional; default is any non-empty string
-            onDeny: "enum-string"   # optional; default is "break"
-            onAllow: "enum-string"  # optional; default is "continue"
-            arguments: DEPENDS      # optional
+          filters:                    # optional; default is to use `httpStatusCode` instead
+          - name: "string"              # required
+            namespace: "string"         # optional; default is the same namespace as the FilterPolicy
+            ifRequestHeader:            # optional; default to apply this filter to all requests matching the host & path
+              name: "string"              # required
+              negate: bool                # optional; default is false
+              # It is invalid to specify both "value" and "valueRegex".
+              value: "string"             # optional; default is any non-empty string
+              valueRegex: "regex-string"  # optional; default is any non-empty string
+            onDeny: "enum-string"       # optional; default is "break"
+            onAllow: "enum-string"      # optional; default is "continue"
+            arguments: DEPENDS          # optional
 ```
 
  - `scopes`: A list of OAuth scope values to include in the scope of the authorization request.  If one of the scope values for a path is not granted, then access to that resource is forbidden; if the `scopes` argument lists `foo`, but the authorization response from the provider does not include `foo` in the scope, then it will be taken to mean that the authorization server forbade access to this path, as the authenticated user does not have the `foo` resource scope.
@@ -444,9 +475,27 @@ spec:
 
    The ordering of scope values does not matter, and is ignored.
 
- - `insteadOfRedirect`: An action to perform instead of redirecting the User-Agent to the identity provider.  By default, if the User-Agent does not have a currently-authenticated session, then the Ambassador Edge Stack will redirect the User-Agent to the identity provider. Setting `insteadOfRedirect` allows you to modify this behavior. `ifRequestHeader` does nothing when `grantType: "ClientCredentials"`, because the Ambassador Edge Stack will never redirect the User-Agent to the identity provider for the client credentials grant type.
-    * If `insteadOfRedirect` is non-`null`, then by default it will apply to all requests that would cause the redirect; setting the `ifRequestHeader` sub-argument causes it to only apply to
-      requests that have the HTTP header field `name`(case-insensitive) set to `value` (case-sensitive); or requests that have `name` set to any non-empty string if `value` is unset.
+ - `insteadOfRedirect`: An action to perform instead of redirecting
+   the User-Agent to the identity provider.  By default, if the
+   User-Agent does not have a currently-authenticated session, then
+   the Ambassador Edge Stack will redirect the User-Agent to the
+   identity provider. Setting `insteadOfRedirect` allows you to modify
+   this behavior. `insteadOfRedirect` does nothing when `grantType:
+   "ClientCredentials"`, because the Ambassador Edge Stack will never
+   redirect the User-Agent to the identity provider for the client
+   credentials grant type.
+    * If `insteadOfRedirect` is non-`null`, then by default it will
+      apply to all requests that would cause the redirect; setting the
+      `ifRequestHeader` sub-argument causes it to only apply to
+      requests that have the HTTP header field
+      `name` (case-insensitive) either set to (if `negate: false`) or
+      not set to (if `negate: true`)
+       + a non-emtpy string if neither `value` nor `valueRegex` are set
+       + the exact string `value` (case-sensitive) (if `value` is set)
+       + a string that matches the regular expression `valueRegex` (if
+         `valueRegex` is set).  This uses [RE2][] syntax (always, not
+         obeying [`regex_type`][] in the Ambassador module) but does
+         not support the `\C` escape sequence.
     * By default, it serves an authorization-denied error page; by default HTTP 403 ("Forbidden"), but this can be configured by the `httpStatusCode` sub-argument.
     * Instead of serving that simple error page, it can instead be configured to call out to a list of other Filters, by setting the `filters` list. The syntax and semantics of this list are the same as `.spec.rules[].filters` in a [`FilterPolicy`](#filterpolicy-definition). Be aware that if one of these filters modify the request rather than returning a response, then the request will be allowed through to the backend service, even though the `OAuth2` Filter denied it.
     * It is invalid to specify both `httpStatusCode` and `filters`.
@@ -518,8 +567,11 @@ spec:
     - name: "string"              # required
       namespace: "string"         # optional; default is the same namespace as the FilterPolicy
       ifRequestHeader:            # optional; default to apply this filter to all requests matching the host & path
-        name: "string"            # required
-        value: "string"           # optional; default is any non-empty string
+        name: "string"              # required
+        negate: bool                # optional; default is false
+        # It is invalid to specify both "value" and "valueRegex".
+        value: "string"             # optional; default is any non-empty string
+        valueRegex: "regex-string"  # optional; default is any non-empty string
       onDeny: "enum-string"       # optional; default is "break"
       onAllow: "enum-string"      # optional; default is "continue"
       arguments: DEPENDS          # optional
@@ -534,7 +586,16 @@ When multiple `Filter`s are specified in a rule:
    1. return a direct HTTP *response*, intended to be sent back to the requesting HTTP client (normally *denying* the request from
       being forwarded to the upstream service); or
    2. return a modification to make to the HTTP *request* before sending it to other filters or the upstream service (normally *allowing* the request to be forwarded to the upstream service with modifications).
- * If a filter has an `ifRequestHeader` setting, the filter is skipped unless the request (including any modifications made by earlier filters) matches the described header; the request must have the HTTP header field `name` (case-insensitive) set to `value` (case-sensitive); or have `name` set to any non-empty string if `value` is unset.
+ * If a filter has an `ifRequestHeader` setting, the filter is skipped
+   unless the request (including any modifications made by earlier
+   filters) has the HTTP header field `name` (case-insensitive) either
+   set to (if `negate: false`) or not set to (if `negate: true`)
+    + a non-emtpy string if neither `value` nor `valueRegex` are set
+    + the exact string `value` (case-sensitive) (if `value` is set)
+    + a string that matches the regular expression `valueRegex` (if
+      `valueRegex` is set).  This uses [RE2][] syntax (always, not
+      obeying [`regex_type`][] in the Ambassador module) but does not
+      support the `\C` escape sequence.
  * `onDeny` identifies what to do when the filter returns an "HTTP response":
    - `"break"`: End processing, and return the response directly to
      the requesting HTTP client.  Later filters are not called.  The request is not forwarded to the upstream service.

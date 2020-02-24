@@ -16,7 +16,10 @@ If you're new to the Ambassador Edge Stack and to Kubernetes, we'd recommend you
 
    **Note:** If you are using 1.14 and above, it is recommended to use `apiVersion: networking.k8s.io/v1beta1` when defining `Ingresses`. Since both are still supported in all 1.14+ versions of Kubernetes, this document will use `extensions/v1beta1` for compatibility reasons.
 
-- You will need RBAC permissions to create `Ingress` resources.
+- You will need RBAC permissions to create `Ingress` resources in either
+  the `extensions` `apiGroup` (present in all supported versions of
+  Kubernetes) or the `networking.k8s.io` `apiGroup` (introduced in
+  Kubernetes 1.14).
 
 - The Ambassador Edge Stack will need RBAC permissions to get, list, watch, and update `Ingress` resources.
 

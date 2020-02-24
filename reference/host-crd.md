@@ -203,7 +203,7 @@ This example is the same for an L4 LB, or without a load balancer at all.
     requestPolicy:
       insecure:
         action: Route
-  ```
+  ```  
 
   In this case, the Host resource explicitly requests no ACME handling and no TLS, then states that insecure requests must be routed instead of redirected.
 
