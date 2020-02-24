@@ -10,10 +10,11 @@ IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make update-base`.
   ENVOY_REPO ?= $(if $(IS_PRIVATE),git@github.com:datawire/envoy-private.git,git://github.com/datawire/envoy.git)
-  ENVOY_COMMIT ?= d17d947caef13f1bdd235c3fccff77814883bb46
+  ENVOY_COMMIT ?= 3bc432257e20e07a49d6213c8f255bbeb4edd561
   ENVOY_COMPILATION_MODE ?= opt
-  # Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes
-  BASE_ENVOY_RELVER ?= 7
+  # Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes.
+  # You may reset BASE_ENVOY_RELVER when adjusting ENVOY_COMMIT.
+  BASE_ENVOY_RELVER ?= 1
 
   ENVOY_DOCKER_REPO ?= quay.io/datawire/ambassador-base$(if $(IS_PRIVATE),-private)
   ENVOY_DOCKER_VERSION ?= $(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE)
@@ -103,7 +104,7 @@ ENVOY_SYNC_DOCKER_TO_HOST = rsync -Pav --delete --blocking-io -e "docker exec -i
 ENVOY_BASH.cmd = bash -c 'PS4=; set -ex; $(ENVOY_SYNC_HOST_TO_DOCKER); trap '\''$(ENVOY_SYNC_DOCKER_TO_HOST)'\'' EXIT; '$(call quote.shell,$1)
 ENVOY_BASH.deps = $(srcdir)/envoy-build-container.txt
 
-$(OSS_HOME)/bin_linux_amd64/envoy-static: $(ENVOY_BASH.deps) FORCE
+$(OSS_HOME)/docker/base-envoy/envoy-static: $(ENVOY_BASH.deps) FORCE
 	mkdir -p $(@D)
 	@PS4=; set -ex; { \
 	    if docker run --rm --entrypoint=true $(ENVOY_DOCKER_TAG); then \
@@ -154,9 +155,8 @@ envoy-shell: $(ENVOY_BASH.deps)
 $(OSS_HOME)/api/envoy: $(srcdir)/envoy
 	rsync --recursive --delete --delete-excluded --prune-empty-dirs --include='*/' --include='*.proto' --exclude='*' $</api/envoy/ $@
 
-update-base: $(OSS_HOME)/bin_linux_amd64/envoy-static-stripped
-	cp --force $(OSS_HOME)/bin_linux_amd64/envoy-static-stripped $(srcdir)/envoy-static
-	docker build -f $(OSS_HOME)/docker/base-envoy/Dockerfile $(srcdir) -t $(ENVOY_DOCKER_TAG)
+update-base: $(srcdir)/envoy-build-image.txt $(OSS_HOME)/docker/base-envoy/envoy-static $(OSS_HOME)/docker/base-envoy/envoy-static-stripped
+	docker build --build-arg=base=$$(cat $(srcdir)/envoy-build-image.txt) -t $(ENVOY_DOCKER_TAG) $(OSS_HOME)/docker/base-envoy
 	$(MAKE) generate
 	docker push $(ENVOY_DOCKER_TAG)
 .PHONY: update-base
@@ -171,14 +171,22 @@ _clean-envoy: _clean-envoy-old
 _clean-envoy: $(srcdir)/envoy-build-container.txt.clean
 	rm -f $(srcdir)/envoy-build-image.txt
 _clobber-envoy: _clean-envoy
+	rm -f $(OSS_HOME)/docker/base-envoy/envoy-static
+	rm -f $(OSS_HOME)/docker/base-envoy/envoy-static-stripped
 	$(if $(filter-out -,$(ENVOY_COMMIT)),rm -rf $(srcdir)/envoy)
 .PHONY: _clean-envoy _clobber-envoy
 
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
-_clean-envoy-old:
+
 # 2019-10-11
 _clean-envoy-old: $(OSS_HOME)/envoy-build-container.txt.clean
+
+_clean-envoy-old:
+# 2020-02-20
+	rm -f $(OSS_HOME)/cxx/envoy-static
+	rm -f $(OSS_HOME)/bin_linux_amd64/envoy-static
+	rm -f $(OSS_HOME)/bin_linux_amd64/envoy-static-stripped
 # 2019-10-11
 	rm -rf $(OSS_HOME)/envoy-bin
 	$(if $(filter-out -,$(ENVOY_COMMIT)),rm -rf $(OSS_HOME)/envoy-src)

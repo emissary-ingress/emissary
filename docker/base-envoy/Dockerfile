@@ -17,6 +17,7 @@
 # in the Makefile, then run "make update-base" to build and push the
 # new image.
 
-FROM ubuntu:18.04
+ARG base="i-forgot-to-set-build-arg-base"
+FROM ${base}
 
-ADD ./envoy-static /usr/local/bin/envoy
+ADD ./envoy-static ./envoy-static-stripped /usr/local/bin/

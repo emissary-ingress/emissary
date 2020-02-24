@@ -24,20 +24,25 @@ for all users, and includes all the functionality of the Ambassador API Gateway 
 to the additional capabilities mentioned above. Due to popular demand, we’re offering a free
 tier of our core features as part of the Ambassador Edge Stack, designed for startups.
 
-There is one breaking change between Ambassador 0.85.0 and Edge Stack 1.0.0: the `RateLimitService`
-protocol `pb.lyft.ratelimit.RateLimitService` is no longer supported. `RateLimitService`s must now
-use the `envoy.service.ratelimit.v2.RateLimitService`.
-
 ### UPCOMING PROTOCOL CHANGES
 
-*In a future version*, Ambassador will change the version of the GRPC protocol used to
-communicate with `AuthService`s:
+*In a future version*, Ambassador will change the version of the gRPC service name used to
+communicate with `AuthService`s and `RateLimitService`s:
 
-| Resource | Current version | Upcoming version |
-| :------- | :-------------- | :--------------- |
-| `AuthService` | `envoy.service.auth.v2alpha` | `envoy.service.auth.v2` |
+| Resource           | Current service name                       | Upcoming service name                         |
+| :----------------- | :----------------------------------------- | :-------------------------------------------- |
+| `AuthService`      | `envoy.service.auth.v2alpha.Authorization` | `envoy.service.auth.v2.Authorization`         |
+| `RateLimitService` | `pb.lyft.ratelimit.RateLimitService`       | `envoy.service.ratelimit.v2.RateLimitService` |
 
-These changes will not take effect until at least Ambassador 1.1.0. We expect to support both protocol versions during a transition period.
+- In some future version of Ambassador, there will be settings to control which name is
+  used; with the default being the current name; it will be opt-in to the new names.
+- In some future version of Ambassador after that, *no sooner than Ambassador 1.3.0*, the
+  default values of those setting swill change; making them opt-out from the new names.
+- In some future version of Ambassador after that, *no sooner than Ambassador 1.4.0*, the
+  settings will go away, and Ambassador will always use the new names.
+
+Note that Ambassador Edge Stack `External` Filters already unconditionally use the newer
+`envoy.service.auth.v2.Authorization` name.
 
 ## RELEASE NOTES
 
@@ -61,10 +66,39 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
-## Next release
+## [1.2.0] February 24, 2020
+[1.2.0]: https://github.com/datawire/ambassador/compare/v1.1.1...v1.2.0
 
-- Bugfix: Support Istio mTLS secrets natively ([#1475]). Thanks to Phil Peble.
-- Bugfix: TLS custom secret with period in name doesn't work ([#1255]). Thanks to Phil Peble.
+### Ambassador API Gateway + Ambassador Edge Stack
+
+- Feature: add idle_timeout_ms support for common HTTP listener (thanks, Jordan Neufeld!) ([#2155])
+- Feature: allow override of bind addresses, including for IPv6! (thanks to [Josue Diaz](https://github.com/josuesdiaz)!) ([#2293])
+- Bugfix: Support Istio mTLS secrets natively (thanks, [Phil Peble](https://github.com/ppeble)!) ([#1475])
+- Bugfix: TLS custom secret with period in name doesn't work (thanks, [Phil Peble](https://github.com/ppeble)!) ([#1255])
+- Bugfix: Honor ingress.class when running with Knative
+- Internal: Fix CRD-versioning issue in CI tests (thanks, [Ricky Taylor](https://github.com/ricky26)!)
+- Bugfix: Stop using deprecated Envoy configuration elements
+- Bugfix: Resume building a debuggable Envoy binary
+
+### Ambassador Edge Stack only
+
+- Change: The `ambassador` service now uses the default `externalTrafficPolicy` of `Cluster` rather than explicitly setting it to`Local`. This is a safer setting for GKE where the `Local` policy can cause outages when ambassador is updated. See https://stackoverflow.com/questions/60121956/are-hitless-rolling-updates-possible-on-gke-with-externaltrafficpolicy-local for details.
+- Feature: `edgectl install` provides a much cleaner, quicker experience when installing Ambassador Edge Stack
+- Feature: Ambassador Edge Stack supports the Ambassador operator for automated management and upgrade
+- Feature: `ifRequestHeader` can now have `valueRegex` instead of `value`
+- Feature: The `OAuth2` Filter now has `useSessionCookies` option to have cookies expire when the browser closes, rather than at a fixed duration
+- Feature: `ifRequestHeader` now has `negate: bool` to invert the match
+- Bugfix: The RBAC for `Ingress` now supports the `networking.k8s.io` `apiGroup`
+- Bugfix: Quiet Dev Portal debug logs
+- Bugfix: The Edge Policy Console is much less chatty when logged out
+- Change: The intercept agent is now incorporated into the `aes` image
+- Change: The `OAuth2` Filter no longer sets cookies when `insteadOfRedirect` triggers
+- Change: The `OAuth2` Filter more frequently adjusts the cookies
+
+[#1475]: https://github.com/datawire/ambassador/issues/1475
+[#1255]: https://github.com/datawire/ambassador/issues/1255
+[#2155]: https://github.com/datawire/ambassador/issues/2155
+[#2293]: https://github.com/datawire/ambassador/issues/2293
 
 ## [1.1.1] February 12, 2020
 [1.1.1]: https://github.com/datawire/ambassador/compare/v1.1.0...v1.1.1

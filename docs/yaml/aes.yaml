@@ -44,10 +44,10 @@ rules:
 - apiGroups: [ "networking.internal.knative.dev" ]
   resources: [ "ingresses/status", "clusteringresses/status" ]
   verbs: ["update"]
-- apiGroups: [ "extensions" ]
+- apiGroups: [ "extensions", "networking.k8s.io" ]
   resources: [ "ingresses" ]
   verbs: ["get", "list", "watch"]
-- apiGroups: [ "extensions" ]
+- apiGroups: [ "extensions", "networking.k8s.io" ]
   resources: [ "ingresses/status" ]
   verbs: ["update"]
 - apiGroups: [""]
@@ -203,7 +203,6 @@ metadata:
     app.kubernetes.io/component: ambassador-service
 spec:
   type: LoadBalancer
-  externalTrafficPolicy: Local
   ports:
   - name: http
     port: 80

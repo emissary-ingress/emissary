@@ -184,7 +184,6 @@ func (i *Installer) loopUntil(what string, how func() error, lc *loopConfig) err
 			i.show.Printf("(waiting for %s)", what)
 		case <-time.After(lc.sleepTime):
 			// Try again
-			// TODO: Fancy animated progress indicator?
 		case <-ctx.Done():
 			return errors.Errorf("timed out waiting for %s (or interrupted)", what)
 		}
@@ -326,9 +325,9 @@ func (i *Installer) Perform(kcontext string) error {
 	// Allow overriding the source domain (e.g., for smoke tests before release)
 	manifestsDomain := "www.getambassador.io"
 	domainOverrideVar := "AES_MANIFESTS_DOMAIN"
+	overrideMessage := "Downloading manifests from override domain %q instead of default %q because the environment variable %s is set."
 	if amd := os.Getenv(domainOverrideVar); amd != "" {
-		i.show.Printf("Downloading manifests from override domain %q instead of default %q", amd, manifestsDomain)
-		i.show.Printf("because the environment variable %s is set.", domainOverrideVar)
+		i.ShowWrapped(fmt.Sprintf(overrideMessage, amd, manifestsDomain, domainOverrideVar))
 		manifestsDomain = amd
 	}
 
@@ -345,9 +344,6 @@ func (i *Installer) Perform(kcontext string) error {
 	}
 
 	// Figure out what version of AES is being installed
-	// TODO: Parse the manifests and build objects
-	// TODO: Extract version info from the Deployment object
-	// TODO? Set label(s) on the to indicate this installation was performed by the installer
 	aesVersionRE := regexp.MustCompile("image: quay[.]io/datawire/aes:([[:^space:]]+)[[:space:]]")
 	matches := aesVersionRE.FindStringSubmatch(aesManifests)
 	if len(matches) != 2 {
@@ -390,7 +386,6 @@ func (i *Installer) Perform(kcontext string) error {
 	}
 
 	// Install the AES manifests
-	// TODO: Figure out if a previous installation exists
 
 	if err := i.ShowKubectl("install CRDs", crdManifests, "apply", "-f", "-"); err != nil {
 		i.Report("fail_install_crds")
@@ -415,12 +410,10 @@ func (i *Installer) Perform(kcontext string) error {
 	// Wait for Ambassador Pod; grab AES install ID
 	if err := i.loopUntil("AES pod startup", i.GrabAESInstallID, lc2); err != nil {
 		i.Report("fail_pod_timeout")
-		// TODO Is it possible to detect other errors? If so, report "fail_install_id", pass along the error
 		return err
 	}
 
 	// Grab Helm information if present
-	// TODO: Figure out Helm version?
 	if managedDeployment, err := i.CaptureKubectl("get deployment labels", "", "get", "-n", "ambassador", "deployments", "ambassador", "-Lapp.kubernetes.io/managed-by"); err == nil {
 		if strings.Contains(managedDeployment, "Helm") {
 			i.SetMetadatum("Cluster Info", "managed", "helm")
@@ -434,7 +427,11 @@ func (i *Installer) Perform(kcontext string) error {
 	// timeouts.
 	if isKnownLocalCluster {
 		i.Report("cluster_not_accessible")
-		// TODO: Show local cluster message
+		i.show.Println("-> Local cluster detected. Not configuring automatic TLS.")
+		loginMsg := "Determine the IP address and port number of your Ambassador service. "
+		loginMsg += fmt.Sprintf(loginViaIP, "IP_ADDRESS:PORT")
+		i.ShowWrapped(loginMsg)
+		i.ShowWrapped(seeDocs)
 		return nil
 	}
 
@@ -461,7 +458,8 @@ func (i *Installer) Perform(kcontext string) error {
 	// Wait for Ambassador to be ready to serve ACME requests.
 	if err := i.loopUntil("AES to serve ACME", func() error { return i.CheckAESServesACME(ipAddress) }, lc2); err != nil {
 		i.Report("aes_listening_timeout")
-		// TODO: Show an informative message here
+		i.ShowWrapped("It seems AES did not start in the expected time.")
+		i.ShowWrapped(tryAgain)
 		return err
 	}
 	i.Report("aes_listening")
@@ -481,7 +479,7 @@ func (i *Installer) Perform(kcontext string) error {
 	}
 
 	// Ask for the user's email address
-	i.show.Println(emailAsk)
+	i.ShowWrapped(emailAsk)
 	// Do the goroutine dance to let the user hit Ctrl-C at the email prompt
 	gotEmail := make(chan (string))
 	var emailAddress string
@@ -517,26 +515,13 @@ func (i *Installer) Perform(kcontext string) error {
 
 	if resp.StatusCode != 200 {
 		message := strings.TrimSpace(string(content))
-		// TODO: consider how this message should look relative to the other
-		// not-accessible cases
 		i.Report("dns_name_failure", ScoutMeta{"code", resp.StatusCode}, ScoutMeta{"err", message})
 		i.show.Println("-> Failed to create a DNS name:", message)
 		i.show.Println()
-		i.show.Println("If this IP address is reachable from here, then the following command")
-		i.show.Println("will open the Edge Policy Console once you accept a self-signed")
-		i.show.Println("certificate in your browser.")
-		i.show.Println()
-		i.show.Println("    edgectl login -n ambassador", ipAddress)
-		i.show.Println()
-		i.show.Println("If the IP is not reachable from here, you can use port forwarding to")
-		i.show.Println("access the Edge Policy Console.")
-		i.show.Println()
-		i.show.Println("    kubectl -n ambassador port-forward deploy/ambassador 8443 &")
-		i.show.Println("    edgectl login -n ambassador 127.0.0.1:8443")
-		i.show.Println()
-		i.show.Println("You will need to accept a self-signed certificate in your browser.")
-		i.show.Println()
-		i.show.Println("See https://www.getambassador.io/user-guide/getting-started/")
+		i.ShowWrapped("If this IP address is reachable from here, you can access your installation without a DNS name.")
+		i.ShowWrapped(fmt.Sprintf(loginViaIP, ipAddress))
+		i.ShowWrapped(loginViaPortForward)
+		i.ShowWrapped(seeDocs)
 		return nil
 	}
 
@@ -548,7 +533,9 @@ func (i *Installer) Perform(kcontext string) error {
 	// name appearing for LetsEncrypt.
 	if err := i.loopUntil("DNS propagation to this host", func() error { return i.CheckHostnameFound(hostname) }, lc2); err != nil {
 		i.Report("dns_name_propagation_timeout")
-		// TODO: Show an informative message here
+		i.ShowWrapped("We are unable to resolve your new DNS name on this machine.")
+		i.ShowWrapped(seeDocs)
+		i.ShowWrapped(tryAgain)
 		return err
 	}
 	i.Report("dns_name_propagated")
@@ -557,27 +544,29 @@ func (i *Installer) Perform(kcontext string) error {
 	hostResource := fmt.Sprintf(hostManifest, hostname, hostname, emailAddress)
 	if err := i.ShowKubectl("install Host resource", hostResource, "apply", "-f", "-"); err != nil {
 		i.Report("fail_host_resource", ScoutMeta{"err", err.Error()})
-		// TODO: Show an informative message here
+		i.ShowWrapped("We failed to create a Host resource in your cluster. This is unexpected.")
+		i.ShowWrapped(seeDocs)
 		return err
 	}
 
 	i.show.Println("-> Obtaining a TLS certificate from Let's Encrypt")
 	if err := i.loopUntil("TLS certificate acquisition", func() error { return i.CheckACMEIsDone(hostname) }, lc5); err != nil {
-		i.Report("cert_provision_failed") // TODO add error info here
-		// TODO: Show an informative message here
+		i.Report("cert_provision_failed")
+		// Some info is reported by the check function.
+		i.ShowWrapped(seeDocs)
+		i.ShowWrapped(tryAgain)
 		return err
 	}
 	i.Report("cert_provisioned")
 	i.show.Println("-> TLS configured successfully")
 	if err := i.ShowKubectl("show Host", "", "get", "host", hostname); err != nil {
-		// TODO: Show an informative message here
+		i.ShowWrapped("We failed to retrieve the Host resource from your cluster that we just created. This is unexpected.")
+		i.ShowWrapped(tryAgain)
 		return err
 	}
 
 	// Open a browser window to the Edge Policy Console
-	// TODO Make this really noisy and gross
 	if err := do_login(i.kubeinfo, kcontext, "ambassador", hostname, false, false); err != nil {
-		// TODO: Show an informative message here
 		return err
 	}
 
@@ -637,6 +626,15 @@ func NewInstaller(verbose bool) *Installer {
 
 func (i *Installer) Quit() {
 	i.cancel()
+}
+
+func (i *Installer) ShowWrapped(text string) {
+	text = strings.Trim(text, "\n")                  // Drop leading and trailing newlines
+	for _, para := range strings.Split(text, "\n") { // Preserve newlines in the text
+		for _, line := range doWordWrap(para, "", 79) { // But wrap text too
+			i.show.Println(line)
+		}
+	}
 }
 
 // Kubernetes Cluster
@@ -707,6 +705,27 @@ func (i *Installer) Report(eventName string, meta ...ScoutMeta) {
 	}
 }
 
+func doWordWrap(text string, prefix string, lineWidth int) []string {
+	words := strings.Fields(strings.TrimSpace(text))
+	if len(words) == 0 {
+		return []string{""}
+	}
+	lines := make([]string, 0)
+	wrapped := prefix + words[0]
+	for _, word := range words[1:] {
+		if len(word)+1 > lineWidth-len(wrapped) {
+			lines = append(lines, wrapped)
+			wrapped = prefix + word
+		} else {
+			wrapped += " " + word
+		}
+	}
+	if len(wrapped) > 0 {
+		lines = append(lines, wrapped)
+	}
+	return lines
+}
+
 // registration is used to register edgestack.me domains
 type registration struct {
 	Email string
@@ -724,8 +743,25 @@ spec:
     email: %s
 `
 
-// FIXME: Mention that this will be shared with Let's Encrypt?
-const emailAsk = `Please enter an email address. We'll use this email address to notify you
-prior to domain and certificate expiration.`
+const emailAsk = `Please enter an email address. We'll use this email address to notify you prior to domain and certificate expiration. We also share this email address with Let's Encrypt to acquire your certificate for TLS.`
+
+const loginViaIP = `
+The following command will open the Edge Policy Console once you accept a self-signed certificate in your browser.
+
+$ edgectl login -n ambassador %s
+` // ipAddress
+
+const loginViaPortForward = `
+You can use port forwarding to access the Edge Policy Console.
+
+$ kubectl -n ambassador port-forward deploy/ambassador 8443 &
+$ edgectl login -n ambassador 127.0.0.1:8443
+
+You will need to accept a self-signed certificate in your browser.
+`
+
+const tryAgain = "If this appears to be a transient failure, please try running the installer again. It is safe to run the installer repeatedly on a cluster."
+
+const seeDocs = "See https://www.getambassador.io/user-guide/getting-started/"
 
 var validEmailAddress = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")

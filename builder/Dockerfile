@@ -66,7 +66,7 @@ RUN apk --no-cache add bash bash-completion ncurses curl jq rsync python3 python
 RUN sh -c "/usr/bin/kubectl completion bash > /usr/share/bash-completion/completions/kubectl"
 RUN chmod u+s $(which docker)
 
-COPY --from=envoy /usr/local/bin/envoy /usr/local/bin/envoy
+COPY --from=envoy /usr/local/bin/envoy-static-stripped /usr/local/bin/envoy
 
 ENV KUBECONFIG=/buildroot/kubeconfig.yaml
 
@@ -109,7 +109,7 @@ RUN apk --no-cache add bash curl python3 libcap
 
 RUN ln -s /usr/bin/python3 /usr/bin/python
 
-COPY --from=envoy /usr/local/bin/envoy /usr/local/bin/envoy
+COPY --from=envoy /usr/local/bin/envoy-static-stripped /usr/local/bin/envoy
 COPY --from=artifacts /usr/lib/python3.7/site-packages /usr/lib/python3.7/site-packages
 COPY --from=artifacts /usr/lib/libyaml* /usr/lib/
 
