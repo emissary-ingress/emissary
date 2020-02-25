@@ -55,7 +55,7 @@ install:
   - export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
 
 script:
-  - docker pull ${DEV_REGISTRY}/builder:latest
+  #- docker pull ${DEV_REGISTRY}/builder:latest
   - ./releng/travis-script.sh
 
 after_script:
