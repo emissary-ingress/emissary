@@ -22,13 +22,13 @@ updates](#updates-by-the-operator) versions.
 
 Start by installing the operator:
 
-1. Create the Operator Custom Resource schema with the following command: `kubectl apply -f https://github.com/datawire/ambassador-operator/releases/download/latest/ambassador-operator-crds.yaml`
-2. Install the actual CRD for the Ambassador Operator in the `ambassador` namespace with the following command: `kubectl apply -n ambassador -f https://github.com/datawire/ambassador-operator/releases/download/latest/ambassador-operator.yaml`
+1. Create the Operator Custom Resource schema with the following command: `kubectl apply -f https://github.com/datawire/ambassador-operator/releases/latest/download/ambassador-operator-crds.yaml`
+2. Install the actual CRD for the Ambassador Operator in the `ambassador` namespace with the following command: `kubectl apply -n ambassador -f https://github.com/datawire/ambassador-operator/releases/latest/download/ambassador-operator.yaml`
 3. To install the Ambassador Operator CRD in a different namespace, you can specify it in `NS` and then run the following command:
 
     ```shell
     $ NS="custom-namespace"
-    $ curl -L https://github.com/datawire/ambassador-operator/releases/download/latest/ambassador-operator.yaml | \
+    $ curl -L https://github.com/datawire/ambassador-operator/releases/latest/download/ambassador-operator.yaml | \
         sed -e "s/namespace: ambassador/namespace: $NS/g" | \
         kubectl apply -n $NS -f -
     ```
@@ -111,7 +111,7 @@ You can also install the AES Operator from a Helm Chart. The following Helm valu
 After the `AmbassadorInstallation` is created for the first time, the Operator
 will then use the list of releases available for the Ambassador Helm Chart for
 determining the most recent version that can be installed, using the optional
-Version Syntax for filtering the releases that are acceptable. 
+Version Syntax for filtering the releases that are acceptable.
 
 It will then install Ambassador, using any extra arguments provided in the `AmbassadorInstallation`, like the `baseImage`, the `logLevel` or any of the `helmValues`.
 
