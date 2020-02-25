@@ -856,7 +856,7 @@ class ResourceFetcher:
         else:
             self.logger.debug(f"not saving K8s Service {resource_name}.{resource_namespace} with no ports")
 
-        objects: List[Any] = []
+        result: List[Any] = []
 
         if annotations:
             if (self.filename is not None) and (not self.filename.endswith(":annotation")):
@@ -866,15 +866,19 @@ class ResourceFetcher:
                 objects = parse_yaml(annotations)
 
                 for obj in objects:
+                    if not obj:
+                        self.logger.warning(f"empty YAML document found in ambassador service: {resource_name}.{resource_namespace}")
+                        continue
                     if obj.get('metadata_labels') is None and metadata_labels:
                         obj['metadata_labels'] = metadata_labels
                     if obj.get('namespace') is None:
                         obj['namespace'] = resource_namespace
+                    result.append(obj)
 
             except yaml.error.YAMLError as e:
                 self.logger.debug("could not parse YAML: %s" % e)
 
-        return resource_identifier, objects
+        return resource_identifier, result
 
     # Handler for K8s Secret resources.
     def handle_k8s_secret(self, k8s_object: AnyDict) -> HandlerResult:
