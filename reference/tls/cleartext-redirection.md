@@ -21,7 +21,38 @@ Ambassador Edge Stack exposes configuration for this in two ways:
 
 Typically, port-based redirection is the preferred method since it is simpler to manage and will work with all use cases. Redirecting based off of the `x-forwarded-proto` header requires an L7 load-balancer or proxy in front of Ambassador Edge Stack to set that header.
 
-## Port-based Redirection
+## Using the `Host` resource
+
+As of Ambassador API Gateway and Edge Stack 1.0.0, the [`Host`](/reference/host-crd) resource is used to configure how Ambassador handles cleartext on a domain. You can now configure Ambassador to deny, allow, or redirect cleartext to HTTPS on a domain using a single resource.
+
+The following `Host` gives an example of how to enable Ambassador to redirect cleartext to HTTPS on the `host.example.com` domain. 
+
+```yaml
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: example-host
+spec:
+  hostname: host.example.com
+  acmeProvider:
+    email: julian@example.com
+  insecure:
+    action: Redirect
+```
+
+**Note:** The default behavior when Ambassador is terminating TLS is to redirect cleartext for all `Host`s
+
+## For Ambassador 0.86.1 and below
+
+In Amabassador 0.86.1 and below, TLS behavior was configured with the `TLSContext`. This included cleartext redirection. 
+
+The follow reference is **deprecated** and for people using old versions of Ambassador.
+
+
+[Upgrade to the latest verion](/user-guide/upgrade-to-edge-stack/) of Ambassador to use the `Host` resource to manage this. 
+
+### Port-based Redirection
 
 Port-based redirection opens up Ambassador Edge Stack to listen on a defined port and issue a `301` redirect to HTTPS for all traffic that comes in on that port.
 
@@ -75,7 +106,7 @@ To configure Ambassador Edge Stack to handle this behavior you need set `redirec
 
 - If you use multiple `TLSContext`s, it doesn't matter which `TLSContext` sets `redirect_cleartext_from`. However, it is an error to attempt to set `redirect_cleartext_from` on multiple distinct ports in multiple distinct `TLSContext`s.
 
-## Protocol-based Redirection
+### Protocol-based Redirection
 
 Ambassador Edge Stack can perform HTTP -> HTTPS redirection based on the protocol of the incoming request. This is done by checking the `x-forwarded-proto` header that can be set by an L7 load balancer or proxy sitting in front of Ambassador Edge Stack.
 
