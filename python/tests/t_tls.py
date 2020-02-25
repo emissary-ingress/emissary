@@ -5,6 +5,7 @@ import pytest
 from kat.harness import Query, EDGE_STACK
 
 from abstract_tests import AmbassadorTest, HTTP, ServiceType
+from kat.utils import namespace_manifest
 
 
 class TLSContextsTest(AmbassadorTest):
@@ -443,12 +444,7 @@ class TLSContextTest(AmbassadorTest):
             self.xfail = "XFailing for now"
 
     def manifests(self) -> str:
-        return """
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: secret-namespace
+        return namespace_manifest("secret-namespace") + """
 ---
 apiVersion: v1
 data:
@@ -722,12 +718,7 @@ class TLSIngressTest(AmbassadorTest):
       value: "diagd"
 """
 
-        return f"""
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: secret-namespace-ingress
+        return namespace_manifest("secret-namespace-ingress") + f"""
 ---
 apiVersion: v1
 data:
@@ -1263,12 +1254,7 @@ class TLSContextIstioSecretTest(AmbassadorTest):
             self.xfail = "XFailing for now"
 
     def manifests(self) -> str:
-        return """
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: secret-namespace
+        return namespace_manifest("secret-namespace") + """
 ---
 apiVersion: v1
 data:

@@ -24,6 +24,7 @@ from yaml.scanner import ScannerError as YAMLScanError
 
 from multi import multi
 from .parser import dump, load, Tag
+from .utils import namespace_manifest
 
 import yaml as pyyaml
 
@@ -568,7 +569,13 @@ class Node(ABC):
             return self.parent.depth + 1
 
     def format(self, st, **kwargs):
-        return st.format(self=self, environ=os.environ, **kwargs)
+        serviceAccountExtra = ''
+        if os.environ.get("DEV_USE_IMAGEPULLSECRET", False):
+            serviceAccountExtra = """
+imagePullSecrets:
+- name: dev-image-pull-secret
+"""
+        return st.format(self=self, environ=os.environ, serviceAccountExtra=serviceAccountExtra, **kwargs)
 
     def get_fqdn(self, name: str) -> str:
         if self.namespace and (self.namespace != 'default'):
@@ -1192,6 +1199,9 @@ class Runner:
     def get_manifests(self, selected) -> OrderedDict:
         manifests = OrderedDict()  # type: ignore
         superpods: Dict[str, Superpod] = {}
+
+        if os.environ.get("DEV_USE_IMAGEPULLSECRET", False):
+            manifests[None] = load('default-ns.yaml', namespace_manifest("default"), Tag.MAPPING)
 
         for n in (n for n in self.nodes if n in selected and not n.xfail):
             manifest = None

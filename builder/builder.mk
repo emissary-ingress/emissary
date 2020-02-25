@@ -136,6 +136,10 @@ pytest-only: sync preflight-cluster
 		-e KAT_RUN_MODE \
 		-e KAT_VERBOSE \
 		-e PYTEST_ARGS \
+		-e DEV_USE_IMAGEPULLSECRET \
+		-e DEV_REGISTRY \
+		-e DOCKER_BUILD_USERNAME \
+		-e DOCKER_BUILD_PASSWORD \
 		-it $(shell $(BUILDER)) /buildroot/builder.sh pytest-internal
 .PHONY: pytest-only
 
@@ -152,6 +156,10 @@ gotest: test-ready
 		-e DTEST_KUBECONFIG=/buildroot/kubeconfig.yaml \
 		-e GOTEST_PKGS \
 		-e GOTEST_ARGS \
+		-e DEV_USE_IMAGEPULLSECRET \
+		-e DEV_REGISTRY \
+		-e DOCKER_BUILD_USERNAME \
+		-e DOCKER_BUILD_PASSWORD \
 		-it $(shell $(BUILDER)) /buildroot/builder.sh gotest-internal
 	docker exec \
 		-w /buildroot/ambassador \

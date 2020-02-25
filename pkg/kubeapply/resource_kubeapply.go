@@ -2,9 +2,12 @@ package kubeapply
 
 import (
 	"bytes"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
+	_path "path"
 	"path/filepath"
 	"strings"
 	"text/template"
@@ -96,12 +99,6 @@ func isTemplate(input []byte) bool {
 	return strings.Contains(string(input), "@TEMPLATE@")
 }
 
-func builder(dir string) func(string) (string, error) {
-	return func(dockerfile string) (string, error) {
-		return image(dir, dockerfile)
-	}
-}
-
 func image(dir, dockerfile string) (string, error) {
 	var result string
 	errs := supervisor.Run("BLD", func(p *supervisor.Process) error {
@@ -161,7 +158,11 @@ func ExpandResource(path string) (result []byte, err error) {
 	}
 	if isTemplate(input) {
 		funcs := sprig.TxtFuncMap()
-		funcs["image"] = builder(filepath.Dir(path))
+		usedImage := false
+		funcs["image"] = func(dockerfile string) (string, error) {
+			usedImage = true
+			return image(filepath.Dir(path), dockerfile)
+		}
 		tmpl := template.New(filepath.Base(path)).Funcs(funcs)
 		_, err := tmpl.Parse(string(input))
 		if err != nil {
@@ -175,6 +176,40 @@ func ExpandResource(path string) (result []byte, err error) {
 		}
 
 		result = buf.Bytes()
+
+		if usedImage && os.Getenv("DEV_USE_IMAGEPULLSECRET") != "" {
+			dockercfg, err := json.Marshal(map[string]interface{}{
+				"auths": map[string]interface{}{
+					_path.Dir(os.Getenv("DEV_REGISTRY")): map[string]string{
+						"auth": base64.StdEncoding.EncodeToString([]byte(os.Getenv("DOCKER_BUILD_USERNAME") + ":" + os.Getenv("DOCKER_BUILD_PASSWORD"))),
+					},
+				},
+			})
+			if err != nil {
+				return nil, errors.Wrap(err, "DEV_USE_IMAGEPULLSECRET")
+			}
+
+			secretYaml := fmt.Sprintf(`
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: dev-image-pull-secret
+type: kubernetes.io/dockerconfigjson
+data:
+  ".dockerconfigjson": %q
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: default
+imagePullSecrets:
+- name: dev-image-pull-secret
+`, base64.StdEncoding.EncodeToString(dockercfg))
+
+			result = append(result, secretYaml...)
+		}
 	} else {
 		result = input
 	}

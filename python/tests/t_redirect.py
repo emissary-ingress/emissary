@@ -2,6 +2,7 @@ from kat.harness import Query, EDGE_STACK
 
 from abstract_tests import AmbassadorTest, HTTP
 from abstract_tests import ServiceType
+from kat.utils import namespace_manifest
 
 
 #####
@@ -28,12 +29,7 @@ class RedirectTests(AmbassadorTest):
         yield from (r for r in super().requirements() if r[0] == "url" and r[1].url.startswith("https"))
 
     def manifests(self):
-        return """
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: redirect-namespace
+        return namespace_manifest("redirect-namespace") + """
 ---
 apiVersion: v1
 kind: Secret

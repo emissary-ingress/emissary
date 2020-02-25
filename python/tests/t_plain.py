@@ -4,6 +4,7 @@ from kat.harness import variants, Query, EDGE_STACK
 
 from abstract_tests import AmbassadorTest, assert_default_errors
 from abstract_tests import MappingTest, Node
+from kat.utils import namespace_manifest
 
 # Plain is the place that all the MappingTests get pulled in.
 
@@ -17,17 +18,7 @@ class Plain(AmbassadorTest):
         yield cls(variants(MappingTest))
 
     def manifests(self) -> str:
-        m = """
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: plain-namespace
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: evil-namespace
+        m = namespace_manifest("plain-namespace") + namespace_manifest("evil-namespace") + """
 ---
 kind: Service
 apiVersion: v1
