@@ -15,7 +15,7 @@ class LogServiceTest(AmbassadorTest):
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return super().manifests() + self.format("""
+        return self.format("""
 ---
 apiVersion: v1
 kind: Service
@@ -56,7 +56,7 @@ spec:
         ports:
         - name: http
           containerPort: 25565
-        """)
+""") + super().manifests()
 
     def config(self):
         yield self, self.format("""

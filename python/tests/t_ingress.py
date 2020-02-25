@@ -21,7 +21,7 @@ class IngressStatusTest1(AmbassadorTest):
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return super().manifests() + """
+        return """
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress
@@ -38,7 +38,7 @@ spec:
           serviceName: {self.target.path.k8s}
           servicePort: 80
         path: /{self.name}/
-"""
+""" + super().manifests()
 
     def queries(self):
         if sys.platform != 'darwin':
@@ -80,7 +80,7 @@ class IngressStatusTest2(AmbassadorTest):
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return super().manifests() + """
+        return """
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress
@@ -97,7 +97,7 @@ spec:
           serviceName: {self.target.path.k8s}
           servicePort: 80
         path: /{self.name}/
-"""
+""" + super().manifests()
 
     def queries(self):
         if sys.platform != 'darwin':
@@ -139,7 +139,7 @@ class IngressStatusTestAcrossNamespaces(AmbassadorTest):
         self.target = HTTP(namespace="alt-namespace")
 
     def manifests(self) -> str:
-        return super().manifests() + """
+        return """
 ---
 apiVersion: v1
 kind: Namespace
@@ -162,7 +162,7 @@ spec:
           serviceName: {self.target.path.k8s}
           servicePort: 80
         path: /{self.name}/
-"""
+""" + super().manifests()
 
     def queries(self):
         if sys.platform != 'darwin':
@@ -204,7 +204,7 @@ class IngressStatusTestWithAnnotations(AmbassadorTest):
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return super().manifests() + """
+        return """
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress
@@ -229,7 +229,7 @@ spec:
           serviceName: {self.target.path.k8s}
           servicePort: 80
         path: /{self.name}/
-"""
+""" + super().manifests()
 
     def queries(self):
         text = json.dumps(self.status_update)
@@ -265,7 +265,7 @@ class SameIngressMultipleNamespaces(AmbassadorTest):
         self.target2 = HTTP(name="target2", namespace="same-ingress-2")
 
     def manifests(self) -> str:
-        return super().manifests() + """
+        return """
 ---
 apiVersion: v1
 kind: Namespace
@@ -310,7 +310,7 @@ spec:
           serviceName: {self.target.path.k8s}-target2
           servicePort: 80
         path: /{self.name}-target2/
-"""
+""" + super().manifests()
 
     def queries(self):
         if sys.platform != 'darwin':
