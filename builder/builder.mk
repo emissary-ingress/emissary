@@ -83,13 +83,13 @@ compile:
 	@$(BUILDER) compile
 .PHONY: compile
 
-SNAPSHOT=snapshot-$(NAME)
+SNAPSHOT=snapshot-$(BUILDER_NAME)
 
 commit:
 	@$(BUILDER) commit $(SNAPSHOT)
 .PHONY: commit
 
-REPO=$(NAME)
+REPO=$(BUILDER_NAME)
 
 images:
 	@$(MAKE) --no-print-directory compile
