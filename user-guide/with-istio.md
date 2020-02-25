@@ -115,7 +115,7 @@ The annotation above implements an Ambassador Edge Stack mapping from the `/prod
 You can now apply this manifest from the root of the Istio GitHub repo on your local file system (taking care to wrap the apply with `istioctl kube-inject`):
 
 ```shell
-kubectl apply -f <(istioctl kube-inject -f samples/bookinfo/kube/bookinfo.yaml)
+kubectl apply -f <(istioctl kube-inject -f samples/bookinfo/platform/kube/bookinfo.yaml)
 ```
 
 3. Optionally, delete the Ingress controller from the `bookinfo.yaml` manifest by typing `kubectl delete ingress gateway`.
