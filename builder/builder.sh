@@ -80,8 +80,9 @@ bootstrap() {
             exit 1
         fi
 
+        now=$(date +"%H%M%S")
         echo_on
-        $DOCKER_RUN --name "builder-${BUILDER_NAME}" --network "${DOCKER_NETWORK}" --network-alias "builder" --group-add ${DOCKER_GID} -d --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(builder_volume):/home/dw ${BUILDER_MOUNTS} --cap-add NET_ADMIN -lbuilder -l${BUILDER_NAME} ${BUILDER_PORTMAPS} -e BUILDER_NAME=${BUILDER_NAME} --entrypoint tail builder -f /dev/null > /dev/null
+        $DOCKER_RUN --name "bld-${BUILDER_NAME}-${now}" --network "${DOCKER_NETWORK}" --network-alias "builder" --group-add ${DOCKER_GID} -d --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(builder_volume):/home/dw ${BUILDER_MOUNTS} --cap-add NET_ADMIN -lbuilder -l${BUILDER_NAME} ${BUILDER_PORTMAPS} -e BUILDER_NAME=${BUILDER_NAME} --entrypoint tail builder -f /dev/null > /dev/null
         echo_off
 
         printf "${GRN}Started build container ${BLU}$(builder)${END}\n"
