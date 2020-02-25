@@ -39,14 +39,12 @@ You can run `kubectl get ambassador-crds` to see the CRDs you've created to conf
 
 ## Supported CRDs
 
-The full set of CRDs supported by the Ambassador Edge Stack are the following:
+The full set of CRDs supported by the Ambassador API Gateway and the Ambassador Edge Stack are the following:
 
 | `Kind` | Kubernetes singular | Kubernetes plural |
 | :----- | :------------------ | :---------------- |
 | [`AuthService`](/reference/services/auth-service) | `authservice` | `authservices` |
 | [`ConsulResolver`](/reference/core/resolvers/#the-consul-resolver) | `consulresolver` | `consulresolvers` |
-| [`Filter`](/reference/filter-reference/) | `filter` | `filters` |
-| [`FilterPolicy`](/reference/services/access-control) | `filterpolicy` | `filterpolicies`|
 | [`Host`](/reference/host-crd/) | `host`| `hosts` |
 | [`Ingress`](/reference/core/ingress-controller/) | `ingress` | `ingresses` |
 | [`KubernetesEndpointResolver`](/reference/core/resolvers/#the-kubernetes-endpoint-resolver) | `kubernetesendpointresolver` | `kubernetesendpointresolvers` |
@@ -54,13 +52,23 @@ The full set of CRDs supported by the Ambassador Edge Stack are the following:
 | [`LogService`](/reference/services/log-service) | `logservice` | `logservices` |
 | [`Mapping`](/reference/mappings/) | `mapping` | `mappings` |
 | [`Module`](/reference/modules/#module-configuration) | `module` | `modules` |
-| [`RateLimit`](/user-guide/advanced-rate-limiting/) | `ratelimit` | `ratelimits` |
 | [`RateLimitService`](/reference/services/rate-limit-service) | `ratelimitservice` | `ratelimitservices` |
 | [`TCPMapping`](/reference/tcpmappings/#tcpmapping) | `tcpmapping` | `tcpmappings` |
 | [`TLSContext`](/reference/core/tls/#tlscontext) | `tlscontext` | `tlscontexts` |
 | [`TracingService`](/reference/services/tracing-service) | `tracingservice` | `tracingservices` |
 
 So, for example, if you're using CRDs, then `kubectl get mappings` should show all your `Mapping` custom resources.
+
+### CRDs Specific to the Ambassador Edge Stack
+
+The following CRDs are specific to only the Ambassador Edge Stack and are
+subject to the community license agreements:
+
+| `Kind` | Kubernetes singular | Kubernetes plural |
+| :----- | :------------------ | :---------------- |
+| [`Filter`](/reference/filter-reference/) | `filter` | `filters` |
+| [`FilterPolicy`](/reference/services/access-control) | `filterpolicy` | `filterpolicies`|
+| [`RateLimit`](/user-guide/advanced-rate-limiting/) | `ratelimit` | `ratelimits` |
 
 ## CRDs and RBAC
 
