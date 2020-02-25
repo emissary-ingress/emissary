@@ -4,68 +4,6 @@ kind: Service
 metadata:
   name: aes-backend
   namespace: metriton
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind: Mapping
-      name: aes-backend-signup-beta
-      ambassador_id: metriton
-      prefix: /beta/signup
-      rewrite: /signup
-      service: aes-backend-beta
-      ---
-      apiVersion: ambassador/v1
-      kind: Mapping
-      ambassador_id: metriton
-      prefix: /beta/downloads
-      rewrite: /downloads
-      name: aes-backend-download-beta
-      service: aes-backend-beta
-      ---
-      apiVersion: ambassador/v1
-      kind: Mapping
-      ambassador_id: metriton
-      prefix: /beta/register-domain
-      rewrite: /register-domain
-      name: aes-backend-domain-beta
-      service: aes-backend-beta
-      timeout_ms: 30000 # This upstream API relies on AWS... which is not always reliably fast
-      ---
-      apiVersion: ambassador/v1
-      kind: Mapping
-      name: aes-backend-signup
-      ambassador_id: metriton
-      prefix: /signup
-      rewrite: /signup
-      service: aes-backend
-      ---
-      apiVersion: ambassador/v1
-      kind: Mapping
-      ambassador_id: metriton
-      prefix: /downloads
-      rewrite: /downloads
-      name: aes-backend-download
-      service: aes-backend
-      ---
-      apiVersion: ambassador/v1
-      kind: Mapping
-      ambassador_id: metriton
-      prefix: /register-domain
-      rewrite: /register-domain
-      name: aes-backend-domain
-      service: aes-backend
-      timeout_ms: 30000 # This upstream API relies on AWS... which is not always reliably fast
-      ---
-      apiVersion: ambassador/v1
-      kind: Mapping
-      ambassador_id: metriton
-      name: edgestack-me-redirect
-      prefix: /
-      host: edgestack.me
-      service: getambassador.io
-      host_redirect: true
-      path_redirect: /edgestack.me/welcome.html
 spec:
   type: ClusterIP
   ports:
