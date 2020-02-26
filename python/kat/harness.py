@@ -1200,9 +1200,6 @@ class Runner:
         manifests = OrderedDict()  # type: ignore
         superpods: Dict[str, Superpod] = {}
 
-        if os.environ.get("DEV_USE_IMAGEPULLSECRET", False):
-            manifests[None] = load('default-ns.yaml', namespace_manifest("default"), Tag.MAPPING)
-
         for n in (n for n in self.nodes if n in selected and not n.xfail):
             manifest = None
             nsp = None
@@ -1498,8 +1495,11 @@ class Runner:
         else:
             print(f'CRDS unchanged {reason}, skipping apply.')
 
+
         # Next up: the KAT pod.
         KAT_CLIENT_POD = load_manifest("kat_client_pod")
+        if os.environ.get("DEV_USE_IMAGEPULLSECRET", False):
+            KAT_CLIENT_POD = namespace_manifest("default") + KAT_CLIENT_POD
         changed, reason = has_changed(KAT_CLIENT_POD.format(environ=os.environ), "/tmp/k8s-kat-pod.yaml")
 
         if changed:
