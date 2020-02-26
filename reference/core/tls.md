@@ -14,7 +14,7 @@ The `Host` resource has been added to the Ambassador API Gateway and Ambassador 
 
 The `Host` resource simplifies TLS by directly connecting how Ambassador performs TLS termination and the domains it serves. With the Ambassador Edge Stack, the `Host` can issue and manage certificates automatically using the ACME protocol. 
 
-For both the Ambassador Edge Stack and API Gateway, it can read a certificate from a Kubernetes secret and use that certificate to terminate TLS on a domain.
+For both the Ambassador Edge Stack and API Gateway, the `Host` can read a certificate from a Kubernetes secret and use that certificate to terminate TLS on a domain.
 
 The following will configure Ambassador to grab a certificate from a secret named `host-secret` and use that secret for terminating TLS on the `host.example.com` domain:
 
