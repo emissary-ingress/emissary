@@ -290,7 +290,11 @@ export:
 .PHONY: export
 
 help:
-	@printf "$(subst $(NL),\n,$(HELP))\n"
+	@printf "$(subst $(NL),\n,$(HELP_INTRO))\n"
+.PHONY: help
+
+targets:
+	@printf "$(subst $(NL),\n,$(HELP_TARGETS))\n"
 .PHONY: help
 
 # NOTE: this is not a typo, this is actually how you spell newline in Make
@@ -306,9 +310,11 @@ endef
 
 COMMA = ,
 
-define HELP
+define HELP_INTRO
 $(_help.intro)
+endef
 
+define HELP_TARGETS
 $(BLD)Targets:$(END)
 
 $(_help.targets)
@@ -346,12 +352,18 @@ Python code only gets set up once, so if you change $(BLD)requirements.txt$(END)
 $(BLD)setup.py$(END), then you will need to do a clean build to see the effects.
 Assuming you didn't $(BLD)make clobber$(END), this shouldn't take long due to the
 cache in the Docker volume.
+
+Use $(BLD)$(MAKE) $(BLU)targets$(END) for help about available $(BLD)make$(END) targets.
 endef
 
 define _help.targets
-  $(BLD)make $(BLU)help$(END)      -- displays this message.
+  $(BLD)make $(BLU)help$(END)      -- displays the main help message.
+
+  $(BLD)make $(BLU)targets$(END)   -- displays this message.
 
   $(BLD)make $(BLU)env$(END)       -- display the value of important env vars.
+
+  $(BLD)make $(BLU)export$(END)    -- display important env vars in shell syntax, for use with $(BLD)eval$(END).
 
   $(BLD)make $(BLU)preflight$(END) -- checks dependencies of this makefile.
 
