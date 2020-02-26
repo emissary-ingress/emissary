@@ -23,7 +23,7 @@ Typically, port-based redirection is the preferred method since it is simpler to
 
 ## Using the `Host` resource
 
-As of Ambassador API Gateway and Edge Stack 1.0.0, the [`Host`](/reference/host-crd) resource is used to configure how Ambassador handles cleartext on a domain. You can now configure Ambassador to deny, allow, or redirect cleartext to HTTPS on a domain using a single resource.
+The [`Host`](/reference/host-crd) resource is used to configure how Ambassador handles cleartext on a domain. You can configure Ambassador to [deny, allow, or redirect](/reference/host-crd/#secure-and-insecure-requests) cleartext to HTTPS on a domain using a single resource.
 
 The following `Host` gives an example of how to enable Ambassador to redirect cleartext to HTTPS on the `host.example.com` domain. 
 
