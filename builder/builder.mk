@@ -330,7 +330,7 @@ a Docker container. The $(BLD)$(REPO)$(END), $(BLD)kat-server$(END), and $(BLD)k
 created from this container after the build stage is finished.
 
 The build works by maintaining a running build container in the background.
-It gets source code into that container via $(BLD)rsync$(END). The $(BLD)/root$(END) directory in
+It gets source code into that container via $(BLD)rsync$(END). The $(BLD)/home/dw$(END) directory in
 this container is a Docker volume, which allows files (e.g. the Go build
 cache and $(BLD)pip$(END) downloads) to be cached across builds.
 
