@@ -23,6 +23,7 @@
 - /reference/gzip
 - /reference/headers
 - /reference/host
+- /reference/host-crd
 - /reference/mappings
 - /reference/modules
 - /reference/prefix_regex
