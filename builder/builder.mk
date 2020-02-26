@@ -347,80 +347,87 @@ results.
 
 The build system doesn't try to magically handle all dependencies. In
 general, if you change something that is not pure source code, you will
-likely need to do a $(BLD)make clean$(END) in order to see the effect. For example,
+likely need to do a $(BLD)$(MAKE) clean$(END) in order to see the effect. For example,
 Python code only gets set up once, so if you change $(BLD)requirements.txt$(END) or
 $(BLD)setup.py$(END), then you will need to do a clean build to see the effects.
-Assuming you didn't $(BLD)make clobber$(END), this shouldn't take long due to the
+Assuming you didn't $(BLD)$(MAKE) clobber$(END), this shouldn't take long due to the
 cache in the Docker volume.
 
 Use $(BLD)$(MAKE) $(BLU)targets$(END) for help about available $(BLD)make$(END) targets.
 endef
 
 define _help.targets
-  $(BLD)make $(BLU)help$(END)      -- displays the main help message.
+  $(BLD)$(MAKE) $(BLU)help$(END)      -- displays the main help message.
 
-  $(BLD)make $(BLU)targets$(END)   -- displays this message.
+  $(BLD)$(MAKE) $(BLU)targets$(END)   -- displays this message.
 
-  $(BLD)make $(BLU)env$(END)       -- display the value of important env vars.
+  $(BLD)$(MAKE) $(BLU)env$(END)       -- display the value of important env vars.
 
-  $(BLD)make $(BLU)export$(END)    -- display important env vars in shell syntax, for use with $(BLD)eval$(END).
+  $(BLD)$(MAKE) $(BLU)export$(END)    -- display important env vars in shell syntax, for use with $(BLD)eval$(END).
 
-  $(BLD)make $(BLU)preflight$(END) -- checks dependencies of this makefile.
+  $(BLD)$(MAKE) $(BLU)preflight$(END) -- checks dependencies of this makefile.
 
-  $(BLD)make $(BLU)sync$(END)      -- syncs source code into the build container.
+  $(BLD)$(MAKE) $(BLU)sync$(END)      -- syncs source code into the build container.
 
-  $(BLD)make $(BLU)version$(END)   -- display source code version.
+  $(BLD)$(MAKE) $(BLU)version$(END)   -- display source code version.
 
-  $(BLD)make $(BLU)compile$(END)   -- syncs and compiles the source code in the build container.
+  $(BLD)$(MAKE) $(BLU)compile$(END)   -- syncs and compiles the source code in the build container.
 
-  $(BLD)make $(BLU)images$(END)    -- creates images from the build container.
+  $(BLD)$(MAKE) $(BLU)images$(END)    -- creates images from the build container.
 
-  $(BLD)make $(BLU)push$(END)      -- pushes images to $(BLD)\$$DEV_REGISTRY$(END). ($(DEV_REGISTRY))
+  $(BLD)$(MAKE) $(BLU)push$(END)      -- pushes images to $(BLD)\$$DEV_REGISTRY$(END). ($(DEV_REGISTRY))
 
-  $(BLD)make $(BLU)test$(END)      -- runs Go and Python tests inside the build container.
+  $(BLD)$(MAKE) $(BLU)test$(END)      -- runs Go and Python tests inside the build container.
 
     The tests require a Kubernetes cluster and a Docker registry in order to
-    function. These must be supplied via the $(BLD)make$(END)/$(BLD)env$(END) variables $(BLD)\$$DEV_KUBECONFIG$(END)
+    function. These must be supplied via the $(BLD)$(MAKE)$(END)/$(BLD)env$(END) variables $(BLD)\$$DEV_KUBECONFIG$(END)
     and $(BLD)\$$DEV_REGISTRY$(END).
 
-  $(BLD)make $(BLU)gotest$(END)    -- runs just the Go tests inside the build container.
+  $(BLD)$(MAKE) $(BLU)gotest$(END)    -- runs just the Go tests inside the build container.
 
     Use $(BLD)\$$GOTEST_PKGS$(END) to control which packages are passed to $(BLD)gotest$(END). ($(GOTEST_PKGS))
     Use $(BLD)\$$GOTEST_ARGS$(END) to supply additional non-package arguments. ($(GOTEST_ARGS))
-    Example: $(BLD)make gotest GOTEST_PKGS=./cmd/edgectl GOTEST_ARGS=-v$(END)  # run edgectl tests verbosely
+    Example: $(BLD)$(MAKE) gotest GOTEST_PKGS=./cmd/edgectl GOTEST_ARGS=-v$(END)  # run edgectl tests verbosely
 
-  $(BLD)make $(BLU)pytest$(END)    -- runs just the Python tests inside the build container.
+  $(BLD)$(MAKE) $(BLU)pytest$(END)    -- runs just the Python tests inside the build container.
+
+    Use $(BLD)\$$KAT_RUN_MODE=envoy$(END) to force the Python tests to ignore local caches, and run everything
+    in the cluster.
+
+    Use $(BLD)\$$KAT_RUN_MODE=local$(END) to force the Python tests to ignore the cluster, and only run tests
+    with a local cache.
 
     Use $(BLD)\$$PYTEST_ARGS$(END) to pass args to $(BLD)pytest$(END). ($(PYTEST_ARGS))
-    Example: $(BLD)make pytest PYTEST_ARGS=\"-k schemas\"$(END)  # run only tests with \"schemas\" in the name
 
-  $(BLD)make $(BLU)shell$(END)     -- starts a shell in the build container.
+    Example: $(BLD)$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS=\"-k Lua\"$(END)  # run only the Lua test, with a real Envoy
 
-  $(BLD)make $(BLU)release/bits$(END) -- do the 'push some bits' part of a release
+  $(BLD)$(MAKE) $(BLU)shell$(END)     -- starts a shell in the build container.
+
+  $(BLD)$(MAKE) $(BLU)release/bits$(END) -- do the 'push some bits' part of a release
 
     The current commit must be tagged for this to work, and your tree must be clean.
     If the tag is of the form 'vX.Y.Z-(ea|rc).[0-9]*'.
 
-  $(BLD)make $(BLU)release/promote-oss/to-ea-latest$(END) -- promote an early-access '-ea.N' release to '-ea-latest'
+  $(BLD)$(MAKE) $(BLU)release/promote-oss/to-ea-latest$(END) -- promote an early-access '-ea.N' release to '-ea-latest'
 
     The current commit must be tagged for this to work, and your tree must be clean.
     Additionally, the tag must be of the form 'vX.Y.Z-ea.N'. You must also have previously
     built an EA for the same tag using $(BLD)release/bits$(END).
 
-  $(BLD)make $(BLU)release/promote-oss/to-rc-latest$(END) -- promote a release candidate '-rc.N' release to '-rc-latest'
+  $(BLD)$(MAKE) $(BLU)release/promote-oss/to-rc-latest$(END) -- promote a release candidate '-rc.N' release to '-rc-latest'
 
     The current commit must be tagged for this to work, and your tree must be clean.
     Additionally, the tag must be of the form 'vX.Y.Z-rc.N'. You must also have previously
     built an RC for the same tag using $(BLD)release/bits$(END).
 
-  $(BLD)make $(BLU)release/promote-oss/to-ga$(END) -- promote a release candidate to general availability
+  $(BLD)$(MAKE) $(BLU)release/promote-oss/to-ga$(END) -- promote a release candidate to general availability
 
     The current commit must be tagged for this to work, and your tree must be clean.
     Additionally, the tag must be of the form 'vX.Y.Z'. You must also have previously
     built and promoted the RC that will become GA, using $(BLD)release/bits$(END) and
     $(BLD)release/promote-oss/to-rc-latest$(END).
 
-  $(BLD)make $(BLU)clean$(END)     -- kills the build container.
+  $(BLD)$(MAKE) $(BLU)clean$(END)     -- kills the build container.
 
-  $(BLD)make $(BLU)clobber$(END)   -- kills the build container and the cache volume.
+  $(BLD)$(MAKE) $(BLU)clobber$(END)   -- kills the build container and the cache volume.
 endef
