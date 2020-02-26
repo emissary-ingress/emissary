@@ -269,6 +269,7 @@ CURRENT_CONTEXT=$(shell kubectl --kubeconfig=$(DEV_KUBECONFIG) config current-co
 CURRENT_NAMESPACE=$(shell kubectl config view -o=jsonpath="{.contexts[?(@.name==\"$(CURRENT_CONTEXT)\")].context.namespace}")
 
 env:
+	@printf "$(BLD)BUILDER_NAME$(END)=$(BLU)\"$(BUILDER_NAME)\"$(END)\n"
 	@printf "$(BLD)DEV_KUBECONFIG$(END)=$(BLU)\"$(DEV_KUBECONFIG)\"$(END)"
 	@printf " # Context: $(BLU)$(CURRENT_CONTEXT)$(END), Namespace: $(BLU)$(CURRENT_NAMESPACE)$(END)\n"
 	@printf "$(BLD)DEV_REGISTRY$(END)=$(BLU)\"$(DEV_REGISTRY)\"$(END)\n"
@@ -279,6 +280,7 @@ env:
 .PHONY: env
 
 export:
+	@printf "export BUILDER_NAME=\"$(BUILDER_NAME)\"\n"
 	@printf "export DEV_KUBECONFIG=\"$(DEV_KUBECONFIG)\"\n"
 	@printf "export DEV_REGISTRY=\"$(DEV_REGISTRY)\"\n"
 	@printf "export RELEASE_REGISTRY=\"$(RELEASE_REGISTRY)\"\n"
@@ -329,6 +331,13 @@ cache and $(BLD)pip$(END) downloads) to be cached across builds.
 This arrangement also permits building multiple codebases. This is useful
 for producing builds with extended functionality. Each external codebase
 is synced into the container at the $(BLD)/buildroot/<name>$(END) path.
+
+You can control the name of the container and the images it builds by
+setting $(BLU)\$$BUILDER_NAME$(END), which defaults to $(BLU)$(NAME)$(END). $(BLD)Note well$(END) that if you
+want to make multiple clones of this repo and build in more than one of them
+at the same time, you $(BLD)must$(END) set $(BLU)\$$BUILDER_NAME$(END) so that each clone has its own
+builder! If you do not do this, your builds will collide with confusing 
+results.
 
 The build system doesn't try to magically handle all dependencies. In
 general, if you change something that is not pure source code, you will
