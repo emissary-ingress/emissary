@@ -357,8 +357,7 @@
                                     }
                                 ]
                             }
-                        },
-                        "use_proxy_proto": false
+                        }
                     },
                     {
                         "filter_chain_match": {
@@ -501,8 +500,7 @@
                                     }
                                 ]
                             }
-                        },
-                        "use_proxy_proto": false
+                        }
                     },
                     {
                         "filter_chain_match": {
@@ -645,8 +643,7 @@
                                     }
                                 ]
                             }
-                        },
-                        "use_proxy_proto": false
+                        }
                     }
                 ],
                 "listener_filters": [

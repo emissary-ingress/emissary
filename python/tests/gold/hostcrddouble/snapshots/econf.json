@@ -394,8 +394,7 @@
                                     }
                                 ]
                             }
-                        },
-                        "use_proxy_proto": false
+                        }
                     },
                     {
                         "filter_chain_match": {
@@ -637,8 +636,7 @@
                                     }
                                 ]
                             }
-                        },
-                        "use_proxy_proto": false
+                        }
                     }
                 ],
                 "listener_filters": [
@@ -798,8 +796,7 @@
                                     "xff_num_trusted_hops": 0
                                 }
                             }
-                        ],
-                        "use_proxy_proto": false
+                        ]
                     },
                     {
                         "filter_chain_match": {
@@ -922,8 +919,7 @@
                                     "xff_num_trusted_hops": 0
                                 }
                             }
-                        ],
-                        "use_proxy_proto": false
+                        ]
                     }
                 ],
                 "listener_filters": [],

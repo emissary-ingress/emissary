@@ -88,7 +88,7 @@
             "_namespace": "default",
             "_port": 9411,
             "_referenced_by": [
-                "tracingtestshorttraceid.default.1"
+                "zipkin-64.default.1"
             ],
             "_rkey": "cluster_tracing_zipkin_64_9411_default",
             "connect_timeout_ms": 3000,
@@ -98,7 +98,7 @@
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
-            "location": "tracingtestshorttraceid.default.1",
+            "location": "zipkin-64.default.1",
             "name": "cluster_tracing_zipkin_64_9411_default",
             "namespace": "default",
             "service": "zipkin-64:9411",
@@ -644,9 +644,9 @@
         "_active": true,
         "_errored": false,
         "_referenced_by": [
-            "tracingtestshorttraceid.default.1"
+            "zipkin-64.default.1"
         ],
-        "_rkey": "tracingtestshorttraceid.default.1",
+        "_rkey": "zipkin-64.default.1",
         "cluster": {
             "_active": true,
             "_errored": false,
@@ -655,7 +655,7 @@
             "_namespace": "default",
             "_port": 9411,
             "_referenced_by": [
-                "tracingtestshorttraceid.default.1"
+                "zipkin-64.default.1"
             ],
             "_rkey": "cluster_tracing_zipkin_64_9411_default",
             "connect_timeout_ms": 3000,
@@ -665,7 +665,7 @@
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
-            "location": "tracingtestshorttraceid.default.1",
+            "location": "zipkin-64.default.1",
             "name": "cluster_tracing_zipkin_64_9411_default",
             "namespace": "default",
             "service": "zipkin-64:9411",
@@ -688,7 +688,7 @@
         },
         "grpc": false,
         "kind": "ir.tracing",
-        "location": "tracingtestshorttraceid.default.1",
+        "location": "zipkin-64.default.1",
         "name": "tracing",
         "namespace": "default",
         "service": "zipkin-64:9411",

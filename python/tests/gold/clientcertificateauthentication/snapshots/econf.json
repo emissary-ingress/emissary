@@ -248,8 +248,7 @@
                                 }
                             },
                             "require_client_certificate": true
-                        },
-                        "use_proxy_proto": false
+                        }
                     }
                 ],
                 "listener_filters": [
