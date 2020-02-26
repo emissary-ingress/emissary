@@ -14,7 +14,7 @@ Ambassador Edge Stack supports these use cases by allowing you to execute custom
 
 To build a `Plugin` `Filter` into the Ambassador Edge Stack container you will need
 - Linux or MacOS host (Windows Subsystem for Linux is ok)
-- [Docker](https://docs.docker.com/v17.09/engine/installation/) 
+- [Docker](https://docs.docker.com/install/) 
 - [rsync](https://rsync.samba.org/)
 
 The `Plugin` `Filter` is built by `make` which uses Docker to create a stable build environment in a container and `rsync` to copy files between the container and your host machine.
