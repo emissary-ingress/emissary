@@ -24,8 +24,9 @@ apiVersion: getambassador.io/v2
 kind: Module
 metadata:
   name: ambassador
-config:
-  envoy_log_type: json
+spec:
+  config:
+    envoy_log_type: json
 ```
 
 ## 3. Configure the TracingService
