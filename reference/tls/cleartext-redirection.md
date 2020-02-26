@@ -41,16 +41,13 @@ spec:
     action: Redirect
 ```
 
-**Note:** The default behavior when Ambassador is terminating TLS is to redirect cleartext for all `Host`s
+**Note:** Ambassador defaults to redirecting cleartext to HTTPS for all `Host`s. 
 
 ## For Ambassador 0.86.1 and below
 
-In Amabassador 0.86.1 and below, TLS behavior was configured with the `TLSContext`. This included cleartext redirection. 
+In Ambassador 0.86.1 and below, TLS behavior was configured with the `TLSContext`. This included cleartext redirection. 
 
-The follow reference is **deprecated** and for people using old versions of Ambassador.
-
-
-[Upgrade to the latest verion](/user-guide/upgrade-to-edge-stack/) of Ambassador to use the `Host` resource to manage this. 
+The follow reference is **deprecated**. For those using old versions of Ambassador, [upgrade to the latest verion](/user-guide/upgrade-to-edge-stack/) of Ambassador to use the `Host` resource to manage TLS termination. 
 
 ### Port-based Redirection
 
