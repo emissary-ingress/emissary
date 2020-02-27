@@ -6,6 +6,8 @@ releases. Please keep it up to date.
 
 ## 1.2.1 (TBD)
 
+- Bugfix: The `aes-plugin-runner` binary for GNU/Linux is now statically linked (instead of being linked against musl libc), so it should now work on either musl libc or GNU libc systems.
+- Feature: An `aes-plugin-runner` binary for Windows is now produced.  (It is un-tested as of yet.)
 - Bugfix: The `OAuth2` Filter redirection-endpoint now handles various XSRF errors more consistently
 - Change: The `OAuth2` Filter redirection-endpoint now handles XSRF errors by redirecting back to the identity provider
 
