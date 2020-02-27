@@ -88,7 +88,7 @@
             "_namespace": "default",
             "_port": 5000,
             "_referenced_by": [
-                "ratelimitv1test.default.1"
+                "rate-limit-v1.default.1"
             ],
             "_rkey": "cluster_rate_limit_v1_5000_default",
             "connect_timeout_ms": 3000,
@@ -99,7 +99,7 @@
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
-            "location": "ratelimitv1test.default.1",
+            "location": "rate-limit-v1.default.1",
             "name": "cluster_rate_limit_v1_5000_default",
             "namespace": "default",
             "service": "rate-limit-v1:5000",
@@ -166,9 +166,9 @@
             "_active": true,
             "_errored": false,
             "_referenced_by": [
-                "ratelimitv1test.default.1"
+                "rate-limit-v1.default.1"
             ],
-            "_rkey": "ratelimitv1test.default.1",
+            "_rkey": "rate-limit-v1.default.1",
             "cluster": {
                 "_active": true,
                 "_errored": false,
@@ -177,7 +177,7 @@
                 "_namespace": "default",
                 "_port": 5000,
                 "_referenced_by": [
-                    "ratelimitv1test.default.1"
+                    "rate-limit-v1.default.1"
                 ],
                 "_rkey": "cluster_rate_limit_v1_5000_default",
                 "connect_timeout_ms": 3000,
@@ -188,7 +188,7 @@
                 "ignore_cluster": false,
                 "kind": "IRCluster",
                 "lb_type": "round_robin",
-                "location": "ratelimitv1test.default.1",
+                "location": "rate-limit-v1.default.1",
                 "name": "cluster_rate_limit_v1_5000_default",
                 "namespace": "default",
                 "service": "rate-limit-v1:5000",
@@ -219,7 +219,7 @@
                 "_namespace": "default",
                 "_port": 5000,
                 "_referenced_by": [
-                    "ratelimitv1test.default.1"
+                    "rate-limit-v1.default.1"
                 ],
                 "_rkey": "cluster_rate_limit_v1_5000_default",
                 "connect_timeout_ms": 3000,
@@ -230,7 +230,7 @@
                 "ignore_cluster": false,
                 "kind": "IRCluster",
                 "lb_type": "round_robin",
-                "location": "ratelimitv1test.default.1",
+                "location": "rate-limit-v1.default.1",
                 "name": "cluster_rate_limit_v1_5000_default",
                 "namespace": "default",
                 "service": "rate-limit-v1:5000",
@@ -247,7 +247,7 @@
                 ]
             },
             "kind": "IRRateLimit",
-            "location": "ratelimitv1test.default.1",
+            "location": "rate-limit-v1.default.1",
             "name": "rate_limit",
             "namespace": "default",
             "service": "rate-limit-v1:5000",
@@ -673,7 +673,7 @@
             "_namespace": "default",
             "_port": 5000,
             "_referenced_by": [
-                "ratelimitv1test.default.1"
+                "rate-limit-v1.default.1"
             ],
             "_rkey": "cluster_rate_limit_v1_5000_default",
             "connect_timeout_ms": 3000,
@@ -684,7 +684,7 @@
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
-            "location": "ratelimitv1test.default.1",
+            "location": "rate-limit-v1.default.1",
             "name": "cluster_rate_limit_v1_5000_default",
             "namespace": "default",
             "service": "rate-limit-v1:5000",
@@ -729,9 +729,9 @@
         "_active": true,
         "_errored": false,
         "_referenced_by": [
-            "ratelimitv1test.default.1"
+            "rate-limit-v1.default.1"
         ],
-        "_rkey": "ratelimitv1test.default.1",
+        "_rkey": "rate-limit-v1.default.1",
         "cluster": {
             "_active": true,
             "_errored": false,
@@ -740,7 +740,7 @@
             "_namespace": "default",
             "_port": 5000,
             "_referenced_by": [
-                "ratelimitv1test.default.1"
+                "rate-limit-v1.default.1"
             ],
             "_rkey": "cluster_rate_limit_v1_5000_default",
             "connect_timeout_ms": 3000,
@@ -751,7 +751,7 @@
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
-            "location": "ratelimitv1test.default.1",
+            "location": "rate-limit-v1.default.1",
             "name": "cluster_rate_limit_v1_5000_default",
             "namespace": "default",
             "service": "rate-limit-v1:5000",
@@ -782,7 +782,7 @@
             "_namespace": "default",
             "_port": 5000,
             "_referenced_by": [
-                "ratelimitv1test.default.1"
+                "rate-limit-v1.default.1"
             ],
             "_rkey": "cluster_rate_limit_v1_5000_default",
             "connect_timeout_ms": 3000,
@@ -793,7 +793,7 @@
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
-            "location": "ratelimitv1test.default.1",
+            "location": "rate-limit-v1.default.1",
             "name": "cluster_rate_limit_v1_5000_default",
             "namespace": "default",
             "service": "rate-limit-v1:5000",
@@ -810,7 +810,7 @@
             ]
         },
         "kind": "IRRateLimit",
-        "location": "ratelimitv1test.default.1",
+        "location": "rate-limit-v1.default.1",
         "name": "rate_limit",
         "namespace": "default",
         "service": "rate-limit-v1:5000",

@@ -302,11 +302,15 @@
                                     "xff_num_trusted_hops": 0
                                 }
                             }
-                        ],
-                        "use_proxy_proto": true
+                        ]
                     }
                 ],
-                "listener_filters": [],
+                "listener_filters": [
+                    {
+                        "config": {},
+                        "name": "envoy.listener.proxy_protocol"
+                    }
+                ],
                 "name": "ambassador-listener-8080",
                 "traffic_direction": "UNSPECIFIED"
             }
