@@ -345,6 +345,12 @@ Python code only gets set up once, so if you change $(BLD)requirements.txt$(END)
 $(BLD)setup.py$(END), then you will need to do a clean build to see the effects.
 Assuming you didn't $(BLD)make clobber$(END), this shouldn't take long due to the
 cache in the Docker volume.
+
+All targets that deploy to a cluster by way of $(BLD)\$$DEV_REGISTRY$(END) can be made to
+have the cluster use an imagePullSecret to pull from $(BLD)\$$DEV_REGISTRY$(END), by
+setting $(BLD)\$$DEV_USE_IMAGEPULLSECRET$(END) to a non-empty value.  The imagePullSecret
+will be constructed from $(BLD)\$$DEV_REGISTRY$(END), $(BLD)\$$DOCKER_BUILD_USERNAME$(END), and
+$(BLD)\$$DOCKER_BUILD_PASSWORD$(END).
 endef
 
 define _help.targets
