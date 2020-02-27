@@ -26,6 +26,13 @@ var (
 	ErrExpiredAccessToken = errors.New("expired Access Token")
 )
 
+// XSRFError is an error caused by cross site request forgery being detected.
+type XSRFError string
+
+func (e XSRFError) Error() string {
+	return string(e)
+}
+
 // UnsupportedTokenTypeError is the type of error returned from .AuthorizationForResourceRequest()
 // if the Access Token Type has not been registered with the Client through
 // .RegisterProtocolExtensions().

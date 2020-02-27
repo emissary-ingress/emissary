@@ -129,7 +129,7 @@ func (client *ImplicitClient) ParseAuthorizationResponse(
 	// The "state" parameter is shared by both success and error responses.  Let's check this
 	// early, to avoid unnecessary resource usage.
 	if parameters.Get("state") != session.Request.State {
-		return errors.New("refusing to parse response: response state parameter does not match request state parameter; XSRF attack likely")
+		return errors.WithStack(XSRFError("refusing to parse response: response state parameter does not match request state parameter; XSRF attack likely"))
 	}
 
 	if errs := parameters["error"]; len(errs) > 0 {
