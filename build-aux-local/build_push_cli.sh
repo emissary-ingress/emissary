@@ -86,12 +86,6 @@ case "$cmd" in
         # Update latest.txt
         echo "$RELEASE_VERSION" | aws s3 cp --acl public-read - s3://datawire-static-files/${cli_name}/latest.txt
         ;;
-    promote)
-        # Replace stable.txt with the contents of latest.txt
-        aws s3 cp --acl public-read \
-            s3://datawire-static-files/${cli_name}/latest.txt \
-            s3://datawire-static-files/${cli_name}/stable.txt
-        ;;
     *)
         usage
         exit 1
