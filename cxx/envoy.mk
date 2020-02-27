@@ -108,7 +108,7 @@ $(OSS_HOME)/docker/base-envoy/envoy-static: $(ENVOY_BASH.deps) FORCE
 	mkdir -p $(@D)
 	@PS4=; set -ex; { \
 	    if docker run --rm --entrypoint=true $(ENVOY_DOCKER_TAG); then \
-	        rsync -Pav --blocking-io -e 'docker run --rm -i' $$(docker image inspect $(ENVOY_DOCKER_TAG) --format='{{.Id}}' | sed 's/^sha256://'):/usr/local/bin/envoy $@; \
+	        rsync -Pav --blocking-io -e 'docker run --rm -i' $$(docker image inspect $(ENVOY_DOCKER_TAG) --format='{{.Id}}' | sed 's/^sha256://'):/usr/local/bin/envoy-static $@; \
 	    else \
 	        if [ -z '$(YES_I_AM_UPDATING_THE_BASE_IMAGES)' ]; then \
 	            { set +x; } &>/dev/null; \
