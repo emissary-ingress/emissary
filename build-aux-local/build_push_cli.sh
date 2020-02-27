@@ -67,6 +67,9 @@ EXE_PATH=${DIST}/${EXE_NAME}
 
 case "$cmd" in
     build)
+        if [[ "$(go env GOOS)" == linux ]] && [[ "$cli_name" == aes-plugin-runner ]]; then
+            export CGO_ENABLED=0
+        fi
         cd "${CMD_DIR}" && go build -trimpath -ldflags "-X main.Version=$BUILD_VERSION" -o "${EXE_PATH}" ./cmd/${cli_name}
         ;;
     push)

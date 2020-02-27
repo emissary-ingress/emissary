@@ -112,17 +112,6 @@ update-yaml: update-yaml-locally preflight-docs
 	fi
 .PHONY: update-yaml
 
-release/bits: release/bits/aes-plugin-runner
-release/bits/aes-plugin-runner: bin_linux_amd64/aes-plugin-runner bin_darwin_amd64/aes-plugin-runner
-	aws s3 cp --acl public-read bin_linux_amd64/aes-plugin-runner "s3://datawire-static-files/aes-plugin-runner/$(RELEASE_VERSION)/linux/amd64/aes-plugin-runner"
-	aws s3 cp --acl public-read bin_darwin_amd64/aes-plugin-runner "s3://datawire-static-files/aes-plugin-runner/$(RELEASE_VERSION)/darwin/amd64/aes-plugin-runner"
-bin_linux_amd64/aes-plugin-runner: FORCE
-	mkdir -p $(@D)
-	docker cp $$($(BUILDER)):/buildroot/bin/aes-plugin-runner $@
-bin_darwin_amd64/aes-plugin-runner: FORCE
-	mkdir -p $(@D)
-	docker cp $$($(BUILDER)):/buildroot/bin-darwin/aes-plugin-runner $@
-
 release/promote-aes/.main:
 	@[[ '$(PROMOTE_FROM_VERSION)' =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]]
 	@[[ '$(PROMOTE_TO_VERSION)'   =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]]
@@ -185,6 +174,8 @@ release/promote-aes/to-ga:
 	                              "s3://datawire-static-files/aes-plugin-runner/$(RELEASE_VERSION)/linux/amd64/aes-plugin-runner"; \
 	  aws s3 cp --acl public-read "s3://datawire-static-files/aes-plugin-runner/$$rc_latest/darwin/amd64/aes-plugin-runner" \
 	                              "s3://datawire-static-files/aes-plugin-runner/$(RELEASE_VERSION)/darwin/amd64/aes-plugin-runner"; \
+	  aws s3 cp --acl public-read "s3://datawire-static-files/aes-plugin-runner/$$rc_latest/windows/amd64/aes-plugin-runner.exe" \
+	                              "s3://datawire-static-files/aes-plugin-runner/$(RELEASE_VERSION)/windows/amd64/aes-plugin-runner.exe"; \
 	  printf '  $(CYN)edgectl$(END)\n'; \
 	  aws s3 cp --acl public-read "s3://datawire-static-files/edgectl/$$rc_latest/linux/amd64/edgectl" \
 	                              "s3://datawire-static-files/edgectl/$(RELEASE_VERSION)/linux/amd64/edgectl"; \
