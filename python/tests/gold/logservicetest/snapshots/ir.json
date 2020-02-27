@@ -88,7 +88,7 @@
             "_namespace": "default",
             "_port": 8001,
             "_referenced_by": [
-                "logservicetest.default.2"
+                "stenography.default.2"
             ],
             "_resolver": "kubernetes-service",
             "_rkey": "cluster_http___127_0_0_1_8001_default",
@@ -99,7 +99,7 @@
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
-            "location": "logservicetest.default.2",
+            "location": "stenography.default.2",
             "name": "cluster_http___127_0_0_1_8001_default",
             "namespace": "default",
             "service": "127.0.0.1:8001",
@@ -123,7 +123,7 @@
             "_namespace": "default",
             "_port": 25565,
             "_referenced_by": [
-                "logservicetest.default.1"
+                "stenography.default.1"
             ],
             "_rkey": "cluster_logging_stenography_25565_default",
             "connect_timeout_ms": 3000,
@@ -133,7 +133,7 @@
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
-            "location": "logservicetest.default.1",
+            "location": "stenography.default.1",
             "name": "cluster_logging_stenography_25565_default",
             "namespace": "default",
             "service": "stenography:25565",
@@ -451,9 +451,9 @@
             "_active": true,
             "_errored": false,
             "_referenced_by": [
-                "logservicetest.default.2"
+                "stenography.default.2"
             ],
-            "_rkey": "logservicetest.default.2",
+            "_rkey": "stenography.default.2",
             "group_id": "2cc88963a98f4f1bd9ddf846f8fe7bf145757e1c",
             "group_weight": [
                 0,
@@ -464,12 +464,12 @@
             ],
             "headers": [],
             "kind": "IRHTTPMappingGroup",
-            "location": "logservicetest.default.2",
+            "location": "stenography.default.2",
             "mappings": [
                 {
                     "_active": true,
                     "_errored": false,
-                    "_rkey": "logservicetest.default.2",
+                    "_rkey": "stenography.default.2",
                     "add_request_headers": {},
                     "cluster": {
                         "_active": true,
@@ -479,7 +479,7 @@
                         "_namespace": "default",
                         "_port": 8001,
                         "_referenced_by": [
-                            "logservicetest.default.2"
+                            "stenography.default.2"
                         ],
                         "_resolver": "kubernetes-service",
                         "_rkey": "cluster_http___127_0_0_1_8001_default",
@@ -490,7 +490,7 @@
                         "ignore_cluster": false,
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
-                        "location": "logservicetest.default.2",
+                        "location": "stenography.default.2",
                         "name": "cluster_http___127_0_0_1_8001_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8001",
@@ -509,9 +509,8 @@
                     "group_id": "2cc88963a98f4f1bd9ddf846f8fe7bf145757e1c",
                     "headers": [],
                     "kind": "Mapping",
-                    "location": "logservicetest.default.2",
+                    "location": "stenography.default.2",
                     "metadata_labels": {
-                        "app.kubernetes.io/component": "ambassador-service",
                         "kat-ambassador-id": "logservicetest",
                         "scope": "AmbassadorTest"
                     },
@@ -528,13 +527,12 @@
                         "/config_dump",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: logservicetest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: logservicetest\n  scope: AmbassadorTest\nname: config__dump\nnamespace: default\nprefix: /config_dump\nrewrite: /config_dump\nservice: http://127.0.0.1:8001\n",
+                    "serialization": "ambassador_id: logservicetest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: logservicetest\n  scope: AmbassadorTest\nname: config__dump\nnamespace: default\nprefix: /config_dump\nrewrite: /config_dump\nservice: http://127.0.0.1:8001\n",
                     "service": "http://127.0.0.1:8001",
                     "weight": 100
                 }
             ],
             "metadata_labels": {
-                "app.kubernetes.io/component": "ambassador-service",
                 "kat-ambassador-id": "logservicetest",
                 "scope": "AmbassadorTest"
             },
@@ -543,7 +541,7 @@
             "precedence": 0,
             "prefix": "/config_dump",
             "rewrite": "/config_dump",
-            "serialization": "ambassador_id: logservicetest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: logservicetest\n  scope: AmbassadorTest\nname: config__dump\nnamespace: default\nprefix: /config_dump\nrewrite: /config_dump\nservice: http://127.0.0.1:8001\n"
+            "serialization": "ambassador_id: logservicetest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: logservicetest\n  scope: AmbassadorTest\nname: config__dump\nnamespace: default\nprefix: /config_dump\nrewrite: /config_dump\nservice: http://127.0.0.1:8001\n"
         }
     ],
     "grpc_services": {},
@@ -576,9 +574,9 @@
             "_active": true,
             "_errored": false,
             "_referenced_by": [
-                "logservicetest.default.1"
+                "stenography.default.1"
             ],
-            "_rkey": "logservicetest.default.1",
+            "_rkey": "stenography.default.1",
             "cluster": {
                 "_active": true,
                 "_errored": false,
@@ -587,7 +585,7 @@
                 "_namespace": "default",
                 "_port": 25565,
                 "_referenced_by": [
-                    "logservicetest.default.1"
+                    "stenography.default.1"
                 ],
                 "_rkey": "cluster_logging_stenography_25565_default",
                 "connect_timeout_ms": 3000,
@@ -597,7 +595,7 @@
                 "ignore_cluster": false,
                 "kind": "IRCluster",
                 "lb_type": "round_robin",
-                "location": "logservicetest.default.1",
+                "location": "stenography.default.1",
                 "name": "cluster_logging_stenography_25565_default",
                 "namespace": "default",
                 "service": "stenography:25565",
@@ -640,7 +638,7 @@
             "flush_interval_time": 1,
             "grpc": false,
             "kind": "ir.logservice",
-            "location": "logservicetest.default.1",
+            "location": "stenography.default.1",
             "name": "logservice",
             "namespace": "default",
             "service": "stenography:25565"

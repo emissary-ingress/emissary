@@ -542,8 +542,7 @@
                                     "xff_num_trusted_hops": 0
                                 }
                             }
-                        ],
-                        "use_proxy_proto": false
+                        ]
                     }
                 ],
                 "listener_filters": [],

@@ -88,7 +88,7 @@
             "_namespace": "default",
             "_port": 80,
             "_referenced_by": [
-                "tracingexternalauthtest.default.2"
+                "zipkin-auth.default.2"
             ],
             "_rkey": "cluster_extauth_tracingexternalauthtest_ahttp_auth_default",
             "connect_timeout_ms": 3000,
@@ -98,7 +98,7 @@
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
-            "location": "tracingexternalauthtest.default.2",
+            "location": "zipkin-auth.default.2",
             "name": "cluster_extauth_tracingexternalauthtest_ahttp_auth_default",
             "namespace": "default",
             "service": "tracingexternalauthtest-ahttp-auth",
@@ -122,7 +122,7 @@
             "_namespace": "default",
             "_port": 9411,
             "_referenced_by": [
-                "tracingexternalauthtest.default.1"
+                "zipkin-auth.default.1"
             ],
             "_rkey": "cluster_tracing_zipkin_auth_9411_default",
             "connect_timeout_ms": 3000,
@@ -132,7 +132,7 @@
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
-            "location": "tracingexternalauthtest.default.1",
+            "location": "zipkin-auth.default.1",
             "name": "cluster_tracing_zipkin_auth_9411_default",
             "namespace": "default",
             "service": "zipkin-auth:9411",
@@ -189,9 +189,9 @@
             "_active": true,
             "_errored": false,
             "_referenced_by": [
-                "tracingexternalauthtest.default.2"
+                "zipkin-auth.default.2"
             ],
-            "_rkey": "tracingexternalauthtest.default.2",
+            "_rkey": "zipkin-auth.default.2",
             "add_linkerd_headers": false,
             "allow_request_body": false,
             "allowed_authorization_headers": [],
@@ -209,7 +209,7 @@
                 "_namespace": "default",
                 "_port": 80,
                 "_referenced_by": [
-                    "tracingexternalauthtest.default.2"
+                    "zipkin-auth.default.2"
                 ],
                 "_rkey": "cluster_extauth_tracingexternalauthtest_ahttp_auth_default",
                 "connect_timeout_ms": 3000,
@@ -219,7 +219,7 @@
                 "ignore_cluster": false,
                 "kind": "IRCluster",
                 "lb_type": "round_robin",
-                "location": "tracingexternalauthtest.default.2",
+                "location": "zipkin-auth.default.2",
                 "name": "cluster_extauth_tracingexternalauthtest_ahttp_auth_default",
                 "namespace": "default",
                 "service": "tracingexternalauthtest-ahttp-auth",
@@ -241,11 +241,11 @@
                     100,
                     false,
                     null,
-                    "tracingexternalauthtest.default.2"
+                    "zipkin-auth.default.2"
                 ]
             },
             "kind": "IRAuth",
-            "location": "tracingexternalauthtest.default.2",
+            "location": "zipkin-auth.default.2",
             "name": "extauth",
             "namespace": "default",
             "path_prefix": "/extauth",
@@ -762,9 +762,9 @@
         "_active": true,
         "_errored": false,
         "_referenced_by": [
-            "tracingexternalauthtest.default.1"
+            "zipkin-auth.default.1"
         ],
-        "_rkey": "tracingexternalauthtest.default.1",
+        "_rkey": "zipkin-auth.default.1",
         "cluster": {
             "_active": true,
             "_errored": false,
@@ -773,7 +773,7 @@
             "_namespace": "default",
             "_port": 9411,
             "_referenced_by": [
-                "tracingexternalauthtest.default.1"
+                "zipkin-auth.default.1"
             ],
             "_rkey": "cluster_tracing_zipkin_auth_9411_default",
             "connect_timeout_ms": 3000,
@@ -783,7 +783,7 @@
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
-            "location": "tracingexternalauthtest.default.1",
+            "location": "zipkin-auth.default.1",
             "name": "cluster_tracing_zipkin_auth_9411_default",
             "namespace": "default",
             "service": "zipkin-auth:9411",
@@ -805,7 +805,7 @@
         },
         "grpc": false,
         "kind": "ir.tracing",
-        "location": "tracingexternalauthtest.default.1",
+        "location": "zipkin-auth.default.1",
         "name": "tracing",
         "namespace": "default",
         "service": "zipkin-auth:9411",
