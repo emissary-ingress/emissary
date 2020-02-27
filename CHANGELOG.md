@@ -72,6 +72,7 @@ Format:
 ### Ambassador API Gateway + Ambassador Edge Stack
 
 - Bugfix: re-support PROXY protocol when terminating TLS ([#2348])
+* Bugfix: Incorporate the Envoy 1.12.3 security update.
 
 [#2348]: https://github.com/datawire/ambassador/issues/2348
 
