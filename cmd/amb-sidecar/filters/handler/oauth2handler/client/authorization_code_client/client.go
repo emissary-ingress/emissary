@@ -237,8 +237,8 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 	switch u.Path {
 	case "/.ambassador/oauth2/redirection-endpoint":
 		if sessionInfo.sessionData == nil {
-			return middleware.NewErrorResponse(ctx, http.StatusForbidden,
-				errors.Errorf("no %q cookie", c.sessionCookieName()), nil), nil
+			// Regard this as an XSRF error
+			return sessionInfo.handleUnauthenticatedProxyRequest(ctx, logger, httpClient, oauthClient, discovered, request), nil
 		}
 		var originalURL *url.URL
 		if authorization != nil {
@@ -265,6 +265,9 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 		} else {
 			authorizationCode, err := oauthClient.ParseAuthorizationResponse(sessionInfo.sessionData, u)
 			if err != nil {
+				if errors.Is(err, rfc6749client.XSRFError("")) {
+					return sessionInfo.handleUnauthenticatedProxyRequest(ctx, logger, httpClient, oauthClient, discovered, request), nil
+				}
 				return middleware.NewErrorResponse(ctx, http.StatusBadRequest,
 					err, nil), nil
 			}
