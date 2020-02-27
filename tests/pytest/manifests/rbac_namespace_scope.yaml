@@ -8,7 +8,7 @@ rules:
 # but it needs extra permissions to write getambassador.io CRs and
 # to create and update secrets.
 - apiGroups: [""]
-  resources: [ namespaces", "services" ]
+  resources: [ "namespaces", "services" ]
   verbs: ["get", "list", "watch"]
 - apiGroups: [ "getambassador.io" ]
   resources: [ "*" ]
