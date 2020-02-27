@@ -16,12 +16,13 @@ cache:
     - $HOME/.cache/pip
     - $HOME/.npm
 
-# Only run for commits on master and shared/*.
+# Only run for commits on master, shared/*, and release branches.
 branches:
   only:
     - master
     - /^shared\/.*/
     - /^rel\/v.*/
+    - /^release\/v.*/
     - /^v[0-9]+\.[0-9]+\.[0-9]+(-.*)?$/
 
 services:
