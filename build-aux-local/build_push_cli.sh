@@ -67,11 +67,14 @@ EXE_PATH=${DIST}/${EXE_NAME}
 
 case "$cmd" in
     build)
+        if [[ "$(go env GOOS)" == linux ]] && [[ "$cli_name" == aes-plugin-runner ]]; then
+            export CGO_ENABLED=0
+        fi
         cd "${CMD_DIR}" && go build -trimpath -ldflags "-X main.Version=$BUILD_VERSION" -o "${EXE_PATH}" ./cmd/${cli_name}
         ;;
     push)
         # Push this OS/arch binary
-	    aws s3 cp --acl public-read \
+        aws s3 cp --acl public-read \
             "${EXE_PATH}" \
             "s3://datawire-static-files/${cli_name}/${RELEASE_VERSION}/$(go env GOOS)/$(go env GOARCH)/${EXE_NAME}"
         ;;
@@ -85,12 +88,6 @@ case "$cmd" in
     tag)
         # Update latest.txt
         echo "$RELEASE_VERSION" | aws s3 cp --acl public-read - s3://datawire-static-files/${cli_name}/latest.txt
-        ;;
-    promote)
-        # Replace stable.txt with the contents of latest.txt
-        aws s3 cp --acl public-read \
-            s3://datawire-static-files/${cli_name}/latest.txt \
-            s3://datawire-static-files/${cli_name}/stable.txt
         ;;
     *)
         usage
