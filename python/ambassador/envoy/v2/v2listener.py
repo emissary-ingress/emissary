@@ -1115,8 +1115,8 @@ class V2Listener(dict):
                                 f"V2Listeners: {listener.name} {vhostname} {variant}: force Reject (rhosts {route_hostlist}, vhost {vhostname})")
                             action = "Reject"
                         elif (config.ir.edge_stack_allowed and
-                              (route["match"].get("prefix", None) == "/") and
-                              (route_precedence == -1000000)):
+                              (route_precedence == -1000000) and
+                              (route["match"].get("safe_regex", {}).get("regex", None) == "^/$")):
                             logger.debug(
                                 f"V2Listeners: {listener.name} {vhostname} {variant}: force Route for fallback Mapping")
                             action = "Route"
