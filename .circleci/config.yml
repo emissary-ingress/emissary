@@ -106,71 +106,6 @@ commands:
           paths:
             - "/opt/circleci/.pyenv"
 
-  "with-go-mod-cache":
-    parameters:
-      "steps":
-        type: steps
-    steps:
-      - restore_cache:
-          name: "Restore Go module cache"
-          keys:
-            - go-mod-cache-{{ arch }}-{{ checksum "go.mod" }}-
-            - go-mod-cache-{{ arch }}-
-      - run: |
-          echo 'export GOPROXY=file://$HOME/goproxy,$(go env GOPROXY)' >> "${BASH_ENV}"
-
-      - steps: << parameters.steps >>
-
-      - run:
-          name: "Prepare to save Go module cache"
-          command: |
-            mkdir -p "$(go env GOPATH)/pkg/mod/cache/download/"
-            rsync -av --delete "$(go env GOPATH)/pkg/mod/cache/download/" ~/goproxy
-          when: always
-      - save_cache:
-          # Use {{arch}} as a proxy for
-          # {{.Environment.HOME}}... because despite what the CircleCI
-          # docs say, {{.Environment.HOME}} evaluates to "<no value>".
-          #
-          # Why put it in $HOME, instead of /tmp or something, and be
-          # able to share the cache?  Because /tmp is a symlink to
-          # /private/tmp on macOS, and CircleCI is broken on macOS
-          # whenever symlinks are involved.
-          name: "Save Go module cache"
-          key: go-mod-cache-{{ arch }}-{{ checksum "go.mod" }}-{{ .BuildNum }}
-          paths: "~/goproxy"
-          when: always
-
-  "with-go-build-cache":
-    parameters:
-      "steps":
-        type: steps
-    steps:
-      - restore_cache:
-          name: "Restore Go build cache"
-          keys:
-            - go-build-cache-{{ arch }}-{{ .BuildNum }}
-            - go-build-cache-{{ arch }}-
-      - run:
-          name: "Unfreeze Go build cache"
-          command: |
-            mkdir -p ~/gobuild "$(go env GOCACHE)"
-            rsync -av --delete ~/gobuild/ "$(go env GOCACHE)"
-
-      - steps: << parameters.steps >>
-
-      - run:
-          name: "Prepare to save Go build cache"
-          command: |
-            mkdir -p "$(go env GOCACHE)"
-            rsync -av --delete "$(go env GOCACHE)/" ~/gobuild
-          when: always
-      - save_cache:
-          name: "Save Go build cache"
-          key: go-build-cache-{{ arch }}-{{ .BuildNum }}
-          paths: "~/gobuild"
-          when: always
-
   ##############################################################################
   # AES-specific granualr commands                                             #
   ##############################################################################
@@ -223,23 +158,19 @@ commands:
   "aes-main":
     steps:
       - aes-checkout
-      - with-go-mod-cache:
-          steps:
-            - with-go-build-cache:
-                steps:
-                 - run: ".circleci/kubernaut-claim.sh"
-                 - run: |
-                    docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY}"
-                 - run: |
-                    export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
-                    export DEV_KUBE110=yes
-                    export KAT_REQ_LIMIT=600
-                    make test GOTEST_PKGS=github.com/datawire/apro/...
-                 - run:
-                     command: ".circleci/kubernaut-unclaim.sh"
-                     when: "always"
-                 - aes-dirty-check
-                 - aes-save-logs
+      - run: ".circleci/kubernaut-claim.sh"
+      - run: |
+         docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY}"
+      - run: |
+         export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
+         export DEV_KUBE110=yes
+         export KAT_REQ_LIMIT=600
+         make test GOTEST_PKGS=github.com/datawire/apro/...
+      - run:
+          command: ".circleci/kubernaut-unclaim.sh"
+          when: "always"
+      - aes-dirty-check
+      - aes-save-logs
       - run:
           name: "Release"
           command: |
