@@ -30,7 +30,8 @@ sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/amb-sidecar
 sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/app-sidecar
 sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/aes-plugin-runner
 
-# Set things up for the plugin runner and for computing the ABI info
+# entrypoint.sh, aes-plugin-runner, and the ABI stuff later in this file expect
+# these to be here
 sudo ln -sf /opt/ambassador/bin/amb-sidecar /ambassador/sidecars/
 sudo ln -sf /opt/ambassador/bin/aes-plugin-runner /ambassador/
 
