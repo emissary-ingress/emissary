@@ -70,8 +70,8 @@ cors:
 
 `diagnostics` configures Ambassador's diagnostics services.
 
-- Both API Gateway and Edge Stack provide low-level diagnostics at `/ambassador/v0/diag/`.
-- Ambassador Edge Stack also provides the higher-level Edge Policy Console at `/edge_stack/admin/`.
+- Both the API Gateway and the Edge Stack provide low-level diagnostics at `/ambassador/v0/diag/`.
+- The Ambassador Edge Stack also provides the higher-level Edge Policy Console at `/edge_stack/admin/`.
 
 By default, both services are enabled: 
 
