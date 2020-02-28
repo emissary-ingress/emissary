@@ -1,5 +1,8 @@
 // Ambassador combines the various Golang binaries used in the Ambassador
-// container, dispatching on os.Args[0] like BusyBox.
+// container, dispatching on os.Args[0] like BusyBox. Note that the
+// capabilities_wrapper binary is _not_ included here. That one has special
+// permissions magic applied to it that is not appropriate for these other
+// binaries.
 package main
 
 import (
