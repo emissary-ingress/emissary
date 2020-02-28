@@ -54,12 +54,21 @@ commands:
       - run:
           name: "Install Go << parameters.version >>"
           command: |
-            curl https://dl.google.com/go/go<< parameters.version >>.$(uname -s | tr A-Z a-z)-amd64.tar.gz -o /tmp/go.tar.gz
-            tar -C /tmp -xzf /tmp/go.tar.gz
-            echo 'export PATH=/tmp/go/bin:$PATH' >> "$BASH_ENV"
-            if [ -z "$(/tmp/go/bin/go env GOPROXY)" ]; then
-              echo 'export GOPROXY=https://proxy.golang.org' >> "$BASH_ENV"
+            set -x
+            if [[ $OS == Windows_NT ]]; then
+              curl https://dl.google.com/go/go<< parameters.version >>.windows-amd64.zip -o /tmp/go.zip
+              mv /c/go /c/go-112
+              unzip -q /tmp/go.zip -d /c/
+            else
+              curl https://dl.google.com/go/go<< parameters.version >>.$(uname -s | tr A-Z a-z)-amd64.tar.gz -o /tmp/go.tar.gz
+              tar -C /tmp -xzf /tmp/go.tar.gz
+              echo 'export PATH=/tmp/go/bin:$PATH' >> "$BASH_ENV"
+              if [ -z "$(/tmp/go/bin/go env GOPROXY)" ]; then
+                echo 'export GOPROXY=https://proxy.golang.org' >> "$BASH_ENV"
+              fi
+              . "$BASH_ENV"
             fi
+            go version
 
   "install-kubectl":
     parameters:
@@ -166,6 +175,11 @@ commands:
   # AES-specific granualr commands                                             #
   ##############################################################################
 
+  "aes-checkout":
+    steps:
+      - checkout
+      - run: "./get-amb-repo.sh && ln -s project/ambassador ../ambassador"
+
   "aes-save-logs":
     steps:
       - run:
@@ -178,14 +192,37 @@ commands:
           path: /tmp/test-logs
           destination: test-logs
 
+  "aes-dirty-check":
+    steps:
+      - run:
+          name: "Dirty check"
+          command: |
+            # On Windows, `git status` doesn't record no-op
+            # line-ending changes in to the index, so things show as
+            # dirty even if they aren't.  Trying to `add` them does
+            # trigger the appropriate index update.  So do a `git add`
+            # *before* the `git status --porcelain` to work around
+            # Windows being terrible; we'd otherwise put the `git add`
+            # inside of the `if` block to help generate better output
+            # for `git diff`.
+            git add .
+            if [[ -n "$(git status --porcelain)" ]]; then
+               PAGER= git diff --cached
+               exit 1
+            fi
+            git -C ambassador add .
+            if [[ -n "$(git -C ambassador status --porcelain)" ]]; then
+               PAGER= git -C ambassador diff --cached
+               exit 1
+            fi
+
   ##############################################################################
   # AES-specific workflow commands                                             #
   ##############################################################################
 
   "aes-main":
     steps:
-      - checkout
-      - run: ln -s project/ambassador ../ambassador
+      - aes-checkout
       - with-go-mod-cache:
           steps:
             - with-go-build-cache:
@@ -201,8 +238,7 @@ commands:
                  - run:
                      command: ".circleci/kubernaut-unclaim.sh"
                      when: "always"
-                 - run: "PAGER= git diff"
-                 - run: "git status && test -z \"$(git status --porcelain)\""
+                 - aes-dirty-check
                  - aes-save-logs
       - run:
           name: "Release"
@@ -222,9 +258,7 @@ commands:
 
   "aes-cli-tools":
     steps:
-      - checkout
-      - run: ./get-amb-repo.sh
-      - run: ln -s project/ambassador ../ambassador
+      - aes-checkout
       - run: ./build-aux-local/module_version.sh apro
       - run: ./build-aux-local/build_push_cli.sh build edgectl
       - run: ./build-aux-local/build_push_cli.sh build aes-plugin-runner
@@ -233,22 +267,7 @@ commands:
       - run: ~/bin/apictl-key version || true
       - store_artifacts:
           path: ~/bin
-      - run:
-          name: "Dirty check"
-          command: |
-            # On Windows, `git status` doesn't record no-op
-            # line-ending changes in to the index, so things show as
-            # dirty even if they aren't.  Trying to `add` them does
-            # trigger the appropriate index update.  So do a `git add`
-            # *before* the `git status --porcelain` to work around
-            # Windows being terrible; we'd otherwise put the `git add`
-            # inside of the `if` block to help generate better output
-            # for `git diff`.
-            git add .
-            if [[ -n "$(git status --porcelain)" ]]; then
-               PAGER= git diff --cached
-               exit 1
-            fi
+      - aes-dirty-check
       - run:
           name: "Release"
           # This only runs for pre-release tags; for GA tags the
@@ -304,13 +323,7 @@ jobs:
       - run:
           name: "Environment"
           command: env
-      - run:
-          name: "Install Go for Windows"
-          command: |
-            curl https://dl.google.com/go/go1.13.windows-amd64.zip -o /tmp/go.zip
-            mv /c/go /c/go-112
-            unzip -q /tmp/go.zip -d /c/
-            go version
+      - install-go
       - aes-cli-tools
 
 workflows:
