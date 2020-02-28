@@ -18,6 +18,10 @@ orbs:
 
 commands:
 
+  ##############################################################################
+  # Generic reusable commands                                                  #
+  ##############################################################################
+
   "pip-install":
     parameters:
       "packages":
@@ -158,7 +162,11 @@ commands:
           paths: "~/gobuild"
           when: always
 
-  "save-logs":
+  ##############################################################################
+  # AES-specific granualr commands                                             #
+  ##############################################################################
+
+  "aes-save-logs":
     steps:
       - run:
           name: "Gather logs"
@@ -169,7 +177,12 @@ commands:
           name: "Store logs"
           path: /tmp/test-logs
           destination: test-logs
-  "main":
+
+  ##############################################################################
+  # AES-specific workflow commands                                             #
+  ##############################################################################
+
+  "aes-main":
     steps:
       - checkout
       - run: ln -s project/ambassador ../ambassador
@@ -178,10 +191,6 @@ commands:
             - with-go-build-cache:
                 steps:
                  - run: ".circleci/kubernaut-claim.sh"
-
-# RHS: disabling this because it gave me an incomprehensible error
-#      message, please don't reenable before Dec 10th
-#                 - run: "make lint"
                  - run: |
                     docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY}"
                  - run: |
@@ -194,9 +203,7 @@ commands:
                      when: "always"
                  - run: "PAGER= git diff"
                  - run: "git status && test -z \"$(git status --porcelain)\""
-                 - save-logs
-  "release":
-    steps:
+                 - aes-save-logs
       - run:
           name: "Release"
           command: |
@@ -212,14 +219,8 @@ commands:
                   DEV_KUBECONFIG="-skip-for-release-" make release/promote-aes/to-ga
                 fi
             fi
-  "clobber":
-    steps:
-     # Run "make clobber", and verify that it cleans everything.  Do
-     # this last, and only if everything so far has passed; don't
-     # wipe out artifacts that are useful for debugging.
-     - run: make clobber
-     - run: "git clean -ndx; test -z \"$(git clean -ndx)\""
-  "cli-tools":
+
+  "aes-cli-tools":
     steps:
       - checkout
       - run: ./get-amb-repo.sh
@@ -251,7 +252,7 @@ commands:
       - run:
           name: "Release"
           # This only runs for pre-release tags; for GA tags the
-          # "main" command promotes the pre-release artifacts.
+          # "aes-main" command promotes the pre-release artifacts.
           command: |
             if [[ "$CIRCLE_TAG" =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+-.*$ ]]; then
                 export AWS_ACCESS_KEY_ID=$DEPLOY_KEY_ID
@@ -262,28 +263,12 @@ commands:
             fi
 
 jobs:
-
-  "macOS":
-    macos:
-      xcode: "10.1.0"
-    steps:
-      #- run: |
-      #    echo 'export MAKEFLAGS="-j$(sysctl -n hw.ncpu)"' >> "${BASH_ENV}"
-      - pip-install:
-          packages: awscli
-      - install-go
-      - install-kubectl
-      - main
-      - clobber
-
-  "Ubuntu":
+  "main":
     machine:
       # If you bump this, be sure to bump install-python.executor-key
       # below.
       image: "ubuntu-1604:201903-01"
     steps:
-      #- run: |
-      #    echo 'export MAKEFLAGS="-j$(nproc)"' >> "${BASH_ENV}"
       - pip-install:
           packages: awscli
       - install-go
@@ -291,9 +276,7 @@ jobs:
       - install-node
       - install-python:
           executor-key: "201903-01"
-      - main
-      - release
-#      - clobber
+      - aes-main
 
   "macOS-cli-tools":
     macos:
@@ -302,18 +285,16 @@ jobs:
       - pip-install:
           packages: awscli
       - install-go
-      - cli-tools
+      - aes-cli-tools
 
-  "Ubuntu-cli-tools":
+  "Linux-cli-tools":
     machine:
-      # If you bump this, be sure to bump install-python.executor-key
-      # below.
       image: "ubuntu-1604:201903-01"
     steps:
       - pip-install:
           packages: awscli
       - install-go
-      - cli-tools
+      - aes-cli-tools
 
   "Windows-cli-tools":
     executor:
@@ -330,16 +311,16 @@ jobs:
             mv /c/go /c/go-112
             unzip -q /tmp/go.zip -d /c/
             go version
-      - cli-tools
+      - aes-cli-tools
 
 workflows:
-  "APro CI":
+  "AES CI":
     jobs:
       - "Windows-cli-tools":
           filters:
             tags:
               only: /.*/
-      - "Ubuntu-cli-tools":
+      - "Linux-cli-tools":
           filters:
             tags:
               only: /.*/
@@ -347,11 +328,7 @@ workflows:
           filters:
             tags:
               only: /.*/
-      - "Ubuntu":
+      - "main":
           filters:
             tags:
               only: /.*/
-#      - "macOS":
-#          filters:
-#            branches:
-#              only: master
