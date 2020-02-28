@@ -22,6 +22,7 @@ BUILDER_NAME ?= $(NAME)
 
 BUILDER = BUILDER_NAME=$(BUILDER_NAME) $(abspath $(BUILDER_HOME)/builder.sh)
 DBUILD = $(abspath $(BUILDER_HOME)/dbuild.sh)
+COPY_GOLD = $(abspath $(BUILDER_HOME)/copy-gold.sh)
 
 all: help
 .PHONY: all
@@ -120,6 +121,8 @@ test-ready: push preflight-cluster
 PYTEST_ARGS ?=
 export PYTEST_ARGS
 
+PYTEST_GOLD_DIR ?= $(abspath $(CURDIR)/python/tests/gold)
+
 pytest: test-ready
 	$(MAKE) pytest-only
 .PHONY: pytest
@@ -139,6 +142,8 @@ pytest-only: sync preflight-cluster
 		-it $(shell $(BUILDER)) /buildroot/builder.sh pytest-internal
 .PHONY: pytest-only
 
+pytest-gold:
+	sh $(COPY_GOLD) $(PYTEST_GOLD_DIR)
 
 GOTEST_PKGS ?= ./...
 export GOTEST_PKGS
@@ -357,39 +362,39 @@ Use $(BLD)$(MAKE) $(BLU)targets$(END) for help about available $(BLD)make$(END) 
 endef
 
 define _help.targets
-  $(BLD)$(MAKE) $(BLU)help$(END)      -- displays the main help message.
+  $(BLD)$(MAKE) $(BLU)help$(END)         -- displays the main help message.
 
-  $(BLD)$(MAKE) $(BLU)targets$(END)   -- displays this message.
+  $(BLD)$(MAKE) $(BLU)targets$(END)      -- displays this message.
 
-  $(BLD)$(MAKE) $(BLU)env$(END)       -- display the value of important env vars.
+  $(BLD)$(MAKE) $(BLU)env$(END)          -- display the value of important env vars.
 
-  $(BLD)$(MAKE) $(BLU)export$(END)    -- display important env vars in shell syntax, for use with $(BLD)eval$(END).
+  $(BLD)$(MAKE) $(BLU)export$(END)       -- display important env vars in shell syntax, for use with $(BLD)eval$(END).
 
-  $(BLD)$(MAKE) $(BLU)preflight$(END) -- checks dependencies of this makefile.
+  $(BLD)$(MAKE) $(BLU)preflight$(END)    -- checks dependencies of this makefile.
 
-  $(BLD)$(MAKE) $(BLU)sync$(END)      -- syncs source code into the build container.
+  $(BLD)$(MAKE) $(BLU)sync$(END)         -- syncs source code into the build container.
 
-  $(BLD)$(MAKE) $(BLU)version$(END)   -- display source code version.
+  $(BLD)$(MAKE) $(BLU)version$(END)      -- display source code version.
 
-  $(BLD)$(MAKE) $(BLU)compile$(END)   -- syncs and compiles the source code in the build container.
+  $(BLD)$(MAKE) $(BLU)compile$(END)      -- syncs and compiles the source code in the build container.
 
-  $(BLD)$(MAKE) $(BLU)images$(END)    -- creates images from the build container.
+  $(BLD)$(MAKE) $(BLU)images$(END)       -- creates images from the build container.
 
-  $(BLD)$(MAKE) $(BLU)push$(END)      -- pushes images to $(BLD)\$$DEV_REGISTRY$(END). ($(DEV_REGISTRY))
+  $(BLD)$(MAKE) $(BLU)push$(END)         -- pushes images to $(BLD)\$$DEV_REGISTRY$(END). ($(DEV_REGISTRY))
 
-  $(BLD)$(MAKE) $(BLU)test$(END)      -- runs Go and Python tests inside the build container.
+  $(BLD)$(MAKE) $(BLU)test$(END)         -- runs Go and Python tests inside the build container.
 
     The tests require a Kubernetes cluster and a Docker registry in order to
     function. These must be supplied via the $(BLD)$(MAKE)$(END)/$(BLD)env$(END) variables $(BLD)\$$DEV_KUBECONFIG$(END)
     and $(BLD)\$$DEV_REGISTRY$(END).
 
-  $(BLD)$(MAKE) $(BLU)gotest$(END)    -- runs just the Go tests inside the build container.
+  $(BLD)$(MAKE) $(BLU)gotest$(END)       -- runs just the Go tests inside the build container.
 
     Use $(BLD)\$$GOTEST_PKGS$(END) to control which packages are passed to $(BLD)gotest$(END). ($(GOTEST_PKGS))
     Use $(BLD)\$$GOTEST_ARGS$(END) to supply additional non-package arguments. ($(GOTEST_ARGS))
     Example: $(BLD)$(MAKE) gotest GOTEST_PKGS=./cmd/edgectl GOTEST_ARGS=-v$(END)  # run edgectl tests verbosely
 
-  $(BLD)$(MAKE) $(BLU)pytest$(END)    -- runs just the Python tests inside the build container.
+  $(BLD)$(MAKE) $(BLU)pytest$(END)       -- runs just the Python tests inside the build container.
 
     Use $(BLD)\$$KAT_RUN_MODE=envoy$(END) to force the Python tests to ignore local caches, and run everything
     in the cluster.
@@ -401,7 +406,15 @@ define _help.targets
 
     Example: $(BLD)$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS=\"-k Lua\"$(END)  # run only the Lua test, with a real Envoy
 
-  $(BLD)$(MAKE) $(BLU)shell$(END)     -- starts a shell in the build container.
+  $(BLD)$(MAKE) $(BLU)pytest-gold$(END)  -- update the gold files for the pytest cache
+
+    $(BLD)$(MAKE) $(BLU)pytest$(END) uses a local cache to speed up tests. $(BLD)ONCE YOU HAVE SUCCESSFULLY
+    RUN TESTS WITH $(BLU)KAT_RUN_MODE=envoy$(END), you can use $(BLD)$(MAKE) $(BLU)pytest-gold$(END) to update the
+    caches for the passing tests.
+
+    $(BLD)DO NOT$(END) run $(BLD)$(MAKE) $(BLU)pytest-gold$(END) if you have failing tests.
+
+  $(BLD)$(MAKE) $(BLU)shell$(END)        -- starts a shell in the build container
 
   $(BLD)$(MAKE) $(BLU)release/bits$(END) -- do the 'push some bits' part of a release
 

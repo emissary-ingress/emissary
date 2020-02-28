@@ -46,6 +46,30 @@ make test
 **Note**: To run tests in GKE set up using gcloud, set the variable `GCLOUD_CONFIG` to point to your gcloud config file.
 By default, it should be `GCLOUD_CONFIG=~/.config/gcloud/`.
 
+## Running Tests
+
+Quickstart:
+
+- Set `DEV_KUBECONFIG` to point to a Kubernetes cluster you can use for
+  testing. This cluster should be empty.
+- Set `DEV_REGISTRY` to whatever you need to be able to `docker push` to
+  your Docker registry. Your Kubernetes test cluster needs to be able to
+  pull from this repo.
+- Run `make push test` to run the Python and Go tests.
+   - Alternately, `make pytest` will run just the Python tests, or
+   - `make gotest` will run just the Go tests.
+
+## Updating the Python Test Cache
+
+The Python tests use a local cache to speed up test results. To update the
+test cache:
+
+- First, run `make KAT_RUN_MODE=envoy pytest` to do a test run _without_
+  using the local cache.
+
+- Once that succeeds, use `make pytest-gold` to update the cache from the 
+  passing tests.
+
 ## Making Documentation-Only Changes
 
 If you want to make a change that **only** affects documentation, and is not
