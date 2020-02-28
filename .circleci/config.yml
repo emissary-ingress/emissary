@@ -174,17 +174,19 @@ commands:
       - run:
           name: "Release"
           command: |
-            if [[ "$CIRCLE_TAG" =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+(-.*)?$ ]]; then
-                export AWS_ACCESS_KEY_ID=$DEPLOY_KEY_ID
-                export AWS_SECRET_ACCESS_KEY=$DEPLOY_KEY
-                if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
-                    docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY}"
-                fi
-                if [[ "$CIRCLE_TAG" == *-* ]]; then
-                  DEV_KUBECONFIG="-skip-for-release-" make release/bits
-                else
-                  DEV_KUBECONFIG="-skip-for-release-" make release/promote-aes/to-ga
-                fi
+            if ! [[ "$CIRCLE_TAG" =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+(-.*)?$ ]]; then
+                echo 'Skipping for non-vX.Y.Z[-PRE] GA/prerelease tag'
+                exit 0
+            fi
+            export AWS_ACCESS_KEY_ID=$DEPLOY_KEY_ID
+            export AWS_SECRET_ACCESS_KEY=$DEPLOY_KEY
+            if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
+                docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY}"
+            fi
+            if [[ "$CIRCLE_TAG" == *-* ]]; then
+              DEV_KUBECONFIG="-skip-for-release-" make release/bits
+            else
+              DEV_KUBECONFIG="-skip-for-release-" make release/promote-aes/to-ga
             fi
       - aes-save-logs
 
@@ -212,13 +214,15 @@ commands:
           # This only runs for pre-release tags; for GA tags the
           # "aes-main" command promotes the pre-release artifacts.
           command: |
-            if [[ "$CIRCLE_TAG" =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+-.*$ ]]; then
-                export AWS_ACCESS_KEY_ID=$DEPLOY_KEY_ID
-                export AWS_SECRET_ACCESS_KEY=$DEPLOY_KEY
-                ./build-aux-local/build_push_cli.sh push edgectl
-                ./build-aux-local/build_push_cli.sh push aes-plugin-runner
-                ./build-aux-local/build_push_cli.sh push-private apictl-key
+            if ! [[ "$CIRCLE_TAG" =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+-.*$ ]]; then
+                echo 'Skipping for non-vX.Y.Z-PRE prerelease tag'
+                exit 0
             fi
+            export AWS_ACCESS_KEY_ID=$DEPLOY_KEY_ID
+            export AWS_SECRET_ACCESS_KEY=$DEPLOY_KEY
+            ./build-aux-local/build_push_cli.sh push edgectl
+            ./build-aux-local/build_push_cli.sh push aes-plugin-runner
+            ./build-aux-local/build_push_cli.sh push-private apictl-key
 
 jobs:
   "main":
