@@ -161,6 +161,10 @@ commands:
       - run:
           name: "Build and Test"
           command: |
+            if [[ "$CIRCLE_TAG" =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+$ ]]; then
+                echo 'Skipping for vX.Y.Z GA tag'
+                exit 0
+            fi
             docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY}"
             .circleci/kubernaut-claim.sh
             export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
@@ -197,6 +201,10 @@ commands:
       - run:
           name: "Build"
           command: |
+            if [[ "$CIRCLE_TAG" =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+$ ]]; then
+                echo 'Skipping for vX.Y.Z GA tag'
+                exit 0
+            fi
             set -x
 
             time ./build-aux-local/build_push_cli.sh build edgectl
