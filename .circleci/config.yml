@@ -158,19 +158,19 @@ commands:
   "aes-main":
     steps:
       - aes-checkout
-      - run: ".circleci/kubernaut-claim.sh"
-      - run: |
-         docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY}"
-      - run: |
-         export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
-         export DEV_KUBE110=yes
-         export KAT_REQ_LIMIT=600
-         make test GOTEST_PKGS=github.com/datawire/apro/...
+      - run:
+          name: "Build and Test"
+          command: |
+            docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY}"
+            .circleci/kubernaut-claim.sh
+            export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
+            export DEV_KUBE110=yes
+            export KAT_REQ_LIMIT=600
+            make test GOTEST_PKGS=github.com/datawire/apro/...
       - run:
           command: ".circleci/kubernaut-unclaim.sh"
           when: "always"
       - aes-dirty-check
-      - aes-save-logs
       - run:
           name: "Release"
           command: |
@@ -186,16 +186,24 @@ commands:
                   DEV_KUBECONFIG="-skip-for-release-" make release/promote-aes/to-ga
                 fi
             fi
+      - aes-save-logs
 
   "aes-cli-tools":
     steps:
       - aes-checkout
       - run: ./build-aux-local/module_version.sh apro
-      - run: ./build-aux-local/build_push_cli.sh build edgectl
-      - run: ./build-aux-local/build_push_cli.sh build aes-plugin-runner
-      - run: ./build-aux-local/build_push_cli.sh build apictl-key
-      - run: ~/bin/edgectl version || true
-      - run: ~/bin/apictl-key version || true
+      - run:
+          name: "Build"
+          command: |
+            set -x
+
+            time ./build-aux-local/build_push_cli.sh build edgectl
+            time ./build-aux-local/build_push_cli.sh build aes-plugin-runner
+            time ./build-aux-local/build_push_cli.sh build apictl-key
+
+            ~/bin/edgectl version || true
+            ~/bin/aes-plugin-runner --version || true
+            ~/bin/apictl-key version || true
       - store_artifacts:
           path: ~/bin
       - aes-dirty-check
