@@ -172,6 +172,12 @@ summarize-sync() {
     if [ "${#lines[@]}" != 0 ]; then
         dexec touch ${name}.dirty image.dirty
     fi
+    for line in "${lines[@]}"; do
+        if [[ $line = *.go ]]; then
+            dexec touch go.dirty
+            break
+        fi
+    done
     printf "${GRN}Synced ${#lines[@]} ${BLU}${name}${GRN} source files${END}\n"
     PARTIAL="yes"
     for i in {0..9}; do
@@ -217,7 +223,7 @@ push-image() {
 }
 
 find-modules () {
-    find /buildroot -type d -mindepth 1 -maxdepth 1 \! -name bin
+    find /buildroot -type d -mindepth 1 -maxdepth 1 \! -name bin | sort
 }
 
 cmd="$1"
@@ -281,11 +287,17 @@ case "${cmd}" in
         ;;
     compile-internal)
         # This runs inside the builder image
+        if [[ $(find-modules) != /buildroot/ambassador* ]]; then
+            echo "Error: ambassador must be the first module to build things correctly"
+            echo "Modules are: $(find-modules)"
+            exit 1
+        fi
+
         for MODDIR in $(find-modules); do
             module=$(basename ${MODDIR})
             eval "$(grep BUILD_VERSION apro.version 2>/dev/null)" # this will `eval ''` for OSS-only builds, leaving BUILD_VERSION unset; dont embed the version-number in OSS Go binaries
 
-            if [ -e ${module}.dirty ]; then
+            if [ -e ${module}.dirty ] || ([ "$module" != ambassador ] && [ -e go.dirty ]) ; then
                 if [ -e "${MODDIR}/go.mod" ]; then
                     printf "${CYN}==> ${GRN}Building ${BLU}${module}${GRN} go code${END}\n"
                     echo_on
@@ -294,7 +306,9 @@ case "${cmd}" in
                     if [ -e ${MODDIR}/post-compile.sh ]; then (cd ${MODDIR} && bash post-compile.sh); fi
                     echo_off
                 fi
+            fi
 
+            if [ -e ${module}.dirty ]; then
                 if [ -e "${MODDIR}/python" ]; then
                     if ! [ -e ${MODDIR}/python/*.egg-info ]; then
                         printf "${CYN}==> ${GRN}Setting up ${BLU}${module}${GRN} python code${END}\n"
@@ -310,6 +324,7 @@ case "${cmd}" in
                 printf "${CYN}==> ${GRN}Already built ${BLU}${module}${GRN}${END}\n"
             fi
         done
+        rm -f go.dirty  # Do this after _all_ the Go code is built
         ;;
     pytest-internal)
         # This runs inside the builder image
