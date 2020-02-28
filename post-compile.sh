@@ -30,6 +30,10 @@ sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/amb-sidecar
 sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/app-sidecar
 sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/aes-plugin-runner
 
+# Set things up for the plugin runner and for computing the ABI info
+sudo ln -sf /opt/ambassador/bin/amb-sidecar /ambassador/sidecars/
+sudo ln -sf /opt/ambassador/bin/aes-plugin-runner /ambassador/
+
 sudo touch /ambassador/.edge_stack
 
 sudo mkdir -p /ambassador/webui/bindata && sudo make -f build-aux-local/minify.mk
