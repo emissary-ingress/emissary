@@ -161,10 +161,6 @@ commands:
       - run:
           name: "Build and Test"
           command: |
-            if [[ "$CIRCLE_TAG" =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+$ ]]; then
-                echo 'Skipping for vX.Y.Z GA tag'
-                exit 0
-            fi
             docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY}"
             .circleci/kubernaut-claim.sh
             export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
@@ -178,8 +174,8 @@ commands:
       - run:
           name: "Release"
           command: |
-            if ! [[ "$CIRCLE_TAG" =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+(-.*)?$ ]]; then
-                echo 'Skipping for non-vX.Y.Z[-PRE] GA/prerelease tag'
+            if [[ -z "$CIRCLE_TAG" ]]; then
+                echo 'Skipping for non-tagged build'
                 exit 0
             fi
             export AWS_ACCESS_KEY_ID=$DEPLOY_KEY_ID
@@ -187,12 +183,20 @@ commands:
             if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
                 docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY}"
             fi
-            if [[ "$CIRCLE_TAG" == *-* ]]; then
-              DEV_KUBECONFIG="-skip-for-release-" make release/bits
-            else
-              DEV_KUBECONFIG="-skip-for-release-" make release/promote-aes/to-ga
-            fi
+            DEV_KUBECONFIG="-skip-for-release-" make release/bits
       - aes-save-logs
+
+  "aes-promote":
+    steps:
+      - aes-checkout
+      - run: |
+          export AWS_ACCESS_KEY_ID=$DEPLOY_KEY_ID
+          export AWS_SECRET_ACCESS_KEY=$DEPLOY_KEY
+          docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY}"
+          if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
+              docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY}"
+          fi
+          DEV_KUBECONFIG="-skip-for-release-" make release/promote-aes/to-ga
 
   "aes-cli-tools":
     steps:
@@ -201,10 +205,6 @@ commands:
       - run:
           name: "Build"
           command: |
-            if [[ "$CIRCLE_TAG" =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+$ ]]; then
-                echo 'Skipping for vX.Y.Z GA tag'
-                exit 0
-            fi
             set -x
 
             time ./build-aux-local/build_push_cli.sh build edgectl
@@ -222,8 +222,8 @@ commands:
           # This only runs for pre-release tags; for GA tags the
           # "aes-main" command promotes the pre-release artifacts.
           command: |
-            if ! [[ "$CIRCLE_TAG" =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+-.*$ ]]; then
-                echo 'Skipping for non-vX.Y.Z-PRE prerelease tag'
+            if [[ -z "$CIRCLE_TAG" ]]; then
+                echo 'Skipping for non-tagged build'
                 exit 0
             fi
             export AWS_ACCESS_KEY_ID=$DEPLOY_KEY_ID
@@ -277,22 +277,48 @@ jobs:
       - install-go
       - aes-cli-tools
 
+  "promote":
+    machine:
+      # If you bump this, be sure to bump install-python.executor-key
+      # below.
+      image: "ubuntu-1604:201903-01"
+    steps:
+      - pip-install:
+          packages: awscli
+      - install-go
+      - install-kubectl
+      - install-node
+      - install-python:
+          executor-key: "201903-01"
+      - aes-promote
+
 workflows:
-  "AES CI":
+  "AES Build and Test":
+    # Run these on all branches, and on prerelease tags.  Do not run
+    # them on unrecognized tags (do nothing) or GA tags (there's a
+    # separate GA workflow).
     jobs:
       - "Windows-cli-tools":
           filters:
             tags:
-              only: /.*/
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+-.*/
       - "Linux-cli-tools":
           filters:
             tags:
-              only: /.*/
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+-.*/
       - "macOS-cli-tools":
           filters:
             tags:
-              only: /.*/
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+-.*/
       - "main":
           filters:
             tags:
-              only: /.*/
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+-.*/
+  "AES Promote to GA":
+    jobs:
+      - "promote":
+          filters:
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+/
+            branches:
+              ignore: /.*/
