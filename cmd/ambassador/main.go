@@ -15,7 +15,12 @@ import (
 	"github.com/datawire/ambassador/cmd/watt"
 )
 
+var Version = "(unknown version)"
+
 func main() {
+	ambex.Version = Version
+	watt.Version = Version
+
 	name := filepath.Base(os.Args[0])
 	if name == "ambassador" && len(os.Args) > 1 {
 		name = os.Args[1]
@@ -32,8 +37,8 @@ func main() {
 		fmt.Println("The Ambassador main program is a multi-call binary that combines various")
 		fmt.Println("support programs into one executable.")
 		fmt.Println()
-		fmt.Println("Usage: ambassador [program] [arguments]...")
-		fmt.Println("   or: [program] [arguments]...")
+		fmt.Println("Usage: ambassador <PROGRAM> [arguments]...")
+		fmt.Println("   or: <PROGRAM> [arguments]...")
 		fmt.Println()
 		fmt.Println("Available programs: ambex kubestatus watt")
 		fmt.Println()
