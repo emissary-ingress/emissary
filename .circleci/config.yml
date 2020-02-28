@@ -107,7 +107,7 @@ commands:
             - "/opt/circleci/.pyenv"
 
   ##############################################################################
-  # AES-specific granualr commands                                             #
+  # AES-specific granular commands                                             #
   ##############################################################################
 
   "aes-checkout":
