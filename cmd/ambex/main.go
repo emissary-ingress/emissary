@@ -1,4 +1,4 @@
-package main
+package ambex
 
 /**********************************************
  * ambex: Ambassador Experimental ADS server
@@ -345,7 +345,7 @@ func (l logger) OnFetchResponse(req *v2.DiscoveryRequest, res *v2.DiscoveryRespo
 	l.Infof("Fetch response: %v -> %v", req, res)
 }
 
-func main() {
+func Main() {
 	flag.Parse()
 
 	if debug {
