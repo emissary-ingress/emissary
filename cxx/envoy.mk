@@ -14,7 +14,7 @@ IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
   ENVOY_COMPILATION_MODE ?= opt
   # Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes.
   # You may reset BASE_ENVOY_RELVER when adjusting ENVOY_COMMIT.
-  BASE_ENVOY_RELVER ?= 1
+  BASE_ENVOY_RELVER ?= 2
 
   ENVOY_DOCKER_REPO ?= quay.io/datawire$(if $(IS_PRIVATE),-private)/ambassador-base
   ENVOY_DOCKER_VERSION ?= $(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE)
