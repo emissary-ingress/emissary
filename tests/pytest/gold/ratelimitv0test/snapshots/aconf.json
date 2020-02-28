@@ -1,0 +1,521 @@
+{
+    "_errors": {},
+    "_notices": {
+        "ratelimitv0test-http.default.1": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ],
+        "ratelimitv0test.default.1": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ]
+    },
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "ambassador-edge-stack.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": [
+                "_automatic_"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "location": "ambassador-edge-stack.default.1",
+            "metadata_labels": {
+                "ambassador_crd": "ambassador-edge-stack.default",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "ambassador-edge-stack",
+            "namespace": "default",
+            "precedence": 1000000,
+            "prefix": "/.ambassador/",
+            "rewrite": "",
+            "rkey": "ambassador-edge-stack.default.1",
+            "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: ambassador-edge-stack.default\n  ambassador_diag_class: private\n  product: aes\nname: ambassador-edge-stack\nnamespace: default\nprecedence: 1000000\nprefix: /.ambassador/\nrewrite: ''\nservice: 127.0.0.1:8500\n",
+            "service": "127.0.0.1:8500"
+        },
+        "cleartext-host-ratelimitv0test.default.1": {
+            "_referenced_by": {},
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "ambassador_id": [
+                "ratelimitv0test"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "hostname": "*",
+            "kind": "Host",
+            "location": "cleartext-host-ratelimitv0test.default.1",
+            "metadata_labels": {
+                "ambassador_crd": "cleartext-host-ratelimitv0test.default",
+                "kat-ambassador-id": "ratelimitv0test",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cleartext-host-ratelimitv0test",
+            "namespace": "default",
+            "requestPolicy": {
+                "insecure": {
+                    "action": "Route"
+                }
+            },
+            "rkey": "cleartext-host-ratelimitv0test.default.1",
+            "selector": {
+                "matchLabels": {
+                    "hostname": "ratelimitv0test"
+                }
+            },
+            "serialization": "acmeProvider:\n  authority: none\nambassador_id:\n- ratelimitv0test\napiVersion: getambassador.io/v2\ngeneration: 1\nhostname: '*'\nkind: Host\nmetadata_labels:\n  ambassador_crd: cleartext-host-ratelimitv0test.default\n  kat-ambassador-id: ratelimitv0test\n  scope: AmbassadorTest\nname: cleartext-host-ratelimitv0test\nnamespace: default\nrequestPolicy:\n  insecure:\n    action: Route\nselector:\n  matchLabels:\n    hostname: ratelimitv0test\n"
+        },
+        "edgestack-direct-mapping.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": [
+                "_automatic_"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "location": "edgestack-direct-mapping.default.1",
+            "metadata_labels": {
+                "ambassador_crd": "edgestack-direct-mapping.default",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "edgestack-direct-mapping",
+            "namespace": "default",
+            "precedence": 1000000,
+            "prefix": "/edge_stack/",
+            "rewrite": "/edge_stack_ui/edge_stack/",
+            "rkey": "edgestack-direct-mapping.default.1",
+            "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgestack-direct-mapping.default\n  ambassador_diag_class: private\n  product: aes\nname: edgestack-direct-mapping\nnamespace: default\nprecedence: 1000000\nprefix: /edge_stack/\nrewrite: /edge_stack_ui/edge_stack/\nservice: 127.0.0.1:8500\ntimeout_ms: 60000\n",
+            "service": "127.0.0.1:8500",
+            "timeout_ms": 60000
+        },
+        "edgestack-fallback-mapping.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": [
+                "_automatic_"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "location": "edgestack-fallback-mapping.default.1",
+            "metadata_labels": {
+                "ambassador_crd": "edgestack-fallback-mapping.default",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "edgestack-fallback-mapping",
+            "namespace": "default",
+            "precedence": -1000000,
+            "prefix": "/",
+            "rewrite": "/edge_stack_ui/",
+            "rkey": "edgestack-fallback-mapping.default.1",
+            "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgestack-fallback-mapping.default\n  ambassador_diag_class: private\n  product: aes\nname: edgestack-fallback-mapping\nnamespace: default\nprecedence: -1000000\nprefix: /\nrewrite: /edge_stack_ui/\nservice: 127.0.0.1:8500\ntimeout_ms: 60000\n",
+            "service": "127.0.0.1:8500",
+            "timeout_ms": 60000
+        },
+        "k8s-rate-limit-v0-default": {
+            "_referenced_by": {},
+            "ambassador_id": "ratelimitv0test",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-rate-limit-v0-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "ratelimitv0test",
+                "scope": "AmbassadorTest"
+            },
+            "name": "rate-limit-v0",
+            "namespace": "default",
+            "rkey": "k8s-rate-limit-v0-default",
+            "serialization": "ambassador_id: ratelimitv0test\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: ratelimitv0test\n  scope: AmbassadorTest\nname: rate-limit-v0\nnamespace: default\n"
+        },
+        "k8s-ratelimitv0test-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "ratelimitv0test",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-ratelimitv0test-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "ratelimitv0test",
+                "scope": "AmbassadorTest",
+                "service": "ratelimitv0test-admin"
+            },
+            "name": "ratelimitv0test-admin",
+            "namespace": "default",
+            "rkey": "k8s-ratelimitv0test-admin-default",
+            "serialization": "ambassador_id: ratelimitv0test\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: ratelimitv0test\n  scope: AmbassadorTest\n  service: ratelimitv0test-admin\nname: ratelimitv0test-admin\nnamespace: default\n"
+        },
+        "k8s-ratelimitv0test-default": {
+            "_referenced_by": {},
+            "ambassador_id": "ratelimitv0test",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-ratelimitv0test-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "ratelimitv0test",
+                "scope": "AmbassadorTest"
+            },
+            "name": "ratelimitv0test",
+            "namespace": "default",
+            "rkey": "k8s-ratelimitv0test-default",
+            "serialization": "ambassador_id: ratelimitv0test\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: ratelimitv0test\n  scope: AmbassadorTest\nname: ratelimitv0test\nnamespace: default\n"
+        },
+        "k8s-ratelimitv0test-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "ratelimitv0test",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-ratelimitv0test-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "ratelimitv0test",
+                "scope": "AmbassadorTest"
+            },
+            "name": "ratelimitv0test-http",
+            "namespace": "default",
+            "rkey": "k8s-ratelimitv0test-http-default",
+            "serialization": "ambassador_id: ratelimitv0test\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: ratelimitv0test\n  scope: AmbassadorTest\nname: ratelimitv0test-http\nnamespace: default\n"
+        },
+        "ratelimitv0test-http.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "ratelimitv0test",
+            "apiVersion": "getambassador.io/v0",
+            "kind": "Mapping",
+            "location": "ratelimitv0test-http.default.1",
+            "metadata_labels": {
+                "kat-ambassador-id": "ratelimitv0test",
+                "scope": "AmbassadorTest"
+            },
+            "name": "ratelimit_target_mapping",
+            "namespace": "default",
+            "prefix": "/target/",
+            "rate_limits": [
+                {
+                    "descriptor": "A test case",
+                    "headers": [
+                        "x-ambassador-test-allow"
+                    ]
+                }
+            ],
+            "rkey": "ratelimitv0test-http.default.1",
+            "serialization": "ambassador_id: ratelimitv0test\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: ratelimitv0test\n  scope: AmbassadorTest\nname: ratelimit_target_mapping\nnamespace: default\nprefix: /target/\nrate_limits:\n- descriptor: A test case\n  headers:\n  - x-ambassador-test-allow\nservice: ratelimitv0test-http\n",
+            "service": "ratelimitv0test-http"
+        },
+        "ratelimitv0test-http.default.2": {
+            "_referenced_by": {},
+            "ambassador_id": "ratelimitv0test",
+            "apiVersion": "getambassador.io/v1",
+            "kind": "Mapping",
+            "labels": {
+                "ambassador": [
+                    {
+                        "host_and_user": [
+                            {
+                                "custom-label": {
+                                    "header": ":authority",
+                                    "omit_if_not_present": true
+                                }
+                            },
+                            {
+                                "user": {
+                                    "header": "x-user",
+                                    "omit_if_not_present": true
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "omg_header": [
+                            {
+                                "custom-label": {
+                                    "default": "OMFG!",
+                                    "header": "x-omg"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            "location": "ratelimitv0test-http.default.2",
+            "metadata_labels": {
+                "kat-ambassador-id": "ratelimitv0test",
+                "scope": "AmbassadorTest"
+            },
+            "name": "ratelimit_label_mapping",
+            "namespace": "default",
+            "prefix": "/labels/",
+            "rkey": "ratelimitv0test-http.default.2",
+            "serialization": "ambassador_id: ratelimitv0test\napiVersion: ambassador/v1\nkind: Mapping\nlabels:\n  ambassador:\n  - host_and_user:\n    - custom-label:\n        header: :authority\n        omit_if_not_present: true\n    - user:\n        header: x-user\n        omit_if_not_present: true\n  - omg_header:\n    - custom-label:\n        default: OMFG!\n        header: x-omg\nmetadata_labels:\n  kat-ambassador-id: ratelimitv0test\n  scope: AmbassadorTest\nname: ratelimit_label_mapping\nnamespace: default\nprefix: /labels/\nservice: ratelimitv0test-http\n",
+            "service": "ratelimitv0test-http"
+        },
+        "ratelimitv0test.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "ratelimitv0test",
+            "apiVersion": "getambassador.io/v0",
+            "kind": "RateLimitService",
+            "location": "ratelimitv0test.default.1",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "ratelimitv0test",
+                "scope": "AmbassadorTest"
+            },
+            "name": "ratelimit-v0",
+            "namespace": "default",
+            "rkey": "ratelimitv0test.default.1",
+            "serialization": "ambassador_id: ratelimitv0test\napiVersion: ambassador/v0\nkind: RateLimitService\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: ratelimitv0test\n  scope: AmbassadorTest\nname: ratelimit-v0\nnamespace: default\nservice: rate-limit-v0:5000\ntimeout_ms: 500\n",
+            "service": "rate-limit-v0:5000",
+            "timeout_ms": 500
+        }
+    },
+    "hosts": {
+        "cleartext-host-ratelimitv0test": {
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "ambassador_id": [
+                "ratelimitv0test"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "hostname": "*",
+            "kind": "Host",
+            "metadata_labels": {
+                "ambassador_crd": "cleartext-host-ratelimitv0test.default",
+                "kat-ambassador-id": "ratelimitv0test",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cleartext-host-ratelimitv0test",
+            "namespace": "default",
+            "requestPolicy": {
+                "insecure": {
+                    "action": "Route"
+                }
+            },
+            "selector": {
+                "matchLabels": {
+                    "hostname": "ratelimitv0test"
+                }
+            }
+        }
+    },
+    "mappings": {
+        "ambassador-edge-stack": {
+            "ambassador_id": [
+                "_automatic_"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "metadata_labels": {
+                "ambassador_crd": "ambassador-edge-stack.default",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "ambassador-edge-stack",
+            "namespace": "default",
+            "precedence": 1000000,
+            "prefix": "/.ambassador/",
+            "rewrite": "",
+            "service": "127.0.0.1:8500"
+        },
+        "edgestack-direct-mapping": {
+            "ambassador_id": [
+                "_automatic_"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "metadata_labels": {
+                "ambassador_crd": "edgestack-direct-mapping.default",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "edgestack-direct-mapping",
+            "namespace": "default",
+            "precedence": 1000000,
+            "prefix": "/edge_stack/",
+            "rewrite": "/edge_stack_ui/edge_stack/",
+            "service": "127.0.0.1:8500",
+            "timeout_ms": 60000
+        },
+        "edgestack-fallback-mapping": {
+            "ambassador_id": [
+                "_automatic_"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "metadata_labels": {
+                "ambassador_crd": "edgestack-fallback-mapping.default",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "edgestack-fallback-mapping",
+            "namespace": "default",
+            "precedence": -1000000,
+            "prefix": "/",
+            "rewrite": "/edge_stack_ui/",
+            "service": "127.0.0.1:8500",
+            "timeout_ms": 60000
+        },
+        "ratelimit_label_mapping": {
+            "ambassador_id": "ratelimitv0test",
+            "apiVersion": "getambassador.io/v1",
+            "kind": "Mapping",
+            "labels": {
+                "ambassador": [
+                    {
+                        "host_and_user": [
+                            {
+                                "custom-label": {
+                                    "header": ":authority",
+                                    "omit_if_not_present": true
+                                }
+                            },
+                            {
+                                "user": {
+                                    "header": "x-user",
+                                    "omit_if_not_present": true
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "omg_header": [
+                            {
+                                "custom-label": {
+                                    "default": "OMFG!",
+                                    "header": "x-omg"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            "metadata_labels": {
+                "kat-ambassador-id": "ratelimitv0test",
+                "scope": "AmbassadorTest"
+            },
+            "name": "ratelimit_label_mapping",
+            "namespace": "default",
+            "prefix": "/labels/",
+            "service": "ratelimitv0test-http"
+        },
+        "ratelimit_target_mapping": {
+            "ambassador_id": "ratelimitv0test",
+            "apiVersion": "getambassador.io/v0",
+            "kind": "Mapping",
+            "metadata_labels": {
+                "kat-ambassador-id": "ratelimitv0test",
+                "scope": "AmbassadorTest"
+            },
+            "name": "ratelimit_target_mapping",
+            "namespace": "default",
+            "prefix": "/target/",
+            "rate_limits": [
+                {
+                    "descriptor": "A test case",
+                    "headers": [
+                        "x-ambassador-test-allow"
+                    ]
+                }
+            ],
+            "service": "ratelimitv0test-http"
+        }
+    },
+    "ratelimit_configs": {
+        "ratelimit-v0": {
+            "ambassador_id": "ratelimitv0test",
+            "apiVersion": "getambassador.io/v0",
+            "kind": "RateLimitService",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "ratelimitv0test",
+                "scope": "AmbassadorTest"
+            },
+            "name": "ratelimit-v0",
+            "namespace": "default",
+            "service": "rate-limit-v0:5000",
+            "timeout_ms": 500
+        }
+    },
+    "service": {
+        "k8s-rate-limit-v0-default": {
+            "ambassador_id": "ratelimitv0test",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "ratelimitv0test",
+                "scope": "AmbassadorTest"
+            },
+            "name": "rate-limit-v0",
+            "namespace": "default"
+        },
+        "k8s-ratelimitv0test-admin-default": {
+            "ambassador_id": "ratelimitv0test",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "ratelimitv0test",
+                "scope": "AmbassadorTest",
+                "service": "ratelimitv0test-admin"
+            },
+            "name": "ratelimitv0test-admin",
+            "namespace": "default"
+        },
+        "k8s-ratelimitv0test-default": {
+            "ambassador_id": "ratelimitv0test",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "ratelimitv0test",
+                "scope": "AmbassadorTest"
+            },
+            "name": "ratelimitv0test",
+            "namespace": "default"
+        },
+        "k8s-ratelimitv0test-http-default": {
+            "ambassador_id": "ratelimitv0test",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "ratelimitv0test",
+                "scope": "AmbassadorTest"
+            },
+            "name": "ratelimitv0test-http",
+            "namespace": "default"
+        }
+    }
+}

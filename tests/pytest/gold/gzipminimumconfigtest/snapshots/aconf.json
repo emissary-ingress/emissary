@@ -1,0 +1,392 @@
+{
+    "_errors": {},
+    "_notices": {
+        "gzipminimumconfigtest.default.1": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ],
+        "gzipminimumconfigtest.default.2": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ]
+    },
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "ambassador-edge-stack.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": [
+                "_automatic_"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "location": "ambassador-edge-stack.default.1",
+            "metadata_labels": {
+                "ambassador_crd": "ambassador-edge-stack.default",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "ambassador-edge-stack",
+            "namespace": "default",
+            "precedence": 1000000,
+            "prefix": "/.ambassador/",
+            "rewrite": "",
+            "rkey": "ambassador-edge-stack.default.1",
+            "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: ambassador-edge-stack.default\n  ambassador_diag_class: private\n  product: aes\nname: ambassador-edge-stack\nnamespace: default\nprecedence: 1000000\nprefix: /.ambassador/\nrewrite: ''\nservice: 127.0.0.1:8500\n",
+            "service": "127.0.0.1:8500"
+        },
+        "cleartext-host-gzipminimumconfigtest.default.1": {
+            "_referenced_by": {},
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "ambassador_id": [
+                "gzipminimumconfigtest"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "hostname": "*",
+            "kind": "Host",
+            "location": "cleartext-host-gzipminimumconfigtest.default.1",
+            "metadata_labels": {
+                "ambassador_crd": "cleartext-host-gzipminimumconfigtest.default",
+                "kat-ambassador-id": "gzipminimumconfigtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cleartext-host-gzipminimumconfigtest",
+            "namespace": "default",
+            "requestPolicy": {
+                "insecure": {
+                    "action": "Route"
+                }
+            },
+            "rkey": "cleartext-host-gzipminimumconfigtest.default.1",
+            "selector": {
+                "matchLabels": {
+                    "hostname": "gzipminimumconfigtest"
+                }
+            },
+            "serialization": "acmeProvider:\n  authority: none\nambassador_id:\n- gzipminimumconfigtest\napiVersion: getambassador.io/v2\ngeneration: 1\nhostname: '*'\nkind: Host\nmetadata_labels:\n  ambassador_crd: cleartext-host-gzipminimumconfigtest.default\n  kat-ambassador-id: gzipminimumconfigtest\n  scope: AmbassadorTest\nname: cleartext-host-gzipminimumconfigtest\nnamespace: default\nrequestPolicy:\n  insecure:\n    action: Route\nselector:\n  matchLabels:\n    hostname: gzipminimumconfigtest\n"
+        },
+        "edgestack-direct-mapping.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": [
+                "_automatic_"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "location": "edgestack-direct-mapping.default.1",
+            "metadata_labels": {
+                "ambassador_crd": "edgestack-direct-mapping.default",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "edgestack-direct-mapping",
+            "namespace": "default",
+            "precedence": 1000000,
+            "prefix": "/edge_stack/",
+            "rewrite": "/edge_stack_ui/edge_stack/",
+            "rkey": "edgestack-direct-mapping.default.1",
+            "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgestack-direct-mapping.default\n  ambassador_diag_class: private\n  product: aes\nname: edgestack-direct-mapping\nnamespace: default\nprecedence: 1000000\nprefix: /edge_stack/\nrewrite: /edge_stack_ui/edge_stack/\nservice: 127.0.0.1:8500\ntimeout_ms: 60000\n",
+            "service": "127.0.0.1:8500",
+            "timeout_ms": 60000
+        },
+        "edgestack-fallback-mapping.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": [
+                "_automatic_"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "location": "edgestack-fallback-mapping.default.1",
+            "metadata_labels": {
+                "ambassador_crd": "edgestack-fallback-mapping.default",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "edgestack-fallback-mapping",
+            "namespace": "default",
+            "precedence": -1000000,
+            "prefix": "/",
+            "rewrite": "/edge_stack_ui/",
+            "rkey": "edgestack-fallback-mapping.default.1",
+            "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgestack-fallback-mapping.default\n  ambassador_diag_class: private\n  product: aes\nname: edgestack-fallback-mapping\nnamespace: default\nprecedence: -1000000\nprefix: /\nrewrite: /edge_stack_ui/\nservice: 127.0.0.1:8500\ntimeout_ms: 60000\n",
+            "service": "127.0.0.1:8500",
+            "timeout_ms": 60000
+        },
+        "gzipminimumconfigtest.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "gzipminimumconfigtest",
+            "apiVersion": "getambassador.io/v0",
+            "config": {
+                "gzip": {
+                    "enabled": true
+                }
+            },
+            "kind": "Module",
+            "location": "gzipminimumconfigtest.default.1",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "gzipminimumconfigtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "ambassador",
+            "namespace": "default",
+            "rkey": "gzipminimumconfigtest.default.1",
+            "serialization": "ambassador_id: gzipminimumconfigtest\napiVersion: ambassador/v0\nconfig:\n  gzip:\n    enabled: true\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gzipminimumconfigtest\n  scope: AmbassadorTest\nname: ambassador\nnamespace: default\n"
+        },
+        "gzipminimumconfigtest.default.2": {
+            "_referenced_by": {},
+            "ambassador_id": "gzipminimumconfigtest",
+            "apiVersion": "getambassador.io/v0",
+            "kind": "Mapping",
+            "location": "gzipminimumconfigtest.default.2",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "gzipminimumconfigtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "gzipminimumconfigtest-http",
+            "namespace": "default",
+            "prefix": "/target/",
+            "rkey": "gzipminimumconfigtest.default.2",
+            "serialization": "ambassador_id: gzipminimumconfigtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gzipminimumconfigtest\n  scope: AmbassadorTest\nname: gzipminimumconfigtest-http\nnamespace: default\nprefix: /target/\nservice: gzipminimumconfigtest-http\n",
+            "service": "gzipminimumconfigtest-http"
+        },
+        "k8s-gzipminimumconfigtest-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "gzipminimumconfigtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-gzipminimumconfigtest-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "gzipminimumconfigtest",
+                "scope": "AmbassadorTest",
+                "service": "gzipminimumconfigtest-admin"
+            },
+            "name": "gzipminimumconfigtest-admin",
+            "namespace": "default",
+            "rkey": "k8s-gzipminimumconfigtest-admin-default",
+            "serialization": "ambassador_id: gzipminimumconfigtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: gzipminimumconfigtest\n  scope: AmbassadorTest\n  service: gzipminimumconfigtest-admin\nname: gzipminimumconfigtest-admin\nnamespace: default\n"
+        },
+        "k8s-gzipminimumconfigtest-default": {
+            "_referenced_by": {},
+            "ambassador_id": "gzipminimumconfigtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-gzipminimumconfigtest-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "gzipminimumconfigtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "gzipminimumconfigtest",
+            "namespace": "default",
+            "rkey": "k8s-gzipminimumconfigtest-default",
+            "serialization": "ambassador_id: gzipminimumconfigtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gzipminimumconfigtest\n  scope: AmbassadorTest\nname: gzipminimumconfigtest\nnamespace: default\n"
+        },
+        "k8s-gzipminimumconfigtest-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "gzipminimumconfigtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-gzipminimumconfigtest-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "gzipminimumconfigtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "gzipminimumconfigtest-http",
+            "namespace": "default",
+            "rkey": "k8s-gzipminimumconfigtest-http-default",
+            "serialization": "ambassador_id: gzipminimumconfigtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: gzipminimumconfigtest\n  scope: AmbassadorTest\nname: gzipminimumconfigtest-http\nnamespace: default\n"
+        }
+    },
+    "hosts": {
+        "cleartext-host-gzipminimumconfigtest": {
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "ambassador_id": [
+                "gzipminimumconfigtest"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "hostname": "*",
+            "kind": "Host",
+            "metadata_labels": {
+                "ambassador_crd": "cleartext-host-gzipminimumconfigtest.default",
+                "kat-ambassador-id": "gzipminimumconfigtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cleartext-host-gzipminimumconfigtest",
+            "namespace": "default",
+            "requestPolicy": {
+                "insecure": {
+                    "action": "Route"
+                }
+            },
+            "selector": {
+                "matchLabels": {
+                    "hostname": "gzipminimumconfigtest"
+                }
+            }
+        }
+    },
+    "mappings": {
+        "ambassador-edge-stack": {
+            "ambassador_id": [
+                "_automatic_"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "metadata_labels": {
+                "ambassador_crd": "ambassador-edge-stack.default",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "ambassador-edge-stack",
+            "namespace": "default",
+            "precedence": 1000000,
+            "prefix": "/.ambassador/",
+            "rewrite": "",
+            "service": "127.0.0.1:8500"
+        },
+        "edgestack-direct-mapping": {
+            "ambassador_id": [
+                "_automatic_"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "metadata_labels": {
+                "ambassador_crd": "edgestack-direct-mapping.default",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "edgestack-direct-mapping",
+            "namespace": "default",
+            "precedence": 1000000,
+            "prefix": "/edge_stack/",
+            "rewrite": "/edge_stack_ui/edge_stack/",
+            "service": "127.0.0.1:8500",
+            "timeout_ms": 60000
+        },
+        "edgestack-fallback-mapping": {
+            "ambassador_id": [
+                "_automatic_"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "metadata_labels": {
+                "ambassador_crd": "edgestack-fallback-mapping.default",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "edgestack-fallback-mapping",
+            "namespace": "default",
+            "precedence": -1000000,
+            "prefix": "/",
+            "rewrite": "/edge_stack_ui/",
+            "service": "127.0.0.1:8500",
+            "timeout_ms": 60000
+        },
+        "gzipminimumconfigtest-http": {
+            "ambassador_id": "gzipminimumconfigtest",
+            "apiVersion": "getambassador.io/v0",
+            "kind": "Mapping",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "gzipminimumconfigtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "gzipminimumconfigtest-http",
+            "namespace": "default",
+            "prefix": "/target/",
+            "service": "gzipminimumconfigtest-http"
+        }
+    },
+    "modules": {
+        "ambassador": {
+            "apiVersion": "getambassador.io/v0",
+            "gzip": {
+                "enabled": true
+            },
+            "kind": "Module",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "gzipminimumconfigtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "ambassador",
+            "namespace": "default"
+        }
+    },
+    "service": {
+        "k8s-gzipminimumconfigtest-admin-default": {
+            "ambassador_id": "gzipminimumconfigtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "gzipminimumconfigtest",
+                "scope": "AmbassadorTest",
+                "service": "gzipminimumconfigtest-admin"
+            },
+            "name": "gzipminimumconfigtest-admin",
+            "namespace": "default"
+        },
+        "k8s-gzipminimumconfigtest-default": {
+            "ambassador_id": "gzipminimumconfigtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "gzipminimumconfigtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "gzipminimumconfigtest",
+            "namespace": "default"
+        },
+        "k8s-gzipminimumconfigtest-http-default": {
+            "ambassador_id": "gzipminimumconfigtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "gzipminimumconfigtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "gzipminimumconfigtest-http",
+            "namespace": "default"
+        }
+    }
+}

@@ -1,0 +1,230 @@
+{
+    "Consul": {},
+    "Kubernetes": {
+        "AuthService": null,
+        "ConsulResolver": null,
+        "Host": [
+            {
+                "apiVersion": "getambassador.io/v2",
+                "kind": "Host",
+                "metadata": {
+                    "annotations": {
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Host\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"ambassadoridtest\",\"scope\":\"AmbassadorTest\"},\"name\":\"cleartext-host-ambassadoridtest\",\"namespace\":\"default\"},\"spec\":{\"acmeProvider\":{\"authority\":\"none\"},\"ambassador_id\":[\"ambassadoridtest\"],\"hostname\":\"*\",\"requestPolicy\":{\"insecure\":{\"action\":\"Route\"}},\"selector\":{\"matchLabels\":{\"hostname\":\"ambassadoridtest\"}}}}\n"
+                    },
+                    "clusterName": "",
+                    "creationTimestamp": "2020-02-28T17:39:55Z",
+                    "generation": 1,
+                    "labels": {
+                        "kat-ambassador-id": "ambassadoridtest",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "cleartext-host-ambassadoridtest",
+                    "namespace": "default",
+                    "resourceVersion": "23450",
+                    "selfLink": "/apis/getambassador.io/v2/namespaces/default/hosts/cleartext-host-ambassadoridtest",
+                    "uid": "55033209-5a51-11ea-a663-163f3a62b77d"
+                },
+                "spec": {
+                    "acmeProvider": {
+                        "authority": "none"
+                    },
+                    "ambassador_id": [
+                        "ambassadoridtest"
+                    ],
+                    "hostname": "*",
+                    "requestPolicy": {
+                        "insecure": {
+                            "action": "Route"
+                        }
+                    },
+                    "selector": {
+                        "matchLabels": {
+                            "hostname": "ambassadoridtest"
+                        }
+                    }
+                }
+            }
+        ],
+        "KubernetesEndpointResolver": null,
+        "KubernetesServiceResolver": null,
+        "LogService": null,
+        "Mapping": null,
+        "Module": null,
+        "RateLimitService": null,
+        "TCPMapping": null,
+        "TLSContext": [
+            {
+                "apiVersion": "getambassador.io/v2",
+                "kind": "TLSContext",
+                "metadata": {
+                    "annotations": {
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"TLSContext\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"hostcrdmanualcontext\",\"scope\":\"AmbassadorTest\"},\"name\":\"manual-host-context\",\"namespace\":\"default\"},\"spec\":{\"ambassador_id\":[\"hostcrdmanualcontext\"],\"hosts\":[\"hostcrdmanualcontext\"],\"max_tls_version\":\"v1.3\",\"min_tls_version\":\"v1.2\",\"secret\":\"manual-secret\"}}\n"
+                    },
+                    "clusterName": "",
+                    "creationTimestamp": "2020-02-28T17:40:05Z",
+                    "generation": 1,
+                    "labels": {
+                        "kat-ambassador-id": "hostcrdmanualcontext",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "manual-host-context",
+                    "namespace": "default",
+                    "resourceVersion": "24081",
+                    "selfLink": "/apis/getambassador.io/v2/namespaces/default/tlscontexts/manual-host-context",
+                    "uid": "5b42a54f-5a51-11ea-a663-163f3a62b77d"
+                },
+                "spec": {
+                    "ambassador_id": [
+                        "hostcrdmanualcontext"
+                    ],
+                    "hosts": [
+                        "hostcrdmanualcontext"
+                    ],
+                    "max_tls_version": "v1.3",
+                    "min_tls_version": "v1.2",
+                    "secret": "manual-secret"
+                }
+            }
+        ],
+        "TracingService": null,
+        "ingresses": null,
+        "secret": null,
+        "service": [
+            {
+                "apiVersion": "v1",
+                "kind": "Service",
+                "metadata": {
+                    "annotations": {
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"ambassadoridtest\",\"scope\":\"AmbassadorTest\",\"service\":\"ambassadoridtest-admin\"},\"name\":\"ambassadoridtest-admin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"ambassadoridtest-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"ambassadoridtest\"},\"type\":\"NodePort\"}}\n"
+                    },
+                    "creationTimestamp": "2020-02-28T17:39:55Z",
+                    "labels": {
+                        "kat-ambassador-id": "ambassadoridtest",
+                        "scope": "AmbassadorTest",
+                        "service": "ambassadoridtest-admin"
+                    },
+                    "name": "ambassadoridtest-admin",
+                    "namespace": "default",
+                    "resourceVersion": "23441",
+                    "selfLink": "/api/v1/namespaces/default/services/ambassadoridtest-admin",
+                    "uid": "54dac778-5a51-11ea-a663-163f3a62b77d"
+                },
+                "spec": {
+                    "clusterIP": "10.96.212.129",
+                    "externalTrafficPolicy": "Cluster",
+                    "ports": [
+                        {
+                            "name": "ambassadoridtest-admin",
+                            "nodePort": 31330,
+                            "port": 8877,
+                            "protocol": "TCP",
+                            "targetPort": 8877
+                        }
+                    ],
+                    "selector": {
+                        "service": "ambassadoridtest"
+                    },
+                    "sessionAffinity": "None",
+                    "type": "NodePort"
+                },
+                "status": {
+                    "loadBalancer": {}
+                }
+            },
+            {
+                "apiVersion": "v1",
+                "kind": "Service",
+                "metadata": {
+                    "annotations": {
+                        "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind: Mapping\nname: ambassadoridtest-findme\nprefix: /findme/\nservice: ambassadoridtest-http\nambassador_id: ambassadoridtest\n\n---\napiVersion: ambassador/v0\nkind: Mapping\nname: ambassadoridtest-findme-array\nprefix: /findme-array/\nservice: ambassadoridtest-http\nambassador_id: [ambassadoridtest, missme]\n\n---\napiVersion: ambassador/v0\nkind: Mapping\nname: ambassadoridtest-findme-array2\nprefix: /findme-array2/\nservice: ambassadoridtest-http\nambassador_id: [missme, ambassadoridtest]\n\n---\napiVersion: ambassador/v0\nkind: Mapping\nname: ambassadoridtest-missme\nprefix: /missme/\nservice: ambassadoridtest-http\nambassador_id: missme\n\n---\napiVersion: ambassador/v0\nkind: Mapping\nname: ambassadoridtest-missme-array\nprefix: /missme-array/\nservice: ambassadoridtest-http\nambassador_id: [missme1, missme2]\n",
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v0\\nkind: Mapping\\nname: ambassadoridtest-findme\\nprefix: /findme/\\nservice: ambassadoridtest-http\\nambassador_id: ambassadoridtest\\n\\n---\\napiVersion: ambassador/v0\\nkind: Mapping\\nname: ambassadoridtest-findme-array\\nprefix: /findme-array/\\nservice: ambassadoridtest-http\\nambassador_id: [ambassadoridtest, missme]\\n\\n---\\napiVersion: ambassador/v0\\nkind: Mapping\\nname: ambassadoridtest-findme-array2\\nprefix: /findme-array2/\\nservice: ambassadoridtest-http\\nambassador_id: [missme, ambassadoridtest]\\n\\n---\\napiVersion: ambassador/v0\\nkind: Mapping\\nname: ambassadoridtest-missme\\nprefix: /missme/\\nservice: ambassadoridtest-http\\nambassador_id: missme\\n\\n---\\napiVersion: ambassador/v0\\nkind: Mapping\\nname: ambassadoridtest-missme-array\\nprefix: /missme-array/\\nservice: ambassadoridtest-http\\nambassador_id: [missme1, missme2]\\n\"},\"labels\":{\"kat-ambassador-id\":\"ambassadoridtest\",\"scope\":\"AmbassadorTest\"},\"name\":\"ambassadoridtest-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
+                    },
+                    "creationTimestamp": "2020-02-28T17:39:55Z",
+                    "labels": {
+                        "kat-ambassador-id": "ambassadoridtest",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "ambassadoridtest-http",
+                    "namespace": "default",
+                    "resourceVersion": "23452",
+                    "selfLink": "/api/v1/namespaces/default/services/ambassadoridtest-http",
+                    "uid": "5508a16b-5a51-11ea-a663-163f3a62b77d"
+                },
+                "spec": {
+                    "clusterIP": "10.101.99.121",
+                    "ports": [
+                        {
+                            "name": "http",
+                            "port": 80,
+                            "protocol": "TCP",
+                            "targetPort": 8080
+                        },
+                        {
+                            "name": "https",
+                            "port": 443,
+                            "protocol": "TCP",
+                            "targetPort": 8443
+                        }
+                    ],
+                    "selector": {
+                        "backend": "superpod-default"
+                    },
+                    "sessionAffinity": "None",
+                    "type": "ClusterIP"
+                },
+                "status": {
+                    "loadBalancer": {}
+                }
+            },
+            {
+                "apiVersion": "v1",
+                "kind": "Service",
+                "metadata": {
+                    "annotations": {
+                        "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind: Module\nname: ambassador\nconfig:\n  use_ambassador_namespace_for_service_resolution: true\nambassador_id: ambassadoridtest\n",
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v0\\nkind: Module\\nname: ambassador\\nconfig:\\n  use_ambassador_namespace_for_service_resolution: true\\nambassador_id: ambassadoridtest\\n\"},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"ambassadoridtest\",\"scope\":\"AmbassadorTest\"},\"name\":\"ambassadoridtest\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"ambassadoridtest\"},\"type\":\"NodePort\"}}\n"
+                    },
+                    "creationTimestamp": "2020-02-28T17:39:55Z",
+                    "labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "ambassadoridtest",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "ambassadoridtest",
+                    "namespace": "default",
+                    "resourceVersion": "23436",
+                    "selfLink": "/api/v1/namespaces/default/services/ambassadoridtest",
+                    "uid": "54d533bf-5a51-11ea-a663-163f3a62b77d"
+                },
+                "spec": {
+                    "clusterIP": "10.98.101.193",
+                    "externalTrafficPolicy": "Cluster",
+                    "ports": [
+                        {
+                            "name": "http",
+                            "nodePort": 31769,
+                            "port": 80,
+                            "protocol": "TCP",
+                            "targetPort": 8080
+                        },
+                        {
+                            "name": "https",
+                            "nodePort": 30602,
+                            "port": 443,
+                            "protocol": "TCP",
+                            "targetPort": 8443
+                        }
+                    ],
+                    "selector": {
+                        "service": "ambassadoridtest"
+                    },
+                    "sessionAffinity": "None",
+                    "type": "NodePort"
+                },
+                "status": {
+                    "loadBalancer": {}
+                }
+            }
+        ]
+    }
+}

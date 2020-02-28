@@ -1,5 +1,7 @@
 NAME ?= aes
 
+PYTEST_GOLD_DIR = $(abspath $(CURDIR)/tests/pytest/gold)
+
 ifndef OSS_HOME
 AMBASSADOR_COMMIT = $(shell cat ambassador.commit)
 
