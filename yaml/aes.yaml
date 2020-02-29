@@ -327,4 +327,3 @@ spec:
       - name: ambassador-edge-stack-secrets
         secret:
           secretName: ambassador-edge-stack
-
