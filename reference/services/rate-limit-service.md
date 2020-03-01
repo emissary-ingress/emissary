@@ -46,7 +46,7 @@ spec:
 
 ## External Rate Limit Service
 
-In order for Ambassador Edge Stack to rate limit, you need to implement a gRPC `AccessLogService`, as defined in [Envoy's `rls.proto`][rls.proto] interface. If you do not have the time or resources to implement your own rate limit service, Ambassador Edge Stack integrates a high performance, rate limiting service.
+In order for Ambassador Edge Stack to rate limit, you need to implement a gRPC `RateLimitService`, as defined in [Envoy's `rls.proto`][rls.proto] interface. If you do not have the time or resources to implement your own rate limit service, Ambassador Edge Stack integrates a high performance, rate limiting service.
 
 [rls.proto]: https://github.com/datawire/ambassador/tree/master/api/envoy/service/ratelimit/v2/rls.proto
 
