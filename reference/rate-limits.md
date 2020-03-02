@@ -1,6 +1,14 @@
 # Rate Limits
 
-Rate limits are a powerful way to improve availability and scalability for your microservices. With Ambassador Edge Stack, individual requests can be annotated with metadata, called labels.  These labels can then be passed to a third party [rate limiting service](../services/rate-limit-service) which can then rate limit based on this data. If you do not want to write your own rate limiting service, [Ambassador Edge Stack](../../user-guide/install) includes an integrated, flexible rate limiting service.
+Rate limits are a powerful way to improve availability and scalability for your
+microservices. With Ambassador Edge Stack, individual requests can be annotated
+with metadata, called labels.  These labels can then be passed to a third party
+[rate limiting service](../services/rate-limit-service) which can then rate
+limit based on this data. If you do not want to write your own rate limiting
+service, [Ambassador Edge Stack](../../user-guide/install) includes an
+integrated, flexible rate limiting service.
+
+**Note that the `RateLimit` CRD is specific only to the Ambassador Edge Stack.**
 
 ## Request Labels
 
