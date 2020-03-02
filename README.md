@@ -36,7 +36,7 @@ Community
 Ambassador is an open source project, and welcomes any and all contributors. To get started:
 
 * Join our [Slack channel](https://d6e.co/slack)
-* Read the [developer guide](BUILDING.md)
+* Read the [developer guide](DEVELOPING.md)
 * Check out the [Ambassador documentation](https://www.getambassador.io/about/why-ambassador)
 
 If you're interested in contributing, here are some ways:
