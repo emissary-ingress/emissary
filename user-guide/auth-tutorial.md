@@ -187,7 +187,7 @@ metadata:
   mappings:
     getambassador.io/config: |
       ---
-      apiVersion: getambassador.io/v0
+      apiVersion: getambassador.io/v2
       kind:  AuthService
       name:  authentication
       auth_service: "example-auth:3000"

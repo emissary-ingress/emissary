@@ -78,7 +78,7 @@ This will configure the following `FilterPolicy`:
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: FilterPolicy
 metadata:
   name: httpbin-filterpolicy

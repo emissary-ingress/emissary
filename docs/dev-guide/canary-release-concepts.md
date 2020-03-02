@@ -29,7 +29,7 @@ spec:
     app: payment-app
 ...
 
-apiVersion: apps/v1
+apiVersion: apps/v2
 kind: Deployment
 metadata:  
     name: payment

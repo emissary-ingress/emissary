@@ -99,7 +99,7 @@ Once a resolver is defined, you can use them in a given `Mapping`:
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: quote-backend
@@ -110,7 +110,7 @@ spec:
   load_balancer:
     policy: round_robin
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: bar

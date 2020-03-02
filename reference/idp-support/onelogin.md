@@ -48,7 +48,7 @@ Now you must configure your Ambassador instance to use OneLogin.
 Here is an example YAML:
 
 ```yaml
-    apiVersion: getambassador.io/v1beta2
+    apiVersion: getambassador.io/v2
     kind: Filter
     metadata:
     name: onelogin
@@ -67,7 +67,7 @@ Here is an example YAML:
 Some example YAML:
 
 ```yaml
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: FilterPolicy
 metadata:
   name: oauth-policy
