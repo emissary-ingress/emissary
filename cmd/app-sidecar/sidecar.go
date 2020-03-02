@@ -131,70 +131,70 @@ func Main() {
 	}
 }
 
-func getAppPort() (uint32, error) {
-	str := os.Getenv("APPPORT")
-	if str == "" {
-		log.Print("ERROR: APPPORT env var not configured.")
-		log.Print("(I don't know what port your app uses)")
-		log.Print("Please set APPPORT in your k8s manifest.")
-		time.Sleep(24 * time.Hour)
-		os.Exit(1)
-	}
-	num, err := strconv.ParseUint(str, 10, 32)
-	if err != nil {
-		return 0, err
-	}
-	return uint32(num), nil
-}
+// func getAppPort() (uint32, error) {
+// 	str := os.Getenv("APPPORT")
+// 	if str == "" {
+// 		log.Print("ERROR: APPPORT env var not configured.")
+// 		log.Print("(I don't know what port your app uses)")
+// 		log.Print("Please set APPPORT in your k8s manifest.")
+// 		time.Sleep(24 * time.Hour)
+// 		os.Exit(1)
+// 	}
+// 	num, err := strconv.ParseUint(str, 10, 32)
+// 	if err != nil {
+// 		return 0, err
+// 	}
+// 	return uint32(num), nil
+// }
 
 func Run(flags *cobra.Command, args []string) error {
-	appPort, err := getAppPort()
-	if err != nil {
+	// appPort, err := getAppPort()
+	// if err != nil {
+	// 	return err
+	// }
+	if err := os.Mkdir("/tmp/agent", 0777); err != nil {
 		return err
 	}
-	if err := os.Mkdir("/run/amb", 0777); err != nil {
+	if err := os.Chdir("/tmp/agent"); err != nil {
 		return err
 	}
-	if err := os.Chdir("/run/amb"); err != nil {
-		return err
-	}
-	err = func() error {
-		file, err := os.OpenFile("bootstrap-ads.yaml", os.O_CREATE|os.O_WRONLY, 0666)
-		if err != nil {
-			return err
-		}
-		defer file.Close()
-		return writeBootstrapADSYAML(file, appPort)
-	}()
-	if err != nil {
-		return err
-	}
-	if err := os.Mkdir("data", 0777); err != nil {
-		return err
-	}
-	if err := ioutil.WriteFile("data/listener.json", []byte(listenerJSON), 0666); err != nil {
-		return err
-	}
-	if err := ioutil.WriteFile("data/route.json", []byte(routeJSON), 0666); err != nil {
-		return err
-	}
+	// err = func() error {
+	// 	file, err := os.OpenFile("bootstrap-ads.yaml", os.O_CREATE|os.O_WRONLY, 0666)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	defer file.Close()
+	// 	return writeBootstrapADSYAML(file, appPort)
+	// }()
+	// if err != nil {
+	// 	return err
+	// }
+	// if err := os.Mkdir("data", 0777); err != nil {
+	// 	return err
+	// }
+	// if err := ioutil.WriteFile("data/listener.json", []byte(listenerJSON), 0666); err != nil {
+	// 	return err
+	// }
+	// if err := ioutil.WriteFile("data/route.json", []byte(routeJSON), 0666); err != nil {
+	// 	return err
+	// }
 
-	if err := os.Mkdir("temp", 0775); err != nil {
-		return err
-	}
+	// if err := os.Mkdir("temp", 0775); err != nil {
+	// 	return err
+	// }
 
-	envoyLogLevel := os.Getenv("APP_LOG_LEVEL")
-	if envoyLogLevel == "" {
-		envoyLogLevel = "info"
-	}
+	// envoyLogLevel := os.Getenv("APP_LOG_LEVEL")
+	// if envoyLogLevel == "" {
+	// 	envoyLogLevel = "info"
+	// }
 
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	wg, ctx := errgroup.WithContext(context.Background())
 	wg.Go(func() error { return signalHandler(ctx, sigs) })
-	wg.Go(func() error { return ambex(ctx) })
+	// wg.Go(func() error { return ambex(ctx) })
 	wg.Go(func() error { return sidecar(ctx) })
-	wg.Go(func() error { return envoy(ctx, envoyLogLevel) })
+	// wg.Go(func() error { return envoy(ctx, envoyLogLevel) })
 	return wg.Wait()
 }
 
@@ -234,9 +234,9 @@ func sidecar(ctx context.Context) error {
 	empty := make([]InterceptInfo, 0)
 	intercepts := empty
 
-	appName := os.Getenv("APPNAME")
+	appName := os.Getenv("AGENT_SERVICE")
 	if appName == "" {
-		log.Print("ERROR: APPNAME env var not configured.")
+		log.Print("ERROR: AGENT_SERVICE env var not configured.")
 		log.Print("Running without intercept capabilities.")
 		err := processIntercepts(intercepts)
 		if err != nil {
@@ -255,10 +255,10 @@ func sidecar(ctx context.Context) error {
 	defer c.Stop()
 
 	for {
-		err := processIntercepts(intercepts)
-		if err != nil {
-			return err
-		}
+		// err := processIntercepts(intercepts)
+		// if err != nil {
+		// 	return err
+		// }
 		select {
 		case <-ctx.Done():
 			return nil
