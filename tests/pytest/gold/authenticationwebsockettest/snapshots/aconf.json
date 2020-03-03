@@ -1,0 +1,400 @@
+{
+    "_errors": {},
+    "_notices": {
+        "authenticationwebsockettest.default.2": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ]
+    },
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "ambassador-edge-stack.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": [
+                "_automatic_"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "location": "ambassador-edge-stack.default.1",
+            "metadata_labels": {
+                "ambassador_crd": "ambassador-edge-stack.default",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "ambassador-edge-stack",
+            "namespace": "default",
+            "precedence": 1000000,
+            "prefix": "/.ambassador/",
+            "rewrite": "",
+            "rkey": "ambassador-edge-stack.default.1",
+            "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: ambassador-edge-stack.default\n  ambassador_diag_class: private\n  product: aes\nname: ambassador-edge-stack\nnamespace: default\nprecedence: 1000000\nprefix: /.ambassador/\nrewrite: ''\nservice: 127.0.0.1:8500\n",
+            "service": "127.0.0.1:8500"
+        },
+        "authenticationwebsockettest.default.1": {
+            "_referenced_by": {},
+            "allow_request_body": true,
+            "allowed_request_headers": [
+                "Requested-Status"
+            ],
+            "ambassador_id": "authenticationwebsockettest",
+            "apiVersion": "getambassador.io/v1",
+            "auth_service": "authenticationwebsockettest-http-auth",
+            "kind": "AuthService",
+            "location": "authenticationwebsockettest.default.1",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "authenticationwebsockettest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "authenticationwebsockettest-http-auth",
+            "namespace": "default",
+            "path_prefix": "/extauth",
+            "rkey": "authenticationwebsockettest.default.1",
+            "serialization": "allow_request_body: true\nallowed_request_headers:\n- Requested-Status\nambassador_id: authenticationwebsockettest\napiVersion: ambassador/v1\nauth_service: authenticationwebsockettest-http-auth\nkind: AuthService\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationwebsockettest\n  scope: AmbassadorTest\nname: authenticationwebsockettest-http-auth\nnamespace: default\npath_prefix: /extauth\ntimeout_ms: 10000\n",
+            "timeout_ms": 10000
+        },
+        "authenticationwebsockettest.default.2": {
+            "_referenced_by": {},
+            "ambassador_id": "authenticationwebsockettest",
+            "apiVersion": "getambassador.io/v0",
+            "host_rewrite": "echo.websocket.org",
+            "kind": "Mapping",
+            "location": "authenticationwebsockettest.default.2",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "authenticationwebsockettest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "AuthenticationWebsocketTest",
+            "namespace": "default",
+            "prefix": "/AuthenticationWebsocketTest/",
+            "rkey": "authenticationwebsockettest.default.2",
+            "serialization": "ambassador_id: authenticationwebsockettest\napiVersion: ambassador/v0\nhost_rewrite: echo.websocket.org\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationwebsockettest\n  scope: AmbassadorTest\nname: AuthenticationWebsocketTest\nnamespace: default\nprefix: /AuthenticationWebsocketTest/\nservice: http://echo.websocket.org\nuse_websocket: true\n",
+            "service": "http://echo.websocket.org",
+            "use_websocket": true
+        },
+        "cleartext-host-authenticationwebsockettest.default.1": {
+            "_referenced_by": {},
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "ambassador_id": [
+                "authenticationwebsockettest"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "hostname": "*",
+            "kind": "Host",
+            "location": "cleartext-host-authenticationwebsockettest.default.1",
+            "metadata_labels": {
+                "ambassador_crd": "cleartext-host-authenticationwebsockettest.default",
+                "kat-ambassador-id": "authenticationwebsockettest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cleartext-host-authenticationwebsockettest",
+            "namespace": "default",
+            "requestPolicy": {
+                "insecure": {
+                    "action": "Route"
+                }
+            },
+            "rkey": "cleartext-host-authenticationwebsockettest.default.1",
+            "selector": {
+                "matchLabels": {
+                    "hostname": "authenticationwebsockettest"
+                }
+            },
+            "serialization": "acmeProvider:\n  authority: none\nambassador_id:\n- authenticationwebsockettest\napiVersion: getambassador.io/v2\ngeneration: 1\nhostname: '*'\nkind: Host\nmetadata_labels:\n  ambassador_crd: cleartext-host-authenticationwebsockettest.default\n  kat-ambassador-id: authenticationwebsockettest\n  scope: AmbassadorTest\nname: cleartext-host-authenticationwebsockettest\nnamespace: default\nrequestPolicy:\n  insecure:\n    action: Route\nselector:\n  matchLabels:\n    hostname: authenticationwebsockettest\n"
+        },
+        "edgestack-direct-mapping.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": [
+                "_automatic_"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "location": "edgestack-direct-mapping.default.1",
+            "metadata_labels": {
+                "ambassador_crd": "edgestack-direct-mapping.default",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "edgestack-direct-mapping",
+            "namespace": "default",
+            "precedence": 1000000,
+            "prefix": "/edge_stack/",
+            "rewrite": "/edge_stack_ui/edge_stack/",
+            "rkey": "edgestack-direct-mapping.default.1",
+            "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgestack-direct-mapping.default\n  ambassador_diag_class: private\n  product: aes\nname: edgestack-direct-mapping\nnamespace: default\nprecedence: 1000000\nprefix: /edge_stack/\nrewrite: /edge_stack_ui/edge_stack/\nservice: 127.0.0.1:8500\ntimeout_ms: 60000\n",
+            "service": "127.0.0.1:8500",
+            "timeout_ms": 60000
+        },
+        "edgestack-fallback-mapping.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": [
+                "_automatic_"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "location": "edgestack-fallback-mapping.default.1",
+            "metadata_labels": {
+                "ambassador_crd": "edgestack-fallback-mapping.default",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "edgestack-fallback-mapping",
+            "namespace": "default",
+            "precedence": -1000000,
+            "prefix": "/",
+            "rewrite": "/edge_stack_ui/",
+            "rkey": "edgestack-fallback-mapping.default.1",
+            "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgestack-fallback-mapping.default\n  ambassador_diag_class: private\n  product: aes\nname: edgestack-fallback-mapping\nnamespace: default\nprecedence: -1000000\nprefix: /\nrewrite: /edge_stack_ui/\nservice: 127.0.0.1:8500\ntimeout_ms: 60000\n",
+            "service": "127.0.0.1:8500",
+            "timeout_ms": 60000
+        },
+        "k8s-authenticationwebsockettest-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "authenticationwebsockettest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-authenticationwebsockettest-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "authenticationwebsockettest",
+                "scope": "AmbassadorTest",
+                "service": "authenticationwebsockettest-admin"
+            },
+            "name": "authenticationwebsockettest-admin",
+            "namespace": "default",
+            "rkey": "k8s-authenticationwebsockettest-admin-default",
+            "serialization": "ambassador_id: authenticationwebsockettest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: authenticationwebsockettest\n  scope: AmbassadorTest\n  service: authenticationwebsockettest-admin\nname: authenticationwebsockettest-admin\nnamespace: default\n"
+        },
+        "k8s-authenticationwebsockettest-default": {
+            "_referenced_by": {},
+            "ambassador_id": "authenticationwebsockettest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-authenticationwebsockettest-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "authenticationwebsockettest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "authenticationwebsockettest",
+            "namespace": "default",
+            "rkey": "k8s-authenticationwebsockettest-default",
+            "serialization": "ambassador_id: authenticationwebsockettest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationwebsockettest\n  scope: AmbassadorTest\nname: authenticationwebsockettest\nnamespace: default\n"
+        },
+        "k8s-authenticationwebsockettest-http-auth-default": {
+            "_referenced_by": {},
+            "ambassador_id": "authenticationwebsockettest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-authenticationwebsockettest-http-auth-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "authenticationwebsockettest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "authenticationwebsockettest-http-auth",
+            "namespace": "default",
+            "rkey": "k8s-authenticationwebsockettest-http-auth-default",
+            "serialization": "ambassador_id: authenticationwebsockettest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: authenticationwebsockettest\n  scope: AmbassadorTest\nname: authenticationwebsockettest-http-auth\nnamespace: default\n"
+        }
+    },
+    "auth_configs": {
+        "authenticationwebsockettest-http-auth": {
+            "allow_request_body": true,
+            "allowed_request_headers": [
+                "Requested-Status"
+            ],
+            "ambassador_id": "authenticationwebsockettest",
+            "apiVersion": "getambassador.io/v1",
+            "auth_service": "authenticationwebsockettest-http-auth",
+            "kind": "AuthService",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "authenticationwebsockettest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "authenticationwebsockettest-http-auth",
+            "namespace": "default",
+            "path_prefix": "/extauth",
+            "timeout_ms": 10000
+        }
+    },
+    "hosts": {
+        "cleartext-host-authenticationwebsockettest": {
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "ambassador_id": [
+                "authenticationwebsockettest"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "hostname": "*",
+            "kind": "Host",
+            "metadata_labels": {
+                "ambassador_crd": "cleartext-host-authenticationwebsockettest.default",
+                "kat-ambassador-id": "authenticationwebsockettest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cleartext-host-authenticationwebsockettest",
+            "namespace": "default",
+            "requestPolicy": {
+                "insecure": {
+                    "action": "Route"
+                }
+            },
+            "selector": {
+                "matchLabels": {
+                    "hostname": "authenticationwebsockettest"
+                }
+            }
+        }
+    },
+    "mappings": {
+        "AuthenticationWebsocketTest": {
+            "ambassador_id": "authenticationwebsockettest",
+            "apiVersion": "getambassador.io/v0",
+            "host_rewrite": "echo.websocket.org",
+            "kind": "Mapping",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "authenticationwebsockettest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "AuthenticationWebsocketTest",
+            "namespace": "default",
+            "prefix": "/AuthenticationWebsocketTest/",
+            "service": "http://echo.websocket.org",
+            "use_websocket": true
+        },
+        "ambassador-edge-stack": {
+            "ambassador_id": [
+                "_automatic_"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "metadata_labels": {
+                "ambassador_crd": "ambassador-edge-stack.default",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "ambassador-edge-stack",
+            "namespace": "default",
+            "precedence": 1000000,
+            "prefix": "/.ambassador/",
+            "rewrite": "",
+            "service": "127.0.0.1:8500"
+        },
+        "edgestack-direct-mapping": {
+            "ambassador_id": [
+                "_automatic_"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "metadata_labels": {
+                "ambassador_crd": "edgestack-direct-mapping.default",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "edgestack-direct-mapping",
+            "namespace": "default",
+            "precedence": 1000000,
+            "prefix": "/edge_stack/",
+            "rewrite": "/edge_stack_ui/edge_stack/",
+            "service": "127.0.0.1:8500",
+            "timeout_ms": 60000
+        },
+        "edgestack-fallback-mapping": {
+            "ambassador_id": [
+                "_automatic_"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "metadata_labels": {
+                "ambassador_crd": "edgestack-fallback-mapping.default",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "edgestack-fallback-mapping",
+            "namespace": "default",
+            "precedence": -1000000,
+            "prefix": "/",
+            "rewrite": "/edge_stack_ui/",
+            "service": "127.0.0.1:8500",
+            "timeout_ms": 60000
+        }
+    },
+    "service": {
+        "k8s-authenticationwebsockettest-admin-default": {
+            "ambassador_id": "authenticationwebsockettest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "authenticationwebsockettest",
+                "scope": "AmbassadorTest",
+                "service": "authenticationwebsockettest-admin"
+            },
+            "name": "authenticationwebsockettest-admin",
+            "namespace": "default"
+        },
+        "k8s-authenticationwebsockettest-default": {
+            "ambassador_id": "authenticationwebsockettest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "authenticationwebsockettest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "authenticationwebsockettest",
+            "namespace": "default"
+        },
+        "k8s-authenticationwebsockettest-http-auth-default": {
+            "ambassador_id": "authenticationwebsockettest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "authenticationwebsockettest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "authenticationwebsockettest-http-auth",
+            "namespace": "default"
+        }
+    }
+}
