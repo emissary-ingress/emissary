@@ -10,10 +10,13 @@ import (
 	"strings"
 	"time"
 
+	k8sTypesCoreV1 "k8s.io/api/core/v1"
+
 	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/datawire/ambassador/pkg/k8s"
 	"github.com/datawire/apro/cmd/amb-sidecar/group"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
+	"github.com/datawire/apro/lib/mapstructure"
 	lyftserver "github.com/lyft/ratelimit/src/server"
 )
 
@@ -117,14 +120,14 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 type kale struct {
 	cfg      types.Config
 	Projects map[string]Project
-	Pods     map[string]map[string]Pod
+	Pods     map[string]map[string]*k8sTypesCoreV1.Pod
 	done     map[string]bool
 }
 
 func NewKale() *kale {
 	return &kale{
 		Projects: make(map[string]Project),
-		Pods:     make(map[string]map[string]Pod),
+		Pods:     make(map[string]map[string]*k8sTypesCoreV1.Pod),
 		done:     make(map[string]bool),
 	}
 }
@@ -220,7 +223,7 @@ func (k *kale) projectsJSON() string {
 		proj := k.Projects[key]
 		pods, ok := k.Pods[key]
 		if !ok {
-			pods = make(map[string]Pod)
+			pods = make(map[string]*k8sTypesCoreV1.Pod)
 		}
 
 		m := make(map[string]interface{})
@@ -357,29 +360,26 @@ func (k *kale) reconcilePods(w *k8s.Watcher) {
 			continue
 		}
 		log.Println("POD", rsrc.QName(), phase)
-		pod := Pod{}
-		err := rsrc.Decode(&pod)
+		var pod *k8sTypesCoreV1.Pod
+		err := mapstructure.Convert(rsrc, &pod)
 		if err != nil {
 			log.Printf(err.Error())
 			continue
 		}
 
-		projName := pod.Metadata.Labels["project"]
-		namespace := pod.Metadata.Namespace
+		projName := pod.GetLabels()["project"]
+		namespace := pod.GetNamespace()
 
 		projKey := fmt.Sprintf("%s/%s", namespace, projName)
 		projPods, ok := k.Pods[projKey]
 		if !ok {
-			projPods = make(map[string]Pod)
+			projPods = make(map[string]*k8sTypesCoreV1.Pod)
 			k.Pods[projKey] = projPods
 		}
-		projPods[pod.Metadata.Name] = pod
+		projPods[pod.GetName()] = pod
 
 		// Check when the pod was created. If it's old enough, we don't bother with it.
-		created, err := time.Parse(time.RFC3339, pod.Metadata.CreationTimestamp)
-		if err != nil {
-			log.Printf("error parsing time: %v", err)
-		} else if created.Before(cutoff) {
+		if pod.GetCreationTimestamp().Time.Before(cutoff) {
 			k.done[key] = true
 			continue
 		}
@@ -390,11 +390,11 @@ func (k *kale) reconcilePods(w *k8s.Watcher) {
 			continue
 		}
 
-		statusesUrl := pod.Metadata.Annotations["statusesUrl"]
-		logUrl := proj.LogUrl(pod.Metadata.Labels["build"])
-		switch phase {
-		case "Failed":
-			log.Printf(podLogs(pod.Metadata.Name))
+		statusesUrl := pod.GetAnnotations()["statusesUrl"]
+		logUrl := proj.LogUrl(pod.GetLabels()["build"])
+		switch pod.Status.Phase {
+		case k8sTypesCoreV1.PodFailed:
+			log.Printf(podLogs(pod.GetName()))
 			postStatus(statusesUrl, GitHubStatus{
 				State:       "failure",
 				TargetUrl:   logUrl,
@@ -402,8 +402,8 @@ func (k *kale) reconcilePods(w *k8s.Watcher) {
 				Context:     "aes",
 			},
 				proj.Spec.GithubToken)
-		case "Succeeded":
-			run := evalTemplate(RUN, RunEnv{Project: proj, Commit: pod.Metadata.Labels["commit"]})
+		case k8sTypesCoreV1.PodSucceeded:
+			run := evalTemplate(RUN, RunEnv{Project: proj, Commit: pod.GetLabels()["commit"]})
 			out, err := apply(run)
 			if err != nil {
 				msg := fmt.Sprintf("ERROR: %s\n%s", err.Error(), out)
@@ -434,21 +434,6 @@ func (k *kale) reconcilePods(w *k8s.Watcher) {
 		}
 		k.done[key] = true
 	}
-}
-
-type Pod struct {
-	ApiVersion string `json:"apiVersion"`
-	Kind       string `json:"kind"`
-	Metadata   struct {
-		Name              string            `json:"name"`
-		Namespace         string            `json:"namespace"`
-		CreationTimestamp string            `json:"creationTimestamp"`
-		Annotations       map[string]string `json:"annotations"`
-		Labels            map[string]string `json:"labels"`
-	} `json:"metadata"`
-	Status struct {
-		Phase string `json:"phase"`
-	} `json:"status"`
 }
 
 type RunEnv struct {
