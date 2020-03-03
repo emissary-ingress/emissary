@@ -52,7 +52,7 @@ if os.path.exists("/buildroot/apro.version"):
     EDGE_STACK = True
     GOLD_ROOT = "/buildroot/apro/tests/pytest/gold"
     MANIFEST_ROOT = "/buildroot/apro/tests/pytest/manifests"
-    RUN_MODE = "envoy"
+    # RUN_MODE = "envoy"
 else:
     print("RUNNING IN OSS")
 

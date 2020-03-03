@@ -1,4 +1,4 @@
-package main
+package kubestatus
 
 import (
 	"encoding/json"
@@ -11,7 +11,7 @@ import (
 	"github.com/datawire/ambassador/pkg/k8s"
 )
 
-func main() {
+func Main() {
 	var st = &cobra.Command{
 		Use:           "kubestatus <kind>",
 		Short:         "get and set status of kubernetes resources",
@@ -84,5 +84,4 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
-
 }
