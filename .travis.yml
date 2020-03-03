@@ -29,15 +29,16 @@ services:
 
 env:
   global:
-    - DEV_REGISTRY=quay.io/datawire-dev
-    - RELEASE_REGISTRY=quay.io/datawire
     # - DBUILD_ARGS="--cache-from ${DEV_REGISTRY}/builder:latest"
 
     # Set from the repository settings:
-    #- DOCKER_BUILD_USERNAME=[secure] (optional)
-    #- DOCKER_BUILD_PASSWORD=[secure] (optional)
-    #- DOCKER_RELEASE_USERNAME=[secure]
-    #- DOCKER_RELEASE_PASSWORD=[secure]
+    # - DOCKER_DEV_REGISTRY=quay.io/datawire-dev (or something different if not datawire/ambassador.git)
+    # - DOCKER_BUILD_USERNAME=datawire-dev+ci (or something different if not datawire/ambassador.git)
+    # - DOCKER_BUILD_PASSWORD=[secure]
+    #
+    # - RELEASE_REGISTRY=quay.io/datawire (or something different if not datawire/ambassador.git)
+    # - DOCKER_RELEASE_USERNAME=datawire+ambassador_release (or something different if not datawire/ambassador.git) (optional)
+    # - DOCKER_RELEASE_PASSWORD=[secure] (optional)
 
     # Encrypted here:
     # - PACKAGECLOUD_TOKEN # XXX: remove me

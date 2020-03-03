@@ -66,9 +66,7 @@ case "$COMMIT_TYPE" in
         : # We just re-tag the RC image as GA; nothing to build
         ;;
     *)
-        # CI might have set DOCKER_BUILD_USERNAME and DOCKER_BUILD_PASSWORD
-        # (in case BASE_DOCKER_REPO is private)
-        docker login -u="${DOCKER_BUILD_USERNAME:-datawire-dev+ci}" --password-stdin "${DEV_REGISTRY}" <<<"${DOCKER_BUILD_PASSWORD:-CEAWVNREJHTOAHSOJFJHJZQYI7H9MELSU1RG1CD6XIFAURD5D7Y1N8F8MU0JO912}"
+        docker login -u="$DOCKER_BUILD_USERNAME" --password-stdin "${DEV_REGISTRY}" <<<"$DOCKER_BUILD_PASSWORD"
 
         make test
         ;;
