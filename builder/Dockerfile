@@ -105,38 +105,45 @@ FROM ${artifacts} as artifacts
 
 FROM ${base} as ambassador
 
+# External stuff that should change infrequently
 RUN apk --no-cache add bash curl python3 libcap
-
 RUN ln -s /usr/bin/python3 /usr/bin/python
-
-COPY --from=envoy /usr/local/bin/envoy-static-stripped /usr/local/bin/envoy
-COPY --from=artifacts /usr/lib/python3.7/site-packages /usr/lib/python3.7/site-packages
+COPY --from=artifacts /usr/bin/kubectl /usr/bin/kubectl
 COPY --from=artifacts /usr/lib/libyaml* /usr/lib/
 
+# External Python packages we use
+COPY --from=artifacts /usr/lib/python3.7/site-packages /usr/lib/python3.7/site-packages
+
+# Our envoy. The capabilities here grant the wrapper the ability to use the
+# cap_net_bind_service cap and for Envoy to inherit it.
+COPY --from=envoy /usr/local/bin/envoy-static-stripped /usr/local/bin/envoy
+RUN setcap cap_net_bind_service=ei /usr/local/bin/envoy
+
+# Our Go binaries. See envoy section for setcap info.
 COPY --from=artifacts /opt/ambassador /opt/ambassador
 RUN ln -s /opt/ambassador/bin/* /usr/local/bin/
+RUN setcap cap_net_bind_service=p /usr/local/bin/wrapper
 
-COPY --from=artifacts /usr/bin/kubectl /usr/bin/kubectl
+# Our Python code
 COPY --from=artifacts /buildroot/ambassador/python /buildroot/ambassador/python
-COPY --from=artifacts /buildroot/bin/capabilities_wrapper /usr/local/bin/wrapper
 RUN cd /buildroot/ambassador/python && python setup.py install
 
+# Configuration, Docker demo stuff, the AES WebUI. The /ambassador bit changes
+# in post-install so it's always stale. But it's pretty small, so it's not too
+# bad to re-push every time.
 COPY --from=artifacts /ambassador /ambassador
-
 COPY --from=artifacts /buildroot/ambassador/demo/config /ambassador/ambassador-demo-config
 COPY --from=artifacts /buildroot/ambassador/demo/services /ambassador/demo-services
 
-WORKDIR /ambassador
-
-# XXX: is this still necessary or will the above copy inherit the
-#       correct permissions?
 # Fix permissions to allow correctly running as a non root user
+# XXX: We could combine everything into one tree in the builder, fix permissions
+# there, and then a use single COPY to get everything and avoid duplicating the
+# (small amount of) data in a new layer for this RUN.
 RUN chgrp -R 0 /ambassador && \
     chmod -R u+x /ambassador && \
     chmod -R g=u /ambassador /etc/passwd
-# The capabilities here grant the wrapper the ability to use the cap_net_bind_service cap
-# and for Envoy to inherit it.
-RUN setcap cap_net_bind_service=p /usr/local/bin/wrapper; setcap cap_net_bind_service=ei /usr/local/bin/envoy
+
+WORKDIR /ambassador
 
 ENTRYPOINT [ "bash", "/buildroot/ambassador/python/entrypoint.sh" ]
 

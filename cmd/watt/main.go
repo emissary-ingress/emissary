@@ -1,4 +1,4 @@
-package main
+package watt
 
 import (
 	"context"
@@ -161,7 +161,7 @@ func _runWatt(cmd *cobra.Command, args []string) int {
 	return 0
 }
 
-func main() {
+func Main() {
 	if err := rootCmd.Execute(); err != nil {
 		log.Println(err)
 		os.Exit(1)

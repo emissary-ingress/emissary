@@ -22,6 +22,7 @@ BUILDER_NAME ?= $(NAME)
 
 BUILDER = BUILDER_NAME=$(BUILDER_NAME) $(abspath $(BUILDER_HOME)/builder.sh)
 DBUILD = $(abspath $(BUILDER_HOME)/dbuild.sh)
+COPY_GOLD = $(abspath $(BUILDER_HOME)/copy-gold.sh)
 
 all: help
 .PHONY: all
@@ -83,13 +84,13 @@ compile:
 	@$(BUILDER) compile
 .PHONY: compile
 
-SNAPSHOT=snapshot-$(NAME)
+SNAPSHOT=snapshot-$(BUILDER_NAME)
 
 commit:
 	@$(BUILDER) commit $(SNAPSHOT)
 .PHONY: commit
 
-REPO=$(NAME)
+REPO=$(BUILDER_NAME)
 
 images:
 	@$(MAKE) --no-print-directory compile
@@ -120,6 +121,8 @@ test-ready: push preflight-cluster
 PYTEST_ARGS ?=
 export PYTEST_ARGS
 
+PYTEST_GOLD_DIR ?= $(abspath $(CURDIR)/python/tests/gold)
+
 pytest: test-ready
 	$(MAKE) pytest-only
 .PHONY: pytest
@@ -143,6 +146,8 @@ pytest-only: sync preflight-cluster
 		-it $(shell $(BUILDER)) /buildroot/builder.sh pytest-internal
 .PHONY: pytest-only
 
+pytest-gold:
+	sh $(COPY_GOLD) $(PYTEST_GOLD_DIR)
 
 GOTEST_PKGS ?= ./...
 export GOTEST_PKGS
@@ -277,6 +282,7 @@ CURRENT_CONTEXT=$(shell kubectl --kubeconfig=$(DEV_KUBECONFIG) config current-co
 CURRENT_NAMESPACE=$(shell kubectl config view -o=jsonpath="{.contexts[?(@.name==\"$(CURRENT_CONTEXT)\")].context.namespace}")
 
 env:
+	@printf "$(BLD)BUILDER_NAME$(END)=$(BLU)\"$(BUILDER_NAME)\"$(END)\n"
 	@printf "$(BLD)DEV_KUBECONFIG$(END)=$(BLU)\"$(DEV_KUBECONFIG)\"$(END)"
 	@printf " # Context: $(BLU)$(CURRENT_CONTEXT)$(END), Namespace: $(BLU)$(CURRENT_NAMESPACE)$(END)\n"
 	@printf "$(BLD)DEV_REGISTRY$(END)=$(BLU)\"$(DEV_REGISTRY)\"$(END)\n"
@@ -287,6 +293,7 @@ env:
 .PHONY: env
 
 export:
+	@printf "export BUILDER_NAME=\"$(BUILDER_NAME)\"\n"
 	@printf "export DEV_KUBECONFIG=\"$(DEV_KUBECONFIG)\"\n"
 	@printf "export DEV_REGISTRY=\"$(DEV_REGISTRY)\"\n"
 	@printf "export RELEASE_REGISTRY=\"$(RELEASE_REGISTRY)\"\n"
@@ -296,7 +303,11 @@ export:
 .PHONY: export
 
 help:
-	@printf "$(subst $(NL),\n,$(HELP))\n"
+	@printf "$(subst $(NL),\n,$(HELP_INTRO))\n"
+.PHONY: help
+
+targets:
+	@printf "$(subst $(NL),\n,$(HELP_TARGETS))\n"
 .PHONY: help
 
 # NOTE: this is not a typo, this is actually how you spell newline in Make
@@ -312,9 +323,11 @@ endef
 
 COMMA = ,
 
-define HELP
+define HELP_INTRO
 $(_help.intro)
+endef
 
+define HELP_TARGETS
 $(BLD)Targets:$(END)
 
 $(_help.targets)
@@ -330,7 +343,7 @@ a Docker container. The $(BLD)$(REPO)$(END), $(BLD)kat-server$(END), and $(BLD)k
 created from this container after the build stage is finished.
 
 The build works by maintaining a running build container in the background.
-It gets source code into that container via $(BLD)rsync$(END). The $(BLD)/root$(END) directory in
+It gets source code into that container via $(BLD)rsync$(END). The $(BLD)/home/dw$(END) directory in
 this container is a Docker volume, which allows files (e.g. the Go build
 cache and $(BLD)pip$(END) downloads) to be cached across builds.
 
@@ -338,12 +351,19 @@ This arrangement also permits building multiple codebases. This is useful
 for producing builds with extended functionality. Each external codebase
 is synced into the container at the $(BLD)/buildroot/<name>$(END) path.
 
+You can control the name of the container and the images it builds by
+setting $(BLU)\$$BUILDER_NAME$(END), which defaults to $(BLU)$(NAME)$(END). $(BLD)Note well$(END) that if you
+want to make multiple clones of this repo and build in more than one of them
+at the same time, you $(BLD)must$(END) set $(BLU)\$$BUILDER_NAME$(END) so that each clone has its own
+builder! If you do not do this, your builds will collide with confusing 
+results.
+
 The build system doesn't try to magically handle all dependencies. In
 general, if you change something that is not pure source code, you will
-likely need to do a $(BLD)make clean$(END) in order to see the effect. For example,
+likely need to do a $(BLD)$(MAKE) clean$(END) in order to see the effect. For example,
 Python code only gets set up once, so if you change $(BLD)requirements.txt$(END) or
 $(BLD)setup.py$(END), then you will need to do a clean build to see the effects.
-Assuming you didn't $(BLD)make clobber$(END), this shouldn't take long due to the
+Assuming you didn't $(BLD)$(MAKE) clobber$(END), this shouldn't take long due to the
 cache in the Docker volume.
 
 All targets that deploy to a cluster by way of $(BLD)\$$DEV_REGISTRY$(END) can be made to
@@ -351,69 +371,90 @@ have the cluster use an imagePullSecret to pull from $(BLD)\$$DEV_REGISTRY$(END)
 setting $(BLD)\$$DEV_USE_IMAGEPULLSECRET$(END) to a non-empty value.  The imagePullSecret
 will be constructed from $(BLD)\$$DEV_REGISTRY$(END), $(BLD)\$$DOCKER_BUILD_USERNAME$(END), and
 $(BLD)\$$DOCKER_BUILD_PASSWORD$(END).
+
+Use $(BLD)$(MAKE) $(BLU)targets$(END) for help about available $(BLD)make$(END) targets.
 endef
 
 define _help.targets
-  $(BLD)make $(BLU)help$(END)      -- displays this message.
+  $(BLD)$(MAKE) $(BLU)help$(END)         -- displays the main help message.
 
-  $(BLD)make $(BLU)env$(END)       -- display the value of important env vars.
+  $(BLD)$(MAKE) $(BLU)targets$(END)      -- displays this message.
 
-  $(BLD)make $(BLU)preflight$(END) -- checks dependencies of this makefile.
+  $(BLD)$(MAKE) $(BLU)env$(END)          -- display the value of important env vars.
 
-  $(BLD)make $(BLU)sync$(END)      -- syncs source code into the build container.
+  $(BLD)$(MAKE) $(BLU)export$(END)       -- display important env vars in shell syntax, for use with $(BLD)eval$(END).
 
-  $(BLD)make $(BLU)version$(END)   -- display source code version.
+  $(BLD)$(MAKE) $(BLU)preflight$(END)    -- checks dependencies of this makefile.
 
-  $(BLD)make $(BLU)compile$(END)   -- syncs and compiles the source code in the build container.
+  $(BLD)$(MAKE) $(BLU)sync$(END)         -- syncs source code into the build container.
 
-  $(BLD)make $(BLU)images$(END)    -- creates images from the build container.
+  $(BLD)$(MAKE) $(BLU)version$(END)      -- display source code version.
 
-  $(BLD)make $(BLU)push$(END)      -- pushes images to $(BLD)\$$DEV_REGISTRY$(END). ($(DEV_REGISTRY))
+  $(BLD)$(MAKE) $(BLU)compile$(END)      -- syncs and compiles the source code in the build container.
 
-  $(BLD)make $(BLU)test$(END)      -- runs Go and Python tests inside the build container.
+  $(BLD)$(MAKE) $(BLU)images$(END)       -- creates images from the build container.
+
+  $(BLD)$(MAKE) $(BLU)push$(END)         -- pushes images to $(BLD)\$$DEV_REGISTRY$(END). ($(DEV_REGISTRY))
+
+  $(BLD)$(MAKE) $(BLU)test$(END)         -- runs Go and Python tests inside the build container.
 
     The tests require a Kubernetes cluster and a Docker registry in order to
-    function. These must be supplied via the $(BLD)make$(END)/$(BLD)env$(END) variables $(BLD)\$$DEV_KUBECONFIG$(END)
+    function. These must be supplied via the $(BLD)$(MAKE)$(END)/$(BLD)env$(END) variables $(BLD)\$$DEV_KUBECONFIG$(END)
     and $(BLD)\$$DEV_REGISTRY$(END).
 
-  $(BLD)make $(BLU)gotest$(END)    -- runs just the Go tests inside the build container.
+  $(BLD)$(MAKE) $(BLU)gotest$(END)       -- runs just the Go tests inside the build container.
 
     Use $(BLD)\$$GOTEST_PKGS$(END) to control which packages are passed to $(BLD)gotest$(END). ($(GOTEST_PKGS))
     Use $(BLD)\$$GOTEST_ARGS$(END) to supply additional non-package arguments. ($(GOTEST_ARGS))
-    Example: $(BLD)make gotest GOTEST_PKGS=./cmd/edgectl GOTEST_ARGS=-v$(END)  # run edgectl tests verbosely
+    Example: $(BLD)$(MAKE) gotest GOTEST_PKGS=./cmd/edgectl GOTEST_ARGS=-v$(END)  # run edgectl tests verbosely
 
-  $(BLD)make $(BLU)pytest$(END)    -- runs just the Python tests inside the build container.
+  $(BLD)$(MAKE) $(BLU)pytest$(END)       -- runs just the Python tests inside the build container.
+
+    Use $(BLD)\$$KAT_RUN_MODE=envoy$(END) to force the Python tests to ignore local caches, and run everything
+    in the cluster.
+
+    Use $(BLD)\$$KAT_RUN_MODE=local$(END) to force the Python tests to ignore the cluster, and only run tests
+    with a local cache.
 
     Use $(BLD)\$$PYTEST_ARGS$(END) to pass args to $(BLD)pytest$(END). ($(PYTEST_ARGS))
-    Example: $(BLD)make pytest PYTEST_ARGS=\"-k schemas\"$(END)  # run only tests with \"schemas\" in the name
 
-  $(BLD)make $(BLU)shell$(END)     -- starts a shell in the build container.
+    Example: $(BLD)$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS=\"-k Lua\"$(END)  # run only the Lua test, with a real Envoy
 
-  $(BLD)make $(BLU)release/bits$(END) -- do the 'push some bits' part of a release
+  $(BLD)$(MAKE) $(BLU)pytest-gold$(END)  -- update the gold files for the pytest cache
+
+    $(BLD)$(MAKE) $(BLU)pytest$(END) uses a local cache to speed up tests. $(BLD)ONCE YOU HAVE SUCCESSFULLY
+    RUN TESTS WITH $(BLU)KAT_RUN_MODE=envoy$(END), you can use $(BLD)$(MAKE) $(BLU)pytest-gold$(END) to update the
+    caches for the passing tests.
+
+    $(BLD)DO NOT$(END) run $(BLD)$(MAKE) $(BLU)pytest-gold$(END) if you have failing tests.
+
+  $(BLD)$(MAKE) $(BLU)shell$(END)        -- starts a shell in the build container
+
+  $(BLD)$(MAKE) $(BLU)release/bits$(END) -- do the 'push some bits' part of a release
 
     The current commit must be tagged for this to work, and your tree must be clean.
     If the tag is of the form 'vX.Y.Z-(ea|rc).[0-9]*'.
 
-  $(BLD)make $(BLU)release/promote-oss/to-ea-latest$(END) -- promote an early-access '-ea.N' release to '-ea-latest'
+  $(BLD)$(MAKE) $(BLU)release/promote-oss/to-ea-latest$(END) -- promote an early-access '-ea.N' release to '-ea-latest'
 
     The current commit must be tagged for this to work, and your tree must be clean.
     Additionally, the tag must be of the form 'vX.Y.Z-ea.N'. You must also have previously
     built an EA for the same tag using $(BLD)release/bits$(END).
 
-  $(BLD)make $(BLU)release/promote-oss/to-rc-latest$(END) -- promote a release candidate '-rc.N' release to '-rc-latest'
+  $(BLD)$(MAKE) $(BLU)release/promote-oss/to-rc-latest$(END) -- promote a release candidate '-rc.N' release to '-rc-latest'
 
     The current commit must be tagged for this to work, and your tree must be clean.
     Additionally, the tag must be of the form 'vX.Y.Z-rc.N'. You must also have previously
     built an RC for the same tag using $(BLD)release/bits$(END).
 
-  $(BLD)make $(BLU)release/promote-oss/to-ga$(END) -- promote a release candidate to general availability
+  $(BLD)$(MAKE) $(BLU)release/promote-oss/to-ga$(END) -- promote a release candidate to general availability
 
     The current commit must be tagged for this to work, and your tree must be clean.
     Additionally, the tag must be of the form 'vX.Y.Z'. You must also have previously
     built and promoted the RC that will become GA, using $(BLD)release/bits$(END) and
     $(BLD)release/promote-oss/to-rc-latest$(END).
 
-  $(BLD)make $(BLU)clean$(END)     -- kills the build container.
+  $(BLD)$(MAKE) $(BLU)clean$(END)     -- kills the build container.
 
-  $(BLD)make $(BLU)clobber$(END)   -- kills the build container and the cache volume.
+  $(BLD)$(MAKE) $(BLU)clobber$(END)   -- kills the build container and the cache volume.
 endef
