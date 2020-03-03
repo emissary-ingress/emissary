@@ -255,14 +255,20 @@ func (k *kale) handlePush(r *http.Request, key string) httpResult {
 	if err != nil {
 		log.Printf("ERROR: %s\n%s", err.Error(), out)
 		postStatus(env.StatusUrl(),
-			Status{
-				"error", fmt.Sprintf("http://%s/edge_stack/", proj.Spec.Host), err.Error(), "aes",
+			GitHubStatus{
+				State:       "error",
+				TargetUrl:   fmt.Sprintf("http://%s/edge_stack/", proj.Spec.Host),
+				Description: err.Error(),
+				Context:     "aes",
 			},
 			proj.Spec.GithubToken)
 	} else {
 		postStatus(env.StatusUrl(),
-			Status{
-				"pending", proj.LogUrl(build), "build started", "aes",
+			GitHubStatus{
+				State:       "pending",
+				TargetUrl:   proj.LogUrl(build),
+				Description: "build started",
+				Context:     "aes",
 			},
 			proj.Spec.GithubToken)
 	}
@@ -389,8 +395,11 @@ func (k *kale) reconcilePods(w *k8s.Watcher) {
 		switch phase {
 		case "Failed":
 			log.Printf(podLogs(pod.Metadata.Name))
-			postStatus(statusesUrl, Status{
-				"failure", logUrl, phase, "aes",
+			postStatus(statusesUrl, GitHubStatus{
+				State:       "failure",
+				TargetUrl:   logUrl,
+				Description: phase,
+				Context:     "aes",
 			},
 				proj.Spec.GithubToken)
 		case "Succeeded":
@@ -404,15 +413,21 @@ func (k *kale) reconcilePods(w *k8s.Watcher) {
 				}
 				// todo: need a way to get log output to github
 				postStatus(statusesUrl,
-					Status{
-						"error", "http://asdf", msg, "aes",
+					GitHubStatus{
+						State:       "error",
+						TargetUrl:   "http://asdf",
+						Description: msg,
+						Context:     "aes",
 					},
 					proj.Spec.GithubToken)
 			} else {
 				// todo: fake url
 				postStatus(statusesUrl,
-					Status{
-						"success", "http://asdf", phase, "aes",
+					GitHubStatus{
+						State:       "success",
+						TargetUrl:   "http://asdf",
+						Description: phase,
+						Context:     "aes",
 					},
 					proj.Spec.GithubToken)
 			}

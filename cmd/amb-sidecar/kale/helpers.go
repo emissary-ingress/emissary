@@ -101,7 +101,7 @@ func postJSON(url string, payload interface{}, token string) (*http.Response, st
 }
 
 // Post a status to the github API
-func postStatus(url string, status Status, token string) {
+func postStatus(url string, status GitHubStatus, token string) {
 	resp, body := postJSON(url, status, token)
 
 	if resp.Status[0] != '2' {
@@ -111,7 +111,7 @@ func postStatus(url string, status Status, token string) {
 	}
 }
 
-type Status struct {
+type GitHubStatus struct {
 	State       string `json:"state"`
 	TargetUrl   string `json:"target_url"`
 	Description string `json:"description"`
