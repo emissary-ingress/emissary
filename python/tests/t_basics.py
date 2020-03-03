@@ -3,6 +3,7 @@ from typing import Tuple, Union
 from kat.harness import Query, EDGE_STACK
 
 from abstract_tests import AmbassadorTest, assert_default_errors, HTTP, Node, ServiceType
+from kat.utils import namespace_manifest
 
 
 class Empty(AmbassadorTest):
@@ -18,13 +19,7 @@ class Empty(AmbassadorTest):
         yield cls()
 
     def manifests(self) -> str:
-        return """
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: empty-namespace
-""" + super().manifests()
+        return namespace_manifest("empty-namespace") + super().manifests()
 
     def config(self) -> Union[str, Tuple[Node, str]]:
         yield from ()

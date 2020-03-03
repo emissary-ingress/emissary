@@ -2,6 +2,7 @@ from kat.harness import variants, Query
 
 from abstract_tests import AmbassadorTest, HTTP
 from abstract_tests import MappingTest, OptionTest, ServiceType
+from kat.utils import namespace_manifest
 
 # This is the place to add new MappingTests.
 
@@ -694,17 +695,9 @@ class SameMappingDifferentNamespaces(AmbassadorTest):
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return self.format('''
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: same-mapping-1
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: same-mapping-2
+        return namespace_manifest('same-mapping-1') + \
+            namespace_manifest('same-mapping-2') + \
+            self.format('''
 ---
 apiVersion: getambassador.io/v2
 kind: Mapping

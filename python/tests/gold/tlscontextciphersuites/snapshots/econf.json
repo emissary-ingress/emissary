@@ -262,8 +262,7 @@
                                     "tls_maximum_protocol_version": "TLSv1_2"
                                 }
                             }
-                        },
-                        "use_proxy_proto": false
+                        }
                     }
                 ],
                 "listener_filters": [

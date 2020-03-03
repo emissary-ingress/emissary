@@ -10,13 +10,13 @@ IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make update-base`.
   ENVOY_REPO ?= $(if $(IS_PRIVATE),git@github.com:datawire/envoy-private.git,git://github.com/datawire/envoy.git)
-  ENVOY_COMMIT ?= 3bc432257e20e07a49d6213c8f255bbeb4edd561
+  ENVOY_COMMIT ?= e24f8ed76240c049068160fa1ad3efdb324e00e4
   ENVOY_COMPILATION_MODE ?= opt
   # Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes.
   # You may reset BASE_ENVOY_RELVER when adjusting ENVOY_COMMIT.
-  BASE_ENVOY_RELVER ?= 1
+  BASE_ENVOY_RELVER ?= 2
 
-  ENVOY_DOCKER_REPO ?= quay.io/datawire/ambassador-base$(if $(IS_PRIVATE),-private)
+  ENVOY_DOCKER_REPO ?= quay.io/datawire$(if $(IS_PRIVATE),-private)/ambassador-base
   ENVOY_DOCKER_VERSION ?= $(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE)
   ENVOY_DOCKER_TAG ?= $(ENVOY_DOCKER_REPO):envoy-$(ENVOY_DOCKER_VERSION)
 # END LIST OF VARIABLES REQUIRING `make update-base`.
@@ -108,7 +108,7 @@ $(OSS_HOME)/docker/base-envoy/envoy-static: $(ENVOY_BASH.deps) FORCE
 	mkdir -p $(@D)
 	@PS4=; set -ex; { \
 	    if docker run --rm --entrypoint=true $(ENVOY_DOCKER_TAG); then \
-	        rsync -Pav --blocking-io -e 'docker run --rm -i' $$(docker image inspect $(ENVOY_DOCKER_TAG) --format='{{.Id}}' | sed 's/^sha256://'):/usr/local/bin/envoy $@; \
+	        rsync -Pav --blocking-io -e 'docker run --rm -i' $$(docker image inspect $(ENVOY_DOCKER_TAG) --format='{{.Id}}' | sed 's/^sha256://'):/usr/local/bin/envoy-static $@; \
 	    else \
 	        if [ -z '$(YES_I_AM_UPDATING_THE_BASE_IMAGES)' ]; then \
 	            { set +x; } &>/dev/null; \

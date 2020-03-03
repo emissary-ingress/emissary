@@ -4,6 +4,8 @@ import tempfile
 
 import yaml
 
+from kat.utils import namespace_manifest
+
 qotm_manifests = """
 ---
 apiVersion: v1
@@ -158,15 +160,7 @@ subjects:
 
 
 def create_namespace(namespace):
-    namespace_manifest = f"""
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: {namespace}
-"""
-
-    apply_kube_artifacts(namespace=namespace, artifacts=namespace_manifest)
+    apply_kube_artifacts(namespace=namespace, artifacts=namespace_manifest(namespace))
 
 
 def create_qotm_mapping(namespace):

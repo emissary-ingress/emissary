@@ -139,6 +139,10 @@ pytest-only: sync preflight-cluster
 		-e KAT_RUN_MODE \
 		-e KAT_VERBOSE \
 		-e PYTEST_ARGS \
+		-e DEV_USE_IMAGEPULLSECRET \
+		-e DEV_REGISTRY \
+		-e DOCKER_BUILD_USERNAME \
+		-e DOCKER_BUILD_PASSWORD \
 		-it $(shell $(BUILDER)) /buildroot/builder.sh pytest-internal
 .PHONY: pytest-only
 
@@ -157,6 +161,10 @@ gotest: test-ready
 		-e DTEST_KUBECONFIG=/buildroot/kubeconfig.yaml \
 		-e GOTEST_PKGS \
 		-e GOTEST_ARGS \
+		-e DEV_USE_IMAGEPULLSECRET \
+		-e DEV_REGISTRY \
+		-e DOCKER_BUILD_USERNAME \
+		-e DOCKER_BUILD_PASSWORD \
 		-it $(shell $(BUILDER)) /buildroot/builder.sh gotest-internal
 	docker exec \
 		-w /buildroot/ambassador \
@@ -357,6 +365,12 @@ Python code only gets set up once, so if you change $(BLD)requirements.txt$(END)
 $(BLD)setup.py$(END), then you will need to do a clean build to see the effects.
 Assuming you didn't $(BLD)$(MAKE) clobber$(END), this shouldn't take long due to the
 cache in the Docker volume.
+
+All targets that deploy to a cluster by way of $(BLD)\$$DEV_REGISTRY$(END) can be made to
+have the cluster use an imagePullSecret to pull from $(BLD)\$$DEV_REGISTRY$(END), by
+setting $(BLD)\$$DEV_USE_IMAGEPULLSECRET$(END) to a non-empty value.  The imagePullSecret
+will be constructed from $(BLD)\$$DEV_REGISTRY$(END), $(BLD)\$$DOCKER_BUILD_USERNAME$(END), and
+$(BLD)\$$DOCKER_BUILD_PASSWORD$(END).
 
 Use $(BLD)$(MAKE) $(BLU)targets$(END) for help about available $(BLD)make$(END) targets.
 endef

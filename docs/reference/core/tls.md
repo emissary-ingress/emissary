@@ -8,7 +8,48 @@ The Ambassador Edge Stack's robust TLS support exposes configuration options for
 - [Server Name Indication (SNI)](../../../user-guide/sni)
 - [TLS Origination](../../tls/origination)
 
-In addition, users of the Ambassador Edge Stack can take advantage of the [Host CRD](/reference/host-crd) to expose the Ambassador Edge Stack. 
+## `Host`
+
+The `Host` resource has been added to the Ambassador API Gateway and Ambassador Edge Stack in version 1.0.0.
+
+The `Host` resource simplifies TLS by directly connecting how Ambassador performs TLS termination and the domains it serves. With the Ambassador Edge Stack, the `Host` can issue and manage certificates automatically using the ACME protocol. 
+
+For both the Ambassador Edge Stack and API Gateway, the `Host` can read a certificate from a Kubernetes secret and use that certificate to terminate TLS on a domain.
+
+The following will configure Ambassador to grab a certificate from a secret named `host-secret` and use that secret for terminating TLS on the `host.example.com` domain:
+
+```yaml
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: example-host
+spec:
+  hostname: host.example.com
+  acmeProvider:
+    authority: none
+  tlsSecret:
+    name: host-secret
+```
+
+### `Host`and `TLSContext`
+
+The `Host` will configure basic TLS termination settings in Ambassador. If you need more advanced TLS options on a domain, such as setting the minimum TLS version, you can create a [`TLSContext`](#tlscontext) with the name `{{NAME_OF_HOST}}-context` to configure more advanced TLS options.
+
+For example, to enforce a minimum TLS version on the `Host` above, create a `TLSContext` named `example-host-context` with the following configuration:
+
+```yaml
+---
+apiVersion: getambassador.io/v2
+kind: TLSContext
+metadata:
+  name: example-host-context
+spec:
+  hosts:
+  - host.example.com
+  secret: host-secret
+  min_tls_version: v1.2
+```
 
 ## TLSContext
 
