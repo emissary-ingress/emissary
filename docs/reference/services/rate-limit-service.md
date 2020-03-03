@@ -1,6 +1,13 @@
 # RateLimitService Plugin
 
-Rate limiting is a powerful technique to improve the [availability and resilience of your services](https://blog.getambassador.io/rate-limiting-a-useful-tool-with-distributed-systems-6be2b1a4f5f4). In Ambassador Edge Stack, each request can have one or more *labels*. These labels are exposed to a third party service via a gRPC API. The third-party service can then rate limit requests based on the request labels.
+Rate limiting is a powerful technique to improve the [availability and
+resilience of your
+services](https://blog.getambassador.io/rate-limiting-a-useful-tool-with-distributed-systems-6be2b1a4f5f4).
+In the Ambassador API Gateway, each request can have one or more *labels*. These
+labels are exposed to a third party service via a gRPC API. The third-party
+service can then rate limit requests based on the request labels.
+
+**Note that `RateLimitService`is only applicable to the Ambassador API Gateway, and not the Edge Stack.**
 
 ## Request Labels
 

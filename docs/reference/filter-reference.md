@@ -4,7 +4,8 @@ Filters are used to extend the Ambassador Edge Stack to modify or intercept an H
 
 Filters are created with the `Filter` resource type, which contains global arguments to that filter.  Which Filter(s) to use for which HTTP requests is then configured in `FilterPolicy` resources, which may contain path-specific arguments to the filter.
 
-For more information about developing filters, see the [Filter Development Guide](../../docs/guides/filter-dev-guide).
+For more information about developing filters, see the [Filter Development
+Guide](../../docs/guides/filter-dev-guide). **Note that the `FilterPolicy` and `Filter` resources are only supported by the Ambassador Edge Stack.**
 
 ## `Filter` Definition
 
