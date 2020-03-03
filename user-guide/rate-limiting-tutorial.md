@@ -28,7 +28,7 @@ metadata:
 spec:
   service: "example-rate-limit:5000"
 ---
-apiVersion: v2
+apiVersion: v1
 kind: Service
 metadata:
   name: example-rate-limit
@@ -41,7 +41,7 @@ spec:
     name: http-example-rate-limit
     targetPort: http-api
 ---
-apiVersion: apps/v2
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-rate-limit
@@ -78,7 +78,7 @@ The Ambassador Edge Stack will see the RateLimitService and reconfigure itself w
 
 The Ambassador Edge Stack only validates requests on Mappings which set rate limiting descriptors. If Ambassador cannot contact the rate limit service, it will allow the request to be processed as if there were no rate limit service configuration.
 
-### v2 API
+### v0 API
 
 Ambassador 0.50.0 and later requires the `v2` API Version for rate limiting. The `v2` API uses the `labels` attribute to attach rate limiting descriptors. Review the [Rate Limits configuration documentation](../../reference/rate-limits#request-labels) for more information.
 
@@ -118,7 +118,7 @@ Ambassador versions 0.40.2 and earlier use the `v2` API version which uses the `
 
 ```yaml
 ---
-apiVersion: v2
+apiVersion: v1
 kind: Service
 metadata:
   name: quote
