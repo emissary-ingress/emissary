@@ -40,6 +40,8 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/health"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/secret"
+	"github.com/datawire/apro/cmd/amb-sidecar/group"
+	"github.com/datawire/apro/cmd/amb-sidecar/kale"
 	"github.com/datawire/apro/cmd/amb-sidecar/limiter"
 	rls "github.com/datawire/apro/cmd/amb-sidecar/ratelimits"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
@@ -212,9 +214,11 @@ func runE(cmd *cobra.Command, args []string) error {
 	limit.SetRedisPool(redisPool)
 
 	// Initialize the errgroup we'll use to orchestrate the goroutines.
-	group := NewGroup(context.Background(), cfg, func(name string) dlog.Logger {
+	group := group.NewGroup(context.Background(), cfg, func(name string) dlog.Logger {
 		return dlog.WrapLogrus(logrusLogger).WithField("MAIN", name)
 	})
+	// Initialize the httpHandler we use for all public facing endpoints.
+	httpHandler := lyftserver.NewDebugHTTPHandler()
 
 	// Launch all of the worker goroutines...
 	//
@@ -388,7 +392,6 @@ func runE(cmd *cobra.Command, args []string) error {
 
 		// Now attach services to these 2 handlers
 		grpcHandler := grpc.NewServer(grpc.UnaryInterceptor(nil))
-		httpHandler := lyftserver.NewDebugHTTPHandler()
 
 		// Liveness and Readiness probes
 		healthprobe := health.MultiProbe{
@@ -538,6 +541,8 @@ func runE(cmd *cobra.Command, args []string) error {
 		}
 		return util.ListenAndServeHTTPWithContext(hardCtx, softCtx, server)
 	})
+
+	kale.Setup(group, httpHandler, kubeinfo)
 
 	// And now we wait.
 	return group.Wait()
