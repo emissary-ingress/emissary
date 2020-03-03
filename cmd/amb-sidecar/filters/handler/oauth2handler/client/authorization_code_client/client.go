@@ -369,6 +369,18 @@ func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Co
 			errors.Wrap(err, "failed to construct URL"), nil)
 	}
 
+	// If we end up unauthorized at the redirection endpoint (because XSRF-protection
+	// rejected the authorization), go ahead and dereference the alleged state.  This
+	// is safe, because ruleForURL has already validated that state-derived-URL as
+	// something that this filter handles.  This way we don't have to deal with the
+	// redirection endpoint being bounced to multiple times.
+	if originalURL.Path == "/.ambassador/oauth2/redirection-endpoint" {
+		u, err := ReadState(originalURL.Query().Get("state"))
+		if err == nil {
+			originalURL = u
+		}
+	}
+
 	// Build the scope
 	scope := make(rfc6749client.Scope, len(sessionInfo.c.Arguments.Scopes))
 	for _, s := range sessionInfo.c.Arguments.Scopes {
