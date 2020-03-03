@@ -33,7 +33,7 @@ A per mapping retry policy:
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 metadata:
   name:  quote-backend
@@ -49,7 +49,7 @@ A global retry policy (not recommended):
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  Module
 metadata:
   name:  ambassador
@@ -59,7 +59,7 @@ spec:
       retry_on: "retriable-4xx"
       num_retries: 4
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 metadata:
   name:  quote-backend
