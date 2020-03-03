@@ -89,7 +89,13 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 		err = w.WatchQuery(k8s.Query{
 			Kind:          "pod",
 			LabelSelector: "kale",
-		}, safeWatch(k.reconcilePods))
+		}, safeWatch(func(w *k8s.Watcher) {
+			var pods []*k8sTypesCoreV1.Pod
+			if err := mapstructure.Convert(w.List("pod"), &pods); err != nil {
+				panic(err)
+			}
+			k.reconcilePods(pods)
+		}))
 
 		if err != nil {
 			return err
@@ -343,7 +349,7 @@ spec:
   restartPolicy: Never
 `
 
-func (k *kale) reconcilePods(w *k8s.Watcher) {
+func (k *kale) reconcilePods(pods []*k8sTypesCoreV1.Pod) {
 	cutoff := time.Now().Add(-5 * 60 * time.Second)
 	// todo: The system/business boundary needs some work here.
 	// Specifically the logic for chunking up the snapshot into
@@ -351,21 +357,15 @@ func (k *kale) reconcilePods(w *k8s.Watcher) {
 	// mixed up here. We want to separate that out so that the
 	// system can provide a guarantee that if processing one chunk
 	// fails, it won't interfere with processing other chunks.
-	for _, rsrc := range w.List("pod") {
-		status := rsrc.Status()
-		phase := status["phase"].(string)
-		key := rsrc.QName() + "." + phase
+	for _, pod := range pods {
+		phase := pod.Status.Phase
+		qname := pod.GetName() + "." + pod.GetNamespace()
+		key := qname + "." + string(phase)
 		_, ok := k.done[key]
 		if ok {
 			continue
 		}
-		log.Println("POD", rsrc.QName(), phase)
-		var pod *k8sTypesCoreV1.Pod
-		err := mapstructure.Convert(rsrc, &pod)
-		if err != nil {
-			log.Printf(err.Error())
-			continue
-		}
+		log.Println("POD", qname, phase)
 
 		projName := pod.GetLabels()["project"]
 		namespace := pod.GetNamespace()
@@ -392,13 +392,13 @@ func (k *kale) reconcilePods(w *k8s.Watcher) {
 
 		statusesUrl := pod.GetAnnotations()["statusesUrl"]
 		logUrl := proj.LogUrl(pod.GetLabels()["build"])
-		switch pod.Status.Phase {
+		switch phase {
 		case k8sTypesCoreV1.PodFailed:
 			log.Printf(podLogs(pod.GetName()))
 			postStatus(statusesUrl, GitHubStatus{
 				State:       "failure",
 				TargetUrl:   logUrl,
-				Description: phase,
+				Description: string(phase),
 				Context:     "aes",
 			},
 				proj.Spec.GithubToken)
@@ -426,7 +426,7 @@ func (k *kale) reconcilePods(w *k8s.Watcher) {
 					GitHubStatus{
 						State:       "success",
 						TargetUrl:   "http://asdf",
-						Description: phase,
+						Description: string(phase),
 						Context:     "aes",
 					},
 					proj.Spec.GithubToken)
