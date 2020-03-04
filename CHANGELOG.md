@@ -66,13 +66,16 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
-## [1.2.1] March 3, 2020
-[1.2.1]: https://github.com/datawire/ambassador/compare/v1.2.0...v1.2.1
+## [1.2.2] March 3, 2020
+[1.2.2]: https://github.com/datawire/ambassador/compare/v1.2.0...v1.2.2
 
 ### Ambassador API Gateway + Ambassador Edge Stack
 
 - Bugfix: re-support PROXY protocol when terminating TLS ([#2348])
 - Bugfix: Incorporate the Envoy 1.12.3 security update
+- Internal: Fix an error in Edge Stack update checks
+
+(1.2.1 has been withdrawn.)
 
 [#2348]: https://github.com/datawire/ambassador/issues/2348
 

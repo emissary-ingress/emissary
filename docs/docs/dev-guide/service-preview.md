@@ -43,7 +43,7 @@ In this quick start, we're going to preview a change we make to the backend serv
 
    ```yaml
     ---
-    apiVersion: getambassador.io/v1
+    apiVersion: getambassador.io/v2
     kind: Mapping
     metadata:  
       name: quote-backend

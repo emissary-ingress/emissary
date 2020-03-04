@@ -90,18 +90,6 @@ The Ambassador Edge Stack is typically deployed to Kubernetes from the command l
    Note that the certificate warning has gone away. Additionally, the Ambassador
    Edge Stack automatically will redirect HTTP connections to HTTPS.
 
-### Install in CI
-
-Installing the Ambassador Edge Stack in your Continuous Integration tool requires additional configuration. This method does not automatically configure TLS termination for you, and therefore not a domain name. However, these can still be achieved with the Host CRD.
-
-To install the Ambassador Edge Stack in CI, run the following command:
-
-```bash
-edgectl install --ci
-```
-
-You must then configure your own TLS certificate using the [Host CRD](/reference/host-crd).
-
 ## Create a Mapping
 
 In a typical configuration workflow, Custom Resource Definitions (CRDs) are used to define the intended behavior of Ambassador Edge Stack. In this example, we'll deploy a sample service and create a `Mapping` resource. Mappings allow you to associate parts of your domain with different URLs, IP addresses, or prefixes.
