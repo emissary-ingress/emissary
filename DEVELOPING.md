@@ -30,7 +30,7 @@ How do I hack on the UI?
    POD_NAMESPACE=ambassador \
    DEV_AES_HTTP_PORT=8501 \
    DEV_WEBUI_PORT=9000 \
-   go run ./cmd/amb-sidecar
+   go run ./cmd/ambassador amb-sidecar
    ```
 
 3. Visit http://localhost:9000 in your browser
@@ -71,7 +71,7 @@ How do I hack on the UI using an IDE on a Mac (e.g. JetBrains WebStorm)?
    POD_NAMESPACE=ambassador \
    DEV_AES_HTTP_PORT=8501 \
    DEV_WEBUI_PORT=9000 \
-   go run ./cmd/amb-sidecar
+   go run ./cmd/ambassador amb-sidecar
    ```
 
 4. Use "Run > Debug" to 'run' everything. This opens Chrome, attachs the debugger,
@@ -104,7 +104,7 @@ How do I hack on the UI without a cluster?
    POD_NAMESPACE=ambassador \
    DEV_AES_HTTP_PORT=8501 \
    DEV_WEBUI_PORT=9000 \
-   go run ./cmd/amb-sidecar
+   go run ./cmd/ambassador amb-sidecar
    ```
 
 3. To spoof cluster data, run:
