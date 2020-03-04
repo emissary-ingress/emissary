@@ -10,7 +10,11 @@ import (
 	"strings"
 	"time"
 
+	"k8s.io/apimachinery/pkg/util/intstr"
+
 	k8sTypesCoreV1 "k8s.io/api/core/v1"
+	k8sTypesMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	k8sTypes "k8s.io/apimachinery/pkg/types"
 
 	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/datawire/ambassador/pkg/k8s"
@@ -160,7 +164,7 @@ type Project struct {
 	Metadata struct {
 		Name      string
 		Namespace string
-		Uid       string
+		UID       k8sTypes.UID
 	} `json:"metadata"`
 	Spec struct {
 		Host        string `json:"host"`
@@ -286,13 +290,6 @@ func (k *kale) handlePush(r *http.Request, key string) httpResult {
 	return httpResult{200, out}
 }
 
-type BuildEnv struct {
-	Project Project
-	Build   string
-	Ref     string
-	Commit  string
-}
-
 type Push struct {
 	Ref  string
 	Head struct {
@@ -313,51 +310,58 @@ func startBuild(proj Project, buildID, ref, commit string) (string, error) {
 	// todo: the ambassador namespace is hardcoded below in the registry
 	//       we to which we push
 
-	manifests := `
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: {{.Project.Metadata.Name}}-build-{{.Build}}
-  namespace: {{.Project.Metadata.Namespace}}
-  annotations:
-    statusesUrl: "https://api.github.com/repos/{{.Project.Spec.GithubRepo}}/statuses/{{.Commit}}"
-  labels:
-    kale: "0.0"
-    project: "{{.Project.Metadata.Name}}"
-    commit: "{{.Commit}}"
-    build: "{{.Build}}"
-  ownerReferences:
-    - apiVersion: getambassador.io/v2
-      controller: true
-      blockOwnerDeletion: true
-      kind: Project
-      name: {{.Project.Metadata.Name}}
-      uid: {{.Project.Metadata.Uid}}
-spec:
-  containers:
-  - name: kaniko
-    image: gcr.io/kaniko-project/executor:v0.16.0
-    args: ["--cache=true",
-           "-v=debug",
-           "--skip-tls-verify",
-           "--skip-tls-verify-pull",
-           "--skip-tls-verify-registry",
-           "--dockerfile=Dockerfile",
-           "--context=git://github.com/{{.Project.Spec.GithubRepo}}.git#{{.Ref}}",
-           "--destination=registry.ambassador/{{.Commit}}"]
-  restartPolicy: Never
-`
-
-	env := BuildEnv{
-		Project: proj,
-		Build:   buildID,
-		Ref:     ref,
-		Commit:  commit,
+	manifests := []interface{}{
+		&k8sTypesCoreV1.Pod{
+			TypeMeta: k8sTypesMetaV1.TypeMeta{
+				APIVersion: "v1",
+				Kind:       "Pod",
+			},
+			ObjectMeta: k8sTypesMetaV1.ObjectMeta{
+				Name:      proj.Metadata.Name + "-build-" + buildID,
+				Namespace: proj.Metadata.Namespace,
+				Annotations: map[string]string{
+					"statusesUrl": "https://api.github.com/repos/" + proj.Spec.GithubRepo + "/statuses/" + commit,
+				},
+				Labels: map[string]string{
+					"kale":    "0.0",
+					"project": proj.Metadata.Name,
+					"commit":  commit,
+					"build":   buildID,
+				},
+				OwnerReferences: []k8sTypesMetaV1.OwnerReference{
+					{
+						APIVersion:         "getambassador.io/v2",
+						Controller:         boolPtr(true),
+						BlockOwnerDeletion: boolPtr(true),
+						Kind:               "Project",
+						Name:               proj.Metadata.Name,
+						UID:                proj.Metadata.UID,
+					},
+				},
+			},
+			Spec: k8sTypesCoreV1.PodSpec{
+				Containers: []k8sTypesCoreV1.Container{
+					{
+						Name:  "kaniko",
+						Image: "gcr.io/kaniko-project/executor:v0.16.0",
+						Args: []string{
+							"--cache=true",
+							"-v=debug",
+							"--skip-tls-verify",
+							"--skip-tls-verify-pull",
+							"--skip-tls-verify-registry",
+							"--dockerfile=Dockerfile",
+							"--context=git://github.com/" + proj.Spec.GithubRepo + ".git#" + ref,
+							"--destination=registry.ambassador/" + commit,
+						},
+					},
+				},
+				RestartPolicy: k8sTypesCoreV1.RestartPolicyNever,
+			},
+		},
 	}
-	log.Printf("PUSH: %q", env)
 
-	out, err := applyStr(evalTemplate(manifests, env))
+	out, err := applyObjs(manifests)
 	if err != nil {
 		return "", fmt.Errorf("%w\n%s", err, out)
 	}
@@ -450,78 +454,105 @@ func (k *kale) reconcilePods(pods []*k8sTypesCoreV1.Pod) {
 	}
 }
 
-type RunEnv struct {
-	Project Project
-	Commit  string
-}
-
 func startRun(proj Project, commit string) (string, error) {
-	manifests := `
----
-apiVersion: getambassador.io/v2
-kind: Mapping
-metadata:
-  name: {{.Project.Metadata.Name}}-{{.Commit}}
-  namespace: {{.Project.Metadata.Namespace}}
-  ownerReferences:
-    - apiVersion: getambassador.io/v2
-      controller: true
-      blockOwnerDeletion: true
-      kind: Project
-      name: {{.Project.Metadata.Name}}
-      uid: {{.Project.Metadata.Uid}}
-  labels:
-    kale: "0.0"
-spec:
-  prefix: /kale/previews/{{.Project.Spec.Prefix}}/{{.Commit}}/
-  service: {{.Project.Spec.Prefix}}-{{.Commit}}
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: {{.Project.Metadata.Name}}-{{.Commit}}
-  namespace: {{.Project.Metadata.Namespace}}
-  ownerReferences:
-    - apiVersion: getambassador.io/v2
-      controller: true
-      blockOwnerDeletion: true
-      kind: Project
-      name: {{.Project.Metadata.Name}}
-      uid: {{.Project.Metadata.Uid}}
-  labels:
-    kale: "0.0"
-spec:
-  selector:
-    project: {{.Project.Metadata.Name}}
-    commit: {{.Commit}}
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 8080
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: {{.Project.Metadata.Name}}-{{.Commit}}
-  namespace: {{.Project.Metadata.Namespace}}
-  ownerReferences:
-    - apiVersion: getambassador.io/v2
-      controller: true
-      blockOwnerDeletion: true
-      kind: Project
-      name: {{.Project.Metadata.Name}}
-      uid: {{.Project.Metadata.Uid}}
-  labels:
-    kale: "0.0"
-    project: {{.Project.Metadata.Name}}
-    commit: {{.Commit}}
-spec:
-  containers:
-  - name: app
-    image: 127.0.0.1:31000/{{.Commit}}
-`
+	manifests := []interface{}{
+		map[string]interface{}{
+			"apiVersion": "getambassador.io/v2",
+			"kind":       "Mapping",
+			"metadata": k8sTypesMetaV1.ObjectMeta{
+				Name:      proj.Metadata.Name + "-" + commit,
+				Namespace: proj.Metadata.Namespace,
+				OwnerReferences: []k8sTypesMetaV1.OwnerReference{
+					{
+						APIVersion:         "getambassador.io/v2",
+						Controller:         boolPtr(true),
+						BlockOwnerDeletion: boolPtr(true),
+						Kind:               "Project",
+						Name:               proj.Metadata.Name,
+						UID:                proj.Metadata.UID,
+					},
+				},
+				Labels: map[string]string{
+					"kale": "0.0",
+				},
+			},
+			"spec": map[string]interface{}{
+				"prefix":  "/kale/previews/" + proj.Spec.Prefix + "/" + commit + "/",
+				"service": proj.Spec.Prefix + "-" + commit,
+			},
+		},
+		&k8sTypesCoreV1.Service{
+			TypeMeta: k8sTypesMetaV1.TypeMeta{
+				APIVersion: "v1",
+				Kind:       "Service",
+			},
+			ObjectMeta: k8sTypesMetaV1.ObjectMeta{
+				Name:      proj.Metadata.Name + "-" + commit,
+				Namespace: proj.Metadata.Namespace,
+				OwnerReferences: []k8sTypesMetaV1.OwnerReference{
+					{
+						APIVersion:         "getambassador.io/v2",
+						Controller:         boolPtr(true),
+						BlockOwnerDeletion: boolPtr(true),
+						Kind:               "Project",
+						Name:               proj.Metadata.Name,
+						UID:                proj.Metadata.UID,
+					},
+				},
+				Labels: map[string]string{
+					"kale": "0.0",
+				},
+			},
+			Spec: k8sTypesCoreV1.ServiceSpec{
+				Selector: map[string]string{
+					"project": proj.Metadata.Name,
+					"commit":  commit,
+				},
+				Ports: []k8sTypesCoreV1.ServicePort{
+					{
+						Protocol:   k8sTypesCoreV1.ProtocolTCP,
+						Port:       80,
+						TargetPort: intstr.FromInt(8080),
+					},
+				},
+			},
+		},
+		&k8sTypesCoreV1.Pod{
+			TypeMeta: k8sTypesMetaV1.TypeMeta{
+				APIVersion: "v1",
+				Kind:       "Pod",
+			},
+			ObjectMeta: k8sTypesMetaV1.ObjectMeta{
+				Name:      proj.Metadata.Name + "-" + commit,
+				Namespace: proj.Metadata.Namespace,
+				OwnerReferences: []k8sTypesMetaV1.OwnerReference{
+					{
+						APIVersion:         "getambassador.io/v2",
+						Controller:         boolPtr(true),
+						BlockOwnerDeletion: boolPtr(true),
+						Kind:               "Project",
+						Name:               proj.Metadata.Name,
+						UID:                proj.Metadata.UID,
+					},
+				},
+				Labels: map[string]string{
+					"kale":    "0.0",
+					"project": proj.Metadata.Name,
+					"commit":  commit,
+				},
+			},
+			Spec: k8sTypesCoreV1.PodSpec{
+				Containers: []k8sTypesCoreV1.Container{
+					{
+						Name:  "app",
+						Image: "127.0.0.1:31000/" + commit,
+					},
+				},
+			},
+		},
+	}
 
-	out, err := applyStr(evalTemplate(manifests, RunEnv{Project: proj, Commit: commit}))
+	out, err := applyObjs(manifests)
 	if err != nil {
 		return "", fmt.Errorf("%w\n%s", err, out)
 	}

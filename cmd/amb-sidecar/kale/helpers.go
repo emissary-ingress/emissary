@@ -12,6 +12,8 @@ import (
 	"strings"
 	"text/template"
 
+	"sigs.k8s.io/yaml"
+
 	"github.com/datawire/ambassador/pkg/k8s"
 	"github.com/datawire/apro/lib/util"
 )
@@ -188,6 +190,19 @@ func applyStr(yaml string) (string, error) {
 	return out.String(), err
 }
 
+// Does a kubectl apply on the passed in yaml.
+func applyObjs(objs []interface{}) (string, error) {
+	var str string
+	for _, obj := range objs {
+		bs, err := yaml.Marshal(obj)
+		if err != nil {
+			return "", err
+		}
+		str += "---\n" + string(bs)
+	}
+	return applyStr(str)
+}
+
 // Evaluates a golang template and returns the result.
 func evalTemplate(text string, data interface{}) string {
 	var out strings.Builder
@@ -210,4 +225,8 @@ func evalHtmlTemplate(text string, data interface{}) string {
 		panic(err)
 	}
 	return out.String()
+}
+
+func boolPtr(v bool) *bool {
+	return &v
 }
