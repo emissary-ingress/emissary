@@ -3,53 +3,53 @@
 ---
 # Quick Start Installation Guide
 
-In this guide, we'll walk you through installing and configuring the Ambassador Edge Stack in your Kubernetes cluster. Within a few minutes, your cluster will be routing HTTPS requests from the Internet to a backend service. You'll also have a sense of how the Ambassador Edge Stack is managed.
-
-## Before You Begin
-
-The Ambassador Edge Stack is designed to run in Kubernetes for production. The most essential requirements are:
-
-* Kubernetes 1.11 or later
-* The `kubectl` command-line tool
-* Edge Control
+In just four minutes, your cluster will be routing HTTPS requests from the
+Internet to a backend service.
 
 ## Quick Install (Recommended!)
 
-The Ambassador Edge Stack is typically deployed to Kubernetes from the command line. If you don't have Kubernetes, you should use our [Docker](../../about/quickstart) image to deploy the Ambassador Edge Stack locally.
+The Ambassador Edge Stack is deployed to Kubernetes for macOS, Linux, and
+Windows. If you don't have Kubernetes, see the [other
+options](/user-guide/install).
 
-When you use Edge Control on your publicly
-accessible cluster, it will:
+### Install with MacOS
 
-1. Install the Ambassador Edge Stack
-2. Generate a domain name for you to access the Edge Policy Console and complete
-   advanced configuration
-3. Obtain a TLS certificate for that domain name
-4. Configure automatic TLS and HTTPS using that certificate
+1. Download the `edgectl` file [here](https://metriton.datawire.io/downloads/darwin/edgectl) or download it with a curl command:
 
-**To install the Ambassador Edge Stack:**
+    ```shell
+    sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && sudo chmod a+X /usr/local/bin/edgectl
+    ```
 
-1. Download the `edgectl`file for your operating system:
+  You may encounter a security block. To change this:
+  * Go to **System Preferences > Security & Privacy**.
+  * Click the **Open Anyway** button.
+  * Open the download file. On the new dialog, click the **Open** button.
 
-   * [MacOS](https://metriton.datawire.io/downloads/darwin/edgectl)
-   * [Linux](https://metriton.datawire.io/downloads/linux/edgectl)
-   * [Windows](https://metriton.datawire.io/downloads/windows/edgectl.exe)
-   * or use a [curl command](/reference/edgectl-download).
+2. Run the installer with `./edgectl`
+3. Complete the installation with `edgectl install`
 
-   If using macOS, you may encounter a security block. To change this you need to enable permissions to download files outside of the app store. To change this:
+### Install with Linux
 
-     * Go to **System Preferences > Security & Privacy**.
-     * Click the **Open Anyway** button.
-     * Click the **Open** button.
+1. Download the `edgectl` file
+   [here](https://metriton.datawire.io/downloads/linux/edgectl) or with a curl
+   command:
 
-2. Move the file into your PATH (for Windows users, move it into the Windows
-   Systems path).
-   * Print your PATH with `echo $PATH`
-   * For Linux and MacOS, ensure the file is executable with the command `chmod a+x /usr/local/bin/edgectl`
-   * Run the executable file with the command `./edgectl`
-3. Now, run the following command: `edgectl install`
+    ```shell
+    sudo curl -fL https://metriton.datawire.io/downloads/linux/edgectl -o
+    /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl
+    ```
+2. Run the installer with `./edgectl`
+3. Complete the installation with `edgectl install`
 
-    Your terminal will print something similar to the following as it provisions
-    a load balancer, configures TLS, and provides you with an `edgestack.me` subdomain:
+### Install with Windows
+
+1. Download the `edgectl` file
+   [here](https://metriton.datawire.io/downloads/windows/edgectl.exe).
+2. Complete the installation with `edgectl.exe`
+
+## Installation Success
+
+Your terminal will print something similar to the following as it provisions a load balancer, configures TLS, and provides you with an `edgestack.me` subdomain:
 
     ```
     $ edgectl install
@@ -60,18 +60,21 @@ accessible cluster, it will:
     Please enter an email address. We’ll use this email address to notify you prior to domain and certification expiration [None]: john@example.com.
     ```
 
-    Minikube users will see something similar to the following:
+Minikube users will see something similar to the following:
 
     ```
     $ edgectl install
     -> Installing the Ambassador Edge Stack $version$.
     -> Automatically configuring TLS.
-    -> Cluster is not publicly accessible. Please ensure your cluster is publicly accessible if you would like to use automatic TLS.
+    -> Cluster is not publicly accessible. Please ensure your cluster
+     is publicly accessible if you would like to use automatic TLS.
 
-    Congratulations, you’ve successfully installed the Ambassador Edge Stack in your Kubernetes cluster. Visit http://192.168.64.2:31334 to access your Edge Stack installation and for additional configuration.
+    Congratulations, you’ve successfully installed the Ambassador Edge 
+    Stack in your Kubernetes cluster. Visit http://192.168.64.2:31334 to 
+    access your Edge Stack installation and for additional configuration.
     ```
 
-4. Provide an email address as required by the ACME TLS certificate provider, Let's Encrypt. Then your terminal will print something similar to the following:
+Provide an email address as required by the ACME TLS certificate provider, Let's Encrypt. Then your terminal will print something similar to the following:
 
     ```shell
     -> Obtaining a TLS certificate from Let’s Encrypt.

@@ -8,13 +8,10 @@
       link: /about/support
         
 - title: Install Ambassador Edge Stack
-  link: /user-guide/install
+  link: /user-guide/getting-started
   items: 
-  - title: Quick Start Installation Guide
-    link: /user-guide/getting-started
-  - title: Edge Policy Console
-    link: /about/edge-policy-console
-  - title: Other Install & Upgrade Options
+  - title: Install and Upgrade Options
+    link: /user-guide/install
     items: 
     - title: Upgrade to the Ambassador Edge Stack
       link: /user-guide/upgrade-to-edge-stack
@@ -38,6 +35,8 @@
 - title: Concepts
   link: /concepts/overview
   items: 
+  - title: Edge Policy Console
+    link: /about/edge-policy-console
   - title: Features and Benefits
     link: /about/features-and-benefits
   - title: Using Ambassador Edge Stack in Your Organization
