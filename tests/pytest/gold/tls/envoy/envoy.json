@@ -212,50 +212,6 @@
                                                             "runtime_fraction": {
                                                                 "default_value": {
                                                                     "denominator": "HUNDRED",
-                                                                    "numerator": 50
-                                                                },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8500_default"
-                                                            }
-                                                        },
-                                                        "route": {
-                                                            "cluster": "cluster_127_0_0_1_8500_default",
-                                                            "prefix_rewrite": "/edge_stack_ui/edge_stack/",
-                                                            "priority": null,
-                                                            "timeout": "60.000s"
-                                                        }
-                                                    },
-                                                    {
-                                                        "match": {
-                                                            "case_sensitive": true,
-                                                            "prefix": "/edge_stack/",
-                                                            "runtime_fraction": {
-                                                                "default_value": {
-                                                                    "denominator": "HUNDRED",
-                                                                    "numerator": 50
-                                                                },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8500_default"
-                                                            }
-                                                        },
-                                                        "route": {
-                                                            "cluster": "cluster_127_0_0_1_8500_default",
-                                                            "prefix_rewrite": "/edge_stack_ui/edge_stack/",
-                                                            "priority": null,
-                                                            "timeout": "60.000s"
-                                                        }
-                                                    },
-                                                    {
-                                                        "match": {
-                                                            "case_sensitive": true,
-                                                            "headers": [
-                                                                {
-                                                                    "exact_match": "https",
-                                                                    "name": "x-forwarded-proto"
-                                                                }
-                                                            ],
-                                                            "prefix": "/edge_stack/",
-                                                            "runtime_fraction": {
-                                                                "default_value": {
-                                                                    "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
                                                                 "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8500_default"
@@ -502,50 +458,6 @@
                                                                     "max_program_size": 200
                                                                 },
                                                                 "regex": "^/$"
-                                                            }
-                                                        },
-                                                        "route": {
-                                                            "cluster": "cluster_127_0_0_1_8500_default",
-                                                            "prefix_rewrite": "/edge_stack_ui/",
-                                                            "priority": null,
-                                                            "timeout": "60.000s"
-                                                        }
-                                                    },
-                                                    {
-                                                        "match": {
-                                                            "case_sensitive": true,
-                                                            "headers": [
-                                                                {
-                                                                    "exact_match": "https",
-                                                                    "name": "x-forwarded-proto"
-                                                                }
-                                                            ],
-                                                            "prefix": "/",
-                                                            "runtime_fraction": {
-                                                                "default_value": {
-                                                                    "denominator": "HUNDRED",
-                                                                    "numerator": 100
-                                                                },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8500_default"
-                                                            }
-                                                        },
-                                                        "route": {
-                                                            "cluster": "cluster_127_0_0_1_8500_default",
-                                                            "prefix_rewrite": "/edge_stack_ui/",
-                                                            "priority": null,
-                                                            "timeout": "60.000s"
-                                                        }
-                                                    },
-                                                    {
-                                                        "match": {
-                                                            "case_sensitive": true,
-                                                            "prefix": "/",
-                                                            "runtime_fraction": {
-                                                                "default_value": {
-                                                                    "denominator": "HUNDRED",
-                                                                    "numerator": 100
-                                                                },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8500_default"
                                                             }
                                                         },
                                                         "route": {

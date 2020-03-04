@@ -12,7 +12,7 @@
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Host\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"globalcorstest\",\"scope\":\"AmbassadorTest\"},\"name\":\"cleartext-host-globalcorstest\",\"namespace\":\"default\"},\"spec\":{\"acmeProvider\":{\"authority\":\"none\"},\"ambassador_id\":[\"globalcorstest\"],\"hostname\":\"*\",\"requestPolicy\":{\"insecure\":{\"action\":\"Route\"}},\"selector\":{\"matchLabels\":{\"hostname\":\"globalcorstest\"}}}}\n"
                     },
                     "clusterName": "",
-                    "creationTimestamp": "2020-03-04T04:41:03Z",
+                    "creationTimestamp": "2020-03-04T18:14:05Z",
                     "generation": 1,
                     "labels": {
                         "kat-ambassador-id": "globalcorstest",
@@ -20,9 +20,9 @@
                     },
                     "name": "cleartext-host-globalcorstest",
                     "namespace": "default",
-                    "resourceVersion": "26786",
+                    "resourceVersion": "91891",
                     "selfLink": "/apis/getambassador.io/v2/namespaces/default/hosts/cleartext-host-globalcorstest",
-                    "uid": "5aa9bd6a-5dd2-11ea-a67a-06c41a568f95"
+                    "uid": "eed63733-5e43-11ea-89ca-0e69d553f0a1"
                 },
                 "spec": {
                     "acmeProvider": {
@@ -61,7 +61,7 @@
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"TLSContext\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"hostcrdmanualcontext\",\"scope\":\"AmbassadorTest\"},\"name\":\"manual-host-context\",\"namespace\":\"default\"},\"spec\":{\"ambassador_id\":[\"hostcrdmanualcontext\"],\"hosts\":[\"hostcrdmanualcontext\"],\"max_tls_version\":\"v1.3\",\"min_tls_version\":\"v1.2\",\"secret\":\"manual-secret\"}}\n"
                     },
                     "clusterName": "",
-                    "creationTimestamp": "2020-03-04T04:41:12Z",
+                    "creationTimestamp": "2020-03-04T18:14:16Z",
                     "generation": 1,
                     "labels": {
                         "kat-ambassador-id": "hostcrdmanualcontext",
@@ -69,9 +69,9 @@
                     },
                     "name": "manual-host-context",
                     "namespace": "default",
-                    "resourceVersion": "27299",
+                    "resourceVersion": "92435",
                     "selfLink": "/apis/getambassador.io/v2/namespaces/default/tlscontexts/manual-host-context",
-                    "uid": "5fdd7490-5dd2-11ea-a67a-06c41a568f95"
+                    "uid": "f5ec43a2-5e43-11ea-89ca-0e69d553f0a1"
                 },
                 "spec": {
                     "ambassador_id": [
@@ -97,19 +97,19 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"globalcorstest\",\"scope\":\"AmbassadorTest\"},\"name\":\"globalcorstest-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8084},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8447}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
                     },
-                    "creationTimestamp": "2020-03-04T04:41:03Z",
+                    "creationTimestamp": "2020-03-04T18:14:05Z",
                     "labels": {
                         "kat-ambassador-id": "globalcorstest",
                         "scope": "AmbassadorTest"
                     },
                     "name": "globalcorstest-http",
                     "namespace": "default",
-                    "resourceVersion": "26788",
+                    "resourceVersion": "91894",
                     "selfLink": "/api/v1/namespaces/default/services/globalcorstest-http",
-                    "uid": "5ab0552d-5dd2-11ea-a67a-06c41a568f95"
+                    "uid": "eedcbf0c-5e43-11ea-89ca-0e69d553f0a1"
                 },
                 "spec": {
-                    "clusterIP": "10.110.57.214",
+                    "clusterIP": "10.103.118.29",
                     "ports": [
                         {
                             "name": "http",
@@ -142,7 +142,7 @@
                         "getambassador.io/config": "---\napiVersion: ambassador/v1\nkind: Module\nname: ambassador\nconfig:\n  cors:\n    origins: http://foo.example.com\n    methods: POST, GET, OPTIONS\nambassador_id: globalcorstest\n---\napiVersion: ambassador/v1\nkind: Mapping\nname: globalcorstest-http-foo\nprefix: /foo/\nservice: globalcorstest-http\nambassador_id: globalcorstest\n---\napiVersion: ambassador/v1\nkind: Mapping\nname: globalcorstest-http-bar\nprefix: /bar/\nservice: globalcorstest-http\ncors:\n  origins: http://bar.example.com\n  methods: POST, GET, OPTIONS\nambassador_id: globalcorstest\n",
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v1\\nkind: Module\\nname: ambassador\\nconfig:\\n  cors:\\n    origins: http://foo.example.com\\n    methods: POST, GET, OPTIONS\\nambassador_id: globalcorstest\\n---\\napiVersion: ambassador/v1\\nkind: Mapping\\nname: globalcorstest-http-foo\\nprefix: /foo/\\nservice: globalcorstest-http\\nambassador_id: globalcorstest\\n---\\napiVersion: ambassador/v1\\nkind: Mapping\\nname: globalcorstest-http-bar\\nprefix: /bar/\\nservice: globalcorstest-http\\ncors:\\n  origins: http://bar.example.com\\n  methods: POST, GET, OPTIONS\\nambassador_id: globalcorstest\\n\"},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"globalcorstest\",\"scope\":\"AmbassadorTest\"},\"name\":\"globalcorstest\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"globalcorstest\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-03-04T04:41:03Z",
+                    "creationTimestamp": "2020-03-04T18:14:04Z",
                     "labels": {
                         "app.kubernetes.io/component": "ambassador-service",
                         "kat-ambassador-id": "globalcorstest",
@@ -150,24 +150,24 @@
                     },
                     "name": "globalcorstest",
                     "namespace": "default",
-                    "resourceVersion": "26775",
+                    "resourceVersion": "91882",
                     "selfLink": "/api/v1/namespaces/default/services/globalcorstest",
-                    "uid": "5a80c90b-5dd2-11ea-a67a-06c41a568f95"
+                    "uid": "eec1261e-5e43-11ea-89ca-0e69d553f0a1"
                 },
                 "spec": {
-                    "clusterIP": "10.96.212.175",
+                    "clusterIP": "10.96.119.25",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "http",
-                            "nodePort": 31989,
+                            "nodePort": 30074,
                             "port": 80,
                             "protocol": "TCP",
                             "targetPort": 8080
                         },
                         {
                             "name": "https",
-                            "nodePort": 31253,
+                            "nodePort": 30713,
                             "port": 443,
                             "protocol": "TCP",
                             "targetPort": 8443
@@ -190,7 +190,7 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"globalcorstest\",\"scope\":\"AmbassadorTest\",\"service\":\"globalcorstest-admin\"},\"name\":\"globalcorstest-admin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"globalcorstest-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"globalcorstest\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-03-04T04:41:03Z",
+                    "creationTimestamp": "2020-03-04T18:14:05Z",
                     "labels": {
                         "kat-ambassador-id": "globalcorstest",
                         "scope": "AmbassadorTest",
@@ -198,17 +198,17 @@
                     },
                     "name": "globalcorstest-admin",
                     "namespace": "default",
-                    "resourceVersion": "26779",
+                    "resourceVersion": "91886",
                     "selfLink": "/api/v1/namespaces/default/services/globalcorstest-admin",
-                    "uid": "5a9dfc38-5dd2-11ea-a67a-06c41a568f95"
+                    "uid": "eecac443-5e43-11ea-89ca-0e69d553f0a1"
                 },
                 "spec": {
-                    "clusterIP": "10.106.122.49",
+                    "clusterIP": "10.111.180.67",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "globalcorstest-admin",
-                            "nodePort": 31215,
+                            "nodePort": 31006,
                             "port": 8877,
                             "protocol": "TCP",
                             "targetPort": 8877
