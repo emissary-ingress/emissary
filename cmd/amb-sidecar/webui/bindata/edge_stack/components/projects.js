@@ -168,28 +168,26 @@ class Project extends SingleResource {
     return html`<a href="https://github.com/${this.resource.spec.githubRepo}/pull/${prNumber}/">PR#${prNumber}</a>`;
   }
 
-  renderBuild(commit, pod) {
+  renderBuild(commit, job) {
     var styles = "color:blue"
-    switch (pod.status.phase) {
-    case "Succeeded":
+    if ((job.status.conditions||[]).some((cond)=>{return cond.type==="Complete" && cond.status==="True"})) {
       styles = "color:green"
-      break
-    case "Failed":
+    } else if ((job.status.conditions||[]).some((cond)=>{return cond.type==="Failed" && cond.status==="True"})) {
       styles = "color:red"
-      break
     }
     let selected = this.logSelected("build", commit) ? "background-color:#dcdcdc" : ""
     return html`<a style="cursor:pointer;${styles};${selected}" @click=${()=>this.openTerminal("build", commit)}>build</a>`
   }
 
-  renderPreview(commit, pod) {
-    let cstats = pod.status.containerStatuses
+  renderPreview(commit, statefulset) {
     var styles = "color:blue"
-    if (cstats && cstats.length > 0 && cstats[0].ready) {
+    if ((statefulset.status.observedGeneration === statefulset.metadata.generation) &&
+        (statefulset.status.currentRevision === statefulset.status.updateRevision) &&
+        (statefulset.status.readyReplicas >= statefulset.spec.replicas)) {
       styles = "color:green"
-    } else {
-      styles = "color:red"
     }
+    // TODO: We'd have to inspect individual pods to detect a failure :(
+    //styles = "color:red"
     let selected = this.logSelected("deploy", commit) ? "background-color:#dcdcdc" : ""
     return html`
 <a style="cursor:pointer;${styles};${selected}" @click=${()=>this.openTerminal("deploy", commit)}>log</a> |

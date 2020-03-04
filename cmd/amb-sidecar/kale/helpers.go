@@ -26,6 +26,7 @@ import (
 	libgitStorageMemory "gopkg.in/src-d/go-git.v4/storage/memory"
 
 	// 3rd party: k8s types
+	k8sTypesBatchV1 "k8s.io/api/batch/v1"
 	k8sTypesCoreV1 "k8s.io/api/core/v1"
 	k8sTypesMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sTypesUnstructured "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -382,6 +383,14 @@ func applyAndPrune(labelSelector string, types []k8sSchema.GroupVersionKind, obj
 	return nil
 }
 
+func deleteResource(kind, name, namespace string) error {
+	out, err := exec.Command("kubectl", "delete", "--namespace="+namespace, kind+"/"+name).CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("%w\n%s", err, out)
+	}
+	return nil
+}
+
 // Evaluates a golang template and returns the result.
 func evalTemplate(text string, data interface{}) string {
 	var out strings.Builder
@@ -407,6 +416,10 @@ func evalHtmlTemplate(text string, data interface{}) string {
 }
 
 func boolPtr(v bool) *bool {
+	return &v
+}
+
+func int32Ptr(v int32) *int32 {
 	return &v
 }
 
@@ -617,4 +630,21 @@ func unstructureMetadata(in *k8sTypesMetaV1.ObjectMeta) map[string]interface{} {
 	}
 
 	return metadata
+}
+
+// jobConditionMet returns whether a Job's `.status.conditions` meets
+// the given condition; in the same manor as `kubectl wait
+// --for=CONDITION`.
+//
+// This is based on
+// k8s.io/kubectl/pkg/cmd/wait.ConditionalWait.checkCondition()
+// https://github.com/kubernetes/kubectl/blob/kubernetes-1.16.0/pkg/cmd/wait/wait.go#L418-L440
+func jobConditionMet(obj *k8sTypesBatchV1.Job, condType k8sTypesBatchV1.JobConditionType, condStatus k8sTypesCoreV1.ConditionStatus) (bool, error) {
+	for _, cond := range obj.Status.Conditions {
+		if cond.Type != condType {
+			continue
+		}
+		return cond.Status == condStatus, nil
+	}
+	return false, nil
 }

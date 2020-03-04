@@ -16,6 +16,8 @@ import (
 
 	// 3rd/1st party: k8s types
 	aproTypesV2 "github.com/datawire/apro/apis/getambassador.io/v1beta2"
+	k8sTypesAppsV1 "k8s.io/api/apps/v1"
+	k8sTypesBatchV1 "k8s.io/api/batch/v1"
 	k8sTypesCoreV1 "k8s.io/api/core/v1"
 	k8sTypesMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -120,9 +122,10 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 
 		handler := func(w *k8s.Watcher) {
 			snapshot := UntypedSnapshot{
-				Pods:     w.List("pods."),
-				Projects: w.List("projects.getambassador.io"),
-				Commits:  w.List("projectcommits.getambassador.io"),
+				Projects:     w.List("projects.getambassador.io"),
+				Commits:      w.List("projectcommits.getambassador.io"),
+				Jobs:         w.List("jobs.batch"),
+				StatefulSets: w.List("statefulsets.apps"),
 			}
 			// More so out of paranoia than in response to an actual issue: repeat the
 			// .TypedAndFiltered() call for each stream, so that they share no pointers.
@@ -134,7 +137,8 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 		queries := []k8s.Query{
 			{Kind: "projects.getambassador.io"},
 			{Kind: "projectcommits.getambassador.io"},
-			{Kind: "pods.", LabelSelector: labelSelector},
+			{Kind: "jobs.batch", LabelSelector: labelSelector},
+			{Kind: "statefulset.apps", LabelSelector: labelSelector},
 		}
 
 		for _, query := range queries {
@@ -214,15 +218,17 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 }
 
 type UntypedSnapshot struct {
-	Pods     []k8s.Resource
-	Projects []k8s.Resource
-	Commits  []k8s.Resource
+	Projects     []k8s.Resource
+	Commits      []k8s.Resource
+	Jobs         []k8s.Resource
+	StatefulSets []k8s.Resource
 }
 
 type Snapshot struct {
-	Pods     []*k8sTypesCoreV1.Pod
-	Projects []*Project
-	Commits  []*ProjectCommit
+	Projects     []*Project
+	Commits      []*ProjectCommit
+	Jobs         []*k8sTypesBatchV1.Job
+	StatefulSets []*k8sTypesAppsV1.StatefulSet
 }
 
 func (in UntypedSnapshot) TypedAndFiltered(ctx context.Context, ambassadorID string) Snapshot {
@@ -235,8 +241,11 @@ func (in UntypedSnapshot) TypedAndFiltered(ctx context.Context, ambassadorID str
 	// we're parsing.  For the same reason, it's "safe" to do this
 	// all at once, because we don't need to do individual
 	// validation, because they're all valid.
-	if err := mapstructure.Convert(in.Pods, &out.Pods); err != nil {
-		panic(fmt.Errorf("Pods: %q", err))
+	if err := mapstructure.Convert(in.Jobs, &out.Jobs); err != nil {
+		panic(fmt.Errorf("Jobs: %w", err))
+	}
+	if err := mapstructure.Convert(in.StatefulSets, &out.StatefulSets); err != nil {
+		panic(fmt.Errorf("StatefulSets: %w", err))
 	}
 
 	// However, for our CRDs, because the api-server can't
@@ -316,8 +325,8 @@ type projectAndChildren struct {
 type commitAndChildren struct {
 	*ProjectCommit
 	Children struct {
-		Builders []*k8sTypesCoreV1.Pod `json:"builders"`
-		Runners  []*k8sTypesCoreV1.Pod `json:"runners"`
+		Builders []*k8sTypesBatchV1.Job        `json:"builders"`
+		Runners  []*k8sTypesAppsV1.StatefulSet `json:"runners"`
 	} `json:"children"`
 }
 
@@ -333,17 +342,21 @@ func (k *kale) updateInternalState(ctx context.Context, snapshot Snapshot) {
 		}
 		commits[key].ProjectCommit = commit
 	}
-	for _, pod := range snapshot.Pods {
-		key := pod.GetLabels()[CommitLabelName]
+	for _, job := range snapshot.Jobs {
+		key := job.GetLabels()[CommitLabelName]
 		if _, ok := commits[key]; !ok {
-			log.Errorf("Unable to pair Pod %q.%q with ProjectCommit; ignoring", pod.GetName(), pod.GetNamespace())
+			log.Errorf("Unable to pair Job %q.%q with ProjectCommit; ignoring", job.GetName(), job.GetNamespace())
 			continue
 		}
-		if pod.GetLabels()["build"] != "" {
-			commits[key].Children.Builders = append(commits[key].Children.Builders, pod)
-		} else {
-			commits[key].Children.Runners = append(commits[key].Children.Runners, pod)
+		commits[key].Children.Builders = append(commits[key].Children.Builders, job)
+	}
+	for _, statefulset := range snapshot.StatefulSets {
+		key := statefulset.GetLabels()[CommitLabelName]
+		if _, ok := commits[key]; !ok {
+			log.Errorf("Unable to pair StatefulSet %q.%q with ProjectCommit; ignoring", statefulset.GetName(), statefulset.GetNamespace())
+			continue
 		}
+		commits[key].Children.Runners = append(commits[key].Children.Runners, statefulset)
 	}
 
 	// map["projectName.projectNamespace"]*projectAndChildren
@@ -412,9 +425,9 @@ func (k *kale) dispatch(r *http.Request) httpResult {
 			CommitLabelName + "==" + commitQName,
 		}
 		if logType == "slogs" {
-			selectors = append(selectors, "!build")
+			selectors = append(selectors, "statefulset.kubernetes.io/pod-name")
 		} else {
-			selectors = append(selectors, "build")
+			selectors = append(selectors, "job-name")
 		}
 		return httpResult{
 			stream: func(w http.ResponseWriter) {
@@ -547,10 +560,10 @@ func (k *kale) calculateBuild(proj *Project, commit *ProjectCommit) []interface{
 	//       we to which we push
 
 	return []interface{}{
-		&k8sTypesCoreV1.Pod{
+		&k8sTypesBatchV1.Job{
 			TypeMeta: k8sTypesMetaV1.TypeMeta{
-				APIVersion: "v1",
-				Kind:       "Pod",
+				APIVersion: "batch/v1",
+				Kind:       "Job",
 			},
 			ObjectMeta: k8sTypesMetaV1.ObjectMeta{
 				Name:      commit.GetName() + "-build",
@@ -558,7 +571,6 @@ func (k *kale) calculateBuild(proj *Project, commit *ProjectCommit) []interface{
 				Labels: map[string]string{
 					GlobalLabelName: k.cfg.AmbassadorID,
 					CommitLabelName: commit.GetName() + "." + commit.GetNamespace(),
-					"build":         commit.GetName(),
 				},
 				OwnerReferences: []k8sTypesMetaV1.OwnerReference{
 					{
@@ -571,23 +583,34 @@ func (k *kale) calculateBuild(proj *Project, commit *ProjectCommit) []interface{
 					},
 				},
 			},
-			Spec: k8sTypesCoreV1.PodSpec{
-				Containers: []k8sTypesCoreV1.Container{
-					{
-						Name:  "kaniko",
-						Image: "gcr.io/kaniko-project/executor:v0.16.0",
-						Args: []string{
-							"--cache=true",
-							"--skip-tls-verify",
-							"--skip-tls-verify-pull",
-							"--skip-tls-verify-registry",
-							"--dockerfile=Dockerfile",
-							"--context=git://github.com/" + proj.Spec.GithubRepo + ".git#" + commit.Spec.Ref.String(),
-							"--destination=registry.ambassador/" + commit.Spec.Rev,
+			Spec: k8sTypesBatchV1.JobSpec{
+				BackoffLimit: int32Ptr(1),
+				Template: k8sTypesCoreV1.PodTemplateSpec{
+					ObjectMeta: k8sTypesMetaV1.ObjectMeta{
+						Labels: map[string]string{
+							GlobalLabelName: k.cfg.AmbassadorID,
+							CommitLabelName: commit.GetName() + "." + commit.GetNamespace(),
 						},
 					},
+					Spec: k8sTypesCoreV1.PodSpec{
+						Containers: []k8sTypesCoreV1.Container{
+							{
+								Name:  "kaniko",
+								Image: "gcr.io/kaniko-project/executor:v0.16.0",
+								Args: []string{
+									"--cache=true",
+									"--skip-tls-verify",
+									"--skip-tls-verify-pull",
+									"--skip-tls-verify-registry",
+									"--dockerfile=Dockerfile",
+									"--context=git://github.com/" + proj.Spec.GithubRepo + ".git#" + commit.Spec.Ref.String(),
+									"--destination=registry.ambassador/" + commit.Spec.Rev,
+								},
+							},
+						},
+						RestartPolicy: k8sTypesCoreV1.RestartPolicyNever,
+					},
 				},
-				RestartPolicy: k8sTypesCoreV1.RestartPolicyNever,
 			},
 		},
 	}
@@ -628,15 +651,16 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 				project = proj
 			}
 		}
-		var commitBuilders []*k8sTypesCoreV1.Pod
-		var commitRunners []*k8sTypesCoreV1.Pod
-		for _, pod := range snapshot.Pods {
-			if pod.GetLabels()[CommitLabelName] == commit.GetName()+"."+commit.GetNamespace() {
-				if pod.GetLabels()["build"] != "" {
-					commitBuilders = append(commitBuilders, pod)
-				} else {
-					commitRunners = append(commitRunners, pod)
-				}
+		var commitBuilders []*k8sTypesBatchV1.Job
+		for _, job := range snapshot.Jobs {
+			if job.GetLabels()[CommitLabelName] == commit.GetName()+"."+commit.GetNamespace() {
+				commitBuilders = append(commitBuilders, job)
+			}
+		}
+		var commitRunners []*k8sTypesAppsV1.StatefulSet
+		for _, statefulset := range snapshot.StatefulSets {
+			if statefulset.GetLabels()[CommitLabelName] == commit.GetName()+"."+commit.GetNamespace() {
+				commitRunners = append(commitRunners, statefulset)
 			}
 		}
 
@@ -647,7 +671,7 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 	}
 }
 
-func (k *kale) reconcileCommit(ctx context.Context, proj *Project, commit *ProjectCommit, builders, runners []*k8sTypesCoreV1.Pod) error {
+func (k *kale) reconcileCommit(ctx context.Context, proj *Project, commit *ProjectCommit, builders []*k8sTypesBatchV1.Job, runners []*k8sTypesAppsV1.StatefulSet) error {
 	ctx = dlog.WithLogger(ctx, dlog.GetLogger(ctx).WithField("commit", commit.GetName()+"."+commit.GetNamespace()))
 	log := dlog.GetLogger(ctx)
 
@@ -657,12 +681,13 @@ func (k *kale) reconcileCommit(ctx context.Context, proj *Project, commit *Proje
 		if len(builders) != 1 {
 			commitPhase = CommitPhase_Received
 		} else {
-			switch builders[0].Status.Phase {
-			case k8sTypesCoreV1.PodFailed:
-				commitPhase = CommitPhase_BuildFailed
-			case k8sTypesCoreV1.PodSucceeded:
+			if complete, _ := jobConditionMet(builders[0], k8sTypesBatchV1.JobComplete, k8sTypesCoreV1.ConditionTrue); complete {
+				// advance to next phase
 				commitPhase = CommitPhase_Deploying
-			default:
+			} else if failed, _ := jobConditionMet(builders[0], k8sTypesBatchV1.JobFailed, k8sTypesCoreV1.ConditionTrue); failed {
+				commitPhase = CommitPhase_BuildFailed
+			} else {
+				// keep waiting for one of the above to become true
 				commitPhase = CommitPhase_Building
 			}
 		}
@@ -670,12 +695,14 @@ func (k *kale) reconcileCommit(ctx context.Context, proj *Project, commit *Proje
 		if len(runners) != 1 {
 			commitPhase = CommitPhase_Deploying
 		} else {
-			switch runners[0].Status.Phase {
-			case k8sTypesCoreV1.PodFailed, k8sTypesCoreV1.PodSucceeded:
-				commitPhase = CommitPhase_DeployFailed
-			case k8sTypesCoreV1.PodRunning:
+			if runners[0].Status.ObservedGeneration == runners[0].ObjectMeta.Generation &&
+				runners[0].Status.CurrentRevision == runners[0].Status.UpdateRevision &&
+				runners[0].Status.ReadyReplicas >= *runners[0].Spec.Replicas {
+				// advance to next phase
 				commitPhase = CommitPhase_Deployed
-			default:
+			} else {
+				// TODO: Maybe inspect the pods that belong to this StatefulSet, in
+				// order to detect a "failed" state.
 				commitPhase = CommitPhase_Deploying
 			}
 		}
@@ -729,13 +756,17 @@ func (k *kale) reconcileCommit(ctx context.Context, proj *Project, commit *Proje
 		[]k8sSchema.GroupVersionKind{
 			{Group: "getambassador.io", Version: "v2", Kind: "Mapping"},
 			{Group: "", Version: "v1", Kind: "Service"},
-			{Group: "", Version: "v1", Kind: "Pod"},
+			{Group: "batch", Version: "v1", Kind: "Job"},
+			{Group: "apps", Version: "v1", Kind: "StatefulSet"},
 		},
 		manifests)
 	if err != nil {
 		log.Errorf("deploying ProjectCommit %q.%q: %v",
 			commit.GetName(), commit.GetNamespace(),
 			err)
+		if strings.Contains(err.Error(), "Forbidden: updates to statefulset spec for fields other than 'replicas', 'template', and 'updateStrategy' are forbidden") {
+			deleteResource("statefulset.v1.apps", commit.GetName(), commit.GetNamespace())
+		}
 	}
 
 	return nil
@@ -811,10 +842,12 @@ func (k *kale) calculateRun(proj *Project, commit *ProjectCommit) []interface{} 
 				},
 			},
 		},
-		&k8sTypesCoreV1.Pod{
+		// Use a StatefulSet (as opposed to a Deployment) so that the Pod name is
+		// friendlier.
+		&k8sTypesAppsV1.StatefulSet{
 			TypeMeta: k8sTypesMetaV1.TypeMeta{
-				APIVersion: "v1",
-				Kind:       "Pod",
+				APIVersion: "apps/v1",
+				Kind:       "StatefulSet",
 			},
 			ObjectMeta: k8sTypesMetaV1.ObjectMeta{
 				Name:      commit.GetName(),
@@ -834,11 +867,28 @@ func (k *kale) calculateRun(proj *Project, commit *ProjectCommit) []interface{} 
 					CommitLabelName: commit.GetName() + "." + commit.GetNamespace(),
 				},
 			},
-			Spec: k8sTypesCoreV1.PodSpec{
-				Containers: []k8sTypesCoreV1.Container{
-					{
-						Name:  "app",
-						Image: "127.0.0.1:31000/" + commit.Spec.Rev,
+			Spec: k8sTypesAppsV1.StatefulSetSpec{
+				Selector: &k8sTypesMetaV1.LabelSelector{
+					MatchLabels: map[string]string{
+						GlobalLabelName: k.cfg.AmbassadorID,
+						CommitLabelName: commit.GetName() + "." + commit.GetNamespace(),
+					},
+				},
+				ServiceName: commit.GetName(),
+				Template: k8sTypesCoreV1.PodTemplateSpec{
+					ObjectMeta: k8sTypesMetaV1.ObjectMeta{
+						Labels: map[string]string{
+							GlobalLabelName: k.cfg.AmbassadorID,
+							CommitLabelName: commit.GetName() + "." + commit.GetNamespace(),
+						},
+					},
+					Spec: k8sTypesCoreV1.PodSpec{
+						Containers: []k8sTypesCoreV1.Container{
+							{
+								Name:  "app",
+								Image: "127.0.0.1:31000/" + commit.Spec.Rev,
+							},
+						},
 					},
 				},
 			},
