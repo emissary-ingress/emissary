@@ -12,7 +12,7 @@
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Host\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"authenticationheaderrouting\",\"scope\":\"AmbassadorTest\"},\"name\":\"cleartext-host-authenticationheaderrouting\",\"namespace\":\"default\"},\"spec\":{\"acmeProvider\":{\"authority\":\"none\"},\"ambassador_id\":[\"authenticationheaderrouting\"],\"hostname\":\"*\",\"requestPolicy\":{\"insecure\":{\"action\":\"Route\"}},\"selector\":{\"matchLabels\":{\"hostname\":\"authenticationheaderrouting\"}}}}\n"
                     },
                     "clusterName": "",
-                    "creationTimestamp": "2020-02-28T17:40:04Z",
+                    "creationTimestamp": "2020-03-04T04:41:10Z",
                     "generation": 1,
                     "labels": {
                         "kat-ambassador-id": "authenticationheaderrouting",
@@ -20,9 +20,9 @@
                     },
                     "name": "cleartext-host-authenticationheaderrouting",
                     "namespace": "default",
-                    "resourceVersion": "23985",
+                    "resourceVersion": "27223",
                     "selfLink": "/apis/getambassador.io/v2/namespaces/default/hosts/cleartext-host-authenticationheaderrouting",
-                    "uid": "5a3c0d26-5a51-11ea-a663-163f3a62b77d"
+                    "uid": "5f1cb9d9-5dd2-11ea-a67a-06c41a568f95"
                 },
                 "spec": {
                     "acmeProvider": {
@@ -61,7 +61,7 @@
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"TLSContext\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"hostcrdmanualcontext\",\"scope\":\"AmbassadorTest\"},\"name\":\"manual-host-context\",\"namespace\":\"default\"},\"spec\":{\"ambassador_id\":[\"hostcrdmanualcontext\"],\"hosts\":[\"hostcrdmanualcontext\"],\"max_tls_version\":\"v1.3\",\"min_tls_version\":\"v1.2\",\"secret\":\"manual-secret\"}}\n"
                     },
                     "clusterName": "",
-                    "creationTimestamp": "2020-02-28T17:40:05Z",
+                    "creationTimestamp": "2020-03-04T04:41:12Z",
                     "generation": 1,
                     "labels": {
                         "kat-ambassador-id": "hostcrdmanualcontext",
@@ -69,9 +69,9 @@
                     },
                     "name": "manual-host-context",
                     "namespace": "default",
-                    "resourceVersion": "24081",
+                    "resourceVersion": "27299",
                     "selfLink": "/apis/getambassador.io/v2/namespaces/default/tlscontexts/manual-host-context",
-                    "uid": "5b42a54f-5a51-11ea-a663-163f3a62b77d"
+                    "uid": "5fdd7490-5dd2-11ea-a67a-06c41a568f95"
                 },
                 "spec": {
                     "ambassador_id": [
@@ -98,7 +98,7 @@
                         "getambassador.io/config": "---\napiVersion: ambassador/v1\nkind: AuthService\nname: authenticationheaderrouting-headerroutingauth\nauth_service: \"authenticationheaderrouting-headerroutingauth\"\nproto: http\npath_prefix: \"\"\ntimeout_ms: 5000\nallowed_authorization_headers:\n- X-Auth-Route\n- Extauth\nambassador_id: authenticationheaderrouting\n",
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v1\\nkind: AuthService\\nname: authenticationheaderrouting-headerroutingauth\\nauth_service: \\\"authenticationheaderrouting-headerroutingauth\\\"\\nproto: http\\npath_prefix: \\\"\\\"\\ntimeout_ms: 5000\\nallowed_authorization_headers:\\n- X-Auth-Route\\n- Extauth\\nambassador_id: authenticationheaderrouting\\n\"},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"authenticationheaderrouting\",\"scope\":\"AmbassadorTest\"},\"name\":\"authenticationheaderrouting\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"authenticationheaderrouting\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-02-28T17:40:03Z",
+                    "creationTimestamp": "2020-03-04T04:41:10Z",
                     "labels": {
                         "app.kubernetes.io/component": "ambassador-service",
                         "kat-ambassador-id": "authenticationheaderrouting",
@@ -106,24 +106,24 @@
                     },
                     "name": "authenticationheaderrouting",
                     "namespace": "default",
-                    "resourceVersion": "23975",
+                    "resourceVersion": "27211",
                     "selfLink": "/api/v1/namespaces/default/services/authenticationheaderrouting",
-                    "uid": "5a243a8b-5a51-11ea-a663-163f3a62b77d"
+                    "uid": "5eb943ec-5dd2-11ea-a67a-06c41a568f95"
                 },
                 "spec": {
-                    "clusterIP": "10.107.88.62",
+                    "clusterIP": "10.96.59.220",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "http",
-                            "nodePort": 30880,
+                            "nodePort": 31377,
                             "port": 80,
                             "protocol": "TCP",
                             "targetPort": 8080
                         },
                         {
                             "name": "https",
-                            "nodePort": 32102,
+                            "nodePort": 32631,
                             "port": 443,
                             "protocol": "TCP",
                             "targetPort": 8443
@@ -146,7 +146,7 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"authenticationheaderrouting\",\"scope\":\"AmbassadorTest\",\"service\":\"authenticationheaderrouting-admin\"},\"name\":\"authenticationheaderrouting-admin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"authenticationheaderrouting-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"authenticationheaderrouting\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-02-28T17:40:04Z",
+                    "creationTimestamp": "2020-03-04T04:41:10Z",
                     "labels": {
                         "kat-ambassador-id": "authenticationheaderrouting",
                         "scope": "AmbassadorTest",
@@ -154,17 +154,17 @@
                     },
                     "name": "authenticationheaderrouting-admin",
                     "namespace": "default",
-                    "resourceVersion": "23980",
+                    "resourceVersion": "27217",
                     "selfLink": "/api/v1/namespaces/default/services/authenticationheaderrouting-admin",
-                    "uid": "5a303fd0-5a51-11ea-a663-163f3a62b77d"
+                    "uid": "5f106e04-5dd2-11ea-a67a-06c41a568f95"
                 },
                 "spec": {
-                    "clusterIP": "10.100.94.156",
+                    "clusterIP": "10.104.242.249",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "authenticationheaderrouting-admin",
-                            "nodePort": 31615,
+                            "nodePort": 32148,
                             "port": 8877,
                             "protocol": "TCP",
                             "targetPort": 8877
@@ -187,19 +187,19 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"authenticationheaderrouting\",\"scope\":\"AmbassadorTest\"},\"name\":\"authenticationheaderrouting-headerroutingauth\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":80},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":443}],\"selector\":{\"backend\":\"authenticationheaderrouting-headerroutingauth\"}}}\n"
                     },
-                    "creationTimestamp": "2020-02-28T17:40:04Z",
+                    "creationTimestamp": "2020-03-04T04:41:11Z",
                     "labels": {
                         "kat-ambassador-id": "authenticationheaderrouting",
                         "scope": "AmbassadorTest"
                     },
                     "name": "authenticationheaderrouting-headerroutingauth",
                     "namespace": "default",
-                    "resourceVersion": "23995",
+                    "resourceVersion": "27233",
                     "selfLink": "/api/v1/namespaces/default/services/authenticationheaderrouting-headerroutingauth",
-                    "uid": "5a59a5a6-5a51-11ea-a663-163f3a62b77d"
+                    "uid": "5f37a57a-5dd2-11ea-a67a-06c41a568f95"
                 },
                 "spec": {
-                    "clusterIP": "10.96.94.38",
+                    "clusterIP": "10.109.41.209",
                     "ports": [
                         {
                             "name": "http",
@@ -232,19 +232,19 @@
                         "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind: Mapping\nname: AuthenticationHeaderRouting-target1\nprefix: /target/\nservice: http://authenticationheaderrouting-http-target1\nambassador_id: authenticationheaderrouting\n",
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v0\\nkind: Mapping\\nname: AuthenticationHeaderRouting-target1\\nprefix: /target/\\nservice: http://authenticationheaderrouting-http-target1\\nambassador_id: authenticationheaderrouting\\n\"},\"labels\":{\"kat-ambassador-id\":\"authenticationheaderrouting\",\"scope\":\"AmbassadorTest\"},\"name\":\"authenticationheaderrouting-http-target1\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8098},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8461}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
                     },
-                    "creationTimestamp": "2020-02-28T17:40:04Z",
+                    "creationTimestamp": "2020-03-04T04:41:10Z",
                     "labels": {
                         "kat-ambassador-id": "authenticationheaderrouting",
                         "scope": "AmbassadorTest"
                     },
                     "name": "authenticationheaderrouting-http-target1",
                     "namespace": "default",
-                    "resourceVersion": "23988",
+                    "resourceVersion": "27226",
                     "selfLink": "/api/v1/namespaces/default/services/authenticationheaderrouting-http-target1",
-                    "uid": "5a489fe3-5a51-11ea-a663-163f3a62b77d"
+                    "uid": "5f241f80-5dd2-11ea-a67a-06c41a568f95"
                 },
                 "spec": {
-                    "clusterIP": "10.105.137.186",
+                    "clusterIP": "10.96.55.152",
                     "ports": [
                         {
                             "name": "http",
@@ -277,19 +277,19 @@
                         "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind: Mapping\nname: AuthenticationHeaderRouting-target2\nprefix: /target/\nservice: http://authenticationheaderrouting-http-target2\nheaders:\n  X-Auth-Route: Route\nambassador_id: authenticationheaderrouting\n",
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v0\\nkind: Mapping\\nname: AuthenticationHeaderRouting-target2\\nprefix: /target/\\nservice: http://authenticationheaderrouting-http-target2\\nheaders:\\n  X-Auth-Route: Route\\nambassador_id: authenticationheaderrouting\\n\"},\"labels\":{\"kat-ambassador-id\":\"authenticationheaderrouting\",\"scope\":\"AmbassadorTest\"},\"name\":\"authenticationheaderrouting-http-target2\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8099},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8462}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
                     },
-                    "creationTimestamp": "2020-02-28T17:40:04Z",
+                    "creationTimestamp": "2020-03-04T04:41:10Z",
                     "labels": {
                         "kat-ambassador-id": "authenticationheaderrouting",
                         "scope": "AmbassadorTest"
                     },
                     "name": "authenticationheaderrouting-http-target2",
                     "namespace": "default",
-                    "resourceVersion": "23991",
+                    "resourceVersion": "27229",
                     "selfLink": "/api/v1/namespaces/default/services/authenticationheaderrouting-http-target2",
-                    "uid": "5a53137f-5a51-11ea-a663-163f3a62b77d"
+                    "uid": "5f2ce960-5dd2-11ea-a67a-06c41a568f95"
                 },
                 "spec": {
-                    "clusterIP": "10.111.5.250",
+                    "clusterIP": "10.101.254.151",
                     "ports": [
                         {
                             "name": "http",

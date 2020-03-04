@@ -12,7 +12,7 @@
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Host\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"tracingtest\",\"scope\":\"AmbassadorTest\"},\"name\":\"cleartext-host-tracingtest\",\"namespace\":\"default\"},\"spec\":{\"acmeProvider\":{\"authority\":\"none\"},\"ambassador_id\":[\"tracingtest\"],\"hostname\":\"*\",\"requestPolicy\":{\"insecure\":{\"action\":\"Route\"}},\"selector\":{\"matchLabels\":{\"hostname\":\"tracingtest\"}}}}\n"
                     },
                     "clusterName": "",
-                    "creationTimestamp": "2020-02-28T17:40:27Z",
+                    "creationTimestamp": "2020-03-04T04:41:54Z",
                     "generation": 1,
                     "labels": {
                         "kat-ambassador-id": "tracingtest",
@@ -20,9 +20,9 @@
                     },
                     "name": "cleartext-host-tracingtest",
                     "namespace": "default",
-                    "resourceVersion": "25261",
+                    "resourceVersion": "28673",
                     "selfLink": "/apis/getambassador.io/v2/namespaces/default/hosts/cleartext-host-tracingtest",
-                    "uid": "687b182a-5a51-11ea-a663-163f3a62b77d"
+                    "uid": "7927d98f-5dd2-11ea-a67a-06c41a568f95"
                 },
                 "spec": {
                     "acmeProvider": {
@@ -61,7 +61,7 @@
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"TLSContext\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"hostcrdmanualcontext\",\"scope\":\"AmbassadorTest\"},\"name\":\"manual-host-context\",\"namespace\":\"default\"},\"spec\":{\"ambassador_id\":[\"hostcrdmanualcontext\"],\"hosts\":[\"hostcrdmanualcontext\"],\"max_tls_version\":\"v1.3\",\"min_tls_version\":\"v1.2\",\"secret\":\"manual-secret\"}}\n"
                     },
                     "clusterName": "",
-                    "creationTimestamp": "2020-02-28T17:40:05Z",
+                    "creationTimestamp": "2020-03-04T04:41:12Z",
                     "generation": 1,
                     "labels": {
                         "kat-ambassador-id": "hostcrdmanualcontext",
@@ -69,9 +69,9 @@
                     },
                     "name": "manual-host-context",
                     "namespace": "default",
-                    "resourceVersion": "24081",
+                    "resourceVersion": "27299",
                     "selfLink": "/apis/getambassador.io/v2/namespaces/default/tlscontexts/manual-host-context",
-                    "uid": "5b42a54f-5a51-11ea-a663-163f3a62b77d"
+                    "uid": "5fdd7490-5dd2-11ea-a67a-06c41a568f95"
                 },
                 "spec": {
                     "ambassador_id": [
@@ -95,10 +95,9 @@
                 "kind": "Service",
                 "metadata": {
                     "annotations": {
-                        "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind: TracingService\nname: tracing\nservice: zipkin:9411\ndriver: zipkin\nambassador_id: tracingtest\n",
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v0\\nkind: TracingService\\nname: tracing\\nservice: zipkin:9411\\ndriver: zipkin\\nambassador_id: tracingtest\\n\"},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"tracingtest\",\"scope\":\"AmbassadorTest\"},\"name\":\"tracingtest\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"tracingtest\"},\"type\":\"NodePort\"}}\n"
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"tracingtest\",\"scope\":\"AmbassadorTest\"},\"name\":\"tracingtest\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"tracingtest\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-02-28T17:40:27Z",
+                    "creationTimestamp": "2020-03-04T04:41:50Z",
                     "labels": {
                         "app.kubernetes.io/component": "ambassador-service",
                         "kat-ambassador-id": "tracingtest",
@@ -106,24 +105,24 @@
                     },
                     "name": "tracingtest",
                     "namespace": "default",
-                    "resourceVersion": "25239",
+                    "resourceVersion": "28628",
                     "selfLink": "/api/v1/namespaces/default/services/tracingtest",
-                    "uid": "68484232-5a51-11ea-a663-163f3a62b77d"
+                    "uid": "76eefec8-5dd2-11ea-a67a-06c41a568f95"
                 },
                 "spec": {
-                    "clusterIP": "10.97.20.196",
+                    "clusterIP": "10.104.103.63",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "http",
-                            "nodePort": 30174,
+                            "nodePort": 32203,
                             "port": 80,
                             "protocol": "TCP",
                             "targetPort": 8080
                         },
                         {
                             "name": "https",
-                            "nodePort": 32240,
+                            "nodePort": 30630,
                             "port": 443,
                             "protocol": "TCP",
                             "targetPort": 8443
@@ -146,7 +145,7 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"tracingtest\",\"scope\":\"AmbassadorTest\",\"service\":\"tracingtest-admin\"},\"name\":\"tracingtest-admin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"tracingtest-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"tracingtest\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-02-28T17:40:27Z",
+                    "creationTimestamp": "2020-03-04T04:41:53Z",
                     "labels": {
                         "kat-ambassador-id": "tracingtest",
                         "scope": "AmbassadorTest",
@@ -154,17 +153,17 @@
                     },
                     "name": "tracingtest-admin",
                     "namespace": "default",
-                    "resourceVersion": "25244",
+                    "resourceVersion": "28656",
                     "selfLink": "/api/v1/namespaces/default/services/tracingtest-admin",
-                    "uid": "6850f967-5a51-11ea-a663-163f3a62b77d"
+                    "uid": "78c4668b-5dd2-11ea-a67a-06c41a568f95"
                 },
                 "spec": {
-                    "clusterIP": "10.96.110.60",
+                    "clusterIP": "10.102.44.54",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "tracingtest-admin",
-                            "nodePort": 31591,
+                            "nodePort": 32139,
                             "port": 8877,
                             "protocol": "TCP",
                             "targetPort": 8877
@@ -188,19 +187,19 @@
                         "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind: Mapping\nname: tracing_target_mapping\nprefix: /target/\nservice: tracingtest-http\nambassador_id: tracingtest\n",
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v0\\nkind: Mapping\\nname: tracing_target_mapping\\nprefix: /target/\\nservice: tracingtest-http\\nambassador_id: tracingtest\\n\"},\"labels\":{\"kat-ambassador-id\":\"tracingtest\",\"scope\":\"AmbassadorTest\"},\"name\":\"tracingtest-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8133},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8496}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
                     },
-                    "creationTimestamp": "2020-02-28T17:40:28Z",
+                    "creationTimestamp": "2020-03-04T04:41:54Z",
                     "labels": {
                         "kat-ambassador-id": "tracingtest",
                         "scope": "AmbassadorTest"
                     },
                     "name": "tracingtest-http",
                     "namespace": "default",
-                    "resourceVersion": "25272",
+                    "resourceVersion": "28679",
                     "selfLink": "/api/v1/namespaces/default/services/tracingtest-http",
-                    "uid": "688d4f87-5a51-11ea-a663-163f3a62b77d"
+                    "uid": "79456dc5-5dd2-11ea-a67a-06c41a568f95"
                 },
                 "spec": {
-                    "clusterIP": "10.101.156.192",
+                    "clusterIP": "10.101.108.235",
                     "ports": [
                         {
                             "name": "http",
@@ -230,26 +229,27 @@
                 "kind": "Service",
                 "metadata": {
                     "annotations": {
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"tracingtest\",\"scope\":\"AmbassadorTest\"},\"name\":\"zipkin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":9411,\"targetPort\":\"http\"}],\"selector\":{\"app\":\"zipkin\"},\"type\":\"NodePort\"}}\n"
+                        "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind: TracingService\nname: tracing\nservice: zipkin:9411\ndriver: zipkin\nambassador_id: tracingtest\n",
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v0\\nkind: TracingService\\nname: tracing\\nservice: zipkin:9411\\ndriver: zipkin\\nambassador_id: tracingtest\\n\"},\"labels\":{\"kat-ambassador-id\":\"tracingtest\",\"scope\":\"AmbassadorTest\"},\"name\":\"zipkin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":9411,\"targetPort\":\"http\"}],\"selector\":{\"app\":\"zipkin\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-02-28T17:40:27Z",
+                    "creationTimestamp": "2020-03-04T04:41:48Z",
                     "labels": {
                         "kat-ambassador-id": "tracingtest",
                         "scope": "AmbassadorTest"
                     },
                     "name": "zipkin",
                     "namespace": "default",
-                    "resourceVersion": "25253",
+                    "resourceVersion": "28590",
                     "selfLink": "/api/v1/namespaces/default/services/zipkin",
-                    "uid": "6868ad95-5a51-11ea-a663-163f3a62b77d"
+                    "uid": "75721df9-5dd2-11ea-a67a-06c41a568f95"
                 },
                 "spec": {
-                    "clusterIP": "10.98.162.11",
+                    "clusterIP": "10.97.200.57",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "http",
-                            "nodePort": 30642,
+                            "nodePort": 30579,
                             "port": 9411,
                             "protocol": "TCP",
                             "targetPort": "http"

@@ -240,6 +240,80 @@
                                                             "runtime_fraction": {
                                                                 "default_value": {
                                                                     "denominator": "HUNDRED",
+                                                                    "numerator": 50
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8500_default"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8500_default",
+                                                            "cors": {
+                                                                "allow_methods": "POST, GET, OPTIONS",
+                                                                "allow_origin_string_match": [
+                                                                    {
+                                                                        "exact": "http://foo.example.com"
+                                                                    }
+                                                                ],
+                                                                "filter_enabled": {
+                                                                    "default_value": {
+                                                                        "denominator": "HUNDRED",
+                                                                        "numerator": 100
+                                                                    },
+                                                                    "runtime_key": "routing.cors_enabled.ab86de585a684254d5458bdeb01da4fba36c21cc"
+                                                                }
+                                                            },
+                                                            "prefix_rewrite": "/edge_stack_ui/edge_stack/",
+                                                            "priority": null,
+                                                            "timeout": "60.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "prefix": "/edge_stack/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 50
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8500_default"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8500_default",
+                                                            "cors": {
+                                                                "allow_methods": "POST, GET, OPTIONS",
+                                                                "allow_origin_string_match": [
+                                                                    {
+                                                                        "exact": "http://foo.example.com"
+                                                                    }
+                                                                ],
+                                                                "filter_enabled": {
+                                                                    "default_value": {
+                                                                        "denominator": "HUNDRED",
+                                                                        "numerator": 100
+                                                                    },
+                                                                    "runtime_key": "routing.cors_enabled.ab86de585a684254d5458bdeb01da4fba36c21cc"
+                                                                }
+                                                            },
+                                                            "prefix_rewrite": "/edge_stack_ui/edge_stack/",
+                                                            "priority": null,
+                                                            "timeout": "60.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/edge_stack/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
                                                                 "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8500_default"
@@ -674,6 +748,90 @@
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8500_default"
+                                                            },
+                                                            "safe_regex": {
+                                                                "google_re2": {
+                                                                    "max_program_size": 200
+                                                                },
+                                                                "regex": "^/$"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8500_default",
+                                                            "cors": {
+                                                                "allow_methods": "POST, GET, OPTIONS",
+                                                                "allow_origin_string_match": [
+                                                                    {
+                                                                        "exact": "http://foo.example.com"
+                                                                    }
+                                                                ],
+                                                                "filter_enabled": {
+                                                                    "default_value": {
+                                                                        "denominator": "HUNDRED",
+                                                                        "numerator": 100
+                                                                    },
+                                                                    "runtime_key": "routing.cors_enabled.680a6fad8cb1cf2ad5fce0be9da026e1e0f1b76f"
+                                                                }
+                                                            },
+                                                            "prefix_rewrite": "/edge_stack_ui/",
+                                                            "priority": null,
+                                                            "timeout": "60.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8500_default"
+                                                            },
+                                                            "safe_regex": {
+                                                                "google_re2": {
+                                                                    "max_program_size": 200
+                                                                },
+                                                                "regex": "^/$"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8500_default",
+                                                            "cors": {
+                                                                "allow_methods": "POST, GET, OPTIONS",
+                                                                "allow_origin_string_match": [
+                                                                    {
+                                                                        "exact": "http://foo.example.com"
+                                                                    }
+                                                                ],
+                                                                "filter_enabled": {
+                                                                    "default_value": {
+                                                                        "denominator": "HUNDRED",
+                                                                        "numerator": 100
+                                                                    },
+                                                                    "runtime_key": "routing.cors_enabled.680a6fad8cb1cf2ad5fce0be9da026e1e0f1b76f"
+                                                                }
+                                                            },
+                                                            "prefix_rewrite": "/edge_stack_ui/",
+                                                            "priority": null,
+                                                            "timeout": "60.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
                                                             "prefix": "/",
                                                             "runtime_fraction": {
                                                                 "default_value": {
@@ -749,8 +907,7 @@
                                     "xff_num_trusted_hops": 0
                                 }
                             }
-                        ],
-                        "use_proxy_proto": false
+                        ]
                     }
                 ],
                 "listener_filters": [],

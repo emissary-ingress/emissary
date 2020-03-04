@@ -18,7 +18,11 @@ fi
 
 if ! git -C ambassador remote get-url origin &>/dev/null; then
 	set -x
-	git -C ambassador remote add origin https://github.com/datawire/ambassador
+	if git remote | xargs -n1 git remote get-url --all | grep -q private; then
+		git -C ambassador remote add origin git@github.com:datawire/ambassador-private
+	else
+		git -C ambassador remote add origin https://github.com/datawire/ambassador
+	fi
 	git -C ambassador remote set-url --push origin no_push
 fi
 

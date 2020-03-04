@@ -2,8 +2,6 @@
 set -e
 
 eval "$(grep BUILD_VERSION /buildroot/apro.version 2>/dev/null)"
-mkdir -p /buildroot/bin-darwin
-(cd /buildroot/apro && GOOS=darwin go build -trimpath ${BUILD_VERSION:+ -ldflags "-X main.Version=$BUILD_VERSION" } -o /buildroot/bin-darwin ./cmd/aes-plugin-runner)
 
 # Create symlinks to the multi-call binary so the original names can be used in
 # the builder shell easily (from the shell PATH).
