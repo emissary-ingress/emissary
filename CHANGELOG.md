@@ -3,9 +3,13 @@
 This file documents all notable changes to Ambassador Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
+## v6.1.4
+
+- Upgrade from Ambassador 1.2.0 to 1.2.1.
+
 ## v6.1.3
 
-- Upgrade from Ambassador 1.1.1 to 1.1.2.
+- Upgrade from Ambassador 1.1.1 to 1.2.0.
 
 ## v6.1.2
 
