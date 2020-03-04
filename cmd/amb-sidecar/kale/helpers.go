@@ -177,7 +177,7 @@ func podLogs(name string) string {
 }
 
 // Does a kubectl apply on the passed in yaml.
-func apply(yaml string) (string, error) {
+func applyStr(yaml string) (string, error) {
 	cmd := exec.Command("kubectl", "apply", "-f", "-")
 	cmd.Stdin = strings.NewReader(yaml)
 	out := strings.Builder{}

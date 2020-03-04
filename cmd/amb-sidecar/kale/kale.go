@@ -254,16 +254,18 @@ func (k *kale) handlePush(r *http.Request, key string) httpResult {
 		return httpResult{404, fmt.Sprintf("no such project %s", key)}
 	}
 
-	dec := json.NewDecoder(r.Body)
-	// todo: better id
-	build := fmt.Sprintf("%d", time.Now().Unix())
-	env := BuildEnv{Build: build, Project: proj}
-	dec.Decode(&env.Push)
-	log.Printf("PUSH: %q", env)
-	out, err := apply(evalTemplate(BUILD, env))
+	var push Push
+	if err := json.NewDecoder(r.Body).Decode(&push); err != nil {
+		log.Printf("WEBHOOK PARSE ERROR: %v", err)
+		return httpResult{400, err.Error()}
+	}
+
+	buildID := fmt.Sprintf("%d", time.Now().Unix()) // todo: better id
+
+	out, err := startBuild(proj, buildID, push.Ref, push.Head.Id)
 	if err != nil {
-		log.Printf("ERROR: %s\n%s", err.Error(), out)
-		postStatus(env.StatusUrl(),
+		log.Printf("ERROR: %v", err)
+		postStatus(fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, push.Head.Id),
 			GitHubStatus{
 				State:       "error",
 				TargetUrl:   fmt.Sprintf("http://%s/edge_stack/", proj.Spec.Host),
@@ -272,10 +274,10 @@ func (k *kale) handlePush(r *http.Request, key string) httpResult {
 			},
 			proj.Spec.GithubToken)
 	} else {
-		postStatus(env.StatusUrl(),
+		postStatus(fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, push.Head.Id),
 			GitHubStatus{
 				State:       "pending",
-				TargetUrl:   proj.LogUrl(build),
+				TargetUrl:   proj.LogUrl(buildID),
 				Description: "build started",
 				Context:     "aes",
 			},
@@ -285,9 +287,10 @@ func (k *kale) handlePush(r *http.Request, key string) httpResult {
 }
 
 type BuildEnv struct {
-	Build   string
-	Push    Push
 	Project Project
+	Build   string
+	Ref     string
+	Commit  string
 }
 
 type Push struct {
@@ -301,19 +304,16 @@ type Push struct {
 	}
 }
 
-func (e BuildEnv) StatusUrl() string {
-	return strings.ReplaceAll(e.Push.Repository.StatusesUrl, "{sha}", e.Push.Head.Id)
-}
+func startBuild(proj Project, buildID, ref, commit string) (string, error) {
+	// Note: If the kaniko destination is set to the full service name
+	// (registry.ambassador.svc.cluster.local), then we can't seem to push
+	// to the no matter how we tweak the settings. I assume this is due to
+	// some special handling of .local domains somewhere.
+	//
+	// todo: the ambassador namespace is hardcoded below in the registry
+	//       we to which we push
 
-// Note: If the kaniko destination is set to the full service name
-// (registry.ambassador.svc.cluster.local), then we can't seem to push
-// to the no matter how we tweak the settings. I assume this is due to
-// some special handling of .local domains somewhere.
-//
-// todo: the ambassador namespace is hardcoded below in the registry
-//       we to which we push
-
-var BUILD = `
+	manifests := `
 ---
 apiVersion: v1
 kind: Pod
@@ -321,11 +321,11 @@ metadata:
   name: {{.Project.Metadata.Name}}-build-{{.Build}}
   namespace: {{.Project.Metadata.Namespace}}
   annotations:
-    statusesUrl: "{{.StatusUrl}}"
+    statusesUrl: "https://api.github.com/repos/{{.Project.Spec.GithubRepo}}/statuses/{{.Commit}}"
   labels:
     kale: "0.0"
     project: "{{.Project.Metadata.Name}}"
-    commit: "{{.Push.Head.Id}}"
+    commit: "{{.Commit}}"
     build: "{{.Build}}"
   ownerReferences:
     - apiVersion: getambassador.io/v2
@@ -344,10 +344,25 @@ spec:
            "--skip-tls-verify-pull",
            "--skip-tls-verify-registry",
            "--dockerfile=Dockerfile",
-           "--context={{.Push.Repository.GitUrl}}#{{.Push.Ref}}",
-           "--destination=registry.ambassador/{{.Push.Head.Id}}"]
+           "--context=git://github.com/{{.Project.Spec.GithubRepo}}.git#{{.Ref}}",
+           "--destination=registry.ambassador/{{.Commit}}"]
   restartPolicy: Never
 `
+
+	env := BuildEnv{
+		Project: proj,
+		Build:   buildID,
+		Ref:     ref,
+		Commit:  commit,
+	}
+	log.Printf("PUSH: %q", env)
+
+	out, err := applyStr(evalTemplate(manifests, env))
+	if err != nil {
+		return "", fmt.Errorf("%w\n%s", err, out)
+	}
+	return string(out), nil
+}
 
 func (k *kale) reconcilePods(pods []*k8sTypesCoreV1.Pod) {
 	cutoff := time.Now().Add(-5 * 60 * time.Second)
@@ -403,10 +418,9 @@ func (k *kale) reconcilePods(pods []*k8sTypesCoreV1.Pod) {
 			},
 				proj.Spec.GithubToken)
 		case k8sTypesCoreV1.PodSucceeded:
-			run := evalTemplate(RUN, RunEnv{Project: proj, Commit: pod.GetLabels()["commit"]})
-			out, err := apply(run)
+			_, err := startRun(proj, pod.GetLabels()["commit"])
 			if err != nil {
-				msg := fmt.Sprintf("ERROR: %s\n%s", err.Error(), out)
+				msg := fmt.Sprintf("ERROR: %v", err)
 				log.Print(msg)
 				if len(msg) > 140 {
 					msg = msg[len(msg)-140:]
@@ -441,7 +455,8 @@ type RunEnv struct {
 	Commit  string
 }
 
-var RUN = `
+func startRun(proj Project, commit string) (string, error) {
+	manifests := `
 ---
 apiVersion: getambassador.io/v2
 kind: Mapping
@@ -505,3 +520,10 @@ spec:
   - name: app
     image: 127.0.0.1:31000/{{.Commit}}
 `
+
+	out, err := applyStr(evalTemplate(manifests, RunEnv{Project: proj, Commit: commit}))
+	if err != nil {
+		return "", fmt.Errorf("%w\n%s", err, out)
+	}
+	return string(out), nil
+}
