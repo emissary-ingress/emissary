@@ -4,7 +4,7 @@
         "tracingtest-http.default.1": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ],
-        "tracingtest.default.1": [
+        "zipkin.default.1": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ]
     },
@@ -220,22 +220,21 @@
             "serialization": "ambassador_id: tracingtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingtest\n  scope: AmbassadorTest\nname: tracing_target_mapping\nnamespace: default\nprefix: /target/\nservice: tracingtest-http\n",
             "service": "tracingtest-http"
         },
-        "tracingtest.default.1": {
+        "zipkin.default.1": {
             "_referenced_by": {},
             "ambassador_id": "tracingtest",
             "apiVersion": "getambassador.io/v0",
             "driver": "zipkin",
             "kind": "TracingService",
-            "location": "tracingtest.default.1",
+            "location": "zipkin.default.1",
             "metadata_labels": {
-                "app.kubernetes.io/component": "ambassador-service",
                 "kat-ambassador-id": "tracingtest",
                 "scope": "AmbassadorTest"
             },
             "name": "tracing",
             "namespace": "default",
-            "rkey": "tracingtest.default.1",
-            "serialization": "ambassador_id: tracingtest\napiVersion: ambassador/v0\ndriver: zipkin\nkind: TracingService\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tracingtest\n  scope: AmbassadorTest\nname: tracing\nnamespace: default\nservice: zipkin:9411\n",
+            "rkey": "zipkin.default.1",
+            "serialization": "ambassador_id: tracingtest\napiVersion: ambassador/v0\ndriver: zipkin\nkind: TracingService\nmetadata_labels:\n  kat-ambassador-id: tracingtest\n  scope: AmbassadorTest\nname: tracing\nnamespace: default\nservice: zipkin:9411\n",
             "service": "zipkin:9411"
         }
     },
@@ -403,7 +402,6 @@
             "driver": "zipkin",
             "kind": "TracingService",
             "metadata_labels": {
-                "app.kubernetes.io/component": "ambassador-service",
                 "kat-ambassador-id": "tracingtest",
                 "scope": "AmbassadorTest"
             },
