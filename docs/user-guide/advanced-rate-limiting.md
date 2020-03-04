@@ -28,7 +28,7 @@ Imagine the backend service is a Rust-y application that can only handle 3 reque
 We update the mapping for the `quote` service to add a request label `backend` to the route as part of a `request_label_group`:
 
 ```yaml
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: quote-backend
@@ -41,12 +41,12 @@ spec:
         - backend
 ```
 
-*Note* If you're modifying an existing mapping, make sure you to update the apiVersion to `v1` as above from `v0`.
+*Note* If you're modifying an existing mapping, make sure you to update the apiVersion to `v2` as above from `v1`.
 
 We then need to configure the rate limit for the backend service. Create a new YAML file, `backend-ratelimit.yaml`, and put the following configuration into the file.
 
 ```yaml
-apiVersion: getambassador.io/v1beta1
+apiVersion: getambassador.io/v2
 kind: RateLimit
 metadata:
   name: backend-rate-limit
@@ -67,7 +67,7 @@ Deploy the rate limit with `kubectl apply -f backend-ratelimit.yaml`. (Make sure
 Suppose you've rewritten the quote backend service in Golang, and it's humming along nicely. You then discover that some users are taking advantage of this speed to sometimes cause a big spike in requests. You want to make sure that your API doesn't get overwhelmed by any single user. We use the `remote_address` special value in our mapping, which will automatically label all requests with the calling IP address:
 
 ```yaml
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: quote-backend
@@ -83,7 +83,7 @@ spec:
 We then update our rate limits to limit on `remote_address`:
 
 ```yaml
-apiVersion: getambassador.io/v1beta1
+apiVersion: getambassador.io/v2
 kind: RateLimit
 metadata:
   name: backend-rate-limit
@@ -105,7 +105,7 @@ You've dramatically improved availability of the quote backend service, thanks t
 * We're going to implement a global rate limit on `GET` requests, but not `POST` requests.
 
 ```yaml
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: quote-backend
@@ -124,7 +124,7 @@ spec:
 When we add multiple criteria to a pattern, the entire pattern matches when ANY of the rules match (i.e., a logical OR). A pattern match then triggers a rate limit event. Our rate limiting configuration becomes:
 
 ```yaml
-apiVersion: getambassador.io/v1beta1
+apiVersion: getambassador.io/v2
 kind: RateLimit
 metadata:
   name: backend-rate-limit
@@ -176,7 +176,7 @@ spec:
 Sometimes, you may have an API that cannot handle as much load as others in your cluster. In this case, a global rate limit may not be enough to ensure this API is not overloaded with requests from a user. To protect this API, you will need to create a label that tells Ambassador Edge Stack to apply a stricter limit on requests. With the above global rate limit configuration rate limiting based on `remote_address`, you will need to add a request label to the services `Mapping`.
 
 ```yaml
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: quote-backend

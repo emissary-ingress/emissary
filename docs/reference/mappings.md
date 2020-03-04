@@ -86,7 +86,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v1
+      apiVersion: ambassador/v2
       kind:  Mapping
       name:  httpbin-mapping
       prefix: /httpbin/
@@ -110,7 +110,7 @@ spec:
   service: http://httpbin.org
 ```
 
-If you're new to Ambassador, start with the CRD approach. Note that you *must* use the `getambassador.io/v1` `apiVersion` as noted above.
+If you're new to Ambassador, start with the CRD approach. Note that you *must* use the `getambassador.io/v2` `apiVersion` as noted above.
 
 ## Additional Example Mappings
 
