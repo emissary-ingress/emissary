@@ -177,3 +177,186 @@ There are (primarily) two backend endpoints that the UI leverages:
 /edge_stack/api/snapshot --> Returns the raw watt snapshot.
 /edge_stack/api/apply --> Applies kubernetes yaml to the cluster.
 /edge_stack/api/delete --> Deletes a kubernetes resource from the cluster.
+
+How do I hack on the AES metrics reporting to Metriton?
+-------------------------------------------------------
+
+AES collects usage metrics and sends them to Metriton, our backend metrics 
+wrangler and database. You might hear the term "scout" as the initial version 
+of Metriton was called the "Scout API".
+
+In AES, different metrics data points are sent from both the A/OSS python 
+component (see `ambscout.py`) and the `phonehome.go` library. This guide is 
+only concerned with the Golang phonehome.go specific to AES.
+
+1. Ensure the `SCOUT_DISABLE` environment variable is NOT SET in your 
+ambassador deployment.
+
+2. In `lib/metriton/phonehome.go`, you might want to change the following 
+constants:
+   - `phoneHomeEveryPeriod` --> Normally, AES would PhoneHome every 12 hours. 
+   For testing purposes, you might want to run this routine every 5 minutes 
+   for example. (5 * time.Minute)
+   - `metritonEndpoint` --> Instead of sending metrics directly to the 
+   production Metriton (and thus polluting production metrics data), you might 
+   want to change the endpoint to `https://kubernaut.io/beta/scout`.
+   
+   Watch out not to commit any unintended change to these constants! 
+
+Apart from reporting license information, AES will report usage data of 
+licensed-features usage in this format:
+   
+   ```json
+    {
+       "id":"unregistered",
+       "contact":"",
+       "features":[
+          { "name":"authfilter-service", "limit":5, "usage":0, "max_usage":1 },
+          { "name":"devportal-services", "limit":5, "usage":1, "max_usage":1 },
+          { "name":"ratelimit-service", "limit":5, "usage":0, "max_usage":5 }
+       ],
+       "component":"ambassador-sidecar",
+       "user_agent":"Go-http-client/1.1"
+    }
+   ```
+
+You may use the following manifests to easily get a working environment 
+allowing you to use licensed features and generate some usage data points:
+
+1. authfilter-service
+
+   ```yaml
+   ---
+   apiVersion: getambassador.io/v2
+   kind: Filter
+   metadata:
+     name: example-jwt-filter
+     namespace: ambassador
+   spec:
+     JWT:
+       insecureTLS: true
+       jwksURI: "https://getambassador-demo.auth0.com/.well-known/jwks.json"
+       validAlgorithms:
+         - "none"
+   ---
+   apiVersion: getambassador.io/v2
+   kind: FilterPolicy
+   metadata:
+     name: auth-filter-policy
+     namespace: ambassador
+   spec:
+     rules:
+       - host: "*"
+         path: /auth-filter-policy/
+         filters:
+           - name: "example-jwt-filter"
+   ```
+   
+   Send any request to `/auth-filter-policy/` to increment usage of the 
+   `authfilter-service` feature. This feature is tracking Requests Per Second
+    usage (RPS).
+
+2. ratelimit-service
+
+   ```yaml
+    apiVersion: getambassador.io/v2
+    kind: Mapping
+    metadata:
+      name: backend-rate-limit
+      namespace: ambassador
+    spec:
+      prefix: /backend-rate-limit/
+      service: quote
+      labels:
+        ambassador:
+          - request_label_group:
+              - backend
+    ---
+    apiVersion: getambassador.io/v2
+    kind: RateLimit
+    metadata:
+      name: backend-rate-limit
+      namespace: ambassador
+    spec:
+      domain: ambassador
+      limits:
+        - pattern: [{generic_key: backend}]
+          rate: 30
+          unit: minute
+   ```
+   
+   Send any request to `/backend-rate-limit/` to increment usage of the 
+   `ratelimit-service` feature. This feature is tracking Requests Per Second 
+   usage (RPS).
+
+3. devportal-services
+
+   ```yaml
+    ---
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: petstore
+      namespace: ambassador
+    spec:
+      ports:
+        - name: backend
+          port: 8080
+          targetPort: 8080
+      selector:
+        app: petstore
+    ---
+    apiVersion: getambassador.io/v2
+    kind: Mapping
+    metadata:
+      name: petstore
+      namespace: ambassador
+    spec:
+      prefix: /petstore/
+      service: petstore:8080
+    ---
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: petstore
+      namespace: ambassador
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: petstore
+      strategy:
+        type: RollingUpdate
+      template:
+        metadata:
+          labels:
+            app: petstore
+        spec:
+          containers:
+            - name: backend
+              image: agervais/petstore-backend:latest
+              imagePullPolicy: Always
+              ports:
+                - name: http
+                  containerPort: 8080
+   ```
+
+   This feature is tracking the number of published services with API 
+   documentation (Count).
+
+If you want to dig deeper, you may want to inspect Redis, as all rate-limiting 
+data points are stored in Redis
+
+   ```sh
+   # Exec into the running Redis pod
+   k exec -it ambassador-redis-[POD ID] -n ambassador -- /bin/sh
+   
+   # Start the redis client, which will open a redis> prompt.
+   redis-cli
+
+   # Start inspecting the content of the data store.
+   keys *
+   get ratelimit-service-m
+   ttl ratelimit-service-m
+   del ratelimit-service-m
+   ```
