@@ -350,6 +350,50 @@
                                                             "runtime_fraction": {
                                                                 "default_value": {
                                                                     "denominator": "HUNDRED",
+                                                                    "numerator": 50
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8500_tcp_namespace"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8500_tcp_namespace",
+                                                            "prefix_rewrite": "/edge_stack_ui/edge_stack/",
+                                                            "priority": null,
+                                                            "timeout": "60.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "prefix": "/edge_stack/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 50
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8500_tcp_namespace"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8500_tcp_namespace",
+                                                            "prefix_rewrite": "/edge_stack_ui/edge_stack/",
+                                                            "priority": null,
+                                                            "timeout": "60.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/edge_stack/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
                                                                 "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8500_tcp_namespace"
@@ -516,6 +560,60 @@
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8500_tcp_namespace"
+                                                            },
+                                                            "safe_regex": {
+                                                                "google_re2": {
+                                                                    "max_program_size": 200
+                                                                },
+                                                                "regex": "^/$"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8500_tcp_namespace",
+                                                            "prefix_rewrite": "/edge_stack_ui/",
+                                                            "priority": null,
+                                                            "timeout": "60.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8500_tcp_namespace"
+                                                            },
+                                                            "safe_regex": {
+                                                                "google_re2": {
+                                                                    "max_program_size": 200
+                                                                },
+                                                                "regex": "^/$"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8500_tcp_namespace",
+                                                            "prefix_rewrite": "/edge_stack_ui/",
+                                                            "priority": null,
+                                                            "timeout": "60.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
                                                             "prefix": "/",
                                                             "runtime_fraction": {
                                                                 "default_value": {
@@ -561,8 +659,7 @@
                                     "xff_num_trusted_hops": 0
                                 }
                             }
-                        ],
-                        "use_proxy_proto": false
+                        ]
                     },
                     {
                         "filter_chain_match": {
@@ -654,6 +751,31 @@
                                                             "runtime_fraction": {
                                                                 "default_value": {
                                                                     "denominator": "HUNDRED",
+                                                                    "numerator": 50
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8500_tcp_namespace"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8500_tcp_namespace",
+                                                            "prefix_rewrite": "/edge_stack_ui/edge_stack/",
+                                                            "priority": null,
+                                                            "timeout": "60.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/edge_stack/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
                                                                 "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8500_tcp_namespace"
@@ -744,13 +866,18 @@
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
-                                                            "prefix": "/",
                                                             "runtime_fraction": {
                                                                 "default_value": {
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
                                                                 "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8500_tcp_namespace"
+                                                            },
+                                                            "safe_regex": {
+                                                                "google_re2": {
+                                                                    "max_program_size": 200
+                                                                },
+                                                                "regex": "^/$"
                                                             }
                                                         },
                                                         "route": {
@@ -763,6 +890,36 @@
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8500_tcp_namespace"
+                                                            },
+                                                            "safe_regex": {
+                                                                "google_re2": {
+                                                                    "max_program_size": 200
+                                                                },
+                                                                "regex": "^/$"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8500_tcp_namespace",
+                                                            "prefix_rewrite": "/edge_stack_ui/",
+                                                            "priority": null,
+                                                            "timeout": "60.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
                                                             "prefix": "/",
                                                             "runtime_fraction": {
                                                                 "default_value": {
@@ -803,8 +960,7 @@
                                     }
                                 ]
                             }
-                        },
-                        "use_proxy_proto": false
+                        }
                     },
                     {
                         "filter_chain_match": {
@@ -896,7 +1052,7 @@
                                                             "runtime_fraction": {
                                                                 "default_value": {
                                                                     "denominator": "HUNDRED",
-                                                                    "numerator": 100
+                                                                    "numerator": 50
                                                                 },
                                                                 "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8500_tcp_namespace"
                                                             }
@@ -906,223 +1062,6 @@
                                                             "prefix_rewrite": "/edge_stack_ui/edge_stack/",
                                                             "priority": null,
                                                             "timeout": "60.000s"
-                                                        }
-                                                    },
-                                                    {
-                                                        "match": {
-                                                            "case_sensitive": true,
-                                                            "headers": [
-                                                                {
-                                                                    "exact_match": "https",
-                                                                    "name": "x-forwarded-proto"
-                                                                }
-                                                            ],
-                                                            "prefix": "/ambassador/v0/check_ready",
-                                                            "runtime_fraction": {
-                                                                "default_value": {
-                                                                    "denominator": "HUNDRED",
-                                                                    "numerator": 100
-                                                                },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_tcp_namespace"
-                                                            }
-                                                        },
-                                                        "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877_tcp_namespace",
-                                                            "prefix_rewrite": "/ambassador/v0/check_ready",
-                                                            "priority": null,
-                                                            "timeout": "10.000s"
-                                                        }
-                                                    },
-                                                    {
-                                                        "match": {
-                                                            "case_sensitive": true,
-                                                            "headers": [
-                                                                {
-                                                                    "exact_match": "https",
-                                                                    "name": "x-forwarded-proto"
-                                                                }
-                                                            ],
-                                                            "prefix": "/ambassador/v0/check_alive",
-                                                            "runtime_fraction": {
-                                                                "default_value": {
-                                                                    "denominator": "HUNDRED",
-                                                                    "numerator": 100
-                                                                },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_tcp_namespace"
-                                                            }
-                                                        },
-                                                        "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877_tcp_namespace",
-                                                            "prefix_rewrite": "/ambassador/v0/check_alive",
-                                                            "priority": null,
-                                                            "timeout": "10.000s"
-                                                        }
-                                                    },
-                                                    {
-                                                        "match": {
-                                                            "case_sensitive": true,
-                                                            "headers": [
-                                                                {
-                                                                    "exact_match": "https",
-                                                                    "name": "x-forwarded-proto"
-                                                                }
-                                                            ],
-                                                            "prefix": "/ambassador/v0/",
-                                                            "runtime_fraction": {
-                                                                "default_value": {
-                                                                    "denominator": "HUNDRED",
-                                                                    "numerator": 100
-                                                                },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_tcp_namespace"
-                                                            }
-                                                        },
-                                                        "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877_tcp_namespace",
-                                                            "prefix_rewrite": "/ambassador/v0/",
-                                                            "priority": null,
-                                                            "timeout": "10.000s"
-                                                        }
-                                                    },
-                                                    {
-                                                        "match": {
-                                                            "case_sensitive": true,
-                                                            "prefix": "/",
-                                                            "runtime_fraction": {
-                                                                "default_value": {
-                                                                    "denominator": "HUNDRED",
-                                                                    "numerator": 100
-                                                                },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8500_tcp_namespace"
-                                                            }
-                                                        },
-                                                        "route": {
-                                                            "cluster": "cluster_127_0_0_1_8500_tcp_namespace",
-                                                            "prefix_rewrite": "/edge_stack_ui/",
-                                                            "priority": null,
-                                                            "timeout": "60.000s"
-                                                        }
-                                                    },
-                                                    {
-                                                        "match": {
-                                                            "case_sensitive": true,
-                                                            "prefix": "/",
-                                                            "runtime_fraction": {
-                                                                "default_value": {
-                                                                    "denominator": "HUNDRED",
-                                                                    "numerator": 100
-                                                                },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8500_tcp_namespace"
-                                                            }
-                                                        },
-                                                        "route": {
-                                                            "cluster": "cluster_127_0_0_1_8500_tcp_namespace",
-                                                            "prefix_rewrite": "/edge_stack_ui/",
-                                                            "priority": null,
-                                                            "timeout": "60.000s"
-                                                        }
-                                                    }
-                                                ]
-                                            }
-                                        ]
-                                    },
-                                    "server_name": "envoy",
-                                    "stat_prefix": "ingress_http",
-                                    "use_remote_address": true,
-                                    "xff_num_trusted_hops": 0
-                                }
-                            }
-                        ],
-                        "tls_context": {
-                            "common_tls_context": {
-                                "tls_certificates": [
-                                    {
-                                        "certificate_chain": {
-                                            "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/4CB5C4C15C3BBBF727E8572838933519EA42D103.crt"
-                                        },
-                                        "private_key": {
-                                            "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/4CB5C4C15C3BBBF727E8572838933519EA42D103.key"
-                                        }
-                                    }
-                                ]
-                            }
-                        },
-                        "use_proxy_proto": false
-                    },
-                    {
-                        "filter_chain_match": {
-                            "server_names": [
-                                "tls-context-host-3"
-                            ],
-                            "transport_protocol": "tls"
-                        },
-                        "filters": [
-                            {
-                                "name": "envoy.http_connection_manager",
-                                "typed_config": {
-                                    "@type": "type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager",
-                                    "access_log": [
-                                        {
-                                            "name": "envoy.file_access_log",
-                                            "typed_config": {
-                                                "@type": "type.googleapis.com/envoy.config.accesslog.v2.FileAccessLog",
-                                                "format": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n",
-                                                "path": "/dev/fd/1"
-                                            }
-                                        }
-                                    ],
-                                    "http_filters": [
-                                        {
-                                            "name": "envoy.cors"
-                                        },
-                                        {
-                                            "name": "envoy.router"
-                                        }
-                                    ],
-                                    "http_protocol_options": {
-                                        "accept_http_10": false
-                                    },
-                                    "normalize_path": true,
-                                    "route_config": {
-                                        "virtual_hosts": [
-                                            {
-                                                "domains": [
-                                                    "tls-context-host-3"
-                                                ],
-                                                "name": "ambassador-listener-8443-tls-context-host-3",
-                                                "routes": [
-                                                    {
-                                                        "match": {
-                                                            "case_sensitive": true,
-                                                            "prefix": "/.well-known/acme-challenge/"
-                                                        },
-                                                        "route": {
-                                                            "cluster": "cluster_127_0_0_1_8500_tcp_namespace",
-                                                            "prefix_rewrite": "/.well-known/acme-challenge/",
-                                                            "timeout": "3.000s"
-                                                        }
-                                                    },
-                                                    {
-                                                        "match": {
-                                                            "case_sensitive": true,
-                                                            "headers": [
-                                                                {
-                                                                    "exact_match": "https",
-                                                                    "name": "x-forwarded-proto"
-                                                                }
-                                                            ],
-                                                            "prefix": "/.ambassador/",
-                                                            "runtime_fraction": {
-                                                                "default_value": {
-                                                                    "denominator": "HUNDRED",
-                                                                    "numerator": 100
-                                                                },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8500_tcp_namespace"
-                                                            }
-                                                        },
-                                                        "route": {
-                                                            "cluster": "cluster_127_0_0_1_8500_tcp_namespace",
-                                                            "priority": null,
-                                                            "timeout": "3.000s"
                                                         }
                                                     },
                                                     {
@@ -1228,13 +1167,18 @@
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
-                                                            "prefix": "/",
                                                             "runtime_fraction": {
                                                                 "default_value": {
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
                                                                 "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8500_tcp_namespace"
+                                                            },
+                                                            "safe_regex": {
+                                                                "google_re2": {
+                                                                    "max_program_size": 200
+                                                                },
+                                                                "regex": "^/$"
                                                             }
                                                         },
                                                         "route": {
@@ -1247,6 +1191,36 @@
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8500_tcp_namespace"
+                                                            },
+                                                            "safe_regex": {
+                                                                "google_re2": {
+                                                                    "max_program_size": 200
+                                                                },
+                                                                "regex": "^/$"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8500_tcp_namespace",
+                                                            "prefix_rewrite": "/edge_stack_ui/",
+                                                            "priority": null,
+                                                            "timeout": "60.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
                                                             "prefix": "/",
                                                             "runtime_fraction": {
                                                                 "default_value": {
@@ -1287,8 +1261,308 @@
                                     }
                                 ]
                             }
+                        }
+                    },
+                    {
+                        "filter_chain_match": {
+                            "server_names": [
+                                "tls-context-host-3"
+                            ],
+                            "transport_protocol": "tls"
                         },
-                        "use_proxy_proto": false
+                        "filters": [
+                            {
+                                "name": "envoy.http_connection_manager",
+                                "typed_config": {
+                                    "@type": "type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager",
+                                    "access_log": [
+                                        {
+                                            "name": "envoy.file_access_log",
+                                            "typed_config": {
+                                                "@type": "type.googleapis.com/envoy.config.accesslog.v2.FileAccessLog",
+                                                "format": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n",
+                                                "path": "/dev/fd/1"
+                                            }
+                                        }
+                                    ],
+                                    "http_filters": [
+                                        {
+                                            "name": "envoy.cors"
+                                        },
+                                        {
+                                            "name": "envoy.router"
+                                        }
+                                    ],
+                                    "http_protocol_options": {
+                                        "accept_http_10": false
+                                    },
+                                    "normalize_path": true,
+                                    "route_config": {
+                                        "virtual_hosts": [
+                                            {
+                                                "domains": [
+                                                    "tls-context-host-3"
+                                                ],
+                                                "name": "ambassador-listener-8443-tls-context-host-3",
+                                                "routes": [
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "prefix": "/.well-known/acme-challenge/"
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8500_tcp_namespace",
+                                                            "prefix_rewrite": "/.well-known/acme-challenge/",
+                                                            "timeout": "3.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/.ambassador/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8500_tcp_namespace"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8500_tcp_namespace",
+                                                            "priority": null,
+                                                            "timeout": "3.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/edge_stack/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 50
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8500_tcp_namespace"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8500_tcp_namespace",
+                                                            "prefix_rewrite": "/edge_stack_ui/edge_stack/",
+                                                            "priority": null,
+                                                            "timeout": "60.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/edge_stack/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8500_tcp_namespace"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8500_tcp_namespace",
+                                                            "prefix_rewrite": "/edge_stack_ui/edge_stack/",
+                                                            "priority": null,
+                                                            "timeout": "60.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/ambassador/v0/check_ready",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_tcp_namespace"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8877_tcp_namespace",
+                                                            "prefix_rewrite": "/ambassador/v0/check_ready",
+                                                            "priority": null,
+                                                            "timeout": "10.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/ambassador/v0/check_alive",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_tcp_namespace"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8877_tcp_namespace",
+                                                            "prefix_rewrite": "/ambassador/v0/check_alive",
+                                                            "priority": null,
+                                                            "timeout": "10.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/ambassador/v0/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_tcp_namespace"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8877_tcp_namespace",
+                                                            "prefix_rewrite": "/ambassador/v0/",
+                                                            "priority": null,
+                                                            "timeout": "10.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8500_tcp_namespace"
+                                                            },
+                                                            "safe_regex": {
+                                                                "google_re2": {
+                                                                    "max_program_size": 200
+                                                                },
+                                                                "regex": "^/$"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8500_tcp_namespace",
+                                                            "prefix_rewrite": "/edge_stack_ui/",
+                                                            "priority": null,
+                                                            "timeout": "60.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8500_tcp_namespace"
+                                                            },
+                                                            "safe_regex": {
+                                                                "google_re2": {
+                                                                    "max_program_size": 200
+                                                                },
+                                                                "regex": "^/$"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8500_tcp_namespace",
+                                                            "prefix_rewrite": "/edge_stack_ui/",
+                                                            "priority": null,
+                                                            "timeout": "60.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8500_tcp_namespace"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8500_tcp_namespace",
+                                                            "prefix_rewrite": "/edge_stack_ui/",
+                                                            "priority": null,
+                                                            "timeout": "60.000s"
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "server_name": "envoy",
+                                    "stat_prefix": "ingress_http",
+                                    "use_remote_address": true,
+                                    "xff_num_trusted_hops": 0
+                                }
+                            }
+                        ],
+                        "tls_context": {
+                            "common_tls_context": {
+                                "tls_certificates": [
+                                    {
+                                        "certificate_chain": {
+                                            "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/4CB5C4C15C3BBBF727E8572838933519EA42D103.crt"
+                                        },
+                                        "private_key": {
+                                            "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/4CB5C4C15C3BBBF727E8572838933519EA42D103.key"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
                     }
                 ],
                 "listener_filters": [
@@ -1360,13 +1634,18 @@
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
-                                                            "prefix": "/",
                                                             "runtime_fraction": {
                                                                 "default_value": {
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
                                                                 "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8500_tcp_namespace"
+                                                            },
+                                                            "safe_regex": {
+                                                                "google_re2": {
+                                                                    "max_program_size": 200
+                                                                },
+                                                                "regex": "^/$"
                                                             }
                                                         },
                                                         "route": {
@@ -1386,8 +1665,7 @@
                                     "xff_num_trusted_hops": 0
                                 }
                             }
-                        ],
-                        "use_proxy_proto": false
+                        ]
                     }
                 ],
                 "listener_filters": [],
