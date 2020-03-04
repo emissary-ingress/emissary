@@ -10,4 +10,5 @@ The following pages are now obsolete and need to be deleted and redirects added:
 Temporary redirects:
 
 * /reference/services/access-control --> /using/filters/
-* /reference/authentiction.md --> /using/filters/oauth2
+* /concepts/auth-overview --> /using/filters/oauth2
+* /reference/authentication --> /using/filters/oauth2
