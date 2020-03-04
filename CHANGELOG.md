@@ -4,6 +4,10 @@ releases. Please keep it up to date.
 
 # Ambassador Edge Stack CHANGELOG
 
+## 1.2.2 (2020-03-04)
+
+- Internal: Track maximum usage for 24-hour periods, not just instantaneous whenever we phone home.
+
 ## 1.2.1 (2020-03-03)
 
 - Bugfix: The `aes-plugin-runner` binary for GNU/Linux is now statically linked (instead of being linked against musl libc), so it should now work on either musl libc or GNU libc systems
