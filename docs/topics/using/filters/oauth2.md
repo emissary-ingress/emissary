@@ -1,6 +1,38 @@
 # The OAuth2 Filter
 
-The `OAuth2` filter type performs OAuth2 authorization against an identity provider implementing [OIDC Discovery](https://openid.net/specs/openid-connect-discovery-1_0.html).
+The `OAuth2` filter type performs OAuth2 authorization against an identity provider implementing [OIDC Discovery](https://openid.net/specs/openid-connect-discovery-1_0.html). The filter is both:
+
+* An OAuth Client, which fetches resources from the Resource Server on the user's behalf.
+* Half of a Resource Server, validating the Access Token before allowing the request through to the upstream service, which implements the other half of the Resource Server.
+
+This is different from most OAuth implementations where the Authorization Server and the Resource Server are in the same security domain. With the Ambassador Edge Stack, the Client and the Resource Server are in the same security domain, and there is an independent Authorization Server.
+
+## The Ambassador Authentication Flow
+
+This is what the authentication process looks like at a high level when using Ambassador Edge Stack with an external identity provider. The use case is an end-user accessing a secured app service.
+
+![Ambassador Authentication OAuth/OIDC](../../doc-images/ambassador_oidc_flow.jpg)
+
+### Some basic authentication terms
+
+For those unfamiliar with authentication, here is a basic set of definitions.
+
+* OpenID: is an [open standard](https://openid.net/) and [decentralized authentication protocol](https://en.wikipedia.org/wiki/OpenID). OpenID allows users to be authenticated by co-operating sites, referred to as "relying parties" (RP) using a third-party authentication service. End-users can create accounts by selecting an OpenID identity provider (such as Auth0, Okta, etc), and then use those accounts to sign onto any website that accepts OpenID authentication.
+* Open Authorization (OAuth): an open standard for [token-based authentication and authorization](https://oauth.net/) on the Internet. OAuth provides to clients a "secure delegated access" to server or application resources on behalf of an owner, which means that although you won't manage a user's authentication credentials, you can specify what they can access within your application once they have been successfully authenticated. The current latest version of this standard is OAuth 2.0.
+* Identity Provider (IdP): an entity that [creates, maintains, and manages identity information](https://en.wikipedia.org/wiki/Identity_provider) for user accounts (also referred to "principals") while providing authentication services to external applications (referred to as "relying parties") within a distributed network, such as the web.
+* OpenID Connect (OIDC): is an [authentication layer that is built on top of OAuth 2.0](https://openid.net/connect/), which allows applications to verify the identity of an end-user based on the authentication performed by an IdP, using a well-specified RESTful HTTP API with JSON as a data format. Typically an OIDC implementation will allow you to obtain basic profile information for a user that successfully authenticates, which in turn can be used for implementing additional security measures like Role-based Access Control (RBAC).
+* JSON Web Token (JWT): is a [JSON-based open standard for creating access tokens](https://jwt.io/), such as those generated from an OAuth authentication. JWTs are compact, web-safe (or URL-safe), and are often used in the context of implementing single sign-on (SSO) within federated applications and organizations. Additional profile information, claims, or role-based information can be added to a JWT, and the token can be passed from the edge of an application right through the application's service call stack.
+
+If you look back at the authentication process diagram, the function of the entities involved should now be much clearer.
+
+### Using an Identity Hub
+
+Using an identity hub or broker allows you to support many IdPs without having to code individual integrations with them. For example, [Auth0](https://auth0.com/docs/identityproviders) and [Keycloak](https://www.keycloak.org/docs/latest/server_admin/index.html#social-identity-providers) both offer support for using Google and GitHub as an IdP.
+
+An identity hub sits between your application and the IdP that authenticates your users, which not only adds a level of abstraction so that your application (and Ambassador Edge Stack) is isolated from any changes to each provider's implementation, but it also allows your users to chose which provider they use to authenticate (and you can set a default, or restrict these options).
+
+The Auth0 docs provide a guide for adding social IdP "[connections](https://auth0.com/docs/identityproviders)" to your Auth0 account, and the Keycloak docs provide a guide for adding social identity "[brokers](https://www.keycloak.org/docs/latest/server_admin/index.html#social-identity-providers)".
+
 
 ## `OAuth2` Global Arguments
 
@@ -176,3 +208,103 @@ spec:
     * By default, it serves an authorization-denied error page; by default HTTP 403 ("Forbidden"), but this can be configured by the `httpStatusCode` sub-argument.
     * Instead of serving that simple error page, it can instead be configured to call out to a list of other Filters, by setting the `filters` list. The syntax and semantics of this list are the same as `.spec.rules[].filters` in a [`FilterPolicy`](#filterpolicy-definition). Be aware that if one of these filters modify the request rather than returning a response, then the request will be allowed through to the backend service, even though the `OAuth2` Filter denied it.
     * It is invalid to specify both `httpStatusCode` and `filters`.
+
+## XSRF protection
+
+The `ambassador_xsrf.NAME.NAMESPACE` cookie is an opaque string that should be used as an XSRF token.  Applications wishing to leverage the Ambassador Edge Stack in their XSRF attack protection should take two extra steps:
+
+ 1. When generating an HTML form, the server should read the cookie, and include a `<input type="hidden" name="_xsrf" value="COOKIE_VALUE" />` element in the form.
+ 2. When handling submitted form data should verify that the form value and the cookie value match.  If they do not match, it should refuse to handle the request, and return an HTTP 4XX response.
+
+Applications using request submission formats other than HTML forms should perform analogous steps of ensuring that the value is present in the request duplicated in the cookie and also in either the request body or secure header field.  A secure header field is one that is not `Cookie`, is not "[simple][simple-header]", and is not explicitly allowed by the CORS policy.
+
+[simple-header]: https://www.w3.org/TR/cors/#simple-header
+
+**Note**: Prior versions of the Ambassador Edge Stack did not have an
+`ambassador_xsrf.NAME.NAMESPACE` cookie, and instead required you to
+use the `ambassador_session.NAME.NAMESPACE` cookie.  The
+`ambassador_session.NAME.NAMESPACE` cookie should no longer be used
+for XSRF-protection purposes
+
+## RP-initiated logout
+
+When a logout occurs, it is often not enough to delete the Ambassador
+Edge Stack's session cookie or session data; after this happens, and the web
+browser is redirected to the Identity Provider to re-log-in, the
+Identity Provider may remember the previous login, and immediately
+re-authorize the user; it would be like the logout never even
+happened.
+
+To solve this, the Ambassador Edge Stack can use [OpenID Connect Session
+Management][oidc-session] to perform an "RP-Initiated Logout", where the
+Ambassador Edge Stack (the OpenID Connect "Relying Party" or "RP")
+communicates directly with Identity Providers that support OpenID
+Connect Session Management, to properly log out the user.
+Unfortunately, many Identity Providers do not support OpenID Connect
+Session Management.
+
+[oidc-session]: https://openid.net/specs/openid-connect-session-1_0.html
+
+This is done by having your application direct the web browser `POST`
+*and navigate* to `/.ambassador/oauth2/logout`.  There are 2
+form-encoded values that you need to include:
+
+ 1. `realm`: The `name.namespace` of the `Filter` that you want to log
+    out of.  This may be submitted as part of the POST body, or may be set as a URL query parameter.
+ 2. `_xsrf`: The value of the `ambassador_xsrf.{{realm}}` cookie
+    (where `{{realm}}` is as described above).  This must be set in the POST body, the URL query part will not be checked.
+
+For example:
+
+```html
+<form method="POST" action="/.ambassador/oauth2/logout" target="_blank">
+  <input type="hidden" name="realm" value="myfilter.mynamespace" />
+  <input type="hidden" name="_xsrf" value="{{ .Cookie.Value }}" />
+  <input type="submit" value="Log out" />
+</form>
+```
+
+or
+
+```html
+<form method="POST" action="/.ambassador/oauth2/logout?realm=myfilter.mynamespace" target="_blank">
+  <input type="hidden" name="_xsrf" value="{{ .Cookie.Value }}" />
+  <input type="submit" value="Log out" />
+</form>
+```
+
+or from JavaScript
+
+```js
+function getCookie(name) {
+    var prefix = name + "=";
+    var cookies = document.cookie.split(';');
+    for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i].trimStart();
+        if (cookie.indexOf(prefix) == 0) {
+            return cookie.slice(prefix.length);
+        }
+    }
+    return "";
+}
+
+function logout(realm) {
+    var form = document.createElement('form');
+    form.method = 'post';
+    form.action = '/.ambassador/oauth2/logout?realm='+realm;
+    //form.target = '_blank'; // uncomment to open the identity provider's page in a new tab
+
+    var xsrfInput = document.createElement('input');
+    xsrfInput.type = 'hidden';
+    xsrfInput.name = '_xsrf';
+    xsrfInput.value = getCookie("ambassador_xsrf."+realm);
+    form.appendChild(xsrfInput);
+
+    document.body.appendChild(form);
+    form.submit();
+}
+```
+
+## Further reading
+
+In this architecture, Ambassador Edge Stack is functioning as an Identity Aware Proxy in a Zero Trust Network. For more about this security architecture, read the [BeyondCorp security architecture whitepaper](https://ai.google/research/pubs/pub43231) by Google.

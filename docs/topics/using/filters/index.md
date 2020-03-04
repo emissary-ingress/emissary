@@ -66,6 +66,16 @@ spec:
       arguments: DEPENDS          # optional
 ```
 
+Rule configuration values include:
+
+| Value     | Example    | Description |
+| -----     | -------    | -----------                  |
+| `host`    | `*`, `foo.com` | the Host that a given rule should match |
+| `path`    | `/foo/url/`    | the URL path that a given rule should match to |
+| `filters`  | `name: keycloak`       | the name of a given filter to be applied|
+
+The wildcard `*` is supported for both `path` and `host`.
+
 The type of the `arguments` property is dependent on which Filter type is being referred to; see the "Path-Specific Arguments" documentation for each Filter type.
 
 When multiple `Filter`s are specified in a rule:
@@ -138,6 +148,27 @@ spec:
 ```
 
 **Note:** The Ambassador Edge Stack will choose the first `FilterPolicy` rule that matches the incoming request. As in the above example, you must list your rules in the order of least to most generic.
+
+#### Multiple Domains
+
+In this example, the `foo-keycloak` filter is used for requests to `foo.bar.com`, while the `example-auth0` filter is used for requests to `example.com`. This configuration is useful if you are hosting multiple domains in the same cluster.
+
+```yaml
+apiVersion: getambassador.io/v2
+kind: FilterPolicy
+metadata:
+  name: multi-domain-policy
+spec:
+  rules:
+  - host: foo.bar.com
+    path: *
+    filters:
+      - name: foo-keycloak
+  - host: example.com
+    path: *
+    filters:
+      - name: example-auth0
+```
 
 ## Installing self-signed certificates
 
