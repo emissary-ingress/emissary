@@ -75,7 +75,7 @@ Format:
 - Bugfix: Incorporate the Envoy 1.12.3 security update
 - Internal: Fix an error in Edge Stack update checks
 
-(1.2.1 has been withdrawn.)
+(1.2.1 is superseded by 1.2.2.)
 
 [#2348]: https://github.com/datawire/ambassador/issues/2348
 
