@@ -1,0 +1,40 @@
+#!/hint/sh
+
+# Don't trust $TRAVIS_COMMIT, use $(git rev-parse HEAD) instead.
+#
+# For PRs, it's often set to a stale merge commit that isn't fetched,
+# instead of the actual commit pointed to by refs/pull/NNN/merge which
+# is checked out.  For example, on
+# <https://travis-ci.org/datawire/ambassador-docs/builds/629117603>,
+# the webui says         it's testing commit cb8dc0029465119ada1ee9222539c825f5a7c015,
+# and TRAVIS_COMMIT says it's testing commit cb8dc0029465119ada1ee9222539c825f5a7c015,
+# but in fact            it's testing commit d23659347cd125267b079f2f7900c3e1b032ea4b.
+original_TRAVIS_COMMIT=$TRAVIS_COMMIT
+TRAVIS_COMMIT=$(git rev-parse HEAD)
+echo "adjusted TRAVIS_COMMIT : ${original_TRAVIS_COMMIT} -> ${TRAVIS_COMMIT}"
+
+# Don't trust $TRAVIS_BRANCH for PRs; it can be wrong in the same way
+# that $TRAVIS_COMMIT is wrong.
+#
+# For example: https://travis-ci.org/datawire/ambassador-docs/builds/632583559
+if [ -n "$TRAVIS_PULL_REQUEST_SHA" ]; then
+	original_TRAVIS_BRANCH=$TRAVIS_BRANCH
+	# Because this is for a PR, `$TRAVIS_COMMIT` is a synthesized merge-commit with 2 parents.  The first
+	# parent (which is given by `$TRAVIS_COMMIT^`) is the target branch, and the second parent is the PR
+	# branch.
+	#
+	# So, we need to look at `$TRAVIS_COMMIT^` and decide which remote tracking branch that corresponds
+	# to.  Sounds like a job for `git describe`... except that `git describe` has mind-bogglingly poor
+	# options for selecting which refs to consider.  Instead, we'll do this ourselves with awk by parsing
+	# `git show-ref`.
+	#
+	# The output of `git show-ref` looks like
+	#     4e206c51ef558f83d5c67e4586279e1ea15cdda2 refs/heads/master
+	#     4e206c51ef558f83d5c67e4586279e1ea15cdda2 refs/remotes/origin/HEAD
+	#     c8d4e9a3579e45cfefdc3374de8f0e9b3c956ad0 refs/remotes/origin/early-access
+	#     4e206c51ef558f83d5c67e4586279e1ea15cdda2 refs/remotes/origin/master
+	#
+	# Resolve the "what if multiple refs match" question by limiting to just "master" or "early-access".
+	TRAVIS_BRANCH=$(git show-ref | awk -vcommit="$(git rev-parse "$TRAVIS_COMMIT^")" '$1 == commit && $2 ~ /^refs\/remotes\/origin\/(master|early-access)$/ { sub("refs/remotes/origin/", ""); print $2; exit; }')
+	echo "adjusted TRAVIS_BRANCH : ${original_TRAVIS_BRANCH} -> ${TRAVIS_BRANCH}"
+fi
