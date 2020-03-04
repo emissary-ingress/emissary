@@ -33,5 +33,9 @@ spec:
 
     def queries(self):
         yield(Query(self.url("ambassador/v0/diag/"), expected=404))
-        yield(Query(self.url("edge_stack/admin/"), expected=404))
+
+        if EDGE_STACK:
+          yield(Query(self.url("edge_stack/admin/"), expected=200))
+        else:
+          yield(Query(self.url("edge_stack/admin/"), expected=404))
 
