@@ -140,5 +140,8 @@ func (this *RateLimiterWindow) GetUsageAtPointInTime() (int, error) {
 }
 
 func (this *RateLimiterWindow) GetMaxUsage() (int, error) {
+	if this.redisPool == nil {
+		return 0, ErrRateLimiterNoRedis
+	}
 	return this.getMaxValue()
 }
