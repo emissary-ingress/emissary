@@ -40,6 +40,16 @@ func safeInvoke(code func()) (err error) {
 	return
 }
 
+func safeInvoke1(fn func() error) (err error) {
+	defer func() {
+		if _err := util.PanicToError(recover()); _err != nil {
+			err = _err
+		}
+	}()
+	err = fn()
+	return
+}
+
 // Turn an ordinary watch listener into one that will automatically
 // turn panics into a useful log message.
 func safeWatch(listener func(w *k8s.Watcher)) func(*k8s.Watcher) {
@@ -229,4 +239,12 @@ func evalHtmlTemplate(text string, data interface{}) string {
 
 func boolPtr(v bool) *bool {
 	return &v
+}
+
+func deleteResource(kind, name, namespace string) error {
+	out, err := exec.Command("kubectl", "delete", "--namespace="+namespace, kind+"/"+name).CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("%w\n%s", err, out)
+	}
+	return nil
 }

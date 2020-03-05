@@ -131,14 +131,12 @@ type kale struct {
 	cfg      types.Config
 	Projects map[string]Project
 	Pods     map[string]map[string]*k8sTypesCoreV1.Pod
-	done     map[string]bool
 }
 
 func NewKale() *kale {
 	return &kale{
 		Projects: make(map[string]Project),
 		Pods:     make(map[string]map[string]*k8sTypesCoreV1.Pod),
-		done:     make(map[string]bool),
 	}
 }
 
@@ -368,12 +366,27 @@ func startBuild(proj Project, buildID, ref, commit string) (string, error) {
 	return string(out), nil
 }
 
-func (k *kale) reconcilePods(pods []*k8sTypesCoreV1.Pod) {
-	cutoff := time.Now().Add(-5 * 60 * time.Second)
+type deploy struct {
+	ProjectName      string
+	ProjectNamespace string
+	Commit           string
+}
 
+func pod2deploy(pod *k8sTypesCoreV1.Pod) deploy {
+	return deploy{
+		ProjectName:      pod.GetLabels()["project"],
+		ProjectNamespace: pod.GetNamespace(),
+		Commit:           pod.GetLabels()["commit"],
+	}
+}
+
+func (k *kale) reconcilePods(pods []*k8sTypesCoreV1.Pod) {
+	// TODO: Have a smarter way of deciding 'desiredDeploys'.
+	desiredDeploys := make(map[deploy]struct{})
 	var builders []*k8sTypesCoreV1.Pod
 	var runners []*k8sTypesCoreV1.Pod
 	for _, pod := range pods {
+		desiredDeploys[pod2deploy(pod)] = struct{}{}
 		if pod.GetLabels()["build"] != "" {
 			builders = append(builders, pod)
 		} else {
@@ -381,20 +394,63 @@ func (k *kale) reconcilePods(pods []*k8sTypesCoreV1.Pod) {
 		}
 	}
 
-	// todo: The system/business boundary needs some work here.
-	// Specifically the logic for chunking up the snapshot into
-	// the units we want to work on and processing each chunk is
-	// mixed up here. We want to separate that out so that the
-	// system can provide a guarantee that if processing one chunk
-	// fails, it won't interfere with processing other chunks.
-	for _, builder := range builders {
+	for desiredDeploy := range desiredDeploys {
+		var deployBuilders []*k8sTypesCoreV1.Pod
+		for _, builder := range builders {
+			if pod2deploy(builder) == desiredDeploy {
+				deployBuilders = append(deployBuilders, builder)
+			}
+		}
+
+		var deployRunners []*k8sTypesCoreV1.Pod
+		for _, runner := range runners {
+			if pod2deploy(runner) == desiredDeploy {
+				deployRunners = append(deployRunners, runner)
+			}
+		}
+
+		err := safeInvoke1(func() error { return k.reconcileDeploy(desiredDeploy, deployBuilders, deployRunners) })
+		if err != nil {
+			log.Printf("ERROR: %v", err)
+		}
+	}
+	for _, pod := range pods {
+		if _, desired := desiredDeploys[pod2deploy(pod)]; !desired {
+			err := deleteResource("pod", pod.GetName(), pod.GetNamespace())
+			if err != nil {
+				log.Printf("ERROR: %v", err)
+			}
+		}
+	}
+}
+
+func (k *kale) reconcileDeploy(desiredDeploy deploy, builders, runners []*k8sTypesCoreV1.Pod) error {
+	proj, projOK := k.GetProject(desiredDeploy.ProjectNamespace, desiredDeploy.ProjectName)
+	if !projOK {
+		return fmt.Errorf("no such project: %q.%q", desiredDeploy.ProjectName, desiredDeploy.ProjectNamespace)
+	}
+
+	if len(runners) == 0 { // don't bother with the builder if there's already a runner
+		switch len(builders) {
+		case 0:
+			panic("not implemented -- right now we only do this from handlePush()")
+		case 1:
+			// do nothing
+		default:
+			// TODO: more intelligently pick which pod gets to survive
+			for _, pod := range builders[1:] {
+				err := deleteResource("pod", pod.GetName(), pod.GetNamespace())
+				if err != nil {
+					log.Printf("ERROR: %v", err)
+				}
+			}
+		}
+
+		builder := builders[0]
+		// TODO: validate that the builder looks how we expect
+
 		phase := builder.Status.Phase
 		qname := builder.GetName() + "." + builder.GetNamespace()
-		key := qname + "." + string(phase)
-		_, ok := k.done[key]
-		if ok {
-			continue
-		}
 		log.Println("BUILDER", qname, phase)
 
 		projName := builder.GetLabels()["project"]
@@ -407,18 +463,6 @@ func (k *kale) reconcilePods(pods []*k8sTypesCoreV1.Pod) {
 			k.Pods[projKey] = projPods
 		}
 		projPods[builder.GetName()] = builder
-
-		// Check when the builder was created. If it's old enough, we don't bother with it.
-		if builder.GetCreationTimestamp().Time.Before(cutoff) {
-			k.done[key] = true
-			continue
-		}
-
-		proj, ok := k.GetProject(namespace, projName)
-		if !ok {
-			log.Printf("no such project: %s", projName)
-			continue
-		}
 
 		statusesUrl := builder.GetAnnotations()["statusesUrl"]
 		logUrl := proj.LogUrl(builder.GetLabels()["build"])
@@ -449,6 +493,7 @@ func (k *kale) reconcilePods(pods []*k8sTypesCoreV1.Pod) {
 						Context:     "aes",
 					},
 					proj.Spec.GithubToken)
+				return err
 			} else {
 				// todo: fake url
 				postStatus(statusesUrl,
@@ -461,9 +506,20 @@ func (k *kale) reconcilePods(pods []*k8sTypesCoreV1.Pod) {
 					proj.Spec.GithubToken)
 			}
 		}
-		k.done[key] = true
 	}
-	for _, runner := range runners {
+
+	if len(runners) > 0 {
+		// TODO: more intelligently pick which pod gets to survive
+		for _, pod := range runners[1:] {
+			err := deleteResource("pod", pod.GetName(), pod.GetNamespace())
+			if err != nil {
+				log.Printf("ERROR: %v", err)
+			}
+		}
+
+		runner := runners[0]
+		// TODO: validate that the runner looks how we expect
+
 		phase := runner.Status.Phase
 		qname := runner.GetName() + "." + runner.GetNamespace()
 		log.Println("RUNNER", qname, phase)
@@ -479,6 +535,8 @@ func (k *kale) reconcilePods(pods []*k8sTypesCoreV1.Pod) {
 		}
 		projPods[runner.GetName()] = runner
 	}
+
+	return nil
 }
 
 func startRun(proj Project, commit string) (string, error) {
