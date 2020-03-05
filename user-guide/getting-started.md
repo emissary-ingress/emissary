@@ -6,8 +6,8 @@
 In just four minutes, your cluster will be routing HTTPS requests from the
 Internet to a backend service.
 
-The Ambassador Edge Stack is deployed to Kubernetes for macOS, Linux, and
-Windows. If you don't have Kubernetes, see the [other options](/user-guide/install).
+The Ambassador Edge Stack is deployed to Kubernetes via YAML for macOS, Linux, and
+Windows. For other options, such as Docker, click [here](/user-guide/install).
 
 ## Install with MacOS
 
@@ -18,10 +18,10 @@ Windows. If you don't have Kubernetes, see the [other options](/user-guide/insta
     -o /usr/local/bin/edgectl && sudo chmod a+X /usr/local/bin/edgectl
     ```
 
-  If you decide to download the file, you may encounter a security block. To change this:
-  * Go to **System Preferences > Security & Privacy > General**.
-  * Click the **Open Anyway** button.
-  * On the new dialog, click the **Open** button.
+    If you decide to download the file, you may encounter a security block. To change this:
+    * Go to **System Preferences > Security & Privacy > General**.
+    * Click the **Open Anyway** button.
+    * On the new dialog, click the **Open** button.
 
 2. Navigate to your downloads folder.
 3. Complete the installation with `edgectl install`
