@@ -44,9 +44,7 @@ ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local
 # build it locally -- just using pip won't work.
 
 RUN apk --no-cache add bash bash-completion ncurses curl jq rsync python3 python3-dev build-base libffi-dev openssl-dev sudo \
-                       iptables docker openssh-client libcap libcap-dev yaml-dev cython git nodejs npm openssh && \
-    ssh-keygen -A && \
-    echo -e "ClientAliveInterval 1\nGatewayPorts yes\nPermitEmptyPasswords yes\nPort 8022\nClientAliveCountMax 10\n" >> /etc/ssh/sshd_config && \
+                       iptables docker openssh-client libcap libcap-dev yaml-dev cython git nodejs npm && \
     pip3 install -U pip && \
     curl --fail https://dl.google.com/go/go1.13.linux-amd64.tar.gz | tar -C /usr/local -xzf - && \
     curl --fail -L https://storage.googleapis.com/kubernetes-release/release/v1.16.0/bin/linux/amd64/kubectl -o /usr/bin/kubectl && \
@@ -91,7 +89,6 @@ RUN mkdir -p /ambassador/sidecars && \
     ln -s /buildroot/ambassador/python/kubewatch.py /ambassador/kubewatch.py
 
 RUN adduser dw --disabled-password
-RUN adduser telepresence -G root -D -H -s /bin/false && passwd -d telepresence
 # SUDO_USERS HOSTS=(AS_USER) TAGS COMMANDS
 RUN echo "dw ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/datawire
 RUN chown dw /buildroot
@@ -109,10 +106,8 @@ FROM ${artifacts} as artifacts
 FROM ${base} as ambassador
 
 # External stuff that should change infrequently
-RUN apk --no-cache add bash curl python3 libcap openssh
+RUN apk --no-cache add bash curl python3 libcap
 RUN ln -s /usr/bin/python3 /usr/bin/python
-RUN adduser telepresence -G root -D -H -s /bin/false && passwd -d telepresence && ssh-keygen -A && \
-    echo -e "ClientAliveInterval 1\nGatewayPorts yes\nPermitEmptyPasswords yes\nPort 8022\nClientAliveCountMax 10\n" >> /etc/ssh/sshd_config
 COPY --from=artifacts /usr/bin/kubectl /usr/bin/kubectl
 COPY --from=artifacts /usr/lib/libyaml* /usr/lib/
 
