@@ -370,24 +370,35 @@ func startBuild(proj Project, buildID, ref, commit string) (string, error) {
 
 func (k *kale) reconcilePods(pods []*k8sTypesCoreV1.Pod) {
 	cutoff := time.Now().Add(-5 * 60 * time.Second)
+
+	var builders []*k8sTypesCoreV1.Pod
+	var runners []*k8sTypesCoreV1.Pod
+	for _, pod := range pods {
+		if pod.GetLabels()["build"] != "" {
+			builders = append(builders, pod)
+		} else {
+			runners = append(runners, pod)
+		}
+	}
+
 	// todo: The system/business boundary needs some work here.
 	// Specifically the logic for chunking up the snapshot into
 	// the units we want to work on and processing each chunk is
 	// mixed up here. We want to separate that out so that the
 	// system can provide a guarantee that if processing one chunk
 	// fails, it won't interfere with processing other chunks.
-	for _, pod := range pods {
-		phase := pod.Status.Phase
-		qname := pod.GetName() + "." + pod.GetNamespace()
+	for _, builder := range builders {
+		phase := builder.Status.Phase
+		qname := builder.GetName() + "." + builder.GetNamespace()
 		key := qname + "." + string(phase)
 		_, ok := k.done[key]
 		if ok {
 			continue
 		}
-		log.Println("POD", qname, phase)
+		log.Println("BUILDER", qname, phase)
 
-		projName := pod.GetLabels()["project"]
-		namespace := pod.GetNamespace()
+		projName := builder.GetLabels()["project"]
+		namespace := builder.GetNamespace()
 
 		projKey := fmt.Sprintf("%s/%s", namespace, projName)
 		projPods, ok := k.Pods[projKey]
@@ -395,10 +406,10 @@ func (k *kale) reconcilePods(pods []*k8sTypesCoreV1.Pod) {
 			projPods = make(map[string]*k8sTypesCoreV1.Pod)
 			k.Pods[projKey] = projPods
 		}
-		projPods[pod.GetName()] = pod
+		projPods[builder.GetName()] = builder
 
-		// Check when the pod was created. If it's old enough, we don't bother with it.
-		if pod.GetCreationTimestamp().Time.Before(cutoff) {
+		// Check when the builder was created. If it's old enough, we don't bother with it.
+		if builder.GetCreationTimestamp().Time.Before(cutoff) {
 			k.done[key] = true
 			continue
 		}
@@ -409,11 +420,11 @@ func (k *kale) reconcilePods(pods []*k8sTypesCoreV1.Pod) {
 			continue
 		}
 
-		statusesUrl := pod.GetAnnotations()["statusesUrl"]
-		logUrl := proj.LogUrl(pod.GetLabels()["build"])
+		statusesUrl := builder.GetAnnotations()["statusesUrl"]
+		logUrl := proj.LogUrl(builder.GetLabels()["build"])
 		switch phase {
 		case k8sTypesCoreV1.PodFailed:
-			log.Printf(podLogs(pod.GetName()))
+			log.Printf(podLogs(builder.GetName()))
 			postStatus(statusesUrl, GitHubStatus{
 				State:       "failure",
 				TargetUrl:   logUrl,
@@ -422,7 +433,7 @@ func (k *kale) reconcilePods(pods []*k8sTypesCoreV1.Pod) {
 			},
 				proj.Spec.GithubToken)
 		case k8sTypesCoreV1.PodSucceeded:
-			_, err := startRun(proj, pod.GetLabels()["commit"])
+			_, err := startRun(proj, builder.GetLabels()["commit"])
 			if err != nil {
 				msg := fmt.Sprintf("ERROR: %v", err)
 				log.Print(msg)
@@ -451,6 +462,22 @@ func (k *kale) reconcilePods(pods []*k8sTypesCoreV1.Pod) {
 			}
 		}
 		k.done[key] = true
+	}
+	for _, runner := range runners {
+		phase := runner.Status.Phase
+		qname := runner.GetName() + "." + runner.GetNamespace()
+		log.Println("RUNNER", qname, phase)
+
+		projName := runner.GetLabels()["project"]
+		namespace := runner.GetNamespace()
+
+		projKey := fmt.Sprintf("%s/%s", namespace, projName)
+		projPods, ok := k.Pods[projKey]
+		if !ok {
+			projPods = make(map[string]*k8sTypesCoreV1.Pod)
+			k.Pods[projKey] = projPods
+		}
+		projPods[runner.GetName()] = runner
 	}
 }
 
