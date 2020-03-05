@@ -13,6 +13,8 @@
   - title: Install and Upgrade Options
     link: /user-guide/install
     items: 
+    - title: Quick Start Demo
+      link: /user-guide/quickstart-demo  
     - title: Upgrade to the Ambassador Edge Stack
       link: /user-guide/upgrade-to-edge-stack
     - title: Upgrade to a Newer Version
