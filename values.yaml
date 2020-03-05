@@ -84,6 +84,8 @@ service:
       # protocol: TCP
       # nodePort: 30222
 
+  externalTrafficPolicy:
+
   annotations:
   #############################################################################
   ## Ambassador should be configured using CRD definition. If you want
