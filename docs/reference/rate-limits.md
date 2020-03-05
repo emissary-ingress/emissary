@@ -85,7 +85,7 @@ In pre-0.50 versions of the Ambassador API Gateway, a mapping can specify the `r
 An example:
 
 ```yaml
-apiVersion: getambassador.io/v0
+apiVersion: getambassador.io/v2
 kind: Mapping
 name: rate_limits_mapping
 prefix: /rate-limit/

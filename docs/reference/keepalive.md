@@ -33,7 +33,7 @@ Keepalive probes defined on a single mapping:
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 metadata:
   name:  quote-backend
@@ -49,7 +49,7 @@ keepalive:
 A global keepalive configuration:
 
 ```yaml
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  Module
 metadata:
   name:  ambassador
@@ -60,7 +60,7 @@ spec:
        interval: 10
        probes: 9
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 metadata:
   name:  quote-backend

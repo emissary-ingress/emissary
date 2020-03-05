@@ -10,7 +10,7 @@ The `remove_response_headers` attribute takes a list of keys used to match to th
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 metadata:
   name:  quote-backend
