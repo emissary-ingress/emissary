@@ -54,9 +54,7 @@
             "_port": 8500,
             "_referenced_by": [
                 "--internal--",
-                "ambassador-edge-stack.plain-namespace.1",
-                "edgestack-direct-mapping.plain-namespace.1",
-                "edgestack-fallback-mapping.plain-namespace.1"
+                "ambassador-edge-stack.plain-namespace.1"
             ],
             "_resolver": "kubernetes-service",
             "_rkey": "cluster_127_0_0_1_8500_plain_namespace",
@@ -3537,9 +3535,7 @@
                         "_port": 8500,
                         "_referenced_by": [
                             "--internal--",
-                            "ambassador-edge-stack.plain-namespace.1",
-                            "edgestack-direct-mapping.plain-namespace.1",
-                            "edgestack-fallback-mapping.plain-namespace.1"
+                            "ambassador-edge-stack.plain-namespace.1"
                         ],
                         "_resolver": "kubernetes-service",
                         "_rkey": "cluster_127_0_0_1_8500_plain_namespace",
@@ -3609,10 +3605,9 @@
             "_active": true,
             "_errored": false,
             "_referenced_by": [
-                "--internal--",
-                "edgestack-direct-mapping.plain-namespace.1"
+                "--internal--"
             ],
-            "_rkey": "edgestack-direct-mapping.plain-namespace.1",
+            "_rkey": "ir.ambassador",
             "group_id": "ab86de585a684254d5458bdeb01da4fba36c21cc",
             "group_weight": [
                 1000000,
@@ -3623,7 +3618,7 @@
             ],
             "headers": [],
             "kind": "IRHTTPMappingGroup",
-            "location": "edgestack-direct-mapping.plain-namespace.1",
+            "location": "--internal--",
             "mappings": [
                 {
                     "_active": true,
@@ -3642,9 +3637,7 @@
                         "_port": 8500,
                         "_referenced_by": [
                             "--internal--",
-                            "ambassador-edge-stack.plain-namespace.1",
-                            "edgestack-direct-mapping.plain-namespace.1",
-                            "edgestack-fallback-mapping.plain-namespace.1"
+                            "ambassador-edge-stack.plain-namespace.1"
                         ],
                         "_resolver": "kubernetes-service",
                         "_rkey": "cluster_127_0_0_1_8500_plain_namespace",
@@ -3694,82 +3687,10 @@
                     "service": "127.0.0.1:8500",
                     "timeout_ms": 60000,
                     "weight": 100
-                },
-                {
-                    "_active": true,
-                    "_errored": false,
-                    "_rkey": "edgestack-direct-mapping.plain-namespace.1",
-                    "add_request_headers": {},
-                    "cluster": {
-                        "_active": true,
-                        "_errored": false,
-                        "_hostname": "127.0.0.1",
-                        "_is_sidecar": true,
-                        "_namespace": "plain-namespace",
-                        "_port": 8500,
-                        "_referenced_by": [
-                            "--internal--",
-                            "ambassador-edge-stack.plain-namespace.1",
-                            "edgestack-direct-mapping.plain-namespace.1",
-                            "edgestack-fallback-mapping.plain-namespace.1"
-                        ],
-                        "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8500_plain_namespace",
-                        "connect_timeout_ms": 3000,
-                        "enable_endpoints": false,
-                        "enable_ipv4": true,
-                        "enable_ipv6": false,
-                        "ignore_cluster": false,
-                        "kind": "IRCluster",
-                        "lb_type": "round_robin",
-                        "location": "ambassador-edge-stack.plain-namespace.1",
-                        "name": "cluster_127_0_0_1_8500_plain_namespace",
-                        "namespace": "plain-namespace",
-                        "service": "127.0.0.1:8500",
-                        "targets": [
-                            {
-                                "ip": "127.0.0.1",
-                                "port": 8500,
-                                "target_kind": "IPaddr"
-                            }
-                        ],
-                        "type": "strict_dns",
-                        "urls": [
-                            "tcp://127.0.0.1:8500"
-                        ]
-                    },
-                    "group_id": "ab86de585a684254d5458bdeb01da4fba36c21cc",
-                    "headers": [],
-                    "kind": "Mapping",
-                    "location": "edgestack-direct-mapping.plain-namespace.1",
-                    "metadata_labels": {
-                        "ambassador_crd": "edgestack-direct-mapping.plain-namespace",
-                        "ambassador_diag_class": "private",
-                        "product": "aes"
-                    },
-                    "name": "edgestack-direct-mapping",
-                    "namespace": "plain-namespace",
-                    "precedence": 1000000,
-                    "prefix": "/edge_stack/",
-                    "resolver": "kubernetes-service",
-                    "rewrite": "/edge_stack_ui/edge_stack/",
-                    "route_weight": [
-                        1000000,
-                        12,
-                        0,
-                        "/edge_stack/",
-                        "GET"
-                    ],
-                    "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgestack-direct-mapping.plain-namespace\n  ambassador_diag_class: private\n  product: aes\nname: edgestack-direct-mapping\nnamespace: plain-namespace\nprecedence: 1000000\nprefix: /edge_stack/\nrewrite: /edge_stack_ui/edge_stack/\nservice: 127.0.0.1:8500\ntimeout_ms: 60000\n",
-                    "service": "127.0.0.1:8500",
-                    "timeout_ms": 60000,
-                    "weight": 50
                 }
             ],
             "metadata_labels": {
-                "ambassador_crd": "edgestack-direct-mapping.plain-namespace",
-                "ambassador_diag_class": "private",
-                "product": "aes"
+                "ambassador_diag_class": "private"
             },
             "name": "GROUP: edgestack-direct-mapping",
             "namespace": "plain-namespace",
@@ -13811,9 +13732,7 @@
                         "_port": 8500,
                         "_referenced_by": [
                             "--internal--",
-                            "ambassador-edge-stack.plain-namespace.1",
-                            "edgestack-direct-mapping.plain-namespace.1",
-                            "edgestack-fallback-mapping.plain-namespace.1"
+                            "ambassador-edge-stack.plain-namespace.1"
                         ],
                         "_resolver": "kubernetes-service",
                         "_rkey": "cluster_127_0_0_1_8500_plain_namespace",
@@ -13876,109 +13795,6 @@
             "prefix_regex": true,
             "rewrite": "/edge_stack_ui/",
             "timeout_ms": 60000
-        },
-        {
-            "_active": true,
-            "_errored": false,
-            "_referenced_by": [
-                "edgestack-fallback-mapping.plain-namespace.1"
-            ],
-            "_rkey": "edgestack-fallback-mapping.plain-namespace.1",
-            "group_id": "5eb8304c5bb81b74bc6e6e947392fe0c6d1f2dab",
-            "group_weight": [
-                -1000000,
-                1,
-                0,
-                "/",
-                "GET"
-            ],
-            "headers": [],
-            "kind": "IRHTTPMappingGroup",
-            "location": "edgestack-fallback-mapping.plain-namespace.1",
-            "mappings": [
-                {
-                    "_active": true,
-                    "_errored": false,
-                    "_rkey": "edgestack-fallback-mapping.plain-namespace.1",
-                    "add_request_headers": {},
-                    "cluster": {
-                        "_active": true,
-                        "_errored": false,
-                        "_hostname": "127.0.0.1",
-                        "_is_sidecar": true,
-                        "_namespace": "plain-namespace",
-                        "_port": 8500,
-                        "_referenced_by": [
-                            "--internal--",
-                            "ambassador-edge-stack.plain-namespace.1",
-                            "edgestack-direct-mapping.plain-namespace.1",
-                            "edgestack-fallback-mapping.plain-namespace.1"
-                        ],
-                        "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8500_plain_namespace",
-                        "connect_timeout_ms": 3000,
-                        "enable_endpoints": false,
-                        "enable_ipv4": true,
-                        "enable_ipv6": false,
-                        "ignore_cluster": false,
-                        "kind": "IRCluster",
-                        "lb_type": "round_robin",
-                        "location": "ambassador-edge-stack.plain-namespace.1",
-                        "name": "cluster_127_0_0_1_8500_plain_namespace",
-                        "namespace": "plain-namespace",
-                        "service": "127.0.0.1:8500",
-                        "targets": [
-                            {
-                                "ip": "127.0.0.1",
-                                "port": 8500,
-                                "target_kind": "IPaddr"
-                            }
-                        ],
-                        "type": "strict_dns",
-                        "urls": [
-                            "tcp://127.0.0.1:8500"
-                        ]
-                    },
-                    "group_id": "5eb8304c5bb81b74bc6e6e947392fe0c6d1f2dab",
-                    "headers": [],
-                    "kind": "Mapping",
-                    "location": "edgestack-fallback-mapping.plain-namespace.1",
-                    "metadata_labels": {
-                        "ambassador_crd": "edgestack-fallback-mapping.plain-namespace",
-                        "ambassador_diag_class": "private",
-                        "product": "aes"
-                    },
-                    "name": "edgestack-fallback-mapping",
-                    "namespace": "plain-namespace",
-                    "precedence": -1000000,
-                    "prefix": "/",
-                    "resolver": "kubernetes-service",
-                    "rewrite": "/edge_stack_ui/",
-                    "route_weight": [
-                        -1000000,
-                        1,
-                        0,
-                        "/",
-                        "GET"
-                    ],
-                    "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgestack-fallback-mapping.plain-namespace\n  ambassador_diag_class: private\n  product: aes\nname: edgestack-fallback-mapping\nnamespace: plain-namespace\nprecedence: -1000000\nprefix: /\nrewrite: /edge_stack_ui/\nservice: 127.0.0.1:8500\ntimeout_ms: 60000\n",
-                    "service": "127.0.0.1:8500",
-                    "timeout_ms": 60000,
-                    "weight": 100
-                }
-            ],
-            "metadata_labels": {
-                "ambassador_crd": "edgestack-fallback-mapping.plain-namespace",
-                "ambassador_diag_class": "private",
-                "product": "aes"
-            },
-            "name": "GROUP: edgestack-fallback-mapping",
-            "namespace": "plain-namespace",
-            "precedence": -1000000,
-            "prefix": "/",
-            "rewrite": "/edge_stack_ui/",
-            "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgestack-fallback-mapping.plain-namespace\n  ambassador_diag_class: private\n  product: aes\nname: edgestack-fallback-mapping\nnamespace: plain-namespace\nprecedence: -1000000\nprefix: /\nrewrite: /edge_stack_ui/\nservice: 127.0.0.1:8500\ntimeout_ms: 60000\n",
-            "timeout_ms": 60000
         }
     ],
     "grpc_services": {},
@@ -14018,20 +13834,6 @@
     },
     "k8s_status_updates": {
         "ambassador-edge-stack.plain-namespace": [
-            "Mapping",
-            "plain-namespace",
-            {
-                "state": "Running"
-            }
-        ],
-        "edgestack-direct-mapping.plain-namespace": [
-            "Mapping",
-            "plain-namespace",
-            {
-                "state": "Running"
-            }
-        ],
-        "edgestack-fallback-mapping.plain-namespace": [
             "Mapping",
             "plain-namespace",
             {

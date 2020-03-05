@@ -12,7 +12,7 @@
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Host\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"servernametest\",\"scope\":\"AmbassadorTest\"},\"name\":\"cleartext-host-servernametest\",\"namespace\":\"default\"},\"spec\":{\"acmeProvider\":{\"authority\":\"none\"},\"ambassador_id\":[\"servernametest\"],\"hostname\":\"*\",\"requestPolicy\":{\"insecure\":{\"action\":\"Route\"}},\"selector\":{\"matchLabels\":{\"hostname\":\"servernametest\"}}}}\n"
                     },
                     "clusterName": "",
-                    "creationTimestamp": "2020-03-04T04:41:02Z",
+                    "creationTimestamp": "2020-03-04T18:14:04Z",
                     "generation": 1,
                     "labels": {
                         "kat-ambassador-id": "servernametest",
@@ -20,15 +20,15 @@
                     },
                     "name": "cleartext-host-servernametest",
                     "namespace": "default",
-                    "resourceVersion": "26708",
+                    "resourceVersion": "95229",
                     "selfLink": "/apis/getambassador.io/v2/namespaces/default/hosts/cleartext-host-servernametest",
-                    "uid": "5a0441ca-5dd2-11ea-a67a-06c41a568f95"
+                    "uid": "ee301126-5e43-11ea-89ca-0e69d553f0a1"
                 },
                 "spec": {
                     "acmeProvider": {
                         "authority": "none"
                     },
-                    "ambassador_id": [
+                    "ambassadorId": [
                         "servernametest"
                     ],
                     "hostname": "*",
@@ -41,7 +41,12 @@
                         "matchLabels": {
                             "hostname": "servernametest"
                         }
-                    }
+                    },
+                    "tlsSecret": {}
+                },
+                "status": {
+                    "state": "Ready",
+                    "tlsCertificateSource": "None"
                 }
             }
         ],
@@ -61,7 +66,7 @@
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"TLSContext\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"hostcrdmanualcontext\",\"scope\":\"AmbassadorTest\"},\"name\":\"manual-host-context\",\"namespace\":\"default\"},\"spec\":{\"ambassador_id\":[\"hostcrdmanualcontext\"],\"hosts\":[\"hostcrdmanualcontext\"],\"max_tls_version\":\"v1.3\",\"min_tls_version\":\"v1.2\",\"secret\":\"manual-secret\"}}\n"
                     },
                     "clusterName": "",
-                    "creationTimestamp": "2020-03-04T04:41:12Z",
+                    "creationTimestamp": "2020-03-04T18:14:16Z",
                     "generation": 1,
                     "labels": {
                         "kat-ambassador-id": "hostcrdmanualcontext",
@@ -69,9 +74,9 @@
                     },
                     "name": "manual-host-context",
                     "namespace": "default",
-                    "resourceVersion": "27299",
+                    "resourceVersion": "92435",
                     "selfLink": "/apis/getambassador.io/v2/namespaces/default/tlscontexts/manual-host-context",
-                    "uid": "5fdd7490-5dd2-11ea-a67a-06c41a568f95"
+                    "uid": "f5ec43a2-5e43-11ea-89ca-0e69d553f0a1"
                 },
                 "spec": {
                     "ambassador_id": [
@@ -98,7 +103,7 @@
                         "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind: Module\nname: ambassador\nconfig:\n  server_name: \"test-server\"\nambassador_id: servernametest\n---\napiVersion: ambassador/v0\nkind: Mapping\nname: servernametest/server-name\nprefix: /server-name\nservice: servernametest-http\nambassador_id: servernametest\n",
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v0\\nkind: Module\\nname: ambassador\\nconfig:\\n  server_name: \\\"test-server\\\"\\nambassador_id: servernametest\\n---\\napiVersion: ambassador/v0\\nkind: Mapping\\nname: servernametest/server-name\\nprefix: /server-name\\nservice: servernametest-http\\nambassador_id: servernametest\\n\"},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"servernametest\",\"scope\":\"AmbassadorTest\"},\"name\":\"servernametest\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"servernametest\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-03-04T04:41:02Z",
+                    "creationTimestamp": "2020-03-04T18:14:03Z",
                     "labels": {
                         "app.kubernetes.io/component": "ambassador-service",
                         "kat-ambassador-id": "servernametest",
@@ -106,24 +111,24 @@
                     },
                     "name": "servernametest",
                     "namespace": "default",
-                    "resourceVersion": "26698",
+                    "resourceVersion": "91804",
                     "selfLink": "/api/v1/namespaces/default/services/servernametest",
-                    "uid": "59f3498f-5dd2-11ea-a67a-06c41a568f95"
+                    "uid": "ee1e95c6-5e43-11ea-89ca-0e69d553f0a1"
                 },
                 "spec": {
-                    "clusterIP": "10.101.28.221",
+                    "clusterIP": "10.97.226.179",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "http",
-                            "nodePort": 32312,
+                            "nodePort": 30849,
                             "port": 80,
                             "protocol": "TCP",
                             "targetPort": 8080
                         },
                         {
                             "name": "https",
-                            "nodePort": 32728,
+                            "nodePort": 30875,
                             "port": 443,
                             "protocol": "TCP",
                             "targetPort": 8443
@@ -146,7 +151,7 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"servernametest\",\"scope\":\"AmbassadorTest\",\"service\":\"servernametest-admin\"},\"name\":\"servernametest-admin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"servernametest-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"servernametest\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-03-04T04:41:02Z",
+                    "creationTimestamp": "2020-03-04T18:14:03Z",
                     "labels": {
                         "kat-ambassador-id": "servernametest",
                         "scope": "AmbassadorTest",
@@ -154,17 +159,17 @@
                     },
                     "name": "servernametest-admin",
                     "namespace": "default",
-                    "resourceVersion": "26702",
+                    "resourceVersion": "91808",
                     "selfLink": "/api/v1/namespaces/default/services/servernametest-admin",
-                    "uid": "59f9f17b-5dd2-11ea-a67a-06c41a568f95"
+                    "uid": "ee25b96a-5e43-11ea-89ca-0e69d553f0a1"
                 },
                 "spec": {
-                    "clusterIP": "10.108.225.42",
+                    "clusterIP": "10.100.250.20",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "servernametest-admin",
-                            "nodePort": 30812,
+                            "nodePort": 30846,
                             "port": 8877,
                             "protocol": "TCP",
                             "targetPort": 8877
@@ -187,19 +192,19 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"servernametest\",\"scope\":\"AmbassadorTest\"},\"name\":\"servernametest-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8081},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8444}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
                     },
-                    "creationTimestamp": "2020-03-04T04:41:02Z",
+                    "creationTimestamp": "2020-03-04T18:14:04Z",
                     "labels": {
                         "kat-ambassador-id": "servernametest",
                         "scope": "AmbassadorTest"
                     },
                     "name": "servernametest-http",
                     "namespace": "default",
-                    "resourceVersion": "26710",
+                    "resourceVersion": "91816",
                     "selfLink": "/api/v1/namespaces/default/services/servernametest-http",
-                    "uid": "5a09e1de-5dd2-11ea-a67a-06c41a568f95"
+                    "uid": "ee35a340-5e43-11ea-89ca-0e69d553f0a1"
                 },
                 "spec": {
-                    "clusterIP": "10.104.171.232",
+                    "clusterIP": "10.97.156.64",
                     "ports": [
                         {
                             "name": "http",

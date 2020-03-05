@@ -4,6 +4,10 @@ releases. Please keep it up to date.
 
 # Ambassador Edge Stack CHANGELOG
 
+## next (TBD)
+
+- Bugfix: The Edge Policy Console now honors the `diagnostics.enabled` setting in the `ambassador` Module
+
 ## 1.2.2 (2020-03-04)
 
 - Internal: Track maximum usage for 24-hour periods, not just instantaneous whenever we phone home.
