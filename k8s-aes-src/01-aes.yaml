@@ -1,8 +1,11 @@
-# @TEMPLATE@
+#==== This file is processed by 'make update-yaml'.
+#====  - Comments starting with '#====' are stripped during processing.
+#====  - Comments starting with '#devmagic:' are stripped for
+#====    published YAML and are uncommented for the private 'make
+#====    deploy' YAML.
+#====  - A Deployment gets generated and appended to this file.
+#devmagic:# @TEMPLATE@
 
-#==== This file is processed by 'make update-yaml'. Comments starting
-#==== with '#====' are stripped during processing. A Deployment gets
-#==== generated and appended to this file.
 ######################################################################
 # 'ambassador' namespace.
 ---
@@ -12,6 +15,25 @@ metadata:
   name: ambassador
   labels:
     product: aes
+#devmagic:{{ if env "DEV_USE_IMAGEPULLSECRET" | ne "" }}
+#devmagic:---
+#devmagic:apiVersion: v1
+#devmagic:kind: Secret
+#devmagic:metadata:
+#devmagic:  name: dev-image-pull-secret
+#devmagic:  namespace: ambassador
+#devmagic:type: kubernetes.io/dockerconfigjson
+#devmagic:data:
+#devmagic:  ".dockerconfigjson": {{ printf `%s:%s` (env "DOCKER_BUILD_USERNAME") (env "DOCKER_BUILD_PASSWORD") | b64enc | printf `{"auths": {%q: {"auth": %q}}}` (env "DEV_REGISTRY" | dir) | b64enc }}
+#devmagic:---
+#devmagic:apiVersion: v1
+#devmagic:kind: ServiceAccount
+#devmagic:metadata:
+#devmagic:  name: default
+#devmagic:  namespace: ambassador
+#devmagic:imagePullSecrets:
+#devmagic:- name: dev-image-pull-secret
+#devmagic:{{ end }}
 
 ######################################################################
 # RBAC
@@ -83,6 +105,10 @@ metadata:
   namespace: ambassador
   labels:
     product: aes
+#devmagic:{{ if env "DEV_USE_IMAGEPULLSECRET" | ne "" }}
+#devmagic:imagePullSecrets:
+#devmagic:- name: dev-image-pull-secret
+#devmagic:{{ end }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
@@ -452,4 +478,5 @@ spec:
 # Create the Deployment backing the 'ambassador' and
 # 'ambassador-admin' Services.
 ---
-#==== GENERATED FROM OSS DEPLOYMENT ====
+#==== 'make update-yaml' generates a Deployment and from the OSS YAML
+#==== and inserts it here.

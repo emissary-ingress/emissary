@@ -1,5 +1,5 @@
-# @TEMPLATE@
 # GENERATED FILE: edits made by hand will not be preserved.
+# @TEMPLATE@
 
 ######################################################################
 # 'ambassador' namespace.
@@ -10,6 +10,25 @@ metadata:
   name: ambassador
   labels:
     product: aes
+{{ if env "DEV_USE_IMAGEPULLSECRET" | ne "" }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: dev-image-pull-secret
+  namespace: ambassador
+type: kubernetes.io/dockerconfigjson
+data:
+  ".dockerconfigjson": {{ printf `%s:%s` (env "DOCKER_BUILD_USERNAME") (env "DOCKER_BUILD_PASSWORD") | b64enc | printf `{"auths": {%q: {"auth": %q}}}` (env "DEV_REGISTRY" | dir) | b64enc }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: default
+  namespace: ambassador
+imagePullSecrets:
+- name: dev-image-pull-secret
+{{ end }}
 
 ######################################################################
 # RBAC
@@ -81,6 +100,10 @@ metadata:
   namespace: ambassador
   labels:
     product: aes
+{{ if env "DEV_USE_IMAGEPULLSECRET" | ne "" }}
+imagePullSecrets:
+- name: dev-image-pull-secret
+{{ end }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
@@ -545,4 +568,3 @@ spec:
       - name: ambassador-edge-stack-secrets
         secret:
           secretName: ambassador-edge-stack
-

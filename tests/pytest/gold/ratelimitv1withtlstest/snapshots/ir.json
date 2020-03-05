@@ -53,6 +53,7 @@
             "_namespace": "default",
             "_port": 8500,
             "_referenced_by": [
+                "--internal--",
                 "ambassador-edge-stack.default.1",
                 "edgestack-direct-mapping.default.1",
                 "edgestack-fallback-mapping.default.1"
@@ -125,7 +126,7 @@
             "_namespace": "default",
             "_port": 5000,
             "_referenced_by": [
-                "ratelimitv1withtlstest.default.1"
+                "rate-limit-tls.default.1"
             ],
             "_rkey": "cluster_rate_limit_tls_5000_otls_ratelimit_tls_context_default",
             "connect_timeout_ms": 3000,
@@ -136,7 +137,7 @@
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
-            "location": "ratelimitv1withtlstest.default.1",
+            "location": "rate-limit-tls.default.1",
             "name": "cluster_rate_limit_tls_5000_otls_ratelim-0",
             "namespace": "default",
             "service": "rate-limit-tls:5000",
@@ -151,8 +152,8 @@
                 "_active": true,
                 "_errored": false,
                 "_referenced_by": [
-                    "ratelimitv1withtlstest-http.default.1",
-                    "ratelimitv1withtlstest.default.1"
+                    "rate-limit-tls.default.1",
+                    "ratelimitv1withtlstest-http.default.1"
                 ],
                 "_rkey": "ratelimitv1withtlstest-http.default.1",
                 "alpn_protocols": "h2",
@@ -227,9 +228,9 @@
             "_active": true,
             "_errored": false,
             "_referenced_by": [
-                "ratelimitv1withtlstest.default.1"
+                "rate-limit-tls.default.1"
             ],
-            "_rkey": "ratelimitv1withtlstest.default.1",
+            "_rkey": "rate-limit-tls.default.1",
             "cluster": {
                 "_active": true,
                 "_errored": false,
@@ -238,7 +239,7 @@
                 "_namespace": "default",
                 "_port": 5000,
                 "_referenced_by": [
-                    "ratelimitv1withtlstest.default.1"
+                    "rate-limit-tls.default.1"
                 ],
                 "_rkey": "cluster_rate_limit_tls_5000_otls_ratelimit_tls_context_default",
                 "connect_timeout_ms": 3000,
@@ -249,7 +250,7 @@
                 "ignore_cluster": false,
                 "kind": "IRCluster",
                 "lb_type": "round_robin",
-                "location": "ratelimitv1withtlstest.default.1",
+                "location": "rate-limit-tls.default.1",
                 "name": "cluster_rate_limit_tls_5000_otls_ratelim-0",
                 "namespace": "default",
                 "service": "rate-limit-tls:5000",
@@ -264,8 +265,8 @@
                     "_active": true,
                     "_errored": false,
                     "_referenced_by": [
-                        "ratelimitv1withtlstest-http.default.1",
-                        "ratelimitv1withtlstest.default.1"
+                        "rate-limit-tls.default.1",
+                        "ratelimitv1withtlstest-http.default.1"
                     ],
                     "_rkey": "ratelimitv1withtlstest-http.default.1",
                     "alpn_protocols": "h2",
@@ -305,7 +306,7 @@
                 "_namespace": "default",
                 "_port": 5000,
                 "_referenced_by": [
-                    "ratelimitv1withtlstest.default.1"
+                    "rate-limit-tls.default.1"
                 ],
                 "_rkey": "cluster_rate_limit_tls_5000_otls_ratelimit_tls_context_default",
                 "connect_timeout_ms": 3000,
@@ -316,7 +317,7 @@
                 "ignore_cluster": false,
                 "kind": "IRCluster",
                 "lb_type": "round_robin",
-                "location": "ratelimitv1withtlstest.default.1",
+                "location": "rate-limit-tls.default.1",
                 "name": "cluster_rate_limit_tls_5000_otls_ratelim-0",
                 "namespace": "default",
                 "service": "rate-limit-tls:5000",
@@ -331,8 +332,8 @@
                     "_active": true,
                     "_errored": false,
                     "_referenced_by": [
-                        "ratelimitv1withtlstest-http.default.1",
-                        "ratelimitv1withtlstest.default.1"
+                        "rate-limit-tls.default.1",
+                        "ratelimitv1withtlstest-http.default.1"
                     ],
                     "_rkey": "ratelimitv1withtlstest-http.default.1",
                     "alpn_protocols": "h2",
@@ -357,7 +358,7 @@
                 ]
             },
             "kind": "IRRateLimit",
-            "location": "ratelimitv1withtlstest.default.1",
+            "location": "rate-limit-tls.default.1",
             "name": "rate_limit",
             "namespace": "default",
             "service": "rate-limit-tls:5000",
@@ -408,6 +409,7 @@
                         "_namespace": "default",
                         "_port": 8500,
                         "_referenced_by": [
+                            "--internal--",
                             "ambassador-edge-stack.default.1",
                             "edgestack-direct-mapping.default.1",
                             "edgestack-fallback-mapping.default.1"
@@ -480,6 +482,7 @@
             "_active": true,
             "_errored": false,
             "_referenced_by": [
+                "--internal--",
                 "edgestack-direct-mapping.default.1"
             ],
             "_rkey": "edgestack-direct-mapping.default.1",
@@ -498,6 +501,76 @@
                 {
                     "_active": true,
                     "_errored": false,
+                    "_referenced_by": [
+                        "--internal--"
+                    ],
+                    "_rkey": "ir.ambassador",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": true,
+                        "_namespace": "default",
+                        "_port": 8500,
+                        "_referenced_by": [
+                            "--internal--",
+                            "ambassador-edge-stack.default.1",
+                            "edgestack-direct-mapping.default.1",
+                            "edgestack-fallback-mapping.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8500_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "ambassador-edge-stack.default.1",
+                        "name": "cluster_127_0_0_1_8500_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8500",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8500,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8500"
+                        ]
+                    },
+                    "group_id": "ab86de585a684254d5458bdeb01da4fba36c21cc",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "--internal--",
+                    "metadata_labels": {
+                        "ambassador_diag_class": "private"
+                    },
+                    "name": "edgestack-direct-mapping",
+                    "namespace": "default",
+                    "precedence": 1000000,
+                    "prefix": "/edge_stack/",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/edge_stack_ui/edge_stack/",
+                    "route_weight": [
+                        1000000,
+                        12,
+                        0,
+                        "/edge_stack/",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8500",
+                    "timeout_ms": 60000,
+                    "weight": 100
+                },
+                {
+                    "_active": true,
+                    "_errored": false,
                     "_rkey": "edgestack-direct-mapping.default.1",
                     "add_request_headers": {},
                     "cluster": {
@@ -508,6 +581,7 @@
                         "_namespace": "default",
                         "_port": 8500,
                         "_referenced_by": [
+                            "--internal--",
                             "ambassador-edge-stack.default.1",
                             "edgestack-direct-mapping.default.1",
                             "edgestack-fallback-mapping.default.1"
@@ -562,7 +636,7 @@
                     "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgestack-direct-mapping.default\n  ambassador_diag_class: private\n  product: aes\nname: edgestack-direct-mapping\nnamespace: default\nprecedence: 1000000\nprefix: /edge_stack/\nrewrite: /edge_stack_ui/edge_stack/\nservice: 127.0.0.1:8500\ntimeout_ms: 60000\n",
                     "service": "127.0.0.1:8500",
                     "timeout_ms": 60000,
-                    "weight": 100
+                    "weight": 50
                 }
             ],
             "metadata_labels": {
@@ -575,7 +649,6 @@
             "precedence": 1000000,
             "prefix": "/edge_stack/",
             "rewrite": "/edge_stack_ui/edge_stack/",
-            "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgestack-direct-mapping.default\n  ambassador_diag_class: private\n  product: aes\nname: edgestack-direct-mapping\nnamespace: default\nprecedence: 1000000\nprefix: /edge_stack/\nrewrite: /edge_stack_ui/edge_stack/\nservice: 127.0.0.1:8500\ntimeout_ms: 60000\n",
             "timeout_ms": 60000
         },
         {
@@ -979,6 +1052,108 @@
             "_active": true,
             "_errored": false,
             "_referenced_by": [
+                "--internal--"
+            ],
+            "_rkey": "ir.ambassador",
+            "group_id": "680a6fad8cb1cf2ad5fce0be9da026e1e0f1b76f",
+            "group_weight": [
+                -1000000,
+                3,
+                0,
+                "^/$",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "--internal--",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_referenced_by": [
+                        "--internal--"
+                    ],
+                    "_rkey": "ir.ambassador",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": true,
+                        "_namespace": "default",
+                        "_port": 8500,
+                        "_referenced_by": [
+                            "--internal--",
+                            "ambassador-edge-stack.default.1",
+                            "edgestack-direct-mapping.default.1",
+                            "edgestack-fallback-mapping.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8500_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "ambassador-edge-stack.default.1",
+                        "name": "cluster_127_0_0_1_8500_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8500",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8500,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8500"
+                        ]
+                    },
+                    "group_id": "680a6fad8cb1cf2ad5fce0be9da026e1e0f1b76f",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "--internal--",
+                    "metadata_labels": {
+                        "ambassador_diag_class": "private"
+                    },
+                    "name": "edgestack-fallback-mapping",
+                    "namespace": "default",
+                    "precedence": -1000000,
+                    "prefix": "^/$",
+                    "prefix_regex": true,
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/edge_stack_ui/",
+                    "route_weight": [
+                        -1000000,
+                        3,
+                        0,
+                        "^/$",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8500",
+                    "timeout_ms": 60000,
+                    "weight": 100
+                }
+            ],
+            "metadata_labels": {
+                "ambassador_diag_class": "private"
+            },
+            "name": "GROUP: edgestack-fallback-mapping",
+            "namespace": "default",
+            "precedence": -1000000,
+            "prefix": "^/$",
+            "prefix_regex": true,
+            "rewrite": "/edge_stack_ui/",
+            "timeout_ms": 60000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
                 "edgestack-fallback-mapping.default.1"
             ],
             "_rkey": "edgestack-fallback-mapping.default.1",
@@ -1007,6 +1182,7 @@
                         "_namespace": "default",
                         "_port": 8500,
                         "_referenced_by": [
+                            "--internal--",
                             "ambassador-edge-stack.default.1",
                             "edgestack-direct-mapping.default.1",
                             "edgestack-fallback-mapping.default.1"
@@ -1087,7 +1263,7 @@
             "_namespace": "default",
             "_port": 5000,
             "_referenced_by": [
-                "ratelimitv1withtlstest.default.1"
+                "rate-limit-tls.default.1"
             ],
             "_rkey": "cluster_rate_limit_tls_5000_otls_ratelimit_tls_context_default",
             "connect_timeout_ms": 3000,
@@ -1098,7 +1274,7 @@
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
-            "location": "ratelimitv1withtlstest.default.1",
+            "location": "rate-limit-tls.default.1",
             "name": "cluster_rate_limit_tls_5000_otls_ratelim-0",
             "namespace": "default",
             "service": "rate-limit-tls:5000",
@@ -1113,8 +1289,8 @@
                 "_active": true,
                 "_errored": false,
                 "_referenced_by": [
-                    "ratelimitv1withtlstest-http.default.1",
-                    "ratelimitv1withtlstest.default.1"
+                    "rate-limit-tls.default.1",
+                    "ratelimitv1withtlstest-http.default.1"
                 ],
                 "_rkey": "ratelimitv1withtlstest-http.default.1",
                 "alpn_protocols": "h2",
@@ -1216,9 +1392,9 @@
         "_active": true,
         "_errored": false,
         "_referenced_by": [
-            "ratelimitv1withtlstest.default.1"
+            "rate-limit-tls.default.1"
         ],
-        "_rkey": "ratelimitv1withtlstest.default.1",
+        "_rkey": "rate-limit-tls.default.1",
         "cluster": {
             "_active": true,
             "_errored": false,
@@ -1227,7 +1403,7 @@
             "_namespace": "default",
             "_port": 5000,
             "_referenced_by": [
-                "ratelimitv1withtlstest.default.1"
+                "rate-limit-tls.default.1"
             ],
             "_rkey": "cluster_rate_limit_tls_5000_otls_ratelimit_tls_context_default",
             "connect_timeout_ms": 3000,
@@ -1238,7 +1414,7 @@
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
-            "location": "ratelimitv1withtlstest.default.1",
+            "location": "rate-limit-tls.default.1",
             "name": "cluster_rate_limit_tls_5000_otls_ratelim-0",
             "namespace": "default",
             "service": "rate-limit-tls:5000",
@@ -1253,8 +1429,8 @@
                 "_active": true,
                 "_errored": false,
                 "_referenced_by": [
-                    "ratelimitv1withtlstest-http.default.1",
-                    "ratelimitv1withtlstest.default.1"
+                    "rate-limit-tls.default.1",
+                    "ratelimitv1withtlstest-http.default.1"
                 ],
                 "_rkey": "ratelimitv1withtlstest-http.default.1",
                 "alpn_protocols": "h2",
@@ -1294,7 +1470,7 @@
             "_namespace": "default",
             "_port": 5000,
             "_referenced_by": [
-                "ratelimitv1withtlstest.default.1"
+                "rate-limit-tls.default.1"
             ],
             "_rkey": "cluster_rate_limit_tls_5000_otls_ratelimit_tls_context_default",
             "connect_timeout_ms": 3000,
@@ -1305,7 +1481,7 @@
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
-            "location": "ratelimitv1withtlstest.default.1",
+            "location": "rate-limit-tls.default.1",
             "name": "cluster_rate_limit_tls_5000_otls_ratelim-0",
             "namespace": "default",
             "service": "rate-limit-tls:5000",
@@ -1320,8 +1496,8 @@
                 "_active": true,
                 "_errored": false,
                 "_referenced_by": [
-                    "ratelimitv1withtlstest-http.default.1",
-                    "ratelimitv1withtlstest.default.1"
+                    "rate-limit-tls.default.1",
+                    "ratelimitv1withtlstest-http.default.1"
                 ],
                 "_rkey": "ratelimitv1withtlstest-http.default.1",
                 "alpn_protocols": "h2",
@@ -1346,7 +1522,7 @@
             ]
         },
         "kind": "IRRateLimit",
-        "location": "ratelimitv1withtlstest.default.1",
+        "location": "rate-limit-tls.default.1",
         "name": "rate_limit",
         "namespace": "default",
         "service": "rate-limit-tls:5000",
@@ -1425,8 +1601,8 @@
             "_active": true,
             "_errored": false,
             "_referenced_by": [
-                "ratelimitv1withtlstest-http.default.1",
-                "ratelimitv1withtlstest.default.1"
+                "rate-limit-tls.default.1",
+                "ratelimitv1withtlstest-http.default.1"
             ],
             "_rkey": "ratelimitv1withtlstest-http.default.1",
             "alpn_protocols": "h2",

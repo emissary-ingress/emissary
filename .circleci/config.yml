@@ -5,10 +5,22 @@ orbs:
 # Secure environement variables set from the Web UI:
 # - DEPLOY_KEY_ID (AWS S3)
 # - DEPLOY_KEY (AWS S3)
-# - DOCKER_TOKEN (Quay)
+#
+# - DEV_REGISTRY (Quay)
+# - DOCKER_BUILD_USERNAME (Quay)
+# - DOCKER_BUILD_PASSWORD (Quay)
+#
+# - RELEASE_REGISTRY (Quay)
+# - DOCKER_RELEASE_USERNAME (Quay) (optional)
+# - DOCKER_RELEASE_PASSWORD (Quay) (optional)
+#
 # - KUBERNAUT_TOKEN (Kubernaut)
 
 commands:
+
+  ##############################################################################
+  # Generic reusable commands                                                  #
+  ##############################################################################
 
   "pip-install":
     parameters:
@@ -42,12 +54,21 @@ commands:
       - run:
           name: "Install Go << parameters.version >>"
           command: |
-            curl https://dl.google.com/go/go<< parameters.version >>.$(uname -s | tr A-Z a-z)-amd64.tar.gz -o /tmp/go.tar.gz
-            tar -C /tmp -xzf /tmp/go.tar.gz
-            echo 'export PATH=/tmp/go/bin:$PATH' >> "$BASH_ENV"
-            if [ -z "$(/tmp/go/bin/go env GOPROXY)" ]; then
-              echo 'export GOPROXY=https://proxy.golang.org' >> "$BASH_ENV"
+            set -x
+            if [[ $OS == Windows_NT ]]; then
+              curl https://dl.google.com/go/go<< parameters.version >>.windows-amd64.zip -o /tmp/go.zip
+              mv /c/go /c/go-112
+              unzip -q /tmp/go.zip -d /c/
+            else
+              curl https://dl.google.com/go/go<< parameters.version >>.$(uname -s | tr A-Z a-z)-amd64.tar.gz -o /tmp/go.tar.gz
+              tar -C /tmp -xzf /tmp/go.tar.gz
+              echo 'export PATH=/tmp/go/bin:$PATH' >> "$BASH_ENV"
+              if [ -z "$(/tmp/go/bin/go env GOPROXY)" ]; then
+                echo 'export GOPROXY=https://proxy.golang.org' >> "$BASH_ENV"
+              fi
+              . "$BASH_ENV"
             fi
+            go version
 
   "install-kubectl":
     parameters:
@@ -85,72 +106,16 @@ commands:
           paths:
             - "/opt/circleci/.pyenv"
 
-  "with-go-mod-cache":
-    parameters:
-      "steps":
-        type: steps
+  ##############################################################################
+  # AES-specific granular commands                                             #
+  ##############################################################################
+
+  "aes-checkout":
     steps:
-      - restore_cache:
-          name: "Restore Go module cache"
-          keys:
-            - go-mod-cache-{{ arch }}-{{ checksum "go.mod" }}-
-            - go-mod-cache-{{ arch }}-
-      - run: |
-          echo 'export GOPROXY=file://$HOME/goproxy,$(go env GOPROXY)' >> "${BASH_ENV}"
+      - checkout
+      - run: "./get-amb-repo.sh && ln -s project/ambassador ../ambassador"
 
-      - steps: << parameters.steps >>
-
-      - run:
-          name: "Prepare to save Go module cache"
-          command: |
-            mkdir -p "$(go env GOPATH)/pkg/mod/cache/download/"
-            rsync -av --delete "$(go env GOPATH)/pkg/mod/cache/download/" ~/goproxy
-          when: always
-      - save_cache:
-          # Use {{arch}} as a proxy for
-          # {{.Environment.HOME}}... because despite what the CircleCI
-          # docs say, {{.Environment.HOME}} evaluates to "<no value>".
-          #
-          # Why put it in $HOME, instead of /tmp or something, and be
-          # able to share the cache?  Because /tmp is a symlink to
-          # /private/tmp on macOS, and CircleCI is broken on macOS
-          # whenever symlinks are involved.
-          name: "Save Go module cache"
-          key: go-mod-cache-{{ arch }}-{{ checksum "go.mod" }}-{{ .BuildNum }}
-          paths: "~/goproxy"
-          when: always
-
-  "with-go-build-cache":
-    parameters:
-      "steps":
-        type: steps
-    steps:
-      - restore_cache:
-          name: "Restore Go build cache"
-          keys:
-            - go-build-cache-{{ arch }}-{{ .BuildNum }}
-            - go-build-cache-{{ arch }}-
-      - run:
-          name: "Unfreeze Go build cache"
-          command: |
-            mkdir -p ~/gobuild "$(go env GOCACHE)"
-            rsync -av --delete ~/gobuild/ "$(go env GOCACHE)"
-
-      - steps: << parameters.steps >>
-
-      - run:
-          name: "Prepare to save Go build cache"
-          command: |
-            mkdir -p "$(go env GOCACHE)"
-            rsync -av --delete "$(go env GOCACHE)/" ~/gobuild
-          when: always
-      - save_cache:
-          name: "Save Go build cache"
-          key: go-build-cache-{{ arch }}-{{ .BuildNum }}
-          paths: "~/gobuild"
-          when: always
-
-  "save-logs":
+  "aes-save-logs":
     steps:
       - run:
           name: "Gather logs"
@@ -161,66 +126,9 @@ commands:
           name: "Store logs"
           path: /tmp/test-logs
           destination: test-logs
-  "main":
-    steps:
-      - checkout
-      - run: ln -s project/ambassador ../ambassador
-      - with-go-mod-cache:
-          steps:
-            - with-go-build-cache:
-                steps:
-                 - run: ".circleci/kubernaut-claim.sh"
 
-# RHS: disabling this because it gave me an incomprehensible error
-#      message, please don't reenable before Dec 10th
-#                 - run: "make lint"
-                 - run: "docker login -u=\"datawire-dev+aes\" -p=\"3M43T8BXB3L46H40R8W3K1JDNMIN6KP8Q5SC1SY2DRJQ7DZFE7LUJ1WE35QG3F0U\" quay.io"
-                 - run: |
-                    export DEV_REGISTRY=quay.io/datawire-dev
-                    export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
-                    export DEV_KUBE110=yes
-                    export KAT_REQ_LIMIT=600
-                    make test GOTEST_PKGS=github.com/datawire/apro/...
-                 - run:
-                     command: ".circleci/kubernaut-unclaim.sh"
-                     when: "always"
-                 - run: "PAGER= git diff"
-                 - run: "git status && test -z \"$(git status --porcelain)\""
-                 - save-logs
-  "release":
+  "aes-dirty-check":
     steps:
-      - run:
-          name: "Release"
-          command: |
-            if [[ "$CIRCLE_TAG" =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+(-.*)?$ ]]; then
-                export AWS_ACCESS_KEY_ID=$DEPLOY_KEY_ID
-                export AWS_SECRET_ACCESS_KEY=$DEPLOY_KEY
-                docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" quay.io
-                if [[ "$CIRCLE_TAG" == *-* ]]; then
-                  DEV_KUBECONFIG="-skip-for-release-" RELEASE_REGISTRY=quay.io/datawire make release/bits
-                else
-                  DEV_KUBECONFIG="-skip-for-release-" RELEASE_REGISTRY=quay.io/datawire make release/promote-aes/to-ga
-                fi
-            fi
-  "clobber":
-    steps:
-     # Run "make clobber", and verify that it cleans everything.  Do
-     # this last, and only if everything so far has passed; don't
-     # wipe out artifacts that are useful for debugging.
-     - run: make clobber
-     - run: "git clean -ndx; test -z \"$(git clean -ndx)\""
-  "cli-tools":
-    steps:
-      - checkout
-      - run: ./get-amb-repo.sh
-      - run: ln -s project/ambassador ../ambassador
-      - run: ./build-aux-local/module_version.sh apro
-      - run: ./build-aux-local/build_push_cli.sh build edgectl
-      - run: ./build-aux-local/build_push_cli.sh build apictl-key
-      - run: ~/bin/edgectl version || true
-      - run: ~/bin/apictl-key version || true
-      - store_artifacts:
-          path: ~/bin
       - run:
           name: "Dirty check"
           command: |
@@ -237,41 +145,100 @@ commands:
                PAGER= git diff --cached
                exit 1
             fi
+            git -C ambassador add .
+            if [[ -n "$(git -C ambassador status --porcelain)" ]]; then
+               PAGER= git -C ambassador diff --cached
+               exit 1
+            fi
+
+  ##############################################################################
+  # AES-specific workflow commands                                             #
+  ##############################################################################
+
+  "aes-main":
+    steps:
+      - aes-checkout
+      - run:
+          name: "Build and Test"
+          command: |
+            docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY}"
+            .circleci/kubernaut-claim.sh
+            export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
+            export DEV_KUBE110=yes
+            export KAT_REQ_LIMIT=600
+            make test GOTEST_PKGS=github.com/datawire/apro/...
+      - run:
+          command: ".circleci/kubernaut-unclaim.sh"
+          when: "always"
+      - aes-dirty-check
+      - run:
+          name: "Release"
+          command: |
+            if [[ -z "$CIRCLE_TAG" ]]; then
+                echo 'Skipping for non-tagged build'
+                exit 0
+            fi
+            export AWS_ACCESS_KEY_ID=$DEPLOY_KEY_ID
+            export AWS_SECRET_ACCESS_KEY=$DEPLOY_KEY
+            if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
+                docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY}"
+            fi
+            DEV_KUBECONFIG="-skip-for-release-" make release/bits
+      - aes-save-logs
+
+  "aes-promote":
+    steps:
+      - aes-checkout
+      - run: |
+          export AWS_ACCESS_KEY_ID=$DEPLOY_KEY_ID
+          export AWS_SECRET_ACCESS_KEY=$DEPLOY_KEY
+          docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY}"
+          if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
+              docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY}"
+          fi
+          DEV_KUBECONFIG="-skip-for-release-" make release/promote-aes/to-ga
+
+  "aes-cli-tools":
+    steps:
+      - aes-checkout
+      - run: ./build-aux-local/module_version.sh apro
+      - run:
+          name: "Build"
+          command: |
+            set -x
+
+            time ./build-aux-local/build_push_cli.sh build edgectl
+            time ./build-aux-local/build_push_cli.sh build aes-plugin-runner
+            time ./build-aux-local/build_push_cli.sh build apictl-key
+
+            ~/bin/edgectl version || true
+            ~/bin/aes-plugin-runner --version || true
+            ~/bin/apictl-key version || true
+      - store_artifacts:
+          path: ~/bin
+      - aes-dirty-check
       - run:
           name: "Release"
           # This only runs for pre-release tags; for GA tags the
-          # "main" command promotes the pre-release artifacts.
+          # "aes-main" command promotes the pre-release artifacts.
           command: |
-            if [[ "$CIRCLE_TAG" =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+-.*$ ]]; then
-                export AWS_ACCESS_KEY_ID=$DEPLOY_KEY_ID
-                export AWS_SECRET_ACCESS_KEY=$DEPLOY_KEY
-                ./build-aux-local/build_push_cli.sh push edgectl
-                ./build-aux-local/build_push_cli.sh push-private apictl-key
+            if [[ -z "$CIRCLE_TAG" ]]; then
+                echo 'Skipping for non-tagged build'
+                exit 0
             fi
+            export AWS_ACCESS_KEY_ID=$DEPLOY_KEY_ID
+            export AWS_SECRET_ACCESS_KEY=$DEPLOY_KEY
+            ./build-aux-local/build_push_cli.sh push edgectl
+            ./build-aux-local/build_push_cli.sh push aes-plugin-runner
+            ./build-aux-local/build_push_cli.sh push-private apictl-key
 
 jobs:
-
-  "macOS":
-    macos:
-      xcode: "10.1.0"
-    steps:
-      #- run: |
-      #    echo 'export MAKEFLAGS="-j$(sysctl -n hw.ncpu)"' >> "${BASH_ENV}"
-      - pip-install:
-          packages: awscli
-      - install-go
-      - install-kubectl
-      - main
-      - clobber
-
-  "Ubuntu":
+  "main":
     machine:
       # If you bump this, be sure to bump install-python.executor-key
       # below.
       image: "ubuntu-1604:201903-01"
     steps:
-      #- run: |
-      #    echo 'export MAKEFLAGS="-j$(nproc)"' >> "${BASH_ENV}"
       - pip-install:
           packages: awscli
       - install-go
@@ -279,9 +246,7 @@ jobs:
       - install-node
       - install-python:
           executor-key: "201903-01"
-      - main
-      - release
-#      - clobber
+      - aes-main
 
   "macOS-cli-tools":
     macos:
@@ -290,18 +255,16 @@ jobs:
       - pip-install:
           packages: awscli
       - install-go
-      - cli-tools
+      - aes-cli-tools
 
-  "Ubuntu-cli-tools":
+  "Linux-cli-tools":
     machine:
-      # If you bump this, be sure to bump install-python.executor-key
-      # below.
       image: "ubuntu-1604:201903-01"
     steps:
       - pip-install:
           packages: awscli
       - install-go
-      - cli-tools
+      - aes-cli-tools
 
   "Windows-cli-tools":
     executor:
@@ -311,35 +274,51 @@ jobs:
       - run:
           name: "Environment"
           command: env
-      - run:
-          name: "Install Go for Windows"
-          command: |
-            curl https://dl.google.com/go/go1.13.windows-amd64.zip -o /tmp/go.zip
-            mv /c/go /c/go-112
-            unzip -q /tmp/go.zip -d /c/
-            go version
-      - cli-tools
+      - install-go
+      - aes-cli-tools
+
+  "promote":
+    machine:
+      # If you bump this, be sure to bump install-python.executor-key
+      # below.
+      image: "ubuntu-1604:201903-01"
+    steps:
+      - pip-install:
+          packages: awscli
+      - install-go
+      - install-kubectl
+      - install-node
+      - install-python:
+          executor-key: "201903-01"
+      - aes-promote
 
 workflows:
-  "APro CI":
+  "AES Build and Test":
+    # Run these on all branches, and on prerelease tags.  Do not run
+    # them on unrecognized tags (do nothing) or GA tags (there's a
+    # separate GA workflow).
     jobs:
       - "Windows-cli-tools":
           filters:
             tags:
-              only: /.*/
-      - "Ubuntu-cli-tools":
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+-.*/
+      - "Linux-cli-tools":
           filters:
             tags:
-              only: /.*/
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+-.*/
       - "macOS-cli-tools":
           filters:
             tags:
-              only: /.*/
-      - "Ubuntu":
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+-.*/
+      - "main":
           filters:
             tags:
-              only: /.*/
-#      - "macOS":
-#          filters:
-#            branches:
-#              only: master
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+-.*/
+  "AES Promote to GA":
+    jobs:
+      - "promote":
+          filters:
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+/
+            branches:
+              ignore: /.*/

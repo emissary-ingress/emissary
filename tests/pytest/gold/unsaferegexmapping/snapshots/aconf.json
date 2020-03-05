@@ -54,7 +54,7 @@
             "acmeProvider": {
                 "authority": "none"
             },
-            "ambassador_id": [
+            "ambassadorId": [
                 "unsaferegexmapping"
             ],
             "apiVersion": "getambassador.io/v2",
@@ -80,7 +80,8 @@
                     "hostname": "unsaferegexmapping"
                 }
             },
-            "serialization": "acmeProvider:\n  authority: none\nambassador_id:\n- unsaferegexmapping\napiVersion: getambassador.io/v2\ngeneration: 1\nhostname: '*'\nkind: Host\nmetadata_labels:\n  ambassador_crd: cleartext-host-unsaferegexmapping.default\n  kat-ambassador-id: unsaferegexmapping\n  scope: AmbassadorTest\nname: cleartext-host-unsaferegexmapping\nnamespace: default\nrequestPolicy:\n  insecure:\n    action: Route\nselector:\n  matchLabels:\n    hostname: unsaferegexmapping\n"
+            "serialization": "acmeProvider:\n  authority: none\nambassadorId:\n- unsaferegexmapping\napiVersion: getambassador.io/v2\ngeneration: 1\nhostname: '*'\nkind: Host\nmetadata_labels:\n  ambassador_crd: cleartext-host-unsaferegexmapping.default\n  kat-ambassador-id: unsaferegexmapping\n  scope: AmbassadorTest\nname: cleartext-host-unsaferegexmapping\nnamespace: default\nrequestPolicy:\n  insecure:\n    action: Route\nselector:\n  matchLabels:\n    hostname: unsaferegexmapping\ntlsSecret: {}\n",
+            "tlsSecret": {}
         },
         "edgestack-direct-mapping.default.1": {
             "_referenced_by": {},
@@ -229,7 +230,7 @@
             "acmeProvider": {
                 "authority": "none"
             },
-            "ambassador_id": [
+            "ambassadorId": [
                 "unsaferegexmapping"
             ],
             "apiVersion": "getambassador.io/v2",
@@ -252,7 +253,8 @@
                 "matchLabels": {
                     "hostname": "unsaferegexmapping"
                 }
-            }
+            },
+            "tlsSecret": {}
         }
     },
     "mappings": {

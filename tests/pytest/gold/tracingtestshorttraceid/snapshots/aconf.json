@@ -4,7 +4,7 @@
         "tracingtestshorttraceid-http.default.1": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ],
-        "tracingtestshorttraceid.default.1": [
+        "zipkin-64.default.1": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ]
     },
@@ -220,7 +220,7 @@
             "serialization": "ambassador_id: tracingtestshorttraceid\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingtestshorttraceid\n  scope: AmbassadorTest\nname: tracing_target_mapping_64\nnamespace: default\nprefix: /target-64/\nservice: tracingtestshorttraceid-http\n",
             "service": "tracingtestshorttraceid-http"
         },
-        "tracingtestshorttraceid.default.1": {
+        "zipkin-64.default.1": {
             "_referenced_by": {},
             "ambassador_id": "tracingtestshorttraceid",
             "apiVersion": "getambassador.io/v0",
@@ -229,16 +229,15 @@
             },
             "driver": "zipkin",
             "kind": "TracingService",
-            "location": "tracingtestshorttraceid.default.1",
+            "location": "zipkin-64.default.1",
             "metadata_labels": {
-                "app.kubernetes.io/component": "ambassador-service",
                 "kat-ambassador-id": "tracingtestshorttraceid",
                 "scope": "AmbassadorTest"
             },
             "name": "tracing-64",
             "namespace": "default",
-            "rkey": "tracingtestshorttraceid.default.1",
-            "serialization": "ambassador_id: tracingtestshorttraceid\napiVersion: ambassador/v0\nconfig:\n  trace_id_128bit: false\ndriver: zipkin\nkind: TracingService\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tracingtestshorttraceid\n  scope: AmbassadorTest\nname: tracing-64\nnamespace: default\nservice: zipkin-64:9411\n",
+            "rkey": "zipkin-64.default.1",
+            "serialization": "ambassador_id: tracingtestshorttraceid\napiVersion: ambassador/v0\nconfig:\n  trace_id_128bit: false\ndriver: zipkin\nkind: TracingService\nmetadata_labels:\n  kat-ambassador-id: tracingtestshorttraceid\n  scope: AmbassadorTest\nname: tracing-64\nnamespace: default\nservice: zipkin-64:9411\n",
             "service": "zipkin-64:9411"
         }
     },
@@ -409,7 +408,6 @@
             "driver": "zipkin",
             "kind": "TracingService",
             "metadata_labels": {
-                "app.kubernetes.io/component": "ambassador-service",
                 "kat-ambassador-id": "tracingtestshorttraceid",
                 "scope": "AmbassadorTest"
             },

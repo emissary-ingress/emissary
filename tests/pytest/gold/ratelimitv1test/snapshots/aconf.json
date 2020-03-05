@@ -196,6 +196,23 @@
             "rkey": "k8s-ratelimitv1test-http-default",
             "serialization": "ambassador_id: ratelimitv1test\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: ratelimitv1test\n  scope: AmbassadorTest\nname: ratelimitv1test-http\nnamespace: default\n"
         },
+        "rate-limit-v1.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "ratelimitv1test",
+            "apiVersion": "getambassador.io/v1",
+            "kind": "RateLimitService",
+            "location": "rate-limit-v1.default.1",
+            "metadata_labels": {
+                "kat-ambassador-id": "ratelimitv1test",
+                "scope": "AmbassadorTest"
+            },
+            "name": "ratelimit-v1",
+            "namespace": "default",
+            "rkey": "rate-limit-v1.default.1",
+            "serialization": "ambassador_id: ratelimitv1test\napiVersion: ambassador/v1\nkind: RateLimitService\nmetadata_labels:\n  kat-ambassador-id: ratelimitv1test\n  scope: AmbassadorTest\nname: ratelimit-v1\nnamespace: default\nservice: rate-limit-v1:5000\ntimeout_ms: 500\n",
+            "service": "rate-limit-v1:5000",
+            "timeout_ms": 500
+        },
         "ratelimitv1test-http.default.1": {
             "_referenced_by": {},
             "ambassador_id": "ratelimitv1test",
@@ -226,24 +243,6 @@
             "rkey": "ratelimitv1test-http.default.1",
             "serialization": "ambassador_id: ratelimitv1test\napiVersion: ambassador/v1\nkind: Mapping\nlabels:\n  ambassador:\n  - request_label_group:\n    - x-ambassador-test-allow:\n        header: x-ambassador-test-allow\n        omit_if_not_present: true\nmetadata_labels:\n  kat-ambassador-id: ratelimitv1test\n  scope: AmbassadorTest\nname: ratelimit_target_mapping\nnamespace: default\nprefix: /target/\nservice: ratelimitv1test-http\n",
             "service": "ratelimitv1test-http"
-        },
-        "ratelimitv1test.default.1": {
-            "_referenced_by": {},
-            "ambassador_id": "ratelimitv1test",
-            "apiVersion": "getambassador.io/v1",
-            "kind": "RateLimitService",
-            "location": "ratelimitv1test.default.1",
-            "metadata_labels": {
-                "app.kubernetes.io/component": "ambassador-service",
-                "kat-ambassador-id": "ratelimitv1test",
-                "scope": "AmbassadorTest"
-            },
-            "name": "ratelimit-v1",
-            "namespace": "default",
-            "rkey": "ratelimitv1test.default.1",
-            "serialization": "ambassador_id: ratelimitv1test\napiVersion: ambassador/v1\nkind: RateLimitService\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: ratelimitv1test\n  scope: AmbassadorTest\nname: ratelimit-v1\nnamespace: default\nservice: rate-limit-v1:5000\ntimeout_ms: 500\n",
-            "service": "rate-limit-v1:5000",
-            "timeout_ms": 500
         }
     },
     "hosts": {
@@ -371,7 +370,6 @@
             "apiVersion": "getambassador.io/v1",
             "kind": "RateLimitService",
             "metadata_labels": {
-                "app.kubernetes.io/component": "ambassador-service",
                 "kat-ambassador-id": "ratelimitv1test",
                 "scope": "AmbassadorTest"
             },
