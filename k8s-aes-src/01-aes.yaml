@@ -39,6 +39,18 @@ metadata:
 # RBAC
 # NB: ClusterRoles and ClusterRoleBindings are not namespaced
 ---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ambassador
+  namespace: ambassador
+  labels:
+    product: aes
+#devmagic:{{ if env "DEV_USE_IMAGEPULLSECRET" | ne "" }}
+#devmagic:imagePullSecrets:
+#devmagic:- name: dev-image-pull-secret
+#devmagic:{{ end }}
+---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
@@ -54,6 +66,9 @@ rules:
 #  3. It needs permission to "create" events.
 #  4. It needs permission to "get"/"create"/"update" Leases (or
 #     Endpoints, if on Kubernetes <1.12).
+#
+# Note: If you edit this, be sure to also edit the pytest
+# `manifests/rbac_*_scope.yaml` files.
 - apiGroups: [""]
   resources: [ "namespaces", "services" ]
   verbs: ["get", "list", "watch"]
@@ -97,18 +112,6 @@ rules:
 - apiGroups: [""]
   resources: [ "pods/log" ]
   verbs: [ "get" ]
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: ambassador
-  namespace: ambassador
-  labels:
-    product: aes
-#devmagic:{{ if env "DEV_USE_IMAGEPULLSECRET" | ne "" }}
-#devmagic:imagePullSecrets:
-#devmagic:- name: dev-image-pull-secret
-#devmagic:{{ end }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
