@@ -23,9 +23,9 @@ By default, the Bookinfo application uses the Istio ingress. To use the Ambassad
 ---
 apiVersion: getambassador.io/v2
 kind: Mapping
-metadata: 
+metadata:
   name: httpbin
-spec:     
+spec:
   prefix: /httpbin/
   service: httpbin.org
   host_rewrite: httpbin.org
@@ -128,69 +128,9 @@ Newer versions of Istio support Kubernetes initializers to [automatically inject
 
 ## Istio Mutual TLS
 
-In case Istio mutual TLS is enabled on the cluster, the mapping outlined above will not function correctly as the Istio sidecar will intercept the connections and the service will only be reachable via `https` using the Istio managed certificates, which are available in each namespace via the `istio.default` secret. To get the proxy working we need to tell the Ambassador Edge Stack to use those certificates when communicating with Istio enabled service. To do this we need to modify the Ambassador Edge Stack deployment installed above.
+In case Istio mutual TLS is enabled on the cluster, the mapping outlined above will not function correctly as the Istio sidecar will intercept the connections and the service will only be reachable via `https` using the Istio managed certificates, which are available in each namespace via the `istio.default` secret. To get the proxy working we need to tell the Ambassador Edge Stack to use those certificates when communicating with Istio enabled service.
 
-In case of RBAC:
-
-``` yaml
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: ambassador
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      service: ambassador
-  template:
-    metadata:
-      annotations:
-        sidecar.istio.io/inject: "false"
-      labels:
-        service: ambassador
-    spec:
-      serviceAccountName: ambassador
-      containers:
-      - name: ambassador
-        image: quay.io/datawire/aes:$version$
-        resources:
-          limits:
-            cpu: 1
-            memory: 400Mi
-          requests:
-            cpu: 200m
-            memory: 100Mi
-        env:
-        - name: AMBASSADOR_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
-        livenessProbe:
-          httpGet:
-            path: /ambassador/v0/check_alive
-            port: 8877
-          initialDelaySeconds: 30
-          periodSeconds: 3
-        readinessProbe:
-          httpGet:
-            path: /ambassador/v0/check_ready
-            port: 8877
-          initialDelaySeconds: 30
-          periodSeconds: 3
-        volumeMounts:
-          - mountPath: /etc/istiocerts/
-            name: istio-certs
-            readOnly: true
-      restartPolicy: Always
-      volumes:
-      - name: istio-certs
-        secret:
-          optional: true
-          secretName: istio.default
-```
-
-Specifically note the mounting of the Istio secrets. For non RBAC cluster modify accordingly. Next we need to modify the Ambassador Edge Stack configuration to tell it use the new certificates for Istio enabled services:
+We need to modify the Ambassador Edge Stack configuration to tell it use the new certificates for Istio enabled services:
 
 ```yaml
 ---
@@ -209,10 +149,8 @@ kind: TLSContext
 metadata:
   name: istio-upstream
 spec:
-  cert_chain_file: /etc/istiocerts/cert-chain.pem
-  private_key_file: /etc/istiocerts/key.pem
-  cacert_chain_file: /etc/istiocerts/root-cert.pem
-
+  secret: istio.default
+  secret_namespacing: False
 ```
 
 This will define an `upstream` that uses the Istio certificates. We can now reuse the `istio-upstream` in all Ambassador Edge Stack mappings to enable communication with Istio pods.
@@ -221,9 +159,9 @@ This will define an `upstream` that uses the Istio certificates. We can now reus
 ---
 apiVersion: getambassador.io/v2
 kind: Mapping
-metadata: 
+metadata:
   name: productpage
-spec:     
+spec:
   prefix: /productpage/
   rewrite: /productpage
   service: https://productpage:9080
@@ -260,9 +198,8 @@ kind: TLSContext
 metadata:
   name: istio-upstream
 spec:
-  cert_chain_file: /etc/istiocerts/cert-chain.pem
-  private_key_file: /etc/istiocerts/key.pem
-  cacert_chain_file: /etc/istiocerts/root-cert.pem
+  secret: istio.default
+  secret_namespacing: False
   alpn_protocols: "istio"
 ```
 
