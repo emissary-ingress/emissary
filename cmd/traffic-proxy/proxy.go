@@ -1,4 +1,4 @@
-package main
+package traffic_manager
 
 import (
 	"context"
@@ -334,7 +334,7 @@ func (state *ProxyState) cleanup() {
 // Version is inserted at build using --ldflags -X
 var Version = "(unknown version)"
 
-func main() {
+func Main() {
 	log.Printf("Traffic Manager version %s", Version)
 
 	argparser := &cobra.Command{
