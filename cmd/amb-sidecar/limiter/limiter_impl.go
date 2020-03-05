@@ -1,10 +1,9 @@
 package limiter
 
 import (
+	"github.com/datawire/apro/lib/licensekeys"
 	"github.com/mediocregopher/radix.v2/pool"
 	"github.com/pkg/errors"
-
-	"github.com/datawire/apro/lib/licensekeys"
 )
 
 // Limiter is what actually implements the limits defined inside of licensekeys
@@ -120,6 +119,16 @@ func (l *LimiterImpl) GetFeatureUsageValueAtPointInTime(toCheck *licensekeys.Lim
 	limiter := l.lookupLimiter(toCheck)
 	if limiter != nil {
 		value, _ := limiter.GetUsageAtPointInTime()
+		return value
+	}
+	return 0
+}
+
+// GetFeatureMaxUsageValue returns the feature's maximum usage value.
+func (l *LimiterImpl) GetFeatureMaxUsageValue(toCheck *licensekeys.Limit) int {
+	limiter := l.lookupLimiter(toCheck)
+	if limiter != nil {
+		value, _ := limiter.GetMaxUsage()
 		return value
 	}
 	return 0
