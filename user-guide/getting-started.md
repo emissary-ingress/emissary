@@ -91,7 +91,9 @@ The `random-word-1234.edgestack.me` is a provided subdomain that allows the
 Ambassador Edge Stack to automatically provision TLS and HTTPS for a domain
 name, so you can get started right away.
 
-Your new [Edge Policy Console](/about/edge-policy-console) will open automatically in your browser at the provided URL or IP address.
+Your new [Edge Policy Console](/about/edge-policy-console) will open
+automatically in your browser at the provided URL or IP address. **Note that the provided `random-word.edgestack.me` domain name will expire after 90 days**.
+
 
 ## Create a Mapping
 
@@ -193,8 +195,6 @@ The Quote service we just deployed publishes its API as a Swagger document. This
 ## What’s Next?
 
 The Ambassador Edge Stack has a comprehensive range of [features](/features/) to support the requirements of any edge microservice.
-
-**Note that the provided `random-word.edgestack.me` domain name will expire after 90 days**.
 
 To learn more about how the Ambassador Edge Stack works, along with use cases,
 best practices, and more, check out the [Welcome page](/docs/) or read the
