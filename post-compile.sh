@@ -30,6 +30,14 @@ sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/app-sidecar
 sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/aes-plugin-runner
 sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/traffic-manager
 
+# Copy installer support into /opt/image-build to be run at docker build for the
+# production image. Then run the installers for the builder container.
+# Note: The target dir and the installer script are always handled by
+# ambassador's post-compile script, so we it is safe to assume they exist at
+# this point.
+sudo cp -a /buildroot/apro/build-aux-local/installers /opt/image-build/
+sudo /opt/image-build/install.sh
+
 # entrypoint.sh, aes-plugin-runner, and the ABI stuff later in this file expect
 # these to be here
 sudo ln -sf /opt/ambassador/bin/amb-sidecar /ambassador/sidecars/
