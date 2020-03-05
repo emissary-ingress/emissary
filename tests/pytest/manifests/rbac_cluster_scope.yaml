@@ -45,6 +45,16 @@ rules:
 - apiGroups: [""]
   resources: [ "endpoints" ]
   verbs: ["get", "list", "watch", "create", "update"]
+# extra permissions for kale
+- apiGroups: [""]
+  resources: [ "pods", "services" ]
+  verbs: [ "get", "list", "create", "watch" ]
+- apiGroups: ["getambassador.io"]
+  resources: [ "mappings", "projects" ]
+  verbs: [ "get", "list", "create", "watch" ]
+- apiGroups: [""]
+  resources: [ "pods/log" ]
+  verbs: [ "get" ]
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
