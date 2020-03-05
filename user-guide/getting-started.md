@@ -6,10 +6,10 @@
 In just four minutes, your cluster will be routing HTTPS requests from the
 Internet to a backend service.
 
-The Ambassador Edge Stack is deployed to Kubernetes via YAML for macOS, Linux, and
+The Ambassador Edge Stack is deployed to Kubernetes via YAML for MacOS, Linux, and
 Windows. For other options, such as Docker, click [here](/user-guide/install).
 
-## Install with MacOS
+### Install with MacOS
 
 1. Download the `edgectl` file [here](https://metriton.datawire.io/downloads/darwin/edgectl) or download it with a curl command:
 
@@ -23,27 +23,25 @@ Windows. For other options, such as Docker, click [here](/user-guide/install).
     * Click the **Open Anyway** button.
     * On the new dialog, click the **Open** button.
 
-2. Navigate to your downloads folder.
-3. Complete the installation with `edgectl install`
+2. Run the installer with `edgectl install`
 
 ### Install with Linux
 
 1. Download the `edgectl` file
-   [here](https://metriton.datawire.io/downloads/linux/edgectl) or with a curl
+   [here](https://metriton.datawire.io/downloads/linux/edgectl) or download it with a curl
    command:
 
     ```shell
     sudo curl -fL https://metriton.datawire.io/downloads/linux/edgectl -o
     /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl
     ```
-2. Navigate to your downloads folder.
-3. Complete the installation with `edgectl install`
+2. Run the installer with `edgectl install`
 
 ### Install with Windows
 
 1. Download the `edgectl` file
    [here](https://metriton.datawire.io/downloads/windows/edgectl.exe).
-2. Complete the installation with `edgectl.exe install`
+2. Run the installer with `edgectl.exe install`
 
 ## Installation Success
 
