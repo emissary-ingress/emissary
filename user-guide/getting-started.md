@@ -92,7 +92,7 @@ name, so you can get started right away.
 Your new [Edge Policy Console](/about/edge-policy-console) will open
 automatically in your browser at the provided URL or IP address. **Note that the provided `random-word.edgestack.me` domain name will expire after 90 days**.
 
-[![AES success](/../../doc-images/aes-success.png)]
+![AES success](/../../doc-images/aes-success.png)
 
 ## Create a Mapping
 
