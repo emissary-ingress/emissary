@@ -78,9 +78,9 @@ The Ambassador Edge Stack will see the RateLimitService and reconfigure itself w
 
 The Ambassador Edge Stack only validates requests on Mappings which set rate limiting descriptors. If Ambassador cannot contact the rate limit service, it will allow the request to be processed as if there were no rate limit service configuration.
 
-### v1 API
+### v0 API
 
-Ambassador 0.50.0 and later requires the `v1` API Version for rate limiting. The `v1` API uses the `labels` attribute to attach rate limiting descriptors. Review the [Rate Limits configuration documentation](../../reference/rate-limits#request-labels) for more information.
+Ambassador 0.50.0 and later requires the `v2` API Version for rate limiting. The `v2` API uses the `labels` attribute to attach rate limiting descriptors. Review the [Rate Limits configuration documentation](../../reference/rate-limits#request-labels) for more information.
 
 Replace the label that is applied to the `service-backend` with:
 
@@ -97,7 +97,7 @@ so the Mapping definition will now look like this:
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: service-backend
@@ -112,9 +112,9 @@ spec:
           omit_if_not_present: true
 ```
 
-### v0 API
+### v2 API
 
-Ambassador versions 0.40.2 and earlier use the `v0` API version which uses the `rate_limits` attribute to set rate limiting descriptors. Review the [rate_limits mapping attribute configuration documentation](../../reference/rate-limits#the-rate_limits-attribute) for more information.
+Ambassador versions 0.40.2 and earlier use the `v2` API version which uses the `rate_limits` attribute to set rate limiting descriptors. Review the [rate_limits mapping attribute configuration documentation](../../reference/rate-limits#the-rate_limits-attribute) for more information.
 
 ```yaml
 ---
@@ -125,13 +125,13 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v2
       kind: Mapping
       name: quote-backend
       prefix: /
       service: quote:5000
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v2
       kind: Mapping
       name: quote-backend
       prefix: /backend/

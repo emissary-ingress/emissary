@@ -30,7 +30,7 @@ The following is an example of how to configure annotations for the example quot
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: quote-backend
@@ -38,7 +38,7 @@ spec:
   prefix: /backend/
   service: quote:5000
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: quote-backend
@@ -63,13 +63,13 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v1
+      apiVersion: ambassador/v2
       kind: Mapping
       name: quote-ui_mapping
       prefix: /
       service: quote:5000
       ---
-      apiVersion: ambassador/v1
+      apiVersion: ambassador/v2
       kind: Mapping
       name: quote-backend_mapping
       prefix: /backend/
@@ -100,7 +100,7 @@ All example configuration in this document is given in CRD format. It is easy to
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Module
 metadata:
   name: ambassador
@@ -112,12 +112,12 @@ spec:
 
 Starting with the example above:
 
-1. Change the `apiVersion` from `getambassador.io/v1` to `ambassador/v1`
+1. Change the `apiVersion` from `getambassador.io/v2` to `ambassador/v2`
 
 ```diff
 ---
--apiVersion: getambassador.io/v1
-+apiVersion: ambassador/v1
+-apiVersion: getambassador.io/v2
++apiVersion: ambassador/v2
 kind: Module
 metadata:
   name: ambassador
@@ -131,7 +131,7 @@ spec:
 
 ```diff
 ---
-apiVersion: ambassador/v1
+apiVersion: ambassador/v2
 kind: Module
 -metadata:
 -  name: ambassador
@@ -146,7 +146,7 @@ spec:
 
 ```diff
 ---
-apiVersion: ambassador/v1
+apiVersion: ambassador/v2
 kind: Module
 name: ambassador
 -spec:
@@ -162,7 +162,7 @@ After this step, we are left with a `yaml` object that looks like this:
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: ambassador/v2
 kind: Module
 name: ambassador
 config:
@@ -181,7 +181,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v1
+      apiVersion: ambassador/v2
       kind: Module
       name: ambassador
       config:

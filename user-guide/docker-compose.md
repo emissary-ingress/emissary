@@ -55,7 +55,7 @@ Set the contents of the `config/ambassador.yaml` to this YAML configuration:
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: ambassador/v2
 kind: Module
 name: ambassador
 config: {}
@@ -91,7 +91,7 @@ Edit the contents of the `config/ambassador.yaml` to this YAML configuration:
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: ambassador/v2
 kind: Module
 name: ambassador
 config:
@@ -126,7 +126,7 @@ Create a new file `config/mapping-httpbin.yaml` with these contents:
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: ambassador/v2
 kind:  Mapping
 name:  httpbin_mapping
 prefix: /httpbin/
@@ -187,13 +187,13 @@ Edit the `config/mapping-tour.yaml` file and modify the `service` and `rewrite` 
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: ambassador/v2
 kind: Mapping
 name: tour-ui_mapping
 prefix: /
 service: tour-ui:5000
 ---
-apiVersion: ambassador/v1
+apiVersion: ambassador/v2
 kind:  Mapping
 name:  tour-backend_mapping
 prefix: /backend/
@@ -261,7 +261,7 @@ Make a new file called `config/auth.yaml` with an auth definition inside:
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: ambassador/v2
 kind:  AuthService
 name:  authentication
 auth_service: "auth:3000"
@@ -385,7 +385,7 @@ Add a new configuration file `config/tracing.yaml` with these contents:
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: ambassador/v2
 kind: TracingService
 name: tracing
 service: tracing:9411

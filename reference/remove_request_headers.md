@@ -10,7 +10,7 @@ The `remove_request_headers` attribute takes a list of keys used to match to the
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 metadata:
   name:  quote-backend
