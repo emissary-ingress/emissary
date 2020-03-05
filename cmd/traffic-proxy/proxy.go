@@ -462,6 +462,17 @@ func Run(flags *cobra.Command, args []string) error {
 			}
 		},
 	})
+	sup.Supervise(&supervisor.Worker{
+		Name: "sshd",
+		Work: func(p *supervisor.Process) error {
+			cmd := p.Command("/usr/sbin/sshd", "-De")
+			if err := cmd.Start(); err != nil {
+				return err
+			}
+			p.Ready()
+			return p.DoClean(cmd.Wait, cmd.Process.Kill)
+		},
+	})
 
 	sup.Logger.Printf("Starting server...")
 	runErrors := sup.Run()
