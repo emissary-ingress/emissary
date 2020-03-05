@@ -1,0 +1,230 @@
+{
+    "Consul": {},
+    "Kubernetes": {
+        "AuthService": null,
+        "ConsulResolver": null,
+        "Host": [
+            {
+                "apiVersion": "getambassador.io/v2",
+                "kind": "Host",
+                "metadata": {
+                    "annotations": {
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Host\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"redirecttestswithproxyproto\",\"scope\":\"AmbassadorTest\"},\"name\":\"cleartext-host-redirecttestswithproxyproto\",\"namespace\":\"default\"},\"spec\":{\"acmeProvider\":{\"authority\":\"none\"},\"ambassador_id\":[\"redirecttestswithproxyproto\"],\"hostname\":\"*\",\"requestPolicy\":{\"insecure\":{\"action\":\"Route\"}},\"selector\":{\"matchLabels\":{\"hostname\":\"redirecttestswithproxyproto\"}}}}\n"
+                    },
+                    "clusterName": "",
+                    "creationTimestamp": "2020-03-04T04:41:32Z",
+                    "generation": 1,
+                    "labels": {
+                        "kat-ambassador-id": "redirecttestswithproxyproto",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "cleartext-host-redirecttestswithproxyproto",
+                    "namespace": "default",
+                    "resourceVersion": "28242",
+                    "selfLink": "/apis/getambassador.io/v2/namespaces/default/hosts/cleartext-host-redirecttestswithproxyproto",
+                    "uid": "6bd36444-5dd2-11ea-a67a-06c41a568f95"
+                },
+                "spec": {
+                    "acmeProvider": {
+                        "authority": "none"
+                    },
+                    "ambassador_id": [
+                        "redirecttestswithproxyproto"
+                    ],
+                    "hostname": "*",
+                    "requestPolicy": {
+                        "insecure": {
+                            "action": "Route"
+                        }
+                    },
+                    "selector": {
+                        "matchLabels": {
+                            "hostname": "redirecttestswithproxyproto"
+                        }
+                    }
+                }
+            }
+        ],
+        "KubernetesEndpointResolver": null,
+        "KubernetesServiceResolver": null,
+        "LogService": null,
+        "Mapping": null,
+        "Module": null,
+        "RateLimitService": null,
+        "TCPMapping": null,
+        "TLSContext": [
+            {
+                "apiVersion": "getambassador.io/v2",
+                "kind": "TLSContext",
+                "metadata": {
+                    "annotations": {
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"TLSContext\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"hostcrdmanualcontext\",\"scope\":\"AmbassadorTest\"},\"name\":\"manual-host-context\",\"namespace\":\"default\"},\"spec\":{\"ambassador_id\":[\"hostcrdmanualcontext\"],\"hosts\":[\"hostcrdmanualcontext\"],\"max_tls_version\":\"v1.3\",\"min_tls_version\":\"v1.2\",\"secret\":\"manual-secret\"}}\n"
+                    },
+                    "clusterName": "",
+                    "creationTimestamp": "2020-03-04T04:41:12Z",
+                    "generation": 1,
+                    "labels": {
+                        "kat-ambassador-id": "hostcrdmanualcontext",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "manual-host-context",
+                    "namespace": "default",
+                    "resourceVersion": "27299",
+                    "selfLink": "/apis/getambassador.io/v2/namespaces/default/tlscontexts/manual-host-context",
+                    "uid": "5fdd7490-5dd2-11ea-a67a-06c41a568f95"
+                },
+                "spec": {
+                    "ambassador_id": [
+                        "hostcrdmanualcontext"
+                    ],
+                    "hosts": [
+                        "hostcrdmanualcontext"
+                    ],
+                    "max_tls_version": "v1.3",
+                    "min_tls_version": "v1.2",
+                    "secret": "manual-secret"
+                }
+            }
+        ],
+        "TracingService": null,
+        "ingresses": null,
+        "secret": null,
+        "service": [
+            {
+                "apiVersion": "v1",
+                "kind": "Service",
+                "metadata": {
+                    "annotations": {
+                        "getambassador.io/config": "---\napiVersion: ambassador/v1\nkind: Module\nname: ambassador\nconfig:\n  use_proxy_proto: true\n  enable_ipv6: true\nambassador_id: redirecttestswithproxyproto\n",
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v1\\nkind: Module\\nname: ambassador\\nconfig:\\n  use_proxy_proto: true\\n  enable_ipv6: true\\nambassador_id: redirecttestswithproxyproto\\n\"},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"redirecttestswithproxyproto\",\"scope\":\"AmbassadorTest\"},\"name\":\"redirecttestswithproxyproto\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"redirecttestswithproxyproto\"},\"type\":\"NodePort\"}}\n"
+                    },
+                    "creationTimestamp": "2020-03-04T04:41:31Z",
+                    "labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "redirecttestswithproxyproto",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "redirecttestswithproxyproto",
+                    "namespace": "default",
+                    "resourceVersion": "28228",
+                    "selfLink": "/api/v1/namespaces/default/services/redirecttestswithproxyproto",
+                    "uid": "6b9423db-5dd2-11ea-a67a-06c41a568f95"
+                },
+                "spec": {
+                    "clusterIP": "10.101.211.238",
+                    "externalTrafficPolicy": "Cluster",
+                    "ports": [
+                        {
+                            "name": "http",
+                            "nodePort": 31407,
+                            "port": 80,
+                            "protocol": "TCP",
+                            "targetPort": 8080
+                        },
+                        {
+                            "name": "https",
+                            "nodePort": 30337,
+                            "port": 443,
+                            "protocol": "TCP",
+                            "targetPort": 8443
+                        }
+                    ],
+                    "selector": {
+                        "service": "redirecttestswithproxyproto"
+                    },
+                    "sessionAffinity": "None",
+                    "type": "NodePort"
+                },
+                "status": {
+                    "loadBalancer": {}
+                }
+            },
+            {
+                "apiVersion": "v1",
+                "kind": "Service",
+                "metadata": {
+                    "annotations": {
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"redirecttestswithproxyproto\",\"scope\":\"AmbassadorTest\",\"service\":\"redirecttestswithproxyproto-admin\"},\"name\":\"redirecttestswithproxyproto-admin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"redirecttestswithproxyproto-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"redirecttestswithproxyproto\"},\"type\":\"NodePort\"}}\n"
+                    },
+                    "creationTimestamp": "2020-03-04T04:41:32Z",
+                    "labels": {
+                        "kat-ambassador-id": "redirecttestswithproxyproto",
+                        "scope": "AmbassadorTest",
+                        "service": "redirecttestswithproxyproto-admin"
+                    },
+                    "name": "redirecttestswithproxyproto-admin",
+                    "namespace": "default",
+                    "resourceVersion": "28234",
+                    "selfLink": "/api/v1/namespaces/default/services/redirecttestswithproxyproto-admin",
+                    "uid": "6bba08a3-5dd2-11ea-a67a-06c41a568f95"
+                },
+                "spec": {
+                    "clusterIP": "10.101.213.68",
+                    "externalTrafficPolicy": "Cluster",
+                    "ports": [
+                        {
+                            "name": "redirecttestswithproxyproto-admin",
+                            "nodePort": 30850,
+                            "port": 8877,
+                            "protocol": "TCP",
+                            "targetPort": 8877
+                        }
+                    ],
+                    "selector": {
+                        "service": "redirecttestswithproxyproto"
+                    },
+                    "sessionAffinity": "None",
+                    "type": "NodePort"
+                },
+                "status": {
+                    "loadBalancer": {}
+                }
+            },
+            {
+                "apiVersion": "v1",
+                "kind": "Service",
+                "metadata": {
+                    "annotations": {
+                        "getambassador.io/config": "---\napiVersion: ambassador/v1\nkind: Mapping\nname: tls_target_mapping\nprefix: /tls-target/\nservice: redirecttestswithproxyproto-http\nambassador_id: redirecttestswithproxyproto\n",
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v1\\nkind: Mapping\\nname: tls_target_mapping\\nprefix: /tls-target/\\nservice: redirecttestswithproxyproto-http\\nambassador_id: redirecttestswithproxyproto\\n\"},\"labels\":{\"kat-ambassador-id\":\"redirecttestswithproxyproto\",\"scope\":\"AmbassadorTest\"},\"name\":\"redirecttestswithproxyproto-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8119},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8482}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
+                    },
+                    "creationTimestamp": "2020-03-04T04:41:32Z",
+                    "labels": {
+                        "kat-ambassador-id": "redirecttestswithproxyproto",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "redirecttestswithproxyproto-http",
+                    "namespace": "default",
+                    "resourceVersion": "28247",
+                    "selfLink": "/api/v1/namespaces/default/services/redirecttestswithproxyproto-http",
+                    "uid": "6c2eb336-5dd2-11ea-a67a-06c41a568f95"
+                },
+                "spec": {
+                    "clusterIP": "10.105.199.115",
+                    "ports": [
+                        {
+                            "name": "http",
+                            "port": 80,
+                            "protocol": "TCP",
+                            "targetPort": 8119
+                        },
+                        {
+                            "name": "https",
+                            "port": 443,
+                            "protocol": "TCP",
+                            "targetPort": 8482
+                        }
+                    ],
+                    "selector": {
+                        "backend": "superpod-default"
+                    },
+                    "sessionAffinity": "None",
+                    "type": "ClusterIP"
+                },
+                "status": {
+                    "loadBalancer": {}
+                }
+            }
+        ]
+    }
+}

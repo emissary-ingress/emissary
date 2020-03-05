@@ -1,0 +1,293 @@
+{
+    "Consul": {},
+    "Kubernetes": {
+        "AuthService": null,
+        "ConsulResolver": null,
+        "Host": [
+            {
+                "apiVersion": "getambassador.io/v2",
+                "kind": "Host",
+                "metadata": {
+                    "annotations": {
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Host\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"ratelimitv1withtlstest\",\"scope\":\"AmbassadorTest\"},\"name\":\"cleartext-host-ratelimitv1withtlstest\",\"namespace\":\"default\"},\"spec\":{\"acmeProvider\":{\"authority\":\"none\"},\"ambassador_id\":[\"ratelimitv1withtlstest\"],\"hostname\":\"*\",\"requestPolicy\":{\"insecure\":{\"action\":\"Route\"}},\"selector\":{\"matchLabels\":{\"hostname\":\"ratelimitv1withtlstest\"}}}}\n"
+                    },
+                    "clusterName": "",
+                    "creationTimestamp": "2020-03-04T04:41:31Z",
+                    "generation": 1,
+                    "labels": {
+                        "kat-ambassador-id": "ratelimitv1withtlstest",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "cleartext-host-ratelimitv1withtlstest",
+                    "namespace": "default",
+                    "resourceVersion": "28210",
+                    "selfLink": "/apis/getambassador.io/v2/namespaces/default/hosts/cleartext-host-ratelimitv1withtlstest",
+                    "uid": "6b2bdfde-5dd2-11ea-a67a-06c41a568f95"
+                },
+                "spec": {
+                    "acmeProvider": {
+                        "authority": "none"
+                    },
+                    "ambassador_id": [
+                        "ratelimitv1withtlstest"
+                    ],
+                    "hostname": "*",
+                    "requestPolicy": {
+                        "insecure": {
+                            "action": "Route"
+                        }
+                    },
+                    "selector": {
+                        "matchLabels": {
+                            "hostname": "ratelimitv1withtlstest"
+                        }
+                    }
+                }
+            }
+        ],
+        "KubernetesEndpointResolver": null,
+        "KubernetesServiceResolver": null,
+        "LogService": null,
+        "Mapping": null,
+        "Module": null,
+        "RateLimitService": null,
+        "TCPMapping": null,
+        "TLSContext": [
+            {
+                "apiVersion": "getambassador.io/v2",
+                "kind": "TLSContext",
+                "metadata": {
+                    "annotations": {
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"TLSContext\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"hostcrdmanualcontext\",\"scope\":\"AmbassadorTest\"},\"name\":\"manual-host-context\",\"namespace\":\"default\"},\"spec\":{\"ambassador_id\":[\"hostcrdmanualcontext\"],\"hosts\":[\"hostcrdmanualcontext\"],\"max_tls_version\":\"v1.3\",\"min_tls_version\":\"v1.2\",\"secret\":\"manual-secret\"}}\n"
+                    },
+                    "clusterName": "",
+                    "creationTimestamp": "2020-03-04T04:41:12Z",
+                    "generation": 1,
+                    "labels": {
+                        "kat-ambassador-id": "hostcrdmanualcontext",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "manual-host-context",
+                    "namespace": "default",
+                    "resourceVersion": "27299",
+                    "selfLink": "/apis/getambassador.io/v2/namespaces/default/tlscontexts/manual-host-context",
+                    "uid": "5fdd7490-5dd2-11ea-a67a-06c41a568f95"
+                },
+                "spec": {
+                    "ambassador_id": [
+                        "hostcrdmanualcontext"
+                    ],
+                    "hosts": [
+                        "hostcrdmanualcontext"
+                    ],
+                    "max_tls_version": "v1.3",
+                    "min_tls_version": "v1.2",
+                    "secret": "manual-secret"
+                }
+            }
+        ],
+        "TracingService": null,
+        "ingresses": null,
+        "secret": [
+            {
+                "apiVersion": "v1",
+                "data": {
+                    "tls.crt": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURDakNDQWZJQ0NRRGdYUjZ3V1Z6Wk9EQU5CZ2txaGtpRzl3MEJBUVVGQURCSE1SNHdIQVlEVlFRRERCVnkKWVhSbGJHbHRhWFF1WkdGMFlYZHBjbVV1YVc4eEpUQWpCZ2txaGtpRzl3MEJDUUVXRm1odmMzUnRZWE4wWlhKQQpaR0YwWVhkcGNtVXVhVzh3SGhjTk1Ua3dPVEU1TVRnek16QXlXaGNOTWpFd09ERTVNVGd6TXpBeVdqQkhNUjR3CkhBWURWUVFEREJWeVlYUmxiR2x0YVhRdVpHRjBZWGRwY21VdWFXOHhKVEFqQmdrcWhraUc5dzBCQ1FFV0ZtaHYKYzNSdFlYTjBaWEpBWkdGMFlYZHBjbVV1YVc4d2dnRWlNQTBHQ1NxR1NJYjNEUUVCQVFVQUE0SUJEd0F3Z2dFSwpBb0lCQVFDeWw5VkJtVjVCcFYxOHZzclNqUktyZGlEVnZZS0dxNlZVaGFTRTlZSWNRODhiSTFaeHlhUE9zUVlRCmMycmY4Q0RKdUp4M1hoUjUzMENwN3pQNmVSMjNwMkZBOSsxSWs5SHZhWUx0WDRtQTJOdjh4V1kxaEhua1BURnMKVFRwazBMREdYYjVZWnh2QkczNTNKL3NFKzFrSUUxenpKZldpQUpUMzZzMk5PRzRVQWhoVmFPS2p1K3grYXJwbQoyZnNhTldKTTFEMS9CUXVVN1Vid0p0QmIyZFo2WUtUNHE4M2doQWgybDhad1hQcFdJQmtpWGpNNXJ0WkQ3QmN4CkRxdFNtVE1ZejVjZWNwbmhiNEw4Z3hFVUJyWlRxQ3g4RVkvcDArY05mN2hScmFWbTd6Q3BaRDhvSUtLS0IvUDQKM1dHZHRHNlpHS0VFSmtXNjB5QWtxRmI3czNWdEFnTUJBQUV3RFFZSktvWklodmNOQVFFRkJRQURnZ0VCQUFJUwp2Znh1K3dQcUxicVRZV1NLTUt6S3JmNUxxWlpBZFpZZXNIR0oxNmFyVmt6eGhzcElGRGZpblZ1UmI1eERxWVVSCnFta0U1K0dCNDh5UGoxaUQvdXdPOEI0ckFnNW1Pekw1MEpUMDVQT1dyc0hjK1loLzAvUXpGNmlqNHlVNWZ6dloKRHpJdFBiNE5qWTMxUE44WkJMYTFGSHk5d2JGSzdyS2lWK2MxTzd0UHVjQTVUWnoxS0h5VUVYaWxHdmNoczB4OApzazRJR2xrVTNoSDFVWHBzTmw0NTI4VjR0L3dXOTdiYmhFeHYvYnBwR3RLbjRKei9hYkNScjA3Q3kzUytjUzc5CnlQNTZiQVZxa1R2TTVkUkhiNG9zOGYzNUJuQTdPci9YRTQ2K2VRMXNVY21IVG5OUWdFVkpWZGVwR3V4Sk5pNFMKejJ0WHhHSStTdTFlUnlQcVNGWT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=",
+                    "tls.key": "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2UUlCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktjd2dnU2pBZ0VBQW9JQkFRQ3lsOVZCbVY1QnBWMTgKdnNyU2pSS3JkaURWdllLR3E2VlVoYVNFOVlJY1E4OGJJMVp4eWFQT3NRWVFjMnJmOENESnVKeDNYaFI1MzBDcAo3elA2ZVIyM3AyRkE5KzFJazlIdmFZTHRYNG1BMk52OHhXWTFoSG5rUFRGc1RUcGswTERHWGI1WVp4dkJHMzUzCkovc0UrMWtJRTF6ekpmV2lBSlQzNnMyTk9HNFVBaGhWYU9LanUreCthcnBtMmZzYU5XSk0xRDEvQlF1VTdVYncKSnRCYjJkWjZZS1Q0cTgzZ2hBaDJsOFp3WFBwV0lCa2lYak01cnRaRDdCY3hEcXRTbVRNWXo1Y2VjcG5oYjRMOApneEVVQnJaVHFDeDhFWS9wMCtjTmY3aFJyYVZtN3pDcFpEOG9JS0tLQi9QNDNXR2R0RzZaR0tFRUprVzYweUFrCnFGYjdzM1Z0QWdNQkFBRUNnZ0VBS3hvNzdOWWdDb1hubHpqUTZKb0ZuSDRwRkl6bFdLMUtmS2k0ZVNKcm9YaTQKSGx1Yi9HQm0rWFo5K1RCeDVkUWxoYW5aa1hHU1RZdVZKcTVGaERrQTlCY2dnTGFWZlFPNEVpa0w0VkJDZG1kZwpTSlEzdzhqU1JrU0NqaG5oY3YxdS9LRVpWR3FtSnlnRWtLdUVpTUpFelk4bXlzUXBrVXpFcDBUekVSZENjZTljClNKT2Q2V2dGYUdzN3ZmTEpMajBmTk1SYytwcjFORnBmcTk0R2lyZFVyQUIvOHhlL2lpT3hnZXJoM1JPR0I4Z1MKZWpMeTZmZEhZK0Y1d2cyREtFMjVjeHcrdWFUeEo4MElucktWYTdhVjlqeGl1L0YvWW42a0FGT201cUFaTEdJUQo3bDVDY0dMWCtKdS96UGNpSEJRRWx2R2dSTGdZTCtxWHNPYStyZ3VvZ1FLQmdRRFpVU25xQUdvd2Zma3h1QTB2CnVxc042M3NaMHFVVUMraDB1aGZCanV1ZGxEZU8rM2U5WC9ncW1vTHFnYmpLbUNxcHZ0eFRKT2RZbWlkTG42QysKU3ZIMkw5V3RBNzVFMDB1bDdWb0VEOWs5S1c5aEU4M1ZoM0hJcnowQ3RtLzAvMEtJaVlXb2VkaWw2YktlTndUSApXci9MdlI5M2F2dHo2NUkwVWFBVjVyMjhqUUtCZ1FEU1loS2R1YzB1YUQ2VW45NW0yTmZJelRaNWxaNmZZdFFyCkZHbzByWWlTelZCRlZrNnR3akI5dmhtdmtjZjBNU21wQ1NPUUZGcjJ3Zk9UZGtBTnlxTWxwNXdHK3ZpRi9LeGMKcXNMQ1RROGhwNmFnazMzRE9MVEl2OXpKdkhnU2NsWW9pOTZqNk9Zc28rWUtITkxmTU1jVWw3dThqYmZ3YWx2dwp4Tno3WkdRVVlRS0JnSFdsZWRKamJSbFphVWxnUVV0QWZBL3FGbGR4Y01xOGM1aVZrZnpJT1lleVVLMklOMWQvCkYrTkFpSFVaeXdkcWYxWXJyQzBhd2w5MS9LWDFBZGxpeTBDaXZzT09UamdHUjJMSmJyemFNNW5uejVNM1hHd24KaWhMQnczNnZjMGFuMWNZQzVTZkM1dVZTOGM2ekxGUWNMYzdIVUx5ZVh3aHZWRlFjaUZTeStLNlZBb0dBUkFObQpwMDBBOHliS1RId2VoenRGRDJxZ1dOQXc5ckFaalUvTlFmaHo5Wm1nZ0xuMU42RlcwZC9hSi9OR0pFQ2Npa1FsCkZoZ3VqQ1dKbkR1WFc1NE4va2RnWHJWV0VPTHR5Z3QrYVJoR2N3ZmpDM2lES05DMVNVMFZrTFo0VHVaZHlqL2wKbXpIWTc4ZVF2K1l2bWU0SC9qVkxnUnFEdzVwdTNMaVlCRUdoUlNFQ2dZRUExdmNGWmsxOXVLS0JSWDhFRlgzbQphTlk2QWVhWTVJV2xVbDFJbEpHUHBFNnBnejh1aVRYNU9paG5KbGh4NDIzdjBIRU1QV0ZxNXQzcCtJdGRKZ24zCnlTQ0RNcXhyZUo4cytCS3BqeUcwVHFjN0pkbkpUcm1NN1FUMCtVUXExYmlBOENiU0FvMWVybHJpcEZ1blVMblEKSXp3SURyM1VzN0ROQkxNZmlOaDZuVWs9Ci0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0K"
+                },
+                "kind": "Secret",
+                "metadata": {
+                    "annotations": {
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"data\":{\"tls.crt\":\"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURDakNDQWZJQ0NRRGdYUjZ3V1Z6Wk9EQU5CZ2txaGtpRzl3MEJBUVVGQURCSE1SNHdIQVlEVlFRRERCVnkKWVhSbGJHbHRhWFF1WkdGMFlYZHBjbVV1YVc4eEpUQWpCZ2txaGtpRzl3MEJDUUVXRm1odmMzUnRZWE4wWlhKQQpaR0YwWVhkcGNtVXVhVzh3SGhjTk1Ua3dPVEU1TVRnek16QXlXaGNOTWpFd09ERTVNVGd6TXpBeVdqQkhNUjR3CkhBWURWUVFEREJWeVlYUmxiR2x0YVhRdVpHRjBZWGRwY21VdWFXOHhKVEFqQmdrcWhraUc5dzBCQ1FFV0ZtaHYKYzNSdFlYTjBaWEpBWkdGMFlYZHBjbVV1YVc4d2dnRWlNQTBHQ1NxR1NJYjNEUUVCQVFVQUE0SUJEd0F3Z2dFSwpBb0lCQVFDeWw5VkJtVjVCcFYxOHZzclNqUktyZGlEVnZZS0dxNlZVaGFTRTlZSWNRODhiSTFaeHlhUE9zUVlRCmMycmY4Q0RKdUp4M1hoUjUzMENwN3pQNmVSMjNwMkZBOSsxSWs5SHZhWUx0WDRtQTJOdjh4V1kxaEhua1BURnMKVFRwazBMREdYYjVZWnh2QkczNTNKL3NFKzFrSUUxenpKZldpQUpUMzZzMk5PRzRVQWhoVmFPS2p1K3grYXJwbQoyZnNhTldKTTFEMS9CUXVVN1Vid0p0QmIyZFo2WUtUNHE4M2doQWgybDhad1hQcFdJQmtpWGpNNXJ0WkQ3QmN4CkRxdFNtVE1ZejVjZWNwbmhiNEw4Z3hFVUJyWlRxQ3g4RVkvcDArY05mN2hScmFWbTd6Q3BaRDhvSUtLS0IvUDQKM1dHZHRHNlpHS0VFSmtXNjB5QWtxRmI3czNWdEFnTUJBQUV3RFFZSktvWklodmNOQVFFRkJRQURnZ0VCQUFJUwp2Znh1K3dQcUxicVRZV1NLTUt6S3JmNUxxWlpBZFpZZXNIR0oxNmFyVmt6eGhzcElGRGZpblZ1UmI1eERxWVVSCnFta0U1K0dCNDh5UGoxaUQvdXdPOEI0ckFnNW1Pekw1MEpUMDVQT1dyc0hjK1loLzAvUXpGNmlqNHlVNWZ6dloKRHpJdFBiNE5qWTMxUE44WkJMYTFGSHk5d2JGSzdyS2lWK2MxTzd0UHVjQTVUWnoxS0h5VUVYaWxHdmNoczB4OApzazRJR2xrVTNoSDFVWHBzTmw0NTI4VjR0L3dXOTdiYmhFeHYvYnBwR3RLbjRKei9hYkNScjA3Q3kzUytjUzc5CnlQNTZiQVZxa1R2TTVkUkhiNG9zOGYzNUJuQTdPci9YRTQ2K2VRMXNVY21IVG5OUWdFVkpWZGVwR3V4Sk5pNFMKejJ0WHhHSStTdTFlUnlQcVNGWT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=\",\"tls.key\":\"LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2UUlCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktjd2dnU2pBZ0VBQW9JQkFRQ3lsOVZCbVY1QnBWMTgKdnNyU2pSS3JkaURWdllLR3E2VlVoYVNFOVlJY1E4OGJJMVp4eWFQT3NRWVFjMnJmOENESnVKeDNYaFI1MzBDcAo3elA2ZVIyM3AyRkE5KzFJazlIdmFZTHRYNG1BMk52OHhXWTFoSG5rUFRGc1RUcGswTERHWGI1WVp4dkJHMzUzCkovc0UrMWtJRTF6ekpmV2lBSlQzNnMyTk9HNFVBaGhWYU9LanUreCthcnBtMmZzYU5XSk0xRDEvQlF1VTdVYncKSnRCYjJkWjZZS1Q0cTgzZ2hBaDJsOFp3WFBwV0lCa2lYak01cnRaRDdCY3hEcXRTbVRNWXo1Y2VjcG5oYjRMOApneEVVQnJaVHFDeDhFWS9wMCtjTmY3aFJyYVZtN3pDcFpEOG9JS0tLQi9QNDNXR2R0RzZaR0tFRUprVzYweUFrCnFGYjdzM1Z0QWdNQkFBRUNnZ0VBS3hvNzdOWWdDb1hubHpqUTZKb0ZuSDRwRkl6bFdLMUtmS2k0ZVNKcm9YaTQKSGx1Yi9HQm0rWFo5K1RCeDVkUWxoYW5aa1hHU1RZdVZKcTVGaERrQTlCY2dnTGFWZlFPNEVpa0w0VkJDZG1kZwpTSlEzdzhqU1JrU0NqaG5oY3YxdS9LRVpWR3FtSnlnRWtLdUVpTUpFelk4bXlzUXBrVXpFcDBUekVSZENjZTljClNKT2Q2V2dGYUdzN3ZmTEpMajBmTk1SYytwcjFORnBmcTk0R2lyZFVyQUIvOHhlL2lpT3hnZXJoM1JPR0I4Z1MKZWpMeTZmZEhZK0Y1d2cyREtFMjVjeHcrdWFUeEo4MElucktWYTdhVjlqeGl1L0YvWW42a0FGT201cUFaTEdJUQo3bDVDY0dMWCtKdS96UGNpSEJRRWx2R2dSTGdZTCtxWHNPYStyZ3VvZ1FLQmdRRFpVU25xQUdvd2Zma3h1QTB2CnVxc042M3NaMHFVVUMraDB1aGZCanV1ZGxEZU8rM2U5WC9ncW1vTHFnYmpLbUNxcHZ0eFRKT2RZbWlkTG42QysKU3ZIMkw5V3RBNzVFMDB1bDdWb0VEOWs5S1c5aEU4M1ZoM0hJcnowQ3RtLzAvMEtJaVlXb2VkaWw2YktlTndUSApXci9MdlI5M2F2dHo2NUkwVWFBVjVyMjhqUUtCZ1FEU1loS2R1YzB1YUQ2VW45NW0yTmZJelRaNWxaNmZZdFFyCkZHbzByWWlTelZCRlZrNnR3akI5dmhtdmtjZjBNU21wQ1NPUUZGcjJ3Zk9UZGtBTnlxTWxwNXdHK3ZpRi9LeGMKcXNMQ1RROGhwNmFnazMzRE9MVEl2OXpKdkhnU2NsWW9pOTZqNk9Zc28rWUtITkxmTU1jVWw3dThqYmZ3YWx2dwp4Tno3WkdRVVlRS0JnSFdsZWRKamJSbFphVWxnUVV0QWZBL3FGbGR4Y01xOGM1aVZrZnpJT1lleVVLMklOMWQvCkYrTkFpSFVaeXdkcWYxWXJyQzBhd2w5MS9LWDFBZGxpeTBDaXZzT09UamdHUjJMSmJyemFNNW5uejVNM1hHd24KaWhMQnczNnZjMGFuMWNZQzVTZkM1dVZTOGM2ekxGUWNMYzdIVUx5ZVh3aHZWRlFjaUZTeStLNlZBb0dBUkFObQpwMDBBOHliS1RId2VoenRGRDJxZ1dOQXc5ckFaalUvTlFmaHo5Wm1nZ0xuMU42RlcwZC9hSi9OR0pFQ2Npa1FsCkZoZ3VqQ1dKbkR1WFc1NE4va2RnWHJWV0VPTHR5Z3QrYVJoR2N3ZmpDM2lES05DMVNVMFZrTFo0VHVaZHlqL2wKbXpIWTc4ZVF2K1l2bWU0SC9qVkxnUnFEdzVwdTNMaVlCRUdoUlNFQ2dZRUExdmNGWmsxOXVLS0JSWDhFRlgzbQphTlk2QWVhWTVJV2xVbDFJbEpHUHBFNnBnejh1aVRYNU9paG5KbGh4NDIzdjBIRU1QV0ZxNXQzcCtJdGRKZ24zCnlTQ0RNcXhyZUo4cytCS3BqeUcwVHFjN0pkbkpUcm1NN1FUMCtVUXExYmlBOENiU0FvMWVybHJpcEZ1blVMblEKSXp3SURyM1VzN0ROQkxNZmlOaDZuVWs9Ci0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0K\"},\"kind\":\"Secret\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"ratelimitv1withtlstest\",\"scope\":\"AmbassadorTest\"},\"name\":\"ratelimit-tls-secret\",\"namespace\":\"default\"},\"type\":\"kubernetes.io/tls\"}\n"
+                    },
+                    "creationTimestamp": "2020-03-04T04:41:29Z",
+                    "labels": {
+                        "kat-ambassador-id": "ratelimitv1withtlstest",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "ratelimit-tls-secret",
+                    "namespace": "default",
+                    "resourceVersion": "28176",
+                    "selfLink": "/api/v1/namespaces/default/secrets/ratelimit-tls-secret",
+                    "uid": "6a7b0611-5dd2-11ea-a67a-06c41a568f95"
+                },
+                "type": "kubernetes.io/tls"
+            }
+        ],
+        "service": [
+            {
+                "apiVersion": "v1",
+                "kind": "Service",
+                "metadata": {
+                    "annotations": {
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"ratelimitv1withtlstest\",\"scope\":\"AmbassadorTest\",\"service\":\"ratelimitv1withtlstest-admin\"},\"name\":\"ratelimitv1withtlstest-admin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"ratelimitv1withtlstest-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"ratelimitv1withtlstest\"},\"type\":\"NodePort\"}}\n"
+                    },
+                    "creationTimestamp": "2020-03-04T04:41:30Z",
+                    "labels": {
+                        "kat-ambassador-id": "ratelimitv1withtlstest",
+                        "scope": "AmbassadorTest",
+                        "service": "ratelimitv1withtlstest-admin"
+                    },
+                    "name": "ratelimitv1withtlstest-admin",
+                    "namespace": "default",
+                    "resourceVersion": "28205",
+                    "selfLink": "/api/v1/namespaces/default/services/ratelimitv1withtlstest-admin",
+                    "uid": "6b1e25c1-5dd2-11ea-a67a-06c41a568f95"
+                },
+                "spec": {
+                    "clusterIP": "10.97.218.254",
+                    "externalTrafficPolicy": "Cluster",
+                    "ports": [
+                        {
+                            "name": "ratelimitv1withtlstest-admin",
+                            "nodePort": 32044,
+                            "port": 8877,
+                            "protocol": "TCP",
+                            "targetPort": 8877
+                        }
+                    ],
+                    "selector": {
+                        "service": "ratelimitv1withtlstest"
+                    },
+                    "sessionAffinity": "None",
+                    "type": "NodePort"
+                },
+                "status": {
+                    "loadBalancer": {}
+                }
+            },
+            {
+                "apiVersion": "v1",
+                "kind": "Service",
+                "metadata": {
+                    "annotations": {
+                        "getambassador.io/config": "---\napiVersion: ambassador/v1\nkind: TLSContext\nname: ratelimit-tls-context\nsecret: ratelimit-tls-secret\nalpn_protocols: h2\nambassador_id: ratelimitv1withtlstest\n---\napiVersion: ambassador/v1\nkind: Mapping\nname: ratelimit_target_mapping\nprefix: /target/\nservice: ratelimitv1withtlstest-http\nlabels:\n  ambassador:\n  - request_label_group:\n    - x-ambassador-test-allow:\n        header: \"x-ambassador-test-allow\"\n        omit_if_not_present: true\nambassador_id: ratelimitv1withtlstest\n",
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v1\\nkind: TLSContext\\nname: ratelimit-tls-context\\nsecret: ratelimit-tls-secret\\nalpn_protocols: h2\\nambassador_id: ratelimitv1withtlstest\\n---\\napiVersion: ambassador/v1\\nkind: Mapping\\nname: ratelimit_target_mapping\\nprefix: /target/\\nservice: ratelimitv1withtlstest-http\\nlabels:\\n  ambassador:\\n  - request_label_group:\\n    - x-ambassador-test-allow:\\n        header: \\\"x-ambassador-test-allow\\\"\\n        omit_if_not_present: true\\nambassador_id: ratelimitv1withtlstest\\n\"},\"labels\":{\"kat-ambassador-id\":\"ratelimitv1withtlstest\",\"scope\":\"AmbassadorTest\"},\"name\":\"ratelimitv1withtlstest-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8117},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8480}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
+                    },
+                    "creationTimestamp": "2020-03-04T04:41:31Z",
+                    "labels": {
+                        "kat-ambassador-id": "ratelimitv1withtlstest",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "ratelimitv1withtlstest-http",
+                    "namespace": "default",
+                    "resourceVersion": "28212",
+                    "selfLink": "/api/v1/namespaces/default/services/ratelimitv1withtlstest-http",
+                    "uid": "6b3387d3-5dd2-11ea-a67a-06c41a568f95"
+                },
+                "spec": {
+                    "clusterIP": "10.105.203.179",
+                    "ports": [
+                        {
+                            "name": "http",
+                            "port": 80,
+                            "protocol": "TCP",
+                            "targetPort": 8117
+                        },
+                        {
+                            "name": "https",
+                            "port": 443,
+                            "protocol": "TCP",
+                            "targetPort": 8480
+                        }
+                    ],
+                    "selector": {
+                        "backend": "superpod-default"
+                    },
+                    "sessionAffinity": "None",
+                    "type": "ClusterIP"
+                },
+                "status": {
+                    "loadBalancer": {}
+                }
+            },
+            {
+                "apiVersion": "v1",
+                "kind": "Service",
+                "metadata": {
+                    "annotations": {
+                        "getambassador.io/config": "---\napiVersion: ambassador/v1\nkind: RateLimitService\nname: ratelimit-tls\nservice: rate-limit-tls:5000\ntimeout_ms: 500\ntls: ratelimit-tls-context\nambassador_id: ratelimitv1withtlstest\n",
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v1\\nkind: RateLimitService\\nname: ratelimit-tls\\nservice: rate-limit-tls:5000\\ntimeout_ms: 500\\ntls: ratelimit-tls-context\\nambassador_id: ratelimitv1withtlstest\\n\"},\"labels\":{\"kat-ambassador-id\":\"ratelimitv1withtlstest\",\"scope\":\"AmbassadorTest\"},\"name\":\"rate-limit-tls\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"grpc\",\"port\":5000,\"targetPort\":\"grpc\"}],\"selector\":{\"app\":\"rate-limit-tls\"},\"type\":\"ClusterIP\"}}\n"
+                    },
+                    "creationTimestamp": "2020-03-04T04:41:29Z",
+                    "labels": {
+                        "kat-ambassador-id": "ratelimitv1withtlstest",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "rate-limit-tls",
+                    "namespace": "default",
+                    "resourceVersion": "28168",
+                    "selfLink": "/api/v1/namespaces/default/services/rate-limit-tls",
+                    "uid": "6a513f87-5dd2-11ea-a67a-06c41a568f95"
+                },
+                "spec": {
+                    "clusterIP": "10.110.119.151",
+                    "ports": [
+                        {
+                            "name": "grpc",
+                            "port": 5000,
+                            "protocol": "TCP",
+                            "targetPort": "grpc"
+                        }
+                    ],
+                    "selector": {
+                        "app": "rate-limit-tls"
+                    },
+                    "sessionAffinity": "None",
+                    "type": "ClusterIP"
+                },
+                "status": {
+                    "loadBalancer": {}
+                }
+            },
+            {
+                "apiVersion": "v1",
+                "kind": "Service",
+                "metadata": {
+                    "annotations": {
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"ratelimitv1withtlstest\",\"scope\":\"AmbassadorTest\"},\"name\":\"ratelimitv1withtlstest\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"ratelimitv1withtlstest\"},\"type\":\"NodePort\"}}\n"
+                    },
+                    "creationTimestamp": "2020-03-04T04:41:30Z",
+                    "labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "ratelimitv1withtlstest",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "ratelimitv1withtlstest",
+                    "namespace": "default",
+                    "resourceVersion": "28200",
+                    "selfLink": "/api/v1/namespaces/default/services/ratelimitv1withtlstest",
+                    "uid": "6b13ae7a-5dd2-11ea-a67a-06c41a568f95"
+                },
+                "spec": {
+                    "clusterIP": "10.98.225.86",
+                    "externalTrafficPolicy": "Cluster",
+                    "ports": [
+                        {
+                            "name": "http",
+                            "nodePort": 31685,
+                            "port": 80,
+                            "protocol": "TCP",
+                            "targetPort": 8080
+                        },
+                        {
+                            "name": "https",
+                            "nodePort": 32050,
+                            "port": 443,
+                            "protocol": "TCP",
+                            "targetPort": 8443
+                        }
+                    ],
+                    "selector": {
+                        "service": "ratelimitv1withtlstest"
+                    },
+                    "sessionAffinity": "None",
+                    "type": "NodePort"
+                },
+                "status": {
+                    "loadBalancer": {}
+                }
+            }
+        ]
+    }
+}

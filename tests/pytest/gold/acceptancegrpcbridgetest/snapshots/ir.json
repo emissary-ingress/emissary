@@ -1,0 +1,1186 @@
+{
+    "ambassador": {
+        "_active": true,
+        "_errored": false,
+        "_finalized": true,
+        "_referenced_by": [
+            "acceptancegrpcbridgetest.default.1"
+        ],
+        "_rkey": "acceptancegrpcbridgetest.default.1",
+        "admin_port": 8001,
+        "debug_mode": false,
+        "default_label_domain": "ambassador",
+        "default_labels": {},
+        "diag_port": 8877,
+        "diagnostics": {
+            "enabled": true,
+            "prefix": "/ambassador/v0/",
+            "rewrite": "/ambassador/v0/",
+            "service": "127.0.0.1:8877"
+        },
+        "enable_http10": false,
+        "enable_ipv4": true,
+        "enable_ipv6": false,
+        "envoy_log_path": "/dev/fd/1",
+        "envoy_log_type": "text",
+        "grpc_http11_bridge": {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "acceptancegrpcbridgetest.default.1",
+            "config": {},
+            "kind": "ir.grpc_http1_bridge",
+            "location": "acceptancegrpcbridgetest.default.1",
+            "name": "grpc_http1_bridge",
+            "namespace": "default"
+        },
+        "kind": "IRAmbassador",
+        "liveness_probe": {
+            "enabled": true,
+            "prefix": "/ambassador/v0/check_alive",
+            "rewrite": "/ambassador/v0/check_alive",
+            "service": "127.0.0.1:8877"
+        },
+        "location": "acceptancegrpcbridgetest.default.1",
+        "name": "ir.ambassador",
+        "namespace": "default",
+        "readiness_probe": {
+            "enabled": true,
+            "prefix": "/ambassador/v0/check_ready",
+            "rewrite": "/ambassador/v0/check_ready",
+            "service": "127.0.0.1:8877"
+        },
+        "server_name": "envoy",
+        "service_port": 8080,
+        "use_ambassador_namespace_for_service_resolution": false,
+        "use_proxy_proto": false,
+        "use_remote_address": true,
+        "x_forwarded_proto_redirect": false,
+        "xff_num_trusted_hops": 0
+    },
+    "clusters": {
+        "cluster_127_0_0_1_8500_default": {
+            "_active": true,
+            "_errored": false,
+            "_hostname": "127.0.0.1",
+            "_is_sidecar": true,
+            "_namespace": "default",
+            "_port": 8500,
+            "_referenced_by": [
+                "acceptancegrpcbridgetest.default.1",
+                "ambassador-edge-stack.default.1",
+                "edgestack-direct-mapping.default.1",
+                "edgestack-fallback-mapping.default.1"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_127_0_0_1_8500_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "ambassador-edge-stack.default.1",
+            "name": "cluster_127_0_0_1_8500_default",
+            "namespace": "default",
+            "service": "127.0.0.1:8500",
+            "targets": [
+                {
+                    "ip": "127.0.0.1",
+                    "port": 8500,
+                    "target_kind": "IPaddr"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://127.0.0.1:8500"
+            ]
+        },
+        "cluster_127_0_0_1_8877_default": {
+            "_active": true,
+            "_errored": false,
+            "_hostname": "127.0.0.1",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 8877,
+            "_referenced_by": [
+                "acceptancegrpcbridgetest.default.1"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_127_0_0_1_8877_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "acceptancegrpcbridgetest.default.1",
+            "name": "cluster_127_0_0_1_8877_default",
+            "namespace": "default",
+            "service": "127.0.0.1:8877",
+            "targets": [
+                {
+                    "ip": "127.0.0.1",
+                    "port": 8877,
+                    "target_kind": "IPaddr"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://127.0.0.1:8877"
+            ]
+        },
+        "cluster_acceptancegrpcbridgetest_egrpc_default": {
+            "_active": true,
+            "_errored": false,
+            "_hostname": "acceptancegrpcbridgetest-egrpc",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 80,
+            "_referenced_by": [
+                "acceptancegrpcbridgetest.default.2"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_acceptancegrpcbridgetest_egrpc_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "grpc": true,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "acceptancegrpcbridgetest.default.2",
+            "name": "cluster_acceptancegrpcbridgetest_egrpc_default",
+            "namespace": "default",
+            "service": "acceptancegrpcbridgetest-egrpc",
+            "targets": [
+                {
+                    "ip": "acceptancegrpcbridgetest-egrpc.default",
+                    "port": 80,
+                    "target_kind": "DNSname"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://acceptancegrpcbridgetest-egrpc:80"
+            ]
+        }
+    },
+    "filters": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "acceptancegrpcbridgetest.default.1",
+            "config": {},
+            "kind": "ir.grpc_http1_bridge",
+            "location": "acceptancegrpcbridgetest.default.1",
+            "name": "grpc_http1_bridge",
+            "namespace": "default"
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.cors",
+            "config": {},
+            "kind": "ir.cors",
+            "location": "--internal--",
+            "name": "cors",
+            "namespace": "default"
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.router",
+            "config": {},
+            "kind": "ir.router",
+            "location": "--internal--",
+            "name": "router",
+            "namespace": "default",
+            "type": "decoder"
+        }
+    ],
+    "groups": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "ambassador-edge-stack.default.1"
+            ],
+            "_rkey": "ambassador-edge-stack.default.1",
+            "group_id": "05c39b1e3391160319615ede25f8cca27d745b6c",
+            "group_weight": [
+                1000000,
+                13,
+                0,
+                "/.ambassador/",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "ambassador-edge-stack.default.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_rkey": "ambassador-edge-stack.default.1",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": true,
+                        "_namespace": "default",
+                        "_port": 8500,
+                        "_referenced_by": [
+                            "acceptancegrpcbridgetest.default.1",
+                            "ambassador-edge-stack.default.1",
+                            "edgestack-direct-mapping.default.1",
+                            "edgestack-fallback-mapping.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8500_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "ambassador-edge-stack.default.1",
+                        "name": "cluster_127_0_0_1_8500_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8500",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8500,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8500"
+                        ]
+                    },
+                    "group_id": "05c39b1e3391160319615ede25f8cca27d745b6c",
+                    "headers": [],
+                    "kind": "Mapping",
+                    "location": "ambassador-edge-stack.default.1",
+                    "metadata_labels": {
+                        "ambassador_crd": "ambassador-edge-stack.default",
+                        "ambassador_diag_class": "private",
+                        "product": "aes"
+                    },
+                    "name": "ambassador-edge-stack",
+                    "namespace": "default",
+                    "precedence": 1000000,
+                    "prefix": "/.ambassador/",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "",
+                    "route_weight": [
+                        1000000,
+                        13,
+                        0,
+                        "/.ambassador/",
+                        "GET"
+                    ],
+                    "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: ambassador-edge-stack.default\n  ambassador_diag_class: private\n  product: aes\nname: ambassador-edge-stack\nnamespace: default\nprecedence: 1000000\nprefix: /.ambassador/\nrewrite: ''\nservice: 127.0.0.1:8500\n",
+                    "service": "127.0.0.1:8500",
+                    "weight": 100
+                }
+            ],
+            "metadata_labels": {
+                "ambassador_crd": "ambassador-edge-stack.default",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "GROUP: ambassador-edge-stack",
+            "namespace": "default",
+            "precedence": 1000000,
+            "prefix": "/.ambassador/",
+            "rewrite": "",
+            "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: ambassador-edge-stack.default\n  ambassador_diag_class: private\n  product: aes\nname: ambassador-edge-stack\nnamespace: default\nprecedence: 1000000\nprefix: /.ambassador/\nrewrite: ''\nservice: 127.0.0.1:8500\n"
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "acceptancegrpcbridgetest.default.1",
+                "edgestack-direct-mapping.default.1"
+            ],
+            "_rkey": "edgestack-direct-mapping.default.1",
+            "group_id": "ab86de585a684254d5458bdeb01da4fba36c21cc",
+            "group_weight": [
+                1000000,
+                12,
+                0,
+                "/edge_stack/",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "edgestack-direct-mapping.default.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_referenced_by": [
+                        "acceptancegrpcbridgetest.default.1"
+                    ],
+                    "_rkey": "acceptancegrpcbridgetest.default.1",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": true,
+                        "_namespace": "default",
+                        "_port": 8500,
+                        "_referenced_by": [
+                            "acceptancegrpcbridgetest.default.1",
+                            "ambassador-edge-stack.default.1",
+                            "edgestack-direct-mapping.default.1",
+                            "edgestack-fallback-mapping.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8500_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "ambassador-edge-stack.default.1",
+                        "name": "cluster_127_0_0_1_8500_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8500",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8500,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8500"
+                        ]
+                    },
+                    "group_id": "ab86de585a684254d5458bdeb01da4fba36c21cc",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "acceptancegrpcbridgetest.default.1",
+                    "metadata_labels": {
+                        "ambassador_diag_class": "private"
+                    },
+                    "name": "edgestack-direct-mapping",
+                    "namespace": "default",
+                    "precedence": 1000000,
+                    "prefix": "/edge_stack/",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/edge_stack_ui/edge_stack/",
+                    "route_weight": [
+                        1000000,
+                        12,
+                        0,
+                        "/edge_stack/",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8500",
+                    "timeout_ms": 60000,
+                    "weight": 100
+                },
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_rkey": "edgestack-direct-mapping.default.1",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": true,
+                        "_namespace": "default",
+                        "_port": 8500,
+                        "_referenced_by": [
+                            "acceptancegrpcbridgetest.default.1",
+                            "ambassador-edge-stack.default.1",
+                            "edgestack-direct-mapping.default.1",
+                            "edgestack-fallback-mapping.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8500_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "ambassador-edge-stack.default.1",
+                        "name": "cluster_127_0_0_1_8500_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8500",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8500,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8500"
+                        ]
+                    },
+                    "group_id": "ab86de585a684254d5458bdeb01da4fba36c21cc",
+                    "headers": [],
+                    "kind": "Mapping",
+                    "location": "edgestack-direct-mapping.default.1",
+                    "metadata_labels": {
+                        "ambassador_crd": "edgestack-direct-mapping.default",
+                        "ambassador_diag_class": "private",
+                        "product": "aes"
+                    },
+                    "name": "edgestack-direct-mapping",
+                    "namespace": "default",
+                    "precedence": 1000000,
+                    "prefix": "/edge_stack/",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/edge_stack_ui/edge_stack/",
+                    "route_weight": [
+                        1000000,
+                        12,
+                        0,
+                        "/edge_stack/",
+                        "GET"
+                    ],
+                    "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgestack-direct-mapping.default\n  ambassador_diag_class: private\n  product: aes\nname: edgestack-direct-mapping\nnamespace: default\nprecedence: 1000000\nprefix: /edge_stack/\nrewrite: /edge_stack_ui/edge_stack/\nservice: 127.0.0.1:8500\ntimeout_ms: 60000\n",
+                    "service": "127.0.0.1:8500",
+                    "timeout_ms": 60000,
+                    "weight": 50
+                }
+            ],
+            "metadata_labels": {
+                "ambassador_crd": "edgestack-direct-mapping.default",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "GROUP: edgestack-direct-mapping",
+            "namespace": "default",
+            "precedence": 1000000,
+            "prefix": "/edge_stack/",
+            "rewrite": "/edge_stack_ui/edge_stack/",
+            "timeout_ms": 60000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "acceptancegrpcbridgetest.default.1"
+            ],
+            "_rkey": "acceptancegrpcbridgetest.default.1",
+            "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
+            "group_weight": [
+                0,
+                26,
+                0,
+                "/ambassador/v0/check_ready",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "acceptancegrpcbridgetest.default.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_referenced_by": [
+                        "acceptancegrpcbridgetest.default.1"
+                    ],
+                    "_rkey": "acceptancegrpcbridgetest.default.1",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8877,
+                        "_referenced_by": [
+                            "acceptancegrpcbridgetest.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "acceptancegrpcbridgetest.default.1",
+                        "name": "cluster_127_0_0_1_8877_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8877",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8877,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8877"
+                        ]
+                    },
+                    "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "acceptancegrpcbridgetest.default.1",
+                    "name": "internal_readiness_probe_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/ambassador/v0/check_ready",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/ambassador/v0/check_ready",
+                    "route_weight": [
+                        0,
+                        26,
+                        0,
+                        "/ambassador/v0/check_ready",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8877",
+                    "timeout_ms": 10000,
+                    "weight": 100
+                }
+            ],
+            "name": "GROUP: internal_readiness_probe_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/check_ready",
+            "rewrite": "/ambassador/v0/check_ready",
+            "timeout_ms": 10000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "acceptancegrpcbridgetest.default.1"
+            ],
+            "_rkey": "acceptancegrpcbridgetest.default.1",
+            "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
+            "group_weight": [
+                0,
+                26,
+                0,
+                "/ambassador/v0/check_alive",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "acceptancegrpcbridgetest.default.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_referenced_by": [
+                        "acceptancegrpcbridgetest.default.1"
+                    ],
+                    "_rkey": "acceptancegrpcbridgetest.default.1",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8877,
+                        "_referenced_by": [
+                            "acceptancegrpcbridgetest.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "acceptancegrpcbridgetest.default.1",
+                        "name": "cluster_127_0_0_1_8877_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8877",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8877,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8877"
+                        ]
+                    },
+                    "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "acceptancegrpcbridgetest.default.1",
+                    "name": "internal_liveness_probe_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/ambassador/v0/check_alive",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/ambassador/v0/check_alive",
+                    "route_weight": [
+                        0,
+                        26,
+                        0,
+                        "/ambassador/v0/check_alive",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8877",
+                    "timeout_ms": 10000,
+                    "weight": 100
+                }
+            ],
+            "name": "GROUP: internal_liveness_probe_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/check_alive",
+            "rewrite": "/ambassador/v0/check_alive",
+            "timeout_ms": 10000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "acceptancegrpcbridgetest.default.2"
+            ],
+            "_rkey": "acceptancegrpcbridgetest.default.2",
+            "group_id": "786fe6cfccc20e6d6f6b664abccd920e82e7d2d9",
+            "group_weight": [
+                0,
+                18,
+                0,
+                "/echo.EchoService/",
+                "GET"
+            ],
+            "grpc": true,
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "acceptancegrpcbridgetest.default.2",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_rkey": "acceptancegrpcbridgetest.default.2",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "acceptancegrpcbridgetest-egrpc",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 80,
+                        "_referenced_by": [
+                            "acceptancegrpcbridgetest.default.2"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_acceptancegrpcbridgetest_egrpc_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "grpc": true,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "acceptancegrpcbridgetest.default.2",
+                        "name": "cluster_acceptancegrpcbridgetest_egrpc_default",
+                        "namespace": "default",
+                        "service": "acceptancegrpcbridgetest-egrpc",
+                        "targets": [
+                            {
+                                "ip": "acceptancegrpcbridgetest-egrpc.default",
+                                "port": 80,
+                                "target_kind": "DNSname"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://acceptancegrpcbridgetest-egrpc:80"
+                        ]
+                    },
+                    "group_id": "786fe6cfccc20e6d6f6b664abccd920e82e7d2d9",
+                    "grpc": true,
+                    "headers": [],
+                    "kind": "Mapping",
+                    "location": "acceptancegrpcbridgetest.default.2",
+                    "metadata_labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "acceptancegrpcbridgetest",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "acceptancegrpcbridgetest-egrpc",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/echo.EchoService/",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/echo.EchoService/",
+                    "route_weight": [
+                        0,
+                        18,
+                        0,
+                        "/echo.EchoService/",
+                        "GET"
+                    ],
+                    "serialization": "ambassador_id: acceptancegrpcbridgetest\napiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpcbridgetest\n  scope: AmbassadorTest\nname: acceptancegrpcbridgetest-egrpc\nnamespace: default\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nservice: acceptancegrpcbridgetest-egrpc\n",
+                    "service": "acceptancegrpcbridgetest-egrpc",
+                    "weight": 100
+                }
+            ],
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "acceptancegrpcbridgetest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "GROUP: acceptancegrpcbridgetest-egrpc",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/echo.EchoService/",
+            "rewrite": "/echo.EchoService/",
+            "serialization": "ambassador_id: acceptancegrpcbridgetest\napiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpcbridgetest\n  scope: AmbassadorTest\nname: acceptancegrpcbridgetest-egrpc\nnamespace: default\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nservice: acceptancegrpcbridgetest-egrpc\n"
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "acceptancegrpcbridgetest.default.1"
+            ],
+            "_rkey": "acceptancegrpcbridgetest.default.1",
+            "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
+            "group_weight": [
+                0,
+                15,
+                0,
+                "/ambassador/v0/",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "acceptancegrpcbridgetest.default.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_referenced_by": [
+                        "acceptancegrpcbridgetest.default.1"
+                    ],
+                    "_rkey": "acceptancegrpcbridgetest.default.1",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8877,
+                        "_referenced_by": [
+                            "acceptancegrpcbridgetest.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "acceptancegrpcbridgetest.default.1",
+                        "name": "cluster_127_0_0_1_8877_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8877",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8877,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8877"
+                        ]
+                    },
+                    "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "acceptancegrpcbridgetest.default.1",
+                    "name": "internal_diagnostics_probe_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/ambassador/v0/",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/ambassador/v0/",
+                    "route_weight": [
+                        0,
+                        15,
+                        0,
+                        "/ambassador/v0/",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8877",
+                    "timeout_ms": 10000,
+                    "weight": 100
+                }
+            ],
+            "name": "GROUP: internal_diagnostics_probe_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/",
+            "rewrite": "/ambassador/v0/",
+            "timeout_ms": 10000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "acceptancegrpcbridgetest.default.1"
+            ],
+            "_rkey": "acceptancegrpcbridgetest.default.1",
+            "group_id": "680a6fad8cb1cf2ad5fce0be9da026e1e0f1b76f",
+            "group_weight": [
+                -1000000,
+                3,
+                0,
+                "^/$",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "acceptancegrpcbridgetest.default.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_referenced_by": [
+                        "acceptancegrpcbridgetest.default.1"
+                    ],
+                    "_rkey": "acceptancegrpcbridgetest.default.1",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": true,
+                        "_namespace": "default",
+                        "_port": 8500,
+                        "_referenced_by": [
+                            "acceptancegrpcbridgetest.default.1",
+                            "ambassador-edge-stack.default.1",
+                            "edgestack-direct-mapping.default.1",
+                            "edgestack-fallback-mapping.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8500_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "ambassador-edge-stack.default.1",
+                        "name": "cluster_127_0_0_1_8500_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8500",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8500,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8500"
+                        ]
+                    },
+                    "group_id": "680a6fad8cb1cf2ad5fce0be9da026e1e0f1b76f",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "acceptancegrpcbridgetest.default.1",
+                    "metadata_labels": {
+                        "ambassador_diag_class": "private"
+                    },
+                    "name": "edgestack-fallback-mapping",
+                    "namespace": "default",
+                    "precedence": -1000000,
+                    "prefix": "^/$",
+                    "prefix_regex": true,
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/edge_stack_ui/",
+                    "route_weight": [
+                        -1000000,
+                        3,
+                        0,
+                        "^/$",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8500",
+                    "timeout_ms": 60000,
+                    "weight": 100
+                }
+            ],
+            "metadata_labels": {
+                "ambassador_diag_class": "private"
+            },
+            "name": "GROUP: edgestack-fallback-mapping",
+            "namespace": "default",
+            "precedence": -1000000,
+            "prefix": "^/$",
+            "prefix_regex": true,
+            "rewrite": "/edge_stack_ui/",
+            "timeout_ms": 60000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "edgestack-fallback-mapping.default.1"
+            ],
+            "_rkey": "edgestack-fallback-mapping.default.1",
+            "group_id": "5eb8304c5bb81b74bc6e6e947392fe0c6d1f2dab",
+            "group_weight": [
+                -1000000,
+                1,
+                0,
+                "/",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "edgestack-fallback-mapping.default.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_rkey": "edgestack-fallback-mapping.default.1",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": true,
+                        "_namespace": "default",
+                        "_port": 8500,
+                        "_referenced_by": [
+                            "acceptancegrpcbridgetest.default.1",
+                            "ambassador-edge-stack.default.1",
+                            "edgestack-direct-mapping.default.1",
+                            "edgestack-fallback-mapping.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8500_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "ambassador-edge-stack.default.1",
+                        "name": "cluster_127_0_0_1_8500_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8500",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8500,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8500"
+                        ]
+                    },
+                    "group_id": "5eb8304c5bb81b74bc6e6e947392fe0c6d1f2dab",
+                    "headers": [],
+                    "kind": "Mapping",
+                    "location": "edgestack-fallback-mapping.default.1",
+                    "metadata_labels": {
+                        "ambassador_crd": "edgestack-fallback-mapping.default",
+                        "ambassador_diag_class": "private",
+                        "product": "aes"
+                    },
+                    "name": "edgestack-fallback-mapping",
+                    "namespace": "default",
+                    "precedence": -1000000,
+                    "prefix": "/",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/edge_stack_ui/",
+                    "route_weight": [
+                        -1000000,
+                        1,
+                        0,
+                        "/",
+                        "GET"
+                    ],
+                    "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgestack-fallback-mapping.default\n  ambassador_diag_class: private\n  product: aes\nname: edgestack-fallback-mapping\nnamespace: default\nprecedence: -1000000\nprefix: /\nrewrite: /edge_stack_ui/\nservice: 127.0.0.1:8500\ntimeout_ms: 60000\n",
+                    "service": "127.0.0.1:8500",
+                    "timeout_ms": 60000,
+                    "weight": 100
+                }
+            ],
+            "metadata_labels": {
+                "ambassador_crd": "edgestack-fallback-mapping.default",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "GROUP: edgestack-fallback-mapping",
+            "namespace": "default",
+            "precedence": -1000000,
+            "prefix": "/",
+            "rewrite": "/edge_stack_ui/",
+            "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgestack-fallback-mapping.default\n  ambassador_diag_class: private\n  product: aes\nname: edgestack-fallback-mapping\nnamespace: default\nprecedence: -1000000\nprefix: /\nrewrite: /edge_stack_ui/\nservice: 127.0.0.1:8500\ntimeout_ms: 60000\n",
+            "timeout_ms": 60000
+        }
+    ],
+    "grpc_services": {},
+    "hosts": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "cleartext-host-acceptancegrpcbridgetest.default.1"
+            ],
+            "_rkey": "cleartext-host-acceptancegrpcbridgetest.default.1",
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "hostname": "*",
+            "kind": "Host",
+            "location": "cleartext-host-acceptancegrpcbridgetest.default.1",
+            "name": "cleartext-host-acceptancegrpcbridgetest",
+            "namespace": "default",
+            "requestPolicy": {
+                "insecure": {
+                    "action": "Route"
+                }
+            },
+            "selector": {
+                "matchLabels": {
+                    "hostname": "acceptancegrpcbridgetest"
+                }
+            }
+        }
+    ],
+    "identity": {
+        "ambassador_id": "acceptancegrpcbridgetest",
+        "ambassador_namespace": "default",
+        "ambassador_nodename": "acceptancegrpcbridgetest-default"
+    },
+    "k8s_status_updates": {
+        "ambassador-edge-stack.default": [
+            "Mapping",
+            "default",
+            {
+                "state": "Running"
+            }
+        ],
+        "edgestack-direct-mapping.default": [
+            "Mapping",
+            "default",
+            {
+                "state": "Running"
+            }
+        ],
+        "edgestack-fallback-mapping.default": [
+            "Mapping",
+            "default",
+            {
+                "state": "Running"
+            }
+        ]
+    },
+    "listeners": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.listener",
+            "hostname": "*",
+            "insecure_action": "Route",
+            "kind": "IRListener",
+            "location": "cleartext-host-acceptancegrpcbridgetest.default.1",
+            "name": "ir.listener",
+            "namespace": "default",
+            "redirect_listener": false,
+            "secure_action": "Route",
+            "service_port": 8080,
+            "use_proxy_proto": false
+        }
+    ],
+    "services": {
+        "k8s-acceptancegrpcbridgetest-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "acceptancegrpcbridgetest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-acceptancegrpcbridgetest-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "acceptancegrpcbridgetest",
+                "scope": "AmbassadorTest",
+                "service": "acceptancegrpcbridgetest-admin"
+            },
+            "name": "acceptancegrpcbridgetest-admin",
+            "namespace": "default",
+            "rkey": "k8s-acceptancegrpcbridgetest-admin-default",
+            "serialization": "ambassador_id: acceptancegrpcbridgetest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: acceptancegrpcbridgetest\n  scope: AmbassadorTest\n  service: acceptancegrpcbridgetest-admin\nname: acceptancegrpcbridgetest-admin\nnamespace: default\n"
+        },
+        "k8s-acceptancegrpcbridgetest-default": {
+            "_referenced_by": {},
+            "ambassador_id": "acceptancegrpcbridgetest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-acceptancegrpcbridgetest-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "acceptancegrpcbridgetest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "acceptancegrpcbridgetest",
+            "namespace": "default",
+            "rkey": "k8s-acceptancegrpcbridgetest-default",
+            "serialization": "ambassador_id: acceptancegrpcbridgetest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpcbridgetest\n  scope: AmbassadorTest\nname: acceptancegrpcbridgetest\nnamespace: default\n"
+        },
+        "k8s-acceptancegrpcbridgetest-egrpc-default": {
+            "_referenced_by": {},
+            "ambassador_id": "acceptancegrpcbridgetest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-acceptancegrpcbridgetest-egrpc-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "acceptancegrpcbridgetest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "acceptancegrpcbridgetest-egrpc",
+            "namespace": "default",
+            "rkey": "k8s-acceptancegrpcbridgetest-egrpc-default",
+            "serialization": "ambassador_id: acceptancegrpcbridgetest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: acceptancegrpcbridgetest\n  scope: AmbassadorTest\nname: acceptancegrpcbridgetest-egrpc\nnamespace: default\n"
+        }
+    },
+    "tls_contexts": []
+}

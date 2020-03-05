@@ -3,12 +3,36 @@ set -e
 
 eval "$(grep BUILD_VERSION /buildroot/apro.version 2>/dev/null)"
 
-sudo install -D -t /opt/ambassador/bin/ \
-     /buildroot/bin/app-sidecar \
-     /buildroot/bin/amb-sidecar \
-     /buildroot/bin/aes-plugin-runner
+# Create symlinks to the multi-call binary so the original names can be used in
+# the builder shell easily (from the shell PATH).
+ln -sf /buildroot/bin/ambassador /buildroot/bin/ambex
+ln -sf /buildroot/bin/ambassador /buildroot/bin/kubestatus
+ln -sf /buildroot/bin/ambassador /buildroot/bin/watt
+ln -sf /buildroot/bin/ambassador /buildroot/bin/amb-sidecar
+ln -sf /buildroot/bin/ambassador /buildroot/bin/app-sidecar
+ln -sf /buildroot/bin/ambassador /buildroot/bin/aes-plugin-runner
+
+# Also note there is a different ambassador binary, written in Python, that
+# shows up earlier in the shell PATH:
+#   $ type -a ambassador
+#   ambassador is /usr/bin/ambassador
+#   ambassador is /buildroot/bin/ambassador
+
+# Stuff in /opt/ambassador/bin in the builder winds up in /usr/local/bin in the
+# production image.
+sudo install -D -t /opt/ambassador/bin/ /buildroot/bin/ambassador
+sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/ambex
+sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/kubestatus
+sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/watt
+sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/amb-sidecar
+sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/app-sidecar
+sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/aes-plugin-runner
+
+# entrypoint.sh, aes-plugin-runner, and the ABI stuff later in this file expect
+# these to be here
 sudo ln -sf /opt/ambassador/bin/amb-sidecar /ambassador/sidecars/
 sudo ln -sf /opt/ambassador/bin/aes-plugin-runner /ambassador/
+
 sudo touch /ambassador/.edge_stack
 
 sudo mkdir -p /ambassador/webui/bindata && sudo make -f build-aux-local/minify.mk

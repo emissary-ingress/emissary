@@ -1,4 +1,4 @@
-package main
+package app_sidecar
 
 import (
 	"context"
@@ -98,14 +98,14 @@ func processIntercepts(intercepts []InterceptInfo) error {
 // Version is inserted at build using --ldflags -X
 var Version = "(unknown version)"
 
-func main() {
+func Main() {
 	log.SetPrefix("SIDECAR: ")
 	log.Printf("Sidecar version %s", Version)
 
 	argparser := &cobra.Command{
 		Use:     os.Args[0],
 		Version: Version,
-		RunE:    Main,
+		RunE:    Run,
 	}
 
 	licenseContext := &licensekeys.LicenseContext{}
@@ -147,7 +147,7 @@ func getAppPort() (uint32, error) {
 	return uint32(num), nil
 }
 
-func Main(flags *cobra.Command, args []string) error {
+func Run(flags *cobra.Command, args []string) error {
 	appPort, err := getAppPort()
 	if err != nil {
 		return err

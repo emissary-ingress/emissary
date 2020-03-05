@@ -1,0 +1,646 @@
+{
+    "_errors": {},
+    "_notices": {},
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "ambassador-edge-stack.tcp-namespace.1": {
+            "_referenced_by": {},
+            "ambassador_id": [
+                "_automatic_"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "location": "ambassador-edge-stack.tcp-namespace.1",
+            "metadata_labels": {
+                "ambassador_crd": "ambassador-edge-stack.tcp-namespace",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "ambassador-edge-stack",
+            "namespace": "tcp-namespace",
+            "precedence": 1000000,
+            "prefix": "/.ambassador/",
+            "rewrite": "",
+            "rkey": "ambassador-edge-stack.tcp-namespace.1",
+            "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: ambassador-edge-stack.tcp-namespace\n  ambassador_diag_class: private\n  product: aes\nname: ambassador-edge-stack\nnamespace: tcp-namespace\nprecedence: 1000000\nprefix: /.ambassador/\nrewrite: ''\nservice: 127.0.0.1:8500\n",
+            "service": "127.0.0.1:8500"
+        },
+        "cleartext-host-tcpmappingtest.tcp-namespace.1": {
+            "_referenced_by": {},
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "ambassadorId": [
+                "tcpmappingtest"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "hostname": "*",
+            "kind": "Host",
+            "location": "cleartext-host-tcpmappingtest.tcp-namespace.1",
+            "metadata_labels": {
+                "ambassador_crd": "cleartext-host-tcpmappingtest.tcp-namespace",
+                "kat-ambassador-id": "tcpmappingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cleartext-host-tcpmappingtest",
+            "namespace": "tcp-namespace",
+            "requestPolicy": {
+                "insecure": {
+                    "action": "Route"
+                }
+            },
+            "rkey": "cleartext-host-tcpmappingtest.tcp-namespace.1",
+            "selector": {
+                "matchLabels": {
+                    "hostname": "tcpmappingtest"
+                }
+            },
+            "serialization": "acmeProvider:\n  authority: none\nambassadorId:\n- tcpmappingtest\napiVersion: getambassador.io/v2\ngeneration: 1\nhostname: '*'\nkind: Host\nmetadata_labels:\n  ambassador_crd: cleartext-host-tcpmappingtest.tcp-namespace\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: cleartext-host-tcpmappingtest\nnamespace: tcp-namespace\nrequestPolicy:\n  insecure:\n    action: Route\nselector:\n  matchLabels:\n    hostname: tcpmappingtest\ntlsSecret: {}\n",
+            "tlsSecret": {}
+        },
+        "edgestack-direct-mapping.tcp-namespace.1": {
+            "_referenced_by": {},
+            "ambassador_id": [
+                "_automatic_"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "location": "edgestack-direct-mapping.tcp-namespace.1",
+            "metadata_labels": {
+                "ambassador_crd": "edgestack-direct-mapping.tcp-namespace",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "edgestack-direct-mapping",
+            "namespace": "tcp-namespace",
+            "precedence": 1000000,
+            "prefix": "/edge_stack/",
+            "rewrite": "/edge_stack_ui/edge_stack/",
+            "rkey": "edgestack-direct-mapping.tcp-namespace.1",
+            "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgestack-direct-mapping.tcp-namespace\n  ambassador_diag_class: private\n  product: aes\nname: edgestack-direct-mapping\nnamespace: tcp-namespace\nprecedence: 1000000\nprefix: /edge_stack/\nrewrite: /edge_stack_ui/edge_stack/\nservice: 127.0.0.1:8500\ntimeout_ms: 60000\n",
+            "service": "127.0.0.1:8500",
+            "timeout_ms": 60000
+        },
+        "edgestack-fallback-mapping.tcp-namespace.1": {
+            "_referenced_by": {},
+            "ambassador_id": [
+                "_automatic_"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "location": "edgestack-fallback-mapping.tcp-namespace.1",
+            "metadata_labels": {
+                "ambassador_crd": "edgestack-fallback-mapping.tcp-namespace",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "edgestack-fallback-mapping",
+            "namespace": "tcp-namespace",
+            "precedence": -1000000,
+            "prefix": "/",
+            "rewrite": "/edge_stack_ui/",
+            "rkey": "edgestack-fallback-mapping.tcp-namespace.1",
+            "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgestack-fallback-mapping.tcp-namespace\n  ambassador_diag_class: private\n  product: aes\nname: edgestack-fallback-mapping\nnamespace: tcp-namespace\nprecedence: -1000000\nprefix: /\nrewrite: /edge_stack_ui/\nservice: 127.0.0.1:8500\ntimeout_ms: 60000\n",
+            "service": "127.0.0.1:8500",
+            "timeout_ms": 60000
+        },
+        "k8s-tcpmappingtest-admin-tcp-namespace": {
+            "_referenced_by": {},
+            "ambassador_id": "tcpmappingtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tcpmappingtest-admin-tcp-namespace",
+            "metadata_labels": {
+                "kat-ambassador-id": "tcpmappingtest",
+                "scope": "AmbassadorTest",
+                "service": "tcpmappingtest-admin"
+            },
+            "name": "tcpmappingtest-admin",
+            "namespace": "tcp-namespace",
+            "rkey": "k8s-tcpmappingtest-admin-tcp-namespace",
+            "serialization": "ambassador_id: tcpmappingtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\n  service: tcpmappingtest-admin\nname: tcpmappingtest-admin\nnamespace: tcp-namespace\n"
+        },
+        "k8s-tcpmappingtest-http-target1-tcp-namespace": {
+            "_referenced_by": {},
+            "ambassador_id": "tcpmappingtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tcpmappingtest-http-target1-tcp-namespace",
+            "metadata_labels": {
+                "kat-ambassador-id": "tcpmappingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tcpmappingtest-http-target1",
+            "namespace": "tcp-namespace",
+            "rkey": "k8s-tcpmappingtest-http-target1-tcp-namespace",
+            "serialization": "ambassador_id: tcpmappingtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: tcpmappingtest-http-target1\nnamespace: tcp-namespace\n"
+        },
+        "k8s-tcpmappingtest-http-target2-other-namespace": {
+            "_referenced_by": {},
+            "ambassador_id": "tcpmappingtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tcpmappingtest-http-target2-other-namespace",
+            "metadata_labels": {
+                "kat-ambassador-id": "tcpmappingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tcpmappingtest-http-target2",
+            "namespace": "other-namespace",
+            "rkey": "k8s-tcpmappingtest-http-target2-other-namespace",
+            "serialization": "ambassador_id: tcpmappingtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: tcpmappingtest-http-target2\nnamespace: other-namespace\n"
+        },
+        "k8s-tcpmappingtest-http-target3-tcp-namespace": {
+            "_referenced_by": {},
+            "ambassador_id": "tcpmappingtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tcpmappingtest-http-target3-tcp-namespace",
+            "metadata_labels": {
+                "kat-ambassador-id": "tcpmappingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tcpmappingtest-http-target3",
+            "namespace": "tcp-namespace",
+            "rkey": "k8s-tcpmappingtest-http-target3-tcp-namespace",
+            "serialization": "ambassador_id: tcpmappingtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: tcpmappingtest-http-target3\nnamespace: tcp-namespace\n"
+        },
+        "k8s-tcpmappingtest-tcp-namespace": {
+            "_referenced_by": {},
+            "ambassador_id": "tcpmappingtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tcpmappingtest-tcp-namespace",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tcpmappingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tcpmappingtest",
+            "namespace": "tcp-namespace",
+            "rkey": "k8s-tcpmappingtest-tcp-namespace",
+            "serialization": "ambassador_id: tcpmappingtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: tcpmappingtest\nnamespace: tcp-namespace\n"
+        },
+        "supersecret.tcp-namespace.1": {
+            "_referenced_by": {},
+            "ambassador_id": "tcpmappingtest",
+            "apiVersion": "getambassador.io/v2",
+            "kind": "Secret",
+            "location": "supersecret.tcp-namespace.1",
+            "metadata_labels": {
+                "kat-ambassador-id": "tcpmappingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "supersecret",
+            "namespace": "tcp-namespace",
+            "rkey": "supersecret.tcp-namespace.1",
+            "secret_type": "kubernetes.io/tls",
+            "serialization": "ambassador_id: tcpmappingtest\napiVersion: getambassador.io/v2\nkind: Secret\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: supersecret\nnamespace: tcp-namespace\nsecret_type: kubernetes.io/tls\ntls_crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURnRENDQW1pZ0F3SUJBZ0lKQUlIWTY3cFNoZ3NyTUEwR0NTcUdTSWIzRFFFQkN3VUFNRlV4Q3pBSkJnTlYKQkFZVEFsVlRNUXN3Q1FZRFZRUUlEQUpOUVRFUE1BMEdBMVVFQnd3R1FtOXpkRzl1TVFzd0NRWURWUVFLREFKRQpWekViTUJrR0ExVUVBd3dTZEd4ekxXTnZiblJsZUhRdGFHOXpkQzB5TUI0WERURTRNVEV3TVRFME1EUXhObG9YCkRUSTRNVEF5T1RFME1EUXhObG93VlRFTE1Ba0dBMVVFQmhNQ1ZWTXhDekFKQmdOVkJBZ01BazFCTVE4d0RRWUQKVlFRSERBWkNiM04wYjI0eEN6QUpCZ05WQkFvTUFrUlhNUnN3R1FZRFZRUUREQkowYkhNdFkyOXVkR1Y0ZEMxbwpiM04wTFRJd2dnRWlNQTBHQ1NxR1NJYjNEUUVCQVFVQUE0SUJEd0F3Z2dFS0FvSUJBUURjQThZdGgvUFdhT0dTCm9ObXZFSFoyNGpRN1BLTitENG93TEhXZWl1UmRtaEEwWU92VTN3cUczVnFZNFpwbFpBVjBQS2xELysyWlNGMTQKejh3MWVGNFFUelphWXh3eTkrd2ZITmtUREVwTWpQOEpNMk9FYnlrVVJ4VVJ2VzQrN0QzMEUyRXo1T1BseG1jMApNWU0vL0pINUVEUWhjaURybFlxZTFTUk1SQUxaZVZta2FBeXU2TkhKVEJ1ajBTSVB1ZExUY2grOTBxK3Jkd255CmZrVDF4M09UYW5iV2pub21FSmU3TXZ5NG12dnFxSUh1NDhTOUM4WmQxQkdWUGJ1OFYvVURyU1dROXpZQ1g0U0cKT2FzbDhDMFhtSDZrZW1oUERsRC9UdjB4dnlINXE1TVVjSGk0bUp0Titnem9iNTREd3pWR0VqZWY1TGVTMVY1RgowVEFQMGQrWEFnTUJBQUdqVXpCUk1CMEdBMVVkRGdRV0JCUWRGMEdRSGRxbHRoZG5RWXFWaXVtRXJsUk9mREFmCkJnTlZIU01FR0RBV2dCUWRGMEdRSGRxbHRoZG5RWXFWaXVtRXJsUk9mREFQQmdOVkhSTUJBZjhFQlRBREFRSC8KTUEwR0NTcUdTSWIzRFFFQkN3VUFBNElCQVFBbUFLYkNsdUhFZS9JRmJ1QWJneDBNenV6aTkwd2xtQVBiOGdtTwpxdmJwMjl1T1ZzVlNtUUFkZFBuZEZhTVhWcDFaaG1UVjVDU1F0ZFgyQ1ZNVyswVzQ3Qy9DT0Jkb1NFUTl5akJmCmlGRGNseG04QU4yUG1hR1FhK3hvT1hnWkxYZXJDaE5LV0JTWlIrWktYTEpTTTlVYUVTbEhmNXVuQkxFcENqK2oKZEJpSXFGY2E3eElGUGtyKzBSRW9BVmMveFBubnNhS2pMMlV5Z0dqUWZGTnhjT042Y3VjYjZMS0pYT1pFSVRiNQpINjhKdWFSQ0tyZWZZK0l5aFFWVk5taWk3dE1wY1UyS2pXNXBrVktxVTNkS0l0RXEyVmtTZHpNVUtqTnhZd3FGCll6YnozNFQ1MENXbm9HbU5SQVdKc0xlVmlPWVUyNmR3YkFXZDlVYitWMDFRam43OAotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==\ntls_key: LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2d0lCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktrd2dnU2xBZ0VBQW9JQkFRRGNBOFl0aC9QV2FPR1MKb05tdkVIWjI0alE3UEtOK0Q0b3dMSFdlaXVSZG1oQTBZT3ZVM3dxRzNWcVk0WnBsWkFWMFBLbEQvKzJaU0YxNAp6OHcxZUY0UVR6WmFZeHd5OSt3ZkhOa1RERXBNalA4Sk0yT0VieWtVUnhVUnZXNCs3RDMwRTJFejVPUGx4bWMwCk1ZTS8vSkg1RURRaGNpRHJsWXFlMVNSTVJBTFplVm1rYUF5dTZOSEpUQnVqMFNJUHVkTFRjaCs5MHErcmR3bnkKZmtUMXgzT1RhbmJXam5vbUVKZTdNdnk0bXZ2cXFJSHU0OFM5QzhaZDFCR1ZQYnU4Vi9VRHJTV1E5ellDWDRTRwpPYXNsOEMwWG1INmtlbWhQRGxEL1R2MHh2eUg1cTVNVWNIaTRtSnROK2d6b2I1NER3elZHRWplZjVMZVMxVjVGCjBUQVAwZCtYQWdNQkFBRUNnZ0VCQUk2U3I0anYwZForanJhN0gzVnZ3S1RYZnl0bjV6YVlrVjhZWUh3RjIyakEKbm9HaTBSQllIUFU2V2l3NS9oaDRFWVM2anFHdkptUXZYY3NkTldMdEJsK2hSVUtiZVRtYUtWd2NFSnRrV24xeQozUTQwUytnVk5OU2NINDRvYUZuRU0zMklWWFFRZnBKMjJJZ2RFY1dVUVcvWnpUNWpPK3dPTXc4c1plSTZMSEtLCkdoOENsVDkrRGUvdXFqbjNCRnQwelZ3cnFLbllKSU1DSWFrb2lDRmtIcGhVTURFNVkyU1NLaGFGWndxMWtLd0sKdHFvWFpKQnlzYXhnUTFRa21mS1RnRkx5WlpXT01mRzVzb1VrU1RTeURFRzFsYnVYcHpUbTlVSTlKU2lsK01yaAp1LzVTeXBLOHBCSHhBdFg5VXdiTjFiRGw3Sng1SWJyMnNoM0F1UDF4OUpFQ2dZRUE4dGNTM09URXNOUFpQZlptCk9jaUduOW9STTdHVmVGdjMrL05iL3JodHp1L1RQUWJBSzhWZ3FrS0dPazNGN1krY2txS1NTWjFnUkF2SHBsZEIKaTY0Y0daT1dpK01jMWZVcEdVV2sxdnZXbG1nTUlQVjVtbFpvOHowMlNTdXhLZTI1Y2VNb09oenFlay9vRmFtdgoyTmxFeTh0dEhOMUxMS3grZllhMkpGcWVycThDZ1lFQTUvQUxHSXVrU3J0K0dkektJLzV5cjdSREpTVzIzUTJ4CkM5ZklUTUFSL1Q4dzNsWGhyUnRXcmlHL3l0QkVPNXdTMVIwdDkydW1nVkhIRTA5eFFXbzZ0Tm16QVBNb1RSekMKd08yYnJqQktBdUJkQ0RISjZsMlFnOEhPQWovUncrK2x4bEN0VEI2YS8xWEZIZnNHUGhqMEQrWlJiWVZzaE00UgpnSVVmdmpmQ1Y1a0NnWUVBMzdzL2FieHJhdThEaTQ3a0NBQ3o1N3FsZHBiNk92V2d0OFF5MGE5aG0vSmhFQ3lVCkNML0VtNWpHeWhpMWJuV05yNXVRWTdwVzR0cG5pdDJCU2d1VFlBMFYrck8zOFhmNThZcTBvRTFPR3l5cFlBUkoKa09SanRSYUVXVTJqNEJsaGJZZjNtL0xnSk9oUnp3T1RPNXFSUTZHY1dhZVlod1ExVmJrelByTXUxNGtDZ1lCbwp4dEhjWnNqelVidm5wd3hTTWxKUStaZ1RvZlAzN0lWOG1pQk1POEJrclRWQVczKzFtZElRbkFKdWRxTThZb2RICmF3VW03cVNyYXV3SjF5dU1wNWFadUhiYkNQMjl5QzVheFh3OHRtZlk0TTVtTTBmSjdqYW9ydGFId1pqYmNObHMKdTJsdUo2MVJoOGVpZ1pJU1gyZHgvMVB0ckFhWUFCZDcvYWVYWU0wVWtRS0JnUUNVbkFIdmRQUGhIVnJDWU1rTgpOOFBEK0t0YmhPRks2S3MvdlgyUkcyRnFmQkJPQWV3bEo1d0xWeFBLT1RpdytKS2FSeHhYMkcvREZVNzduOEQvCkR5V2RjM2ZCQWQ0a1lJamZVaGRGa1hHNEFMUDZBNVFIZVN4NzNScTFLNWxMVWhPbEZqc3VPZ0NKS28wVlFmRC8KT05paDB6SzN5Wmc3aDVQamZ1TUdGb09OQWc9PQotLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tCg==\n",
+            "tls_crt": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURnRENDQW1pZ0F3SUJBZ0lKQUlIWTY3cFNoZ3NyTUEwR0NTcUdTSWIzRFFFQkN3VUFNRlV4Q3pBSkJnTlYKQkFZVEFsVlRNUXN3Q1FZRFZRUUlEQUpOUVRFUE1BMEdBMVVFQnd3R1FtOXpkRzl1TVFzd0NRWURWUVFLREFKRQpWekViTUJrR0ExVUVBd3dTZEd4ekxXTnZiblJsZUhRdGFHOXpkQzB5TUI0WERURTRNVEV3TVRFME1EUXhObG9YCkRUSTRNVEF5T1RFME1EUXhObG93VlRFTE1Ba0dBMVVFQmhNQ1ZWTXhDekFKQmdOVkJBZ01BazFCTVE4d0RRWUQKVlFRSERBWkNiM04wYjI0eEN6QUpCZ05WQkFvTUFrUlhNUnN3R1FZRFZRUUREQkowYkhNdFkyOXVkR1Y0ZEMxbwpiM04wTFRJd2dnRWlNQTBHQ1NxR1NJYjNEUUVCQVFVQUE0SUJEd0F3Z2dFS0FvSUJBUURjQThZdGgvUFdhT0dTCm9ObXZFSFoyNGpRN1BLTitENG93TEhXZWl1UmRtaEEwWU92VTN3cUczVnFZNFpwbFpBVjBQS2xELysyWlNGMTQKejh3MWVGNFFUelphWXh3eTkrd2ZITmtUREVwTWpQOEpNMk9FYnlrVVJ4VVJ2VzQrN0QzMEUyRXo1T1BseG1jMApNWU0vL0pINUVEUWhjaURybFlxZTFTUk1SQUxaZVZta2FBeXU2TkhKVEJ1ajBTSVB1ZExUY2grOTBxK3Jkd255CmZrVDF4M09UYW5iV2pub21FSmU3TXZ5NG12dnFxSUh1NDhTOUM4WmQxQkdWUGJ1OFYvVURyU1dROXpZQ1g0U0cKT2FzbDhDMFhtSDZrZW1oUERsRC9UdjB4dnlINXE1TVVjSGk0bUp0Titnem9iNTREd3pWR0VqZWY1TGVTMVY1RgowVEFQMGQrWEFnTUJBQUdqVXpCUk1CMEdBMVVkRGdRV0JCUWRGMEdRSGRxbHRoZG5RWXFWaXVtRXJsUk9mREFmCkJnTlZIU01FR0RBV2dCUWRGMEdRSGRxbHRoZG5RWXFWaXVtRXJsUk9mREFQQmdOVkhSTUJBZjhFQlRBREFRSC8KTUEwR0NTcUdTSWIzRFFFQkN3VUFBNElCQVFBbUFLYkNsdUhFZS9JRmJ1QWJneDBNenV6aTkwd2xtQVBiOGdtTwpxdmJwMjl1T1ZzVlNtUUFkZFBuZEZhTVhWcDFaaG1UVjVDU1F0ZFgyQ1ZNVyswVzQ3Qy9DT0Jkb1NFUTl5akJmCmlGRGNseG04QU4yUG1hR1FhK3hvT1hnWkxYZXJDaE5LV0JTWlIrWktYTEpTTTlVYUVTbEhmNXVuQkxFcENqK2oKZEJpSXFGY2E3eElGUGtyKzBSRW9BVmMveFBubnNhS2pMMlV5Z0dqUWZGTnhjT042Y3VjYjZMS0pYT1pFSVRiNQpINjhKdWFSQ0tyZWZZK0l5aFFWVk5taWk3dE1wY1UyS2pXNXBrVktxVTNkS0l0RXEyVmtTZHpNVUtqTnhZd3FGCll6YnozNFQ1MENXbm9HbU5SQVdKc0xlVmlPWVUyNmR3YkFXZDlVYitWMDFRam43OAotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==",
+            "tls_key": "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2d0lCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktrd2dnU2xBZ0VBQW9JQkFRRGNBOFl0aC9QV2FPR1MKb05tdkVIWjI0alE3UEtOK0Q0b3dMSFdlaXVSZG1oQTBZT3ZVM3dxRzNWcVk0WnBsWkFWMFBLbEQvKzJaU0YxNAp6OHcxZUY0UVR6WmFZeHd5OSt3ZkhOa1RERXBNalA4Sk0yT0VieWtVUnhVUnZXNCs3RDMwRTJFejVPUGx4bWMwCk1ZTS8vSkg1RURRaGNpRHJsWXFlMVNSTVJBTFplVm1rYUF5dTZOSEpUQnVqMFNJUHVkTFRjaCs5MHErcmR3bnkKZmtUMXgzT1RhbmJXam5vbUVKZTdNdnk0bXZ2cXFJSHU0OFM5QzhaZDFCR1ZQYnU4Vi9VRHJTV1E5ellDWDRTRwpPYXNsOEMwWG1INmtlbWhQRGxEL1R2MHh2eUg1cTVNVWNIaTRtSnROK2d6b2I1NER3elZHRWplZjVMZVMxVjVGCjBUQVAwZCtYQWdNQkFBRUNnZ0VCQUk2U3I0anYwZForanJhN0gzVnZ3S1RYZnl0bjV6YVlrVjhZWUh3RjIyakEKbm9HaTBSQllIUFU2V2l3NS9oaDRFWVM2anFHdkptUXZYY3NkTldMdEJsK2hSVUtiZVRtYUtWd2NFSnRrV24xeQozUTQwUytnVk5OU2NINDRvYUZuRU0zMklWWFFRZnBKMjJJZ2RFY1dVUVcvWnpUNWpPK3dPTXc4c1plSTZMSEtLCkdoOENsVDkrRGUvdXFqbjNCRnQwelZ3cnFLbllKSU1DSWFrb2lDRmtIcGhVTURFNVkyU1NLaGFGWndxMWtLd0sKdHFvWFpKQnlzYXhnUTFRa21mS1RnRkx5WlpXT01mRzVzb1VrU1RTeURFRzFsYnVYcHpUbTlVSTlKU2lsK01yaAp1LzVTeXBLOHBCSHhBdFg5VXdiTjFiRGw3Sng1SWJyMnNoM0F1UDF4OUpFQ2dZRUE4dGNTM09URXNOUFpQZlptCk9jaUduOW9STTdHVmVGdjMrL05iL3JodHp1L1RQUWJBSzhWZ3FrS0dPazNGN1krY2txS1NTWjFnUkF2SHBsZEIKaTY0Y0daT1dpK01jMWZVcEdVV2sxdnZXbG1nTUlQVjVtbFpvOHowMlNTdXhLZTI1Y2VNb09oenFlay9vRmFtdgoyTmxFeTh0dEhOMUxMS3grZllhMkpGcWVycThDZ1lFQTUvQUxHSXVrU3J0K0dkektJLzV5cjdSREpTVzIzUTJ4CkM5ZklUTUFSL1Q4dzNsWGhyUnRXcmlHL3l0QkVPNXdTMVIwdDkydW1nVkhIRTA5eFFXbzZ0Tm16QVBNb1RSekMKd08yYnJqQktBdUJkQ0RISjZsMlFnOEhPQWovUncrK2x4bEN0VEI2YS8xWEZIZnNHUGhqMEQrWlJiWVZzaE00UgpnSVVmdmpmQ1Y1a0NnWUVBMzdzL2FieHJhdThEaTQ3a0NBQ3o1N3FsZHBiNk92V2d0OFF5MGE5aG0vSmhFQ3lVCkNML0VtNWpHeWhpMWJuV05yNXVRWTdwVzR0cG5pdDJCU2d1VFlBMFYrck8zOFhmNThZcTBvRTFPR3l5cFlBUkoKa09SanRSYUVXVTJqNEJsaGJZZjNtL0xnSk9oUnp3T1RPNXFSUTZHY1dhZVlod1ExVmJrelByTXUxNGtDZ1lCbwp4dEhjWnNqelVidm5wd3hTTWxKUStaZ1RvZlAzN0lWOG1pQk1POEJrclRWQVczKzFtZElRbkFKdWRxTThZb2RICmF3VW03cVNyYXV3SjF5dU1wNWFadUhiYkNQMjl5QzVheFh3OHRtZlk0TTVtTTBmSjdqYW9ydGFId1pqYmNObHMKdTJsdUo2MVJoOGVpZ1pJU1gyZHgvMVB0ckFhWUFCZDcvYWVYWU0wVWtRS0JnUUNVbkFIdmRQUGhIVnJDWU1rTgpOOFBEK0t0YmhPRks2S3MvdlgyUkcyRnFmQkJPQWV3bEo1d0xWeFBLT1RpdytKS2FSeHhYMkcvREZVNzduOEQvCkR5V2RjM2ZCQWQ0a1lJamZVaGRGa1hHNEFMUDZBNVFIZVN4NzNScTFLNWxMVWhPbEZqc3VPZ0NKS28wVlFmRC8KT05paDB6SzN5Wmc3aDVQamZ1TUdGb09OQWc9PQotLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tCg=="
+        },
+        "tcpmappingtest-http-target1.tcp-namespace.1": {
+            "_referenced_by": {},
+            "ambassador_id": "tcpmappingtest",
+            "apiVersion": "getambassador.io/v1",
+            "kind": "TCPMapping",
+            "location": "tcpmappingtest-http-target1.tcp-namespace.1",
+            "metadata_labels": {
+                "kat-ambassador-id": "tcpmappingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "TCPMappingTest",
+            "namespace": "tcp-namespace",
+            "port": 9876,
+            "rkey": "tcpmappingtest-http-target1.tcp-namespace.1",
+            "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest\nnamespace: tcp-namespace\nport: 9876\nservice: tcpmappingtest-http-target1.tcp-namespace:443\n",
+            "service": "tcpmappingtest-http-target1.tcp-namespace:443"
+        },
+        "tcpmappingtest-http-target1.tcp-namespace.2": {
+            "_referenced_by": {},
+            "address": "127.0.0.1",
+            "ambassador_id": "tcpmappingtest",
+            "apiVersion": "getambassador.io/v1",
+            "kind": "TCPMapping",
+            "location": "tcpmappingtest-http-target1.tcp-namespace.2",
+            "metadata_labels": {
+                "kat-ambassador-id": "tcpmappingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "TCPMappingTest-local-only",
+            "namespace": "tcp-namespace",
+            "port": 8765,
+            "rkey": "tcpmappingtest-http-target1.tcp-namespace.2",
+            "serialization": "address: 127.0.0.1\nambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-local-only\nnamespace: tcp-namespace\nport: 8765\nservice: tcpmappingtest-http-target1.tcp-namespace:443\n",
+            "service": "tcpmappingtest-http-target1.tcp-namespace:443"
+        },
+        "tcpmappingtest-http-target1.tcp-namespace.3": {
+            "_referenced_by": {},
+            "ambassador_id": "tcpmappingtest",
+            "apiVersion": "getambassador.io/v1",
+            "kind": "TCPMapping",
+            "location": "tcpmappingtest-http-target1.tcp-namespace.3",
+            "metadata_labels": {
+                "kat-ambassador-id": "tcpmappingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "TCPMappingTest-clear-to-tls",
+            "namespace": "tcp-namespace",
+            "port": 7654,
+            "rkey": "tcpmappingtest-http-target1.tcp-namespace.3",
+            "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-clear-to-tls\nnamespace: tcp-namespace\nport: 7654\nservice: tcpmappingtest-http-target2.other-namespace:443\ntls: true\n",
+            "service": "tcpmappingtest-http-target2.other-namespace:443",
+            "tls": true
+        },
+        "tcpmappingtest-http-target1.tcp-namespace.4": {
+            "_referenced_by": {},
+            "ambassador_id": "tcpmappingtest",
+            "apiVersion": "getambassador.io/v1",
+            "host": "tls-context-host-1",
+            "kind": "TCPMapping",
+            "location": "tcpmappingtest-http-target1.tcp-namespace.4",
+            "metadata_labels": {
+                "kat-ambassador-id": "tcpmappingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "TCPMappingTest-1",
+            "namespace": "tcp-namespace",
+            "port": 6789,
+            "rkey": "tcpmappingtest-http-target1.tcp-namespace.4",
+            "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nhost: tls-context-host-1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-1\nnamespace: tcp-namespace\nport: 6789\nservice: tcpmappingtest-http-target1.tcp-namespace:80\n",
+            "service": "tcpmappingtest-http-target1.tcp-namespace:80"
+        },
+        "tcpmappingtest-http-target2.other-namespace.1": {
+            "_referenced_by": {},
+            "ambassador_id": "tcpmappingtest",
+            "apiVersion": "getambassador.io/v1",
+            "host": "tls-context-host-2",
+            "kind": "TCPMapping",
+            "location": "tcpmappingtest-http-target2.other-namespace.1",
+            "metadata_labels": {
+                "kat-ambassador-id": "tcpmappingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "TCPMappingTest-2",
+            "namespace": "other-namespace",
+            "port": 6789,
+            "rkey": "tcpmappingtest-http-target2.other-namespace.1",
+            "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nhost: tls-context-host-2\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-2\nnamespace: other-namespace\nport: 6789\nservice: tcpmappingtest-http-target2.other-namespace\ntls: TCPMappingTest-tlscontext\n",
+            "service": "tcpmappingtest-http-target2.other-namespace",
+            "tls": "TCPMappingTest-tlscontext"
+        },
+        "tcpmappingtest-http-target3.tcp-namespace.1": {
+            "_referenced_by": {},
+            "ambassador_id": "tcpmappingtest",
+            "apiVersion": "getambassador.io/v1",
+            "host": "tls-context-host-3",
+            "kind": "TCPMapping",
+            "location": "tcpmappingtest-http-target3.tcp-namespace.1",
+            "metadata_labels": {
+                "kat-ambassador-id": "tcpmappingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "TCPMappingTest-3",
+            "namespace": "tcp-namespace",
+            "port": 6789,
+            "rkey": "tcpmappingtest-http-target3.tcp-namespace.1",
+            "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nhost: tls-context-host-3\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-3\nnamespace: tcp-namespace\nport: 6789\nservice: tcpmappingtest-http-target3.tcp-namespace\ntls: true\n",
+            "service": "tcpmappingtest-http-target3.tcp-namespace",
+            "tls": true
+        },
+        "tcpmappingtest.tcp-namespace.1": {
+            "_referenced_by": {},
+            "ambassador_id": "tcpmappingtest",
+            "apiVersion": "getambassador.io/v1",
+            "hosts": [
+                "tls-context-host-1",
+                "tls-context-host-2",
+                "tls-context-host-3"
+            ],
+            "kind": "TLSContext",
+            "location": "tcpmappingtest.tcp-namespace.1",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tcpmappingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "TCPMappingTest-tlscontext",
+            "namespace": "tcp-namespace",
+            "rkey": "tcpmappingtest.tcp-namespace.1",
+            "secret": "supersecret",
+            "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nhosts:\n- tls-context-host-1\n- tls-context-host-2\n- tls-context-host-3\nkind: TLSContext\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-tlscontext\nnamespace: tcp-namespace\nsecret: supersecret\n"
+        }
+    },
+    "hosts": {
+        "cleartext-host-tcpmappingtest": {
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "ambassadorId": [
+                "tcpmappingtest"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "hostname": "*",
+            "kind": "Host",
+            "metadata_labels": {
+                "ambassador_crd": "cleartext-host-tcpmappingtest.tcp-namespace",
+                "kat-ambassador-id": "tcpmappingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cleartext-host-tcpmappingtest",
+            "namespace": "tcp-namespace",
+            "requestPolicy": {
+                "insecure": {
+                    "action": "Route"
+                }
+            },
+            "selector": {
+                "matchLabels": {
+                    "hostname": "tcpmappingtest"
+                }
+            },
+            "tlsSecret": {}
+        }
+    },
+    "mappings": {
+        "ambassador-edge-stack": {
+            "ambassador_id": [
+                "_automatic_"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "metadata_labels": {
+                "ambassador_crd": "ambassador-edge-stack.tcp-namespace",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "ambassador-edge-stack",
+            "namespace": "tcp-namespace",
+            "precedence": 1000000,
+            "prefix": "/.ambassador/",
+            "rewrite": "",
+            "service": "127.0.0.1:8500"
+        },
+        "edgestack-direct-mapping": {
+            "ambassador_id": [
+                "_automatic_"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "metadata_labels": {
+                "ambassador_crd": "edgestack-direct-mapping.tcp-namespace",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "edgestack-direct-mapping",
+            "namespace": "tcp-namespace",
+            "precedence": 1000000,
+            "prefix": "/edge_stack/",
+            "rewrite": "/edge_stack_ui/edge_stack/",
+            "service": "127.0.0.1:8500",
+            "timeout_ms": 60000
+        },
+        "edgestack-fallback-mapping": {
+            "ambassador_id": [
+                "_automatic_"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "metadata_labels": {
+                "ambassador_crd": "edgestack-fallback-mapping.tcp-namespace",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "edgestack-fallback-mapping",
+            "namespace": "tcp-namespace",
+            "precedence": -1000000,
+            "prefix": "/",
+            "rewrite": "/edge_stack_ui/",
+            "service": "127.0.0.1:8500",
+            "timeout_ms": 60000
+        }
+    },
+    "secrets": {
+        "supersecret.tcp-namespace.1": {
+            "ambassador_id": "tcpmappingtest",
+            "apiVersion": "getambassador.io/v2",
+            "kind": "Secret",
+            "metadata_labels": {
+                "kat-ambassador-id": "tcpmappingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "supersecret",
+            "namespace": "tcp-namespace",
+            "secret_type": "kubernetes.io/tls",
+            "tls_crt": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURnRENDQW1pZ0F3SUJBZ0lKQUlIWTY3cFNoZ3NyTUEwR0NTcUdTSWIzRFFFQkN3VUFNRlV4Q3pBSkJnTlYKQkFZVEFsVlRNUXN3Q1FZRFZRUUlEQUpOUVRFUE1BMEdBMVVFQnd3R1FtOXpkRzl1TVFzd0NRWURWUVFLREFKRQpWekViTUJrR0ExVUVBd3dTZEd4ekxXTnZiblJsZUhRdGFHOXpkQzB5TUI0WERURTRNVEV3TVRFME1EUXhObG9YCkRUSTRNVEF5T1RFME1EUXhObG93VlRFTE1Ba0dBMVVFQmhNQ1ZWTXhDekFKQmdOVkJBZ01BazFCTVE4d0RRWUQKVlFRSERBWkNiM04wYjI0eEN6QUpCZ05WQkFvTUFrUlhNUnN3R1FZRFZRUUREQkowYkhNdFkyOXVkR1Y0ZEMxbwpiM04wTFRJd2dnRWlNQTBHQ1NxR1NJYjNEUUVCQVFVQUE0SUJEd0F3Z2dFS0FvSUJBUURjQThZdGgvUFdhT0dTCm9ObXZFSFoyNGpRN1BLTitENG93TEhXZWl1UmRtaEEwWU92VTN3cUczVnFZNFpwbFpBVjBQS2xELysyWlNGMTQKejh3MWVGNFFUelphWXh3eTkrd2ZITmtUREVwTWpQOEpNMk9FYnlrVVJ4VVJ2VzQrN0QzMEUyRXo1T1BseG1jMApNWU0vL0pINUVEUWhjaURybFlxZTFTUk1SQUxaZVZta2FBeXU2TkhKVEJ1ajBTSVB1ZExUY2grOTBxK3Jkd255CmZrVDF4M09UYW5iV2pub21FSmU3TXZ5NG12dnFxSUh1NDhTOUM4WmQxQkdWUGJ1OFYvVURyU1dROXpZQ1g0U0cKT2FzbDhDMFhtSDZrZW1oUERsRC9UdjB4dnlINXE1TVVjSGk0bUp0Titnem9iNTREd3pWR0VqZWY1TGVTMVY1RgowVEFQMGQrWEFnTUJBQUdqVXpCUk1CMEdBMVVkRGdRV0JCUWRGMEdRSGRxbHRoZG5RWXFWaXVtRXJsUk9mREFmCkJnTlZIU01FR0RBV2dCUWRGMEdRSGRxbHRoZG5RWXFWaXVtRXJsUk9mREFQQmdOVkhSTUJBZjhFQlRBREFRSC8KTUEwR0NTcUdTSWIzRFFFQkN3VUFBNElCQVFBbUFLYkNsdUhFZS9JRmJ1QWJneDBNenV6aTkwd2xtQVBiOGdtTwpxdmJwMjl1T1ZzVlNtUUFkZFBuZEZhTVhWcDFaaG1UVjVDU1F0ZFgyQ1ZNVyswVzQ3Qy9DT0Jkb1NFUTl5akJmCmlGRGNseG04QU4yUG1hR1FhK3hvT1hnWkxYZXJDaE5LV0JTWlIrWktYTEpTTTlVYUVTbEhmNXVuQkxFcENqK2oKZEJpSXFGY2E3eElGUGtyKzBSRW9BVmMveFBubnNhS2pMMlV5Z0dqUWZGTnhjT042Y3VjYjZMS0pYT1pFSVRiNQpINjhKdWFSQ0tyZWZZK0l5aFFWVk5taWk3dE1wY1UyS2pXNXBrVktxVTNkS0l0RXEyVmtTZHpNVUtqTnhZd3FGCll6YnozNFQ1MENXbm9HbU5SQVdKc0xlVmlPWVUyNmR3YkFXZDlVYitWMDFRam43OAotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==",
+            "tls_key": "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2d0lCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktrd2dnU2xBZ0VBQW9JQkFRRGNBOFl0aC9QV2FPR1MKb05tdkVIWjI0alE3UEtOK0Q0b3dMSFdlaXVSZG1oQTBZT3ZVM3dxRzNWcVk0WnBsWkFWMFBLbEQvKzJaU0YxNAp6OHcxZUY0UVR6WmFZeHd5OSt3ZkhOa1RERXBNalA4Sk0yT0VieWtVUnhVUnZXNCs3RDMwRTJFejVPUGx4bWMwCk1ZTS8vSkg1RURRaGNpRHJsWXFlMVNSTVJBTFplVm1rYUF5dTZOSEpUQnVqMFNJUHVkTFRjaCs5MHErcmR3bnkKZmtUMXgzT1RhbmJXam5vbUVKZTdNdnk0bXZ2cXFJSHU0OFM5QzhaZDFCR1ZQYnU4Vi9VRHJTV1E5ellDWDRTRwpPYXNsOEMwWG1INmtlbWhQRGxEL1R2MHh2eUg1cTVNVWNIaTRtSnROK2d6b2I1NER3elZHRWplZjVMZVMxVjVGCjBUQVAwZCtYQWdNQkFBRUNnZ0VCQUk2U3I0anYwZForanJhN0gzVnZ3S1RYZnl0bjV6YVlrVjhZWUh3RjIyakEKbm9HaTBSQllIUFU2V2l3NS9oaDRFWVM2anFHdkptUXZYY3NkTldMdEJsK2hSVUtiZVRtYUtWd2NFSnRrV24xeQozUTQwUytnVk5OU2NINDRvYUZuRU0zMklWWFFRZnBKMjJJZ2RFY1dVUVcvWnpUNWpPK3dPTXc4c1plSTZMSEtLCkdoOENsVDkrRGUvdXFqbjNCRnQwelZ3cnFLbllKSU1DSWFrb2lDRmtIcGhVTURFNVkyU1NLaGFGWndxMWtLd0sKdHFvWFpKQnlzYXhnUTFRa21mS1RnRkx5WlpXT01mRzVzb1VrU1RTeURFRzFsYnVYcHpUbTlVSTlKU2lsK01yaAp1LzVTeXBLOHBCSHhBdFg5VXdiTjFiRGw3Sng1SWJyMnNoM0F1UDF4OUpFQ2dZRUE4dGNTM09URXNOUFpQZlptCk9jaUduOW9STTdHVmVGdjMrL05iL3JodHp1L1RQUWJBSzhWZ3FrS0dPazNGN1krY2txS1NTWjFnUkF2SHBsZEIKaTY0Y0daT1dpK01jMWZVcEdVV2sxdnZXbG1nTUlQVjVtbFpvOHowMlNTdXhLZTI1Y2VNb09oenFlay9vRmFtdgoyTmxFeTh0dEhOMUxMS3grZllhMkpGcWVycThDZ1lFQTUvQUxHSXVrU3J0K0dkektJLzV5cjdSREpTVzIzUTJ4CkM5ZklUTUFSL1Q4dzNsWGhyUnRXcmlHL3l0QkVPNXdTMVIwdDkydW1nVkhIRTA5eFFXbzZ0Tm16QVBNb1RSekMKd08yYnJqQktBdUJkQ0RISjZsMlFnOEhPQWovUncrK2x4bEN0VEI2YS8xWEZIZnNHUGhqMEQrWlJiWVZzaE00UgpnSVVmdmpmQ1Y1a0NnWUVBMzdzL2FieHJhdThEaTQ3a0NBQ3o1N3FsZHBiNk92V2d0OFF5MGE5aG0vSmhFQ3lVCkNML0VtNWpHeWhpMWJuV05yNXVRWTdwVzR0cG5pdDJCU2d1VFlBMFYrck8zOFhmNThZcTBvRTFPR3l5cFlBUkoKa09SanRSYUVXVTJqNEJsaGJZZjNtL0xnSk9oUnp3T1RPNXFSUTZHY1dhZVlod1ExVmJrelByTXUxNGtDZ1lCbwp4dEhjWnNqelVidm5wd3hTTWxKUStaZ1RvZlAzN0lWOG1pQk1POEJrclRWQVczKzFtZElRbkFKdWRxTThZb2RICmF3VW03cVNyYXV3SjF5dU1wNWFadUhiYkNQMjl5QzVheFh3OHRtZlk0TTVtTTBmSjdqYW9ydGFId1pqYmNObHMKdTJsdUo2MVJoOGVpZ1pJU1gyZHgvMVB0ckFhWUFCZDcvYWVYWU0wVWtRS0JnUUNVbkFIdmRQUGhIVnJDWU1rTgpOOFBEK0t0YmhPRks2S3MvdlgyUkcyRnFmQkJPQWV3bEo1d0xWeFBLT1RpdytKS2FSeHhYMkcvREZVNzduOEQvCkR5V2RjM2ZCQWQ0a1lJamZVaGRGa1hHNEFMUDZBNVFIZVN4NzNScTFLNWxMVWhPbEZqc3VPZ0NKS28wVlFmRC8KT05paDB6SzN5Wmc3aDVQamZ1TUdGb09OQWc9PQotLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tCg=="
+        }
+    },
+    "service": {
+        "k8s-tcpmappingtest-admin-tcp-namespace": {
+            "ambassador_id": "tcpmappingtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "tcpmappingtest",
+                "scope": "AmbassadorTest",
+                "service": "tcpmappingtest-admin"
+            },
+            "name": "tcpmappingtest-admin",
+            "namespace": "tcp-namespace"
+        },
+        "k8s-tcpmappingtest-http-target1-tcp-namespace": {
+            "ambassador_id": "tcpmappingtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "tcpmappingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tcpmappingtest-http-target1",
+            "namespace": "tcp-namespace"
+        },
+        "k8s-tcpmappingtest-http-target2-other-namespace": {
+            "ambassador_id": "tcpmappingtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "tcpmappingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tcpmappingtest-http-target2",
+            "namespace": "other-namespace"
+        },
+        "k8s-tcpmappingtest-http-target3-tcp-namespace": {
+            "ambassador_id": "tcpmappingtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "tcpmappingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tcpmappingtest-http-target3",
+            "namespace": "tcp-namespace"
+        },
+        "k8s-tcpmappingtest-tcp-namespace": {
+            "ambassador_id": "tcpmappingtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tcpmappingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tcpmappingtest",
+            "namespace": "tcp-namespace"
+        }
+    },
+    "tcpmappings": {
+        "TCPMappingTest": {
+            "ambassador_id": "tcpmappingtest",
+            "apiVersion": "getambassador.io/v1",
+            "kind": "TCPMapping",
+            "metadata_labels": {
+                "kat-ambassador-id": "tcpmappingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "TCPMappingTest",
+            "namespace": "tcp-namespace",
+            "port": 9876,
+            "service": "tcpmappingtest-http-target1.tcp-namespace:443"
+        },
+        "TCPMappingTest-1": {
+            "ambassador_id": "tcpmappingtest",
+            "apiVersion": "getambassador.io/v1",
+            "host": "tls-context-host-1",
+            "kind": "TCPMapping",
+            "metadata_labels": {
+                "kat-ambassador-id": "tcpmappingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "TCPMappingTest-1",
+            "namespace": "tcp-namespace",
+            "port": 6789,
+            "service": "tcpmappingtest-http-target1.tcp-namespace:80"
+        },
+        "TCPMappingTest-2": {
+            "ambassador_id": "tcpmappingtest",
+            "apiVersion": "getambassador.io/v1",
+            "host": "tls-context-host-2",
+            "kind": "TCPMapping",
+            "metadata_labels": {
+                "kat-ambassador-id": "tcpmappingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "TCPMappingTest-2",
+            "namespace": "other-namespace",
+            "port": 6789,
+            "service": "tcpmappingtest-http-target2.other-namespace",
+            "tls": "TCPMappingTest-tlscontext"
+        },
+        "TCPMappingTest-3": {
+            "ambassador_id": "tcpmappingtest",
+            "apiVersion": "getambassador.io/v1",
+            "host": "tls-context-host-3",
+            "kind": "TCPMapping",
+            "metadata_labels": {
+                "kat-ambassador-id": "tcpmappingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "TCPMappingTest-3",
+            "namespace": "tcp-namespace",
+            "port": 6789,
+            "service": "tcpmappingtest-http-target3.tcp-namespace",
+            "tls": true
+        },
+        "TCPMappingTest-clear-to-tls": {
+            "ambassador_id": "tcpmappingtest",
+            "apiVersion": "getambassador.io/v1",
+            "kind": "TCPMapping",
+            "metadata_labels": {
+                "kat-ambassador-id": "tcpmappingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "TCPMappingTest-clear-to-tls",
+            "namespace": "tcp-namespace",
+            "port": 7654,
+            "service": "tcpmappingtest-http-target2.other-namespace:443",
+            "tls": true
+        },
+        "TCPMappingTest-local-only": {
+            "address": "127.0.0.1",
+            "ambassador_id": "tcpmappingtest",
+            "apiVersion": "getambassador.io/v1",
+            "kind": "TCPMapping",
+            "metadata_labels": {
+                "kat-ambassador-id": "tcpmappingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "TCPMappingTest-local-only",
+            "namespace": "tcp-namespace",
+            "port": 8765,
+            "service": "tcpmappingtest-http-target1.tcp-namespace:443"
+        }
+    },
+    "tls_contexts": {
+        "TCPMappingTest-tlscontext": {
+            "ambassador_id": "tcpmappingtest",
+            "apiVersion": "getambassador.io/v1",
+            "hosts": [
+                "tls-context-host-1",
+                "tls-context-host-2",
+                "tls-context-host-3"
+            ],
+            "kind": "TLSContext",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tcpmappingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "TCPMappingTest-tlscontext",
+            "namespace": "tcp-namespace",
+            "secret": "supersecret"
+        }
+    }
+}

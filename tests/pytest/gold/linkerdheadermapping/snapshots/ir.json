@@ -1,0 +1,1529 @@
+{
+    "ambassador": {
+        "_active": true,
+        "_errored": false,
+        "_finalized": true,
+        "_referenced_by": [
+            "linkerdheadermapping.default.1"
+        ],
+        "_rkey": "linkerdheadermapping.default.1",
+        "add_linkerd_headers": true,
+        "admin_port": 8001,
+        "debug_mode": false,
+        "default_label_domain": "ambassador",
+        "default_labels": {},
+        "diag_port": 8877,
+        "diagnostics": {
+            "enabled": true,
+            "prefix": "/ambassador/v0/",
+            "rewrite": "/ambassador/v0/",
+            "service": "127.0.0.1:8877"
+        },
+        "enable_http10": false,
+        "enable_ipv4": true,
+        "enable_ipv6": false,
+        "envoy_log_path": "/dev/fd/1",
+        "envoy_log_type": "text",
+        "kind": "IRAmbassador",
+        "liveness_probe": {
+            "enabled": true,
+            "prefix": "/ambassador/v0/check_alive",
+            "rewrite": "/ambassador/v0/check_alive",
+            "service": "127.0.0.1:8877"
+        },
+        "location": "linkerdheadermapping.default.1",
+        "name": "ir.ambassador",
+        "namespace": "default",
+        "readiness_probe": {
+            "enabled": true,
+            "prefix": "/ambassador/v0/check_ready",
+            "rewrite": "/ambassador/v0/check_ready",
+            "service": "127.0.0.1:8877"
+        },
+        "server_name": "envoy",
+        "service_port": 8080,
+        "use_ambassador_namespace_for_service_resolution": false,
+        "use_proxy_proto": false,
+        "use_remote_address": true,
+        "x_forwarded_proto_redirect": false,
+        "xff_num_trusted_hops": 0
+    },
+    "clusters": {
+        "cluster_127_0_0_1_8500_default": {
+            "_active": true,
+            "_errored": false,
+            "_hostname": "127.0.0.1",
+            "_is_sidecar": true,
+            "_namespace": "default",
+            "_port": 8500,
+            "_referenced_by": [
+                "ambassador-edge-stack.default.1",
+                "edgestack-direct-mapping.default.1",
+                "edgestack-fallback-mapping.default.1",
+                "linkerdheadermapping.default.1"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_127_0_0_1_8500_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "ambassador-edge-stack.default.1",
+            "name": "cluster_127_0_0_1_8500_default",
+            "namespace": "default",
+            "service": "127.0.0.1:8500",
+            "targets": [
+                {
+                    "ip": "127.0.0.1",
+                    "port": 8500,
+                    "target_kind": "IPaddr"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://127.0.0.1:8500"
+            ]
+        },
+        "cluster_127_0_0_1_8877_default": {
+            "_active": true,
+            "_errored": false,
+            "_hostname": "127.0.0.1",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 8877,
+            "_referenced_by": [
+                "linkerdheadermapping.default.1"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_127_0_0_1_8877_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "linkerdheadermapping.default.1",
+            "name": "cluster_127_0_0_1_8877_default",
+            "namespace": "default",
+            "service": "127.0.0.1:8877",
+            "targets": [
+                {
+                    "ip": "127.0.0.1",
+                    "port": 8877,
+                    "target_kind": "IPaddr"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://127.0.0.1:8877"
+            ]
+        },
+        "cluster_linkerdheadermapping_http_addlinkerdonly_default": {
+            "_active": true,
+            "_errored": false,
+            "_hostname": "linkerdheadermapping-http-addlinkerdonly",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 80,
+            "_referenced_by": [
+                "linkerdheadermapping.default.2"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_linkerdheadermapping_http_addlinkerdonly_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "linkerdheadermapping.default.2",
+            "name": "cluster_linkerdheadermapping_http_addlinkerdonly_default",
+            "namespace": "default",
+            "service": "linkerdheadermapping-http-addlinkerdonly",
+            "targets": [
+                {
+                    "ip": "linkerdheadermapping-http-addlinkerdonly.default",
+                    "port": 80,
+                    "target_kind": "DNSname"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://linkerdheadermapping-http-addlinkerdonly:80"
+            ]
+        },
+        "cluster_linkerdheadermapping_http_default": {
+            "_active": true,
+            "_errored": false,
+            "_hostname": "linkerdheadermapping-http",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 80,
+            "_referenced_by": [
+                "linkerdheadermapping.default.4"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_linkerdheadermapping_http_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "linkerdheadermapping.default.4",
+            "name": "cluster_linkerdheadermapping_http_default",
+            "namespace": "default",
+            "service": "linkerdheadermapping-http",
+            "targets": [
+                {
+                    "ip": "linkerdheadermapping-http.default",
+                    "port": 80,
+                    "target_kind": "DNSname"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://linkerdheadermapping-http:80"
+            ]
+        },
+        "cluster_linkerdheadermapping_http_noheader_default": {
+            "_active": true,
+            "_errored": false,
+            "_hostname": "linkerdheadermapping-http-noheader",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 80,
+            "_referenced_by": [
+                "linkerdheadermapping.default.3"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_linkerdheadermapping_http_noheader_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "linkerdheadermapping.default.3",
+            "name": "cluster_linkerdheadermapping_http_noheader_default",
+            "namespace": "default",
+            "service": "linkerdheadermapping-http-noheader",
+            "targets": [
+                {
+                    "ip": "linkerdheadermapping-http-noheader.default",
+                    "port": 80,
+                    "target_kind": "DNSname"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://linkerdheadermapping-http-noheader:80"
+            ]
+        }
+    },
+    "filters": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.cors",
+            "config": {},
+            "kind": "ir.cors",
+            "location": "--internal--",
+            "name": "cors",
+            "namespace": "default"
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.router",
+            "config": {},
+            "kind": "ir.router",
+            "location": "--internal--",
+            "name": "router",
+            "namespace": "default",
+            "type": "decoder"
+        }
+    ],
+    "groups": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "ambassador-edge-stack.default.1"
+            ],
+            "_rkey": "ambassador-edge-stack.default.1",
+            "add_request_headers": {
+                "l5d-dst-override": "127.0.0.1:8500"
+            },
+            "group_id": "05c39b1e3391160319615ede25f8cca27d745b6c",
+            "group_weight": [
+                1000000,
+                13,
+                0,
+                "/.ambassador/",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "ambassador-edge-stack.default.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_rkey": "ambassador-edge-stack.default.1",
+                    "add_request_headers": {
+                        "l5d-dst-override": "127.0.0.1:8500"
+                    },
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": true,
+                        "_namespace": "default",
+                        "_port": 8500,
+                        "_referenced_by": [
+                            "ambassador-edge-stack.default.1",
+                            "edgestack-direct-mapping.default.1",
+                            "edgestack-fallback-mapping.default.1",
+                            "linkerdheadermapping.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8500_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "ambassador-edge-stack.default.1",
+                        "name": "cluster_127_0_0_1_8500_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8500",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8500,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8500"
+                        ]
+                    },
+                    "group_id": "05c39b1e3391160319615ede25f8cca27d745b6c",
+                    "headers": [],
+                    "kind": "Mapping",
+                    "location": "ambassador-edge-stack.default.1",
+                    "metadata_labels": {
+                        "ambassador_crd": "ambassador-edge-stack.default",
+                        "ambassador_diag_class": "private",
+                        "product": "aes"
+                    },
+                    "name": "ambassador-edge-stack",
+                    "namespace": "default",
+                    "precedence": 1000000,
+                    "prefix": "/.ambassador/",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "",
+                    "route_weight": [
+                        1000000,
+                        13,
+                        0,
+                        "/.ambassador/",
+                        "GET"
+                    ],
+                    "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: ambassador-edge-stack.default\n  ambassador_diag_class: private\n  product: aes\nname: ambassador-edge-stack\nnamespace: default\nprecedence: 1000000\nprefix: /.ambassador/\nrewrite: ''\nservice: 127.0.0.1:8500\n",
+                    "service": "127.0.0.1:8500",
+                    "weight": 100
+                }
+            ],
+            "metadata_labels": {
+                "ambassador_crd": "ambassador-edge-stack.default",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "GROUP: ambassador-edge-stack",
+            "namespace": "default",
+            "precedence": 1000000,
+            "prefix": "/.ambassador/",
+            "rewrite": "",
+            "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: ambassador-edge-stack.default\n  ambassador_diag_class: private\n  product: aes\nname: ambassador-edge-stack\nnamespace: default\nprecedence: 1000000\nprefix: /.ambassador/\nrewrite: ''\nservice: 127.0.0.1:8500\n"
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "edgestack-direct-mapping.default.1",
+                "linkerdheadermapping.default.1"
+            ],
+            "_rkey": "edgestack-direct-mapping.default.1",
+            "add_request_headers": {
+                "l5d-dst-override": "127.0.0.1:8500"
+            },
+            "group_id": "ab86de585a684254d5458bdeb01da4fba36c21cc",
+            "group_weight": [
+                1000000,
+                12,
+                0,
+                "/edge_stack/",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "edgestack-direct-mapping.default.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_referenced_by": [
+                        "linkerdheadermapping.default.1"
+                    ],
+                    "_rkey": "linkerdheadermapping.default.1",
+                    "add_request_headers": {
+                        "l5d-dst-override": "127.0.0.1:8500"
+                    },
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": true,
+                        "_namespace": "default",
+                        "_port": 8500,
+                        "_referenced_by": [
+                            "ambassador-edge-stack.default.1",
+                            "edgestack-direct-mapping.default.1",
+                            "edgestack-fallback-mapping.default.1",
+                            "linkerdheadermapping.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8500_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "ambassador-edge-stack.default.1",
+                        "name": "cluster_127_0_0_1_8500_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8500",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8500,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8500"
+                        ]
+                    },
+                    "group_id": "ab86de585a684254d5458bdeb01da4fba36c21cc",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "linkerdheadermapping.default.1",
+                    "metadata_labels": {
+                        "ambassador_diag_class": "private"
+                    },
+                    "name": "edgestack-direct-mapping",
+                    "namespace": "default",
+                    "precedence": 1000000,
+                    "prefix": "/edge_stack/",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/edge_stack_ui/edge_stack/",
+                    "route_weight": [
+                        1000000,
+                        12,
+                        0,
+                        "/edge_stack/",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8500",
+                    "timeout_ms": 60000,
+                    "weight": 100
+                },
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_rkey": "edgestack-direct-mapping.default.1",
+                    "add_request_headers": {
+                        "l5d-dst-override": "127.0.0.1:8500"
+                    },
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": true,
+                        "_namespace": "default",
+                        "_port": 8500,
+                        "_referenced_by": [
+                            "ambassador-edge-stack.default.1",
+                            "edgestack-direct-mapping.default.1",
+                            "edgestack-fallback-mapping.default.1",
+                            "linkerdheadermapping.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8500_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "ambassador-edge-stack.default.1",
+                        "name": "cluster_127_0_0_1_8500_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8500",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8500,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8500"
+                        ]
+                    },
+                    "group_id": "ab86de585a684254d5458bdeb01da4fba36c21cc",
+                    "headers": [],
+                    "kind": "Mapping",
+                    "location": "edgestack-direct-mapping.default.1",
+                    "metadata_labels": {
+                        "ambassador_crd": "edgestack-direct-mapping.default",
+                        "ambassador_diag_class": "private",
+                        "product": "aes"
+                    },
+                    "name": "edgestack-direct-mapping",
+                    "namespace": "default",
+                    "precedence": 1000000,
+                    "prefix": "/edge_stack/",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/edge_stack_ui/edge_stack/",
+                    "route_weight": [
+                        1000000,
+                        12,
+                        0,
+                        "/edge_stack/",
+                        "GET"
+                    ],
+                    "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgestack-direct-mapping.default\n  ambassador_diag_class: private\n  product: aes\nname: edgestack-direct-mapping\nnamespace: default\nprecedence: 1000000\nprefix: /edge_stack/\nrewrite: /edge_stack_ui/edge_stack/\nservice: 127.0.0.1:8500\ntimeout_ms: 60000\n",
+                    "service": "127.0.0.1:8500",
+                    "timeout_ms": 60000,
+                    "weight": 50
+                }
+            ],
+            "metadata_labels": {
+                "ambassador_crd": "edgestack-direct-mapping.default",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "GROUP: edgestack-direct-mapping",
+            "namespace": "default",
+            "precedence": 1000000,
+            "prefix": "/edge_stack/",
+            "rewrite": "/edge_stack_ui/edge_stack/",
+            "timeout_ms": 60000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "linkerdheadermapping.default.2"
+            ],
+            "_rkey": "linkerdheadermapping.default.2",
+            "add_request_headers": {
+                "l5d-dst-override": "linkerdheadermapping-http-addlinkerdonly:80"
+            },
+            "group_id": "87acc5b097b942bcb047fc597357a1184ccfbe6c",
+            "group_weight": [
+                0,
+                32,
+                0,
+                "/target_add_linkerd_header_only/",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "linkerdheadermapping.default.2",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_rkey": "linkerdheadermapping.default.2",
+                    "add_request_headers": {
+                        "l5d-dst-override": "linkerdheadermapping-http-addlinkerdonly:80"
+                    },
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "linkerdheadermapping-http-addlinkerdonly",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 80,
+                        "_referenced_by": [
+                            "linkerdheadermapping.default.2"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_linkerdheadermapping_http_addlinkerdonly_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "linkerdheadermapping.default.2",
+                        "name": "cluster_linkerdheadermapping_http_addlinkerdonly_default",
+                        "namespace": "default",
+                        "service": "linkerdheadermapping-http-addlinkerdonly",
+                        "targets": [
+                            {
+                                "ip": "linkerdheadermapping-http-addlinkerdonly.default",
+                                "port": 80,
+                                "target_kind": "DNSname"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://linkerdheadermapping-http-addlinkerdonly:80"
+                        ]
+                    },
+                    "group_id": "87acc5b097b942bcb047fc597357a1184ccfbe6c",
+                    "headers": [],
+                    "kind": "Mapping",
+                    "location": "linkerdheadermapping.default.2",
+                    "metadata_labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "linkerdheadermapping",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "linkerdheadermapping-http-addlinkerdonly",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/target_add_linkerd_header_only/",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/",
+                    "route_weight": [
+                        0,
+                        32,
+                        0,
+                        "/target_add_linkerd_header_only/",
+                        "GET"
+                    ],
+                    "serialization": "ambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http-addlinkerdonly\nnamespace: default\nprefix: /target_add_linkerd_header_only/\nservice: linkerdheadermapping-http-addlinkerdonly\n",
+                    "service": "linkerdheadermapping-http-addlinkerdonly",
+                    "weight": 100
+                }
+            ],
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "linkerdheadermapping",
+                "scope": "AmbassadorTest"
+            },
+            "name": "GROUP: linkerdheadermapping-http-addlinkerdonly",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/target_add_linkerd_header_only/",
+            "rewrite": "/",
+            "serialization": "ambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http-addlinkerdonly\nnamespace: default\nprefix: /target_add_linkerd_header_only/\nservice: linkerdheadermapping-http-addlinkerdonly\n"
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "linkerdheadermapping.default.1"
+            ],
+            "_rkey": "linkerdheadermapping.default.1",
+            "add_request_headers": {
+                "l5d-dst-override": "127.0.0.1:8877"
+            },
+            "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
+            "group_weight": [
+                0,
+                26,
+                0,
+                "/ambassador/v0/check_ready",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "linkerdheadermapping.default.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_referenced_by": [
+                        "linkerdheadermapping.default.1"
+                    ],
+                    "_rkey": "linkerdheadermapping.default.1",
+                    "add_request_headers": {
+                        "l5d-dst-override": "127.0.0.1:8877"
+                    },
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8877,
+                        "_referenced_by": [
+                            "linkerdheadermapping.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "linkerdheadermapping.default.1",
+                        "name": "cluster_127_0_0_1_8877_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8877",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8877,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8877"
+                        ]
+                    },
+                    "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "linkerdheadermapping.default.1",
+                    "name": "internal_readiness_probe_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/ambassador/v0/check_ready",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/ambassador/v0/check_ready",
+                    "route_weight": [
+                        0,
+                        26,
+                        0,
+                        "/ambassador/v0/check_ready",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8877",
+                    "timeout_ms": 10000,
+                    "weight": 100
+                }
+            ],
+            "name": "GROUP: internal_readiness_probe_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/check_ready",
+            "rewrite": "/ambassador/v0/check_ready",
+            "timeout_ms": 10000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "linkerdheadermapping.default.1"
+            ],
+            "_rkey": "linkerdheadermapping.default.1",
+            "add_request_headers": {
+                "l5d-dst-override": "127.0.0.1:8877"
+            },
+            "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
+            "group_weight": [
+                0,
+                26,
+                0,
+                "/ambassador/v0/check_alive",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "linkerdheadermapping.default.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_referenced_by": [
+                        "linkerdheadermapping.default.1"
+                    ],
+                    "_rkey": "linkerdheadermapping.default.1",
+                    "add_request_headers": {
+                        "l5d-dst-override": "127.0.0.1:8877"
+                    },
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8877,
+                        "_referenced_by": [
+                            "linkerdheadermapping.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "linkerdheadermapping.default.1",
+                        "name": "cluster_127_0_0_1_8877_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8877",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8877,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8877"
+                        ]
+                    },
+                    "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "linkerdheadermapping.default.1",
+                    "name": "internal_liveness_probe_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/ambassador/v0/check_alive",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/ambassador/v0/check_alive",
+                    "route_weight": [
+                        0,
+                        26,
+                        0,
+                        "/ambassador/v0/check_alive",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8877",
+                    "timeout_ms": 10000,
+                    "weight": 100
+                }
+            ],
+            "name": "GROUP: internal_liveness_probe_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/check_alive",
+            "rewrite": "/ambassador/v0/check_alive",
+            "timeout_ms": 10000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "linkerdheadermapping.default.3"
+            ],
+            "_rkey": "linkerdheadermapping.default.3",
+            "add_linkerd_headers": false,
+            "add_request_headers": {
+                "fruit": {
+                    "append": false,
+                    "value": "orange"
+                }
+            },
+            "group_id": "b7171a20ff8c7b2bd755d7493a7572bc9d2f6b3f",
+            "group_weight": [
+                0,
+                18,
+                0,
+                "/target_no_header/",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "linkerdheadermapping.default.3",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_rkey": "linkerdheadermapping.default.3",
+                    "add_linkerd_headers": false,
+                    "add_request_headers": {
+                        "fruit": {
+                            "append": false,
+                            "value": "orange"
+                        }
+                    },
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "linkerdheadermapping-http-noheader",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 80,
+                        "_referenced_by": [
+                            "linkerdheadermapping.default.3"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_linkerdheadermapping_http_noheader_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "linkerdheadermapping.default.3",
+                        "name": "cluster_linkerdheadermapping_http_noheader_default",
+                        "namespace": "default",
+                        "service": "linkerdheadermapping-http-noheader",
+                        "targets": [
+                            {
+                                "ip": "linkerdheadermapping-http-noheader.default",
+                                "port": 80,
+                                "target_kind": "DNSname"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://linkerdheadermapping-http-noheader:80"
+                        ]
+                    },
+                    "group_id": "b7171a20ff8c7b2bd755d7493a7572bc9d2f6b3f",
+                    "headers": [],
+                    "kind": "Mapping",
+                    "location": "linkerdheadermapping.default.3",
+                    "metadata_labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "linkerdheadermapping",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "linkerdheadermapping-http-noheader",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/target_no_header/",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/",
+                    "route_weight": [
+                        0,
+                        18,
+                        0,
+                        "/target_no_header/",
+                        "GET"
+                    ],
+                    "serialization": "add_linkerd_headers: false\nadd_request_headers:\n  fruit:\n    append: false\n    value: orange\nambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http-noheader\nnamespace: default\nprefix: /target_no_header/\nservice: linkerdheadermapping-http-noheader\n",
+                    "service": "linkerdheadermapping-http-noheader",
+                    "weight": 100
+                }
+            ],
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "linkerdheadermapping",
+                "scope": "AmbassadorTest"
+            },
+            "name": "GROUP: linkerdheadermapping-http-noheader",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/target_no_header/",
+            "rewrite": "/",
+            "serialization": "add_linkerd_headers: false\nadd_request_headers:\n  fruit:\n    append: false\n    value: orange\nambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http-noheader\nnamespace: default\nprefix: /target_no_header/\nservice: linkerdheadermapping-http-noheader\n"
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "linkerdheadermapping.default.1"
+            ],
+            "_rkey": "linkerdheadermapping.default.1",
+            "add_request_headers": {
+                "l5d-dst-override": "127.0.0.1:8877"
+            },
+            "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
+            "group_weight": [
+                0,
+                15,
+                0,
+                "/ambassador/v0/",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "linkerdheadermapping.default.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_referenced_by": [
+                        "linkerdheadermapping.default.1"
+                    ],
+                    "_rkey": "linkerdheadermapping.default.1",
+                    "add_request_headers": {
+                        "l5d-dst-override": "127.0.0.1:8877"
+                    },
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8877,
+                        "_referenced_by": [
+                            "linkerdheadermapping.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "linkerdheadermapping.default.1",
+                        "name": "cluster_127_0_0_1_8877_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8877",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8877,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8877"
+                        ]
+                    },
+                    "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "linkerdheadermapping.default.1",
+                    "name": "internal_diagnostics_probe_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/ambassador/v0/",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/ambassador/v0/",
+                    "route_weight": [
+                        0,
+                        15,
+                        0,
+                        "/ambassador/v0/",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8877",
+                    "timeout_ms": 10000,
+                    "weight": 100
+                }
+            ],
+            "name": "GROUP: internal_diagnostics_probe_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/",
+            "rewrite": "/ambassador/v0/",
+            "timeout_ms": 10000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "linkerdheadermapping.default.4"
+            ],
+            "_rkey": "linkerdheadermapping.default.4",
+            "add_request_headers": {
+                "fruit": {
+                    "append": false,
+                    "value": "banana"
+                },
+                "l5d-dst-override": "linkerdheadermapping-http:80"
+            },
+            "group_id": "ef2f76a27cdb850e84f8f5c00ce17c4798f7e065",
+            "group_weight": [
+                0,
+                8,
+                0,
+                "/target/",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "linkerdheadermapping.default.4",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_rkey": "linkerdheadermapping.default.4",
+                    "add_request_headers": {
+                        "fruit": {
+                            "append": false,
+                            "value": "banana"
+                        },
+                        "l5d-dst-override": "linkerdheadermapping-http:80"
+                    },
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "linkerdheadermapping-http",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 80,
+                        "_referenced_by": [
+                            "linkerdheadermapping.default.4"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_linkerdheadermapping_http_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "linkerdheadermapping.default.4",
+                        "name": "cluster_linkerdheadermapping_http_default",
+                        "namespace": "default",
+                        "service": "linkerdheadermapping-http",
+                        "targets": [
+                            {
+                                "ip": "linkerdheadermapping-http.default",
+                                "port": 80,
+                                "target_kind": "DNSname"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://linkerdheadermapping-http:80"
+                        ]
+                    },
+                    "group_id": "ef2f76a27cdb850e84f8f5c00ce17c4798f7e065",
+                    "headers": [],
+                    "kind": "Mapping",
+                    "location": "linkerdheadermapping.default.4",
+                    "metadata_labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "linkerdheadermapping",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "linkerdheadermapping-http",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/target/",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/",
+                    "route_weight": [
+                        0,
+                        8,
+                        0,
+                        "/target/",
+                        "GET"
+                    ],
+                    "serialization": "add_request_headers:\n  fruit:\n    append: false\n    value: banana\nambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http\nnamespace: default\nprefix: /target/\nservice: linkerdheadermapping-http\n",
+                    "service": "linkerdheadermapping-http",
+                    "weight": 100
+                }
+            ],
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "linkerdheadermapping",
+                "scope": "AmbassadorTest"
+            },
+            "name": "GROUP: linkerdheadermapping-http",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/target/",
+            "rewrite": "/",
+            "serialization": "add_request_headers:\n  fruit:\n    append: false\n    value: banana\nambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http\nnamespace: default\nprefix: /target/\nservice: linkerdheadermapping-http\n"
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "linkerdheadermapping.default.1"
+            ],
+            "_rkey": "linkerdheadermapping.default.1",
+            "add_request_headers": {
+                "l5d-dst-override": "127.0.0.1:8500"
+            },
+            "group_id": "680a6fad8cb1cf2ad5fce0be9da026e1e0f1b76f",
+            "group_weight": [
+                -1000000,
+                3,
+                0,
+                "^/$",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "linkerdheadermapping.default.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_referenced_by": [
+                        "linkerdheadermapping.default.1"
+                    ],
+                    "_rkey": "linkerdheadermapping.default.1",
+                    "add_request_headers": {
+                        "l5d-dst-override": "127.0.0.1:8500"
+                    },
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": true,
+                        "_namespace": "default",
+                        "_port": 8500,
+                        "_referenced_by": [
+                            "ambassador-edge-stack.default.1",
+                            "edgestack-direct-mapping.default.1",
+                            "edgestack-fallback-mapping.default.1",
+                            "linkerdheadermapping.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8500_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "ambassador-edge-stack.default.1",
+                        "name": "cluster_127_0_0_1_8500_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8500",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8500,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8500"
+                        ]
+                    },
+                    "group_id": "680a6fad8cb1cf2ad5fce0be9da026e1e0f1b76f",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "linkerdheadermapping.default.1",
+                    "metadata_labels": {
+                        "ambassador_diag_class": "private"
+                    },
+                    "name": "edgestack-fallback-mapping",
+                    "namespace": "default",
+                    "precedence": -1000000,
+                    "prefix": "^/$",
+                    "prefix_regex": true,
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/edge_stack_ui/",
+                    "route_weight": [
+                        -1000000,
+                        3,
+                        0,
+                        "^/$",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8500",
+                    "timeout_ms": 60000,
+                    "weight": 100
+                }
+            ],
+            "metadata_labels": {
+                "ambassador_diag_class": "private"
+            },
+            "name": "GROUP: edgestack-fallback-mapping",
+            "namespace": "default",
+            "precedence": -1000000,
+            "prefix": "^/$",
+            "prefix_regex": true,
+            "rewrite": "/edge_stack_ui/",
+            "timeout_ms": 60000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "edgestack-fallback-mapping.default.1"
+            ],
+            "_rkey": "edgestack-fallback-mapping.default.1",
+            "add_request_headers": {
+                "l5d-dst-override": "127.0.0.1:8500"
+            },
+            "group_id": "5eb8304c5bb81b74bc6e6e947392fe0c6d1f2dab",
+            "group_weight": [
+                -1000000,
+                1,
+                0,
+                "/",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "edgestack-fallback-mapping.default.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_rkey": "edgestack-fallback-mapping.default.1",
+                    "add_request_headers": {
+                        "l5d-dst-override": "127.0.0.1:8500"
+                    },
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": true,
+                        "_namespace": "default",
+                        "_port": 8500,
+                        "_referenced_by": [
+                            "ambassador-edge-stack.default.1",
+                            "edgestack-direct-mapping.default.1",
+                            "edgestack-fallback-mapping.default.1",
+                            "linkerdheadermapping.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8500_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "ambassador-edge-stack.default.1",
+                        "name": "cluster_127_0_0_1_8500_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8500",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8500,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8500"
+                        ]
+                    },
+                    "group_id": "5eb8304c5bb81b74bc6e6e947392fe0c6d1f2dab",
+                    "headers": [],
+                    "kind": "Mapping",
+                    "location": "edgestack-fallback-mapping.default.1",
+                    "metadata_labels": {
+                        "ambassador_crd": "edgestack-fallback-mapping.default",
+                        "ambassador_diag_class": "private",
+                        "product": "aes"
+                    },
+                    "name": "edgestack-fallback-mapping",
+                    "namespace": "default",
+                    "precedence": -1000000,
+                    "prefix": "/",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/edge_stack_ui/",
+                    "route_weight": [
+                        -1000000,
+                        1,
+                        0,
+                        "/",
+                        "GET"
+                    ],
+                    "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgestack-fallback-mapping.default\n  ambassador_diag_class: private\n  product: aes\nname: edgestack-fallback-mapping\nnamespace: default\nprecedence: -1000000\nprefix: /\nrewrite: /edge_stack_ui/\nservice: 127.0.0.1:8500\ntimeout_ms: 60000\n",
+                    "service": "127.0.0.1:8500",
+                    "timeout_ms": 60000,
+                    "weight": 100
+                }
+            ],
+            "metadata_labels": {
+                "ambassador_crd": "edgestack-fallback-mapping.default",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "GROUP: edgestack-fallback-mapping",
+            "namespace": "default",
+            "precedence": -1000000,
+            "prefix": "/",
+            "rewrite": "/edge_stack_ui/",
+            "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgestack-fallback-mapping.default\n  ambassador_diag_class: private\n  product: aes\nname: edgestack-fallback-mapping\nnamespace: default\nprecedence: -1000000\nprefix: /\nrewrite: /edge_stack_ui/\nservice: 127.0.0.1:8500\ntimeout_ms: 60000\n",
+            "timeout_ms": 60000
+        }
+    ],
+    "grpc_services": {},
+    "hosts": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "cleartext-host-linkerdheadermapping.default.1"
+            ],
+            "_rkey": "cleartext-host-linkerdheadermapping.default.1",
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "hostname": "*",
+            "kind": "Host",
+            "location": "cleartext-host-linkerdheadermapping.default.1",
+            "name": "cleartext-host-linkerdheadermapping",
+            "namespace": "default",
+            "requestPolicy": {
+                "insecure": {
+                    "action": "Route"
+                }
+            },
+            "selector": {
+                "matchLabels": {
+                    "hostname": "linkerdheadermapping"
+                }
+            }
+        }
+    ],
+    "identity": {
+        "ambassador_id": "linkerdheadermapping",
+        "ambassador_namespace": "default",
+        "ambassador_nodename": "linkerdheadermapping-default"
+    },
+    "k8s_status_updates": {
+        "ambassador-edge-stack.default": [
+            "Mapping",
+            "default",
+            {
+                "state": "Running"
+            }
+        ],
+        "edgestack-direct-mapping.default": [
+            "Mapping",
+            "default",
+            {
+                "state": "Running"
+            }
+        ],
+        "edgestack-fallback-mapping.default": [
+            "Mapping",
+            "default",
+            {
+                "state": "Running"
+            }
+        ]
+    },
+    "listeners": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.listener",
+            "hostname": "*",
+            "insecure_action": "Route",
+            "kind": "IRListener",
+            "location": "cleartext-host-linkerdheadermapping.default.1",
+            "name": "ir.listener",
+            "namespace": "default",
+            "redirect_listener": false,
+            "secure_action": "Route",
+            "service_port": 8080,
+            "use_proxy_proto": false
+        }
+    ],
+    "services": {
+        "k8s-linkerdheadermapping-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "linkerdheadermapping",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-linkerdheadermapping-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "linkerdheadermapping",
+                "scope": "AmbassadorTest",
+                "service": "linkerdheadermapping-admin"
+            },
+            "name": "linkerdheadermapping-admin",
+            "namespace": "default",
+            "rkey": "k8s-linkerdheadermapping-admin-default",
+            "serialization": "ambassador_id: linkerdheadermapping\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\n  service: linkerdheadermapping-admin\nname: linkerdheadermapping-admin\nnamespace: default\n"
+        },
+        "k8s-linkerdheadermapping-default": {
+            "_referenced_by": {},
+            "ambassador_id": "linkerdheadermapping",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-linkerdheadermapping-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "linkerdheadermapping",
+                "scope": "AmbassadorTest"
+            },
+            "name": "linkerdheadermapping",
+            "namespace": "default",
+            "rkey": "k8s-linkerdheadermapping-default",
+            "serialization": "ambassador_id: linkerdheadermapping\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping\nnamespace: default\n"
+        },
+        "k8s-linkerdheadermapping-http-addlinkerdonly-default": {
+            "_referenced_by": {},
+            "ambassador_id": "linkerdheadermapping",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-linkerdheadermapping-http-addlinkerdonly-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "linkerdheadermapping",
+                "scope": "AmbassadorTest"
+            },
+            "name": "linkerdheadermapping-http-addlinkerdonly",
+            "namespace": "default",
+            "rkey": "k8s-linkerdheadermapping-http-addlinkerdonly-default",
+            "serialization": "ambassador_id: linkerdheadermapping\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http-addlinkerdonly\nnamespace: default\n"
+        },
+        "k8s-linkerdheadermapping-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "linkerdheadermapping",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-linkerdheadermapping-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "linkerdheadermapping",
+                "scope": "AmbassadorTest"
+            },
+            "name": "linkerdheadermapping-http",
+            "namespace": "default",
+            "rkey": "k8s-linkerdheadermapping-http-default",
+            "serialization": "ambassador_id: linkerdheadermapping\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http\nnamespace: default\n"
+        },
+        "k8s-linkerdheadermapping-http-noheader-default": {
+            "_referenced_by": {},
+            "ambassador_id": "linkerdheadermapping",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-linkerdheadermapping-http-noheader-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "linkerdheadermapping",
+                "scope": "AmbassadorTest"
+            },
+            "name": "linkerdheadermapping-http-noheader",
+            "namespace": "default",
+            "rkey": "k8s-linkerdheadermapping-http-noheader-default",
+            "serialization": "ambassador_id: linkerdheadermapping\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http-noheader\nnamespace: default\n"
+        }
+    },
+    "tls_contexts": []
+}

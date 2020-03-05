@@ -1,0 +1,395 @@
+{
+    "_errors": {},
+    "_notices": {},
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "ambassador-edge-stack.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": [
+                "_automatic_"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "location": "ambassador-edge-stack.default.1",
+            "metadata_labels": {
+                "ambassador_crd": "ambassador-edge-stack.default",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "ambassador-edge-stack",
+            "namespace": "default",
+            "precedence": 1000000,
+            "prefix": "/.ambassador/",
+            "rewrite": "",
+            "rkey": "ambassador-edge-stack.default.1",
+            "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: ambassador-edge-stack.default\n  ambassador_diag_class: private\n  product: aes\nname: ambassador-edge-stack\nnamespace: default\nprecedence: 1000000\nprefix: /.ambassador/\nrewrite: ''\nservice: 127.0.0.1:8500\n",
+            "service": "127.0.0.1:8500"
+        },
+        "cleartext-host-unsaferegexmapping.default.1": {
+            "_referenced_by": {},
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "ambassadorId": [
+                "unsaferegexmapping"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "hostname": "*",
+            "kind": "Host",
+            "location": "cleartext-host-unsaferegexmapping.default.1",
+            "metadata_labels": {
+                "ambassador_crd": "cleartext-host-unsaferegexmapping.default",
+                "kat-ambassador-id": "unsaferegexmapping",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cleartext-host-unsaferegexmapping",
+            "namespace": "default",
+            "requestPolicy": {
+                "insecure": {
+                    "action": "Route"
+                }
+            },
+            "rkey": "cleartext-host-unsaferegexmapping.default.1",
+            "selector": {
+                "matchLabels": {
+                    "hostname": "unsaferegexmapping"
+                }
+            },
+            "serialization": "acmeProvider:\n  authority: none\nambassadorId:\n- unsaferegexmapping\napiVersion: getambassador.io/v2\ngeneration: 1\nhostname: '*'\nkind: Host\nmetadata_labels:\n  ambassador_crd: cleartext-host-unsaferegexmapping.default\n  kat-ambassador-id: unsaferegexmapping\n  scope: AmbassadorTest\nname: cleartext-host-unsaferegexmapping\nnamespace: default\nrequestPolicy:\n  insecure:\n    action: Route\nselector:\n  matchLabels:\n    hostname: unsaferegexmapping\ntlsSecret: {}\n",
+            "tlsSecret": {}
+        },
+        "edgestack-direct-mapping.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": [
+                "_automatic_"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "location": "edgestack-direct-mapping.default.1",
+            "metadata_labels": {
+                "ambassador_crd": "edgestack-direct-mapping.default",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "edgestack-direct-mapping",
+            "namespace": "default",
+            "precedence": 1000000,
+            "prefix": "/edge_stack/",
+            "rewrite": "/edge_stack_ui/edge_stack/",
+            "rkey": "edgestack-direct-mapping.default.1",
+            "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgestack-direct-mapping.default\n  ambassador_diag_class: private\n  product: aes\nname: edgestack-direct-mapping\nnamespace: default\nprecedence: 1000000\nprefix: /edge_stack/\nrewrite: /edge_stack_ui/edge_stack/\nservice: 127.0.0.1:8500\ntimeout_ms: 60000\n",
+            "service": "127.0.0.1:8500",
+            "timeout_ms": 60000
+        },
+        "edgestack-fallback-mapping.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": [
+                "_automatic_"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "location": "edgestack-fallback-mapping.default.1",
+            "metadata_labels": {
+                "ambassador_crd": "edgestack-fallback-mapping.default",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "edgestack-fallback-mapping",
+            "namespace": "default",
+            "precedence": -1000000,
+            "prefix": "/",
+            "rewrite": "/edge_stack_ui/",
+            "rkey": "edgestack-fallback-mapping.default.1",
+            "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgestack-fallback-mapping.default\n  ambassador_diag_class: private\n  product: aes\nname: edgestack-fallback-mapping\nnamespace: default\nprecedence: -1000000\nprefix: /\nrewrite: /edge_stack_ui/\nservice: 127.0.0.1:8500\ntimeout_ms: 60000\n",
+            "service": "127.0.0.1:8500",
+            "timeout_ms": 60000
+        },
+        "k8s-unsaferegexmapping-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "unsaferegexmapping",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-unsaferegexmapping-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "unsaferegexmapping",
+                "scope": "AmbassadorTest",
+                "service": "unsaferegexmapping-admin"
+            },
+            "name": "unsaferegexmapping-admin",
+            "namespace": "default",
+            "rkey": "k8s-unsaferegexmapping-admin-default",
+            "serialization": "ambassador_id: unsaferegexmapping\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: unsaferegexmapping\n  scope: AmbassadorTest\n  service: unsaferegexmapping-admin\nname: unsaferegexmapping-admin\nnamespace: default\n"
+        },
+        "k8s-unsaferegexmapping-default": {
+            "_referenced_by": {},
+            "ambassador_id": "unsaferegexmapping",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-unsaferegexmapping-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "unsaferegexmapping",
+                "scope": "AmbassadorTest"
+            },
+            "name": "unsaferegexmapping",
+            "namespace": "default",
+            "rkey": "k8s-unsaferegexmapping-default",
+            "serialization": "ambassador_id: unsaferegexmapping\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: unsaferegexmapping\n  scope: AmbassadorTest\nname: unsaferegexmapping\nnamespace: default\n"
+        },
+        "k8s-unsaferegexmapping-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "unsaferegexmapping",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-unsaferegexmapping-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "unsaferegexmapping",
+                "scope": "AmbassadorTest"
+            },
+            "name": "unsaferegexmapping-http",
+            "namespace": "default",
+            "rkey": "k8s-unsaferegexmapping-http-default",
+            "serialization": "ambassador_id: unsaferegexmapping\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: unsaferegexmapping\n  scope: AmbassadorTest\nname: unsaferegexmapping-http\nnamespace: default\n"
+        },
+        "unsaferegexmapping.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "unsaferegexmapping",
+            "apiVersion": "getambassador.io/v2",
+            "host": "[a-zA-Z].*",
+            "host_regex": true,
+            "kind": "Mapping",
+            "location": "unsaferegexmapping.default.1",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "unsaferegexmapping",
+                "scope": "AmbassadorTest"
+            },
+            "name": "UnsafeRegexMapping",
+            "namespace": "default",
+            "prefix": "/UnsafeRegexMapping/",
+            "prefix_regex": true,
+            "regex_headers": {
+                "X-Foo": "^[a-z].*"
+            },
+            "rkey": "unsaferegexmapping.default.1",
+            "serialization": "ambassador_id: unsaferegexmapping\napiVersion: ambassador/v2\nhost: '[a-zA-Z].*'\nhost_regex: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: unsaferegexmapping\n  scope: AmbassadorTest\nname: UnsafeRegexMapping\nnamespace: default\nprefix: /UnsafeRegexMapping/\nprefix_regex: true\nregex_headers:\n  X-Foo: ^[a-z].*\nservice: http://unsaferegexmapping-http\n",
+            "service": "http://unsaferegexmapping-http"
+        },
+        "unsaferegexmapping.default.2": {
+            "_referenced_by": {},
+            "ambassador_id": "unsaferegexmapping",
+            "apiVersion": "getambassador.io/v2",
+            "config": {
+                "regex_type": "unsafe"
+            },
+            "kind": "Module",
+            "location": "unsaferegexmapping.default.2",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "unsaferegexmapping",
+                "scope": "AmbassadorTest"
+            },
+            "name": "ambassador",
+            "namespace": "default",
+            "rkey": "unsaferegexmapping.default.2",
+            "serialization": "ambassador_id: unsaferegexmapping\napiVersion: ambassador/v2\nconfig:\n  regex_type: unsafe\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: unsaferegexmapping\n  scope: AmbassadorTest\nname: ambassador\nnamespace: default\n"
+        }
+    },
+    "hosts": {
+        "cleartext-host-unsaferegexmapping": {
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "ambassadorId": [
+                "unsaferegexmapping"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "hostname": "*",
+            "kind": "Host",
+            "metadata_labels": {
+                "ambassador_crd": "cleartext-host-unsaferegexmapping.default",
+                "kat-ambassador-id": "unsaferegexmapping",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cleartext-host-unsaferegexmapping",
+            "namespace": "default",
+            "requestPolicy": {
+                "insecure": {
+                    "action": "Route"
+                }
+            },
+            "selector": {
+                "matchLabels": {
+                    "hostname": "unsaferegexmapping"
+                }
+            },
+            "tlsSecret": {}
+        }
+    },
+    "mappings": {
+        "UnsafeRegexMapping": {
+            "ambassador_id": "unsaferegexmapping",
+            "apiVersion": "getambassador.io/v2",
+            "host": "[a-zA-Z].*",
+            "host_regex": true,
+            "kind": "Mapping",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "unsaferegexmapping",
+                "scope": "AmbassadorTest"
+            },
+            "name": "UnsafeRegexMapping",
+            "namespace": "default",
+            "prefix": "/UnsafeRegexMapping/",
+            "prefix_regex": true,
+            "regex_headers": {
+                "X-Foo": "^[a-z].*"
+            },
+            "service": "http://unsaferegexmapping-http"
+        },
+        "ambassador-edge-stack": {
+            "ambassador_id": [
+                "_automatic_"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "metadata_labels": {
+                "ambassador_crd": "ambassador-edge-stack.default",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "ambassador-edge-stack",
+            "namespace": "default",
+            "precedence": 1000000,
+            "prefix": "/.ambassador/",
+            "rewrite": "",
+            "service": "127.0.0.1:8500"
+        },
+        "edgestack-direct-mapping": {
+            "ambassador_id": [
+                "_automatic_"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "metadata_labels": {
+                "ambassador_crd": "edgestack-direct-mapping.default",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "edgestack-direct-mapping",
+            "namespace": "default",
+            "precedence": 1000000,
+            "prefix": "/edge_stack/",
+            "rewrite": "/edge_stack_ui/edge_stack/",
+            "service": "127.0.0.1:8500",
+            "timeout_ms": 60000
+        },
+        "edgestack-fallback-mapping": {
+            "ambassador_id": [
+                "_automatic_"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "metadata_labels": {
+                "ambassador_crd": "edgestack-fallback-mapping.default",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "edgestack-fallback-mapping",
+            "namespace": "default",
+            "precedence": -1000000,
+            "prefix": "/",
+            "rewrite": "/edge_stack_ui/",
+            "service": "127.0.0.1:8500",
+            "timeout_ms": 60000
+        }
+    },
+    "modules": {
+        "ambassador": {
+            "apiVersion": "getambassador.io/v2",
+            "kind": "Module",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "unsaferegexmapping",
+                "scope": "AmbassadorTest"
+            },
+            "name": "ambassador",
+            "namespace": "default",
+            "regex_type": "unsafe"
+        }
+    },
+    "service": {
+        "k8s-unsaferegexmapping-admin-default": {
+            "ambassador_id": "unsaferegexmapping",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "unsaferegexmapping",
+                "scope": "AmbassadorTest",
+                "service": "unsaferegexmapping-admin"
+            },
+            "name": "unsaferegexmapping-admin",
+            "namespace": "default"
+        },
+        "k8s-unsaferegexmapping-default": {
+            "ambassador_id": "unsaferegexmapping",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "unsaferegexmapping",
+                "scope": "AmbassadorTest"
+            },
+            "name": "unsaferegexmapping",
+            "namespace": "default"
+        },
+        "k8s-unsaferegexmapping-http-default": {
+            "ambassador_id": "unsaferegexmapping",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "unsaferegexmapping",
+                "scope": "AmbassadorTest"
+            },
+            "name": "unsaferegexmapping-http",
+            "namespace": "default"
+        }
+    }
+}
