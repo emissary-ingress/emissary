@@ -192,9 +192,18 @@ release/promote-aes/to-ga:
 	                              "s3://datawire-static-files/edgectl/$(RELEASE_VERSION)/darwin/amd64/edgectl"; \
 	  aws s3 cp --acl public-read "s3://datawire-static-files/edgectl/$$rc_latest/windows/amd64/edgectl.exe" \
 	                              "s3://datawire-static-files/edgectl/$(RELEASE_VERSION)/windows/amd64/edgectl.exe"; \
+	  printf '  $(CYN)apictl-key$(END)\n'; \
+	  aws s3 cp "s3://datawire-static-files/apictl-key/$$rc_latest/linux/amd64/apictl-key" \
+	            "s3://datawire-static-files/apictl-key/$(RELEASE_VERSION)/linux/amd64/apictl-key"; \
+	  aws s3 cp "s3://datawire-static-files/apictl-key/$$rc_latest/darwin/amd64/apictl-key" \
+	            "s3://datawire-static-files/apictl-key/$(RELEASE_VERSION)/darwin/amd64/apictl-key"; \
+	  aws s3 cp "s3://datawire-static-files/apictl-key/$$rc_latest/windows/amd64/apictl-key.exe" \
+	            "s3://datawire-static-files/apictl-key/$(RELEASE_VERSION)/windows/amd64/apictl-key.exe"; \
 	}
 	@printf '  $(CYN)edgectl (metadata)$(END)\n'
 	echo "$(RELEASE_VERSION)" | aws s3 cp --acl public-read - s3://datawire-static-files/edgectl/stable.txt
+	@printf '  $(CYN)apictl-key (metadata)$(END)\n'
+	echo "$(RELEASE_VERSION)" | aws s3 cp - s3://datawire-static-files/apictl-key/stable.txt
 .PHONY: release/promote-aes/to-ga
 
 define _help.aes-targets
