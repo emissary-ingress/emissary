@@ -6,13 +6,10 @@
 In just four minutes, your cluster will be routing HTTPS requests from the
 Internet to a backend service.
 
-## Quick Install (Recommended!)
-
 The Ambassador Edge Stack is deployed to Kubernetes for macOS, Linux, and
-Windows. If you don't have Kubernetes, see the [other
-options](/user-guide/install).
+Windows. If you don't have Kubernetes, see the [other options](/user-guide/install).
 
-### Install with MacOS
+## Install with MacOS
 
 1. Download the `edgectl` file [here](https://metriton.datawire.io/downloads/darwin/edgectl) or download it with a curl command:
 
@@ -45,7 +42,7 @@ options](/user-guide/install).
 
 1. Download the `edgectl` file
    [here](https://metriton.datawire.io/downloads/windows/edgectl.exe).
-2. Complete the installation with `edgectl.exe`
+2. Complete the installation with `edgectl.exe install`
 
 ## Installation Success
 
@@ -55,9 +52,12 @@ Your terminal will print something similar to the following as it provisions a l
     $ edgectl install
     -> Installing the Ambassador Edge Stack $version$.
     -> Remote Kubernetes cluster detected.
-    -> Provisioning a cloud load balancer. (This may take a minute, depending on your cloud provider.)
+    -> Provisioning a cloud load balancer. (This may take 
+    a minute, depending on your cloud provider.)
     -> Automatically configuring TLS.
-    Please enter an email address. We’ll use this email address to notify you prior to domain and certification expiration [None]: john@example.com.
+    Please enter an email address. We’ll use this email 
+    address to notify you prior to domain and certification 
+    expiration [None]: john@example.com.
     ```
 
 Minikube users will see something similar to the following:
@@ -66,25 +66,31 @@ Minikube users will see something similar to the following:
     $ edgectl install
     -> Installing the Ambassador Edge Stack $version$.
     -> Automatically configuring TLS.
-    -> Cluster is not publicly accessible. Please ensure your cluster
-     is publicly accessible if you would like to use automatic TLS.
+    -> Cluster is not publicly accessible. Please ensure 
+    your cluster is publicly accessible if you would like to 
+    use automatic TLS.
 
-    Congratulations, you’ve successfully installed the Ambassador Edge 
-    Stack in your Kubernetes cluster. Visit http://192.168.64.2:31334 to 
-    access your Edge Stack installation and for additional configuration.
+    Congratulations, you’ve successfully installed the
+     Ambassador Edge Stack in your Kubernetes cluster. 
+     Visit http://192.168.64.2:31334 to access your Edge 
+     Stack installation and for additional configuration.
     ```
 
-Provide an email address as required by the ACME TLS certificate provider, Let's Encrypt. Then your terminal will print something similar to the following:
+Provide an email address as required by the ACME TLS certificate provider, Let's
+Encrypt. Then your terminal will print something similar to the following:
 
     ```shell
     -> Obtaining a TLS certificate from Let’s Encrypt.
 
-    Congratulations, you’ve successfully installed the Ambassador Edge Stack in your Kubernetes cluster. Visit https://random-word-3421.edgestack.me to access your Edge Stack installation and for additional configuration.
+    Congratulations, you’ve successfully installed the 
+    Ambassador Edge Stack in your Kubernetes cluster. 
+    Visit https://random-word-3421.edgestack.me to access
+    your Edge Stack installation and for additional configuration.
     ```
 
-    The `random-word-1234.edgestack.me` is a provided subdomain that allows the
-    Ambassador Edge Stack to automatically provision TLS and HTTPS for a domain
-    name, so you can get started right away.
+    The `random-word-1234.edgestack.me` is a provided subdomain that 
+    allows the Ambassador Edge Stack to automatically provision TLS 
+    and HTTPS for a domain name, so you can get started right away.
 
 Your new [Edge Policy Console](/about/edge-policy-console) will open
 automatically in your browser at the provided URL or IP address. **Note that the provided `random-word.edgestack.me` domain name will expire after 90 days**.
