@@ -10,10 +10,16 @@ source "$CURR_DIR/common.sh"
 
 #########################################################################################
 
-if [ -z "$TRAVIS_TAG" ]  ; then
-  info "No TRAVIS_TAG in environment: no Helm package will be built..."
+# Check for update to version of Chart.yaml
+
+version_changed=$(git diff $TRAVIS_COMMIT_RANGE Chart.yaml | grep +version)
+
+if [ -z $version_changed ]
+then
+  info "The version was not changed in Chart.yaml: the chart will not be pushed..."
   exit 0
 fi
+
 
 info "Pushing Helm Chart"
 helm package $TOP_DIR
