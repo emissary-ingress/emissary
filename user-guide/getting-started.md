@@ -109,7 +109,3 @@ check out the [Welcome page](/docs/) or read the [Ambassador
 Story](/about/why-ambassador).
 
 For a custom configuration, you can install the Ambassador Edge Stack [manually](/user-guide/manual-install).
-
-## Questions?
-
-We’re here to help. If you have questions, [join our Slack](http://d6e.co/slack), [contact us](https://www.getambassador.io/contact/), or [request a demo](https://www.getambassador.io/demo/).
