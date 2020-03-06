@@ -161,9 +161,9 @@ commands:
       - run:
           name: "Check Make Test"
           command: |
-            test_targets=$(make -n noop --print-data-base 2>/dev/null | egrep '^test:')
-            if [ "$test_targets" != "test: gotest pytest e2etest" ]; then
-              echo "Test target has changed, you need to update Circle" >&2
+            test_targets=$(make -n noop --print-data-base 2>/dev/null | egrep '^test:' | sed -e s'/^test: *//' | tr ' ' '\n' | sort | tr '\n' ' ' | sed -e 's/ $//')
+            if [ "$test_targets" != "e2etest gotest pytest" ]; then
+              echo "Test target has changed to $test_targets, you need to update Circle" >&2
               exit 1
             fi
       - run:
