@@ -161,6 +161,8 @@ commands:
       - run:
           name: "Check Make Test"
           command: |
+            set -x
+            set +o pipefail # Our make invocation below will always "fail", so clear pipefail.
             test_targets=$(make -n noop --print-data-base 2>/dev/null | egrep '^test:' | sed -e s'/^test: *//' | tr ' ' '\n' | sort | tr '\n' ' ' | sed -e 's/ $//')
             if [ "$test_targets" != "e2etest gotest pytest" ]; then
               echo "Test target has changed to $test_targets, you need to update Circle" >&2
