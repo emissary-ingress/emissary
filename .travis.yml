@@ -8,7 +8,7 @@ env:
     # - PROVIDER="kubernaut"
     - PROVIDER="k3d"
     # PUSH_CHART must be != "false" for pushing the chart
-    - PUSH_CHART="false"
+    - PUSH_CHART="true"
     - AWS_BUCKET="datawire-static-files"
 
 install:
@@ -37,5 +37,5 @@ deploy:
   script: bash ./ci/push_chart.sh
   on:
     # FIXME: use "branch: master" for publishing only in tags in "master"
-    branch: ci-test
+    branch: master
     #all_branches: true

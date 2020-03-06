@@ -14,7 +14,7 @@ source "$CURR_DIR/common.sh"
 
 version_changed=$(git diff $TRAVIS_COMMIT_RANGE Chart.yaml | grep +version)
 
-if [ -z $version_changed ]
+if [[ -z $version_changed ]]
 then
   info "The version was not changed in Chart.yaml: the chart will not be pushed..."
   exit 0
