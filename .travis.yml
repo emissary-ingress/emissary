@@ -8,7 +8,7 @@ env:
     # - PROVIDER="kubernaut"
     - PROVIDER="k3d"
     # PUSH_CHART must be != "false" for pushing the chart
-    - PUSH_CHART="true"
+    - PUSH_CHART="false"
     - AWS_BUCKET="datawire-static-files"
 
 install:
