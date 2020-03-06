@@ -1,4 +1,4 @@
-{{ if .Values.enableAES }}
+{{ if and .Values.createDevPortalMappings .Values.enableAES }}
 ---
 # Configure DevPortal
 apiVersion: getambassador.io/v2
@@ -63,44 +63,4 @@ spec:
   prefix: /openapi/
   rewrite: ""
   service: "127.0.0.1:8500"
----
-apiVersion: getambassador.io/v2
-kind: FilterPolicy
-metadata:
-  name: {{ include "ambassador.fullname" . }}-internal-access-control
-  labels:
-    product: aes
-    app.kubernetes.io/name: {{ include "ambassador.name" . }}
-    app.kubernetes.io/part-of: {{ .Release.Name }}
-    helm.sh/chart: {{ include "ambassador.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
-    app.kubernetes.io/component: {{ include "ambassador.name" . }}-internal-access-control
-spec:
-  {{- if hasKey .Values.env "AMBASSADOR_ID" }}
-  ambassador_id: {{ .Values.env.AMBASSADOR_ID | quote }}
-  {{- end }}
-  rules:
-    - host: "*"
-      path: "*/.ambassador-internal/*"
-      filters:
-        - name: {{ include "ambassador.fullname" . }}-internal-access-control
----
-apiVersion: getambassador.io/v2
-kind: Filter
-metadata:
-  name: {{ include "ambassador.fullname" . }}-internal-access-control
-  labels:
-    product: aes
-    app.kubernetes.io/name: {{ include "ambassador.name" . }}
-    app.kubernetes.io/part-of: {{ .Release.Name }}
-    helm.sh/chart: {{ include "ambassador.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
-    app.kubernetes.io/component: {{ include "ambassador.name" . }}-internal-access-control
-spec:
-  {{- if hasKey .Values.env "AMBASSADOR_ID" }}
-  ambassador_id: {{ .Values.env.AMBASSADOR_ID | quote }}
-  {{- end }}
-  Internal: {}
 {{ end }}

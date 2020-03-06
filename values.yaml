@@ -239,6 +239,9 @@ licenseKey:
   createSecret: true
   secretName:
 
+# The DevPortal is exposed at /docs/ endpoint in the AES container. 
+# Setting this to true will automatically create routes for the DevPortal.
+createDevPortalMappings: true
 
 # The Ambassador Edge Stack uses a redis instance for managing authentication, 
 # rate limiting, and sharing minor configuration details between pods for 
