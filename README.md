@@ -96,7 +96,7 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `env`                              | Any additional environment variables for ambassador pods                        | `{}`                              |
 | `image.pullPolicy`                 | Ambassador image pull policy                                                    | `IfNotPresent`                    |
 | `image.repository`                 | Ambassador image                                                                | `quay.io/datawire/aes`            |
-| `image.tag`                        | Ambassador image tag                                                            | `1.2.0`                           |
+| `image.tag`                        | Ambassador image tag                                                            | `1.2.2`                           |
 | `imagePullSecrets`                 | Image pull secrets                                                              | `[]`                              |
 | `namespace.name`                   | Set the `AMBASSADOR_NAMESPACE` environment variable                             | `metadata.namespace`              |
 | `scope.singleNamespace`            | Set the `AMBASSADOR_SINGLE_NAMESPACE` environment variable and create namespaced RBAC if `rbac.enabled: true` | `false`|
@@ -190,36 +190,6 @@ If you intend to use `service.annotations`, remember to include the `getambassad
 Using the Prometheus Exporter has been deprecated and is no longer recommended.
 
 Please see Ambassador's [monitoring with Prometheus](https://www.getambassador.io/user-guide/monitoring/) docs for more information on using the `/metrics` endpoint for metrics collection.
-
-### Ambassador Pro (NO LONGER SUPPORTED: Please upgrade to Ambassador Edge Stack)
-
-Setting `pro.enabled: true` will install Ambassador Pro as a sidecar to Ambassador with the required CRDs and redis instance.
-
-You must set the `pro.licenseKey.value` to the license key issued to you. Sign up for a [free trial](https://www.getambassador.io/pro/free-trial) of Ambassador Pro or [contact](https://www.getambassador.io/contact) our sales team to obtain a license key.
-
-`pro.ports.auth` and `pro.ports.ratelimit` must be the same value. If changing one, you must change the other.
-
-For most use cases, `pro.image` and `pro.ports` can be left as default.
-
-#### Ambassador Pro Environment (NO LONGER SUPPORTED: Please upgrade to Ambassador Edge Stack)
-
-Click [here](https://www.getambassador.io/reference/pro/environment/) for full information regarding the different environment variables for Ambassador Pro.
-
-Some environment variables are set by default. Some of these are configurable in the `Values` file.
-
-| Environment Variable     | Default Value                     | Configurable     |
-| ------------------------ | --------------------------------- | ---------------- |
-| `REDIS_SOCKET_TYPE`      | `"tcp"`                           | No               |
-| `REDIS_URL`              | `{{release name}}-pro-redis:6379` | No               |
-| `APRO_HTTP_PORT`         | `8500`                            | `pro.ports.auth` |
-| `AES_LOG_LEVEL`          | `"info"`                          | `pro.logLevel`   |
-| `AMBASSADOR_NAMESPACE`   | `metadata.namespace`              | `namespace.name` |
-| `AMBASSADOR_ID`          | `default`                         | `env`            |
-| `AMBASSADOR_LICENSE_KEY` | `""`                              | `pro.licenseKey` |
-
-Additional environment variables can be set with `pro.env`
-
-**Note**: The Ambassador Pro container uses the same `AMBASSADOR_ID` as set in `env` for the Ambassador container. Setting `AMBASSADOR_ID` with `pro.env` will be ignored.
 
 ### Specifying Values
 

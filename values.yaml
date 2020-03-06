@@ -22,12 +22,16 @@ autoscaling:
   metrics:
     - type: Resource
       resource:
-        name: cpu
-        targetAverageUtilization: 60
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 60
     - type: Resource
       resource:
-        name: memory
-        targetAverageUtilization: 60
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 60
 
 podDisruptionBudget: {}
 
@@ -56,7 +60,7 @@ securityContext:
 
 image:
   repository: quay.io/datawire/aes
-  tag: 1.2.0
+  tag: 1.2.2
   pullPolicy: IfNotPresent
 
 dnsPolicy: "ClusterFirst"
@@ -83,6 +87,8 @@ service:
       # targetPort: 2222
       # protocol: TCP
       # nodePort: 30222
+
+  externalTrafficPolicy:
 
   annotations:
   #############################################################################
@@ -148,11 +154,11 @@ rbac:
   create: true
   podSecurityPolicies:
     {}
-  # Name of the RBAC resources defaults to the name of the release. 
+  # Name of the RBAC resources defaults to the name of the release.
   # Set nameOverride when installing Ambassador with cluster-wide scope in
   # different namespaces with the same release name to avoid conflicts.
   nameOverride:
-  
+
 scope:
   # tells Ambassador to only use resources in the namespace or namespace set by namespace.name
   singleNamespace: false
@@ -226,7 +232,7 @@ crds:
   create: true
   keep: true
 
-# The Ambassador Edge Stack is free for limited use without a license key. 
+# The Ambassador Edge Stack is free for limited use without a license key.
 # Go to https://{ambassador-host}/edge_stack/admin/#dashboard to register
 # for a community license key.
 
@@ -243,8 +249,8 @@ licenseKey:
 # Setting this to true will automatically create routes for the DevPortal.
 createDevPortalMappings: true
 
-# The Ambassador Edge Stack uses a redis instance for managing authentication, 
-# rate limiting, and sharing minor configuration details between pods for 
+# The Ambassador Edge Stack uses a redis instance for managing authentication,
+# rate limiting, and sharing minor configuration details between pods for
 # centralized management. These values configure the redis instance that ships
 # by default with The Ambassador Edge Stack.
 #
