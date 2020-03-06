@@ -160,9 +160,9 @@ func (k *kale) reconcileProjects(w *k8s.Watcher) {
 
 type Project struct {
 	Metadata struct {
-		Name      string
-		Namespace string
-		UID       k8sTypes.UID
+		Name      string       `json:"name"`
+		Namespace string       `json:"namespace"`
+		UID       k8sTypes.UID `json:"uid"`
 	} `json:"metadata"`
 	Spec struct {
 		Host        string `json:"host"`
