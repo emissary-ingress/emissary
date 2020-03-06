@@ -41,12 +41,12 @@ deploy it with either version of the tool.
    helm install --name ambassador --namespace ambassador datawire/ambassador
    ```
 
-4. Finish the installation by running the following command: `edgectl install`
-5. Provide an email address when prompted to receive notices if your domain or TLS certificate is about to expire.
+4. Download the `edgectl` command line tool ([Mac](https://metriton.datawire.io/downloads/darwin/edgectl) | [Linux] (https://metriton.datawire.io/downloads/linux/edgectl) | [Windows](https://metriton.datawire.io/downloads/windows/edgectl.exe)).
 
-Your terminal should print something similar to the following:
+5. Finish the installation by typing `./edgectl install` (on Mac/Linux) or `edgectl.exe install` (Windows). This will automatically provision a domain from edgestack.me you can use to access the Ambassador Edge Stack UI and obtain a TLS certificate from Let's Encrypt:
+
 ```
-   $ edgectl install
+   $ ./edgectl install
    -> Installing the Ambassador Edge Stack 1.0.
    -> Existing Ambassador Edge Stack installation detected.
    -> Automatically configuring TLS.
