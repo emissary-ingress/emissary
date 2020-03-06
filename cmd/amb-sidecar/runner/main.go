@@ -7,6 +7,7 @@ import (
 	"io"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -504,11 +505,22 @@ func runE(cmd *cobra.Command, args []string) error {
 						ctx = middleware.WithRequestID(ctx, "unknown")
 						r = r.WithContext(ctx)
 
-						if r.URL.Path == "/_internal/v0/watt" {
-							snapshotStore.ServeHTTP(w, r)
-						} else {
-							webuiHandler.ServeHTTP(w, r)
+						parts := strings.Split(r.URL.Path, "/")
+						prefix := ""
+						if len(parts) > 1 {
+							prefix = parts[1]
 						}
+
+						r2 := r
+						if prefix == "edge_stack" {
+							// prefix
+							r2 = new(http.Request)
+							*r2 = *r
+							r2.URL = new(url.URL)
+							*r2.URL = *r.URL
+							r2.URL.Path = fmt.Sprintf("/edge_stack_ui%s", r.URL.Path)
+						}
+						httpHandler.ServeHTTP(w, r2)
 					}),
 				})
 			})
