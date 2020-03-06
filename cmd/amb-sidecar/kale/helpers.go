@@ -12,6 +12,8 @@ import (
 	"strings"
 	"text/template"
 
+	"sigs.k8s.io/yaml"
+
 	"github.com/datawire/ambassador/pkg/k8s"
 	"github.com/datawire/apro/lib/util"
 )
@@ -35,6 +37,16 @@ func safeInvoke(code func()) (err error) {
 		err = util.PanicToError(recover())
 	}()
 	code()
+	return
+}
+
+func safeInvoke1(fn func() error) (err error) {
+	defer func() {
+		if _err := util.PanicToError(recover()); _err != nil {
+			err = _err
+		}
+	}()
+	err = fn()
 	return
 }
 
@@ -101,7 +113,7 @@ func postJSON(url string, payload interface{}, token string) (*http.Response, st
 }
 
 // Post a status to the github API
-func postStatus(url string, status Status, token string) {
+func postStatus(url string, status GitHubStatus, token string) {
 	resp, body := postJSON(url, status, token)
 
 	if resp.Status[0] != '2' {
@@ -111,7 +123,7 @@ func postStatus(url string, status Status, token string) {
 	}
 }
 
-type Status struct {
+type GitHubStatus struct {
 	State       string `json:"state"`
 	TargetUrl   string `json:"target_url"`
 	Description string `json:"description"`
@@ -177,7 +189,7 @@ func podLogs(name string) string {
 }
 
 // Does a kubectl apply on the passed in yaml.
-func apply(yaml string) (string, error) {
+func applyStr(yaml string) (string, error) {
 	cmd := exec.Command("kubectl", "apply", "-f", "-")
 	cmd.Stdin = strings.NewReader(yaml)
 	out := strings.Builder{}
@@ -186,6 +198,19 @@ func apply(yaml string) (string, error) {
 
 	err := cmd.Run()
 	return out.String(), err
+}
+
+// Does a kubectl apply on the passed in yaml.
+func applyObjs(objs []interface{}) (string, error) {
+	var str string
+	for _, obj := range objs {
+		bs, err := yaml.Marshal(obj)
+		if err != nil {
+			return "", err
+		}
+		str += "---\n" + string(bs)
+	}
+	return applyStr(str)
 }
 
 // Evaluates a golang template and returns the result.
@@ -210,4 +235,16 @@ func evalHtmlTemplate(text string, data interface{}) string {
 		panic(err)
 	}
 	return out.String()
+}
+
+func boolPtr(v bool) *bool {
+	return &v
+}
+
+func deleteResource(kind, name, namespace string) error {
+	out, err := exec.Command("kubectl", "delete", "--namespace="+namespace, kind+"/"+name).CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("%w\n%s", err, out)
+	}
+	return nil
 }
