@@ -111,6 +111,10 @@ RUN ln -s /usr/bin/python3 /usr/bin/python
 COPY --from=artifacts /usr/bin/kubectl /usr/bin/kubectl
 COPY --from=artifacts /usr/lib/libyaml* /usr/lib/
 
+# Other installers
+COPY --from=artifacts /opt/image-build /opt/image-build
+RUN /opt/image-build/install.sh
+
 # External Python packages we use
 COPY --from=artifacts /usr/lib/python3.7/site-packages /usr/lib/python3.7/site-packages
 
