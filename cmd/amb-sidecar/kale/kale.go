@@ -200,19 +200,19 @@ func (k *kale) dispatch(r *http.Request) httpResult {
 		eventType := r.Header.Get("X-GitHub-Event")
 		switch eventType {
 		case "ping":
-			return httpResult{200, "pong"}
+			return httpResult{status: 200, body: "pong"}
 		case "push":
 			return k.handlePush(r, strings.Join(parts[2:], "/"))
 		default:
-			return httpResult{500, fmt.Sprintf("don't know how to handle %s events", eventType)}
+			return httpResult{status: 500, body: fmt.Sprintf("don't know how to handle %s events", eventType)}
 		}
 	case "projects":
-		return httpResult{200, k.projectsJSON()}
+		return httpResult{status: 200, body: k.projectsJSON()}
 	case "logs":
 		// todo: this only does build logs, need to add deploy logs
 		return httpResult{200, buildLogs(parts[2], parts[3], parts[4])}
 	}
-	return httpResult{400, "bad request"}
+	return httpResult{status: 400, body: "bad request"}
 }
 
 // Returns the a JSON string with all the data for the root of the
@@ -253,13 +253,13 @@ func (k *kale) projectsJSON() string {
 func (k *kale) handlePush(r *http.Request, key string) httpResult {
 	proj, ok := k.Projects[key]
 	if !ok {
-		return httpResult{404, fmt.Sprintf("no such project %s", key)}
+		return httpResult{status: 404, body: fmt.Sprintf("no such project %s", key)}
 	}
 
 	var push Push
 	if err := json.NewDecoder(r.Body).Decode(&push); err != nil {
 		log.Printf("WEBHOOK PARSE ERROR: %v", err)
-		return httpResult{400, err.Error()}
+		return httpResult{status: 400, body: err.Error()}
 	}
 
 	buildID := fmt.Sprintf("%d", time.Now().Unix()) // todo: better id
@@ -285,7 +285,7 @@ func (k *kale) handlePush(r *http.Request, key string) httpResult {
 			},
 			proj.Spec.GithubToken)
 	}
-	return httpResult{200, out}
+	return httpResult{status: 200, body: out}
 }
 
 type Push struct {

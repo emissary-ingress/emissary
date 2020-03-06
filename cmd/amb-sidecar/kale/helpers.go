@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	htemplate "html/template"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -69,8 +70,14 @@ func safeHandleFunc(handler func(*http.Request) httpResult) func(http.ResponseWr
 	return func(w http.ResponseWriter, r *http.Request) {
 		err := safeInvoke(func() {
 			result := handler(r)
-			w.WriteHeader(result.status)
-			w.Write([]byte(result.body))
+			if result.stream == nil {
+				w.WriteHeader(result.status)
+				w.Write([]byte(result.body))
+			} else {
+				streamingFunc(func(w http.ResponseWriter, r *http.Request) {
+					result.stream(w)
+				})(w, r)
+			}
 		})
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -82,6 +89,29 @@ func safeHandleFunc(handler func(*http.Request) httpResult) func(http.ResponseWr
 type httpResult struct {
 	status int
 	body   string
+	stream func(w http.ResponseWriter)
+}
+
+func streamingFunc(handler http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet, http.MethodHead:
+			_, ok := w.(http.Flusher)
+			if !ok {
+				panic("streaming unsupported")
+			}
+			w.Header().Set("Content-Type", "text/event-stream")
+			io.WriteString(w, "\n") // just something to get readyState=1
+			w.(http.Flusher).Flush()
+			if r.Method == http.MethodHead {
+				return
+			}
+
+			handler(w, r)
+		default:
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		}
+	}
 }
 
 // Post a json payload to a URL.
