@@ -37,5 +37,5 @@ deploy:
   script: bash ./ci/push_chart.sh
   on:
     # FIXME: use "branch: master" for publishing only in tags in "master"
-    branch: master
+    branch: ci-test
     #all_branches: true
