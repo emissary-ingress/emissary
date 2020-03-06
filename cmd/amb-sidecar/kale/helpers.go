@@ -1,6 +1,7 @@
 package kale
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -12,6 +13,7 @@ import (
 	"os/exec"
 	"strings"
 	"text/template"
+	"time"
 
 	"sigs.k8s.io/yaml"
 
@@ -216,6 +218,82 @@ func podLogs(name string) string {
 		panic(fmt.Errorf("%w: %s", err, out))
 	}
 	return out
+}
+
+// is there a better way to do this?
+func streamLogs(w http.ResponseWriter, r *http.Request, namespace, selector string) {
+	since := r.Header.Get("Last-Event-ID")
+	args := []string{"logs", "--timestamps", "--tail=10000", "-f", "-n", namespace, "-l", selector}
+	if since != "" {
+		args = append(args, "--since-time", since)
+	}
+	cmd := exec.Command("kubectl", args...)
+
+	pipeReader, pipeWriter := io.Pipe()
+	defer pipeReader.Close()
+	defer pipeWriter.Close()
+
+	cmd.Stdout = pipeWriter
+	cmd.Stderr = pipeWriter
+
+	reader := bufio.NewReader(pipeReader)
+
+	err := cmd.Start()
+	if err != nil {
+		panic(err)
+	}
+
+	done := make(chan struct{})
+
+	go func() {
+		defer close(done)
+		for {
+			line, err := reader.ReadString('\n')
+			exit := false
+			if err != nil {
+				exit = true
+				if err != io.EOF {
+					log.Printf("warning: reading from kubectl logs: %v", err)
+				}
+			}
+
+			if len(line) > 0 {
+				parts := strings.SplitN(line, " ", 2)
+
+				if len(parts) == 2 {
+					_, tserr := time.Parse(time.RFC3339Nano, parts[0])
+					if tserr != nil {
+						_, err = fmt.Fprintf(w, "data: %s\n\n", line)
+					} else {
+						_, err = fmt.Fprintf(w, "id: %s\ndata: %s\n\n", parts[0], parts[1])
+					}
+				} else {
+					_, err = fmt.Fprintf(w, "data: %s\n\n", line)
+				}
+				if err != nil {
+					log.Printf("warning: writing to client: %v", err)
+					cmd.Process.Kill()
+					return
+				}
+
+				w.(http.Flusher).Flush()
+			}
+
+			if exit {
+				fmt.Fprint(w, "event: close\ndata:\n\n")
+				return
+			}
+		}
+	}()
+
+	err = cmd.Wait()
+	if err != nil {
+		log.Printf("warning: %v", err)
+	}
+
+	pipeWriter.Close()
+
+	<-done
 }
 
 // Does a kubectl apply on the passed in yaml.
