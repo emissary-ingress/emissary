@@ -448,40 +448,40 @@ func (k *kale) reconcileDeploy(desiredDeploy deploy, builders, runners []*k8sTyp
 		return fmt.Errorf("no such project: %q.%q", desiredDeploy.ProjectName, desiredDeploy.ProjectNamespace)
 	}
 
-	if len(runners) == 0 { // don't bother with the builder if there's already a runner
-		switch len(builders) {
-		case 0:
-			panic("not implemented -- right now we only do this from handlePush()")
-		case 1:
-			// do nothing
-		default:
-			// TODO: more intelligently pick which pod gets to survive
-			for _, pod := range builders[1:] {
-				err := deleteResource("pod", pod.GetName(), pod.GetNamespace())
-				if err != nil {
-					log.Printf("ERROR: %v", err)
-				}
+	switch len(builders) {
+	case 0:
+		panic("not implemented -- right now we only do this from handlePush()")
+	case 1:
+		// do nothing
+	default:
+		// TODO: more intelligently pick which pod gets to survive
+		for _, pod := range builders[1:] {
+			err := deleteResource("pod", pod.GetName(), pod.GetNamespace())
+			if err != nil {
+				log.Printf("ERROR: %v", err)
 			}
 		}
+	}
 
-		builder := builders[0]
-		// TODO: validate that the builder looks how we expect
+	builder := builders[0]
+	// TODO: validate that the builder looks how we expect
 
-		phase := builder.Status.Phase
-		qname := builder.GetName() + "." + builder.GetNamespace()
-		log.Println("BUILDER", qname, phase)
+	phase := builder.Status.Phase
+	qname := builder.GetName() + "." + builder.GetNamespace()
+	log.Println("BUILDER", qname, phase)
 
-		projName := builder.GetLabels()["project"]
-		namespace := builder.GetNamespace()
+	projName := builder.GetLabels()["project"]
+	namespace := builder.GetNamespace()
 
-		projKey := fmt.Sprintf("%s/%s", namespace, projName)
-		projPods, ok := k.Pods[projKey]
-		if !ok {
-			projPods = make(map[string]*k8sTypesCoreV1.Pod)
-			k.Pods[projKey] = projPods
-		}
-		projPods[builder.GetName()] = builder
+	projKey := fmt.Sprintf("%s/%s", namespace, projName)
+	projPods, ok := k.Pods[projKey]
+	if !ok {
+		projPods = make(map[string]*k8sTypesCoreV1.Pod)
+		k.Pods[projKey] = projPods
+	}
+	projPods[builder.GetName()] = builder
 
+	if len(runners) == 0 { // don't bother with the builder if there's already a runner
 		statusesUrl := builder.GetAnnotations()["statusesUrl"]
 		logUrl := proj.LogUrl(builder.GetLabels()["build"])
 		switch phase {
