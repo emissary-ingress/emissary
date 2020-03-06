@@ -20,3 +20,13 @@ sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/ambex
 sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/kubestatus
 sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/watt
 sudo install /buildroot/bin/capabilities_wrapper /opt/ambassador/bin/wrapper
+
+# Copy installer support into /opt/image-build to be run at docker build for the
+# production image. Then run the installers for the builder container.
+# Note: When this (ambassador's) post-compile runs, it always runs first, and
+# every other post-compile runs as well. So this is the place to recreate the
+# /opt/image-build tree from scratch so the builder container stays valid.
+sudo rm -rf /opt/image-build
+sudo install -D -t /opt/image-build /buildroot/ambassador/build-aux-local/install.sh
+sudo cp -a /buildroot/ambassador/build-aux-local/installers /opt/image-build/
+sudo /opt/image-build/install.sh
