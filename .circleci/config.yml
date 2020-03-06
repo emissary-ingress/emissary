@@ -191,6 +191,7 @@ commands:
           name: "E2E Tests"
           command: |
             export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
+            export DEV_KUBE110=yes
             make e2etest
       - run:
           command: ".circleci/kubernaut-unclaim.sh"
