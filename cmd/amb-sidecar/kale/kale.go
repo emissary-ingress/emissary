@@ -120,7 +120,8 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 	httpHandler.AddEndpoint("/edge_stack_ui/edge_stack/api/projects", "kale projects api", handler)
 	httpHandler.AddEndpoint("/edge_stack_ui/edge_stack/api/githook/", "kale githook", handler)
 	httpHandler.AddEndpoint("/edge_stack_ui/edge_stack/api/logs/", "kale logs api", handler)
-
+	// todo: this is just temporary, we will consolidate these sprawling endpoints later
+	httpHandler.AddEndpoint("/edge_stack_ui/edge_stack/api/slogs/", "kale server logs api", handler)
 }
 
 // This contains the global state for the controller/webhook. We
@@ -208,9 +209,26 @@ func (k *kale) dispatch(r *http.Request) httpResult {
 		}
 	case "projects":
 		return httpResult{status: 200, body: k.projectsJSON()}
+	case "slogs":
+		fallthrough
 	case "logs":
-		// todo: this only does build logs, need to add deploy logs
-		return httpResult{200, buildLogs(parts[2], parts[3], parts[4])}
+		namespace := parts[2]
+		name := parts[3]
+		build := parts[4]
+		var selector string
+		if parts[1] == "slogs" {
+			// todo: we need to make our pod labels and
+			// service selectors distinguish between build
+			// and deploy pods
+			selector = fmt.Sprintf("project=%s,commit=%s,!build", name, build)
+		} else {
+			selector = fmt.Sprintf("project=%s,build=%s", name, build)
+		}
+		return httpResult{
+			stream: func(w http.ResponseWriter) {
+				streamLogs(w, r, namespace, selector)
+			},
+		}
 	}
 	return httpResult{status: 400, body: "bad request"}
 }
