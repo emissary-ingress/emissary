@@ -580,8 +580,9 @@ func startRun(proj Project, commit string) (string, error) {
 				},
 			},
 			"spec": map[string]interface{}{
-				"prefix":  "/edge_stack/previews/" + proj.Spec.Prefix + "/" + commit + "/",
-				"service": proj.Spec.Prefix + "-" + commit,
+				"prefix":     "/edge_stack/previews/" + proj.Spec.Prefix + "/" + commit + "/",
+				"service":    proj.Spec.Prefix + "-" + commit,
+				"precedence": -1000000,
 			},
 		},
 		&k8sTypesCoreV1.Service{
