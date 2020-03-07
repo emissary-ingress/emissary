@@ -116,6 +116,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 		return nil
 	})
 
+	// todo: lock down all these endpoints with auth
 	handler := http.StripPrefix("/edge_stack_ui/edge_stack", http.HandlerFunc(safeHandleFunc(k.dispatch))).ServeHTTP
 	httpHandler.AddEndpoint("/edge_stack_ui/edge_stack/api/projects", "kale projects api", handler)
 	httpHandler.AddEndpoint("/edge_stack_ui/edge_stack/api/githook/", "kale githook", handler)
@@ -169,7 +170,7 @@ type Project struct {
 		Host        string `json:"host"`
 		Prefix      string `json:"prefix"`
 		GithubRepo  string `json:"githubRepo"`
-		GithubToken string `json:"-"`
+		GithubToken string `json:"githubToken"` // todo: make this a secret ref
 	} `json:"spec"`
 }
 
