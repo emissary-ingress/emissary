@@ -363,7 +363,6 @@ func startBuild(proj Project, buildID, ref, commit string) (string, error) {
 						Image: "gcr.io/kaniko-project/executor:v0.16.0",
 						Args: []string{
 							"--cache=true",
-							"-v=debug",
 							"--skip-tls-verify",
 							"--skip-tls-verify-pull",
 							"--skip-tls-verify-registry",
