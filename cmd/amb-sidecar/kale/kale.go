@@ -580,7 +580,7 @@ func startRun(proj Project, commit string) (string, error) {
 				},
 			},
 			"spec": map[string]interface{}{
-				"prefix":  "/kale/previews/" + proj.Spec.Prefix + "/" + commit + "/",
+				"prefix":  "/edge_stack/previews/" + proj.Spec.Prefix + "/" + commit + "/",
 				"service": proj.Spec.Prefix + "-" + commit,
 			},
 		},
