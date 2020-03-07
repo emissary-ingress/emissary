@@ -24,7 +24,7 @@ class Term extends LitElement {
 
   render() {
     let div = this.shadowRoot.getElementById("terminal")
-    if (this.activeSource !== this.source && div.isConnected) {
+    if (div !== null && div.isConnected && this.activeSource !== this.source) {
       if (this.term !== null) {
         this.term.dispose();
         this.term = null;
