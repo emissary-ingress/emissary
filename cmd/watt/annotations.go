@@ -2,10 +2,7 @@ package watt
 
 import (
 	"fmt"
-	"io"
 	"strings"
-
-	"gopkg.in/yaml.v2"
 
 	"github.com/datawire/ambassador/pkg/k8s"
 	"github.com/datawire/ambassador/pkg/watt"
@@ -16,23 +13,14 @@ func parseAnnotationResources(resource k8s.Resource) (annotationResources []k8s.
 	if !annotationStrOK {
 		return
 	}
-	annotationDecoder := yaml.NewDecoder(strings.NewReader(annotationStr))
 	// Parse in to a scratch _annotationResources list instead of the final annotationResources, so that we can more
 	// easily prune invalid entries out before returning it.
-	var _annotationResources []k8s.Resource
-	for {
-		var annotationResource k8s.Resource
-		err := annotationDecoder.Decode(&annotationResource)
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			annotationErrs = append(annotationErrs, watt.NewError(
-				fmt.Sprintf("%s/%s", resource.QKind(), resource.QName()),
-				"could not read YAML in annotation getambassador.io/config"))
-			return
-		}
-		_annotationResources = append(_annotationResources, annotationResource)
+	_annotationResources, err := k8s.ParseResources("", annotationStr)
+	if err != nil {
+		annotationErrs = append(annotationErrs, watt.NewError(
+			fmt.Sprintf("%s/%s", resource.QKind(), resource.QName()),
+			"could not read YAML in annotation getambassador.io/config"))
+		return
 	}
 	for _, annotationResource := range _annotationResources {
 		// The Canonical API Version for our resources always starts with "getambassador.io/",
@@ -54,10 +42,10 @@ func parseAnnotationResources(resource k8s.Resource) (annotationResources []k8s.
 
 		// Un-fold annotations with collapsed metadata/spec
 		if dat, ok := annotationResource["metadata"].(map[string]interface{}); !ok || dat == nil {
-			annotationResource["metadata"] = k8s.Metadata{}
+			annotationResource["metadata"] = map[string]interface{}{}
 		}
 		if dat, ok := annotationResource["spec"].(map[string]interface{}); !ok || dat == nil {
-			annotationResource["spec"] = k8s.Map{}
+			annotationResource["spec"] = map[string]interface{}{}
 		}
 		for k, v := range annotationResource {
 			switch k {
