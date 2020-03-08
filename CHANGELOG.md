@@ -7,6 +7,7 @@ releases. Please keep it up to date.
 ## next (TBD)
 
 - Bugfix: The Edge Policy Console now honors the `diagnostics.enabled` setting in the `ambassador` Module
+- Bugfix: If the DEVPORTAL_CONTENT_URL is not accessible, log a warning but don't crash.
 - Change: There is no longer a separate traffic-proxy image; that functionality is now part of the main AES image. Set `command: ["traffic-manager"]` to use it.
 
 ## 1.2.2 (2020-03-04)
