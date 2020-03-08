@@ -32,7 +32,7 @@ service: http://127.0.0.1:8001
         yield Query(self.url("config_dump"), phase=2)
 
     def check(self):
-        expected_val = '30.000s'
+        expected_val = '30s'
         actual_val = ''
         body = json.loads(self.results[0].body)
         for config_obj in body.get('configs'):
@@ -45,7 +45,7 @@ service: http://127.0.0.1:8001
               for filters in filter_chains:
                 for filter in filters.get('filters'):
                   if filter.get('name') == 'envoy.http_connection_manager':
-                    filter_config = filter.get('config')
+                    filter_config = filter.get('typed_config')
                     common_http_protocol_options = filter_config.get('common_http_protocol_options')
                     if common_http_protocol_options:
                       actual_val = common_http_protocol_options.get('idle_timeout', '')

@@ -6,6 +6,7 @@ import subprocess
 
 from kat.harness import Query
 from abstract_tests import AmbassadorTest, HTTP, ServiceType
+from kat.utils import namespace_manifest
 
 
 class IngressStatusTest1(AmbassadorTest):
@@ -21,7 +22,7 @@ class IngressStatusTest1(AmbassadorTest):
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return super().manifests() + """
+        return """
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress
@@ -38,7 +39,7 @@ spec:
           serviceName: {self.target.path.k8s}
           servicePort: 80
         path: /{self.name}/
-"""
+""" + super().manifests()
 
     def queries(self):
         if sys.platform != 'darwin':
@@ -80,7 +81,7 @@ class IngressStatusTest2(AmbassadorTest):
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return super().manifests() + """
+        return """
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress
@@ -97,7 +98,7 @@ spec:
           serviceName: {self.target.path.k8s}
           servicePort: 80
         path: /{self.name}/
-"""
+""" + super().manifests()
 
     def queries(self):
         if sys.platform != 'darwin':
@@ -139,12 +140,7 @@ class IngressStatusTestAcrossNamespaces(AmbassadorTest):
         self.target = HTTP(namespace="alt-namespace")
 
     def manifests(self) -> str:
-        return super().manifests() + """
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: alt-namespace
+        return namespace_manifest("alt-namespace") + """
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress
@@ -162,7 +158,7 @@ spec:
           serviceName: {self.target.path.k8s}
           servicePort: 80
         path: /{self.name}/
-"""
+""" + super().manifests()
 
     def queries(self):
         if sys.platform != 'darwin':
@@ -204,7 +200,7 @@ class IngressStatusTestWithAnnotations(AmbassadorTest):
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return super().manifests() + """
+        return """
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress
@@ -229,7 +225,7 @@ spec:
           serviceName: {self.target.path.k8s}
           servicePort: 80
         path: /{self.name}/
-"""
+""" + super().manifests()
 
     def queries(self):
         text = json.dumps(self.status_update)
@@ -265,12 +261,7 @@ class SameIngressMultipleNamespaces(AmbassadorTest):
         self.target2 = HTTP(name="target2", namespace="same-ingress-2")
 
     def manifests(self) -> str:
-        return super().manifests() + """
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: same-ingress-1
+        return namespace_manifest("same-ingress-1") + """
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress
@@ -288,11 +279,7 @@ spec:
           serviceName: {self.target.path.k8s}-target1
           servicePort: 80
         path: /{self.name}-target1/
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: same-ingress-2
+""" + namespace_manifest("same-ingress-2") + """
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress
@@ -310,7 +297,7 @@ spec:
           serviceName: {self.target.path.k8s}-target2
           servicePort: 80
         path: /{self.name}-target2/
-"""
+""" + super().manifests()
 
     def queries(self):
         if sys.platform != 'darwin':

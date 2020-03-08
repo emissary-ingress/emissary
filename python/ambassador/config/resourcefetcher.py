@@ -282,6 +282,7 @@ class ResourceFetcher:
         namespace = metadata.get('namespace') or 'default'
         metadata_labels: Optional[Dict[str, str]] = metadata.get('labels')
         generation = metadata.get('generation', 1)
+        annotations = metadata.get('annotations', {})
 
         if not self.check_k8s_dup(kind, namespace, name):
             return
@@ -302,6 +303,16 @@ class ResourceFetcher:
         if apiVersion.startswith('networking.internal.knative.dev') and kind.lower() == 'ingress':
             self.logger.debug(f"Renaming kind {kind} to KnativeIngress")
             kind = 'KnativeIngress'
+
+            # Let's not parse KnativeIngress if it's not meant for us.
+            # We only need to ignore KnativeIngress iff networking.knative.dev/ingress.class is present in annotation.
+            # If it's not there, then we accept all ingress classes.
+            if 'networking.knative.dev/ingress.class' in annotations:
+                if annotations.get('networking.knative.dev/ingress.class').lower() != 'ambassador.ingress.networking.knative.dev':
+                    self.logger.debug(f'Ignoring KnativeIngress {name}; set networking.knative.dev/ingress.class '
+                                      f'annotation to ambassador.ingress.networking.knative.dev for ambassador to '
+                                      f'parse it.')
+                    return
 
         if not name:
             self.logger.debug(f'{self.location}: ignoring K8s {kind} CRD, no name')
@@ -799,9 +810,9 @@ class ResourceFetcher:
         else:
             self.logger.debug(f"not saving K8s Service {resource_name}.{resource_namespace} with no ports")
 
-        objects: List[Any] = []
+        result: List[Any] = []
 
-        return resource_identifier, objects
+        return resource_identifier, result
 
     # Handler for K8s Secret resources.
     def handle_k8s_secret(self, k8s_object: AnyDict) -> HandlerResult:
@@ -816,7 +827,7 @@ class ResourceFetcher:
 
         skip = False
 
-        if (secret_type != 'kubernetes.io/tls') and (secret_type != 'Opaque'):
+        if (secret_type != 'kubernetes.io/tls') and (secret_type != 'Opaque') and (secret_type != 'istio.io/key-and-cert'):
             self.logger.debug("ignoring K8s Secret with unknown type %s" % secret_type)
             skip = True
 
@@ -846,7 +857,7 @@ class ResourceFetcher:
 
         found_any = False
 
-        for key in [ 'tls.crt', 'tls.key', 'user.key' ]:
+        for key in [ 'tls.crt', 'tls.key', 'user.key', 'cert-chain.pem', 'key.pem', 'root-cert.pem' ]:
             if data.get(key, None):
                 found_any = True
                 break

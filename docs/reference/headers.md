@@ -12,7 +12,7 @@ You can also set the `value` of a header to `true` to test for the existence of 
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 metadata:
   name:  quote-backend
@@ -30,7 +30,7 @@ will allow requests to /backend/ to succeed only if the x-quote-mode header has 
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 metadata:
   name:  quote-mode
@@ -41,7 +41,7 @@ spec:
     x-quote-mode: true
 
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 metadata:
   name:  quote-regular
@@ -58,7 +58,7 @@ The following mapping will route mobile requests from Android and iPhones to a m
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 metadata:
   name:  quote-backend

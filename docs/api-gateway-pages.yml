@@ -23,6 +23,7 @@
 - /reference/gzip
 - /reference/headers
 - /reference/host
+- /reference/host-crd
 - /reference/mappings
 - /reference/modules
 - /reference/prefix_regex
@@ -52,7 +53,6 @@
 - /user-guide/cert-manager
 - /user-guide/consul
 - /user-guide/early-access
-- /user-guide/getting-started
 - /user-guide/gitops-ambassador
 - /user-guide/grpc
 - /user-guide/helm

@@ -519,7 +519,7 @@ associated with the target node:
   ...     def config(self):
   ...         yield self, """
   ... ---
-  ... apiVersion: ambassador/v0
+  ... apiVersion: ambassador/v2
   ... kind:  Module
   ... name:  ambassador
   ... config: {}
@@ -587,7 +587,7 @@ within another test, e.g.:
   ...     def config(self):
   ...         yield self, """
   ... ---
-  ... apiVersion: ambassador/v0
+  ... apiVersion: ambassador/v2
   ... kind:  Module
   ... name:  ambassador
   ... config: {}
@@ -610,7 +610,7 @@ so:
   ...     def config(self):
   ...         yield self, self.format("""
   ... ---
-  ... apiVersion: ambassador/v0
+  ... apiVersion: ambassador/2
   ... kind:  Mapping
   ... name:  {self.name}
   ... prefix: /{self.name}/

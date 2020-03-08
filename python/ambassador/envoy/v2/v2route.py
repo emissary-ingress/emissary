@@ -92,7 +92,19 @@ class V2Route(dict):
         if envoy_route == 'prefix':
             match['prefix'] = route_prefix
         else:
-            match.update(regex_matcher(config, route_prefix))
+            # Cheat.
+            if config.ir.edge_stack_allowed and (self.get('_precedence', 0) == -1000000):
+                # Force the safe_regex engine.
+                match.update({
+                    "safe_regex": {
+                        "google_re2": {
+                            "max_program_size": 200,
+                        },
+                        "regex": route_prefix
+                    }
+                })
+            else:
+                match.update(regex_matcher(config, route_prefix))
 
         headers = self.generate_headers(config, group)
 
@@ -120,10 +132,14 @@ class V2Route(dict):
 
         request_headers_to_remove = group.get('remove_request_headers', None)
         if request_headers_to_remove:
+            if type(request_headers_to_remove) != list:
+                request_headers_to_remove = [ request_headers_to_remove ]
             self['request_headers_to_remove'] = request_headers_to_remove
 
         response_headers_to_remove = group.get('remove_response_headers', None)
         if response_headers_to_remove:
+            if type(response_headers_to_remove) != list:
+                response_headers_to_remove = [ response_headers_to_remove ]
             self['response_headers_to_remove'] = response_headers_to_remove
 
         host_redirect = group.get('host_redirect', None)

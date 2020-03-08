@@ -19,18 +19,21 @@
     - title: Upgrade to the Ambassador Edge Stack
       link: /user-guide/upgrade-to-edge-stack
     - title: Upgrade to a Newer Version
-      link: /reference/upgrading  
+      link: /reference/upgrading
+    - title: Install the Ambassador API Gateway
+      link: /user-guide/install-ambassador-oss    
     - title: Install with Helm
       link: /user-guide/helm
     - title: Install with Docker
       link: /about/quickstart
     - title: Install with Bare Metal
       link: /user-guide/bare-metal
-    - title: Install the Ambassador API Gateway
-      link: /user-guide/install-ambassador-oss  
+    - title: Install Manually
+      link: /user-guide/manual-install  
+    - title: Ambassador Edge Stack Operator
+      link: /user-guide/aes-operator   
     - title: Early Access Releases
       link: /user-guide/early-access
-
 
 - title: Concepts
   link: /concepts/overview
@@ -235,6 +238,8 @@
         link: /reference/idp-support/uaa
     - title: Configuring Edge Control
       items: 
+        - title: Download Edge Control
+          link: /reference/edgectl-download
         - title: Edge Control Installation
           link: /reference/edge-control
         - title: Edge Control in CI
@@ -247,6 +252,8 @@
         link: /reference/running
       - title: Ambassador Edge Stack on AWS
         link: /reference/ambassador-with-aws
+      - title: Ambassador on GKE
+        link: /reference/ambassador-with-gke
       - title: Diagnostics
         link: /reference/diagnostics
       - title: Debugging

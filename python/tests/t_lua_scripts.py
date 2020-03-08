@@ -14,9 +14,9 @@ class LuaTest(AmbassadorTest):
 """
 
     def manifests(self) -> str:
-        return super().manifests() + self.format('''
+        return self.format('''
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Module
 metadata:
   name: ambassador
@@ -28,7 +28,7 @@ spec:
         response_handle: headers():add("Lua-Scripts-Enabled", "$LUA_SCRIPTS_ENABLED")
       end
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: lua-target-mapping
@@ -36,7 +36,7 @@ spec:
   ambassador_id: {self.ambassador_id}
   prefix: /target/
   service: {self.target.path.fqdn}
-''')
+''') + super().manifests()
 
     def queries(self):
         yield Query(self.url("target/"))

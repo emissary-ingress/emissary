@@ -61,9 +61,9 @@ class SecretRecorder(SecretHandler):
     def cache_secret(self, resource: 'IRResource', secret_info: SecretInfo):
         self.logger.debug("SecretRecorder (%s %s): skipping cache step for secret %s in namespace %s" %
                           (resource.kind, resource.name, secret_info.name, secret_info.namespace))
-                          
+
         return SavedSecret(secret_info.name, secret_info.namespace, '-crt-path-', '-key-path-', '-user-path-',
-                           { 'tls.crt': '-crt-', 'tls.key': '-key-', 'user.key': '-user-' })
+                           '-root-crt-path', { 'tls.crt': '-crt-', 'tls.key': '-key-', 'user.key': '-user-' })
 
 
 # XXX Sooooo there's some ugly stuff here.
@@ -231,12 +231,15 @@ class WatchHook:
             # If the edge stack is allowed, make sure we watch for our fallback context.
             self.add_kube_watch("Fallback TLSContext", "TLSContext", namespace=Config.ambassador_namespace)
 
+        ambassador_basedir = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', '/ambassador')
+
+        if os.path.exists(os.path.join(ambassador_basedir, '.ambassadorinstallations_ok')):
+            self.add_kube_watch("AmbassadorInstallations", "ambassadorinstallations.getambassador.io", Config.ambassador_namespace)
+
         ambassador_knative_requested = (os.environ.get("AMBASSADOR_KNATIVE_SUPPORT", "-unset-").lower() == 'true')
 
         if ambassador_knative_requested:
             self.logger.debug('Looking for Knative support...')
-
-            ambassador_basedir = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', '/ambassador')
 
             if os.path.exists(os.path.join(ambassador_basedir, '.knative_clusteringress_ok')):
                 # Watch for clusteringresses.networking.internal.knative.dev in any namespace and with any labels.

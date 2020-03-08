@@ -15,7 +15,7 @@ class LogServiceTest(AmbassadorTest):
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return super().manifests() + self.format("""
+        return self.format("""
 ---
 apiVersion: v1
 kind: Service
@@ -56,7 +56,7 @@ spec:
         ports:
         - name: http
           containerPort: 25565
-        """)
+""") + super().manifests()
 
     def config(self):
         yield self, self.format("""
@@ -123,7 +123,7 @@ service: http://127.0.0.1:8001
             for dal in config_obj.get('dynamic_active_listeners'):
               for filter_chain in dal.get('listener').get('filter_chains'):
                 for filter_obj in filter_chain.get('filters'):
-                  access_logs = filter_obj.get('config').get('access_log')
+                  access_logs = filter_obj.get('typed_config').get('access_log')
                   found_configured_access_log = False
                   for access_log in access_logs:
                     if access_log.get('name') == 'envoy.http_grpc_access_log' and access_log.get('config').get('common_config').get('grpc_service').get('envoy_grpc').get('cluster_name') == 'cluster_logging_stenography_25565_default':

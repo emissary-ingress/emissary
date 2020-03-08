@@ -1,4 +1,4 @@
-package main
+package ambex
 
 /**********************************************
  * ambex: Ambassador Experimental ADS server
@@ -8,7 +8,7 @@ package main
  * go-control-plane, several different classes manage this stuff:
  *
  * - The root of the world is a SnapshotCache.
- *   - import github.com/envoyproxy/go-control-plane/pkg/cache, then refer
+ *   - import github.com/datawire/ambassador/pkg/envoy-control-plane/cache, then refer
  *     to cache.SnapshotCache.
  *   - A collection of internally consistent configuration objects is a
  *     Snapshot (cache.Snapshot).
@@ -19,7 +19,7 @@ package main
  * - The SnapshotCache can only hold go-control-plane configuration objects,
  *   so you have to build these up to hand to the SnapshotCache.
  * - The gRPC stuff is handled by a Server.
- *   - import github.com/envoyproxy/go-control-plane/pkg/server, then refer
+ *   - import github.com/datawire/ambassador/pkg/envoy-control-plane/server, then refer
  *     to server.Server.
  *   - Our runManagementServer (largely ripped off from the go-control-plane
  *     tests) gets this running. It takes a SnapshotCache (cleverly called a
@@ -51,26 +51,29 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/fsnotify/fsnotify"
+	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 
-	log "github.com/sirupsen/logrus"
-
-	// TODO(lukeshu): switch this over to use
-	// github.com/datawire/ambassador/go/apis/envoy instead of
-	// github.com/envoyproxy/go-control-plane/envoy
-	"github.com/envoyproxy/go-control-plane/envoy/api/v2"
-	"github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
-	"github.com/envoyproxy/go-control-plane/pkg/cache"
-	"github.com/envoyproxy/go-control-plane/pkg/server"
-
-	bootstrap "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v2"
-	discovery "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v2"
-
-	"github.com/fsnotify/fsnotify"
-
+	// protobuf library
 	"github.com/gogo/protobuf/jsonpb"
 	"github.com/gogo/protobuf/proto"
 	"github.com/gogo/protobuf/types"
+
+	// envoy control plane
+	"github.com/datawire/ambassador/pkg/envoy-control-plane/cache"
+	"github.com/datawire/ambassador/pkg/envoy-control-plane/server"
+
+	// envoy protobuf -- Be sure to import the package of any types that the Python
+	// emits a "@type" of in the generated config, even if that package is otherwise
+	// not used by ambex.
+	v2 "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
+	_ "github.com/datawire/ambassador/pkg/api/envoy/api/v2/auth"
+	core "github.com/datawire/ambassador/pkg/api/envoy/api/v2/core"
+	_ "github.com/datawire/ambassador/pkg/api/envoy/config/accesslog/v2"
+	bootstrap "github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v2"
+	_ "github.com/datawire/ambassador/pkg/api/envoy/config/filter/network/http_connection_manager/v2"
+	discovery "github.com/datawire/ambassador/pkg/api/envoy/service/discovery/v2"
 )
 
 const (
@@ -267,10 +270,10 @@ func update(config cache.SnapshotCache, generation *int, dirs []string) {
 			bs := m.(*bootstrap.Bootstrap)
 			sr := bs.StaticResources
 			for _, lst := range sr.Listeners {
-				listeners = append(listeners, Clone(&lst).(cache.Resource))
+				listeners = append(listeners, Clone(lst).(cache.Resource))
 			}
 			for _, cls := range sr.Clusters {
-				clusters = append(clusters, Clone(&cls).(cache.Resource))
+				clusters = append(clusters, Clone(cls).(cache.Resource))
 			}
 			continue
 		default:
@@ -342,7 +345,7 @@ func (l logger) OnFetchResponse(req *v2.DiscoveryRequest, res *v2.DiscoveryRespo
 	l.Infof("Fetch response: %v -> %v", req, res)
 }
 
-func main() {
+func Main() {
 	flag.Parse()
 
 	if debug {

@@ -26,7 +26,7 @@ ARG base="frolvlad/alpine-glibc:alpine-3.10"
 ARG artifacts="builder"
 
 # This controls where we copy envoy from.
-ARG envoy="quay.io/datawire/ambassador-base:envoy-7.d17d947caef13f1bdd235c3fccff77814883bb46.opt"
+ARG envoy="i-forgot-to-set-build-arg-envoy"
 
 ########################################
 # The builder image
@@ -66,7 +66,7 @@ RUN apk --no-cache add bash bash-completion ncurses curl jq rsync python3 python
 RUN sh -c "/usr/bin/kubectl completion bash > /usr/share/bash-completion/completions/kubectl"
 RUN chmod u+s $(which docker)
 
-COPY --from=envoy /usr/local/bin/envoy /usr/local/bin/envoy
+COPY --from=envoy /usr/local/bin/envoy-static-stripped /usr/local/bin/envoy
 
 ENV KUBECONFIG=/buildroot/kubeconfig.yaml
 
@@ -84,7 +84,6 @@ RUN pip install -r requirements.txt
 
 # XXX: this will go away
 RUN mkdir -p /ambassador/sidecars && \
-    ln -s /buildroot/bin/watt /ambassador/watt && \
     ln -s /buildroot/ambassador/python/post_update.py /ambassador/post_update.py && \
     ln -s /buildroot/ambassador/python/watch_hook.py /ambassador/watch_hook.py && \
     ln -s /buildroot/ambassador/python/kubewatch.py /ambassador/kubewatch.py
@@ -106,40 +105,49 @@ FROM ${artifacts} as artifacts
 
 FROM ${base} as ambassador
 
+# External stuff that should change infrequently
 RUN apk --no-cache add bash curl python3 libcap
-
 RUN ln -s /usr/bin/python3 /usr/bin/python
-
-COPY --from=envoy /usr/local/bin/envoy /usr/local/bin/envoy
-COPY --from=builder /usr/lib/python3.7/site-packages /usr/lib/python3.7/site-packages
-COPY --from=builder /usr/lib/libyaml* /usr/lib/
-
-COPY --from=artifacts /buildroot/bin/ambex /buildroot/bin/ambex
-COPY --from=artifacts /buildroot/bin/watt /buildroot/bin/watt
-COPY --from=artifacts /buildroot/bin/kubestatus /buildroot/bin/kubestatus
 COPY --from=artifacts /usr/bin/kubectl /usr/bin/kubectl
+COPY --from=artifacts /usr/lib/libyaml* /usr/lib/
+
+# Other installers
+COPY --from=artifacts /opt/image-build /opt/image-build
+RUN /opt/image-build/install.sh
+
+# External Python packages we use
+COPY --from=artifacts /usr/lib/python3.7/site-packages /usr/lib/python3.7/site-packages
+
+# Our envoy. The capabilities here grant the wrapper the ability to use the
+# cap_net_bind_service cap and for Envoy to inherit it.
+COPY --from=envoy /usr/local/bin/envoy-static-stripped /usr/local/bin/envoy
+RUN setcap cap_net_bind_service=ei /usr/local/bin/envoy
+
+# Our Go binaries. See envoy section for setcap info.
+COPY --from=artifacts /opt/ambassador /opt/ambassador
+RUN ln -s /opt/ambassador/bin/* /usr/local/bin/
+RUN setcap cap_net_bind_service=p /usr/local/bin/wrapper
+
+# Our Python code
 COPY --from=artifacts /buildroot/ambassador/python /buildroot/ambassador/python
-COPY --from=artifacts /buildroot/bin/capabilities_wrapper /usr/local/bin/wrapper
 RUN cd /buildroot/ambassador/python && python setup.py install
 
+# Configuration, Docker demo stuff, the AES WebUI. The /ambassador bit changes
+# in post-install so it's always stale. But it's pretty small, so it's not too
+# bad to re-push every time.
 COPY --from=artifacts /ambassador /ambassador
-
 COPY --from=artifacts /buildroot/ambassador/demo/config /ambassador/ambassador-demo-config
 COPY --from=artifacts /buildroot/ambassador/demo/services /ambassador/demo-services
 
-WORKDIR /ambassador
-
-ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/buildroot/bin
-
-# XXX: is this still necessary or will the above copy inherit the
-#       correct permissions?
 # Fix permissions to allow correctly running as a non root user
+# XXX: We could combine everything into one tree in the builder, fix permissions
+# there, and then a use single COPY to get everything and avoid duplicating the
+# (small amount of) data in a new layer for this RUN.
 RUN chgrp -R 0 /ambassador && \
     chmod -R u+x /ambassador && \
     chmod -R g=u /ambassador /etc/passwd
-# The capabilities here grant the wrapper the ability to use the cap_net_bind_service cap
-# and for Envoy to inherit it.
-RUN setcap cap_net_bind_service=p /usr/local/bin/wrapper; setcap cap_net_bind_service=ei /usr/local/bin/envoy
+
+WORKDIR /ambassador
 
 ENTRYPOINT [ "bash", "/buildroot/ambassador/python/entrypoint.sh" ]
 

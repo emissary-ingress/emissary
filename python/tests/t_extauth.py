@@ -100,7 +100,7 @@ class AuthenticationHTTPPartialBufferTest(AmbassadorTest):
         self.auth = HTTP(name="auth")
 
     def manifests(self) -> str:
-        return super().manifests() + """
+        return """
 ---
 apiVersion: v1
 data:
@@ -110,7 +110,7 @@ kind: Secret
 metadata:
   name: auth-partial-secret
 type: kubernetes.io/tls
-"""
+""" + super().manifests()
 
     def config(self):
         yield self, self.format("""
@@ -182,7 +182,7 @@ class AuthenticationHTTPBufferedTest(AmbassadorTest):
         self.auth = HTTP(name="auth")
 
     def manifests(self) -> str:
-        return super().manifests() + """
+        return """
 ---
 apiVersion: v1
 data:
@@ -192,7 +192,7 @@ kind: Secret
 metadata:
   name: auth-buffered-secret
 type: kubernetes.io/tls
-"""
+""" + super().manifests()
 
     def config(self):
         yield self, self.format("""
@@ -324,7 +324,7 @@ class AuthenticationHTTPFailureModeAllowTest(AmbassadorTest):
         self.auth = HTTP(name="auth")
 
     def manifests(self) -> str:
-        return super().manifests() + """
+        return """
 ---
 apiVersion: v1
 data:
@@ -334,7 +334,7 @@ kind: Secret
 metadata:
   name: auth-failure-secret
 type: kubernetes.io/tls
-"""
+""" + super().manifests()
 
     def config(self):
         yield self, self.format("""

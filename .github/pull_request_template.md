@@ -7,9 +7,12 @@ List related issues.
 ## Testing
 A few sentences describing what testing you've done, e.g., manual tests, automated tests, deployed in production, etc.
 
-## Todos
-- [ ] Tests
-- [ ] Documentation
+## Tasks That Must Be Done
+- [ ] Did you update CHANGELOG.md?
+- [ ] Did you add or update tests?
+- [ ] Did you update documentation?
+- [ ] Were there any special dev tricks you had to use to work on this code efficiently?
+  + [ ] Did you add them to DEVELOPING.md?
 
 ## Other
 * If this is a documentation change, please open the pull request at https://github.com/datawire/ambassador-docs instead.

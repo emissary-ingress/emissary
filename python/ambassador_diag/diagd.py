@@ -216,9 +216,10 @@ def standard_handler(f):
 
         app.logger.debug("%s handler %s" % (prefix, func_name))
 
-        # getting elements in the `tvars_cache` will make sure eviction happens on `max_age_seconds` TTL
-        # for removed patch_client rather than waiting to fill `max_len`
-        for k in iter(tvars_cache):
+        # Getting elements in the `tvars_cache` will make sure eviction happens on `max_age_seconds` TTL
+        # for removed patch_client rather than waiting to fill `max_len`.
+        # Looping over a copied list of keys, to prevent mutating tvars_cache while iterating.
+        for k in list(tvars_cache.keys()):
             tvars_cache.get(k)
 
         # Default to the exception case

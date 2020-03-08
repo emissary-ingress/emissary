@@ -3,6 +3,7 @@ import json
 from kat.harness import Query, Test, variants
 
 from abstract_tests import AmbassadorTest, ServiceType, HTTP
+from kat.utils import namespace_manifest
 
 # An AmbassadorTest subclass will actually create a running Ambassador.
 # "self" in this class will refer to the Ambassador.
@@ -37,17 +38,7 @@ class TCPMappingTest(AmbassadorTest):
     # Kubernetes cluster before running any tests.
 
     def manifests(self) -> str:
-        return """
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: tcp-namespace
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: other-namespace
+        return namespace_manifest("tcp-namespace") + namespace_manifest("other-namespace") + """
 ---
 apiVersion: v1
 kind: Secret

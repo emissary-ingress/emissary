@@ -24,6 +24,7 @@ from yaml.scanner import ScannerError as YAMLScanError
 
 from multi import multi
 from .parser import dump, load, Tag
+from .utils import namespace_manifest
 
 import yaml as pyyaml
 
@@ -51,7 +52,7 @@ if os.path.exists("/buildroot/apro.version"):
     EDGE_STACK = True
     GOLD_ROOT = "/buildroot/apro/tests/pytest/gold"
     MANIFEST_ROOT = "/buildroot/apro/tests/pytest/manifests"
-    RUN_MODE = "envoy"
+    # RUN_MODE = "envoy"
 else:
     print("RUNNING IN OSS")
 
@@ -568,7 +569,13 @@ class Node(ABC):
             return self.parent.depth + 1
 
     def format(self, st, **kwargs):
-        return st.format(self=self, environ=os.environ, **kwargs)
+        serviceAccountExtra = ''
+        if os.environ.get("DEV_USE_IMAGEPULLSECRET", False):
+            serviceAccountExtra = """
+imagePullSecrets:
+- name: dev-image-pull-secret
+"""
+        return st.format(self=self, environ=os.environ, serviceAccountExtra=serviceAccountExtra, **kwargs)
 
     def get_fqdn(self, name: str) -> str:
         if self.namespace and (self.namespace != 'default'):
@@ -1106,7 +1113,7 @@ spec:
   requestPolicy:
     insecure:
       action: Route
-      additionalPort: 8080
+      # additionalPort: 8080
 '''
 
 class Runner:
@@ -1488,8 +1495,11 @@ class Runner:
         else:
             print(f'CRDS unchanged {reason}, skipping apply.')
 
+
         # Next up: the KAT pod.
         KAT_CLIENT_POD = load_manifest("kat_client_pod")
+        if os.environ.get("DEV_USE_IMAGEPULLSECRET", False):
+            KAT_CLIENT_POD = namespace_manifest("default") + KAT_CLIENT_POD
         changed, reason = has_changed(KAT_CLIENT_POD.format(environ=os.environ), "/tmp/k8s-kat-pod.yaml")
 
         if changed:

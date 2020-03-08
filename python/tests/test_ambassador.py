@@ -17,6 +17,7 @@ import t_loadbalancer
 import t_logservice
 import t_lua_scripts
 import t_mappingtests
+import t_no_ui
 import t_optiontests
 import t_plain
 import t_ratelimit

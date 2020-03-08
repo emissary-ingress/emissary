@@ -24,6 +24,8 @@ class ConsulTest(AmbassadorTest):
         self.k8s_target = HTTP(name="k8s")
 
     def manifests(self) -> str:
+        # Unlike usual, super().manifests() must come before our added
+        # manifests, because of some magic with ServiceAccounts?
         return super().manifests() + self.format("""
 ---
 apiVersion: v1
@@ -55,7 +57,7 @@ spec:
     image: consul:1.4.3
   restartPolicy: Always
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: ConsulResolver
 metadata:
   name: {self.path.k8s}-resolver

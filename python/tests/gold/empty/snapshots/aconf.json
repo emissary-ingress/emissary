@@ -5,25 +5,25 @@
                 "error": "Ambassador could not find core CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...",
                 "hostname": "empty",
                 "ok": false,
-                "version": "1.0.0-rc1-4-ga315fe6e1-dirty"
+                "version": "1.2.0-4-g8f507fdcf-dirty"
             },
             {
                 "error": "Ambassador could not find Resolver type CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...",
                 "hostname": "empty",
                 "ok": false,
-                "version": "1.0.0-rc1-4-ga315fe6e1-dirty"
+                "version": "1.2.0-4-g8f507fdcf-dirty"
             },
             {
                 "error": "Ambassador could not find the Host CRD definition. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...",
                 "hostname": "empty",
                 "ok": false,
-                "version": "1.0.0-rc1-4-ga315fe6e1-dirty"
+                "version": "1.2.0-4-g8f507fdcf-dirty"
             },
             {
                 "error": "Ambassador could not find the LogService CRD definition. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...",
                 "hostname": "empty",
                 "ok": false,
-                "version": "1.0.0-rc1-4-ga315fe6e1-dirty"
+                "version": "1.2.0-4-g8f507fdcf-dirty"
             }
         ]
     },

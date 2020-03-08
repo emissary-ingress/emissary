@@ -69,7 +69,7 @@ bootstrap() {
 
     if [ -z "$(builder)" ] ; then
         printf "${CYN}==> ${GRN}Bootstrapping build image${END}\n"
-        ${DBUILD} --target builder ${DIR} -t builder
+        ${DBUILD} --build-arg envoy="${ENVOY_DOCKER_TAG}" --target builder ${DIR} -t builder
         if [ "$(uname -s)" == Darwin ]; then
             DOCKER_GID=$(stat -f "%g" /var/run/docker.sock)
         else
@@ -80,8 +80,9 @@ bootstrap() {
             exit 1
         fi
 
+        now=$(date +"%H%M%S")
         echo_on
-        $DOCKER_RUN --network "${DOCKER_NETWORK}" --network-alias "builder" --group-add ${DOCKER_GID} -d --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(builder_volume):/home/dw ${BUILDER_MOUNTS} --cap-add NET_ADMIN -lbuilder -l${BUILDER_NAME} ${BUILDER_PORTMAPS} -e BUILDER_NAME=${BUILDER_NAME} --entrypoint tail builder -f /dev/null > /dev/null
+        $DOCKER_RUN --name "bld-${BUILDER_NAME}-${now}" --network "${DOCKER_NETWORK}" --network-alias "builder" --group-add ${DOCKER_GID} -d --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(builder_volume):/home/dw ${BUILDER_MOUNTS} --cap-add NET_ADMIN -lbuilder -l${BUILDER_NAME} ${BUILDER_PORTMAPS} -e BUILDER_NAME=${BUILDER_NAME} --entrypoint tail builder -f /dev/null > /dev/null
         echo_off
 
         printf "${GRN}Started build container ${BLU}$(builder)${END}\n"
@@ -171,6 +172,12 @@ summarize-sync() {
     if [ "${#lines[@]}" != 0 ]; then
         dexec touch ${name}.dirty image.dirty
     fi
+    for line in "${lines[@]}"; do
+        if [[ $line = *.go ]]; then
+            dexec touch go.dirty
+            break
+        fi
+    done
     printf "${GRN}Synced ${#lines[@]} ${BLU}${name}${GRN} source files${END}\n"
     PARTIAL="yes"
     for i in {0..9}; do
@@ -179,7 +186,7 @@ summarize-sync() {
             break
         fi
         line="${lines[$i]}"
-        printf "  ${CYN}${line}${END}\n"
+        printf "  ${CYN}%s${END}\n" "$line"
     done
     if [ -n "${PARTIAL}" ]; then
         printf "  ${CYN}...${END}\n"
@@ -216,7 +223,7 @@ push-image() {
 }
 
 find-modules () {
-    find /buildroot -type d -mindepth 1 -maxdepth 1 \! -name bin
+    find /buildroot -type d -mindepth 1 -maxdepth 1 \! -name bin | sort
 }
 
 cmd="$1"
@@ -280,11 +287,17 @@ case "${cmd}" in
         ;;
     compile-internal)
         # This runs inside the builder image
+        if [[ $(find-modules) != /buildroot/ambassador* ]]; then
+            echo "Error: ambassador must be the first module to build things correctly"
+            echo "Modules are: $(find-modules)"
+            exit 1
+        fi
+
         for MODDIR in $(find-modules); do
             module=$(basename ${MODDIR})
             eval "$(grep BUILD_VERSION apro.version 2>/dev/null)" # this will `eval ''` for OSS-only builds, leaving BUILD_VERSION unset; dont embed the version-number in OSS Go binaries
 
-            if [ -e ${module}.dirty ]; then
+            if [ -e ${module}.dirty ] || ([ "$module" != ambassador ] && [ -e go.dirty ]) ; then
                 if [ -e "${MODDIR}/go.mod" ]; then
                     printf "${CYN}==> ${GRN}Building ${BLU}${module}${GRN} go code${END}\n"
                     echo_on
@@ -293,7 +306,9 @@ case "${cmd}" in
                     if [ -e ${MODDIR}/post-compile.sh ]; then (cd ${MODDIR} && bash post-compile.sh); fi
                     echo_off
                 fi
+            fi
 
+            if [ -e ${module}.dirty ]; then
                 if [ -e "${MODDIR}/python" ]; then
                     if ! [ -e ${MODDIR}/python/*.egg-info ]; then
                         printf "${CYN}==> ${GRN}Setting up ${BLU}${module}${GRN} python code${END}\n"
@@ -309,6 +324,7 @@ case "${cmd}" in
                 printf "${CYN}==> ${GRN}Already built ${BLU}${module}${GRN}${END}\n"
             fi
         done
+        rm -f go.dirty  # Do this after _all_ the Go code is built
         ;;
     pytest-internal)
         # This runs inside the builder image
@@ -356,11 +372,11 @@ case "${cmd}" in
             docker rmi -f "${name}" &> /dev/null
             docker commit -c 'ENTRYPOINT [ "/bin/bash" ]' $(builder) "${name}"
             printf "${CYN}==> ${GRN}Building ${BLU}${BUILDER_NAME}${END}\n"
-            ${DBUILD} ${DIR} --build-arg artifacts=${name} --target ambassador -t ${BUILDER_NAME}
+            ${DBUILD} ${DIR} --build-arg artifacts=${name} --build-arg envoy="${ENVOY_DOCKER_TAG}" --target ambassador -t ${BUILDER_NAME}
             printf "${CYN}==> ${GRN}Building ${BLU}kat-client${END}\n"
-            ${DBUILD} ${DIR} --build-arg artifacts=${name} --target kat-client -t kat-client
+            ${DBUILD} ${DIR} --build-arg artifacts=${name} --build-arg envoy="${ENVOY_DOCKER_TAG}" --target kat-client -t kat-client
             printf "${CYN}==> ${GRN}Building ${BLU}kat-server${END}\n"
-            ${DBUILD} ${DIR} --build-arg artifacts=${name} --target kat-server -t kat-server
+            ${DBUILD} ${DIR} --build-arg artifacts=${name} --build-arg envoy="${ENVOY_DOCKER_TAG}" --target kat-server -t kat-server
         fi
         dexec rm -f /buildroot/image.dirty
         ;;

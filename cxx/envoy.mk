@@ -3,19 +3,26 @@ srcdir := $(OSS_HOME)/cxx
 include $(OSS_HOME)/build-aux/prelude.mk
 
 YES_I_AM_OK_WITH_COMPILING_ENVOY ?=
+YES_I_AM_UPDATING_THE_BASE_IMAGES ?=
+
+_git_remote_urls := $(shell git remote | xargs -n1 git remote get-url --all)
+IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make update-base`.
-	_git_remote_urls := $(shell git remote | xargs -n1 git remote get-url --all)
-	IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
   ENVOY_REPO ?= $(if $(IS_PRIVATE),git@github.com:datawire/envoy-private.git,git://github.com/datawire/envoy.git)
-  ENVOY_COMMIT ?= d17d947caef13f1bdd235c3fccff77814883bb46
+  ENVOY_COMMIT ?= e24f8ed76240c049068160fa1ad3efdb324e00e4
   ENVOY_COMPILATION_MODE ?= opt
-	# Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes
-  BASE_ENVOY_RELVER ?= 7
-	ENVOY_DOCKER_TAG ?= $(if $(IS_PRIVATE),quay.io/datawire/ambassador-base-private:envoy-$(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE),quay.io/datawire/ambassador-base:envoy-$(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE))
+  # Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes.
+  # You may reset BASE_ENVOY_RELVER when adjusting ENVOY_COMMIT.
+  BASE_ENVOY_RELVER ?= 2
 
-  BASE_VERSION.envoy ?= $(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE)
+  ENVOY_DOCKER_REPO ?= quay.io/datawire$(if $(IS_PRIVATE),-private)/ambassador-base
+  ENVOY_DOCKER_VERSION ?= $(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE)
+  ENVOY_DOCKER_TAG ?= $(ENVOY_DOCKER_REPO):envoy-$(ENVOY_DOCKER_VERSION)
 # END LIST OF VARIABLES REQUIRING `make update-base`.
+
+# for builder.sh...
+export ENVOY_DOCKER_TAG
 
 #
 # Envoy build
@@ -59,7 +66,7 @@ $(srcdir)/envoy: FORCE
 $(srcdir)/envoy-build-image.txt: $(srcdir)/envoy $(WRITE_IFCHANGED) FORCE
 	@PS4=; set -ex -o pipefail; { \
 	    pushd $</ci; \
-			echo "$$(pwd)"; \
+	    echo "$$(pwd)"; \
 	    . envoy_build_sha.sh; \
 	    popd; \
 	    echo docker.io/envoyproxy/envoy-build-ubuntu@sha256:$$ENVOY_BUILD_SHA | $(WRITE_IFCHANGED) $@; \
@@ -97,15 +104,15 @@ ENVOY_SYNC_DOCKER_TO_HOST = rsync -Pav --delete --blocking-io -e "docker exec -i
 ENVOY_BASH.cmd = bash -c 'PS4=; set -ex; $(ENVOY_SYNC_HOST_TO_DOCKER); trap '\''$(ENVOY_SYNC_DOCKER_TO_HOST)'\'' EXIT; '$(call quote.shell,$1)
 ENVOY_BASH.deps = $(srcdir)/envoy-build-container.txt
 
-$(OSS_HOME)/bin_linux_amd64/envoy-static: $(ENVOY_BASH.deps) FORCE
+$(OSS_HOME)/docker/base-envoy/envoy-static: $(ENVOY_BASH.deps) FORCE
 	mkdir -p $(@D)
 	@PS4=; set -ex; { \
-	    if docker run --rm --entrypoint=true $(BASE_IMAGE.envoy); then \
-	        rsync -Pav --blocking-io -e 'docker run --rm -i' $$(docker image inspect $(BASE_IMAGE.envoy) --format='{{.Id}}' | sed 's/^sha256://'):/usr/local/bin/envoy $@; \
+	    if docker run --rm --entrypoint=true $(ENVOY_DOCKER_TAG); then \
+	        rsync -Pav --blocking-io -e 'docker run --rm -i' $$(docker image inspect $(ENVOY_DOCKER_TAG) --format='{{.Id}}' | sed 's/^sha256://'):/usr/local/bin/envoy-static $@; \
 	    else \
 	        if [ -z '$(YES_I_AM_UPDATING_THE_BASE_IMAGES)' ]; then \
 	            { set +x; } &>/dev/null; \
-	            echo 'error: failed to pull $(BASE_IMAGE.envoy), but $$YES_I_AM_UPDATING_THE_BASE_IMAGES is not set'; \
+	            echo 'error: failed to pull $(ENVOY_DOCKER_TAG), but $$YES_I_AM_UPDATING_THE_BASE_IMAGES is not set'; \
 	            echo '       If you are trying to update the base images, then set that variable to a non-empty value.'; \
 	            echo '       If you are not trying to update the base images, then check your network connection and Docker credentials.'; \
 	            exit 1; \
@@ -116,7 +123,7 @@ $(OSS_HOME)/bin_linux_amd64/envoy-static: $(ENVOY_BASH.deps) FORCE
 	            exit 1; \
 	        fi; \
 	        $(call ENVOY_BASH.cmd, \
-	            docker exec --workdir=/root/envoy $$(cat $(srcdir)/envoy-build-container.txt) /bin/bash -c "export CC=/opt/llvm/bin/clang && export CXX=/opt/llvm/bin/clang++ && bazel build --verbose_failures -c $(ENVOY_COMPILATION_MODE) --config=clang //source/exe:envoy-static;" \
+	            docker exec --workdir=/root/envoy $$(cat $(srcdir)/envoy-build-container.txt) /bin/bash -c "export CC=/opt/llvm/bin/clang && export CXX=/opt/llvm/bin/clang++ && bazel build --verbose_failures -c $(ENVOY_COMPILATION_MODE) --config=clang //source/exe:envoy-static;"; \
 	            rsync -Pav --blocking-io -e 'docker exec -i' $$(cat $(srcdir)/envoy-build-container.txt):/root/envoy/bazel-bin/source/exe/envoy-static $@; \
 	        ); \
 	    fi; \
@@ -148,9 +155,8 @@ envoy-shell: $(ENVOY_BASH.deps)
 $(OSS_HOME)/api/envoy: $(srcdir)/envoy
 	rsync --recursive --delete --delete-excluded --prune-empty-dirs --include='*/' --include='*.proto' --exclude='*' $</api/envoy/ $@
 
-update-base: $(OSS_HOME)/bin_linux_amd64/envoy-static-stripped
-	cp --force $(OSS_HOME)/bin_linux_amd64/envoy-static-stripped $(srcdir)/envoy-static
-	docker build -f $(OSS_HOME)/docker/base-envoy/Dockerfile $(srcdir) -t $(ENVOY_DOCKER_TAG)
+update-base: $(srcdir)/envoy-build-image.txt $(OSS_HOME)/docker/base-envoy/envoy-static $(OSS_HOME)/docker/base-envoy/envoy-static-stripped
+	docker build --build-arg=base=$$(cat $(srcdir)/envoy-build-image.txt) -t $(ENVOY_DOCKER_TAG) $(OSS_HOME)/docker/base-envoy
 	$(MAKE) generate
 	docker push $(ENVOY_DOCKER_TAG)
 .PHONY: update-base
@@ -165,14 +171,22 @@ _clean-envoy: _clean-envoy-old
 _clean-envoy: $(srcdir)/envoy-build-container.txt.clean
 	rm -f $(srcdir)/envoy-build-image.txt
 _clobber-envoy: _clean-envoy
+	rm -f $(OSS_HOME)/docker/base-envoy/envoy-static
+	rm -f $(OSS_HOME)/docker/base-envoy/envoy-static-stripped
 	$(if $(filter-out -,$(ENVOY_COMMIT)),rm -rf $(srcdir)/envoy)
 .PHONY: _clean-envoy _clobber-envoy
 
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
-_clean-envoy-old:
+
 # 2019-10-11
 _clean-envoy-old: $(OSS_HOME)/envoy-build-container.txt.clean
+
+_clean-envoy-old:
+# 2020-02-20
+	rm -f $(OSS_HOME)/cxx/envoy-static
+	rm -f $(OSS_HOME)/bin_linux_amd64/envoy-static
+	rm -f $(OSS_HOME)/bin_linux_amd64/envoy-static-stripped
 # 2019-10-11
 	rm -rf $(OSS_HOME)/envoy-bin
 	$(if $(filter-out -,$(ENVOY_COMMIT)),rm -rf $(OSS_HOME)/envoy-src)

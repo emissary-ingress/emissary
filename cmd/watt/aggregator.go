@@ -1,4 +1,4 @@
-package main
+package watt
 
 import (
 	"encoding/json"
