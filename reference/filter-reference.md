@@ -219,12 +219,12 @@ spec:
     filters:
     - name: "example-jwt-filter"
       arguments:
-        scope:                    # optional; default is []
+        scopes:                    # optional; default is []
         - "scope-value-1"
         - "scope-value-2"
 ```
 
- - `scope`: A list of OAuth scope values that Ambassador will require to be listed in the [`scope` claim][].  In addition to the normal of the `scope` claim (a JSON string containing a space-separated list of values), the JWT Filter also accepts a JSON array of values.
+ - `scopes`: A list of OAuth scope values that Ambassador will require to be listed in the [`scope` claim][].  In addition to the normal of the `scope` claim (a JSON string containing a space-separated list of values), the JWT Filter also accepts a JSON array of values.
 
 [`scope` claim]: https://tools.ietf.org/html/draft-ietf-oauth-token-exchange-19#section-4.2
 
