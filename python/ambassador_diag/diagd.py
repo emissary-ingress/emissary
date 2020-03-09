@@ -416,21 +416,6 @@ def handle_ping():
     return "ACK\n", 200
 
 
-@app.route('/_internal/v0/update', methods=[ 'POST' ])
-def handle_kubewatch_update():
-    url = request.args.get('url', None)
-
-    if not url:
-        app.logger.error("error: update requested with no URL")
-        return "error: update requested with no URL\n", 400
-
-    app.logger.info("Update requested: kubewatch, %s" % url)
-
-    status, info = app.watcher.post('CONFIG', ( 'kw', url ))
-
-    return info, status
-
-
 @app.route('/_internal/v0/watt', methods=[ 'POST' ])
 def handle_watt_update():
     url = request.args.get('url', None)
@@ -868,9 +853,7 @@ class AmbassadorEventWatcher(threading.Thread):
                 version, url = arg
 
                 try:
-                    if version == 'kw':
-                        self.load_config_kubewatch(rqueue, url)
-                    elif version == 'watt':
+                    if version == 'watt':
                         self.load_config_watt(rqueue, url)
                     else:
                         raise RuntimeError("config from %s not supported" % version)
@@ -964,54 +947,6 @@ class AmbassadorEventWatcher(threading.Thread):
         if not fetcher.elements:
             self.logger.debug("no configuration resources found at %s" % path)
             # self._respond(rqueue, 204, 'ignoring empty configuration')
-            # return
-
-        self._load_ir(rqueue, aconf, fetcher, scc, snapshot)
-
-    def load_config_kubewatch(self, rqueue: queue.Queue, url: str):
-        snapshot = url.split('/')[-1]
-        ss_path = os.path.join(app.snapshot_path, "snapshot-tmp.yaml")
-
-        self.logger.info("copying configuration: kubewatch, %s to %s" % (url, ss_path))
-
-        # Grab the serialization, and save it to disk too.
-        elements: List[str] = []
-
-        serialization = load_url_contents(self.logger, "%s/services" % url, stream2=open(ss_path, "w"))
-
-        if serialization:
-            elements.append(serialization)
-        else:
-            self.logger.debug("no services loaded from snapshot %s" % snapshot)
-
-        if Config.enable_endpoints:
-            serialization = load_url_contents(self.logger, "%s/endpoints" % url, stream2=open(ss_path, "a"))
-
-            if serialization:
-                elements.append(serialization)
-            else:
-                self.logger.debug("no endpoints loaded from snapshot %s" % snapshot)
-
-        serialization = "---\n".join(elements)
-
-        if not serialization:
-            self.logger.debug("no data loaded from snapshot %s" % snapshot)
-            # We never used to return here. I'm not sure if that's really correct?
-            # self._respond(rqueue, 204, 'ignoring: no data loaded from snapshot %s' % snapshot)
-            # return
-
-        scc = KubewatchSecretHandler(app.logger, url, app.snapshot_path, snapshot)
-
-        aconf = Config()
-        fetcher = ResourceFetcher(app.logger, aconf)
-        fetcher.parse_yaml(serialization, k8s=True)
-
-        if not fetcher.elements:
-            self.logger.debug("no configuration found in snapshot %s" % snapshot)
-
-            # Don't actually bail here. If they send over a valid config that happens
-            # to have nothing for us, it's still a legit config.
-            # self._respond(rqueue, 204, 'ignoring: no configuration found in snapshot %s' % snapshot)
             # return
 
         self._load_ir(rqueue, aconf, fetcher, scc, snapshot)
