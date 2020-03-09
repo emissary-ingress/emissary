@@ -3,6 +3,7 @@ package limiter
 import (
 	"fmt"
 	"math/rand"
+	"strconv"
 	"time"
 
 	"github.com/mediocregopher/radix.v2/pool"
@@ -51,7 +52,30 @@ func (this *RateLimiterWindow) getUnderlyingValue() (int, error) {
 		}
 		return -1, err
 	}
+	this.recordMaxValue(resp)
 	return resp, nil
+}
+
+// recordMaxValue records the maximum observed value in the last 24 hours.
+func (this *RateLimiterWindow) recordMaxValue(value int) {
+	previousValue, _ := this.getMaxValue()
+	// if the new value is greater than the previously recorded maxValue,
+	// set a "limit-m" redis key with the new maxValue and have it expire in 24h.
+	if value > previousValue {
+		this.redisPool.Cmd("SET", this.limit.String()+"-m", value, "EX", "86400")
+	}
+}
+
+// getMaxValue returns the maximum observed value.
+func (this *RateLimiterWindow) getMaxValue() (int, error) {
+	resp, err := this.redisPool.Cmd("GET", this.limit.String()+"-m").Str()
+	if err != nil {
+		if err == redis.ErrRespNil || resp == "" {
+			return 0, err
+		}
+		return -1, err
+	}
+	return strconv.Atoi(resp)
 }
 
 func (this *RateLimiterWindow) attemptToChange(incrementing bool) (int, error) {
@@ -113,4 +137,11 @@ func (this *RateLimiterWindow) GetUsageAtPointInTime() (int, error) {
 		return 0, ErrRateLimiterNoRedis
 	}
 	return this.getUnderlyingValue()
+}
+
+func (this *RateLimiterWindow) GetMaxUsage() (int, error) {
+	if this.redisPool == nil {
+		return 0, ErrRateLimiterNoRedis
+	}
+	return this.getMaxValue()
 }

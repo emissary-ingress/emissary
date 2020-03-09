@@ -370,10 +370,21 @@ func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Co
 	}
 
 	// If we end up unauthorized at the redirection endpoint (because XSRF-protection
-	// rejected the authorization), go ahead and dereference the alleged state.  This
-	// is safe, because ruleForURL has already validated that state-derived-URL as
-	// something that this filter handles.  This way we don't have to deal with the
-	// redirection endpoint being bounced to multiple times.
+	// rejected the authorization), go ahead and dereference the alleged state.
+	//
+	// This is safe, because ruleForURL has already validated that state-derived-URL
+	// as something that this filter handles, by virtue of the fact that it decided to
+	// call this filter.  Cogito, ergo sum.
+	//
+	// If we don't dereference the alleged state here, then the alternative would be
+	// to modify ruleForURL to recurse on itself; otherwise we'd get to the URL
+	//
+	//    redirection-endpoint?state={redirect to "redirection-endpoint?state={redirect to original URL}"}
+	//
+	// and because ruleForURL doesn't recurse on itself when extracting the
+	// destination from `state`, ruleForURL wouldn't choose the rule for "original
+	// URL", instead returning nil, so then the request falls through to the fallback
+	// ServeHTTP in handler.go which would serve an HTTP 400 response.
 	if originalURL.Path == "/.ambassador/oauth2/redirection-endpoint" {
 		u, err := ReadState(originalURL.Query().Get("state"))
 		if err == nil {
