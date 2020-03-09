@@ -93,6 +93,7 @@ spec:
       containers:
       - name: telepresence-proxy
         image: {{.PROXY_IMAGE}}
+        command: ["traffic-manager"]
         ports:
         - name: sshd
           containerPort: 8022
@@ -112,7 +113,7 @@ func doInitialize(cmd *cobra.Command, args []string) error {
 
 	input := &strings.Builder{}
 	err := TRAFFIC_MANAGER.Execute(input, map[string]string{
-		"PROXY_IMAGE":            getenvDefault("PROXY_IMAGE", "quay.io/datawire/aes:traffic-proxy-"+Version),
+		"PROXY_IMAGE":            getenvDefault("PROXY_IMAGE", "quay.io/datawire/aes:"+Version),
 		"AMBASSADOR_LICENSE_KEY": license_key,
 	})
 	if err != nil {

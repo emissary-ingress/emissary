@@ -53,9 +53,8 @@
             "_namespace": "default",
             "_port": 8500,
             "_referenced_by": [
-                "ambassador-edge-stack.default.1",
-                "edgestack-direct-mapping.default.1",
-                "edgestack-fallback-mapping.default.1"
+                "--internal--",
+                "ambassador-edge-stack.default.1"
             ],
             "_resolver": "kubernetes-service",
             "_rkey": "cluster_127_0_0_1_8500_default",
@@ -125,7 +124,7 @@
             "_namespace": "default",
             "_port": 8001,
             "_referenced_by": [
-                "logservicetest.default.2"
+                "stenography.default.2"
             ],
             "_resolver": "kubernetes-service",
             "_rkey": "cluster_http___127_0_0_1_8001_default",
@@ -136,7 +135,7 @@
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
-            "location": "logservicetest.default.2",
+            "location": "stenography.default.2",
             "name": "cluster_http___127_0_0_1_8001_default",
             "namespace": "default",
             "service": "127.0.0.1:8001",
@@ -160,7 +159,7 @@
             "_namespace": "default",
             "_port": 25565,
             "_referenced_by": [
-                "logservicetest.default.1"
+                "stenography.default.1"
             ],
             "_rkey": "cluster_logging_stenography_25565_default",
             "connect_timeout_ms": 3000,
@@ -170,7 +169,7 @@
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
-            "location": "logservicetest.default.1",
+            "location": "stenography.default.1",
             "name": "cluster_logging_stenography_25565_default",
             "namespace": "default",
             "service": "stenography:25565",
@@ -243,9 +242,8 @@
                         "_namespace": "default",
                         "_port": 8500,
                         "_referenced_by": [
-                            "ambassador-edge-stack.default.1",
-                            "edgestack-direct-mapping.default.1",
-                            "edgestack-fallback-mapping.default.1"
+                            "--internal--",
+                            "ambassador-edge-stack.default.1"
                         ],
                         "_resolver": "kubernetes-service",
                         "_rkey": "cluster_127_0_0_1_8500_default",
@@ -315,9 +313,9 @@
             "_active": true,
             "_errored": false,
             "_referenced_by": [
-                "edgestack-direct-mapping.default.1"
+                "--internal--"
             ],
-            "_rkey": "edgestack-direct-mapping.default.1",
+            "_rkey": "ir.ambassador",
             "group_id": "ab86de585a684254d5458bdeb01da4fba36c21cc",
             "group_weight": [
                 1000000,
@@ -328,12 +326,15 @@
             ],
             "headers": [],
             "kind": "IRHTTPMappingGroup",
-            "location": "edgestack-direct-mapping.default.1",
+            "location": "--internal--",
             "mappings": [
                 {
                     "_active": true,
                     "_errored": false,
-                    "_rkey": "edgestack-direct-mapping.default.1",
+                    "_referenced_by": [
+                        "--internal--"
+                    ],
+                    "_rkey": "ir.ambassador",
                     "add_request_headers": {},
                     "cluster": {
                         "_active": true,
@@ -343,9 +344,8 @@
                         "_namespace": "default",
                         "_port": 8500,
                         "_referenced_by": [
-                            "ambassador-edge-stack.default.1",
-                            "edgestack-direct-mapping.default.1",
-                            "edgestack-fallback-mapping.default.1"
+                            "--internal--",
+                            "ambassador-edge-stack.default.1"
                         ],
                         "_resolver": "kubernetes-service",
                         "_rkey": "cluster_127_0_0_1_8500_default",
@@ -374,12 +374,10 @@
                     },
                     "group_id": "ab86de585a684254d5458bdeb01da4fba36c21cc",
                     "headers": [],
-                    "kind": "Mapping",
-                    "location": "edgestack-direct-mapping.default.1",
+                    "kind": "IRHTTPMapping",
+                    "location": "--internal--",
                     "metadata_labels": {
-                        "ambassador_crd": "edgestack-direct-mapping.default",
-                        "ambassador_diag_class": "private",
-                        "product": "aes"
+                        "ambassador_diag_class": "private"
                     },
                     "name": "edgestack-direct-mapping",
                     "namespace": "default",
@@ -394,23 +392,19 @@
                         "/edge_stack/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgestack-direct-mapping.default\n  ambassador_diag_class: private\n  product: aes\nname: edgestack-direct-mapping\nnamespace: default\nprecedence: 1000000\nprefix: /edge_stack/\nrewrite: /edge_stack_ui/edge_stack/\nservice: 127.0.0.1:8500\ntimeout_ms: 60000\n",
                     "service": "127.0.0.1:8500",
                     "timeout_ms": 60000,
                     "weight": 100
                 }
             ],
             "metadata_labels": {
-                "ambassador_crd": "edgestack-direct-mapping.default",
-                "ambassador_diag_class": "private",
-                "product": "aes"
+                "ambassador_diag_class": "private"
             },
             "name": "GROUP: edgestack-direct-mapping",
             "namespace": "default",
             "precedence": 1000000,
             "prefix": "/edge_stack/",
             "rewrite": "/edge_stack_ui/edge_stack/",
-            "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgestack-direct-mapping.default\n  ambassador_diag_class: private\n  product: aes\nname: edgestack-direct-mapping\nnamespace: default\nprecedence: 1000000\nprefix: /edge_stack/\nrewrite: /edge_stack_ui/edge_stack/\nservice: 127.0.0.1:8500\ntimeout_ms: 60000\n",
             "timeout_ms": 60000
         },
         {
@@ -690,9 +684,9 @@
             "_active": true,
             "_errored": false,
             "_referenced_by": [
-                "logservicetest.default.2"
+                "stenography.default.2"
             ],
-            "_rkey": "logservicetest.default.2",
+            "_rkey": "stenography.default.2",
             "group_id": "2cc88963a98f4f1bd9ddf846f8fe7bf145757e1c",
             "group_weight": [
                 0,
@@ -703,12 +697,12 @@
             ],
             "headers": [],
             "kind": "IRHTTPMappingGroup",
-            "location": "logservicetest.default.2",
+            "location": "stenography.default.2",
             "mappings": [
                 {
                     "_active": true,
                     "_errored": false,
-                    "_rkey": "logservicetest.default.2",
+                    "_rkey": "stenography.default.2",
                     "add_request_headers": {},
                     "cluster": {
                         "_active": true,
@@ -718,7 +712,7 @@
                         "_namespace": "default",
                         "_port": 8001,
                         "_referenced_by": [
-                            "logservicetest.default.2"
+                            "stenography.default.2"
                         ],
                         "_resolver": "kubernetes-service",
                         "_rkey": "cluster_http___127_0_0_1_8001_default",
@@ -729,7 +723,7 @@
                         "ignore_cluster": false,
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
-                        "location": "logservicetest.default.2",
+                        "location": "stenography.default.2",
                         "name": "cluster_http___127_0_0_1_8001_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8001",
@@ -748,9 +742,8 @@
                     "group_id": "2cc88963a98f4f1bd9ddf846f8fe7bf145757e1c",
                     "headers": [],
                     "kind": "Mapping",
-                    "location": "logservicetest.default.2",
+                    "location": "stenography.default.2",
                     "metadata_labels": {
-                        "app.kubernetes.io/component": "ambassador-service",
                         "kat-ambassador-id": "logservicetest",
                         "scope": "AmbassadorTest"
                     },
@@ -767,13 +760,12 @@
                         "/config_dump",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: logservicetest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: logservicetest\n  scope: AmbassadorTest\nname: config__dump\nnamespace: default\nprefix: /config_dump\nrewrite: /config_dump\nservice: http://127.0.0.1:8001\n",
+                    "serialization": "ambassador_id: logservicetest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: logservicetest\n  scope: AmbassadorTest\nname: config__dump\nnamespace: default\nprefix: /config_dump\nrewrite: /config_dump\nservice: http://127.0.0.1:8001\n",
                     "service": "http://127.0.0.1:8001",
                     "weight": 100
                 }
             ],
             "metadata_labels": {
-                "app.kubernetes.io/component": "ambassador-service",
                 "kat-ambassador-id": "logservicetest",
                 "scope": "AmbassadorTest"
             },
@@ -782,31 +774,34 @@
             "precedence": 0,
             "prefix": "/config_dump",
             "rewrite": "/config_dump",
-            "serialization": "ambassador_id: logservicetest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: logservicetest\n  scope: AmbassadorTest\nname: config__dump\nnamespace: default\nprefix: /config_dump\nrewrite: /config_dump\nservice: http://127.0.0.1:8001\n"
+            "serialization": "ambassador_id: logservicetest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: logservicetest\n  scope: AmbassadorTest\nname: config__dump\nnamespace: default\nprefix: /config_dump\nrewrite: /config_dump\nservice: http://127.0.0.1:8001\n"
         },
         {
             "_active": true,
             "_errored": false,
             "_referenced_by": [
-                "edgestack-fallback-mapping.default.1"
+                "--internal--"
             ],
-            "_rkey": "edgestack-fallback-mapping.default.1",
-            "group_id": "5eb8304c5bb81b74bc6e6e947392fe0c6d1f2dab",
+            "_rkey": "ir.ambassador",
+            "group_id": "680a6fad8cb1cf2ad5fce0be9da026e1e0f1b76f",
             "group_weight": [
                 -1000000,
-                1,
+                3,
                 0,
-                "/",
+                "^/$",
                 "GET"
             ],
             "headers": [],
             "kind": "IRHTTPMappingGroup",
-            "location": "edgestack-fallback-mapping.default.1",
+            "location": "--internal--",
             "mappings": [
                 {
                     "_active": true,
                     "_errored": false,
-                    "_rkey": "edgestack-fallback-mapping.default.1",
+                    "_referenced_by": [
+                        "--internal--"
+                    ],
+                    "_rkey": "ir.ambassador",
                     "add_request_headers": {},
                     "cluster": {
                         "_active": true,
@@ -816,9 +811,8 @@
                         "_namespace": "default",
                         "_port": 8500,
                         "_referenced_by": [
-                            "ambassador-edge-stack.default.1",
-                            "edgestack-direct-mapping.default.1",
-                            "edgestack-fallback-mapping.default.1"
+                            "--internal--",
+                            "ambassador-edge-stack.default.1"
                         ],
                         "_resolver": "kubernetes-service",
                         "_rkey": "cluster_127_0_0_1_8500_default",
@@ -845,45 +839,41 @@
                             "tcp://127.0.0.1:8500"
                         ]
                     },
-                    "group_id": "5eb8304c5bb81b74bc6e6e947392fe0c6d1f2dab",
+                    "group_id": "680a6fad8cb1cf2ad5fce0be9da026e1e0f1b76f",
                     "headers": [],
-                    "kind": "Mapping",
-                    "location": "edgestack-fallback-mapping.default.1",
+                    "kind": "IRHTTPMapping",
+                    "location": "--internal--",
                     "metadata_labels": {
-                        "ambassador_crd": "edgestack-fallback-mapping.default",
-                        "ambassador_diag_class": "private",
-                        "product": "aes"
+                        "ambassador_diag_class": "private"
                     },
                     "name": "edgestack-fallback-mapping",
                     "namespace": "default",
                     "precedence": -1000000,
-                    "prefix": "/",
+                    "prefix": "^/$",
+                    "prefix_regex": true,
                     "resolver": "kubernetes-service",
                     "rewrite": "/edge_stack_ui/",
                     "route_weight": [
                         -1000000,
-                        1,
+                        3,
                         0,
-                        "/",
+                        "^/$",
                         "GET"
                     ],
-                    "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgestack-fallback-mapping.default\n  ambassador_diag_class: private\n  product: aes\nname: edgestack-fallback-mapping\nnamespace: default\nprecedence: -1000000\nprefix: /\nrewrite: /edge_stack_ui/\nservice: 127.0.0.1:8500\ntimeout_ms: 60000\n",
                     "service": "127.0.0.1:8500",
                     "timeout_ms": 60000,
                     "weight": 100
                 }
             ],
             "metadata_labels": {
-                "ambassador_crd": "edgestack-fallback-mapping.default",
-                "ambassador_diag_class": "private",
-                "product": "aes"
+                "ambassador_diag_class": "private"
             },
             "name": "GROUP: edgestack-fallback-mapping",
             "namespace": "default",
             "precedence": -1000000,
-            "prefix": "/",
+            "prefix": "^/$",
+            "prefix_regex": true,
             "rewrite": "/edge_stack_ui/",
-            "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgestack-fallback-mapping.default\n  ambassador_diag_class: private\n  product: aes\nname: edgestack-fallback-mapping\nnamespace: default\nprecedence: -1000000\nprefix: /\nrewrite: /edge_stack_ui/\nservice: 127.0.0.1:8500\ntimeout_ms: 60000\n",
             "timeout_ms": 60000
         }
     ],
@@ -928,20 +918,6 @@
             {
                 "state": "Running"
             }
-        ],
-        "edgestack-direct-mapping.default": [
-            "Mapping",
-            "default",
-            {
-                "state": "Running"
-            }
-        ],
-        "edgestack-fallback-mapping.default": [
-            "Mapping",
-            "default",
-            {
-                "state": "Running"
-            }
         ]
     },
     "listeners": [
@@ -966,9 +942,9 @@
             "_active": true,
             "_errored": false,
             "_referenced_by": [
-                "logservicetest.default.1"
+                "stenography.default.1"
             ],
-            "_rkey": "logservicetest.default.1",
+            "_rkey": "stenography.default.1",
             "cluster": {
                 "_active": true,
                 "_errored": false,
@@ -977,7 +953,7 @@
                 "_namespace": "default",
                 "_port": 25565,
                 "_referenced_by": [
-                    "logservicetest.default.1"
+                    "stenography.default.1"
                 ],
                 "_rkey": "cluster_logging_stenography_25565_default",
                 "connect_timeout_ms": 3000,
@@ -987,7 +963,7 @@
                 "ignore_cluster": false,
                 "kind": "IRCluster",
                 "lb_type": "round_robin",
-                "location": "logservicetest.default.1",
+                "location": "stenography.default.1",
                 "name": "cluster_logging_stenography_25565_default",
                 "namespace": "default",
                 "service": "stenography:25565",
@@ -1030,7 +1006,7 @@
             "flush_interval_time": 1,
             "grpc": false,
             "kind": "ir.logservice",
-            "location": "logservicetest.default.1",
+            "location": "stenography.default.1",
             "name": "logservice",
             "namespace": "default",
             "service": "stenography:25565"

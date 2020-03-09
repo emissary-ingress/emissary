@@ -2,7 +2,6 @@
 
 AES_EXAMPLE_PLUGINS_IMAGE=$(          sed -n 2p docker/aes-example-plugins.docker.push.dev)
 CONSUL_CONNECT_INTEGRATION_IMAGE=$(   sed -n 2p docker/consul_connect_integration.docker.push.dev)
-PROXY_IMAGE=$(                        sed -n 2p docker/traffic-proxy.docker.push.dev)
 MODEL_CLUSTER_APP_IMAGE=$(            sed -n 2p docker/model-cluster-app.docker.push.dev)
 MODEL_CLUSTER_GRPC_AUTH_IMAGE=$(      sed -n 2p docker/model-cluster-grpc-auth.docker.push.dev)
 MODEL_CLUSTER_HTTP_AUTH_IMAGE=$(      sed -n 2p docker/model-cluster-http-auth.docker.push.dev)

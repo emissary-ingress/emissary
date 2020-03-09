@@ -2,8 +2,6 @@
 set -e
 
 eval "$(grep BUILD_VERSION /buildroot/apro.version 2>/dev/null)"
-mkdir -p /buildroot/bin-darwin
-(cd /buildroot/apro && GOOS=darwin go build -trimpath ${BUILD_VERSION:+ -ldflags "-X main.Version=$BUILD_VERSION" } -o /buildroot/bin-darwin ./cmd/aes-plugin-runner)
 
 # Create symlinks to the multi-call binary so the original names can be used in
 # the builder shell easily (from the shell PATH).
@@ -13,6 +11,7 @@ ln -sf /buildroot/bin/ambassador /buildroot/bin/watt
 ln -sf /buildroot/bin/ambassador /buildroot/bin/amb-sidecar
 ln -sf /buildroot/bin/ambassador /buildroot/bin/app-sidecar
 ln -sf /buildroot/bin/ambassador /buildroot/bin/aes-plugin-runner
+ln -sf /buildroot/bin/ambassador /buildroot/bin/traffic-manager
 
 # Also note there is a different ambassador binary, written in Python, that
 # shows up earlier in the shell PATH:
@@ -29,6 +28,15 @@ sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/watt
 sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/amb-sidecar
 sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/app-sidecar
 sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/aes-plugin-runner
+sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/traffic-manager
+
+# Copy installer support into /opt/image-build to be run at docker build for the
+# production image. Then run the installers for the builder container.
+# Note: The target dir and the installer script are always handled by
+# ambassador's post-compile script, so we it is safe to assume they exist at
+# this point.
+sudo cp -a /buildroot/apro/build-aux-local/installers /opt/image-build/
+sudo /opt/image-build/install.sh
 
 # entrypoint.sh, aes-plugin-runner, and the ABI stuff later in this file expect
 # these to be here
@@ -43,38 +51,6 @@ sudo rm -rf /ambassador/init-config
 sudo mkdir /ambassador/init-config
 
 cat > /tmp/edge-stack-mappings.yaml <<EOF
----
-apiVersion: getambassador.io/v2
-kind: Mapping
-metadata:
-  name: edgestack-fallback-mapping
-  namespace: _automatic_
-  labels:
-    product: aes
-    ambassador_diag_class: private
-spec:
-  ambassador_id: [ "_automatic_" ]
-  prefix: /
-  rewrite: /edge_stack_ui/
-  service: 127.0.0.1:8500
-  precedence: -1000000
-  timeout_ms: 60000
----
-apiVersion: getambassador.io/v2
-kind: Mapping
-metadata:
-  name: edgestack-direct-mapping
-  namespace: _automatic_
-  labels:
-    product: aes
-    ambassador_diag_class: private
-spec:
-  ambassador_id: [ "_automatic_" ]
-  prefix: /edge_stack/
-  rewrite: /edge_stack_ui/edge_stack/
-  service: 127.0.0.1:8500
-  precedence: 1000000
-  timeout_ms: 60000
 ---
 apiVersion: getambassador.io/v2
 kind: Mapping

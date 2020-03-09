@@ -3,6 +3,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: {self.path.k8s}
+{serviceAccountExtra}
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: Role
@@ -13,7 +14,7 @@ rules:
 # but it needs extra permissions to write getambassador.io CRs and
 # to create and update secrets.
 - apiGroups: [""]
-  resources: [ namespaces", "services" ]
+  resources: [ "namespaces", "services" ]
   verbs: ["get", "list", "watch"]
 - apiGroups: [ "getambassador.io" ]
   resources: [ "*" ]

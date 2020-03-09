@@ -450,13 +450,18 @@
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
-                                                            "prefix": "/",
                                                             "runtime_fraction": {
                                                                 "default_value": {
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
                                                                 "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8500_default"
+                                                            },
+                                                            "safe_regex": {
+                                                                "google_re2": {
+                                                                    "max_program_size": 200
+                                                                },
+                                                                "regex": "^/$"
                                                             }
                                                         },
                                                         "route": {
@@ -469,13 +474,18 @@
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
-                                                            "prefix": "/",
                                                             "runtime_fraction": {
                                                                 "default_value": {
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
                                                                 "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8500_default"
+                                                            },
+                                                            "safe_regex": {
+                                                                "google_re2": {
+                                                                    "max_program_size": 200
+                                                                },
+                                                                "regex": "^/$"
                                                             }
                                                         },
                                                         "route": {
@@ -496,8 +506,7 @@
                                     "xff_num_trusted_hops": 0
                                 }
                             }
-                        ],
-                        "use_proxy_proto": false
+                        ]
                     }
                 ],
                 "listener_filters": [],

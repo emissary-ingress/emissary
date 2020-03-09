@@ -237,8 +237,8 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 	switch u.Path {
 	case "/.ambassador/oauth2/redirection-endpoint":
 		if sessionInfo.sessionData == nil {
-			return middleware.NewErrorResponse(ctx, http.StatusForbidden,
-				errors.Errorf("no %q cookie", c.sessionCookieName()), nil), nil
+			// Regard this as an XSRF error
+			return sessionInfo.handleUnauthenticatedProxyRequest(ctx, logger, httpClient, oauthClient, discovered, request), nil
 		}
 		var originalURL *url.URL
 		if authorization != nil {
@@ -265,6 +265,9 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 		} else {
 			authorizationCode, err := oauthClient.ParseAuthorizationResponse(sessionInfo.sessionData, u)
 			if err != nil {
+				if errors.Is(err, rfc6749client.XSRFError("")) {
+					return sessionInfo.handleUnauthenticatedProxyRequest(ctx, logger, httpClient, oauthClient, discovered, request), nil
+				}
 				return middleware.NewErrorResponse(ctx, http.StatusBadRequest,
 					err, nil), nil
 			}
@@ -295,26 +298,7 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 		if authorization != nil {
 			return sessionInfo.handleAuthenticatedProxyRequest(ctx, logger, httpClient, discovered, request, authorization), nil
 		} else {
-			filterResp := sessionInfo.handleUnauthenticatedProxyRequest(ctx, logger, httpClient, oauthClient, discovered, request)
-			if httpResp, httpRespOK := filterResp.(*filterapi.HTTPResponse); httpRespOK && httpResp.StatusCode/100 == 3 && sessionInfo.c.Arguments.InsteadOfRedirect != nil {
-				noRedirect := sessionInfo.c.Arguments.InsteadOfRedirect.IfRequestHeader.Matches(filterutil.GetHeader(request))
-				if noRedirect {
-					sessionInfo.sessionData = nil // avoid setting pre-redirect session cookies
-					if sessionInfo.c.Arguments.InsteadOfRedirect.HTTPStatusCode != 0 {
-						return middleware.NewErrorResponse(ctx, sessionInfo.c.Arguments.InsteadOfRedirect.HTTPStatusCode,
-							errors.New("session cookie is either missing, or refers to an expired or non-authenticated session"),
-							nil), nil
-					} else {
-						ret, err := sessionInfo.c.RunFilters(sessionInfo.c.Arguments.InsteadOfRedirect.Filters, dlog.WithLogger(ctx, logger), request)
-						if err != nil {
-							return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-								errors.Wrap(err, "insteadOfRedirect.filters"), nil), nil
-						}
-						return ret, nil
-					}
-				}
-			}
-			return filterResp, nil
+			return sessionInfo.handleUnauthenticatedProxyRequest(ctx, logger, httpClient, oauthClient, discovered, request), nil
 		}
 	}
 }
@@ -385,6 +369,29 @@ func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Co
 			errors.Wrap(err, "failed to construct URL"), nil)
 	}
 
+	// If we end up unauthorized at the redirection endpoint (because XSRF-protection
+	// rejected the authorization), go ahead and dereference the alleged state.
+	//
+	// This is safe, because ruleForURL has already validated that state-derived-URL
+	// as something that this filter handles, by virtue of the fact that it decided to
+	// call this filter.  Cogito, ergo sum.
+	//
+	// If we don't dereference the alleged state here, then the alternative would be
+	// to modify ruleForURL to recurse on itself; otherwise we'd get to the URL
+	//
+	//    redirection-endpoint?state={redirect to "redirection-endpoint?state={redirect to original URL}"}
+	//
+	// and because ruleForURL doesn't recurse on itself when extracting the
+	// destination from `state`, ruleForURL wouldn't choose the rule for "original
+	// URL", instead returning nil, so then the request falls through to the fallback
+	// ServeHTTP in handler.go which would serve an HTTP 400 response.
+	if originalURL.Path == "/.ambassador/oauth2/redirection-endpoint" {
+		u, err := ReadState(originalURL.Query().Get("state"))
+		if err == nil {
+			originalURL = u
+		}
+	}
+
 	// Build the scope
 	scope := make(rfc6749client.Scope, len(sessionInfo.c.Arguments.Scopes))
 	for _, s := range sessionInfo.c.Arguments.Scopes {
@@ -418,16 +425,32 @@ func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Co
 			err, nil)
 	}
 
-	return &filterapi.HTTPResponse{
-		// A 302 "Found" may or may not convert POST->GET.  We want
-		// the UA to GET the Authorization URI, so we shouldn't use
-		// 302 which may or may not do the right thing, but use 303
-		// "See Other" which MUST convert to GET.
-		StatusCode: http.StatusSeeOther,
-		Header: http.Header{
-			"Location": {authorizationRequestURI.String()},
-		},
-		Body: "",
+	if sessionInfo.c.Arguments.InsteadOfRedirect != nil && sessionInfo.c.Arguments.InsteadOfRedirect.IfRequestHeader.Matches(filterutil.GetHeader(request)) {
+		sessionInfo.sessionData = nil // avoid setting pre-redirect session cookies
+		if sessionInfo.c.Arguments.InsteadOfRedirect.HTTPStatusCode != 0 {
+			return middleware.NewErrorResponse(ctx, sessionInfo.c.Arguments.InsteadOfRedirect.HTTPStatusCode,
+				errors.New("session cookie is either missing, or refers to an expired or non-authenticated session"),
+				nil)
+		} else {
+			ret, err := sessionInfo.c.RunFilters(sessionInfo.c.Arguments.InsteadOfRedirect.Filters, dlog.WithLogger(ctx, logger), request)
+			if err != nil {
+				return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+					errors.Wrap(err, "insteadOfRedirect.filters"), nil)
+			}
+			return ret
+		}
+	} else {
+		return &filterapi.HTTPResponse{
+			// A 302 "Found" may or may not convert POST->GET.  We want
+			// the UA to GET the Authorization URI, so we shouldn't use
+			// 302 which may or may not do the right thing, but use 303
+			// "See Other" which MUST convert to GET.
+			StatusCode: http.StatusSeeOther,
+			Header: http.Header{
+				"Location": {authorizationRequestURI.String()},
+			},
+			Body: "",
+		}
 	}
 }
 

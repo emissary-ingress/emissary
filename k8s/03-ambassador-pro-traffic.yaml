@@ -41,7 +41,8 @@ spec:
     spec:
       containers:
       - name: telepresence-proxy
-        image: {{env "PROXY_IMAGE"}}
+        image: {{env "AES_IMAGE"}}
+        command: ["traffic-manager"]
         ports:
         - name: sshd
           containerPort: 8022
