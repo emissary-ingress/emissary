@@ -28,7 +28,7 @@ accessible cluster, it will:
 
 **To install the Ambassador Edge Stack:**
 
-1. Download the `edgectl`file for your operating system:
+1. Download the `edgectl` file for your operating system:
 
    * [MacOS](https://metriton.datawire.io/downloads/darwin/edgectl)
    * [Linux](https://metriton.datawire.io/downloads/linux/edgectl)
@@ -41,23 +41,28 @@ accessible cluster, it will:
      * Click the **Open Anyway** button.
      * Click the **Open** button.
 
-2. Move the file into your PATH (for Windows users, move it into the Windows
-   Systems path).
-   * Print your PATH with `echo $PATH`
-   * For Linux and MacOS, ensure the file is executable with the command `chmod a+x /usr/local/bin/edgectl`
-   * Run the executable file with the command `./edgectl`
+2. Move the file into your PATH (for Windows users, move it into the Windows System path). For Linux and MacOS,
+   * Ensure the file is executable with the command `chmod a+x edgectl`
+   * You can view your PATH with `echo $PATH`
+   * Move the file into a directory on your path. For example: `sudo mv edgectl /usr/local/bin/`
+
 3. Now, run the following command: `edgectl install`
 
-    Your terminal will print something similar to the following as it provisions
+    Your terminal will show you something similar to the following as the installer provisions
     a load balancer, configures TLS, and provides you with an `edgestack.me` subdomain:
 
     ```
     $ edgectl install
     -> Installing the Ambassador Edge Stack $version$.
-    -> Remote Kubernetes cluster detected.
-    -> Provisioning a cloud load balancer. (This may take a minute, depending on your cloud provider.)
-    -> Automatically configuring TLS.
-    Please enter an email address. We’ll use this email address to notify you prior to domain and certification expiration [None]: john@example.com.
+    Downloading images. (This may take a minute.)
+    -> Provisioning a cloud load balancer. (This may take a minute, depending on
+    your cloud provider.)
+    Your AES installation's IP address is 4.3.2.1
+    -> Automatically configuring TLS
+
+    Please enter an email address. We'll use this email address to notify you prior
+    to domain and certificate expiration. We also share this email address with
+    Let's Encrypt to acquire your certificate for TLS.
     ```
 
     Minikube users will see something similar to the following:
@@ -65,21 +70,39 @@ accessible cluster, it will:
     ```
     $ edgectl install
     -> Installing the Ambassador Edge Stack $version$.
-    -> Automatically configuring TLS.
-    -> Cluster is not publicly accessible. Please ensure your cluster is publicly accessible if you would like to use automatic TLS.
+    Downloading images. (This may take a minute.)
+    -> Local cluster detected. Not configuring automatic TLS.
 
-    Congratulations, you’ve successfully installed the Ambassador Edge Stack in your Kubernetes cluster. Visit http://192.168.64.2:31334 to access your Edge Stack installation and for additional configuration.
+    Congratulations! You've successfully installed the Ambassador Edge Stack in
+    your Kubernetes cluster. However, we cannot connect to your cluster from the
+    Internet, so we could not configure TLS automatically.
+
+    Determine the IP address and port number of your Ambassador service.
+    (e.g., minikube service -n ambassador ambassador)
+
+    The following command will open the Edge Policy Console once you accept a
+    self-signed certificate in your browser.
+
+    $ edgectl login -n ambassador IP_ADDRESS:PORT
+
+    See https://www.getambassador.io/user-guide/getting-started/
     ```
 
-4. Provide an email address as required by the ACME TLS certificate provider, Let's Encrypt. Then your terminal will print something similar to the following:
+4. Provide an email address as required by the ACME TLS certificate provider, Let's Encrypt. Then you will see something similar to the following:
 
     ```shell
-    -> Obtaining a TLS certificate from Let’s Encrypt.
+    Email address [john@example.com]:
 
-    Congratulations, you’ve successfully installed the Ambassador Edge Stack in your Kubernetes cluster. Visit https://random-word-3421.edgestack.me to access your Edge Stack installation and for additional configuration.
+    -> Acquiring DNS name random-word-3421.edgestack.me
+    -> Obtaining a TLS certificate from Let's Encrypt
+    -> TLS configured successfully
+
+    Congratulations! You've successfully installed the Ambassador Edge Stack in
+    your Kubernetes cluster. Visit random-word-3421.edgestack.me to access your
+    Edge Stack installation and for additional configuration.
     ```
 
-    The `random-word-1234.edgestack.me` is a provided subdomain that allows the
+    The `random-word-3421.edgestack.me` is a provided subdomain that allows the
     Ambassador Edge Stack to automatically provision TLS and HTTPS for a domain
     name, so you can get started right away.
 
