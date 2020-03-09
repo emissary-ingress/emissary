@@ -23,23 +23,6 @@ func parseAnnotationResources(resource k8s.Resource) (annotationResources []k8s.
 		return
 	}
 	for _, annotationResource := range _annotationResources {
-		// The Canonical API Version for our resources always starts with "getambassador.io/",
-		// but it used to always start with "ambassador/". Translate as needed for backward
-		// compatibility.
-		if apiVersion := k8s.Map(annotationResource).GetString("apiVersion"); strings.HasPrefix(apiVersion, "ambassador/") {
-			annotationResource["apiVersion"] = "getambassador.io/" + strings.TrimPrefix(apiVersion, "ambassador/")
-		}
-
-		// Make sure it's in the right API group
-		if !strings.HasPrefix(k8s.Map(annotationResource).GetString("apiVersion"), "getambassador.io/") {
-			annotationErrs = append(annotationErrs, watt.NewError(
-				fmt.Sprintf("%s/%s: annotation getambassador.io/config: %s/%s",
-					resource.QKind(), resource.QName(),
-					annotationResource.QKind(), annotationResource.QName()),
-				"not in the getambassador.io apiGroup, ignoring"))
-			continue
-		}
-
 		// Un-fold annotations with collapsed metadata/spec
 		if dat, ok := annotationResource["metadata"].(map[string]interface{}); !ok || dat == nil {
 			annotationResource["metadata"] = map[string]interface{}{}
@@ -69,6 +52,23 @@ func parseAnnotationResources(resource k8s.Resource) (annotationResources []k8s.
 		}
 		if annotationResource.Metadata()["labels"] == nil && resource.Metadata()["labels"] != nil {
 			annotationResource.Metadata()["labels"] = resource.Metadata()["labels"]
+		}
+
+		// The Canonical API Version for our resources always starts with "getambassador.io/",
+		// but it used to always start with "ambassador/". Translate as needed for backward
+		// compatibility.
+		if apiVersion := k8s.Map(annotationResource).GetString("apiVersion"); strings.HasPrefix(apiVersion, "ambassador/") {
+			annotationResource["apiVersion"] = "getambassador.io/" + strings.TrimPrefix(apiVersion, "ambassador/")
+		}
+
+		// Make sure it's in the right API group
+		if !strings.HasPrefix(k8s.Map(annotationResource).GetString("apiVersion"), "getambassador.io/") {
+			annotationErrs = append(annotationErrs, watt.NewError(
+				fmt.Sprintf("%s/%s: annotation getambassador.io/config: %s/%s",
+					resource.QKind(), resource.QName(),
+					annotationResource.QKind(), annotationResource.QName()),
+				"not in the getambassador.io apiGroup, ignoring"))
+			continue
 		}
 
 		// Add it to the snapshot
