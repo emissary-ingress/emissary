@@ -12,7 +12,6 @@ from .acresource import ACResource
 from ..utils import parse_yaml, dump_yaml
 
 AnyDict = Dict[str, Any]
-HandlerResult = Optional[Tuple[str, List[AnyDict]]]
 
 # XXX ALL OF THE BELOW COMMENT IS PROBABLY OUT OF DATE. (Flynn, 2019-10-29)
 #
@@ -62,17 +61,16 @@ class ResourceFetcher:
     #              /         V   V              V
     #             /        handle_k8s   handle_consul_service
     #            /          /  |  \
-    #           /          /   |   `-----------------------------------,
-    #          /   ,------'    |         +-----------------------------V-----------------------------+
-    #          |   |           V         |                                                           |
-    #          |   |    handle_k8s_crd<----handle_k8s_ingress  handle_k8s_{endpoints,secret,service} |
-    #          |   |           |         |                                                           |
-    #          |   |   ,-------'         +-----------------------------------------------------------+
-    #          V   V   V
-    #       process_objects
-    #              |
-    #              V
-    #       process_object
+    #           /          /   |   `--------------------------------------------,
+    #          /   ,------'    |         +--------------------------------------V-------------------------------+
+    #          |   |           V         |                                                                      |
+    #          |   |    handle_k8s_crd<----handle_k8s_ingress  handle_k8s_{service,secret} handle_k8s_endpoints |
+    #          |   |           |         |           |                      |                                   |
+    #          |   |           |         +---------- | -------------------- | ----------------------------------+
+    #          \   \           |                     /                      /
+    #           `---`---------,|,-------------------'----------------------'
+    #                          V
+    #                    process_object
     #
     # The functions marked with "*" also call `finalize()` unless they
     # receive the `finalize=False` argument.
@@ -88,9 +86,6 @@ class ResourceFetcher:
         self.aconf = aconf
         self.logger = logger
         self.elements: List[ACResource] = []
-        self.filename: Optional[str] = None
-        self.ocount: int = 1
-        self.saved: List[Tuple[Optional[str], int]] = []
         self.watch_only = watch_only
 
         self.k8s_endpoints: Dict[str, AnyDict] = {}
@@ -114,18 +109,6 @@ class ResourceFetcher:
 
             if os.path.isdir(init_dir):
                 self.load_from_filesystem(init_dir, k8s=True, recurse=True, finalize=False)
-
-    @property
-    def location(self):
-        return "%s.%d" % (self.filename or "anonymous YAML", self.ocount)
-
-    def push_location(self, filename: Optional[str], ocount: int) -> None:
-        self.saved.append((self.filename, self.ocount))
-        self.filename = filename
-        self.ocount = ocount
-
-    def pop_location(self) -> None:
-        self.filename, self.ocount = self.saved.pop()
 
     def load_from_filesystem(self, config_dir_path, recurse: bool=False,
                              k8s: bool=False, finalize: bool=True):
@@ -166,7 +149,7 @@ class ResourceFetcher:
 
             try:
                 serialization = open(filepath, "r").read()
-                self.parse_yaml(serialization, filename=filepath, k8s=k8s)
+                self.parse_yaml(serialization, filename=f"file://{os.path.abspath(filepath)}", k8s=k8s)
             except IOError as e:
                 self.aconf.post_error("could not read YAML from %s: %s" % (filepath, e))
 
@@ -182,13 +165,20 @@ class ResourceFetcher:
         try:
             # UGH. This parse_yaml is the one we imported from utils. XXX This needs to be fixed.
             objects = parse_yaml(serialization)
-            if k8s:
-                self.push_location(filename, 1)
-                for obj in objects:
-                    self.handle_k8s(obj)
-                self.pop_location()
-            else:
-                self.process_objects(objects=objects, filename=filename)
+            i = 0
+            for obj in objects:
+                obj_type = f"{obj.get('kind', '_missing_kind_')}.{'.'.join(obj.get('apiVersion', '_missing_apiVersion_').split('/')[::-1])}"
+                if k8s:
+                    obj_metadata = obj.get('metadata', {})
+                    obj_qname = f"{obj_metadata.get('name', '_missing_name_')}.{obj_metadata.get('namespace', '_missing_namespace_')}"
+                else:
+                    obj_qname = f"{obj.get('name', '_missing_name_')}.{obj.get('namespace', '_missing_namespace_')}"
+                obj_filename = f"{filename}#[{i}]={obj_type}/{obj_qname}"
+                if k8s:
+                    self.handle_k8s(obj, filename=obj_filename)
+                else:
+                    self.process_object(obj, filename=obj_filename)
+                i += 1
         except yaml.error.YAMLError as e:
             self.aconf.post_error("%s: could not parse YAML: %s" % (self.location, e))
 
@@ -223,7 +213,7 @@ class ResourceFetcher:
             for key in CRDTypes.union([ 'service', 'endpoints', 'secret', 'ingresses' ]):
                 for obj in watt_k8s.get(key) or []:
                     # self.logger.debug(f"Handling resource type {key}...")
-                    self.handle_k8s(obj)
+                    self.handle_k8s(obj, filename=f"https://kubernetesf{obj.get('metadata', {}).get('selfLink')}")
 
             watt_consul = watt_dict.get('Consul', {})
             consul_endpoints = watt_consul.get('Endpoints', {})
@@ -247,7 +237,7 @@ class ResourceFetcher:
         self.k8s_parsed[key] = True
         return True
 
-    def handle_k8s(self, obj: dict) -> None:
+    def handle_k8s(self, obj: dict, filename: str) -> None:
         # self.logger.debug("handle_k8s obj %s" % json.dumps(obj, indent=4, sort_keys=True))
 
         kind = obj.get('kind')
@@ -280,14 +270,9 @@ class ResourceFetcher:
             if not self.check_k8s_dup(kind, namespace, name):
                 return
 
-        result = handler(obj)
+        handler(obj, filename=filename)
 
-        if result:
-            rkey, parsed_objects = result
-
-            self.process_objects(parsed_objects, filename=self.filename, rkey=rkey)
-
-    def handle_k8s_crd(self, obj: dict) -> None:
+    def handle_k8s_crd(self, obj: AnyDict, filename: str) -> None:
         # CRDs are _not_ allowed to have embedded objects in annotations, because ew.
         # self.logger.debug(f"Handling K8s CRD: {obj}")
 
@@ -348,7 +333,7 @@ class ResourceFetcher:
         #     return
 
         # We use this resource identifier as a key into self.k8s_services, and of course for logging .
-        resource_identifier = f'{name}.{namespace}'
+        resource_identifier = f"https://kubernetes{metadata.get('selfLink')}"
 
         # OK. Shallow copy 'spec'...
         amb_object = dict(spec)
@@ -367,25 +352,7 @@ class ResourceFetcher:
         amb_object['metadata_labels']['ambassador_crd'] = resource_identifier
 
         # Done. Parse it.
-        self.process_objects([ amb_object ], filename=self.filename, rkey=resource_identifier)
-
-    def process_objects(self, objects, rkey: Optional[str]=None,
-                        filename: Optional[str]=None, namespace: Optional[str]=None):
-        """Process a list parsed-YAML-objects as old-style/annotation-style resources."""
-        self.push_location(filename, 1)
-
-        # self.logger.debug("PROCESS_OBJECTS: incoming %d" % len(objects))
-
-        for obj in objects:
-            # self.logger.debug("PROCESS_OBJECTS: checking %s" % obj)
-
-            # if not obj:
-            #     self.logger.debug("%s: empty object from %s" % (self.location, serialization))
-
-            self.process_object(obj, rkey=rkey, namespace=namespace)
-            self.ocount += 1
-
-        self.pop_location()
+        process_object(amb_object, filename=filename)
 
     def process_object(self, obj: dict, rkey: Optional[str]=None, namespace: Optional[str]=None) -> None:
         """Process a parsed-YAML-object as an old-style/annotation-style resource."""
@@ -407,29 +374,6 @@ class ResourceFetcher:
             self.aconf.post_error("%s is missing 'kind'?? %s" %
                                   (self.location, json.dumps(obj, indent=4, sort_keys=True)))
             return
-
-        # self.logger.debug("%s PROCESS %s initial rkey %s" % (self.location, obj['kind'], rkey))
-
-        # Is this a pragma object?
-        if obj['kind'] == 'Pragma':
-            # Why did I think this was a good idea? [ :) ]
-            new_source = obj.get('source', None)
-
-            if new_source:
-                # We don't save the old self.filename here, so this change will last until
-                # the next input source (or the next Pragma).
-                self.filename = new_source
-
-            # Don't count Pragma objects, since the user generally doesn't write them.
-            self.ocount -= 1
-            return
-
-        if not rkey:
-            rkey = self.filename
-
-        rkey = "%s.%d" % (rkey, self.ocount)
-
-        # self.logger.debug("%s PROCESS %s updated rkey to %s" % (self.location, obj['kind'], rkey))
 
         # Force the namespace and metadata_labels, if need be.
         if namespace and not obj.get('namespace', None):
@@ -454,13 +398,11 @@ class ResourceFetcher:
     def sorted(self, key=lambda x: x.rkey):  # returns an iterator, probably
         return sorted(self.elements, key=key)
 
-    def handle_k8s_ingress(self, k8s_object: AnyDict) -> HandlerResult:
+    def handle_k8s_ingress(self, k8s_object: AnyDict, filename: str) -> None:
         metadata = k8s_object.get('metadata', None)
         metadata_labels: Optional[Dict[str, str]] = metadata.get('labels')
         ingress_name = metadata.get('name') if metadata else None
         ingress_namespace = metadata.get('namespace', 'default') if metadata else None
-
-        resource_identifier = f'{ingress_name}.{ingress_namespace}'
 
         ingress_spec = k8s_object.get('spec', None)
 
@@ -485,28 +427,18 @@ class ResourceFetcher:
             skip = True
 
         if skip:
-            return None
+            return
 
         # Let's see if our Ingress resource has Ambassador annotations on it
         annotations = metadata.get('annotations', {})
         ambassador_annotations = annotations.get('getambassador.io/config', None)
-
-        parsed_ambassador_annotations = None
-        if ambassador_annotations is not None:
-            if (self.filename is not None) and (not self.filename.endswith(":annotation")):
-                self.filename += ":annotation"
-
-            try:
-                parsed_ambassador_annotations = parse_yaml(ambassador_annotations)
-            except yaml.error.YAMLError as e:
-                self.logger.debug("could not parse YAML: %s" % e)
 
         ambassador_id = annotations.get('getambassador.io/ambassador-id', 'default')
 
         # We don't want to deal with non-matching Ambassador IDs
         if ambassador_id != Config.ambassador_id:
             self.logger.info(f"Ingress {ingress_name} does not have Ambassador ID {Config.ambassador_id}, ignoring...")
-            return None
+            return
 
         self.logger.info(f"Handling Ingress {ingress_name}...")
 
@@ -538,7 +470,7 @@ class ResourceFetcher:
                     ingress_tls_context['spec']['hosts'] = tls_hosts
 
                 self.logger.info(f"Generated TLS Context from ingress {ingress_name}: {ingress_tls_context}")
-                self.handle_k8s_crd(ingress_tls_context)
+                self.handle_k8s_crd(ingress_tls_context, filename=f"{filename}#generated/tls-context")
 
         # parse ingress.spec.backend
         default_backend = ingress_spec.get('backend', {})
@@ -565,7 +497,7 @@ class ResourceFetcher:
                 default_backend_mapping['metadata']['labels'] = metadata_labels
 
             self.logger.info(f"Generated mapping from Ingress {ingress_name}: {default_backend_mapping}")
-            self.handle_k8s_crd(default_backend_mapping)
+            self.handle_k8s_crd(default_backend_mapping, filename=f"{filename}#generated/db-mapping")
 
         # parse ingress.spec.rules
         ingress_rules = ingress_spec.get('rules', [])
@@ -609,7 +541,7 @@ class ResourceFetcher:
                     path_mapping['spec']['host'] = rule_host
 
                 self.logger.info(f"Generated mapping from Ingress {ingress_name}: {path_mapping}")
-                self.handle_k8s_crd(path_mapping)
+                self.handle_k8s_crd(path_mapping, filename=f"{filename}#generated/mapping-{mapping_identifier}")
 
         # let's make arrangements to update Ingress' status now
         if not self.ambassador_service_raw:
@@ -620,16 +552,27 @@ class ResourceFetcher:
             self.logger.info(f"Updating Ingress {ingress_name} status to {ingress_status_update}")
             self.aconf.k8s_status_updates[f'{ingress_name}.{ingress_namespace}'] = ingress_status_update
 
-        if parsed_ambassador_annotations is not None:
-            # Copy metadata_labels to parsed annotations, if need be.
-            if metadata_labels:
-                for p in parsed_ambassador_annotations:
-                    if p.get('metadata_labels') is None:
-                        p['metadata_labels'] = metadata_labels
+        if ambassador_annotations:
+            try:
+                objects = parse_yaml(annotations)
+                i = 0
+                for obj in ojbects:
+                    if not obj:
+                        self.logger.warning(f"empty YAML document found in annotation on {filename}#[{i}]")
+                        continue
+                    if obj.get('metadata_labels') is None and metadata_labels:
+                        obj['metadata_labels'] = metadata_labels
+                    if obj.get('namespace') is None:
+                        obj['namespace'] = ingress_namespace
+                    obj_type = f"{obj.get('kind', '_missing_kind_')}.{'.'.join(obj.get('apiVersion', '_missing_apiVersion_').split('/')[::-1])}"
+                    obj_qname = f"{obj.get('name', '_missing_name_')}.{obj.get('namespace', '_missing_namespace_')}"
+                    obj_filename = f"{filename}#annotation[{i}]={obj_type}/{obj_qname}"
+                    self.process_object(obj, filename=obj_filename)
+                    i += 1
+            except yaml.error.YAMLError as e:
+                self.logger.debug("could not parse YAML: %s" % e)
 
-            return resource_identifier, parsed_ambassador_annotations
-
-        return None
+        return
 
     def is_ambassador_service(self, service_labels, service_selector):
         """This is a helper function for handle_k8s_service."""
@@ -662,10 +605,10 @@ class ResourceFetcher:
                 if pod_label.rstrip() == f'{key}="{value}"':
                     return True
 
-    def handle_k8s_endpoints(self, k8s_object: AnyDict) -> HandlerResult:
+    def handle_k8s_endpoints(self, k8s_object: AnyDict, filename: str) -> None:
         # Don't include Endpoints unless endpoint routing is enabled.
         if not Config.enable_endpoints:
-            return None
+            return
 
         metadata = k8s_object.get('metadata', None)
         metadata_labels: Optional[Dict[str, str]] = metadata.get('labels')
@@ -688,7 +631,7 @@ class ResourceFetcher:
             skip = True
 
         if skip:
-            return None
+            return
 
         # We use this resource identifier as a key into self.k8s_services, and of course for logging .
         resource_identifier = '{name}.{namespace}'.format(namespace=resource_namespace, name=resource_name)
@@ -786,9 +729,9 @@ class ResourceFetcher:
             else:
                 self.logger.debug(f"ignoring K8s Endpoints {resource_identifier} with no routable ports")
 
-        return None
+        return
 
-    def handle_k8s_service(self, k8s_object: AnyDict) -> HandlerResult:
+    def handle_k8s_service(self, k8s_object: AnyDict, filename: str) -> None:
         # The annoying bit about K8s Service resources is that not only do we have to look
         # inside them for Ambassador resources, but we also have to save their info for
         # later endpoint resolution too.
@@ -829,7 +772,7 @@ class ResourceFetcher:
             skip = True
 
         if skip:
-            return None
+            return
 
         # We use this resource identifier as a key into self.k8s_services, and of course for logging .
         resource_identifier = f'{resource_name}.{resource_namespace}'
@@ -859,32 +802,28 @@ class ResourceFetcher:
         else:
             self.logger.debug(f"not saving K8s Service {resource_name}.{resource_namespace} with no ports")
 
-        result: List[Any] = []
-
         if annotations:
-            if (self.filename is not None) and (not self.filename.endswith(":annotation")):
-                self.filename += ":annotation"
-
             try:
                 objects = parse_yaml(annotations)
-
+                i = 0
                 for obj in objects:
                     if not obj:
-                        self.logger.warning(f"empty YAML document found in ambassador service: {resource_name}.{resource_namespace}")
+                        self.logger.warning(f"empty YAML document found in annotation on {filename}#[{i}]")
                         continue
                     if obj.get('metadata_labels') is None and metadata_labels:
                         obj['metadata_labels'] = metadata_labels
                     if obj.get('namespace') is None:
                         obj['namespace'] = resource_namespace
-                    result.append(obj)
-
+                    obj_type = f"{obj.get('kind', '_missing_kind_')}.{'.'.join(obj.get('apiVersion', '_missing_apiVersion_').split('/')[::-1])}"
+                    obj_qname = f"{obj.get('name', '_missing_name_')}.{obj.get('namespace', '_missing_namespace_')}"
+                    obj_filename = f"{filename}#annotation[{i}]={obj_type}/{obj_qname}"
+                    self.process_object(obj, filename=obj_filename)
+                    i += 1
             except yaml.error.YAMLError as e:
                 self.logger.debug("could not parse YAML: %s" % e)
 
-        return resource_identifier, result
-
     # Handler for K8s Secret resources.
-    def handle_k8s_secret(self, k8s_object: AnyDict) -> HandlerResult:
+    def handle_k8s_secret(self, k8s_object: AnyDict, filename: str) -> None:
         # XXX Another one where we shouldn't be saving everything.
 
         secret_type = k8s_object.get('type', None)
@@ -919,7 +858,7 @@ class ResourceFetcher:
             skip = True
 
         if skip:
-            return None
+            return
 
         # This resource identifier is useful for log output since filenames can be duplicated (multiple subdirectories)
         resource_identifier = f'{resource_name}.{resource_namespace}'
@@ -934,7 +873,7 @@ class ResourceFetcher:
         if not found_any:
             # Uh. WTFO?
             self.logger.debug(f'ignoring K8s Secret {resource_identifier} with no keys')
-            return None
+            return
 
         # No need to muck about with resolution later, just immediately turn this
         # into an Ambassador Secret resource.
@@ -953,7 +892,7 @@ class ResourceFetcher:
         for key, value in data.items():
             secret_info[key.replace('.', '_')] = value
 
-        return resource_identifier, [ secret_info ]
+        self.process_object(secret_info, filename=f"{filename}#generated/secret")
 
     # Handler for Consul services
     def handle_consul_service(self,
