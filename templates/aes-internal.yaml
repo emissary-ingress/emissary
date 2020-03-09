@@ -15,8 +15,10 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/component: {{ include "ambassador.name" . }}-devportal
 spec:
+  {{- if .Values.env }}
   {{- if hasKey .Values.env "AMBASSADOR_ID" }}
   ambassador_id: {{ .Values.env.AMBASSADOR_ID | quote }}
+  {{- end }}
   {{- end }}
   prefix: /documentation/
   rewrite: "/docs/"
@@ -36,8 +38,10 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/component: {{ include "ambassador.name" . }}-devportal-demo
 spec:
+  {{- if .Values.env }}
   {{- if hasKey .Values.env "AMBASSADOR_ID" }}
   ambassador_id: {{ .Values.env.AMBASSADOR_ID | quote }}
+  {{- end }}
   {{- end }}
   prefix: /docs/
   rewrite: "/docs/"
@@ -57,8 +61,10 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/component: {{ include "ambassador.name" . }}-devportal-api
 spec:
+  {{- if .Values.env }}
   {{- if hasKey .Values.env "AMBASSADOR_ID" }}
   ambassador_id: {{ .Values.env.AMBASSADOR_ID | quote }}
+  {{- end }}
   {{- end }}
   prefix: /openapi/
   rewrite: ""

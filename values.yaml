@@ -39,6 +39,7 @@ podDisruptionBudget: {}
   # name: default
 
 # Additional container environment variable
+# Uncomment or add additional environment variables for the container here.
 env:
   # Exposing statistics via StatsD
   # STATSD_ENABLED: true

@@ -13,8 +13,10 @@ metadata:
     app.kubernetes.io/component: {{ include "ambassador.name" . }}-auth
 spec:
   proto: grpc
+  {{- if .Values.env }}
   {{- if hasKey .Values.env "AMBASSADOR_ID" }}
   ambassador_id: {{ .Values.env.AMBASSADOR_ID | quote }}
+  {{- end }}
   {{- end }}
   auth_service: 127.0.0.1:8500
   {{- if .Values.authService.optional_configurations }}
