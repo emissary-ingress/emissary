@@ -475,21 +475,6 @@ def handle_ping():
     return "ACK\n", 200
 
 
-@app.route('/_internal/v0/update', methods=[ 'POST' ])
-def handle_kubewatch_update():
-    url = request.args.get('url', None)
-
-    if not url:
-        app.logger.error("error: update requested with no URL")
-        return "error: update requested with no URL\n", 400
-
-    app.logger.debug("Update requested: kubewatch, %s" % url)
-
-    status, info = app.watcher.post('CONFIG', ( 'kw', url ))
-
-    return info, status
-
-
 @app.route('/_internal/v0/watt', methods=[ 'POST' ])
 def handle_watt_update():
     url = request.args.get('url', None)
