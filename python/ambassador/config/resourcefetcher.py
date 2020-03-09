@@ -150,8 +150,14 @@ class ResourceFetcher:
         try:
             # UGH. This parse_yaml is the one we imported from utils. XXX This needs to be fixed.
             objects = parse_yaml(serialization)
-            self.parse_object(objects=objects, k8s=k8s, rkey=rkey, filename=filename,
-                              namespace=namespace)
+            if k8s:
+                self.push_location(filename, 1)
+                for obj in objects:
+                    self.handle_k8s(obj)
+                self.pop_location()
+            else:
+                self.parse_object(objects=objects, rkey=rkey, filename=filename,
+                                  namespace=namespace)
         except yaml.error.YAMLError as e:
             self.aconf.post_error("%s: could not parse YAML: %s" % (self.location, e))
 
@@ -258,7 +264,7 @@ class ResourceFetcher:
         if result:
             rkey, parsed_objects = result
 
-            self.parse_object(parsed_objects, k8s=False, filename=self.filename, rkey=rkey)
+            self.parse_object(parsed_objects, filename=self.filename, rkey=rkey)
 
     def handle_k8s_crd(self, obj: dict) -> None:
         # CRDs are _not_ allowed to have embedded objects in annotations, because ew.
@@ -340,9 +346,9 @@ class ResourceFetcher:
         amb_object['metadata_labels']['ambassador_crd'] = resource_identifier
 
         # Done. Parse it.
-        self.parse_object([ amb_object ], k8s=False, filename=self.filename, rkey=resource_identifier)
+        self.parse_object([ amb_object ], filename=self.filename, rkey=resource_identifier)
 
-    def parse_object(self, objects, k8s=False, rkey: Optional[str]=None,
+    def parse_object(self, objects, rkey: Optional[str]=None,
                      filename: Optional[str]=None, namespace: Optional[str]=None):
         self.push_location(filename, 1)
 
@@ -351,14 +357,11 @@ class ResourceFetcher:
         for obj in objects:
             # self.logger.debug("PARSE_OBJECT: checking %s" % obj)
 
-            if k8s:
-                self.handle_k8s(obj)
-            else:
-                # if not obj:
-                #     self.logger.debug("%s: empty object from %s" % (self.location, serialization))
+            # if not obj:
+            #     self.logger.debug("%s: empty object from %s" % (self.location, serialization))
 
-                self.process_object(obj, rkey=rkey, namespace=namespace)
-                self.ocount += 1
+            self.process_object(obj, rkey=rkey, namespace=namespace)
+            self.ocount += 1
 
         self.pop_location()
 
