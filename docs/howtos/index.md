@@ -2,10 +2,19 @@
 
 These guides are designed to help users quickly accomplish common tasks. The guides assume a certain level of understanding of Ambassador and you're familiar with the material covered in the [Topic Guides](/docs/topics). Many of these guides are contributed by third parties; we welcome contributions via Pull Request at https://github.com/datawire/ambassador.
 
-* Integrating with Service Mesh. Ambassador is a popular API Gateway for service meshes, including:
+* Integrating with Service Mesh. Ambassador natively integrates with many service meshes.
   * [HashiCorp Consul](consul)
   * [Istio](with-istio)
   * [Linkerd](linkerd2)
-* Distributed tracing enables developers to visualize request flow in microservice and service-oriented architectures. 
+* Distributed tracing. Ambassador natively supports a number of distributed tracing systems to enable developers to visualize request flow in microservice and service-oriented architectures.
   * [Datadog](tracing-datadog)
   * [Zipkin](tracing-zipkin)
+* Identity providers. Ambassador integrates with a number of OAuth Identity Providers via OpenID Connect.
+  * [Auth0](idp-support/auth0)
+  * [Azure Active Directory](idp-support/azure)
+  * [Google Identity](idp-support/google)
+  * [Keycloak](idp-support/keycloak)
+  * [Okta](idp-support/okta)
+  * [Onelogin](idp-support/onelogin)
+  * [Salesforce](idp-support/salesforce)
+  * [UAA](idp-support/uaa)
