@@ -25,3 +25,9 @@ These guides are designed to help users quickly accomplish common tasks. The gui
   * [gRPC](grpc)
   * [Knative Serverless Framework](knative)
   * [WebSockets](websockets)
+* Security. Ambassador supports a number of strategies for securing Kubernetes services.
+  * [HTTPS and TLS termination](tls-termination)
+  * [Certificate Manager](cert-manager) can be used to automatically obtain and renew TLS certificates; Ambassador Edge Stack natively integrates this functionality.
+  * [Basic Rate Limiting](rate-limiting-tutorial)
+  * [Advanced Rate Limiting](advanced-rate-limiting)
+  * [Single Sign-On with OAuth and OpenID Connect](oauth-oidc-auth)
