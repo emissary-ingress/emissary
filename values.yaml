@@ -40,7 +40,6 @@ podDisruptionBudget: {}
 
 # Additional container environment variable
 env:
-  AMBASSADOR_SINGLENAMESPACE: "true"
   # Exposing statistics via StatsD
   # STATSD_ENABLED: true
   # STATSD_HOST: statsd-sink
@@ -277,6 +276,14 @@ redis:
   #     memory: 128Mi
   nodeSelector: {}
 
+
+# Configures the AuthService that ships with the Ambassador Edge Stack.
+# Setting authService.create: false will not install the AES AuthService and
+# allow you to define your own.
+#
+# Typically when using the AES, you will want to keep this set to true and use 
+# the External Filter to communicate with a custom authentication service.
+# https://www.getambassador.io/reference/filter-reference/#filter-type-external
 authService:
   create: true
   # Set additional configuration options. See https://www.getambassador.io/reference/services/auth-service for more information
@@ -293,6 +300,9 @@ authService:
     # add_linkerd_headers: true
     # timeout_ms: 30000
 
+
+# Configures the RateLimitService in the Ambassador Edge Stack. 
+# Keep this enabled to configure RateLimits in AES.
 rateLimit:
   create: true
 
