@@ -3,7 +3,6 @@ package watt
 import (
 	"encoding/json"
 	"os/exec"
-	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -195,9 +194,10 @@ func (a *aggregator) generateSnapshot() (string, error) {
 				// FIXME(lukeshu): Which resources to look for annotations on is hard-coded; it probably
 				// should be specifiable from the outside like normal resource watches.  This is putting
 				// a business-logic decision in the systems-logic code.
-				//
-				// A regexp because I don't want to hard-code "v1beta1" for ingresses.
-				if resource.QKind() == "Service.v1." || regexp.MustCompile(`^Ingress\.[^.]+\.networking\.k8s\.io$`).MatchString(resource.QKind()) {
+				if resource.QKind() == "Service.v1." ||
+					resource.QKind() == "Ingress.v1beta1.extensions" ||
+					resource.QKind() == "Ingress.v1beta1.networking.k8s.io" || // 1.14+
+					resource.QKind() == "Ingress.v1.networking.k8s.io" { // slated for 1.18, I think?
 					annotationResources, annotationErrs := parseAnnotationResources(resource)
 					for _, annotationResource := range annotationResources {
 						k8sResources[annotationResource.Kind()] = append(k8sResources[annotationResource.Kind()], annotationResource)
