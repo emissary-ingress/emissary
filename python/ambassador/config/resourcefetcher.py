@@ -168,7 +168,13 @@ class ResourceFetcher:
         try:
             # UGH. This parse_yaml is the one we imported from utils. XXX This needs to be fixed.
             objects = parse_yaml(serialization)
-            self.parse_object(objects=objects, k8s=k8s, rkey=rkey, filename=filename)
+            if k8s:
+                self.push_location(filename, 1)
+                for obj in objects:
+                    self.handle_k8s(obj)
+                self.pop_location()
+            else:
+                self.parse_object(objects=objects, rkey=rkey, filename=filename)
         except yaml.error.YAMLError as e:
             self.aconf.post_error("%s: could not parse YAML: %s" % (self.location, e))
 
@@ -298,9 +304,9 @@ class ResourceFetcher:
         if result:
             rkey, parsed_objects = result
 
-            self.parse_object(parsed_objects, k8s=False, rkey=rkey)
+            self.parse_object(parsed_objects, rkey=rkey)
 
-    def parse_object(self, objects, k8s=False, rkey: Optional[str] = None, filename: Optional[str] = None):
+    def parse_object(self, objects, rkey: Optional[str] = None, filename: Optional[str] = None):
         if not filename:
             filename = self.manager.locations.current.filename
 
@@ -311,13 +317,10 @@ class ResourceFetcher:
         for obj in objects:
             # self.logger.debug("PARSE_OBJECT: checking %s" % obj)
 
-            if k8s:
-                self.handle_k8s(obj)
-            else:
-                # if not obj:
-                #     self.logger.debug("%s: empty object from %s" % (self.location, serialization))
+            # if not obj:
+            #     self.logger.debug("%s: empty object from %s" % (self.location, serialization))
 
-                self.manager.emit(NormalizedResource(obj, rkey=rkey))
+            self.manager.emit(NormalizedResource(obj, rkey=rkey))
 
         self.manager.locations.pop()
 
