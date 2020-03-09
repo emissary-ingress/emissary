@@ -139,19 +139,19 @@ class ResourceFetcher:
                         continue
 
                     # self.logger.debug("%s: SAVE configuration file" % filepath)
-                    inputs.append((filepath, filename))
+                    inputs.append(filepath)
 
         else:
             # this allows a file to be passed into the ambassador cli
             # rather than just a directory
             inputs.append((config_dir_path, os.path.basename(config_dir_path)))
 
-        for filepath, filename in inputs:
-            self.logger.info("reading %s (%s)" % (filename, filepath))
+        for filepath in inputs:
+            self.logger.info(f"reading {filepath}")
 
             try:
                 serialization = open(filepath, "r").read()
-                self.parse_yaml(serialization, k8s=k8s, filename=filename, finalize=False)
+                self.parse_yaml(serialization, k8s=k8s, filename=filepath, finalize=False)
             except IOError as e:
                 self.aconf.post_error("could not read YAML from %s: %s" % (filepath, e))
 
