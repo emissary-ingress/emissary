@@ -51,6 +51,41 @@ CRDTypes = frozenset([
 k8sLabelMatcher = re.compile(r'([\w\-_./]+)=\"(.+)\"')
 
 class ResourceFetcher:
+    # I find it really helpful to know what the function-call-graph
+    # looks like:
+    #
+    #     +-[external entry points]------------------------+
+    #     | load_from_filesystem*    parse_watt*    sorted |
+    #     +---------- | ---------------- /|\ --------------+
+    #                 V                 / | \
+    #             parse_yaml*          /  /  \
+    #                / \              /  /    \
+    #               /   `----,   ,---'  /      \
+    #              /         V   V     /        V
+    #             /        handle_k8s /     handle_consul_service
+    #            /          / |   |  /
+    #           /          /  |   `-/-----------------------------,
+    #          /   ,------'   |    /      +-----------------------V---------------------+
+    #          |   |          V   V       |                                             |
+    #          |   |     handle_k8s_crd<--|-handle_k8s_ingress  handle_k8s_endpoints    |
+    #          |   |            |         |                               _secret       |
+    #          |   |   ,--------'         |                               _service      |
+    #          V   V   V                  |                               _ingressclass |
+    #        parse_object                 |                                             |
+    #              |                      +---------------------------------------------+
+    #              V
+    #       process_object
+    #
+    # The functions marked with "*" also call `finalize()` unless they
+    # receive the `finalize=False` argument.
+    #
+    # I've omitted calls to the "minor" functions:
+    #  - `location`
+    #  - `push_location`
+    #  - `pop_location`
+    #  - `is_ambassador_service`
+    #  - `load_pod_labels`
+
     def __init__(self, logger: logging.Logger, aconf: 'Config',
                  skip_init_dir: bool=False, watch_only=False) -> None:
         self.aconf = aconf
@@ -199,7 +234,7 @@ class ResourceFetcher:
 
         if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_ingress')):
             self.aconf.post_error("Ambassador is not permitted to read Ingress resources. Please visit https://www.getambassador.io/user-guide/ingress-controller/ for more information. You can continue using Ambassador, but Ingress resources will be ignored...")
-        
+
         # Expand environment variables allowing interpolation in manifests.
         serialization = os.path.expandvars(serialization)
 
@@ -389,6 +424,7 @@ class ResourceFetcher:
 
     def parse_object(self, objects, rkey: Optional[str]=None,
                      filename: Optional[str]=None, namespace: Optional[str]=None):
+        """Process a list parsed-YAML-objects as old-style/annotation-style resources."""
         self.push_location(filename, 1)
 
         # self.logger.debug("PARSE_OBJECT: incoming %d" % len(objects))
@@ -405,6 +441,7 @@ class ResourceFetcher:
         self.pop_location()
 
     def process_object(self, obj: dict, rkey: Optional[str]=None, namespace: Optional[str]=None) -> None:
+        """Process a parsed-YAML-object as an old-style/annotation-style resource."""
         if not isinstance(obj, dict):
             # Bug!!
             if not obj:
@@ -746,6 +783,7 @@ class ResourceFetcher:
         return None
 
     def is_ambassador_service(self, service_labels, service_selector):
+        """This is a helper function for handle_k8s_service."""
         # self.logger.info(f"is_ambassador_service checking {service_labels} - {service_selector}")
 
         # Every Ambassador service must have the label 'app.kubernetes.io/component: ambassador-service'
