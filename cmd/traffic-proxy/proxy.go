@@ -304,7 +304,7 @@ func (state *ProxyState) cleanup() {
 	state.mutex.Lock()
 	defer state.mutex.Unlock()
 
-	log.Printf("cleanup: started")
+	// log.Printf("cleanup: started")
 	for deployment, dinfo := range state.Deployments {
 		var remaining []*InterceptInfo
 		var freePorts []int
@@ -312,9 +312,9 @@ func (state *ProxyState) cleanup() {
 			// only keep intercepts older than 10 seconds
 			if time.Since(intercept.LastQueryAt) < 10*time.Second {
 				remaining = append(remaining, intercept)
-				fmt.Printf("keeping intercept %s:%d", deployment, intercept.Port)
+				fmt.Printf("cleanup: keeping intercept %s:%d", deployment, intercept.Port)
 			} else {
-				fmt.Printf("expiring intercept %s:%d", deployment, intercept.Port)
+				fmt.Printf("cleanup: expiring intercept %s:%d", deployment, intercept.Port)
 				freePorts = append(freePorts, intercept.Port)
 			}
 		}
@@ -324,11 +324,11 @@ func (state *ProxyState) cleanup() {
 			// Post an event to update the deployment's pods
 			err := state.publish(deployment)
 			if err != nil {
-				log.Printf("cleanup: %v", err)
+				log.Printf("cleanup: error! %v", err)
 			}
 		}
 	}
-	log.Printf("cleanup: finished")
+	// log.Printf("cleanup: finished")
 }
 
 // Version is inserted at build using --ldflags -X
@@ -352,6 +352,14 @@ func Main() {
 
 	argparser.PersistentPreRun = func(cmd *cobra.Command, args []string) {
 		licenseClaims, err := cmdContext.GetClaims()
+
+		// body, err := json.MarshalIndent(licenseClaims, "", "  ")
+		// if err != nil {
+		// 	panic(err)
+		// }
+
+		// fmt.Printf("Claims: %s\n", string(body))
+
 		if err == nil {
 			err = licenseClaims.RequireFeature(licensekeys.FeatureTraffic)
 		}
