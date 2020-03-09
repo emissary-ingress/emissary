@@ -18,3 +18,10 @@ These guides are designed to help users quickly accomplish common tasks. The gui
   * [Onelogin](idp-support/onelogin)
   * [Salesforce](idp-support/salesforce)
   * [UAA](idp-support/uaa)
+* Monitoring. Ambassador integrates with a number of different monitoring/metrics providers.
+  * [Prometheus](prometheus)
+* [Developing Custom Filters](filter-dev-guide)
+* Frameworks and Protocols. Ambassador supports a wide range of protocols and cloud-native frameworks.
+  * [gRPC](grpc)
+  * [Knative Serverless Framework](knative)
+  * [WebSockets](websockets)
