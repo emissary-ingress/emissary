@@ -159,14 +159,40 @@ commands:
     steps:
       - aes-checkout
       - run:
-          name: "Build and Test"
+          name: "Check Make Test"
+          command: |
+            set -x
+            set +o pipefail # Our make invocation below will always "fail", so clear pipefail.
+            test_targets=$(make -n noop --print-data-base 2>/dev/null | egrep '^test:' | sed -e s'/^test: *//' | tr ' ' '\n' | sort | tr '\n' ' ' | sed -e 's/ $//')
+            if [ "$test_targets" != "e2etest gotest pytest" ]; then
+              echo "Test target has changed to $test_targets, you need to update Circle" >&2
+              exit 1
+            fi
+      - run:
+          name: "Build"
           command: |
             docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY}"
             .circleci/kubernaut-claim.sh
             export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
+            make push
+      - run:
+          name: "Go Tests"
+          command: |
+            export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
+            make gotest GOTEST_PKGS=github.com/datawire/apro/...
+      - run:
+          name: "KAT"
+          command: |
+            export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
             export DEV_KUBE110=yes
             export KAT_REQ_LIMIT=600
-            make test GOTEST_PKGS=github.com/datawire/apro/...
+            make pytest-only
+      - run:
+          name: "E2E Tests"
+          command: |
+            export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
+            export DEV_KUBE110=yes
+            make e2etest
       - run:
           command: ".circleci/kubernaut-unclaim.sh"
           when: "always"
