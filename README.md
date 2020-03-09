@@ -132,6 +132,7 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `volumeMounts`                     | Volume mounts for the ambassador service                                        | `[]`                              |
 | `volumes`                          | Volumes for the ambassador service                                              | `[]`                              |
 | `enableAES`                        | Create the [AES configuration objects](#ambassador-edge-stack-installation)     | `true`                            |
+| `createDevPortalMappings`          | Expose the dev portal on `/docs/` and `/documentation/`                         | `true`                            |
 | `licenseKey.value`                 | Ambassador Edge Stack license. Empty will install in evaluation mode.           | ``                                |
 | `licenseKey.createSecret`          | Set to `false` if installing mutltiple Ambassdor Edge Stacks in a namespace.    | `true`                            |
 | `licenseKey.secretName`            | Name of the secret to store Ambassador license key in.                          | ``                                |

@@ -3,6 +3,10 @@
 This file documents all notable changes to Ambassador Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
+## v6.2.0
+
+- Add option to not create DevPortal routes
+
 ## v6.1.5
 
 - Upgrade Ambassador to version 1.2.2.
