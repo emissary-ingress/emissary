@@ -158,24 +158,6 @@ class ResourceFetcher:
         if finalize:
             self.finalize()
 
-    def parse_json(self, serialization: str, k8s=False, rkey: Optional[str]=None,
-                   filename: Optional[str]=None, finalize: bool=True) -> None:
-        # self.logger.debug("%s: parsing %d byte%s of YAML:\n%s" %
-        #                   (self.location, len(serialization), "" if (len(serialization) == 1) else "s",
-        #                    serialization))
-
-        # Expand environment variables allowing interpolation in manifests.
-        serialization = os.path.expandvars(serialization)
-
-        try:
-            objects = json.loads(serialization)
-            self.parse_object(objects=objects, k8s=k8s, rkey=rkey, filename=filename)
-        except json.decoder.JSONDecodeError as e:
-            self.aconf.post_error("%s: could not parse YAML: %s" % (self.location, e))
-
-        if finalize:
-            self.finalize()
-
     def parse_watt(self, serialization: str, finalize: bool=True) -> None:
         basedir = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', '/ambassador')
 
