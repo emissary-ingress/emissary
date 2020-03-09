@@ -202,13 +202,7 @@ class ResourceFetcher:
             consul_endpoints = watt_consul.get('Endpoints', {})
 
             for consul_rkey, consul_object in consul_endpoints.items():
-                result = self.handle_consul_service(consul_rkey, consul_object)
-
-                if result:
-                    rkey, parsed_objects = result
-
-                    self.parse_object(parsed_objects, k8s=False,
-                                      filename=self.filename, rkey=rkey)
+                self.handle_consul_service(consul_rkey, consul_object)
         except json.decoder.JSONDecodeError as e:
             self.aconf.post_error("%s: could not parse WATT: %s" % (self.location, e))
 
@@ -936,7 +930,7 @@ class ResourceFetcher:
 
     # Handler for Consul services
     def handle_consul_service(self,
-                              consul_rkey: str, consul_object: AnyDict) -> HandlerResult:
+                              consul_rkey: str, consul_object: AnyDict) -> None:
         # resource_identifier = f'consul-{consul_rkey}'
 
         endpoints = consul_object.get('Endpoints', [])
@@ -945,7 +939,7 @@ class ResourceFetcher:
         if len(endpoints) < 1:
             # Bzzt.
             self.logger.debug(f"ignoring Consul service {name} with no Endpoints")
-            return None
+            return
 
         # We can turn this directly into an Ambassador Service resource, since Consul keeps
         # services and endpoints together (as it should!!).
@@ -981,8 +975,6 @@ class ResourceFetcher:
 
         # Once again: don't return this. Instead, save it in self.services.
         self.services[f"consul-{name}-{svc['datacenter']}"] = svc
-
-        return None
 
     def finalize(self) -> None:
         # The point here is to sort out self.k8s_services and self.k8s_endpoints and
