@@ -54,20 +54,20 @@ class ResourceFetcher:
     #
     #     +-[external entry points]------------------------+
     #     | load_from_filesystem*    parse_watt*    sorted |
-    #     +---------- | ---------------- /|\ --------------+
-    #                 V                 / | \
-    #             parse_yaml           /  /  \
-    #                / \              /  /    \
-    #               /   `----,   ,---'  /      \
-    #              /         V   V     /        V
-    #             /        handle_k8s /     handle_consul_service
-    #            /          / |   |  /
-    #           /          /  |   `-/-----------------------------------,
-    #          /   ,------'   |    /      +-----------------------------V-----------------------------+
-    #          |   |          V   V       |                                                           |
-    #          |   |     handle_k8s_crd<--|-handle_k8s_ingress  handle_k8s_{endpoints,secret,service} |
-    #          |   |            |         |                                                           |
-    #          |   |   ,--------'         +-----------------------------------------------------------+
+    #     +---------- | ---------------- / \ --------------+
+    #                 V                 /   \
+    #             parse_yaml           /     \
+    #                / \              /       \
+    #               /   `----,   ,---'         \
+    #              /         V   V              V
+    #             /        handle_k8s   handle_consul_service
+    #            /          /  |  \
+    #           /          /   |   `-----------------------------------,
+    #          /   ,------'    |         +-----------------------------V-----------------------------+
+    #          |   |           V         |                                                           |
+    #          |   |    handle_k8s_crd<----handle_k8s_ingress  handle_k8s_{endpoints,secret,service} |
+    #          |   |           |         |                                                           |
+    #          |   |   ,-------'         +-----------------------------------------------------------+
     #          V   V   V
     #       process_objects
     #              |
@@ -220,17 +220,10 @@ class ResourceFetcher:
 
             watt_k8s = watt_dict.get('Kubernetes', {})
 
-            # Handle normal Kube objects...
-            for key in [ 'service', 'endpoints', 'secret', 'ingresses' ]:
+            for key in CRDTypes.union([ 'service', 'endpoints', 'secret', 'ingresses' ]):
                 for obj in watt_k8s.get(key) or []:
-                    # self.logger.debug(f"Handling Kubernetes {key}...")
+                    # self.logger.debug(f"Handling resource type {key}...")
                     self.handle_k8s(obj)
-
-            # ...then handle Ambassador CRDs.
-            for key in CRDTypes:
-                for obj in watt_k8s.get(key) or []:
-                    # self.logger.debug(f"Handling CRD {key}...")
-                    self.handle_k8s_crd(obj)
 
             watt_consul = watt_dict.get('Consul', {})
             consul_endpoints = watt_consul.get('Endpoints', {})
