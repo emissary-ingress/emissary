@@ -47,7 +47,7 @@ func (cl *LicenseClaimsLatest) RequireFeature(feature Feature) error {
 			return nil
 		}
 	}
-	return errors.Errorf("license key does not grant the %q feature", feature)
+	return errors.Errorf("Your license key does not grant the %q feature. Please contact sales@datawire.io for a free community license or discuss commercial options.", feature)
 }
 
 // ListKnownFeatures returns a list of known feature names (strings
