@@ -28,7 +28,7 @@ If you're using your own YAML, check the Datawire YAML to be sure of other chang
 
 ## Helm
 
-Helm makes upgrades easy by managing all the changes made to the installation files automatically. Assuming you followed the instructions for [installing Ambassador via Helm](https://www.getambassador.io/user-guide/helm/), the upgrade is very simple:
+Helm makes upgrades easy by managing all the changes made to the installation files automatically. Assuming you followed the instructions for [installing Ambassador via Helm](/user-guide/helm/), the upgrade is very simple:
 
 1. Grab the latest version of the Chart
 
