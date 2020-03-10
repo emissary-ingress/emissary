@@ -7,6 +7,7 @@ releases. Please keep it up to date.
 ## next (TBD)
 
 - Bugfix: The "Filters" tab in the webui no longer renders the value of OAuth client secrets that are stored in Kubernetes secrets.
+- Bugfix: The ACME client of of one Ambassador install will no longer interfere with the ACME client of another Ambassador install in the same namespace with a different AMBASSADOR_ID.
 
 ## 1.3.1 (2020-03-24)
 
