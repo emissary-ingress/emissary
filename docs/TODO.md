@@ -5,6 +5,7 @@ Permanent redirects
 * /user-guide/cd-declarative-gitops/ --> /concepts/gitops-continuous-delivery
 * /user-guide/gitops-ambassador/ --> /concepts/gitops-continuous-delivery
 * /docs/dev-guide/test-in-prod/ --> /concepts/progressive-delivery
+* /about/microservices-api-gateways/ --> /concepts/microservices-api-gateways
 
 Temporary redirects:
 
