@@ -144,6 +144,28 @@ func postJSON(url string, payload interface{}, token string) (*http.Response, st
 	return resp, string(body)
 }
 
+// Get a json payload from a URL.
+func getJSON(url string, token string, target interface{}) *http.Response {
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	defer resp.Body.Close()
+	err = json.NewDecoder(resp.Body).Decode(target)
+	if err != nil {
+		panic(err)
+	}
+	return resp
+}
+
 // Post a status to the github API
 func postStatus(url string, status GitHubStatus, token string) {
 	resp, body := postJSON(url, status, token)
