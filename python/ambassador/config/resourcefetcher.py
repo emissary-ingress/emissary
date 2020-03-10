@@ -575,16 +575,21 @@ class ResourceFetcher:
             http_paths = rule_http.get('paths', [])
             for path_count, path in enumerate(http_paths):
                 path_backend = path.get('backend', {})
+                path_type = path.get('pathType', 'ImplementationSpecific')
 
                 service_name = path_backend.get('serviceName', None)
                 service_port = path_backend.get('servicePort', None)
-                service_path = path.get('path', None)
+                path_location = path.get('path', None)
 
-                if not service_name or not service_port or not service_path:
+                if not service_name or not service_port or not path_location:
                     continue
 
                 unique_suffix = f"{rule_count}-{path_count}"
                 mapping_identifier = f"{ingress_name}-{unique_suffix}"
+
+                # For cases where `pathType: Exact`,
+                # otherwise `Prefix` and `ImplementationSpecific` are handled as regular Mapping prefixes
+                is_exact_prefix = True if path_type == 'Exact' else False
 
                 path_mapping: Dict[str, Any] = {
                     'apiVersion': 'getambassador.io/v2',
@@ -595,7 +600,8 @@ class ResourceFetcher:
                     },
                     'spec': {
                         'ambassador_id': ambassador_id,
-                        'prefix': service_path,
+                        'prefix': path_location,
+                        'prefix_exact': is_exact_prefix,
                         'service': f'{service_name}.{ingress_namespace}:{service_port}'
                     }
                 }
