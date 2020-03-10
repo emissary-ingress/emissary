@@ -194,7 +194,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	acmeLock, err := leaderelection.GetLeaderElectionResourceLock(cfg, kubeinfo, eventLogger)
+	acmeLock, err := leaderelection.GetLeaderElectionResourceLock(cfg, kubeinfo, eventLogger, "acmeclient")
 	if err != nil {
 		logrusLogger.Errorln("failed to participate in acme leader election, Ambassador Edge Stack acme client is disabled:", err)
 	}

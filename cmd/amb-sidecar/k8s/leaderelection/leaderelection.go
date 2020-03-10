@@ -18,7 +18,7 @@ import (
 	k8sLeaderElectionResourceLock "k8s.io/client-go/tools/leaderelection/resourcelock"
 )
 
-func GetLeaderElectionResourceLock(cfg types.Config, kubeinfo *k8s.KubeInfo, eventLogger *events.EventLogger) (k8sLeaderElectionResourceLock.Interface, error) {
+func GetLeaderElectionResourceLock(cfg types.Config, kubeinfo *k8s.KubeInfo, eventLogger *events.EventLogger, leasename string) (k8sLeaderElectionResourceLock.Interface, error) {
 	hostname, err := os.Hostname()
 	if err != nil {
 		return nil, err
@@ -34,6 +34,10 @@ func GetLeaderElectionResourceLock(cfg types.Config, kubeinfo *k8s.KubeInfo, eve
 		return nil, err
 	}
 
+	if cfg.AmbassadorID != "default" {
+		leasename += "-" + cfg.AmbassadorID
+	}
+
 	if _, err := client.ResolveResourceType("Lease.v1.coordination.k8s.io"); err != nil {
 		// Kubernetes <1.12 didn't have a "Lease" object, and was in beta in <1.14, so fall back to
 		// using an Endpoints object.  Don't consider v1beta1 to be good-enough; it isn't for our copy
@@ -44,7 +48,7 @@ func GetLeaderElectionResourceLock(cfg types.Config, kubeinfo *k8s.KubeInfo, eve
 		}
 		return &k8sLeaderElectionResourceLock.EndpointsLock{
 			EndpointsMeta: k8sTypesMetaV1.ObjectMeta{
-				Name:      "acmeclient",
+				Name:      leasename,
 				Namespace: cfg.AmbassadorNamespace,
 			},
 			Client: coreClient,
@@ -62,7 +66,7 @@ func GetLeaderElectionResourceLock(cfg types.Config, kubeinfo *k8s.KubeInfo, eve
 
 	return &k8sLeaderElectionResourceLock.LeaseLock{
 		LeaseMeta: k8sTypesMetaV1.ObjectMeta{
-			Name:      "acmeclient",
+			Name:      leasename,
 			Namespace: cfg.AmbassadorNamespace,
 		},
 		Client: coordinationClient,
