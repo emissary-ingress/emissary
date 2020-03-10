@@ -15,6 +15,13 @@ import (
 	"text/template"
 	"time"
 
+	git "gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/config"
+	"gopkg.in/src-d/go-git.v4/plumbing"
+	ghttp "gopkg.in/src-d/go-git.v4/plumbing/transport/http"
+	"gopkg.in/src-d/go-git.v4/storage/memory"
+	k8sTypesCoreV1 "k8s.io/api/core/v1"
+
 	"sigs.k8s.io/yaml"
 
 	"github.com/datawire/ambassador/pkg/k8s"
@@ -377,6 +384,102 @@ func deleteResource(kind, name, namespace string) error {
 		return fmt.Errorf("%w\n%s", err, out)
 	}
 	return nil
+}
+
+type Deploy struct {
+	Project Project
+	Ref     *plumbing.Reference
+	Pull    *Pull
+}
+
+func PrettyDeploys(deps []Deploy) string {
+	var parts []string
+	for _, d := range deps {
+		parts = append(parts, fmt.Sprintf("%s => %s", d.Ref.Name().Short(), d.Ref.Hash()))
+	}
+	return strings.Join(parts, ", ")
+}
+
+type Pull struct {
+	Number int
+	Head   struct {
+		Ref string
+		Sha string
+	}
+	MergeSha string `json:"merge_commit_sha"`
+}
+
+func (d Deploy) IsBuilder(pod *k8sTypesCoreV1.Pod) bool {
+	labels := pod.GetLabels()
+	return (labels["project"] == d.Project.Metadata.Name &&
+		pod.GetNamespace() == d.Project.Metadata.Namespace &&
+		labels["build"] != "" &&
+		labels["commit"] == d.Ref.Hash().String())
+}
+
+func (d Deploy) IsRunner(pod *k8sTypesCoreV1.Pod) bool {
+	labels := pod.GetLabels()
+	return (labels["project"] == d.Project.Metadata.Name &&
+		pod.GetNamespace() == d.Project.Metadata.Namespace &&
+		labels["build"] == "" &&
+		labels["commit"] == d.Ref.Hash().String())
+}
+
+func GetDeploys(project Project) []Deploy {
+	repo := project.Spec.GithubRepo
+	token := project.Spec.GithubToken
+	refs := gitLsRemote(fmt.Sprintf("https://github.com/%s", repo), token, "refs/heads/*")
+	var result []Pull
+	resp := getJSON(fmt.Sprintf("https://api.github.com/repos/%s/pulls", repo), token, &result)
+	if resp.StatusCode != 200 {
+		panic(resp.Status)
+	}
+
+	pulls := make(map[string]Pull)
+
+	for _, p := range result {
+		pulls[p.Head.Sha] = p
+	}
+
+	var deploys []Deploy
+	for _, ref := range refs {
+		pull, ok := pulls[ref.Hash().String()]
+		if ok {
+			deploys = append(deploys, Deploy{project, ref, &pull})
+		}
+		if ref.Name().Short() == "master" {
+			deploys = append(deploys, Deploy{project, ref, nil})
+		}
+	}
+
+	return deploys
+}
+
+func gitLsRemote(repo, token string, specs ...string) []*plumbing.Reference {
+	// Create the remote with repository URL
+	rem := git.NewRemote(memory.NewStorage(), &config.RemoteConfig{
+		Name: "origin",
+		URLs: []string{repo},
+	})
+
+	// We can then use every Remote functions to retrieve wanted information
+	refs, err := rem.List(&git.ListOptions{
+		Auth: &ghttp.BasicAuth{Username: token},
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	var result []*plumbing.Reference
+	for _, ref := range refs {
+		for _, spec := range specs {
+			rs := config.RefSpec(fmt.Sprintf("%s:", spec))
+			if rs.Match(ref.Name()) {
+				result = append(result, ref)
+			}
+		}
+	}
+	return result
 }
 
 // WatchGroup is used to wait for multiple Watcher queries to all be
