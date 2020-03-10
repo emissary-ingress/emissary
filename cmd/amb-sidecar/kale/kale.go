@@ -120,22 +120,41 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 	httpHandler.AddEndpoint("/edge_stack_ui/edge_stack/api/slogs/", "kale server logs api", handler)
 }
 
-// This contains the global state for the controller/webhook. We
+// A kale contains the global state for the controller/webhook. We
 // assume there is only one copy of the controller running in the
 // cluster, so this is global to the entire cluster.
+func NewKale() *kale {
+	return &kale{
+		Projects: make(map[string]Project),
+		Pods:     make(PodMap),
+		Deploys:  make(DeployMap),
+	}
+}
 
 type kale struct {
 	cfg      types.Config
 	Projects map[string]Project
-	Pods     map[string]map[string]*k8sTypesCoreV1.Pod
+	Pods     PodMap
+	Deploys  DeployMap
 }
 
-func NewKale() *kale {
-	return &kale{
-		Projects: make(map[string]Project),
-		Pods:     make(map[string]map[string]*k8sTypesCoreV1.Pod),
+type PodMap map[string]map[string]*k8sTypesCoreV1.Pod
+
+func (pm PodMap) addPod(pod *k8sTypesCoreV1.Pod) {
+	projName := pod.GetLabels()["project"]
+	if projName != "" {
+		projKey := fmt.Sprintf("%s/%s", pod.GetNamespace(), projName)
+		projPods, ok := pm[projKey]
+		if !ok {
+			projPods = make(map[string]*k8sTypesCoreV1.Pod)
+			pm[projKey] = projPods
+		}
+		// todo: exclude terminating pods so that we don't double delete them
+		projPods[pod.GetName()] = pod
 	}
 }
+
+type DeployMap map[string][]Deploy
 
 func (k *kale) reconcileConsistently(w *k8s.Watcher) {
 	k.reconcileProjects(w)
@@ -161,8 +180,22 @@ func (k *kale) reconcileProjects(w *k8s.Watcher) {
 		hookUrl := fmt.Sprintf("https://%s/edge_stack/api/githook/%s", pr.Spec.Host, key)
 		postHook(pr.Spec.GithubRepo, hookUrl, pr.Spec.GithubToken)
 		projects[key] = pr
+		k.Deploys[key] = GetDeploys(pr)
 	}
 	k.Projects = projects
+	// todo: we should have better data structures so this isn't so awkward
+	for key, _ := range k.Pods {
+		_, ok := k.Projects[key]
+		if !ok {
+			delete(k.Pods, key)
+		}
+	}
+	for key, _ := range k.Deploys {
+		_, ok := k.Projects[key]
+		if !ok {
+			delete(k.Deploys, key)
+		}
+	}
 }
 
 type Project struct {
@@ -280,36 +313,21 @@ func (k *kale) handlePush(r *http.Request, key string) httpResult {
 		return httpResult{status: 404, body: fmt.Sprintf("no such project %s", key)}
 	}
 
-	var push Push
-	if err := json.NewDecoder(r.Body).Decode(&push); err != nil {
-		log.Printf("WEBHOOK PARSE ERROR: %v", err)
-		return httpResult{status: 400, body: err.Error()}
-	}
+	// todo: the webhook is totally asynchronous... we basically
+	// need to work based on polling and treat the webhook as a
+	// hint to increase the frequency of polling
+	time.Sleep(5 * time.Second)
 
-	buildID := fmt.Sprintf("%d", time.Now().Unix()) // todo: better id
-
-	out, err := startBuild(proj, buildID, push.Ref, push.Head.Id)
-	if err != nil {
-		log.Printf("ERROR: %v", err)
-		postStatus(fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, push.Head.Id),
-			GitHubStatus{
-				State:       "error",
-				TargetUrl:   fmt.Sprintf("http://%s/edge_stack/", proj.Spec.Host),
-				Description: err.Error(),
-				Context:     "aes",
-			},
-			proj.Spec.GithubToken)
-	} else {
-		postStatus(fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, push.Head.Id),
-			GitHubStatus{
-				State:       "pending",
-				TargetUrl:   proj.LogUrl(buildID),
-				Description: "build started",
-				Context:     "aes",
-			},
-			proj.Spec.GithubToken)
+	old, ok := k.Deploys[key]
+	if ok {
+		log.Printf("DEPLOYS BEFORE: %s", PrettyDeploys(old))
 	}
-	return httpResult{status: 200, body: out}
+	deploys := GetDeploys(proj)
+	k.Deploys[key] = deploys
+	log.Printf("DEPLOYS AFTER: %s", PrettyDeploys(deploys))
+	k.reconcile()
+
+	return httpResult{status: 200, body: ""}
 }
 
 type Push struct {
@@ -323,7 +341,7 @@ type Push struct {
 	}
 }
 
-func startBuild(proj Project, buildID, ref, commit string) (string, error) {
+func (k *kale) startBuild(proj Project, buildID, ref, commit string) (string, error) {
 	// Note: If the kaniko destination is set to the full service name
 	// (registry.ambassador.svc.cluster.local), then we can't seem to push
 	// to the no matter how we tweak the settings. I assume this is due to
@@ -332,113 +350,137 @@ func startBuild(proj Project, buildID, ref, commit string) (string, error) {
 	// todo: the ambassador namespace is hardcoded below in the registry
 	//       we to which we push
 
-	manifests := []interface{}{
-		&k8sTypesCoreV1.Pod{
-			TypeMeta: k8sTypesMetaV1.TypeMeta{
-				APIVersion: "v1",
-				Kind:       "Pod",
+	pod := &k8sTypesCoreV1.Pod{
+		TypeMeta: k8sTypesMetaV1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "Pod",
+		},
+		ObjectMeta: k8sTypesMetaV1.ObjectMeta{
+			Name:      proj.Metadata.Name + "-build-" + buildID,
+			Namespace: proj.Metadata.Namespace,
+			Annotations: map[string]string{
+				"statusesUrl": "https://api.github.com/repos/" + proj.Spec.GithubRepo + "/statuses/" + commit,
 			},
-			ObjectMeta: k8sTypesMetaV1.ObjectMeta{
-				Name:      proj.Metadata.Name + "-build-" + buildID,
-				Namespace: proj.Metadata.Namespace,
-				Annotations: map[string]string{
-					"statusesUrl": "https://api.github.com/repos/" + proj.Spec.GithubRepo + "/statuses/" + commit,
-				},
-				Labels: map[string]string{
-					"kale":    "0.0",
-					"project": proj.Metadata.Name,
-					"commit":  commit,
-					"build":   buildID,
-				},
-				OwnerReferences: []k8sTypesMetaV1.OwnerReference{
-					{
-						APIVersion:         "getambassador.io/v2",
-						Controller:         boolPtr(true),
-						BlockOwnerDeletion: boolPtr(true),
-						Kind:               "Project",
-						Name:               proj.Metadata.Name,
-						UID:                proj.Metadata.UID,
-					},
-				},
+			Labels: map[string]string{
+				"kale":    "0.0",
+				"project": proj.Metadata.Name,
+				"commit":  commit,
+				"build":   buildID,
 			},
-			Spec: k8sTypesCoreV1.PodSpec{
-				Containers: []k8sTypesCoreV1.Container{
-					{
-						Name:  "kaniko",
-						Image: "gcr.io/kaniko-project/executor:v0.16.0",
-						Args: []string{
-							"--cache=true",
-							"--skip-tls-verify",
-							"--skip-tls-verify-pull",
-							"--skip-tls-verify-registry",
-							"--dockerfile=Dockerfile",
-							"--context=git://github.com/" + proj.Spec.GithubRepo + ".git#" + ref,
-							"--destination=registry.ambassador/" + commit,
-						},
-					},
+			OwnerReferences: []k8sTypesMetaV1.OwnerReference{
+				{
+					APIVersion:         "getambassador.io/v2",
+					Controller:         boolPtr(true),
+					BlockOwnerDeletion: boolPtr(true),
+					Kind:               "Project",
+					Name:               proj.Metadata.Name,
+					UID:                proj.Metadata.UID,
 				},
-				RestartPolicy: k8sTypesCoreV1.RestartPolicyNever,
 			},
 		},
+		Spec: k8sTypesCoreV1.PodSpec{
+			Containers: []k8sTypesCoreV1.Container{
+				{
+					Name:  "kaniko",
+					Image: "gcr.io/kaniko-project/executor:v0.16.0",
+					Args: []string{
+						"--cache=true",
+						"--skip-tls-verify",
+						"--skip-tls-verify-pull",
+						"--skip-tls-verify-registry",
+						"--dockerfile=Dockerfile",
+						"--context=git://github.com/" + proj.Spec.GithubRepo + ".git#" + ref,
+						"--destination=registry.ambassador/" + commit,
+					},
+				},
+			},
+			RestartPolicy: k8sTypesCoreV1.RestartPolicyNever,
+		},
 	}
+
+	manifests := []interface{}{pod}
 
 	out, err := applyObjs(manifests)
 	if err != nil {
 		return "", fmt.Errorf("%w\n%s", err, out)
 	}
+
+	k.Pods.addPod(pod)
+
 	return string(out), nil
 }
 
-type deploy struct {
-	ProjectName      string
-	ProjectNamespace string
-	Commit           string
-}
+func (k *kale) updatePods(pods []*k8sTypesCoreV1.Pod) {
+	pm := make(PodMap)
 
-func pod2deploy(pod *k8sTypesCoreV1.Pod) deploy {
-	return deploy{
-		ProjectName:      pod.GetLabels()["project"],
-		ProjectNamespace: pod.GetNamespace(),
-		Commit:           pod.GetLabels()["commit"],
+	for _, pod := range pods {
+		pm.addPod(pod)
 	}
+
+	k.Pods = pm
 }
 
 func (k *kale) reconcilePods(pods []*k8sTypesCoreV1.Pod) {
-	// TODO: Have a smarter way of deciding 'desiredDeploys'.
-	desiredDeploys := make(map[deploy]struct{})
-	var builders []*k8sTypesCoreV1.Pod
-	var runners []*k8sTypesCoreV1.Pod
-	for _, pod := range pods {
-		desiredDeploys[pod2deploy(pod)] = struct{}{}
-		if pod.GetLabels()["build"] != "" {
-			builders = append(builders, pod)
-		} else {
-			runners = append(runners, pod)
+	k.updatePods(pods)
+	k.reconcile()
+}
+
+func (k *kale) pods() []*k8sTypesCoreV1.Pod {
+	var result []*k8sTypesCoreV1.Pod
+	for _, pods := range k.Pods {
+		for _, pod := range pods {
+			result = append(result, pod)
 		}
 	}
+	return result
+}
 
-	for desiredDeploy := range desiredDeploys {
+func (k *kale) desiredDeploys() []Deploy {
+	var result []Deploy
+	for _, deps := range k.Deploys {
+		for _, dep := range deps {
+			result = append(result, dep)
+		}
+	}
+	return result
+}
+
+func (k *kale) IsDesired(pod *k8sTypesCoreV1.Pod) bool {
+	labels := pod.GetLabels()
+	key := fmt.Sprintf("%s/%s", pod.GetNamespace(), labels["project"])
+	commit := labels["commit"]
+	deps, ok := k.Deploys[key]
+	if ok {
+		for _, dep := range deps {
+			if dep.Ref.Hash().String() == commit {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (k *kale) reconcile() {
+	deploys := k.desiredDeploys()
+	pods := k.pods()
+	for _, dep := range deploys {
 		var deployBuilders []*k8sTypesCoreV1.Pod
-		for _, builder := range builders {
-			if pod2deploy(builder) == desiredDeploy {
-				deployBuilders = append(deployBuilders, builder)
-			}
-		}
-
 		var deployRunners []*k8sTypesCoreV1.Pod
-		for _, runner := range runners {
-			if pod2deploy(runner) == desiredDeploy {
-				deployRunners = append(deployRunners, runner)
+		for _, pod := range pods {
+			if dep.IsBuilder(pod) {
+				deployBuilders = append(deployBuilders, pod)
+			} else if dep.IsRunner(pod) {
+				deployRunners = append(deployRunners, pod)
 			}
 		}
 
-		err := safeInvoke1(func() error { return k.reconcileDeploy(desiredDeploy, deployBuilders, deployRunners) })
+		err := safeInvoke1(func() error { return k.reconcileDeploy(dep, deployBuilders, deployRunners) })
 		if err != nil {
 			log.Printf("ERROR: %v", err)
 		}
 	}
 	for _, pod := range pods {
-		if _, desired := desiredDeploys[pod2deploy(pod)]; !desired {
+		if !k.IsDesired(pod) {
 			err := deleteResource("pod", pod.GetName(), pod.GetNamespace())
 			if err != nil {
 				log.Printf("ERROR: %v", err)
@@ -447,16 +489,37 @@ func (k *kale) reconcilePods(pods []*k8sTypesCoreV1.Pod) {
 	}
 }
 
-func (k *kale) reconcileDeploy(desiredDeploy deploy, builders, runners []*k8sTypesCoreV1.Pod) error {
-	proj, projOK := k.GetProject(desiredDeploy.ProjectNamespace, desiredDeploy.ProjectName)
-	if !projOK {
-		return fmt.Errorf("no such project: %q.%q", desiredDeploy.ProjectName, desiredDeploy.ProjectNamespace)
-	}
+func (k *kale) reconcileDeploy(dep Deploy, builders, runners []*k8sTypesCoreV1.Pod) error {
+	proj := dep.Project
 
 	switch len(builders) {
 	case 0:
-		// todo: is this really a bug if we have a runner? can't builders go away when they are gc'ed?
-		//panic("not implemented -- right now we only do this from handlePush()")
+		if len(runners) == 0 {
+			//buildID := fmt.Sprintf("%d", time.Now().Unix()) // todo: better id
+			buildID := dep.Ref.Hash().String()
+			out, err := k.startBuild(proj, buildID, dep.Ref.Name().String(), dep.Ref.Hash().String())
+			if err != nil {
+				log.Printf("OUTPUT: %s", out)
+				log.Printf("ERROR: %v", err)
+				postStatus(fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, dep.Ref.Hash().String()),
+					GitHubStatus{
+						State:       "error",
+						TargetUrl:   fmt.Sprintf("http://%s/edge_stack/", proj.Spec.Host),
+						Description: err.Error(),
+						Context:     "aes",
+					},
+					proj.Spec.GithubToken)
+			} else {
+				postStatus(fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, dep.Ref.Hash().String()),
+					GitHubStatus{
+						State:       "pending",
+						TargetUrl:   proj.LogUrl(buildID),
+						Description: "build started",
+						Context:     "aes",
+					},
+					proj.Spec.GithubToken)
+			}
+		}
 	case 1:
 		// do nothing
 	default:
@@ -477,17 +540,6 @@ func (k *kale) reconcileDeploy(desiredDeploy deploy, builders, runners []*k8sTyp
 		qname := builder.GetName() + "." + builder.GetNamespace()
 		log.Println("BUILDER", qname, phase)
 
-		projName := builder.GetLabels()["project"]
-		namespace := builder.GetNamespace()
-
-		projKey := fmt.Sprintf("%s/%s", namespace, projName)
-		projPods, ok := k.Pods[projKey]
-		if !ok {
-			projPods = make(map[string]*k8sTypesCoreV1.Pod)
-			k.Pods[projKey] = projPods
-		}
-		projPods[builder.GetName()] = builder
-
 		if len(runners) == 0 { // don't bother with the builder if there's already a runner
 			statusesUrl := builder.GetAnnotations()["statusesUrl"]
 			logUrl := proj.LogUrl(builder.GetLabels()["build"])
@@ -502,7 +554,7 @@ func (k *kale) reconcileDeploy(desiredDeploy deploy, builders, runners []*k8sTyp
 				},
 					proj.Spec.GithubToken)
 			case k8sTypesCoreV1.PodSucceeded:
-				_, err := startRun(proj, builder.GetLabels()["commit"])
+				_, err := k.startRun(proj, builder.GetLabels()["commit"])
 				if err != nil {
 					msg := fmt.Sprintf("ERROR: %v", err)
 					log.Print(msg)
@@ -549,23 +601,45 @@ func (k *kale) reconcileDeploy(desiredDeploy deploy, builders, runners []*k8sTyp
 		phase := runner.Status.Phase
 		qname := runner.GetName() + "." + runner.GetNamespace()
 		log.Println("RUNNER", qname, phase)
-
-		projName := runner.GetLabels()["project"]
-		namespace := runner.GetNamespace()
-
-		projKey := fmt.Sprintf("%s/%s", namespace, projName)
-		projPods, ok := k.Pods[projKey]
-		if !ok {
-			projPods = make(map[string]*k8sTypesCoreV1.Pod)
-			k.Pods[projKey] = projPods
-		}
-		projPods[runner.GetName()] = runner
 	}
 
 	return nil
 }
 
-func startRun(proj Project, commit string) (string, error) {
+func (k *kale) startRun(proj Project, commit string) (string, error) {
+	pod := &k8sTypesCoreV1.Pod{
+		TypeMeta: k8sTypesMetaV1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "Pod",
+		},
+		ObjectMeta: k8sTypesMetaV1.ObjectMeta{
+			Name:      proj.Metadata.Name + "-" + commit,
+			Namespace: proj.Metadata.Namespace,
+			OwnerReferences: []k8sTypesMetaV1.OwnerReference{
+				{
+					APIVersion:         "getambassador.io/v2",
+					Controller:         boolPtr(true),
+					BlockOwnerDeletion: boolPtr(true),
+					Kind:               "Project",
+					Name:               proj.Metadata.Name,
+					UID:                proj.Metadata.UID,
+				},
+			},
+			Labels: map[string]string{
+				"kale":    "0.0",
+				"project": proj.Metadata.Name,
+				"commit":  commit,
+			},
+		},
+		Spec: k8sTypesCoreV1.PodSpec{
+			Containers: []k8sTypesCoreV1.Container{
+				{
+					Name:  "app",
+					Image: "127.0.0.1:31000/" + commit,
+				},
+			},
+		},
+	}
 	manifests := []interface{}{
 		map[string]interface{}{
 			"apiVersion": "getambassador.io/v2",
@@ -628,44 +702,15 @@ func startRun(proj Project, commit string) (string, error) {
 				},
 			},
 		},
-		&k8sTypesCoreV1.Pod{
-			TypeMeta: k8sTypesMetaV1.TypeMeta{
-				APIVersion: "v1",
-				Kind:       "Pod",
-			},
-			ObjectMeta: k8sTypesMetaV1.ObjectMeta{
-				Name:      proj.Metadata.Name + "-" + commit,
-				Namespace: proj.Metadata.Namespace,
-				OwnerReferences: []k8sTypesMetaV1.OwnerReference{
-					{
-						APIVersion:         "getambassador.io/v2",
-						Controller:         boolPtr(true),
-						BlockOwnerDeletion: boolPtr(true),
-						Kind:               "Project",
-						Name:               proj.Metadata.Name,
-						UID:                proj.Metadata.UID,
-					},
-				},
-				Labels: map[string]string{
-					"kale":    "0.0",
-					"project": proj.Metadata.Name,
-					"commit":  commit,
-				},
-			},
-			Spec: k8sTypesCoreV1.PodSpec{
-				Containers: []k8sTypesCoreV1.Container{
-					{
-						Name:  "app",
-						Image: "127.0.0.1:31000/" + commit,
-					},
-				},
-			},
-		},
+		pod,
 	}
 
 	out, err := applyObjs(manifests)
 	if err != nil {
 		return "", fmt.Errorf("%w\n%s", err, out)
 	}
+
+	k.Pods.addPod(pod)
+
 	return string(out), nil
 }

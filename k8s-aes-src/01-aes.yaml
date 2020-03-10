@@ -79,10 +79,10 @@ rules:
 # extra permissions for kale
 - apiGroups: [""]
   resources: [ "pods", "services" ]
-  verbs: [ "get", "list", "create", "watch" ]
+  verbs: [ "get", "list", "create", "patch", "delete", "watch" ]
 - apiGroups: ["getambassador.io"]
   resources: [ "mappings", "projects" ]
-  verbs: [ "get", "list", "create", "watch" ]
+  verbs: [ "get", "list", "create", "patch", "delete", "watch" ]
 - apiGroups: [""]
   resources: [ "pods/log" ]
   verbs: [ "get" ]
