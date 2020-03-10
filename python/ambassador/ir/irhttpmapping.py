@@ -154,6 +154,12 @@ class IRHTTPMapping (IRBaseMapping):
         if 'method' in kwargs:
             hdrs.append(Header(":method", kwargs['method'], kwargs.get('method_regex', False)))
 
+        # XXX BRUTAL HACK HERE: 
+        # If we _don't_ have an origination context, but our IR has an agent_origination_ctx,
+        # force TLS origination because it's the agent. I know, I know. It's a hack.
+        if ('tls' not in new_args) and ir.agent_origination_ctx:
+            ir.logger.info(f"Mapping {name}: Agent forcing origination TLS context to {ir.agent_origination_ctx.name}")
+            new_args['tls'] = ir.agent_origination_ctx.name
 
         # ...and then init the superclass.
         super().__init__(
