@@ -1,8 +1,10 @@
 package leaderelection
 
 import (
+	"context"
 	"os"
 
+	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/datawire/ambassador/pkg/k8s"
 	"github.com/datawire/apro/cmd/amb-sidecar/k8s/events"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
@@ -18,7 +20,7 @@ import (
 	k8sLeaderElectionResourceLock "k8s.io/client-go/tools/leaderelection/resourcelock"
 )
 
-func GetLeaderElectionResourceLock(cfg types.Config, kubeinfo *k8s.KubeInfo, eventLogger *events.EventLogger, leasename string) (k8sLeaderElectionResourceLock.Interface, error) {
+func newLeaderElectionResourceLock(ctx context.Context, cfg types.Config, kubeinfo *k8s.KubeInfo, leasename string) (k8sLeaderElectionResourceLock.Interface, error) {
 	hostname, err := os.Hostname()
 	if err != nil {
 		return nil, err
@@ -34,6 +36,20 @@ func GetLeaderElectionResourceLock(cfg types.Config, kubeinfo *k8s.KubeInfo, eve
 		return nil, err
 	}
 
+	coreClient, err := k8sClientCoreV1.NewForConfig(restconfig)
+	if err != nil {
+		return nil, err
+	}
+
+	eventLogger, err := events.NewEventLogger(
+		cfg,
+		coreClient,
+		dlog.GetLogger(ctx),
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	if cfg.AmbassadorID != "default" {
 		leasename += "-" + cfg.AmbassadorID
 	}
@@ -42,10 +58,6 @@ func GetLeaderElectionResourceLock(cfg types.Config, kubeinfo *k8s.KubeInfo, eve
 		// Kubernetes <1.12 didn't have a "Lease" object, and was in beta in <1.14, so fall back to
 		// using an Endpoints object.  Don't consider v1beta1 to be good-enough; it isn't for our copy
 		// of client-go; require v1.
-		coreClient, err := k8sClientCoreV1.NewForConfig(restconfig)
-		if err != nil {
-			return nil, err
-		}
 		return &k8sLeaderElectionResourceLock.EndpointsLock{
 			EndpointsMeta: k8sTypesMetaV1.ObjectMeta{
 				Name:      leasename,
