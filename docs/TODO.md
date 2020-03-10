@@ -15,6 +15,7 @@ Temporary redirects:
 * /reference/configuration/ --> /topics/using/
 * /reference/config-format/ --> /topics/using/
 * /reference/core/annotations/ --> ??
+* /reference/filter-reference --> /topics/using/filters/
 
 These pages still need some updates:
 
