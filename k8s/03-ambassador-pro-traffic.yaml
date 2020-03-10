@@ -27,6 +27,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: telepresence-proxy
+  namespace: ambassador
   labels:
     app: telepresence-proxy
 spec:
@@ -42,10 +43,30 @@ spec:
       containers:
       - name: telepresence-proxy
         image: {{env "AES_IMAGE"}}
-        command: ["traffic-manager"]
+        command: [ "traffic-manager" ]
         ports:
         - name: sshd
           containerPort: 8022
         env:
-        - name: AMBASSADOR_LICENSE_KEY
-          value: {{env "AMBASSADOR_LICENSE_KEY"}}
+          - name: AMBASSADOR_LICENSE_FILE
+            value: /.config/ambassador/license-key
+        volumeMounts:
+          - mountPath: /tmp/ambassador-pod-info
+            name: ambassador-pod-info
+          - mountPath: /.config/ambassador
+            name: ambassador-edge-stack-secrets
+            readOnly: true
+      restartPolicy: Always
+      # securityContext:
+      #   runAsUser: 8888
+      terminationGracePeriodSeconds: 0
+      volumes:
+      - downwardAPI:
+          items:
+          - fieldRef:
+              fieldPath: metadata.labels
+            path: labels
+        name: ambassador-pod-info
+      - name: ambassador-edge-stack-secrets
+        secret:
+          secretName: ambassador-edge-stack

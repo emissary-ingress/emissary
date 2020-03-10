@@ -19,28 +19,71 @@ if ! curl -s "localhost:$local_port" | grep "Request served by" | tee /dev/stder
     exit 1
 fi
 
-APICTL=./bin_$(go env GOHOSTOS)_$(go env GOHOSTARCH)/apictl
 REMOTE_SVC=echo
 NUM_LOOPS=2
 
-APICTL_COMMAND="$APICTL traffic intercept -n :path -m /$$ -t localhost:$local_port $REMOTE_SVC"
+# APICTL=./bin_$(go env GOHOSTOS)_$(go env GOHOSTARCH)/apictl
+# APICTL_COMMAND="$APICTL traffic intercept -n :path -m /$$ -t localhost:$local_port $REMOTE_SVC"
+
+EDGECTL="go run github.com/datawire/ambassador/cmd/edgectl"
+EDGECTL_DAEMON_START="sudo $EDGECTL daemon"
+EDGECTL_DAEMON_STOP="$EDGECTL quit"
+EDGECTL_CONNECT="$EDGECTL connect"
+EDGECTL_DISCONNECT="$EDGECTL disconnect"
+EDGECTL INT_LIST="$EDGECTL intercept list"
+EDGECTL_INT_ADD="$EDGECTL intercept add -n loop_intercept -m USER=loop_test -t :$local_port $REMOTE_SVC"
+EDGECTL INT_REMOVE="$EDGECTL intercept remove loop_intercept"
+
 CURL_COMMAND="curl -s $REMOTE_SVC/$$"
+
+ECHO_ON="set -x"
+ECHO_OFF="{ set +x } 2>/dev/null"
 
 do_curl() {
     echo "+ $CURL_COMMAND"
     $CURL_COMMAND | grep 'Request served by'
 }
 
-do_apictl() {
-    echo "+ $APICTL_COMMAND"
-    $APICTL_COMMAND &
-}
+# do_apictl() {
+#     echo "+ $APICTL_COMMAND"
+#     $APICTL_COMMAND &
+# }
 
 test_curl_was_intercepted() {
     do_curl | tee /dev/stderr | grep -q -e 'Request served by container_on_laptop'
 }
 
-# Check cluster environment
+run_with_echo () {
+    var_name="$1"
+
+    eval "set -x; \$$var_name; status=\$?; set +x"
+
+    return $status
+}
+
+# Make sure edgectl is okay
+$EDGECTL help > /dev/null
+echo "+ $EDGECTL version"
+$EDGECTL version
+
+# Start daemon and get connected.
+
+if ! run_with_echo EDGECTL_DAEMON_START; then
+    echo "Daemon failed" >&2
+    exit 1
+fi
+
+if ! run_with_echo EDGECTL_CONNECT; then
+    echo "Connect failed" >&2
+    exit 1
+fi
+
+count=$($EDGECTL_INT_LIST | grep -c unavail)
+
+if [ $count -gt 0 ]; then
+    echo "Intercept unavailable" >&2
+    exit 1
+fi
 
 if ! do_curl; then
     echo "curl of the remote service ($REMOTE_SVC) failed."
@@ -52,11 +95,6 @@ if ! do_curl; then
     echo "  make deploy"
     exit 1
 fi
-
-# Make sure apictl is okay
-$APICTL help > /dev/null
-echo "+ $APICTL version"
-$APICTL version
 
 # Set up for cleanup
 
