@@ -10,6 +10,7 @@ import (
 	aes_plugin_runner "github.com/datawire/apro/cmd/aes-plugin-runner-native"
 	amb_sidecar "github.com/datawire/apro/cmd/amb-sidecar"
 	app_sidecar "github.com/datawire/apro/cmd/app-sidecar"
+	traffic_manager "github.com/datawire/apro/cmd/traffic-proxy"
 
 	"github.com/datawire/ambassador/cmd/ambex"
 	"github.com/datawire/ambassador/cmd/kubestatus"
@@ -46,6 +47,8 @@ func main() {
 		amb_sidecar.Main()
 	case "app-sidecar":
 		app_sidecar.Main()
+	case "traffic-manager":
+		traffic_manager.Main()
 	default:
 		fmt.Println("The Ambassador main program is a multi-call binary that combines various")
 		fmt.Println("support programs into one executable.")
@@ -54,7 +57,7 @@ func main() {
 		fmt.Println("   or: <PROGRAM> [arguments]...")
 		fmt.Println()
 		fmt.Println("Available programs: ambex kubestatus watt")
-		fmt.Println("                    aes-plugin-runner amb-sidecar app-sidecar")
+		fmt.Println("                    aes-plugin-runner amb-sidecar app-sidecar traffic-manager")
 		fmt.Println()
 		fmt.Printf("Unknown name %q\n", name)
 	}

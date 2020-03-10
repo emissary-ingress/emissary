@@ -673,13 +673,18 @@
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
-                                                            "prefix": "/",
                                                             "runtime_fraction": {
                                                                 "default_value": {
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
                                                                 "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8500_default"
+                                                            },
+                                                            "safe_regex": {
+                                                                "google_re2": {
+                                                                    "max_program_size": 200
+                                                                },
+                                                                "regex": "^/$"
                                                             }
                                                         },
                                                         "route": {
@@ -696,7 +701,7 @@
                                                                         "denominator": "HUNDRED",
                                                                         "numerator": 100
                                                                     },
-                                                                    "runtime_key": "routing.cors_enabled.5eb8304c5bb81b74bc6e6e947392fe0c6d1f2dab"
+                                                                    "runtime_key": "routing.cors_enabled.680a6fad8cb1cf2ad5fce0be9da026e1e0f1b76f"
                                                                 }
                                                             },
                                                             "prefix_rewrite": "/edge_stack_ui/",
@@ -707,13 +712,18 @@
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
-                                                            "prefix": "/",
                                                             "runtime_fraction": {
                                                                 "default_value": {
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
                                                                 "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8500_default"
+                                                            },
+                                                            "safe_regex": {
+                                                                "google_re2": {
+                                                                    "max_program_size": 200
+                                                                },
+                                                                "regex": "^/$"
                                                             }
                                                         },
                                                         "route": {
@@ -730,7 +740,7 @@
                                                                         "denominator": "HUNDRED",
                                                                         "numerator": 100
                                                                     },
-                                                                    "runtime_key": "routing.cors_enabled.5eb8304c5bb81b74bc6e6e947392fe0c6d1f2dab"
+                                                                    "runtime_key": "routing.cors_enabled.680a6fad8cb1cf2ad5fce0be9da026e1e0f1b76f"
                                                                 }
                                                             },
                                                             "prefix_rewrite": "/edge_stack_ui/",
@@ -748,8 +758,7 @@
                                     "xff_num_trusted_hops": 0
                                 }
                             }
-                        ],
-                        "use_proxy_proto": false
+                        ]
                     }
                 ],
                 "listener_filters": [],

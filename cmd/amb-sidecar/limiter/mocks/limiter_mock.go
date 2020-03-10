@@ -58,6 +58,10 @@ func (ml *MockLimiter) GetFeatureUsageValueAtPointInTime(toCheck *licensekeys.Li
 	return 0
 }
 
+func (ml *MockLimiter) GetFeatureMaxUsageValue(toCheck *licensekeys.Limit) int {
+	return 0
+}
+
 func (ml *MockLimiter) IsHardLimitAtPointInTime() bool {
 	return ml.isHardLimit
 }

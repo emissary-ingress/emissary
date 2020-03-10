@@ -82,54 +82,6 @@
             },
             "serialization": "acmeProvider:\n  authority: none\nambassador_id:\n- ratelimitv1withtlstest\napiVersion: getambassador.io/v2\ngeneration: 1\nhostname: '*'\nkind: Host\nmetadata_labels:\n  ambassador_crd: cleartext-host-ratelimitv1withtlstest.default\n  kat-ambassador-id: ratelimitv1withtlstest\n  scope: AmbassadorTest\nname: cleartext-host-ratelimitv1withtlstest\nnamespace: default\nrequestPolicy:\n  insecure:\n    action: Route\nselector:\n  matchLabels:\n    hostname: ratelimitv1withtlstest\n"
         },
-        "edgestack-direct-mapping.default.1": {
-            "_referenced_by": {},
-            "ambassador_id": [
-                "_automatic_"
-            ],
-            "apiVersion": "getambassador.io/v2",
-            "generation": 1,
-            "kind": "Mapping",
-            "location": "edgestack-direct-mapping.default.1",
-            "metadata_labels": {
-                "ambassador_crd": "edgestack-direct-mapping.default",
-                "ambassador_diag_class": "private",
-                "product": "aes"
-            },
-            "name": "edgestack-direct-mapping",
-            "namespace": "default",
-            "precedence": 1000000,
-            "prefix": "/edge_stack/",
-            "rewrite": "/edge_stack_ui/edge_stack/",
-            "rkey": "edgestack-direct-mapping.default.1",
-            "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgestack-direct-mapping.default\n  ambassador_diag_class: private\n  product: aes\nname: edgestack-direct-mapping\nnamespace: default\nprecedence: 1000000\nprefix: /edge_stack/\nrewrite: /edge_stack_ui/edge_stack/\nservice: 127.0.0.1:8500\ntimeout_ms: 60000\n",
-            "service": "127.0.0.1:8500",
-            "timeout_ms": 60000
-        },
-        "edgestack-fallback-mapping.default.1": {
-            "_referenced_by": {},
-            "ambassador_id": [
-                "_automatic_"
-            ],
-            "apiVersion": "getambassador.io/v2",
-            "generation": 1,
-            "kind": "Mapping",
-            "location": "edgestack-fallback-mapping.default.1",
-            "metadata_labels": {
-                "ambassador_crd": "edgestack-fallback-mapping.default",
-                "ambassador_diag_class": "private",
-                "product": "aes"
-            },
-            "name": "edgestack-fallback-mapping",
-            "namespace": "default",
-            "precedence": -1000000,
-            "prefix": "/",
-            "rewrite": "/edge_stack_ui/",
-            "rkey": "edgestack-fallback-mapping.default.1",
-            "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgestack-fallback-mapping.default\n  ambassador_diag_class: private\n  product: aes\nname: edgestack-fallback-mapping\nnamespace: default\nprecedence: -1000000\nprefix: /\nrewrite: /edge_stack_ui/\nservice: 127.0.0.1:8500\ntimeout_ms: 60000\n",
-            "service": "127.0.0.1:8500",
-            "timeout_ms": 60000
-        },
         "k8s-rate-limit-tls-default": {
             "_referenced_by": {},
             "ambassador_id": "ratelimitv1withtlstest",
@@ -196,6 +148,24 @@
             "rkey": "k8s-ratelimitv1withtlstest-http-default",
             "serialization": "ambassador_id: ratelimitv1withtlstest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: ratelimitv1withtlstest\n  scope: AmbassadorTest\nname: ratelimitv1withtlstest-http\nnamespace: default\n"
         },
+        "rate-limit-tls.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "ratelimitv1withtlstest",
+            "apiVersion": "getambassador.io/v1",
+            "kind": "RateLimitService",
+            "location": "rate-limit-tls.default.1",
+            "metadata_labels": {
+                "kat-ambassador-id": "ratelimitv1withtlstest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "ratelimit-tls",
+            "namespace": "default",
+            "rkey": "rate-limit-tls.default.1",
+            "serialization": "ambassador_id: ratelimitv1withtlstest\napiVersion: ambassador/v1\nkind: RateLimitService\nmetadata_labels:\n  kat-ambassador-id: ratelimitv1withtlstest\n  scope: AmbassadorTest\nname: ratelimit-tls\nnamespace: default\nservice: rate-limit-tls:5000\ntimeout_ms: 500\ntls: ratelimit-tls-context\n",
+            "service": "rate-limit-tls:5000",
+            "timeout_ms": 500,
+            "tls": "ratelimit-tls-context"
+        },
         "ratelimit-tls-secret.default.1": {
             "_referenced_by": {},
             "ambassador_id": "ratelimitv1withtlstest",
@@ -261,25 +231,6 @@
             "rkey": "ratelimitv1withtlstest-http.default.2",
             "serialization": "ambassador_id: ratelimitv1withtlstest\napiVersion: ambassador/v1\nkind: Mapping\nlabels:\n  ambassador:\n  - request_label_group:\n    - x-ambassador-test-allow:\n        header: x-ambassador-test-allow\n        omit_if_not_present: true\nmetadata_labels:\n  kat-ambassador-id: ratelimitv1withtlstest\n  scope: AmbassadorTest\nname: ratelimit_target_mapping\nnamespace: default\nprefix: /target/\nservice: ratelimitv1withtlstest-http\n",
             "service": "ratelimitv1withtlstest-http"
-        },
-        "ratelimitv1withtlstest.default.1": {
-            "_referenced_by": {},
-            "ambassador_id": "ratelimitv1withtlstest",
-            "apiVersion": "getambassador.io/v1",
-            "kind": "RateLimitService",
-            "location": "ratelimitv1withtlstest.default.1",
-            "metadata_labels": {
-                "app.kubernetes.io/component": "ambassador-service",
-                "kat-ambassador-id": "ratelimitv1withtlstest",
-                "scope": "AmbassadorTest"
-            },
-            "name": "ratelimit-tls",
-            "namespace": "default",
-            "rkey": "ratelimitv1withtlstest.default.1",
-            "serialization": "ambassador_id: ratelimitv1withtlstest\napiVersion: ambassador/v1\nkind: RateLimitService\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: ratelimitv1withtlstest\n  scope: AmbassadorTest\nname: ratelimit-tls\nnamespace: default\nservice: rate-limit-tls:5000\ntimeout_ms: 500\ntls: ratelimit-tls-context\n",
-            "service": "rate-limit-tls:5000",
-            "timeout_ms": 500,
-            "tls": "ratelimit-tls-context"
         }
     },
     "hosts": {
@@ -333,46 +284,6 @@
             "rewrite": "",
             "service": "127.0.0.1:8500"
         },
-        "edgestack-direct-mapping": {
-            "ambassador_id": [
-                "_automatic_"
-            ],
-            "apiVersion": "getambassador.io/v2",
-            "generation": 1,
-            "kind": "Mapping",
-            "metadata_labels": {
-                "ambassador_crd": "edgestack-direct-mapping.default",
-                "ambassador_diag_class": "private",
-                "product": "aes"
-            },
-            "name": "edgestack-direct-mapping",
-            "namespace": "default",
-            "precedence": 1000000,
-            "prefix": "/edge_stack/",
-            "rewrite": "/edge_stack_ui/edge_stack/",
-            "service": "127.0.0.1:8500",
-            "timeout_ms": 60000
-        },
-        "edgestack-fallback-mapping": {
-            "ambassador_id": [
-                "_automatic_"
-            ],
-            "apiVersion": "getambassador.io/v2",
-            "generation": 1,
-            "kind": "Mapping",
-            "metadata_labels": {
-                "ambassador_crd": "edgestack-fallback-mapping.default",
-                "ambassador_diag_class": "private",
-                "product": "aes"
-            },
-            "name": "edgestack-fallback-mapping",
-            "namespace": "default",
-            "precedence": -1000000,
-            "prefix": "/",
-            "rewrite": "/edge_stack_ui/",
-            "service": "127.0.0.1:8500",
-            "timeout_ms": 60000
-        },
         "ratelimit_target_mapping": {
             "ambassador_id": "ratelimitv1withtlstest",
             "apiVersion": "getambassador.io/v1",
@@ -407,7 +318,6 @@
             "apiVersion": "getambassador.io/v1",
             "kind": "RateLimitService",
             "metadata_labels": {
-                "app.kubernetes.io/component": "ambassador-service",
                 "kat-ambassador-id": "ratelimitv1withtlstest",
                 "scope": "AmbassadorTest"
             },

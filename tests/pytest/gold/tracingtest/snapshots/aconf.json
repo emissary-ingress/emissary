@@ -4,7 +4,7 @@
         "tracingtest-http.default.1": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ],
-        "tracingtest.default.1": [
+        "zipkin.default.1": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ]
     },
@@ -89,54 +89,6 @@
             },
             "serialization": "acmeProvider:\n  authority: none\nambassador_id:\n- tracingtest\napiVersion: getambassador.io/v2\ngeneration: 1\nhostname: '*'\nkind: Host\nmetadata_labels:\n  ambassador_crd: cleartext-host-tracingtest.default\n  kat-ambassador-id: tracingtest\n  scope: AmbassadorTest\nname: cleartext-host-tracingtest\nnamespace: default\nrequestPolicy:\n  insecure:\n    action: Route\nselector:\n  matchLabels:\n    hostname: tracingtest\n"
         },
-        "edgestack-direct-mapping.default.1": {
-            "_referenced_by": {},
-            "ambassador_id": [
-                "_automatic_"
-            ],
-            "apiVersion": "getambassador.io/v2",
-            "generation": 1,
-            "kind": "Mapping",
-            "location": "edgestack-direct-mapping.default.1",
-            "metadata_labels": {
-                "ambassador_crd": "edgestack-direct-mapping.default",
-                "ambassador_diag_class": "private",
-                "product": "aes"
-            },
-            "name": "edgestack-direct-mapping",
-            "namespace": "default",
-            "precedence": 1000000,
-            "prefix": "/edge_stack/",
-            "rewrite": "/edge_stack_ui/edge_stack/",
-            "rkey": "edgestack-direct-mapping.default.1",
-            "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgestack-direct-mapping.default\n  ambassador_diag_class: private\n  product: aes\nname: edgestack-direct-mapping\nnamespace: default\nprecedence: 1000000\nprefix: /edge_stack/\nrewrite: /edge_stack_ui/edge_stack/\nservice: 127.0.0.1:8500\ntimeout_ms: 60000\n",
-            "service": "127.0.0.1:8500",
-            "timeout_ms": 60000
-        },
-        "edgestack-fallback-mapping.default.1": {
-            "_referenced_by": {},
-            "ambassador_id": [
-                "_automatic_"
-            ],
-            "apiVersion": "getambassador.io/v2",
-            "generation": 1,
-            "kind": "Mapping",
-            "location": "edgestack-fallback-mapping.default.1",
-            "metadata_labels": {
-                "ambassador_crd": "edgestack-fallback-mapping.default",
-                "ambassador_diag_class": "private",
-                "product": "aes"
-            },
-            "name": "edgestack-fallback-mapping",
-            "namespace": "default",
-            "precedence": -1000000,
-            "prefix": "/",
-            "rewrite": "/edge_stack_ui/",
-            "rkey": "edgestack-fallback-mapping.default.1",
-            "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgestack-fallback-mapping.default\n  ambassador_diag_class: private\n  product: aes\nname: edgestack-fallback-mapping\nnamespace: default\nprecedence: -1000000\nprefix: /\nrewrite: /edge_stack_ui/\nservice: 127.0.0.1:8500\ntimeout_ms: 60000\n",
-            "service": "127.0.0.1:8500",
-            "timeout_ms": 60000
-        },
         "k8s-tracingtest-admin-default": {
             "_referenced_by": {},
             "ambassador_id": "tracingtest",
@@ -220,22 +172,21 @@
             "serialization": "ambassador_id: tracingtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingtest\n  scope: AmbassadorTest\nname: tracing_target_mapping\nnamespace: default\nprefix: /target/\nservice: tracingtest-http\n",
             "service": "tracingtest-http"
         },
-        "tracingtest.default.1": {
+        "zipkin.default.1": {
             "_referenced_by": {},
             "ambassador_id": "tracingtest",
             "apiVersion": "getambassador.io/v0",
             "driver": "zipkin",
             "kind": "TracingService",
-            "location": "tracingtest.default.1",
+            "location": "zipkin.default.1",
             "metadata_labels": {
-                "app.kubernetes.io/component": "ambassador-service",
                 "kat-ambassador-id": "tracingtest",
                 "scope": "AmbassadorTest"
             },
             "name": "tracing",
             "namespace": "default",
-            "rkey": "tracingtest.default.1",
-            "serialization": "ambassador_id: tracingtest\napiVersion: ambassador/v0\ndriver: zipkin\nkind: TracingService\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tracingtest\n  scope: AmbassadorTest\nname: tracing\nnamespace: default\nservice: zipkin:9411\n",
+            "rkey": "zipkin.default.1",
+            "serialization": "ambassador_id: tracingtest\napiVersion: ambassador/v0\ndriver: zipkin\nkind: TracingService\nmetadata_labels:\n  kat-ambassador-id: tracingtest\n  scope: AmbassadorTest\nname: tracing\nnamespace: default\nservice: zipkin:9411\n",
             "service": "zipkin:9411"
         }
     },
@@ -289,46 +240,6 @@
             "prefix": "/.ambassador/",
             "rewrite": "",
             "service": "127.0.0.1:8500"
-        },
-        "edgestack-direct-mapping": {
-            "ambassador_id": [
-                "_automatic_"
-            ],
-            "apiVersion": "getambassador.io/v2",
-            "generation": 1,
-            "kind": "Mapping",
-            "metadata_labels": {
-                "ambassador_crd": "edgestack-direct-mapping.default",
-                "ambassador_diag_class": "private",
-                "product": "aes"
-            },
-            "name": "edgestack-direct-mapping",
-            "namespace": "default",
-            "precedence": 1000000,
-            "prefix": "/edge_stack/",
-            "rewrite": "/edge_stack_ui/edge_stack/",
-            "service": "127.0.0.1:8500",
-            "timeout_ms": 60000
-        },
-        "edgestack-fallback-mapping": {
-            "ambassador_id": [
-                "_automatic_"
-            ],
-            "apiVersion": "getambassador.io/v2",
-            "generation": 1,
-            "kind": "Mapping",
-            "metadata_labels": {
-                "ambassador_crd": "edgestack-fallback-mapping.default",
-                "ambassador_diag_class": "private",
-                "product": "aes"
-            },
-            "name": "edgestack-fallback-mapping",
-            "namespace": "default",
-            "precedence": -1000000,
-            "prefix": "/",
-            "rewrite": "/edge_stack_ui/",
-            "service": "127.0.0.1:8500",
-            "timeout_ms": 60000
         },
         "tracing_target_mapping": {
             "ambassador_id": "tracingtest",
@@ -403,7 +314,6 @@
             "driver": "zipkin",
             "kind": "TracingService",
             "metadata_labels": {
-                "app.kubernetes.io/component": "ambassador-service",
                 "kat-ambassador-id": "tracingtest",
                 "scope": "AmbassadorTest"
             },

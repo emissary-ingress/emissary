@@ -31,7 +31,8 @@ module.exports.standardTest = standardTest;
 
 // can be chained with other filters
 module.exports.chainTest = async (browsertab, idpfile, testname) => {
-	// this is mostly the same as the 'can authorize requests' test, but has more at the end
+	// this is mostly the same as the standardTest() test, but has more at the end
+
 	const response = await browsertab.goto(idpfile.testcases[testname].resource);
 	// verify that we got redirected to the IDP
 	expect(response.request().redirectChain()).to.not.be.empty;
@@ -40,7 +41,7 @@ module.exports.chainTest = async (browsertab, idpfile, testname) => {
 	let done = browsertab.waitForResponse(idpfile.testcases[testname].resource)
 	    .then(() => browsertab.waitForFunction(() => {return document.readyState == "complete";}));
 	await idpfile.authenticate(browsertab, idpfile.testcases[testname].username, idpfile.testcases[testname].password);
-	await done
+	await done;
 	// verify that we got redirected properly
 	expect(browsertab.url()).to.equal(idpfile.testcases[testname].resource);
 	// verify that backend service received the authorization
@@ -50,6 +51,30 @@ module.exports.chainTest = async (browsertab, idpfile, testname) => {
 	// this is the extra bit at the end
 	expect(echoedRequest.headers['X-Wikipedia']).to.not.be.undefined
 };
+
+// works with MS Office
+const msofficeTest = async (browsertab, idpfile, testname, starturl) => {
+	// this is mostly the same as the standardTest() test, but the starting URL is an argument
+
+	const response = await browsertab.goto(starturl);
+	// verify that we're already at the IDP
+	expect(response.request().redirectChain()).to.be.empty; // NB that this line is different than standardTest()
+
+	// from this point on, everything is identical to standardTest
+
+	expect((new URL(browsertab.url())).hostname).to.not.contain((new URL(idpfile.testcases[testname].resource)).hostname);
+	// authenticate to the IDP
+	let done = browsertab.waitForResponse(idpfile.testcases[testname].resource)
+	    .then(() => browsertab.waitForFunction(() => {return document.readyState == "complete";}));
+	await idpfile.authenticate(browsertab, idpfile.testcases[testname].username, idpfile.testcases[testname].password);
+	await done;
+	// verify that we got redirected properly
+	expect(browsertab.url()).to.equal(idpfile.testcases[testname].resource);
+	// verify that backend service received the authorization
+	const echoedRequest = JSON.parse(await browsertab.evaluate(() => {return document.body.textContent}));
+	expect(echoedRequest.headers.Authorization).to.match(/^Bearer /);
+};
+module.exports.msofficeTest = msofficeTest;
 
 // can be turned off for specific paths
 module.exports.disableTest = async (browsertab, idpfile, testname) => {

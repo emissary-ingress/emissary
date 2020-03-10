@@ -19,9 +19,15 @@ type MetritonResponse struct {
 	IsHardLimit bool `json:"hard_limit"`
 }
 
+const phoneHomeEveryPeriod = 12 * time.Hour
+
+// THIS CAN'T BE AN ENVIRONMENT VARIABLE, OR METRITON MIGHT BE HIJACKED
+// Use "https://kubernaut.io/beta/scout" for testing purposes without polluting production data.
+const metritonEndpoint = "https://kubernaut.io/scout"
+
 func PhoneHomeEveryday(claims *licensekeys.LicenseClaimsLatest, limiter *limiter.LimiterImpl, application, version string) {
-	// Phone home every 12 hours
-	phoneHomeTicker := time.NewTicker(12 * time.Hour)
+	// Phone home every X period
+	phoneHomeTicker := time.NewTicker(phoneHomeEveryPeriod)
 	for range phoneHomeTicker.C {
 		go PhoneHome(claims, limiter, application, version)
 	}
@@ -73,7 +79,6 @@ func phoneHome(claims *licensekeys.LicenseClaimsLatest, limiter *limiter.Limiter
 	if err != nil {
 		panic(err)
 	}
-	metritonEndpoint := "https://kubernaut.io/scout" // THIS CAN'T BE AN ENVIRONMENT VARIABLE, OR METRITON MIGHT BE HIJACKED
 	resp, err := http.Post(metritonEndpoint, "application/json", bytes.NewBuffer(body))
 	if err != nil {
 		if limiter != nil {
@@ -114,10 +119,12 @@ func prepareData(claims *licensekeys.LicenseClaimsLatest, limiter *limiter.Limit
 		if ok && limiter != nil {
 			limitValue := limiter.GetLimitValueAtPointInTime(&limit)
 			usageValue := limiter.GetFeatureUsageValueAtPointInTime(&limit)
+			maxUsageValue := limiter.GetFeatureMaxUsageValue(&limit)
 			featuresDataSet = append(featuresDataSet, map[string]interface{}{
-				"name":  limitName,
-				"usage": usageValue,
-				"limit": limitValue,
+				"name":      limitName,
+				"usage":     usageValue,
+				"max_usage": maxUsageValue,
+				"limit":     limitValue,
 			})
 			if usageValue >= limitValue {
 				fmt.Printf("You've reached the usage limits for your licensed feature %s usage (%d) limit (%d). Contact Datawire for a license key to remove limits https://www.getambassador.io/contact/\n",

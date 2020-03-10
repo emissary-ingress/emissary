@@ -1,6 +1,7 @@
 package limiter
 
 import (
+	"strconv"
 	"strings"
 	"time"
 
@@ -74,7 +75,31 @@ func (this *CountLimiterImpl) GetUnderlyingValueAtPointInTime() (int, error) {
 
 	decryptedValue := this.decryptString(resp)
 	keys := strings.Split(decryptedValue, ",")
-	return len(keys), nil
+	value := len(keys)
+	this.recordMaxValue(value)
+	return value, nil
+}
+
+// recordMaxValue records the maximum observed value in the last 24 hours.
+func (this *CountLimiterImpl) recordMaxValue(value int) {
+	previousValue, _ := this.getMaxValue()
+	// if the new value is greater than the previously recorded maxValue,
+	// set a "limit-m" redis key with the new maxValue and have it expire in 24h.
+	if value > previousValue {
+		this.redisPool.Cmd("SET", this.limit.String()+"-m", value, "EX", "86400")
+	}
+}
+
+// getMaxValue returns the maximum observed value.
+func (this *CountLimiterImpl) getMaxValue() (int, error) {
+	resp, err := this.redisPool.Cmd("GET", this.limit.String()+"-m").Str()
+	if err != nil {
+		if err == redis.ErrRespNil || resp == "" {
+			return 0, err
+		}
+		return -1, err
+	}
+	return strconv.Atoi(resp)
 }
 
 // attemptAcquireLock attempts to acquire a lock for a redis client.
@@ -228,4 +253,8 @@ func (this *CountLimiterImpl) IsExceedingAtPointInTime() (bool, error) {
 
 func (this *CountLimiterImpl) GetUsageAtPointInTime() (int, error) {
 	return this.GetUnderlyingValueAtPointInTime()
+}
+
+func (this *CountLimiterImpl) GetMaxUsage() (int, error) {
+	return this.getMaxValue()
 }

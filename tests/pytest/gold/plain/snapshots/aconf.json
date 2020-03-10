@@ -5,25 +5,25 @@
                 "error": "Ambassador could not find core CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...",
                 "hostname": "plain",
                 "ok": false,
-                "version": "1.2.0"
+                "version": "1.2.1-42-g3adcdaa44"
             },
             {
                 "error": "Ambassador could not find Resolver type CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...",
                 "hostname": "plain",
                 "ok": false,
-                "version": "1.2.0"
+                "version": "1.2.1-42-g3adcdaa44"
             },
             {
                 "error": "Ambassador could not find the Host CRD definition. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...",
                 "hostname": "plain",
                 "ok": false,
-                "version": "1.2.0"
+                "version": "1.2.1-42-g3adcdaa44"
             },
             {
                 "error": "Ambassador could not find the LogService CRD definition. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...",
                 "hostname": "plain",
                 "ok": false,
-                "version": "1.2.0"
+                "version": "1.2.1-42-g3adcdaa44"
             }
         ]
     },
@@ -208,54 +208,6 @@
             "rkey": "ambassador-edge-stack.plain-namespace.1",
             "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: ambassador-edge-stack.plain-namespace\n  ambassador_diag_class: private\n  product: aes\nname: ambassador-edge-stack\nnamespace: plain-namespace\nprecedence: 1000000\nprefix: /.ambassador/\nrewrite: ''\nservice: 127.0.0.1:8500\n",
             "service": "127.0.0.1:8500"
-        },
-        "edgestack-direct-mapping.plain-namespace.1": {
-            "_referenced_by": {},
-            "ambassador_id": [
-                "_automatic_"
-            ],
-            "apiVersion": "getambassador.io/v2",
-            "generation": 1,
-            "kind": "Mapping",
-            "location": "edgestack-direct-mapping.plain-namespace.1",
-            "metadata_labels": {
-                "ambassador_crd": "edgestack-direct-mapping.plain-namespace",
-                "ambassador_diag_class": "private",
-                "product": "aes"
-            },
-            "name": "edgestack-direct-mapping",
-            "namespace": "plain-namespace",
-            "precedence": 1000000,
-            "prefix": "/edge_stack/",
-            "rewrite": "/edge_stack_ui/edge_stack/",
-            "rkey": "edgestack-direct-mapping.plain-namespace.1",
-            "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgestack-direct-mapping.plain-namespace\n  ambassador_diag_class: private\n  product: aes\nname: edgestack-direct-mapping\nnamespace: plain-namespace\nprecedence: 1000000\nprefix: /edge_stack/\nrewrite: /edge_stack_ui/edge_stack/\nservice: 127.0.0.1:8500\ntimeout_ms: 60000\n",
-            "service": "127.0.0.1:8500",
-            "timeout_ms": 60000
-        },
-        "edgestack-fallback-mapping.plain-namespace.1": {
-            "_referenced_by": {},
-            "ambassador_id": [
-                "_automatic_"
-            ],
-            "apiVersion": "getambassador.io/v2",
-            "generation": 1,
-            "kind": "Mapping",
-            "location": "edgestack-fallback-mapping.plain-namespace.1",
-            "metadata_labels": {
-                "ambassador_crd": "edgestack-fallback-mapping.plain-namespace",
-                "ambassador_diag_class": "private",
-                "product": "aes"
-            },
-            "name": "edgestack-fallback-mapping",
-            "namespace": "plain-namespace",
-            "precedence": -1000000,
-            "prefix": "/",
-            "rewrite": "/edge_stack_ui/",
-            "rkey": "edgestack-fallback-mapping.plain-namespace.1",
-            "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: edgestack-fallback-mapping.plain-namespace\n  ambassador_diag_class: private\n  product: aes\nname: edgestack-fallback-mapping\nnamespace: plain-namespace\nprecedence: -1000000\nprefix: /\nrewrite: /edge_stack_ui/\nservice: 127.0.0.1:8500\ntimeout_ms: 60000\n",
-            "service": "127.0.0.1:8500",
-            "timeout_ms": 60000
         },
         "hostheadermappingingress-grpc-0-0.plain-namespace.1": {
             "_referenced_by": {},
@@ -5383,46 +5335,6 @@
             "prefix": "/.ambassador/",
             "rewrite": "",
             "service": "127.0.0.1:8500"
-        },
-        "edgestack-direct-mapping": {
-            "ambassador_id": [
-                "_automatic_"
-            ],
-            "apiVersion": "getambassador.io/v2",
-            "generation": 1,
-            "kind": "Mapping",
-            "metadata_labels": {
-                "ambassador_crd": "edgestack-direct-mapping.plain-namespace",
-                "ambassador_diag_class": "private",
-                "product": "aes"
-            },
-            "name": "edgestack-direct-mapping",
-            "namespace": "plain-namespace",
-            "precedence": 1000000,
-            "prefix": "/edge_stack/",
-            "rewrite": "/edge_stack_ui/edge_stack/",
-            "service": "127.0.0.1:8500",
-            "timeout_ms": 60000
-        },
-        "edgestack-fallback-mapping": {
-            "ambassador_id": [
-                "_automatic_"
-            ],
-            "apiVersion": "getambassador.io/v2",
-            "generation": 1,
-            "kind": "Mapping",
-            "metadata_labels": {
-                "ambassador_crd": "edgestack-fallback-mapping.plain-namespace",
-                "ambassador_diag_class": "private",
-                "product": "aes"
-            },
-            "name": "edgestack-fallback-mapping",
-            "namespace": "plain-namespace",
-            "precedence": -1000000,
-            "prefix": "/",
-            "rewrite": "/edge_stack_ui/",
-            "service": "127.0.0.1:8500",
-            "timeout_ms": 60000
         },
         "hostheadermappingingress-grpc-0-0": {
             "ambassador_id": "plain",

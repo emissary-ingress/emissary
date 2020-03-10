@@ -343,15 +343,16 @@ func runE(cmd *cobra.Command, args []string) error {
 			cfg.DevPortalContentBranch,
 			cfg.DevPortalContentSubdir)
 		if err != nil {
-			return err
+			logrus.Warnf("devportal: disabling due to error from DEVPORTAL_CONTENT_URL %s: %s", cfg.DevPortalContentURL, err)
+		} else {
+			devPortalContentVersion = content.Config().Version
+			devPortalServer = devportalserver.NewServer("/docs", content, limit)
+			group.Go("devportal_fetcher", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
+				fetcher := devportalserver.NewFetcher(devPortalServer, devportalserver.HTTPGet, devPortalServer.KnownServices(), cfg)
+				fetcher.Run(softCtx)
+				return nil
+			})
 		}
-		devPortalContentVersion = content.Config().Version
-		devPortalServer = devportalserver.NewServer("/docs", content, limit)
-		group.Go("devportal_fetcher", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
-			fetcher := devportalserver.NewFetcher(devPortalServer, devportalserver.HTTPGet, devPortalServer.KnownServices(), cfg)
-			fetcher.Run(softCtx)
-			return nil
-		})
 	}
 
 	// ACME client
@@ -466,7 +467,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		}
 
 		// DevPortal
-		if licenseClaims.RequireFeature(licensekeys.FeatureDevPortal) == nil {
+		if (devPortalServer != nil) && (licenseClaims.RequireFeature(licensekeys.FeatureDevPortal) == nil) {
 			httpHandler.AddEndpoint("/docs/", "Documentation portal", devPortalServer.Router().ServeHTTP)
 			if devPortalContentVersion == "1" {
 				httpHandler.AddEndpoint("/openapi/", "Documentation portal API", devPortalServer.Router().ServeHTTP)

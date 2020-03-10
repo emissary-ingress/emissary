@@ -4,7 +4,24 @@ releases. Please keep it up to date.
 
 # Ambassador Edge Stack CHANGELOG
 
-## 1.1.2 (TBD)
+## next (TBD)
+
+- Bugfix: The Edge Policy Console now honors the `diagnostics.enabled` setting in the `ambassador` Module
+- Bugfix: If the DEVPORTAL_CONTENT_URL is not accessible, log a warning but don't crash.
+- Change: There is no longer a separate traffic-proxy image; that functionality is now part of the main AES image. Set `command: ["traffic-manager"]` to use it.
+
+## 1.2.2 (2020-03-04)
+
+- Internal: Track maximum usage for 24-hour periods, not just instantaneous whenever we phone home.
+
+## 1.2.1 (2020-03-03)
+
+- Bugfix: The `aes-plugin-runner` binary for GNU/Linux is now statically linked (instead of being linked against musl libc), so it should now work on either musl libc or GNU libc systems
+- Feature: An `aes-plugin-runner` binary for Windows is now produced.  (It is un-tested as of yet.)
+- Bugfix: The `OAuth2` Filter redirection-endpoint now handles various XSRF errors more consistently
+- Change: The `OAuth2` Filter redirection-endpoint now handles XSRF errors by redirecting back to the identity provider
+
+## 1.2.0 (2020-02-24)
 
 - Change: The `ambassador` service now uses the default `externalTrafficPolicy` of `Cluster` rather than explicitly setting it to `Local`. This is a safer setting for GKE where the `Local` policy can cause outages when ambassador is updated. See https://stackoverflow.com/questions/60121956/are-hitless-rolling-updates-possible-on-gke-with-externaltrafficpolicy-local for details.
 - Bugfix: The RBAC for `Ingress` now supports the `networking.k8s.io` `apiGroup`
