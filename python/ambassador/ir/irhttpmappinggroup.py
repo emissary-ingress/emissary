@@ -48,6 +48,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
         'method': True,
         'prefix': True,
         'prefix_regex': True,
+        'prefix_exact': True,
         # 'rewrite': True,
         # 'timeout_ms': True
     }
