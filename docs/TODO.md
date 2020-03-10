@@ -12,6 +12,7 @@ Temporary redirects:
 * /concepts/auth-overview --> /using/filters/oauth2
 * /reference/authentication --> /using/filters/oauth2
 * /user-guide/tracing-tutorial/ --> /howto/
+* /reference/configuration/ --> /topics/using/
 
 These pages still need some updates:
 
