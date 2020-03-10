@@ -202,8 +202,13 @@ spec:
             # to add to the container
             name: registry-config
         - name: registry-data
+{{ if env "DEV_KUBE_NO_PVC" | eq "" }}
           persistentVolumeClaim:
             claimName: registry-data
+{{ else }}
+          hostPath:
+            path: /var/lib/registry
+{{ end }}
         - name: registry-tls
           secret:
             secretName: registry-tls
@@ -241,6 +246,7 @@ data:
         interval: 10s
         threshold: 3
 
+{{ if env "DEV_KUBE_NO_PVC" | eq "" }}
 # The persistent volume for our registry.
 ---
 apiVersion: v1
@@ -256,6 +262,7 @@ spec:
   resources:
     requests:
       storage: 10Gi
+{{ end }}
 
 # The self-signed tls secret for our registry. We should look into
 # generating this on install with a job.

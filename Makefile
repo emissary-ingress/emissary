@@ -47,6 +47,7 @@ deploy: push preflight-cluster
 	  -e AES_IMAGE=$(AMB_IMAGE) \
 	  -e DEV_USE_IMAGEPULLSECRET \
 	  -e DEV_REGISTRY \
+	  -e DEV_KUBE_NO_PVC \
 	  -e DOCKER_BUILD_USERNAME \
 	  -e DOCKER_BUILD_PASSWORD \
 	  -it $(shell $(BUILDER)) \

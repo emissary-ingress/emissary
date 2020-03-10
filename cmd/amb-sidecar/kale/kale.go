@@ -79,25 +79,32 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 	k := NewKale()
 
 	group.Go("kale", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
-		w, err := k8s.NewWatcher(info)
+		client, err := k8s.NewClient(info)
 		if err != nil {
-			return err
+			// this is non fatal (mostly just to facilitate local dev); don't `return err`
+			l.Errorln("not watching Project resources:", fmt.Errorf("k8s.NewClient: %w", err))
+			return nil
 		}
 
+		w := client.Watcher()
 		wg := &WatchGroup{}
 
 		err = w.WatchQuery(k8s.Query{Kind: "projects.getambassador.io"},
 			safeWatch(wg.Wrap(k.reconcileConsistently)))
 
 		if err != nil {
-			return err
+			// this is non fatal (mostly just to facilitate local dev); don't `return err`
+			l.Errorln("not watching Project resources:", fmt.Errorf("WatchQuery(projects): %w", err))
+			return nil
 		}
 
 		err = w.WatchQuery(k8s.Query{Kind: "pod", LabelSelector: "kale"},
 			safeWatch(wg.Wrap(k.reconcileConsistently)))
 
 		if err != nil {
-			return err
+			// this is non fatal (mostly just to facilitate local dev); don't `return err`
+			l.Errorln("not watching Project resources:", fmt.Errorf("WatchQuery(pods): %w", err))
+			return nil
 		}
 
 		w.Start()
