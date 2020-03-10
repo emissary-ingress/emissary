@@ -10,7 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"sort"
-	"strings"
+	// "strings"
 	"sync"
 	"syscall"
 	"time"
@@ -220,7 +220,11 @@ func (state *ProxyState) handleIntercept(w http.ResponseWriter, r *http.Request)
 	state.mutex.Lock()
 	defer state.mutex.Unlock()
 
-	deployment := strings.TrimRight(r.URL.Path, "/")
+	// deployment := strings.TrimRight(r.URL.Path, "/")
+	deployment := r.URL.Path
+
+	log.Printf("handleIntercept: deployment is %v", deployment)
+
 	if deployment == "" {
 		deployments := make([]string, len(state.Deployments))
 		i := 0

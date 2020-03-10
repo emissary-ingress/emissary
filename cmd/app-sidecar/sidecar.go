@@ -248,8 +248,34 @@ func sidecar(ctx context.Context) error {
 
 	log.SetPrefix(fmt.Sprintf("%s(%s) ", log.Prefix(), appName))
 
-	u, _ := url.Parse("http://telepresence-proxy:8081/routes")
-	c := longpoll.NewClient(u, appName)
+	agentNamespace := os.Getenv("AGENT_NAMESPACE")
+
+	if agentNamespace == "" {
+		agentNamespace = os.Getenv("AMBASSADOR_NAMESPACE")
+	}
+
+	managerServiceName := "telepresence-proxy"
+
+	managerNamespace := os.Getenv("AGENT_MANAGER_NAMESPACE")
+
+	if managerNamespace == "" {
+		managerNamespace = agentNamespace
+	}
+
+	if managerNamespace == "" {
+		managerNamespace = "ambassador"
+	}
+
+	if managerNamespace != "" {
+		managerServiceName = fmt.Sprintf("telepresence-proxy.%s", managerNamespace)
+	}
+
+	managerUrl := fmt.Sprintf("http://%s:8081/routes", managerServiceName)
+
+	log.Printf("Connecting to traffic manager at %s", managerUrl)
+	u, _ := url.Parse(managerUrl)
+
+	c := longpoll.NewClient(u, appName, agentNamespace)
 	c.Logger = log
 	c.Start()
 	defer c.Stop()
