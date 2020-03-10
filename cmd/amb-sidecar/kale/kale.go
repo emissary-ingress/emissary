@@ -87,7 +87,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 		}
 
 		w := client.Watcher()
-		wg := &WatchGroup{}
+		var wg WatchGroup
 
 		err = w.WatchQuery(k8s.Query{Kind: "projects.getambassador.io"},
 			safeWatch(wg.Wrap(k.reconcileConsistently)))
@@ -120,10 +120,10 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 
 	// todo: lock down all these endpoints with auth
 	handler := http.StripPrefix("/edge_stack_ui/edge_stack", http.HandlerFunc(safeHandleFunc(k.dispatch))).ServeHTTP
+	// todo: this is just temporary, we will consolidate these sprawling endpoints later
 	httpHandler.AddEndpoint("/edge_stack_ui/edge_stack/api/projects", "kale projects api", handler)
 	httpHandler.AddEndpoint("/edge_stack_ui/edge_stack/api/githook/", "kale githook", handler)
 	httpHandler.AddEndpoint("/edge_stack_ui/edge_stack/api/logs/", "kale logs api", handler)
-	// todo: this is just temporary, we will consolidate these sprawling endpoints later
 	httpHandler.AddEndpoint("/edge_stack_ui/edge_stack/api/slogs/", "kale server logs api", handler)
 }
 
@@ -255,9 +255,7 @@ func (k *kale) dispatch(r *http.Request) httpResult {
 		}
 	case "projects":
 		return httpResult{status: 200, body: k.projectsJSON()}
-	case "slogs":
-		fallthrough
-	case "logs":
+	case "logs", "slogs":
 		namespace := parts[2]
 		name := parts[3]
 		build := parts[4]
@@ -614,6 +612,8 @@ func (k *kale) reconcileDeploy(dep Deploy, builders, runners []*k8sTypesCoreV1.P
 }
 
 func (k *kale) startRun(proj Project, commit string) (string, error) {
+	// todo: figure out what is going on with /edge_stack/previews
+	// not being routable
 	pod := &k8sTypesCoreV1.Pod{
 		TypeMeta: k8sTypesMetaV1.TypeMeta{
 			APIVersion: "v1",

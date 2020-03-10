@@ -249,7 +249,9 @@ func podLogs(name string) string {
 	return out
 }
 
-// is there a better way to do this?
+// The streamLogs helper sends logs from the kubernetes pods defined
+// by the namespace and selector args down the supplied
+// http.ResponseWriter using server side events.
 func streamLogs(w http.ResponseWriter, r *http.Request, namespace, selector string) {
 	since := r.Header.Get("Last-Event-ID")
 	args := []string{"logs", "--timestamps", "--tail=10000", "-f", "-n", namespace, "-l", selector}
@@ -258,16 +260,14 @@ func streamLogs(w http.ResponseWriter, r *http.Request, namespace, selector stri
 	}
 	cmd := exec.Command("kubectl", args...)
 
-	pipeReader, pipeWriter := io.Pipe()
-	defer pipeReader.Close()
-	defer pipeWriter.Close()
+	rawReader, err := cmd.StdoutPipe()
+	if err != nil {
+		panic(err)
+	}
+	cmd.Stderr = cmd.Stdout
+	reader := bufio.NewReader(rawReader)
 
-	cmd.Stdout = pipeWriter
-	cmd.Stderr = pipeWriter
-
-	reader := bufio.NewReader(pipeReader)
-
-	err := cmd.Start()
+	err = cmd.Start()
 	if err != nil {
 		panic(err)
 	}
@@ -319,8 +319,6 @@ func streamLogs(w http.ResponseWriter, r *http.Request, namespace, selector stri
 	if err != nil {
 		log.Printf("warning: %v", err)
 	}
-
-	pipeWriter.Close()
 
 	<-done
 }
