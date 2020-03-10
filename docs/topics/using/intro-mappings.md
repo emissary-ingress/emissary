@@ -4,7 +4,7 @@ Ambassador is designed around a [declarative, self-service management model](/do
 
 ## Quick Example
 
-At its core a `Mapping` resource has a small number of required attributes:
+At its core a `Mapping` resource maps a `resource` to a `service`:
 
 | Required attribute        | Description               |
 | :------------------------ | :------------------------ |
