@@ -57,6 +57,7 @@ install:
   - PATH=~/bin:$PATH
   - source ~/.gimme/envs/latest.env
   - export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
+  # Setup for docs
   - node --version
   - nvm use 11
   - node --version
