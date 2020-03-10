@@ -84,22 +84,17 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 			return err
 		}
 
-		err = w.WatchQuery(k8s.Query{Kind: "projects.getambassador.io"}, safeWatch(k.reconcileProjects))
+		wg := &WatchGroup{}
+
+		err = w.WatchQuery(k8s.Query{Kind: "projects.getambassador.io"},
+			safeWatch(wg.Wrap(k.reconcileConsistently)))
 
 		if err != nil {
 			return err
 		}
 
-		err = w.WatchQuery(k8s.Query{
-			Kind:          "pod",
-			LabelSelector: "kale",
-		}, safeWatch(func(w *k8s.Watcher) {
-			var pods []*k8sTypesCoreV1.Pod
-			if err := mapstructure.Convert(w.List("pod"), &pods); err != nil {
-				panic(err)
-			}
-			k.reconcilePods(pods)
-		}))
+		err = w.WatchQuery(k8s.Query{Kind: "pod", LabelSelector: "kale"},
+			safeWatch(wg.Wrap(k.reconcileConsistently)))
 
 		if err != nil {
 			return err
@@ -140,6 +135,16 @@ func NewKale() *kale {
 		Projects: make(map[string]Project),
 		Pods:     make(map[string]map[string]*k8sTypesCoreV1.Pod),
 	}
+}
+
+func (k *kale) reconcileConsistently(w *k8s.Watcher) {
+	k.reconcileProjects(w)
+
+	var pods []*k8sTypesCoreV1.Pod
+	if err := mapstructure.Convert(w.List("pod"), &pods); err != nil {
+		panic(err)
+	}
+	k.reconcilePods(pods)
 }
 
 func (k *kale) reconcileProjects(w *k8s.Watcher) {
