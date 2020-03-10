@@ -378,3 +378,23 @@ func deleteResource(kind, name, namespace string) error {
 	}
 	return nil
 }
+
+// WatchGroup is used to wait for multiple Watcher queries to all be
+// ready before invoking a listener.
+type WatchGroup struct {
+	count int
+}
+
+func (wg *WatchGroup) Wrap(listener func(*k8s.Watcher)) func(*k8s.Watcher) {
+	wg.count += 1
+	invoked := false
+	return func(w *k8s.Watcher) {
+		if !invoked {
+			wg.count -= 1
+			invoked = true
+		}
+		if wg.count == 0 {
+			listener(w)
+		}
+	}
+}
