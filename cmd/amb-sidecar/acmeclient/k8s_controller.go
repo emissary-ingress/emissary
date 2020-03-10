@@ -28,7 +28,7 @@ import (
 	k8sClientDynamic "k8s.io/client-go/dynamic"
 	k8sClientCoreV1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
-	"github.com/datawire/apro/cmd/amb-sidecar/events"
+	"github.com/datawire/apro/cmd/amb-sidecar/k8s/events"
 	"github.com/datawire/apro/cmd/amb-sidecar/watt"
 )
 

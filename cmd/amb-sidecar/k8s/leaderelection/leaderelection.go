@@ -1,10 +1,10 @@
-package acmeclient
+package leaderelection
 
 import (
 	"os"
 
 	"github.com/datawire/ambassador/pkg/k8s"
-	"github.com/datawire/apro/cmd/amb-sidecar/events"
+	"github.com/datawire/apro/cmd/amb-sidecar/k8s/events"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 
 	// k8s types

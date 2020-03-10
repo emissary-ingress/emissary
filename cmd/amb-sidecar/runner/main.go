@@ -35,13 +35,14 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/banner"
 	devportalcontent "github.com/datawire/apro/cmd/amb-sidecar/devportal/content"
 	devportalserver "github.com/datawire/apro/cmd/amb-sidecar/devportal/server"
-	"github.com/datawire/apro/cmd/amb-sidecar/events"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/controller"
 	filterhandler "github.com/datawire/apro/cmd/amb-sidecar/filters/handler"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/health"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/secret"
 	"github.com/datawire/apro/cmd/amb-sidecar/group"
+	"github.com/datawire/apro/cmd/amb-sidecar/k8s/events"
+	"github.com/datawire/apro/cmd/amb-sidecar/k8s/leaderelection"
 	"github.com/datawire/apro/cmd/amb-sidecar/kale"
 	"github.com/datawire/apro/cmd/amb-sidecar/limiter"
 	rls "github.com/datawire/apro/cmd/amb-sidecar/ratelimits"
@@ -193,7 +194,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	acmeLock, err := acmeclient.GetLeaderElectionResourceLock(cfg, kubeinfo, eventLogger)
+	acmeLock, err := leaderelection.GetLeaderElectionResourceLock(cfg, kubeinfo, eventLogger)
 	if err != nil {
 		logrusLogger.Errorln("failed to participate in acme leader election, Ambassador Edge Stack acme client is disabled:", err)
 	}
