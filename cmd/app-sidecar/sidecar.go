@@ -10,17 +10,17 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
-	"strconv"
+	// "strconv"
 	"syscall"
-	"time"
+	// "time"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/datawire/apro/cmd/app-sidecar/longpoll"
-	"github.com/datawire/apro/lib/licensekeys"
-	"github.com/datawire/apro/lib/metriton"
+	// "github.com/datawire/apro/lib/licensekeys"
+	// "github.com/datawire/apro/lib/metriton"
 )
 
 var log = _log.New(os.Stderr, "", _log.LstdFlags)
@@ -108,23 +108,23 @@ func Main() {
 		RunE:    Run,
 	}
 
-	licenseContext := &licensekeys.LicenseContext{}
-	if err := licenseContext.AddFlagsTo(argparser); err != nil {
-		panic(err)
-	}
+	// licenseContext := &licensekeys.LicenseContext{}
+	// if err := licenseContext.AddFlagsTo(argparser); err != nil {
+	// 	panic(err)
+	// }
 
-	argparser.PersistentPreRun = func(cmd *cobra.Command, args []string) {
-		licenseClaims, err := licenseContext.GetClaims()
-		if err == nil {
-			err = licenseClaims.RequireFeature(licensekeys.FeatureTraffic)
-		}
-		if err == nil {
-			go metriton.PhoneHome(licenseClaims, nil, "application-sidecar", Version)
-			return
-		}
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
+	// argparser.PersistentPreRun = func(cmd *cobra.Command, args []string) {
+	// 	licenseClaims, err := licenseContext.GetClaims()
+	// 	if err == nil {
+	// 		err = licenseClaims.RequireFeature(licensekeys.FeatureTraffic)
+	// 	}
+	// 	if err == nil {
+	// 		go metriton.PhoneHome(licenseClaims, nil, "application-sidecar", Version)
+	// 		return
+	// 	}
+	// 	fmt.Fprintln(os.Stderr, err)
+	// 	os.Exit(1)
+	// }
 	err := argparser.Execute()
 	if err != nil {
 		os.Exit(2)
