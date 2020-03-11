@@ -48,7 +48,7 @@ class Hash {
 
     // for backwards compatibility with older edgectls, we used to use
     // the length of the hash to figure out if it was a jwt or a tab
-    if (this.params.size === 0 && this._base.length > 300) {
+    if (this.params.toString().length === 0 && this._base.length > 300) {
       this.params.set("auth", this._base)
       this._base = ""
       this.encode()
