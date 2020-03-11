@@ -1,8 +1,7 @@
-- title: Welcome
+- title: First Steps
   link: /docs/
   collapsable: false
 
-  
 - title: Install Ambassador Edge Stack
   link: /user-guide/install
   items: 
@@ -37,12 +36,14 @@
         - title: Network Architecture
           link: /topics/concepts/kubernetes-network-architecture
         - title: Kubernetes Ingress Differences  
-          link: /topics/k8s-ingress-differences
+          link: ???
+        - title: Microservices API Gateway
+          link: /topics/concepts/microservices-api-gateway
         - title: GitOps, Declarative Configuration, and CRDs
           link: /topics/concepts/gitops-continuous-delivery
           items:
-            - title:  Continuous Delivery with Declarative Config
-              link: /topics/concepts/gitops-continuous-delivery
+            - title: Continuous Delivery with Declarative Config
+              link: ???
             - title: Self-Service Routing and Deployment Control
               link: /topics/developers/
             - title: Implementing GitOps with Ambassador Edge Stack
@@ -67,12 +68,9 @@
       link: /topics/using/index
       items: 
         - title: The Mapping Object
-          link: /topics/using/mappings
-          items: 
-            - title: Example Mappings YAML
-              link: /topics/using/mappings-yaml
+          link: /topics/using/intro-mappings
         - title: Mapping Configuration
-          link: /topics/using/mapping-config
+          link: /topics/using/mappings
           items: 
             - title: Automatic Retries
               link: /topics/using/retries
@@ -100,12 +98,12 @@
             - title: Prefix Regex
               link: /topics/using/prefix_regex
             - title: Rate Limits
-              link: /topics/rate-limits
+              link: /topics/using/rate-limits/index
               items:
                 - title: Rate Limiting Concepts
-                  link: /topics/using/rate-limits/index
+                  link: /topics/using/rate-limits/rate-limots
                 - title: Rate Limiting Tutorial
-                  link: /topics/using/rate-limits
+                  link: /topics/howtos/rate-limiting-tutorial
                 - title: Advanced Rate Limiting
                   link: /howtos/advanced-rate-limiting/
             - title: Redirects
@@ -130,7 +128,6 @@
             - title: Traffic Shadowing
               link: /topics/using/shadowing
         - title: Filters and Authentication
-          link: /topics/using/filters/index
           items:  
             - title: OAuth and OIDC Overview
               link: /topics/using/filters/index
@@ -269,9 +266,9 @@
       link: /howtos/tracing-tutorial/
       items:
         - title: DataDog
-          link: /howtos/tracing/datadog
+          link: /howtos/tracing-datadog
         - title: Zipkin
-          link: /howtos/tracing/zipkin
+          link: /howtos/tracing-zipkin
         - title: Knative
           link: /howtos/tracing/knative
     - title: External DNS
