@@ -58,4 +58,4 @@ curl --fail \
 	-H "Content-Type: application/json" \
 	-X POST \
 	--data '@/tmp/github-status.json' \
-	"https://${GH_TOKEN}@api.github.com/repos/datawire/ambassador-docs/statuses/${TRAVIS_PULL_REQUEST_SHA:-${TRAVIS_COMMIT}}"
+	"https://${GH_TOKEN}@api.github.com/repos/datawire/ambassador/statuses/${TRAVIS_PULL_REQUEST_SHA:-${TRAVIS_COMMIT}}"
