@@ -73,11 +73,14 @@ func logResponse(logger dlog.Logger, ret filterapi.FilterResponse, took time.Dur
 }
 
 func (c *FilterMux) Filter(ctx context.Context, request *filterapi.FilterRequest) (ret filterapi.FilterResponse, err error) {
+	// This first part is boiler-plate of setting up last-defense
+	// logging and panic recovery.
+
 	start := time.Now()
 
 	requestID := request.GetRequest().GetHttp().GetId()
 	logger := c.Logger.WithField("REQUEST_ID", requestID)
-	_ctx := middleware.WithRequestID(dlog.WithLogger(ctx, logger), requestID)
+	ctx = middleware.WithRequestID(dlog.WithLogger(ctx, logger), requestID)
 
 	logger.Infof("[gRPC] %s %s %s %s",
 		request.GetRequest().GetHttp().GetProtocol(),
@@ -89,17 +92,36 @@ func (c *FilterMux) Filter(ctx context.Context, request *filterapi.FilterRequest
 			err = _err
 		}
 		if err != nil {
-			ret = middleware.NewErrorResponse(_ctx, http.StatusInternalServerError, err, nil)
+			ret = middleware.NewErrorResponse(ctx, http.StatusInternalServerError, err, nil)
 			err = nil
 		}
 		err = logResponse(logger, ret, time.Since(start))
 		if err != nil {
-			ret = middleware.NewErrorResponse(_ctx, http.StatusInternalServerError, err, nil)
+			ret = middleware.NewErrorResponse(ctx, http.StatusInternalServerError, err, nil)
 			err = nil
 		}
 	}()
-	ret, err = c.filter(_ctx, request, requestID)
-	return
+
+	// The remainder is the meat of the function.
+
+	originalURL, err := filterutil.GetURL(request)
+	if err != nil {
+		return nil, err
+	}
+
+	rule := c.ruleForURL(originalURL)
+	if rule == nil {
+		logger.Info("using default rule")
+		rule = c.DefaultRule
+	}
+	filterStrs := make([]string, 0, len(rule.Filters))
+	for _, filterRef := range rule.Filters {
+		filterStrs = append(filterStrs, filterRef.Name+"."+filterRef.Namespace)
+	}
+	logger.Infof("selected rule host=%q, path=%q, filters=[%s]",
+		rule.Host, rule.Path, strings.Join(filterStrs, ", "))
+
+	return c.runFilterRefs(rule.Filters, ctx, request)
 }
 
 func (c *FilterMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -140,29 +162,6 @@ func (c *FilterMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	default:
 		http.NotFound(w, r)
 	}
-}
-
-func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest, requestID string) (filterapi.FilterResponse, error) {
-	logger := dlog.GetLogger(ctx)
-
-	originalURL, err := filterutil.GetURL(request)
-	if err != nil {
-		return nil, err
-	}
-
-	rule := c.ruleForURL(originalURL)
-	if rule == nil {
-		logger.Info("using default rule")
-		rule = c.DefaultRule
-	}
-	filterStrs := make([]string, 0, len(rule.Filters))
-	for _, filterRef := range rule.Filters {
-		filterStrs = append(filterStrs, filterRef.Name+"."+filterRef.Namespace)
-	}
-	logger.Infof("selected rule host=%q, path=%q, filters=[%s]",
-		rule.Host, rule.Path, strings.Join(filterStrs, ", "))
-
-	return c.runFilterRefs(rule.Filters, ctx, request)
 }
 
 func (c *FilterMux) runFilterRefs(filters []crd.FilterReference, ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
@@ -226,7 +225,7 @@ func (c *FilterMux) runFilterRef(filterRef crd.FilterReference, ctx context.Cont
 				errors.Errorf("error in filter %q configuration: %s", filterQName, filter.Status.Reason), nil), nil
 		}
 		var errResponse filterapi.FilterResponse
-		filterImpl, errResponse = c.getFilterImpl(filter, filterRef.Name, filterRef.Namespace, filterRef.Arguments, ctx)
+		filterImpl, errResponse = c.getFilterImpl(ctx, filter, filterRef.Arguments)
 		if errResponse != nil {
 			return errResponse, nil
 		}
@@ -254,7 +253,7 @@ func (c *FilterMux) runJWTFilterRef(filterRef crd.JWTFilterReference, ctx contex
 		return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
 			errors.Errorf("error in JWT filter %q configuration: %s", filterQName, filter.Status.Reason), nil), nil
 	}
-	filterImpl, errResponse := c.getFilterImpl(filter, filterRef.Name, filterRef.Namespace, filterRef.Arguments, ctx)
+	filterImpl, errResponse := c.getFilterImpl(ctx, filter, filterRef.Arguments)
 	if errResponse != nil {
 		return errResponse, nil
 	}
@@ -262,8 +261,8 @@ func (c *FilterMux) runJWTFilterRef(filterRef crd.JWTFilterReference, ctx contex
 	return filterImpl.Filter(dlog.WithLogger(ctx, dlog.GetLogger(ctx).WithField("JWTFILTER", filterQName)), request)
 }
 
-func (c *FilterMux) getFilterImpl(filter *crd.Filter, filterName, filterNamespace string, filterArguments interface{}, ctx context.Context) (filterapi.Filter, filterapi.FilterResponse) {
-	filterQName := filterName + "." + filterNamespace
+func (c *FilterMux) getFilterImpl(ctx context.Context, filter *crd.Filter, filterArguments interface{}) (filterapi.Filter, filterapi.FilterResponse) {
+	filterQName := filter.GetName() + "." + filter.GetNamespace()
 	var filterImpl filterapi.Filter
 	switch filterSpec := filter.UnwrappedSpec.(type) {
 	case crd.FilterOAuth2:
@@ -288,7 +287,7 @@ func (c *FilterMux) getFilterImpl(filter *crd.Filter, filterName, filterNamespac
 			return nil, middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
 				errors.Wrap(err, "invalid filter.argument"), nil)
 		}
-		if err := _filterImpl.Arguments.Validate(filterNamespace); err != nil {
+		if err := _filterImpl.Arguments.Validate(filter.GetNamespace()); err != nil {
 			return nil, middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
 				errors.Wrap(err, "invalid filter.argument"), nil)
 		}
@@ -338,6 +337,7 @@ func syntheticRule(filterImpl filterapi.Filter) *crd.Rule {
 }
 
 func (c *FilterMux) ruleForURL(u *url.URL) *crd.Rule {
+	// First-up: check for the special-cases
 	switch u.Path {
 	case "/.ambassador/oauth2/logout":
 		return nil
@@ -346,7 +346,7 @@ func (c *FilterMux) ruleForURL(u *url.URL) *crd.Rule {
 		if err == nil {
 			u = _u
 		}
-		return findRule(c.Controller, u.Host, u.Path)
+		// fall-through to the common-case below
 	default:
 		switch {
 		case strings.HasPrefix(u.Path, "/.well-known/acme-challenge/"):
@@ -356,10 +356,21 @@ func (c *FilterMux) ruleForURL(u *url.URL) *crd.Rule {
 			return syntheticRule(acmeclient.NewChallengeHandler(c.RedisPool))
 		case strings.Contains(u.Path, "/.ambassador-internal/"):
 			return syntheticRule(devportalfilter.MakeDevPortalFilter())
-		default:
-			return findRule(c.Controller, u.Host, u.Path)
 		}
 	}
+
+	// OK, this is the FilterPolicy-based common-case where we
+	// look up the Rule based on the configured FilterPolicies.
+	_, rules := c.Controller.LoadPolicies()
+	if rules == nil {
+		return nil
+	}
+	for _, rule := range rules {
+		if rule.MatchHTTPHeaders(u.Host, u.Path) {
+			return &rule
+		}
+	}
+	return nil
 }
 
 func findFilter(c *controller.Controller, qname string) *crd.Filter {
@@ -372,17 +383,4 @@ func findFilter(c *controller.Controller, qname string) *crd.Filter {
 		return nil
 	}
 	return &filter
-}
-
-func findRule(c *controller.Controller, host, path string) *crd.Rule {
-	_, rules := c.LoadPolicies()
-	if rules == nil {
-		return nil
-	}
-	for _, rule := range rules {
-		if rule.MatchHTTPHeaders(host, path) {
-			return &rule
-		}
-	}
-	return nil
 }
