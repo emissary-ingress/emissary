@@ -20,6 +20,7 @@ import (
 	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/datawire/ambassador/pkg/k8s"
 	"github.com/datawire/apro/cmd/amb-sidecar/group"
+	"github.com/datawire/apro/cmd/amb-sidecar/k8s/leaderelection"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/mapstructure"
 	lyftserver "github.com/lyft/ratelimit/src/server"
@@ -132,21 +133,35 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 
 	group.Go("kale_worker", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
 		var prev Snapshot
-		for snapshot := range downstream {
-			if snapshot.Pods == nil && snapshot.Projects == nil {
-				// If we triggered a rectify, but don't have a new
-				// snapshot (snapshot.X == nil), then re-use the previous
-				// snapshot.
-				if prev.Pods == nil && prev.Projects == nil {
-					// Unless of course we don't have a previous
-					// snapshot either; in which case, just skip this
-					// rectify.
-					continue
+		err := leaderelection.RunAsSingleton(softCtx, cfg, info, "kale", 15*time.Second, func(ctx context.Context) {
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case snapshot, ok := <-downstream:
+					if !ok {
+						return
+					}
+					if snapshot.Pods == nil && snapshot.Projects == nil {
+						// If we triggered a rectify, but don't have a new
+						// snapshot (snapshot.X == nil), then re-use the previous
+						// snapshot.
+						if prev.Pods == nil && prev.Projects == nil {
+							// Unless of course we don't have a previous
+							// snapshot either; in which case, just skip this
+							// rectify.
+							continue
+						}
+						snapshot = prev
+					}
+					k.reconcileConsistently(snapshot)
+					prev = snapshot
 				}
-				snapshot = prev
 			}
-			k.reconcileConsistently(snapshot)
-			prev = snapshot
+		})
+		if err != nil {
+			// make this non-fatal
+			l.Errorln("failed to participate in kale leader election, kale is disabled:", err)
 		}
 		return nil
 	})
