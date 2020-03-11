@@ -54,7 +54,7 @@ spec:
   - name: proxied
     protocol: TCP
     port: 80
-    targetPort: 9900
+    targetPort: 8080              # Traffic agent port
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -82,13 +82,17 @@ spec:
           value: "8000"
       - name: traffic-sidecar
         image: {{env "AES_IMAGE"}}
-        command: ["app-sidecar"]
         ports:
         - containerPort: 9900
         env:
-        - name: APPNAME
-          value: model-cluster-app
-        - name: APPPORT
+        - name: AGENT_SERVICE
+          value: intercepted
+        - name: AGENT_PORT
           value: "8000"
-        - name: AMBASSADOR_LICENSE_KEY
-          value: {{env "AMBASSADOR_LICENSE_KEY"}}
+        - name: AGENT_MANAGER_NAMESPACE
+          value: ambassador
+        - name: AMBASSADOR_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+      serviceAccountName: telepresence-proxy

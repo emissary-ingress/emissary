@@ -1,0 +1,17 @@
+#!/bin/bash
+
+set -e
+
+apk add --no-cache openssh
+if ! grep telepresence /etc/passwd > /dev/null; then
+	adduser telepresence -G root -D -H -s /bin/false
+	passwd -d telepresence
+fi
+ssh-keygen -A
+cat > /etc/ssh/sshd_config <<EOF
+ClientAliveInterval 1
+GatewayPorts yes
+PermitEmptyPasswords yes
+Port 8022
+ClientAliveCountMax 10
+EOF

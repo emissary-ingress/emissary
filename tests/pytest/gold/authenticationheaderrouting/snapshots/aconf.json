@@ -1,0 +1,403 @@
+{
+    "_errors": {},
+    "_notices": {
+        "authenticationheaderrouting-http-target1.default.1": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ],
+        "authenticationheaderrouting-http-target2.default.1": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ]
+    },
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "ambassador-edge-stack.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": [
+                "_automatic_"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "location": "ambassador-edge-stack.default.1",
+            "metadata_labels": {
+                "ambassador_crd": "ambassador-edge-stack.default",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "ambassador-edge-stack",
+            "namespace": "default",
+            "precedence": 1000000,
+            "prefix": "/.ambassador/",
+            "rewrite": "",
+            "rkey": "ambassador-edge-stack.default.1",
+            "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: ambassador-edge-stack.default\n  ambassador_diag_class: private\n  product: aes\nname: ambassador-edge-stack\nnamespace: default\nprecedence: 1000000\nprefix: /.ambassador/\nrewrite: ''\nservice: 127.0.0.1:8500\n",
+            "service": "127.0.0.1:8500"
+        },
+        "authenticationheaderrouting-http-target1.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "authenticationheaderrouting",
+            "apiVersion": "getambassador.io/v0",
+            "kind": "Mapping",
+            "location": "authenticationheaderrouting-http-target1.default.1",
+            "metadata_labels": {
+                "kat-ambassador-id": "authenticationheaderrouting",
+                "scope": "AmbassadorTest"
+            },
+            "name": "AuthenticationHeaderRouting-target1",
+            "namespace": "default",
+            "prefix": "/target/",
+            "rkey": "authenticationheaderrouting-http-target1.default.1",
+            "serialization": "ambassador_id: authenticationheaderrouting\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: AuthenticationHeaderRouting-target1\nnamespace: default\nprefix: /target/\nservice: http://authenticationheaderrouting-http-target1\n",
+            "service": "http://authenticationheaderrouting-http-target1"
+        },
+        "authenticationheaderrouting-http-target2.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "authenticationheaderrouting",
+            "apiVersion": "getambassador.io/v0",
+            "headers": {
+                "X-Auth-Route": "Route"
+            },
+            "kind": "Mapping",
+            "location": "authenticationheaderrouting-http-target2.default.1",
+            "metadata_labels": {
+                "kat-ambassador-id": "authenticationheaderrouting",
+                "scope": "AmbassadorTest"
+            },
+            "name": "AuthenticationHeaderRouting-target2",
+            "namespace": "default",
+            "prefix": "/target/",
+            "rkey": "authenticationheaderrouting-http-target2.default.1",
+            "serialization": "ambassador_id: authenticationheaderrouting\napiVersion: ambassador/v0\nheaders:\n  X-Auth-Route: Route\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: AuthenticationHeaderRouting-target2\nnamespace: default\nprefix: /target/\nservice: http://authenticationheaderrouting-http-target2\n",
+            "service": "http://authenticationheaderrouting-http-target2"
+        },
+        "authenticationheaderrouting.default.1": {
+            "_referenced_by": {},
+            "allowed_authorization_headers": [
+                "X-Auth-Route",
+                "Extauth"
+            ],
+            "ambassador_id": "authenticationheaderrouting",
+            "apiVersion": "getambassador.io/v1",
+            "auth_service": "authenticationheaderrouting-headerroutingauth",
+            "kind": "AuthService",
+            "location": "authenticationheaderrouting.default.1",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "authenticationheaderrouting",
+                "scope": "AmbassadorTest"
+            },
+            "name": "authenticationheaderrouting-headerroutingauth",
+            "namespace": "default",
+            "path_prefix": "",
+            "proto": "http",
+            "rkey": "authenticationheaderrouting.default.1",
+            "serialization": "allowed_authorization_headers:\n- X-Auth-Route\n- Extauth\nambassador_id: authenticationheaderrouting\napiVersion: ambassador/v1\nauth_service: authenticationheaderrouting-headerroutingauth\nkind: AuthService\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: authenticationheaderrouting-headerroutingauth\nnamespace: default\npath_prefix: ''\nproto: http\ntimeout_ms: 5000\n",
+            "timeout_ms": 5000
+        },
+        "cleartext-host-authenticationheaderrouting.default.1": {
+            "_referenced_by": {},
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "ambassador_id": [
+                "authenticationheaderrouting"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "hostname": "*",
+            "kind": "Host",
+            "location": "cleartext-host-authenticationheaderrouting.default.1",
+            "metadata_labels": {
+                "ambassador_crd": "cleartext-host-authenticationheaderrouting.default",
+                "kat-ambassador-id": "authenticationheaderrouting",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cleartext-host-authenticationheaderrouting",
+            "namespace": "default",
+            "requestPolicy": {
+                "insecure": {
+                    "action": "Route"
+                }
+            },
+            "rkey": "cleartext-host-authenticationheaderrouting.default.1",
+            "selector": {
+                "matchLabels": {
+                    "hostname": "authenticationheaderrouting"
+                }
+            },
+            "serialization": "acmeProvider:\n  authority: none\nambassador_id:\n- authenticationheaderrouting\napiVersion: getambassador.io/v2\ngeneration: 1\nhostname: '*'\nkind: Host\nmetadata_labels:\n  ambassador_crd: cleartext-host-authenticationheaderrouting.default\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: cleartext-host-authenticationheaderrouting\nnamespace: default\nrequestPolicy:\n  insecure:\n    action: Route\nselector:\n  matchLabels:\n    hostname: authenticationheaderrouting\n"
+        },
+        "k8s-authenticationheaderrouting-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "authenticationheaderrouting",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-authenticationheaderrouting-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "authenticationheaderrouting",
+                "scope": "AmbassadorTest",
+                "service": "authenticationheaderrouting-admin"
+            },
+            "name": "authenticationheaderrouting-admin",
+            "namespace": "default",
+            "rkey": "k8s-authenticationheaderrouting-admin-default",
+            "serialization": "ambassador_id: authenticationheaderrouting\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\n  service: authenticationheaderrouting-admin\nname: authenticationheaderrouting-admin\nnamespace: default\n"
+        },
+        "k8s-authenticationheaderrouting-default": {
+            "_referenced_by": {},
+            "ambassador_id": "authenticationheaderrouting",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-authenticationheaderrouting-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "authenticationheaderrouting",
+                "scope": "AmbassadorTest"
+            },
+            "name": "authenticationheaderrouting",
+            "namespace": "default",
+            "rkey": "k8s-authenticationheaderrouting-default",
+            "serialization": "ambassador_id: authenticationheaderrouting\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: authenticationheaderrouting\nnamespace: default\n"
+        },
+        "k8s-authenticationheaderrouting-headerroutingauth-default": {
+            "_referenced_by": {},
+            "ambassador_id": "authenticationheaderrouting",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-authenticationheaderrouting-headerroutingauth-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "authenticationheaderrouting",
+                "scope": "AmbassadorTest"
+            },
+            "name": "authenticationheaderrouting-headerroutingauth",
+            "namespace": "default",
+            "rkey": "k8s-authenticationheaderrouting-headerroutingauth-default",
+            "serialization": "ambassador_id: authenticationheaderrouting\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: authenticationheaderrouting-headerroutingauth\nnamespace: default\n"
+        },
+        "k8s-authenticationheaderrouting-http-target1-default": {
+            "_referenced_by": {},
+            "ambassador_id": "authenticationheaderrouting",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-authenticationheaderrouting-http-target1-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "authenticationheaderrouting",
+                "scope": "AmbassadorTest"
+            },
+            "name": "authenticationheaderrouting-http-target1",
+            "namespace": "default",
+            "rkey": "k8s-authenticationheaderrouting-http-target1-default",
+            "serialization": "ambassador_id: authenticationheaderrouting\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: authenticationheaderrouting-http-target1\nnamespace: default\n"
+        },
+        "k8s-authenticationheaderrouting-http-target2-default": {
+            "_referenced_by": {},
+            "ambassador_id": "authenticationheaderrouting",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-authenticationheaderrouting-http-target2-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "authenticationheaderrouting",
+                "scope": "AmbassadorTest"
+            },
+            "name": "authenticationheaderrouting-http-target2",
+            "namespace": "default",
+            "rkey": "k8s-authenticationheaderrouting-http-target2-default",
+            "serialization": "ambassador_id: authenticationheaderrouting\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: authenticationheaderrouting-http-target2\nnamespace: default\n"
+        }
+    },
+    "auth_configs": {
+        "authenticationheaderrouting-headerroutingauth": {
+            "allowed_authorization_headers": [
+                "X-Auth-Route",
+                "Extauth"
+            ],
+            "ambassador_id": "authenticationheaderrouting",
+            "apiVersion": "getambassador.io/v1",
+            "auth_service": "authenticationheaderrouting-headerroutingauth",
+            "kind": "AuthService",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "authenticationheaderrouting",
+                "scope": "AmbassadorTest"
+            },
+            "name": "authenticationheaderrouting-headerroutingauth",
+            "namespace": "default",
+            "path_prefix": "",
+            "proto": "http",
+            "timeout_ms": 5000
+        }
+    },
+    "hosts": {
+        "cleartext-host-authenticationheaderrouting": {
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "ambassador_id": [
+                "authenticationheaderrouting"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "hostname": "*",
+            "kind": "Host",
+            "metadata_labels": {
+                "ambassador_crd": "cleartext-host-authenticationheaderrouting.default",
+                "kat-ambassador-id": "authenticationheaderrouting",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cleartext-host-authenticationheaderrouting",
+            "namespace": "default",
+            "requestPolicy": {
+                "insecure": {
+                    "action": "Route"
+                }
+            },
+            "selector": {
+                "matchLabels": {
+                    "hostname": "authenticationheaderrouting"
+                }
+            }
+        }
+    },
+    "mappings": {
+        "AuthenticationHeaderRouting-target1": {
+            "ambassador_id": "authenticationheaderrouting",
+            "apiVersion": "getambassador.io/v0",
+            "kind": "Mapping",
+            "metadata_labels": {
+                "kat-ambassador-id": "authenticationheaderrouting",
+                "scope": "AmbassadorTest"
+            },
+            "name": "AuthenticationHeaderRouting-target1",
+            "namespace": "default",
+            "prefix": "/target/",
+            "service": "http://authenticationheaderrouting-http-target1"
+        },
+        "AuthenticationHeaderRouting-target2": {
+            "ambassador_id": "authenticationheaderrouting",
+            "apiVersion": "getambassador.io/v0",
+            "headers": {
+                "X-Auth-Route": "Route"
+            },
+            "kind": "Mapping",
+            "metadata_labels": {
+                "kat-ambassador-id": "authenticationheaderrouting",
+                "scope": "AmbassadorTest"
+            },
+            "name": "AuthenticationHeaderRouting-target2",
+            "namespace": "default",
+            "prefix": "/target/",
+            "service": "http://authenticationheaderrouting-http-target2"
+        },
+        "ambassador-edge-stack": {
+            "ambassador_id": [
+                "_automatic_"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "metadata_labels": {
+                "ambassador_crd": "ambassador-edge-stack.default",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "ambassador-edge-stack",
+            "namespace": "default",
+            "precedence": 1000000,
+            "prefix": "/.ambassador/",
+            "rewrite": "",
+            "service": "127.0.0.1:8500"
+        }
+    },
+    "service": {
+        "k8s-authenticationheaderrouting-admin-default": {
+            "ambassador_id": "authenticationheaderrouting",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "authenticationheaderrouting",
+                "scope": "AmbassadorTest",
+                "service": "authenticationheaderrouting-admin"
+            },
+            "name": "authenticationheaderrouting-admin",
+            "namespace": "default"
+        },
+        "k8s-authenticationheaderrouting-default": {
+            "ambassador_id": "authenticationheaderrouting",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "authenticationheaderrouting",
+                "scope": "AmbassadorTest"
+            },
+            "name": "authenticationheaderrouting",
+            "namespace": "default"
+        },
+        "k8s-authenticationheaderrouting-headerroutingauth-default": {
+            "ambassador_id": "authenticationheaderrouting",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "authenticationheaderrouting",
+                "scope": "AmbassadorTest"
+            },
+            "name": "authenticationheaderrouting-headerroutingauth",
+            "namespace": "default"
+        },
+        "k8s-authenticationheaderrouting-http-target1-default": {
+            "ambassador_id": "authenticationheaderrouting",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "authenticationheaderrouting",
+                "scope": "AmbassadorTest"
+            },
+            "name": "authenticationheaderrouting-http-target1",
+            "namespace": "default"
+        },
+        "k8s-authenticationheaderrouting-http-target2-default": {
+            "ambassador_id": "authenticationheaderrouting",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "authenticationheaderrouting",
+                "scope": "AmbassadorTest"
+            },
+            "name": "authenticationheaderrouting-http-target2",
+            "namespace": "default"
+        }
+    }
+}

@@ -2,15 +2,47 @@
 set -e
 
 eval "$(grep BUILD_VERSION /buildroot/apro.version 2>/dev/null)"
-mkdir -p /buildroot/bin-darwin
-(cd /buildroot/apro && GOOS=darwin go build -trimpath ${BUILD_VERSION:+ -ldflags "-X main.Version=$BUILD_VERSION" } -o /buildroot/bin-darwin ./cmd/aes-plugin-runner)
 
-sudo install -D -t /opt/ambassador/bin/ \
-     /buildroot/bin/app-sidecar \
-     /buildroot/bin/amb-sidecar \
-     /buildroot/bin/aes-plugin-runner
+# Create symlinks to the multi-call binary so the original names can be used in
+# the builder shell easily (from the shell PATH).
+ln -sf /buildroot/bin/ambassador /buildroot/bin/ambex
+ln -sf /buildroot/bin/ambassador /buildroot/bin/kubestatus
+ln -sf /buildroot/bin/ambassador /buildroot/bin/watt
+ln -sf /buildroot/bin/ambassador /buildroot/bin/amb-sidecar
+ln -sf /buildroot/bin/ambassador /buildroot/bin/app-sidecar
+ln -sf /buildroot/bin/ambassador /buildroot/bin/aes-plugin-runner
+ln -sf /buildroot/bin/ambassador /buildroot/bin/traffic-manager
+
+# Also note there is a different ambassador binary, written in Python, that
+# shows up earlier in the shell PATH:
+#   $ type -a ambassador
+#   ambassador is /usr/bin/ambassador
+#   ambassador is /buildroot/bin/ambassador
+
+# Stuff in /opt/ambassador/bin in the builder winds up in /usr/local/bin in the
+# production image.
+sudo install -D -t /opt/ambassador/bin/ /buildroot/bin/ambassador
+sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/ambex
+sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/kubestatus
+sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/watt
+sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/amb-sidecar
+sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/app-sidecar
+sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/aes-plugin-runner
+sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/traffic-manager
+
+# Copy installer support into /opt/image-build to be run at docker build for the
+# production image. Then run the installers for the builder container.
+# Note: The target dir and the installer script are always handled by
+# ambassador's post-compile script, so we it is safe to assume they exist at
+# this point.
+sudo cp -a /buildroot/apro/build-aux-local/installers /opt/image-build/
+sudo /opt/image-build/install.sh
+
+# entrypoint.sh, aes-plugin-runner, and the ABI stuff later in this file expect
+# these to be here
 sudo ln -sf /opt/ambassador/bin/amb-sidecar /ambassador/sidecars/
 sudo ln -sf /opt/ambassador/bin/aes-plugin-runner /ambassador/
+
 sudo touch /ambassador/.edge_stack
 
 sudo mkdir -p /ambassador/webui/bindata && sudo make -f build-aux-local/minify.mk
@@ -19,38 +51,6 @@ sudo rm -rf /ambassador/init-config
 sudo mkdir /ambassador/init-config
 
 cat > /tmp/edge-stack-mappings.yaml <<EOF
----
-apiVersion: getambassador.io/v2
-kind: Mapping
-metadata:
-  name: edgestack-fallback-mapping
-  namespace: _automatic_
-  labels:
-    product: aes
-    ambassador_diag_class: private
-spec:
-  ambassador_id: [ "_automatic_" ]
-  prefix: /
-  rewrite: /edge_stack_ui/
-  service: 127.0.0.1:8500
-  precedence: -1000000
-  timeout_ms: 60000
----
-apiVersion: getambassador.io/v2
-kind: Mapping
-metadata:
-  name: edgestack-direct-mapping
-  namespace: _automatic_
-  labels:
-    product: aes
-    ambassador_diag_class: private
-spec:
-  ambassador_id: [ "_automatic_" ]
-  prefix: /edge_stack/
-  rewrite: /edge_stack_ui/edge_stack/
-  service: 127.0.0.1:8500
-  precedence: 1000000
-  timeout_ms: 60000
 ---
 apiVersion: getambassador.io/v2
 kind: Mapping

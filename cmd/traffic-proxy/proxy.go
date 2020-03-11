@@ -1,15 +1,18 @@
-package main
+package traffic_manager
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net"
 	"net/http"
 	"os"
+	"os/signal"
 	"sort"
-	"strings"
+	// "strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/jcuga/golongpoll"
@@ -21,6 +24,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
+	"github.com/datawire/ambassador/pkg/supervisor"
 	"github.com/datawire/apro/lib/licensekeys"
 	"github.com/datawire/apro/lib/metriton"
 )
@@ -216,7 +220,11 @@ func (state *ProxyState) handleIntercept(w http.ResponseWriter, r *http.Request)
 	state.mutex.Lock()
 	defer state.mutex.Unlock()
 
-	deployment := strings.TrimRight(r.URL.Path, "/")
+	// deployment := strings.TrimRight(r.URL.Path, "/")
+	deployment := r.URL.Path
+
+	log.Printf("handleIntercept: deployment is %v", deployment)
+
 	if deployment == "" {
 		deployments := make([]string, len(state.Deployments))
 		i := 0
@@ -300,7 +308,7 @@ func (state *ProxyState) cleanup() {
 	state.mutex.Lock()
 	defer state.mutex.Unlock()
 
-	log.Printf("cleanup: started")
+	// log.Printf("cleanup: started")
 	for deployment, dinfo := range state.Deployments {
 		var remaining []*InterceptInfo
 		var freePorts []int
@@ -308,9 +316,9 @@ func (state *ProxyState) cleanup() {
 			// only keep intercepts older than 10 seconds
 			if time.Since(intercept.LastQueryAt) < 10*time.Second {
 				remaining = append(remaining, intercept)
-				fmt.Printf("keeping intercept %s:%d", deployment, intercept.Port)
+				fmt.Printf("cleanup: keeping intercept %s:%d", deployment, intercept.Port)
 			} else {
-				fmt.Printf("expiring intercept %s:%d", deployment, intercept.Port)
+				fmt.Printf("cleanup: expiring intercept %s:%d", deployment, intercept.Port)
 				freePorts = append(freePorts, intercept.Port)
 			}
 		}
@@ -320,23 +328,24 @@ func (state *ProxyState) cleanup() {
 			// Post an event to update the deployment's pods
 			err := state.publish(deployment)
 			if err != nil {
-				log.Printf("cleanup: %v", err)
+				log.Printf("cleanup: error! %v", err)
 			}
 		}
 	}
-	log.Printf("cleanup: finished")
+	// log.Printf("cleanup: finished")
 }
 
 // Version is inserted at build using --ldflags -X
 var Version = "(unknown version)"
 
-func main() {
-	log.Printf("Proxy version %s", Version)
+func Main() {
+	log.Printf("Traffic Manager version %s", Version)
 
 	argparser := &cobra.Command{
-		Use:     os.Args[0],
-		Version: Version,
-		Run:     Main,
+		Use:          os.Args[0],
+		Version:      Version,
+		RunE:         Run,
+		SilenceUsage: true,
 	}
 
 	cmdContext := &licensekeys.LicenseContext{}
@@ -347,6 +356,14 @@ func main() {
 
 	argparser.PersistentPreRun = func(cmd *cobra.Command, args []string) {
 		licenseClaims, err := cmdContext.GetClaims()
+
+		// body, err := json.MarshalIndent(licenseClaims, "", "  ")
+		// if err != nil {
+		// 	panic(err)
+		// }
+
+		// fmt.Printf("Claims: %s\n", string(body))
+
 		if err == nil {
 			err = licenseClaims.RequireFeature(licensekeys.FeatureTraffic)
 		}
@@ -363,7 +380,7 @@ func main() {
 	}
 }
 
-func Main(flags *cobra.Command, args []string) {
+func Run(flags *cobra.Command, args []string) error {
 	manager, err := golongpoll.StartLongpoll(golongpoll.Options{
 		LoggingEnabled:                 true,
 		MaxLongpollTimeoutSeconds:      120,
@@ -375,13 +392,6 @@ func Main(flags *cobra.Command, args []string) {
 		log.Fatalf("Failed to create manager: %q", err)
 	}
 	state := newProxyState(manager)
-
-	go func() {
-		for {
-			time.Sleep(1 * time.Second)
-			state.cleanup()
-		}
-	}()
 
 	http.HandleFunc("/state", state.handleState)
 	http.HandleFunc("/routes", state.handleRoutes)
@@ -402,10 +412,90 @@ func Main(flags *cobra.Command, args []string) {
 		w.Write(result)
 	})
 
-	fmt.Println("Starting server...")
-	httpPort := os.Getenv("APRO_HTTP_PORT")
-	if httpPort == "" {
-		httpPort = "8081"
+	sup := supervisor.WithContext(context.Background())
+	sup.Supervise(&supervisor.Worker{
+		Name: "longpoll",
+		Work: func(p *supervisor.Process) error {
+			p.Ready()
+			<-p.Shutdown()
+			manager.Shutdown()
+			return nil
+		},
+	})
+	sup.Supervise(&supervisor.Worker{
+		Name: "cleanup",
+		Work: func(p *supervisor.Process) error {
+			ticker := time.NewTicker(time.Second)
+			defer ticker.Stop()
+			p.Ready()
+			for {
+				select {
+				case <-ticker.C:
+					state.cleanup()
+				case <-p.Shutdown():
+					return nil
+				}
+			}
+		},
+	})
+	sup.Supervise(&supervisor.Worker{
+		Name: "server",
+		Work: func(p *supervisor.Process) error {
+			httpPort := os.Getenv("APRO_HTTP_PORT")
+			if httpPort == "" {
+				httpPort = "8081"
+			}
+			server := &http.Server{Addr: net.JoinHostPort("0.0.0.0", httpPort)}
+			p.Ready()
+			return p.DoClean(
+				func() error {
+					err := server.ListenAndServe()
+					if err == http.ErrServerClosed {
+						return nil
+					}
+					return err
+				},
+				func() error {
+					return server.Shutdown(context.Background())
+				})
+		},
+	})
+	sup.Supervise(&supervisor.Worker{
+		Name: "signal",
+		Work: func(p *supervisor.Process) error {
+			sigs := make(chan os.Signal, 1)
+			signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+			p.Ready()
+			select {
+			case sig := <-sigs:
+				return errors.Errorf("Received signal %v", sig)
+			case <-p.Shutdown():
+				return nil
+			}
+		},
+	})
+	sup.Supervise(&supervisor.Worker{
+		Name: "sshd",
+		Work: func(p *supervisor.Process) error {
+			cmd := p.Command("/usr/sbin/sshd", "-De")
+			if err := cmd.Start(); err != nil {
+				return err
+			}
+			p.Ready()
+			return p.DoClean(cmd.Wait, cmd.Process.Kill)
+		},
+	})
+
+	sup.Logger.Printf("Starting server...")
+	runErrors := sup.Run()
+	sup.Logger.Printf("")
+
+	if len(runErrors) > 0 {
+		sup.Logger.Printf("Traffic Manager has exited with %d error(s):", len(runErrors))
+		for _, err := range runErrors {
+			sup.Logger.Printf("- %v", err)
+		}
 	}
-	http.ListenAndServe(net.JoinHostPort("0.0.0.0", httpPort), nil)
+
+	return errors.New("Traffic Manager has exited")
 }

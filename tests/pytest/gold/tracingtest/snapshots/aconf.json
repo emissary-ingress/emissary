@@ -1,0 +1,325 @@
+{
+    "_errors": {},
+    "_notices": {
+        "tracingtest-http.default.1": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ],
+        "zipkin.default.1": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ]
+    },
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "ambassador-edge-stack.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": [
+                "_automatic_"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "location": "ambassador-edge-stack.default.1",
+            "metadata_labels": {
+                "ambassador_crd": "ambassador-edge-stack.default",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "ambassador-edge-stack",
+            "namespace": "default",
+            "precedence": 1000000,
+            "prefix": "/.ambassador/",
+            "rewrite": "",
+            "rkey": "ambassador-edge-stack.default.1",
+            "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: ambassador-edge-stack.default\n  ambassador_diag_class: private\n  product: aes\nname: ambassador-edge-stack\nnamespace: default\nprecedence: 1000000\nprefix: /.ambassador/\nrewrite: ''\nservice: 127.0.0.1:8500\n",
+            "service": "127.0.0.1:8500"
+        },
+        "cleartext-host-tracingtest.default.1": {
+            "_referenced_by": {},
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "ambassador_id": [
+                "tracingtest"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "hostname": "*",
+            "kind": "Host",
+            "location": "cleartext-host-tracingtest.default.1",
+            "metadata_labels": {
+                "ambassador_crd": "cleartext-host-tracingtest.default",
+                "kat-ambassador-id": "tracingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cleartext-host-tracingtest",
+            "namespace": "default",
+            "requestPolicy": {
+                "insecure": {
+                    "action": "Route"
+                }
+            },
+            "rkey": "cleartext-host-tracingtest.default.1",
+            "selector": {
+                "matchLabels": {
+                    "hostname": "tracingtest"
+                }
+            },
+            "serialization": "acmeProvider:\n  authority: none\nambassador_id:\n- tracingtest\napiVersion: getambassador.io/v2\ngeneration: 1\nhostname: '*'\nkind: Host\nmetadata_labels:\n  ambassador_crd: cleartext-host-tracingtest.default\n  kat-ambassador-id: tracingtest\n  scope: AmbassadorTest\nname: cleartext-host-tracingtest\nnamespace: default\nrequestPolicy:\n  insecure:\n    action: Route\nselector:\n  matchLabels:\n    hostname: tracingtest\n"
+        },
+        "k8s-tracingtest-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tracingtest-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingtest",
+                "scope": "AmbassadorTest",
+                "service": "tracingtest-admin"
+            },
+            "name": "tracingtest-admin",
+            "namespace": "default",
+            "rkey": "k8s-tracingtest-admin-default",
+            "serialization": "ambassador_id: tracingtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tracingtest\n  scope: AmbassadorTest\n  service: tracingtest-admin\nname: tracingtest-admin\nnamespace: default\n"
+        },
+        "k8s-tracingtest-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tracingtest-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tracingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tracingtest",
+            "namespace": "default",
+            "rkey": "k8s-tracingtest-default",
+            "serialization": "ambassador_id: tracingtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tracingtest\n  scope: AmbassadorTest\nname: tracingtest\nnamespace: default\n"
+        },
+        "k8s-tracingtest-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tracingtest-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tracingtest-http",
+            "namespace": "default",
+            "rkey": "k8s-tracingtest-http-default",
+            "serialization": "ambassador_id: tracingtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tracingtest\n  scope: AmbassadorTest\nname: tracingtest-http\nnamespace: default\n"
+        },
+        "k8s-zipkin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-zipkin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "zipkin",
+            "namespace": "default",
+            "rkey": "k8s-zipkin-default",
+            "serialization": "ambassador_id: tracingtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tracingtest\n  scope: AmbassadorTest\nname: zipkin\nnamespace: default\n"
+        },
+        "tracingtest-http.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingtest",
+            "apiVersion": "getambassador.io/v0",
+            "kind": "Mapping",
+            "location": "tracingtest-http.default.1",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tracing_target_mapping",
+            "namespace": "default",
+            "prefix": "/target/",
+            "rkey": "tracingtest-http.default.1",
+            "serialization": "ambassador_id: tracingtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingtest\n  scope: AmbassadorTest\nname: tracing_target_mapping\nnamespace: default\nprefix: /target/\nservice: tracingtest-http\n",
+            "service": "tracingtest-http"
+        },
+        "zipkin.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingtest",
+            "apiVersion": "getambassador.io/v0",
+            "driver": "zipkin",
+            "kind": "TracingService",
+            "location": "zipkin.default.1",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tracing",
+            "namespace": "default",
+            "rkey": "zipkin.default.1",
+            "serialization": "ambassador_id: tracingtest\napiVersion: ambassador/v0\ndriver: zipkin\nkind: TracingService\nmetadata_labels:\n  kat-ambassador-id: tracingtest\n  scope: AmbassadorTest\nname: tracing\nnamespace: default\nservice: zipkin:9411\n",
+            "service": "zipkin:9411"
+        }
+    },
+    "hosts": {
+        "cleartext-host-tracingtest": {
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "ambassador_id": [
+                "tracingtest"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "hostname": "*",
+            "kind": "Host",
+            "metadata_labels": {
+                "ambassador_crd": "cleartext-host-tracingtest.default",
+                "kat-ambassador-id": "tracingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cleartext-host-tracingtest",
+            "namespace": "default",
+            "requestPolicy": {
+                "insecure": {
+                    "action": "Route"
+                }
+            },
+            "selector": {
+                "matchLabels": {
+                    "hostname": "tracingtest"
+                }
+            }
+        }
+    },
+    "mappings": {
+        "ambassador-edge-stack": {
+            "ambassador_id": [
+                "_automatic_"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "metadata_labels": {
+                "ambassador_crd": "ambassador-edge-stack.default",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "ambassador-edge-stack",
+            "namespace": "default",
+            "precedence": 1000000,
+            "prefix": "/.ambassador/",
+            "rewrite": "",
+            "service": "127.0.0.1:8500"
+        },
+        "tracing_target_mapping": {
+            "ambassador_id": "tracingtest",
+            "apiVersion": "getambassador.io/v0",
+            "kind": "Mapping",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tracing_target_mapping",
+            "namespace": "default",
+            "prefix": "/target/",
+            "service": "tracingtest-http"
+        }
+    },
+    "service": {
+        "k8s-tracingtest-admin-default": {
+            "ambassador_id": "tracingtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingtest",
+                "scope": "AmbassadorTest",
+                "service": "tracingtest-admin"
+            },
+            "name": "tracingtest-admin",
+            "namespace": "default"
+        },
+        "k8s-tracingtest-default": {
+            "ambassador_id": "tracingtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tracingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tracingtest",
+            "namespace": "default"
+        },
+        "k8s-tracingtest-http-default": {
+            "ambassador_id": "tracingtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tracingtest-http",
+            "namespace": "default"
+        },
+        "k8s-zipkin-default": {
+            "ambassador_id": "tracingtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "zipkin",
+            "namespace": "default"
+        }
+    },
+    "tracing_configs": {
+        "tracing": {
+            "ambassador_id": "tracingtest",
+            "apiVersion": "getambassador.io/v0",
+            "driver": "zipkin",
+            "kind": "TracingService",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tracing",
+            "namespace": "default",
+            "service": "zipkin:9411"
+        }
+    }
+}
