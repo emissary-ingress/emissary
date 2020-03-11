@@ -22,32 +22,28 @@
 // to get/set the auth token.
 //
 // The fragment format is modeled on a URL. Based on my gooling this
-// is all legal (surprinsgly). This is deliberate so we can change
+// is all legal (surprisingly). This is deliberate so we can change
 // this later to be a URL if we want to.
 class Hash {
 
   constructor() {
+    // the base portion of the hash, prior to the question mark (i.e. the path)
     this._base = ""
-    this.params = new Map()
+    // the parameters that appear after the question mark in the hash
+    this.params = new URLSearchParams("")
   }
 
   // internal
   decode() {
-    this._base = ""
-    this.params.clear()
-
     let hash = window.location.hash.slice(1)
 
     let parts = hash.split("?", 2)
     this._base = parts[0]
 
     if (parts.length > 1) {
-      for (let p of parts[1].split("&")) {
-        let pair = p.split("=", 2)
-        let name = pair[0]
-        let value = pair.length > 1 ? pair[1] : ""
-        this.params.set(name, value)
-      }
+      this.params = new URLSearchParams(parts[1])
+    } else {
+      this.params = new URLSearchParams("")
     }
 
     // for backwards compatibility with older edgectls, we used to use
@@ -61,23 +57,15 @@ class Hash {
 
   // internal
   encode() {
-    let entries = []
-    this.params.forEach((v, k)=>{
-      if (v) {
-        entries.push(`${k}=${v}`)
-      } else {
-        entries.push(`${k}`)
-      }
-    })
-
     let hash = ""
 
     if (this._base.length > 0) {
       hash += this._base
     }
 
-    if (entries.length > 0) {
-      hash += "?" + entries.join("&")
+    let qs = this.params.toString()
+    if (qs.length > 0) {
+      hash += "?" + qs
     }
 
     if (hash.length > 0) {
