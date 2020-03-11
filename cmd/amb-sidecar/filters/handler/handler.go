@@ -72,6 +72,8 @@ func logResponse(logger dlog.Logger, ret filterapi.FilterResponse, took time.Dur
 	return nil
 }
 
+// Filter implements the filterapi.Filter interface.  It is used to
+// respond to (AuthService-configured) ext_authz gRPC calls.
 func (c *FilterMux) Filter(ctx context.Context, request *filterapi.FilterRequest) (ret filterapi.FilterResponse, err error) {
 	// This first part is boiler-plate of setting up last-defense
 	// logging and panic recovery.
@@ -124,6 +126,21 @@ func (c *FilterMux) Filter(ctx context.Context, request *filterapi.FilterRequest
 	return c.runFilterRefs(rule.Filters, ctx, request)
 }
 
+// ServeHTTP implements the http.Handler interface.  It is used to
+// respond to (Mapping-configured) HTTP calls.
+//
+// Having a Mapping pointing at the filter engine at all is kinda a
+// kludge for Filters that require having their own bona fide HTTP
+// endpoints.  We put up with that kludge because
+//  - implementing a web server as a Filter should make your skin
+//    crawl.
+//  - whether or not our filters have access to the request body is an
+//    awkwardly <https://github.com/datawire/apro/issues/903>
+//    user-configurable thing, and we don't want to dictate the user's
+//    settings.
+//  - even after we implement #903, having our internal filters depend
+//    on the request body would mean that Envoy would have to buffer
+//    the request body for _all_ requests, which we want to avoid.
 func (c *FilterMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -157,6 +174,12 @@ func (c *FilterMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		filterImpl.ServeHTTP(w, r)
 	case "/.ambassador/oauth2/redirection-endpoint":
+		// For historical reasons, the redirection-endpoint actually is implemented in Filter()
+		// instead of ServeHTTP(); the only reason for it to stay that way is that it would be effort
+		// to change it.
+		//
+		// So this code is just a fallback for when the redirect URL doesn't match any of the
+		// configured Filters, so there's no sub-.Filter() to call.
 		middleware.ServeErrorResponse(w, ctx, http.StatusBadRequest,
 			errors.New("invalid state parameter; could not match to an OAuth2 Filter"), nil)
 	default:
@@ -164,6 +187,11 @@ func (c *FilterMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// runFilterRef takes a list of FilterReferences, instantiates the
+// appropriate Filter implementations, runs them on the given request,
+// and aggregates the results; selecting which items to skip and how
+// to aggregate based on the `ifRequestHeader`, `onDeny`, and
+// `onAllow` fields in each FilterReference.
 func (c *FilterMux) runFilterRefs(filters []crd.FilterReference, ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
 	logger := dlog.GetLogger(ctx)
 
@@ -208,6 +236,10 @@ func (c *FilterMux) runFilterRefs(filters []crd.FilterReference, ctx context.Con
 	return sumResponse, nil
 }
 
+// runFilterRef takes a reference to a Filter (which for the purposes
+// of this method you can think of as a "(name, namespace, arguments)"
+// tuple), instantiates the appropriate Filter implementation, and
+// runs it on the given request.
 func (c *FilterMux) runFilterRef(filterRef crd.FilterReference, ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
 	filterQName := filterRef.Name + "." + filterRef.Namespace
 
@@ -234,10 +266,10 @@ func (c *FilterMux) runFilterRef(filterRef crd.FilterReference, ctx context.Cont
 	return filterImpl.Filter(dlog.WithLogger(ctx, dlog.GetLogger(ctx).WithField("FILTER", filterQName)), request)
 }
 
+// runJWTFilterRef is *almost* a copy of c.runFilterRef, but
+//  1. clarifies that this is a JWT-sub-filter in log/error messages, and
+//  2. validates that it's a JWT filter, and not a filter of another type.
 func (c *FilterMux) runJWTFilterRef(filterRef crd.JWTFilterReference, ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
-	// This is *almost* a copy of c.runFilterRef, but
-	//  1. clarifies that this is a JWT-sub-filter in log/error messages, and
-	//  2. validates that it's a JWT filter, and not a filter of another type.
 	filterQName := filterRef.Name + "." + filterRef.Namespace
 
 	filter := findFilter(c.Controller, filterQName)
@@ -261,6 +293,13 @@ func (c *FilterMux) runJWTFilterRef(filterRef crd.JWTFilterReference, ctx contex
 	return filterImpl.Filter(dlog.WithLogger(ctx, dlog.GetLogger(ctx).WithField("JWTFILTER", filterQName)), request)
 }
 
+// getFilterImpl takes a Filter CRD object and any path-specific
+// arguments configured in the FilterPolicy, and returns an
+// instantiated implementation of that Filter: (filterImpl, nil).
+//
+// If there is an error instantiating the Filter (perhaps there is an
+// error in the Filter definition, or in the arguments), then an error
+// response object is returned: (nil, errorResponse).
 func (c *FilterMux) getFilterImpl(ctx context.Context, filter *crd.Filter, filterArguments interface{}) (filterapi.Filter, filterapi.FilterResponse) {
 	filterQName := filter.GetName() + "." + filter.GetNamespace()
 	var filterImpl filterapi.Filter
@@ -322,6 +361,12 @@ func (c *FilterMux) getFilterImpl(ctx context.Context, filter *crd.Filter, filte
 	return filterImpl, nil
 }
 
+// syntheticRule creates an internal-only Rule, rather than one that
+// is from a FilterPolicy configuration.  A normal configured Rule
+// refers to a Filter by name/namespace; one of these synthetic rules
+// allows you to pass in the instantiated Filter implementation
+// directly, and avoid having to come up with some bogus magic name
+// for it.
 func syntheticRule(filterImpl filterapi.Filter) *crd.Rule {
 	ret := &crd.Rule{
 		Filters: []crd.FilterReference{
@@ -336,12 +381,27 @@ func syntheticRule(filterImpl filterapi.Filter) *crd.Rule {
 	return ret
 }
 
+// ruleForURL returns the appropriate Rule (from a FilterPolicy
+// resource) for a given URL.  That Rule says which Filters to call
+// for this request.
+//
+// Besides looking up Rules based on configured FilterPolicies, it
+// also handles a few hard-coded special-cases.
+//
+// A nil return value means that there is no Rule associated with this
+// URL; and to use c.DefaultRule (currently set in app.go; "don't
+// apply any Filters to this request").
 func (c *FilterMux) ruleForURL(u *url.URL) *crd.Rule {
 	// First-up: check for the special-cases
 	switch u.Path {
 	case "/.ambassador/oauth2/logout":
 		return nil
 	case "/.ambassador/oauth2/redirection-endpoint":
+		// For historical reasons, the redirection-endpoint actually is implemented in Filter()
+		// instead of ServeHTTP(); the only reason for it to stay that way is that it would be effort
+		// to change it.
+		//
+		// If that ever does change, this needs to be changed to just return nil.
 		_u, err := authorization_code_client.ReadState(u.Query().Get("state"))
 		if err == nil {
 			u = _u
@@ -373,6 +433,9 @@ func (c *FilterMux) ruleForURL(u *url.URL) *crd.Rule {
 	return nil
 }
 
+// findFilter returns the Filter CRD object with a the given qualified
+// name ("name.namespace").  It returns nil if no Filter with that
+// qualified name exists.
 func findFilter(c *controller.Controller, qname string) *crd.Filter {
 	filters := c.LoadFilters()
 	if filters == nil {
