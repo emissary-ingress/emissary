@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -78,7 +79,11 @@ import (
 func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8s.KubeInfo) {
 	k := NewKale()
 
-	group.Go("kale", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
+	upstream := make(chan Snapshot)
+	downstream := make(chan Snapshot)
+	go coalesce(upstream, downstream)
+
+	group.Go("kale_watcher", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
 		client, err := k8s.NewClient(info)
 		if err != nil {
 			// this is non fatal (mostly just to facilitate local dev); don't `return err`
@@ -87,8 +92,14 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 		}
 
 		w := client.Watcher()
+		var wg WatchGroup
 
-		err = w.WatchQuery(k8s.Query{Kind: "projects.getambassador.io"}, safeWatch(k.reconcileProjects))
+		err = w.WatchQuery(k8s.Query{Kind: "projects.getambassador.io"}, wg.Wrap(func(w *k8s.Watcher) {
+			upstream <- Snapshot{
+				Pods:     w.List("pod"),
+				Projects: w.List("projects.getambassador.io"),
+			}
+		}))
 
 		if err != nil {
 			// this is non fatal (mostly just to facilitate local dev); don't `return err`
@@ -96,15 +107,11 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 			return nil
 		}
 
-		err = w.WatchQuery(k8s.Query{
-			Kind:          "pod",
-			LabelSelector: "kale",
-		}, safeWatch(func(w *k8s.Watcher) {
-			var pods []*k8sTypesCoreV1.Pod
-			if err := mapstructure.Convert(w.List("pod"), &pods); err != nil {
-				panic(err)
+		err = w.WatchQuery(k8s.Query{Kind: "pod", LabelSelector: "kale"}, wg.Wrap(func(w *k8s.Watcher) {
+			upstream <- Snapshot{
+				Pods:     w.List("pod"),
+				Projects: w.List("projects.getambassador.io"),
 			}
-			k.reconcilePods(pods)
 		}))
 
 		if err != nil {
@@ -114,43 +121,123 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 		}
 
 		w.Start()
-		select {
-		case <-softCtx.Done():
+		go func() {
+			<-softCtx.Done()
 			w.Stop()
-			w.Wait()
-		case <-hardCtx.Done():
-			w.Stop()
+		}()
+		w.Wait()
+		close(upstream)
+		return nil
+	})
+
+	group.Go("kale_worker", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
+		var prev Snapshot
+		for snapshot := range downstream {
+			if snapshot.Pods == nil && snapshot.Projects == nil {
+				// If we triggered a rectify, but don't have a new
+				// snapshot (snapshot.X == nil), then re-use the previous
+				// snapshot.
+				if prev.Pods == nil && prev.Projects == nil {
+					// Unless of course we don't have a previous
+					// snapshot either; in which case, just skip this
+					// rectify.
+					continue
+				}
+				snapshot = prev
+			}
+			k.reconcileConsistently(snapshot)
+			prev = snapshot
 		}
 		return nil
 	})
 
+	// todo: lock down all these endpoints with auth
+	k.snapshots = upstream
 	handler := http.StripPrefix("/edge_stack_ui/edge_stack", http.HandlerFunc(safeHandleFunc(k.dispatch))).ServeHTTP
+	// todo: this is just temporary, we will consolidate these sprawling endpoints later
 	httpHandler.AddEndpoint("/edge_stack_ui/edge_stack/api/projects", "kale projects api", handler)
 	httpHandler.AddEndpoint("/edge_stack_ui/edge_stack/api/githook/", "kale githook", handler)
 	httpHandler.AddEndpoint("/edge_stack_ui/edge_stack/api/logs/", "kale logs api", handler)
-
+	httpHandler.AddEndpoint("/edge_stack_ui/edge_stack/api/slogs/", "kale server logs api", handler)
 }
 
-// This contains the global state for the controller/webhook. We
-// assume there is only one copy of the controller running in the
-// cluster, so this is global to the entire cluster.
-
-type kale struct {
-	cfg      types.Config
-	Projects map[string]Project
-	Pods     map[string]map[string]*k8sTypesCoreV1.Pod
+type Snapshot struct {
+	Pods     []k8s.Resource
+	Projects []k8s.Resource
 }
 
-func NewKale() *kale {
-	return &kale{
-		Projects: make(map[string]Project),
-		Pods:     make(map[string]map[string]*k8sTypesCoreV1.Pod),
+func coalesce(upstream <-chan Snapshot, downstream chan<- Snapshot) {
+do_read:
+	item, ok := <-upstream
+did_read:
+	if !ok {
+		close(downstream)
+		return
+	}
+	select {
+	case downstream <- item:
+		goto do_read
+	case item, ok = <-upstream:
+		goto did_read
 	}
 }
 
-func (k *kale) reconcileProjects(w *k8s.Watcher) {
+// A kale contains the global state for the controller/webhook. We
+// assume there is only one copy of the controller running in the
+// cluster, so this is global to the entire cluster.
+func NewKale() *kale {
+	return &kale{
+		Projects: make(map[string]Project),
+		Pods:     make(PodMap),
+	}
+}
+
+type kale struct {
+	cfg types.Config
+
+	mu       sync.RWMutex
+	Projects map[string]Project
+	Pods     PodMap
+
+	// A thread-safe way to trigger a rectify from different places; write a Snapshot
+	// to this channel to trigger a rectify.  If you want to trigger a rectify without
+	// providing a new Snapshot, just write a zero-Snapshot (`Snapshot{}`).
+	snapshots chan<- Snapshot
+}
+
+type PodMap map[string]map[string]*k8sTypesCoreV1.Pod
+
+func (pm PodMap) addPod(pod *k8sTypesCoreV1.Pod) {
+	projName := pod.GetLabels()["project"]
+	if projName != "" {
+		projKey := fmt.Sprintf("%s/%s", pod.GetNamespace(), projName)
+		projPods, ok := pm[projKey]
+		if !ok {
+			projPods = make(map[string]*k8sTypesCoreV1.Pod)
+			pm[projKey] = projPods
+		}
+		// todo: exclude terminating pods so that we don't double delete them
+		projPods[pod.GetName()] = pod
+	}
+}
+
+type DeployMap map[string][]Deploy
+
+func (k *kale) reconcileConsistently(snapshot Snapshot) {
+	deployMap := k.reconcileProjects(snapshot)
+
+	var pods []*k8sTypesCoreV1.Pod
+	if err := mapstructure.Convert(snapshot.Pods, &pods); err != nil {
+		panic(err)
+	}
+	k.updatePods(pods)
+	k.reconcile(deployMap)
+}
+
+func (k *kale) reconcileProjects(snapshot Snapshot) DeployMap {
+	deploys := make(DeployMap)
 	projects := make(map[string]Project)
-	for _, rsrc := range w.List("projects.getambassador.io") {
+	for _, rsrc := range snapshot.Projects {
 		pr := Project{}
 		err := rsrc.Decode(&pr)
 		if err != nil {
@@ -162,31 +249,37 @@ func (k *kale) reconcileProjects(w *k8s.Watcher) {
 		hookUrl := fmt.Sprintf("https://%s/edge_stack/api/githook/%s", pr.Spec.Host, key)
 		postHook(pr.Spec.GithubRepo, hookUrl, pr.Spec.GithubToken)
 		projects[key] = pr
+		deploys[key] = GetDeploys(pr)
 	}
+	k.mu.Lock()
 	k.Projects = projects
+	// todo: we should have better data structures so this isn't so awkward
+	for key, _ := range k.Pods {
+		_, ok := projects[key]
+		if !ok {
+			delete(k.Pods, key)
+		}
+	}
+	k.mu.Unlock()
+	return deploys
 }
 
 type Project struct {
 	Metadata struct {
-		Name      string
-		Namespace string
-		UID       k8sTypes.UID
+		Name      string       `json:"name"`
+		Namespace string       `json:"namespace"`
+		UID       k8sTypes.UID `json:"uid"`
 	} `json:"metadata"`
 	Spec struct {
 		Host        string `json:"host"`
 		Prefix      string `json:"prefix"`
 		GithubRepo  string `json:"githubRepo"`
-		GithubToken string `json:"-"`
+		GithubToken string `json:"githubToken"` // todo: make this a secret ref
 	} `json:"spec"`
 }
 
 func (p Project) Key() string {
 	return p.Metadata.Namespace + "/" + p.Metadata.Name
-}
-
-func (k *kale) GetProject(namespace, name string) (Project, bool) {
-	p, ok := k.Projects[namespace+"/"+name]
-	return p, ok
 }
 
 func (p Project) LogUrl(build string) string {
@@ -208,25 +301,43 @@ func (k *kale) dispatch(r *http.Request) httpResult {
 		eventType := r.Header.Get("X-GitHub-Event")
 		switch eventType {
 		case "ping":
-			return httpResult{200, "pong"}
+			return httpResult{status: 200, body: "pong"}
 		case "push":
 			return k.handlePush(r, strings.Join(parts[2:], "/"))
 		default:
-			return httpResult{500, fmt.Sprintf("don't know how to handle %s events", eventType)}
+			return httpResult{status: 500, body: fmt.Sprintf("don't know how to handle %s events", eventType)}
 		}
 	case "projects":
-		return httpResult{200, k.projectsJSON()}
-	case "logs":
-		// todo: this only does build logs, need to add deploy logs
-		return httpResult{200, buildLogs(parts[2], parts[3], parts[4])}
+		return httpResult{status: 200, body: k.projectsJSON()}
+	case "logs", "slogs":
+		namespace := parts[2]
+		name := parts[3]
+		build := parts[4]
+		var selector string
+		if parts[1] == "slogs" {
+			// todo: we need to make our pod labels and
+			// service selectors distinguish between build
+			// and deploy pods
+			selector = fmt.Sprintf("project=%s,commit=%s,!build", name, build)
+		} else {
+			selector = fmt.Sprintf("project=%s,build=%s", name, build)
+		}
+		return httpResult{
+			stream: func(w http.ResponseWriter) {
+				streamLogs(w, r, namespace, selector)
+			},
+		}
 	}
-	return httpResult{400, "bad request"}
+	return httpResult{status: 400, body: "bad request"}
 }
 
 // Returns the a JSON string with all the data for the root of the
 // UI. This is a map of all the projects plus nested data as
 // appropriate.
 func (k *kale) projectsJSON() string {
+	k.mu.RLock()
+	defer k.mu.RUnlock()
+
 	var keys []string
 	for key, _ := range k.Projects {
 		keys = append(keys, key)
@@ -259,41 +370,21 @@ func (k *kale) projectsJSON() string {
 
 // Handle Push events from the github API.
 func (k *kale) handlePush(r *http.Request, key string) httpResult {
-	proj, ok := k.Projects[key]
+	k.mu.RLock()
+	_, ok := k.Projects[key]
+	k.mu.RUnlock()
 	if !ok {
-		return httpResult{404, fmt.Sprintf("no such project %s", key)}
+		return httpResult{status: 404, body: fmt.Sprintf("no such project %s", key)}
 	}
 
-	var push Push
-	if err := json.NewDecoder(r.Body).Decode(&push); err != nil {
-		log.Printf("WEBHOOK PARSE ERROR: %v", err)
-		return httpResult{400, err.Error()}
-	}
+	// todo: the webhook is totally asynchronous... we basically
+	// need to work based on polling and treat the webhook as a
+	// hint to increase the frequency of polling
+	time.Sleep(5 * time.Second)
 
-	buildID := fmt.Sprintf("%d", time.Now().Unix()) // todo: better id
+	k.snapshots <- Snapshot{}
 
-	out, err := startBuild(proj, buildID, push.Ref, push.Head.Id)
-	if err != nil {
-		log.Printf("ERROR: %v", err)
-		postStatus(fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, push.Head.Id),
-			GitHubStatus{
-				State:       "error",
-				TargetUrl:   fmt.Sprintf("http://%s/edge_stack/", proj.Spec.Host),
-				Description: err.Error(),
-				Context:     "aes",
-			},
-			proj.Spec.GithubToken)
-	} else {
-		postStatus(fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, push.Head.Id),
-			GitHubStatus{
-				State:       "pending",
-				TargetUrl:   proj.LogUrl(buildID),
-				Description: "build started",
-				Context:     "aes",
-			},
-			proj.Spec.GithubToken)
-	}
-	return httpResult{200, out}
+	return httpResult{status: 200, body: ""}
 }
 
 type Push struct {
@@ -307,7 +398,7 @@ type Push struct {
 	}
 }
 
-func startBuild(proj Project, buildID, ref, commit string) (string, error) {
+func (k *kale) startBuild(proj Project, buildID, ref, commit string) (string, error) {
 	// Note: If the kaniko destination is set to the full service name
 	// (registry.ambassador.svc.cluster.local), then we can't seem to push
 	// to the no matter how we tweak the settings. I assume this is due to
@@ -316,114 +407,136 @@ func startBuild(proj Project, buildID, ref, commit string) (string, error) {
 	// todo: the ambassador namespace is hardcoded below in the registry
 	//       we to which we push
 
-	manifests := []interface{}{
-		&k8sTypesCoreV1.Pod{
-			TypeMeta: k8sTypesMetaV1.TypeMeta{
-				APIVersion: "v1",
-				Kind:       "Pod",
+	pod := &k8sTypesCoreV1.Pod{
+		TypeMeta: k8sTypesMetaV1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "Pod",
+		},
+		ObjectMeta: k8sTypesMetaV1.ObjectMeta{
+			Name:      proj.Metadata.Name + "-build-" + buildID,
+			Namespace: proj.Metadata.Namespace,
+			Annotations: map[string]string{
+				"statusesUrl": "https://api.github.com/repos/" + proj.Spec.GithubRepo + "/statuses/" + commit,
 			},
-			ObjectMeta: k8sTypesMetaV1.ObjectMeta{
-				Name:      proj.Metadata.Name + "-build-" + buildID,
-				Namespace: proj.Metadata.Namespace,
-				Annotations: map[string]string{
-					"statusesUrl": "https://api.github.com/repos/" + proj.Spec.GithubRepo + "/statuses/" + commit,
-				},
-				Labels: map[string]string{
-					"kale":    "0.0",
-					"project": proj.Metadata.Name,
-					"commit":  commit,
-					"build":   buildID,
-				},
-				OwnerReferences: []k8sTypesMetaV1.OwnerReference{
-					{
-						APIVersion:         "getambassador.io/v2",
-						Controller:         boolPtr(true),
-						BlockOwnerDeletion: boolPtr(true),
-						Kind:               "Project",
-						Name:               proj.Metadata.Name,
-						UID:                proj.Metadata.UID,
-					},
-				},
+			Labels: map[string]string{
+				"kale":    "0.0",
+				"project": proj.Metadata.Name,
+				"commit":  commit,
+				"build":   buildID,
 			},
-			Spec: k8sTypesCoreV1.PodSpec{
-				Containers: []k8sTypesCoreV1.Container{
-					{
-						Name:  "kaniko",
-						Image: "gcr.io/kaniko-project/executor:v0.16.0",
-						Args: []string{
-							"--cache=true",
-							"-v=debug",
-							"--skip-tls-verify",
-							"--skip-tls-verify-pull",
-							"--skip-tls-verify-registry",
-							"--dockerfile=Dockerfile",
-							"--context=git://github.com/" + proj.Spec.GithubRepo + ".git#" + ref,
-							"--destination=registry.ambassador/" + commit,
-						},
-					},
+			OwnerReferences: []k8sTypesMetaV1.OwnerReference{
+				{
+					APIVersion:         "getambassador.io/v2",
+					Controller:         boolPtr(true),
+					BlockOwnerDeletion: boolPtr(true),
+					Kind:               "Project",
+					Name:               proj.Metadata.Name,
+					UID:                proj.Metadata.UID,
 				},
-				RestartPolicy: k8sTypesCoreV1.RestartPolicyNever,
 			},
 		},
+		Spec: k8sTypesCoreV1.PodSpec{
+			Containers: []k8sTypesCoreV1.Container{
+				{
+					Name:  "kaniko",
+					Image: "gcr.io/kaniko-project/executor:v0.16.0",
+					Args: []string{
+						"--cache=true",
+						"--skip-tls-verify",
+						"--skip-tls-verify-pull",
+						"--skip-tls-verify-registry",
+						"--dockerfile=Dockerfile",
+						"--context=git://github.com/" + proj.Spec.GithubRepo + ".git#" + ref,
+						"--destination=registry.ambassador/" + commit,
+					},
+				},
+			},
+			RestartPolicy: k8sTypesCoreV1.RestartPolicyNever,
+		},
 	}
+
+	manifests := []interface{}{pod}
 
 	out, err := applyObjs(manifests)
 	if err != nil {
 		return "", fmt.Errorf("%w\n%s", err, out)
 	}
+
+	k.mu.Lock()
+	k.Pods.addPod(pod)
+	k.mu.Unlock()
+
 	return string(out), nil
 }
 
-type deploy struct {
-	ProjectName      string
-	ProjectNamespace string
-	Commit           string
-}
+func (k *kale) updatePods(pods []*k8sTypesCoreV1.Pod) {
+	pm := make(PodMap)
 
-func pod2deploy(pod *k8sTypesCoreV1.Pod) deploy {
-	return deploy{
-		ProjectName:      pod.GetLabels()["project"],
-		ProjectNamespace: pod.GetNamespace(),
-		Commit:           pod.GetLabels()["commit"],
-	}
-}
-
-func (k *kale) reconcilePods(pods []*k8sTypesCoreV1.Pod) {
-	// TODO: Have a smarter way of deciding 'desiredDeploys'.
-	desiredDeploys := make(map[deploy]struct{})
-	var builders []*k8sTypesCoreV1.Pod
-	var runners []*k8sTypesCoreV1.Pod
 	for _, pod := range pods {
-		desiredDeploys[pod2deploy(pod)] = struct{}{}
-		if pod.GetLabels()["build"] != "" {
-			builders = append(builders, pod)
-		} else {
-			runners = append(runners, pod)
-		}
+		pm.addPod(pod)
 	}
 
-	for desiredDeploy := range desiredDeploys {
+	k.mu.Lock()
+	k.Pods = pm
+	k.mu.Unlock()
+}
+
+func (k *kale) pods() []*k8sTypesCoreV1.Pod {
+	var result []*k8sTypesCoreV1.Pod
+	for _, pods := range k.Pods {
+		for _, pod := range pods {
+			result = append(result, pod)
+		}
+	}
+	return result
+}
+
+func (k *kale) desiredDeploys(deployMap DeployMap) []Deploy {
+	var result []Deploy
+	for _, deps := range deployMap {
+		for _, dep := range deps {
+			result = append(result, dep)
+		}
+	}
+	return result
+}
+
+func (k *kale) IsDesired(deployMap DeployMap, pod *k8sTypesCoreV1.Pod) bool {
+	labels := pod.GetLabels()
+	key := fmt.Sprintf("%s/%s", pod.GetNamespace(), labels["project"])
+	commit := labels["commit"]
+	deps, ok := deployMap[key]
+	if ok {
+		for _, dep := range deps {
+			if dep.Ref.Hash().String() == commit {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (k *kale) reconcile(deployMap DeployMap) {
+	deploys := k.desiredDeploys(deployMap)
+	pods := k.pods()
+	for _, dep := range deploys {
 		var deployBuilders []*k8sTypesCoreV1.Pod
-		for _, builder := range builders {
-			if pod2deploy(builder) == desiredDeploy {
-				deployBuilders = append(deployBuilders, builder)
-			}
-		}
-
 		var deployRunners []*k8sTypesCoreV1.Pod
-		for _, runner := range runners {
-			if pod2deploy(runner) == desiredDeploy {
-				deployRunners = append(deployRunners, runner)
+		for _, pod := range pods {
+			if dep.IsBuilder(pod) {
+				deployBuilders = append(deployBuilders, pod)
+			} else if dep.IsRunner(pod) {
+				deployRunners = append(deployRunners, pod)
 			}
 		}
 
-		err := safeInvoke1(func() error { return k.reconcileDeploy(desiredDeploy, deployBuilders, deployRunners) })
+		err := safeInvoke1(func() error { return k.reconcileDeploy(dep, deployBuilders, deployRunners) })
 		if err != nil {
 			log.Printf("ERROR: %v", err)
 		}
 	}
 	for _, pod := range pods {
-		if _, desired := desiredDeploys[pod2deploy(pod)]; !desired {
+		if !k.IsDesired(deployMap, pod) {
 			err := deleteResource("pod", pod.GetName(), pod.GetNamespace())
 			if err != nil {
 				log.Printf("ERROR: %v", err)
@@ -432,28 +545,50 @@ func (k *kale) reconcilePods(pods []*k8sTypesCoreV1.Pod) {
 	}
 }
 
-func (k *kale) reconcileDeploy(desiredDeploy deploy, builders, runners []*k8sTypesCoreV1.Pod) error {
-	proj, projOK := k.GetProject(desiredDeploy.ProjectNamespace, desiredDeploy.ProjectName)
-	if !projOK {
-		return fmt.Errorf("no such project: %q.%q", desiredDeploy.ProjectName, desiredDeploy.ProjectNamespace)
-	}
+func (k *kale) reconcileDeploy(dep Deploy, builders, runners []*k8sTypesCoreV1.Pod) error {
+	proj := dep.Project
 
-	if len(runners) == 0 { // don't bother with the builder if there's already a runner
-		switch len(builders) {
-		case 0:
-			panic("not implemented -- right now we only do this from handlePush()")
-		case 1:
-			// do nothing
-		default:
-			// TODO: more intelligently pick which pod gets to survive
-			for _, pod := range builders[1:] {
-				err := deleteResource("pod", pod.GetName(), pod.GetNamespace())
-				if err != nil {
-					log.Printf("ERROR: %v", err)
-				}
+	switch len(builders) {
+	case 0:
+		if len(runners) == 0 {
+			//buildID := fmt.Sprintf("%d", time.Now().Unix()) // todo: better id
+			buildID := dep.Ref.Hash().String()
+			out, err := k.startBuild(proj, buildID, dep.Ref.Name().String(), dep.Ref.Hash().String())
+			if err != nil {
+				log.Printf("OUTPUT: %s", out)
+				log.Printf("ERROR: %v", err)
+				postStatus(fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, dep.Ref.Hash().String()),
+					GitHubStatus{
+						State:       "error",
+						TargetUrl:   fmt.Sprintf("http://%s/edge_stack/", proj.Spec.Host),
+						Description: err.Error(),
+						Context:     "aes",
+					},
+					proj.Spec.GithubToken)
+			} else {
+				postStatus(fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, dep.Ref.Hash().String()),
+					GitHubStatus{
+						State:       "pending",
+						TargetUrl:   proj.LogUrl(buildID),
+						Description: "build started",
+						Context:     "aes",
+					},
+					proj.Spec.GithubToken)
 			}
 		}
+	case 1:
+		// do nothing
+	default:
+		// TODO: more intelligently pick which pod gets to survive
+		for _, pod := range builders[1:] {
+			err := deleteResource("pod", pod.GetName(), pod.GetNamespace())
+			if err != nil {
+				log.Printf("ERROR: %v", err)
+			}
+		}
+	}
 
+	if len(builders) > 0 {
 		builder := builders[0]
 		// TODO: validate that the builder looks how we expect
 
@@ -461,57 +596,48 @@ func (k *kale) reconcileDeploy(desiredDeploy deploy, builders, runners []*k8sTyp
 		qname := builder.GetName() + "." + builder.GetNamespace()
 		log.Println("BUILDER", qname, phase)
 
-		projName := builder.GetLabels()["project"]
-		namespace := builder.GetNamespace()
-
-		projKey := fmt.Sprintf("%s/%s", namespace, projName)
-		projPods, ok := k.Pods[projKey]
-		if !ok {
-			projPods = make(map[string]*k8sTypesCoreV1.Pod)
-			k.Pods[projKey] = projPods
-		}
-		projPods[builder.GetName()] = builder
-
-		statusesUrl := builder.GetAnnotations()["statusesUrl"]
-		logUrl := proj.LogUrl(builder.GetLabels()["build"])
-		switch phase {
-		case k8sTypesCoreV1.PodFailed:
-			log.Printf(podLogs(builder.GetName()))
-			postStatus(statusesUrl, GitHubStatus{
-				State:       "failure",
-				TargetUrl:   logUrl,
-				Description: string(phase),
-				Context:     "aes",
-			},
-				proj.Spec.GithubToken)
-		case k8sTypesCoreV1.PodSucceeded:
-			_, err := startRun(proj, builder.GetLabels()["commit"])
-			if err != nil {
-				msg := fmt.Sprintf("ERROR: %v", err)
-				log.Print(msg)
-				if len(msg) > 140 {
-					msg = msg[len(msg)-140:]
+		if len(runners) == 0 { // don't bother with the builder if there's already a runner
+			statusesUrl := builder.GetAnnotations()["statusesUrl"]
+			logUrl := proj.LogUrl(builder.GetLabels()["build"])
+			switch phase {
+			case k8sTypesCoreV1.PodFailed:
+				log.Printf(podLogs(builder.GetName()))
+				postStatus(statusesUrl, GitHubStatus{
+					State:       "failure",
+					TargetUrl:   logUrl,
+					Description: string(phase),
+					Context:     "aes",
+				},
+					proj.Spec.GithubToken)
+			case k8sTypesCoreV1.PodSucceeded:
+				_, err := k.startRun(proj, builder.GetLabels()["commit"])
+				if err != nil {
+					msg := fmt.Sprintf("ERROR: %v", err)
+					log.Print(msg)
+					if len(msg) > 140 {
+						msg = msg[len(msg)-140:]
+					}
+					// todo: need a way to get log output to github
+					postStatus(statusesUrl,
+						GitHubStatus{
+							State:       "error",
+							TargetUrl:   "http://asdf",
+							Description: msg,
+							Context:     "aes",
+						},
+						proj.Spec.GithubToken)
+					return err
+				} else {
+					// todo: fake url
+					postStatus(statusesUrl,
+						GitHubStatus{
+							State:       "success",
+							TargetUrl:   "http://asdf",
+							Description: string(phase),
+							Context:     "aes",
+						},
+						proj.Spec.GithubToken)
 				}
-				// todo: need a way to get log output to github
-				postStatus(statusesUrl,
-					GitHubStatus{
-						State:       "error",
-						TargetUrl:   "http://asdf",
-						Description: msg,
-						Context:     "aes",
-					},
-					proj.Spec.GithubToken)
-				return err
-			} else {
-				// todo: fake url
-				postStatus(statusesUrl,
-					GitHubStatus{
-						State:       "success",
-						TargetUrl:   "http://asdf",
-						Description: string(phase),
-						Context:     "aes",
-					},
-					proj.Spec.GithubToken)
 			}
 		}
 	}
@@ -531,23 +657,47 @@ func (k *kale) reconcileDeploy(desiredDeploy deploy, builders, runners []*k8sTyp
 		phase := runner.Status.Phase
 		qname := runner.GetName() + "." + runner.GetNamespace()
 		log.Println("RUNNER", qname, phase)
-
-		projName := runner.GetLabels()["project"]
-		namespace := runner.GetNamespace()
-
-		projKey := fmt.Sprintf("%s/%s", namespace, projName)
-		projPods, ok := k.Pods[projKey]
-		if !ok {
-			projPods = make(map[string]*k8sTypesCoreV1.Pod)
-			k.Pods[projKey] = projPods
-		}
-		projPods[runner.GetName()] = runner
 	}
 
 	return nil
 }
 
-func startRun(proj Project, commit string) (string, error) {
+func (k *kale) startRun(proj Project, commit string) (string, error) {
+	// todo: figure out what is going on with /edge_stack/previews
+	// not being routable
+	pod := &k8sTypesCoreV1.Pod{
+		TypeMeta: k8sTypesMetaV1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "Pod",
+		},
+		ObjectMeta: k8sTypesMetaV1.ObjectMeta{
+			Name:      proj.Metadata.Name + "-" + commit,
+			Namespace: proj.Metadata.Namespace,
+			OwnerReferences: []k8sTypesMetaV1.OwnerReference{
+				{
+					APIVersion:         "getambassador.io/v2",
+					Controller:         boolPtr(true),
+					BlockOwnerDeletion: boolPtr(true),
+					Kind:               "Project",
+					Name:               proj.Metadata.Name,
+					UID:                proj.Metadata.UID,
+				},
+			},
+			Labels: map[string]string{
+				"kale":    "0.0",
+				"project": proj.Metadata.Name,
+				"commit":  commit,
+			},
+		},
+		Spec: k8sTypesCoreV1.PodSpec{
+			Containers: []k8sTypesCoreV1.Container{
+				{
+					Name:  "app",
+					Image: "127.0.0.1:31000/" + commit,
+				},
+			},
+		},
+	}
 	manifests := []interface{}{
 		map[string]interface{}{
 			"apiVersion": "getambassador.io/v2",
@@ -570,7 +720,7 @@ func startRun(proj Project, commit string) (string, error) {
 				},
 			},
 			"spec": map[string]interface{}{
-				"prefix":  "/kale/previews/" + proj.Spec.Prefix + "/" + commit + "/",
+				"prefix":  "/.previews/" + proj.Spec.Prefix + "/" + commit + "/",
 				"service": proj.Spec.Prefix + "-" + commit,
 			},
 		},
@@ -610,44 +760,17 @@ func startRun(proj Project, commit string) (string, error) {
 				},
 			},
 		},
-		&k8sTypesCoreV1.Pod{
-			TypeMeta: k8sTypesMetaV1.TypeMeta{
-				APIVersion: "v1",
-				Kind:       "Pod",
-			},
-			ObjectMeta: k8sTypesMetaV1.ObjectMeta{
-				Name:      proj.Metadata.Name + "-" + commit,
-				Namespace: proj.Metadata.Namespace,
-				OwnerReferences: []k8sTypesMetaV1.OwnerReference{
-					{
-						APIVersion:         "getambassador.io/v2",
-						Controller:         boolPtr(true),
-						BlockOwnerDeletion: boolPtr(true),
-						Kind:               "Project",
-						Name:               proj.Metadata.Name,
-						UID:                proj.Metadata.UID,
-					},
-				},
-				Labels: map[string]string{
-					"kale":    "0.0",
-					"project": proj.Metadata.Name,
-					"commit":  commit,
-				},
-			},
-			Spec: k8sTypesCoreV1.PodSpec{
-				Containers: []k8sTypesCoreV1.Container{
-					{
-						Name:  "app",
-						Image: "127.0.0.1:31000/" + commit,
-					},
-				},
-			},
-		},
+		pod,
 	}
 
 	out, err := applyObjs(manifests)
 	if err != nil {
 		return "", fmt.Errorf("%w\n%s", err, out)
 	}
+
+	k.mu.Lock()
+	k.Pods.addPod(pod)
+	k.mu.Unlock()
+
 	return string(out), nil
 }

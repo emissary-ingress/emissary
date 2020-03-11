@@ -1,16 +1,27 @@
 package kale
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
 	htemplate "html/template"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os/exec"
 	"strings"
+	"sync"
 	"text/template"
+	"time"
+
+	git "gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/config"
+	"gopkg.in/src-d/go-git.v4/plumbing"
+	ghttp "gopkg.in/src-d/go-git.v4/plumbing/transport/http"
+	"gopkg.in/src-d/go-git.v4/storage/memory"
+	k8sTypesCoreV1 "k8s.io/api/core/v1"
 
 	"sigs.k8s.io/yaml"
 
@@ -69,8 +80,14 @@ func safeHandleFunc(handler func(*http.Request) httpResult) func(http.ResponseWr
 	return func(w http.ResponseWriter, r *http.Request) {
 		err := safeInvoke(func() {
 			result := handler(r)
-			w.WriteHeader(result.status)
-			w.Write([]byte(result.body))
+			if result.stream == nil {
+				w.WriteHeader(result.status)
+				w.Write([]byte(result.body))
+			} else {
+				streamingFunc(func(w http.ResponseWriter, r *http.Request) {
+					result.stream(w)
+				})(w, r)
+			}
 		})
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -82,6 +99,29 @@ func safeHandleFunc(handler func(*http.Request) httpResult) func(http.ResponseWr
 type httpResult struct {
 	status int
 	body   string
+	stream func(w http.ResponseWriter)
+}
+
+func streamingFunc(handler http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet, http.MethodHead:
+			_, ok := w.(http.Flusher)
+			if !ok {
+				panic("streaming unsupported")
+			}
+			w.Header().Set("Content-Type", "text/event-stream")
+			io.WriteString(w, "\n") // just something to get readyState=1
+			w.(http.Flusher).Flush()
+			if r.Method == http.MethodHead {
+				return
+			}
+
+			handler(w, r)
+		default:
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		}
+	}
 }
 
 // Post a json payload to a URL.
@@ -110,6 +150,28 @@ func postJSON(url string, payload interface{}, token string) (*http.Response, st
 		panic(err)
 	}
 	return resp, string(body)
+}
+
+// Get a json payload from a URL.
+func getJSON(url string, token string, target interface{}) *http.Response {
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	defer resp.Body.Close()
+	err = json.NewDecoder(resp.Body).Decode(target)
+	if err != nil {
+		panic(err)
+	}
+	return resp
 }
 
 // Post a status to the github API
@@ -188,6 +250,80 @@ func podLogs(name string) string {
 	return out
 }
 
+// The streamLogs helper sends logs from the kubernetes pods defined
+// by the namespace and selector args down the supplied
+// http.ResponseWriter using server side events.
+func streamLogs(w http.ResponseWriter, r *http.Request, namespace, selector string) {
+	since := r.Header.Get("Last-Event-ID")
+	args := []string{"logs", "--timestamps", "--tail=10000", "-f", "-n", namespace, "-l", selector}
+	if since != "" {
+		args = append(args, "--since-time", since)
+	}
+	cmd := exec.Command("kubectl", args...)
+
+	rawReader, err := cmd.StdoutPipe()
+	if err != nil {
+		panic(err)
+	}
+	cmd.Stderr = cmd.Stdout
+	reader := bufio.NewReader(rawReader)
+
+	err = cmd.Start()
+	if err != nil {
+		panic(err)
+	}
+
+	done := make(chan struct{})
+
+	go func() {
+		defer close(done)
+		for {
+			line, err := reader.ReadString('\n')
+			exit := false
+			if err != nil {
+				exit = true
+				if err != io.EOF {
+					log.Printf("warning: reading from kubectl logs: %v", err)
+				}
+			}
+
+			if len(line) > 0 {
+				parts := strings.SplitN(line, " ", 2)
+
+				if len(parts) == 2 {
+					_, tserr := time.Parse(time.RFC3339Nano, parts[0])
+					if tserr != nil {
+						_, err = fmt.Fprintf(w, "data: %s\n\n", line)
+					} else {
+						_, err = fmt.Fprintf(w, "id: %s\ndata: %s\n\n", parts[0], parts[1])
+					}
+				} else {
+					_, err = fmt.Fprintf(w, "data: %s\n\n", line)
+				}
+				if err != nil {
+					log.Printf("warning: writing to client: %v", err)
+					cmd.Process.Kill()
+					return
+				}
+
+				w.(http.Flusher).Flush()
+			}
+
+			if exit {
+				fmt.Fprint(w, "event: close\ndata:\n\n")
+				return
+			}
+		}
+	}()
+
+	err = cmd.Wait()
+	if err != nil {
+		log.Printf("warning: %v", err)
+	}
+
+	<-done
+}
+
 // Does a kubectl apply on the passed in yaml.
 func applyStr(yaml string) (string, error) {
 	cmd := exec.Command("kubectl", "apply", "-f", "-")
@@ -247,4 +383,127 @@ func deleteResource(kind, name, namespace string) error {
 		return fmt.Errorf("%w\n%s", err, out)
 	}
 	return nil
+}
+
+type Deploy struct {
+	Project Project
+	Ref     *plumbing.Reference
+	Pull    *Pull
+}
+
+func PrettyDeploys(deps []Deploy) string {
+	var parts []string
+	for _, d := range deps {
+		parts = append(parts, fmt.Sprintf("%s => %s", d.Ref.Name().Short(), d.Ref.Hash()))
+	}
+	return strings.Join(parts, ", ")
+}
+
+type Pull struct {
+	Number int
+	Head   struct {
+		Ref string
+		Sha string
+	}
+	MergeSha string `json:"merge_commit_sha"`
+}
+
+func (d Deploy) IsBuilder(pod *k8sTypesCoreV1.Pod) bool {
+	labels := pod.GetLabels()
+	return (labels["project"] == d.Project.Metadata.Name &&
+		pod.GetNamespace() == d.Project.Metadata.Namespace &&
+		labels["build"] != "" &&
+		labels["commit"] == d.Ref.Hash().String())
+}
+
+func (d Deploy) IsRunner(pod *k8sTypesCoreV1.Pod) bool {
+	labels := pod.GetLabels()
+	return (labels["project"] == d.Project.Metadata.Name &&
+		pod.GetNamespace() == d.Project.Metadata.Namespace &&
+		labels["build"] == "" &&
+		labels["commit"] == d.Ref.Hash().String())
+}
+
+// GetDeploys does a `git ls-remote`, gets the listing of open GitHub
+// pull-requests, and cross-references the two in order to decide
+// which things we want to deploy.
+func GetDeploys(project Project) []Deploy {
+	repo := project.Spec.GithubRepo
+	token := project.Spec.GithubToken
+	refs := gitLsRemote(fmt.Sprintf("https://github.com/%s", repo), token, "refs/heads/*")
+	var result []Pull
+	resp := getJSON(fmt.Sprintf("https://api.github.com/repos/%s/pulls", repo), token, &result)
+	if resp.StatusCode != 200 {
+		panic(resp.Status)
+	}
+
+	pulls := make(map[string]Pull)
+
+	for _, p := range result {
+		pulls[p.Head.Sha] = p
+	}
+
+	var deploys []Deploy
+	for _, ref := range refs {
+		pull, ok := pulls[ref.Hash().String()]
+		if ok {
+			deploys = append(deploys, Deploy{project, ref, &pull})
+		}
+		if ref.Name().Short() == "master" {
+			deploys = append(deploys, Deploy{project, ref, nil})
+		}
+	}
+
+	return deploys
+}
+
+func gitLsRemote(repo, token string, specs ...string) []*plumbing.Reference {
+	// Create the remote with repository URL
+	rem := git.NewRemote(memory.NewStorage(), &config.RemoteConfig{
+		Name: "origin",
+		URLs: []string{repo},
+	})
+
+	// We can then use every Remote functions to retrieve wanted information
+	refs, err := rem.List(&git.ListOptions{
+		Auth: &ghttp.BasicAuth{Username: token},
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	var result []*plumbing.Reference
+	for _, ref := range refs {
+		for _, spec := range specs {
+			rs := config.RefSpec(fmt.Sprintf("%s:", spec))
+			if rs.Match(ref.Name()) {
+				result = append(result, ref)
+			}
+		}
+	}
+	return result
+}
+
+// WatchGroup is used to wait for multiple Watcher queries to all be
+// ready before invoking a listener.
+type WatchGroup struct {
+	count int
+	mu    sync.Mutex
+}
+
+func (wg *WatchGroup) Wrap(listener func(*k8s.Watcher)) func(*k8s.Watcher) {
+	listener = safeWatch(listener)
+	wg.count += 1
+	invoked := false
+	return func(w *k8s.Watcher) {
+		wg.mu.Lock()
+		defer wg.mu.Unlock()
+		if !invoked {
+			wg.count--
+			invoked = true
+		}
+		if wg.count == 0 {
+			listener(w)
+		}
+	}
 }

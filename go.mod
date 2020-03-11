@@ -42,8 +42,8 @@ require (
 	golang.org/x/net v0.0.0-20190930134127-c5a3c61f89f3
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
 	google.golang.org/grpc v1.23.0
-	gopkg.in/src-d/go-billy.v4 v4.2.1
-	gopkg.in/src-d/go-git.v4 v4.8.1
+	gopkg.in/src-d/go-billy.v4 v4.3.2
+	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v2 v2.2.4
 	istio.io/gogo-genproto v0.0.0-20190904133402-ee07f2785480
 	k8s.io/api v0.0.0-20191004120104-195af9ec3521
