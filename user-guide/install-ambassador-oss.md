@@ -21,9 +21,9 @@ Below, we'll configure Ambassador to map `/httpbin/` to `httpbin.org`.
 
 ### 1. Deploying the Ambassador API Gateway
 
-The majority of current hosted Kubernetes providers (such as GKE) create clusters with RBAC enabled by default. If you're using Google Kubernetes Engine with RBAC, you'll need to grant permissions to the account that will be setting up the Ambassador API Gateway. 
+The following steps deploy Ambassador in the default namespace. 
 
-To do this, get your official GKE username, and then grant `cluster-admin` role privileges to that username:
+**Note:** If you're using Google Kubernetes Engine, you'll need to grant permissions to the account that will be setting up the Ambassador API Gateway. To do this, get your official GKE username, and then grant `cluster-admin` role privileges to that username:
 
 ```shell
 kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=$(gcloud info --format="value(config.account)")
@@ -35,7 +35,7 @@ Then, you can deploy the Ambassador API Gateway. Start by installing CRDs requir
 kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-crds.yaml
 ```
 
-Then, apply the RBAC-related CRDs with:
+Then, apply the RBAC configuration with:
 
 ```shell
 kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-rbac.yaml
