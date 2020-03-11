@@ -1,7 +1,7 @@
 - title: First Steps
   link: /docs/
   collapsable: false
-
+# need clarity / help on the very beginning here.
 - title: Install Ambassador Edge Stack
   link: /user-guide/install
   items: 
@@ -111,9 +111,8 @@
             - title: Rewrites
               link: /topics/using/rewrites
             - title: Protocols Overview
-              link: /topics/protocols-overview
               items:
-                - title: Envoy and External Authorization
+                - title: ExternalFilter
                   link: /topics/using/filters/external
                 - title: TCP Mappings
                   link: /topics/using/tcpmappings
@@ -209,19 +208,19 @@
             - title: TLS Origination
               link: /topics/running/tls/origination
         - title: Capturing Client IP Addresses
-          link: /topics/client-ip-address
+          link: ?
           items: 
             - title: The externalTrafficPolicy
-              link: /topics/externalTrafficPolicy
+              link: ?
             - title: L7 Load Balancer Considerations
-              link: 
+              link: ???
         - title: Monitoring Options
-          link: /topics/monitoring/
+          link: ???
           items:
             - title: Statistics
               link: /topics/running/statistics/
         - title: Plugin Services
-          link: /topics/running/services/
+          link: /topics/running/services/services
           items:
             - title: AuthService Plugin
               link: /topics/running/services/auth-service
@@ -243,27 +242,26 @@
         - title: Ambassador as an Ingress Controller
           link: /topics/running/ingress-controller/
         - title: Running Multiple Instances in a Single Cluster
-          link: /topics/running-multi-ambassador-cluster
+          link: ?
     - title: The Ambassador Project
-      link: /topics/ambassador-project
+      link: ?
       items:
         - title: The Contributor's Guide
-          link: /topics/contributors-guide
+          link: ?
         - title: Changelog
-          link: /topics/changelog
+          link: ?
 - title: How To
   items: 
     - title: Service Mesh Integration
-      link: /howtos/service-mesh
       items:
         - title: Consul
           link: /howtos/consul
         - title: Istio
-          link: /howtos/istio
+          link: /howtos/with-istio
         - title: Linkerd2
           link: /howtos/linkerd2
     - title: Distributed Tracing
-      link: /howtos/tracing-tutorial/
+      link: /howtos/tracing-tutorial/ 
       items:
         - title: DataDog
           link: /howtos/tracing-datadog
@@ -271,10 +269,7 @@
           link: /howtos/tracing-zipkin
         - title: Knative
           link: /howtos/tracing/knative
-    - title: External DNS
-      link: /howtos/external-dns
-    - title: External Routing
-      link: /howtos/external-routing
+    - title: External DNS Routing
       items:
         - title: Route to a Service
           link: /howtos/route-to-service
