@@ -29,7 +29,7 @@ class Project extends SingleResource {
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    window.remmoveEventListener("hashchange", this.handleHashChange.bind(this), false);
+    window.removeEventListener("hashchange", this.handleHashChange.bind(this), false);
   }
 
   handleHashChange() {

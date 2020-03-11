@@ -49,7 +49,8 @@ class Term extends LitElement {
         // height is "auto" because the browser is still rendering
         // things.
         console.log("delaying terminal init because height is auto")
-        this.setTimeout(this.updateSource.bind(), 250)
+        setTimeout(this.updateSource.bind(this), 250)
+        return
       }
 
       if (this.source !== "") {
