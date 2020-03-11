@@ -7,29 +7,29 @@
   link: /user-guide/install
   items: 
   - title: Quick Start Installation Guide
-    link: /user-guide/getting-started
+    link: /tutorials/getting-started
   - title: Edge Policy Console
     link: /about/edge-policy-console
   - title: Other Install & Upgrade Options
     items: 
     - title: Upgrade to the Ambassador Edge Stack
-      link: /user-guide/upgrade-to-edge-stack
+      link: /topics/install/upgrade-to-edge-stack
     - title: Upgrade to a Newer Version
-      link: /reference/upgrading
+      link: /topics/install/upgrading
     - title: Install the Ambassador API Gateway
-      link: /user-guide/install-ambassador-oss    
+      link: /topics/install/install-ambassador-oss    
     - title: Install with Helm
-      link: /user-guide/helm
+      link: /topics/install/helm
     - title: Install with Docker
-      link: /about/quickstart
+      link: /topics/install/quickstart
     - title: Install with Bare Metal
-      link: /user-guide/bare-metal
+      link: /topics/install/bare-metal
     - title: Install Manually
-      link: /user-guide/manual-install  
+      link: /topics/install/manual-install  
     - title: Ambassador Edge Stack Operator
-      link: /user-guide/aes-operator   
+      link: /topics/install/aes-operator   
     - title: Early Access Releases
-      link: /user-guide/early-access
+      link: /topics/install/early-access
 - title: Topics
   items:  
     - title: Kubernetes and Ambassador
@@ -50,7 +50,7 @@
             - title: Ambassador Edge Stack Configuration with Custom Resource Definitions
               link: /topics/crds/
         - title: The Ambassador Operating Module
-          link: /topics/aes-operator
+          link: /topics/install/aes-operator
         - title: Ambassador Architecture
           link: /topics/architecture/
           items:
@@ -107,20 +107,20 @@
                 - title: Rate Limiting Tutorial
                   link: /topics/rate-limiting-tutorial/
                 - title: Advanced Rate Limiting
-                  link: topics/advanced-rate-limiting/
+                  link: /howtos/advanced-rate-limiting/
             - title: Redirects
-              link: /topics/redirects
+              link: /topics/using/redirects
             - title: Rewrites
-              link: /topics/rewrites
+              link: /topics/using/rewrites
             - title: Protocols Overview
               link: /topics/protocols-overview
               items:
                 - title: Envoy and External Authorization
                   link: /topics/using/filters/external
                 - title: TCP Mappings
-                  link: /topics/tcpmappings
+                  link: /topics/using/tcpmappings
                 - title: gRPC and gRPC-Web
-                  link: /topics/howtos/grpc
+                  link: /howtos/grpc
                 - title: HTTP/1.0
                   link: /topics/http1
                 - title: WebSockets
@@ -310,4 +310,4 @@
     - title: Environmental Variables
       link: /reference/environment/
 - title: Frequently Asked Questions
-  link: /faq/index
+  link: /about/faq
