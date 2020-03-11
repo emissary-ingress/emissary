@@ -126,9 +126,9 @@
                 - title: WebSockets
                   link: /topics/howtos/websockets
             - title: Timeouts
-              link: /topics/timeouts
+              link: /topics/using/timeouts
             - title: Traffic Shadowing
-              link: /topics/shadowing
+              link: /topics/using/shadowing
         - title: Filters and Authentication
           link: /topics/using/filters/index
           items:  
