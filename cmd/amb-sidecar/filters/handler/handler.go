@@ -187,7 +187,7 @@ func (c *FilterMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// runFilterRef takes a list of FilterReferences, instantiates the
+// runFilterRefs takes a list of FilterReferences, instantiates the
 // appropriate Filter implementations, runs them on the given request,
 // and aggregates the results; selecting which items to skip and how
 // to aggregate based on the `ifRequestHeader`, `onDeny`, and
@@ -406,7 +406,8 @@ func (c *FilterMux) ruleForURL(u *url.URL) *crd.Rule {
 		if err == nil {
 			u = _u
 		}
-		// fall-through to the common-case below
+		// Continue to the FilterPolicy-based common-case below; after the end of the switch-block
+		// (i.e. yes, it's intentional that there's no `return` here).
 	default:
 		switch {
 		case strings.HasPrefix(u.Path, "/.well-known/acme-challenge/"):

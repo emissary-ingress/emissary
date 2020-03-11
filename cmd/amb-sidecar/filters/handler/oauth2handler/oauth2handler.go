@@ -59,15 +59,18 @@ import (
 // Token injected, and validates the Access Token, ensuring that this
 // user has access to (and has granted this Client access to) the
 // specific resource (by checking the token's "scope").  If the Access
-// Token has insufficient privilege, we a permission-denited response.
-// If it does have sufficient privilege, then we instruct Envoy to
-// pass the (modified) request along to the upstream backend service
-// (the "bottom half" of the Resource Server).
+// Token has insufficient privilege, we return a permission-denied
+// response.  If it does have sufficient privilege, then we instruct
+// Envoy to pass the (modified) request along to the upstream backend
+// service (the "bottom half" of the Resource Server).
 //
-// Everything described above happens in the `Filter()` method.  Some
-// of the clients for different grantTypes require having thier own
-// helper HTTP endpoints that we don't proxy to the ResourceServer.
-// Those endpoints are implemented in the `ServeHTTP()` method.
+// Everything described above happens in the `Filter()` method (which
+// calls out to a more specific `Filter()` method based on the
+// grantType).  Some of the clients for different grantTypes require
+// having their own helper HTTP endpoints that we don't proxy to the
+// ResourceServer.  Serving those endpoints happens in the
+// `ServeHTTP()` method (which calls out to a more specific
+// `ServeHTTP()` method based on the grantType).
 type OAuth2Filter struct {
 	PrivateKey   *rsa.PrivateKey
 	PublicKey    *rsa.PublicKey
