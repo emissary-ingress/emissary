@@ -117,7 +117,10 @@ func grpcRequestToHTTPServerRequest(g *filterapi.FilterRequest, ctx context.Cont
 			err = _err
 		}
 	}
-	switch scheme := g.GetRequest().GetHttp().GetScheme(); scheme {
+	// Use X-Forwarded-Proto instead of .GetScheme()
+	// https://github.com/datawire/ambassador/issues/1581
+	switch scheme := GetHeader(g).Get("X-Forwarded-Proto"); scheme {
+	//switch scheme := g.GetRequest().GetHttp().GetScheme(); scheme {
 	case "http":
 		h.TLS = nil
 	case "https":
@@ -128,6 +131,40 @@ func grpcRequestToHTTPServerRequest(g *filterapi.FilterRequest, ctx context.Cont
 		}
 	}
 	return h.WithContext(ctx), err
+}
+
+// GetURL returns the URL that a FilterRequest is for.  You should use
+// this because there are a silly amount of gotchas and edge-cases.
+func GetURL(request *filterapi.FilterRequest) (*url.URL, error) {
+	var u *url.URL
+	var err error
+
+	str := request.GetRequest().GetHttp().GetPath()
+	if request.GetRequest().GetHttp().GetMethod() == "CONNECT" && !strings.HasPrefix(str, "/") {
+		// In this case, we expect `str` to look like "host:port".  This
+		// trick of adding a "http://" prefix and calling
+		// url.ParseRequestURI then clearing the scheme is cribbed from
+		// net/http.readRequest in the Go standard library.
+		u, err = url.ParseRequestURI("http://" + str)
+		u.Scheme = ""
+	} else {
+		u, err = url.ParseRequestURI(str)
+	}
+	if err != nil {
+		return nil, err
+	}
+	if u.Host == "" {
+		// Only doing this if u.Host=="" plays nice with the CONNECT
+		// special case above, and also mimics net/http.readRequest's
+		// use of req.Header.get("Host").
+		u.Host = request.GetRequest().GetHttp().GetHost()
+	}
+	// Use X-Forwarded-Proto instead of .GetScheme()
+	// https://github.com/datawire/ambassador/issues/1581
+	u.Scheme = GetHeader(request).Get("X-Forwarded-Proto")
+	//u.Scheme = request.GetRequest().GetHttp().GetScheme()
+
+	return u, nil
 }
 
 // GetHeader returns an http.Header for a FilterRequest.  You should
