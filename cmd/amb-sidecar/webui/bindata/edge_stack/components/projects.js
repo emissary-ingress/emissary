@@ -2,6 +2,7 @@ import {html} from '../vendor/lit-element.min.js'
 import {SingleResource, SortableResourceSet} from './resources.js';
 import {getCookie} from './cookies.js';
 import {ApiFetch} from "./api-fetch.js";
+import {HASH} from "./hash.js";
 import "./terminal.js";
 
 class Project extends SingleResource {
@@ -17,6 +18,38 @@ class Project extends SingleResource {
     super()
     this.source = ""
     this._spec = {}
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    window.addEventListener("hashchange", this.handleHashChange.bind(this), false);
+    // make sure we look at the hash on first load
+    this.handleHashChange()
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    window.remmoveEventListener("hashchange", this.handleHashChange.bind(this), false);
+  }
+
+  handleHashChange() {
+    let log = HASH.get("log")
+    if (log) {
+      let parts = log.split("/")
+      if (parts.length === 4) {
+        let type = parts[0]
+        let ns = parts[1]
+        let prefix = parts[2]
+        let sha = parts[3]
+
+        if (ns == this.resource.metadata.namespace && prefix == this.resource.spec.prefix) {
+          this.source = `../api/${type === "build" ? "logs" : "slogs"}/${ns}/${prefix}/${sha}`
+          return
+        }
+      }
+    }
+
+    this.source = ""
   }
 
   /**
@@ -144,16 +177,19 @@ class Project extends SingleResource {
   }
 
   toggleTerminal(commit, pod) {
-    var s;
+    var log
     if (pod.metadata.labels.hasOwnProperty("build")) {
-      s = `../api/logs/${pod.metadata.namespace}/${commit.prefix}/${pod.metadata.labels.build}`;
+      log = `build/${pod.metadata.namespace}/${commit.prefix}/${commit.id}`
     } else {
-      s = `../api/slogs/${pod.metadata.namespace}/${commit.prefix}/${pod.metadata.labels.commit}`;
+      log = `deploy/${pod.metadata.namespace}/${commit.prefix}/${commit.id}`
     }
-    if (this.source === s) {
-      this.source = "";
+
+    let old = HASH.get("log")
+
+    if (old == log) {
+      HASH.delete("log")
     } else {
-      this.source = s;
+      HASH.set("log", log)
     }
   }
 
