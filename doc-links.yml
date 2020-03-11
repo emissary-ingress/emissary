@@ -67,45 +67,45 @@
       link: /topics/using/index
       items: 
         - title: The Mapping Object
-          link: /topics/mappings
+          link: /topics/using/mappings
           items: 
             - title: Example Mappings YAML
-              link: /topics/mappings-yaml
+              link: /topics/using/mappings-yaml
         - title: Mapping Configuration
-          link: /topics/mapping-config
+          link: /topics/using/mapping-config
           items: 
             - title: Automatic Retries
-              link: /topics/retries
+              link: /topics/using/retries
             - title: Canary Releases
-              link: /topics/canary
+              link: /topics/using/canary
             - title: Circuit Breakers
-              link: /topics/circuit-breakers
+              link: /topics/using/circuit-breakers
             - title: CORS
-              link: /topics/cors
+              link: /topics/using/cors
             - title: Headers
-              link: /topics/headers
+              link: /topics/using/headers
               items: 
                 - title: Add Request Headers
-                  link: /topics/add-request-headers
+                  link: /topics/using/headers/add-request-headers
                 - title: Remove Request Headers
-                  link: /topics/remove-request-headers
+                  link: /topics/using/headers/remove-request-headers
                 - title: Add Response Headers
-                  link: /topics/add-response-headers
+                  link: /topics/using/headers/add-response-headers
                 - title: Remove Response Headers
-                  link: /topics/remove-response-headers
+                  link: /topics/using/headers/remove-response-headers
                 - title: Header Based Routing
-                  link: /topics/header-based-routing
+                  link: /topics/using/headers/header-based-routing
                 - title: Host Header
-                  link: /topics/host-header
+                  link: /topics/using/headers/host-header
             - title: Prefix Regex
-              link: /topics/prefix_regex
+              link: /topics/using/prefix_regex
             - title: Rate Limits
               link: /topics/rate-limits
               items:
                 - title: Rate Limiting Concepts
-                  link: /topics/rate-limiting/
+                  link: /topics/using/rate-limits/index
                 - title: Rate Limiting Tutorial
-                  link: /topics/rate-limiting-tutorial/
+                  link: /topics/using/rate-limits
                 - title: Advanced Rate Limiting
                   link: /howtos/advanced-rate-limiting/
             - title: Redirects
@@ -165,9 +165,9 @@
             - title: Filter Plugin Policy for Access Control
               link: /topics/access-control/
         - title: Edge Control
-          link: /topics/edge-control
+          link: /topics/using/edgectl/edge-control
         - title: Developer Portal
-          link: /topics/dev-portal
+          link: /topics/using/dev-portal
         - title: Edge Policy Console
           link: /topics/edge-policy-console
     - title: Running Ambassador in Production
@@ -288,6 +288,8 @@
     - title: Authentication and Security
       link: /howtos/auth-and-sec
       items:
+        - title: Basic Authentication Tutorial
+          link: /howtos/basic-auth
         - title: Using a cert-manager
           link: /howtos/cert-manager
     - title: Develop Custom Filters for Routing
