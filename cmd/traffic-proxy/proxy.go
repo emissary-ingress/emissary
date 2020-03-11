@@ -24,10 +24,46 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
+	"github.com/datawire/ambassador/pkg/k8s"
 	"github.com/datawire/ambassador/pkg/supervisor"
 	"github.com/datawire/apro/lib/licensekeys"
 	"github.com/datawire/apro/lib/metriton"
 )
+
+// Helper types for the Watcher
+
+type svcResource struct {
+	Spec svcSpec
+}
+
+type svcSpec struct {
+	ClusterIP string
+	Ports     []svcPort
+}
+
+type svcPort struct {
+	Name     string
+	Port     int
+	Protocol string
+}
+
+type Table struct {
+	Name   string  `json:"name"`
+	Routes []Route `json:"routes"`
+}
+
+func (t *Table) Add(route Route) {
+	t.Routes = append(t.Routes, route)
+}
+
+type Route struct {
+	Name   string `json:"name,omitempty"`
+	Ip     string `json:"ip"`
+	Proto  string `json:"proto"`
+	Port   string `json:"port,omitempty"`
+	Target string `json:"target"`
+	Action string `json:"action,omitempty"`
+}
 
 // PatternInfo represents one Envoy header regex_match
 type PatternInfo struct {
@@ -59,6 +95,7 @@ type ProxyState struct {
 	FreePorts   []int
 	Deployments map[string]*DeploymentInfo
 	manager     *golongpoll.LongpollManager
+	snapshot    *Table
 }
 
 func newProxyState(manager *golongpoll.LongpollManager) *ProxyState {
@@ -70,6 +107,7 @@ func newProxyState(manager *golongpoll.LongpollManager) *ProxyState {
 		FreePorts:   make([]int, numPorts),
 		Deployments: make(map[string]*DeploymentInfo),
 		manager:     manager,
+		snapshot:    nil, // 503 until we have a snapshot
 	}
 	for idx := range res.FreePorts {
 		res.FreePorts[idx] = portOffset + idx
@@ -83,6 +121,22 @@ func (state *ProxyState) handleState(w http.ResponseWriter, r *http.Request) {
 	defer state.mutex.Unlock()
 
 	result, err := json.Marshal(state)
+	if err != nil {
+		panic(err)
+	}
+	w.Write(result)
+}
+
+func (state *ProxyState) handleSnapshot(w http.ResponseWriter, r *http.Request) {
+	state.mutex.Lock()
+	defer state.mutex.Unlock()
+
+	if state.snapshot == nil {
+		http.Error(w, "snapshot unavailable", http.StatusServiceUnavailable)
+		return
+	}
+
+	result, err := json.Marshal([]Table{*state.snapshot})
 	if err != nil {
 		panic(err)
 	}
@@ -335,6 +389,80 @@ func (state *ProxyState) cleanup() {
 	// log.Printf("cleanup: finished")
 }
 
+func updateTable(p *supervisor.Process, w *k8s.Watcher, state *ProxyState) {
+	const ProxyRedirPort = "1234" // Client can always override this
+	table := Table{Name: "kubernetes"}
+
+	for _, svc := range w.List("services") {
+		decoded := svcResource{}
+		err := svc.Decode(&decoded)
+		if err != nil {
+			p.Logf("error decoding service: %v", err)
+			continue
+		}
+
+		spec := decoded.Spec
+
+		ports := ""
+		for _, port := range spec.Ports {
+			if ports == "" {
+				ports = fmt.Sprintf("%d", port.Port)
+			} else {
+				ports = fmt.Sprintf("%s,%d", ports, port.Port)
+			}
+		}
+
+		ip := spec.ClusterIP
+		// for headless services the IP is None, we should properly handle
+		// these by listening for endpoints and returning multiple A records
+		if ip != "" && ip != "None" {
+			qualName := svc.Name() + "." + svc.Namespace() + ".svc.cluster.local"
+			table.Add(Route{
+				Name:   qualName,
+				Ip:     ip,
+				Port:   ports,
+				Proto:  "tcp",
+				Target: ProxyRedirPort,
+			})
+		}
+	}
+
+	for _, pod := range w.List("pods") {
+		qname := ""
+
+		hostname, ok := pod.Spec()["hostname"]
+		if ok && hostname != "" {
+			qname += hostname.(string)
+		}
+
+		subdomain, ok := pod.Spec()["subdomain"]
+		if ok && subdomain != "" {
+			qname += "." + subdomain.(string)
+		}
+
+		if qname == "" {
+			// Note: this is a departure from kubernetes, kubernetes will
+			// simply not publish a dns name in this case.
+			qname = pod.Name() + "." + pod.Namespace() + ".pod.cluster.local"
+		} else {
+			qname += ".svc.cluster.local"
+		}
+
+		ip, ok := pod.Status()["podIP"]
+		if ok && ip != "" {
+			table.Add(Route{
+				Name:   qname,
+				Ip:     ip.(string),
+				Proto:  "tcp",
+				Target: ProxyRedirPort,
+			})
+		}
+	}
+	state.mutex.Lock()
+	state.snapshot = &table
+	state.mutex.Unlock()
+}
+
 // Version is inserted at build using --ldflags -X
 var Version = "(unknown version)"
 
@@ -395,6 +523,7 @@ func Run(flags *cobra.Command, args []string) error {
 
 	http.HandleFunc("/state", state.handleState)
 	http.HandleFunc("/routes", state.handleRoutes)
+	http.HandleFunc("/snapshot", state.handleSnapshot)
 	http.Handle("/intercept/", http.StripPrefix("/intercept/", http.HandlerFunc(state.handleIntercept)))
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
@@ -404,6 +533,7 @@ func Run(flags *cobra.Command, args []string) error {
 		result, err := json.Marshal(map[string]interface{}{"paths": []string{
 			"/state",
 			"/routes",
+			"/snapshot",
 			"/intercept/",
 		}})
 		if err != nil {
@@ -436,6 +566,37 @@ func Run(flags *cobra.Command, args []string) error {
 					return nil
 				}
 			}
+		},
+	})
+	sup.Supervise(&supervisor.Worker{
+		Name: "watcher",
+		Work: func(p *supervisor.Process) error {
+			client, err := k8s.NewClient(nil)
+			if err != nil {
+				return err
+			}
+			watcher := client.Watcher()
+			callback := func(w *k8s.Watcher) { updateTable(p, w, state) }
+			if err := watcher.Watch("services", callback); err != nil {
+				return err
+			}
+			if err := watcher.Watch("pods", callback); err != nil {
+				return err
+			}
+
+			// The watcher panics on error, so...
+			defer func() {
+				if r := recover(); r != nil {
+					p.Logf("Failed: %v", r)
+				}
+			}()
+			watcher.Start()
+
+			p.Ready()
+			<-p.Shutdown()
+			watcher.Stop()
+
+			return nil
 		},
 	})
 	sup.Supervise(&supervisor.Worker{
