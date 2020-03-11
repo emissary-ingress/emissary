@@ -604,7 +604,16 @@ class ResourceFetcher:
                     path_mapping['metadata']['labels'] = metadata_labels
 
                 if rule_host is not None:
-                    path_mapping['spec']['host'] = rule_host
+                    if rule_host.startswith('*.'):
+                        # Ingress allow specifying hosts with a single wildcard as the first label in the hostname.
+                        # Transform the rule_host into a host_regex:
+                        # *.star.com  becomes  ^[a-z0-9]([-a-z0-9]*[a-z0-9])?\.star\.com$
+                        path_mapping['spec']['host'] = rule_host\
+                            .replace('.', '\\.')\
+                            .replace('*', '^[a-z0-9]([-a-z0-9]*[a-z0-9])?', 1) + '$'
+                        path_mapping['spec']['host_regex'] = True
+                    else:
+                        path_mapping['spec']['host'] = rule_host
 
                 self.logger.info(f"Generated mapping from Ingress {ingress_name}: {path_mapping}")
                 self.handle_k8s_crd(path_mapping)
