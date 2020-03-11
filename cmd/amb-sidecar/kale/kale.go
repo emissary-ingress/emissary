@@ -282,9 +282,18 @@ func (p Project) Key() string {
 	return p.Metadata.Namespace + "/" + p.Metadata.Name
 }
 
-func (p Project) LogUrl(build string) string {
+func (p Project) PreviewUrl(commit string) string {
+	return fmt.Sprintf("https://%s/.previews/%s/%s", p.Spec.Host, p.Spec.Prefix, commit)
+}
+
+func (p Project) ServerLogUrl(commit string) string {
+	return fmt.Sprintf("https://%s/edge_stack/api/slogs/%s/%s/%s", p.Spec.Host, p.Metadata.Namespace, p.Metadata.Name,
+		commit)
+}
+
+func (p Project) BuildLogUrl(commit string) string {
 	return fmt.Sprintf("https://%s/edge_stack/api/logs/%s/%s/%s", p.Spec.Host, p.Metadata.Namespace, p.Metadata.Name,
-		build)
+		commit)
 }
 
 // This is our dispatcher for everything under /api/. This looks at
@@ -560,8 +569,8 @@ func (k *kale) reconcileDeploy(dep Deploy, builders, runners []*k8sTypesCoreV1.P
 				postStatus(fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, dep.Ref.Hash().String()),
 					GitHubStatus{
 						State:       "error",
-						TargetUrl:   fmt.Sprintf("http://%s/edge_stack/", proj.Spec.Host),
-						Description: err.Error(),
+						TargetUrl:   fmt.Sprintf("http://%s/edge_stack/admin/", proj.Spec.Host),
+						Description: fmt.Sprintf("error starting build: %s", err.Error()),
 						Context:     "aes",
 					},
 					proj.Spec.GithubToken)
@@ -569,7 +578,7 @@ func (k *kale) reconcileDeploy(dep Deploy, builders, runners []*k8sTypesCoreV1.P
 				postStatus(fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, dep.Ref.Hash().String()),
 					GitHubStatus{
 						State:       "pending",
-						TargetUrl:   proj.LogUrl(buildID),
+						TargetUrl:   proj.BuildLogUrl(buildID),
 						Description: "build started",
 						Context:     "aes",
 					},
@@ -598,19 +607,19 @@ func (k *kale) reconcileDeploy(dep Deploy, builders, runners []*k8sTypesCoreV1.P
 
 		if len(runners) == 0 { // don't bother with the builder if there's already a runner
 			statusesUrl := builder.GetAnnotations()["statusesUrl"]
-			logUrl := proj.LogUrl(builder.GetLabels()["build"])
+			buildId := builder.GetLabels()["build"]
 			switch phase {
 			case k8sTypesCoreV1.PodFailed:
 				log.Printf(podLogs(builder.GetName()))
 				postStatus(statusesUrl, GitHubStatus{
 					State:       "failure",
-					TargetUrl:   logUrl,
+					TargetUrl:   proj.BuildLogUrl(buildId),
 					Description: string(phase),
 					Context:     "aes",
 				},
 					proj.Spec.GithubToken)
 			case k8sTypesCoreV1.PodSucceeded:
-				_, err := k.startRun(proj, builder.GetLabels()["commit"])
+				sha, err := k.startRun(proj, builder.GetLabels()["commit"])
 				if err != nil {
 					msg := fmt.Sprintf("ERROR: %v", err)
 					log.Print(msg)
@@ -621,7 +630,7 @@ func (k *kale) reconcileDeploy(dep Deploy, builders, runners []*k8sTypesCoreV1.P
 					postStatus(statusesUrl,
 						GitHubStatus{
 							State:       "error",
-							TargetUrl:   "http://asdf",
+							TargetUrl:   proj.ServerLogUrl(sha),
 							Description: msg,
 							Context:     "aes",
 						},
@@ -632,7 +641,7 @@ func (k *kale) reconcileDeploy(dep Deploy, builders, runners []*k8sTypesCoreV1.P
 					postStatus(statusesUrl,
 						GitHubStatus{
 							State:       "success",
-							TargetUrl:   "http://asdf",
+							TargetUrl:   proj.PreviewUrl(sha),
 							Description: string(phase),
 							Context:     "aes",
 						},
