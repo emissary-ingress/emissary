@@ -142,32 +142,10 @@ func (c *FilterMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func requestURL(request *filterapi.FilterRequest) (*url.URL, error) {
-	var u *url.URL
-	var err error
-
-	str := request.GetRequest().GetHttp().GetPath()
-	if request.GetRequest().GetHttp().GetMethod() == "CONNECT" && !strings.HasPrefix(str, "/") {
-		u, err = url.ParseRequestURI("http://" + str)
-		u.Scheme = ""
-	} else {
-		u, err = url.ParseRequestURI(str)
-	}
-	if err != nil {
-		return nil, err
-	}
-	if u.Host == "" {
-		u.Host = request.GetRequest().GetHttp().GetHost()
-	}
-	u.Scheme = request.GetRequest().GetHttp().GetScheme()
-
-	return u, nil
-}
-
 func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest, requestID string) (filterapi.FilterResponse, error) {
 	logger := dlog.GetLogger(ctx)
 
-	originalURL, err := requestURL(request)
+	originalURL, err := filterutil.GetURL(request)
 	if err != nil {
 		return nil, err
 	}
