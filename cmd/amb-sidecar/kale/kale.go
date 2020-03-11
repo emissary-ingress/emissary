@@ -283,17 +283,17 @@ func (p Project) Key() string {
 }
 
 func (p Project) PreviewUrl(commit string) string {
-	return fmt.Sprintf("https://%s/.previews/%s/%s", p.Spec.Host, p.Spec.Prefix, commit)
+	return fmt.Sprintf("https://%s/.previews/%s/%s/", p.Spec.Host, p.Spec.Prefix, commit)
 }
 
 func (p Project) ServerLogUrl(commit string) string {
-	return fmt.Sprintf("https://%s/edge_stack/api/slogs/%s/%s/%s", p.Spec.Host, p.Metadata.Namespace, p.Metadata.Name,
-		commit)
+	return fmt.Sprintf("https://%s/edge_stack/admin/#projects?log=deploy/%s/%s/%s", p.Spec.Host,
+		p.Metadata.Namespace, p.Metadata.Name, commit)
 }
 
 func (p Project) BuildLogUrl(commit string) string {
-	return fmt.Sprintf("https://%s/edge_stack/api/logs/%s/%s/%s", p.Spec.Host, p.Metadata.Namespace, p.Metadata.Name,
-		commit)
+	return fmt.Sprintf("https://%s/edge_stack/admin/#projects?log=build/%s/%s/%s", p.Spec.Host,
+		p.Metadata.Namespace, p.Metadata.Name, commit)
 }
 
 // This is our dispatcher for everything under /api/. This looks at
@@ -569,7 +569,7 @@ func (k *kale) reconcileDeploy(dep Deploy, builders, runners []*k8sTypesCoreV1.P
 				postStatus(fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, dep.Ref.Hash().String()),
 					GitHubStatus{
 						State:       "error",
-						TargetUrl:   fmt.Sprintf("http://%s/edge_stack/admin/", proj.Spec.Host),
+						TargetUrl:   fmt.Sprintf("http://%s/edge_stack/admin/#projects", proj.Spec.Host),
 						Description: fmt.Sprintf("error starting build: %s", err.Error()),
 						Context:     "aes",
 					},
@@ -619,25 +619,24 @@ func (k *kale) reconcileDeploy(dep Deploy, builders, runners []*k8sTypesCoreV1.P
 				},
 					proj.Spec.GithubToken)
 			case k8sTypesCoreV1.PodSucceeded:
-				sha, err := k.startRun(proj, builder.GetLabels()["commit"])
+				sha := builder.GetLabels()["commit"]
+				out, err := k.startRun(proj, sha)
 				if err != nil {
-					msg := fmt.Sprintf("ERROR: %v", err)
+					msg := fmt.Sprintf("ERROR: %v: %s", err, out)
 					log.Print(msg)
 					if len(msg) > 140 {
 						msg = msg[len(msg)-140:]
 					}
-					// todo: need a way to get log output to github
 					postStatus(statusesUrl,
 						GitHubStatus{
 							State:       "error",
-							TargetUrl:   proj.ServerLogUrl(sha),
+							TargetUrl:   fmt.Sprintf("http://%s/edge_stack/admin/#projects", proj.Spec.Host),
 							Description: msg,
 							Context:     "aes",
 						},
 						proj.Spec.GithubToken)
 					return err
 				} else {
-					// todo: fake url
 					postStatus(statusesUrl,
 						GitHubStatus{
 							State:       "success",
