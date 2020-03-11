@@ -39,11 +39,11 @@ class Project extends SingleResource {
       if (parts.length === 4) {
         let type = parts[0]
         let ns = parts[1]
-        let prefix = parts[2]
+        let name = parts[2]
         let sha = parts[3]
 
-        if (ns == this.resource.metadata.namespace && prefix == this.resource.spec.prefix) {
-          this.source = `../api/${type === "build" ? "logs" : "slogs"}/${ns}/${prefix}/${sha}`
+        if (ns == this.resource.metadata.namespace && name == this.resource.metadata.name) {
+          this.source = `../api/${type === "build" ? "logs" : "slogs"}/${ns}/${name}/${sha}`
           return
         }
       }
@@ -177,11 +177,12 @@ class Project extends SingleResource {
   }
 
   toggleTerminal(commit, pod) {
+    let name = this.resource.metadata.name
     var log
     if (pod.metadata.labels.hasOwnProperty("build")) {
-      log = `build/${pod.metadata.namespace}/${commit.prefix}/${commit.id}`
+      log = `build/${pod.metadata.namespace}/${name}/${commit.id}`
     } else {
-      log = `deploy/${pod.metadata.namespace}/${commit.prefix}/${commit.id}`
+      log = `deploy/${pod.metadata.namespace}/${name}/${commit.id}`
     }
 
     let old = HASH.get("log")
