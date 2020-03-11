@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os/exec"
 	"strings"
+	"sync"
 	"text/template"
 	"time"
 
@@ -423,6 +424,9 @@ func (d Deploy) IsRunner(pod *k8sTypesCoreV1.Pod) bool {
 		labels["commit"] == d.Ref.Hash().String())
 }
 
+// GetDeploys does a `git ls-remote`, gets the listing of open GitHub
+// pull-requests, and cross-references the two in order to decide
+// which things we want to deploy.
 func GetDeploys(project Project) []Deploy {
 	repo := project.Spec.GithubRepo
 	token := project.Spec.GithubToken
@@ -484,14 +488,18 @@ func gitLsRemote(repo, token string, specs ...string) []*plumbing.Reference {
 // ready before invoking a listener.
 type WatchGroup struct {
 	count int
+	mu    sync.Mutex
 }
 
 func (wg *WatchGroup) Wrap(listener func(*k8s.Watcher)) func(*k8s.Watcher) {
+	listener = safeWatch(listener)
 	wg.count += 1
 	invoked := false
 	return func(w *k8s.Watcher) {
+		wg.mu.Lock()
+		defer wg.mu.Unlock()
 		if !invoked {
-			wg.count -= 1
+			wg.count--
 			invoked = true
 		}
 		if wg.count == 0 {
