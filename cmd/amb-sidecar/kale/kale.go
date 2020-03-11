@@ -1,6 +1,7 @@
 package kale
 
 import (
+	// standard library
 	"context"
 	"encoding/json"
 	"fmt"
@@ -11,12 +12,18 @@ import (
 	"sync"
 	"time"
 
-	"k8s.io/apimachinery/pkg/util/intstr"
-
+	// 3rd party: k8s types
 	k8sTypesCoreV1 "k8s.io/api/core/v1"
 	k8sTypesMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	k8sTypes "k8s.io/apimachinery/pkg/types"
 
+	// 3rd party: k8s clients
+	k8sClientDynamic "k8s.io/client-go/dynamic"
+
+	// 3rd party: k8s misc
+	k8sSchema "k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/util/intstr"
+
+	// 1st party
 	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/datawire/ambassador/pkg/k8s"
 	"github.com/datawire/apro/cmd/amb-sidecar/group"
@@ -77,8 +84,8 @@ import (
 // controller. The main function sets up listener watching for changes
 // to kubernetes resources and a web server.
 
-func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8s.KubeInfo) {
-	k := NewKale()
+func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8s.KubeInfo, dynamicClient k8sClientDynamic.Interface) {
+	k := NewKale(dynamicClient)
 
 	upstream := make(chan Snapshot)
 	downstream := make(chan Snapshot)
@@ -132,7 +139,6 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 	})
 
 	group.Go("kale_worker", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
-		var prev Snapshot
 		err := leaderelection.RunAsSingleton(softCtx, cfg, info, "kale", 15*time.Second, func(ctx context.Context) {
 			for {
 				select {
@@ -142,20 +148,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 					if !ok {
 						return
 					}
-					if snapshot.Pods == nil && snapshot.Projects == nil {
-						// If we triggered a rectify, but don't have a new
-						// snapshot (snapshot.X == nil), then re-use the previous
-						// snapshot.
-						if prev.Pods == nil && prev.Projects == nil {
-							// Unless of course we don't have a previous
-							// snapshot either; in which case, just skip this
-							// rectify.
-							continue
-						}
-						snapshot = prev
-					}
 					k.reconcileConsistently(snapshot)
-					prev = snapshot
 				}
 			}
 		})
@@ -167,7 +160,6 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 	})
 
 	// todo: lock down all these endpoints with auth
-	k.snapshots = upstream
 	handler := http.StripPrefix("/edge_stack_ui/edge_stack", http.HandlerFunc(safeHandleFunc(k.dispatch))).ServeHTTP
 	// todo: this is just temporary, we will consolidate these sprawling endpoints later
 	httpHandler.AddEndpoint("/edge_stack_ui/edge_stack/api/projects", "kale projects api", handler)
@@ -200,24 +192,22 @@ did_read:
 // A kale contains the global state for the controller/webhook. We
 // assume there is only one copy of the controller running in the
 // cluster, so this is global to the entire cluster.
-func NewKale() *kale {
+func NewKale(dynamicClient k8sClientDynamic.Interface) *kale {
 	return &kale{
-		Projects: make(map[string]Project),
-		Pods:     make(PodMap),
+		projectsGetter: dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "projects"}),
+		Projects:       make(map[string]Project),
+		Pods:           make(PodMap),
 	}
 }
 
 type kale struct {
 	cfg types.Config
 
+	projectsGetter k8sClientDynamic.NamespaceableResourceInterface
+
 	mu       sync.RWMutex
 	Projects map[string]Project
 	Pods     PodMap
-
-	// A thread-safe way to trigger a rectify from different places; write a Snapshot
-	// to this channel to trigger a rectify.  If you want to trigger a rectify without
-	// providing a new Snapshot, just write a zero-Snapshot (`Snapshot{}`).
-	snapshots chan<- Snapshot
 }
 
 type PodMap map[string]map[string]*k8sTypesCoreV1.Pod
@@ -280,17 +270,16 @@ func (k *kale) reconcileProjects(snapshot Snapshot) DeployMap {
 }
 
 type Project struct {
-	Metadata struct {
-		Name      string       `json:"name"`
-		Namespace string       `json:"namespace"`
-		UID       k8sTypes.UID `json:"uid"`
-	} `json:"metadata"`
-	Spec struct {
+	Metadata k8sTypesMetaV1.ObjectMeta `json:"metadata"`
+	Spec     struct {
 		Host        string `json:"host"`
 		Prefix      string `json:"prefix"`
 		GithubRepo  string `json:"githubRepo"`
 		GithubToken string `json:"githubToken"` // todo: make this a secret ref
 	} `json:"spec"`
+	Status struct {
+		LastPush time.Time `json:"lastPush"`
+	} `json:"status"`
 }
 
 func (p Project) Key() string {
@@ -385,19 +374,27 @@ func (k *kale) projectsJSON() string {
 
 // Handle Push events from the github API.
 func (k *kale) handlePush(r *http.Request, key string) httpResult {
-	k.mu.RLock()
-	_, ok := k.Projects[key]
-	k.mu.RUnlock()
-	if !ok {
-		return httpResult{status: 404, body: fmt.Sprintf("no such project %s", key)}
-	}
-
 	// todo: the webhook is totally asynchronous... we basically
 	// need to work based on polling and treat the webhook as a
 	// hint to increase the frequency of polling
 	time.Sleep(5 * time.Second)
 
-	k.snapshots <- Snapshot{}
+	k.mu.RLock()
+	proj, ok := k.Projects[key]
+	k.mu.RUnlock()
+	if !ok {
+		return httpResult{status: 404, body: fmt.Sprintf("no such project %s", key)}
+	}
+
+	// Bump the project's .Status, to trigger a rectify via
+	// Kubernetes.  We do this instead of just poking the right
+	// bits in memory because we might not be the elected leader.
+	proj.Status.LastPush = time.Now()
+	uProj := unstructureProject(proj)
+	_, err := k.projectsGetter.Namespace(proj.Metadata.Namespace).UpdateStatus(uProj, k8sTypesMetaV1.UpdateOptions{})
+	if err != nil {
+		log.Println("update project status:", err)
+	}
 
 	return httpResult{status: 200, body: ""}
 }

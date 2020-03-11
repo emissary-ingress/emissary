@@ -1,6 +1,7 @@
 package kale
 
 import (
+	// standard library
 	"bufio"
 	"bytes"
 	"encoding/json"
@@ -16,15 +17,22 @@ import (
 	"text/template"
 	"time"
 
+	// 3rd party
 	git "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/config"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	ghttp "gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 	"gopkg.in/src-d/go-git.v4/storage/memory"
-	k8sTypesCoreV1 "k8s.io/api/core/v1"
 
+	// 3rd party: k8s types
+	k8sTypesCoreV1 "k8s.io/api/core/v1"
+	k8sTypesMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	k8sTypesUnstructured "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+
+	// 3rd party: k8s misc
 	"sigs.k8s.io/yaml"
 
+	// 1st party
 	"github.com/datawire/ambassador/pkg/k8s"
 	"github.com/datawire/apro/lib/util"
 )
@@ -506,4 +514,46 @@ func (wg *WatchGroup) Wrap(listener func(*k8s.Watcher)) func(*k8s.Watcher) {
 			listener(w)
 		}
 	}
+}
+
+// unstructureProject returns a *k8sTypesUnstructured.Unstructured
+// representation of an *ambassadorTypesV2.Project.  There are 2 reasons
+// why we might want this:
+//
+//  1. For use with a k8sClientDynamic.Interface
+//  2. For use as a k8sRuntime.Object
+func unstructureProject(project Project) *k8sTypesUnstructured.Unstructured {
+	return &k8sTypesUnstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": "getambassador.io/v2",
+			"kind":       "Project",
+			"metadata":   unstructureMetadata(&project.Metadata),
+			"spec":       project.Spec,
+			"status":     project.Status,
+		},
+	}
+}
+
+// unstructureMetadata marshals a *k8sTypesMetaV1.ObjectMeta for use
+// in a `*k8sTypesUnstructured.Unstructured`.
+//
+// `*k8sTypesUnstructured.Unstructured` requires that the "metadata"
+// field be a `map[string]interface{}`.  Going through JSON is the
+// easiest way to get from a typed `*k8sTypesMetaV1.ObjectMeta` to an
+// untyped `map[string]interface{}`.  Yes, it's gross and stupid.
+func unstructureMetadata(in *k8sTypesMetaV1.ObjectMeta) map[string]interface{} {
+	var metadata map[string]interface{}
+	bs, err := json.Marshal(in)
+	if err != nil {
+		// 'in' is a valid object.  This should never happen.
+		panic(err)
+	}
+
+	if err := json.Unmarshal(bs, &metadata); err != nil {
+		// 'bs' is valid JSON, we just generated it.  This
+		// should never happen.
+		panic(err)
+	}
+
+	return metadata
 }

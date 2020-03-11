@@ -549,7 +549,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		return util.ListenAndServeHTTPWithContext(hardCtx, softCtx, server)
 	})
 
-	kale.Setup(group, httpHandler, kubeinfo)
+	kale.Setup(group, httpHandler, kubeinfo, dynamicClient)
 
 	// And now we wait.
 	return group.Wait()
