@@ -147,10 +147,10 @@ class Project extends SingleResource {
   renderCommit(commit) {
     return html`
   <div>
-    ${this.renderPull(commit.deploy.pull)}
+    ${this.renderPull(commit)}
   </div>
   <div>
-    <a href="https://github.com/${this.resource.spec.githubRepo}/tree/${commit.deploy.ref.short}">${commit.deploy.ref.short}</a>
+    ${commit.deploy ? html`<a href="https://github.com/${this.resource.spec.githubRepo}/tree/${commit.deploy.ref.short}">${commit.deploy.ref.short}</a>` : ""}
   </div>
   <div>
     <a href="https://github.com/${this.resource.spec.githubRepo}/commit/${commit.id}">${commit.id.slice(0, 7)}...</a>
@@ -162,8 +162,9 @@ class Project extends SingleResource {
 `
   }
 
-  renderPull(pull) {
-    if (pull) {
+  renderPull(commit) {
+    if (commit.deploy && commit.deploy.pull) {
+      let pull = commit.deploy.pull
       return html`<a href="${pull.html_url}">PR#${pull.number}</a>`
     } else {
       return ""
