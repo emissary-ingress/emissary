@@ -370,7 +370,7 @@ if [[ -z "${AMBASSADOR_NO_KUBEWATCH}" ]]; then
     KUBEWATCH_SYNC_KINDS="-s service"
 
     if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_ingress" ]; then
-        KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s ingresses"
+        KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s ingressclasses -s ingresses"
     fi
 
     if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_crds" ]; then

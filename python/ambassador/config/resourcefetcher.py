@@ -63,6 +63,7 @@ class ResourceFetcher:
         self.k8s_services: Dict[str, AnyDict] = {}
         self.services: Dict[str, AnyDict] = {}
         self.ambassador_service_raw: AnyDict = {}
+        self.ambassador_ingress_class: Dict[str, AnyDict] = {}
 
         self.alerted_about_labels = False
 
@@ -204,8 +205,8 @@ class ResourceFetcher:
 
             watt_k8s = watt_dict.get('Kubernetes', {})
 
-            # Handle normal Kube objects...
-            for key in [ 'service', 'endpoints', 'secret', 'ingresses' ]:
+            # Handle normal Kube objects... the order is important here as ingresses depend on ingressclasses
+            for key in [ 'service', 'endpoints', 'secret', 'ingressclasses', 'ingresses' ]:
                 for obj in watt_k8s.get(key) or []:
                     # self.logger.debug(f"Handling Kubernetes {key}...")
                     self.handle_k8s(obj)
@@ -452,6 +453,56 @@ class ResourceFetcher:
     def sorted(self, key=lambda x: x.rkey):  # returns an iterator, probably
         return sorted(self.elements, key=key)
 
+    def handle_k8s_ingressclass(self, k8s_object: AnyDict) -> HandlerResult:
+        metadata = k8s_object.get('metadata', None)
+        ingress_class_name = metadata.get('name') if metadata else None
+        ingress_class_spec = k8s_object.get('spec', None)
+
+        # Important: IngressClass is not namespaced!
+        resource_identifier = f'{ingress_class_name}'
+
+        skip = False
+        if not metadata:
+            self.logger.debug('ignoring K8s IngressClass with no metadata')
+            skip = True
+        if not ingress_class_name:
+            self.logger.debug('ignoring K8s IngressClass with no name')
+            skip = True
+        if not ingress_class_spec:
+            self.logger.debug('ignoring K8s IngressClass with no spec')
+            skip = True
+
+        # We only want to deal with IngressClasses that belong to "spec.controller: getambassador.io/ingress-controller"
+        if ingress_class_spec.get('controller', '').lower() != 'getambassador.io/ingress-controller':
+            self.logger.info(f'ignoring IngressClass {ingress_class_name} without controller - getambassador.io/ingress-controller')
+            skip = True
+
+        if skip:
+            return None
+
+        annotations = metadata.get('annotations', {})
+        ambassador_id = annotations.get('getambassador.io/ambassador-id', 'default')
+
+        # We don't want to deal with non-matching Ambassador IDs
+        if ambassador_id != Config.ambassador_id:
+            self.logger.info(f'IngressClass {ingress_class_name} does not have Ambassador ID {Config.ambassador_id}, ignoring...')
+            return None
+
+        # TODO: What do we actually intend to do with those parameters?
+        # `parameters` is of type TypedLocalObjectReference,
+        # meaning it links to another k8s resource in the same namespace.
+        # It could be a ConfigMap or a CRD... usage is not prescribed.
+        # https://godoc.org/k8s.io/api/core/v1#TypedLocalObjectReference
+        # IngressClass is not namespaced, but TypedLocalObjectReference is? Hum... TBD with SIG-Network
+        ingress_parameters = ingress_class_spec.get('parameters', {})
+
+        self.logger.info(f'Handling IngressClass {ingress_class_name} with parameters {ingress_parameters}...')
+
+        # Don't return this as aconf does not care about IngressClass. Instead, save it in self.ambassador_ingress_class
+        self.ambassador_ingress_class[resource_identifier] = ingress_parameters
+
+        return None
+
     def handle_k8s_ingress(self, k8s_object: AnyDict) -> HandlerResult:
         metadata = k8s_object.get('metadata', None)
         metadata_labels: Optional[Dict[str, str]] = metadata.get('labels')
@@ -478,8 +529,22 @@ class ResourceFetcher:
 
         # we don't need an ingress without ingress class set to ambassador
         annotations = metadata.get('annotations', {})
-        if annotations.get('kubernetes.io/ingress.class', '').lower() != 'ambassador':
-            self.logger.info(f'ignoring Ingress {ingress_name} without annotation - kubernetes.io/ingress.class: "ambassador"')
+        ingress_class_name = ingress_spec.get('ingressClassName', '')
+
+        ingress_class = self.ambassador_ingress_class.get(ingress_class_name, None)
+        has_ambassador_ingress_class_annotation = annotations.get('kubernetes.io/ingress.class', '').lower() == 'ambassador'
+
+        # check the Ingress resource has either:
+        #  - a `kubernetes.io/ingress.class: "ambassador"` annotation
+        #  - a `spec.ingressClassName` that references an IngressClass with
+        #      `spec.controller: getambassador.io/ingress-controller`
+        #
+        # also worth noting, the kube-apiserver might assign the `spec.ingressClassName` if unspecified
+        # and only 1 IngressClass has the following annotation:
+        #   annotations:
+        #     ingressclass.kubernetes.io/is-default-class: "true"
+        if (not has_ambassador_ingress_class_annotation) and (ingress_class is None):
+            self.logger.info(f'ignoring Ingress {ingress_name} without annotation (kubernetes.io/ingress.class: "ambassador") or IngressClass controller (getambassador.io/ingress-controller)')
             skip = True
 
         if skip:
