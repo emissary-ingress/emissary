@@ -36,14 +36,16 @@
         - title: Network Architecture
           link: /topics/concepts/kubernetes-network-architecture
         - title: Kubernetes Ingress Differences  
-          link: ???
+          link: 
+          # review here
         - title: Microservices API Gateway
           link: /topics/concepts/microservices-api-gateway
         - title: GitOps, Declarative Configuration, and CRDs
           link: /topics/concepts/gitops-continuous-delivery
           items:
             - title: Continuous Delivery with Declarative Config
-              link: ???
+              link: 
+              # review here
             - title: Self-Service Routing and Deployment Control
               link: /topics/developers/
             - title: Implementing GitOps with Ambassador Edge Stack
@@ -208,14 +210,18 @@
             - title: TLS Origination
               link: /topics/running/tls/origination
         - title: Capturing Client IP Addresses
-          link: ?
+          link: 
+          # review here
           items: 
             - title: The externalTrafficPolicy
-              link: ?
+              link: 
+              # review here
             - title: L7 Load Balancer Considerations
-              link: ???
+              link: 
+              # review here
         - title: Monitoring Options
-          link: ???
+          link: 
+          # review here
           items:
             - title: Statistics
               link: /topics/running/statistics/
@@ -242,14 +248,18 @@
         - title: Ambassador as an Ingress Controller
           link: /topics/running/ingress-controller/
         - title: Running Multiple Instances in a Single Cluster
-          link: ?
+          link: 
+          # review here
     - title: The Ambassador Project
-      link: ?
+      link: 
+      # review here
       items:
         - title: The Contributor's Guide
-          link: ?
+          link: 
+          # review here
         - title: Changelog
-          link: ?
+          link: 
+          # review here
 - title: How To
   items: 
     - title: Service Mesh Integration
