@@ -3,27 +3,69 @@
 // shared for both authentication and deep linking into different tabs
 // within the UI.
 //
-// Rather than directly writing/reading to/from the hash fragment,
-// components should import the HASH global and use it to write/read
-// to/from the hash:
+// Rather than directly reading and writing to/from the hash fragment,
+// components should import the HASH global and use its API to
+// interact with the hash.
+//
+// The API is intended to facilitate deep linking into the AES UI, so
+// for example we can provide links not only to the projects tab, but
+// into the projects tab with a specific log output being selected.
+//
+// How you would do this. In your tab implentation:
 //
 //   import {HASH} from './hash.js'
 //
 //   ...
 //
-//   onHashChange() {
-//       let tab = HASH.tab
-//       let value = HASH.get("key")
-//       ...
+//
+//   // Wire up your tab to pay attention to hash changes.
+//   connectedCallback() {
+//     super.connectedCallback();
+//     window.addEventListener("hashchange", this.onHashChange.bind(this), false);
+//     // make sure we look at the hash on first load
+//     this.onHashChange()
 //   }
 //
-// The HASH global also provides HASH.tab that can be used to get/set
-// the value of the current tab, and HASH.authToken which can be used
-// to get/set the auth token.
+//   // Use the info from the hash to select a specific item on the tab.
+//   onHashChange() {
+//     let tab = HASH.tab
+//     let itemId = HASH.get("selected")
+//     ...
+//   }
 //
-// The fragment format is modeled on a URL. Based on my gooling this
-// is all legal (surprisingly). This is deliberate so we can change
-// this later to be a URL if we want to.
+//   ...
+//
+//   // Wire up any clicks so that they change the hash.
+//   onClick(e) {
+//     let itemId = e.target.id
+//     HASH.set("selected", itemId)
+//   }
+//
+//   ...
+//
+// That's it! You can use this to make any state "linkable". Any
+// clicks that change your linkable state just need to be made to
+// update a parameter in the hash, and the component that contains
+// that state should always look to that hash parameter to determine
+// its value.
+//
+// The fragment format is modeled on a URL. Every hash is of the form:
+//
+//   #[<base>[?<param1>=<value1>&<param2>=<value2>...]]
+//
+// Based on Rafi's googling on March 3, 2020 this is all legal
+// (surprisingly). This is deliberate so we can change this later to
+// be a URL if we want to.
+//
+// Because the current tab and auth tokens are effectively global
+// state within the AES UI. The HASH API provides a special
+// abstraction for accessing these properties. The HASH.tab property
+// is currently just an alias for the "<base>" portion of the
+// hash. The HASH.authToken property is currently just an alias for
+// the "auth" parameter. This could change in the future, for example
+// we might want to have the base be <tabname>/<subtab>. For this
+// reason it is important to use these abstractions when accessing the
+// current tab and/or authToken.
 class Hash {
 
   constructor() {
@@ -46,8 +88,14 @@ class Hash {
       this.params = new URLSearchParams("")
     }
 
-    // for backwards compatibility with older edgectls, we used to use
-    // the length of the hash to figure out if it was a jwt or a tab
+    // Edgectl sets the entire hash to *just* a jwt. We detect that by
+    // seeing if there are no parameters and the base is super
+    // long. We may change this at some future date when we are
+    // confident that the vast majority of AES installations that are
+    // out there understand parameters, but for now (March 12 2020) we
+    // need to keep this code here and leave edgectl's behavior as-is
+    // so that you don't need to keep around different versions of
+    // edgectl for different AES installations.
     if (this.params.toString().length === 0 && this._base.length > 300) {
       this.params.set("auth", this._base)
       this._base = ""
@@ -105,8 +153,10 @@ class Hash {
     this.encode()
   }
 
-  // convenience functions that canonicalize how the current tab and
-  // auth are stored in the hash
+  // These functions define how we store the tab and auth tokens. It
+  // is important to use these rather than e.g. directly accessing the
+  // parameter values since we may change/expand how we store them
+  // over time.
   get tab() {
     return this.base
   }
