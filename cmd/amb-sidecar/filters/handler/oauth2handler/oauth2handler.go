@@ -15,6 +15,7 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/client/authorization_code_client"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/client/client_credentials_client"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/client/header_credentials_client"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/discovery"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/resourceserver"
 	"github.com/datawire/apro/lib/filterapi"
@@ -131,6 +132,19 @@ func (f *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequ
 		}
 	case crd.GrantType_ClientCredentials:
 		oauth2client = &client_credentials_client.OAuth2Client{
+			QName:     f.QName,
+			Spec:      f.Spec,
+			Arguments: f.Arguments,
+
+			ResourceServer: &resourceserver.OAuth2ResourceServer{
+				QName:        f.QName,
+				Spec:         f.Spec,
+				Arguments:    f.Arguments,
+				RunJWTFilter: f.RunJWTFilter,
+			},
+		}
+	case crd.GrantType_HeaderCredentials:
+		oauth2client = &header_credentials_client.OAuth2Client{
 			QName:     f.QName,
 			Spec:      f.Spec,
 			Arguments: f.Arguments,

@@ -114,6 +114,8 @@ func (spec *FilterSpec) Validate(name, namespace string, secretsGetter coreV1cli
 				ret.Desc = fmt.Sprintf("oauth2_domain=%s, oauth2_client_id=%s", spec.OAuth2.Domain(), spec.OAuth2.ClientID)
 			case GrantType_ClientCredentials:
 				ret.Desc = fmt.Sprintf("oauth2_client_credentials=%s", spec.OAuth2.AuthorizationURL)
+			case GrantType_HeaderCredentials:
+				ret.Desc = fmt.Sprintf("oauth2_header_credentials=%s", spec.OAuth2.AuthorizationURL)
 			default:
 				panic("should not happen")
 			}
