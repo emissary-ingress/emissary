@@ -69,13 +69,10 @@ Format:
 ## [1.3.0-rc.0] March 17, 2020
 [1.3.0-rc.0]: https://github.com/datawire/ambassador/compare/v1.2.2...v1.3.0-rc.0
 
-### Ambassador API Gateway + Ambassador Edge Stack
+### Ambassador Edge Stack
 
 Feature: `edgectl install` provides better feedback for clusters that are unreachable from the public Internet 
 Feature: `edgectl install` supports KIND clusters
-
-### Ambassador Edge Stack
-
 Feature: `edgectl intercept` supports HTTPS
 Feature: Ambassador Edge Stack Docker image is ~150MB smaller
 Feature: The Edge Policy Console can be fully disabled with the `diagnostics.enable` element in the `ambassador` Module
