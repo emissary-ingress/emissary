@@ -195,9 +195,10 @@ func NewKale() *kale {
 type kale struct {
 	cfg types.Config
 
-	mu       sync.RWMutex
-	Projects map[string]Project
-	Pods     PodMap
+	mu        sync.RWMutex
+	Projects  map[string]Project
+	Pods      PodMap
+	deployMap DeployMap
 
 	// A thread-safe way to trigger a rectify from different places; write a Snapshot
 	// to this channel to trigger a rectify.  If you want to trigger a rectify without
@@ -225,6 +226,10 @@ type DeployMap map[string][]Deploy
 
 func (k *kale) reconcileConsistently(snapshot Snapshot) {
 	deployMap := k.reconcileProjects(snapshot)
+
+	k.mu.Lock()
+	k.deployMap = deployMap
+	k.mu.Unlock()
 
 	var pods []*k8sTypesCoreV1.Pod
 	if err := mapstructure.Convert(snapshot.Pods, &pods); err != nil {
@@ -361,10 +366,15 @@ func (k *kale) projectsJSON() string {
 		if !ok {
 			pods = make(map[string]*k8sTypesCoreV1.Pod)
 		}
+		deploys, ok := k.deployMap[key]
+		if !ok {
+			deploys = make([]Deploy, 0)
+		}
 
 		m := make(map[string]interface{})
 		m["project"] = proj
 		m["pods"] = pods
+		m["deploys"] = deploys
 
 		results = append(results, m)
 	}
