@@ -25,3 +25,19 @@ kubectl apply -f https://www.getambassador.io/yaml/aes.yaml
 This will trigger a rolling upgrade of Ambassador Edge Stack.
 
 If you're using your own YAML, check the Datawire YAML to be sure of other changes, but at minimum, you'll need to change the pulled `image` for the Ambassador Edge Stack container and redeploy.
+
+## Helm
+
+Helm makes upgrades easy by managing all the changes made to the installation files automatically. Assuming you followed the instructions for [installing Ambassador via Helm](/user-guide/helm/), the upgrade is very simple:
+
+1. Grab the latest version of the Chart
+
+```shell
+helm repo update datawire
+```
+
+2. Upgrade your Ambassador release
+
+```shell
+helm upgrade ambassador datawire/ambassador -n ambassador
+```
