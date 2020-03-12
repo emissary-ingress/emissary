@@ -152,15 +152,12 @@ func ParseKey(licenseKey string) (*LicenseClaimsLatest, error) {
 	return licenseClaims.ToLatest(), nil
 }
 
-func NewCommunityLicenseClaims() *LicenseClaimsLatest {
+// newBasicClaimsWithFeatures underpins the public New*LicenseClaims
+// methods. It returns claims for a hard-limited license with a certain
+// set of features. We'll need something smarter soon enough, I imagine.
+func newBasicClaimsWithFeatures(features []Feature) *LicenseClaimsLatest {
 	return &LicenseClaimsLatest{
-		EnabledFeatures: []Feature{
-			FeatureUnrecognized,
-			FeatureFilter,
-			FeatureRateLimit,
-			FeatureTraffic,
-			FeatureDevPortal,
-		},
+		EnabledFeatures: features,
 		EnforcedLimits: []LimitValue{
 			{LimitDevPortalServices, 5},
 			{LimitRateLimitService, 5},
@@ -168,4 +165,28 @@ func NewCommunityLicenseClaims() *LicenseClaimsLatest {
 		},
 		Metadata: map[string]string{},
 	}
+}
+
+// NewUnregisteredLicenseClaims returns the claims for someone who hasn't
+// registered. This means no traffic manager at all.
+func NewUnregisteredLicenseClaims() *LicenseClaimsLatest {
+	return newBasicClaimsWithFeatures([]Feature{
+		FeatureUnrecognized,
+		FeatureFilter,
+		FeatureRateLimit,
+		// FeatureTraffic,	// Don't include this. See comment above.
+		FeatureDevPortal,
+	})
+}
+
+// NewCommunityLicenseClaims returns the claims for someone who has
+// registered for a community license. They get the traffic manager.
+func NewCommunityLicenseClaims() *LicenseClaimsLatest {
+	return newBasicClaimsWithFeatures([]Feature{
+		FeatureUnrecognized,
+		FeatureFilter,
+		FeatureRateLimit,
+		FeatureTraffic,
+		FeatureDevPortal,
+	})
 }
