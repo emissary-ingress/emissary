@@ -36,7 +36,7 @@ npm install netlify-cli -g
 
 netlify deploy \
 	--dir="/tmp/getambassador.io-${website_branch}/public" \
-	--message="ambassador-docs.git preview ${TRAVIS_JOB_WEB_URL}" \
+	--message="ambassador.git preview ${TRAVIS_JOB_WEB_URL}" \
 	--site=1d6f5395-6386-49af-8b47-e85aa28488f8 \
 	--auth="${NETLIFY_AUTH_TOKEN}" \
 	--json \
