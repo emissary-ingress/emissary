@@ -564,8 +564,9 @@ class V2VirtualHost(dict):
 
         self["filter_chain_match"] = match
 
-        # If we're on Edge Stack, punch a hole for ACME challenges, for every listener.
-        if self._config.ir.edge_stack_allowed:
+        # If we're on Edge Stack and we're not an intercept agent, punch a hole for ACME
+        # challenges, for every listener.
+        if self._config.ir.edge_stack_allowed and not self._config.ir.agent_active:
             found_acme = False
 
             for route in self["routes"]:
@@ -1005,9 +1006,9 @@ class V2Listener(dict):
                 first_vhost._hostname = '*'
                 first_vhost._name = f"{first_vhost._name}-forced-star"
 
-        if config.ir.edge_stack_allowed:
-            # If we're running Edge Stack, make sure we have a listener on port 8080, so that
-            # we have a place to stand for ACME.
+        if config.ir.edge_stack_allowed and not config.ir.agent_active:
+            # If we're running Edge Stack, and we're not an intercept agent, make sure we have
+            # a listener on port 8080, so that we have a place to stand for ACME.
 
             if 8080 not in listeners_by_port:
                 # Check for a listener on the main service port to see if the proxy proto

@@ -72,6 +72,16 @@ class ResourceFetcher:
         # For deduplicating objects coming in from watt
         self.k8s_parsed: Dict[str, bool] = {}
 
+        # HACK
+        # If AGENT_SERVICE is set, skip the init dir: we'll force some defaults later
+        # instead.
+        #
+        # XXX This is rather a hack. We can do better.
+
+        if os.environ.get("AGENT_SERVICE", "").lower() != "":
+            logger.info("Intercept agent active: skipping init dir")
+            skip_init_dir = True
+
         if not skip_init_dir:
             # Check /ambassador/init-config for initialization resources -- note NOT
             # $AMBASSADOR_CONFIG_BASE_DIR/init-config! This is compile-time stuff that

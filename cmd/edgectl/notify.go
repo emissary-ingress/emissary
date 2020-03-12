@@ -7,10 +7,21 @@ import (
 	"github.com/datawire/ambassador/pkg/supervisor"
 )
 
-var notifyRAI *RunAsInfo
+var (
+	notifyRAI     *RunAsInfo
+	notifyEnabled = false
+)
 
 // Notify displays a desktop banner notification to the user
 func Notify(p *supervisor.Process, message string) {
+	p.Logf("----------------------------------------------------------------------")
+	p.Logf("NOTIFY: %s", message)
+	p.Logf("----------------------------------------------------------------------")
+
+	if !notifyEnabled {
+		return
+	}
+
 	if notifyRAI == nil {
 		var err error
 		notifyRAI, err = GuessRunAsInfo(p)
@@ -31,16 +42,8 @@ func Notify(p *supervisor.Process, message string) {
 		return
 	}
 
-	p.Logf("NOTIFY: %s", message)
 	cmd := notifyRAI.Command(p, args...)
 	if err := cmd.Run(); err != nil {
 		p.Logf("ERROR while notifying: %v", err)
-	}
-}
-
-// MaybeNotify displays a notification only if a value changes
-func MaybeNotify(p *supervisor.Process, name string, old, new bool) {
-	if old != new {
-		Notify(p, fmt.Sprintf("%s: %t -> %t", name, old, new))
 	}
 }

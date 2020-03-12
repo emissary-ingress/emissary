@@ -124,7 +124,8 @@ func (d *Daemon) getRootCommand(p *supervisor.Process, out *Emitter, data *Clien
 		RunE: func(cmd *cobra.Command, args []string) error {
 			context, _ := cmd.Flags().GetString("context")
 			namespace, _ := cmd.Flags().GetString("namespace")
-			if err := d.Connect(p, out, data.RAI, context, namespace, args); err != nil {
+			managerNs, _ := cmd.Flags().GetString("manager-namespace")
+			if err := d.Connect(p, out, data.RAI, context, namespace, managerNs, args); err != nil {
 				return err
 			}
 			return out.Err()
@@ -137,6 +138,10 @@ func (d *Daemon) getRootCommand(p *supervisor.Process, out *Emitter, data *Clien
 	_ = connectCmd.Flags().StringP(
 		"namespace", "n", "",
 		"The Kubernetes namespace to use. Defaults to kubectl's default for the context.",
+	)
+	_ = connectCmd.Flags().StringP(
+		"manager-namespace", "m", "ambassador",
+		"The Kubernetes namespace in which the Traffic Manager is running.",
 	)
 	rootCmd.AddCommand(connectCmd)
 	rootCmd.AddCommand(&cobra.Command{
@@ -187,7 +192,17 @@ func (d *Daemon) getRootCommand(p *supervisor.Process, out *Emitter, data *Clien
 			default:
 				out.Printf("Found %d interceptable deployment(s):\n", len(d.trafficMgr.interceptables))
 				for idx, deployment := range d.trafficMgr.interceptables {
-					out.Printf("%4d. %s\n", idx+1, deployment)
+					fields := strings.SplitN(deployment, "/", 2)
+
+					appName := fields[0]
+					appNamespace := d.cluster.namespace
+
+					if len(fields) > 1 {
+						appNamespace = fields[0]
+						appName = fields[1]
+					}
+
+					out.Printf("%4d. %s in namespace %s\n", idx+1, appName, appNamespace)
 					out.Send(fmt.Sprintf("interceptable.deployment.%d", idx+1), deployment)
 				}
 			}
@@ -220,13 +235,21 @@ func (d *Daemon) getRootCommand(p *supervisor.Process, out *Emitter, data *Clien
 	})
 	intercept := InterceptInfo{}
 	interceptAddCmd := &cobra.Command{
-		Use:   "add DEPLOYMENT -t [HOST:]PORT -m HEADER=REGEX ...",
+		Use:   "add DEPLOYMENT [--namespace NAMESPACE] [-p PREFIX] -t [HOST:]PORT -m HEADER=REGEX ...",
 		Short: "Add a deployment intercept",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			intercept.Deployment = args[0]
 			if intercept.Name == "" {
 				intercept.Name = fmt.Sprintf("cept-%d", time.Now().Unix())
+			}
+
+			// if intercept.Namespace == "" {
+			// 	intercept.Namespace = "default"
+			// }
+
+			if intercept.Prefix == "" {
+				intercept.Prefix = "/"
 			}
 
 			var host, portStr string
@@ -256,10 +279,12 @@ func (d *Daemon) getRootCommand(p *supervisor.Process, out *Emitter, data *Clien
 		},
 	}
 	interceptAddCmd.Flags().StringVarP(&intercept.Name, "name", "n", "", "a name for this intercept")
+	interceptAddCmd.Flags().StringVarP(&intercept.Prefix, "prefix", "p", "", "prefix to intercept (default /)")
 	interceptAddCmd.Flags().StringVarP(&intercept.TargetHost, "target", "t", "", "the [HOST:]PORT to forward to")
 	_ = interceptAddCmd.MarkFlagRequired("target")
 	interceptAddCmd.Flags().StringToStringVarP(&intercept.Patterns, "match", "m", nil, "match expression (HEADER=REGEX)")
 	_ = interceptAddCmd.MarkFlagRequired("match")
+	interceptAddCmd.Flags().StringVarP(&intercept.Namespace, "namespace", "", "", "Kubernetes namespace in which to create mapping for intercept")
 
 	interceptCmd.AddCommand(interceptAddCmd)
 	interceptCG := []CmdGroup{

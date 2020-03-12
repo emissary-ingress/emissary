@@ -18,7 +18,7 @@ import (
 // Connect the daemon to a cluster
 func (d *Daemon) Connect(
 	p *supervisor.Process, out *Emitter, rai *RunAsInfo,
-	context, namespace string, kargs []string,
+	context, namespace, managerNs string, kargs []string,
 ) error {
 	// Sanity checks
 	if d.cluster != nil {
@@ -42,7 +42,7 @@ func (d *Daemon) Connect(
 		return nil
 	}
 
-	out.Println("Connecting...")
+	out.Printf("Connecting to traffic manager in namespace %s...\n", managerNs)
 	out.Send("connect", "Connecting...")
 	cluster, err := TrackKCluster(p, rai, context, namespace, kargs)
 	if err != nil {
@@ -78,7 +78,7 @@ func (d *Daemon) Connect(
 	out.Send("cluster.context", d.cluster.Context())
 	out.Send("cluster.server", d.cluster.Server())
 
-	tmgr, err := NewTrafficManager(p, d.cluster)
+	tmgr, err := NewTrafficManager(p, d.cluster, managerNs)
 	if err != nil {
 		out.Println()
 		out.Println("Unable to connect to the traffic manager in your cluster.")
@@ -97,7 +97,7 @@ func (d *Daemon) Connect(
 func (d *Daemon) Disconnect(p *supervisor.Process, out *Emitter) error {
 	// Sanity checks
 	if d.cluster == nil {
-		out.Println("Not connected")
+		out.Println("Not connected (use 'edgectl connect' to connect to your cluster)")
 		out.Send("disconnect", "Not connected")
 		return nil
 	}
@@ -156,8 +156,8 @@ type TrafficManager struct {
 
 // NewTrafficManager returns a TrafficManager resource for the given
 // cluster if it has a Traffic Manager service.
-func NewTrafficManager(p *supervisor.Process, cluster *KCluster) (*TrafficManager, error) {
-	cmd := cluster.GetKubectlCmd(p, "get", "svc/telepresence-proxy", "deploy/telepresence-proxy")
+func NewTrafficManager(p *supervisor.Process, cluster *KCluster, managerNs string) (*TrafficManager, error) {
+	cmd := cluster.GetKubectlCmd(p, "get", "-n", managerNs, "svc/telepresence-proxy", "deploy/telepresence-proxy")
 	err := cmd.Run()
 	if err != nil {
 		return nil, errors.Wrap(err, "kubectl get svc/deploy telepresency-proxy")
@@ -171,7 +171,7 @@ func NewTrafficManager(p *supervisor.Process, cluster *KCluster) (*TrafficManage
 	if err != nil {
 		return nil, errors.Wrap(err, "get free port for ssh")
 	}
-	kpfArgStr := fmt.Sprintf("port-forward svc/telepresence-proxy %d:8022 %d:8081", sshPort, apiPort)
+	kpfArgStr := fmt.Sprintf("port-forward -n %s svc/telepresence-proxy %d:8022 %d:8081", managerNs, sshPort, apiPort)
 	kpfArgs := cluster.GetKubectlArgs(strings.Fields(kpfArgStr)...)
 	tm := &TrafficManager{apiPort: apiPort, sshPort: sshPort}
 

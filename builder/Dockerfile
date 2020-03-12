@@ -105,6 +105,10 @@ FROM ${artifacts} as artifacts
 
 FROM ${base} as ambassador
 
+# Always have an "ambassador" user as UID 8888. This is what we recommend
+# people run as. (Note that the "-D" actually leaves the password locked.)
+RUN adduser ambassador -u 8888 -G root -D -H -s /bin/false
+
 # External stuff that should change infrequently
 RUN apk --no-cache add bash curl python3 libcap
 RUN ln -s /usr/bin/python3 /usr/bin/python
