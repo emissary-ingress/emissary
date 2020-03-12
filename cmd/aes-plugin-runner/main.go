@@ -16,8 +16,6 @@ import (
 	"github.com/spf13/pflag"
 )
 
-var mainNative func(socketName, pluginFilepath string) error = nil
-
 // Version is inserted at build using --ldflags -X
 var Version = "(unknown version)"
 
@@ -28,10 +26,7 @@ func usage() {
 	fmt.Printf("Run an Ambassador Edge Stack Filter plugin as an Ambassador AuthService, for plugin development\n")
 	fmt.Printf("\n")
 	fmt.Printf("OPTIONS:\n")
-	fmt.Printf("  --docker   Force the use of Docker, for increased realism\n")
-	if mainNative == nil {
-		fmt.Printf("             (no-op; this build of aes-plugin-runner always uses Docker)\n")
-	}
+	fmt.Printf("  --docker   Does nothing, exists for backward compatibility\n")
 	fmt.Printf("\n")
 	fmt.Printf("Example:\n")
 	fmt.Printf("    %s :8080 ./myplugin.so\n", os.Args[0])
@@ -47,7 +42,7 @@ func main() {
 	argparser := pflag.NewFlagSet(os.Args[0], pflag.ContinueOnError)
 	argparser.Usage = func() {}
 	flagVersion := argparser.Bool("version", false, "")
-	flagDocker := argparser.Bool("docker", mainNative == nil, "")
+	_ = argparser.Bool("docker", true, "") // ignored, still exists for backward compatibility
 
 	if err := argparser.Parse(os.Args[1:]); err != nil {
 		if err == pflag.ErrHelp {
@@ -95,29 +90,20 @@ Docker image.
 
 	fmt.Fprintf(os.Stderr, " > aes-plugin-runner %s (%s %s/%s)\n", Version, runtime.Version(), runtime.GOOS, runtime.GOARCH)
 
-	if !*flagDocker && mainNative != nil {
-		fmt.Fprintf(os.Stderr, " > running natively\n")
-		err := mainNative(argparser.Arg(0), argparser.Arg(1))
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s: error: %v\n", os.Args[0], err)
-			os.Exit(1)
-		}
-	} else {
-		fmt.Fprintf(os.Stderr, " > running in Docker\n")
-		err := mainDocker(argparser.Arg(0), argparser.Arg(1))
-		if err != nil {
-			if ee, ok := err.(*exec.ExitError); ok {
-				ws := ee.ProcessState.Sys().(syscall.WaitStatus)
-				switch {
-				case ws.Exited():
-					os.Exit(ws.ExitStatus())
-				case ws.Signaled():
-					os.Exit(128 + int(ws.Signal()))
-				}
-			} else {
-				fmt.Fprintf(os.Stderr, "%s: error: %v\n", os.Args[0], err)
-				os.Exit(255)
+	fmt.Fprintf(os.Stderr, " > running in Docker\n")
+	err = mainDocker(argparser.Arg(0), argparser.Arg(1))
+	if err != nil {
+		if ee, ok := err.(*exec.ExitError); ok {
+			ws := ee.ProcessState.Sys().(syscall.WaitStatus)
+			switch {
+			case ws.Exited():
+				os.Exit(ws.ExitStatus())
+			case ws.Signaled():
+				os.Exit(128 + int(ws.Signal()))
 			}
+		} else {
+			fmt.Fprintf(os.Stderr, "%s: error: %v\n", os.Args[0], err)
+			os.Exit(255)
 		}
 	}
 }
