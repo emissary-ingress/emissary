@@ -76,6 +76,7 @@ class Project extends SingleResource {
   // override to ignore pods, since that's an artifical resource we stuff into things
   mergeStrategy(pathName) {
     switch (pathName) {
+    case "deploys":
     case "pods":
       return "ignore";
     default:
@@ -93,7 +94,12 @@ class Project extends SingleResource {
     return result
   }
 
-  renderPods(prefix, pods) {
+  renderPods(prefix, pods, deploys) {
+    let deps = new Map()
+    for (let dep of (deploys || [])) {
+      deps.set(dep.ref.hash, dep)
+    }
+
     let commits = new Map()
     for (let name in pods) {
       let pod = pods[name]
@@ -105,6 +111,7 @@ class Project extends SingleResource {
         commit = {id: id, prefix: prefix, builds: [], previews: []}
         commits.set(id, commit)
       }
+      commit.deploy = deps.get(commit.id)
 
       if (pod.metadata.labels.hasOwnProperty("build")) {
         commit.builds.push(pod)
@@ -127,9 +134,9 @@ class Project extends SingleResource {
 
     return html`
 <div class="row line">
-  <label class="row-col margin-right justify-right">Previews:</label>
+  <label class="row-col margin-right justify-right">Deploys:</label>
   <div class="row-col">
-    <div style="display:grid; grid-template-columns: 1fr 1fr;">
+    <div style="display:grid; grid-template-columns: 0.5fr 1fr 1fr 2fr;">
       ${values.map((c)=>this.renderCommit(c))}
     </div>
   </div>
@@ -140,6 +147,12 @@ class Project extends SingleResource {
   renderCommit(commit) {
     return html`
   <div>
+    ${this.renderPull(commit.deploy.pull)}
+  </div>
+  <div>
+    ${commit.deploy.ref.short}
+  </div>
+  <div>
     ${commit.id.slice(0, 7)}...
   </div>
   <div class="justify-right">
@@ -147,6 +160,14 @@ class Project extends SingleResource {
     ${commit.previews.length > 0 ? commit.previews.map(p=>this.renderPreview(commit, p)) : html`<span style="opacity:0.5">log</span> | <span style="opacity:0.5">url</span>`}
   </div>
 `
+  }
+
+  renderPull(pull) {
+    if (pull) {
+      return html`<a href="${pull.html_url}">PR#${pull.number}</a>`
+    } else {
+      return ""
+    }
   }
 
   renderBuild(commit, pod, idx) {
@@ -212,7 +233,7 @@ class Project extends SingleResource {
   renderResource() {
     return html`
 <visible-modes list>
-${this.renderPods(this._spec.prefix, this.resource.pods)}
+${this.renderPods(this._spec.prefix, this.resource.pods, this.resource.deploys)}
 <dw-terminal source=${this.source}></dw-terminal>
 </visible-modes>
 <visible-modes add edit>
@@ -282,6 +303,7 @@ export class Projects extends SortableResourceSet {
     let projects = [];
     snapshot.forEach((obj)=>{
       obj.project.pods = obj.pods
+      obj.project.deploys = obj.deploys
       projects.push(obj.project)
     });
     return projects;
