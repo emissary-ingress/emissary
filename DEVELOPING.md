@@ -360,3 +360,30 @@ data points are stored in Redis
    ttl ratelimit-service-m
    del ratelimit-service-m
    ```
+
+How do I debug the OAuth browser tests?
+---------------------------------------
+
+Some of the OAuth filter tests run a headless web browser.  These
+browser tests would normally be very difficult to debug.  However, to
+make things easier, they record a video of the browser session, so you
+can see what happened.  The video file is saved at
+
+    ./tests/cluster/go-test/filter-oauth2/testdata/TESTNAME.webm
+
+You can access this file normally when run locally.  For CI runs, it's
+saved as a build artifact, so you can access that directory by
+going to the "Artifacts" tab for the CircleCI build.
+
+Often, those video files are enough to tell you what's going wrong.
+
+For more advanced debugging, temporarily editing the file
+`./tests/cluster/go-test/filter-oauth2/testdata/run.js` for your test
+runs can be very useful.  Common modifications are
+
+ - uncomment the `//headless: false,` line, so you can see things live
+ - comment out the `browser.close()` line, so you can poke around in
+   the browser after the test finishes
+ - uncomment the `//await writeFile("/tmp/f.html", await
+   browsertab.content());` line so you can inspect the DOM of the
+   final page.
