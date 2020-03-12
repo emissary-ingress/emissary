@@ -374,11 +374,6 @@ func (k *kale) projectsJSON() string {
 
 // Handle Push events from the github API.
 func (k *kale) handlePush(r *http.Request, key string) httpResult {
-	// todo: the webhook is totally asynchronous... we basically
-	// need to work based on polling and treat the webhook as a
-	// hint to increase the frequency of polling
-	time.Sleep(5 * time.Second)
-
 	k.mu.RLock()
 	proj, ok := k.Projects[key]
 	k.mu.RUnlock()
@@ -386,24 +381,78 @@ func (k *kale) handlePush(r *http.Request, key string) httpResult {
 		return httpResult{status: 404, body: fmt.Sprintf("no such project %s", key)}
 	}
 
-	// Bump the project's .Status, to trigger a rectify via
-	// Kubernetes.  We do this instead of just poking the right
-	// bits in memory because we might not be the elected leader.
-	proj.Status.LastPush = time.Now()
-	uProj := unstructureProject(proj)
-	_, err := k.projectsGetter.Namespace(proj.Metadata.Namespace).UpdateStatus(uProj, k8sTypesMetaV1.UpdateOptions{})
-	if err != nil {
-		log.Println("update project status:", err)
+	var push Push
+	if err := json.NewDecoder(r.Body).Decode(&push); err != nil {
+		log.Printf("WEBHOOK PARSE ERROR: %v", err)
+		return httpResult{status: 400, body: err.Error()}
+	}
+
+	// GitHub calls the hook asynchronously--it might not actually
+	// be ready for us to do things based on the hook.  Poll
+	// GitHub until we see that what the hook says has come to
+	// pass... or we time out.
+	gitReady := false
+	apiReady := false
+	deadline := time.Now().Add(2 * time.Minute)
+	backoff := 1 * time.Second
+	for (!gitReady || !apiReady) && time.Now().Before(deadline) {
+		if !gitReady {
+			var rev string
+			err := safeInvoke(func() {
+				rev = gitResolveRef("https://github.com/"+proj.Spec.GithubRepo, proj.Spec.GithubToken, push.Ref)
+			})
+			if err != nil {
+				continue
+			}
+			if rev == push.After {
+				gitReady = true
+			}
+		}
+		if !apiReady {
+			var prs []Pull
+			var resp *http.Response
+			err := safeInvoke(func() {
+				resp = getJSON(fmt.Sprintf("https://api.github.com/repos/%s/pulls", proj.Spec.GithubRepo), proj.Spec.GithubToken, &prs)
+			})
+			if err != nil || resp.StatusCode != 200 {
+				continue
+			}
+			havePr := false
+			for _, pr := range prs {
+				if "refs/heads/"+pr.Head.Ref == push.Ref {
+					havePr = true
+					if pr.Head.Sha == push.After {
+						apiReady = true
+					}
+				}
+			}
+			if !havePr {
+				apiReady = true
+			}
+		}
+		time.Sleep(backoff)
+		if backoff < 10*time.Second {
+			backoff *= 2
+		}
+	}
+	if gitReady && apiReady {
+		// Bump the project's .Status, to trigger a rectify via
+		// Kubernetes.  We do this instead of just poking the right
+		// bits in memory because we might not be the elected leader.
+		proj.Status.LastPush = time.Now()
+		uProj := unstructureProject(proj)
+		_, err := k.projectsGetter.Namespace(proj.Metadata.Namespace).UpdateStatus(uProj, k8sTypesMetaV1.UpdateOptions{})
+		if err != nil {
+			log.Println("update project status:", err)
+		}
 	}
 
 	return httpResult{status: 200, body: ""}
 }
 
 type Push struct {
-	Ref  string
-	Head struct {
-		Id string
-	} `json:"head_commit"`
+	Ref        string
+	After      string
 	Repository struct {
 		GitUrl      string `json:"git_url"`
 		StatusesUrl string `json:"statuses_url"`

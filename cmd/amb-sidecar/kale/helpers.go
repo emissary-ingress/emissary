@@ -492,6 +492,14 @@ func gitLsRemote(repo, token string, specs ...string) []*plumbing.Reference {
 	return result
 }
 
+func gitResolveRef(repo, token, refname string) string {
+	refs := gitLsRemote(repo, token, refname)
+	if len(refs) == 0 {
+		return ""
+	}
+	return refs[0].Hash().String()
+}
+
 // WatchGroup is used to wait for multiple Watcher queries to all be
 // ready before invoking a listener.
 type WatchGroup struct {
