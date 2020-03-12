@@ -72,6 +72,14 @@ ambassador_root="/ambassador"
 export LC_ALL=C.UTF-8
 export LANG=C.UTF-8
 
+# If we have an AGENT_SERVICE, but no AMBASSADOR_ID, force AMBASSADOR_ID
+# from the AGENT_SERVICE.
+
+if [ -z "$AMBASSADOR_ID" -a -n "$AGENT_SERVICE" ]; then
+    export AMBASSADOR_ID="intercept-${AGENT_SERVICE}"
+    log "Intercept: set AMBASSADOR_ID to $AMBASSADOR_ID"
+fi
+
 export AMBASSADOR_NAMESPACE="${AMBASSADOR_NAMESPACE:-default}"
 export AMBASSADOR_CONFIG_BASE_DIR="${AMBASSADOR_CONFIG_BASE_DIR:-$ambassador_root}"
 export ENVOY_DIR="${AMBASSADOR_CONFIG_BASE_DIR}/envoy"
@@ -105,7 +113,7 @@ fi
 # Note that the envoy_config_file really is in ENVOY_DIR, rather than
 # being in AMBASSADOR_CONFIG_BASE_DIR.
 envoy_config_file="${ENVOY_DIR}/envoy.json"         # not a typo, see above
-envoy_flags=('-c' "${ENVOY_BOOTSTRAP_FILE}")
+envoy_flags=('-c' "${ENVOY_BOOTSTRAP_FILE}" "--drain-time-s" "1")
 
 # AMBASSADOR_DEBUG is a list of things to enable debugging for,
 # separated by spaces; parse that in to an array.
@@ -348,6 +356,16 @@ kick_ads() {
 
 # On SIGHUP, kick ADS
 trap 'kick_ads' HUP
+
+################################################################################
+# WORKER: TRAFFIC AGENT (app-sidecar)                                          #
+################################################################################
+# If AGENT_SERVICE is set, we start the app-sidecar. Note that we also
+# disable init-config in the ResourceFetcher when this is set!
+
+if [[ -n "${AGENT_SERVICE}" ]]; then
+    launch "app-sidecar" app-sidecar
+fi
 
 ################################################################################
 # WORKER: DIAGD                                                                #

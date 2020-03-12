@@ -26,6 +26,7 @@ type ResourceBase struct {
 	doQuit  func(*supervisor.Process) error
 	tasks   chan func(*supervisor.Process) error
 	okay    bool          // (monitor) cmd is running and check passes
+	transAt time.Time     // (monitor) time of transition (okay value changed)
 	done    bool          // (Close) to get everything to quit
 	end     chan struct{} // (Close) closed when the processor finishes
 }
@@ -64,6 +65,7 @@ func (rb *ResourceBase) setup(sup *supervisor.Supervisor, name string) {
 	rb.name = name
 	rb.tasks = make(chan func(*supervisor.Process) error, 10)
 	rb.end = make(chan struct{})
+	rb.transAt = time.Now()
 	sup.Supervise(&supervisor.Worker{
 		Name: name,
 		Work: rb.processor,
@@ -98,7 +100,10 @@ func (rb *ResourceBase) monitor(p *supervisor.Process) error {
 		p.Log("monitor: check passed")
 		rb.okay = true
 	}
-	MaybeNotify(p, rb.name, old, rb.okay)
+	if old != rb.okay {
+		Notify(p, fmt.Sprintf("%s: %t -> %t after %s", rb.name, old, rb.okay, time.Since(rb.transAt)))
+		rb.transAt = time.Now()
+	}
 	return nil
 }
 
@@ -120,7 +125,7 @@ func (rb *ResourceBase) processor(p *supervisor.Process) error {
 			return err
 		}
 		if rb.done {
-			MaybeNotify(p, rb.name, rb.okay, false)
+			Notify(p, fmt.Sprintf("%s: %t -> Closed after %s", rb.name, rb.okay, time.Since(rb.transAt)))
 			p.Log("done")
 			return nil
 		}
@@ -144,16 +149,30 @@ func (c *KCluster) RAI() *RunAsInfo {
 }
 
 // GetKubectlArgs returns the kubectl command arguments to run a
-// kubectl command with this cluster
+// kubectl command with this cluster, including the namespace argument.
 func (c *KCluster) GetKubectlArgs(args ...string) []string {
+	return c.getKubectlArgs(true, args...)
+}
+
+// GetKubectlArgsNoNamespace returns the kubectl command arguments to run a
+// kubectl command with this cluster, but without the namespace argument.
+func (c *KCluster) GetKubectlArgsNoNamespace(args ...string) []string {
+	return c.getKubectlArgs(false, args...)
+}
+
+func (c *KCluster) getKubectlArgs(includeNamespace bool, args ...string) []string {
 	cmdArgs := make([]string, 0, 1+len(c.kargs)+len(args))
 	cmdArgs = append(cmdArgs, "kubectl")
 	if c.context != "" {
 		cmdArgs = append(cmdArgs, "--context", c.context)
 	}
-	if c.namespace != "" {
-		cmdArgs = append(cmdArgs, "--namespace", c.namespace)
+
+	if includeNamespace {
+		if c.namespace != "" {
+			cmdArgs = append(cmdArgs, "--namespace", c.namespace)
+		}
 	}
+
 	cmdArgs = append(cmdArgs, c.kargs...)
 	cmdArgs = append(cmdArgs, args...)
 	return cmdArgs
@@ -163,6 +182,13 @@ func (c *KCluster) GetKubectlArgs(args ...string) []string {
 // the appropriate environment to talk to the cluster
 func (c *KCluster) GetKubectlCmd(p *supervisor.Process, args ...string) *supervisor.Cmd {
 	return c.rai.Command(p, c.GetKubectlArgs(args...)...)
+}
+
+// GetKubectlCmdNoNamespace returns a Cmd that runs kubectl with the given arguments and
+// the appropriate environment to talk to the cluster, but it doesn't supply a namespace
+// arg.
+func (c *KCluster) GetKubectlCmdNoNamespace(p *supervisor.Process, args ...string) *supervisor.Cmd {
+	return c.rai.Command(p, c.GetKubectlArgsNoNamespace(args...)...)
 }
 
 // Context returns the cluster's context name
