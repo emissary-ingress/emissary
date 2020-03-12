@@ -64,6 +64,12 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger dlog.Logger, httpClien
 	username := filterutil.GetHeader(request).Get("X-Ambassador-Username")
 	password := filterutil.GetHeader(request).Get("X-Ambassador-Password")
 
+	if (username == "") || (password == "") {
+		// C'mon, people.
+		return middleware.NewErrorResponse(ctx, http.StatusForbidden,
+			errors.Errorf("username and password are required"), nil)
+	}
+
 	// ...and set up the OAuth2 client.
 	oauthClient, err := rfc6749client.NewResourceOwnerPasswordCredentialsClient(
 		discovered.TokenEndpoint,
