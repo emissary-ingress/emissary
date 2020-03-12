@@ -399,9 +399,13 @@ func (k *kale) handlePush(r *http.Request, key string) httpResult {
 	// todo: the webhook is totally asynchronous... we basically
 	// need to work based on polling and treat the webhook as a
 	// hint to increase the frequency of polling
-	time.Sleep(5 * time.Second)
-
-	k.snapshots <- Snapshot{}
+	go func() {
+		k.snapshots <- Snapshot{}
+		for i := 1; i <= 128; i *= 2 {
+			time.Sleep(time.Duration(i) * time.Second)
+			k.snapshots <- Snapshot{}
+		}
+	}()
 
 	return httpResult{status: 200, body: ""}
 }
