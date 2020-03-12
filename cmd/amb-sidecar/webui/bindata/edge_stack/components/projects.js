@@ -150,10 +150,10 @@ class Project extends SingleResource {
     ${this.renderPull(commit.deploy.pull)}
   </div>
   <div>
-    ${commit.deploy.ref.short}
+    <a href="https://github.com/${this.resource.spec.githubRepo}/tree/${commit.deploy.ref.short}">${commit.deploy.ref.short}</a>
   </div>
   <div>
-    ${commit.id.slice(0, 7)}...
+    <a href="https://github.com/${this.resource.spec.githubRepo}/commit/${commit.id}">${commit.id.slice(0, 7)}...</a>
   </div>
   <div class="justify-right">
     ${commit.builds.length > 0 ? commit.builds.map(p=>this.renderBuild(commit, p)) : html`<span style="opacity:0.5">build</span>`} |
