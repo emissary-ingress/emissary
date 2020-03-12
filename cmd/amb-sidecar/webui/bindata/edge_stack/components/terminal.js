@@ -74,11 +74,22 @@ class Term extends LitElement {
     }
   }
 
+  onClose() {
+    this.dispatchEvent(new CustomEvent("close"))
+  }
+
   render() {
     this.updateSource();
     return html`
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@4.4.0/css/xterm.css" integrity="sha256-I3n7q4Kl55oWvltoLRCCpA5HW8W3O34RUeC/ob43fWY=" crossorigin="anonymous">
-<div id="terminal"></div>
+<div style="display:${this.source ? "block" : "none"}">
+  <div>
+    <a style="cursor:pointer;color:blue" @click=${()=>this.onClose()}>close</a> |
+    <a style="cursor:pointer;color:blue" @click=${()=>this.term.scrollToTop()}>top</a> |
+    <a style="cursor:pointer;color:blue" @click=${()=>this.term.scrollToBottom()}>bottom</a>
+  </div>
+  <div id="terminal"></div>
+</div>
 `;
   }
 

@@ -181,7 +181,8 @@ class Project extends SingleResource {
       styles = "color:red"
       break
     }
-    return html`<a style="cursor:pointer;${styles}" @click=${()=>this.toggleTerminal(commit, pod)}>build</a>`
+    let selected = this.logSelected(commit, pod) ? "background-color:#dcdcdc" : ""
+    return html`<a style="cursor:pointer;${styles};${selected}" @click=${()=>this.openTerminal(commit, pod)}>build</a>`
   }
 
   renderPreview(commit, pod) {
@@ -192,28 +193,32 @@ class Project extends SingleResource {
     } else {
       styles = "color:red"
     }
+    let selected = this.logSelected(commit, pod) ? "background-color:#dcdcdc" : ""
     return html`
-<a style="cursor:pointer;${styles}" @click=${()=>this.toggleTerminal(commit, pod)}>log</a> |
+<a style="cursor:pointer;${styles};${selected}" @click=${()=>this.openTerminal(commit, pod)}>log</a> |
 <a style="text-decoration:none;${styles}" href="/.previews/${commit.prefix}/${commit.id}/">url</a>
 `
   }
 
-  toggleTerminal(commit, pod) {
+  logSelected(commit, pod) {
+    return HASH.get("log") === this.logParam(commit, pod)
+  }
+
+  logParam(commit, pod) {
     let name = this.resource.metadata.name
-    var log
     if (pod.metadata.labels.hasOwnProperty("build")) {
-      log = `build/${pod.metadata.namespace}/${name}/${commit.id}`
+      return `build/${pod.metadata.namespace}/${name}/${commit.id}`
     } else {
-      log = `deploy/${pod.metadata.namespace}/${name}/${commit.id}`
+      return `deploy/${pod.metadata.namespace}/${name}/${commit.id}`
     }
+  }
 
-    let old = HASH.get("log")
+  openTerminal(commit, pod) {
+    HASH.set("log", this.logParam(commit, pod))
+  }
 
-    if (old == log) {
-      HASH.delete("log")
-    } else {
-      HASH.set("log", log)
-    }
+  closeTerminal() {
+    HASH.delete("log")
   }
 
   input(type, name) {
@@ -235,7 +240,8 @@ class Project extends SingleResource {
     return html`
 <visible-modes list>
 ${this.renderPods(this._spec.prefix, this.resource.pods, this.resource.deploys)}
-<dw-terminal source=${this.source}></dw-terminal>
+
+<dw-terminal source=${this.source} @close=${(e)=>this.closeTerminal()}></dw-terminal>
 </visible-modes>
 <visible-modes add edit>
   <div class="row line">
