@@ -103,7 +103,8 @@ class IRHost(IRResource):
         if self.get('acmeProvider', None):
             acme = self.acmeProvider
 
-            if ir.edge_stack_allowed:
+            # The ACME client is disabled if we're running as an intercept agent.
+            if ir.edge_stack_allowed and not ir.agent_active:
                 authority = acme.get('authority', None)
 
                 if authority and (authority.lower() != 'none'):
@@ -184,9 +185,13 @@ class HostFactory:
                 else:
                     ir.logger.info(f"HostFactory: not saving inactive host {host.pretty()}")
 
+    @classmethod
+    def finalize(cls, ir: 'IR', aconf: Config) -> None:
         if ir.edge_stack_allowed:
             # We're running Edge Stack. Figure out how many hosts we have, and whether
             # we have any termination contexts.
+            #
+            # If we're running as an intercept agent, there should be a Host in all cases.
             host_count = len(ir.get_hosts() or [])
             contexts = ir.get_tls_contexts() or []
 
