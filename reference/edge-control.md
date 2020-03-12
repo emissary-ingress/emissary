@@ -17,7 +17,7 @@ To start using Edge Control:
 
 ## Install Edge Control: Laptop
 
-1. Grab the latest `edgectl` executable from your [Edge Policy Console](../../about/edge-policy-console) and install it somewhere in your shell’s PATH.
+1. Grab the latest `edgectl` executable and install it somewhere in your shell’s PATH.
 
 For MacOS:
 
@@ -101,8 +101,12 @@ Depending on the type of cluster, your operations team may be involved. If you o
 ### Traffic Manager
 
 1. Install the Traffic Manager Kubernetes Deployment and Service using `kubectl`.
-2. Fill in the Traffic Manager image and your license key before applying these manifests.
-3. Save these manifests in a YAML file:
+2. Fill in the name of the AES image before applying these manifests.
+3. Note that the Traffic Manager needs access to your Ambassador Edge Stack license key, 
+   so it needs to be installed in the same namespace. The manifests below assume that
+   Ambassador Edge Stack is installed in the `ambassador` namespace.
+4. Note also that the Traffic Manager must currently run as the `root` user.
+5. Save these manifests in a YAML file:
 
 ```yaml
 # This is traffic-manager.yaml
@@ -111,6 +115,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: telepresence-proxy
+  namespace: ambassador
 spec:
   type: ClusterIP
   clusterIP: None
@@ -128,6 +133,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: telepresence-proxy
+  namespace: ambassador
   labels:
     app: telepresence-proxy
 spec:
@@ -141,17 +147,36 @@ spec:
         app: telepresence-proxy
     spec:
       containers:
-        - name: telepresence-proxy
-          image: __TRAFFIC_MANAGER_IMAGE__   # Replace this
-          ports:
-            - name: sshd
-              containerPort: 8022
-          env:
-            - name: AMBASSADOR_LICENSE_KEY
-              value: __LICENSE_KEY__         # Replace this
+      - name: telepresence-proxy
+        image: __AES_IMAGE__   # Replace this
+        command: [ "traffic-manager" ]
+        ports:
+          - name: sshd
+            containerPort: 8022
+        env:
+          - name: AMBASSADOR_LICENSE_FILE
+            value: /.config/ambassador/license-key
+        volumeMounts:
+          - mountPath: /tmp/ambassador-pod-info
+            name: ambassador-pod-info
+          - mountPath: /.config/ambassador
+            name: ambassador-edge-stack-secrets
+            readOnly: true
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 0
+      volumes:
+      - downwardAPI:
+          items:
+          - fieldRef:
+              fieldPath: metadata.labels
+            path: labels
+        name: ambassador-pod-info
+      - name: ambassador-edge-stack-secrets
+        secret:
+          secretName: ambassador-edge-stack
 ``` 
 
-4. Apply them:
+5. Apply them:
 
 ```bash
 $ kubectl apply -f traffic-manager.yaml
@@ -161,7 +186,47 @@ deployment.apps/telepresence-proxy created
 
 ### Traffic Agent
 
-Any microservice running in a cluster with a traffic manager can opt in to intercept functionality by including the traffic agent in its pods. The following manifests represent a simple microservice.
+Any microservice running in a cluster with a traffic manager can opt in to intercept functionality by including the traffic agent in its pods. 
+
+1. Since the Traffic Agent is built on Ambassador Edge Stack, it needs the same RBAC permissions that Ambassador does. The easiest way to provide this is to create a `ServiceAccount` in your service's namespace, bound to the `ambassador` `ClusterRole`:
+
+```yaml
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: traffic-agent
+  namespace: default
+  labels:
+    product: aes
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: traffic-agent
+  labels:
+    product: aes
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ambassador
+subjects:
+- kind: ServiceAccount
+  name: traffic-agent
+  namespace: default
+```
+
+(If you want to include the Traffic Agent with multiple services, they can all use the same `ServiceAccount`.)
+
+Copy the above YAML into `traffic-agent-rbac.yaml` and, if necessary, edit the two `namespace`s appropriately. Apply it:
+
+```bash
+$ kubectl apply -f traffic-agent-rbac.yaml
+serviceaccount/traffic-agent created
+clusterrolebinding.rbac.authorization.k8s.io/traffic-agent created
+```
+
+2. Next, you'll need to modify the YAML for each microservice to include the Traffic Agent. We'll start with a set of manifests for a simple microservice:
 
 ```yaml
 # This is hello.yaml
@@ -203,7 +268,13 @@ spec:
             - containerPort: 8000   # Application port
 ```
 
-Here is a modified set of manifests that includes the traffic agent:
+In order to run the sidecar:
+
+- you need to include the Traffic Agent container in the microservice pod;
+- you need to switch the microservice's `Service` definition to point to the Traffic Agent's listening port (currently 8080 or 8443); and
+- you need to tell the Traffic Agent how to set up for the microservice, using environment variables.
+
+Here is a modified set of manifests that includes the Traffic Agent (with notes below):
 
 ```yaml
 # This is hello-intercept.yaml
@@ -220,7 +291,7 @@ spec:
   ports:
     - protocol: TCP
       port: 80
-      targetPort: 9900              # Traffic Agent port
+      targetPort: 8080              # Traffic Agent port (note 1)
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -239,29 +310,40 @@ spec:
         app: hello
     spec:
       containers:
-        - name: hello               # Application container
+        - name: hello               # Application container (note 2)
           image: datawire/hello-world:latest
           ports:
             - containerPort: 8000   # Application port
-        - name: agent               # Traffic Agent container
-          image: __TRAFFIC_AGENT_IMAGE__   # Replace this
+        - name: traffic-agent       # Traffic Agent container (note 3)
+          image: __AES_IMAGE__      # Replace this (note 4)
           ports:
-            - containerPort: 9900   # Traffic Agent port
+            - containerPort: 8080   # Traffic Agent port
           env:
-            - name: APPNAME
-              value: hello
-            - name: APPPORT
-              value: "8000"         # Application port
-            - name: AMBASSADOR_LICENSE_KEY
-              value: __LICENSE_KEY__         # Replace this
+          - name: AGENT_SERVICE     # Name to use for intercepting (note 5)
+            value: hello
+          - name: AGENT_PORT        # Port on which to talk to the microservice (note 6)
+            value: "8000"
+          - name: AGENT_MANAGER_NAMESPACE # Namespace for contacting the Traffic Manager (note 7)
+            value: ambassador
+          - name: AMBASSADOR_NAMESPACE # Namespace in which this microservice is running (note 8)
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+      serviceAccountName: traffic-agent
 ```
 
-Key differences include:
+Key points include:
 
-* The Service points to the traffic agent’s port (9900) instead of the application’s port (8000)
-* The traffic agent’s container is added
-* The traffic agent is passed the application name and port number via environment variables
-* In the future we will offer a tool to automate injecting the traffic agent into an existing microservice.
+- **Note 1**: The `Service` now points to the Traffic Agent’s port (8080) instead of the application’s port (8000).
+- **Note 2**: The microservice's application container is actually unchanged.
+- **Note 3**: The Traffic Agent's container has been added.
+- **Note 4**: The Traffic Agent is included in the AES image. You'll need to edit this to have the actual image name.
+- **Note 5**: The `AGENT_SERVICE` environment variable is mandatory. It sets the name that the Traffic Agent will report to the Traffic Manager for this microservice: you will have to provide this name to intercept this microservice.
+- **Note 6**: The `AGENT_PORT` environment variable is mandatory. It tells the Traffic Agent the local port on which the microservice is listening.
+- **Note 7**: The `AGENT_MANAGER_NAMESPACE` environment variable tells the Traffic Agent the namespace in which it will be able to find the Traffic Manager. If not present, it defaults to the `ambassador` namespace.
+- **Note 8**: The `AMBASSADOR_NAMESPACE` environment variable is mandatory. It lets the Traffic Agent tell the Traffic Manager the namespace in which the microservice is running. 
+
+In the future we will offer a tool to automate injecting the traffic agent into an existing microservice.
 
 ## Usage: Outbound Services
 
