@@ -10,17 +10,17 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
-	"strconv"
+	// "strconv"
 	"syscall"
-	"time"
+	// "time"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/datawire/apro/cmd/app-sidecar/longpoll"
-	"github.com/datawire/apro/lib/licensekeys"
-	"github.com/datawire/apro/lib/metriton"
+	// "github.com/datawire/apro/lib/licensekeys"
+	// "github.com/datawire/apro/lib/metriton"
 )
 
 var log = _log.New(os.Stderr, "", _log.LstdFlags)
@@ -108,93 +108,93 @@ func Main() {
 		RunE:    Run,
 	}
 
-	licenseContext := &licensekeys.LicenseContext{}
-	if err := licenseContext.AddFlagsTo(argparser); err != nil {
-		panic(err)
-	}
+	// licenseContext := &licensekeys.LicenseContext{}
+	// if err := licenseContext.AddFlagsTo(argparser); err != nil {
+	// 	panic(err)
+	// }
 
-	argparser.PersistentPreRun = func(cmd *cobra.Command, args []string) {
-		licenseClaims, err := licenseContext.GetClaims()
-		if err == nil {
-			err = licenseClaims.RequireFeature(licensekeys.FeatureTraffic)
-		}
-		if err == nil {
-			go metriton.PhoneHome(licenseClaims, nil, "application-sidecar", Version)
-			return
-		}
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
+	// argparser.PersistentPreRun = func(cmd *cobra.Command, args []string) {
+	// 	licenseClaims, err := licenseContext.GetClaims()
+	// 	if err == nil {
+	// 		err = licenseClaims.RequireFeature(licensekeys.FeatureTraffic)
+	// 	}
+	// 	if err == nil {
+	// 		go metriton.PhoneHome(licenseClaims, nil, "application-sidecar", Version)
+	// 		return
+	// 	}
+	// 	fmt.Fprintln(os.Stderr, err)
+	// 	os.Exit(1)
+	// }
 	err := argparser.Execute()
 	if err != nil {
 		os.Exit(2)
 	}
 }
 
-func getAppPort() (uint32, error) {
-	str := os.Getenv("APPPORT")
-	if str == "" {
-		log.Print("ERROR: APPPORT env var not configured.")
-		log.Print("(I don't know what port your app uses)")
-		log.Print("Please set APPPORT in your k8s manifest.")
-		time.Sleep(24 * time.Hour)
-		os.Exit(1)
-	}
-	num, err := strconv.ParseUint(str, 10, 32)
-	if err != nil {
-		return 0, err
-	}
-	return uint32(num), nil
-}
+// func getAppPort() (uint32, error) {
+// 	str := os.Getenv("APPPORT")
+// 	if str == "" {
+// 		log.Print("ERROR: APPPORT env var not configured.")
+// 		log.Print("(I don't know what port your app uses)")
+// 		log.Print("Please set APPPORT in your k8s manifest.")
+// 		time.Sleep(24 * time.Hour)
+// 		os.Exit(1)
+// 	}
+// 	num, err := strconv.ParseUint(str, 10, 32)
+// 	if err != nil {
+// 		return 0, err
+// 	}
+// 	return uint32(num), nil
+// }
 
 func Run(flags *cobra.Command, args []string) error {
-	appPort, err := getAppPort()
-	if err != nil {
+	// appPort, err := getAppPort()
+	// if err != nil {
+	// 	return err
+	// }
+	if err := os.Mkdir("/tmp/agent", 0777); err != nil {
 		return err
 	}
-	if err := os.Mkdir("/run/amb", 0777); err != nil {
+	if err := os.Chdir("/tmp/agent"); err != nil {
 		return err
 	}
-	if err := os.Chdir("/run/amb"); err != nil {
-		return err
-	}
-	err = func() error {
-		file, err := os.OpenFile("bootstrap-ads.yaml", os.O_CREATE|os.O_WRONLY, 0666)
-		if err != nil {
-			return err
-		}
-		defer file.Close()
-		return writeBootstrapADSYAML(file, appPort)
-	}()
-	if err != nil {
-		return err
-	}
-	if err := os.Mkdir("data", 0777); err != nil {
-		return err
-	}
-	if err := ioutil.WriteFile("data/listener.json", []byte(listenerJSON), 0666); err != nil {
-		return err
-	}
-	if err := ioutil.WriteFile("data/route.json", []byte(routeJSON), 0666); err != nil {
-		return err
-	}
+	// err = func() error {
+	// 	file, err := os.OpenFile("bootstrap-ads.yaml", os.O_CREATE|os.O_WRONLY, 0666)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	defer file.Close()
+	// 	return writeBootstrapADSYAML(file, appPort)
+	// }()
+	// if err != nil {
+	// 	return err
+	// }
+	// if err := os.Mkdir("data", 0777); err != nil {
+	// 	return err
+	// }
+	// if err := ioutil.WriteFile("data/listener.json", []byte(listenerJSON), 0666); err != nil {
+	// 	return err
+	// }
+	// if err := ioutil.WriteFile("data/route.json", []byte(routeJSON), 0666); err != nil {
+	// 	return err
+	// }
 
-	if err := os.Mkdir("temp", 0775); err != nil {
-		return err
-	}
+	// if err := os.Mkdir("temp", 0775); err != nil {
+	// 	return err
+	// }
 
-	envoyLogLevel := os.Getenv("APP_LOG_LEVEL")
-	if envoyLogLevel == "" {
-		envoyLogLevel = "info"
-	}
+	// envoyLogLevel := os.Getenv("APP_LOG_LEVEL")
+	// if envoyLogLevel == "" {
+	// 	envoyLogLevel = "info"
+	// }
 
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	wg, ctx := errgroup.WithContext(context.Background())
 	wg.Go(func() error { return signalHandler(ctx, sigs) })
-	wg.Go(func() error { return ambex(ctx) })
+	// wg.Go(func() error { return ambex(ctx) })
 	wg.Go(func() error { return sidecar(ctx) })
-	wg.Go(func() error { return envoy(ctx, envoyLogLevel) })
+	// wg.Go(func() error { return envoy(ctx, envoyLogLevel) })
 	return wg.Wait()
 }
 
@@ -234,9 +234,9 @@ func sidecar(ctx context.Context) error {
 	empty := make([]InterceptInfo, 0)
 	intercepts := empty
 
-	appName := os.Getenv("APPNAME")
+	appName := os.Getenv("AGENT_SERVICE")
 	if appName == "" {
-		log.Print("ERROR: APPNAME env var not configured.")
+		log.Print("ERROR: AGENT_SERVICE env var not configured.")
 		log.Print("Running without intercept capabilities.")
 		err := processIntercepts(intercepts)
 		if err != nil {
@@ -248,17 +248,43 @@ func sidecar(ctx context.Context) error {
 
 	log.SetPrefix(fmt.Sprintf("%s(%s) ", log.Prefix(), appName))
 
-	u, _ := url.Parse("http://telepresence-proxy:8081/routes")
-	c := longpoll.NewClient(u, appName)
+	agentNamespace := os.Getenv("AGENT_NAMESPACE")
+
+	if agentNamespace == "" {
+		agentNamespace = os.Getenv("AMBASSADOR_NAMESPACE")
+	}
+
+	managerServiceName := "telepresence-proxy"
+
+	managerNamespace := os.Getenv("AGENT_MANAGER_NAMESPACE")
+
+	if managerNamespace == "" {
+		managerNamespace = agentNamespace
+	}
+
+	if managerNamespace == "" {
+		managerNamespace = "ambassador"
+	}
+
+	if managerNamespace != "" {
+		managerServiceName = fmt.Sprintf("telepresence-proxy.%s", managerNamespace)
+	}
+
+	managerUrl := fmt.Sprintf("http://%s:8081/routes", managerServiceName)
+
+	log.Printf("Connecting to traffic manager at %s", managerUrl)
+	u, _ := url.Parse(managerUrl)
+
+	c := longpoll.NewClient(u, appName, agentNamespace)
 	c.Logger = log
 	c.Start()
 	defer c.Stop()
 
 	for {
-		err := processIntercepts(intercepts)
-		if err != nil {
-			return err
-		}
+		// err := processIntercepts(intercepts)
+		// if err != nil {
+		// 	return err
+		// }
 		select {
 		case <-ctx.Done():
 			return nil
