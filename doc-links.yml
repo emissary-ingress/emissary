@@ -142,35 +142,29 @@
         - title: Edge Policy Console
           link: /topics/using/edge-policy-console
     - title: Running Ambassador in Production
-      link: /topics/running/index
+      link: /topics/running/
       items: 
         - title: The Ambassador Module
           link: /topics/running/ambassador
         - title: The Host CRD
           link: /topics/running/host-crd
-          items:
-            - title: Integrated ACME Support
-              link: /topics/running/acme-support
         - title: Load Balancing and Service Discovery
-          link: /topics/lb-service-discovery
           items:
             - title: Load Balancing
-              link: /topics/running/load-balancer/
+              link: /topics/running/load-balancer
             - title: Service Discovery and Resolvers
-              link: /topics/running/resolvers/
-        - title: gZip Compression
-          link: /topics/running/gzip/
+              link: /topics/running/resolvers
+        - title: Gzip Compression
+          link: /topics/running/gzip
         - title: Deploying Ambassador
-          link: /topics/running/deployment-overview
           items:
             - title: Ambassador with AWS
-              link: /topics/running/ambassador-with-aws/
+              link: /topics/running/ambassador-with-aws
             - title: Ambassador with GKE
               link: /topics/running/ambassador-with-gke
             - title: Running Ambassador
-              link: /topics/running/running/
+              link: /topics/running/running
         - title: TLS
-          link: /topics/tls-overview
           items:
             - title: Client Certificate Validation
               link: /topics/running/tls/client-cert-validation
@@ -183,42 +177,64 @@
             - title: TLS Origination
               link: /topics/running/tls/origination
         - title: Monitoring
-          link:  /topics/running/statistics/
-- title: How To Guides
+          link:  /topics/running/statistics
+- title: HOWTO Guides
   items: 
-    - title: Service Mesh Integration
+    - title: Authentication
       items:
-        - title: Consul
-          link: /howtos/consul
-        - title: Istio
-          link: /howtos/with-istio
-        - title: Linkerd2
-          link: /howtos/linkerd2
+        - title: Basic Authentication
+          link: /howtos/basic-auth
+        - title: Single Sign-On with Auth0
+          link: /howtos/sso/auth0
+        - title: Single Sign-On with Azure Active Directory
+          link: /howtos/sso/azure
+        - title: Single Sign-On with Google
+          link: /howtos/sso/google
+        - title: Single Sign-On with Keycloak
+          link: /howtos/sso/keycloak
+        - title: Single Sign-On with Okta
+          link: /howtos/sso/okta
+        - title: Single Sign-On with OneLogin
+          link: /howtos/sso/onelogin
+        - title: Single Sign-On with Salesforce
+          link: /howtos/sso/salesforce
+        - title: Single Sign-On with UAA
+          link: /howtos/sso/UAA
+        - title: Using the OAuth2 filter
+          link: /howtos/oauth-oidc-auth
+    - title: Custom Filters
+      link: /howtos/filter-dev-guide
     - title: Distributed Tracing
-      link: /howtos/tracing-tutorial/ 
       items:
         - title: DataDog
           link: /howtos/tracing-datadog
         - title: Zipkin
           link: /howtos/tracing-zipkin
-        - title: Knative
-          link: /howtos/tracing/knative
-    - title: External DNS Routing
+    - title: Knative Serverless Framework
+      link: /howtos/knative
+    - title: Promtheus monitoring
+      link: /howtos/prometheus
+    - title: Rate Limiting
       items:
-        - title: Route to a Service
-          link: /howtos/route-to-service
-        - title: Route to Github
-          link: /howtos/route-to-github
-        - title: Manage my Routes
-          link: /howtos/manage-route
-    - title: Authentication and Security
-      link: /howtos/auth-and-sec
+        - title: Basic Rate Limiting
+          link: /howtos/rate-limiting-tutorial
+        - title: Advanced Rate Limiting
+          link: /howtos/advanced-rate-limiting
+    - title: Service Mesh Integration
       items:
-        - title: Basic Authentication Tutorial
-          link: /howtos/basic-auth
-        - title: Using a cert-manager
+        - title: Consul
+          link: /howtos/consul
+        - title: Istio
+          link: /howtos/istio
+        - title: Linkerd 2
+          link: /howtos/linkerd2
+    - title: TLS
+      items:
+        - title: Using cert-manager
           link: /howtos/cert-manager
-    - title: Develop Custom Filters for Routing
-      link: /howtos/custom-filter
+        - title: TLS termination
+          link: /howtos/tls-termination
+    - title: WebSockets
+      link: /howtos/websockets
 - title: Frequently Asked Questions
   link: /about/faq
