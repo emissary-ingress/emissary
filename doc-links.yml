@@ -68,7 +68,7 @@
                   link: /topics/using/headers/header_based_routing
                 - title: Host Header
                   link: /topics/using/headers/host_header
-            - title:: Keepalive
+            - title: Keepalive
               link: /topics/using/keepalive
             - title: Prefix Regex
               link: /topics/using/prefix_regex
