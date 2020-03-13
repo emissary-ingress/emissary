@@ -1,12 +1,10 @@
 # Edge Control
 
-Edge Control is the architecture for `edgectl` and allows you to provide the functionality for application users and ease of use for your cluster modification. With Edge Control, developers can safely share a single development cluster, and enable the "always-on" experience originally achieved with custom workarounds. For your users, Edge Control allows you to provide basic and advanced functionality to your application with minimal cluster-side modifications.
+Edge Control is the command-line tool for installing and managing the Ambassador Edge Stack. And Edge Control's outbound and intercept features allow developers to preview changes to their services while sharing a single development cluster.
 
-You can use Edge Control for developing new services, and debugging existing services.
+**New Service**: If you are a developer and you want to write a new service, it depends on existing services running in your cluster. You can use the `edgectl connect` command to set up outbound connectivity from your laptop to your cluster. This allows the work-in-progress implementation of your new service to connect to existing services from your laptop.
 
-**New Service**: If you are a developer and you want to write a new service, it depends on existing services running in your cluster. You can use the `edgectl connect` command to set up outbound connectivity from your laptop to your cluster. This allows the work-in-progress implementation of your new service to connect to existing services on your laptop.
-
-**Debugging Existing Services**: If you need to test a bug fix for an existing service running in the cluster, you can use `edgectl intercept`. Designate a subset of requests for this service as intercepted, which will then be redirected to your laptop. You can then run a modified implementation of the service to test the bug fix. All other requests will go to the existing service running in your cluster without disruption.
+**Debugging Existing Services**: If you need to test a bug fix for an existing service running in the cluster, you can use `edgectl intercept` to designate a subset of requests for this service to be redirected to your laptop. You can then run a modified implementation of the service to test the bug fix. All other requests will go to the existing service running in the cluster without disruption.
 
 To start using Edge Control:
 
