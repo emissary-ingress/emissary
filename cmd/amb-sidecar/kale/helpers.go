@@ -394,9 +394,21 @@ func deleteResource(kind, name, namespace string) error {
 }
 
 type Deploy struct {
-	Project Project
+	Project Project `json:"project"`
 	Ref     *plumbing.Reference
-	Pull    *Pull
+	Pull    *Pull `json:"pull"`
+}
+
+func (d *Deploy) MarshalJSON() ([]byte, error) {
+	result := make(map[string]interface{})
+	result["project"] = d.Project
+	result["pull"] = d.Pull
+	ref := make(map[string]interface{})
+	ref["name"] = d.Ref.Name().String()
+	ref["short"] = d.Ref.Name().Short()
+	ref["hash"] = d.Ref.Hash().String()
+	result["ref"] = ref
+	return json.Marshal(result)
 }
 
 func PrettyDeploys(deps []Deploy) string {
@@ -408,11 +420,12 @@ func PrettyDeploys(deps []Deploy) string {
 }
 
 type Pull struct {
-	Number int
-	Head   struct {
-		Ref string
-		Sha string
-	}
+	Number  int    `json:"number"`
+	HtmlUrl string `json:"html_url"`
+	Head    struct {
+		Ref string `json:"ref"`
+		Sha string `json:"sha"`
+	} `json:"head"`
 	MergeSha string `json:"merge_commit_sha"`
 }
 

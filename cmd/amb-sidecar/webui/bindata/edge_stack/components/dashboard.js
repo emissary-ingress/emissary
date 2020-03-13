@@ -5,6 +5,7 @@
 import { LitElement, html, css, svg } from '../vendor/lit-element.min.js';
 import { Snapshot } from './snapshot.js';
 import { License } from './license.js';
+import { HASH } from './hash.js';
 
 /**
  * This is a Promise-like object used to synchronize between google charts loaded callback and the
@@ -185,15 +186,15 @@ let CountsPanel = {
   draw: function(shadow_root) { /*text panel, no chart to draw*/ },
 
   onClickHosts: function() {
-    window.location.hash = "#hosts";
+    HASH.tab = "hosts";
   },
 
   onClickMappings: function() {
-    window.location.hash = "#mappings";
+    HASH.tab = "mappings";
   },
 
   onClickPlugins: function() {
-    window.location.hash = "#plugins";
+    HASH.tab = "plugins";
   }
 };
 
@@ -288,7 +289,7 @@ let StatusPanel = {
   draw: function(shadow_root) { /*text panel, no chart to draw*/ },
 
   onClick: function() {
-    window.location.hash = "#debugging";
+    HASH.tab = "debugging";
   }
 };
 
@@ -443,7 +444,7 @@ let SystemServicesPanel = {
   draw: function(shadow_root) { /*text panel, no chart to draw*/ },
 
   onClick: function() {
-    window.location.hash = "#debugging";
+    HASH.tab = "debugging";
   }
 };
 
@@ -480,7 +481,7 @@ let ResYAMLPanel = {
   draw: function(shadow_root) { /*text panel, no chart to draw*/ },
 
   onClickYAML: function() {
-    window.location.hash = "#yaml-download";
+    HASH.tab = "yaml-download";
   },
 
 };
