@@ -66,18 +66,22 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
-## [1.3.0-rc.0] March 17, 2020
-[1.3.0-rc.0]: https://github.com/datawire/ambassador/compare/v1.2.2...v1.3.0-rc.0
+## [1.3.0-rc.1] March 17, 2020
+[1.3.0-rc.1]: https://github.com/datawire/ambassador/compare/v1.2.2...v1.3.0-rc.1
 
 ### Ambassador Edge Stack
 
+- Feature: Support username and password as headers for OAuth2 authentication (`grantType: Password`)
 - Feature: `edgectl install` provides better feedback for clusters that are unreachable from the public Internet 
-- Feature: `edgectl install` supports KIND clusters
+- Feature: `edgectl install` supports KIND clusters (thanks, [@factorypreset](https://github.com/factorypreset)!)
 - Feature: `edgectl intercept` supports HTTPS
 - Feature: Ambassador Edge Stack Docker image is ~150MB smaller
 - Feature: The Edge Policy Console can be fully disabled with the `diagnostics.enable` element in the `ambassador` Module
+- Feature: `aes-plugin-runner` now allows passing in `docker run` flags after the main argument list.
 - Bugfix: Ambassador Edge Stack doesn't crash if the Developer Portal content URL is not accessible
 - Bugfix: `edgectl connect` does a better job handling clusters with many services
+- Bugfix: The `Plugin` Filter now correctly sets `request.TLS` to nil/non-nil based on if the original request was encrypted or not.
+- Change: There is no longer a separate traffic-proxy image; that functionality is now part of the main AES image. Set `command: ["traffic-manager"]` to use it.
 
 ## [1.2.2] March 4, 2020
 [1.2.2]: https://github.com/datawire/ambassador/compare/v1.2.0...v1.2.2
