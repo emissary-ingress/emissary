@@ -2,16 +2,9 @@
 
 Edge Control is the command-line tool for installing and managing the Ambassador Edge Stack. And Edge Control's outbound and intercept features allow developers to preview changes to their services while sharing a single development cluster.
 
-**New Service**: If you are a developer and you want to write a new service, it depends on existing services running in your cluster. You can use the `edgectl connect` command to set up outbound connectivity from your laptop to your cluster. This allows the work-in-progress implementation of your new service to connect to existing services from your laptop.
+If you are a developer working on a service that depends on other in-cluster services, use `edgectl connect` to set up connectivity from your laptop to the cluster. This allows software on your laptop, such as your work-in-progress service running in your debugger, to connect to other services in the cluster.
 
-**Debugging Existing Services**: If you need to test a bug fix for an existing service running in the cluster, you can use `edgectl intercept` to designate a subset of requests for this service to be redirected to your laptop. You can then run a modified implementation of the service to test the bug fix. All other requests will go to the existing service running in the cluster without disruption.
-
-To start using Edge Control:
-
-* Install on a Laptop
-* Install in a Cluster
-* Configure Outbound Services
-* Intercept Requests for Bugging
+When you want to test your service with traffic from the cluster, use `edgectl intercept` to designate a subset of requests for this service to be redirected to your laptop. You can use those requests to test and debug your local copy of the service running. All other requests will go to the existing service running in the cluster without disruption.
 
 ## Install Edge Control: Laptop
 
@@ -97,6 +90,8 @@ Now you can grab the latest binary and launch the daemon again as above.
 Depending on the type of cluster, your operations team may be involved. If you own the cluster, you will likely complete this setup yourself. If the cluster is shared, you may not have permission to complete these next steps, as the cluster owner will need to complete them.
 
 ### Traffic Manager
+
+The Traffic Manager is the central point of communication between Traffic Agents in the cluster and Edge Control Daemons on developer workstations.
 
 1. Install the Traffic Manager Kubernetes Deployment and Service using `kubectl`.
 2. Fill in the name of the AES image before applying these manifests.
@@ -184,7 +179,7 @@ deployment.apps/telepresence-proxy created
 
 ### Traffic Agent
 
-Any microservice running in a cluster with a traffic manager can opt in to intercept functionality by including the traffic agent in its pods. 
+Any microservice running in a cluster with a traffic manager can opt in to intercept functionality by including the Traffic Agent in its pods. 
 
 1. Since the Traffic Agent is built on Ambassador Edge Stack, it needs the same RBAC permissions that Ambassador does. The easiest way to provide this is to create a `ServiceAccount` in your service's namespace, bound to the `ambassador` `ClusterRole`:
 
