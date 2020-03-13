@@ -1,7 +1,6 @@
 - title: First Steps
   link: /docs/
   collapsable: false
-# need clarity / help on the very beginning here.
 - title: Install Ambassador Edge Stack
   link: /user-guide/install
   items: 
@@ -30,42 +29,21 @@
     - title: Early Access Releases
       link: /topics/install/early-access
 - title: Topics
+  collapsable: false
   items:  
     - title: Kubernetes and Ambassador
       items: 
         - title: Network Architecture
           link: /topics/concepts/kubernetes-network-architecture
-        - title: Kubernetes Ingress Differences  
-          link: 
-          # review here
-        - title: Microservices API Gateway
-          link: /topics/concepts/microservices-api-gateway
         - title: GitOps, Declarative Configuration, and CRDs
           link: /topics/concepts/gitops-continuous-delivery
-          items:
-            - title: Continuous Delivery with Declarative Config
-              link: 
-              # review here
-            - title: Self-Service Routing and Deployment Control
-              link: /topics/developers/
-            - title: Implementing GitOps with Ambassador Edge Stack
-              link: /topics/gitops-ambassador/
-            - title: Ambassador Edge Stack Configuration with Custom Resource Definitions
-              link: /topics/crds/
         - title: The Ambassador Operating Module
           link: /topics/install/aes-operator
         - title: Ambassador Architecture
           link: /topics/architecture/
-          items:
-            - title: Deployment Architecture
-              link: /topics/ambassador-deployment/
         - title: Progressive Delivery
           link: /topics/concepts/progressive-delivery
           items:
-            - title: Testing in Production
-              link: /topics/test-in-prod/
-            - title: Canary Release Concepts
-              link: /topics/canary-release/
     - title: Using Ambassador
       link: /topics/using/index
       items: 
@@ -209,57 +187,8 @@
               link: /topics/running/tls/sni
             - title: TLS Origination
               link: /topics/running/tls/origination
-        - title: Capturing Client IP Addresses
-          link: 
-          # review here
-          items: 
-            - title: The externalTrafficPolicy
-              link: 
-              # review here
-            - title: L7 Load Balancer Considerations
-              link: 
-              # review here
-        - title: Monitoring Options
-          link: 
-          # review here
-          items:
-            - title: Statistics
-              link: /topics/running/statistics/
-        - title: Plugin Services
-          link: /topics/running/services/services
-          items:
-            - title: AuthService Plugin
-              link: /topics/running/services/auth-service
-            - title: LogService Plugin
-              link: /topics/running/services/log-service
-            - title: RateLimitingService Plugin
-              link: /topics/running/services/rate-limit-service
-            - title: TracingService Plugin
-              link: /topics/running/services/tracing-service
-            - title: ExtAuthz Plugin
-              link: /topics/running/services/ext_authz
-        - title: Troubleshooting Ambassador
-          link: /topics/troubleshooting-ambassador
-          items:
-            - title: Diagnostics
-              link: /topics/running/diagnostics/
-            - title: Debugging
-              link: /topics/running/debugging/
-        - title: Ambassador as an Ingress Controller
-          link: /topics/running/ingress-controller/
-        - title: Running Multiple Instances in a Single Cluster
-          link: 
-          # review here
-    - title: The Ambassador Project
-      link: 
-      # review here
-      items:
-        - title: The Contributor's Guide
-          link: 
-          # review here
-        - title: Changelog
-          link: 
-          # review here
+        - title: Monitoring
+          link:  /topics/running/statistics/
 - title: How To
   items: 
     - title: Service Mesh Integration
@@ -296,22 +225,5 @@
           link: /howtos/cert-manager
     - title: Develop Custom Filters for Routing
       link: /howtos/custom-filter
-- title: Reference
-  items:
-    - title: CRDs
-      link: /reference/crds
-      items:
-        - title: Host CRD
-          link: 
-        - title: Mappings CRD
-          link: /reference/mappings-crd
-        - title: TLSContext CRD
-          link:  /reference/tlscontext-crd
-        - title: Filter CRD
-          link: /reference/filter-crd
-        - title: FilterPolicy CRD
-          link: /reference/filterpolicy-crd
-    - title: Environmental Variables
-      link: /reference/environment/
 - title: Frequently Asked Questions
   link: /about/faq
