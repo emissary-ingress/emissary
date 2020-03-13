@@ -192,6 +192,12 @@ class ResourceFetcher:
         if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_crds_4')):
             self.aconf.post_error("Ambassador could not find the LogService CRD definition. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...")
 
+        # We could be posting errors about the missing IngressClass resource, but given it's new in K8s 1.18
+        # and we assume most users would be worried about it when running on older clusters, we'll rely on
+        # Ambassador logs "Ambassador does not have permission to read IngressClass resources" for the moment.
+        #if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_ingress_class')):
+        #    self.aconf.post_error("Ambassador is not permitted to read IngressClass resources. Please visit https://www.getambassador.io/user-guide/ingress-controller/ for more information. You can continue using Ambassador, but IngressClass resources will be ignored...")
+
         if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_ingress')):
             self.aconf.post_error("Ambassador is not permitted to read Ingress resources. Please visit https://www.getambassador.io/user-guide/ingress-controller/ for more information. You can continue using Ambassador, but Ingress resources will be ignored...")
         
