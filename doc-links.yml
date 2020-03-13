@@ -1,51 +1,44 @@
 - title: First Steps
-  link: /docs/
   collapsable: false
+  link: /docs/
+  items:
+    - title: Quick Start
+      link: /tutorials/getting-started
 - title: Install Ambassador Edge Stack
-  link: /user-guide/install
+  link: /topics/install/install
   items: 
-  - title: Quick Start Installation Guide
-    link: /tutorials/getting-started
-  - title: Edge Policy Console
-    link: /about/edge-policy-console
-  - title: Other Install & Upgrade Options
-    items: 
-    - title: Upgrade to the Ambassador Edge Stack
-      link: /topics/install/upgrade-to-edge-stack
-    - title: Upgrade to a Newer Version
-      link: /topics/install/upgrading
-    - title: Install the Ambassador API Gateway
-      link: /topics/install/install-ambassador-oss    
-    - title: Install with Helm
-      link: /topics/install/helm
-    - title: Install with Docker
-      link: /topics/install/quickstart
-    - title: Install with Bare Metal
-      link: /topics/install/bare-metal
-    - title: Install Manually
-      link: /topics/install/manual-install  
-    - title: Ambassador Edge Stack Operator
-      link: /topics/install/aes-operator   
-    - title: Early Access Releases
-      link: /topics/install/early-access
-- title: Topics
+  - title: Install with Helm
+    link: /topics/install/helm  
+  - title: Upgrade to the Ambassador Edge Stack
+    link: /topics/install/upgrade-to-edge-stack
+  - title: Upgrade to a Newer Version
+    link: /topics/install/upgrading
+  - title: Install the Ambassador API Gateway
+    link: /topics/install/install-ambassador-oss
+  - title: Install with Docker
+    link: /topics/install/quickstart
+  - title: Install with Bare Metal
+    link: /topics/install/bare-metal
+  - title: Install Manually
+    link: /topics/install/manual-install  
+  - title: Ambassador Edge Stack Operator
+    link: /topics/install/aes-operator   
+- title: Running and Using Ambassador
   collapsable: false
   items:  
-    - title: Kubernetes and Ambassador
+    - title: Core Concepts
+      link: /topics/concepts/
       items: 
-        - title: Network Architecture
+        - title: Kubernetes Network Architecture
           link: /topics/concepts/kubernetes-network-architecture
-        - title: GitOps, Declarative Configuration, and CRDs
+        - title: "The Ambassador Operating Model: GitOps and Continuous Delivery"
           link: /topics/concepts/gitops-continuous-delivery
-        - title: The Ambassador Operating Module
-          link: /topics/install/aes-operator
-        - title: Ambassador Architecture
-          link: /topics/architecture/
         - title: Progressive Delivery
           link: /topics/concepts/progressive-delivery
-          items:
+        - title: Microservices API Gateways
+          link: /topics/concepts/microservices-api-gateways
     - title: Using Ambassador
-      link: /topics/using/index
+      link: /topics/using/
       items: 
         - title: The Mapping Object
           link: /topics/using/intro-mappings
@@ -58,25 +51,35 @@
               link: /topics/using/canary
             - title: Circuit Breakers
               link: /topics/using/circuit-breakers
-            - title: CORS
+            - title: Cross-Origin Resource Sharing
               link: /topics/using/cors
             - title: Headers
-              link: /topics/using/headers
+              link: /topics/using/headers/headers
               items: 
                 - title: Add Request Headers
-                  link: /topics/using/headers/add-request-headers
+                  link: /topics/using/headers/add_request_headers
                 - title: Remove Request Headers
-                  link: /topics/using/headers/remove-request-headers
+                  link: /topics/using/headers/remove_request_headers
                 - title: Add Response Headers
-                  link: /topics/using/headers/add-response-headers
+                  link: /topics/using/headers/add_response_headers
                 - title: Remove Response Headers
-                  link: /topics/using/headers/remove-response-headers
+                  link: /topics/using/headers/remove_response_headers
                 - title: Header Based Routing
-                  link: /topics/using/headers/header-based-routing
+                  link: /topics/using/headers/header_based_routing
                 - title: Host Header
-                  link: /topics/using/headers/host-header
+                  link: /topics/using/headers/host_header
+            - title:: Keepalive
+              link: /topics/using/keepalive
             - title: Prefix Regex
               link: /topics/using/prefix_regex
+            - title: Protocols
+              items:
+                - title: TCP
+                  link: /topics/using/tcpmappings
+                - title: gRPC and gRPC-Web
+                  link: /howtos/grpc
+                - title: WebSockets
+                  link: /topics/howtos/websockets
             - title: Rate Limits
               link: /topics/using/rate-limits/index
               items:
@@ -90,18 +93,6 @@
               link: /topics/using/redirects
             - title: Rewrites
               link: /topics/using/rewrites
-            - title: Protocols Overview
-              items:
-                - title: ExternalFilter
-                  link: /topics/using/filters/external
-                - title: TCP Mappings
-                  link: /topics/using/tcpmappings
-                - title: gRPC and gRPC-Web
-                  link: /howtos/grpc
-                - title: HTTP/1.0
-                  link: /topics/http1
-                - title: WebSockets
-                  link: /topics/howtos/websockets
             - title: Timeouts
               link: /topics/using/timeouts
             - title: Traffic Shadowing
@@ -141,11 +132,15 @@
             - title: Filter Plugin Policy for Access Control
               link: /topics/access-control/
         - title: Edge Control
-          link: /topics/using/edgectl/edge-control
+          items:
+            - title: Introduction to Edge Control
+              link: /topics/using/edge-control
+            - title: Using Edge Control in CI
+              link: /topics/using/edge-control-in-ci
         - title: Developer Portal
           link: /topics/using/dev-portal
         - title: Edge Policy Console
-          link: /topics/edge-policy-console
+          link: /topics/using/edge-policy-console
     - title: Running Ambassador in Production
       link: /topics/running/index
       items: 
@@ -189,7 +184,7 @@
               link: /topics/running/tls/origination
         - title: Monitoring
           link:  /topics/running/statistics/
-- title: How To
+- title: How To Guides
   items: 
     - title: Service Mesh Integration
       items:
