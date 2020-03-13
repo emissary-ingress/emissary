@@ -126,7 +126,7 @@ func TestClientCredentials(t *testing.T) {
 	}
 }
 
-func TestHeaderCredentials(t *testing.T) {
+func TestPassword(t *testing.T) {
 	u := urlMust(url.Parse("https://ambassador.ambassador.svc.cluster.local/azure-header-credentials/httpbin/headers"))
 
 	// Lifted from idp_azure.js

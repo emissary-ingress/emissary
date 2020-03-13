@@ -15,7 +15,7 @@ import (
 const (
 	GrantType_AuthorizationCode = "AuthorizationCode"
 	GrantType_ClientCredentials = "ClientCredentials"
-	GrantType_HeaderCredentials = "HeaderCredentials"
+	GrantType_Password          = "Password"
 )
 
 type FilterOAuth2 struct {
@@ -135,7 +135,7 @@ func (m *FilterOAuth2) Validate(namespace string, secretsGetter coreV1client.Sec
 			return errors.New("it is invalid to set 'secretNamespace' when 'grantType==ClientCredentials'")
 		}
 
-	case GrantType_HeaderCredentials:
+	case GrantType_Password:
 		if m.RawClientURL != "" {
 			return errors.New("it is invalid to set 'clientURL' when 'grantType==HeaderCrentials'")
 		}
@@ -163,7 +163,7 @@ func (m *FilterOAuth2) Validate(namespace string, secretsGetter coreV1client.Sec
 			m.GrantType,
 			[]string{GrantType_AuthorizationCode,
 				GrantType_ClientCredentials,
-				GrantType_HeaderCredentials})
+				GrantType_Password})
 	}
 
 	if m.RawMaxStale != "" {

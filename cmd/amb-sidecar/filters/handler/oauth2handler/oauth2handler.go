@@ -143,7 +143,7 @@ func (f *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequ
 				RunJWTFilter: f.RunJWTFilter,
 			},
 		}
-	case crd.GrantType_HeaderCredentials:
+	case crd.GrantType_Password:
 		oauth2client = &header_credentials_client.OAuth2Client{
 			QName:     f.QName,
 			Spec:      f.Spec,
