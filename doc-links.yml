@@ -1,35 +1,34 @@
-- title: Welcome
+- title: First Steps
   link: /docs/
   collapsable: false
-
-  
+# need clarity / help on the very beginning here.
 - title: Install Ambassador Edge Stack
   link: /user-guide/install
   items: 
   - title: Quick Start Installation Guide
-    link: /user-guide/getting-started
+    link: /tutorials/getting-started
   - title: Edge Policy Console
     link: /about/edge-policy-console
   - title: Other Install & Upgrade Options
     items: 
     - title: Upgrade to the Ambassador Edge Stack
-      link: /user-guide/upgrade-to-edge-stack
+      link: /topics/install/upgrade-to-edge-stack
     - title: Upgrade to a Newer Version
-      link: /reference/upgrading
+      link: /topics/install/upgrading
     - title: Install the Ambassador API Gateway
-      link: /user-guide/install-ambassador-oss    
+      link: /topics/install/install-ambassador-oss    
     - title: Install with Helm
-      link: /user-guide/helm
+      link: /topics/install/helm
     - title: Install with Docker
-      link: /about/quickstart
+      link: /topics/install/quickstart
     - title: Install with Bare Metal
-      link: /user-guide/bare-metal
+      link: /topics/install/bare-metal
     - title: Install Manually
-      link: /user-guide/manual-install  
+      link: /topics/install/manual-install  
     - title: Ambassador Edge Stack Operator
-      link: /user-guide/aes-operator   
+      link: /topics/install/aes-operator   
     - title: Early Access Releases
-      link: /user-guide/early-access
+      link: /topics/install/early-access
 - title: Topics
   items:  
     - title: Kubernetes and Ambassador
@@ -37,12 +36,16 @@
         - title: Network Architecture
           link: /topics/concepts/kubernetes-network-architecture
         - title: Kubernetes Ingress Differences  
-          link: /topics/k8s-ingress-differences
+          link: 
+          # review here
+        - title: Microservices API Gateway
+          link: /topics/concepts/microservices-api-gateway
         - title: GitOps, Declarative Configuration, and CRDs
           link: /topics/concepts/gitops-continuous-delivery
           items:
-            - title:  Continuous Delivery with Declarative Config
-              link: /topics/concepts/gitops-continuous-delivery
+            - title: Continuous Delivery with Declarative Config
+              link: 
+              # review here
             - title: Self-Service Routing and Deployment Control
               link: /topics/developers/
             - title: Implementing GitOps with Ambassador Edge Stack
@@ -50,7 +53,7 @@
             - title: Ambassador Edge Stack Configuration with Custom Resource Definitions
               link: /topics/crds/
         - title: The Ambassador Operating Module
-          link: /topics/aes-operator
+          link: /topics/install/aes-operator
         - title: Ambassador Architecture
           link: /topics/architecture/
           items:
@@ -67,70 +70,65 @@
       link: /topics/using/index
       items: 
         - title: The Mapping Object
-          link: /topics/mappings
-          items: 
-            - title: Example Mappings YAML
-              link: /topics/mappings-yaml
+          link: /topics/using/intro-mappings
         - title: Mapping Configuration
-          link: /topics/mapping-config
+          link: /topics/using/mappings
           items: 
             - title: Automatic Retries
-              link: /topics/retries
+              link: /topics/using/retries
             - title: Canary Releases
-              link: /topics/canary
+              link: /topics/using/canary
             - title: Circuit Breakers
-              link: /topics/circuit-breakers
+              link: /topics/using/circuit-breakers
             - title: CORS
-              link: /topics/cors
+              link: /topics/using/cors
             - title: Headers
-              link: /topics/headers
+              link: /topics/using/headers
               items: 
                 - title: Add Request Headers
-                  link: /topics/add-request-headers
+                  link: /topics/using/headers/add-request-headers
                 - title: Remove Request Headers
-                  link: /topics/remove-request-headers
+                  link: /topics/using/headers/remove-request-headers
                 - title: Add Response Headers
-                  link: /topics/add-response-headers
+                  link: /topics/using/headers/add-response-headers
                 - title: Remove Response Headers
-                  link: /topics/remove-response-headers
+                  link: /topics/using/headers/remove-response-headers
                 - title: Header Based Routing
-                  link: /topics/header-based-routing
+                  link: /topics/using/headers/header-based-routing
                 - title: Host Header
-                  link: /topics/host-header
+                  link: /topics/using/headers/host-header
             - title: Prefix Regex
-              link: /topics/prefix_regex
+              link: /topics/using/prefix_regex
             - title: Rate Limits
-              link: /topics/rate-limits
+              link: /topics/using/rate-limits/index
               items:
                 - title: Rate Limiting Concepts
-                  link: /topics/rate-limiting/
+                  link: /topics/using/rate-limits/rate-limots
                 - title: Rate Limiting Tutorial
-                  link: /topics/rate-limiting-tutorial/
+                  link: /topics/howtos/rate-limiting-tutorial
                 - title: Advanced Rate Limiting
-                  link: topics/advanced-rate-limiting/
+                  link: /howtos/advanced-rate-limiting/
             - title: Redirects
-              link: /topics/redirects
+              link: /topics/using/redirects
             - title: Rewrites
-              link: /topics/rewrites
+              link: /topics/using/rewrites
             - title: Protocols Overview
-              link: /topics/protocols-overview
               items:
-                - title: Envoy and External Authorization
+                - title: ExternalFilter
                   link: /topics/using/filters/external
                 - title: TCP Mappings
-                  link: /topics/tcpmappings
+                  link: /topics/using/tcpmappings
                 - title: gRPC and gRPC-Web
-                  link: /topics/howtos/grpc
+                  link: /howtos/grpc
                 - title: HTTP/1.0
                   link: /topics/http1
                 - title: WebSockets
                   link: /topics/howtos/websockets
             - title: Timeouts
-              link: /topics/timeouts
+              link: /topics/using/timeouts
             - title: Traffic Shadowing
-              link: /topics/shadowing
+              link: /topics/using/shadowing
         - title: Filters and Authentication
-          link: /topics/using/filters/index
           items:  
             - title: OAuth and OIDC Overview
               link: /topics/using/filters/index
@@ -165,9 +163,9 @@
             - title: Filter Plugin Policy for Access Control
               link: /topics/access-control/
         - title: Edge Control
-          link: /topics/edge-control
+          link: /topics/using/edgectl/edge-control
         - title: Developer Portal
-          link: /topics/dev-portal
+          link: /topics/using/dev-portal
         - title: Edge Policy Console
           link: /topics/edge-policy-console
     - title: Running Ambassador in Production
@@ -212,19 +210,23 @@
             - title: TLS Origination
               link: /topics/running/tls/origination
         - title: Capturing Client IP Addresses
-          link: /topics/client-ip-address
+          link: 
+          # review here
           items: 
             - title: The externalTrafficPolicy
-              link: /topics/externalTrafficPolicy
+              link: 
+              # review here
             - title: L7 Load Balancer Considerations
               link: 
+              # review here
         - title: Monitoring Options
-          link: /topics/monitoring/
+          link: 
+          # review here
           items:
             - title: Statistics
               link: /topics/running/statistics/
         - title: Plugin Services
-          link: /topics/running/services/
+          link: /topics/running/services/services
           items:
             - title: AuthService Plugin
               link: /topics/running/services/auth-service
@@ -246,38 +248,38 @@
         - title: Ambassador as an Ingress Controller
           link: /topics/running/ingress-controller/
         - title: Running Multiple Instances in a Single Cluster
-          link: /topics/running-multi-ambassador-cluster
+          link: 
+          # review here
     - title: The Ambassador Project
-      link: /topics/ambassador-project
+      link: 
+      # review here
       items:
         - title: The Contributor's Guide
-          link: /topics/contributors-guide
+          link: 
+          # review here
         - title: Changelog
-          link: /topics/changelog
+          link: 
+          # review here
 - title: How To
   items: 
     - title: Service Mesh Integration
-      link: /howtos/service-mesh
       items:
         - title: Consul
           link: /howtos/consul
         - title: Istio
-          link: /howtos/istio
+          link: /howtos/with-istio
         - title: Linkerd2
           link: /howtos/linkerd2
     - title: Distributed Tracing
-      link: /howtos/tracing-tutorial/
+      link: /howtos/tracing-tutorial/ 
       items:
         - title: DataDog
-          link: /howtos/tracing/datadog
+          link: /howtos/tracing-datadog
         - title: Zipkin
-          link: /howtos/tracing/zipkin
+          link: /howtos/tracing-zipkin
         - title: Knative
           link: /howtos/tracing/knative
-    - title: External DNS
-      link: /howtos/external-dns
-    - title: External Routing
-      link: /howtos/external-routing
+    - title: External DNS Routing
       items:
         - title: Route to a Service
           link: /howtos/route-to-service
@@ -288,6 +290,8 @@
     - title: Authentication and Security
       link: /howtos/auth-and-sec
       items:
+        - title: Basic Authentication Tutorial
+          link: /howtos/basic-auth
         - title: Using a cert-manager
           link: /howtos/cert-manager
     - title: Develop Custom Filters for Routing
@@ -310,4 +314,4 @@
     - title: Environmental Variables
       link: /reference/environment/
 - title: Frequently Asked Questions
-  link: /faq/index
+  link: /about/faq
