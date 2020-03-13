@@ -10,7 +10,6 @@ import (
 	"os"
 	"os/signal"
 	"sort"
-	// "strings"
 	"sync"
 	"syscall"
 	"time"
@@ -153,36 +152,32 @@ func (state *ProxyState) publish(deployment string) error {
 
 // Track that a deployment exists, handle long poll to get routes
 func (state *ProxyState) handleRoutes(w http.ResponseWriter, r *http.Request) {
-	state.mutex.Lock()
-	locked := true
-	defer func() {
-		if locked {
-			state.mutex.Unlock()
+	func () {
+		state.mutex.Lock()
+		defer state.mutex.Unlock()
+
+		deployment := r.URL.Query().Get("category")
+		if len(deployment) == 0 {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Missing required URL param: category"))
+			return
+		}
+		dInfo := state.Deployments[deployment]
+		if dInfo == nil {
+			dInfo = &DeploymentInfo{
+				Intercepts:  make([]*InterceptInfo, 0),
+				LastQueryAt: time.Now(),
+			}
+			state.Deployments[deployment] = dInfo
+			err := state.publish(deployment)
+			if err != nil {
+				panic(err)
+			}
+		} else {
+			dInfo.LastQueryAt = time.Now()
 		}
 	}()
 
-	deployment := r.URL.Query().Get("category")
-	if len(deployment) == 0 {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Missing required URL param: category"))
-		return
-	}
-	dInfo := state.Deployments[deployment]
-	if dInfo == nil {
-		dInfo = &DeploymentInfo{
-			Intercepts:  make([]*InterceptInfo, 0),
-			LastQueryAt: time.Now(),
-		}
-		state.Deployments[deployment] = dInfo // FIXME need to garbage collect
-		err := state.publish(deployment)
-		if err != nil {
-			panic(err)
-		}
-	} else {
-		dInfo.LastQueryAt = time.Now()
-	}
-	state.mutex.Unlock()
-	locked = false
 	state.manager.SubscriptionHandler(w, r)
 }
 
@@ -358,35 +353,54 @@ func (state *ProxyState) handleIntercept(w http.ResponseWriter, r *http.Request)
 }
 
 // cleanup expired proxy requests
-func (state *ProxyState) cleanup() {
+func (state *ProxyState) cleanup(p *supervisor.Process) {
 	state.mutex.Lock()
 	defer state.mutex.Unlock()
 
-	// log.Printf("cleanup: started")
+	keepMsg := []string{}
+	expireMsg := []string{}
+	expireDeploys := []string{}
 	for deployment, dinfo := range state.Deployments {
+		// Expire deployments that haven't updated within the last 2 minutes
+		msg := fmt.Sprintf("deploy/%s", deployment)
+		if time.Since(dinfo.LastQueryAt) > 2*time.Minute {
+			expireMsg = append(expireMsg, msg)
+			expireDeploys = append(expireDeploys, deployment)
+			continue
+		}
+		keepMsg = append(keepMsg, msg)
+
 		var remaining []*InterceptInfo
-		var freePorts []int
+		var freedPorts []int
 		for _, intercept := range dinfo.Intercepts {
-			// only keep intercepts older than 10 seconds
+			msg := fmt.Sprintf("cept/%s:%d", deployment, intercept.Port)
+			// only keep intercepts that updated within the last 10 seconds
 			if time.Since(intercept.LastQueryAt) < 10*time.Second {
 				remaining = append(remaining, intercept)
-				fmt.Printf("cleanup: keeping intercept %s:%d", deployment, intercept.Port)
+				keepMsg = append(keepMsg, msg)
 			} else {
-				fmt.Printf("cleanup: expiring intercept %s:%d", deployment, intercept.Port)
-				freePorts = append(freePorts, intercept.Port)
+				freedPorts = append(freedPorts, intercept.Port)
+				expireMsg = append(expireMsg, msg)
 			}
 		}
-		if len(freePorts) > 0 {
+		if len(freedPorts) > 0 {
 			dinfo.Intercepts = remaining
-			state.FreePorts = append(state.FreePorts, freePorts...)
+			state.FreePorts = append(state.FreePorts, freedPorts...)
 			// Post an event to update the deployment's pods
 			err := state.publish(deployment)
 			if err != nil {
-				log.Printf("cleanup: error! %v", err)
+				p.Logf("error posting to %s: %v", deployment, err)
 			}
 		}
 	}
-	// log.Printf("cleanup: finished")
+
+	for _, deployment := range expireDeploys {
+		delete(state.Deployments, deployment)
+	}
+
+	if len(expireMsg) > 0 {
+		p.Logf("Keeping %q; Expiring %q", keepMsg, expireMsg)
+	}
 }
 
 func updateTable(p *supervisor.Process, w *k8s.Watcher, state *ProxyState) {
@@ -485,13 +499,6 @@ func Main() {
 	argparser.PersistentPreRun = func(cmd *cobra.Command, args []string) {
 		licenseClaims, err := cmdContext.GetClaims()
 
-		// body, err := json.MarshalIndent(licenseClaims, "", "  ")
-		// if err != nil {
-		// 	panic(err)
-		// }
-
-		// fmt.Printf("Claims: %s\n", string(body))
-
 		if err == nil {
 			err = licenseClaims.RequireFeature(licensekeys.FeatureTraffic)
 		}
@@ -561,7 +568,7 @@ func Run(flags *cobra.Command, args []string) error {
 			for {
 				select {
 				case <-ticker.C:
-					state.cleanup()
+					state.cleanup(p)
 				case <-p.Shutdown():
 					return nil
 				}
