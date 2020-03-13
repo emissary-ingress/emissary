@@ -1,42 +1,33 @@
-# Welcome
+# Ambassador Edge Stack Documentation
 
-The Ambassador Edge Stack is a free, comprehensive, self-service edge stack that is Kubernetes-native and built on [Envoy Proxy](https://www.envoyproxy.io/). With the Ambassador Edge Stack, application developers can independently manage their edge (e.g., authentication, routing, rate limiting) without centralized operational intervention, reducing toil. The Ambassador Edge Stack provides a comprehensive set of capabilities for the edge ranging from traffic management (e.g., rate limiting, load balancing), security (e.g., TLS, single sign-on, rate limiting), and developer onboarding (e.g., developer portal, Swagger/OpenAPI support).
+The Ambassador Edge Stack is a comprehensive, self-service edge stack and API Gateway for Kubernetes built on [Envoy Proxy](https://www.envoyproxy.io/). The shift to Kubernetes and microservices has profound consequences for the capabilities you need at the edge, as well as how you manage the edge. The Ambassador Edge Stack has been engineered with this world in mind.
 
 ## First Steps
 
-If this is your first time using the Ambassador Edge Stack, you'll want to take full advantage of tutorials. 
-* The [Quick Start Guide]
-* Create a Mapping (and see it in the Dev Portal and the Edge Policy Console
-* Link Ambassador to your existing Project
-* Configure Authentication with Keycloak and Github
-* Set up Monitoring with Prometheus and Grafana
+New to Ambassador Edge Stack? Start here! We've worked hard to make installing and using Ambassador Edge Stack as easy as possible.
+
+* The [Quick Start Guide](/tutorials/getting-started)
+
+## Getting help
+
+We're happy to help!
+
+* The [FAQ](/about/faq) has answers to many common questions
+* Join our open source [Slack channel](https://d6e.co/slack)
+* Report bugs in [GitHub](https://github.com/datawire/ambassador)
+* Need commercial support? [Contact us](https://www.getambassador.io/contact/)
 
 ## How the Documentation is Organized
 
-### Topic Guides
-Learn about the way Ambassador works with Kubernetes, how to get the most out of the Edge Stack, and running in production. Take a look at:
+We work hard at keeping our documentation useful for all of our users. Here's an overview:
 
-* Installation options
-* The core concepts of Ambassador and Kubernetes
-* Using Ambassador to manage microservices
-* Running in production and using canary releases
-* Filters, Mappings, and authentication
+* [Installation](/install) covers the different ways to install and upgrade Ambassador, including Helm, Docker, and manual YAML install.
+* [Running and Using Ambassador](/topics) introduce key concepts of Ambassador. This section is broken into three main areas:
+  * [Core Concepts](/topics/concepts) covers the core principles of Ambassador. Kubernetes and cloud-native development is different, and we explain how to use Ambassador in this context.
+  * [Using Ambassador](/topics/using) is designed for app developers and other users of Ambassador.
+  * [Running Ambassador](/topics/running) is for operators, site reliability engineers, and other Ambassador users who are responsible for running Ambassador in production.
+* [HOWTO Guides](/howtos) are recipes for configuring Ambassador to address specific challenges such as Single Sign-On, rate limiting, or integrating with a service mesh. They assume some general knowledge of Ambassador.
 
-### How-To Guides
-
-The **How-to Guides** provide instructions to set up integrations, plugins, IdPs, and other important configurations. Check out what we have:
-
-* Service Mesh integrations
-* Distributed Tracing
-* External DNS and Routing
-* Authentication and Security
-
-<FeaturesBlock />
-
-## The Ambassador Community
-
-It's easy to get started with Ambassador Edge Stack. Follow the Quick
-Start guide to map to your services in your Ambassador Edge Stack
-instance now!
+It's easy to get started with Ambassador Edge Stack. Get started now:
 
 <Button color="orange" to="/user-guide/getting-started/">Begin Quick Start</Button>

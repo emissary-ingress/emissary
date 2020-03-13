@@ -238,3 +238,9 @@
       link: /howtos/websockets
 - title: Frequently Asked Questions
   link: /about/faq
+- title: Community
+  items:
+    - title: Contributor's Guide
+      link: https://github.com/datawire/ambassador/blob/master/DEVELOPING.md
+    - title: CHANGELOG
+      link: https://github.com/datawire/ambassador/blob/master/CHANGELOG.md
