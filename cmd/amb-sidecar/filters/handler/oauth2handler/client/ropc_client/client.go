@@ -1,4 +1,4 @@
-package header_credentials_client
+package ropc_client
 
 import (
 	"context"
