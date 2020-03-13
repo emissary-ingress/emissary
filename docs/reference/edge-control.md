@@ -343,6 +343,17 @@ Key points include:
 
 In the future we will offer a tool to automate injecting the traffic agent into an existing microservice.
 
+#### TLS Support
+
+If other microservices in the cluster expect to speak TLS to this microservice, tell the Traffic Agent to terminate TLS:
+- Set the `AGENT_TLS_TERM_SECRET` environment variable to the name of a Kubernetes Secret that contains a TLS certificate
+- The Traffic Agent will terminate TLS on port 8443 (not port 8080) using the named certificate
+- The Kubernetes Service above must point to port 8443, not 8080 (and not the application's port)
+
+If this microservice expects incoming requests to speak TLS, tell the Traffic Agent to originate TLS:
+- Set the `AGENT_TLS_ORIG_SECRET` environment variable to the name of a Kubernetes Secret that contains a TLS certificate
+- The Traffic Agent will use that certificate originate HTTPS requests to the application
+
 ## Usage: Outbound Services
 
 1. Starting with an empty cluster, add the simple microservice from above.
