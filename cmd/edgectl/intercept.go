@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -38,6 +37,11 @@ type InterceptInfo struct {
 	TargetPort int
 }
 
+// path returns the URL path for this intercept
+func (ii *InterceptInfo) path() string {
+	return fmt.Sprintf("intercept/%s/%s", ii.Namespace, ii.Deployment)
+}
+
 // Acquire an intercept from the traffic manager
 func (ii *InterceptInfo) Acquire(_ *supervisor.Process, tm *TrafficManager) (int, error) {
 	reqPatterns := make([]map[string]string, 0, len(ii.Patterns))
@@ -54,8 +58,7 @@ func (ii *InterceptInfo) Acquire(_ *supervisor.Process, tm *TrafficManager) (int
 		return 0, err
 	}
 
-	requestUrl := fmt.Sprintf("intercept/%s/%s", ii.Namespace, ii.Deployment)
-	result, code, err := tm.request("POST", requestUrl, reqData)
+	result, code, err := tm.request("POST", ii.path(), reqData)
 	if err != nil {
 		return 0, errors.Wrap(err, "acquire intercept")
 	}
@@ -76,7 +79,7 @@ func (ii *InterceptInfo) Acquire(_ *supervisor.Process, tm *TrafficManager) (int
 // five seconds or so.
 func (ii *InterceptInfo) Retain(_ *supervisor.Process, tm *TrafficManager, port int) error {
 	data := []byte(fmt.Sprintf("{\"port\": %d}", port))
-	result, code, err := tm.request("POST", "intercept/"+ii.Deployment, data)
+	result, code, err := tm.request("POST", ii.path(), data)
 	if err != nil {
 		return errors.Wrap(err, "retain intercept")
 	}
@@ -89,7 +92,7 @@ func (ii *InterceptInfo) Retain(_ *supervisor.Process, tm *TrafficManager, port 
 // Release the given intercept.
 func (ii *InterceptInfo) Release(_ *supervisor.Process, tm *TrafficManager, port int) error {
 	data := []byte(fmt.Sprintf("%d", port))
-	result, code, err := tm.request("DELETE", "intercept/"+ii.Deployment, data)
+	result, code, err := tm.request("DELETE", ii.path(), data)
 	if err != nil {
 		return errors.Wrap(err, "release intercept")
 	}
@@ -318,7 +321,7 @@ func MakeIntercept(p *supervisor.Process, out *Emitter, tm *TrafficManager, clus
 		Spec: mappingSpec{
 			AmbassadorID: []string{fmt.Sprintf("intercept-%s", ii.Deployment)},
 			Prefix:       ii.Prefix,
-			Service:      fmt.Sprintf("telepresence-proxy.%s:%d", cluster.namespace, port),
+			Service:      fmt.Sprintf("telepresence-proxy.%s:%d", tm.namespace, port),
 			Headers:      ii.Patterns,
 		},
 	}
@@ -329,13 +332,10 @@ func MakeIntercept(p *supervisor.Process, out *Emitter, tm *TrafficManager, clus
 		return nil, errors.Wrap(err, "Intercept: mapping could not be constructed")
 	}
 
-	p.Logf("%s: Intercept using mapping %v", ii.Name, string(manifest))
 	out.Printf("%s: applying intercept mapping in namespace %s\n", ii.Name, ii.Namespace)
 
 	apply := cluster.GetKubectlCmdNoNamespace(p, "apply", "-f", "-")
 	apply.Stdin = strings.NewReader(string(manifest))
-	apply.Stdout = os.Stdout
-	apply.Stderr = os.Stderr
 	err = apply.Run()
 
 	if err != nil {
