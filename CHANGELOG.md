@@ -6,7 +6,7 @@ releases. Please keep it up to date.
 
 ## next (TBD)
 
-- Feature: Support username and password as headers for OAuth2 authentication (`grantType: HeaderCredentials`)
+- Feature: Support username and password as headers for OAuth2 authentication (`grantType: Password`)
 - Bugfix: The Edge Policy Console now honors the `diagnostics.enabled` setting in the `ambassador` Module
 - Bugfix: If the `DEVPORTAL_CONTENT_URL` is not accessible, log a warning but don't crash.
 - Change: There is no longer a separate traffic-proxy image; that functionality is now part of the main AES image. Set `command: ["traffic-manager"]` to use it.
