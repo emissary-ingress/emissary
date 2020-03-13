@@ -136,14 +136,9 @@ func (m *FilterOAuth2) Validate(namespace string, secretsGetter coreV1client.Sec
 		}
 
 	case GrantType_HeaderCredentials:
-		u, err = url.Parse(m.RawClientURL)
-		if err != nil {
-			return errors.Wrapf(err, "parsing clientURL: %q", m.RawClientURL)
+		if m.RawClientURL != "" {
+			return errors.New("it is invalid to set 'clientURL' when 'grantType==HeaderCrentials'")
 		}
-		if !u.IsAbs() {
-			return errors.New("clientURL is not an absolute URL")
-		}
-		m.ClientURL = u
 
 		if m.SecretName != "" {
 			if m.Secret != "" {
