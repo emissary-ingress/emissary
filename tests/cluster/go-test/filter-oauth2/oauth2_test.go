@@ -130,13 +130,13 @@ func TestHeaderCredentials(t *testing.T) {
 	u := urlMust(url.Parse("https://ambassador.ambassador.svc.cluster.local/azure-header-credentials/httpbin/headers"))
 
 	// Lifted from idp_azure.js
-	username := "testuser@aprotesting.onmicrosoft.com",
-	password := "6qak5GgDMgd/6iNFfuw5jA==",
+	username := "testuser@aprotesting.onmicrosoft.com"
+	password := "6qak5GgDMgd/6iNFfuw5jA=="
 
 	testcases := map[string]testcase{
 		"empty":   {URL: u, Header: nil, ExpectedStatus: http.StatusForbidden},
-		"valid":   {URL: u, Header: http.Header{"X-Ambassador-Username": { username }, "X-Ambassador-Password": { password }}, ExpectedStatus: http.StatusOK},
-		"invalid": {URL: u, Header: http.Header{"X-Ambassador-Username": { username }, "X-Ambassador-Password": { "bogus" }}, ExpectedStatus: http.StatusForbidden},
+		"valid":   {URL: u, Header: http.Header{"X-Ambassador-Username": {username}, "X-Ambassador-Password": {password}}, ExpectedStatus: http.StatusOK},
+		"invalid": {URL: u, Header: http.Header{"X-Ambassador-Username": {username}, "X-Ambassador-Password": {"bogus"}}, ExpectedStatus: http.StatusForbidden},
 	}
 
 	for tcName, tc := range testcases {
