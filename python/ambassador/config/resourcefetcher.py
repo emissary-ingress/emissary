@@ -494,12 +494,16 @@ class ResourceFetcher:
             self.logger.info(f'IngressClass {ingress_class_name} does not have Ambassador ID {Config.ambassador_id}, ignoring...')
             return None
 
-        # TODO: What do we actually intend to do with those parameters?
+        # TODO: Do we intend to use this parameter in any way?
         # `parameters` is of type TypedLocalObjectReference,
         # meaning it links to another k8s resource in the same namespace.
-        # It could be a ConfigMap or a CRD... usage is not prescribed.
         # https://godoc.org/k8s.io/api/core/v1#TypedLocalObjectReference
-        # IngressClass is not namespaced, but TypedLocalObjectReference is? Hum... TBD with SIG-Network
+        #
+        # In this case, the resource referenced by TypedLocalObjectReference
+        # should not be namespaced, as IngressClass is a non-namespaced resource.
+        #
+        # It was designed to reference a CRD for this specific ingress-controller
+        # implementation... although usage is optional and not prescribed.
         ingress_parameters = ingress_class_spec.get('parameters', {})
 
         self.logger.info(f'Handling IngressClass {ingress_class_name} with parameters {ingress_parameters}...')
