@@ -32,7 +32,7 @@ type OpenIDConfig struct {
 	JSONWebKeySetURI string `json:"jwks_uri"`
 }
 
-// Discovered stors the results (well, the subset of the results that
+// Discovered stores the results (well, the subset of the results that
 // we're interested in) from performing OIDC Discovery.
 type Discovered struct {
 	Issuer                string
