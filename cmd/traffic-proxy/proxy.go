@@ -152,36 +152,32 @@ func (state *ProxyState) publish(deployment string) error {
 
 // Track that a deployment exists, handle long poll to get routes
 func (state *ProxyState) handleRoutes(w http.ResponseWriter, r *http.Request) {
-	state.mutex.Lock()
-	locked := true
-	defer func() {
-		if locked {
-			state.mutex.Unlock()
+	func () {
+		state.mutex.Lock()
+		defer state.mutex.Unlock()
+
+		deployment := r.URL.Query().Get("category")
+		if len(deployment) == 0 {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Missing required URL param: category"))
+			return
+		}
+		dInfo := state.Deployments[deployment]
+		if dInfo == nil {
+			dInfo = &DeploymentInfo{
+				Intercepts:  make([]*InterceptInfo, 0),
+				LastQueryAt: time.Now(),
+			}
+			state.Deployments[deployment] = dInfo
+			err := state.publish(deployment)
+			if err != nil {
+				panic(err)
+			}
+		} else {
+			dInfo.LastQueryAt = time.Now()
 		}
 	}()
 
-	deployment := r.URL.Query().Get("category")
-	if len(deployment) == 0 {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Missing required URL param: category"))
-		return
-	}
-	dInfo := state.Deployments[deployment]
-	if dInfo == nil {
-		dInfo = &DeploymentInfo{
-			Intercepts:  make([]*InterceptInfo, 0),
-			LastQueryAt: time.Now(),
-		}
-		state.Deployments[deployment] = dInfo
-		err := state.publish(deployment)
-		if err != nil {
-			panic(err)
-		}
-	} else {
-		dInfo.LastQueryAt = time.Now()
-	}
-	state.mutex.Unlock()
-	locked = false
 	state.manager.SubscriptionHandler(w, r)
 }
 
