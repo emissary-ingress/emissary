@@ -12,7 +12,7 @@ the Kubernetes world with:
 * API management capabilities such as a developer portal and OpenID Connect integration for Single Sign-On.
 * A declarative, self-service management model built on Kubernetes Custom Resource Definitions, enabling GitOps-style continuous delivery workflows.
 
-We've written about [why we built Ambassador](https://blog.getambassador.io/building-ambassador-an-open-source-api-gateway-on-kubernetes-and-envoy-ed01ed520844) and about the [evolution of API Gateways](/about/microservices-api-gateways/).
+We've written about [the history of Ambassador](https://blog.getambassador.io/building-ambassador-an-open-source-api-gateway-on-kubernetes-and-envoy-ed01ed520844), [Why Ambassador In Depth](why-ambassador), [Features and Benefits](features-and-benefits) and about the [evolution of API Gateways](/topics/concepts/microservices-api-gateways/).
 
 ### What's the difference between the Ambassador API Gateway and the Ambassador Edge Stack?
 
