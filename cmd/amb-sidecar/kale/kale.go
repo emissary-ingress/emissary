@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"sort"
 	"strings"
@@ -92,6 +91,8 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 	go coalesce(upstream, downstream)
 
 	group.Go("kale_watcher", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
+		softCtx = dlog.WithLogger(softCtx, l)
+
 		client, err := k8s.NewClient(info)
 		if err != nil {
 			// this is non fatal (mostly just to facilitate local dev); don't `return err`
@@ -102,7 +103,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 		w := client.Watcher()
 		var wg WatchGroup
 
-		err = w.WatchQuery(k8s.Query{Kind: "projects.getambassador.io"}, wg.Wrap(func(w *k8s.Watcher) {
+		err = w.WatchQuery(k8s.Query{Kind: "projects.getambassador.io"}, wg.Wrap(softCtx, func(w *k8s.Watcher) {
 			upstream <- Snapshot{
 				Pods:     w.List("pod"),
 				Projects: w.List("projects.getambassador.io"),
@@ -115,7 +116,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 			return nil
 		}
 
-		err = w.WatchQuery(k8s.Query{Kind: "pod", LabelSelector: "kale"}, wg.Wrap(func(w *k8s.Watcher) {
+		err = w.WatchQuery(k8s.Query{Kind: "pod", LabelSelector: "kale"}, wg.Wrap(softCtx, func(w *k8s.Watcher) {
 			upstream <- Snapshot{
 				Pods:     w.List("pod"),
 				Projects: w.List("projects.getambassador.io"),
@@ -139,6 +140,8 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 	})
 
 	group.Go("kale_worker", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
+		softCtx = dlog.WithLogger(softCtx, l)
+
 		err := leaderelection.RunAsSingleton(softCtx, cfg, info, "kale", 15*time.Second, func(ctx context.Context) {
 			for {
 				select {
@@ -148,7 +151,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 					if !ok {
 						return
 					}
-					k.reconcileConsistently(snapshot)
+					k.reconcileConsistently(ctx, snapshot)
 				}
 			}
 		})
@@ -229,8 +232,8 @@ func (pm PodMap) addPod(pod *k8sTypesCoreV1.Pod) {
 
 type DeployMap map[string][]Deploy
 
-func (k *kale) reconcileConsistently(snapshot Snapshot) {
-	deployMap := k.reconcileProjects(snapshot)
+func (k *kale) reconcileConsistently(ctx context.Context, snapshot Snapshot) {
+	deployMap := k.reconcileProjects(ctx, snapshot)
 
 	k.mu.Lock()
 	k.deployMap = deployMap
@@ -241,10 +244,12 @@ func (k *kale) reconcileConsistently(snapshot Snapshot) {
 		panic(err)
 	}
 	k.updatePods(pods)
-	k.reconcile(deployMap)
+	k.reconcile(ctx, deployMap)
 }
 
-func (k *kale) reconcileProjects(snapshot Snapshot) DeployMap {
+func (k *kale) reconcileProjects(ctx context.Context, snapshot Snapshot) DeployMap {
+	log := dlog.GetLogger(ctx)
+
 	deploys := make(DeployMap)
 	projects := make(map[string]Project)
 	for _, rsrc := range snapshot.Projects {
@@ -393,6 +398,8 @@ func (k *kale) projectsJSON() string {
 
 // Handle Push events from the github API.
 func (k *kale) handlePush(r *http.Request, key string) httpResult {
+	log := dlog.GetLogger(r.Context())
+
 	k.mu.RLock()
 	proj, ok := k.Projects[key]
 	k.mu.RUnlock()
@@ -596,7 +603,9 @@ func (k *kale) IsDesired(deployMap DeployMap, pod *k8sTypesCoreV1.Pod) bool {
 	return false
 }
 
-func (k *kale) reconcile(deployMap DeployMap) {
+func (k *kale) reconcile(ctx context.Context, deployMap DeployMap) {
+	log := dlog.GetLogger(ctx)
+
 	deploys := k.desiredDeploys(deployMap)
 	pods := k.pods()
 	for _, dep := range deploys {
@@ -610,7 +619,7 @@ func (k *kale) reconcile(deployMap DeployMap) {
 			}
 		}
 
-		err := safeInvoke1(func() error { return k.reconcileDeploy(dep, deployBuilders, deployRunners) })
+		err := safeInvoke1(func() error { return k.reconcileDeploy(ctx, dep, deployBuilders, deployRunners) })
 		if err != nil {
 			log.Printf("ERROR: %v", err)
 		}
@@ -625,7 +634,9 @@ func (k *kale) reconcile(deployMap DeployMap) {
 	}
 }
 
-func (k *kale) reconcileDeploy(dep Deploy, builders, runners []*k8sTypesCoreV1.Pod) error {
+func (k *kale) reconcileDeploy(ctx context.Context, dep Deploy, builders, runners []*k8sTypesCoreV1.Pod) error {
+	log := dlog.GetLogger(ctx)
+
 	proj := dep.Project
 
 	switch len(builders) {
@@ -637,7 +648,7 @@ func (k *kale) reconcileDeploy(dep Deploy, builders, runners []*k8sTypesCoreV1.P
 			if err != nil {
 				log.Printf("OUTPUT: %s", out)
 				log.Printf("ERROR: %v", err)
-				postStatus(fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, dep.Ref.Hash().String()),
+				postStatus(ctx, fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, dep.Ref.Hash().String()),
 					GitHubStatus{
 						State:       "error",
 						TargetUrl:   fmt.Sprintf("http://%s/edge_stack/admin/#projects", proj.Spec.Host),
@@ -646,7 +657,7 @@ func (k *kale) reconcileDeploy(dep Deploy, builders, runners []*k8sTypesCoreV1.P
 					},
 					proj.Spec.GithubToken)
 			} else {
-				postStatus(fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, dep.Ref.Hash().String()),
+				postStatus(ctx, fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, dep.Ref.Hash().String()),
 					GitHubStatus{
 						State:       "pending",
 						TargetUrl:   proj.BuildLogUrl(buildID),
@@ -682,7 +693,7 @@ func (k *kale) reconcileDeploy(dep Deploy, builders, runners []*k8sTypesCoreV1.P
 			switch phase {
 			case k8sTypesCoreV1.PodFailed:
 				log.Printf(podLogs(builder.GetName()))
-				postStatus(statusesUrl, GitHubStatus{
+				postStatus(ctx, statusesUrl, GitHubStatus{
 					State:       "failure",
 					TargetUrl:   proj.BuildLogUrl(buildId),
 					Description: string(phase),
@@ -698,7 +709,7 @@ func (k *kale) reconcileDeploy(dep Deploy, builders, runners []*k8sTypesCoreV1.P
 					if len(msg) > 140 {
 						msg = msg[len(msg)-140:]
 					}
-					postStatus(statusesUrl,
+					postStatus(ctx, statusesUrl,
 						GitHubStatus{
 							State:       "error",
 							TargetUrl:   fmt.Sprintf("http://%s/edge_stack/admin/#projects", proj.Spec.Host),
@@ -708,7 +719,7 @@ func (k *kale) reconcileDeploy(dep Deploy, builders, runners []*k8sTypesCoreV1.P
 						proj.Spec.GithubToken)
 					return err
 				} else {
-					postStatus(statusesUrl,
+					postStatus(ctx, statusesUrl,
 						GitHubStatus{
 							State:       "success",
 							TargetUrl:   proj.PreviewUrl(sha),

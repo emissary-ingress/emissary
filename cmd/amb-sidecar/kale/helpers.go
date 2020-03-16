@@ -4,12 +4,12 @@ import (
 	// standard library
 	"bufio"
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	htemplate "html/template"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os/exec"
 	"strings"
@@ -33,6 +33,7 @@ import (
 	"sigs.k8s.io/yaml"
 
 	// 1st party
+	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/datawire/ambassador/pkg/k8s"
 	"github.com/datawire/apro/lib/util"
 )
@@ -71,13 +72,13 @@ func safeInvoke1(fn func() error) (err error) {
 
 // Turn an ordinary watch listener into one that will automatically
 // turn panics into a useful log message.
-func safeWatch(listener func(w *k8s.Watcher)) func(*k8s.Watcher) {
+func safeWatch(ctx context.Context, listener func(w *k8s.Watcher)) func(*k8s.Watcher) {
 	return func(w *k8s.Watcher) {
 		err := safeInvoke(func() {
 			listener(w)
 		})
 		if err != nil {
-			log.Printf("watch error: %+v", err)
+			dlog.GetLogger(ctx).Printf("watch error: %+v", err)
 		}
 	}
 }
@@ -183,13 +184,13 @@ func getJSON(url string, token string, target interface{}) *http.Response {
 }
 
 // Post a status to the github API
-func postStatus(url string, status GitHubStatus, token string) {
+func postStatus(ctx context.Context, url string, status GitHubStatus, token string) {
 	resp, body := postJSON(url, status, token)
 
 	if resp.Status[0] != '2' {
 		panic(fmt.Errorf("error posting status: %s\n%s", resp.Status, string(body)))
 	} else {
-		log.Printf("posted status, got %s: %s, %q", resp.Status, url, status)
+		dlog.GetLogger(ctx).Printf("posted status, got %s: %s, %q", resp.Status, url, status)
 	}
 }
 
@@ -262,6 +263,8 @@ func podLogs(name string) string {
 // by the namespace and selector args down the supplied
 // http.ResponseWriter using server side events.
 func streamLogs(w http.ResponseWriter, r *http.Request, namespace, selector string) {
+	log := dlog.GetLogger(r.Context())
+
 	since := r.Header.Get("Last-Event-ID")
 	args := []string{"logs", "--timestamps", "--tail=10000", "-f", "-n", namespace, "-l", selector}
 	if since != "" {
@@ -520,8 +523,8 @@ type WatchGroup struct {
 	mu    sync.Mutex
 }
 
-func (wg *WatchGroup) Wrap(listener func(*k8s.Watcher)) func(*k8s.Watcher) {
-	listener = safeWatch(listener)
+func (wg *WatchGroup) Wrap(ctx context.Context, listener func(*k8s.Watcher)) func(*k8s.Watcher) {
+	listener = safeWatch(ctx, listener)
 	wg.count += 1
 	invoked := false
 	return func(w *k8s.Watcher) {
