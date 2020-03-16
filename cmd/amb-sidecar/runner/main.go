@@ -112,7 +112,9 @@ func Main(version string) {
 		FullTimestamp:   true,
 	}
 	logrusLogger.SetFormatter(logrusFormatter)
+	logrusLogger.SetReportCaller(true)
 	logrus.SetFormatter(logrusFormatter) // FIXME(lukeshu): Some Lyft code still uses the global logger
+	logrus.SetReportCaller(true)         // FIXME(lukeshu): Some Lyft code still uses the global logger
 
 	err := argparser.Execute()
 	if err != nil {

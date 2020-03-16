@@ -33,8 +33,7 @@ require (
 	github.com/oxtoacart/bpool v0.0.0-20190530202638-03653db5a59c
 	github.com/pkg/errors v0.9.1
 	github.com/russross/blackfriday/v2 v2.0.1
-	github.com/satori/go.uuid v1.2.0
-	github.com/sirupsen/logrus v1.4.2
+	github.com/sirupsen/logrus v1.4.3-0.20200306102446-7ea96a3284ed
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.3
 	github.com/tsenart/vegeta v12.2.1+incompatible
