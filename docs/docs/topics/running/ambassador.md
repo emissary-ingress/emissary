@@ -1,7 +1,5 @@
 # Global Configuration
 
-Ambassador Edge Stack supports a variety of global configuration options in the `ambassador Module`.
-
 ## The `ambassador Module`
 
 If present, the `ambassador Module` defines system-wide configuration. This module can be applied to any Kubernetes service (the `ambassador` service itself is a common choice). **You may very well not need this Module.** The defaults in the `ambassador Module` are:
