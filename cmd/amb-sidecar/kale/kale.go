@@ -103,30 +103,27 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 		w := client.Watcher()
 		var wg WatchGroup
 
-		err = w.WatchQuery(k8s.Query{Kind: "projects.getambassador.io"}, wg.Wrap(softCtx, func(w *k8s.Watcher) {
+		handler := func(w *k8s.Watcher) {
 			upstream <- Snapshot{
-				Pods:     w.List("pod"),
+				Pods:     w.List("pods."),
 				Projects: w.List("projects.getambassador.io"),
 			}
-		}))
-
-		if err != nil {
-			// this is non fatal (mostly just to facilitate local dev); don't `return err`
-			l.Errorln("not watching Project resources:", fmt.Errorf("WatchQuery(projects): %w", err))
-			return nil
 		}
 
-		err = w.WatchQuery(k8s.Query{Kind: "pod", LabelSelector: "kale"}, wg.Wrap(softCtx, func(w *k8s.Watcher) {
-			upstream <- Snapshot{
-				Pods:     w.List("pod"),
-				Projects: w.List("projects.getambassador.io"),
-			}
-		}))
+		queries := []k8s.Query{
+			{Kind: "projects.getambassador.io"},
+			{Kind: "pods.", LabelSelector: "kale"},
+		}
 
-		if err != nil {
-			// this is non fatal (mostly just to facilitate local dev); don't `return err`
-			l.Errorln("not watching Project resources:", fmt.Errorf("WatchQuery(pods): %w", err))
-			return nil
+		for _, query := range queries {
+			err := w.WatchQuery(query, wg.Wrap(softCtx, handler))
+			if err != nil {
+				// this is non fatal (mostly just to facilitate local dev); don't `return err`
+				l.Errorf("not watching %q resources: %v",
+					query.Kind,
+					fmt.Errorf("WatchQuery(%#v, ...): %w", query, err))
+				return nil
+			}
 		}
 
 		w.Start()
