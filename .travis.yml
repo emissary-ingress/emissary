@@ -66,10 +66,10 @@ install:
 
 script:
   #- docker pull ${DEV_REGISTRY}/builder:latest
-  - ./releng/travis-script.sh
   - ./.ci/pr-build-website-preview master
   - ./.ci/publish-website-preview master
   - ./.ci/blc-website-preview master
+  - ./releng/travis-script.sh
 
 after_script:
   # release the kubernaut claim
