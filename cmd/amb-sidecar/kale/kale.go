@@ -254,7 +254,7 @@ func (k *kale) reconcileProjects(ctx context.Context, snapshot Snapshot) DeployM
 	projects := make(map[string]Project)
 	for _, rsrc := range snapshot.Projects {
 		pr := Project{}
-		err := rsrc.Decode(&pr)
+		err := mapstructure.Convert(rsrc, &pr)
 		if err != nil {
 			log.Printf(err.Error())
 			continue
