@@ -23,10 +23,12 @@ website_branch=${1:-master}
 rm -rf "/tmp/getambassador.io-$website_branch"
 git clone --single-branch --branch="$website_branch" https://d6e-automaton:${GH_TOKEN}@github.com/datawire/getambassador.io.git "/tmp/getambassador.io-$website_branch"
 cd "/tmp/getambassador.io-$website_branch"
-#git submodule update --init --reference="$TRAVIS_BUILD_DIR"
+# TODO: uncomment when getambassador.io is updated before cut over
+# git submodule update --init --reference="$TRAVIS_BUILD_DIR"
 rm -rf content/
 mkdir content
 cp -rf "$TRAVIS_BUILD_DIR"/docs/. content/
-#git -C content checkout "$TRAVIS_COMMIT"
+# TODO: uncomment when getambassador.io is updated before cut over
+# git -C content checkout "$TRAVIS_COMMIT"
 npm install
 npm run build
