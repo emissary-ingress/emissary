@@ -27,6 +27,6 @@ cd "/tmp/getambassador.io-$website_branch"
 rm -rf content/
 mkdir content
 cp -rf "$TRAVIS_BUILD_DIR"/docs/. content/
-git -C content checkout "$TRAVIS_COMMIT"
+#git -C content checkout "$TRAVIS_COMMIT"
 npm install
 npm run build
