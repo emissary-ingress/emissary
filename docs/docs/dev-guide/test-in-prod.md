@@ -26,6 +26,6 @@ In addition to allowing verification that the application is not crashing or oth
 
 Observability is a critical requirement for testing in production. In any canary or shadow deployment, collecting key metrics around latency, traffic, errors, and saturation (the [“Four Golden Signals of Monitoring”](https://landing.google.com/sre/sre-book/chapters/monitoring-distributed-systems/#xref_monitoring_golden-signals)) provides valuable insight into the stability and performance of a new version of the service. Moreover, application developers can compare the metrics (e.g., latency) between the production version and an updated version. If the metrics are similar, then updates can proceed with much greater confidence.
 
-## Benefits of Testing in Production
+## Benefits of Testing in Prod
 
 Modern cloud applications are continuously deployed, as different teams rapidly update their respective services. Deploying and testing updates in a pre-production staging environment introduces either a bottleneck to the speed of iteration, or provides little feedback due to the fact that staging is not representative of what will be running in production when the deployment actually occurs. Testing in production addresses both of these challenges: developers evaluate their changes in the real-world environment, enabling rapid iteration.
