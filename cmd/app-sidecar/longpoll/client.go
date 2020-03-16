@@ -46,10 +46,10 @@ type Client struct {
 }
 
 // NewClient creates a long poll client
-func NewClient(url *url.URL, category string) *Client {
+func NewClient(url *url.URL, appName string, appNamespace string) *Client {
 	return &Client{
 		url:        url,
-		category:   category,
+		category:   fmt.Sprintf("%s/%s", appNamespace, appName),
 		Timeout:    120,
 		Reattempt:  30,
 		EventsChan: make(chan *PollEvent),

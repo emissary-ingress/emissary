@@ -20,11 +20,57 @@ import (
 	"github.com/datawire/apro/lib/filterapi"
 )
 
-// OAuth2Filter looks up the appropriate Tenant and Rule objects from
-// the CRD Controller, and validates the signed JWT tokens when
-// present in the request.  If the request Path is
-// "/.ambassador/oauth2/redirection-endpoint", it validates IDP
-// requests and handles code exchange flow.
+// OAuth2Filter implements (part of?) an OAuth 2 Client, and the top
+// half of an OAuth 2 Resource Server.
+//
+// Background:
+//
+//   An OAuth Client application is an application that receives an
+//   Access Token from an Authorization Server, and uses that Access
+//   Token to access resources on a Resource Server.
+//
+//   An OAuth Resource Server is an HTTP service that is in cahoots
+//   with an Authorization Server, such that access to the resources
+//   that it exposes is protected via an Access Token.
+//
+//   As an example, a Client might be some application that has
+//   sign-in-with-GitHub (like ZenHub), and then can talk to GitHub's
+//   Resource Server to access your data and provide functionality on
+//   top of that (like a view that aggregates issues from multiple
+//   repositories).
+//
+// The OAuth Client that is the OAuth2Filter is super dumb.  It isn't
+// building any features on top of the ResourceServer.  The
+// functionality that it has is "proxy requests (near-)verbatim to the
+// Resource Server, and proxy responses verbatim back to the
+// initiating HTTP client".  It's an OAuth Client in the way that UDP
+// is an L4 protocol.
+//
+// Anyway, the Client-part takes whatever the initiating HTTP client
+// (web-browser?)  submitted, and talks with the Authorization Server
+// to exchange that for an Access Token.  It injects that Access Token
+// in to the request such that the Resource Server can see it.
+// Exactly what it's expecting from the initiating HTTP client, and
+// how it goes about talking to the Authorization server, depends on
+// the configured `grantType`.  The different grantTypes have entirely
+// separate Client implementations that live in sub-packages.
+//
+// The Resource-Server-Part takes that request that now has the Access
+// Token injected, and validates the Access Token, ensuring that this
+// user has access to (and has granted this Client access to) the
+// specific resource (by checking the token's "scope").  If the Access
+// Token has insufficient privilege, we return a permission-denied
+// response.  If it does have sufficient privilege, then we instruct
+// Envoy to pass the (modified) request along to the upstream backend
+// service (the "bottom half" of the Resource Server).
+//
+// Everything described above happens in the `Filter()` method (which
+// calls out to a more specific `Filter()` method based on the
+// grantType).  Some of the clients for different grantTypes require
+// having their own helper HTTP endpoints that we don't proxy to the
+// ResourceServer.  Serving those endpoints happens in the
+// `ServeHTTP()` method (which calls out to a more specific
+// `ServeHTTP()` method based on the grantType).
 type OAuth2Filter struct {
 	PrivateKey   *rsa.PrivateKey
 	PublicKey    *rsa.PublicKey
@@ -36,6 +82,11 @@ type OAuth2Filter struct {
 	RunJWTFilter func(filterRef crd.JWTFilterReference, ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error)
 }
 
+// OAuth2Client is the common interface implemented by the OAuth
+// Clients for different grantTypes.
+//
+// FIXME(lukeshu): You have my sincerest apologies for the arguments
+// lists of these functions.
 type OAuth2Client interface {
 	Filter(ctx context.Context, logger dlog.Logger, httpClient *http.Client, discovered *discovery.Discovered, redisClient *redis.Client, request *filterapi.FilterRequest) filterapi.FilterResponse
 	ServeHTTP(w http.ResponseWriter, r *http.Request, ctx context.Context, discovered *discovery.Discovered, redisClient *redis.Client)

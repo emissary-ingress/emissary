@@ -195,9 +195,10 @@ func NewKale() *kale {
 type kale struct {
 	cfg types.Config
 
-	mu       sync.RWMutex
-	Projects map[string]Project
-	Pods     PodMap
+	mu        sync.RWMutex
+	Projects  map[string]Project
+	Pods      PodMap
+	deployMap DeployMap
 
 	// A thread-safe way to trigger a rectify from different places; write a Snapshot
 	// to this channel to trigger a rectify.  If you want to trigger a rectify without
@@ -225,6 +226,10 @@ type DeployMap map[string][]Deploy
 
 func (k *kale) reconcileConsistently(snapshot Snapshot) {
 	deployMap := k.reconcileProjects(snapshot)
+
+	k.mu.Lock()
+	k.deployMap = deployMap
+	k.mu.Unlock()
 
 	var pods []*k8sTypesCoreV1.Pod
 	if err := mapstructure.Convert(snapshot.Pods, &pods); err != nil {
@@ -282,9 +287,18 @@ func (p Project) Key() string {
 	return p.Metadata.Namespace + "/" + p.Metadata.Name
 }
 
-func (p Project) LogUrl(build string) string {
-	return fmt.Sprintf("https://%s/edge_stack/api/logs/%s/%s/%s", p.Spec.Host, p.Metadata.Namespace, p.Metadata.Name,
-		build)
+func (p Project) PreviewUrl(commit string) string {
+	return fmt.Sprintf("https://%s/.previews/%s/%s/", p.Spec.Host, p.Spec.Prefix, commit)
+}
+
+func (p Project) ServerLogUrl(commit string) string {
+	return fmt.Sprintf("https://%s/edge_stack/admin/#projects?log=deploy/%s/%s/%s", p.Spec.Host,
+		p.Metadata.Namespace, p.Metadata.Name, commit)
+}
+
+func (p Project) BuildLogUrl(commit string) string {
+	return fmt.Sprintf("https://%s/edge_stack/admin/#projects?log=build/%s/%s/%s", p.Spec.Host,
+		p.Metadata.Namespace, p.Metadata.Name, commit)
 }
 
 // This is our dispatcher for everything under /api/. This looks at
@@ -352,10 +366,15 @@ func (k *kale) projectsJSON() string {
 		if !ok {
 			pods = make(map[string]*k8sTypesCoreV1.Pod)
 		}
+		deploys, ok := k.deployMap[key]
+		if !ok {
+			deploys = make([]Deploy, 0)
+		}
 
 		m := make(map[string]interface{})
 		m["project"] = proj
 		m["pods"] = pods
+		m["deploys"] = deploys
 
 		results = append(results, m)
 	}
@@ -380,9 +399,13 @@ func (k *kale) handlePush(r *http.Request, key string) httpResult {
 	// todo: the webhook is totally asynchronous... we basically
 	// need to work based on polling and treat the webhook as a
 	// hint to increase the frequency of polling
-	time.Sleep(5 * time.Second)
-
-	k.snapshots <- Snapshot{}
+	go func() {
+		k.snapshots <- Snapshot{}
+		for i := 1; i <= 128; i *= 2 {
+			time.Sleep(time.Duration(i) * time.Second)
+			k.snapshots <- Snapshot{}
+		}
+	}()
 
 	return httpResult{status: 200, body: ""}
 }
@@ -560,8 +583,8 @@ func (k *kale) reconcileDeploy(dep Deploy, builders, runners []*k8sTypesCoreV1.P
 				postStatus(fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, dep.Ref.Hash().String()),
 					GitHubStatus{
 						State:       "error",
-						TargetUrl:   fmt.Sprintf("http://%s/edge_stack/", proj.Spec.Host),
-						Description: err.Error(),
+						TargetUrl:   fmt.Sprintf("http://%s/edge_stack/admin/#projects", proj.Spec.Host),
+						Description: fmt.Sprintf("error starting build: %s", err.Error()),
 						Context:     "aes",
 					},
 					proj.Spec.GithubToken)
@@ -569,7 +592,7 @@ func (k *kale) reconcileDeploy(dep Deploy, builders, runners []*k8sTypesCoreV1.P
 				postStatus(fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, dep.Ref.Hash().String()),
 					GitHubStatus{
 						State:       "pending",
-						TargetUrl:   proj.LogUrl(buildID),
+						TargetUrl:   proj.BuildLogUrl(buildID),
 						Description: "build started",
 						Context:     "aes",
 					},
@@ -598,41 +621,40 @@ func (k *kale) reconcileDeploy(dep Deploy, builders, runners []*k8sTypesCoreV1.P
 
 		if len(runners) == 0 { // don't bother with the builder if there's already a runner
 			statusesUrl := builder.GetAnnotations()["statusesUrl"]
-			logUrl := proj.LogUrl(builder.GetLabels()["build"])
+			buildId := builder.GetLabels()["build"]
 			switch phase {
 			case k8sTypesCoreV1.PodFailed:
 				log.Printf(podLogs(builder.GetName()))
 				postStatus(statusesUrl, GitHubStatus{
 					State:       "failure",
-					TargetUrl:   logUrl,
+					TargetUrl:   proj.BuildLogUrl(buildId),
 					Description: string(phase),
 					Context:     "aes",
 				},
 					proj.Spec.GithubToken)
 			case k8sTypesCoreV1.PodSucceeded:
-				_, err := k.startRun(proj, builder.GetLabels()["commit"])
+				sha := builder.GetLabels()["commit"]
+				out, err := k.startRun(proj, sha)
 				if err != nil {
-					msg := fmt.Sprintf("ERROR: %v", err)
+					msg := fmt.Sprintf("ERROR: %v: %s", err, out)
 					log.Print(msg)
 					if len(msg) > 140 {
 						msg = msg[len(msg)-140:]
 					}
-					// todo: need a way to get log output to github
 					postStatus(statusesUrl,
 						GitHubStatus{
 							State:       "error",
-							TargetUrl:   "http://asdf",
+							TargetUrl:   fmt.Sprintf("http://%s/edge_stack/admin/#projects", proj.Spec.Host),
 							Description: msg,
 							Context:     "aes",
 						},
 						proj.Spec.GithubToken)
 					return err
 				} else {
-					// todo: fake url
 					postStatus(statusesUrl,
 						GitHubStatus{
 							State:       "success",
-							TargetUrl:   "http://asdf",
+							TargetUrl:   proj.PreviewUrl(sha),
 							Description: string(phase),
 							Context:     "aes",
 						},

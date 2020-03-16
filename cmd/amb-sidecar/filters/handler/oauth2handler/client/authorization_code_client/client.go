@@ -361,9 +361,7 @@ func (sessionInfo *SessionInfo) handleAuthenticatedProxyRequest(ctx context.Cont
 }
 
 func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Context, logger dlog.Logger, httpClient *http.Client, oauthClient *rfc6749client.AuthorizationCodeClient, discovered *discovery.Discovered, request *filterapi.FilterRequest) filterapi.FilterResponse {
-	// Use X-Forwarded-Proto instead of .GetScheme() to build the URL.
-	// https://github.com/datawire/ambassador/issues/1581
-	originalURL, err := url.ParseRequestURI(filterutil.GetHeader(request).Get("X-Forwarded-Proto") + "://" + request.GetRequest().GetHttp().GetHost() + request.GetRequest().GetHttp().GetPath())
+	originalURL, err := filterutil.GetURL(request)
 	if err != nil {
 		return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
 			errors.Wrap(err, "failed to construct URL"), nil)

@@ -2,6 +2,7 @@ import {html} from '../vendor/lit-element.min.js'
 import {SingleResource, SortableResourceSet} from './resources.js';
 import {getCookie} from './cookies.js';
 import {ApiFetch} from "./api-fetch.js";
+import {HASH} from "./hash.js";
 import "./terminal.js";
 
 class Project extends SingleResource {
@@ -17,6 +18,38 @@ class Project extends SingleResource {
     super()
     this.source = ""
     this._spec = {}
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    window.addEventListener("hashchange", this.handleHashChange.bind(this), false);
+    // make sure we look at the hash on first load
+    this.handleHashChange()
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    window.removeEventListener("hashchange", this.handleHashChange.bind(this), false);
+  }
+
+  handleHashChange() {
+    let log = HASH.get("log")
+    if (log) {
+      let parts = log.split("/")
+      if (parts.length === 4) {
+        let type = parts[0]
+        let ns = parts[1]
+        let name = parts[2]
+        let sha = parts[3]
+
+        if (ns == this.resource.metadata.namespace && name == this.resource.metadata.name) {
+          this.source = `../api/${type === "build" ? "logs" : "slogs"}/${ns}/${name}/${sha}`
+          return
+        }
+      }
+    }
+
+    this.source = ""
   }
 
   /**
@@ -43,6 +76,7 @@ class Project extends SingleResource {
   // override to ignore pods, since that's an artifical resource we stuff into things
   mergeStrategy(pathName) {
     switch (pathName) {
+    case "deploys":
     case "pods":
       return "ignore";
     default:
@@ -60,7 +94,12 @@ class Project extends SingleResource {
     return result
   }
 
-  renderPods(prefix, pods) {
+  renderPods(prefix, pods, deploys) {
+    let deps = new Map()
+    for (let dep of (deploys || [])) {
+      deps.set(dep.ref.hash, dep)
+    }
+
     let commits = new Map()
     for (let name in pods) {
       let pod = pods[name]
@@ -72,6 +111,7 @@ class Project extends SingleResource {
         commit = {id: id, prefix: prefix, builds: [], previews: []}
         commits.set(id, commit)
       }
+      commit.deploy = deps.get(commit.id)
 
       if (pod.metadata.labels.hasOwnProperty("build")) {
         commit.builds.push(pod)
@@ -94,9 +134,9 @@ class Project extends SingleResource {
 
     return html`
 <div class="row line">
-  <label class="row-col margin-right justify-right">Previews:</label>
+  <label class="row-col margin-right justify-right">Deploys:</label>
   <div class="row-col">
-    <div style="display:grid; grid-template-columns: 1fr 1fr;">
+    <div style="display:grid; grid-template-columns: 0.5fr 1fr 1fr 2fr;">
       ${values.map((c)=>this.renderCommit(c))}
     </div>
   </div>
@@ -107,13 +147,28 @@ class Project extends SingleResource {
   renderCommit(commit) {
     return html`
   <div>
-    ${commit.id.slice(0, 7)}...
+    ${this.renderPull(commit)}
+  </div>
+  <div>
+    ${commit.deploy ? html`<a href="https://github.com/${this.resource.spec.githubRepo}/tree/${commit.deploy.ref.short}">${commit.deploy.ref.short}</a>` : ""}
+  </div>
+  <div>
+    <a href="https://github.com/${this.resource.spec.githubRepo}/commit/${commit.id}">${commit.id.slice(0, 7)}...</a>
   </div>
   <div class="justify-right">
     ${commit.builds.length > 0 ? commit.builds.map(p=>this.renderBuild(commit, p)) : html`<span style="opacity:0.5">build</span>`} |
     ${commit.previews.length > 0 ? commit.previews.map(p=>this.renderPreview(commit, p)) : html`<span style="opacity:0.5">log</span> | <span style="opacity:0.5">url</span>`}
   </div>
 `
+  }
+
+  renderPull(commit) {
+    if (commit.deploy && commit.deploy.pull) {
+      let pull = commit.deploy.pull
+      return html`<a href="${pull.html_url}">PR#${pull.number}</a>`
+    } else {
+      return ""
+    }
   }
 
   renderBuild(commit, pod, idx) {
@@ -126,7 +181,8 @@ class Project extends SingleResource {
       styles = "color:red"
       break
     }
-    return html`<a style="cursor:pointer;${styles}" @click=${()=>this.toggleTerminal(commit, pod)}>build</a>`
+    let selected = this.logSelected(commit, pod) ? "background-color:#dcdcdc" : ""
+    return html`<a style="cursor:pointer;${styles};${selected}" @click=${()=>this.openTerminal(commit, pod)}>build</a>`
   }
 
   renderPreview(commit, pod) {
@@ -137,24 +193,32 @@ class Project extends SingleResource {
     } else {
       styles = "color:red"
     }
+    let selected = this.logSelected(commit, pod) ? "background-color:#dcdcdc" : ""
     return html`
-<a style="cursor:pointer;${styles}" @click=${()=>this.toggleTerminal(commit, pod)}>log</a> |
+<a style="cursor:pointer;${styles};${selected}" @click=${()=>this.openTerminal(commit, pod)}>log</a> |
 <a style="text-decoration:none;${styles}" href="/.previews/${commit.prefix}/${commit.id}/">url</a>
 `
   }
 
-  toggleTerminal(commit, pod) {
-    var s;
+  logSelected(commit, pod) {
+    return HASH.get("log") === this.logParam(commit, pod)
+  }
+
+  logParam(commit, pod) {
+    let name = this.resource.metadata.name
     if (pod.metadata.labels.hasOwnProperty("build")) {
-      s = `../api/logs/${pod.metadata.namespace}/${commit.prefix}/${pod.metadata.labels.build}`;
+      return `build/${pod.metadata.namespace}/${name}/${commit.id}`
     } else {
-      s = `../api/slogs/${pod.metadata.namespace}/${commit.prefix}/${pod.metadata.labels.commit}`;
+      return `deploy/${pod.metadata.namespace}/${name}/${commit.id}`
     }
-    if (this.source === s) {
-      this.source = "";
-    } else {
-      this.source = s;
-    }
+  }
+
+  openTerminal(commit, pod) {
+    HASH.set("log", this.logParam(commit, pod))
+  }
+
+  closeTerminal() {
+    HASH.delete("log")
   }
 
   input(type, name) {
@@ -175,8 +239,9 @@ class Project extends SingleResource {
   renderResource() {
     return html`
 <visible-modes list>
-${this.renderPods(this._spec.prefix, this.resource.pods)}
-<dw-terminal source=${this.source}></dw-terminal>
+${this.renderPods(this._spec.prefix, this.resource.pods, this.resource.deploys)}
+
+<dw-terminal source=${this.source} @close=${(e)=>this.closeTerminal()}></dw-terminal>
 </visible-modes>
 <visible-modes add edit>
   <div class="row line">
@@ -245,6 +310,7 @@ export class Projects extends SortableResourceSet {
     let projects = [];
     snapshot.forEach((obj)=>{
       obj.project.pods = obj.pods
+      obj.project.deploys = obj.deploys
       projects.push(obj.project)
     });
     return projects;

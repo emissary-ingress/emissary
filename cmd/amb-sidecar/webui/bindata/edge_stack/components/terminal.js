@@ -22,7 +22,12 @@ class Term extends LitElement {
     this.es = null;
   }
 
-  render() {
+  updated() {
+    super.updated();
+    this.updateSource();
+  }
+
+  updateSource() {
     let div = this.shadowRoot.getElementById("terminal")
     if (div !== null && div.isConnected && this.activeSource !== this.source) {
       if (this.term !== null) {
@@ -33,6 +38,19 @@ class Term extends LitElement {
       if (this.es !== null) {
         this.es.close();
         this.es = null;
+      }
+
+      let style = window.getComputedStyle(div)
+      if (style.height === "auto") {
+        // Try again later because we can't show the terminal if we
+        // don't have a height yet. This appears to be due to a bug in
+        // the fitter add on. It tries to compute the size of the
+        // terminal, but then throws an exception because the computed
+        // height is "auto" because the browser is still rendering
+        // things.
+        console.log("delaying terminal init because height is auto")
+        setTimeout(this.updateSource.bind(this), 250)
+        return
       }
 
       if (this.source !== "") {
@@ -54,10 +72,24 @@ class Term extends LitElement {
 
       this.activeSource = this.source;
     }
+  }
 
+  onClose() {
+    this.dispatchEvent(new CustomEvent("close"))
+  }
+
+  render() {
+    this.updateSource();
     return html`
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@4.4.0/css/xterm.css" integrity="sha256-I3n7q4Kl55oWvltoLRCCpA5HW8W3O34RUeC/ob43fWY=" crossorigin="anonymous">
-<div id="terminal"></div>
+<div style="display:${this.source ? "block" : "none"}">
+  <div>
+    <a style="cursor:pointer;color:blue" @click=${()=>this.onClose()}>close</a> |
+    <a style="cursor:pointer;color:blue" @click=${()=>this.term.scrollToTop()}>top</a> |
+    <a style="cursor:pointer;color:blue" @click=${()=>this.term.scrollToBottom()}>bottom</a>
+  </div>
+  <div id="terminal"></div>
+</div>
 `;
   }
 

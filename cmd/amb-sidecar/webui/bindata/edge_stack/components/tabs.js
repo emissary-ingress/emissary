@@ -1,5 +1,6 @@
 import { LitElement, html, css } from '../vendor/lit-element.min.js'
 import {useContext} from './context.js';
+import {HASH} from './hash.js';
 
 /**
  * Provides a small wrapper around named slots, to properly
@@ -335,7 +336,7 @@ export class Tabs extends LitElement {
 
   handleHashChange() {
     for (let idx = 0; idx < this.tabs.length; idx++) {
-      if(window.location.hash === ('#' + this.tabs[idx].tabHashName())) {
+      if(HASH.tab === this.tabs[idx].tabHashName()) {
         this.current = this.tabs[idx].name;
         break;
       }
@@ -362,19 +363,7 @@ export class Tabs extends LitElement {
     for (let idx = 0; idx < this.tabs.length; ++idx) {
       let classes = "";
       if (this.tabs[idx].name === currentTab) {
-        if (window.location.hash.length > 300) {
-          /* if a long hash, then it might be a login cookie */
-          if (useContext('auth-state', null)[0]) {
-            /* logged in, so don't need to preserve the hash tag */
-            window.location.hash = "#" + this.tabs[idx].tabHashName();
-          } else {
-            /* not logged in, so don't change the hash cookie */
-          }
-        } else {
-          /* shorter hash, so it can't be a login cookie, so go ahead and change it */
-          window.location.hash = "#" + this.tabs[idx].tabHashName();
-        }
-
+        HASH.tab = this.tabs[idx].tabHashName();
         classes += " selected";
       }
 
@@ -409,9 +398,9 @@ export class Tabs extends LitElement {
 
   render() {
     if (this.current === '') {
-      let hash = window.location.hash.slice(1);
+      let hashTab = HASH.tab;
       this.tabs.forEach(tab => {
-        if (hash === tab.tabHashName()) {
+        if (hashTab === tab.tabHashName()) {
           this.current = tab.name;
         }
       })
