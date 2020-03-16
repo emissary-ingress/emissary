@@ -442,14 +442,17 @@ func (c *Controller) rectifyPhase1(logger dlog.Logger) []*ambassadorTypesV2.Host
 
 	logger.Debugln("rectify: Phase 0→1 (Pre-ACME): NA(state=Initial)→DefaultsFilled")
 	for _, _host := range c.hosts {
+		logger := logger.WithField("host", _host.GetName()+"."+_host.GetNamespace())
 		host := deepCopyHost(_host)
-		logger := logger.WithField("host", host.GetName()+"."+host.GetNamespace())
-		logger.Debugln("rectify: processing Host...")
-
 		host.Spec = getEffectiveSpec(host)
+		if !strInArray(c.cfg.AmbassadorID, host.Spec.AmbassadorId) {
+			continue
+		}
 		if host.Status == nil {
 			host.Status = &ambassadorTypesV2.HostStatus{}
 		}
+		logger.Debugln("rectify: processing Host...")
+
 		switch {
 		case host.Spec.AcmeProvider.Authority != "none":
 			// TLS using via AES ACME integration
