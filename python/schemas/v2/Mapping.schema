@@ -22,6 +22,7 @@
 
         "prefix": { "type": "string" },
         "prefix_regex": { "type": "boolean" },
+        "prefix_exact": { "type": "boolean" },
         "service": { "type": "string" },
         "add_request_headers": { "$ref": "#/definitions/mapStrObj" },
         "add_response_headers": { "$ref": "#/definitions/mapStrObj" },
