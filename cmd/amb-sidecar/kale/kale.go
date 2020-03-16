@@ -256,7 +256,7 @@ func (k *kale) reconcileProjects(ctx context.Context, snapshot Snapshot) DeployM
 		pr := Project{}
 		err := mapstructure.Convert(rsrc, &pr)
 		if err != nil {
-			log.Printf(err.Error())
+			log.Println(err.Error())
 			continue
 		}
 
@@ -692,7 +692,7 @@ func (k *kale) reconcileDeploy(ctx context.Context, dep Deploy, builders, runner
 			buildId := builder.GetLabels()["build"]
 			switch phase {
 			case k8sTypesCoreV1.PodFailed:
-				log.Printf(podLogs(builder.GetName()))
+				log.Println(podLogs(builder.GetName()))
 				postStatus(ctx, statusesUrl, GitHubStatus{
 					State:       "failure",
 					TargetUrl:   proj.BuildLogUrl(buildId),
