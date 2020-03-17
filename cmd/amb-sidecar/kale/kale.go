@@ -104,10 +104,10 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 		var wg WatchGroup
 
 		handler := func(w *k8s.Watcher) {
-			upstream <- Snapshot{
+			upstream <- UntypedSnapshot{
 				Pods:     w.List("pods."),
 				Projects: w.List("projects.getambassador.io"),
-			}
+			}.Typed(softCtx)
 		}
 
 		queries := []k8s.Query{
@@ -168,9 +168,45 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 	httpHandler.AddEndpoint("/edge_stack_ui/edge_stack/api/slogs/", "kale server logs api", handler)
 }
 
-type Snapshot struct {
+type UntypedSnapshot struct {
 	Pods     []k8s.Resource
 	Projects []k8s.Resource
+}
+
+type Snapshot struct {
+	Pods     []*k8sTypesCoreV1.Pod
+	Projects []*Project
+}
+
+func (in UntypedSnapshot) Typed(ctx context.Context) Snapshot {
+	log := dlog.GetLogger(ctx)
+	var out Snapshot
+
+	if err := mapstructure.Convert(in.Pods, &out.Pods); err != nil {
+		// This is a panic because it's a bug; the api-server
+		// only gives us valid Pods, so if we fail to parse
+		// them, it's a bug on our end.  For the same reason,
+		// it's "safe" to do this all at once, because we
+		// don't need to do individual validation, because
+		// they're all valid.
+		panic(fmt.Errorf("Pods: %q", err))
+	}
+
+	for _, inProj := range in.Projects {
+		// Because the api-server can't validate that CRs are
+		// valid the way that it can for built-in Resources,
+		// we have to safely deal with the possibility that
+		// any individual Project is invalid, and not let that
+		// affect the others.
+		var outProj *Project
+		if err := mapstructure.Convert(inProj, &outProj); err != nil {
+			log.Println(fmt.Errorf("Project: %w", err))
+			continue
+		}
+		out.Projects = append(out.Projects, outProj)
+	}
+
+	return out
 }
 
 func coalesce(upstream <-chan Snapshot, downstream chan<- Snapshot) {
@@ -230,38 +266,25 @@ func (pm PodMap) addPod(pod *k8sTypesCoreV1.Pod) {
 type DeployMap map[string][]Deploy
 
 func (k *kale) reconcileConsistently(ctx context.Context, snapshot Snapshot) {
-	deployMap := k.reconcileProjects(ctx, snapshot)
+	deployMap := k.reconcileProjects(snapshot)
 
 	k.mu.Lock()
 	k.deployMap = deployMap
 	k.mu.Unlock()
 
-	var pods []*k8sTypesCoreV1.Pod
-	if err := mapstructure.Convert(snapshot.Pods, &pods); err != nil {
-		panic(err)
-	}
-	k.updatePods(pods)
+	k.updatePods(snapshot.Pods)
 	k.reconcile(ctx, deployMap)
 }
 
-func (k *kale) reconcileProjects(ctx context.Context, snapshot Snapshot) DeployMap {
-	log := dlog.GetLogger(ctx)
-
+func (k *kale) reconcileProjects(snapshot Snapshot) DeployMap {
 	deploys := make(DeployMap)
 	projects := make(map[string]Project)
-	for _, rsrc := range snapshot.Projects {
-		pr := Project{}
-		err := mapstructure.Convert(rsrc, &pr)
-		if err != nil {
-			log.Println(err.Error())
-			continue
-		}
-
+	for _, pr := range snapshot.Projects {
 		key := pr.Key()
 		hookUrl := fmt.Sprintf("https://%s/edge_stack/api/githook/%s", pr.Spec.Host, key)
 		postHook(pr.Spec.GithubRepo, hookUrl, pr.Spec.GithubToken)
-		projects[key] = pr
-		deploys[key] = GetDeploys(pr)
+		projects[key] = *pr
+		deploys[key] = GetDeploys(*pr)
 	}
 	k.mu.Lock()
 	k.Projects = projects
