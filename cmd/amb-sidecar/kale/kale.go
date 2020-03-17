@@ -321,37 +321,6 @@ func (k *kale) reconcileProjects(projects []*Project) {
 	}
 }
 
-type Project struct {
-	Metadata k8sTypesMetaV1.ObjectMeta `json:"metadata"`
-	Spec     struct {
-		Host        string `json:"host"`
-		Prefix      string `json:"prefix"`
-		GithubRepo  string `json:"githubRepo"`
-		GithubToken string `json:"githubToken"` // todo: make this a secret ref
-	} `json:"spec"`
-	Status struct {
-		LastPush time.Time `json:"lastPush"`
-	} `json:"status"`
-}
-
-func (p Project) Key() string {
-	return p.Metadata.Namespace + "/" + p.Metadata.Name
-}
-
-func (p Project) PreviewUrl(commit string) string {
-	return fmt.Sprintf("https://%s/.previews/%s/%s/", p.Spec.Host, p.Spec.Prefix, commit)
-}
-
-func (p Project) ServerLogUrl(commit string) string {
-	return fmt.Sprintf("https://%s/edge_stack/admin/#projects?log=deploy/%s/%s/%s", p.Spec.Host,
-		p.Metadata.Namespace, p.Metadata.Name, commit)
-}
-
-func (p Project) BuildLogUrl(commit string) string {
-	return fmt.Sprintf("https://%s/edge_stack/admin/#projects?log=build/%s/%s/%s", p.Spec.Host,
-		p.Metadata.Namespace, p.Metadata.Name, commit)
-}
-
 // This is our dispatcher for everything under /api/. This looks at
 // the URL and based on it figures out an appropriate handler to
 // call. All the real business logic for the web API is in the methods
