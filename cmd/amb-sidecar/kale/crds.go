@@ -39,3 +39,14 @@ func (p Project) BuildLogUrl(commit string) string {
 	return fmt.Sprintf("https://%s/edge_stack/admin/#projects?log=build/%s/%s/%s", p.Spec.Host,
 		p.Metadata.Namespace, p.Metadata.Name, commit)
 }
+
+type Mapping struct {
+	k8sTypesMetaV1.TypeMeta   `json:",inline"`
+	k8sTypesMetaV1.ObjectMeta `json:"metadata"`
+	Spec                      MappingSpec `json:"spec"`
+}
+
+type MappingSpec struct {
+	Prefix  string `json:"prefix"`
+	Service string `json:"service"`
+}

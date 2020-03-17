@@ -738,10 +738,12 @@ func (k *kale) reconcileDeploy(ctx context.Context, dep Deploy, builders, runner
 
 func (k *kale) startRun(proj Project, commit string) (string, error) {
 	manifests := []interface{}{
-		map[string]interface{}{
-			"apiVersion": "getambassador.io/v2",
-			"kind":       "Mapping",
-			"metadata": k8sTypesMetaV1.ObjectMeta{
+		&Mapping{
+			TypeMeta: k8sTypesMetaV1.TypeMeta{
+				APIVersion: "getambassador.io/v2",
+				Kind:       "Mapping",
+			},
+			ObjectMeta: k8sTypesMetaV1.ObjectMeta{
 				Name:      proj.Metadata.Name + "-" + commit,
 				Namespace: proj.Metadata.Namespace,
 				OwnerReferences: []k8sTypesMetaV1.OwnerReference{
@@ -758,11 +760,11 @@ func (k *kale) startRun(proj Project, commit string) (string, error) {
 					"kale": "0.0",
 				},
 			},
-			"spec": map[string]interface{}{
+			Spec: MappingSpec{
 				// todo: figure out what is going on with /edge_stack/previews
 				// not being routable
-				"prefix":  "/.previews/" + proj.Spec.Prefix + "/" + commit + "/",
-				"service": proj.Spec.Prefix + "-" + commit,
+				Prefix:  "/.previews/" + proj.Spec.Prefix + "/" + commit + "/",
+				Service: proj.Spec.Prefix + "-" + commit,
 			},
 		},
 		&k8sTypesCoreV1.Service{
