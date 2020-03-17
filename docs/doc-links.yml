@@ -1,245 +1,245 @@
 - title: First Steps
   collapsable: false
-  link: /docs/
+  link: /docs/latest/
   items:
     - title: Quick Start
-      link: /docs/tutorials/getting-started
+      link: /docs/latest/tutorials/getting-started
 - title: Install Ambassador Edge Stack
-  link: /docs/topics/install/install
+  link: /docs/latest/topics/install/install
   items: 
   - title: Install with Helm
-    link: /docs/topics/install/helm  
+    link: /docs/latest/topics/install/helm  
   - title: Upgrade to the Ambassador Edge Stack
-    link: /docs/topics/install/upgrade-to-edge-stack
+    link: /docs/latest/topics/install/upgrade-to-edge-stack
   - title: Upgrade to a Newer Version
-    link: /docs/topics/install/upgrading
+    link: /docs/latest/topics/install/upgrading
   - title: Install the Ambassador API Gateway
-    link: /docs/topics/install/install-ambassador-oss
+    link: /docs/latest/topics/install/install-ambassador-oss
   - title: Install with Docker
-    link: /docs/topics/install/quickstart
+    link: /docs/latest/topics/install/quickstart
   - title: Install with Bare Metal
-    link: /docs/topics/install/bare-metal
+    link: /docs/latest/topics/install/bare-metal
   - title: Install Manually
-    link: /docs/topics/install/manual-install  
+    link: /docs/latest/topics/install/manual-install  
   - title: Ambassador Edge Stack Operator
-    link: /docs/topics/install/aes-operator   
+    link: /docs/latest/topics/install/aes-operator   
 - title: Running and Using Ambassador
   collapsable: false
   items:  
     - title: Core Concepts
-      link: /docs/topics/concepts/
+      link: /docs/latest/topics/concepts/
       items: 
         - title: Kubernetes Network Architecture
-          link: /docs/topics/concepts/kubernetes-network-architecture
+          link: /docs/latest/topics/concepts/kubernetes-network-architecture
         - title: "The Ambassador Operating Model: GitOps and Continuous Delivery"
-          link: /docs/topics/concepts/gitops-continuous-delivery
+          link: /docs/latest/topics/concepts/gitops-continuous-delivery
         - title: Progressive Delivery
-          link: /docs/topics/concepts/progressive-delivery
+          link: /docs/latest/topics/concepts/progressive-delivery
         - title: Microservices API Gateways
-          link: /docs/topics/concepts/microservices-api-gateways
+          link: /docs/latest/topics/concepts/microservices-api-gateways
         - title: Ambassador Architecture
-          link: /docs/topics/concepts/architecture
+          link: /docs/latest/topics/concepts/architecture
     - title: Using Ambassador
-      link: /docs/topics/using/
+      link: /docs/latest/topics/using/
       items: 
         - title: The Mapping Object
-          link: /docs/topics/using/intro-mappings
+          link: /docs/latest/topics/using/intro-mappings
         - title: Mapping Configuration
-          link: /docs/topics/using/mappings
+          link: /docs/latest/topics/using/mappings
           items: 
             - title: Automatic Retries
-              link: /docs/topics/using/retries
+              link: /docs/latest/topics/using/retries
             - title: Canary Releases
-              link: /docs/topics/using/canary
+              link: /docs/latest/topics/using/canary
             - title: Circuit Breakers
-              link: /docs/topics/using/circuit-breakers
+              link: /docs/latest/topics/using/circuit-breakers
             - title: Cross-Origin Resource Sharing
-              link: /docs/topics/using/cors
+              link: /docs/latest/topics/using/cors
             - title: Headers
-              link: /docs/topics/using/headers/headers
+              link: /docs/latest/topics/using/headers/headers
               items: 
                 - title: Add Request Headers
-                  link: /docs/topics/using/headers/add_request_headers
+                  link: /docs/latest/topics/using/headers/add_request_headers
                 - title: Remove Request Headers
-                  link: /docs/topics/using/headers/remove_request_headers
+                  link: /docs/latest/topics/using/headers/remove_request_headers
                 - title: Add Response Headers
-                  link: /docs/topics/using/headers/add_response_headers
+                  link: /docs/latest/topics/using/headers/add_response_headers
                 - title: Remove Response Headers
-                  link: /docs/topics/using/headers/remove_response_headers
+                  link: /docs/latest/topics/using/headers/remove_response_headers
                 - title: Header Based Routing
-                  link: /docs/topics/using/headers/header_based_routing
+                  link: /docs/latest/topics/using/headers/header_based_routing
                 - title: Host Header
-                  link: /docs/topics/using/headers/host_header
+                  link: /docs/latest/topics/using/headers/host_header
             - title: Keepalive
-              link: /docs/topics/using/keepalive
+              link: /docs/latest/topics/using/keepalive
             - title: Prefix Regex
-              link: /docs/topics/using/prefix_regex
+              link: /docs/latest/topics/using/prefix_regex
             - title: Protocols
               items:
                 - title: TCP
-                  link: /docs/topics/using/tcpmappings
+                  link: /docs/latest/topics/using/tcpmappings
                 - title: gRPC and gRPC-Web
-                  link: /docs/howtos/grpc
+                  link: /docs/latest/howtos/grpc
                 - title: WebSockets
-                  link: /docs/topics/howtos/websockets
+                  link: /docs/latest/topics/howtos/websockets
             - title: Rate Limits
-              link: /docs/topics/using/rate-limits/index
+              link: /docs/latest/topics/using/rate-limits/index
               items:
                 - title: Rate Limiting Concepts
-                  link: /docs/topics/using/rate-limits/rate-limots
+                  link: /docs/latest/topics/using/rate-limits/rate-limots
                 - title: Rate Limiting Tutorial
-                  link: /docs/topics/howtos/rate-limiting-tutorial
+                  link: /docs/latest/topics/howtos/rate-limiting-tutorial
                 - title: Advanced Rate Limiting
-                  link: /docs/howtos/advanced-rate-limiting/
+                  link: /docs/latest/howtos/advanced-rate-limiting/
             - title: Redirects
-              link: /docs/topics/using/redirects
+              link: /docs/latest/topics/using/redirects
             - title: Rewrites
-              link: /docs/topics/using/rewrites
+              link: /docs/latest/topics/using/rewrites
             - title: Timeouts
-              link: /docs/topics/using/timeouts
+              link: /docs/latest/topics/using/timeouts
             - title: Traffic Shadowing
-              link: /docs/topics/using/shadowing
+              link: /docs/latest/topics/using/shadowing
         - title: Filters and Authentication
-          items: /docs/topics/using/filters/index
+          items: /docs/latest/topics/using/filters/index
             - title: OAuth and OIDC Overview
-              link: /docs/topics/using/filters/index
+              link: /docs/latest/topics/using/filters/index
             - title: OAuth2 Filter
-              link: /docs/topics/using/filters/oauth2
+              link: /docs/latest/topics/using/filters/oauth2
             - title: JWT Filter
-              link: /docs/topics/using/filters/jwt 
+              link: /docs/latest/topics/using/filters/jwt 
             - title: External Filter
-              link: /docs/topics/using/filters/external
+              link: /docs/latest/topics/using/filters/external
             - title: Authentication
-              link: /docs/topics/authentication/
+              link: /docs/latest/topics/authentication/
             - title: Identity Provider Configuration
               items:
                 - title: Google SSO
-                  link: /docs/topics/howtos/idp-support/google/
+                  link: /docs/latest/topics/howtos/idp-support/google/
                 - title: Okta
-                  link: /docs/topics/howtos/idp-support/okta/
+                  link: /docs/latest/topics/howtos/idp-support/okta/
                 - title: Auth0
-                  link: /docs/topics/howtos/idp-support/auth0/
+                  link: /docs/latest/topics/howtos/idp-support/auth0/
                 - title: OneLogin
-                  link: /docs/topics/howtos/idp-support/onelogin/
+                  link: /docs/latest/topics/howtos/idp-support/onelogin/
                 - title: Azure
-                  link: /docs/topics/howtos/idp-support/azure/
+                  link: /docs/latest/topics/howtos/idp-support/azure/
                 - title: Salesforce
-                  link: /docs/topics/howtos/idp-support/salesforce/
+                  link: /docs/latest/topics/howtos/idp-support/salesforce/
                 - title: Keycloak
-                  link: /docs/topics/howtos/idp-support/keycloak
+                  link: /docs/latest/topics/howtos/idp-support/keycloak
                 - title: UAA
-                  link: /docs/topics/howtos/idp-support/uaa/
+                  link: /docs/latest/topics/howtos/idp-support/uaa/
             - title: Custom Filters
-              link: /docs/topics/filters/filter-dev-guide
+              link: /docs/latest/topics/filters/filter-dev-guide
             - title: Filter Plugin Policy for Access Control
-              link: /docs/topics/access-control/
+              link: /docs/latest/topics/access-control/
         - title: Edge Control
           items:
             - title: Introduction to Edge Control
-              link: /docs/topics/using/edge-control
+              link: /docs/latest/topics/using/edge-control
             - title: Using Edge Control in CI
-              link: /docs/topics/using/edge-control-in-ci
+              link: /docs/latest/topics/using/edge-control-in-ci
         - title: Developer Portal
-          link: /docs/topics/using/dev-portal
+          link: /docs/latest/topics/using/dev-portal
         - title: Edge Policy Console
-          link: /docs/topics/using/edge-policy-console
+          link: /docs/latest/topics/using/edge-policy-console
     - title: Running Ambassador in Production
-      link: /docs/topics/running/
+      link: /docs/latest/topics/running/
       items: 
         - title: The Ambassador Module
-          link: /docs/topics/running/ambassador
+          link: /docs/latest/topics/running/ambassador
         - title: The Host CRD
-          link: /docs/topics/running/host-crd
+          link: /docs/latest/topics/running/host-crd
         - title: Load Balancing and Service Discovery
           items:
             - title: Load Balancing
-              link: /docs/topics/running/load-balancer
+              link: /docs/latest/topics/running/load-balancer
             - title: Service Discovery and Resolvers
-              link: /docs/topics/running/resolvers
+              link: /docs/latest/topics/running/resolvers
         - title: Gzip Compression
-          link: /docs/topics/running/gzip
+          link: /docs/latest/topics/running/gzip
         - title: Deploying Ambassador
           items:
             - title: Ambassador with AWS
-              link: /docs/topics/running/ambassador-with-aws
+              link: /docs/latest/topics/running/ambassador-with-aws
             - title: Ambassador with GKE
-              link: /docs/topics/running/ambassador-with-gke
+              link: /docs/latest/topics/running/ambassador-with-gke
             - title: Running Ambassador
-              link: /docs/topics/running/running
+              link: /docs/latest/topics/running/running
         - title: TLS
           items:
             - title: Client Certificate Validation
-              link: /docs/topics/running/tls/client-cert-validation
+              link: /docs/latest/topics/running/tls/client-cert-validation
             - title: HTTP -> HTTPS Redirection
-              link: /docs/topics/running/tls/cleartext-redirection
+              link: /docs/latest/topics/running/tls/cleartext-redirection
             - title: Mutual TLS (mTLS)
-              link: /docs/topics/running/tls/mtls
+              link: /docs/latest/topics/running/tls/mtls
             - title: Server Name Indication (SNI)
-              link: /docs/topics/running/tls/sni
+              link: /docs/latest/topics/running/tls/sni
             - title: TLS Origination
-              link: /docs/topics/running/tls/origination
+              link: /docs/latest/topics/running/tls/origination
         - title: Monitoring
-          link: /docs/topics/running/statistics
+          link: /docs/latest/topics/running/statistics
 - title: HOWTO Guides
   items: 
     - title: Authentication
       items:
         - title: Basic Authentication
-          link: /docs/howtos/basic-auth
+          link: /docs/latest/howtos/basic-auth
         - title: Single Sign-On with Auth0
-          link: /docs/howtos/sso/auth0
+          link: /docs/latest/howtos/sso/auth0
         - title: Single Sign-On with Azure Active Directory
-          link: /docs/howtos/sso/azure
+          link: /docs/latest/howtos/sso/azure
         - title: Single Sign-On with Google
-          link: /docs/howtos/sso/google
+          link: /docs/latest/howtos/sso/google
         - title: Single Sign-On with Keycloak
-          link: /docs/howtos/sso/keycloak
+          link: /docs/latest/howtos/sso/keycloak
         - title: Single Sign-On with Okta
-          link: /docs/howtos/sso/okta
+          link: /docs/latest/howtos/sso/okta
         - title: Single Sign-On with OneLogin
-          link: /docs/howtos/sso/onelogin
+          link: /docs/latest/howtos/sso/onelogin
         - title: Single Sign-On with Salesforce
-          link: /docs/howtos/sso/salesforce
+          link: /docs/latest/howtos/sso/salesforce
         - title: Single Sign-On with UAA
-          link: /docs/howtos/sso/UAA
+          link: /docs/latest/howtos/sso/UAA
         - title: Using the OAuth2 filter
-          link: /docs/howtos/oauth-oidc-auth
+          link: /docs/latest/howtos/oauth-oidc-auth
     - title: Custom Filters
-      link: /docs/howtos/filter-dev-guide
+      link: /docs/latest/howtos/filter-dev-guide
     - title: Distributed Tracing
       items:
         - title: DataDog
-          link: /docs/howtos/tracing-datadog
+          link: /docs/latest/howtos/tracing-datadog
         - title: Zipkin
-          link: /docs/howtos/tracing-zipkin
+          link: /docs/latest/howtos/tracing-zipkin
     - title: Knative Serverless Framework
-      link: /docs/howtos/knative
+      link: /docs/latest/howtos/knative
     - title: Promtheus monitoring
-      link: /docs/howtos/prometheus
+      link: /docs/latest/howtos/prometheus
     - title: Rate Limiting
       items:
         - title: Basic Rate Limiting
-          link: /docs/howtos/rate-limiting-tutorial
+          link: /docs/latest/howtos/rate-limiting-tutorial
         - title: Advanced Rate Limiting
-          link: /docs/howtos/advanced-rate-limiting
+          link: /docs/latest/howtos/advanced-rate-limiting
     - title: Service Mesh Integration
       items:
         - title: Consul
-          link: /docs/howtos/consul
+          link: /docs/latest/howtos/consul
         - title: Istio
-          link: /docs/howtos/istio
+          link: /docs/latest/howtos/istio
         - title: Linkerd 2
-          link: /docs/howtos/linkerd2
+          link: /docs/latest/howtos/linkerd2
     - title: TLS
       items:
         - title: Using cert-manager
-          link: /docs/howtos/cert-manager
+          link: /docs/latest/howtos/cert-manager
         - title: TLS termination
-          link: /docs/howtos/tls-termination
+          link: /docs/latest/howtos/tls-termination
     - title: WebSockets
-      link: /docs/howtos/websockets
+      link: /docs/latest/howtos/websockets
 - title: Frequently Asked Questions
-  link: /docs/about/faq
+  link: /docs/latest/about/faq
 - title: Community
   items:
     - title: Contributor's Guide
