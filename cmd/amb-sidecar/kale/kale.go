@@ -266,37 +266,40 @@ func (pm PodMap) addPod(pod *k8sTypesCoreV1.Pod) {
 type DeployMap map[string][]Deploy
 
 func (k *kale) reconcileConsistently(ctx context.Context, snapshot Snapshot) {
-	deployMap := k.reconcileProjects(snapshot)
+	k.updateInternalState(snapshot)
 
-	k.mu.Lock()
-	k.deployMap = deployMap
-	k.mu.Unlock()
-
-	k.updatePods(snapshot.Pods)
-	k.reconcile(ctx, deployMap)
+	k.reconcileProjects(snapshot.Projects)
+	// NB: It is safe to use k.deployMap without a read-lock here,
+	// because this runs in the only thread that writes to it.
+	k.reconcile(ctx, k.deployMap)
 }
 
-func (k *kale) reconcileProjects(snapshot Snapshot) DeployMap {
+func (k *kale) updateInternalState(snapshot Snapshot) {
 	deploys := make(DeployMap)
 	projects := make(map[string]Project)
-	for _, pr := range snapshot.Projects {
+	for _, proj := range snapshot.Projects {
+		projects[proj.Key()] = *proj
+		deploys[proj.Key()] = GetDeploys(*proj)
+	}
+
+	pods := make(PodMap)
+	for _, pod := range snapshot.Pods {
+		pods.addPod(pod)
+	}
+
+	k.mu.Lock()
+	k.Projects = projects
+	k.Pods = pods
+	k.deployMap = deploys
+	k.mu.Unlock()
+}
+
+func (k *kale) reconcileProjects(projects []*Project) {
+	for _, pr := range projects {
 		key := pr.Key()
 		hookUrl := fmt.Sprintf("https://%s/edge_stack/api/githook/%s", pr.Spec.Host, key)
 		postHook(pr.Spec.GithubRepo, hookUrl, pr.Spec.GithubToken)
-		projects[key] = *pr
-		deploys[key] = GetDeploys(*pr)
 	}
-	k.mu.Lock()
-	k.Projects = projects
-	// todo: we should have better data structures so this isn't so awkward
-	for key, _ := range k.Pods {
-		_, ok := projects[key]
-		if !ok {
-			delete(k.Pods, key)
-		}
-	}
-	k.mu.Unlock()
-	return deploys
 }
 
 type Project struct {
@@ -570,18 +573,6 @@ func (k *kale) startBuild(proj Project, buildID, ref, commit string) (string, er
 	}
 
 	return string(out), nil
-}
-
-func (k *kale) updatePods(pods []*k8sTypesCoreV1.Pod) {
-	pm := make(PodMap)
-
-	for _, pod := range pods {
-		pm.addPod(pod)
-	}
-
-	k.mu.Lock()
-	k.Pods = pm
-	k.mu.Unlock()
 }
 
 func (k *kale) pods() []*k8sTypesCoreV1.Pod {
