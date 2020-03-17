@@ -1,8 +1,8 @@
 # Load Balancing in Ambassador Edge Stack
 
-Load balancing configuration can be set for all Ambassador Edge Stack mappings in the [`ambassador Module`](../ambassador), or set per [`Mapping`](../../mappings#configuring-mappings). If nothing is set, simple round robin balancing is used via Kubernetes services.
+Load balancing configuration can be set for all Ambassador Edge Stack mappings in the [`ambassador Module`](ambassador), or set per [`Mapping`](../using/mappings#configuring-mappings). If nothing is set, simple round robin balancing is used via Kubernetes services.
 
-To use advanced load balancing, you must first configure a [resolver](../resolvers) that supports advanced load balancing (e.g., the Kubernetes Endpoint Resolver or Consul Resolver). Once a resolver is configured, you can use the `load_balancer` attribute. The following fields are supported:
+To use advanced load balancing, you must first configure a [resolver](resolvers) that supports advanced load balancing (e.g., the Kubernetes Endpoint Resolver or Consul Resolver). Once a resolver is configured, you can use the `load_balancer` attribute. The following fields are supported:
 
 ```yaml
 load_balancer:
@@ -201,7 +201,3 @@ spec:
     policy: ring_hash
     header: STICKY_HEADER
 ```
-
-## Disabling advanced load balancing
-
-In Ambassador 0.60, you can disable advanced load balancing features by setting the environment variable `AMBASSADOR_DISABLE_ENDPOINTS` to any value. If you find that this is necessary, please reach out to us on [Slack](https://d6e.co/slack) so we can fix whatever is wrong!

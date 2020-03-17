@@ -1,6 +1,6 @@
 ## The `ext_authz` Protocol
 
-By design, the `ext_authz` protocol used by [the `AuthService`](../auth-service) and by [`External` `Filters`](../../filter-reference) is highly flexible. The authentication service is the first external service invoked on an incoming request (e.g., it runs before the rate limit filter). Because the logic of authentication is encapsulated in an external service, you can use this to support a wide variety of use cases. For example:
+By design, the `ext_authz` protocol used by [the `AuthService`](auth-service) and by [`External` `Filters`](../using/filters/) is highly flexible. The authentication service is the first external service invoked on an incoming request (e.g., it runs before the rate limit filter). Because the logic of authentication is encapsulated in an external service, you can use this to support a wide variety of use cases. For example:
 
 * Supporting traditional SSO authentication protocols, e.g., OAuth, OpenID Connect, etc.
 * Supporting HTTP basic authentication (sample implementation available [here](https://github.com/datawire/ambassador-auth-httpbasic)).

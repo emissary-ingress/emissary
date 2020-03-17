@@ -4,7 +4,7 @@ By default, Ambassador Edge Stack puts the access logs on stdout; such
 that the can be read using `kubectl logs`.  The format of those logs,
 and the local destination of them, can be configured using the
 [`envoy_log_` settings in the `ambassador
-Module`](../../core/ambassador#the-ambassador-module).  However, the
+Module`](../ambassador).  However, the
 options there only allow for logging local to Ambassador's Pod.  By
 configuring a `LogService`, you can configure Ambassador Edge Stack to
 report its access logs to a remote service, in addition to the usual
