@@ -65,7 +65,7 @@ Istio creates and stores its TLS certificates in a form that Ambassador Edge Sta
      tls: istio-upstream
    ```
 
-Ambassador Edge Stack will now use the certificate stored in the `istio.default` secret to originate TLS to Istio-powered services. See the [Ambassador Edge Stack with Istio](../../../user-guide/with-istio#istio-mutual-tls) documentation for an example with more information.
+Ambassador Edge Stack will now use the certificate stored in the `istio.default` secret to originate TLS to Istio-powered services. See the [Ambassador Edge Stack with Istio](../../../howtos/istio#istio-mutual-tls) documentation for an example with more information.
 
 ## Consul mTLS
 
@@ -104,7 +104,7 @@ Since Consul does not expose TLS Certificates as Kubernetes secrets, we will nee
      tls: ambassador-consul
    ```
 
-Ambassador Edge Stack will now use the certificates loaded into the `ambassador-consul` `TLSContext` when proxying requests with `prefix: /qotm-consul-mtls`. See the [Consul example](../../../user-guide/consul#encrypted-tls) for an example configuration.
+Ambassador Edge Stack will now use the certificates loaded into the `ambassador-consul` `TLSContext` when proxying requests with `prefix: /qotm-consul-mtls`. See the [Consul example](../../../howtos/consul#encrypted-tls) for an example configuration.
 
 **Note:** The Consul connector can be configured with the following environment variables. The defaults will be best for most use-cases.
 
