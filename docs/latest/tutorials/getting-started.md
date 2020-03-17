@@ -7,7 +7,7 @@ In this guide, we'll walk you through installing and configuring the Ambassador 
 
 ## Before You Begin
 
-The Ambassador Edge Stack is designed to run in Kubernetes for production. The most essential requirements are:
+The Ambassador Edge Stack is made to run in Kubernetes for production. The most essential requirements are:
 
 * Kubernetes 1.11 or later
 * The `kubectl` command-line tool
