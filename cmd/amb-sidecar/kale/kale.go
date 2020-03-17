@@ -514,64 +514,60 @@ func (k *kale) startBuild(proj Project, buildID, ref, commit string) (string, er
 	// todo: the ambassador namespace is hardcoded below in the registry
 	//       we to which we push
 
-	pod := &k8sTypesCoreV1.Pod{
-		TypeMeta: k8sTypesMetaV1.TypeMeta{
-			APIVersion: "v1",
-			Kind:       "Pod",
-		},
-		ObjectMeta: k8sTypesMetaV1.ObjectMeta{
-			Name:      proj.Metadata.Name + "-build-" + buildID,
-			Namespace: proj.Metadata.Namespace,
-			Annotations: map[string]string{
-				"statusesUrl": "https://api.github.com/repos/" + proj.Spec.GithubRepo + "/statuses/" + commit,
+	manifests := []interface{}{
+		&k8sTypesCoreV1.Pod{
+			TypeMeta: k8sTypesMetaV1.TypeMeta{
+				APIVersion: "v1",
+				Kind:       "Pod",
 			},
-			Labels: map[string]string{
-				"kale":    "0.0",
-				"project": proj.Metadata.Name,
-				"commit":  commit,
-				"build":   buildID,
-			},
-			OwnerReferences: []k8sTypesMetaV1.OwnerReference{
-				{
-					APIVersion:         "getambassador.io/v2",
-					Controller:         boolPtr(true),
-					BlockOwnerDeletion: boolPtr(true),
-					Kind:               "Project",
-					Name:               proj.Metadata.Name,
-					UID:                proj.Metadata.UID,
+			ObjectMeta: k8sTypesMetaV1.ObjectMeta{
+				Name:      proj.Metadata.Name + "-build-" + buildID,
+				Namespace: proj.Metadata.Namespace,
+				Annotations: map[string]string{
+					"statusesUrl": "https://api.github.com/repos/" + proj.Spec.GithubRepo + "/statuses/" + commit,
 				},
-			},
-		},
-		Spec: k8sTypesCoreV1.PodSpec{
-			Containers: []k8sTypesCoreV1.Container{
-				{
-					Name:  "kaniko",
-					Image: "gcr.io/kaniko-project/executor:v0.16.0",
-					Args: []string{
-						"--cache=true",
-						"--skip-tls-verify",
-						"--skip-tls-verify-pull",
-						"--skip-tls-verify-registry",
-						"--dockerfile=Dockerfile",
-						"--context=git://github.com/" + proj.Spec.GithubRepo + ".git#" + ref,
-						"--destination=registry.ambassador/" + commit,
+				Labels: map[string]string{
+					"kale":    "0.0",
+					"project": proj.Metadata.Name,
+					"commit":  commit,
+					"build":   buildID,
+				},
+				OwnerReferences: []k8sTypesMetaV1.OwnerReference{
+					{
+						APIVersion:         "getambassador.io/v2",
+						Controller:         boolPtr(true),
+						BlockOwnerDeletion: boolPtr(true),
+						Kind:               "Project",
+						Name:               proj.Metadata.Name,
+						UID:                proj.Metadata.UID,
 					},
 				},
 			},
-			RestartPolicy: k8sTypesCoreV1.RestartPolicyNever,
+			Spec: k8sTypesCoreV1.PodSpec{
+				Containers: []k8sTypesCoreV1.Container{
+					{
+						Name:  "kaniko",
+						Image: "gcr.io/kaniko-project/executor:v0.16.0",
+						Args: []string{
+							"--cache=true",
+							"--skip-tls-verify",
+							"--skip-tls-verify-pull",
+							"--skip-tls-verify-registry",
+							"--dockerfile=Dockerfile",
+							"--context=git://github.com/" + proj.Spec.GithubRepo + ".git#" + ref,
+							"--destination=registry.ambassador/" + commit,
+						},
+					},
+				},
+				RestartPolicy: k8sTypesCoreV1.RestartPolicyNever,
+			},
 		},
 	}
-
-	manifests := []interface{}{pod}
 
 	out, err := applyObjs(manifests)
 	if err != nil {
 		return "", fmt.Errorf("%w\n%s", err, out)
 	}
-
-	k.mu.Lock()
-	k.Pods.addPod(pod)
-	k.mu.Unlock()
 
 	return string(out), nil
 }
@@ -773,41 +769,6 @@ func (k *kale) reconcileDeploy(ctx context.Context, dep Deploy, builders, runner
 }
 
 func (k *kale) startRun(proj Project, commit string) (string, error) {
-	// todo: figure out what is going on with /edge_stack/previews
-	// not being routable
-	pod := &k8sTypesCoreV1.Pod{
-		TypeMeta: k8sTypesMetaV1.TypeMeta{
-			APIVersion: "v1",
-			Kind:       "Pod",
-		},
-		ObjectMeta: k8sTypesMetaV1.ObjectMeta{
-			Name:      proj.Metadata.Name + "-" + commit,
-			Namespace: proj.Metadata.Namespace,
-			OwnerReferences: []k8sTypesMetaV1.OwnerReference{
-				{
-					APIVersion:         "getambassador.io/v2",
-					Controller:         boolPtr(true),
-					BlockOwnerDeletion: boolPtr(true),
-					Kind:               "Project",
-					Name:               proj.Metadata.Name,
-					UID:                proj.Metadata.UID,
-				},
-			},
-			Labels: map[string]string{
-				"kale":    "0.0",
-				"project": proj.Metadata.Name,
-				"commit":  commit,
-			},
-		},
-		Spec: k8sTypesCoreV1.PodSpec{
-			Containers: []k8sTypesCoreV1.Container{
-				{
-					Name:  "app",
-					Image: "127.0.0.1:31000/" + commit,
-				},
-			},
-		},
-	}
 	manifests := []interface{}{
 		map[string]interface{}{
 			"apiVersion": "getambassador.io/v2",
@@ -830,6 +791,8 @@ func (k *kale) startRun(proj Project, commit string) (string, error) {
 				},
 			},
 			"spec": map[string]interface{}{
+				// todo: figure out what is going on with /edge_stack/previews
+				// not being routable
 				"prefix":  "/.previews/" + proj.Spec.Prefix + "/" + commit + "/",
 				"service": proj.Spec.Prefix + "-" + commit,
 			},
@@ -870,17 +833,45 @@ func (k *kale) startRun(proj Project, commit string) (string, error) {
 				},
 			},
 		},
-		pod,
+		&k8sTypesCoreV1.Pod{
+			TypeMeta: k8sTypesMetaV1.TypeMeta{
+				APIVersion: "v1",
+				Kind:       "Pod",
+			},
+			ObjectMeta: k8sTypesMetaV1.ObjectMeta{
+				Name:      proj.Metadata.Name + "-" + commit,
+				Namespace: proj.Metadata.Namespace,
+				OwnerReferences: []k8sTypesMetaV1.OwnerReference{
+					{
+						APIVersion:         "getambassador.io/v2",
+						Controller:         boolPtr(true),
+						BlockOwnerDeletion: boolPtr(true),
+						Kind:               "Project",
+						Name:               proj.Metadata.Name,
+						UID:                proj.Metadata.UID,
+					},
+				},
+				Labels: map[string]string{
+					"kale":    "0.0",
+					"project": proj.Metadata.Name,
+					"commit":  commit,
+				},
+			},
+			Spec: k8sTypesCoreV1.PodSpec{
+				Containers: []k8sTypesCoreV1.Container{
+					{
+						Name:  "app",
+						Image: "127.0.0.1:31000/" + commit,
+					},
+				},
+			},
+		},
 	}
 
 	out, err := applyObjs(manifests)
 	if err != nil {
 		return "", fmt.Errorf("%w\n%s", err, out)
 	}
-
-	k.mu.Lock()
-	k.Pods.addPod(pod)
-	k.mu.Unlock()
 
 	return string(out), nil
 }
