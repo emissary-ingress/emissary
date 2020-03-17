@@ -60,7 +60,7 @@ securityContext:
 
 image:
   repository: quay.io/datawire/aes
-  tag: 1.2.2
+  tag: 1.3.0
   pullPolicy: IfNotPresent
 
 dnsPolicy: "ClusterFirst"
