@@ -1,10 +1,10 @@
 # Authentication
 
-Ambassador Edge Stack can authenticate incoming requests before routing them to a backing service. In this tutorial, we'll configure Ambassador Edge Stack to use an external third party authentication service.
+Ambassador can authenticate incoming requests before routing them to a backing service. In this tutorial, we'll configure Ambassador to use an external third party authentication service. Note that if you're using the Ambassador Edge Stack, the [`External` filter](../topics/using/filters) is a more powerful way to manage authentication. 
 
 ## Before You Get Started
 
-This tutorial assumes you have already followed the Ambassador Edge Stack [Installation](../install) guide. If you haven't done that already, you should do that now.
+This tutorial assumes you have already followed the Ambassador Edge Stack [Installation](../topics/install) guide. If you haven't done that already, you should do that now.
 
 Once complete, you'll have a Kubernetes cluster running Ambassador Edge Stack. Let's walk through adding authentication to this setup.
 
@@ -206,4 +206,4 @@ spec:
 
 ## More
 
-For more details about configuring authentication, read the documentation on [external authentication](../../reference/services/auth-service).
+For more details about configuring authentication, see the [`External` filter](../topics/using/filters) documentation.

@@ -138,7 +138,7 @@ spec:
 
 ## Example 4: Global Rate Limiting
 
-Suppose, like [Example 2](#example-2-per-user-rate-limiting), you want to ensure a single user cannot overload your server with too many requests to any service. You need to add a request label to every request so you can rate limit off every request a calling IP makes. This can be configured with a [global rate limit](../../reference/rate-limits#global-rate-limiting) that add the `remote_address` special value to every request:
+Suppose, like [Example 2](#example-2-per-user-rate-limiting), you want to ensure a single user cannot overload your server with too many requests to any service. You need to add a request label to every request so you can rate limit off every request a calling IP makes. This can be configured with a [global rate limit](../topics/using/rate-limits) that add the `remote_address` special value to every request:
 
 ```yaml
 ---
@@ -222,4 +222,4 @@ The most common source of failure of the rate limiting service will occur when t
 
 ## More
 
-For more on rate limiting, see the [rate limit reference](../../reference/rate-limits).
+For more on rate limiting, see the [rate limit guide](../topics/using/rate-limits/).

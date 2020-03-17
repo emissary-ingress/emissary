@@ -20,7 +20,7 @@ In this guide, you will register a service with Consul and use Ambassador Edge S
    kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-rbac.yaml
    ```
 
-   If you're on GKE, or haven't previously created the Ambassador Edge Stack service, please see the [quick start guide](../getting-started).
+   If you're on GKE, or haven't previously created the Ambassador Edge Stack service, please see the [quick start guide](../tutorials/getting-started).
 
 3. Configure Ambassador Edge Stack to look for services registered to Consul by creating the `ConsulResolver`:
 
@@ -47,7 +47,7 @@ In this guide, you will register a service with Consul and use Ambassador Edge S
         targetPort: 8080
     ```
 
-    This will tell Ambassador Edge Stack that Consul is a service discovery endpoint. Save the configuration to a file (e.g., `ambassador-service.yaml`, and apply this configuration with `kubectl apply -f ambassador-service.yaml`. For more information about resolver configuration, see the [resolver reference documentation](../../reference/core/resolvers). (If you're using Consul deployed elsewhere in your data center, make sure the `address` points to your Consul FQDN or IP address).
+    This will tell Ambassador Edge Stack that Consul is a service discovery endpoint. Save the configuration to a file (e.g., `ambassador-service.yaml`, and apply this configuration with `kubectl apply -f ambassador-service.yaml`. For more information about resolver configuration, see the [resolver reference documentation](../topics/running/resolvers). (If you're using Consul deployed elsewhere in your data center, make sure the `address` points to your Consul FQDN or IP address).
 
 ## Routing to Consul Services
 
@@ -244,6 +244,4 @@ This will install into your cluster:
 
 ## More Information
 
-For more about Ambassador Edge Stack's integration with Consul, read the [service discovery configuration](../../reference/core/resolvers) documentation.
-
-See the [TLS documentation](../../reference/core/tls#mtls-consul) for information on configuring the Ambassador Edge Stack Consul connector.
+For more about Ambassador Edge Stack's integration with Consul, read the [service discovery configuration](../topics/running/resolvers) documentation.
