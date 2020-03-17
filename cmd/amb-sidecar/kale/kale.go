@@ -1,25 +1,32 @@
 package kale
 
 import (
+	// standard library
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"sort"
 	"strings"
 	"sync"
 	"time"
 
-	"k8s.io/apimachinery/pkg/util/intstr"
-
+	// 3rd party: k8s types
 	k8sTypesCoreV1 "k8s.io/api/core/v1"
 	k8sTypesMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	k8sTypes "k8s.io/apimachinery/pkg/types"
 
+	// 3rd party: k8s clients
+	k8sClientDynamic "k8s.io/client-go/dynamic"
+
+	// 3rd party: k8s misc
+	k8sSchema "k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/util/intstr"
+
+	// 1st party
 	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/datawire/ambassador/pkg/k8s"
 	"github.com/datawire/apro/cmd/amb-sidecar/group"
+	"github.com/datawire/apro/cmd/amb-sidecar/k8s/leaderelection"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/mapstructure"
 	lyftserver "github.com/lyft/ratelimit/src/server"
@@ -76,14 +83,16 @@ import (
 // controller. The main function sets up listener watching for changes
 // to kubernetes resources and a web server.
 
-func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8s.KubeInfo) {
-	k := NewKale()
+func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8s.KubeInfo, dynamicClient k8sClientDynamic.Interface) {
+	k := NewKale(dynamicClient)
 
 	upstream := make(chan Snapshot)
 	downstream := make(chan Snapshot)
 	go coalesce(upstream, downstream)
 
 	group.Go("kale_watcher", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
+		softCtx = dlog.WithLogger(softCtx, l)
+
 		client, err := k8s.NewClient(info)
 		if err != nil {
 			// this is non fatal (mostly just to facilitate local dev); don't `return err`
@@ -94,7 +103,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 		w := client.Watcher()
 		var wg WatchGroup
 
-		err = w.WatchQuery(k8s.Query{Kind: "projects.getambassador.io"}, wg.Wrap(func(w *k8s.Watcher) {
+		err = w.WatchQuery(k8s.Query{Kind: "projects.getambassador.io"}, wg.Wrap(softCtx, func(w *k8s.Watcher) {
 			upstream <- Snapshot{
 				Pods:     w.List("pod"),
 				Projects: w.List("projects.getambassador.io"),
@@ -107,7 +116,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 			return nil
 		}
 
-		err = w.WatchQuery(k8s.Query{Kind: "pod", LabelSelector: "kale"}, wg.Wrap(func(w *k8s.Watcher) {
+		err = w.WatchQuery(k8s.Query{Kind: "pod", LabelSelector: "kale"}, wg.Wrap(softCtx, func(w *k8s.Watcher) {
 			upstream <- Snapshot{
 				Pods:     w.List("pod"),
 				Projects: w.List("projects.getambassador.io"),
@@ -131,28 +140,29 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 	})
 
 	group.Go("kale_worker", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
-		var prev Snapshot
-		for snapshot := range downstream {
-			if snapshot.Pods == nil && snapshot.Projects == nil {
-				// If we triggered a rectify, but don't have a new
-				// snapshot (snapshot.X == nil), then re-use the previous
-				// snapshot.
-				if prev.Pods == nil && prev.Projects == nil {
-					// Unless of course we don't have a previous
-					// snapshot either; in which case, just skip this
-					// rectify.
-					continue
+		softCtx = dlog.WithLogger(softCtx, l)
+
+		err := leaderelection.RunAsSingleton(softCtx, cfg, info, "kale", 15*time.Second, func(ctx context.Context) {
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case snapshot, ok := <-downstream:
+					if !ok {
+						return
+					}
+					k.reconcileConsistently(ctx, snapshot)
 				}
-				snapshot = prev
 			}
-			k.reconcileConsistently(snapshot)
-			prev = snapshot
+		})
+		if err != nil {
+			// make this non-fatal
+			l.Errorln("failed to participate in kale leader election, kale is disabled:", err)
 		}
 		return nil
 	})
 
 	// todo: lock down all these endpoints with auth
-	k.snapshots = upstream
 	handler := http.StripPrefix("/edge_stack_ui/edge_stack", http.HandlerFunc(safeHandleFunc(k.dispatch))).ServeHTTP
 	// todo: this is just temporary, we will consolidate these sprawling endpoints later
 	httpHandler.AddEndpoint("/edge_stack_ui/edge_stack/api/projects", "kale projects api", handler)
@@ -185,25 +195,23 @@ did_read:
 // A kale contains the global state for the controller/webhook. We
 // assume there is only one copy of the controller running in the
 // cluster, so this is global to the entire cluster.
-func NewKale() *kale {
+func NewKale(dynamicClient k8sClientDynamic.Interface) *kale {
 	return &kale{
-		Projects: make(map[string]Project),
-		Pods:     make(PodMap),
+		projectsGetter: dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "projects"}),
+		Projects:       make(map[string]Project),
+		Pods:           make(PodMap),
 	}
 }
 
 type kale struct {
 	cfg types.Config
 
+	projectsGetter k8sClientDynamic.NamespaceableResourceInterface
+
 	mu        sync.RWMutex
 	Projects  map[string]Project
 	Pods      PodMap
 	deployMap DeployMap
-
-	// A thread-safe way to trigger a rectify from different places; write a Snapshot
-	// to this channel to trigger a rectify.  If you want to trigger a rectify without
-	// providing a new Snapshot, just write a zero-Snapshot (`Snapshot{}`).
-	snapshots chan<- Snapshot
 }
 
 type PodMap map[string]map[string]*k8sTypesCoreV1.Pod
@@ -224,8 +232,8 @@ func (pm PodMap) addPod(pod *k8sTypesCoreV1.Pod) {
 
 type DeployMap map[string][]Deploy
 
-func (k *kale) reconcileConsistently(snapshot Snapshot) {
-	deployMap := k.reconcileProjects(snapshot)
+func (k *kale) reconcileConsistently(ctx context.Context, snapshot Snapshot) {
+	deployMap := k.reconcileProjects(ctx, snapshot)
 
 	k.mu.Lock()
 	k.deployMap = deployMap
@@ -236,17 +244,19 @@ func (k *kale) reconcileConsistently(snapshot Snapshot) {
 		panic(err)
 	}
 	k.updatePods(pods)
-	k.reconcile(deployMap)
+	k.reconcile(ctx, deployMap)
 }
 
-func (k *kale) reconcileProjects(snapshot Snapshot) DeployMap {
+func (k *kale) reconcileProjects(ctx context.Context, snapshot Snapshot) DeployMap {
+	log := dlog.GetLogger(ctx)
+
 	deploys := make(DeployMap)
 	projects := make(map[string]Project)
 	for _, rsrc := range snapshot.Projects {
 		pr := Project{}
-		err := rsrc.Decode(&pr)
+		err := mapstructure.Convert(rsrc, &pr)
 		if err != nil {
-			log.Printf(err.Error())
+			log.Println(err.Error())
 			continue
 		}
 
@@ -270,17 +280,16 @@ func (k *kale) reconcileProjects(snapshot Snapshot) DeployMap {
 }
 
 type Project struct {
-	Metadata struct {
-		Name      string       `json:"name"`
-		Namespace string       `json:"namespace"`
-		UID       k8sTypes.UID `json:"uid"`
-	} `json:"metadata"`
-	Spec struct {
+	Metadata k8sTypesMetaV1.ObjectMeta `json:"metadata"`
+	Spec     struct {
 		Host        string `json:"host"`
 		Prefix      string `json:"prefix"`
 		GithubRepo  string `json:"githubRepo"`
 		GithubToken string `json:"githubToken"` // todo: make this a secret ref
 	} `json:"spec"`
+	Status struct {
+		LastPush time.Time `json:"lastPush"`
+	} `json:"status"`
 }
 
 func (p Project) Key() string {
@@ -389,32 +398,87 @@ func (k *kale) projectsJSON() string {
 
 // Handle Push events from the github API.
 func (k *kale) handlePush(r *http.Request, key string) httpResult {
+	log := dlog.GetLogger(r.Context())
+
 	k.mu.RLock()
-	_, ok := k.Projects[key]
+	proj, ok := k.Projects[key]
 	k.mu.RUnlock()
 	if !ok {
 		return httpResult{status: 404, body: fmt.Sprintf("no such project %s", key)}
 	}
 
-	// todo: the webhook is totally asynchronous... we basically
-	// need to work based on polling and treat the webhook as a
-	// hint to increase the frequency of polling
-	go func() {
-		k.snapshots <- Snapshot{}
-		for i := 1; i <= 128; i *= 2 {
-			time.Sleep(time.Duration(i) * time.Second)
-			k.snapshots <- Snapshot{}
+	var push Push
+	if err := json.NewDecoder(r.Body).Decode(&push); err != nil {
+		log.Printf("WEBHOOK PARSE ERROR: %v", err)
+		return httpResult{status: 400, body: err.Error()}
+	}
+
+	// GitHub calls the hook asynchronously--it might not actually
+	// be ready for us to do things based on the hook.  Poll
+	// GitHub until we see that what the hook says has come to
+	// pass... or we time out.
+	gitReady := false
+	apiReady := false
+	deadline := time.Now().Add(2 * time.Minute)
+	backoff := 1 * time.Second
+	for (!gitReady || !apiReady) && time.Now().Before(deadline) {
+		if !gitReady {
+			var rev string
+			err := safeInvoke(func() {
+				rev = gitResolveRef("https://github.com/"+proj.Spec.GithubRepo, proj.Spec.GithubToken, push.Ref)
+			})
+			if err != nil {
+				continue
+			}
+			if rev == push.After {
+				gitReady = true
+			}
 		}
-	}()
+		if !apiReady {
+			var prs []Pull
+			var resp *http.Response
+			err := safeInvoke(func() {
+				resp = getJSON(fmt.Sprintf("https://api.github.com/repos/%s/pulls", proj.Spec.GithubRepo), proj.Spec.GithubToken, &prs)
+			})
+			if err != nil || resp.StatusCode != 200 {
+				continue
+			}
+			havePr := false
+			for _, pr := range prs {
+				if "refs/heads/"+pr.Head.Ref == push.Ref {
+					havePr = true
+					if pr.Head.Sha == push.After {
+						apiReady = true
+					}
+				}
+			}
+			if !havePr {
+				apiReady = true
+			}
+		}
+		time.Sleep(backoff)
+		if backoff < 10*time.Second {
+			backoff *= 2
+		}
+	}
+	if gitReady && apiReady {
+		// Bump the project's .Status, to trigger a rectify via
+		// Kubernetes.  We do this instead of just poking the right
+		// bits in memory because we might not be the elected leader.
+		proj.Status.LastPush = time.Now()
+		uProj := unstructureProject(proj)
+		_, err := k.projectsGetter.Namespace(proj.Metadata.Namespace).UpdateStatus(uProj, k8sTypesMetaV1.UpdateOptions{})
+		if err != nil {
+			log.Println("update project status:", err)
+		}
+	}
 
 	return httpResult{status: 200, body: ""}
 }
 
 type Push struct {
-	Ref  string
-	Head struct {
-		Id string
-	} `json:"head_commit"`
+	Ref        string
+	After      string
 	Repository struct {
 		GitUrl      string `json:"git_url"`
 		StatusesUrl string `json:"statuses_url"`
@@ -539,7 +603,9 @@ func (k *kale) IsDesired(deployMap DeployMap, pod *k8sTypesCoreV1.Pod) bool {
 	return false
 }
 
-func (k *kale) reconcile(deployMap DeployMap) {
+func (k *kale) reconcile(ctx context.Context, deployMap DeployMap) {
+	log := dlog.GetLogger(ctx)
+
 	deploys := k.desiredDeploys(deployMap)
 	pods := k.pods()
 	for _, dep := range deploys {
@@ -553,7 +619,7 @@ func (k *kale) reconcile(deployMap DeployMap) {
 			}
 		}
 
-		err := safeInvoke1(func() error { return k.reconcileDeploy(dep, deployBuilders, deployRunners) })
+		err := safeInvoke1(func() error { return k.reconcileDeploy(ctx, dep, deployBuilders, deployRunners) })
 		if err != nil {
 			log.Printf("ERROR: %v", err)
 		}
@@ -568,7 +634,9 @@ func (k *kale) reconcile(deployMap DeployMap) {
 	}
 }
 
-func (k *kale) reconcileDeploy(dep Deploy, builders, runners []*k8sTypesCoreV1.Pod) error {
+func (k *kale) reconcileDeploy(ctx context.Context, dep Deploy, builders, runners []*k8sTypesCoreV1.Pod) error {
+	log := dlog.GetLogger(ctx)
+
 	proj := dep.Project
 
 	switch len(builders) {
@@ -580,7 +648,7 @@ func (k *kale) reconcileDeploy(dep Deploy, builders, runners []*k8sTypesCoreV1.P
 			if err != nil {
 				log.Printf("OUTPUT: %s", out)
 				log.Printf("ERROR: %v", err)
-				postStatus(fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, dep.Ref.Hash().String()),
+				postStatus(ctx, fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, dep.Ref.Hash().String()),
 					GitHubStatus{
 						State:       "error",
 						TargetUrl:   fmt.Sprintf("http://%s/edge_stack/admin/#projects", proj.Spec.Host),
@@ -589,7 +657,7 @@ func (k *kale) reconcileDeploy(dep Deploy, builders, runners []*k8sTypesCoreV1.P
 					},
 					proj.Spec.GithubToken)
 			} else {
-				postStatus(fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, dep.Ref.Hash().String()),
+				postStatus(ctx, fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, dep.Ref.Hash().String()),
 					GitHubStatus{
 						State:       "pending",
 						TargetUrl:   proj.BuildLogUrl(buildID),
@@ -624,8 +692,8 @@ func (k *kale) reconcileDeploy(dep Deploy, builders, runners []*k8sTypesCoreV1.P
 			buildId := builder.GetLabels()["build"]
 			switch phase {
 			case k8sTypesCoreV1.PodFailed:
-				log.Printf(podLogs(builder.GetName()))
-				postStatus(statusesUrl, GitHubStatus{
+				log.Println(podLogs(builder.GetName()))
+				postStatus(ctx, statusesUrl, GitHubStatus{
 					State:       "failure",
 					TargetUrl:   proj.BuildLogUrl(buildId),
 					Description: string(phase),
@@ -641,7 +709,7 @@ func (k *kale) reconcileDeploy(dep Deploy, builders, runners []*k8sTypesCoreV1.P
 					if len(msg) > 140 {
 						msg = msg[len(msg)-140:]
 					}
-					postStatus(statusesUrl,
+					postStatus(ctx, statusesUrl,
 						GitHubStatus{
 							State:       "error",
 							TargetUrl:   fmt.Sprintf("http://%s/edge_stack/admin/#projects", proj.Spec.Host),
@@ -651,7 +719,7 @@ func (k *kale) reconcileDeploy(dep Deploy, builders, runners []*k8sTypesCoreV1.P
 						proj.Spec.GithubToken)
 					return err
 				} else {
-					postStatus(statusesUrl,
+					postStatus(ctx, statusesUrl,
 						GitHubStatus{
 							State:       "success",
 							TargetUrl:   proj.PreviewUrl(sha),

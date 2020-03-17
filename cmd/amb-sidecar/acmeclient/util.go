@@ -265,3 +265,12 @@ func (c *Controller) storeSecret(secretsGetter k8sClientCoreV1.SecretsGetter, se
 	}
 	return nil
 }
+
+func strInArray(needle string, haystack []string) bool {
+	for _, straw := range haystack {
+		if straw == needle {
+			return true
+		}
+	}
+	return false
+}

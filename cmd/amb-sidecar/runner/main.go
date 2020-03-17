@@ -35,13 +35,13 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/banner"
 	devportalcontent "github.com/datawire/apro/cmd/amb-sidecar/devportal/content"
 	devportalserver "github.com/datawire/apro/cmd/amb-sidecar/devportal/server"
-	"github.com/datawire/apro/cmd/amb-sidecar/events"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/controller"
 	filterhandler "github.com/datawire/apro/cmd/amb-sidecar/filters/handler"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/health"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/secret"
 	"github.com/datawire/apro/cmd/amb-sidecar/group"
+	"github.com/datawire/apro/cmd/amb-sidecar/k8s/events"
 	"github.com/datawire/apro/cmd/amb-sidecar/kale"
 	"github.com/datawire/apro/cmd/amb-sidecar/limiter"
 	rls "github.com/datawire/apro/cmd/amb-sidecar/ratelimits"
@@ -112,7 +112,9 @@ func Main(version string) {
 		FullTimestamp:   true,
 	}
 	logrusLogger.SetFormatter(logrusFormatter)
+	logrusLogger.SetReportCaller(true)
 	logrus.SetFormatter(logrusFormatter) // FIXME(lukeshu): Some Lyft code still uses the global logger
+	logrus.SetReportCaller(true)         // FIXME(lukeshu): Some Lyft code still uses the global logger
 
 	err := argparser.Execute()
 	if err != nil {
@@ -191,11 +193,6 @@ func runE(cmd *cobra.Command, args []string) error {
 	)
 	if err != nil {
 		return err
-	}
-
-	acmeLock, err := acmeclient.GetLeaderElectionResourceLock(cfg, kubeinfo, eventLogger)
-	if err != nil {
-		logrusLogger.Errorln("failed to participate in acme leader election, Ambassador Edge Stack acme client is disabled:", err)
 	}
 
 	snapshotStore := watt.NewSnapshotStore(http.DefaultClient /* XXX */)
@@ -356,25 +353,24 @@ func runE(cmd *cobra.Command, args []string) error {
 	}
 
 	// ACME client
-	if acmeLock != nil {
-		acmeController := acmeclient.NewController(
-			redisPool,
-			http.DefaultClient, // XXX
-			snapshotStore.Subscribe(),
-			eventLogger,
-			acmeLock,
-			coreClient,
-			dynamicClient)
-		group.Go("acme_client", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
-			// FIXME(lukeshu): Perhaps EnsureFallback should observe softCtx.Done()?
-			if err := acmeclient.EnsureFallback(cfg, coreClient, dynamicClient); err != nil {
-				err = errors.Wrap(err, "create fallback TLSContext and TLS Secret")
-				l.Errorln(err)
-				// this is non fatal (mostly just to facilitate local dev); don't `return err`
-			}
-			return acmeController.Worker(dlog.WithLogger(softCtx, l))
-		})
-	}
+	acmeController := acmeclient.NewController(
+		cfg,
+		kubeinfo,
+		redisPool,
+		http.DefaultClient, // XXX
+		snapshotStore.Subscribe(),
+		eventLogger,
+		coreClient,
+		dynamicClient)
+	group.Go("acme_client", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
+		// FIXME(lukeshu): Perhaps EnsureFallback should observe softCtx.Done()?
+		if err := acmeclient.EnsureFallback(cfg, coreClient, dynamicClient); err != nil {
+			err = errors.Wrap(err, "create fallback TLSContext and TLS Secret")
+			l.Errorln(err)
+			// this is non fatal (mostly just to facilitate local dev); don't `return err`
+		}
+		return acmeController.Worker(dlog.WithLogger(softCtx, l))
+	})
 
 	// HTTP server
 	group.Go("http", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
@@ -555,7 +551,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		return util.ListenAndServeHTTPWithContext(hardCtx, softCtx, server)
 	})
 
-	kale.Setup(group, httpHandler, kubeinfo)
+	kale.Setup(group, httpHandler, kubeinfo, dynamicClient)
 
 	// And now we wait.
 	return group.Wait()

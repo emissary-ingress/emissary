@@ -1,14 +1,15 @@
 package kale
 
 import (
+	// standard library
 	"bufio"
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	htemplate "html/template"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os/exec"
 	"strings"
@@ -16,15 +17,23 @@ import (
 	"text/template"
 	"time"
 
+	// 3rd party
 	git "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/config"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	ghttp "gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 	"gopkg.in/src-d/go-git.v4/storage/memory"
-	k8sTypesCoreV1 "k8s.io/api/core/v1"
 
+	// 3rd party: k8s types
+	k8sTypesCoreV1 "k8s.io/api/core/v1"
+	k8sTypesMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	k8sTypesUnstructured "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+
+	// 3rd party: k8s misc
 	"sigs.k8s.io/yaml"
 
+	// 1st party
+	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/datawire/ambassador/pkg/k8s"
 	"github.com/datawire/apro/lib/util"
 )
@@ -63,13 +72,13 @@ func safeInvoke1(fn func() error) (err error) {
 
 // Turn an ordinary watch listener into one that will automatically
 // turn panics into a useful log message.
-func safeWatch(listener func(w *k8s.Watcher)) func(*k8s.Watcher) {
+func safeWatch(ctx context.Context, listener func(w *k8s.Watcher)) func(*k8s.Watcher) {
 	return func(w *k8s.Watcher) {
 		err := safeInvoke(func() {
 			listener(w)
 		})
 		if err != nil {
-			log.Printf("watch error: %+v", err)
+			dlog.GetLogger(ctx).Printf("watch error: %+v", err)
 		}
 	}
 }
@@ -175,13 +184,13 @@ func getJSON(url string, token string, target interface{}) *http.Response {
 }
 
 // Post a status to the github API
-func postStatus(url string, status GitHubStatus, token string) {
+func postStatus(ctx context.Context, url string, status GitHubStatus, token string) {
 	resp, body := postJSON(url, status, token)
 
 	if resp.Status[0] != '2' {
 		panic(fmt.Errorf("error posting status: %s\n%s", resp.Status, string(body)))
 	} else {
-		log.Printf("posted status, got %s: %s, %q", resp.Status, url, status)
+		dlog.GetLogger(ctx).Printf("posted status, got %s: %s, %q", resp.Status, url, status)
 	}
 }
 
@@ -254,6 +263,8 @@ func podLogs(name string) string {
 // by the namespace and selector args down the supplied
 // http.ResponseWriter using server side events.
 func streamLogs(w http.ResponseWriter, r *http.Request, namespace, selector string) {
+	log := dlog.GetLogger(r.Context())
+
 	since := r.Header.Get("Last-Event-ID")
 	args := []string{"logs", "--timestamps", "--tail=10000", "-f", "-n", namespace, "-l", selector}
 	if since != "" {
@@ -497,6 +508,14 @@ func gitLsRemote(repo, token string, specs ...string) []*plumbing.Reference {
 	return result
 }
 
+func gitResolveRef(repo, token, refname string) string {
+	refs := gitLsRemote(repo, token, refname)
+	if len(refs) == 0 {
+		return ""
+	}
+	return refs[0].Hash().String()
+}
+
 // WatchGroup is used to wait for multiple Watcher queries to all be
 // ready before invoking a listener.
 type WatchGroup struct {
@@ -504,8 +523,8 @@ type WatchGroup struct {
 	mu    sync.Mutex
 }
 
-func (wg *WatchGroup) Wrap(listener func(*k8s.Watcher)) func(*k8s.Watcher) {
-	listener = safeWatch(listener)
+func (wg *WatchGroup) Wrap(ctx context.Context, listener func(*k8s.Watcher)) func(*k8s.Watcher) {
+	listener = safeWatch(ctx, listener)
 	wg.count += 1
 	invoked := false
 	return func(w *k8s.Watcher) {
@@ -519,4 +538,46 @@ func (wg *WatchGroup) Wrap(listener func(*k8s.Watcher)) func(*k8s.Watcher) {
 			listener(w)
 		}
 	}
+}
+
+// unstructureProject returns a *k8sTypesUnstructured.Unstructured
+// representation of an *ambassadorTypesV2.Project.  There are 2 reasons
+// why we might want this:
+//
+//  1. For use with a k8sClientDynamic.Interface
+//  2. For use as a k8sRuntime.Object
+func unstructureProject(project Project) *k8sTypesUnstructured.Unstructured {
+	return &k8sTypesUnstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": "getambassador.io/v2",
+			"kind":       "Project",
+			"metadata":   unstructureMetadata(&project.Metadata),
+			"spec":       project.Spec,
+			"status":     project.Status,
+		},
+	}
+}
+
+// unstructureMetadata marshals a *k8sTypesMetaV1.ObjectMeta for use
+// in a `*k8sTypesUnstructured.Unstructured`.
+//
+// `*k8sTypesUnstructured.Unstructured` requires that the "metadata"
+// field be a `map[string]interface{}`.  Going through JSON is the
+// easiest way to get from a typed `*k8sTypesMetaV1.ObjectMeta` to an
+// untyped `map[string]interface{}`.  Yes, it's gross and stupid.
+func unstructureMetadata(in *k8sTypesMetaV1.ObjectMeta) map[string]interface{} {
+	var metadata map[string]interface{}
+	bs, err := json.Marshal(in)
+	if err != nil {
+		// 'in' is a valid object.  This should never happen.
+		panic(err)
+	}
+
+	if err := json.Unmarshal(bs, &metadata); err != nil {
+		// 'bs' is valid JSON, we just generated it.  This
+		// should never happen.
+		panic(err)
+	}
+
+	return metadata
 }

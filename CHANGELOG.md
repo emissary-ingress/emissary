@@ -10,6 +10,7 @@ releases. Please keep it up to date.
 - Bugfix: If the DEVPORTAL_CONTENT_URL is not accessible, log a warning but don't crash.
 - Change: There is no longer a separate traffic-proxy image; that functionality is now part of the main AES image. Set `command: ["traffic-manager"]` to use it.
 - Bugfix: The `Plugin` Filter now correctly sets `request.TLS` to nil/non-nil based on if the original request was encrypted or not.
+- Bugfix: The ACME client of of one Ambassador install will no longer interfere with the ACME client of another Ambassador install in the same namespace with a different AMBASSADOR_ID.
 
 ## 1.2.2 (2020-03-04)
 

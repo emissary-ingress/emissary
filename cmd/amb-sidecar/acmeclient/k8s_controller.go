@@ -7,10 +7,8 @@ import (
 	"net/http"
 	"sort"
 	"strings"
-	"sync"
 	"time"
 
-	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/go-acme/lego/v3/registration"
 	"github.com/gogo/protobuf/proto"
 	"github.com/mediocregopher/radix.v2/pool"
@@ -18,8 +16,6 @@ import (
 	"github.com/pkg/errors"
 
 	k8sSchema "k8s.io/apimachinery/pkg/runtime/schema"
-	k8sLeaderElection "k8s.io/client-go/tools/leaderelection"
-	k8sLeaderElectionResourceLock "k8s.io/client-go/tools/leaderelection/resourcelock"
 
 	ambassadorTypesV2 "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
 	k8sTypesCoreV1 "k8s.io/api/core/v1"
@@ -28,7 +24,11 @@ import (
 	k8sClientDynamic "k8s.io/client-go/dynamic"
 	k8sClientCoreV1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
-	"github.com/datawire/apro/cmd/amb-sidecar/events"
+	"github.com/datawire/ambassador/pkg/dlog"
+	"github.com/datawire/ambassador/pkg/k8s"
+	"github.com/datawire/apro/cmd/amb-sidecar/k8s/events"
+	"github.com/datawire/apro/cmd/amb-sidecar/k8s/leaderelection"
+	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/cmd/amb-sidecar/watt"
 )
 
@@ -38,12 +38,14 @@ type ref struct {
 }
 
 type Controller struct {
+	cfg      types.Config
+	kubeinfo *k8s.KubeInfo
+
 	redisPool  *pool.Pool
 	httpClient *http.Client
 
 	snapshotCh  <-chan watt.Snapshot
 	eventLogger *events.EventLogger
-	leaderLock  k8sLeaderElectionResourceLock.Interface
 
 	secretsGetter k8sClientCoreV1.SecretsGetter
 	hostsGetter   k8sClientDynamic.NamespaceableResourceInterface
@@ -55,20 +57,22 @@ type Controller struct {
 }
 
 func NewController(
+	cfg types.Config,
+	kubeinfo *k8s.KubeInfo,
 	redisPool *pool.Pool,
 	httpClient *http.Client,
 	snapshotCh <-chan watt.Snapshot,
 	eventLogger *events.EventLogger,
-	leaderLock k8sLeaderElectionResourceLock.Interface,
 	secretsGetter k8sClientCoreV1.SecretsGetter,
 	dynamicClient k8sClientDynamic.Interface,
 ) *Controller {
 	return &Controller{
+		cfg:         cfg,
+		kubeinfo:    kubeinfo,
 		redisPool:   redisPool,
 		httpClient:  httpClient,
 		snapshotCh:  snapshotCh,
 		eventLogger: eventLogger,
-		leaderLock:  leaderLock,
 
 		secretsGetter: secretsGetter,
 		hostsGetter:   dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "hosts"}),
@@ -84,106 +88,81 @@ func (c *Controller) anyInconsistent() bool {
 
 func (c *Controller) Worker(ctx context.Context) error {
 	ctx, cancelElection := context.WithCancel(ctx)
-	var mu sync.Mutex
-	leaderElector, err := k8sLeaderElection.NewLeaderElector(k8sLeaderElection.LeaderElectionConfig{
-		Lock:          c.leaderLock,
-		LeaseDuration: 60 * time.Second,
-		RenewDeadline: 40 * time.Second, // 2/3 of LeaseDuration
-		RetryPeriod:   8 * time.Second,  // 1/5 of RenewDeadline
-		//WatchDog: TODO, // XXX: this could be a robustness win
-		Callbacks: k8sLeaderElection.LeaderCallbacks{
-			OnStartedLeading: func(ctx context.Context) {
-				// ctx will be canceled when we are no longer the leader (or are shutting
-				// down).
-				//
-				// leaderElector.Run() doesn't wait for the OnStartedLeading callback to
-				// return, so because this callback function may not return immediately when
-				// ctx is canceled, we have to serialize with ourself.
-				mu.Lock()
-				defer mu.Unlock()
+	err := leaderelection.RunAsSingleton(ctx, c.cfg, c.kubeinfo, "acmeclient", 60*time.Second, func(ctx context.Context) {
+		// ctx will be canceled when we are no longer the leader (or are shutting
+		// down).
 
-				logger := dlog.GetLogger(ctx)
+		logger := dlog.GetLogger(ctx)
 
-				// What follows is a simple event-loop.  It allows us to write our rectify() and
-				// processSnapshot() functions in a simple (well, simpler) single-threaded manner,
-				// without having to worry about multiple goroutines or signalling or anything.
-				//
-				// "Ideally", there would be 3 types of events in this event loop:
-				//  1. A new WATT snapshot
-				//  2. A timed event; analogous to JavaScript's setTimeout()
-				//  3. A periodic ticker, to avoid becoming wedged in case something goes sideways and
-				//     we forget to call that setTimeout()-analogue.
-				//
-				// "Naturally", I'd set the (3) ticker to 24 hours.
-				//
-				// However, it's a gap in the implementation that we don't actually have the (2)
-				// setTimeout()-analogue.  I wrote the original implementation with just (1) and (3),
-				// and now adding (2) is a little tricky.  Or at least tedious.  The point is, I didn't
-				// have time to add it with 1.0.0 GA around the corner.
-				//
-				// Why do we want a (2) setTimeout()-analogue, when I didn't need one for the initial
-				// implementation?  The big reason is that we added errorBackoff, and we really want to
-				// call rectify() again when an errorBackoff expires.
-				//
-				// So, what to do about that: As a stop-gap for not having a (2) setTimeout()-analogue:
-				// Burn some CPU cycles, and crank the (3) ticker down from daily to minutely, so that
-				// we always trigger within a minute of an errorBackoff elapsing, at the cost of a bunch
-				// of no-op calls to c.rectify().
-				//
-				// A no-op c.rectify() should be cheap enough (entirely in-CPU) that until I see a
-				// benchmark saying otherwise, doing this the "right way" and adding that (2)
-				// setTimeout()-analogue is pretty low priority.
-				ticker := time.NewTicker(time.Minute) // 24 * time.Hour)
-				defer ticker.Stop()
+		// What follows is a simple event-loop.  It allows us to write our rectify() and
+		// processSnapshot() functions in a simple (well, simpler) single-threaded manner,
+		// without having to worry about multiple goroutines or signalling or anything.
+		//
+		// "Ideally", there would be 3 types of events in this event loop:
+		//  1. A new WATT snapshot
+		//  2. A timed event; analogous to JavaScript's setTimeout()
+		//  3. A periodic ticker, to avoid becoming wedged in case something goes sideways and
+		//     we forget to call that setTimeout()-analogue.
+		//
+		// "Naturally", I'd set the (3) ticker to 24 hours.
+		//
+		// However, it's a gap in the implementation that we don't actually have the (2)
+		// setTimeout()-analogue.  I wrote the original implementation with just (1) and (3),
+		// and now adding (2) is a little tricky.  Or at least tedious.  The point is, I didn't
+		// have time to add it with 1.0.0 GA around the corner.
+		//
+		// Why do we want a (2) setTimeout()-analogue, when I didn't need one for the initial
+		// implementation?  The big reason is that we added errorBackoff, and we really want to
+		// call rectify() again when an errorBackoff expires.
+		//
+		// So, what to do about that: As a stop-gap for not having a (2) setTimeout()-analogue:
+		// Burn some CPU cycles, and crank the (3) ticker down from daily to minutely, so that
+		// we always trigger within a minute of an errorBackoff elapsing, at the cost of a bunch
+		// of no-op calls to c.rectify().
+		//
+		// A no-op c.rectify() should be cheap enough (entirely in-CPU) that until I see a
+		// benchmark saying otherwise, doing this the "right way" and adding that (2)
+		// setTimeout()-analogue is pretty low priority.
+		ticker := time.NewTicker(time.Minute) // 24 * time.Hour)
+		defer ticker.Stop()
 
-				for {
-					select {
-					case <-ctx.Done():
-						// we are no longer the leader--bail out
-						return
-					case <-ticker.C:
-						// It seems like it should be a good idea to trigger another rectify
-						// here -- but wait!  If we have any Hosts or Secrets that are known to
-						// have changes that aren't yet observed in the WATT snapshot, then it's
-						// not safe to rectify, so don't do anything in that case.
-						if !c.anyInconsistent() {
-							// It's safe to rectify! Off we go.
-							logger.Infoln("triggering rectify from timer...")
-							c.rectify(logger)
-						} else {
-							logger.Infoln("skipping rectify from timer due to inconsistent snapshot...")
-						}
-					case snapshot, ok := <-c.snapshotCh:
-						if !ok {
-							// there's no more work to do; not only do we want the current
-							// OnStartedLeading callback to return, we walso want the
-							// leaderElector.Run() to return; so we cancel the election.
-							cancelElection()
-							return
-						}
-						logger.Debugln("processing snapshot change...")
-						if c.processSnapshot(snapshot, logger) {
-							c.rectify(logger)
-						}
-					}
+		for {
+			select {
+			case <-ctx.Done():
+				// we are no longer the leader--bail out
+				return
+			case <-ticker.C:
+				// It seems like it should be a good idea to trigger another rectify
+				// here -- but wait!  If we have any Hosts or Secrets that are known to
+				// have changes that aren't yet observed in the WATT snapshot, then it's
+				// not safe to rectify, so don't do anything in that case.
+				if !c.anyInconsistent() {
+					// It's safe to rectify! Off we go.
+					logger.Infoln("triggering rectify from timer...")
+					c.rectify(logger)
+				} else {
+					logger.Infoln("skipping rectify from timer due to inconsistent snapshot...")
 				}
-			},
-			// client-go requires that we provide an OnStoppedLeading callback,
-			// even if there's nothing to do.  *sigh*
-			OnStoppedLeading: func() {},
-		},
+			case snapshot, ok := <-c.snapshotCh:
+				if !ok {
+					// there's no more work to do; not only do we want the current
+					// OnStartedLeading callback to return, we walso want the
+					// leaderElector.Run() to return; so we cancel the election.
+					cancelElection()
+					return
+				}
+				logger.Debugln("processing snapshot change...")
+				if c.processSnapshot(snapshot, logger) {
+					c.rectify(logger)
+				}
+			}
+		}
 	})
 	if err != nil {
-		return err
+		// make this non-fatal
+		dlog.GetLogger(ctx).Errorln("failed to participate in acme leader election, Ambassador Edge Stack ACME client is disabled:", err)
 	}
-	for {
-		select {
-		case <-ctx.Done():
-			return nil
-		default:
-			leaderElector.Run(ctx)
-		}
-	}
+	return nil
 }
 
 func getHostResourceVersion(hosts []*ambassadorTypesV2.Host, ref ref) string {
@@ -463,14 +442,17 @@ func (c *Controller) rectifyPhase1(logger dlog.Logger) []*ambassadorTypesV2.Host
 
 	logger.Debugln("rectify: Phase 0→1 (Pre-ACME): NA(state=Initial)→DefaultsFilled")
 	for _, _host := range c.hosts {
+		logger := logger.WithField("host", _host.GetName()+"."+_host.GetNamespace())
 		host := deepCopyHost(_host)
-		logger := logger.WithField("host", host.GetName()+"."+host.GetNamespace())
-		logger.Debugln("rectify: processing Host...")
-
 		host.Spec = getEffectiveSpec(host)
+		if !strInArray(c.cfg.AmbassadorID, host.Spec.AmbassadorId) {
+			continue
+		}
 		if host.Status == nil {
 			host.Status = &ambassadorTypesV2.HostStatus{}
 		}
+		logger.Debugln("rectify: processing Host...")
+
 		switch {
 		case host.Spec.AcmeProvider.Authority != "none":
 			// TLS using via AES ACME integration
@@ -516,6 +498,11 @@ func (c *Controller) rectifyPhase1(logger dlog.Logger) []*ambassadorTypesV2.Host
 				c.recordHostReady(logger, host, "Host with externally-provisioned TLS certificate marked Ready")
 			}
 		case ambassadorTypesV2.HostTLSCertificateSource_ACME:
+			if host.Spec.AmbassadorId[0] != c.cfg.AmbassadorID {
+				logger.Warningf("rectify: Host: not performing ACME management, letting AMBASSADOR_ID=%q do that",
+					host.Spec.AmbassadorId[0])
+				continue
+			}
 			if !certmagic.HostQualifies(host.Spec.Hostname) {
 				c.recordHostError(logger, host,
 					ambassadorTypesV2.HostPhase_NA,
