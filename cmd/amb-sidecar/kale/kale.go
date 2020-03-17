@@ -288,23 +288,29 @@ type DeployMap map[string][]Deploy
 
 func (k *kale) reconcile(ctx context.Context, snapshot Snapshot) {
 	k.reconcileGitHub(snapshot.Projects)
-	k.mu.RLock()
-	k.reconcileCluster(ctx, snapshot.Pods, k.deployMap)
-	k.mu.RLock()
+	k.reconcileCluster(ctx, snapshot.Pods, snapshot.Deploys())
+}
+
+func (snapshot Snapshot) Deploys() DeployMap {
+	deploys := make(DeployMap)
+	for _, proj := range snapshot.Projects {
+		deploys[proj.Key()] = GetDeploys(*proj)
+	}
+	return deploys
 }
 
 func (k *kale) updateInternalState(snapshot Snapshot) {
-	deploys := make(DeployMap)
 	projects := make(map[string]Project)
 	for _, proj := range snapshot.Projects {
 		projects[proj.Key()] = *proj
-		deploys[proj.Key()] = GetDeploys(*proj)
 	}
 
 	pods := make(PodMap)
 	for _, pod := range snapshot.Pods {
 		pods.addPod(pod)
 	}
+
+	deploys := snapshot.Deploys()
 
 	k.mu.Lock()
 	k.Projects = projects
