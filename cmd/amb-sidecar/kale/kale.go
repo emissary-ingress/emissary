@@ -155,7 +155,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 					if !ok {
 						return
 					}
-					k.reconcileConsistently(ctx, snapshot)
+					k.reconcile(ctx, snapshot)
 				}
 			}
 		})
@@ -286,10 +286,10 @@ func (pm PodMap) addPod(pod *k8sTypesCoreV1.Pod) {
 
 type DeployMap map[string][]Deploy
 
-func (k *kale) reconcileConsistently(ctx context.Context, snapshot Snapshot) {
-	k.reconcileProjects(snapshot.Projects)
+func (k *kale) reconcile(ctx context.Context, snapshot Snapshot) {
+	k.reconcileGitHub(snapshot.Projects)
 	k.mu.RLock()
-	k.reconcile(ctx, snapshot.Pods, k.deployMap)
+	k.reconcileCluster(ctx, snapshot.Pods, k.deployMap)
 	k.mu.RLock()
 }
 
@@ -313,11 +313,11 @@ func (k *kale) updateInternalState(snapshot Snapshot) {
 	k.mu.Unlock()
 }
 
-func (k *kale) reconcileProjects(projects []*Project) {
+func (k *kale) reconcileGitHub(projects []*Project) {
 	for _, pr := range projects {
-		key := pr.Key()
-		hookUrl := fmt.Sprintf("https://%s/edge_stack/api/githook/%s", pr.Spec.Host, key)
-		postHook(pr.Spec.GithubRepo, hookUrl, pr.Spec.GithubToken)
+		postHook(pr.Spec.GithubRepo,
+			fmt.Sprintf("https://%s/edge_stack/api/githook/%s", pr.Spec.Host, pr.Key()),
+			pr.Spec.GithubToken)
 	}
 }
 
@@ -588,7 +588,7 @@ func (k *kale) IsDesired(deployMap DeployMap, pod *k8sTypesCoreV1.Pod) bool {
 	return false
 }
 
-func (k *kale) reconcile(ctx context.Context, pods []*k8sTypesCoreV1.Pod, deployMap DeployMap) {
+func (k *kale) reconcileCluster(ctx context.Context, pods []*k8sTypesCoreV1.Pod, deployMap DeployMap) {
 	log := dlog.GetLogger(ctx)
 
 	deploys := k.desiredDeploys(deployMap)
