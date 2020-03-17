@@ -6,7 +6,7 @@ Sometimes you may want Ambassador Edge Stack to manipulate an incoming request. 
 * Add custom Authorization headers
 * Validate an incoming request fits an OpenAPI specification before passing the request to a target service
 
-Ambassador Edge Stack supports these use cases by allowing you to execute custom logic in `Filters`. Filters are written in Golang, and managed by Ambassador Edge Stack.
+Ambassador Edge Stack supports these use cases by allowing you to execute custom logic in `Filters`. Filters are written in Golang, and managed by Ambassador Edge Stack. If you want to write a filter in a language other than Golang, Ambassador also has an HTTP/gRPC interface for Filters called `External`.
 
 ## Prerequisites
 
@@ -94,4 +94,4 @@ Note in the example above the `X-Dc` header is added. This lets you inspect the 
 
 ## Further Reading
 
-For more details about configuring filters and the `plugin` interface, see the [filter reference](../../../reference/filter-reference).
+For more details about configuring filters and the `plugin` interface, see the [filter reference](../topics/running/filters/).
