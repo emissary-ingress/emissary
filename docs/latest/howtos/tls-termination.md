@@ -16,7 +16,7 @@ This guide requires you have the following installed:
 
 ## Install Ambassador Edge Stack
 
-Install Ambassador Edge Stack in Kubernetes using the [YAML manifests](../install).
+[Install Ambassador Edge Stack in Kubernetes](../topics/install).
 
 ## Create a Self-Signed Certificate
 
@@ -116,8 +116,8 @@ This guide walked you through how to enable basic TLS termination in Ambassador 
 
 While a self-signed certificate is a simple and quick way to get Ambassador Edge Stack to terminate TLS, it should not be used by production systems. In order to serve HTTPS traffic without being returned a security warning, you will need to get a certificate from an official Certificate Authority like Let's Encrypt.
 
-In Kubernetes, Jetstack's `cert-manager` provides a simple way to manage certificates from Let's Encrypt. See our documentation for more information on how to [use `cert-manager` with Ambassador Edge Stack](../cert-manager).
+In Kubernetes, Jetstack's `cert-manager` provides a simple way to manage certificates from Let's Encrypt. See our documentation for more information on how to [use `cert-manager` with Ambassador Edge Stack](cert-manager).
 
 ### Enable Advanced TLS options
 
-Ambassador Edge Stack exposes configuration for many more advanced options around TLS termination, origination, client certificate validation, and SNI support. See the full [TLS reference](../../reference/core/tls) for more information.
+Ambassador Edge Stack exposes configuration for many more advanced options around TLS termination, origination, client certificate validation, and SNI support. See the full [TLS reference](../topics/running/tls/tls) for more information.
