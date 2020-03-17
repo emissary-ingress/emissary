@@ -43,6 +43,7 @@ class IRAmbassador (IRResource):
         'liveness_probe',
         'load_balancer',
         'keepalive',
+        'proper_case',
         'readiness_probe',
         'regex_max_size',
         'regex_type',
@@ -103,6 +104,7 @@ class IRAmbassador (IRResource):
             diagnostics={"enabled": True},
             use_proxy_proto=False,
             enable_http10=False,
+            proper_case=False,
             use_remote_address=use_remote_address,
             x_forwarded_proto_redirect=False,
             load_balancer=None,
@@ -322,4 +324,3 @@ class IRAmbassador (IRResource):
 
         domain_info = self.default_labels.get(domain, {})
         return domain_info.get('label_prefix')
-
