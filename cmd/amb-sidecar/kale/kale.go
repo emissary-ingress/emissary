@@ -84,6 +84,10 @@ import (
 // controller. The main function sets up listener watching for changes
 // to kubernetes resources and a web server.
 
+const (
+	LabelName = "kale"
+)
+
 func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8s.KubeInfo, dynamicClient k8sClientDynamic.Interface) {
 	k := NewKale(dynamicClient)
 
@@ -96,6 +100,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 	go coalesce(upstreamWebUI, downstreamWebUI)
 
 	group.Go("kale_watcher", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
+		k.cfg = cfg
 		softCtx = dlog.WithLogger(softCtx, l)
 
 		client, err := k8s.NewClient(info)
@@ -117,9 +122,10 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 			upstreamWebUI <- snapshot
 		}
 
+		labelSelector := LabelName + "=" + cfg.AmbassadorID
 		queries := []k8s.Query{
 			{Kind: "projects.getambassador.io"},
-			{Kind: "pods.", LabelSelector: "kale"},
+			{Kind: "pods.", LabelSelector: labelSelector},
 		}
 
 		for _, query := range queries {
@@ -525,7 +531,7 @@ func (k *kale) startBuild(proj Project, buildID, ref, commit string) (string, er
 					"statusesUrl": "https://api.github.com/repos/" + proj.Spec.GithubRepo + "/statuses/" + commit,
 				},
 				Labels: map[string]string{
-					"kale":    "0.0",
+					LabelName: k.cfg.AmbassadorID,
 					"project": proj.Metadata.Name,
 					"commit":  commit,
 					"build":   buildID,
@@ -764,7 +770,7 @@ func (k *kale) startRun(proj Project, commit string) (string, error) {
 					},
 				},
 				Labels: map[string]string{
-					"kale": "0.0",
+					LabelName: k.cfg.AmbassadorID,
 				},
 			},
 			Spec: MappingSpec{
@@ -794,7 +800,7 @@ func (k *kale) startRun(proj Project, commit string) (string, error) {
 					},
 				},
 				Labels: map[string]string{
-					"kale": "0.0",
+					LabelName: k.cfg.AmbassadorID,
 				},
 			},
 			Spec: k8sTypesCoreV1.ServiceSpec{
@@ -830,7 +836,7 @@ func (k *kale) startRun(proj Project, commit string) (string, error) {
 					},
 				},
 				Labels: map[string]string{
-					"kale":    "0.0",
+					LabelName: k.cfg.AmbassadorID,
 					"project": proj.Metadata.Name,
 					"commit":  commit,
 				},
