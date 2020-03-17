@@ -86,9 +86,13 @@ import (
 func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8s.KubeInfo, dynamicClient k8sClientDynamic.Interface) {
 	k := NewKale(dynamicClient)
 
-	upstream := make(chan Snapshot)
-	downstream := make(chan Snapshot)
-	go coalesce(upstream, downstream)
+	upstreamWorker := make(chan Snapshot)
+	downstreamWorker := make(chan Snapshot)
+	go coalesce(upstreamWorker, downstreamWorker)
+
+	upstreamWebUI := make(chan Snapshot)
+	downstreamWebUI := make(chan Snapshot)
+	go coalesce(upstreamWebUI, downstreamWebUI)
 
 	group.Go("kale_watcher", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
 		softCtx = dlog.WithLogger(softCtx, l)
@@ -104,10 +108,12 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 		var wg WatchGroup
 
 		handler := func(w *k8s.Watcher) {
-			upstream <- UntypedSnapshot{
+			snapshot := UntypedSnapshot{
 				Pods:     w.List("pods."),
 				Projects: w.List("projects.getambassador.io"),
 			}.Typed(softCtx)
+			upstreamWorker <- snapshot
+			upstreamWebUI <- snapshot
 		}
 
 		queries := []k8s.Query{
@@ -132,7 +138,8 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 			w.Stop()
 		}()
 		w.Wait()
-		close(upstream)
+		close(upstreamWorker)
+		close(upstreamWebUI)
 		return nil
 	})
 
@@ -144,7 +151,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 				select {
 				case <-ctx.Done():
 					return
-				case snapshot, ok := <-downstream:
+				case snapshot, ok := <-downstreamWorker:
 					if !ok {
 						return
 					}
@@ -157,6 +164,20 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 			l.Errorln("failed to participate in kale leader election, kale is disabled:", err)
 		}
 		return nil
+	})
+
+	group.Go("kale_webui_update", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
+		for {
+			select {
+			case <-softCtx.Done():
+				return nil
+			case snapshot, ok := <-downstreamWebUI:
+				if !ok {
+					return nil
+				}
+				k.updateInternalState(snapshot)
+			}
+		}
 	})
 
 	// todo: lock down all these endpoints with auth
@@ -266,12 +287,10 @@ func (pm PodMap) addPod(pod *k8sTypesCoreV1.Pod) {
 type DeployMap map[string][]Deploy
 
 func (k *kale) reconcileConsistently(ctx context.Context, snapshot Snapshot) {
-	k.updateInternalState(snapshot)
-
 	k.reconcileProjects(snapshot.Projects)
-	// NB: It is safe to use k.deployMap without a read-lock here,
-	// because this runs in the only thread that writes to it.
+	k.mu.RLock()
 	k.reconcile(ctx, snapshot.Pods, k.deployMap)
+	k.mu.RLock()
 }
 
 func (k *kale) updateInternalState(snapshot Snapshot) {
