@@ -811,12 +811,13 @@ class V2Listener(dict):
             if req_hdrs:
                 self.base_http_config["tracing"]["request_headers_for_tags"] = req_hdrs
 
-        if 'proper_case' in self.config.ir.ambassador_module:
-            proper_case = {'header_key_format': {'proper_case_words': {}}}
+        proper_case = self.config.ir.ambassador_module.get('proper_case', False)
+        if proper_case:
+            proper_case_header = {'header_key_format': {'proper_case_words': {}}}
             if 'http_protocol_options' in self.base_http_config:
-                self.base_http_config["http_protocol_options"].update(proper_case)
+                self.base_http_config["http_protocol_options"].update(proper_case_header)
             else:
-                self.base_http_config["http_protocol_options"] = proper_case
+                self.base_http_config["http_protocol_options"] = proper_case_header
 
     def add_irlistener(self, listener: IRListener) -> None:
         if listener.service_port != self.service_port:
