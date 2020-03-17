@@ -100,7 +100,7 @@
             - title: Traffic Shadowing
               link: /docs/latest/topics/using/shadowing
         - title: Filters and Authentication
-          items: /docs/latest/topics/using/filters/index
+          items: 
             - title: OAuth and OIDC Overview
               link: /docs/latest/topics/using/filters/index
             - title: OAuth2 Filter
