@@ -1,11 +1,15 @@
 from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 # from typing import cast as typecast
 
+import datetime
+import itertools
 import json
 import logging
 import os
 import yaml
 import re
+
+import durationpy
 
 from .config import Config
 from .acresource import ACResource
@@ -49,6 +53,8 @@ CRDTypes = frozenset([
     'ingresses.networking.internal.knative.dev'
 ])
 k8sLabelMatcher = re.compile(r'([\w\-_./]+)=\"(.+)\"')
+
+AMBASSADOR_KNATIVE_INGRESS_CLASS = 'ambassador.ingress.networking.knative.dev'
 
 class ResourceFetcher:
     def __init__(self, logger: logging.Logger, aconf: 'Config',
@@ -339,37 +345,17 @@ class ResourceFetcher:
         namespace = metadata.get('namespace') or 'default'
         metadata_labels: Optional[Dict[str, str]] = metadata.get('labels')
         generation = metadata.get('generation', 1)
-        annotations = metadata.get('annotations', {})
 
         if not self.check_k8s_dup(kind, namespace, name):
             return
 
         spec = obj.get('spec') or {}
+        status = obj.get('status') or {}
 
         # Replace a sentinel value with the namespace of this ambassador pod.
         # This allows hard-coded initialization resources to have a useful namespace.
         if namespace == "_automatic_":
             namespace = Config.ambassador_namespace
-
-        if not apiVersion:
-            # I think this is impossible.
-            self.logger.debug(f'{self.location}: ignoring K8s {kind} CRD, no apiVersion')
-            return
-
-        # We do not want to confuse Knative's Ingress with Kubernetes' Ingress
-        if apiVersion.startswith('networking.internal.knative.dev') and kind.lower() == 'ingress':
-            self.logger.debug(f"Renaming kind {kind} to KnativeIngress")
-            kind = 'KnativeIngress'
-
-            # Let's not parse KnativeIngress if it's not meant for us.
-            # We only need to ignore KnativeIngress iff networking.knative.dev/ingress.class is present in annotation.
-            # If it's not there, then we accept all ingress classes.
-            if 'networking.knative.dev/ingress.class' in annotations:
-                if annotations.get('networking.knative.dev/ingress.class').lower() != 'ambassador.ingress.networking.knative.dev':
-                    self.logger.debug(f'Ignoring KnativeIngress {name}; set networking.knative.dev/ingress.class '
-                                      f'annotation to ambassador.ingress.networking.knative.dev for ambassador to '
-                                      f'parse it.')
-                    return
 
         if not name:
             self.logger.debug(f'{self.location}: ignoring K8s {kind} CRD, no name')
@@ -379,11 +365,16 @@ class ResourceFetcher:
             self.logger.debug(f'{self.location}: ignoring K8s {kind} CRD {name}: no apiVersion')
             return
 
+        if apiVersion.startswith('networking.internal.knative.dev'):
+            self.handle_k8s_knative_crd(kind, namespace, name, metadata, spec, status)
+            return
+
         # if not spec:
         #     self.logger.debug(f'{self.location}: ignoring K8s {kind} CRD {name}: no spec')
         #     return
 
         # We use this resource identifier as a key into self.k8s_services, and of course for logging .
+        annotations = metadata.get('annotations', {})
         resource_identifier = f'{name}.{namespace}'
 
         # OK. Shallow copy 'spec'...
@@ -404,6 +395,154 @@ class ResourceFetcher:
 
         # Done. Parse it.
         self.parse_object([ amb_object ], k8s=False, filename=self.filename, rkey=resource_identifier)
+
+    def handle_k8s_knative_crd(self, kind: str, namespace: str, name: str,
+                               metadata: AnyDict, spec: AnyDict, status: AnyDict):
+        annotations: Dict[str, str] = metadata.get('annotations', {})
+
+        # Let's not parse KnativeIngress if it's not meant for us.
+        # We only need to ignore KnativeIngress iff networking.knative.dev/ingress.class is present in annotation.
+        # If it's not there, then we accept all ingress classes.
+        if annotations.get('networking.knative.dev/ingress.class', AMBASSADOR_KNATIVE_INGRESS_CLASS).lower() != AMBASSADOR_KNATIVE_INGRESS_CLASS:
+            self.logger.debug(f'Ignoring Knative {kind} {name}; set networking.knative.dev/ingress.class '
+                              f'annotation to {AMBASSADOR_KNATIVE_INGRESS_CLASS} for ambassador to parse it.')
+            return
+
+        ambassador_id = annotations.get('getambassador.io/ambassador-id', 'default')
+
+        # We don't want to deal with non-matching Ambassador IDs
+        if ambassador_id != Config.ambassador_id:
+            self.logger.info(f"Knative {kind} {name} does not have Ambassador ID {Config.ambassador_id}, ignoring...")
+            return None
+
+        metadata_labels: Dict[str, str] = metadata.get('labels', {})
+
+        rules = spec.get('rules', [])
+        for rule_count, rule in enumerate(rules):
+            hosts = rule.get('hosts', [])
+
+            split_mapping_specs: List[AnyDict] = []
+
+            paths = rule.get('http', {}).get('paths', [])
+            for path in paths:
+                global_headers = path.get('appendHeaders', {})
+
+                splits = path.get('splits', [])
+                for split in splits:
+                    service_name = split.get('serviceName')
+                    if not service_name:
+                        continue
+
+                    service_namespace = split.get('serviceNamespace', namespace)
+                    service_port = split.get('servicePort', 80)
+
+                    headers = split.get('appendHeaders', {})
+                    headers = {**global_headers, **headers}
+
+                    split_mapping_specs.append({
+                        'service': f"{service_name}.{namespace}:{service_port}",
+                        'add_request_headers': headers,
+                        'weight': split.get('percent', 100),
+                        'prefix': path.get('path', '/'),
+                        'prefix_regex': True,
+                        'timeout_ms': int(durationpy.from_str(path.get('timeout', '15s')).total_seconds() * 1000),
+                    })
+
+            for split_count, (host, split_mapping_spec) in enumerate(itertools.product(hosts, split_mapping_specs)):
+                mapping_identifier = f"{name}-{rule_count}-{split_count}"
+
+                mapping: AnyDict = {
+                    'apiVersion': 'getambassador.io/v2',
+                    'kind': 'Mapping',
+                    'metadata': {
+                        'name': mapping_identifier,
+                        'namespace': namespace,
+                        'labels': metadata_labels,
+                    },
+                    'spec': {
+                        'ambassador_id': ambassador_id,
+                        'host': host,
+                    }
+                }
+                mapping['spec'].update(split_mapping_spec)
+
+                self.logger.debug(f"Generated mapping from Knative {kind}: {mapping}")
+                self.handle_k8s_crd(mapping)
+
+        current_generation = spec.get('generation', 1)
+        has_new_generation = current_generation > status.get('observedGeneration', 0)
+
+        # Knative expects the load balancer information on the ingress, which it
+        # then propagates to an ExternalName service for intra-cluster use. We
+        # pull that information here. Otherwise, it will continue to use the
+        # DNS name configured by the Knative service and go through an
+        # out-of-cluster ingress to access the service.
+        current_lb_domain = None
+
+        if not self.ambassador_service_raw:
+            self.logger.warn(f"Unable to set Knative {kind} {name}'s load balancer, could not find Ambassador service")
+        else:
+            ambassador_service_metadata: AnyDict = self.ambassador_service_raw.get('metadata', {})
+            ambassador_service_name = ambassador_service_metadata.get('name', None)
+            ambassador_service_namespace = ambassador_service_metadata.get('namespace', 'default')
+
+            if not ambassador_service_name:
+                self.logger.error(f"Unable to set Knative {kind} {name}'s load balancer, Ambassador service has no name to reference")
+            else:
+                # TODO: It is technically possible to use a domain other than
+                # cluster.local (common-ish on bare metal clusters). We can
+                # resolve the relevant domain by doing a DNS lookup on
+                # kubernetes.default.svc, but this problem appears elsewhere
+                # in the code as well and probably should just be fixed all at
+                # once.
+                current_lb_domain = f"{ambassador_service_name}.{ambassador_service_namespace}.svc.cluster.local"
+
+        observed_ingress: AnyDict = next(iter(status.get('privateLoadBalancer', {}).get('ingress', [])), {})
+        observed_lb_domain = observed_ingress.get('domainInternal')
+
+        has_new_lb_domain = current_lb_domain != observed_lb_domain
+
+        if has_new_generation or has_new_lb_domain:
+            utcnow = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+            status = {
+                "observedGeneration": current_generation,
+                "conditions": [
+                    {
+                        "lastTransitionTime": utcnow,
+                        "status": "True",
+                        "type": "LoadBalancerReady"
+                    },
+                    {
+                        "lastTransitionTime": utcnow,
+                        "status": "True",
+                        "type": "NetworkConfigured"
+                    },
+                    {
+                        "lastTransitionTime": utcnow,
+                        "status": "True",
+                        "type": "Ready"
+                    }
+                ]
+            }
+
+            if current_lb_domain:
+                load_balancer = {
+                    "ingress": [
+                        {
+                            "domainInternal": current_lb_domain
+                        }
+                    ]
+                }
+
+                status['loadBalancer'] = load_balancer
+                status['privateLoadBalancer'] = load_balancer
+
+            status_update = (f"{kind.lower()}.networking.internal.knative.dev", namespace, status)
+
+            self.logger.info(f"Updating Knative {kind} {name} status to {status_update}")
+            self.aconf.k8s_status_updates[f"{name}.{namespace}"] = status_update
+        else:
+            self.logger.debug(f"Not reconciling Knative {kind} {name}: observed and current generations are in sync")
 
     def parse_object(self, objects, k8s=False, rkey: Optional[str]=None,
                      filename: Optional[str]=None, namespace: Optional[str]=None):

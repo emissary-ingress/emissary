@@ -39,6 +39,7 @@ spec:
         # Install Knative
         apply_kube_artifacts(namespace=None, artifacts=load_manifest("knative_serving_crds"))
         apply_kube_artifacts(namespace=None, artifacts=load_manifest("knative_serving_0.11.0"))
+        run_and_assert(['kubectl', 'patch', 'configmap/config-network', '--type', 'merge', '--patch', r'{"data": {"ingress.class": "ambassador.ingress.networking.knative.dev"}}', '-n', 'knative-serving'])
 
         # Wait for Knative to become ready
         run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'app=activator', '-n', 'knative-serving'])
@@ -51,6 +52,10 @@ spec:
         install_ambassador(namespace=namespace, envs=[
             {
                 'name': 'AMBASSADOR_KNATIVE_SUPPORT',
+                'value': 'true'
+            },
+            {
+                'name': 'AMBASSADOR_SINGLE_NAMESPACE',
                 'value': 'true'
             }
         ])
@@ -90,6 +95,9 @@ spec:
         connection_random_code = self.get_code_with_retry(req_random)
         assert connection_random_code == 404, f"Expected 404, got {connection_random_code}"
         print(f"{kservice_url} returns 404 with a random host")
+
+        # Wait for kservice
+        run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'ksvc', 'helloworld-go', '-n', namespace])
 
         req_correct = request.Request(kservice_url)
         req_correct.add_header('Host', f'helloworld-go.{namespace}.example.com')

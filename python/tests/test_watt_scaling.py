@@ -62,7 +62,12 @@ spec:
         namespace = 'watt-rapid'
 
         # Install Ambassador
-        install_ambassador(namespace=namespace)
+        install_ambassador(namespace=namespace, envs=[
+            {
+                'name': 'AMBASSADOR_SINGLE_NAMESPACE',
+                'value': 'true'
+            }
+        ])
 
         # Install QOTM
         apply_kube_artifacts(namespace=namespace, artifacts=qotm_manifests)

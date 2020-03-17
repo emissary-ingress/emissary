@@ -14,7 +14,6 @@
 from typing import Any, Callable, Dict, Iterable, List, Optional, Type, Union, ValuesView
 from typing import cast as typecast
 
-import datetime
 import json
 import logging
 import os
@@ -229,8 +228,6 @@ class IR:
         self.breakers = aconf.get_config("CircuitBreaker") or {}
         self.outliers = aconf.get_config("OutlierDetection") or {}
         self.services = aconf.get_config("service") or {}
-
-        self.cluster_ingresses_to_mappings()
 
         # Save tracing, ratelimit, and logging settings.
         self.tracing = typecast(IRTracing, self.save_resource(IRTracing(self, aconf)))
@@ -646,116 +643,6 @@ class IR:
         else:
             return None
 
-    def add_mapping_to_config(self, mapping: ACResource, mapping_identifier: str):
-        if 'mappings' not in self.aconf.config:
-            self.aconf.config['mappings'] = {}
-
-        self.aconf.config['mappings'][mapping_identifier] = mapping
-
-    def cluster_ingresses_to_mappings(self):
-        cluster_ingresses = self.aconf.get_config("ClusterIngress")
-        knative_ingresses = self.aconf.get_config("KnativeIngress")
-
-        final_knative_ingresses = {}
-        if cluster_ingresses is not None:
-            final_knative_ingresses.update(cluster_ingresses)
-        if knative_ingresses is not None:
-            final_knative_ingresses.update(knative_ingresses)
-
-        for ci_name, ci in final_knative_ingresses.items():
-            kind = ci['kind']
-            current_generation = ci['generation']
-
-            if kind == 'KnativeIngress':
-                kind = 'ingress.networking.internal.knative.dev'
-            else:
-                kind = kind.lower() + ".networking.internal.knative.dev"
-
-            self.logger.debug(f"Parsing {kind} {ci_name}")
-
-            ci_rules = ci.get('rules', [])
-            for rule_count, ci_rule in enumerate(ci_rules):
-                ci_hosts = ci_rule.get('hosts', [])
-
-                mapping_host = ""
-                for ci_host in ci_hosts:
-                    if mapping_host == "":
-                        mapping_host = ci_host
-                    else:
-                        mapping_host += "|" + ci_host
-
-                ci_http = ci_rule.get('http', None)
-                if ci_http is not None:
-                    ci_paths = ci_http.get('paths', [])
-                    for path_count, ci_path in enumerate(ci_paths):
-                        ci_headers = ci_path.get('appendHeaders', {})
-
-                        ci_splits = ci_path.get('splits', [])
-                        for split_count, ci_split in enumerate(ci_splits):
-                            unique_suffix = f"{rule_count}-{path_count}"
-                            mapping_identifier = ci_name + '-' + unique_suffix
-                            ci_mapping = {
-                                'rkey': mapping_identifier,
-                                'location': mapping_identifier,
-                                'apiVersion': 'getambassador.io/v2',
-                                'kind': 'Mapping',
-                                'name': mapping_identifier,
-                                'prefix': '/'
-                            }
-
-                            if mapping_host != "":
-                                ci_mapping['host'] = f"^({mapping_host})$"
-                                ci_mapping['host_regex'] = True
-
-                            split_headers = ci_split.get('appendHeaders', {})
-                            final_headers = {**ci_headers, **split_headers}
-
-                            if len(final_headers) > 0:
-                                ci_mapping['add_request_headers'] = final_headers
-
-                            ci_percent = ci_split.get('percent', None)
-                            if ci_percent is not None:
-                                ci_mapping['weight'] = ci_percent
-
-                            ci_service = ci_split.get('serviceName', None)
-                            if ci_service is None:
-                                continue
-
-                            ci_namespace = ci_split.get('serviceNamespace', 'default')
-                            ci_port = ci_split.get('servicePort', 80)
-
-                            ci_mapping['namespace'] = ci_namespace
-                            ci_mapping['service'] = f"{ci_service}.{ci_namespace}:{ci_port}"
-
-                            self.logger.debug(f"Generated mapping from ClusterIngress: {ci_mapping}")
-                            self.add_mapping_to_config(mapping=ci_mapping, mapping_identifier=mapping_identifier)
-
-                            # Remember that we need to update status on this resource.
-                            utcnow = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
-                            status_update = (kind, ci_namespace, {
-                                "observedGeneration": current_generation,
-                                "conditions": [
-                                    {
-                                        "lastTransitionTime": utcnow,
-                                        "status": "True",
-                                        "type": "LoadBalancerReady"
-                                    },
-                                    {
-                                        "lastTransitionTime": utcnow,
-                                        "status": "True",
-                                        "type": "NetworkConfigured"
-                                    },
-                                    {
-                                        "lastTransitionTime": utcnow,
-                                        "status": "True",
-                                        "type": "Ready"
-                                    }
-                                ]
-                            })
-
-                            self.logger.debug(f"Updating {ci_name}'s status to: {status_update}")
-                            self.k8s_status_updates[ci_name] = status_update
-
     def ordered_groups(self) -> Iterable[IRBaseMappingGroup]:
         return reversed(sorted(self.groups.values(), key=lambda x: x['group_weight']))
 
@@ -991,12 +878,6 @@ class IR:
         od['endpoint_routing_envoy_rh_count'] = endpoint_routing_envoy_rh_count
         od['endpoint_routing_envoy_maglev_count'] = endpoint_routing_envoy_maglev_count
         od['endpoint_routing_envoy_lr_count'] = endpoint_routing_envoy_lr_count
-
-        cluster_ingresses = self.aconf.get_config("ClusterIngress")
-        od['cluster_ingress_count'] = len(cluster_ingresses.keys()) if cluster_ingresses else 0
-
-        knative_ingresses = self.aconf.get_config("KnativeIngress")
-        od['knative_ingress_count'] = len(knative_ingresses.keys()) if knative_ingresses else 0
 
         od['k8s_ingress_count'] = len(self.aconf.k8s_ingresses)
         od['k8s_ingress_class_count'] = len(self.aconf.k8s_ingress_classes)
