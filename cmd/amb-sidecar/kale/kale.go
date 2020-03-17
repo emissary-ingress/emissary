@@ -11,7 +11,8 @@ import (
 	"sync"
 	"time"
 
-	// 3rd party: k8s types
+	// 3rd/1st party: k8s types
+	aproTypesV2 "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	k8sTypesCoreV1 "k8s.io/api/core/v1"
 	k8sTypesMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -111,7 +112,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 			snapshot := UntypedSnapshot{
 				Pods:     w.List("pods."),
 				Projects: w.List("projects.getambassador.io"),
-			}.Typed(softCtx)
+			}.TypedAndFiltered(softCtx, cfg.AmbassadorID)
 			upstreamWorker <- snapshot
 			upstreamWebUI <- snapshot
 		}
@@ -199,7 +200,7 @@ type Snapshot struct {
 	Projects []*Project
 }
 
-func (in UntypedSnapshot) Typed(ctx context.Context) Snapshot {
+func (in UntypedSnapshot) TypedAndFiltered(ctx context.Context, ambassadorID string) Snapshot {
 	log := dlog.GetLogger(ctx)
 	var out Snapshot
 
@@ -767,6 +768,7 @@ func (k *kale) startRun(proj Project, commit string) (string, error) {
 				},
 			},
 			Spec: MappingSpec{
+				AmbassadorID: aproTypesV2.AmbassadorID{k.cfg.AmbassadorID},
 				// todo: figure out what is going on with /edge_stack/previews
 				// not being routable
 				Prefix:  "/.previews/" + proj.Spec.Prefix + "/" + commit + "/",

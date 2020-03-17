@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	// 3rd party: k8s types
+	// k8s types
 	k8sTypesMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	aproTypesV2 "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 )
 
 type Project struct {
@@ -47,6 +48,8 @@ type Mapping struct {
 }
 
 type MappingSpec struct {
+	AmbassadorID aproTypesV2.AmbassadorID `json:"ambassador_id"`
+
 	Prefix  string `json:"prefix"`
 	Service string `json:"service"`
 }
