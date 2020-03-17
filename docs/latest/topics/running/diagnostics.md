@@ -9,7 +9,7 @@ If you're experiencing issues with the Ambassador Edge Stack, log in to your Edg
 
 If Ambassador Edge Stack is not routing your services as you'd expect, your first step should be the Ambassador Edge Stack Diagnostics in the Edge Policy Console. Login to your Edge Policy Console and select the "Debugging" tab from the left menu.
 
-Some of the most important information (your Ambassador Edge Stack version, how recently Ambassador Edge Stack's configuration was updated, and how recently Envoy last reported status to Ambassador Edge Stack) is right at the top. See [Debugging](../../reference/debugging) for more information.
+Some of the most important information (your Ambassador Edge Stack version, how recently Ambassador Edge Stack's configuration was updated, and how recently Envoy last reported status to Ambassador Edge Stack) is right at the top. See [Debugging](debugging) for more information.
 
 ## Health Status
 
