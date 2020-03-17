@@ -3,14 +3,13 @@
 ---
 # Publishing Services
 
-In this guide, we'll walk you through using Ambassador Edge Stack to publish services. Ambassador Edge Stack provides two mechanisms you can use to publish services running in kubernetes:
+In this guide, we'll walk you through using Ambassador Edge Stack to:
 
-1. The Mapping resource.
-2. The Project resource.
-
-The Mapping resource provides the maximum flexibility over routing, but requires you to build out a solution from scratch for how you are going to build, test, and use routing to safely update your services. The Project resource provides an out-of-the box solution that will build, test, and safely update your services directly from source code in a git repo.
-
-We recommend you start with the Project resource as it is far quicker to get up and running. The Project resource is built on top of the Mapping resource, so you can easily add customized alternatives and/or extensions to the Project resource later if the need arises.
+1. Deploy a simple HTTP service on the internet.
+2. View build logs for your service.
+3. View deploy logs for your service.
+4. Make updates to your service.
+3. Setup automated testing for your service.
 
 ## Before You Begin
 
@@ -18,51 +17,73 @@ You will need:
 
 * A working installation of Ambassador Edge Stack...
   * With TLS configured.
-  * And access to the AES admin console (https://**$YOUR_HOST**/edge_stack/admin/).
+  * And access to the AES admin console (https://$YOUR_HOST/edge_stack/admin/).
 * A Github account.
 * git
 
 ## Quick Start
 
-Publishing any github repo is simple, all you need is a Dockerfile in the root directory of the repository that exposes a service on port 8080. But to keep things simple, lets start out with a new repo based on the datawire/project-template repo.
-
 1. Create a new repo from our quickstart template by going to https://github.com/datawire/project-template/generate (please note the **$OWNER** and **$REPO_NAME** you choose for later reference).
-2. Go to https://**$YOUR_HOST**/edge_stack/admin/
+2. Go to https://$YOUR_HOST/edge_stack/admin/
 3. Click on Projects -> Add
    - Fill in the name and namespace you would like to use for the Project CRD.
    - Enter **$YOUR_HOST** for the host. It is important that github can reach this host.
    - Choose a prefix where you would like to publish your project.
    - Enter **$OWNER/$REPO_NAME** for the github repo.
    - Enter a github token with **repo** scope. If you don't already have one, you can generate one by going to https://github.com/settings/tokens/new . Make sure you select the **repo** checkbox under "Select Scopes"
+4. Click Save.
 
-4. Click Save. The project master branch of the project will build and deploy at the configured prefix.
+You will see the Project resource automatically build and deploy the code in your repo. Building the first time will take a little while. Subsequent builds will be much faster due to caching. Click on the "build" link to see your build logs in realtime.
 
-Building the first time will take a little while. Subsequent builds will be much faster. You can click click on the build link to see a live stream of the build logs. Once your build is published, continue to see how to update your service.
+When your build and deploy succeeds, click the URL to see your HTTP service deployed and handling requests from the internet.
 
-The Projects tab will provide a complete summary of all activity related to a project. It will be handy to keep it open and visible for the rest of this guide.
+## View build logs for your service.
 
-## Updating your service directly
+The Projects Tab provides a complete summary of all relevant resources related to any Projects. Lets use the Projects tab to view the build logs:
+
+1. If you haven't already, click on the "build" link next to the master deployment of your project.
+
+You will see the output from your build. These results will live stream for any build in progress.
+
+## View deploy logs for your service.
+
+Seeing log output from your server is essential for debugging. You can use the Projects Tab to access the server logs for any deployment:
+
+1. Click on the "log" link next to the master deployment of your project.
+
+You will see the log output from your deployed server.
+
+2. Try visiting the URL for your service in a separate window.
+
+You will see the log output live stream.
+
+## Making updates to your service.
+
+Keep the Projects Tab open and visible for the rest of this section.
+
+### Updating your service directly
 
 Any code changes on your master branch will be automatically built and deployed. Let's make a change to see how this works:
 
-1. Do a `git clone` of your new repo.
-   - (Or click edit on the github UI.)
-2. Edit server.js and change "Hello World!" to "Hello Master Branch!".
-3. Commit and push your change directly to the master branch.
-   - (Or click "Commit changes" in the github UI with the "Commit directly to the `master` branch" option chosen.)
+1. Go to your git repo in your browser.
+2. Click on server.js -> Edit
+3. Change "Hello World!" to "Hello Master Branch!".
+4. Select the "Commit directly to the `master` branch" option.
+5. Click "Commit changes".
 
-Visit https://**$YOUR_HOST**/edge_stack/admin/ -> Projects and you will see a new build proceeding. When that build completes you will see your change published at your chosen prefix.
+Look at your Project in the Projects Tab. You should see a new build proceeding. When that build completes you will see your change published at the url for the master deployment.
 
-## Updating your service with a PR
+### Updating your service with a PR
 
-Of course we'd like to be able to test our code before putting it into production, so let's create a PR instead of pushing directly to master:
+If you want to test your change before putting it into producution, create a PR instead of pushing directly to master:
 
-1. Do a `git clone` of your new repo.
-   - (Or click edit on the github UI.)
-2. Edit server.js and change "Hello Master Branch!" to "Hello Pull Requests!".
-3. Create a branch (`git checkout -b your-branch`) and PR.
-   - (Or click "Propose file change" in the github UI with the "Create a new branch for this commit..." option chosen)
-4. Visit the Projects tab or click on the status link in your github PR. You will see a build for master and a build for the PR, each with their own url. Click on the URL for the PR and you will see your changes at its preview url.
+1. Go to your git repo in your browser.
+2. Click on server.js -> Edit
+3. Change "Hello World!" to "Hello Pull Requests!".
+4. Select the "Create a new branch for this commit..." option.
+5. Click "Propose file change".
+
+Look at your Project in the Projects Tab. You should see a new build proceeding for your PR. When that build completes, click on its url. You will see your requested changes.
 
 Every PR gets published at its own preview url, so you can have as many as you like and test them however you like before merging.
 
