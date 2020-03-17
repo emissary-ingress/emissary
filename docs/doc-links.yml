@@ -37,6 +37,8 @@
           link: /docs/topics/concepts/progressive-delivery
         - title: Microservices API Gateways
           link: /docs/topics/concepts/microservices-api-gateways
+        - title: Ambassador Architecture
+          link: /docs/topics/concepts/architecture
     - title: Using Ambassador
       link: /docs/topics/using/
       items: 
@@ -98,7 +100,7 @@
             - title: Traffic Shadowing
               link: /docs/topics/using/shadowing
         - title: Filters and Authentication
-          items:  
+          items: /docs/topics/using/filters/index
             - title: OAuth and OIDC Overview
               link: /docs/topics/using/filters/index
             - title: OAuth2 Filter

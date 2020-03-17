@@ -12,7 +12,7 @@ the Kubernetes world with:
 * API management capabilities such as a developer portal and OpenID Connect integration for Single Sign-On.
 * A declarative, self-service management model built on Kubernetes Custom Resource Definitions, enabling GitOps-style continuous delivery workflows.
 
-We've written about [the history of Ambassador](https://blog.getambassador.io/building-ambassador-an-open-source-api-gateway-on-kubernetes-and-envoy-ed01ed520844), [Why Ambassador In Depth](why-ambassador), [Features and Benefits](features-and-benefits) and about the [evolution of API Gateways](/topics/concepts/microservices-api-gateways/).
+We've written about [the history of Ambassador](https://blog.getambassador.io/building-ambassador-an-open-source-api-gateway-on-kubernetes-and-envoy-ed01ed520844), [Why Ambassador In Depth](why-ambassador), [Features and Benefits](features-and-benefits) and about the [evolution of API Gateways](../topics/concepts/microservices-api-gateways/).
 
 ### What's the difference between the Ambassador API Gateway and the Ambassador Edge Stack?
 
@@ -24,9 +24,9 @@ The core Ambassador Edge Stack is open source under the Apache Software License 
 
 ### Can I use the add-on features for Ambassador Edge Stack for free?
 
-Yes! The core functionality of the Ambassador Edge Stack is free and has no limits whatsoever. If you wish to use one of our additional, proprietary features such as Single Sign-On, you can get a free community license for up to 5 requests per second. Please contact [sales](https://www.getambassador.io/contact/) if you need more than 5 RPS.
+Yes! The core functionality of the Ambassador Edge Stack is free and has no limits whatsoever. If you wish to use one of our additional, proprietary features such as Single Sign-On, you can get a free community license for up to 5 requests per second. Please contact [sales](/contact/) if you need more than 5 RPS.
 
-For more details on core unlimited features and premium features, see the [editions page](https://www.getambassador.io/editions).
+For more details on core unlimited features and premium features, see the [editions page](/editions).
 
 ### How does Ambassador use Envoy Proxy?
 
@@ -39,7 +39,7 @@ Public users include Chick-Fil-A, ADP, Microsoft, NVidia, and AppDirect, among o
 
 ### What is the performance of Edge Stack?
 
-There are many dimensions to performance. We published a benchmark of [Ambassador performance on Kubernetes](https://www.getambassador.io/resources/envoyproxy-performance-on-k8s/). Our internal performance regressions cover many other scenarios; we expect to publish more data in the future.
+There are many dimensions to performance. We published a benchmark of [Ambassador performance on Kubernetes](/resources/envoyproxy-performance-on-k8s/). Our internal performance regressions cover many other scenarios; we expect to publish more data in the future.
 
 ### What's the difference between a service mesh (such as Istio) and Ambassador Edge Stack?
 
@@ -57,7 +57,7 @@ Istio, and Linkerd2.
 We have an online [Slack community](https://d6e.co/slack) with thousands of
 users. We try to help out as often as possible, although we can't promise a
 particular response time. If you need a guaranteed SLA, we also have commercial
-contracts. [Contact sales](https://www.getambassador.io/contact/) for more information.
+contracts. [Contact sales](/contact/) for more information.
 
 ### What do I do when I get the error `no healthy upstream`?
 
