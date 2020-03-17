@@ -271,7 +271,7 @@ func (k *kale) reconcileConsistently(ctx context.Context, snapshot Snapshot) {
 	k.reconcileProjects(snapshot.Projects)
 	// NB: It is safe to use k.deployMap without a read-lock here,
 	// because this runs in the only thread that writes to it.
-	k.reconcile(ctx, k.deployMap)
+	k.reconcile(ctx, snapshot.Pods, k.deployMap)
 }
 
 func (k *kale) updateInternalState(snapshot Snapshot) {
@@ -575,16 +575,6 @@ func (k *kale) startBuild(proj Project, buildID, ref, commit string) (string, er
 	return string(out), nil
 }
 
-func (k *kale) pods() []*k8sTypesCoreV1.Pod {
-	var result []*k8sTypesCoreV1.Pod
-	for _, pods := range k.Pods {
-		for _, pod := range pods {
-			result = append(result, pod)
-		}
-	}
-	return result
-}
-
 func (k *kale) desiredDeploys(deployMap DeployMap) []Deploy {
 	var result []Deploy
 	for _, deps := range deployMap {
@@ -610,11 +600,10 @@ func (k *kale) IsDesired(deployMap DeployMap, pod *k8sTypesCoreV1.Pod) bool {
 	return false
 }
 
-func (k *kale) reconcile(ctx context.Context, deployMap DeployMap) {
+func (k *kale) reconcile(ctx context.Context, pods []*k8sTypesCoreV1.Pod, deployMap DeployMap) {
 	log := dlog.GetLogger(ctx)
 
 	deploys := k.desiredDeploys(deployMap)
-	pods := k.pods()
 	for _, dep := range deploys {
 		var deployBuilders []*k8sTypesCoreV1.Pod
 		var deployRunners []*k8sTypesCoreV1.Pod
