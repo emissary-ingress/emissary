@@ -10,7 +10,6 @@ import (
 	"os"
 	"os/signal"
 	"sort"
-	// "strings"
 	"sync"
 	"syscall"
 	"time"
@@ -24,10 +23,46 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
+	"github.com/datawire/ambassador/pkg/k8s"
 	"github.com/datawire/ambassador/pkg/supervisor"
 	"github.com/datawire/apro/lib/licensekeys"
 	"github.com/datawire/apro/lib/metriton"
 )
+
+// Helper types for the Watcher
+
+type svcResource struct {
+	Spec svcSpec
+}
+
+type svcSpec struct {
+	ClusterIP string
+	Ports     []svcPort
+}
+
+type svcPort struct {
+	Name     string
+	Port     int
+	Protocol string
+}
+
+type Table struct {
+	Name   string  `json:"name"`
+	Routes []Route `json:"routes"`
+}
+
+func (t *Table) Add(route Route) {
+	t.Routes = append(t.Routes, route)
+}
+
+type Route struct {
+	Name   string `json:"name,omitempty"`
+	Ip     string `json:"ip"`
+	Proto  string `json:"proto"`
+	Port   string `json:"port,omitempty"`
+	Target string `json:"target"`
+	Action string `json:"action,omitempty"`
+}
 
 // PatternInfo represents one Envoy header regex_match
 type PatternInfo struct {
@@ -59,6 +94,7 @@ type ProxyState struct {
 	FreePorts   []int
 	Deployments map[string]*DeploymentInfo
 	manager     *golongpoll.LongpollManager
+	snapshot    *Table
 }
 
 func newProxyState(manager *golongpoll.LongpollManager) *ProxyState {
@@ -70,6 +106,7 @@ func newProxyState(manager *golongpoll.LongpollManager) *ProxyState {
 		FreePorts:   make([]int, numPorts),
 		Deployments: make(map[string]*DeploymentInfo),
 		manager:     manager,
+		snapshot:    nil, // 503 until we have a snapshot
 	}
 	for idx := range res.FreePorts {
 		res.FreePorts[idx] = portOffset + idx
@@ -89,6 +126,22 @@ func (state *ProxyState) handleState(w http.ResponseWriter, r *http.Request) {
 	w.Write(result)
 }
 
+func (state *ProxyState) handleSnapshot(w http.ResponseWriter, r *http.Request) {
+	state.mutex.Lock()
+	defer state.mutex.Unlock()
+
+	if state.snapshot == nil {
+		http.Error(w, "snapshot unavailable", http.StatusServiceUnavailable)
+		return
+	}
+
+	result, err := json.Marshal([]Table{*state.snapshot})
+	if err != nil {
+		panic(err)
+	}
+	w.Write(result)
+}
+
 func (state *ProxyState) publish(deployment string) error {
 	dInfo, known := state.Deployments[deployment]
 	if !known {
@@ -99,36 +152,32 @@ func (state *ProxyState) publish(deployment string) error {
 
 // Track that a deployment exists, handle long poll to get routes
 func (state *ProxyState) handleRoutes(w http.ResponseWriter, r *http.Request) {
-	state.mutex.Lock()
-	locked := true
-	defer func() {
-		if locked {
-			state.mutex.Unlock()
+	func () {
+		state.mutex.Lock()
+		defer state.mutex.Unlock()
+
+		deployment := r.URL.Query().Get("category")
+		if len(deployment) == 0 {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Missing required URL param: category"))
+			return
+		}
+		dInfo := state.Deployments[deployment]
+		if dInfo == nil {
+			dInfo = &DeploymentInfo{
+				Intercepts:  make([]*InterceptInfo, 0),
+				LastQueryAt: time.Now(),
+			}
+			state.Deployments[deployment] = dInfo
+			err := state.publish(deployment)
+			if err != nil {
+				panic(err)
+			}
+		} else {
+			dInfo.LastQueryAt = time.Now()
 		}
 	}()
 
-	deployment := r.URL.Query().Get("category")
-	if len(deployment) == 0 {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Missing required URL param: category"))
-		return
-	}
-	dInfo := state.Deployments[deployment]
-	if dInfo == nil {
-		dInfo = &DeploymentInfo{
-			Intercepts:  make([]*InterceptInfo, 0),
-			LastQueryAt: time.Now(),
-		}
-		state.Deployments[deployment] = dInfo // FIXME need to garbage collect
-		err := state.publish(deployment)
-		if err != nil {
-			panic(err)
-		}
-	} else {
-		dInfo.LastQueryAt = time.Now()
-	}
-	state.mutex.Unlock()
-	locked = false
 	state.manager.SubscriptionHandler(w, r)
 }
 
@@ -304,35 +353,128 @@ func (state *ProxyState) handleIntercept(w http.ResponseWriter, r *http.Request)
 }
 
 // cleanup expired proxy requests
-func (state *ProxyState) cleanup() {
+func (state *ProxyState) cleanup(p *supervisor.Process) {
 	state.mutex.Lock()
 	defer state.mutex.Unlock()
 
-	// log.Printf("cleanup: started")
+	keepMsg := []string{}
+	expireMsg := []string{}
+	expireDeploys := []string{}
 	for deployment, dinfo := range state.Deployments {
+		// Expire deployments that haven't updated within the last 2 minutes
+		msg := fmt.Sprintf("deploy/%s", deployment)
+		if time.Since(dinfo.LastQueryAt) > 2*time.Minute {
+			expireMsg = append(expireMsg, msg)
+			expireDeploys = append(expireDeploys, deployment)
+			continue
+		}
+		keepMsg = append(keepMsg, msg)
+
 		var remaining []*InterceptInfo
-		var freePorts []int
+		var freedPorts []int
 		for _, intercept := range dinfo.Intercepts {
-			// only keep intercepts older than 10 seconds
+			msg := fmt.Sprintf("cept/%s:%d", deployment, intercept.Port)
+			// only keep intercepts that updated within the last 10 seconds
 			if time.Since(intercept.LastQueryAt) < 10*time.Second {
 				remaining = append(remaining, intercept)
-				fmt.Printf("cleanup: keeping intercept %s:%d", deployment, intercept.Port)
+				keepMsg = append(keepMsg, msg)
 			} else {
-				fmt.Printf("cleanup: expiring intercept %s:%d", deployment, intercept.Port)
-				freePorts = append(freePorts, intercept.Port)
+				freedPorts = append(freedPorts, intercept.Port)
+				expireMsg = append(expireMsg, msg)
 			}
 		}
-		if len(freePorts) > 0 {
+		if len(freedPorts) > 0 {
 			dinfo.Intercepts = remaining
-			state.FreePorts = append(state.FreePorts, freePorts...)
+			state.FreePorts = append(state.FreePorts, freedPorts...)
 			// Post an event to update the deployment's pods
 			err := state.publish(deployment)
 			if err != nil {
-				log.Printf("cleanup: error! %v", err)
+				p.Logf("error posting to %s: %v", deployment, err)
 			}
 		}
 	}
-	// log.Printf("cleanup: finished")
+
+	for _, deployment := range expireDeploys {
+		delete(state.Deployments, deployment)
+	}
+
+	if len(expireMsg) > 0 {
+		p.Logf("Keeping %q; Expiring %q", keepMsg, expireMsg)
+	}
+}
+
+func updateTable(p *supervisor.Process, w *k8s.Watcher, state *ProxyState) {
+	const ProxyRedirPort = "1234" // Client can always override this
+	table := Table{Name: "kubernetes"}
+
+	for _, svc := range w.List("services") {
+		decoded := svcResource{}
+		err := svc.Decode(&decoded)
+		if err != nil {
+			p.Logf("error decoding service: %v", err)
+			continue
+		}
+
+		spec := decoded.Spec
+
+		ports := ""
+		for _, port := range spec.Ports {
+			if ports == "" {
+				ports = fmt.Sprintf("%d", port.Port)
+			} else {
+				ports = fmt.Sprintf("%s,%d", ports, port.Port)
+			}
+		}
+
+		ip := spec.ClusterIP
+		// for headless services the IP is None, we should properly handle
+		// these by listening for endpoints and returning multiple A records
+		if ip != "" && ip != "None" {
+			qualName := svc.Name() + "." + svc.Namespace() + ".svc.cluster.local"
+			table.Add(Route{
+				Name:   qualName,
+				Ip:     ip,
+				Port:   ports,
+				Proto:  "tcp",
+				Target: ProxyRedirPort,
+			})
+		}
+	}
+
+	for _, pod := range w.List("pods") {
+		qname := ""
+
+		hostname, ok := pod.Spec()["hostname"]
+		if ok && hostname != "" {
+			qname += hostname.(string)
+		}
+
+		subdomain, ok := pod.Spec()["subdomain"]
+		if ok && subdomain != "" {
+			qname += "." + subdomain.(string)
+		}
+
+		if qname == "" {
+			// Note: this is a departure from kubernetes, kubernetes will
+			// simply not publish a dns name in this case.
+			qname = pod.Name() + "." + pod.Namespace() + ".pod.cluster.local"
+		} else {
+			qname += ".svc.cluster.local"
+		}
+
+		ip, ok := pod.Status()["podIP"]
+		if ok && ip != "" {
+			table.Add(Route{
+				Name:   qname,
+				Ip:     ip.(string),
+				Proto:  "tcp",
+				Target: ProxyRedirPort,
+			})
+		}
+	}
+	state.mutex.Lock()
+	state.snapshot = &table
+	state.mutex.Unlock()
 }
 
 // Version is inserted at build using --ldflags -X
@@ -356,13 +498,6 @@ func Main() {
 
 	argparser.PersistentPreRun = func(cmd *cobra.Command, args []string) {
 		licenseClaims, err := cmdContext.GetClaims()
-
-		// body, err := json.MarshalIndent(licenseClaims, "", "  ")
-		// if err != nil {
-		// 	panic(err)
-		// }
-
-		// fmt.Printf("Claims: %s\n", string(body))
 
 		if err == nil {
 			err = licenseClaims.RequireFeature(licensekeys.FeatureTraffic)
@@ -395,6 +530,7 @@ func Run(flags *cobra.Command, args []string) error {
 
 	http.HandleFunc("/state", state.handleState)
 	http.HandleFunc("/routes", state.handleRoutes)
+	http.HandleFunc("/snapshot", state.handleSnapshot)
 	http.Handle("/intercept/", http.StripPrefix("/intercept/", http.HandlerFunc(state.handleIntercept)))
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
@@ -404,6 +540,7 @@ func Run(flags *cobra.Command, args []string) error {
 		result, err := json.Marshal(map[string]interface{}{"paths": []string{
 			"/state",
 			"/routes",
+			"/snapshot",
 			"/intercept/",
 		}})
 		if err != nil {
@@ -431,11 +568,42 @@ func Run(flags *cobra.Command, args []string) error {
 			for {
 				select {
 				case <-ticker.C:
-					state.cleanup()
+					state.cleanup(p)
 				case <-p.Shutdown():
 					return nil
 				}
 			}
+		},
+	})
+	sup.Supervise(&supervisor.Worker{
+		Name: "watcher",
+		Work: func(p *supervisor.Process) error {
+			client, err := k8s.NewClient(nil)
+			if err != nil {
+				return err
+			}
+			watcher := client.Watcher()
+			callback := func(w *k8s.Watcher) { updateTable(p, w, state) }
+			if err := watcher.Watch("services", callback); err != nil {
+				return err
+			}
+			if err := watcher.Watch("pods", callback); err != nil {
+				return err
+			}
+
+			// The watcher panics on error, so...
+			defer func() {
+				if r := recover(); r != nil {
+					p.Logf("Failed: %v", r)
+				}
+			}()
+			watcher.Start()
+
+			p.Ready()
+			<-p.Shutdown()
+			watcher.Stop()
+
+			return nil
 		},
 	})
 	sup.Supervise(&supervisor.Worker{

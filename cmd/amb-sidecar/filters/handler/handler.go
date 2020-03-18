@@ -146,6 +146,7 @@ func (c *FilterMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	switch r.URL.Path {
 	case "/.ambassador/oauth2/logout":
+		// filterQName is the qualified name of the filter (name.namespace)
 		filterQName := r.FormValue("realm")
 		filter := findFilter(c.Controller, filterQName)
 		if filter == nil {

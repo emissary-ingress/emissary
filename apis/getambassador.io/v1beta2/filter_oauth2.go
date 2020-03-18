@@ -15,6 +15,7 @@ import (
 const (
 	GrantType_AuthorizationCode = "AuthorizationCode"
 	GrantType_ClientCredentials = "ClientCredentials"
+	GrantType_Password          = "Password"
 )
 
 type FilterOAuth2 struct {
@@ -133,9 +134,36 @@ func (m *FilterOAuth2) Validate(namespace string, secretsGetter coreV1client.Sec
 		if m.SecretNamespace != "" {
 			return errors.New("it is invalid to set 'secretNamespace' when 'grantType==ClientCredentials'")
 		}
+
+	case GrantType_Password:
+		if m.RawClientURL != "" {
+			return errors.New("it is invalid to set 'clientURL' when 'grantType==HeaderCrentials'")
+		}
+
+		if m.SecretName != "" {
+			if m.Secret != "" {
+				return errors.New("it is invalid to set both 'secret' and 'secretName'")
+			}
+			if m.SecretNamespace == "" {
+				m.SecretNamespace = namespace
+			}
+			secret, err := secretsGetter.Secrets(m.SecretNamespace).Get(m.SecretName, metaV1.GetOptions{})
+			if err != nil {
+				return errors.Wrapf(err, "getting secret name=%q namespace=%q", m.SecretName, m.SecretNamespace)
+			}
+			secretVal, ok := secret.Data["oauth2-client-secret"]
+			if !ok {
+				return errors.Errorf("secret name=%q namespace=%q does not contain an oauth2-client-secret field", m.SecretName, m.SecretNamespace)
+			}
+			m.Secret = string(secretVal)
+		}
+
 	default:
 		return errors.Errorf("grantType=%q is invalid; valid values are %q",
-			m.GrantType, []string{GrantType_AuthorizationCode, GrantType_ClientCredentials})
+			m.GrantType,
+			[]string{GrantType_AuthorizationCode,
+				GrantType_ClientCredentials,
+				GrantType_Password})
 	}
 
 	if m.RawMaxStale != "" {
