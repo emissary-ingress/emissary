@@ -54,7 +54,7 @@ Downloading images. (This may take a minute.)
 your cloud provider.)
 Your AES installation's IP address is 4.3.2.1
 -> Automatically configuring TLS
-
+ 
 Please enter an email address. We'll use this email address to notify you prior
 to domain and certificate expiration. We also share this email address with
 Let's Encrypt to acquire your certificate for TLS.
@@ -63,7 +63,7 @@ Let's Encrypt to acquire your certificate for TLS.
 Provide an email address as required by the ACME TLS certificate provider, Let's
 Encrypt. Then your terminal will print something similar to the following:
 
-```shell
+```
 Email address [john@example.com]:
 
 -> Acquiring DNS name random-word-3421.edgestack.me
@@ -80,7 +80,8 @@ Ambassador Edge Stack to automatically provision TLS and HTTPS for a domain
 name, so you can get started right away.
 
 Your new [Edge Policy Console](/about/edge-policy-console) will open
-automatically in your browser at the provided URL or IP address. **Note that the provided `random-word.edgestack.me` domain name will expire after 90 days**.
+automatically in your browser at the provided URL or IP address. **Note that the
+provided `random-word-3421.edgestack.me` domain name will expire after 90 days**.
 
 ![AES success](/../../doc-images/aes-success.png)
 
@@ -93,17 +94,17 @@ $ edgectl install
 -> Installing the Ambassador Edge Stack $version$.
 Downloading images. (This may take a minute.)
 -> Local cluster detected. Not configuring automatic TLS.
-
+ 
 Congratulations! You've successfully installed the Ambassador Edge Stack in
 your Kubernetes cluster. However, we cannot connect to your cluster from the
 Internet, so we could not configure TLS automatically.
-
+ 
 Determine the IP address and port number of your Ambassador service.
 (e.g., minikube service -n ambassador ambassador)
-
+ 
 The following command will open the Edge Policy Console once you accept a
 self-signed certificate in your browser.
-
+ 
 $ edgectl login -n ambassador IP_ADDRESS:PORT
 
 See https://www.getambassador.io/user-guide/getting-started/
