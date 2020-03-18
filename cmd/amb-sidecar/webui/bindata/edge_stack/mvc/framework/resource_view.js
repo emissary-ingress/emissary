@@ -51,31 +51,32 @@ export class ResourceView extends View {
       }
     }`
   }
-  /* constructor
-   * The ResourceView constructor, which takes a Resource (model) as its parameter.
-   * We cache the state from the model in the view its itself, as properties.
-   * Because this is a web component, the property updates queue the appropriate re-rendering at the correct time.
+
+  /* Because this is a web component, the constructor needs to be empty. We just do basic/minimal
+   * initialization here. Real initialization needs to happen lazily and/or when the component is
+   * first connected to the DOM. (See connectedCallback() and disconnectedCallback()).
    */
-
-  constructor(model) {
-    super(model);
-
-    /* Cache state from the model. */
-    this.kind      = model.kind;
-    this.name      = model.name;
-    this.namespace = model.namespace;
-    this.status    = model.status;
+  constructor() {
+    super();
 
     /* Since we are managing a Resource view, we may have messages to display, and optional YAML */
     this.messages = [];
     this.showYAML = false;
 
     /* For editing, we will save the existing Model while we edit a new one that will replace the old.
-    /* For editing, we will save the existing Model while we edit a new one that will replace the old.
      * If there is a savedModel, then there must be an edit in progress using this view.
      */
     this._savedModel = null;
     this._timeout    = null;
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    /* Copy state from the model. */
+    this.kind      = this.model.kind;
+    this.name      = this.model.name;
+    this.namespace = this.model.namespace;
+    this.status    = this.model.status;
   }
 
   /* addMessage(message)

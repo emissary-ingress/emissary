@@ -30,16 +30,19 @@ export class HostView extends IResourceView {
   }
 
   /* extend */
-  constructor(model) {
-    super(model);
+  constructor() {
+    super();
+  }
 
+  connectedCallback() {
+    super.connectedCallback();
     /* see comment in IResourceView */
-    this.hostname     = model.hostname;
-    this.acmeProvider = model.acmeProvider;
-    this.acmeEmail    = model.acmeEmail;
-    this.useAcme      = model.useAcme;
-    this.tos          = model.getTermsOfService();
-    this.agreed       = model.agreed_terms_of_service;
+    this.hostname     = this.model.hostname;
+    this.acmeProvider = this.model.acmeProvider;
+    this.acmeEmail    = this.model.acmeEmail;
+    this.useAcme      = this.model.useAcme;
+    this.tos          = this.model.getTermsOfService();
+    this.agreed       = this.model.agreed_terms_of_service;
   }
 
   /* override */

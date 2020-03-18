@@ -23,24 +23,39 @@ export class View extends LitElement {
 
   static get properties() {
     return {
+      model: {type: Object, noAccessor: true},
       viewState: {type: String}  // View
     }
   }
 
-  /* constructor(model)
-   * The View constructor, which takes a Model as its parameter.
+  /* Because this is a web component, the constructor needs to be empty. We just do basic/minimal
+   * initialization here. Real initialization needs to happen lazily and/or when the component is
+   * first connected to the DOM. (See connectedCallback() and disconnectedCallback()).
    */
-
-  constructor(model) {
+  constructor() {
     super();
-    this.model     = model;
     this.viewState = "list";
+  }
+
+  /**
+   * The model property holds the business logic and data for the view. Because it is a property,
+   * updates will cause re-rendering to happen at the correct time.
+   */
+  set model(value) {
+    if (this._model) {
+      this._model.removeListener(this);
+    }
+
+    this._model = value
 
     /* listen to model changes for updates. Model will call this.onModelNotification with
      * the model itself, a message, and an optional parameter.
      */
+    this._model.addListener(this);
+  }
 
-    model.addListener(this);
+  get model() {
+    return this._model;
   }
 
   /**

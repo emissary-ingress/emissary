@@ -137,7 +137,8 @@ export class ResourceCollectionView extends LitElement {
      * and unaffected by any snapshot updates.
      */
     let viewClass  = this.viewClass();
-    let child_view = new viewClass(resource);
+    let child_view = new viewClass();
+    child_view.model = resource;
     this.insertBefore(child_view, this.firstChild);
     child_view.onAdd();
   }
@@ -167,7 +168,8 @@ export class ResourceCollectionView extends LitElement {
     */
     if (message === 'created') {
       let viewClass = this.viewClass();
-      let child_view = new viewClass(model);
+      let child_view = new viewClass();
+      child_view.model = model;
       this.appendChild(child_view);
     }
 

@@ -42,13 +42,12 @@ export class IResourceView extends ResourceView {
     return ResourceView.properties;
   }
 
-  /* constructor(model)
-   * Load view state from the model state. Don't call
-   *  readFromModel() yet, since that method updates the UI but
-   *  the UI components haven't been instantiated.
+  /* Because this is a web component, the constructor needs to be empty. We just do basic/minimal
+   * initialization here. Real initialization needs to happen lazily and/or when the component is
+   * first connected to the DOM. (See connectedCallback() and disconnectedCallback()).
    */
-  constructor(model) {
-    super(model);
+  constructor() {
+    super();
   }
 
   /* readSelfFromModel()
