@@ -23,6 +23,8 @@
     link: /docs/latest/topics/install/yaml-install  
   - title: Ambassador Edge Stack Operator
     link: /docs/latest/topics/install/aes-operator   
+  - title: Using Docker Compose
+    link: /docs/latest/topics/install/docker-compose
 - title: Running and Using Ambassador
   collapsable: false
   items:  
@@ -105,6 +107,8 @@
               link: /docs/latest/topics/using/filters/jwt 
             - title: External Filter
               link: /docs/latest/topics/using/filters/external
+            - title: Plugin Filter
+              link: /docs/latest/topics/using/filters/plugin
         - title: Edge Control
           items:
             - title: Introduction to Edge Control
@@ -120,16 +124,6 @@
       items: 
         - title: The Ambassador Module
           link: /docs/latest/topics/running/ambassador
-        - title: The Host CRD
-          link: /docs/latest/topics/running/host-crd
-        - title: Load Balancing and Service Discovery
-          items:
-            - title: Load Balancing
-              link: /docs/latest/topics/running/load-balancer
-            - title: Service Discovery and Resolvers
-              link: /docs/latest/topics/running/resolvers
-        - title: Gzip Compression
-          link: /docs/latest/topics/running/gzip
         - title: Deploying Ambassador
           items:
             - title: Ambassador with AWS
@@ -138,6 +132,32 @@
               link: /docs/latest/topics/running/ambassador-with-gke
             - title: Advanced Deployment Configuration
               link: /docs/latest/topics/running/running
+        - title: Gzip Compression
+          link: /docs/latest/topics/running/gzip
+        - title: Host CRD
+          link: /docs/latest/topics/running/host-crd
+        - title: Ingress Controller
+          link: /docs/latest/topics/running/ingress-controller
+        - title: Load Balancing and Service Discovery
+          items:
+            - title: Load Balancing
+              link: /docs/latest/topics/running/load-balancer
+            - title: Service Discovery and Resolvers
+              link: /docs/latest/topics/running/resolvers
+        - title: Monitoring
+          link: /docs/latest/topics/running/statistics
+        - title: Plug-in Services
+          items:
+            - title: Authentication Service
+              link: /docs/latest/topics/running/services/auth-service
+            - title: ExtAuth Protocol
+              link: /docs/latest/topics/running/services/ext_authz
+            - title: Log Service
+              link: /docs/latest/topics/running/services/log-service
+            - title: Rate Limit Service
+              link: /docs/latest/topics/running/services/rate-limit-service
+            - title: Tracing Service
+              link: /docs/latest/topics/running/services/tracing-service            
         - title: TLS
           link: /docs/latest/topics/running/tls/
           items:
@@ -151,9 +171,10 @@
               link: /docs/latest/topics/running/tls/sni
             - title: TLS Origination
               link: /docs/latest/topics/running/tls/origination
-        - title: Monitoring
-          link: /docs/latest/topics/running/statistics
+        - title: Troubleshooting Ambassador
+          link: /docs/latest/topics/running/debugging
 - title: HOWTO Guides
+  link: /docs/latest/howtos
   items: 
     - title: Authentication
       items:
@@ -187,7 +208,13 @@
           link: /docs/latest/howtos/tracing-zipkin
     - title: Knative Serverless Framework
       link: /docs/latest/howtos/knative
-    - title: Promtheus monitoring
+    - title: Protocols
+      items:
+        - title: gRPC
+          link: /docs/latest/howtos/grpc
+        - title: WebSockets
+          link: /docs/latest/howtos/websockets
+    - title: Prometheus monitoring
       link: /docs/latest/howtos/prometheus
     - title: Rate Limiting
       items:
@@ -209,8 +236,6 @@
           link: /docs/latest/howtos/cert-manager
         - title: TLS termination
           link: /docs/latest/howtos/tls-termination
-    - title: WebSockets
-      link: /docs/latest/howtos/websockets
 - title: Frequently Asked Questions
   link: /docs/latest/about/faq
 - title: Community
