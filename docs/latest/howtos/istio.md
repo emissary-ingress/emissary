@@ -368,8 +368,6 @@ $ export PROMETHEUS_POD=`kubectl get pods -n istio-system | grep prometheus | aw
 $ kubectl delete pod $PROMETHEUS_POD -n istio-system
 ```
 
-More details can be found in [Statistics and Monitoring](../../reference/statistics).
-
 ## Grafana Dashboard
 
 Istio provides a Grafana dashboard service as well, and it is possible to import an Ambassador Edge Stack Dashboard into it, to monitor the Statistics provided by Prometheus. We're going to use [Alex Gervais'](https://twitter.com/alex_gervais) template available on [Grafana's](https://grafana.com/) website under entry [4689](https://grafana.com/dashboards/4698) as a starting point.
@@ -409,7 +407,3 @@ envoy_cluster_manager_active_clusters{job="ambassador"}
 Now let's save the changes:
 
 * Click on Save Dashboard in the Top Right corner
-
-## Roadmap
-
-There are a number of roadmap items that we'd like to tackle in improving Istio integration. This includes supporting Istio routing rules in the Ambassador Edge Stack and full propagation of request headers (e.g., Zipkin tracing) between the Ambassador Edge Stack and Istio. If you're interested in contributing, we'd welcome the help!
