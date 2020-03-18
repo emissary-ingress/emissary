@@ -654,7 +654,7 @@ class ResourceFetcher:
 
                 service_name = path_backend.get('serviceName', None)
                 service_port = path_backend.get('servicePort', None)
-                path_location = path.get('path', None)
+                path_location = path.get('path', '/')
 
                 if not service_name or not service_port or not path_location:
                     continue
@@ -677,6 +677,7 @@ class ResourceFetcher:
                         'ambassador_id': ambassador_id,
                         'prefix': path_location,
                         'prefix_exact': is_exact_prefix,
+                        'precedence': 1 if is_exact_prefix else 0,  # Make sure exact paths are evaluated before prefix
                         'service': f'{service_name}.{ingress_namespace}:{service_port}'
                     }
                 }
