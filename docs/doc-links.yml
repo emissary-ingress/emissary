@@ -16,7 +16,7 @@
   - title: Install the Ambassador API Gateway
     link: /docs/latest/topics/install/install-ambassador-oss
   - title: Install with Docker
-    link: /docs/latest/topics/install/quickstart
+    link: /docs/latest/topics/install/docker
   - title: Install with Bare Metal
     link: /docs/latest/topics/install/bare-metal
   - title: Install Manually
