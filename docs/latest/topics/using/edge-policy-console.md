@@ -107,4 +107,5 @@ The Documentation page provides you direct links to the Ambassador Edge Stack do
 
 ### Disabling the Edge Policy Console
 
+
 If necessary, you can disable external access to the Edge Policy Console using the [Ambassador module](../running/ambassador.md).

@@ -1,10 +1,10 @@
 # Rate Limiting
 
-The Ambassador Edge Stack can validate incoming requests before routing them to a backing service. In this tutorial, we'll configure the Ambassador Edge Stack to use a simple third party rate limit service. If you don't want to implement your own rate limiting service, the Ambassador Edge Stack integrates a [powerful, flexible rate limiting service](../advanced-rate-limiting).
+The Ambassador Edge Stack can validate incoming requests before routing them to a backing service. In this tutorial, we'll configure the Ambassador Edge Stack to use a simple third party rate limit service. If you don't want to implement your own rate limiting service, the Ambassador Edge Stack integrates a [powerful, flexible rate limiting service](../topics/using/rate-limits/).
 
 ## Before You Get Started
 
-This tutorial assumes you have already followed the Ambassador Edge Stack [Getting Started](../getting-started) guide. If you haven't done that already, you should do that now.
+This tutorial assumes you have already followed the Ambassador Edge Stack [Getting Started](../tutorials/getting-started) guide. If you haven't done that already, you should do that now.
 
 Once completed, you'll have a Kubernetes cluster running Ambassador and the Quote of the Moment service. Let's walk through adding rate limiting to this setup.
 
@@ -80,7 +80,7 @@ The Ambassador Edge Stack only validates requests on Mappings which set rate lim
 
 ### v0 API
 
-Ambassador 0.50.0 and later requires the `v2` API Version for rate limiting. The `v2` API uses the `labels` attribute to attach rate limiting descriptors. Review the [Rate Limits configuration documentation](../../reference/rate-limits#request-labels) for more information.
+Ambassador 0.50.0 and later requires the `v2` API Version for rate limiting. The `v2` API uses the `labels` attribute to attach rate limiting descriptors. Review the [Rate Limits configuration documentation](../topics/using/rate-limits/) for more information.
 
 Replace the label that is applied to the `service-backend` with:
 
@@ -114,7 +114,7 @@ spec:
 
 ### v2 API
 
-Ambassador versions 0.40.2 and earlier use the `v2` API version which uses the `rate_limits` attribute to set rate limiting descriptors. Review the [rate_limits mapping attribute configuration documentation](../../reference/rate-limits#the-rate_limits-attribute) for more information.
+Ambassador versions 0.40.2 and earlier use the `v2` API version which uses the `rate_limits` attribute to set rate limiting descriptors.
 
 ```yaml
 ---
@@ -203,4 +203,4 @@ TCP_NODELAY set
 
 ## More
 
-For more details about configuring the external rate limit service, read the documentation on [external rate limit](../../reference/services/rate-limit-service) and [rate_limits mapping](../../reference/rate-limits).
+For more details about configuring the external rate limit service, read the [rate limit documentation](../topics/using/rate-limits/).
