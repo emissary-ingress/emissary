@@ -65,11 +65,11 @@ Encrypt. Then your terminal will print something similar to the following:
 
 ```
 Email address [john@example.com]:
-
+ 
 -> Acquiring DNS name random-word-3421.edgestack.me
 -> Obtaining a TLS certificate from Let's Encrypt
 -> TLS configured successfully
-
+ 
 Congratulations! You've successfully installed the Ambassador Edge Stack in
 your Kubernetes cluster. Visit random-word-3421.edgestack.me to access your
 Edge Stack installation and for additional configuration.
@@ -106,7 +106,7 @@ The following command will open the Edge Policy Console once you accept a
 self-signed certificate in your browser.
  
 $ edgectl login -n ambassador IP_ADDRESS:PORT
-
+ 
 See https://www.getambassador.io/user-guide/getting-started/
 ```
 
