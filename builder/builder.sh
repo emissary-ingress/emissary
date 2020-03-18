@@ -42,7 +42,14 @@ declare -a dsynced
 
 dsync() {
     printf "${GRN}Synchronizing... $*${END}\n"
-    IFS='|' read -ra dsynced <<<"$(rsync --info=name -aO -e 'docker exec -i' $@ 2> >(fgrep -v 'rsync: failed to set permissions on' >&2) | tr '\n' '|')"
+    TIMEFORMAT="(sync took %1R seconds)"
+    time IFS='|' read -ra dsynced <<<"$(rsync --info=name -aO -e 'docker exec -i' $@ 2> >(fgrep -v 'rsync: failed to set permissions on' >&2) | tr '\n' '|')"
+}
+
+dcopy() {
+    printf "${GRN}Copying... $*${END}\n"
+    TIMEFORMAT="(copy took %1R seconds)"
+    time docker cp $@
 }
 
 dexec() {
@@ -88,8 +95,8 @@ bootstrap() {
         printf "${GRN}Started build container ${BLU}$(builder)${END}\n"
     fi
 
-    dsync ${DIR}/builder.sh $(builder):/buildroot
-    dsync ${DIR}/builder_bash_rc $(builder):/home/dw/.bashrc
+    dcopy ${DIR}/builder.sh $(builder):/buildroot
+    dcopy ${DIR}/builder_bash_rc $(builder):/home/dw/.bashrc
 }
 
 module_version() {
