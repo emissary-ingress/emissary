@@ -76,10 +76,9 @@ after_script:
   - ./releng/travis-cleanup.sh
   # - docker tag builder:latest ${DEV_REGISTRY}/builder:latest && docker push ${DEV_REGISTRY}/builder:latest
 
-# TODO: enable this post netlify testing
-#deploy:
-#  - provider: script
-#    script: ./.ci/publish-website
-#    skip_cleanup: true
-#    on:
-#      branch: master
+deploy:
+  - provider: script
+    script: ./.ci/publish-website
+    skip_cleanup: true
+    on:
+      branch: release/v1.3
