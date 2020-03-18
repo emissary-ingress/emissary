@@ -167,6 +167,7 @@
             - title: Running Ambassador
               link: /docs/latest/topics/running/running
         - title: TLS
+          link: /docs/latest/topics/running/tls/
           items:
             - title: Client Certificate Validation
               link: /docs/latest/topics/running/tls/client-cert-validation

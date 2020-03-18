@@ -1,12 +1,12 @@
 # Debugging
 
-If you’re experiencing issues with the Ambassador Edge Stack and cannot diagnose the issue through the "Diagnostics" tab from the [Edge Policy Console](../../about/edge-policy-console), this document covers various approaches and advanced use cases for debugging Ambassador issues.
+If you’re experiencing issues with the Ambassador Edge Stack and cannot diagnose the issue through the "Diagnostics" tab from the [Edge Policy Console](../using/edge-policy-console), this document covers various approaches and advanced use cases for debugging Ambassador issues.
 
 We assume that you already have a running Ambassador installation in the following sections.
 
 ## Check Ambassador Status
 
-First, check to see if the [Diagnostics](../diagnostics) service is reachable. If it is successful, try to diagnose your original issue with the Diagnostics Console.
+First, check to see if the Edge Policy Console is reachable. If it is successful, try to diagnose your original issue with the Console.
 
 **If it is not successful, complete the following to see if Ambassador is running:**
 
@@ -70,7 +70,7 @@ In both the Deployment Pod and the individual Pods, take the necessary action to
 
 The Ambassador logging can provide information on anything that might be abnormal or malfunctioning. While there may be a large amount of data to sort through, look for key errors such as the Ambassador process restarting unexpectedly, or a malformed Envoy configuration.
 
-You can turn on Debug mode in the [Edge Policy Console](../../about/edge-policy-console), which generates verbose logging data that can be useful when trying to find a subtle error or bug.
+You can turn on Debug mode in the [Edge Policy Console](../using/edge-policy-console), which generates verbose logging data that can be useful when trying to find a subtle error or bug.
 
 1. Use the following command to target an individual Ambassador Pod: `kubectl get pods -n ambassador`
 

@@ -26,7 +26,7 @@ spec:
     - service: catalog
 ```
 
-For more information on request labels, see the [Rate Limit reference](../../rate-limits).
+For more information on request labels, see the [Rate Limit reference](../../using/rate-limits/).
 
 ## Domains
 

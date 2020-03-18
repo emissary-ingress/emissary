@@ -16,7 +16,7 @@ By default, Ambassador Edge Stack uses Kubernetes DNS and service-level discover
 
 ### Kubernetes Endpoint-Level Discovery
 
-Ambassador Edge Stack can also watch Kubernetes endpoints. This bypasses the Kubernetes service routing layer and enables the use of advanced load balancing controls such as session affinity and maglev. For more details, see the [load balancing reference](../load-balancer).
+Ambassador Edge Stack can also watch Kubernetes endpoints. This bypasses the Kubernetes service routing layer and enables the use of advanced load balancing controls such as session affinity and maglev. For more details, see the [load balancing reference](load-balancer).
 
 ### Consul Endpoint-Level Discovery
 
@@ -40,7 +40,7 @@ metadata:
 
 ### The Kubernetes Endpoint Resolver
 
-The Kubernetes Endpoint Resolver configures Ambassador Edge Stack to resolve Kubernetes endpoints. This enables the use of more a [advanced load balancing configuration](../load-balancer). When this resolver is used, the endpoints for the `service` defined in a `Mapping` are resolved and used to determine where requests are sent.
+The Kubernetes Endpoint Resolver configures Ambassador Edge Stack to resolve Kubernetes endpoints. This enables the use of more a [advanced load balancing configuration](load-balancer). When this resolver is used, the endpoints for the `service` defined in a `Mapping` are resolved and used to determine where requests are sent.
 
 ```yaml
 ---

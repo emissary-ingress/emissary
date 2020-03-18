@@ -2,7 +2,7 @@
 
 For the most part, the Ambassador Edge Stack is platform agnostic and will run in the same way regardless of your Kubernetes installation.
 
-This is mostly true of AWS as well. The various methods of deploying Ambassador Edge Stack outlined in the [installation guide](../../user-guide/install) will all work on AWS the same way they do on any Kubernetes installation.
+This is mostly true of AWS as well. The various methods of deploying Ambassador Edge Stack outlined in the [installation guide](../install/) will all work on AWS the same way they do on any Kubernetes installation.
 
 However, Kubernetes exposes various annotations for controlling the configuration of the AWS load balancer deployed via a Kubernetes `type: LoadBalancer` service.
 

@@ -2,7 +2,7 @@
 
 Cross-Origin resource sharing lets users request resources (e.g., images, fonts, videos) from domains outside the original domain.
 
-CORS configuration can be set for all Ambassador Edge Stack mappings in the [`ambassador Module`](../core/ambassador), or set per [`Mapping`](../mappings#configuring-mappings).
+CORS configuration can be set for all Ambassador Edge Stack mappings in the [`ambassador Module`](../running/ambassador), or set per [`Mapping`](mappings#configuring-mappings).
 
 When the CORS attribute is set at either the `Mapping` or `Module` level, Ambassador Edge Stack will intercept the pre-flight `OPTIONS` request and respond with the appropriate CORS headers. This means you will not need to implement any logic in your upstreams to handle these CORS `OPTIONS` requests.
 
@@ -97,7 +97,7 @@ spec:
 
 When you use external authorization, each incoming request is authenticated before routing to its destination, including pre-flight `OPTIONS` requests.  
 
-By default, many [`AuthService`](../services/auth-service) implementations will deny these requests. If this is the case, you will need to add some logic to your `AuthService` to accept all CORS headers.
+By default, many [`AuthService`](../running/services/auth-service) implementations will deny these requests. If this is the case, you will need to add some logic to your `AuthService` to accept all CORS headers.
 
 For example, a possible configuration for Spring Boot 2.0.1:
 

@@ -5,8 +5,7 @@ You may need an API Gateway to enforce policies specific to your organization. A
 Currently, Ambassador Edge Stack supports plugins for authentication,
 access logging, rate limiting, and tracing.
 
-* [AuthService](../auth-service) Plugin
-* [LogService](../log-service) Plugin
-* [RateLimitService](../rate-limit-service) Plugin
-* [TracingService](../tracing-service) Plugin
-* [FilterPolicy](../access-control)
+* [AuthService](auth-service) Plugin
+* [LogService](log-service) Plugin
+* [RateLimitService](rate-limit-service) Plugin
+* [TracingService](tracing-service) Plugin

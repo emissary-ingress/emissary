@@ -21,15 +21,15 @@ spec:
 | :----- | :----- | :-- |
 | `add_linkerd_headers` | Should we automatically add Linkerd `l5d-dst-override` headers? | `add_linkerd_headers: false` |
 | `admin_port` | The port where Ambassador's Envoy will listen for low-level admin requests. You should almost never need to change this. | `admin_port: 8001` |
-| `ambassador_id` | Use only if you are using multiple ambassadors in the same cluster. [Learn more](../../running#ambassador_id). | `ambassador_id: "<ambassador_id>"` |
+| `ambassador_id` | Use only if you are using multiple ambassadors in the same cluster. [Learn more](running#ambassador_id). | `ambassador_id: "<ambassador_id>"` |
 | `cluster_idle_timeout_ms` | Set the default upstream-connection idle timeout. If not set (the default), upstream connections will never be closed due to idling. | `cluster_idle_timeout_ms: 30000` |
 | `default_label_domain  and default_labels` | Set a default domain and request labels to every request for use by rate limiting. For more on how to use these, see the Rate Limit reference. |  |
 | `diag_port` | The port where Ambassador will listen for requests  to the diagnostic service. | `diag_port: 8877`|
 | `enable_grpc_http11_bridge` | Should we enable the gRPC-http11 bridge? | `enable_grpc_http11_bridge: false `|
 | `enable_grpc_web` | Should we enable the grpc-Web protocol? | `enable_grpc_web: false` |
 | `enable_http10` | Should we enable http/1.0 protocol? | `enable_http10: false` |
-| `enable_ipv4`| Should we do IPv4 DNS lookups when contacting services? Defaults to true, but can be overridden in a [`Mapping`](../../mappings). | `enable_ipv4: true` |
-| `enable_ipv6` | Should we do IPv6 DNS lookups when contacting services? Defaults to false, but can be overridden in a [`Mapping`](../../mappings). | `enable_ipv6: false` |
+| `enable_ipv4`| Should we do IPv4 DNS lookups when contacting services? Defaults to true, but can be overridden in a [`Mapping`](../using/mappings). | `enable_ipv4: true` |
+| `enable_ipv6` | Should we do IPv6 DNS lookups when contacting services? Defaults to false, but can be overridden in a [`Mapping`](../using/mappings). | `enable_ipv6: false` |
 | `envoy_log_format` | Defines the envoy log line format. See [this page](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log) for a complete list of operators | See [this page](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log#default-format-string) for the standard log format. |
 | `envoy_log_path` | Defines the path of log envoy will use. By default this is standard output | `envoy_log_path: /dev/fd/1` |
 | `envoy_log_type` | Defines the type of log envoy will use, currently only support json or text | `envoy_log_type: text` |
@@ -48,7 +48,7 @@ spec:
 
 ### Additional `config` Field Examples
 
-`circuit_breakers` sets the global circuit breaking configuration that Ambassador will use for all mappings, unless overridden in a mapping. More information at the [circuit breaking reference](../../circuit-breakers).
+`circuit_breakers` sets the global circuit breaking configuration that Ambassador will use for all mappings, unless overridden in a mapping. More information at the [circuit breaking reference](../using/circuit-breakers).
 
 ```
 circuit_breakers
@@ -56,7 +56,7 @@ circuit_breakers
   ...
 ```
 
-`cors` sets the default CORS configuration for all mappings in the cluster. See the [CORS syntax](../../cors).
+`cors` sets the default CORS configuration for all mappings in the cluster. See the [CORS syntax](../using/cors).
 
 ```
 cors:
@@ -104,7 +104,7 @@ liveness_probe:
       enabled: true
 ```
 
-`load_balancer` sets the global load balancing type and policy that Ambassador will use for all mappings unless overridden in a mapping. Defaults to round-robin with Kubernetes. More information at the [load balancer reference](../load-balancer).
+`load_balancer` sets the global load balancing type and policy that Ambassador will use for all mappings unless overridden in a mapping. Defaults to round-robin with Kubernetes. More information at the [load balancer reference](load-balancer).
 
 ```
 load_balancer:
@@ -174,11 +174,11 @@ Some caveats around the embedded scripts:
 * They're inlined in the Ambassador Edge Stack YAML, so you likely won't want to write complex logic in here
 * They're run on every request/response to every URL
 
-If you need more flexible and configurable options, Ambassador Edge Stack supports a [pluggable Filter system](../../filter-reference).
+If you need more flexible and configurable options, Ambassador Edge Stack supports a [pluggable Filter system](../using/filters/).
 
 ### Linkerd Interoperability (`add_linkerd_headers`)
 
-When using Linkerd, requests going to an upstream service need to include the `l5d-dst-override` header to ensure that Linkerd will route them correctly. Setting `add_linkerd_headers` does this automatically; see the [Mapping](../../mappings) documentation for more details.
+When using Linkerd, requests going to an upstream service need to include the `l5d-dst-override` header to ensure that Linkerd will route them correctly. Setting `add_linkerd_headers` does this automatically; see the [Mapping](../using/mappings) documentation for more details.
 
 ### Upstream Idle Timeout (`cluster_idle_timeout_ms`)
 
@@ -186,7 +186,7 @@ If set, `cluster_idle_timeout_ms` specifies the timeout (in milliseconds) after 
 
 ### gRPC HTTP/1.1 bridge (`enable_grpc_http11_bridge`)
 
-Ambassador supports bridging HTTP/1.1 clients to backend gRPC servers. When an HTTP/1.1 connection is opened and the request content type is `application/grpc`, Ambassador will buffer the response and translate into gRPC requests. For more details on the translation process, see the [Envoy gRPC HTTP/1.1 bridge documentation](https://www.envoyproxy.io/docs/envoy/v1.11.2/configuration/http_filters/grpc_http1_bridge_filter.html). This setting can be enabled by setting `enable_grpc_http11_bridge: true`. Read more about [gRPC and Ambassador](../../../user-guide/grpc).
+Ambassador supports bridging HTTP/1.1 clients to backend gRPC servers. When an HTTP/1.1 connection is opened and the request content type is `application/grpc`, Ambassador will buffer the response and translate into gRPC requests. For more details on the translation process, see the [Envoy gRPC HTTP/1.1 bridge documentation](https://www.envoyproxy.io/docs/envoy/v1.11.2/configuration/http_filters/grpc_http1_bridge_filter.html). This setting can be enabled by setting `enable_grpc_http11_bridge: true`. 
 
 ### gRPC-Web (`enable_grpc_web`)
 
@@ -218,7 +218,7 @@ readiness_probe:
   rewrite: /backend/health
 ```
 
-The liveness and readiness probe both support `prefix`, `rewrite`, and `service`, with the same meanings as for [mappings](../../mappings). Additionally, the `enabled` boolean may be set to `false` (as in the commented-out examples above) to disable support for the probe entirely.
+The liveness and readiness probe both support `prefix`, `rewrite`, and `service`, with the same meanings as for [mappings](../using/mappings). Additionally, the `enabled` boolean may be set to `false` (as in the commented-out examples above) to disable support for the probe entirely.
 
 **Note well** that configuring the probes in the `ambassador Module` only means that Ambassador Edge Stack will respond to the probes. You must still configure Kubernetes to perform the checks, as shown in the Datawire-provided YAML files.
 
