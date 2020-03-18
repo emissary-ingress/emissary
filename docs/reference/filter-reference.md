@@ -219,12 +219,12 @@ spec:
     filters:
     - name: "example-jwt-filter"
       arguments:
-        scope:                    # optional; default is []
+        scopes:                    # optional; default is []
         - "scope-value-1"
         - "scope-value-2"
 ```
 
- - `scope`: A list of OAuth scope values that Ambassador will require to be listed in the [`scope` claim][].  In addition to the normal of the `scope` claim (a JSON string containing a space-separated list of values), the JWT Filter also accepts a JSON array of values.
+ - `scopes`: A list of OAuth scope values that Ambassador will require to be listed in the [`scope` claim][].  In addition to the normal of the `scope` claim (a JSON string containing a space-separated list of values), the JWT Filter also accepts a JSON array of values.
 
 [`scope` claim]: https://tools.ietf.org/html/draft-ietf-oauth-token-exchange-19#section-4.2
 
@@ -348,24 +348,16 @@ spec:
       namespace: "string"                      # optional; default is the same namespace as the Filter
       arguments: JWT-Filter-Arguments          # optional
 
-    # ClientURL is required when grantType=="AuthorizationCode", and not allowed otherwise.
-    clientURL:             "url-string"
-
-    # ClientID is required for grantType "AuthorizationCode" and grantType "Password", and is
-    # not allowed otherwise.
-    clientID:              "string"
-
-# A client secret must be specified for grantType "AuthorizationCode" and grantType "Password".
+    # Settings for grantType=="AuthorizationCode"
+    clientURL:             "url-string"      # required
+    clientID:              "string"          # required
+    # A client secret must be specified.
     # This can be done by including the raw secret as a string in "secret",
     # or by referencing Kubernetes secret with "secretName" (and "secretNamespace").
     # It is invalid to specify both "secret" and "secretName".
     secret:                "string"          # required (unless secretName is set)
     secretName:            "string"          # required (unless secret is set)
     secretNamespace:       "string"          # optional; default is the same namespace as the Filter
-
-    # grantType "AuthorizationCode" uses cookies for session tracking. If useSessionCookies is true,
-    # it will use session cookies, which are deleted when the browser is closed. If useSessionCookies
-    # is false, the cookies can persist after the browser is closed.
     useSessionCookies:                       # optional; default is { value: false }
       value: bool                              # optional: default is true
       ifRequestHeader:                         # optional; default to apply "useSessionCookies.value" to all requests
@@ -383,13 +375,10 @@ spec:
 
 General settings:
 
+ - `authorizationURL`: Identifies where to look for the `/.well-known/openid-configuration` descriptor to figure out how to talk to the OAuth2 provider.
  - `grantType`: Which type of OAuth 2.0 authorization grant to request from the identity provider.  Currently supported are:
    * `"AuthorizationCode"`: Authenticate by redirecting to a login page served by the identity provider.
    * `"ClientCredentials"`: Authenticate by requiring `X-Ambassador-Client-ID` and `X-Ambassador-Client-Secret` HTTP headers on incoming requests, and using them to authenticate to the identity provider.  Support for the `ClientCredentials` is currently preliminary, and only goes through limited testing.
-   * `"Password"`: Authenticate by requiring `X-Ambassador-Username` and `X-Ambassador-Password` on all
-     incoming requests, and use them to authenticate with the identity provider using the OAuth2
-     `Resource Owner Password Credentials` grant type.
- - `authorizationURL`: Identifies where to look for the `/.well-known/openid-configuration` descriptor to figure out how to talk to the OAuth2 provider
  - `extraAuthorizationParameters`: Extra (non-standard or extension) OAuth authorization parameters to use.  It is not valid to specify a parameter used by OAuth itself ("response_type", "client_id", "redirect_uri", "scope", or "state").
  - `accessTokenValidation`: How to verify the liveness and scope of Access Tokens issued by the identity provider.  Valid values are either `"auto"`, `"jwt"`, or `"userinfo"`.  Empty or unset is equivalent to `"auto"`.
    * `"jwt"`: Validates the Access Token as a JWT.
@@ -398,22 +387,18 @@ General settings:
    * `"userinfo"`: Validates the access token by polling the OIDC UserInfo Endpoint. This means that the Ambassador Edge Stack must initiate an HTTP request to the identity provider for each authorized request to a protected resource.  This performs poorly, but functions properly with a wider range of identity providers.  It is not valid to set `accessTokenJWTFilter` if `accessTokenValidation: userinfo`.
    * `"auto"` attempts to do `"jwt"` validation if `accessTokenJWTFilter` is set or if the Access Token parses as a JWT and the signature is valid, and otherwise falls back to `"userinfo"` validation.
 
-Settings that are only valid for `grantType: "AuthorizationCode"` or `grantType: "Password"`:
+Settings that are only valid when `grantType: "AuthorizationCode"`:
 
+ - `clientURL`: (You determine this, and give it to your identity provider) Identifies a hostname that can appropriately set cookies for the application.  Only the scheme (`https://`) and authority (`example.com:1234`) parts are used; the path part of the URL is ignored.  You will also likely need to register `${clientURL}/callback` as an authorized callback endpoint with
+   your identity provider.
  - `clientID`: The Client ID you get from your identity provider.
  - The client secret you get from your identity provider can be specified 2 different ways:
    * As a string, in the `secret` field.
    * As a Kubernetes `generic` Secret, named by `secretName`/`secretNamespace`.  The Kubernetes secret must of
      the `generic` type, with the value stored under the key`oauth2-client-secret`.  If `secretNamespace` is not given, it defaults to the namespace of the Filter resource.
    * **Note**: It is invalid to set both `secret` and `secretName`.
-
-Settings that are only valid when `grantType: "AuthorizationCode"`:
-
- - `clientURL`: (You determine this, and give it to your identity provider) Identifies a hostname that can appropriately set cookies for the application.  Only the scheme (`https://`) and authority (`example.com:1234`) parts are used; the path part of the URL is ignored.  You will also likely need to register `${clientURL}/callback` as an authorized callback endpoint with
-   your identity provider.
-
 * By default, any cookies set by the Ambassador Edge Stack will be set to expire when the session expires naturally. Use the `useSessionCookies` setting to specify expiration on session cookies instead; the cookies will be deleted when the user closes their web browser.  
-		* However, this can prematurely delete cookies if the user closes their web browser. Conversely, it also means that cookies can persist for longer than normal if the user does not close their browser.
+		* However, this can prematurely delete cookie if the user closes their web browser. Conversely, it also means that cookies can persist for longer than normal if the user does not close their browser.
 		* Any prematurely deleted cookies may or may not affect user-perceived behavior, depending on
 		   the behavior of the identity provider.  
 		* Any cookies persisting longer will not affect behavior of the system; the Ambassador Edge
@@ -454,10 +439,10 @@ spec:
     filters:
     - name: "example-oauth2-filter"
       arguments:
-        scopes:                     # optional; default is ["openid"] for `grantType=="AuthorizationCode"`; [] for `grantType=="ClientCredentials"` and `grantType=="Password"`
+        scopes:                     # optional; default is ["openid"] for `grantType=="AuthorizationCode"`; [] for `grantType=="ClientCredentials"`
         - "scope1"
         - "scope2"
-        insteadOfRedirect:          # optional for "AuthorizationCode"; default is to do a redirect to the identity provider
+        insteadOfRedirect:          # optional; default is to do a redirect to the identity provider
           ifRequestHeader:            # optional; default is to return httpStatusCode for all requests that would redirect-to-identity-provider
             name: "string"              # required
             negate: bool                # optional; default is false
@@ -485,16 +470,16 @@ spec:
 
    If `grantType: "AuthorizationCode"`, then the `openid` scope value is always included in the requested scope, even if it is not listed in the `FilterPolicy` argument.
 
-   If `grantType: "ClientCredentials"` or `grantType: "Password"`, then the default scope is empty. If your identity provider does not have a default scope, then you will need to configure one here.
+   If `grantType: "ClientCredentials"`, then the default scope is empty. If your identity provider does not have a default scope, then you will need to configure one here.
 
    As a special case, if the `offline_access` scope value is requested, but not included in the response then access is not forbidden. With many identity providers, requesting the `offline_access` scope is necessary to receive a Refresh Token.
 
    The ordering of scope values does not matter, and is ignored.
 
  - `insteadOfRedirect`: An action to perform instead of redirecting
-   the User-Agent to the identity provider, when using `grantType: "AuthorizationCode"`.
-   By default, if the User-Agent does not have a currently-authenticated session,
-   then the Ambassador Edge Stack will redirect the User-Agent to the
+   the User-Agent to the identity provider.  By default, if the
+   User-Agent does not have a currently-authenticated session, then
+   the Ambassador Edge Stack will redirect the User-Agent to the
    identity provider. Setting `insteadOfRedirect` allows you to modify
    this behavior. `insteadOfRedirect` does nothing when `grantType:
    "ClientCredentials"`, because the Ambassador Edge Stack will never
