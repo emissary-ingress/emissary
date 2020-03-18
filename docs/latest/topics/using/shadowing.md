@@ -1,6 +1,6 @@
 # Traffic Shadowing
 
-Traffic shadowing is a deployment pattern where production traffic is asynchronously copied to a non-production service for testing. Shadowing is a close cousin to two other commonly known deployment patterns, [canary releases](../canary) and blue/green deployments. Shadowing traffic has several important benefits over blue/green and canary testing:
+Traffic shadowing is a deployment pattern where production traffic is asynchronously copied to a non-production service for testing. Shadowing is a close cousin to two other commonly known deployment patterns, [canary releases](canary) and blue/green deployments. Shadowing traffic has several important benefits over blue/green and canary testing:
 
 * Zero production impact. Since traffic is duplicated, any bugs in services that are processing shadow data have no impact on production.
 
@@ -12,7 +12,7 @@ Traffic shadowing is a deployment pattern where production traffic is asynchrono
 
 Ambassador Edge Stack lets you easily shadow traffic to a given endpoint. In Ambassador Edge Stack, only requests are shadowed; responses from a service are dropped. All normal metrics are collected for the shadow services. This makes it easy to compare the performance of the shadow service versus the production service on the same data set. Ambassador Edge Stack also prioritizes the production path, i.e., it will return responses from the production service without waiting for any responses from the shadow service.
 
-![Shadowing](../../doc-images/shadowing.png)
+![Shadowing](../../../doc-images/shadowing.png)
 
 ## The `shadow` Mapping
 

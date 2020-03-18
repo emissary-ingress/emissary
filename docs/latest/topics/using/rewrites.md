@@ -36,4 +36,4 @@ Ambassador Edge Stack can be configured to not change the prefix as it forwards 
 
 - `rewrite: ""`
 
-For more information on how rewrite and prefix can be configured, see [Mappings](../mappings).
+For more information on how rewrite and prefix can be configured, see [Mappings](mappings).
