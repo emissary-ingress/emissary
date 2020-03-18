@@ -20,7 +20,7 @@
   - title: Install with Bare Metal
     link: /docs/latest/topics/install/bare-metal
   - title: Install Manually
-    link: /docs/latest/topics/install/manual-install  
+    link: /docs/latest/topics/install/yaml-install  
   - title: Ambassador Edge Stack Operator
     link: /docs/latest/topics/install/aes-operator   
 - title: Running and Using Ambassador
