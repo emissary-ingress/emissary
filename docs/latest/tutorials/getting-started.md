@@ -15,7 +15,7 @@ The Ambassador Edge Stack is designed to run in Kubernetes for production. The m
 
 ## Quick Install (Recommended!)
 
-The Ambassador Edge Stack is typically deployed to Kubernetes from the command line. If you don't have Kubernetes, you should use our [Docker](../../about/quickstart) image to deploy the Ambassador Edge Stack locally.
+The Ambassador Edge Stack is typically deployed to Kubernetes from the command line. If you don't have Kubernetes, you should use our [Docker](../topics/install/docker) image to deploy the Ambassador Edge Stack locally.
 
 When you use Edge Control on your publicly
 accessible cluster, it will:
@@ -106,7 +106,7 @@ accessible cluster, it will:
     Ambassador Edge Stack to automatically provision TLS and HTTPS for a domain
     name, so you can get started right away.
 
-Your new [Edge Policy Console](/about/edge-policy-console) will open
+Your new [Edge Policy Console](../topics/using/edge-policy-console) will open
 automatically in your browser at the provided URL or IP address. **Note that the provided `random-word.edgestack.me` domain name will expire after 90 days**.
 
 ## Create a Mapping
@@ -211,7 +211,6 @@ The Quote service we just deployed publishes its API as a Swagger document. This
 The Ambassador Edge Stack has a comprehensive range of [features](/features/) to support the requirements of any edge microservice.
 
 To learn more about how the Ambassador Edge Stack works, along with use cases,
-best practices, and more, check out the [Welcome page](/docs/) or read the
-[Ambassador Story](/about/why-ambassador).
+best practices, and more, check out the [documentation](/docs/).
 
-For a custom configuration, you can install the Ambassador Edge Stack [manually](/user-guide/manual-install).
+For a custom configuration, you can install the Ambassador Edge Stack with our [standard YAML](../topics/install/yaml-install) or [Helm](../topics/install/helm).
