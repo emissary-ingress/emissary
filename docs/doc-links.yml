@@ -69,7 +69,7 @@
                 - title: Header Based Routing
                   link: /docs/latest/topics/using/headers/header_based_routing
                 - title: Host Header
-                  link: /docs/latest/topics/using/headers/host_header
+                  link: /docs/latest/topics/using/headers/host
             - title: Keepalive
               link: /docs/latest/topics/using/keepalive
             - title: Prefix Regex
@@ -81,16 +81,12 @@
                 - title: gRPC and gRPC-Web
                   link: /docs/latest/howtos/grpc
                 - title: WebSockets
-                  link: /docs/latest/topics/howtos/websockets
+                  link: /docs/latest/howtos/websockets
             - title: Rate Limits
-              link: /docs/latest/topics/using/rate-limits/index
+              link: /docs/latest/topics/using/rate-limits/
               items:
                 - title: Rate Limiting Concepts
                   link: /docs/latest/topics/using/rate-limits/rate-limots
-                - title: Rate Limiting Tutorial
-                  link: /docs/latest/topics/howtos/rate-limiting-tutorial
-                - title: Advanced Rate Limiting
-                  link: /docs/latest/howtos/advanced-rate-limiting/
             - title: Redirects
               link: /docs/latest/topics/using/redirects
             - title: Rewrites
@@ -102,43 +98,19 @@
         - title: Filters and Authentication
           items: 
             - title: OAuth and OIDC Overview
-              link: /docs/latest/topics/using/filters/index
+              link: /docs/latest/topics/using/filters/
             - title: OAuth2 Filter
               link: /docs/latest/topics/using/filters/oauth2
             - title: JWT Filter
               link: /docs/latest/topics/using/filters/jwt 
             - title: External Filter
               link: /docs/latest/topics/using/filters/external
-            - title: Authentication
-              link: /docs/latest/topics/authentication/
-            - title: Identity Provider Configuration
-              items:
-                - title: Google SSO
-                  link: /docs/latest/topics/howtos/idp-support/google/
-                - title: Okta
-                  link: /docs/latest/topics/howtos/idp-support/okta/
-                - title: Auth0
-                  link: /docs/latest/topics/howtos/idp-support/auth0/
-                - title: OneLogin
-                  link: /docs/latest/topics/howtos/idp-support/onelogin/
-                - title: Azure
-                  link: /docs/latest/topics/howtos/idp-support/azure/
-                - title: Salesforce
-                  link: /docs/latest/topics/howtos/idp-support/salesforce/
-                - title: Keycloak
-                  link: /docs/latest/topics/howtos/idp-support/keycloak
-                - title: UAA
-                  link: /docs/latest/topics/howtos/idp-support/uaa/
-            - title: Custom Filters
-              link: /docs/latest/topics/filters/filter-dev-guide
-            - title: Filter Plugin Policy for Access Control
-              link: /docs/latest/topics/access-control/
         - title: Edge Control
           items:
             - title: Introduction to Edge Control
-              link: /docs/latest/topics/using/edge-control
+              link: /docs/latest/topics/using/edgectl/edge-control
             - title: Using Edge Control in CI
-              link: /docs/latest/topics/using/edge-control-in-ci
+              link: /docs/latest/topics/using/edgectl/edge-control-in-ci
         - title: Developer Portal
           link: /docs/latest/topics/using/dev-portal
         - title: Edge Policy Console
@@ -164,7 +136,7 @@
               link: /docs/latest/topics/running/ambassador-with-aws
             - title: Ambassador with GKE
               link: /docs/latest/topics/running/ambassador-with-gke
-            - title: Running Ambassador
+            - title: Advanced Deployment Configuration
               link: /docs/latest/topics/running/running
         - title: TLS
           link: /docs/latest/topics/running/tls/
@@ -202,7 +174,7 @@
         - title: Single Sign-On with Salesforce
           link: /docs/latest/howtos/sso/salesforce
         - title: Single Sign-On with UAA
-          link: /docs/latest/howtos/sso/UAA
+          link: /docs/latest/howtos/sso/uaa
         - title: Using the OAuth2 filter
           link: /docs/latest/howtos/oauth-oidc-auth
     - title: Custom Filters
