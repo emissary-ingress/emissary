@@ -11,7 +11,7 @@ If you still want to use just the Ambassador API Gateway, don't worry! You can f
 
 ## Kubernetes YAML
 
-In this tutorial, we'll walk through the process of deploying the Ambassador API Gateway in Kubernetes for ingress routing. The Ambassador API Gateway provides all the functionality of a traditional ingress controller (i.e., path-based routing) while exposing many additional capabilities such as authentication, URL rewriting, CORS, rate limiting, and automatic metrics collection (the [mappings reference](../using/mappings) contains a full list of supported options). Note that the Ambassador Edge Stack can be used as an [Ingress Controller](../running/ingress-controller).
+In this tutorial, we'll walk through the process of deploying the Ambassador API Gateway in Kubernetes for ingress routing. The Ambassador API Gateway provides all the functionality of a traditional ingress controller (i.e., path-based routing) while exposing many additional capabilities such as authentication, URL rewriting, CORS, rate limiting, and automatic metrics collection (the [mappings reference](../../using/intro-mappings) contains a full list of supported options). Note that the Ambassador Edge Stack can be used as an [Ingress Controller](../../running/ingress-controller).
 
 For more background on Kubernetes ingress, [read this blog post](https://blog.getambassador.io/kubernetes-ingress-nodeport-load-balancers-and-ingress-controllers-6e29f1c44f2d).
 
@@ -127,11 +127,7 @@ will then let us view the diagnostics at `http://localhost:8877/ambassador/v0/di
 
 ### 4. Enable HTTPS
 
-The versatile HTTPS configuration of the Ambassador API Gateway lets it support various HTTPS use cases whether simple or complex.
-
-Follow our [enabling HTTPS guide](../running/tls) to quickly enable HTTPS support for your applications.
-
-**Note that the Ambassador Edge Stack automatically enables HTTPs.** Read more about its configuration on the [Host CRD](../running/host-crd) page.
+The versatile HTTPS configuration of Ambassador lets it support various HTTPS use cases whether simple or complex. See the [TLS HOWTO](../../../tls-termination) for details.
 
 ## Helm
 

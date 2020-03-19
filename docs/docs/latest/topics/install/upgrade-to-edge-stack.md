@@ -5,7 +5,7 @@ If you currently have the open source API Gateway version of Ambassador, you can
 **Prerequisites**:
 
 * You must have properly installed Ambassador previously following [these](../install-ambassador-oss) instructions.
-* You must have TLS configured and working properly on your Ambassador instance following [these](../tls-termination) instructions.
+* You must have TLS configured and working properly on your Ambassador instance
 
 **To upgrade your instance of Ambassador**:
 
@@ -74,4 +74,4 @@ You can now access the Edge Policy Console with the following options:
 
 ## 7. What's Next?
 
-Now that you have the Ambassador Edge Stack up and running, check out the [Getting Started](../getting-started) guide for recommendations on what to do next and take full advantage of its features.
+Now that you have the Ambassador Edge Stack up and running, check out the [Getting Started](../../../tutorials/getting-started) guide for recommendations on what to do next and take full advantage of its features.

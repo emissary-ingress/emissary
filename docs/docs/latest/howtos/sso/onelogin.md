@@ -43,7 +43,7 @@ Next, configure Ambassador to require authentication with OneLogin, so you must 
 
 Now you must configure your Ambassador instance to use OneLogin.
 
-1. First, create an [OAuth Filter](../../filter-reference#filter-type-oauth2) with the credentials you copied earlier.  
+1. First, create an [OAuth Filter](../../../topics/using/filters/oauth2) with the credentials you copied earlier.  
 
 Here is an example YAML:
 
@@ -62,7 +62,7 @@ Here is an example YAML:
         secret: {{Client Secret}}
 ```
 
-2. Next, create a [FilterPolicy](../../filter-reference#filterpolicy-definition) to use the `Filter` you just created.
+2. Next, create a [FilterPolicy](../../../topics/using/filters/) to use the `Filter` you just created.
 
 Some example YAML:
 

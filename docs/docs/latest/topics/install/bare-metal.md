@@ -4,7 +4,7 @@ In cloud environments, provisioning a readily available network load balancer wi
 
 ## Exposing Ambassador via NodePort
 
-The simplest way to expose an application in Kubernetes is via a `NodePort` service. In this configuration, we create the [Ambassador service](../getting-started#2-defining-the-ambassador-service) and identify `type: NodePort` instead of `LoadBalancer`. Kubernetes will then create a service and assign that service a port to be exposed externally and direct traffic to Ambassador via the defined `port`.
+The simplest way to expose an application in Kubernetes is via a `NodePort` service. In this configuration, we create the Ambassador service] and identify `type: NodePort` instead of `LoadBalancer`. Kubernetes will then create a service and assign that service a port to be exposed externally and direct traffic to Ambassador via the defined `port`.
 
 ```yaml
 ---
@@ -24,7 +24,7 @@ spec:
     service: ambassador
 ```
 
-Using a `NodePort` leaves Ambassador isolated from the host network, allowing the Kubernetes service to handle routing to Ambassador pods. You can drop-in this YAML to replace the `LoadBalancer` service in the [YAML installation guide](../getting-started) and use `http://<External-Node-IP>:<NodePort>/` as the host for requests.
+Using a `NodePort` leaves Ambassador isolated from the host network, allowing the Kubernetes service to handle routing to Ambassador pods. You can drop-in this YAML to replace the `LoadBalancer` service in the [YAML installation guide](../yaml-install) and use `http://<External-Node-IP>:<NodePort>/` as the host for requests.
 
 ## Exposing Ambassador via Host Network
 
@@ -88,5 +88,3 @@ spec:
 This configuration does not require a defined Ambassador service, so you can remove that service if you have defined one.
 
 **Note:** Before configuring Ambassador with this method, consider some of the functionality that is lost by bypassing the Kubernetes service including only having one Ambassador able to bind to port 8080 or 8443 per node and losing any load balancing that is typically performed by Kubernetes services.
-
-Join our [Slack channel](https://d6e.co/slack) to ask any questions you have regarding running Ambassador on a bare metal installation.

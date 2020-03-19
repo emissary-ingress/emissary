@@ -16,7 +16,7 @@ This guide requires you have the following installed:
 
 ## Install Ambassador Edge Stack
 
-[Install Ambassador Edge Stack in Kubernetes](../topics/install).
+[Install Ambassador Edge Stack in Kubernetes](../../topics/install).
 
 ## Create a Self-Signed Certificate
 
@@ -120,4 +120,4 @@ In Kubernetes, Jetstack's `cert-manager` provides a simple way to manage certifi
 
 ### Enable Advanced TLS options
 
-Ambassador Edge Stack exposes configuration for many more advanced options around TLS termination, origination, client certificate validation, and SNI support. See the full [TLS reference](../topics/running/tls/tls) for more information.
+Ambassador Edge Stack exposes configuration for many more advanced options around TLS termination, origination, client certificate validation, and SNI support. See the full [TLS reference](../../topics/running/tls/tls) for more information.

@@ -41,7 +41,7 @@ Setting up Linkerd 2 requires to install three components. The first is the CLI 
 
 3. Deploy Ambassador Edge Stack.
 
-   **Note:** If this is your first time deploying Ambassador Edge Stack, reviewing the Ambassador Edge Stack [getting started](../getting-started) is strongly recommended.
+   **Note:** If this is your first time deploying Ambassador Edge Stack, reviewing the Ambassador Edge Stack [getting started](../../tutorials/getting-started) is strongly recommended.
 
    ```
    kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-rbac.yaml
@@ -62,7 +62,7 @@ Setting up Linkerd 2 requires to install three components. The first is the CLI 
         add_linkerd_headers: true
     ```
 
-    This will tell Ambassador Edge Stack to add additional headers to each request forwarded to Linkerd 2 with information about where to route this request to. This is a general setting. You can also set `add_linkerd_headers` per [Mapping](../topics/using/mappings#mapping-configuration).
+    This will tell Ambassador Edge Stack to add additional headers to each request forwarded to Linkerd 2 with information about where to route this request to. This is a general setting. You can also set `add_linkerd_headers` per [Mapping](../../topics/using/mappings#mapping-configuration).
 
 ## Routing to Linkerd 2 Services
 
@@ -165,8 +165,8 @@ to apply this configuration to your Kubernetes cluster. Note that in the above c
 
 Congratulations! You're successfully routing traffic to the QOTM application, the location of which is registered in Linkerd 2. The traffic to Ambassador Edge Stack is not TLS secured, but from Ambassador Edge Stack to the QOTM an automatic mTLS connection is being used.
 
-If you now [configure TLS termination](../topics/running/tls/tls) in Ambassador Edge Stack, you have an end-to-end secured connection.
+If you now [configure TLS termination](../../topics/running/tls/tls) in Ambassador Edge Stack, you have an end-to-end secured connection.
 
 ## More information
 
-For more about Ambassador Edge Stack's integration with Linkerd 2, read the [service discovery configuration](../topics/running/resolvers) documentation.
+For more about Ambassador Edge Stack's integration with Linkerd 2, read the [service discovery configuration](../../topics/running/resolvers) documentation.

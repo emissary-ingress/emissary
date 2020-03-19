@@ -4,19 +4,19 @@ With Auth0 as your IdP, you will need to create an `Application` to handle authe
 
 1. Navigate to Applications and Select "CREATE APPLICATION"
 
-  ![](../../../doc-images/create-application.png)
+  ![](../../../images/create-application.png)
 
 2. In the pop-up window, give the application a name and create a "Machine to Machine App"
 
-  ![](../../../doc-images/machine-machine.png)
+  ![](../../../images/machine-machine.png)
 
 3. Select the Auth0 Management API. Grant any scopes you may require. (You may grant none.) 
 
-  ![](../../../doc-images/scopes.png)
+  ![](../../../images/scopes.png)
   
 4. In your newly created application, click on the Settings tab, add the Domain and Callback URLs for your service and ensure the "Token Endpoint Authentication Method" is set to `Post`. The default YAML installation of Ambassador Edge Stack uses `/.ambassador/oauth2/redirection-endpoint` for the URL, so the values should be the domain name that points to Ambassador, e.g., `example.com/.ambassador/oauth2/redirection-endpoint` and `example.com`.
 
-  ![](../../../doc-images/Auth0_none.png)
+  ![](../../../images/Auth0_none.png)
   
   Click Advanced Settings > Grant Types and check "Authorization Code"
 
@@ -25,11 +25,11 @@ With Auth0 as your IdP, you will need to create an `Application` to handle authe
 Update the Auth0 `Filter` and `FilterPolicy`. You can get the `ClientID` and `secret` from your application settings:
 
 
-   ![](../../../doc-images/Auth0_secret.png)
+   ![](../../../images/Auth0_secret.png)
 
    The `audience` is the API Audience of your Auth0 Management API:
 
-   ![](../../../doc-images/Auth0_audience.png)
+   ![](../../../images/Auth0_audience.png)
 
    The `authorizationURL` is your Auth0 tenant URL.
 

@@ -28,8 +28,8 @@ spec:
 | `enable_grpc_http11_bridge` | Should we enable the gRPC-http11 bridge? | `enable_grpc_http11_bridge: false `|
 | `enable_grpc_web` | Should we enable the grpc-Web protocol? | `enable_grpc_web: false` |
 | `enable_http10` | Should we enable http/1.0 protocol? | `enable_http10: false` |
-| `enable_ipv4`| Should we do IPv4 DNS lookups when contacting services? Defaults to true, but can be overridden in a [`Mapping`](../using/mappings). | `enable_ipv4: true` |
-| `enable_ipv6` | Should we do IPv6 DNS lookups when contacting services? Defaults to false, but can be overridden in a [`Mapping`](../using/mappings). | `enable_ipv6: false` |
+| `enable_ipv4`| Should we do IPv4 DNS lookups when contacting services? Defaults to true, but can be overridden in a [`Mapping`](../../using/mappings). | `enable_ipv4: true` |
+| `enable_ipv6` | Should we do IPv6 DNS lookups when contacting services? Defaults to false, but can be overridden in a [`Mapping`](../../using/mappings). | `enable_ipv6: false` |
 | `envoy_log_format` | Defines the envoy log line format. See [this page](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log) for a complete list of operators | See [this page](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log#default-format-string) for the standard log format. |
 | `envoy_log_path` | Defines the path of log envoy will use. By default this is standard output | `envoy_log_path: /dev/fd/1` |
 | `envoy_log_type` | Defines the type of log envoy will use, currently only support json or text | `envoy_log_type: text` |
@@ -39,7 +39,7 @@ spec:
 | `regex_type` | Set which regular expression engine to use. See the "Regular Expressions" section below. | `regex_type: safe` |
 | `server_name: envoy` | By default Envoy sets server_name response header to `envoy`. Override it with this variable |  |
 | `service_port: 8080` | If present, service_port will be the port Ambassador listens on for microservice access. If not present, Ambassador will use 8443 if TLS is configured, 8080 otherwise. |  |
-| `statsd` | Configures Ambassador statistics. These values can be set in the Ambassador module or in an environment variable. For more information, see the [Statistics reference](../../statistics#exposing-statistics-via-statsd). |  |
+| `statsd` | Configures Ambassador statistics. These values can be set in the Ambassador module or in an environment variable. For more information, see the [Statistics reference](../statistics#exposing-statistics-via-statsd). |  |
 | `use_proxy_proto` | Controls whether Envoy will honor the PROXY protocol on incoming requests. | `use_proxy_proto: false` |
 | `use_remote_address` | Controls whether Envoy will trust the remote address of incoming connections or rely exclusively on the X-Forwarded_For header. | `use_remote_address: true` |
 | `use_ambassador_namespace_for_service_resolution` | Controls whether Ambassador will resolve upstream services assuming they are in the same namespace as the element referring to them, e.g. a Mapping in namespace `foo` will look for its service in namespace `foo`. If `true`, Ambassador will resolve the upstream services assuming they are in the same namespace as Ambassador, unless the service explicitly mentions a different namespace. | `use_ambassador_namespace_for_service_resolution: false` |
@@ -48,7 +48,7 @@ spec:
 
 ### Additional `config` Field Examples
 
-`circuit_breakers` sets the global circuit breaking configuration that Ambassador will use for all mappings, unless overridden in a mapping. More information at the [circuit breaking reference](../using/circuit-breakers).
+`circuit_breakers` sets the global circuit breaking configuration that Ambassador will use for all mappings, unless overridden in a mapping. More information at the [circuit breaking reference](../../using/circuit-breakers).
 
 ```
 circuit_breakers
@@ -56,7 +56,7 @@ circuit_breakers
   ...
 ```
 
-`cors` sets the default CORS configuration for all mappings in the cluster. See the [CORS syntax](../using/cors).
+`cors` sets the default CORS configuration for all mappings in the cluster. See the [CORS syntax](../../using/cors).
 
 ```
 cors:
@@ -104,7 +104,7 @@ liveness_probe:
       enabled: true
 ```
 
-`load_balancer` sets the global load balancing type and policy that Ambassador will use for all mappings unless overridden in a mapping. Defaults to round-robin with Kubernetes. More information at the [load balancer reference](load-balancer).
+`load_balancer` sets the global load balancing type and policy that Ambassador will use for all mappings unless overridden in a mapping. Defaults to round-robin with Kubernetes. More information at the [load balancer reference](../load-balancer).
 
 ```
 load_balancer:
@@ -174,7 +174,7 @@ Some caveats around the embedded scripts:
 * They're inlined in the Ambassador Edge Stack YAML, so you likely won't want to write complex logic in here
 * They're run on every request/response to every URL
 
-If you need more flexible and configurable options, Ambassador Edge Stack supports a [pluggable Filter system](../using/filters/).
+If you need more flexible and configurable options, Ambassador Edge Stack supports a [pluggable Filter system](../../using/filters/).
 
 ### Linkerd Interoperability (`add_linkerd_headers`)
 
@@ -218,7 +218,7 @@ readiness_probe:
   rewrite: /backend/health
 ```
 
-The liveness and readiness probe both support `prefix`, `rewrite`, and `service`, with the same meanings as for [mappings](../using/mappings). Additionally, the `enabled` boolean may be set to `false` (as in the commented-out examples above) to disable support for the probe entirely.
+The liveness and readiness probe both support `prefix`, `rewrite`, and `service`, with the same meanings as for [mappings](../../using/mappings). Additionally, the `enabled` boolean may be set to `false` (as in the commented-out examples above) to disable support for the probe entirely.
 
 **Note well** that configuring the probes in the `ambassador Module` only means that Ambassador Edge Stack will respond to the probes. You must still configure Kubernetes to perform the checks, as shown in the Datawire-provided YAML files.
 

@@ -47,7 +47,7 @@ spec:
             - "scope2"
 ```
 
-Save the configuration to a file and apply it to the cluster: `kubectl apply -f httpbin-filter-policy.yaml`. For more information about filters and filter policies, consult the [filter reference](../topics/using/filters/).
+Save the configuration to a file and apply it to the cluster: `kubectl apply -f httpbin-filter-policy.yaml`. For more information about filters and filter policies, consult the [filter reference](../../topics/using/filters/).
 
 ## IdP Configuration
 
@@ -101,4 +101,4 @@ Create a separate `FilterPolicy` that specifies which specific filters are appli
 
 ## Further reading
 
-The [filter reference](../topics/using/filters/) covers the specifics of filters and filter policies in much more detail.
+The [filter reference](../../opics/using/filters/) covers the specifics of filters and filter policies in much more detail.
