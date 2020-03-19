@@ -72,11 +72,11 @@ Windows. For other options, such as Docker, click [here](/user-guide/install).
 Your terminal will show you something similar to the following as the installer provisions
 a load balancer, configures TLS, and provides you with an `edgestack.me` subdomain:
 
-<div className="styles-module--CodeBlock--1UB4s">
-  <pre className="language-">
-    <div className="token-line">
-      <span className="token plain">
-$ <span className="edgectlInstall">edgectl install</span>
+<div class="styles-module--CodeBlock--1UB4s">
+  <pre class="language-">
+    <div class="token-line">
+      <span class="token plain">
+$ <span class="edgectlInstall">edgectl install</span>
 -> Installing the Ambassador Edge Stack $version$.
 Downloading images. (This may take a minute.)
 -> Provisioning a cloud load balancer. (This may take a minute, depending on
