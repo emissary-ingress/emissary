@@ -187,7 +187,7 @@ There is some extra configuration required to connect to a gRPC service through 
 
 ![](../../images/grpc-tls.png)
 
-If you want to add TLS encryption to your gRPC calls, first you need to tell Ambassador Edge Stack to add [ALPN protocols](../../topics/running/tls/tls) which are required by HTTP/2 to do TLS.
+If you want to add TLS encryption to your gRPC calls, first you need to tell Ambassador Edge Stack to add [ALPN protocols](../../topics/running/tls) which are required by HTTP/2 to do TLS.
 
 For example:
 

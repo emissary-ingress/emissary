@@ -37,7 +37,7 @@ We've created an example filter that you can customize for your particular use c
 4. Push the image to your Docker registry: `docker push $DOCKER_REGISTRY/amb-sidecar-plugin:VERSION`.
 
 5. Configure Ambassador Edge Stack to use the plugin by creating a `Filter`
-   and `FilterPolicy` CRD, as per the [filter reference](../../../reference/filter-reference).
+   and `FilterPolicy` CRD, as per the [filter reference](../../topics/using/filters).
 
 6. Update the standard Ambassador Edge Stack manifest to use your Docker
    image instead of the standard sidecar.
@@ -94,4 +94,4 @@ Note in the example above the `X-Dc` header is added. This lets you inspect the 
 
 ## Further Reading
 
-For more details about configuring filters and the `plugin` interface, see the [filter reference](../topics/running/filters/).
+For more details about configuring filters and the `plugin` interface, see the [filter reference](../../topics/using/filters/).

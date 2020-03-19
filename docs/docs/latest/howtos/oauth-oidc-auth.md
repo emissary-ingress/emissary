@@ -101,4 +101,4 @@ Create a separate `FilterPolicy` that specifies which specific filters are appli
 
 ## Further reading
 
-The [filter reference](../../opics/using/filters/) covers the specifics of filters and filter policies in much more detail.
+The [filter reference](../../topics/using/filters/) covers the specifics of filters and filter policies in much more detail.

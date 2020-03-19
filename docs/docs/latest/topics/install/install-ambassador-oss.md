@@ -95,7 +95,7 @@ the Ambassador API Gateway includes an integrated diagnostics service to help wi
 
 By default, this is exposed to the internet at the URL `http://{{AMBASSADOR_HOST}}/ambassador/v0/diag/`. Go to that URL from a web browser to view the diagnostic UI.
 
-You can change the default so it is not exposed externally by default by setting `diagnostics.enabled: false` in the [ambassador `Module`](../../reference/core/ambassador).
+You can change the default so it is not exposed externally by default by setting `diagnostics.enabled: false` in the [ambassador `Module`](../../running/ambassador).
 
 ```yaml
 apiVersion: getambassador.io/v2
@@ -127,7 +127,7 @@ will then let us view the diagnostics at `http://localhost:8877/ambassador/v0/di
 
 ### 4. Enable HTTPS
 
-The versatile HTTPS configuration of Ambassador lets it support various HTTPS use cases whether simple or complex. See the [TLS HOWTO](../../../tls-termination) for details.
+The versatile HTTPS configuration of Ambassador lets it support various HTTPS use cases whether simple or complex. See the [TLS HOWTO](../../../howtos/tls-termination) for details.
 
 ## Helm
 

@@ -21,7 +21,7 @@ spec:
 | :----- | :----- | :-- |
 | `add_linkerd_headers` | Should we automatically add Linkerd `l5d-dst-override` headers? | `add_linkerd_headers: false` |
 | `admin_port` | The port where Ambassador's Envoy will listen for low-level admin requests. You should almost never need to change this. | `admin_port: 8001` |
-| `ambassador_id` | Use only if you are using multiple ambassadors in the same cluster. [Learn more](running#ambassador_id). | `ambassador_id: "<ambassador_id>"` |
+| `ambassador_id` | Use only if you are using multiple ambassadors in the same cluster. [Learn more](#ambassador_id). | `ambassador_id: "<ambassador_id>"` |
 | `cluster_idle_timeout_ms` | Set the default upstream-connection idle timeout. If not set (the default), upstream connections will never be closed due to idling. | `cluster_idle_timeout_ms: 30000` |
 | `default_label_domain  and default_labels` | Set a default domain and request labels to every request for use by rate limiting. For more on how to use these, see the Rate Limit reference. |  |
 | `diag_port` | The port where Ambassador will listen for requests  to the diagnostic service. | `diag_port: 8877`|
@@ -178,7 +178,7 @@ If you need more flexible and configurable options, Ambassador Edge Stack suppor
 
 ### Linkerd Interoperability (`add_linkerd_headers`)
 
-When using Linkerd, requests going to an upstream service need to include the `l5d-dst-override` header to ensure that Linkerd will route them correctly. Setting `add_linkerd_headers` does this automatically; see the [Mapping](../using/mappings) documentation for more details.
+When using Linkerd, requests going to an upstream service need to include the `l5d-dst-override` header to ensure that Linkerd will route them correctly. Setting `add_linkerd_headers` does this automatically; see the [Mapping](../../using/mappings) documentation for more details.
 
 ### Upstream Idle Timeout (`cluster_idle_timeout_ms`)
 

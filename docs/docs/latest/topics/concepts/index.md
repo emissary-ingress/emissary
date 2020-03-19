@@ -4,8 +4,8 @@ This section of the documentation introduces core concepts of Kubernetes and Amb
 
 This section discusses:
 
-* [The Kubernetes Network Architecture and Ambassador](../kubernetes-network-architecture.md)
-* [Microservices API Gateways](../microservices-api-gateways)
-* [The Ambassador Operating Model: Continuous Delivery, GitOps, and Declarative Configuration](../gitops-continuous-delivery.md)
-* [Progressive Delivery](../progressive-delivery.md)
+* [The Kubernetes Network Architecture and Ambassador](kubernetes-network-architecture.md)
+* [Microservices API Gateways](microservices-api-gateways)
+* [The Ambassador Operating Model: Continuous Delivery, GitOps, and Declarative Configuration](gitops-continuous-delivery)
+* [Progressive Delivery](progressive-delivery)
 

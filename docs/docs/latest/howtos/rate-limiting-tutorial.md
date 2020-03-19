@@ -4,7 +4,7 @@ The Ambassador Edge Stack can validate incoming requests before routing them to 
 
 ## Before You Get Started
 
-This tutorial assumes you have already followed the Ambassador Edge Stack [Getting Started](../tutorials/getting-started) guide. If you haven't done that already, you should do that now.
+This tutorial assumes you have already followed the Ambassador Edge Stack [Getting Started](../../tutorials/getting-started) guide. If you haven't done that already, you should do that now.
 
 Once completed, you'll have a Kubernetes cluster running Ambassador and the Quote of the Moment service. Let's walk through adding rate limiting to this setup.
 
@@ -80,7 +80,7 @@ The Ambassador Edge Stack only validates requests on Mappings which set rate lim
 
 ### v0 API
 
-Ambassador 0.50.0 and later requires the `v2` API Version for rate limiting. The `v2` API uses the `labels` attribute to attach rate limiting descriptors. Review the [Rate Limits configuration documentation](../topics/using/rate-limits/) for more information.
+Ambassador 0.50.0 and later requires the `v2` API Version for rate limiting. The `v2` API uses the `labels` attribute to attach rate limiting descriptors. Review the [Rate Limits configuration documentation](../../topics/using/rate-limits/) for more information.
 
 Replace the label that is applied to the `service-backend` with:
 
@@ -203,4 +203,4 @@ TCP_NODELAY set
 
 ## More
 
-For more details about configuring the external rate limit service, read the [rate limit documentation](../topics/using/rate-limits/).
+For more details about configuring the external rate limit service, read the [rate limit documentation](../../topics/using/rate-limits/).

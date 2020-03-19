@@ -309,7 +309,7 @@ spec:
 
 Istio also provides a Prometheus service that is an open-source monitoring and alerting system which is supported by the Ambassador Edge Stack as well. It is possible to integrate the Ambassador Edge Stack into Istio's Prometheus to have all statistics and monitoring in a single place.
 
-First, we need to change our Ambassador Edge Stack Deployment to use the [Prometheus StatsD Exporter](https://github.com/prometheus/statsd_exporter) as its sidecar. Do this by applying the [ambassador-rbac-prometheus.yaml](../../../yaml/ambassador/ambassador-rbac-prometheus.yaml):
+First, we need to change our Ambassador Edge Stack Deployment to use the [Prometheus StatsD Exporter](https://github.com/prometheus/statsd_exporter) as its sidecar. Do this by applying the [ambassador-rbac-prometheus.yaml](../../../../yaml/ambassador/ambassador-rbac-prometheus.yaml):
 
 ```sh
 $ kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-rbac-prometheus.yaml

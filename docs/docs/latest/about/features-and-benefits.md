@@ -20,7 +20,7 @@ The Ambassador Edge Stack uses [Envoy](https://www.envoyproxy.io) for all traffi
 
 ## gRPC and HTTP/2 Support
 
-The Ambassador Edge Stack fully supports gRPC and HTTP/2 routing, thanks to Envoy's extensive capabilities in this area. See [gRPC and the Ambassador Edge Stack](../howtos/grpc) for more information.
+The Ambassador Edge Stack fully supports gRPC and HTTP/2 routing, thanks to Envoy's extensive capabilities in this area. See [gRPC and the Ambassador Edge Stack](../../howtos/grpc) for more information.
 
 ## Istio Integration
 
@@ -32,7 +32,7 @@ The Ambassador Edge Stack supports authenticating incoming requests with a custo
 
 ## Rate Limiting
 
-The Ambassador Edge Stack supports rate limiting incoming requests. When configured, the Ambassador Edge Stack will check with a third party rate limit service prior to routing an incoming request. For more information, see the [rate limiting guide](../../topics/using/rate-limits/index).
+The Ambassador Edge Stack supports rate limiting incoming requests. When configured, the Ambassador Edge Stack will check with a third party rate limit service prior to routing an incoming request. For more information, see the [rate limiting guide](../../topics/using/rate-limits/).
 
 ## Integrated UI
 
