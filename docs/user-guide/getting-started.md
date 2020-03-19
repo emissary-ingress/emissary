@@ -24,7 +24,7 @@ Windows. For other options, such as Docker, click [here](/user-guide/install).
 
 2. Run the installer with `./edgectl install`
 
-### Install on Linux
+### Install on *nix
 
 1. Download the `edgectl` file
    [here](https://metriton.datawire.io/downloads/linux/edgectl) or download it with a curl
