@@ -28,7 +28,7 @@ The Ambassador Edge Stack integrates with the [Istio](https://istio.io) service 
 
 ## Authentication
 
-The Ambassador Edge Stack supports authenticating incoming requests with a custom authentication service, OAuth/OpenID Connect, or JWT. When configured, the Ambassador Edge Stack will check with a third party authentication service prior to routing an incoming request. For more information, see the [authentication guide](../../topics/using/filters/index).
+The Ambassador Edge Stack supports authenticating incoming requests with a custom authentication service, OAuth/OpenID Connect, or JWT. When configured, the Ambassador Edge Stack will check with a third party authentication service prior to routing an incoming request. For more information, see the [authentication guide](../../topics/using/filters/).
 
 ## Rate Limiting
 
