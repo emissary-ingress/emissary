@@ -1,6 +1,11 @@
 ---
    description: In this guide, we'll walk through the process of deploying Ambassador Edge Stack in Kubernetes for ingress routing.
 ---
+
+import DetectOS from './DetectOS'
+
+<DetectOS/>
+
 # Quick Start Installation Guide
 
 In just four minutes, your cluster will be routing HTTPS requests from the
@@ -9,7 +14,12 @@ Internet to a backend service.
 The Ambassador Edge Stack is deployed to Kubernetes via YAML for MacOS, Linux, and
 Windows. For other options, such as Docker, click [here](/user-guide/install).
 
+<details class="os-instructions" data-os="mac">
+<summary class="heading">
+
 ### Install on MacOS
+
+</summary>
 
 1. Download the `edgectl` file [here](https://metriton.datawire.io/downloads/darwin/edgectl) or download it with a curl command:
 
@@ -24,7 +34,14 @@ Windows. For other options, such as Docker, click [here](/user-guide/install).
 
 2. Run the installer with `./edgectl install`
 
+</details>
+
+<details class="os-instructions" data-os="linux">
+<summary class="heading">
+
 ### Install on Linux
+
+</summary>
 
 1. Download the `edgectl` file
    [here](https://metriton.datawire.io/downloads/linux/edgectl) or download it with a curl
@@ -35,11 +52,20 @@ Windows. For other options, such as Docker, click [here](/user-guide/install).
     ```
 2. Run the installer with `./edgectl install`
 
+</details>
+
+<details class="os-instructions" data-os="windows">
+<summary class="heading">
+
 ### Install on Windows
+
+</summary>
 
 1. Download the `edgectl` file
    [here](https://metriton.datawire.io/downloads/windows/edgectl.exe).
 2. Run the installer with `edgectl.exe install`
+
+</details>
 
 ## Installation
 
