@@ -6,8 +6,8 @@ import (
 	"time"
 
 	// k8s types
-	k8sTypesMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	aproTypesV2 "github.com/datawire/apro/apis/getambassador.io/v1beta2"
+	k8sTypesMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type Project struct {

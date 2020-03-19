@@ -26,7 +26,6 @@ import (
 	libgitStorageMemory "gopkg.in/src-d/go-git.v4/storage/memory"
 
 	// 3rd party: k8s types
-	k8sTypesCoreV1 "k8s.io/api/core/v1"
 	k8sTypesMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sTypesUnstructured "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
@@ -271,11 +270,21 @@ func streamLogs(w http.ResponseWriter, r *http.Request, namespace, selector stri
 	log := dlog.GetLogger(r.Context())
 
 	since := r.Header.Get("Last-Event-ID")
-	args := []string{"logs", "--timestamps", "--tail=10000", "-f", "-n", namespace, "-l", selector}
+
+	args := []string{
+		"kubectl",
+		"--namespace=" + namespace,
+		"logs",
+		"--timestamps",
+		"--tail=10000",
+		"--follow",
+		"--selector=" + selector,
+	}
 	if since != "" {
 		args = append(args, "--since-time", since)
 	}
-	cmd := exec.Command("kubectl", args...)
+
+	cmd := exec.Command(args[0], args[1:]...)
 
 	rawReader, err := cmd.StdoutPipe()
 	if err != nil {
@@ -402,19 +411,19 @@ func deleteResource(kind, name, namespace string) error {
 }
 
 type Deploy struct {
-	Project Project `json:"project"`
+	Project *Project `json:"project"`
 	Ref     *libgitPlumbing.Reference
 }
 
 func (d *Deploy) MarshalJSON() ([]byte, error) {
-	result := make(map[string]interface{})
-	result["project"] = d.Project
-	ref := make(map[string]interface{})
-	ref["name"] = d.Ref.Name().String()
-	ref["short"] = d.Ref.Name().Short()
-	ref["hash"] = d.Ref.Hash().String()
-	result["ref"] = ref
-	return json.Marshal(result)
+	return json.Marshal(map[string]interface{}{
+		"project": d.Project,
+		"ref": map[string]interface{}{
+			"name":  d.Ref.Name().String(),
+			"short": d.Ref.Name().Short(),
+			"hash":  d.Ref.Hash().String(),
+		},
+	})
 }
 
 func PrettyDeploys(deps []Deploy) string {
@@ -436,28 +445,12 @@ type Pull struct {
 	} `json:"head"`
 }
 
-func (d Deploy) IsBuilder(pod *k8sTypesCoreV1.Pod) bool {
-	labels := pod.GetLabels()
-	return (labels["project"] == d.Project.Metadata.Name &&
-		pod.GetNamespace() == d.Project.Metadata.Namespace &&
-		labels["build"] != "" &&
-		labels["commit"] == d.Ref.Hash().String())
-}
-
-func (d Deploy) IsRunner(pod *k8sTypesCoreV1.Pod) bool {
-	labels := pod.GetLabels()
-	return (labels["project"] == d.Project.Metadata.Name &&
-		pod.GetNamespace() == d.Project.Metadata.Namespace &&
-		labels["build"] == "" &&
-		labels["commit"] == d.Ref.Hash().String())
-}
-
 // GetDeploys does a `git ls-remote`, gets the listing of open GitHub
 // pull-requests, and cross-references the two in order to decide
 // which things we want to deploy.
-func GetDeploys(project Project) ([]Deploy, error) {
-	repo := project.Spec.GithubRepo
-	token := project.Spec.GithubToken
+func GetDeploys(proj *Project) ([]*Deploy, error) {
+	repo := proj.Spec.GithubRepo
+	token := proj.Spec.GithubToken
 
 	// Ask the server for a collection of references
 	refs, err := gitLsRemote(fmt.Sprintf("https://github.com/%s", repo), token)
@@ -486,7 +479,7 @@ func GetDeploys(project Project) ([]Deploy, error) {
 	}
 
 	// Resolve all of those refNames, and generate Deploy objects for them.
-	var deploys []Deploy
+	var deploys []*Deploy
 	for _, refName := range deployRefNames {
 		// Use libgitPlumbing.ReferenceName() instead of refs.Reference() (or even having
 		// gitLsRemote return a simple slice of refs) in order to resolve refs recursively.
@@ -495,8 +488,8 @@ func GetDeploys(project Project) ([]Deploy, error) {
 		if err != nil {
 			continue
 		}
-		deploys = append(deploys, Deploy{
-			Project: project,
+		deploys = append(deploys, &Deploy{
+			Project: proj,
 			Ref:     ref,
 		})
 	}
@@ -566,7 +559,7 @@ func (wg *WatchGroup) Wrap(ctx context.Context, listener func(*k8s.Watcher)) fun
 //
 //  1. For use with a k8sClientDynamic.Interface
 //  2. For use as a k8sRuntime.Object
-func unstructureProject(project Project) *k8sTypesUnstructured.Unstructured {
+func unstructureProject(project *Project) *k8sTypesUnstructured.Unstructured {
 	return &k8sTypesUnstructured.Unstructured{
 		Object: map[string]interface{}{
 			"apiVersion": "getambassador.io/v2",

@@ -88,7 +88,7 @@ import (
 // to kubernetes resources and a web server.
 
 const (
-	LabelName = "kale"
+	GlobalLabelName = "kale"
 )
 
 func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8s.KubeInfo, dynamicClient k8sClientDynamic.Interface) {
@@ -125,7 +125,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 			upstreamWebUI <- snapshot
 		}
 
-		labelSelector := LabelName + "=" + cfg.AmbassadorID
+		labelSelector := GlobalLabelName + "=" + cfg.AmbassadorID
 		queries := []k8s.Query{
 			{Kind: "projects.getambassador.io"},
 			{Kind: "pods.", LabelSelector: labelSelector},
@@ -213,22 +213,22 @@ func (in UntypedSnapshot) TypedAndFiltered(ctx context.Context, ambassadorID str
 	log := dlog.GetLogger(ctx)
 	var out Snapshot
 
+	// For built-in resource types, it is appropriate to a panic
+	// because it's a bug; the api-server only gives us valid
+	// resources, so if we fail to parse them, it's a bug in how
+	// we're parsing.  For the same reason, it's "safe" to do this
+	// all at once, because we don't need to do individual
+	// validation, because they're all valid.
 	if err := mapstructure.Convert(in.Pods, &out.Pods); err != nil {
-		// This is a panic because it's a bug; the api-server
-		// only gives us valid Pods, so if we fail to parse
-		// them, it's a bug on our end.  For the same reason,
-		// it's "safe" to do this all at once, because we
-		// don't need to do individual validation, because
-		// they're all valid.
 		panic(fmt.Errorf("Pods: %q", err))
 	}
 
+	// However, for our CRDs, because the api-server can't
+	// validate that CRs are valid the way that it can for
+	// built-in Resources, we have to safely deal with the
+	// possibility that any individual resource is invalid, and
+	// not let that affect the others.
 	for _, inProj := range in.Projects {
-		// Because the api-server can't validate that CRs are
-		// valid the way that it can for built-in Resources,
-		// we have to safely deal with the possibility that
-		// any individual Project is invalid, and not let that
-		// affect the others.
 		var outProj *Project
 		if err := mapstructure.Convert(inProj, &outProj); err != nil {
 			log.Println(fmt.Errorf("Project: %w", err))
@@ -262,7 +262,7 @@ did_read:
 func NewKale(dynamicClient k8sClientDynamic.Interface) *kale {
 	return &kale{
 		projectsGetter: dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "projects"}),
-		Projects:       make(map[string]Project),
+		Projects:       make(map[string]*Project),
 		Pods:           make(PodMap),
 	}
 }
@@ -272,12 +272,13 @@ type kale struct {
 
 	projectsGetter k8sClientDynamic.NamespaceableResourceInterface
 
-	mu        sync.RWMutex
-	Projects  map[string]Project
-	Pods      PodMap
-	deployMap DeployMap
+	mu       sync.RWMutex
+	Projects map[string]*Project
+	Pods     PodMap
+	Deploys  map[string][]*Deploy
 }
 
+// map["projectNamespace/projectName"]map["podName"]*Pod
 type PodMap map[string]map[string]*k8sTypesCoreV1.Pod
 
 func (pm PodMap) addPod(pod *k8sTypesCoreV1.Pod) {
@@ -294,42 +295,38 @@ func (pm PodMap) addPod(pod *k8sTypesCoreV1.Pod) {
 	}
 }
 
-type DeployMap map[string][]Deploy
-
 func (k *kale) reconcile(ctx context.Context, snapshot Snapshot) {
 	k.reconcileGitHub(snapshot.Projects)
-	k.reconcileCluster(ctx, snapshot.Pods, snapshot.Deploys())
-}
-
-func (snapshot Snapshot) Deploys() DeployMap {
-	deploys := make(DeployMap)
-	for _, proj := range snapshot.Projects {
-		projDeploys, err := GetDeploys(*proj)
-		if err != nil {
-			continue
-		}
-		deploys[proj.Key()] = projDeploys
-	}
-	return deploys
+	k.reconcileCluster(ctx, snapshot)
 }
 
 func (k *kale) updateInternalState(snapshot Snapshot) {
-	projects := make(map[string]Project)
+	// map["projectNamespace/projectName"]*Project
+	projects := make(map[string]*Project)
 	for _, proj := range snapshot.Projects {
-		projects[proj.Key()] = *proj
+		projects[proj.Key()] = proj
 	}
 
+	// map["projectNamespace/projectName"]map["podName"]*Pod
 	pods := make(PodMap)
 	for _, pod := range snapshot.Pods {
 		pods.addPod(pod)
 	}
 
-	deploys := snapshot.Deploys()
+	// map["projectNamespace/projectName"][]*Deploy
+	deploys := make(map[string][]*Deploy)
+	for _, proj := range snapshot.Projects {
+		projDeploys, err := GetDeploys(proj)
+		if err != nil {
+			continue
+		}
+		deploys[proj.Key()] = projDeploys
+	}
 
 	k.mu.Lock()
 	k.Projects = projects
 	k.Pods = pods
-	k.deployMap = deploys
+	k.Deploys = deploys
 	k.mu.Unlock()
 }
 
@@ -406,9 +403,9 @@ func (k *kale) projectsJSON() string {
 		if !ok {
 			pods = make(map[string]*k8sTypesCoreV1.Pod)
 		}
-		deploys, ok := k.deployMap[key]
+		deploys, ok := k.Deploys[key]
 		if !ok {
-			deploys = make([]Deploy, 0)
+			deploys = make([]*Deploy, 0)
 		}
 
 		m := make(map[string]interface{})
@@ -511,7 +508,7 @@ type Push struct {
 	}
 }
 
-func (k *kale) startBuild(proj Project, buildID, ref, commit string) (string, error) {
+func (k *kale) startBuild(proj *Project, buildID, ref, commit string) (string, error) {
 	// Note: If the kaniko destination is set to the full service name
 	// (registry.ambassador.svc.cluster.local), then we can't seem to push
 	// to the no matter how we tweak the settings. I assume this is due to
@@ -533,10 +530,10 @@ func (k *kale) startBuild(proj Project, buildID, ref, commit string) (string, er
 					"statusesUrl": "https://api.github.com/repos/" + proj.Spec.GithubRepo + "/statuses/" + commit,
 				},
 				Labels: map[string]string{
-					LabelName: k.cfg.AmbassadorID,
-					"project": proj.Metadata.Name,
-					"commit":  commit,
-					"build":   buildID,
+					GlobalLabelName: k.cfg.AmbassadorID,
+					"project":       proj.Metadata.Name,
+					"commit":        commit,
+					"build":         buildID,
 				},
 				OwnerReferences: []k8sTypesMetaV1.OwnerReference{
 					{
@@ -578,53 +575,48 @@ func (k *kale) startBuild(proj Project, buildID, ref, commit string) (string, er
 	return string(out), nil
 }
 
-func (k *kale) desiredDeploys(deployMap DeployMap) []Deploy {
-	var result []Deploy
-	for _, deps := range deployMap {
-		for _, dep := range deps {
-			result = append(result, dep)
-		}
-	}
-	return result
-}
-
-func (k *kale) IsDesired(deployMap DeployMap, pod *k8sTypesCoreV1.Pod) bool {
-	labels := pod.GetLabels()
-	key := fmt.Sprintf("%s/%s", pod.GetNamespace(), labels["project"])
-	commit := labels["commit"]
-	deps, ok := deployMap[key]
-	if ok {
-		for _, dep := range deps {
-			if dep.Ref.Hash().String() == commit {
-				return true
-			}
+func (k *kale) IsDesired(deploys []*Deploy, pod *k8sTypesCoreV1.Pod) bool {
+	for _, deploy := range deploys {
+		if pod.GetNamespace() == deploy.Project.Metadata.Namespace &&
+			pod.GetLabels()["project"] == deploy.Project.Metadata.Name &&
+			pod.GetLabels()["commit"] == deploy.Ref.Hash().String() {
+			return true
 		}
 	}
 	return false
 }
 
-func (k *kale) reconcileCluster(ctx context.Context, pods []*k8sTypesCoreV1.Pod, deployMap DeployMap) {
+func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 	log := dlog.GetLogger(ctx)
 
-	deploys := k.desiredDeploys(deployMap)
-	for _, dep := range deploys {
+	var deploys []*Deploy
+	for _, proj := range snapshot.Projects {
+		projDeploys, err := GetDeploys(proj)
+		if err != nil {
+			continue
+		}
+		deploys = append(deploys, projDeploys...)
+	}
+	for _, deploy := range deploys {
 		var deployBuilders []*k8sTypesCoreV1.Pod
 		var deployRunners []*k8sTypesCoreV1.Pod
-		for _, pod := range pods {
-			if dep.IsBuilder(pod) {
-				deployBuilders = append(deployBuilders, pod)
-			} else if dep.IsRunner(pod) {
-				deployRunners = append(deployRunners, pod)
+		for _, pod := range snapshot.Pods {
+			if k.IsDesired([]*Deploy{deploy}, pod) {
+				if pod.GetLabels()["build"] != "" {
+					deployBuilders = append(deployBuilders, pod)
+				} else {
+					deployRunners = append(deployRunners, pod)
+				}
 			}
 		}
 
-		err := safeInvoke1(func() error { return k.reconcileDeploy(ctx, dep, deployBuilders, deployRunners) })
+		err := safeInvoke1(func() error { return k.reconcileDeploy(ctx, deploy, deployBuilders, deployRunners) })
 		if err != nil {
 			log.Printf("ERROR: %v", err)
 		}
 	}
-	for _, pod := range pods {
-		if !k.IsDesired(deployMap, pod) {
+	for _, pod := range snapshot.Pods {
+		if !k.IsDesired(deploys, pod) {
 			err := deleteResource("pod", pod.GetName(), pod.GetNamespace())
 			if err != nil {
 				log.Printf("ERROR: %v", err)
@@ -633,7 +625,7 @@ func (k *kale) reconcileCluster(ctx context.Context, pods []*k8sTypesCoreV1.Pod,
 	}
 }
 
-func (k *kale) reconcileDeploy(ctx context.Context, dep Deploy, builders, runners []*k8sTypesCoreV1.Pod) error {
+func (k *kale) reconcileDeploy(ctx context.Context, dep *Deploy, builders, runners []*k8sTypesCoreV1.Pod) error {
 	log := dlog.GetLogger(ctx)
 
 	proj := dep.Project
@@ -751,7 +743,7 @@ func (k *kale) reconcileDeploy(ctx context.Context, dep Deploy, builders, runner
 	return nil
 }
 
-func (k *kale) startRun(proj Project, commit string) (string, error) {
+func (k *kale) startRun(proj *Project, commit string) (string, error) {
 	manifests := []interface{}{
 		&Mapping{
 			TypeMeta: k8sTypesMetaV1.TypeMeta{
@@ -772,7 +764,7 @@ func (k *kale) startRun(proj Project, commit string) (string, error) {
 					},
 				},
 				Labels: map[string]string{
-					LabelName: k.cfg.AmbassadorID,
+					GlobalLabelName: k.cfg.AmbassadorID,
 				},
 			},
 			Spec: MappingSpec{
@@ -802,7 +794,7 @@ func (k *kale) startRun(proj Project, commit string) (string, error) {
 					},
 				},
 				Labels: map[string]string{
-					LabelName: k.cfg.AmbassadorID,
+					GlobalLabelName: k.cfg.AmbassadorID,
 				},
 			},
 			Spec: k8sTypesCoreV1.ServiceSpec{
@@ -838,9 +830,9 @@ func (k *kale) startRun(proj Project, commit string) (string, error) {
 					},
 				},
 				Labels: map[string]string{
-					LabelName: k.cfg.AmbassadorID,
-					"project": proj.Metadata.Name,
-					"commit":  commit,
+					GlobalLabelName: k.cfg.AmbassadorID,
+					"project":       proj.Metadata.Name,
+					"commit":        commit,
 				},
 			},
 			Spec: k8sTypesCoreV1.PodSpec{
