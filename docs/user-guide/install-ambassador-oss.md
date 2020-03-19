@@ -161,7 +161,7 @@ For example:
 
 ```yaml
 image:
-  repositoy: quay.io/datawire/ambassador
+  repository: quay.io/datawire/ambassador
   tag: $version$
 enableAES: false
 ```
