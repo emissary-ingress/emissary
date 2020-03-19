@@ -26,7 +26,7 @@ The Ambassador Edge Stack is commonly used to route traffic to a wide variety of
 
 Service updates result in a constantly changing application. The dynamic nature of cloud-native applications introduces new challenges around configuration updates, release, and testing. Ambassador Edge Stack:
 
-* Enables [progressive delivery](../topics/concepts/progressive-delivery), with support for canary routing and traffic shadowing.
+* Enables [progressive delivery](../../topics/concepts/progressive-delivery), with support for canary routing and traffic shadowing.
 * Exposes high-resolution observability metrics, providing insight into service behavior.
 * Uses a zero downtime configuration architecture, so configuration changes have no end-user impact.
 
@@ -34,7 +34,7 @@ Service updates result in a constantly changing application. The dynamic nature 
 
 Independent teams can create their own workflows for developing and releasing functionality that are optimized for their specific service(s). With Ambassador Edge Stack, teams can:
 
-* Leverage a [declarative configuration model](../topics/concepts/gitops-continuous-delivery), making it easy to understand the canonical configuration and implement GitOps-style best practices.
+* Leverage a [declarative configuration model](../../topics/concepts/gitops-continuous-delivery), making it easy to understand the canonical configuration and implement GitOps-style best practices.
 * Independently configure different aspects of Ambassador Edge Stack, eliminating the need to request configuration changes through a centralized operations team.
 
 ## Ambassador Edge Stack is Engineered for Kubernetes
@@ -46,11 +46,11 @@ Ambassador Edge Stack takes full advantage of Kubernetes and Envoy Proxy.
 
 ## For More Information
 
-[Deploy Ambassador Edge Stack today](../tutorials/getting-started) and join the community [Slack Channel](https://d6e.co/slack).
+[Deploy Ambassador Edge Stack today](../../tutorials/getting-started) and join the community [Slack Channel](https://d6e.co/slack).
 
 Interested in learning more?
 
 * [Why did we start building Ambassador Edge Stack?](https://blog.getambassador.io/building-ambassador-an-open-source-api-gateway-on-kubernetes-and-envoy-ed01ed520844)
-* [Ambassador Edge Stack Architecture overview](../topics/concepts/architecture)
+* [Ambassador Edge Stack Architecture overview](../../topics/concepts/architecture)
 
 <GoogleStructuredData/>
