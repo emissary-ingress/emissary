@@ -5,6 +5,33 @@ import {ApiFetch} from "./api-fetch.js";
 import {HASH} from "./hash.js";
 import "./terminal.js";
 
+function shortenRefName(refname) {
+  // These are the same rules as used by git in
+  // shorten_unambiguous_ref().
+  // See: https://github.com/git/git/blob/e0aaa1b6532cfce93d87af9bc813fb2e7a7ce9d7/refs.c#L417
+  var rules = [
+    /^(.*)$/,
+    /^refs\/(.*)$/,
+    /^refs\/tags\/(.*)$/,
+    /^refs\/heads\/(.*)$/,
+    /^refs\/remotes\/(.*)$/,
+    /^refs\/remotes\/(.*)\/HEAD$/,
+  ];
+
+  // This is the same (ambiguous) algorithm as ReferenceName.Short().
+  // See: https://github.com/src-d/go-git/blob/v4.13.1/plumbing/reference.go#L113
+  // Matching shorten_unambigous_ref's behavior would require us to
+  // have a full listing of refnames.
+  var ret;
+  for (let rule of rules) {
+    let match = refname.match(rule);
+    if (match) {
+      ret = match[1];
+    }
+  }
+  return ret;
+};
+
 class Project extends SingleResource {
 
   static get properties() {
@@ -97,7 +124,7 @@ class Project extends SingleResource {
   renderDeployedCommits(prefix, pods, commits) {
     let hash2commit = new Map()
     for (let commit of (commits || [])) {
-      hash2commit.set(commit.ref.hash, commit)
+      hash2commit.set(commit.spec.rev, commit)
     }
 
     let hash2commitmeta = new Map()
@@ -152,7 +179,7 @@ class Project extends SingleResource {
     ${this.renderPull(commitmeta)}
   </div>
   <div>
-    ${commitmeta.commit ? html`<a href="https://github.com/${this.resource.spec.githubRepo}/tree/${commitmeta.commit.ref.short}">${commitmeta.commit.ref.short}</a>` : ""}
+    ${commitmeta.commit ? html`<a href="https://github.com/${this.resource.spec.githubRepo}/tree/${commitmeta.commit.spec.ref}">${shortenRefName(commitmeta.commit.spec.ref)}</a>` : ""}
   </div>
   <div>
     <a href="https://github.com/${this.resource.spec.githubRepo}/commit/${commitmeta.id}">${commitmeta.id.slice(0, 7)}...</a>

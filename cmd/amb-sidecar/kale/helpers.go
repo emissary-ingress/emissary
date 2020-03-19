@@ -26,10 +26,12 @@ import (
 	libgitStorageMemory "gopkg.in/src-d/go-git.v4/storage/memory"
 
 	// 3rd party: k8s types
+	k8sTypesCoreV1 "k8s.io/api/core/v1"
 	k8sTypesMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sTypesUnstructured "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 	// 3rd party: k8s misc
+	k8sSchema "k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/yaml"
 
 	// 1st party
@@ -374,6 +376,36 @@ func applyObjs(objs []interface{}) (string, error) {
 	return applyStr(str)
 }
 
+func applyAndPrune(labelSelector string, types []k8sSchema.GroupVersionKind, objs []interface{}) error {
+	var yamlStr string
+	for _, obj := range objs {
+		bs, err := yaml.Marshal(obj)
+		if err != nil {
+			return err
+		}
+		yamlStr += "---\n" + string(bs)
+	}
+
+	args := []string{"kubectl", "apply",
+		"--filename=-",
+		"--prune",
+		"--selector=" + labelSelector,
+	}
+	for _, gvk := range types {
+		args = append(args, "--prune-whitelist="+gvk.Group+"/"+gvk.Version+"/"+gvk.Kind)
+	}
+
+	cmd := exec.Command(args[0], args[1:]...)
+	cmd.Stdin = strings.NewReader(yamlStr)
+	out := strings.Builder{}
+	cmd.Stdout = &out
+	cmd.Stderr = &out
+	if err := cmd.Run(); err != nil {
+		err = fmt.Errorf("%w\n%s", err, out.String())
+	}
+	return nil
+}
+
 // Evaluates a golang template and returns the result.
 func evalTemplate(text string, data interface{}) string {
 	var out strings.Builder
@@ -410,30 +442,6 @@ func deleteResource(kind, name, namespace string) error {
 	return nil
 }
 
-type Commit struct {
-	Project *Project `json:"project"`
-	Ref     *libgitPlumbing.Reference
-}
-
-func (d *Commit) MarshalJSON() ([]byte, error) {
-	return json.Marshal(map[string]interface{}{
-		"project": d.Project,
-		"ref": map[string]interface{}{
-			"name":  d.Ref.Name().String(),
-			"short": d.Ref.Name().Short(),
-			"hash":  d.Ref.Hash().String(),
-		},
-	})
-}
-
-func PrettyCommits(deps []Commit) string {
-	var parts []string
-	for _, d := range deps {
-		parts = append(parts, fmt.Sprintf("%s => %s", d.Ref.Name().Short(), d.Ref.Hash()))
-	}
-	return strings.Join(parts, ", ")
-}
-
 type Pull struct {
 	Number int `json:"number"`
 	Head   struct {
@@ -445,10 +453,10 @@ type Pull struct {
 	} `json:"head"`
 }
 
-// GetCommits does a `git ls-remote`, gets the listing of open GitHub
+// calculateCommits does a `git ls-remote`, gets the listing of open GitHub
 // pull-requests, and cross-references the two in order to decide
 // which things we want to deploy.
-func GetCommits(proj *Project) ([]*Commit, error) {
+func (k *kale) calculateCommits(proj *Project) ([]interface{}, error) {
 	repo := proj.Spec.GithubRepo
 	token := proj.Spec.GithubToken
 
@@ -478,8 +486,8 @@ func GetCommits(proj *Project) ([]*Commit, error) {
 		}
 	}
 
-	// Resolve all of those refNames, and generate Deploy objects for them.
-	var commits []*Commit
+	// Resolve all of those refNames, and generate ProjectCommit objects for them.
+	var commits []interface{}
 	for _, refName := range deployRefNames {
 		// Use libgitPlumbing.ReferenceName() instead of refs.Reference() (or even having
 		// gitLsRemote return a simple slice of refs) in order to resolve refs recursively.
@@ -488,9 +496,39 @@ func GetCommits(proj *Project) ([]*Commit, error) {
 		if err != nil {
 			continue
 		}
-		commits = append(commits, &Commit{
-			Project: proj,
-			Ref:     ref,
+		commits = append(commits, &ProjectCommit{
+			TypeMeta: k8sTypesMetaV1.TypeMeta{
+				APIVersion: "getambassador.io/v2",
+				Kind:       "ProjectCommit",
+			},
+			ObjectMeta: k8sTypesMetaV1.ObjectMeta{
+				Name:      proj.Metadata.Name + "-" + ref.Hash().String(), // todo: better id
+				Namespace: proj.Metadata.Namespace,
+				OwnerReferences: []k8sTypesMetaV1.OwnerReference{
+					{
+						APIVersion:         "getambassador.io/v2",
+						Controller:         boolPtr(true),
+						BlockOwnerDeletion: boolPtr(true),
+						Kind:               "Project",
+						Name:               proj.Metadata.Name,
+						UID:                proj.Metadata.UID,
+					},
+				},
+				Labels: map[string]string{
+					GlobalLabelName:  k.cfg.AmbassadorID,
+					ProjectLabelName: proj.Metadata.Name + "." + proj.Metadata.Namespace,
+				},
+			},
+			Spec: ProjectCommitSpec{
+				Project: k8sTypesCoreV1.LocalObjectReference{
+					Name: proj.Metadata.Name,
+				},
+				// Use the resolved ref.Name() instead of the original
+				// refName, in order to resolve symbolic references; users
+				// would rather see "master" instead of "HEAD".
+				Ref: ref.Name(),
+				Rev: ref.Hash().String(),
+			},
 		})
 	}
 	return commits, nil

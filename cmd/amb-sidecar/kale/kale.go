@@ -88,7 +88,8 @@ import (
 // to kubernetes resources and a web server.
 
 const (
-	GlobalLabelName = "kale"
+	GlobalLabelName  = "kale"                              // cfg.AmbassadorID
+	ProjectLabelName = "projects.getambassador.io/project" // proj.GetName()+"."+proj.GetNamespace()
 )
 
 func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8s.KubeInfo, dynamicClient k8sClientDynamic.Interface) {
@@ -120,6 +121,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 			snapshot := UntypedSnapshot{
 				Pods:     w.List("pods."),
 				Projects: w.List("projects.getambassador.io"),
+				Commits:  w.List("projectcommits.getambassador.io"),
 			}.TypedAndFiltered(softCtx, cfg.AmbassadorID)
 			upstreamWorker <- snapshot
 			upstreamWebUI <- snapshot
@@ -128,6 +130,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 		labelSelector := GlobalLabelName + "=" + cfg.AmbassadorID
 		queries := []k8s.Query{
 			{Kind: "projects.getambassador.io"},
+			{Kind: "projectcommits.getambassador.io"},
 			{Kind: "pods.", LabelSelector: labelSelector},
 		}
 
@@ -202,11 +205,13 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 type UntypedSnapshot struct {
 	Pods     []k8s.Resource
 	Projects []k8s.Resource
+	Commits  []k8s.Resource
 }
 
 type Snapshot struct {
 	Pods     []*k8sTypesCoreV1.Pod
 	Projects []*Project
+	Commits  []*ProjectCommit
 }
 
 func (in UntypedSnapshot) TypedAndFiltered(ctx context.Context, ambassadorID string) Snapshot {
@@ -235,6 +240,14 @@ func (in UntypedSnapshot) TypedAndFiltered(ctx context.Context, ambassadorID str
 			continue
 		}
 		out.Projects = append(out.Projects, outProj)
+	}
+	for _, inCommit := range in.Commits {
+		var outCommit *ProjectCommit
+		if err := mapstructure.Convert(inCommit, &outCommit); err != nil {
+			log.Println(fmt.Errorf("Commit: %w", err))
+			continue
+		}
+		out.Commits = append(out.Commits, outCommit)
 	}
 
 	return out
@@ -275,7 +288,7 @@ type kale struct {
 	mu       sync.RWMutex
 	Projects map[string]*Project
 	Pods     PodMap
-	Commits  map[string][]*Commit
+	Commits  map[string][]*ProjectCommit
 }
 
 // map["projectNamespace/projectName"]map["podName"]*Pod
@@ -313,14 +326,11 @@ func (k *kale) updateInternalState(snapshot Snapshot) {
 		pods.addPod(pod)
 	}
 
-	// map["projectNamespace/projectName"][]*Commit
-	commits := make(map[string][]*Commit)
-	for _, proj := range snapshot.Projects {
-		projCommits, err := GetCommits(proj)
-		if err != nil {
-			continue
-		}
-		commits[proj.Key()] = projCommits
+	// map["projectNamespace/projectName"][]*ProjectCommit
+	commits := make(map[string][]*ProjectCommit)
+	for _, commit := range snapshot.Commits {
+		key := commit.GetNamespace() + "/" + commit.Spec.Project.Name
+		commits[key] = append(commits[key], commit)
 	}
 
 	k.mu.Lock()
@@ -405,7 +415,7 @@ func (k *kale) projectsJSON() string {
 		}
 		commits, ok := k.Commits[key]
 		if !ok {
-			commits = make([]*Commit, 0)
+			commits = make([]*ProjectCommit, 0)
 		}
 
 		m := make(map[string]interface{})
@@ -575,11 +585,11 @@ func (k *kale) startBuild(proj *Project, buildID, ref, commit string) (string, e
 	return string(out), nil
 }
 
-func (k *kale) IsDesired(commits []*Commit, pod *k8sTypesCoreV1.Pod) bool {
+func (k *kale) IsDesired(commits []*ProjectCommit, pod *k8sTypesCoreV1.Pod) bool {
 	for _, commit := range commits {
-		if pod.GetNamespace() == commit.Project.Metadata.Namespace &&
-			pod.GetLabels()["project"] == commit.Project.Metadata.Name &&
-			pod.GetLabels()["commit"] == commit.Ref.Hash().String() {
+		if pod.GetNamespace() == commit.GetNamespace() &&
+			pod.GetLabels()["project"] == commit.Spec.Project.Name &&
+			pod.GetLabels()["commit"] == commit.Spec.Rev {
 			return true
 		}
 	}
@@ -589,19 +599,42 @@ func (k *kale) IsDesired(commits []*Commit, pod *k8sTypesCoreV1.Pod) bool {
 func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 	log := dlog.GetLogger(ctx)
 
-	var commits []*Commit
+	// reconcile commits
 	for _, proj := range snapshot.Projects {
-		projCommits, err := GetCommits(proj)
+		commitManifests, err := k.calculateCommits(proj)
 		if err != nil {
 			continue
 		}
-		commits = append(commits, projCommits...)
+		selectors := []string{
+			GlobalLabelName + "==" + k.cfg.AmbassadorID,
+			ProjectLabelName + "==" + proj.Metadata.Name + "." + proj.Metadata.Namespace,
+		}
+		err = applyAndPrune(
+			strings.Join(selectors, ","),
+			[]k8sSchema.GroupVersionKind{
+				{Group: "getambassador.io", Version: "v2", Kind: "ProjectCommit"},
+			},
+			commitManifests)
+		if err != nil {
+			log.Errorf("updating ProjectCommits for Project %q.%q: %v",
+				proj.Metadata.Name, proj.Metadata.Namespace,
+				err)
+		}
 	}
-	for _, commit := range commits {
+
+	// reconcile pods
+	for _, commit := range snapshot.Commits {
+		var project *Project
+		for _, proj := range snapshot.Projects {
+			if proj.Metadata.Namespace == commit.GetNamespace() &&
+				proj.Metadata.Name == commit.Spec.Project.Name {
+				project = proj
+			}
+		}
 		var commitBuilders []*k8sTypesCoreV1.Pod
 		var commitRunners []*k8sTypesCoreV1.Pod
 		for _, pod := range snapshot.Pods {
-			if k.IsDesired([]*Commit{commit}, pod) {
+			if k.IsDesired([]*ProjectCommit{commit}, pod) {
 				if pod.GetLabels()["build"] != "" {
 					commitBuilders = append(commitBuilders, pod)
 				} else {
@@ -610,13 +643,13 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 			}
 		}
 
-		err := safeInvoke1(func() error { return k.reconcileCommit(ctx, commit, commitBuilders, commitRunners) })
+		err := safeInvoke1(func() error { return k.reconcileCommit(ctx, project, commit, commitBuilders, commitRunners) })
 		if err != nil {
 			log.Printf("ERROR: %v", err)
 		}
 	}
 	for _, pod := range snapshot.Pods {
-		if !k.IsDesired(commits, pod) {
+		if !k.IsDesired(snapshot.Commits, pod) {
 			err := deleteResource("pod", pod.GetName(), pod.GetNamespace())
 			if err != nil {
 				log.Printf("ERROR: %v", err)
@@ -625,21 +658,19 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 	}
 }
 
-func (k *kale) reconcileCommit(ctx context.Context, commit *Commit, builders, runners []*k8sTypesCoreV1.Pod) error {
+func (k *kale) reconcileCommit(ctx context.Context, proj *Project, commit *ProjectCommit, builders, runners []*k8sTypesCoreV1.Pod) error {
 	log := dlog.GetLogger(ctx)
-
-	proj := commit.Project
 
 	switch len(builders) {
 	case 0:
 		if len(runners) == 0 {
 			//buildID := fmt.Sprintf("%d", time.Now().Unix()) // todo: better id
-			buildID := commit.Ref.Hash().String()
-			out, err := k.startBuild(proj, buildID, commit.Ref.Name().String(), commit.Ref.Hash().String())
+			buildID := commit.Spec.Rev // todo: better id
+			out, err := k.startBuild(proj, buildID, commit.Spec.Ref.String(), commit.Spec.Rev)
 			if err != nil {
 				log.Printf("OUTPUT: %s", out)
 				log.Printf("ERROR: %v", err)
-				postStatus(ctx, fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, commit.Ref.Hash().String()),
+				postStatus(ctx, fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, commit.Spec.Rev),
 					GitHubStatus{
 						State:       "error",
 						TargetUrl:   fmt.Sprintf("http://%s/edge_stack/admin/#projects", proj.Spec.Host),
@@ -648,7 +679,7 @@ func (k *kale) reconcileCommit(ctx context.Context, commit *Commit, builders, ru
 					},
 					proj.Spec.GithubToken)
 			} else {
-				postStatus(ctx, fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, commit.Ref.Hash().String()),
+				postStatus(ctx, fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, commit.Spec.Rev),
 					GitHubStatus{
 						State:       "pending",
 						TargetUrl:   proj.BuildLogUrl(buildID),
@@ -692,8 +723,7 @@ func (k *kale) reconcileCommit(ctx context.Context, commit *Commit, builders, ru
 				},
 					proj.Spec.GithubToken)
 			case k8sTypesCoreV1.PodSucceeded:
-				sha := builder.GetLabels()["commit"]
-				out, err := k.startRun(proj, sha)
+				out, err := k.startRun(proj, commit.Spec.Rev)
 				if err != nil {
 					msg := fmt.Sprintf("ERROR: %v: %s", err, out)
 					log.Print(msg)
@@ -713,7 +743,7 @@ func (k *kale) reconcileCommit(ctx context.Context, commit *Commit, builders, ru
 					postStatus(ctx, statusesUrl,
 						GitHubStatus{
 							State:       "success",
-							TargetUrl:   proj.PreviewUrl(sha),
+							TargetUrl:   proj.PreviewUrl(commit.Spec.Rev),
 							Description: string(phase),
 							Context:     "aes",
 						},
