@@ -72,8 +72,11 @@ Windows. For other options, such as Docker, click [here](/user-guide/install).
 Your terminal will show you something similar to the following as the installer provisions
 a load balancer, configures TLS, and provides you with an `edgestack.me` subdomain:
 
-```
-$ edgectl install
+<div className="styles-module--CodeBlock--1UB4s">
+  <pre className="language-">
+    <div className="token-line">
+      <span className="token plain">
+$ <span className="edgectlInstall">edgectl install</span>
 -> Installing the Ambassador Edge Stack $version$.
 Downloading images. (This may take a minute.)
 -> Provisioning a cloud load balancer. (This may take a minute, depending on
@@ -84,7 +87,10 @@ Your AES installation's IP address is 4.3.2.1
 Please enter an email address. We'll use this email address to notify you prior
 to domain and certificate expiration. We also share this email address with
 Let's Encrypt to acquire your certificate for TLS.
-```
+      </span>
+    </div>
+  </pre>
+</div>
 
 Provide an email address as required by the ACME TLS certificate provider, Let's
 Encrypt. Then your terminal will print something similar to the following:
