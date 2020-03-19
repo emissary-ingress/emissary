@@ -67,7 +67,7 @@
                 - title: Remove Response Headers
                   link: /docs/latest/topics/using/headers/remove_response_headers
                 - title: Header Based Routing
-                  link: /docs/latest/topics/using/headers/header_based_routing
+                  link: /docs/latest/topics/using/headers/headers
                 - title: Host Header
                   link: /docs/latest/topics/using/headers/host
             - title: Keepalive
