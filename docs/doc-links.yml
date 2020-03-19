@@ -6,9 +6,9 @@
       link: /docs/latest/tutorials/getting-started
 - title: Install Ambassador Edge Stack
   link: /docs/latest/topics/install/
-  items: 
+  items:
   - title: Install with Helm
-    link: /docs/latest/topics/install/helm  
+    link: /docs/latest/topics/install/helm
   - title: Upgrade to the Ambassador Edge Stack
     link: /docs/latest/topics/install/upgrade-to-edge-stack
   - title: Upgrade to a Newer Version
@@ -20,15 +20,15 @@
   - title: Install with Bare Metal
     link: /docs/latest/topics/install/bare-metal
   - title: Install Manually
-    link: /docs/latest/topics/install/yaml-install  
+    link: /docs/latest/topics/install/yaml-install
   - title: Ambassador Edge Stack Operator
-    link: /docs/latest/topics/install/aes-operator   
+    link: /docs/latest/topics/install/aes-operator
 - title: Running and Using Ambassador
   collapsable: false
-  items:  
+  items:
     - title: Core Concepts
       link: /docs/latest/topics/concepts/
-      items: 
+      items:
         - title: Kubernetes Network Architecture
           link: /docs/latest/topics/concepts/kubernetes-network-architecture
         - title: "The Ambassador Operating Model: GitOps and Continuous Delivery"
@@ -41,12 +41,12 @@
           link: /docs/latest/topics/concepts/architecture
     - title: Using Ambassador
       link: /docs/latest/topics/using/
-      items: 
+      items:
         - title: The Mapping Object
           link: /docs/latest/topics/using/intro-mappings
         - title: Mapping Configuration
           link: /docs/latest/topics/using/mappings
-          items: 
+          items:
             - title: Automatic Retries
               link: /docs/latest/topics/using/retries
             - title: Canary Releases
@@ -57,7 +57,7 @@
               link: /docs/latest/topics/using/cors
             - title: Headers
               link: /docs/latest/topics/using/headers/headers
-              items: 
+              items:
                 - title: Add Request Headers
                   link: /docs/latest/topics/using/headers/add_request_headers
                 - title: Remove Request Headers
@@ -96,13 +96,13 @@
             - title: Traffic Shadowing
               link: /docs/latest/topics/using/shadowing
         - title: Filters and Authentication
-          items: 
+          items:
             - title: OAuth and OIDC Overview
               link: /docs/latest/topics/using/filters/
             - title: OAuth2 Filter
               link: /docs/latest/topics/using/filters/oauth2
             - title: JWT Filter
-              link: /docs/latest/topics/using/filters/jwt 
+              link: /docs/latest/topics/using/filters/jwt
             - title: External Filter
               link: /docs/latest/topics/using/filters/external
             - title: Plugin Filter
@@ -119,7 +119,7 @@
           link: /docs/latest/topics/using/edge-policy-console
     - title: Running Ambassador in Production
       link: /docs/latest/topics/running/
-      items: 
+      items:
         - title: The Ambassador Module
           link: /docs/latest/topics/running/ambassador
         - title: Deploying Ambassador
@@ -155,7 +155,7 @@
             - title: Rate Limit Service
               link: /docs/latest/topics/running/services/rate-limit-service
             - title: Tracing Service
-              link: /docs/latest/topics/running/services/tracing-service            
+              link: /docs/latest/topics/running/services/tracing-service
         - title: TLS
           link: /docs/latest/topics/running/tls/
           items:
@@ -173,7 +173,7 @@
           link: /docs/latest/topics/running/debugging
 - title: HOWTO Guides
   link: /docs/latest/howtos
-  items: 
+  items:
     - title: Authentication
       items:
         - title: Basic Authentication

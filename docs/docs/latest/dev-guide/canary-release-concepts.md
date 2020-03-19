@@ -140,4 +140,4 @@ metadata:
 
 ```
 
-We've written more about canary releases on the [Ambassador Edge Stack blog](https://blog.getambassador.io/search?q=canary). To learn more about this pattern, you can [read more here](https://blog.getambassador.io/cloud-native-patterns-canary-release-1cb8f82d371a).
+We've written more about canary releases on the [Ambassador Edge Stack blog](https://blog.getambassador.io/search?q=canary). To learn more about this pattern, you can read more [here](https://blog.getambassador.io/cloud-native-patterns-canary-release-1cb8f82d371a).
