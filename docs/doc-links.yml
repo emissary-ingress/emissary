@@ -86,7 +86,7 @@
               link: /docs/latest/topics/using/rate-limits/
               items:
                 - title: Rate Limiting Concepts
-                  link: /docs/latest/topics/using/rate-limits/rate-limots
+                  link: /docs/latest/topics/using/rate-limits/rate-limits
             - title: Redirects
               link: /docs/latest/topics/using/redirects
             - title: Rewrites
