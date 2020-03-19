@@ -410,12 +410,12 @@ func deleteResource(kind, name, namespace string) error {
 	return nil
 }
 
-type Deploy struct {
+type Commit struct {
 	Project *Project `json:"project"`
 	Ref     *libgitPlumbing.Reference
 }
 
-func (d *Deploy) MarshalJSON() ([]byte, error) {
+func (d *Commit) MarshalJSON() ([]byte, error) {
 	return json.Marshal(map[string]interface{}{
 		"project": d.Project,
 		"ref": map[string]interface{}{
@@ -426,7 +426,7 @@ func (d *Deploy) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func PrettyDeploys(deps []Deploy) string {
+func PrettyCommits(deps []Commit) string {
 	var parts []string
 	for _, d := range deps {
 		parts = append(parts, fmt.Sprintf("%s => %s", d.Ref.Name().Short(), d.Ref.Hash()))
@@ -445,10 +445,10 @@ type Pull struct {
 	} `json:"head"`
 }
 
-// GetDeploys does a `git ls-remote`, gets the listing of open GitHub
+// GetCommits does a `git ls-remote`, gets the listing of open GitHub
 // pull-requests, and cross-references the two in order to decide
 // which things we want to deploy.
-func GetDeploys(proj *Project) ([]*Deploy, error) {
+func GetCommits(proj *Project) ([]*Commit, error) {
 	repo := proj.Spec.GithubRepo
 	token := proj.Spec.GithubToken
 
@@ -479,7 +479,7 @@ func GetDeploys(proj *Project) ([]*Deploy, error) {
 	}
 
 	// Resolve all of those refNames, and generate Deploy objects for them.
-	var deploys []*Deploy
+	var commits []*Commit
 	for _, refName := range deployRefNames {
 		// Use libgitPlumbing.ReferenceName() instead of refs.Reference() (or even having
 		// gitLsRemote return a simple slice of refs) in order to resolve refs recursively.
@@ -488,12 +488,12 @@ func GetDeploys(proj *Project) ([]*Deploy, error) {
 		if err != nil {
 			continue
 		}
-		deploys = append(deploys, &Deploy{
+		commits = append(commits, &Commit{
 			Project: proj,
 			Ref:     ref,
 		})
 	}
-	return deploys, nil
+	return commits, nil
 }
 
 func gitLsRemote(repoURL, authToken string) (libgitPlumbingStorer.ReferenceStorer, error) {

@@ -275,7 +275,7 @@ type kale struct {
 	mu       sync.RWMutex
 	Projects map[string]*Project
 	Pods     PodMap
-	Deploys  map[string][]*Deploy
+	Commits  map[string][]*Commit
 }
 
 // map["projectNamespace/projectName"]map["podName"]*Pod
@@ -313,20 +313,20 @@ func (k *kale) updateInternalState(snapshot Snapshot) {
 		pods.addPod(pod)
 	}
 
-	// map["projectNamespace/projectName"][]*Deploy
-	deploys := make(map[string][]*Deploy)
+	// map["projectNamespace/projectName"][]*Commit
+	commits := make(map[string][]*Commit)
 	for _, proj := range snapshot.Projects {
-		projDeploys, err := GetDeploys(proj)
+		projCommits, err := GetCommits(proj)
 		if err != nil {
 			continue
 		}
-		deploys[proj.Key()] = projDeploys
+		commits[proj.Key()] = projCommits
 	}
 
 	k.mu.Lock()
 	k.Projects = projects
 	k.Pods = pods
-	k.Deploys = deploys
+	k.Commits = commits
 	k.mu.Unlock()
 }
 
@@ -403,15 +403,15 @@ func (k *kale) projectsJSON() string {
 		if !ok {
 			pods = make(map[string]*k8sTypesCoreV1.Pod)
 		}
-		deploys, ok := k.Deploys[key]
+		commits, ok := k.Commits[key]
 		if !ok {
-			deploys = make([]*Deploy, 0)
+			commits = make([]*Commit, 0)
 		}
 
 		m := make(map[string]interface{})
 		m["project"] = proj
 		m["pods"] = pods
-		m["deploys"] = deploys
+		m["commits"] = commits
 
 		results = append(results, m)
 	}
@@ -575,11 +575,11 @@ func (k *kale) startBuild(proj *Project, buildID, ref, commit string) (string, e
 	return string(out), nil
 }
 
-func (k *kale) IsDesired(deploys []*Deploy, pod *k8sTypesCoreV1.Pod) bool {
-	for _, deploy := range deploys {
-		if pod.GetNamespace() == deploy.Project.Metadata.Namespace &&
-			pod.GetLabels()["project"] == deploy.Project.Metadata.Name &&
-			pod.GetLabels()["commit"] == deploy.Ref.Hash().String() {
+func (k *kale) IsDesired(commits []*Commit, pod *k8sTypesCoreV1.Pod) bool {
+	for _, commit := range commits {
+		if pod.GetNamespace() == commit.Project.Metadata.Namespace &&
+			pod.GetLabels()["project"] == commit.Project.Metadata.Name &&
+			pod.GetLabels()["commit"] == commit.Ref.Hash().String() {
 			return true
 		}
 	}
@@ -589,34 +589,34 @@ func (k *kale) IsDesired(deploys []*Deploy, pod *k8sTypesCoreV1.Pod) bool {
 func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 	log := dlog.GetLogger(ctx)
 
-	var deploys []*Deploy
+	var commits []*Commit
 	for _, proj := range snapshot.Projects {
-		projDeploys, err := GetDeploys(proj)
+		projCommits, err := GetCommits(proj)
 		if err != nil {
 			continue
 		}
-		deploys = append(deploys, projDeploys...)
+		commits = append(commits, projCommits...)
 	}
-	for _, deploy := range deploys {
-		var deployBuilders []*k8sTypesCoreV1.Pod
-		var deployRunners []*k8sTypesCoreV1.Pod
+	for _, commit := range commits {
+		var commitBuilders []*k8sTypesCoreV1.Pod
+		var commitRunners []*k8sTypesCoreV1.Pod
 		for _, pod := range snapshot.Pods {
-			if k.IsDesired([]*Deploy{deploy}, pod) {
+			if k.IsDesired([]*Commit{commit}, pod) {
 				if pod.GetLabels()["build"] != "" {
-					deployBuilders = append(deployBuilders, pod)
+					commitBuilders = append(commitBuilders, pod)
 				} else {
-					deployRunners = append(deployRunners, pod)
+					commitRunners = append(commitRunners, pod)
 				}
 			}
 		}
 
-		err := safeInvoke1(func() error { return k.reconcileDeploy(ctx, deploy, deployBuilders, deployRunners) })
+		err := safeInvoke1(func() error { return k.reconcileCommit(ctx, commit, commitBuilders, commitRunners) })
 		if err != nil {
 			log.Printf("ERROR: %v", err)
 		}
 	}
 	for _, pod := range snapshot.Pods {
-		if !k.IsDesired(deploys, pod) {
+		if !k.IsDesired(commits, pod) {
 			err := deleteResource("pod", pod.GetName(), pod.GetNamespace())
 			if err != nil {
 				log.Printf("ERROR: %v", err)
@@ -625,21 +625,21 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 	}
 }
 
-func (k *kale) reconcileDeploy(ctx context.Context, dep *Deploy, builders, runners []*k8sTypesCoreV1.Pod) error {
+func (k *kale) reconcileCommit(ctx context.Context, commit *Commit, builders, runners []*k8sTypesCoreV1.Pod) error {
 	log := dlog.GetLogger(ctx)
 
-	proj := dep.Project
+	proj := commit.Project
 
 	switch len(builders) {
 	case 0:
 		if len(runners) == 0 {
 			//buildID := fmt.Sprintf("%d", time.Now().Unix()) // todo: better id
-			buildID := dep.Ref.Hash().String()
-			out, err := k.startBuild(proj, buildID, dep.Ref.Name().String(), dep.Ref.Hash().String())
+			buildID := commit.Ref.Hash().String()
+			out, err := k.startBuild(proj, buildID, commit.Ref.Name().String(), commit.Ref.Hash().String())
 			if err != nil {
 				log.Printf("OUTPUT: %s", out)
 				log.Printf("ERROR: %v", err)
-				postStatus(ctx, fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, dep.Ref.Hash().String()),
+				postStatus(ctx, fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, commit.Ref.Hash().String()),
 					GitHubStatus{
 						State:       "error",
 						TargetUrl:   fmt.Sprintf("http://%s/edge_stack/admin/#projects", proj.Spec.Host),
@@ -648,7 +648,7 @@ func (k *kale) reconcileDeploy(ctx context.Context, dep *Deploy, builders, runne
 					},
 					proj.Spec.GithubToken)
 			} else {
-				postStatus(ctx, fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, dep.Ref.Hash().String()),
+				postStatus(ctx, fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, commit.Ref.Hash().String()),
 					GitHubStatus{
 						State:       "pending",
 						TargetUrl:   proj.BuildLogUrl(buildID),
