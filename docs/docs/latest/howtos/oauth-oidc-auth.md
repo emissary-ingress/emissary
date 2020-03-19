@@ -53,14 +53,14 @@ Save the configuration to a file and apply it to the cluster: `kubectl apply -f 
 
 You will need to configure your IdP to handle authentication requests. The way to do this varies by IdP.
 
-- [Auth0](sso/auth0)
-- [Azure AD](sso/azure)
-- [Google](sso/google)
-- [Keycloak](sso/keycloak)
-- [Okta](sso/okta)
-- [OneLogin](sso/onelogin)
-- [Salesforce](sso/salesforce)
-- [UAA](sso/uaa)
+- [Auth0](../sso/auth0)
+- [Azure AD](../sso/azure)
+- [Google](../sso/google)
+- [Keycloak](../sso/keycloak)
+- [Okta](../sso/okta)
+- [OneLogin](../sso/onelogin)
+- [Salesforce](../sso/salesforce)
+- [UAA](../sso/uaa)
 
 ## Configure Authentication Across Multiple Domains (Optional)
 

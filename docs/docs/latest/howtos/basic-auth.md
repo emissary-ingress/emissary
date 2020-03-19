@@ -4,7 +4,7 @@ Ambassador can authenticate incoming requests before routing them to a backing s
 
 ## Before You Get Started
 
-This tutorial assumes you have already followed the Ambassador Edge Stack [Installation](../topics/install) guide. If you haven't done that already, you should do that now.
+This tutorial assumes you have already followed the Ambassador Edge Stack [Installation](../../topics/install) guide. If you haven't done that already, you should do that now.
 
 Once complete, you'll have a Kubernetes cluster running Ambassador Edge Stack. Let's walk through adding authentication to this setup.
 
@@ -206,4 +206,4 @@ spec:
 
 ## More
 
-For more details about configuring authentication, see the [`External` filter](../topics/using/filters) documentation.
+For more details about configuring authentication, see the [`External` filter](../../topics/using/filters) documentation.
