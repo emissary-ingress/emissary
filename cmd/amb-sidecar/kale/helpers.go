@@ -18,11 +18,12 @@ import (
 	"time"
 
 	// 3rd party
-	git "gopkg.in/src-d/go-git.v4"
-	"gopkg.in/src-d/go-git.v4/config"
-	"gopkg.in/src-d/go-git.v4/plumbing"
-	ghttp "gopkg.in/src-d/go-git.v4/plumbing/transport/http"
-	"gopkg.in/src-d/go-git.v4/storage/memory"
+	libgit "gopkg.in/src-d/go-git.v4"
+	libgitConfig "gopkg.in/src-d/go-git.v4/config"
+	libgitPlumbing "gopkg.in/src-d/go-git.v4/plumbing"
+	libgitPlumbingStorer "gopkg.in/src-d/go-git.v4/plumbing/storer"
+	libgitHTTP "gopkg.in/src-d/go-git.v4/plumbing/transport/http"
+	libgitStorageMemory "gopkg.in/src-d/go-git.v4/storage/memory"
 
 	// 3rd party: k8s types
 	k8sTypesCoreV1 "k8s.io/api/core/v1"
@@ -162,25 +163,29 @@ func postJSON(url string, payload interface{}, token string) (*http.Response, st
 }
 
 // Get a json payload from a URL.
-func getJSON(url string, token string, target interface{}) *http.Response {
+func getJSON(url string, authToken string, target interface{}) error {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", authToken))
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	defer resp.Body.Close()
-	err = json.NewDecoder(resp.Body).Decode(target)
-	if err != nil {
-		panic(err)
+	if err := json.NewDecoder(resp.Body).Decode(target); err != nil {
+		return err
 	}
-	return resp
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("HTTP %d (%s)", resp.StatusCode, resp.Status)
+	}
+
+	return nil
 }
 
 // Post a status to the github API
@@ -398,14 +403,12 @@ func deleteResource(kind, name, namespace string) error {
 
 type Deploy struct {
 	Project Project `json:"project"`
-	Ref     *plumbing.Reference
-	Pull    *Pull `json:"pull"`
+	Ref     *libgitPlumbing.Reference
 }
 
 func (d *Deploy) MarshalJSON() ([]byte, error) {
 	result := make(map[string]interface{})
 	result["project"] = d.Project
-	result["pull"] = d.Pull
 	ref := make(map[string]interface{})
 	ref["name"] = d.Ref.Name().String()
 	ref["short"] = d.Ref.Name().Short()
@@ -423,13 +426,14 @@ func PrettyDeploys(deps []Deploy) string {
 }
 
 type Pull struct {
-	Number  int    `json:"number"`
-	HtmlUrl string `json:"html_url"`
-	Head    struct {
-		Ref string `json:"ref"`
-		Sha string `json:"sha"`
+	Number int `json:"number"`
+	Head   struct {
+		Ref  string `json:"ref"`
+		Sha  string `json:"sha"`
+		Repo struct {
+			FullName string `json:"full_name"`
+		} `json:"repo"`
 	} `json:"head"`
-	MergeSha string `json:"merge_commit_sha"`
 }
 
 func (d Deploy) IsBuilder(pod *k8sTypesCoreV1.Pod) bool {
@@ -451,69 +455,85 @@ func (d Deploy) IsRunner(pod *k8sTypesCoreV1.Pod) bool {
 // GetDeploys does a `git ls-remote`, gets the listing of open GitHub
 // pull-requests, and cross-references the two in order to decide
 // which things we want to deploy.
-func GetDeploys(project Project) []Deploy {
+func GetDeploys(project Project) ([]Deploy, error) {
 	repo := project.Spec.GithubRepo
 	token := project.Spec.GithubToken
-	refs := gitLsRemote(fmt.Sprintf("https://github.com/%s", repo), token, "refs/heads/*")
-	var result []Pull
-	resp := getJSON(fmt.Sprintf("https://api.github.com/repos/%s/pulls", repo), token, &result)
-	if resp.StatusCode != 200 {
-		panic(resp.Status)
+
+	// Ask the server for a collection of references
+	refs, err := gitLsRemote(fmt.Sprintf("https://github.com/%s", repo), token)
+	if err != nil {
+		return nil, err
 	}
 
-	pulls := make(map[string]Pull)
-
-	for _, p := range result {
-		pulls[p.Head.Sha] = p
+	// Ask the server for a list of open PRs
+	var openPulls []Pull
+	if err := getJSON(fmt.Sprintf("https://api.github.com/repos/%s/pulls", repo), token, &openPulls); err != nil {
+		return nil, err
 	}
 
+	// Which refnames to deploy
+	var deployRefNames []libgitPlumbing.ReferenceName
+	// Always deploy HEAD (which is a symbolic ref, usually to
+	// "refs/heads/master").
+	deployRefNames = append(deployRefNames,
+		libgitPlumbing.HEAD)
+	// And also deploy any open first-party PRs.
+	for _, pull := range openPulls {
+		if strings.EqualFold(pull.Head.Repo.FullName, repo) {
+			deployRefNames = append(deployRefNames,
+				libgitPlumbing.ReferenceName(fmt.Sprintf("refs/pull/%d/head", pull.Number)))
+		}
+	}
+
+	// Resolve all of those refNames, and generate Deploy objects for them.
 	var deploys []Deploy
-	for _, ref := range refs {
-		pull, ok := pulls[ref.Hash().String()]
-		if ok {
-			deploys = append(deploys, Deploy{project, ref, &pull})
+	for _, refName := range deployRefNames {
+		// Use libgitPlumbing.ReferenceName() instead of refs.Reference() (or even having
+		// gitLsRemote return a simple slice of refs) in order to resolve refs recursively.
+		// This is important, because HEAD is always a symbolic reference.
+		ref, err := libgitPlumbingStorer.ResolveReference(refs, refName)
+		if err != nil {
+			continue
 		}
-		if ref.Name().Short() == "master" {
-			deploys = append(deploys, Deploy{project, ref, nil})
-		}
+		deploys = append(deploys, Deploy{
+			Project: project,
+			Ref:     ref,
+		})
 	}
-
-	return deploys
+	return deploys, nil
 }
 
-func gitLsRemote(repo, token string, specs ...string) []*plumbing.Reference {
-	// Create the remote with repository URL
-	rem := git.NewRemote(memory.NewStorage(), &config.RemoteConfig{
+func gitLsRemote(repoURL, authToken string) (libgitPlumbingStorer.ReferenceStorer, error) {
+	remote := libgit.NewRemote(nil, &libgitConfig.RemoteConfig{
 		Name: "origin",
-		URLs: []string{repo},
+		URLs: []string{repoURL},
 	})
 
-	// We can then use every Remote functions to retrieve wanted information
-	refs, err := rem.List(&git.ListOptions{
-		Auth: &ghttp.BasicAuth{Username: token},
+	refs, err := remote.List(&libgit.ListOptions{
+		Auth: &libgitHTTP.BasicAuth{Username: authToken},
 	})
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	var result []*plumbing.Reference
+	// Instead of returning 'refs' as a simple slice, pack the
+	// result in to a ReferenceStorer, so that we can easily
+	// resolve recursive refs by using storer.ResolveReference().
+	storage := libgitStorageMemory.NewStorage()
 	for _, ref := range refs {
-		for _, spec := range specs {
-			rs := config.RefSpec(fmt.Sprintf("%s:", spec))
-			if rs.Match(ref.Name()) {
-				result = append(result, ref)
-			}
+		if err := storage.SetReference(ref); err != nil {
+			return nil, err
 		}
 	}
-	return result
+	return storage, nil
 }
 
-func gitResolveRef(repo, token, refname string) string {
-	refs := gitLsRemote(repo, token, refname)
-	if len(refs) == 0 {
-		return ""
+func gitResolveRef(repoURL, authToken string, refname libgitPlumbing.ReferenceName) (*libgitPlumbing.Reference, error) {
+	storage, err := gitLsRemote(repoURL, authToken)
+	if err != nil {
+		return nil, err
 	}
-	return refs[0].Hash().String()
+	return libgitPlumbingStorer.ResolveReference(storage, refname)
 }
 
 // WatchGroup is used to wait for multiple Watcher queries to all be

@@ -11,6 +11,9 @@ import (
 	"sync"
 	"time"
 
+	// 3rd party
+	libgitPlumbing "gopkg.in/src-d/go-git.v4/plumbing"
+
 	// 3rd/1st party: k8s types
 	aproTypesV2 "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	k8sTypesCoreV1 "k8s.io/api/core/v1"
@@ -301,7 +304,11 @@ func (k *kale) reconcile(ctx context.Context, snapshot Snapshot) {
 func (snapshot Snapshot) Deploys() DeployMap {
 	deploys := make(DeployMap)
 	for _, proj := range snapshot.Projects {
-		deploys[proj.Key()] = GetDeploys(*proj)
+		projDeploys, err := GetDeploys(*proj)
+		if err != nil {
+			continue
+		}
+		deploys[proj.Key()] = projDeploys
 	}
 	return deploys
 }
@@ -447,29 +454,24 @@ func (k *kale) handlePush(r *http.Request, key string) httpResult {
 	backoff := 1 * time.Second
 	for (!gitReady || !apiReady) && time.Now().Before(deadline) {
 		if !gitReady {
-			var rev string
-			err := safeInvoke(func() {
-				rev = gitResolveRef("https://github.com/"+proj.Spec.GithubRepo, proj.Spec.GithubToken, push.Ref)
-			})
+			ref, err := gitResolveRef("https://github.com/"+proj.Spec.GithubRepo, proj.Spec.GithubToken,
+				libgitPlumbing.ReferenceName(push.Ref))
 			if err != nil {
 				continue
 			}
-			if rev == push.After {
+			if ref.Hash().String() == push.After {
 				gitReady = true
 			}
 		}
 		if !apiReady {
 			var prs []Pull
-			var resp *http.Response
-			err := safeInvoke(func() {
-				resp = getJSON(fmt.Sprintf("https://api.github.com/repos/%s/pulls", proj.Spec.GithubRepo), proj.Spec.GithubToken, &prs)
-			})
-			if err != nil || resp.StatusCode != 200 {
+			if err := getJSON(fmt.Sprintf("https://api.github.com/repos/%s/pulls", proj.Spec.GithubRepo), proj.Spec.GithubToken, &prs); err != nil {
 				continue
 			}
 			havePr := false
 			for _, pr := range prs {
-				if "refs/heads/"+pr.Head.Ref == push.Ref {
+				if strings.EqualFold(pr.Head.Repo.FullName, proj.Spec.GithubRepo) &&
+					"refs/heads/"+pr.Head.Ref == push.Ref {
 					havePr = true
 					if pr.Head.Sha == push.After {
 						apiReady = true
