@@ -21,7 +21,7 @@ We're happy to help!
 
 We work hard at keeping our documentation useful for all of our users. Here's an overview:
 
-* [Installation](tutorials/install) covers the different ways to install and upgrade Ambassador, including Helm, Docker, and manual YAML install.
+* [Installation](topics/install) covers the different ways to install and upgrade Ambassador, including Helm, Docker, and manual YAML install.
 * Key concepts in Ambassador are broken into three areas:
   * [Core Concepts](topics/concepts) covers the core principles of Ambassador. Kubernetes and cloud-native development is different, and we explain how to use Ambassador in this context.
   * [Using Ambassador](topics/using) is designed for app developers and other users of Ambassador.

@@ -82,10 +82,10 @@
                   link: /docs/latest/howtos/grpc
                 - title: WebSockets
                   link: /docs/latest/howtos/websockets
-            - title: Rate Limits
+            - title: Rate Limit Concepts
               link: /docs/latest/topics/using/rate-limits/
               items:
-                - title: Rate Limiting Concepts
+                - title: Using Rate Limits
                   link: /docs/latest/topics/using/rate-limits/rate-limits
             - title: Redirects
               link: /docs/latest/topics/using/redirects

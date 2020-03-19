@@ -95,7 +95,7 @@ spec:
      unit: minute
 ```
 
-Note for this to work, you need to make sure you've properly configured Ambassador to [propagate your original client IP address](../../reference/core/ambassador#use_remote_address).
+Note for this to work, you need to make sure you've properly configured Ambassador to [propagate your original client IP address](../../../topics/running/ambassador#use_remote_address).
 
 ## Example 3: Load Shedding GET Requests
 
@@ -138,7 +138,7 @@ spec:
 
 ## Example 4: Global Rate Limiting
 
-Suppose, like [Example 2](#example-2-per-user-rate-limiting), you want to ensure a single user cannot overload your server with too many requests to any service. You need to add a request label to every request so you can rate limit off every request a calling IP makes. This can be configured with a [global rate limit](../topics/using/rate-limits) that add the `remote_address` special value to every request:
+Suppose, like [Example 2](#example-2-per-user-rate-limiting), you want to ensure a single user cannot overload your server with too many requests to any service. You need to add a request label to every request so you can rate limit off every request a calling IP makes. This can be configured with a [global rate limit](../../topics/using/rate-limits) that add the `remote_address` special value to every request:
 
 ```yaml
 ---
@@ -222,4 +222,4 @@ The most common source of failure of the rate limiting service will occur when t
 
 ## More
 
-For more on rate limiting, see the [rate limit guide](../topics/using/rate-limits/).
+For more on rate limiting, see the [rate limit guide](../../topics/using/rate-limits/).
