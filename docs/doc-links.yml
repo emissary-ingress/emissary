@@ -23,8 +23,6 @@
     link: /docs/latest/topics/install/yaml-install  
   - title: Ambassador Edge Stack Operator
     link: /docs/latest/topics/install/aes-operator   
-  - title: Using Docker Compose
-    link: /docs/latest/topics/install/docker-compose
 - title: Running and Using Ambassador
   collapsable: false
   items:  
