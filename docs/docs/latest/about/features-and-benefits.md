@@ -24,16 +24,16 @@ The Ambassador Edge Stack fully supports gRPC and HTTP/2 routing, thanks to Envo
 
 ## Istio Integration
 
-The Ambassador Edge Stack integrates with the [Istio](https://istio.io) service mesh as the edge proxy. In this configuration, The Ambassador Edge Stack routes external traffic to the internal Istio service mesh. See [Istio and the Ambassador Edge Stack](../howtos/istio) for details.
+The Ambassador Edge Stack integrates with the [Istio](https://istio.io) service mesh as the edge proxy. In this configuration, The Ambassador Edge Stack routes external traffic to the internal Istio service mesh. See [Istio and the Ambassador Edge Stack](../../howtos/istio) for details.
 
 ## Authentication
 
-The Ambassador Edge Stack supports authenticating incoming requests with a custom authentication service, OAuth/OpenID Connect, or JWT. When configured, the Ambassador Edge Stack will check with a third party authentication service prior to routing an incoming request. For more information, see the [authentication guide](../topics/using/filters/index).
+The Ambassador Edge Stack supports authenticating incoming requests with a custom authentication service, OAuth/OpenID Connect, or JWT. When configured, the Ambassador Edge Stack will check with a third party authentication service prior to routing an incoming request. For more information, see the [authentication guide](../../topics/using/filters/index).
 
 ## Rate Limiting
 
-The Ambassador Edge Stack supports rate limiting incoming requests. When configured, the Ambassador Edge Stack will check with a third party rate limit service prior to routing an incoming request. For more information, see the [rate limiting guide](../topics/using/rate-limits/index).
+The Ambassador Edge Stack supports rate limiting incoming requests. When configured, the Ambassador Edge Stack will check with a third party rate limit service prior to routing an incoming request. For more information, see the [rate limiting guide](../../topics/using/rate-limits/index).
 
 ## Integrated UI
 
-The Ambassador Edge Stack includes a diagnostics service so that you can quickly debug issues associated with configuring the Ambassador Edge Stack. For more information, see [running the Ambassador Edge Stack](../../reference/running).
+The Ambassador Edge Stack includes a diagnostics service so that you can quickly debug issues associated with configuring the Ambassador Edge Stack. For more information, see [running Ambassador in Production](../../topics/running).

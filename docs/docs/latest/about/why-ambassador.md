@@ -20,7 +20,7 @@ The Ambassador Edge Stack is commonly used to route traffic to a wide variety of
 
 * configuration on a *per-service* basis, enabling fine-grained control of timeouts, rate limiting, authentication policies, and more.
 * a wide range of L7 protocols natively, including HTTP, HTTP/2, gRPC, gRPC-Web, and WebSockets.
-* Can route raw TCP](../../reference/tcpmappings) for services that use protocols not directly supported by The Ambassador Edge Stack.
+* Can route raw TCP for services that use protocols not directly supported by The Ambassador Edge Stack.
 
 ### Dynamic Services
 
