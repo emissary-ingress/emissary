@@ -527,7 +527,7 @@ type Push struct {
 	}
 }
 
-func (k *kale) startBuild(proj *Project, commit *ProjectCommit) (string, error) {
+func (k *kale) calculateBuild(proj *Project, commit *ProjectCommit) []interface{} {
 	// Note: If the kaniko destination is set to the full service name
 	// (registry.ambassador.svc.cluster.local), then we can't seem to push
 	// to the no matter how we tweak the settings. I assume this is due to
@@ -536,7 +536,7 @@ func (k *kale) startBuild(proj *Project, commit *ProjectCommit) (string, error) 
 	// todo: the ambassador namespace is hardcoded below in the registry
 	//       we to which we push
 
-	manifests := []interface{}{
+	return []interface{}{
 		&k8sTypesCoreV1.Pod{
 			TypeMeta: k8sTypesMetaV1.TypeMeta{
 				APIVersion: "v1",
@@ -582,22 +582,6 @@ func (k *kale) startBuild(proj *Project, commit *ProjectCommit) (string, error) 
 			},
 		},
 	}
-
-	out, err := applyObjs(manifests)
-	if err != nil {
-		return "", fmt.Errorf("%w\n%s", err, out)
-	}
-
-	return string(out), nil
-}
-
-func (k *kale) IsDesired(commits []*ProjectCommit, pod *k8sTypesCoreV1.Pod) bool {
-	for _, commit := range commits {
-		if pod.GetLabels()[CommitLabelName] == commit.GetName()+"."+commit.GetNamespace() {
-			return true
-		}
-	}
-	return false
 }
 
 func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
@@ -650,14 +634,6 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 		err := safeInvoke1(func() error { return k.reconcileCommit(ctx, project, commit, commitBuilders, commitRunners) })
 		if err != nil {
 			log.Printf("ERROR: %v", err)
-		}
-	}
-	for _, pod := range snapshot.Pods {
-		if !k.IsDesired(snapshot.Commits, pod) {
-			err := deleteResource("pod", pod.GetName(), pod.GetNamespace())
-			if err != nil {
-				log.Printf("ERROR: %v", err)
-			}
 		}
 	}
 }
@@ -729,63 +705,34 @@ func (k *kale) reconcileCommit(ctx context.Context, proj *Project, commit *Proje
 
 	}
 
-	switch len(builders) {
-	case 0:
-		if len(runners) == 0 {
-			_, err := k.startBuild(proj, commit)
-			if err != nil {
-				log.Printf("ERROR: %v", err)
-			}
-		}
-	case 1:
-		// do nothing
-	default:
-		// TODO: more intelligently pick which pod gets to survive
-		for _, pod := range builders[1:] {
-			err := deleteResource("pod", pod.GetName(), pod.GetNamespace())
-			if err != nil {
-				log.Printf("ERROR: %v", err)
-			}
-		}
+	var manifests []interface{}
+	manifests = append(manifests, k.calculateBuild(proj, commit)...)
+	if commit.Status.Phase >= CommitPhase_Deploying {
+		manifests = append(manifests, k.calculateRun(proj, commit)...)
 	}
-
-	if len(builders) > 0 {
-		builder := builders[0]
-		// TODO: validate that the builder looks how we expect
-
-		if len(runners) == 0 { // don't bother with the builder if there's already a runner
-			switch builder.Status.Phase {
-			case k8sTypesCoreV1.PodSucceeded:
-				out, err := k.startRun(proj, commit)
-				if err != nil {
-					log.Printf("ERROR: %v: %s", err, out)
-				}
-			}
-		}
+	selectors := []string{
+		GlobalLabelName + "==" + k.cfg.AmbassadorID,
+		CommitLabelName + "==" + commit.GetName() + "." + commit.GetNamespace(),
 	}
-
-	if len(runners) > 0 {
-		// TODO: more intelligently pick which pod gets to survive
-		for _, pod := range runners[1:] {
-			err := deleteResource("pod", pod.GetName(), pod.GetNamespace())
-			if err != nil {
-				log.Printf("ERROR: %v", err)
-			}
-		}
-
-		runner := runners[0]
-		// TODO: validate that the runner looks how we expect
-
-		phase := runner.Status.Phase
-		qname := runner.GetName() + "." + runner.GetNamespace()
-		log.Println("RUNNER", qname, phase)
+	err := applyAndPrune(
+		strings.Join(selectors, ","),
+		[]k8sSchema.GroupVersionKind{
+			{Group: "getambassador.io", Version: "v2", Kind: "Mapping"},
+			{Group: "", Version: "v1", Kind: "Service"},
+			{Group: "", Version: "v1", Kind: "Pod"},
+		},
+		manifests)
+	if err != nil {
+		log.Errorf("deploying ProjectCommit %q.%q: %v",
+			commit.GetName(), commit.GetNamespace(),
+			err)
 	}
 
 	return nil
 }
 
-func (k *kale) startRun(proj *Project, commit *ProjectCommit) (string, error) {
-	manifests := []interface{}{
+func (k *kale) calculateRun(proj *Project, commit *ProjectCommit) []interface{} {
+	return []interface{}{
 		&Mapping{
 			TypeMeta: k8sTypesMetaV1.TypeMeta{
 				APIVersion: "getambassador.io/v2",
@@ -888,11 +835,4 @@ func (k *kale) startRun(proj *Project, commit *ProjectCommit) (string, error) {
 			},
 		},
 	}
-
-	out, err := applyObjs(manifests)
-	if err != nil {
-		return "", fmt.Errorf("%w\n%s", err, out)
-	}
-
-	return string(out), nil
 }

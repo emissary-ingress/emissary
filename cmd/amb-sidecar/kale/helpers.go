@@ -351,31 +351,6 @@ func streamLogs(w http.ResponseWriter, r *http.Request, namespace, selector stri
 	<-done
 }
 
-// Does a kubectl apply on the passed in yaml.
-func applyStr(yaml string) (string, error) {
-	cmd := exec.Command("kubectl", "apply", "-f", "-")
-	cmd.Stdin = strings.NewReader(yaml)
-	out := strings.Builder{}
-	cmd.Stdout = &out
-	cmd.Stderr = &out
-
-	err := cmd.Run()
-	return out.String(), err
-}
-
-// Does a kubectl apply on the passed in yaml.
-func applyObjs(objs []interface{}) (string, error) {
-	var str string
-	for _, obj := range objs {
-		bs, err := yaml.Marshal(obj)
-		if err != nil {
-			return "", err
-		}
-		str += "---\n" + string(bs)
-	}
-	return applyStr(str)
-}
-
 func applyAndPrune(labelSelector string, types []k8sSchema.GroupVersionKind, objs []interface{}) error {
 	var yamlStr string
 	for _, obj := range objs {
@@ -392,6 +367,9 @@ func applyAndPrune(labelSelector string, types []k8sSchema.GroupVersionKind, obj
 		"--selector=" + labelSelector,
 	}
 	for _, gvk := range types {
+		if gvk.Group == "" {
+			gvk.Group = "core"
+		}
 		args = append(args, "--prune-whitelist="+gvk.Group+"/"+gvk.Version+"/"+gvk.Kind)
 	}
 
@@ -432,14 +410,6 @@ func evalHtmlTemplate(text string, data interface{}) string {
 
 func boolPtr(v bool) *bool {
 	return &v
-}
-
-func deleteResource(kind, name, namespace string) error {
-	out, err := exec.Command("kubectl", "delete", "--namespace="+namespace, kind+"/"+name).CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("%w\n%s", err, out)
-	}
-	return nil
 }
 
 type Pull struct {
