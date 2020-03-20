@@ -33,7 +33,7 @@ A `Mapping` resource can be managed using the same workflow as any other Kuberne
 kubectl apply -f httpbin-mapping.yaml
 ```
 
-For production use, the general recommended best practice is to store the file in a version control system and apply the changes with a continuous deployment pipeline. For more detail, see [the Ambassador Operating Model](../concepts/gitops-continuous-delivery).
+For production use, the general recommended best practice is to store the file in a version control system and apply the changes with a continuous deployment pipeline. For more detail, see [the Ambassador Operating Model](../../concepts/gitops-continuous-delivery).
 
 ## Extending Mappings
 
