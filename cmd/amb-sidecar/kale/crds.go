@@ -31,18 +31,19 @@ func (p Project) Key() string {
 	return p.Metadata.Namespace + "/" + p.Metadata.Name
 }
 
-func (p Project) PreviewUrl(commit string) string {
-	return fmt.Sprintf("https://%s/.previews/%s/%s/", p.Spec.Host, p.Spec.Prefix, commit)
+func (p Project) PreviewUrl(commit *ProjectCommit) string {
+	return fmt.Sprintf("https://%s/.previews/%s/%s/", p.Spec.Host, p.Spec.Prefix, commit.Spec.Rev)
 }
 
-func (p Project) ServerLogUrl(commit string) string {
-	return fmt.Sprintf("https://%s/edge_stack/admin/#projects?log=deploy/%s/%s/%s", p.Spec.Host,
-		p.Metadata.Namespace, p.Metadata.Name, commit)
+func (p Project) ServerLogUrl(commit *ProjectCommit) string {
+	return fmt.Sprintf("https://%s/edge_stack/admin/#projects?log=deploy/%s.%s",
+		p.Spec.Host, commit.GetName(), commit.GetNamespace())
 }
 
-func (p Project) BuildLogUrl(commit string) string {
-	return fmt.Sprintf("https://%s/edge_stack/admin/#projects?log=build/%s/%s/%s", p.Spec.Host,
-		p.Metadata.Namespace, p.Metadata.Name, commit)
+func (p Project) BuildLogUrl(commit *ProjectCommit) string {
+	return fmt.Sprintf("https://%s/edge_stack/admin/#projects?log=build/%s.%s",
+		p.Spec.Host, commit.GetName(), commit.GetNamespace())
+
 }
 
 type ProjectCommit struct {

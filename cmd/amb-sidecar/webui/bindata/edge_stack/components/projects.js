@@ -63,14 +63,16 @@ class Project extends SingleResource {
     let log = HASH.get("log")
     if (log) {
       let parts = log.split("/")
-      if (parts.length === 4) {
-        let type = parts[0]
-        let ns = parts[1]
-        let name = parts[2]
-        let sha = parts[3]
+      if (parts.length === 2) {
+        let logType = parts[0];
+        let commitQName = parts[1];
 
-        if (ns == this.resource.metadata.namespace && name == this.resource.metadata.name) {
-          this.source = `../api/${type === "build" ? "logs" : "slogs"}/${ns}/${name}/${sha}`
+        let commitBelongsToThisProject = this.resource.commits.some((commit) => {
+          return `${commit.metadata.name}.${commit.metadata.namespace}` == commitQName;
+        });
+
+        if (commitBelongsToThisProject) {
+          this.source = `../api/${logType === "build" ? "logs" : "slogs"}/${commitQName}`
           return
         }
       }
@@ -122,43 +124,32 @@ class Project extends SingleResource {
   }
 
   renderDeployedCommits(prefix, pods, commits) {
-    let hash2commit = new Map()
-    for (let commit of (commits || [])) {
-      hash2commit.set(commit.spec.rev, commit)
+    commits = commits || [];
+
+    let commitsByQName = new Map()
+    for (let commit of commits) {
+      commit.children = {
+        builds: [],
+        previews: [],
+      };
+      commitsByQName.set(`${commit.metadata.name}.${commit.metadata.namespace}`, commit)
     }
 
-    let hash2commitmeta = new Map()
-    for (let name in pods) {
-      let pod = pods[name]
-      let hash = pod.metadata.labels.commit
-      if (! hash2commitmeta.has(hash)) {
-        hash2commitmeta.set(hash, {
-          id: hash,
-          prefix: prefix,
-          builds: [],
-          previews: [],
-          commit: hash2commit.get(hash),
-        })
+    for (let podName in pods) {
+      let pod = pods[podName];
+      let commit = commitsByQName.get(pod.metadata.labels["projects.getambassador.io/commit"])
+      if (!commit) {
+        continue;
       }
-      let commitmeta = hash2commitmeta.get(hash)
 
       if (pod.metadata.labels.hasOwnProperty("build")) {
-        commitmeta.builds.push(pod)
+        commit.children.builds.push(pod)
       } else {
-        commitmeta.previews.push(pod)
+        commit.children.previews.push(pod)
       }
     }
-    let commitmetas = Array.from(hash2commitmeta.values())
-    commitmetas.sort((a,b) => {
-      let amax = this.max(a.builds.map(p=>Date.parse(p.metadata.creationTimestamp)))
-      let bmax = this.max(b.builds.map(p=>Date.parse(p.metadata.creationTimestamp)))
-      if (amax === null && bmax === null) {
-        return 0
-      } else if (amax > bmax) {
-        return -1
-      } else {
-        return 1
-      }
+    commits.sort((a,b) => {
+      return Date.parse(a.metadata.creationTimestamp) - Date.parse(b.metadata.creationTimestamp);
     })
 
     return html`
@@ -166,41 +157,40 @@ class Project extends SingleResource {
   <label class="row-col margin-right justify-right">Deployed Commits:</label>
   <div class="row-col">
     <div style="display:grid; grid-template-columns: 0.5fr 1fr 1fr 2fr;">
-      ${commitmetas.map((c)=>this.renderCommit(c))}
+      ${commits.map((c)=>this.renderCommit(c))}
     </div>
   </div>
 </div>
 `
   }
 
-  renderCommit(commitmeta) {
+  renderCommit(commit) {
     return html`
   <div>
-    ${this.renderPull(commitmeta)}
+    ${this.renderPull(commit)}
   </div>
   <div>
-    ${commitmeta.commit ? html`<a href="https://github.com/${this.resource.spec.githubRepo}/tree/${commitmeta.commit.spec.ref}">${shortenRefName(commitmeta.commit.spec.ref)}</a>` : ""}
+    ${commit ? html`<a href="https://github.com/${this.resource.spec.githubRepo}/tree/${commit.spec.ref}">${shortenRefName(commit.spec.ref)}</a>` : ""}
   </div>
   <div>
-    <a href="https://github.com/${this.resource.spec.githubRepo}/commit/${commitmeta.id}">${commitmeta.id.slice(0, 7)}...</a>
+    <a href="https://github.com/${this.resource.spec.githubRepo}/commit/${commit.spec.rev}">${commit.spec.rev.slice(0, 7)}...</a>
   </div>
   <div class="justify-right">
-    ${commitmeta.builds.length > 0 ? commitmeta.builds.map(p=>this.renderBuild(commitmeta, p)) : html`<span style="opacity:0.5">build</span>`} |
-    ${commitmeta.previews.length > 0 ? commitmeta.previews.map(p=>this.renderPreview(commitmeta, p)) : html`<span style="opacity:0.5">log</span> | <span style="opacity:0.5">url</span>`}
+    ${commit.children.builds.length > 0 ? commit.children.builds.map(p=>this.renderBuild(commit, p)) : html`<span style="opacity:0.5">build</span>`} |
+    ${commit.children.previews.length > 0 ? commit.children.previews.map(p=>this.renderPreview(commit, p)) : html`<span style="opacity:0.5">log</span> | <span style="opacity:0.5">url</span>`}
   </div>
 `
   }
 
-  renderPull(commitmeta) {
-    if (commitmeta.commit && commitmeta.commit.pull) {
-      let pull = commitmeta.commit.pull
-      return html`<a href="${pull.html_url}">PR#${pull.number}</a>`
-    } else {
-      return ""
-    }
+  renderPull(commit) {
+    let matches = commit.spec.ref.match(/^refs\/pull\/([0-9])+\/(head|merge)$/);
+    if (!matches)
+      return "";
+    let prNumber = matches[1];
+    return html`<a href="https://github.com/${this.resource.spec.githubRepo}/pull/${prNumber}/">PR#${prNumber}</a>`;
   }
 
-  renderBuild(commitmeta, pod, idx) {
+  renderBuild(commit, pod) {
     var styles = "color:blue"
     switch (pod.status.phase) {
     case "Succeeded":
@@ -210,11 +200,11 @@ class Project extends SingleResource {
       styles = "color:red"
       break
     }
-    let selected = this.logSelected(commitmeta, pod) ? "background-color:#dcdcdc" : ""
-    return html`<a style="cursor:pointer;${styles};${selected}" @click=${()=>this.openTerminal(commitmeta, pod)}>build</a>`
+    let selected = this.logSelected("build", commit) ? "background-color:#dcdcdc" : ""
+    return html`<a style="cursor:pointer;${styles};${selected}" @click=${()=>this.openTerminal("build", commit)}>build</a>`
   }
 
-  renderPreview(commitmeta, pod) {
+  renderPreview(commit, pod) {
     let cstats = pod.status.containerStatuses
     var styles = "color:blue"
     if (cstats && cstats.length > 0 && cstats[0].ready) {
@@ -222,28 +212,23 @@ class Project extends SingleResource {
     } else {
       styles = "color:red"
     }
-    let selected = this.logSelected(commitmeta, pod) ? "background-color:#dcdcdc" : ""
+    let selected = this.logSelected("deploy", commit) ? "background-color:#dcdcdc" : ""
     return html`
-<a style="cursor:pointer;${styles};${selected}" @click=${()=>this.openTerminal(commitmeta, pod)}>log</a> |
-<a style="text-decoration:none;${styles}" href="/.previews/${commitmeta.prefix}/${commitmeta.id}/">url</a>
+<a style="cursor:pointer;${styles};${selected}" @click=${()=>this.openTerminal("deploy", commit)}>log</a> |
+<a style="text-decoration:none;${styles}" href="/.previews/${this.resource.spec.prefix}/${commit.spec.rev}/">url</a>
 `
   }
 
-  logSelected(commitmeta, pod) {
-    return HASH.get("log") === this.logParam(commitmeta, pod)
+  logSelected(logType, commit) {
+    return HASH.get("log") === this.logParam(logType, commit)
   }
 
-  logParam(commitmeta, pod) {
-    let name = this.resource.metadata.name
-    if (pod.metadata.labels.hasOwnProperty("build")) {
-      return `build/${pod.metadata.namespace}/${name}/${commitmeta.id}`
-    } else {
-      return `deploy/${pod.metadata.namespace}/${name}/${commitmeta.id}`
-    }
+  logParam(logType, commit) {
+    return `${logType}/${commit.metadata.name}.${commit.metadata.namespace}`;
   }
 
-  openTerminal(commitmeta, pod) {
-    HASH.set("log", this.logParam(commitmeta, pod))
+  openTerminal(logType, commit) {
+    HASH.set("log", this.logParam(logType, commit))
   }
 
   closeTerminal() {
