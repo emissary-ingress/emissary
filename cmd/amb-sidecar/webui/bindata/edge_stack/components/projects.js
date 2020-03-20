@@ -366,7 +366,9 @@ export class Projects extends SortableResourceSet {
         prefix: "",
         githubRepo: "",
         githubToken: ""
-      }
+      },
+      commits: [],
+      pods: [],
     });
   }
 
