@@ -23,6 +23,7 @@ export class ResourceView extends View {
 
   static get properties() {
     let myProperties =  {
+      collection: {type: Object},
       kind:      {type: String},  // Resource state
       name:      {type: String},  // Resource state
       namespace: {type: String},  // Resource state
@@ -59,6 +60,9 @@ export class ResourceView extends View {
   constructor() {
     super();
 
+    // We need a collection in order to add/edit/delete a resource.
+    this.collection = null;
+
     /* Since we are managing a Resource view, we may have messages to display, and optional YAML */
     this.messages = [];
     this.showYAML = false;
@@ -93,8 +97,6 @@ export class ResourceView extends View {
    * Called by doCancelButton and onSaveTimeout, this restores the view's models, notification, and viewState.
    */
   cancelEdit() {
-    let collection = this.parentElement.model;
-
     /* Stop listening to the "new" model.  */
     this.model.removeListener(this);
 
@@ -103,7 +105,7 @@ export class ResourceView extends View {
      * is why this is a replacement: they are keyed by the triple as a unique key.
      */
     this.model = this._savedModel;
-    collection.replaceResource(this.model);
+    this.collection.replaceResource(this.model);
 
     /* Start listening again to the saved model */
     this.model.addListener(this);
@@ -316,10 +318,9 @@ export class ResourceView extends View {
       if (this.viewState === "add") {
         /* parentElement = ResourceCollectionView, model is ResourceCollection */
         let newResource = this.model;
-        let collection = this.parentElement.model;
 
         /* Further validate the Resource name, namespace, kind, and hostname for uniqueness. */
-        if (collection.hasResource(newResource)) {
+        if (this.collection.hasResource(newResource)) {
           this.addMessage(`Resource named ${newResource.name} in ${newResource.namespace} already exists.`);
         }
 
@@ -328,7 +329,7 @@ export class ResourceView extends View {
           /* Add the Resource to the ResourceCollection, since it is new, and set its pending flag to "add"
            * so that the ResourceCollection won't delete it if it isn't immediately in an upcoming snapshot.
            */
-          collection.addResource(newResource);
+          this.collection.addResource(newResource);
           newResource.setPending("add");
 
           error = newResource.doSave();
@@ -353,12 +354,11 @@ export class ResourceView extends View {
       else if (this.viewState === "edit") {
         let newResource = this.model;
         let oldResource = this._savedModel;
-        let collection = this.parentElement.model;
 
         /* Replace the existing resource in the ResourceCollection, to start receiving updates.  The
          * existing Resource should be the same as is stored in _savedModel.
          */
-        collection.replaceResource(newResource);
+        this.collection.replaceResource(newResource);
         newResource.setPending("save");
 
         /* Save the changes from the new Resource model */
@@ -402,7 +402,6 @@ export class ResourceView extends View {
   onSaveTimeout() {
     let newResource = this.model;
     let oldResource = this._savedModel;
-    let collection  = this.parentElement.model;
 
     /* Pending add operation? New Resource being added to the system. */
     if (newResource.isPending("add")) {
