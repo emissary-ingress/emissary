@@ -159,6 +159,9 @@ class IRHost(IRResource):
         # namespace, fall back to the Ambassador's namespace.
         namespace = self.namespace or ir.ambassador_namespace
 
+        if "." in secret_name:
+            secret_name, namespace = secret_name.split('.', 1)
+
         return ir.resolve_secret(self, secret_name, namespace)
 
 
