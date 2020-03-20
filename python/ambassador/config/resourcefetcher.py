@@ -600,6 +600,7 @@ class ResourceFetcher:
                             'namespace': ingress_namespace
                         },
                         'spec': {
+                            'ambassador_id': [ambassador_id],
                             'hostname': host,
                             'acmeProvider': {
                                 'authority': 'none'
