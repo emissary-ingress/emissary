@@ -585,33 +585,42 @@ class ResourceFetcher:
 
         ingress_tls = ingress_spec.get('tls', [])
         for tls_count, tls in enumerate(ingress_tls):
-            tls_unique_identifier = f"{ingress_name}-{tls_count}"
 
             tls_secret = tls.get('secretName', None)
-
             if tls_secret is not None:
-                ingress_tls_context: Dict[str, Any] = {
-                    'apiVersion': 'getambassador.io/v2',
-                    'kind': 'TLSContext',
-                    'metadata': {
-                        'name': tls_unique_identifier,
-                        'namespace': ingress_namespace
-                    },
-                    'spec': {
-                        'secret': tls_secret,
-                        'ambassador_id': ambassador_id
+
+                for host_count, host in enumerate(tls.get('hosts', ['*'])):
+                    tls_unique_identifier = f"{ingress_name}-{tls_count}-{host_count}"
+
+                    ingress_host: Dict[str, Any] = {
+                        'apiVersion': 'getambassador.io/v2',
+                        'kind': 'Host',
+                        'metadata': {
+                            'name': tls_unique_identifier,
+                            'namespace': ingress_namespace
+                        },
+                        'spec': {
+                            'ambassador_id': [ambassador_id],
+                            'hostname': host,
+                            'acmeProvider': {
+                                'authority': 'none'
+                            },
+                            'tlsSecret': {
+                                'name': tls_secret
+                            },
+                            'requestPolicy': {
+                                'insecure': {
+                                    'action': 'Route'
+                                }
+                            }
+                        }
                     }
-                }
 
-                if metadata_labels:
-                    ingress_tls_context['metadata']['labels'] = metadata_labels
+                    if metadata_labels:
+                        ingress_host['metadata']['labels'] = metadata_labels
 
-                tls_hosts = tls.get('hosts', None)
-                if tls_hosts is not None:
-                    ingress_tls_context['spec']['hosts'] = tls_hosts
-
-                self.logger.info(f"Generated TLS Context from ingress {ingress_name}: {ingress_tls_context}")
-                self.handle_k8s_crd(ingress_tls_context)
+                    self.logger.info(f"Generated Host from ingress {ingress_name}: {ingress_host}")
+                    self.handle_k8s_crd(ingress_host)
 
         # parse ingress.spec.defaultBackend
         # using ingress.spec.backend as a fallback, for older versions of the Ingress resource.
