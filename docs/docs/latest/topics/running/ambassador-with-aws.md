@@ -56,7 +56,7 @@ There are several `aws-load-balancer` annotations that can be configured in the 
 - `service.beta.kubernetes.io/aws-load-balancer-proxy-protocol`:
     Configures the ELB to enable the proxy protocol. `"*"`, which enables the proxy protocol on all ELB backends, is the only acceptable value.
 
-    If setting this value, you need to make sure Envoy is configured to use the proxy protocol. This can be configured by setting `use_proxy_proto: true` and `use_remote_address: false` in the [ambassador `Module`](../core/ambassador). **Note:** a restart of Ambassador Edge Stack is required for this configuration to take effect.
+    If setting this value, you need to make sure Envoy is configured to use the proxy protocol. This can be configured by setting `use_proxy_proto: true` and `use_remote_address: false` in the [ambassador `Module`](../ambassador). **Note:** a restart of Ambassador Edge Stack is required for this configuration to take effect.
     
 
 ## YAML Configuration

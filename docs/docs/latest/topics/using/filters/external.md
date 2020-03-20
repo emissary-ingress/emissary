@@ -80,9 +80,9 @@ The following fields are only used if `proto: http`; they are ignored if `proto:
 
  - `add_linkerd_headers` (optional) when true, in the request to the external auth service, adds an `l5d-dst-override` HTTP header that is set to the hostname and port number of the external auth service.  Defaults to `false`.
 
-This `.spec.External` is mostly identical to an [`AuthService`](../services/auth-service) `.spec`, with the following exceptions:
+This `.spec.External` is mostly identical to an [`AuthService`](../../../running/services/auth-service) `.spec`, with the following exceptions:
 
 * In an `AuthService`, the `tls` field may either be a Boolean, or a string referring to a `TLSContext`. In an `External` filter, it may only be a Boolean; referring to a TLS context is not supported.
-* In an `AuthService`, the `add_linkerd_headers` field defaults based on the [`ambassador Module`](../../running/ambassador). In an `External` filter, it defaults to `false`. This may change in a future release.
+* In an `AuthService`, the `add_linkerd_headers` field defaults based on the [`ambassador Module`](../../../running/ambassador). In an `External` filter, it defaults to `false`. This may change in a future release.
 
 [`ext_authz` protocol]: ../../../running/services/ext_authz

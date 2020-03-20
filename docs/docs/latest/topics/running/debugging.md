@@ -1,6 +1,6 @@
 # Debugging
 
-If you’re experiencing issues with the Ambassador Edge Stack and cannot diagnose the issue through the "Diagnostics" tab from the [Edge Policy Console](../using/edge-policy-console), this document covers various approaches and advanced use cases for debugging Ambassador issues.
+If you’re experiencing issues with the Ambassador Edge Stack and cannot diagnose the issue through the "Diagnostics" tab from the [Edge Policy Console](../../using/edge-policy-console), this document covers various approaches and advanced use cases for debugging Ambassador issues.
 
 We assume that you already have a running Ambassador installation in the following sections.
 
