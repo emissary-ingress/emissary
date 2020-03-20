@@ -24,12 +24,15 @@ spec:
     port: 3000
     targetPort: grpc-api
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: grpc-auth
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: grpc-auth
   template:
     metadata:
       labels:
@@ -72,12 +75,15 @@ spec:
     port: 4000
     targetPort: http-api
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: http-auth
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: http-auth
   template:
     metadata:
       labels:
