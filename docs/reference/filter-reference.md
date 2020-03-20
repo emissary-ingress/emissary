@@ -178,10 +178,10 @@ spec:
     * `.httpRequestHeader` → [`http.Header`][] a copy of the header of the incoming HTTP request.  Any changes to `.httpRequestHeader` (such as by using using `.httpRequestHeader.Set`) have no effect.  It is recommended to use `.httpRequestHeader.Get` instead of treating it as a map, in order to handle capitalization correctly.
 
    Any headers listed will override (not append to) the original request header with that name.
- - `realm` allows specifying the realm to report in the `WWW-Authenticate` response header.
  - `errorResponse` allows templating the error response, overriding the default json error format.  Make sure you validate and test your template, not to generate server-side errors on top of client errors.
     * `contentType` is deprecated, and is equivalent to including a
       `name: "Content-Type"` item in `headers`.
+    * `realm` allows specifying the realm to report in the `WWW-Authenticate` response header.
     * `headers` sets extra HTTP header fields in the error response. The value is specified as a [Go `text/template`][] string, with the same data made available to it as `bodyTemplate` (below). It does not have access to the `json` function.
     * `bodyTemplate` specifies body of the error; specified as a [Go`text/template`][] string, with the following data made available to it:
 
