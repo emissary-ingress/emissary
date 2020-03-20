@@ -613,8 +613,9 @@ class ResourceFetcher:
                 self.logger.info(f"Generated TLS Context from ingress {ingress_name}: {ingress_tls_context}")
                 self.handle_k8s_crd(ingress_tls_context)
 
-        # parse ingress.spec.backend
-        default_backend = ingress_spec.get('backend', {})
+        # parse ingress.spec.defaultBackend
+        # using ingress.spec.backend as a fallback, for older versions of the Ingress resource.
+        default_backend = ingress_spec.get('defaultBackend', ingress_spec.get('backend', {}))
         db_service_name = default_backend.get('serviceName', None)
         db_service_port = default_backend.get('servicePort', None)
         if db_service_name is not None and db_service_port is not None:
