@@ -609,6 +609,24 @@ func unstructureProject(project *Project) *k8sTypesUnstructured.Unstructured {
 	}
 }
 
+// unstructureCommit returns a *k8sTypesUnstructured.Unstructured
+// representation of an *ambassadorTypesV2.ProjectCommit.  There are 2
+// reasons why we might want this:
+//
+//  1. For use with a k8sClientDynamic.Interface
+//  2. For use as a k8sRuntime.Object
+func unstructureCommit(commit *ProjectCommit) *k8sTypesUnstructured.Unstructured {
+	return &k8sTypesUnstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": "getambassador.io/v2",
+			"kind":       "ProjectCommit",
+			"metadata":   unstructureMetadata(&commit.ObjectMeta),
+			"spec":       commit.Spec,
+			"status":     commit.Status,
+		},
+	}
+}
+
 // unstructureMetadata marshals a *k8sTypesMetaV1.ObjectMeta for use
 // in a `*k8sTypesUnstructured.Unstructured`.
 //

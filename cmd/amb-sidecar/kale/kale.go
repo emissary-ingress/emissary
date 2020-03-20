@@ -123,9 +123,11 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 				Pods:     w.List("pods."),
 				Projects: w.List("projects.getambassador.io"),
 				Commits:  w.List("projectcommits.getambassador.io"),
-			}.TypedAndFiltered(softCtx, cfg.AmbassadorID)
-			upstreamWorker <- snapshot
-			upstreamWebUI <- snapshot
+			}
+			// More so out of paranoia than in response to an actual issue: repeat the
+			// .TypedAndFiltered() call for each stream, so that they share no pointers.
+			upstreamWorker <- snapshot.TypedAndFiltered(softCtx, cfg.AmbassadorID)
+			upstreamWebUI <- snapshot.TypedAndFiltered(softCtx, cfg.AmbassadorID)
 		}
 
 		labelSelector := GlobalLabelName + "=" + cfg.AmbassadorID
@@ -276,6 +278,7 @@ did_read:
 func NewKale(dynamicClient k8sClientDynamic.Interface) *kale {
 	return &kale{
 		projectsGetter: dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "projects"}),
+		commitsGetter:  dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "projectcommits"}),
 		Projects:       make(map[string]*Project),
 		Pods:           make(PodMap),
 	}
@@ -285,6 +288,7 @@ type kale struct {
 	cfg types.Config
 
 	projectsGetter k8sClientDynamic.NamespaceableResourceInterface
+	commitsGetter  k8sClientDynamic.NamespaceableResourceInterface
 
 	mu       sync.RWMutex
 	Projects map[string]*Project
@@ -541,9 +545,6 @@ func (k *kale) startBuild(proj *Project, commit *ProjectCommit) (string, error) 
 			ObjectMeta: k8sTypesMetaV1.ObjectMeta{
 				Name:      commit.GetName() + "-build",
 				Namespace: commit.GetNamespace(),
-				Annotations: map[string]string{
-					"statusesUrl": "https://api.github.com/repos/" + proj.Spec.GithubRepo + "/statuses/" + commit.Spec.Rev,
-				},
 				Labels: map[string]string{
 					GlobalLabelName: k.cfg.AmbassadorID,
 					CommitLabelName: commit.GetName() + "." + commit.GetNamespace(),
@@ -664,30 +665,76 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 func (k *kale) reconcileCommit(ctx context.Context, proj *Project, commit *ProjectCommit, builders, runners []*k8sTypesCoreV1.Pod) error {
 	log := dlog.GetLogger(ctx)
 
+	var commitPhase CommitPhase
+	// Decide what the phase of the commit should be, based on available evidence
+	if len(runners) == 0 {
+		if len(builders) != 1 {
+			commitPhase = CommitPhase_Received
+		} else {
+			switch builders[0].Status.Phase {
+			case k8sTypesCoreV1.PodFailed:
+				commitPhase = CommitPhase_BuildFailed
+			case k8sTypesCoreV1.PodSucceeded:
+				commitPhase = CommitPhase_Deploying
+			default:
+				commitPhase = CommitPhase_Building
+			}
+		}
+	} else {
+		if len(runners) != 1 {
+			commitPhase = CommitPhase_Deploying
+		} else {
+			switch runners[0].Status.Phase {
+			case k8sTypesCoreV1.PodFailed, k8sTypesCoreV1.PodSucceeded:
+				commitPhase = CommitPhase_DeployFailed
+			case k8sTypesCoreV1.PodRunning:
+				commitPhase = CommitPhase_Deployed
+			default:
+				commitPhase = CommitPhase_Deploying
+			}
+		}
+	}
+	// If the detected phase of the commit doesn't match what's in the commit.status, inform
+	// both Kubernetes and GitHub of the change.
+	if commitPhase != commit.Status.Phase {
+		commit.Status.Phase = commitPhase
+		uCommit := unstructureCommit(commit)
+		_, err := k.commitsGetter.Namespace(commit.GetNamespace()).UpdateStatus(uCommit, k8sTypesMetaV1.UpdateOptions{})
+		if err != nil {
+			log.Println("update commit status:", err)
+		}
+		postStatus(ctx, fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, commit.Spec.Rev),
+			GitHubStatus{
+				State: map[CommitPhase]string{
+					CommitPhase_Received:  "pending",
+					CommitPhase_Building:  "pending",
+					CommitPhase_Deploying: "pending",
+					CommitPhase_Deployed:  "success",
+
+					CommitPhase_BuildFailed:  "failure",
+					CommitPhase_DeployFailed: "failure",
+				}[commitPhase],
+				TargetUrl: map[CommitPhase]string{
+					CommitPhase_Received:     proj.BuildLogUrl(commit),
+					CommitPhase_Building:     proj.BuildLogUrl(commit),
+					CommitPhase_BuildFailed:  proj.BuildLogUrl(commit),
+					CommitPhase_Deploying:    proj.ServerLogUrl(commit),
+					CommitPhase_DeployFailed: proj.ServerLogUrl(commit),
+					CommitPhase_Deployed:     proj.PreviewUrl(commit),
+				}[commitPhase],
+				Description: commitPhase.String(),
+				Context:     "aes",
+			},
+			proj.Spec.GithubToken)
+
+	}
+
 	switch len(builders) {
 	case 0:
 		if len(runners) == 0 {
-			out, err := k.startBuild(proj, commit)
+			_, err := k.startBuild(proj, commit)
 			if err != nil {
-				log.Printf("OUTPUT: %s", out)
 				log.Printf("ERROR: %v", err)
-				postStatus(ctx, fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, commit.Spec.Rev),
-					GitHubStatus{
-						State:       "error",
-						TargetUrl:   fmt.Sprintf("http://%s/edge_stack/admin/#projects", proj.Spec.Host),
-						Description: fmt.Sprintf("error starting build: %s", err.Error()),
-						Context:     "aes",
-					},
-					proj.Spec.GithubToken)
-			} else {
-				postStatus(ctx, fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, commit.Spec.Rev),
-					GitHubStatus{
-						State:       "pending",
-						TargetUrl:   proj.BuildLogUrl(commit),
-						Description: "build started",
-						Context:     "aes",
-					},
-					proj.Spec.GithubToken)
 			}
 		}
 	case 1:
@@ -706,48 +753,12 @@ func (k *kale) reconcileCommit(ctx context.Context, proj *Project, commit *Proje
 		builder := builders[0]
 		// TODO: validate that the builder looks how we expect
 
-		phase := builder.Status.Phase
-		qname := builder.GetName() + "." + builder.GetNamespace()
-		log.Println("BUILDER", qname, phase)
-
 		if len(runners) == 0 { // don't bother with the builder if there's already a runner
-			statusesUrl := builder.GetAnnotations()["statusesUrl"]
-			switch phase {
-			case k8sTypesCoreV1.PodFailed:
-				log.Println(podLogs(builder.GetName()))
-				postStatus(ctx, statusesUrl, GitHubStatus{
-					State:       "failure",
-					TargetUrl:   proj.BuildLogUrl(commit),
-					Description: string(phase),
-					Context:     "aes",
-				},
-					proj.Spec.GithubToken)
+			switch builder.Status.Phase {
 			case k8sTypesCoreV1.PodSucceeded:
 				out, err := k.startRun(proj, commit)
 				if err != nil {
-					msg := fmt.Sprintf("ERROR: %v: %s", err, out)
-					log.Print(msg)
-					if len(msg) > 140 {
-						msg = msg[len(msg)-140:]
-					}
-					postStatus(ctx, statusesUrl,
-						GitHubStatus{
-							State:       "error",
-							TargetUrl:   fmt.Sprintf("http://%s/edge_stack/admin/#projects", proj.Spec.Host),
-							Description: msg,
-							Context:     "aes",
-						},
-						proj.Spec.GithubToken)
-					return err
-				} else {
-					postStatus(ctx, statusesUrl,
-						GitHubStatus{
-							State:       "success",
-							TargetUrl:   proj.PreviewUrl(commit),
-							Description: string(phase),
-							Context:     "aes",
-						},
-						proj.Spec.GithubToken)
+					log.Printf("ERROR: %v: %s", err, out)
 				}
 			}
 		}

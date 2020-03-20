@@ -2,10 +2,12 @@ package kale
 
 import (
 	// standard library
+	"encoding/json"
 	"fmt"
 	"time"
 
 	// 3rd party
+	"github.com/gogo/protobuf/proto"
 	libgitPlumbing "gopkg.in/src-d/go-git.v4/plumbing"
 
 	// k8s types
@@ -49,13 +51,69 @@ func (p Project) BuildLogUrl(commit *ProjectCommit) string {
 type ProjectCommit struct {
 	k8sTypesMetaV1.TypeMeta   `json:",inline"`
 	k8sTypesMetaV1.ObjectMeta `json:"metadata"`
-	Spec                      ProjectCommitSpec `json:"spec"`
+	Spec                      ProjectCommitSpec   `json:"spec"`
+	Status                    ProjectCommitStatus `json:"status"`
 }
 
 type ProjectCommitSpec struct {
 	Project k8sTypesCoreV1.LocalObjectReference `json:"project"`
 	Ref     libgitPlumbing.ReferenceName        `json:"ref"` // string
 	Rev     string                              `json:"rev"` // libgitPlumbing.Hash
+}
+
+type ProjectCommitStatus struct {
+	Phase CommitPhase `json:"phase"`
+}
+
+type CommitPhase int32
+
+const (
+	CommitPhase_Received     CommitPhase = 0
+	CommitPhase_Building     CommitPhase = 1
+	CommitPhase_BuildFailed  CommitPhase = 2
+	CommitPhase_Deploying    CommitPhase = 3
+	CommitPhase_DeployFailed CommitPhase = 4
+	CommitPhase_Deployed     CommitPhase = 5
+)
+
+var CommitPhase_name = map[int32]string{
+	0: "Received",
+	1: "Building",
+	2: "BuildFailed",
+	3: "Deploying",
+	4: "DeployFailed",
+	5: "Deployed",
+}
+
+var CommitPhase_value = map[string]int32{
+	"Received":     0,
+	"Building":     1,
+	"BuildFailed":  2,
+	"Deploying":    3,
+	"DeployFailed": 4,
+	"Deployed":     5,
+}
+
+func (x CommitPhase) String() string {
+	return proto.EnumName(CommitPhase_name, int32(x))
+}
+
+func (x CommitPhase) MarshalJSON() ([]byte, error) {
+	return json.Marshal(x.String())
+}
+
+func (x *CommitPhase) UnmarshalJSON(bs []byte) error {
+	var str string
+	if err := json.Unmarshal(bs, &str); err != nil {
+		return err
+	}
+	val, ok := CommitPhase_value[str]
+	if !ok {
+		// non-fatal, for now?
+		val = 0
+	}
+	*x = CommitPhase(val)
+	return nil
 }
 
 type Mapping struct {
