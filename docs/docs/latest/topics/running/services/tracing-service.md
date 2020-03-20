@@ -47,8 +47,8 @@ Please note that you must use the HTTP/2 pseudo-header names. For example:
 
 - `service_name` the name of the service which is attached to the traces. The default value is `ambassador`.
 
-You may only use a single `TracingService` manifest per Ambassador deployment. Ensure [ambassador_id](../running#ambassador_id) is set correctly in the `TracingService` manifest.
+You may only use a single `TracingService` manifest per Ambassador deployment. Ensure [ambassador_id](../../running#ambassador_id) is set correctly in the `TracingService` manifest.
 
 ## Example
 
-Check out the [DataDog](../../../howtos/tracing-datadog) and [Zipkin](../../../howtos/tracing-zipkin) HOWTOs.
+Check out the [DataDog](../../../../howtos/tracing-datadog) and [Zipkin](../../../../howtos/tracing-zipkin) HOWTOs.

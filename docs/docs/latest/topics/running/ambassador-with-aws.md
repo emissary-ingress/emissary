@@ -2,7 +2,7 @@
 
 For the most part, the Ambassador Edge Stack is platform agnostic and will run in the same way regardless of your Kubernetes installation.
 
-This is mostly true of AWS as well. The various methods of deploying Ambassador Edge Stack outlined in the [installation guide](../install/) will all work on AWS the same way they do on any Kubernetes installation.
+This is mostly true of AWS as well. The various methods of deploying Ambassador Edge Stack outlined in the [installation guide](../../install/) will all work on AWS the same way they do on any Kubernetes installation.
 
 However, Kubernetes exposes various annotations for controlling the configuration of the AWS load balancer deployed via a Kubernetes `type: LoadBalancer` service.
 
@@ -99,9 +99,9 @@ In this configuration, an ELB is deployed with a multi-domain AWS Certificate Ma
 
 ## TLS Termination
 
-Ambassador Edge Stack can be configured to perform SSL offload by configuring [`TLSContext`](../core/tls#tlscontext). Refer to the [TLS Termination](../../user-guide/tls-termination) documentation for more information.
+Ambassador Edge Stack can be configured to perform TLS offload by configuring [`TLSContext`](../tls/).
 
-In AWS, you can also perform SSL offload with an ELB or ALB. If you choose to terminate TLS at the LB, Ambassador Edge Stack should be configured to listen for cleartext traffic on the default port 80.
+In AWS, you can also perform TLS offload with an ELB or ALB. If you choose to terminate TLS at the LB, Ambassador Edge Stack should be configured to listen for cleartext traffic on the default port 80.
 
 Enabling HTTP -> HTTPS redirection will depend on if your load balancer is running in L4 or L7 mode.
 

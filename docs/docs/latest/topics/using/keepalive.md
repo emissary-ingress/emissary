@@ -4,7 +4,7 @@ Keepalive option indicates whether `SO_KEEPALIVE` on the socket should be enable
 
 ## Keepalive Configuration
 
-Keepalive configuration can be set for all Ambassador Edge Stack mappings in the [`ambassador Module`](../running/ambassador) or set per [`Mapping`](mappings#configuring-mappings).
+Keepalive configuration can be set for all Ambassador Edge Stack mappings in the [`ambassador Module`](../../running/ambassador) or set per [`Mapping`](../mappings#configuring-mappings).
 
 The `keepalive` attribute configures keepalive. The following fields are supported:
 

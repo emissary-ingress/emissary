@@ -79,7 +79,7 @@ env:
       fieldPath: metadata.namespace
 ```
 
-Given that `AMBASSADOR_NAMESPACE` is set, Ambassador [mappings](../using/mappings) can operate within the same namespace, or across namespaces. **Note well** that mappings will have to explicitly include the namespace with the service to cross namespaces; see the [mapping](../mappings) documentation for more information.
+Given that `AMBASSADOR_NAMESPACE` is set, Ambassador [mappings](../../using/mappings) can operate within the same namespace, or across namespaces. **Note well** that mappings will have to explicitly include the namespace with the service to cross namespaces; see the [mapping](../../using/mappings) documentation for more information.
 
 If you want Ambassador to only work within a single namespace, set `AMBASSADOR_SINGLE_NAMESPACE` as an environment variable.
 
@@ -195,7 +195,7 @@ Also note that the YAML files in the configuration directory must contain the Am
 
 ## Log Levels and Debugging
 
-The Ambassador API Gateway and the Ambassador Edge Stack support more verbose debugging levels. If using the Ambassador API Gateway, the [diagnostics](diagnostics) service has a button to enable debug logging. Be aware that if you're running Ambassador on multiple pods, the debug log levels are not enabled for all pods -- they are configured on a per-pod basis.
+The Ambassador API Gateway and the Ambassador Edge Stack support more verbose debugging levels. If using the Ambassador API Gateway, the [diagnostics](../diagnostics) service has a button to enable debug logging. Be aware that if you're running Ambassador on multiple pods, the debug log levels are not enabled for all pods -- they are configured on a per-pod basis.
 
 If using the Ambassador Edge Stack, you can adjust the log level by setting the `APP_LOG_LEVEL` environment variable; from least verbose to most verbose, the valid values are `error`, `warn`/`warning`, `info`, `debug`, and `trace`; the default is `info`.
 

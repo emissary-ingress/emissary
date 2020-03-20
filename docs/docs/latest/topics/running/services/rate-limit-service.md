@@ -26,7 +26,7 @@ spec:
     - service: catalog
 ```
 
-For more information on request labels, see the [Rate Limit reference](../../using/rate-limits/).
+For more information on request labels, see the [Rate Limit reference](../../../using/rate-limits/).
 
 ## Domains
 
@@ -104,7 +104,7 @@ If `tls` is present with a value that is not `true`, the value is assumed to be 
 
 ## Example
 
-The [Ambassador Edge Stack Rate Limiting Tutorial](../../../user-guide/rate-limiting-tutorial) has a simple rate limiting example. For a more advanced example, read the [advanced rate limiting tutorial](../../../user-guide/advanced-rate-limiting) with Ambassador Edge Stack tutorial.
+The [Ambassador Edge Stack Rate Limiting Tutorial](../../../../howtos/rate-limiting-tutorial) has a simple rate limiting example. For a more advanced example, read the [advanced rate limiting tutorial](../../../../howtos/advanced-rate-limiting) with Ambassador Edge Stack tutorial.
 
 ## Further Reading
 

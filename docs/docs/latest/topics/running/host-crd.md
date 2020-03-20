@@ -271,7 +271,7 @@ This example is the same for an L4 LB, or without a load balancer at all.
 
 ## `Host` Specification
 
-The Ambassador Edge Stack automates the creation of TLS certificates via the [Edge Policy Console](../using/edge-policy-console), which provides HTTPS for your hosts. Note that **in order to have TLS and automatic HTTPS, your host must be an FQDN.**
+The Ambassador Edge Stack automates the creation of TLS certificates via the [Edge Policy Console](../../using/edge-policy-console), which provides HTTPS for your hosts. Note that **in order to have TLS and automatic HTTPS, your host must be an FQDN.**
 
 The Host CRD defines how Ambassador will be visible to the outside world. A minimal Host defines a hostname by which the Ambassador will be reachable, but a Host can also tell an Ambassador how to manage TLS, and which resources to examine for further configuration.
 

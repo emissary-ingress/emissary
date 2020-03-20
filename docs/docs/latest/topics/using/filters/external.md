@@ -1,6 +1,6 @@
 # Filter Type: `External`
 
-The `External` filter calls out to an external service speaking the [`ext_authz` protocol](../../running/services/ext_authz), providing a highly flexible interface to plug in your own authentication, authorization, and filtering logic.
+The `External` filter calls out to an external service speaking the [`ext_authz` protocol](../../../running/services/ext_authz), providing a highly flexible interface to plug in your own authentication, authorization, and filtering logic.
 
 ```yaml
 ---
@@ -83,6 +83,6 @@ The following fields are only used if `proto: http`; they are ignored if `proto:
 This `.spec.External` is mostly identical to an [`AuthService`](../services/auth-service) `.spec`, with the following exceptions:
 
 * In an `AuthService`, the `tls` field may either be a Boolean, or a string referring to a `TLSContext`. In an `External` filter, it may only be a Boolean; referring to a TLS context is not supported.
-* In an `AuthService`, the `add_linkerd_headers` field defaults based on the [`ambassador Module`](../core/ambassador). In an `External` filter, it defaults to `false`. This may change in a future release.
+* In an `AuthService`, the `add_linkerd_headers` field defaults based on the [`ambassador Module`](../../running/ambassador). In an `External` filter, it defaults to `false`. This may change in a future release.
 
-[`ext_authz` protocol]: ../../running/services/ext_authz
+[`ext_authz` protocol]: ../../../running/services/ext_authz

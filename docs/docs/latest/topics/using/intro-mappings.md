@@ -1,6 +1,6 @@
 # Introduction to the `Mapping` resource
 
-Ambassador is designed around a [declarative, self-service management model](../concepts/gitops-continuous-delivery). The core resource used to support application development teams who need to manage the edge with Ambassador is the `Mapping` resource.
+Ambassador is designed around a [declarative, self-service management model](../../concepts/gitops-continuous-delivery). The core resource used to support application development teams who need to manage the edge with Ambassador is the `Mapping` resource.
 
 ## Quick Example
 
@@ -115,8 +115,8 @@ Where everything except for the `service` is optional.
 
 - `scheme` can be either `http` or `https`; if not present, the default is `http`.
 - `service` is the name of a service (typically the service name in Kubernetes or Consul); it is not allowed to contain the `.` character.
-- `namespace` is the namespace in which the service is running. Starting with Ambassador 1.0.0, if not supplied, it defaults to the namespace in which the Mapping resource is defined. The default behavior can be configured using the [`ambassador` Module](../core/ambassador). When using a Consul resolver, `namespace` is not allowed.
-- `port` is the port to which a request should be sent. If not specified, it defaults to `80` when the scheme is `http` or `443` when the scheme is `https`. Note that the [resolver](../core/resolvers) may return a port in which case the `port` setting is ignored.
+- `namespace` is the namespace in which the service is running. Starting with Ambassador 1.0.0, if not supplied, it defaults to the namespace in which the Mapping resource is defined. The default behavior can be configured using the [`ambassador` Module](../../running/ambassador). When using a Consul resolver, `namespace` is not allowed.
+- `port` is the port to which a request should be sent. If not specified, it defaults to `80` when the scheme is `http` or `443` when the scheme is `https`. Note that the [resolver](../../running/resolvers) may return a port in which case the `port` setting is ignored.
 
 Note that while using `service.namespace.svc.cluster.local` may work for Kubernetes resolvers, the preferred syntax is `service.namespace`.
 

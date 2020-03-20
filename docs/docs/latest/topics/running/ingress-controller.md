@@ -4,7 +4,7 @@ An `Ingress` resource is a popular way to expose Kubernetes services to the Inte
 
 ## When and How to Use the `Ingress` Resource
 
-If you're new to the Ambassador Edge Stack and to Kubernetes, we'd recommend you start with our [quickstart](../../tutorials/getting-started/), instead of using `Ingress`. If you're a power user and need to integrate with other software that leverages the `Ingress` resource, read on. The `Ingress` specification is very basic, and, as such, does not support many of the features of the Ambassador Edge Stack, so you'll be using both `Ingress` resources and `Mapping` resources to manage your Kubernetes services.
+If you're new to the Ambassador Edge Stack and to Kubernetes, we'd recommend you start with our [quickstart](../../../tutorials/getting-started/), instead of using `Ingress`. If you're a power user and need to integrate with other software that leverages the `Ingress` resource, read on. The `Ingress` specification is very basic, and, as such, does not support many of the features of the Ambassador Edge Stack, so you'll be using both `Ingress` resources and `Mapping` resources to manage your Kubernetes services.
 
 ### What is Required to Use the `Ingress` Resource?
 
@@ -23,7 +23,7 @@ If you're new to the Ambassador Edge Stack and to Kubernetes, we'd recommend you
 
 - The Ambassador Edge Stack will need RBAC permissions to get, list, watch, and update `Ingress` resources.
 
-  You can see this in the [`aes-crds.yaml`](../../../yaml/aes.yaml)
+  You can see this in the [`aes-crds.yaml`](../../../../yaml/aes.yaml)
   file, but this is the critical rule to add to the Ambassador Edge Stack's `Role` or `ClusterRole`:
 
       - apiGroups: [ "extensions", "networking.k8s.io" ]
@@ -84,7 +84,7 @@ resource itself:
 1. Basic routing, including the `route` specification and the default backend
   functionality, is supported.
     - It's particularly easy to use a minimal `Ingress` to the Ambassador Edge Stack diagnostic UI
-2. [TLS termination](../using/tls/) is supported.
+2. [TLS termination](../tls/) is supported.
     - you can use multiple `Ingress` resources for SNI
 3. Using the `Ingress` resource in concert with the Ambassador Edge Stack CRDs or annotations is supported.
     - this includes the Ambassador Edge Stack annotations on the `Ingress` resource itself

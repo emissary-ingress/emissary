@@ -30,7 +30,7 @@ Application development teams use Ambassador to manage edge policies associated 
   * [Rate Limiting Configuration](rate-limits/rate-limits)
 * Filters and Authentication
   * [Introduction to Filters and Authentication](filters/)
-  * [OAuth2 Filter](filters/oauh2)
+  * [OAuth2 Filter](filters/oauth2)
   * [JWT Filter](filters/jwt)
   * [External Filter](filters/external)
   * [Plugin Filter](filters/plugin)

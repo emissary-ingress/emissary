@@ -40,7 +40,7 @@ metadata:
 
 ### The Kubernetes Endpoint Resolver
 
-The Kubernetes Endpoint Resolver configures Ambassador Edge Stack to resolve Kubernetes endpoints. This enables the use of more a [advanced load balancing configuration](load-balancer). When this resolver is used, the endpoints for the `service` defined in a `Mapping` are resolved and used to determine where requests are sent.
+The Kubernetes Endpoint Resolver configures Ambassador Edge Stack to resolve Kubernetes endpoints. This enables the use of more a [advanced load balancing configuration](../load-balancer). When this resolver is used, the endpoints for the `service` defined in a `Mapping` are resolved and used to determine where requests are sent.
 
 ```yaml
 ---

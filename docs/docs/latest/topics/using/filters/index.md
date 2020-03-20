@@ -8,10 +8,10 @@ Filters are managed using a `FilterPolicy` resource. The `FilterPolicy` resource
 
 Edge Stack supports the following filter types:
 
-* [`JWT`](jwt.md), which validates JSON Web Tokens
-* [`OAuth2`](oauth2.md), which performs OAuth2 authorization against an identity provider implementing [OIDC Discovery](https://openid.net/specs/openid-connect-discovery-1_0.html).
-* [`Plugin`](plugin.md), which allows users to write custom Filters in Go that run as part of the Edge Stack container
-* [`External`](external.md), which allows users to call out to other services for request processing. This can include both custom services (in any language) or third party services.
+* [`JWT`](jwt), which validates JSON Web Tokens
+* [`OAuth2`](oauth2), which performs OAuth2 authorization against an identity provider implementing [OIDC Discovery](https://openid.net/specs/openid-connect-discovery-1_0.html).
+* [`Plugin`](plugin), which allows users to write custom Filters in Go that run as part of the Edge Stack container
+* [`External`](external), which allows users to call out to other services for request processing. This can include both custom services (in any language) or third party services.
 
 ## Managing Filters
 

@@ -15,23 +15,23 @@ Ambassador Edge Stack supports a number of attributes to configure and customize
 | `address`         | (optional) the IP address on which Ambassador Edge Stack should listen for connections for this Mapping -- if not present, Ambassador Edge Stack will listen on all addresses )
 | `port`            | (required) the TCP port on which Ambassador Edge Stack should listen for connections for this Mapping |
 | `idle_timeout_ms` | (optional) the timeout, in milliseconds, after which the connection will be terminated if no traffic is seen -- if not present, no timeout is applied |
-| `enable_ipv4` | (optional) if true, enables IPv4 DNS lookups for this mapping's service (the default is set by the [`ambassador Module`](../running/ambassador)) |
-| `enable_ipv6` | (optional) if true, enables IPv6 DNS lookups for this mapping's service (the default is set by the [`ambassador Module`](../running/ambassador)) |
+| `enable_ipv4` | (optional) if true, enables IPv4 DNS lookups for this mapping's service (the default is set by the [`ambassador Module`](../../running/ambassador)) |
+| `enable_ipv6` | (optional) if true, enables IPv6 DNS lookups for this mapping's service (the default is set by the [`ambassador Module`](../../running/ambassador)) |
 
-If both `enable_ipv4` and `enable_ipv6` are set, Ambassador Edge Stack will prefer IPv6 to IPv4. See the [`ambassador Module`](../modules) documentation for more information.
+If both `enable_ipv4` and `enable_ipv6` are set, Ambassador Edge Stack will prefer IPv6 to IPv4. See the [`ambassador Module`](../../running/ambassador) documentation for more information.
 
 Ambassador Edge Stack can manage TCP connections using TLS:
 
 | Attribute                 | Description               |
 | :------------------------ | :------------------------ |
-| [`host`](headers/host) | (optional) enables TLS _termination_ and specifies the hostname that must be presented using SNI for this `TCPMapping` to match -- **FORCES TLS TERMINATION**, see below |
+| [`host`](../headers/host) | (optional) enables TLS _termination_ and specifies the hostname that must be presented using SNI for this `TCPMapping` to match -- **FORCES TLS TERMINATION**, see below |
 | [`tls`](#using-tls)       | (optional) enables TLS _origination_, and may specify the name of a `TLSContext` that will determine the certificate to offer to the upstream service | 
 
 Ambassador Edge Stack supports multiple deployment patterns for your services. These patterns are designed to let you safely release new versions of your service while minimizing its impact on production users.
 
 | Attribute                 | Description               |
 | :------------------------ | :------------------------ |
-| [`weight`](canary)        | (optional) specifies the (integer) percentage of traffic for this resource that will be routed using this mapping |
+| [`weight`](../canary)        | (optional) specifies the (integer) percentage of traffic for this resource that will be routed using this mapping |
 
 The name of the mapping must be unique.
 

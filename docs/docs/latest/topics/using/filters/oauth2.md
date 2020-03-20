@@ -11,7 +11,7 @@ This is different from most OAuth implementations where the Authorization Server
 
 This is what the authentication process looks like at a high level when using Ambassador Edge Stack with an external identity provider. The use case is an end-user accessing a secured app service.
 
-![Ambassador Authentication OAuth/OIDC](../../../../doc-images/ambassador_oidc_flow.jpg)
+![Ambassador Authentication OAuth/OIDC](../../../../images/ambassador_oidc_flow.jpg)
 
 ### Some basic authentication terms
 
@@ -328,4 +328,4 @@ The Ambassador Edge Stack relies on Redis to store short-lived authentication cr
 
 In this architecture, Ambassador Edge Stack is functioning as an Identity Aware Proxy in a Zero Trust Network. For more about this security architecture, read the [BeyondCorp security architecture whitepaper](https://ai.google/research/pubs/pub43231) by Google.
 
-The ["How-to" section](../../../howtos/) has detailed tutorials on integrating Ambassador with a number of Identity Providers.
+The ["How-to" section](../../../../howtos/) has detailed tutorials on integrating Ambassador with a number of Identity Providers.
