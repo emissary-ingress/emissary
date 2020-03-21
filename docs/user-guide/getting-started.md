@@ -103,11 +103,11 @@ Email address [<span class="userInputText">john@example.com</span>]:<br/>
 -> TLS configured successfully
 
 Congratulations! You've successfully installed the Ambassador Edge Stack in
-your Kubernetes cluster. Visit random-word-3421.edgestack.me to access your
+your Kubernetes cluster. Visit <span class="userGuidanceText">random-word-3421.edgestack.me</span> to access your
 Edge Stack installation and for additional configuration.
 </div>
 
-The `random-word-3421.edgestack.me` is a provided subdomain that allows the
+The <span class="userGuidanceText">`random-word-3421.edgestack.me`</span> is a provided subdomain that allows the
 Ambassador Edge Stack to automatically provision TLS and HTTPS for a domain
 name, so you can get started right away.
 
@@ -157,4 +157,4 @@ Story](/about/why-ambassador).
 
 For a custom configuration, you can install the Ambassador Edge Stack [manually](/user-guide/manual-install).
 
-**Note that the provided `random-word.edgestack.me` domain name will expire after 90 days**.
+**Note that the provided <span class="userGuidanceText">`random-word.edgestack.me`</span> domain name will expire after 90 days**.
