@@ -1,15 +1,26 @@
 ---
    description: In this guide, we'll walk through the process of deploying Ambassador Edge Stack in Kubernetes for ingress routing.
 ---
+
+import DetectOS from './DetectOS'
+
+<DetectOS/>
+
 # Quick Start Installation Guide
 
 In just four minutes, your cluster will be routing HTTPS requests from the
 Internet to a backend service.
 
 The Ambassador Edge Stack is deployed to Kubernetes via YAML for MacOS, Linux, and
-Windows. For other options, such as Docker, click [here](/user-guide/install).
+Windows. For other options, such as Docker, read the [detailed instructions] (/user-guide/install).
+
+<details class="os-instructions" data-os="mac">
+<summary class="heading">
 
 ### Install on MacOS
+<img class="os-logo" src="/../../doc-images/apple.png"/>
+
+</summary>
 
 1. Download the `edgectl` file [here](https://metriton.datawire.io/downloads/darwin/edgectl) or download it with a curl command:
 
@@ -24,7 +35,14 @@ Windows. For other options, such as Docker, click [here](/user-guide/install).
 
 2. Run the installer with `./edgectl install`
 
+</details>
+
+<details class="os-instructions" data-os="linux">
+<summary class="heading">
+
 ### Install on Linux
+<img class="os-logo" src="/../../doc-images/linux.png"/>
+</summary>
 
 1. Download the `edgectl` file
    [here](https://metriton.datawire.io/downloads/linux/edgectl) or download it with a curl
@@ -35,45 +53,66 @@ Windows. For other options, such as Docker, click [here](/user-guide/install).
     ```
 2. Run the installer with `./edgectl install`
 
+</details>
+
+<details class="os-instructions" data-os="windows">
+<summary class="heading">
+
 ### Install on Windows
+<img class="os-logo" src="/../../doc-images/windows.png"/>
+
+</summary>
 
 1. Download the `edgectl` file
    [here](https://metriton.datawire.io/downloads/windows/edgectl.exe).
 2. Run the installer with `edgectl.exe install`
 
+</details>
+
 ## Installation
 
-Your terminal will print something similar to the following as it provisions a load balancer, configures TLS, and provides you with an `edgestack.me` subdomain:
+Your terminal will show you something similar to the following as the installer provisions
+a load balancer, configures TLS, and provides you with an `edgestack.me` subdomain:
 
-```
-$ edgectl install
--> Installing the Ambassador Edge Stack $version$.
--> Remote Kubernetes cluster detected.
--> Provisioning a cloud load balancer. (This may take 
-a minute, depending on your cloud provider.)
--> Automatically configuring TLS.
-Please enter an email address. We’ll use this email 
-address to notify you prior to domain and certification 
-expiration [None]: john@example.com.
-```
+
+<div class="codeblockInstall">
+$ <span class="userInputText">edgectl install</span><br/>
+-> Installing the Ambassador Edge Stack $version$.<br/>
+Downloading images. (This may take a minute.)<br/>
+
+-> Provisioning a cloud load balancer. (This may take a minute, depending on
+your cloud provider.)<br/>
+
+Your AES installation's IP address is 4.3.2.1
+-> Automatically configuring TLS<br/>
+
+Please enter an email address. We'll use this email address to notify you prior
+to domain and certificate expiration. We also share this email address with
+Let's Encrypt to acquire your certificate for TLS.
+</div>
+
 
 Provide an email address as required by the ACME TLS certificate provider, Let's
 Encrypt. Then your terminal will print something similar to the following:
 
-```
--> Obtaining a TLS certificate from Let’s Encrypt.
-Congratulations, you’ve successfully installed the 
-Ambassador Edge Stack in your Kubernetes cluster. 
-Visit https://random-word-3421.edgestack.me to access
-your Edge Stack installation and for additional configuration
-```
+<div class="codeblockInstall">
+Email address [<span class="userInputText">john@example.com</span>]:<br/>
 
-The `random-word-1234.edgestack.me` is a provided subdomain that allows the
+-> Acquiring DNS name random-word-3421.edgestack.me
+-> Obtaining a TLS certificate from Let's Encrypt
+-> TLS configured successfully
+
+Congratulations! You've successfully installed the Ambassador Edge Stack in
+your Kubernetes cluster. Visit random-word-3421.edgestack.me to access your
+Edge Stack installation and for additional configuration.
+</div>
+
+The `random-word-3421.edgestack.me` is a provided subdomain that allows the
 Ambassador Edge Stack to automatically provision TLS and HTTPS for a domain
 name, so you can get started right away.
 
 Your new [Edge Policy Console](/about/edge-policy-console) will open
-automatically in your browser at the provided URL or IP address. **Note that the provided `random-word.edgestack.me` domain name will expire after 90 days**.
+automatically in your browser at the provided URL or IP address. 
 
 ![AES success](/../../doc-images/aes-success.png)
 
@@ -81,18 +120,26 @@ automatically in your browser at the provided URL or IP address. **Note that the
 
 Minikube users will see something similar to the following:
 
-```
-$ edgectl install
--> Installing the Ambassador Edge Stack $version$.
--> Automatically configuring TLS.
--> Cluster is not publicly accessible. Please ensure 
-your cluster is publicly accessible if you would like to 
-use automatic TLS.
-Congratulations, you’ve successfully installed the
- Ambassador Edge Stack in your Kubernetes cluster. 
- Visit http://192.168.64.2:31334 to access your Edge 
- Stack installation and for additional configuration.
- ```
+<div class="codeblockInstall">
+$ <span class="userInputText">edgectl install</span><br/>
+-> Installing the Ambassador Edge Stack $version$.<br/>
+Downloading images. (This may take a minute.)<br/>
+
+-> Local cluster detected. Now configuring automatic TLS.<br/>
+
+Congratulations! You've successfully installed the Ambassador Edge Stack in
+your Kubernetes cluster. However, we cannot connect to your cluster from the
+Internet, so we could not configure TLS automatically.<br/>
+
+Determine the IP address and port number of your Ambassador service.
+(e.g., <span class="userInputText">minikube service -n ambassador ambassador</span>)<br/>
+
+The following command will open the Edge Policy Console once you accept a
+self-signed certificate in your browser.
+$ <span class="userInputText">edgectl login -n ambassador IP_ADDRESS:PORT</span>
+
+See https://www.getambassador.io/user-guide/getting-started/
+</div>
 
 ## Installation Success
 
@@ -109,3 +156,5 @@ check out the [Welcome page](/docs/) or read the [Ambassador
 Story](/about/why-ambassador).
 
 For a custom configuration, you can install the Ambassador Edge Stack [manually](/user-guide/manual-install).
+
+**Note that the provided `random-word.edgestack.me` domain name will expire after 90 days**.
