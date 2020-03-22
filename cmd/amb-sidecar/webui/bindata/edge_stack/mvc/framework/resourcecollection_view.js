@@ -44,6 +44,161 @@ export class ResourceCollectionView extends LitElement {
         transition: all .2s ease;
         border: 2px #5f3eff solid;
       }
+      * {
+        margin: 0;
+        padding: 0;
+        border: 0;
+        position: relative;
+        box-sizing: border-box
+      }
+      
+      *, textarea {
+        vertical-align: top
+      }
+      
+      
+      .header_con, .header_con .col {
+        display: -webkit-flex;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-justify-content: center;
+        -ms-flex-pack: center;
+        justify-content: center
+      }
+      
+      .header_con {
+        margin: 30px 0 0;
+        -webkit-flex-direction: row;
+        -ms-flex-direction: row;
+        flex-direction: row
+      }
+      
+      .header_con .col {
+        -webkit-flex: 0 0 80px;
+        -ms-flex: 0 0 80px;
+        flex: 0 0 80px;
+        -webkit-align-content: center;
+        -ms-flex-line-pack: center;
+        align-content: center;
+        -webkit-align-self: center;
+        -ms-flex-item-align: center;
+        align-self: center;
+        -webkit-flex-direction: column;
+        -ms-flex-direction: column;
+        flex-direction: column
+      }
+      
+      .header_con .col svg {
+        width: 100%;
+        height: 60px
+      }
+      
+      .header_con .col img {
+        width: 100%;
+        height: 60px;
+      }
+      
+      .header_con .col img path {
+        fill: #5f3eff
+      }
+      
+      .header_con .col svg path {
+        fill: #5f3eff
+      }
+      
+      .header_con .col:nth-child(2) {
+        -webkit-flex: 2 0 auto;
+        -ms-flex: 2 0 auto;
+        flex: 2 0 auto;
+        padding-left: 20px
+      }
+      
+      .header_con .col h1 {
+        padding: 0;
+        margin: 0;
+        font-weight: 400
+      }
+      
+      .header_con .col p {
+        margin: 0;
+        padding: 0
+      }
+      
+      .header_con .col2, .col2 a.cta .label {
+        -webkit-align-self: center;
+        -ms-flex-item-align: center;
+        -ms-grid-row-align: center;
+        align-self: center
+      }
+      
+      .logo {
+        filter: invert(19%) sepia(64%) saturate(4904%) hue-rotate(248deg) brightness(107%) contrast(101%);
+      }
+      
+      .col2 a.cta  {
+        text-decoration: none;
+        border: 2px #efefef solid;
+        border-radius: 10px;
+        width: 90px;
+        padding: 6px 8px;
+        max-height: 35px;
+        -webkit-flex: auto;
+        -ms-flex: auto;
+        flex: auto;
+        margin: 10px auto;
+        color: #000;
+        transition: all .2s ease;
+        cursor: pointer;
+      }
+      
+      .header_con .col2 a.cta  {
+        border-color: #c8c8c8;
+      }
+      
+      .col2 a.cta .label {
+        text-transform: uppercase;
+        font-size: .8rem;
+        font-weight: 600;
+        line-height: 1rem;
+        padding: 0 0 0 10px;
+        -webkit-flex: 1 0 auto;
+        -ms-flex: 1 0 auto;
+        flex: 1 0 auto
+      }
+      
+      .col2 a.cta svg {
+        width: 15px;
+        height: auto
+      }
+      
+      .col2 a.cta svg path, .col2 a.cta svg polygon {
+        transition: fill .7s ease;
+        fill: #000
+      }
+      
+      .col2 a.cta:hover {
+        color: #5f3eff;
+        transition: all .2s ease;
+        border: 2px #5f3eff solid
+      }
+      
+      .col2 a.cta:hover svg path, .col2 a.cta:hover svg polygon {
+        transition: fill .2s ease;
+        fill: #5f3eff
+      }
+      
+      .col2 a.cta {
+        display: -webkit-flex;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-flex-direction: row;
+        -ms-flex-direction: row;
+        flex-direction: row
+      }
+      
+      .col2 a.off {
+        display: none;
+      }      
     `
   }
 
@@ -222,38 +377,37 @@ export class ResourceCollectionView extends LitElement {
 
       return html`
         <div>
-            <link rel="stylesheet" href="../styles/resources.css">
-            <div class="header_con">
-                <div class="col">
-                    <img alt=${logoText} class="logo" src=${logoPath}>
-                        <defs><style>.cls-1{fill:#fff;}</style></defs>
-                        <g id="Layer_2" data-name="Layer 2">
-                            <g id="Layer_1-2" data-name="Layer 1">
-                            </g>
-                        </g>
-                    </img>
+          <div class="header_con">
+              <div class="col">
+                  <img alt=${logoText} class="logo" src=${logoPath}>
+                      <defs><style>.cls-1{fill:#fff;}</style></defs>
+                      <g id="Layer_2" data-name="Layer 2">
+                          <g id="Layer_1-2" data-name="Layer 1">
+                          </g>
+                      </g>
+                  </img>
+              </div>
+              
+              <div class="col">
+                  <h1>${pageTitle}</h1>
+                      <p>${description}</p>
+              </div>
+              
+                <div class="col2">
+                  <a class="cta add ${this.readOnly() ? "off" : ""}" @click=${this.onAddButton.bind(this)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30"><defs><style>.cls-a{fill:none;stroke:#000;stroke-linecap:square;stroke-miterlimit:10;stroke-width:2px;}</style></defs><title>add_1</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"><line class="cls-a" x1="15" y1="9" x2="15" y2="21"/><line class="cls-a" x1="9" y1="15" x2="21" y2="15"/><circle class="cls-a" cx="15" cy="15" r="14"/></g></g></svg>
+                    <div class="label">add</div>
+                  </a>
+
+                  <div class="sortby" >
+                    <select id="sortByAttribute" @change=${this.onChangeSortByAttribute.bind(this)}>
+                      ${this.sortFields.map(f => {return html`<option value="${f.value}">${f.label}</option>`})}
+                    </select>
+                  </div>
                 </div>
-                
-                <div class="col">
-                    <h1>${pageTitle}</h1>
-                        <p>${description}</p>
-                </div>
-                
-                 <div class="col2">
-                    <a class="cta add ${this.readOnly() ? "off" : ""}" @click=${this.onAddButton.bind(this)}>
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30"><defs><style>.cls-a{fill:none;stroke:#000;stroke-linecap:square;stroke-miterlimit:10;stroke-width:2px;}</style></defs><title>add_1</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"><line class="cls-a" x1="15" y1="9" x2="15" y2="21"/><line class="cls-a" x1="9" y1="15" x2="21" y2="15"/><circle class="cls-a" cx="15" cy="15" r="14"/></g></g></svg>
-                      <div class="label">add</div>
-                    </a>
- 
-                    <div class="sortby" >
-                      <select id="sortByAttribute" @change=${this.onChangeSortByAttribute.bind(this)}>
-                        ${this.sortFields.map(f => {return html`<option value="${f.value}">${f.label}</option>`})}
-                      </select>
-                    </div>
-                 </div>
-            </div>
-            <slot name="add"></slot>
-            <slot></slot>
+          </div>
+          <slot name="add"></slot>
+          <slot></slot>
         </div>`
   }
 

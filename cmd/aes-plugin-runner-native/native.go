@@ -1,5 +1,3 @@
-// +build linux,amd64,cgo
-
 package aes_plugin_runner
 
 import (
@@ -11,7 +9,7 @@ import (
 	_ "github.com/datawire/apro/cmd/amb-sidecar/runner"
 )
 
-func _mainNative(socketName, pluginFilepath string) error {
+func mainNative(socketName, pluginFilepath string) error {
 	pluginHandle, err := plugin.Open(pluginFilepath)
 	if err != nil {
 		return errors.Wrap(err, "load plugin file")
@@ -28,8 +26,4 @@ func _mainNative(socketName, pluginFilepath string) error {
 	}
 
 	return http.ListenAndServe(socketName, http.HandlerFunc(pluginMain))
-}
-
-func init() {
-	mainNative = _mainNative
 }

@@ -6,11 +6,16 @@ releases. Please keep it up to date.
 
 ## next (TBD)
 
+- Bugfix: The "Filters" tab in the webui no longer renders the value of OAuth client secrets that are stored in Kubernetes secrets.
+
+## 1.3.0 (2020-03-17)
+
+- Feature: Support username and password as headers for OAuth2 authentication (`grantType: Password`)
 - Bugfix: The Edge Policy Console now honors the `diagnostics.enabled` setting in the `ambassador` Module
-- Bugfix: If the DEVPORTAL_CONTENT_URL is not accessible, log a warning but don't crash.
+- Bugfix: If the `DEVPORTAL_CONTENT_URL` is not accessible, log a warning but don't crash.
 - Change: There is no longer a separate traffic-proxy image; that functionality is now part of the main AES image. Set `command: ["traffic-manager"]` to use it.
 - Bugfix: The `Plugin` Filter now correctly sets `request.TLS` to nil/non-nil based on if the original request was encrypted or not.
-- Bugfix: The "Filters" tab in the webui no longer renders the value of OAuth client secrets that are stored in Kubernetes secrets.
+- Feature: `aes-plugin-runner` now allows passing in `docker run` flags after the main argument list.
 
 ## 1.2.2 (2020-03-04)
 
