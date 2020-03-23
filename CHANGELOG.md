@@ -6,6 +6,10 @@ releases. Please keep it up to date.
 
 ## next (TBD)
 
+- Bugfix: Return ErrExpiredAccessToken if we can't refresh an expired token.
+
+## 1.3.1 (2020-03-17)
+
 - Feature: Support username and password as headers for OAuth2 authentication (`grantType: Password`)
 - Bugfix: The Edge Policy Console now honors the `diagnostics.enabled` setting in the `ambassador` Module
 - Bugfix: If the `DEVPORTAL_CONTENT_URL` is not accessible, log a warning but don't crash.
