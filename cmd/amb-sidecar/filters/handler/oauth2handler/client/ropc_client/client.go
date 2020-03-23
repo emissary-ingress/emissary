@@ -94,10 +94,16 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger dlog.Logger, httpClien
 	sessionHash := sha256.New()
 	fmt.Fprintf(sessionHash, "%s--%s", username, password)
 
-	sessionKey := fmt.Sprintf("%x", sessionHash.Sum(nil))
+	// TODO: The sessionID currently is derived from the name of the Filter to
+	// allow for the user to use different Filters to request tokens with different
+	// scopes on different endpoints. This is consistent with what we tell people to
+	// do for the authorization-code flow, but at some point we should come up with
+	// something more graceful.
+
+	sessionID := fmt.Sprintf("ropc-%s-%x", url.QueryEscape(c.QName), sessionHash.Sum(nil))
 
 	// ...then set up session info.
-	sessionData, err := c.loadSession(redisClient, sessionKey)
+	sessionData, err := c.loadSession(redisClient, sessionID)
 
 	if err != nil {
 		logger.Debugln("session status:", errors.Wrap(err, "no session"))
@@ -107,7 +113,7 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger dlog.Logger, httpClien
 	// in Redis, if need be.
 	defer func() {
 		if sessionData != nil {
-			err := c.saveSession(redisClient, sessionKey, sessionData)
+			err := c.saveSession(redisClient, sessionID, sessionData)
 			if err != nil {
 				// TODO(lukeshu): Letting FilterMux recover() this panic() and generate an error message
 				// isn't the *worst* way of handling this error.
@@ -189,13 +195,7 @@ func (c *OAuth2Client) handleAuthenticatedProxyRequest(ctx context.Context, logg
 }
 
 // Load our session from Redis.
-func (c *OAuth2Client) loadSession(redisClient *redis.Client, sessionKey string) (*rfc6749client.ResourceOwnerPasswordCredentialsClientSessionData, error) {
-	// TODO: The sessionID currently is derived from the name of the Filter to
-	// allow for the user to request tokens with different scopes on different
-	// endpoints. This is consistent with the auth code workaround but should be
-	// changed.
-	sessionID := "ropc-" + url.QueryEscape(c.QName) + "-" + url.QueryEscape(sessionKey)
-
+func (c *OAuth2Client) loadSession(redisClient *redis.Client, sessionID string) (*rfc6749client.ResourceOwnerPasswordCredentialsClientSessionData, error) {
 	sessionDataBytes, err := redisClient.Cmd("GET", "session:"+sessionID).Bytes()
 	if err != nil {
 		return nil, err
@@ -208,13 +208,7 @@ func (c *OAuth2Client) loadSession(redisClient *redis.Client, sessionKey string)
 }
 
 // Save our session to Redis.
-func (c *OAuth2Client) saveSession(redisClient *redis.Client, sessionKey string, sessionData *rfc6749client.ResourceOwnerPasswordCredentialsClientSessionData) error {
-	// TODO: The sessionID currently is derived from the name of the Filter to
-	// allow for the user to request tokens with different scopes on different
-	// endpoints. This is consistent with the auth code workaround but should be
-	// changed.
-	sessionID := "ropc-" + url.QueryEscape(c.QName) + "-" + url.QueryEscape(sessionKey)
-
+func (c *OAuth2Client) saveSession(redisClient *redis.Client, sessionID string, sessionData *rfc6749client.ResourceOwnerPasswordCredentialsClientSessionData) error {
 	if sessionData.IsDirty() {
 		sessionDataBytes, err := json.Marshal(sessionData)
 		if err != nil {
