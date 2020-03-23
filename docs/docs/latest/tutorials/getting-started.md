@@ -18,7 +18,7 @@ Windows. For other options, such as Docker, read the [detailed instructions] (/u
 <summary class="heading">
 
 ### Install on MacOS
-<img class="os-logo" src="/../../docs/latest/images/apple.png"/>
+<img class="os-logo" src="/../images/apple.png"/>
 
 </summary>
 
@@ -41,7 +41,7 @@ Windows. For other options, such as Docker, read the [detailed instructions] (/u
 <summary class="heading">
 
 ### Install on Linux
-<img class="os-logo" src="/../../docs/latest/images/linux.png"/>
+<img class="os-logo" src="/../images/linux.png"/>
 </summary>
 
 1. Download the `edgectl` file
@@ -59,7 +59,7 @@ Windows. For other options, such as Docker, read the [detailed instructions] (/u
 <summary class="heading">
 
 ### Install on Windows
-<img class="os-logo" src="/../../docs/latest/images/windows.png"/>
+<img class="os-logo" src="/../images/windows.png"/>
 
 </summary>
 
