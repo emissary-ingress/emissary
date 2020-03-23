@@ -108,4 +108,4 @@ To learn more about how the Ambassador Edge Stack works, along with use cases,
 best practices, and more, check out the [Welcome page](/docs/) or read the
 [Ambassador Story](/docs/latest/about/why-ambassador).
 
-For a custom configuration, you can install the Ambassador Edge Stack [manually](/docs/latest/tutorials/manual-install).
+For a custom configuration, you can install the Ambassador Edge Stack [manually](/topics/install/yaml-install.md).
