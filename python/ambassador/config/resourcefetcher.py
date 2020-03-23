@@ -58,7 +58,7 @@ class ResourceFetcher:
     #     | load_from_filesystem*    parse_watt*    sorted |
     #     +---------- | ---------------- /|\ --------------+
     #                 V                 / | \
-    #             parse_yaml*          /  /  \
+    #             parse_yaml           /  /  \
     #                / \              /  /    \
     #               /   `----,   ,---'  /      \
     #              /         V   V     /        V
@@ -179,16 +179,14 @@ class ResourceFetcher:
 
             try:
                 serialization = open(filepath, "r").read()
-                self.parse_yaml(serialization, k8s=k8s, filename=filepath, finalize=False)
+                self.parse_yaml(serialization, filename=filepath, k8s=k8s)
             except IOError as e:
                 self.aconf.post_error("could not read YAML from %s: %s" % (filepath, e))
 
         if finalize:
             self.finalize()
 
-    def parse_yaml(self, serialization: str, k8s=False, rkey: Optional[str]=None,
-                   filename: Optional[str]=None, finalize: bool=True, namespace: Optional[str]=None,
-                   metadata_labels: Optional[Dict[str, str]]=None) -> None:
+    def parse_yaml(self, serialization: str, filename: str, k8s: bool=False) -> None:
         # self.logger.info(f"RF YAML: {serialization}")
 
         # Expand environment variables allowing interpolation in manifests.
@@ -203,13 +201,9 @@ class ResourceFetcher:
                     self.handle_k8s(obj)
                 self.pop_location()
             else:
-                self.parse_object(objects=objects, rkey=rkey, filename=filename,
-                                  namespace=namespace)
+                self.parse_object(objects=objects, filename=filename)
         except yaml.error.YAMLError as e:
             self.aconf.post_error("%s: could not parse YAML: %s" % (self.location, e))
-
-        if finalize:
-            self.finalize()
 
     def parse_watt(self, serialization: str, finalize: bool=True) -> None:
         basedir = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', '/ambassador')
