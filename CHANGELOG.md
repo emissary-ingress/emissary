@@ -6,7 +6,7 @@ releases. Please keep it up to date.
 
 ## next (TBD)
 
-- Bugfix: Return ErrExpiredAccessToken if we can't refresh an expired token.
+- Bugfix: `OAuth2` Filter: Correctly ask the user to re-authenticate when the Refresh Token expires, rather than emitting an internal server error.
 
 ## 1.3.1 (2020-03-17)
 
