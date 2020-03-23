@@ -69,7 +69,7 @@ class ResourceFetcher:
     #          |   |            |         |                                                           |
     #          |   |   ,--------'         +-----------------------------------------------------------+
     #          V   V   V
-    #        parse_object
+    #       process_objects
     #              |
     #              V
     #       process_object
@@ -188,7 +188,7 @@ class ResourceFetcher:
                     self.handle_k8s(obj)
                 self.pop_location()
             else:
-                self.parse_object(objects=objects, filename=filename)
+                self.process_objects(objects=objects, filename=filename)
         except yaml.error.YAMLError as e:
             self.aconf.post_error("%s: could not parse YAML: %s" % (self.location, e))
 
@@ -292,7 +292,7 @@ class ResourceFetcher:
         if result:
             rkey, parsed_objects = result
 
-            self.parse_object(parsed_objects, filename=self.filename, rkey=rkey)
+            self.process_objects(parsed_objects, filename=self.filename, rkey=rkey)
 
     def handle_k8s_crd(self, obj: dict) -> None:
         # CRDs are _not_ allowed to have embedded objects in annotations, because ew.
@@ -374,17 +374,17 @@ class ResourceFetcher:
         amb_object['metadata_labels']['ambassador_crd'] = resource_identifier
 
         # Done. Parse it.
-        self.parse_object([ amb_object ], filename=self.filename, rkey=resource_identifier)
+        self.process_objects([ amb_object ], filename=self.filename, rkey=resource_identifier)
 
-    def parse_object(self, objects, rkey: Optional[str]=None,
-                     filename: Optional[str]=None, namespace: Optional[str]=None):
+    def process_objects(self, objects, rkey: Optional[str]=None,
+                        filename: Optional[str]=None, namespace: Optional[str]=None):
         """Process a list parsed-YAML-objects as old-style/annotation-style resources."""
         self.push_location(filename, 1)
 
-        # self.logger.debug("PARSE_OBJECT: incoming %d" % len(objects))
+        # self.logger.debug("PROCESS_OBJECTS: incoming %d" % len(objects))
 
         for obj in objects:
-            # self.logger.debug("PARSE_OBJECT: checking %s" % obj)
+            # self.logger.debug("PROCESS_OBJECTS: checking %s" % obj)
 
             # if not obj:
             #     self.logger.debug("%s: empty object from %s" % (self.location, serialization))
