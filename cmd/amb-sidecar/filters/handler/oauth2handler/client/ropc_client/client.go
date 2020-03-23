@@ -73,8 +73,8 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger dlog.Logger, httpClien
 	}
 
 	// ...and set up the OAuth2 client. (Note that in "ClientPasswordHeader",
-	// "client" refers to the client of the IdP -- which is to say, us. So this
-	// is us giving our password to the IdP.)
+	// "client" refers to the OAuth2 client, not the end user's User-Agent --
+	// which is to say, in this case, this is us giving our password to the IdP.)
 	oauthClient, err := rfc6749client.NewResourceOwnerPasswordCredentialsClient(
 		discovered.TokenEndpoint,
 		rfc6749client.ClientPasswordHeader(c.Spec.ClientID, c.Spec.Secret),
