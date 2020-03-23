@@ -37,6 +37,7 @@ spec:
 | `envoy_log_type` | Defines the type of log envoy will use, currently only support json or text | `envoy_log_type: text` |
 | `listener_idle_timeout_ms` | Controls how Envoy configures the tcp idle timeout on the http listener. Default is no timeout (TCP connection may remain idle indefinitely). | `listener_idle_timeout_ms: 30000` |
 | `lua_scripts` | Run a custom lua script on every request. see below for more details. |  |
+| `proper_case` | Should we enable upper casing for response headers. See [this page](https://www.envoyproxy.io/docs/envoy/latest/api-v2/api/v2/core/protocol.proto#envoy-api-msg-core-http1protocoloptions-headerkeyformat) | `proper_case: false` |
 | `regex_max_size` | This field controls the RE2 âprogram sizeâ which is a rough estimate of how complex a compiled regex is to evaluate. A regex that has a program size greater than the configured value will fail to compile    | `regex_max_size: 200` |
 | `regex_type` | Set which regular expression engine to use. See the "Regular Expressions" section below. | `regex_type: safe` |
 | `server_name: envoy` | By default Envoy sets server_name response header to `envoy`. Override it with this variable |  |
@@ -73,7 +74,7 @@ cors:
 - Both the API Gateway and the Edge Stack provide low-level diagnostics at `/ambassador/v0/diag/`.
 - The Ambassador Edge Stack also provides the higher-level Edge Policy Console at `/edge_stack/admin/`.
 
-By default, both services are enabled: 
+By default, both services are enabled:
 
 ```
 diagnostics:
@@ -120,7 +121,7 @@ readiness_probe:
   enabled: true
 ```
 
-`retry_policy` lets you add resilience to your services in case of request failures by performing automatic retries. 
+`retry_policy` lets you add resilience to your services in case of request failures by performing automatic retries.
 ```
 retry_policy:
   retry_on: "5xx"
@@ -209,6 +210,9 @@ Controls how Envoy configures the tcp idle timeout on the http listener. Default
 If both IPv4 and IPv6 are enabled, Ambassador Edge Stack will prefer IPv6. This can have strange effects if Ambassador Edge Stack receives `AAAA` records from a DNS lookup, but the underlying network of the pod doesn't actually support IPv6 traffic. For this reason, the default is IPv4 only.
 
 A `Mapping` can override both `enable_ipv4` and `enable_ipv6`, but if either is not stated explicitly in a `Mapping`, the values here are used. Most Ambassador Edge Stack installations will probably be able to avoid overriding these settings in `Mapping`s.
+
+### `proper_case`
+To enable upper casing of response headers by proper casing words: the first character and any character following a special character will be capitalized if it’s an alpha character. For example, “content-type” becomes “Content-Type”. Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v2/api/v2/core/protocol.proto#envoy-api-msg-core-http1protocoloptions-headerkeyformatss)
 
 ### Readiness and Liveness probes (`readiness_probe` and `liveness_probe`)
 

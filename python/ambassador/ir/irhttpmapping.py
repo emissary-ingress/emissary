@@ -84,6 +84,7 @@ class IRHTTPMapping (IRBaseMapping):
         "prefix": True,
         "prefix_regex": True,
         "priority": True,
+        "proper_case": True,
         "rate_limits": True,   # Only supported in v0, handled in setup
         "remove_response_headers": True,
         "remove_request_headers": True,
@@ -154,7 +155,7 @@ class IRHTTPMapping (IRBaseMapping):
         if 'method' in kwargs:
             hdrs.append(Header(":method", kwargs['method'], kwargs.get('method_regex', False)))
 
-        # XXX BRUTAL HACK HERE: 
+        # XXX BRUTAL HACK HERE:
         # If we _don't_ have an origination context, but our IR has an agent_origination_ctx,
         # force TLS origination because it's the agent. I know, I know. It's a hack.
         if ('tls' not in new_args) and ir.agent_origination_ctx:
