@@ -12,7 +12,7 @@ In just four minutes, your cluster will be routing HTTPS requests from the
 Internet to a backend service.
 
 The Ambassador Edge Stack is deployed to Kubernetes via YAML for MacOS, Linux, and
-Windows. For other options, such as Docker, read the [detailed instructions] (/docs/latest/topics/install).
+Windows. For other options, such as Docker, read the [detailed instructions] (/docs/latest/topics/install/index.md).
 
 <details class="os-instructions" data-os="mac">
 <summary class="heading">
