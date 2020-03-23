@@ -33,7 +33,8 @@ def test_envvar_expansion():
     aconf = Config()
 
     fetcher = ResourceFetcher(logger, aconf)
-    fetcher.parse_yaml(yaml)
+    fetcher.parse_yaml(yaml, filename='phony://test_envvar_expansion.yaml')
+    fetcher.finalize()
 
     aconf.load_all(fetcher.sorted())
 
