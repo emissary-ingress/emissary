@@ -18,7 +18,7 @@ Windows. For other options, such as Docker, read the [detailed instructions] (/u
 <summary class="heading">
 
 ### Install on MacOS
-<img class="os-logo" src="/../images/apple.png"/>
+<img class="os-logo" src="/../../docs/latest/images/apple.png"/>
 
 </summary>
 
@@ -41,7 +41,7 @@ Windows. For other options, such as Docker, read the [detailed instructions] (/u
 <summary class="heading">
 
 ### Install on Linux
-<img class="os-logo" src="/../images/linux.png"/>
+<img class="os-logo" src="/../../docs/latest/images/linux.png"/>
 </summary>
 
 1. Download the `edgectl` file
@@ -59,7 +59,7 @@ Windows. For other options, such as Docker, read the [detailed instructions] (/u
 <summary class="heading">
 
 ### Install on Windows
-<img class="os-logo" src="/../images/windows.png"/>
+<img class="os-logo" src="/../../docs/latest/images/windows.png"/>
 
 </summary>
 
@@ -98,8 +98,8 @@ Encrypt. Then your terminal will print something similar to the following:
 <div class="codeblockInstall">
 Email address [<span class="userInputText">john@example.com</span>]:<br/>
 
--> Acquiring DNS name random-word-3421.edgestack.me
--> Obtaining a TLS certificate from Let's Encrypt
+-> Acquiring DNS name random-word-3421.edgestack.me<br/>
+-> Obtaining a TLS certificate from Let's Encrypt<br/>
 -> TLS configured successfully
 
 Congratulations! You've successfully installed the Ambassador Edge Stack in
@@ -114,7 +114,7 @@ name, so you can get started right away.
 Your new [Edge Policy Console](/about/edge-policy-console) will open
 automatically in your browser at the provided URL or IP address. 
 
-![AES success](/../../doc-images/aes-success.png)
+![AES success](/../../docs/latest/images/aes-success.png)
 
 ### Minikube
 
