@@ -7,8 +7,10 @@ releases. Please keep it up to date.
 ## next (TBD)
 
 - Bugfix: `OAuth2` Filter: Correctly ask the user to re-authenticate when the Refresh Token expires, rather than emitting an internal server error.
+- Bugfix: The `Password` grant type properly uses a session per user, rather than client-wide
+- Bugfix: The `Password` grant type also separates sessions by `Filter`, so multiple `Filter`s can work together correctly.
 
-## 1.3.1 (2020-03-17)
+## 1.3.0 (2020-03-17)
 
 - Feature: Support username and password as headers for OAuth2 authentication (`grantType: Password`)
 - Bugfix: The Edge Policy Console now honors the `diagnostics.enabled` setting in the `ambassador` Module
