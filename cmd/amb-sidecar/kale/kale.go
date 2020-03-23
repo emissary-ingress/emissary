@@ -171,7 +171,10 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 					if !ok {
 						return
 					}
-					k.reconcile(ctx, snapshot)
+					err := safeInvoke(func() { k.reconcile(ctx, snapshot) })
+					if err != nil {
+						l.Errorln("panic:", err)
+					}
 				}
 			}
 		})
@@ -183,6 +186,8 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 	})
 
 	group.Go("kale_webui_update", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
+		softCtx = dlog.WithLogger(softCtx, l)
+
 		for {
 			select {
 			case <-softCtx.Done():
@@ -191,7 +196,10 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 				if !ok {
 					return nil
 				}
-				k.updateInternalState(snapshot)
+				err := safeInvoke(func() { k.updateInternalState(snapshot) })
+				if err != nil {
+					l.Errorln("panic:", err)
+				}
 			}
 		}
 	})
