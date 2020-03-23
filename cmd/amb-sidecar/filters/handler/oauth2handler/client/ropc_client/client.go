@@ -2,7 +2,9 @@ package ropc_client
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -70,7 +72,9 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger dlog.Logger, httpClien
 			errors.Errorf("username and password are required"), nil)
 	}
 
-	// ...and set up the OAuth2 client.
+	// ...and set up the OAuth2 client. (Note that in "ClientPasswordHeader",
+	// "client" refers to the OAuth2 client, not the end user's User-Agent --
+	// which is to say, in this case, this is us giving our password to the IdP.)
 	oauthClient, err := rfc6749client.NewResourceOwnerPasswordCredentialsClient(
 		discovered.TokenEndpoint,
 		rfc6749client.ClientPasswordHeader(c.Spec.ClientID, c.Spec.Secret),
@@ -86,8 +90,20 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger dlog.Logger, httpClien
 	// authenticated. We want that.
 	oauthClient.RegisterProtocolExtensions(rfc6750client.OAuthProtocolExtension)
 
-	// OK. Set up session info...
-	sessionData, err := c.loadSession(redisClient, c.Spec.ClientID, c.Spec.Secret)
+	// OK. For our session key, hash the username and the password.
+	sessionHash := sha256.New()
+	fmt.Fprintf(sessionHash, "%s--%s", username, password)
+
+	// TODO: The sessionID currently is derived from the name of the Filter to
+	// allow for the user to use different Filters to request tokens with different
+	// scopes on different endpoints. This is consistent with what we tell people to
+	// do for the authorization-code flow, but at some point we should come up with
+	// something more graceful.
+
+	sessionID := fmt.Sprintf("ropc-%s-%x", url.QueryEscape(c.QName), sessionHash.Sum(nil))
+
+	// ...then set up session info.
+	sessionData, err := c.loadSession(redisClient, sessionID)
 
 	if err != nil {
 		logger.Debugln("session status:", errors.Wrap(err, "no session"))
@@ -97,7 +113,7 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger dlog.Logger, httpClien
 	// in Redis, if need be.
 	defer func() {
 		if sessionData != nil {
-			err := c.saveSession(redisClient, c.Spec.ClientID, c.Spec.Secret, sessionData)
+			err := c.saveSession(redisClient, sessionID, sessionData)
 			if err != nil {
 				// TODO(lukeshu): Letting FilterMux recover() this panic() and generate an error message
 				// isn't the *worst* way of handling this error.
@@ -179,9 +195,7 @@ func (c *OAuth2Client) handleAuthenticatedProxyRequest(ctx context.Context, logg
 }
 
 // Load our session from Redis.
-func (c *OAuth2Client) loadSession(redisClient *redis.Client, clientID, clientSecret string) (*rfc6749client.ResourceOwnerPasswordCredentialsClientSessionData, error) {
-	sessionID := url.QueryEscape(clientID) + ":" + url.QueryEscape(clientSecret)
-
+func (c *OAuth2Client) loadSession(redisClient *redis.Client, sessionID string) (*rfc6749client.ResourceOwnerPasswordCredentialsClientSessionData, error) {
 	sessionDataBytes, err := redisClient.Cmd("GET", "session:"+sessionID).Bytes()
 	if err != nil {
 		return nil, err
@@ -194,8 +208,7 @@ func (c *OAuth2Client) loadSession(redisClient *redis.Client, clientID, clientSe
 }
 
 // Save our session to Redis.
-func (c *OAuth2Client) saveSession(redisClient *redis.Client, clientID, clientSecret string, sessionData *rfc6749client.ResourceOwnerPasswordCredentialsClientSessionData) error {
-	sessionID := url.QueryEscape(clientID) + ":" + url.QueryEscape(clientSecret)
+func (c *OAuth2Client) saveSession(redisClient *redis.Client, sessionID string, sessionData *rfc6749client.ResourceOwnerPasswordCredentialsClientSessionData) error {
 	if sessionData.IsDirty() {
 		sessionDataBytes, err := json.Marshal(sessionData)
 		if err != nil {
