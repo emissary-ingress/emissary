@@ -103,7 +103,7 @@ Email address [<span class="userInputText">john@example.com</span>]:<br/>
 -> TLS configured successfully
 
 Congratulations! You've successfully installed the Ambassador Edge Stack in
-your Kubernetes cluster. Visit <span class="userGuidanceText">random-word-3421.edgestack.me </span> to access your
+your Kubernetes cluster. Visit <span class="userGuidanceText">random-word-3421.edgestack.me</span> to access your
 Edge Stack installation and for additional configuration.
 </div>
 
