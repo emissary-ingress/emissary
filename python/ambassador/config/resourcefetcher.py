@@ -510,7 +510,7 @@ class ResourceFetcher:
                 self.filename += ":annotation"
 
             try:
-                parsed_ambassador_annotations = parse_yaml(ambassador_annotations, namespace=ingress_namespace)
+                parsed_ambassador_annotations = parse_yaml(ambassador_annotations)
             except yaml.error.YAMLError as e:
                 self.logger.debug("could not parse YAML: %s" % e)
 
