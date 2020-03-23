@@ -18,7 +18,7 @@ Windows. For other options, such as Docker, read the [detailed instructions] (/u
 <summary class="heading">
 
 ### Install on MacOS
-<img class="os-logo" src="/../../docs/latest/images/apple.png"/>
+<img class="os-logo" src="/../../doc-images/apple.png"/>
 
 </summary>
 
@@ -41,7 +41,7 @@ Windows. For other options, such as Docker, read the [detailed instructions] (/u
 <summary class="heading">
 
 ### Install on Linux
-<img class="os-logo" src="/../../docs/latest/images/linux.png"/>
+<img class="os-logo" src="/../../doc-images/linux.png"/>
 </summary>
 
 1. Download the `edgectl` file
@@ -59,7 +59,7 @@ Windows. For other options, such as Docker, read the [detailed instructions] (/u
 <summary class="heading">
 
 ### Install on Windows
-<img class="os-logo" src="/../../docs/latest/images/windows.png"/>
+<img class="os-logo" src="/../../doc-images/windows.png"/>
 
 </summary>
 
@@ -73,7 +73,6 @@ Windows. For other options, such as Docker, read the [detailed instructions] (/u
 
 Your terminal will show you something similar to the following as the installer provisions
 a load balancer, configures TLS, and provides you with an `edgestack.me` subdomain:
-
 
 <div class="codeblockInstall">
 $ <span class="userInputText">edgectl install</span><br/>
@@ -90,7 +89,6 @@ Please enter an email address. We'll use this email address to notify you prior
 to domain and certificate expiration. We also share this email address with
 Let's Encrypt to acquire your certificate for TLS.
 </div>
-
 
 Provide an email address as required by the ACME TLS certificate provider, Let's
 Encrypt. Then your terminal will print something similar to the following:
@@ -114,7 +112,7 @@ name, so you can get started right away.
 Your new [Edge Policy Console](/about/edge-policy-console) will open
 automatically in your browser at the provided URL or IP address. 
 
-![AES success](/../../docs/latest/images/aes-success.png)
+![AES success](/../../doc-images/aes-success.png)
 
 ### Minikube
 
