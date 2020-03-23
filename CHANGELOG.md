@@ -6,6 +6,7 @@ releases. Please keep it up to date.
 
 ## next (TBD)
 
+- Bugfix: `OAuth2` Filter: Correctly ask the user to re-authenticate when the Refresh Token expires, rather than emitting an internal server error.
 - Bugfix: The `Password` grant type properly uses a session per user, rather than client-wide
 - Bugfix: The `Password` grant type also separates sessions by `Filter`, so multiple `Filter`s can work together correctly.
 
