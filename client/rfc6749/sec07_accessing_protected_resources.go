@@ -37,7 +37,7 @@ func authorizationForResourceRequest(
 	if !session.currentAccessToken().ExpiresAt.IsZero() && session.currentAccessToken().ExpiresAt.Before(time.Now()) {
 		if session.currentAccessToken().RefreshToken != nil && explicitClient != nil {
 			if err := explicitClient.refresh(session, nil); err != nil {
-				return nil, err
+				return nil, ErrExpiredAccessToken
 			}
 		} else {
 			return nil, ErrExpiredAccessToken
