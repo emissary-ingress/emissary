@@ -96,8 +96,8 @@ Encrypt. Then your terminal will print something similar to the following:
 <div class="codeblockInstall">
 Email address [<span class="userInputText">john@example.com</span>]:<br/>
 
--> Acquiring DNS name random-word-3421.edgestack.me<br/>
--> Obtaining a TLS certificate from Let's Encrypt<br/>
+-> Acquiring DNS name random-word-3421.edgestack.me 
+-> Obtaining a TLS certificate from Let's Encrypt 
 -> TLS configured successfully
 
 Congratulations! You've successfully installed the Ambassador Edge Stack in
