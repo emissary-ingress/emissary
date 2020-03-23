@@ -49,7 +49,7 @@ func (p Project) BuildLogUrl(commit *ProjectCommit) string {
 }
 
 type ProjectCommit struct {
-	k8sTypesMetaV1.TypeMeta   `json:",inline"`
+	k8sTypesMetaV1.TypeMeta
 	k8sTypesMetaV1.ObjectMeta `json:"metadata"`
 	Spec                      ProjectCommitSpec   `json:"spec"`
 	Status                    ProjectCommitStatus `json:"status"`
@@ -117,7 +117,7 @@ func (x *CommitPhase) UnmarshalJSON(bs []byte) error {
 }
 
 type Mapping struct {
-	k8sTypesMetaV1.TypeMeta   `json:",inline"`
+	k8sTypesMetaV1.TypeMeta
 	k8sTypesMetaV1.ObjectMeta `json:"metadata"`
 	Spec                      MappingSpec `json:"spec"`
 }
