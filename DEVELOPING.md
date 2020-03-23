@@ -391,12 +391,55 @@ runs can be very useful.  Common modifications are
 How do I add new CRD types?
 ---------------------------
 
-Well, you should probably start by writing a spec for the CRD.  Should
-you do that in Protobuf at `ambassador.git/api/`?  Should you do that
-in JSON Schema at `ambassador.git/python/schemas/`?  Should you do
-that in Go structs at `apro.git/apis/`?  Should you just say "YOLO"
-and define it as a Go struct in the package where you consume it?  Who
-knows, we get conflicting answers whenever we try to settle on one.
+Well, you should probably start by writing a spec for the CRD.  Should you...
+ - ...do that in JSON Schema at
+   `ambassador.git/python/schemas/`?
+   + Used for: most of the OSS CRDs
+   + Pros:
+     * Might make teaching the api-server to validate our CRDs easier,
+       if we ever get around to implementing that
+   + Cons:
+     * Can't write comments
+     * Difficult to read
+     * Must describe old annotation-style format, instead of the new
+       resource-style format
+     * Can't define a `status` field (because old annotation-style
+       format)
+ - ...do that in Go structs at `apro.git/apis/`?
+   + Used for: the Pro CRDs: Filters, FilterPolicies, and Ratelimits
+   + Pros:
+     * Relatively easy and intuitive to read/write
+   + Cons:
+     * Enums are super clunky to write (because Go doesn't have enums)
+     * Easy to get procedural code mixed in with what should be
+       declarative definitions
+     * Hard to share with Python
+ - ...do that in Protobuf at `ambassador.git/api/`?
+   + Used for: Hosts
+   + Pros:
+     * Easy to share with both Go and Python
+     * A little more awkward to write than Go structs, but not
+       not much worse
+   + Cons:
+     * Crappy tooling means that we need to use hacks for certain
+       k8s.io types
+     * Means that you need to do things in 2 repos when adjusting the
+       spec for AES
+     * Impossible (very difficult? impossible without hacks, anyway)
+       to have flexibility like "ambassador_id may be a string or an
+       array of strings"; which is trivial in JSON Schema, and
+       easy-enough in Go structs
+ - ...just say "YOLO" and define it as a Go struct in the
+   package where you consume it?
+   + Used for: kale/route-to-code
+   + Pros/Cons similar to `apro.git/apis/`
+   + Pro: Things are defined close to where they are used, separate
+     parts of the codebase remain separate
+   + Con: Even easier than `apro.git/apis/` to get procedural code
+     mixed in with declarative definitions
+
+Who knows what you should do; we get conflicting answers whenever we
+try to settle on one.
 
 OK, so you somehow figured out how to get the code to understand and
 listen for the CRD.  Now you need to add it to the YAML:
