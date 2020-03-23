@@ -190,6 +190,48 @@ There are (primarily) two backend endpoints that the UI leverages:
 /edge_stack/api/apply --> Applies kubernetes yaml to the cluster.
 /edge_stack/api/delete --> Deletes a kubernetes resource from the cluster.
 
+How do I run tests for javascript code?
+---------------------------------------
+
+1. Run the sidecar locally as described in "How do I hack on the UI?".
+
+2. Visit localhost:${DEV_WEBUI_PORT}/tests
+
+3. You should see test results displayed on the screen.
+
+4. Add ?grep=<foo> to the url to run just a subset of the tests.
+
+The endpoint uses mocha as a test runner and chai as an assertion
+library. Visit https://mochajs.org and https://chaijs.com for more
+details on either.
+
+Note that the mocha test endpoint will always run whenever
+DEV_WEBUI_DIR is set.
+
+How do I write tests for javascript code?
+-----------------------------------------
+
+1. Create a .js file for your tests and place it in or under a tests
+   directory within the web root. The web root is
+   ./cmd/amb-sidecar/webui/bindata
+
+2. Visit the tests endpoint at localhost:${DEV_WEBUI_PORT}/tests
+
+3. If your javascript file has valid tests in it, you will see the
+results. If you do not see your tests, make sure you look at the
+browser console to see any syntax/loading errors.
+
+When hacking on a single test, it is handy to add ?grep=<foo> to the
+tests URL and run only a subset of the tests. It is also very handy to
+use the `describe.only` and the `it.only` features of mocha to limit
+to just a subset of tests. The way the `.only` feature works, you
+simply append `.only` to the `describe` and/or `it` function calls for
+the tests you are interested in, and mocha will run "only" those
+tests.
+
+You can read more about mocha and chai at https://mochajs.org and
+https://chaijs.com respectively.
+
 How do I hack on the AES metrics reporting to Metriton?
 -------------------------------------------------------
 
