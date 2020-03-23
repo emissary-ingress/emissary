@@ -18,6 +18,14 @@ set -o errexit
 set -o nounset
 set -o verbose
 
+CHANGED_DOCS_FILES=$(git diff --name-only "$TRAVIS_COMMIT_RANGE" docs)
+if [ -z "$CHANGED_DOCS_FILES" ]; then
+    echo "No changes have been made to /docs/, website will not be updated..."
+    exit 0
+else
+  echo "Publishing changes to website..."
+fi
+
 remote_url=https://d6e-automaton:${GH_TOKEN}@github.com/datawire/getambassador.io.git
 
 rm -rf /tmp/getambassador.io

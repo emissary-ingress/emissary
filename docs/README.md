@@ -27,21 +27,9 @@ The `pro-pages.yml` file identifies which pages should be marked as
 
 ## Documentation infrastructure notes
 
-The docs canonically live at [ambassador-docs.git][], which is
-"vendored" in to several other repositories using `git subtree`.
-Repositories that do this are encouraged to include some kind of
-convenience tooling to make syncing the docs easier.  For example, the
-following Makefile snippet:
+The docs canonically live at [ambassador.git][] under `/docs/` directory.
 
-```Makefile
-pull-docs: ## Update ./docs from https://github.com/datawire/ambassador-docs
-	git subtree pull --prefix=docs https://github.com/datawire/ambassador-docs.git master
-push-docs: ## Publish ./docs to https://github.com/datawire/ambassador-docs
-	git subtree push --prefix=docs git@github.com:datawire/ambassador-docs.git master
-.PHONY: pull-docs push-docs
-```
-
-Pushing to the `master` branch of [ambassador-docs.git][] causes
+Pushing to the release branch of [ambassador.git][] causes
 Travis CI to update [getambassador.io.git][]'s subtree of the docs,
 which will cause a website update.  That repository contains the
 Gatsby-based toolchain that compiles the docs in to a website. Still
@@ -53,7 +41,6 @@ periodically.  Documentation for code changes can then be committed
 right along-side the code changes.  When a release is cut, and you are
 ready to publicize it, simply do a `git subtree push`.
 
-[ambassador-docs.git]: https://github.com/datawire/ambassador-docs
 [ambassador.git]: https://github.com/datawire/ambassador
 [apro.git]: https://github.com/datawire/apro
 [getambassador.io.git]: https://github.com/datawire/getambassador.io
