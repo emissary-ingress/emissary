@@ -387,3 +387,48 @@ runs can be very useful.  Common modifications are
  - uncomment the `//await writeFile("/tmp/f.html", await
    browsertab.content());` line so you can inspect the DOM of the
    final page.
+
+How do I add new CRD types?
+---------------------------
+
+Well, you should probably start by writing a spec for the CRD.  Should
+you do that in Protobuf at `ambassador.git/api/`?  Should you do that
+in JSON Schema at `ambassador.git/python/schemas/`?  Should you do
+that in Go structs at `apro.git/apis/`?  Should you just say "YOLO"
+and define it as a Go struct in the package where you consume it?  Who
+knows, we get conflicting answers whenever we try to settle on one.
+
+OK, so you somehow figured out how to get the code to understand and
+listen for the CRD.  Now you need to add it to the YAML:
+
+ 1. Define the CRD.
+    - for OSS CRDs, add it to each of the following files:
+      * `ambassador.git/docs/yaml/ambassador/ambassador-crds.yaml`
+      * `ambassador.git/docs/yaml/ambassador/ambassador-knative.yaml`
+      * `ambassador.git/docs/yaml/ambassador/ambassador-rbac-prometheus.yaml`
+    - for AES-only CRDs, add it to the following file:
+      * `apro.git/k8s-aes-src/00-aes-crds.yaml`
+ 2. Update the RBAC.
+    - If you need to adjust the OSS RBAC:
+      1. Edit the `ClusterRole` in the following files:
+         + `ambassador.git/docs/yaml/ambassador/ambassador-knative.yaml`
+         + `ambassador.git/docs/yaml/ambassador/ambassador-rbac-prometheus.yaml`
+         + `ambassador.git/docs/yaml/ambassador/ambassador-rbac.yaml`
+         + `ambassador.git/python/tests/manifests/rbac_cluster_scope.yaml`
+      2. Edit the `Role` in the following files:
+         + `ambassador.git/python/tests/manifests/rbac_namespace_scope.yaml`
+      3. Also edit the AES RBAC (below) correspondingly
+    - If you need to adjust the AES RBAC, edit:
+      + `apro.git/k8s-aes-src/01-aes.yaml` (edit the `ClusterRole`)
+      + `apro.git/tests/pytest/manifests/rbac_cluster_scope.yaml` (edit the `ClusterRole`)
+      + `apro.git/tests/pytest/manifests/rbac_namespace_scope.yaml`
+        * You should mostly just be changing the `Role` (not the
+          `ClusterRole`).  However, if you're not handling
+          `AMBASSADOR_SINGLE_NAMESPACE` in client-go (as you're probably
+          not if you're using `github.com/datawire/ambassador/pkg/k8s`
+          directly instead of using WATT), then you also need to add
+          get/list/watch for it to the `ClusterRole`.
+ 3. Update generated files.
+    1. If you made any changes in `ambassador.git`, update
+      `apro.git/ambassador.commit`.
+    2. In `apro.git`, run `make update-yaml-locally`.
