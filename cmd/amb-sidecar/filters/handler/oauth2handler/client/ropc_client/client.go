@@ -74,7 +74,7 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger dlog.Logger, httpClien
 
 	// ...and set up the OAuth2 client. (Note that in "ClientPasswordHeader",
 	// "client" refers to the client of the IdP -- which is to say, us. So this
-	// is us given our password to the IdP.
+	// is us giving our password to the IdP.)
 	oauthClient, err := rfc6749client.NewResourceOwnerPasswordCredentialsClient(
 		discovered.TokenEndpoint,
 		rfc6749client.ClientPasswordHeader(c.Spec.ClientID, c.Spec.Secret),
@@ -92,9 +92,7 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger dlog.Logger, httpClien
 
 	// OK. For our session key, hash the username and the password.
 	sessionHash := sha256.New()
-	_, _ = sessionHash.Write([]byte(username))
-	_, _ = sessionHash.Write([]byte("--"))
-	_, _ = sessionHash.Write([]byte(password))
+	fmt.Fprintf(sessionHash, "%s--%s", username, password)
 
 	sessionKey := fmt.Sprintf("%x", sessionHash.Sum(nil))
 
