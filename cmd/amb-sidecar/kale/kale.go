@@ -196,7 +196,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 				if !ok {
 					return nil
 				}
-				err := safeInvoke(func() { k.updateInternalState(snapshot) })
+				err := safeInvoke(func() { k.updateInternalState(softCtx, snapshot) })
 				if err != nil {
 					l.Errorln("panic:", err)
 				}
@@ -287,8 +287,7 @@ func NewKale(dynamicClient k8sClientDynamic.Interface) *kale {
 	return &kale{
 		projectsGetter: dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "projects"}),
 		commitsGetter:  dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "projectcommits"}),
-		Projects:       make(map[string]*Project),
-		Pods:           make(PodMap),
+		Projects:       make(map[string]*projectAndChildren),
 	}
 }
 
@@ -299,26 +298,7 @@ type kale struct {
 	commitsGetter  k8sClientDynamic.NamespaceableResourceInterface
 
 	mu       sync.RWMutex
-	Projects map[string]*Project
-	Pods     PodMap
-	Commits  map[string][]*ProjectCommit
-}
-
-// map["projectNamespace/projectName"]map["podName"]*Pod
-type PodMap map[string]map[string]*k8sTypesCoreV1.Pod
-
-func (pm PodMap) addPod(pod *k8sTypesCoreV1.Pod) {
-	projName := pod.GetLabels()["project"]
-	if projName != "" {
-		projKey := fmt.Sprintf("%s/%s", pod.GetNamespace(), projName)
-		projPods, ok := pm[projKey]
-		if !ok {
-			projPods = make(map[string]*k8sTypesCoreV1.Pod)
-			pm[projKey] = projPods
-		}
-		// todo: exclude terminating pods so that we don't double delete them
-		projPods[pod.GetName()] = pod
-	}
+	Projects map[string]*projectAndChildren
 }
 
 func (k *kale) reconcile(ctx context.Context, snapshot Snapshot) {
@@ -326,30 +306,66 @@ func (k *kale) reconcile(ctx context.Context, snapshot Snapshot) {
 	k.reconcileCluster(ctx, snapshot)
 }
 
-func (k *kale) updateInternalState(snapshot Snapshot) {
-	// map["projectNamespace/projectName"]*Project
-	projects := make(map[string]*Project)
-	for _, proj := range snapshot.Projects {
-		projects[proj.Key()] = proj
-	}
+type projectAndChildren struct {
+	*Project
+	Children struct {
+		Commits []*commitAndChildren `json:"commits"`
+	} `json:"children"`
+}
 
-	// map["projectNamespace/projectName"]map["podName"]*Pod
-	pods := make(PodMap)
-	for _, pod := range snapshot.Pods {
-		pods.addPod(pod)
-	}
+type commitAndChildren struct {
+	*ProjectCommit
+	Children struct {
+		Builders []*k8sTypesCoreV1.Pod `json:"builders"`
+		Runners  []*k8sTypesCoreV1.Pod `json:"runners"`
+	} `json:"children"`
+}
 
-	// map["projectNamespace/projectName"][]*ProjectCommit
-	commits := make(map[string][]*ProjectCommit)
+func (k *kale) updateInternalState(ctx context.Context, snapshot Snapshot) {
+	log := dlog.GetLogger(ctx)
+
+	// map["commitName.commitNamespace"]*commitAndChildren
+	commits := make(map[string]*commitAndChildren)
 	for _, commit := range snapshot.Commits {
-		key := commit.GetNamespace() + "/" + commit.Spec.Project.Name
-		commits[key] = append(commits[key], commit)
+		key := commit.GetName() + "." + commit.GetNamespace()
+		if _, ok := commits[key]; !ok {
+			commits[key] = new(commitAndChildren)
+		}
+		commits[key].ProjectCommit = commit
+	}
+	for _, pod := range snapshot.Pods {
+		key := pod.GetLabels()[CommitLabelName]
+		if _, ok := commits[key]; !ok {
+			log.Errorf("Unable to pair Pod %q.%q with ProjectCommit; ignoring", pod.GetName(), pod.GetNamespace())
+			continue
+		}
+		if pod.GetLabels()["build"] != "" {
+			commits[key].Children.Builders = append(commits[key].Children.Builders, pod)
+		} else {
+			commits[key].Children.Runners = append(commits[key].Children.Runners, pod)
+		}
+	}
+
+	// map["projectName.projectNamespace"]*projectAndChildren
+	projects := make(map[string]*projectAndChildren)
+	for _, proj := range snapshot.Projects {
+		key := proj.Metadata.Name + "." + proj.Metadata.Namespace
+		if _, ok := projects[key]; !ok {
+			projects[key] = new(projectAndChildren)
+		}
+		projects[key].Project = proj
+	}
+	for _, commit := range commits {
+		key := commit.GetLabels()[ProjectLabelName]
+		if _, ok := projects[key]; !ok {
+			log.Errorf("Unable to pair ProjectCommit %q.%q with Project; ignoring", commit.GetName(), commit.GetNamespace())
+			continue
+		}
+		projects[key].Children.Commits = append(projects[key].Children.Commits, commit)
 	}
 
 	k.mu.Lock()
 	k.Projects = projects
-	k.Pods = pods
-	k.Commits = commits
 	k.mu.Unlock()
 }
 
@@ -422,29 +438,15 @@ func (k *kale) projectsJSON() string {
 	}
 	sort.Strings(keys)
 
-	results := make([]interface{}, 0)
-
+	results := make([]*projectAndChildren, 0, len(k.Projects))
 	for _, key := range keys {
-		proj := k.Projects[key]
-		pods, ok := k.Pods[key]
-		if !ok {
-			pods = make(map[string]*k8sTypesCoreV1.Pod)
-		}
-		commits, ok := k.Commits[key]
-		if !ok {
-			commits = make([]*ProjectCommit, 0)
-		}
-
-		m := make(map[string]interface{})
-		m["project"] = proj
-		m["pods"] = pods
-		m["commits"] = commits
-
-		results = append(results, m)
+		results = append(results, k.Projects[key])
 	}
 
 	bytes, err := json.MarshalIndent(results, "", "  ")
 	if err != nil {
+		// Everything in results should be serializable to
+		// JSON--this should never happen.
 		panic(err)
 	}
 
@@ -516,7 +518,7 @@ func (k *kale) handlePush(r *http.Request, key string) httpResult {
 		// Kubernetes.  We do this instead of just poking the right
 		// bits in memory because we might not be the elected leader.
 		proj.Status.LastPush = time.Now()
-		uProj := unstructureProject(proj)
+		uProj := unstructureProject(proj.Project)
 		_, err := k.projectsGetter.Namespace(proj.Metadata.Namespace).UpdateStatus(uProj, k8sTypesMetaV1.UpdateOptions{})
 		if err != nil {
 			log.Println("update project status:", err)
@@ -556,7 +558,6 @@ func (k *kale) calculateBuild(proj *Project, commit *ProjectCommit) []interface{
 				Labels: map[string]string{
 					GlobalLabelName: k.cfg.AmbassadorID,
 					CommitLabelName: commit.GetName() + "." + commit.GetNamespace(),
-					"project":       commit.Spec.Project.Name,
 					"build":         commit.GetName(),
 				},
 				OwnerReferences: []k8sTypesMetaV1.OwnerReference{
@@ -831,7 +832,6 @@ func (k *kale) calculateRun(proj *Project, commit *ProjectCommit) []interface{} 
 				Labels: map[string]string{
 					GlobalLabelName: k.cfg.AmbassadorID,
 					CommitLabelName: commit.GetName() + "." + commit.GetNamespace(),
-					"project":       commit.Spec.Project.Name,
 				},
 			},
 			Spec: k8sTypesCoreV1.PodSpec{

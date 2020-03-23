@@ -67,7 +67,7 @@ class Project extends SingleResource {
         let logType = parts[0];
         let commitQName = parts[1];
 
-        let commitBelongsToThisProject = this.resource.commits.some((commit) => {
+        let commitBelongsToThisProject = this.resource.children.commits.some((commit) => {
           return `${commit.metadata.name}.${commit.metadata.namespace}` == commitQName;
         });
 
@@ -123,31 +123,9 @@ class Project extends SingleResource {
     return result
   }
 
-  renderDeployedCommits(prefix, pods, commits) {
+  renderDeployedCommits(prefix, commits) {
     commits = commits || [];
 
-    let commitsByQName = new Map()
-    for (let commit of commits) {
-      commit.children = {
-        builds: [],
-        previews: [],
-      };
-      commitsByQName.set(`${commit.metadata.name}.${commit.metadata.namespace}`, commit)
-    }
-
-    for (let podName in pods) {
-      let pod = pods[podName];
-      let commit = commitsByQName.get(pod.metadata.labels["projects.getambassador.io/commit"])
-      if (!commit) {
-        continue;
-      }
-
-      if (pod.metadata.labels.hasOwnProperty("build")) {
-        commit.children.builds.push(pod)
-      } else {
-        commit.children.previews.push(pod)
-      }
-    }
     commits.sort((a,b) => {
       return Date.parse(a.metadata.creationTimestamp) - Date.parse(b.metadata.creationTimestamp);
     })
@@ -176,8 +154,8 @@ class Project extends SingleResource {
     <a href="https://github.com/${this.resource.spec.githubRepo}/commit/${commit.spec.rev}">${commit.spec.rev.slice(0, 7)}...</a>
   </div>
   <div class="justify-right">
-    ${commit.children.builds.length > 0 ? commit.children.builds.map(p=>this.renderBuild(commit, p)) : html`<span style="opacity:0.5">build</span>`} |
-    ${commit.children.previews.length > 0 ? commit.children.previews.map(p=>this.renderPreview(commit, p)) : html`<span style="opacity:0.5">log</span> | <span style="opacity:0.5">url</span>`}
+    ${(commit.children.builders || []).length > 0 ? commit.children.builders.map(p=>this.renderBuild(commit, p)) : html`<span style="opacity:0.5">build</span>`} |
+    ${(commit.children.runners || []).length > 0 ? commit.children.runners.map(p=>this.renderPreview(commit, p)) : html`<span style="opacity:0.5">log</span> | <span style="opacity:0.5">url</span>`}
   </div>
 `
   }
@@ -253,7 +231,7 @@ class Project extends SingleResource {
   renderResource() {
     return html`
 <visible-modes list>
-${this.renderDeployedCommits(this._spec.prefix, this.resource.pods, this.resource.commits)}
+${this.renderDeployedCommits(this._spec.prefix, this.resource.children.commits)}
 
 <dw-terminal source=${this.source} @close=${(e)=>this.closeTerminal()}></dw-terminal>
 </visible-modes>
@@ -321,13 +299,7 @@ export class Projects extends SortableResourceSet {
   }
 
   getResources(snapshot) {
-    let projects = [];
-    snapshot.forEach((obj)=>{
-      obj.project.pods = obj.pods
-      obj.project.commits = obj.commits
-      projects.push(obj.project)
-    });
-    return projects;
+    return snapshot;
   }
 
   sortFn(sortByAttribute) {
@@ -352,8 +324,9 @@ export class Projects extends SortableResourceSet {
         githubRepo: "",
         githubToken: ""
       },
-      commits: [],
-      pods: [],
+      children: {
+        commits: [],
+      }
     });
   }
 
