@@ -97,7 +97,7 @@ spec:
 
 When you use external authorization, each incoming request is authenticated before routing to its destination, including pre-flight `OPTIONS` requests.  
 
-By default, many [`AuthService`](../running/services/auth-service) implementations will deny these requests. If this is the case, you will need to add some logic to your `AuthService` to accept all CORS headers.
+By default, many [`AuthService`](../../running/services/auth-service) implementations will deny these requests. If this is the case, you will need to add some logic to your `AuthService` to accept all CORS headers.
 
 For example, a possible configuration for Spring Boot 2.0.1:
 

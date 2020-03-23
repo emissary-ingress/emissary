@@ -107,6 +107,10 @@ See the [Developer Portal](../../reference/dev-portal) documentation for more in
 
 The Documentation page provides you direct links to the Ambassador Edge Stack documentation (these very pages!), available resources and case studies, as well as the Ambassador blog.
 
+### Disabling the Edge Policy Console
+
+If necessary, you can disable external access to the Edge Policy Console using the [Ambassador module](../../reference/core/ambassador).
+
 ### Support
 
 Need help? Check in here to ask for help on Slack, file an issue, or contact us. See [Support](../support) for additional information.

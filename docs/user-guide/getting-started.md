@@ -74,7 +74,6 @@ Windows. For other options, such as Docker, read the [detailed instructions] (/u
 Your terminal will show you something similar to the following as the installer provisions
 a load balancer, configures TLS, and provides you with an `edgestack.me` subdomain:
 
-
 <div class="codeblockInstall">
 $ <span class="userInputText">edgectl install</span><br/>
 -> Installing the Ambassador Edge Stack $version$.<br/>
@@ -90,7 +89,6 @@ Please enter an email address. We'll use this email address to notify you prior
 to domain and certificate expiration. We also share this email address with
 Let's Encrypt to acquire your certificate for TLS.
 </div>
-
 
 Provide an email address as required by the ACME TLS certificate provider, Let's
 Encrypt. Then your terminal will print something similar to the following:
