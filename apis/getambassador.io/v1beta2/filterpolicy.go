@@ -10,7 +10,7 @@ import (
 )
 
 type FilterPolicy struct {
-	*metaV1.TypeMeta   `json:",inline"`
+	*metaV1.TypeMeta
 	*metaV1.ObjectMeta `json:"metadata"`
 	Spec               *FilterPolicySpec   `json:"spec"`
 	Status             *FilterPolicyStatus `json:"status"`
