@@ -14,6 +14,7 @@ metadata:
     helm.sh/chart: {{ include "ambassador.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+    product: aes
 rules:
   - apiGroups: [""]
     resources:
@@ -86,6 +87,7 @@ metadata:
     helm.sh/chart: {{ include "ambassador.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+    product: aes
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   {{- if .Values.scope.singleNamespace }}

@@ -12,6 +12,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     # Hard-coded label for Prometheus Operator ServiceMonitor
     service: ambassador-admin
+    product: aes
   {{- with .Values.adminService.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}

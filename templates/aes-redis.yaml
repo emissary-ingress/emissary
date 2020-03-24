@@ -33,6 +33,7 @@ metadata:
     helm.sh/chart: {{ include "ambassador.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+    product: aes
   annotations:
     {{- toYaml .Values.redis.annotations.deployment | nindent 4}}
 spec:
