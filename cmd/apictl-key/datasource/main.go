@@ -2,6 +2,7 @@ package datasource
 
 import (
 	"database/sql"
+	"fmt"
 	"net/url"
 
 	"github.com/jackc/pgx"
@@ -17,7 +18,7 @@ type PostgresqlDatasource struct {
 
 type Datasource interface {
 	Close() error
-	AddDomain(string, string, string, string) error
+	AddDomain(string, string, string, string, string) error
 	DomainExists(string) (bool, error)
 }
 
@@ -44,12 +45,34 @@ func (d *PostgresqlDatasource) Close() error {
 	return d.db.Close()
 }
 
-func (d *PostgresqlDatasource) AddDomain(domainName string, ip string, requesterContact string, requesterIp string) error {
+func (d *PostgresqlDatasource) AddDomain(domainName string, ip string, hostname string, requesterContact string, requesterIp string) error {
+	if ip != "" {
+		return d.addIpDomain(domainName, ip, requesterContact, requesterIp)
+	}
+	if hostname != "" {
+		return d.addHostnameDomain(domainName, hostname, requesterContact, requesterIp)
+	}
+	return fmt.Errorf("cannot add aes_domains entry without ip_address or hostname")
+}
+
+func (d *PostgresqlDatasource) addIpDomain(domainName string, ip string, requesterContact string, requesterIp string) error {
 	stmt, err := d.db.Prepare("INSERT INTO aes_domains(domain, ip_address, requester_ip_address, requester_contact) VALUES($1, $2, $3, $4)")
 	if err != nil {
 		return err
 	}
 	_, err = stmt.Exec(domainName, ip, requesterIp, requesterContact)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (d *PostgresqlDatasource) addHostnameDomain(domainName string, hostname string, requesterContact string, requesterIp string) error {
+	stmt, err := d.db.Prepare("INSERT INTO aes_domains(domain, hostname, requester_ip_address, requester_contact) VALUES($1, $2, $3, $4)")
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec(domainName, hostname, requesterIp, requesterContact)
 	if err != nil {
 		return err
 	}

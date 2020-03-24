@@ -14,7 +14,7 @@ import (
 
 // targetVersion defines the current and desired migration version.
 // This ensures the app is compatible with the version of the database.
-const targetVersion = 1
+const targetVersion = 2
 
 // validateSchema migrates the Postgres schema to the current version.
 func validateSchema(db *sql.DB) error {

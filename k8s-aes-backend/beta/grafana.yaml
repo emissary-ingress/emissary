@@ -12,16 +12,7 @@ metadata:
 data:
   notifier.yaml: |-
     apiVersion: 1
-    notifiers:
-      - type: pagerduty
-        name: pagerduty-notifier
-        uid: pagerduty-notifier
-        is_default: true
-        send_reminder: false
-        settings:
-          integrationKey: ${PAGERDUTY_INTEGRATION_KEY}
-          severity: warning
-          autoResolve: true
+    notifiers: []
 ---
 apiVersion: v1
 kind: ConfigMap
