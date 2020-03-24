@@ -101,7 +101,13 @@ func (fb *firstBootWizard) getSnapshot(clientSession string) Snapshot {
 		sort.Strings(qnames)
 		// main
 		list := make([]crd.Filter, 0, len(dict))
-		for _, filter := range dict {
+		for _, qname := range qnames {
+			filter := dict[qname]
+			if filter.Spec != nil && filter.Spec.OAuth2 != nil {
+				if filter.Spec.OAuth2.Secret != "" && filter.Spec.OAuth2.SecretName != "" {
+					filter.Spec.OAuth2.Secret = ""
+				}
+			}
 			list = append(list, filter)
 		}
 		return list
