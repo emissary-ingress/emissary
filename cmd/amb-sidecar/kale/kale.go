@@ -647,6 +647,7 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 }
 
 func (k *kale) reconcileCommit(ctx context.Context, proj *Project, commit *ProjectCommit, builders, runners []*k8sTypesCoreV1.Pod) error {
+	ctx = dlog.WithLogger(ctx, dlog.GetLogger(ctx).WithField("commit", commit.GetName()+"."+commit.GetNamespace()))
 	log := dlog.GetLogger(ctx)
 
 	var commitPhase CommitPhase
