@@ -375,11 +375,9 @@ func applyAndPrune(labelSelector string, types []k8sSchema.GroupVersionKind, obj
 
 	cmd := exec.Command(args[0], args[1:]...)
 	cmd.Stdin = strings.NewReader(yamlStr)
-	out := strings.Builder{}
-	cmd.Stdout = &out
-	cmd.Stderr = &out
-	if err := cmd.Run(); err != nil {
-		err = fmt.Errorf("%w\n%s", err, out.String())
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("%w\n%s", err, out)
 	}
 	return nil
 }
