@@ -15,7 +15,7 @@ We're happy to help!
 * The [FAQ](latest/about/faq) has answers to many common questions
 * Join our open source [Slack channel](https://d6e.co/slack)
 * Report bugs in [GitHub](https://github.com/datawire/ambassador)
-* Need commercial support? [Contact us](https://www.getambassador.io/contact/)
+* Need commercial support? [Contact us](/contact/)
 
 ## How the Documentation is Organized
 
