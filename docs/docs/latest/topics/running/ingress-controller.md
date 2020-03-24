@@ -23,7 +23,7 @@ If you're new to the Ambassador Edge Stack and to Kubernetes, we'd recommend you
 
 - The Ambassador Edge Stack will need RBAC permissions to get, list, watch, and update `Ingress` resources.
 
-  You can see this in the [`aes-crds.yaml`](../../../../yaml/aes.yaml)
+  You can see this in the [`aes-crds.yaml`](/yaml/aes.yaml)
   file, but this is the critical rule to add to the Ambassador Edge Stack's `Role` or `ClusterRole`:
 
       - apiGroups: [ "extensions", "networking.k8s.io" ]
