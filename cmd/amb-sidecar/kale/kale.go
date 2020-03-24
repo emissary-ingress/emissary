@@ -618,7 +618,7 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 		}
 	}
 
-	// reconcile pods
+	// reconcile things manage by commits
 	for _, commit := range snapshot.Commits {
 		var project *Project
 		for _, proj := range snapshot.Projects {
