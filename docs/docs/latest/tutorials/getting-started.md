@@ -152,8 +152,8 @@ your cluster using the Ambassador Edge Stack.
 The Ambassador Edge Stack has a comprehensive range of [features](/features/) to
 support the requirements of any edge microservice. To learn more about how the
 Ambassador Edge Stack works, along with use cases, best practices, and more,
-check out the [Welcome page](/docs/) or read the [Ambassador
-Story](/about/why-ambassador).
+check out the [Welcome page](/docs/latest/) or read the [Ambassador
+Story](/docs/latest/about/why-ambassador).
 
 For a custom configuration, you can install the Ambassador Edge Stack [manually](/docs/latest/topics/install/yaml-install).
 
