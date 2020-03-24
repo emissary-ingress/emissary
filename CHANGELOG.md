@@ -66,6 +66,18 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [1.3.1-rc.0] March 23, 2020
+[1.3.1-rc.0]: https://github.com/datawire/ambassador/compare/v1.3.0...v1.3.1-rc.0
+
+### Ambassador Edge Stack
+
+- Bugfix: `edgectl install` will not install on top of a running Ambassador
+- Bugfix: `edgectl install` can detect and report if `kubectl` is missing
+- Bugfix: `edgectl install` can detect and report if it cannot talk to a Kubernetes cluster
+- Bugfix: When using the `Authorization Code` grant type for `OAuth2`, expired tokens are correctly handled so that the user will be prompted to renew
+- Bugfix: When using the `Password` grant type for `OAuth2`, authentication sessions are properly associated with each user
+- Bugfix: When using the `Password` grant type for `OAuth2`, you can set up multiple `Filter`s to allow requesting different scopes for different endpoints
+
 ## [1.3.0] March 17, 2020
 [1.3.0]: https://github.com/datawire/ambassador/compare/v1.2.2...v1.3.0
 
