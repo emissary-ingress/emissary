@@ -138,8 +138,8 @@ The following command will open the Edge Policy Console once you accept a
 self-signed certificate in your browser.
 $ <span class="userInputText">edgectl login -n ambassador IP_ADDRESS:PORT</span>
 
-See https://www.getambassador.io/user-guide/getting-started/
-</div>
+See <a href="link.html" class="not-active">https://www.getambassador.io/user-guide/getting-started/
+</a></div>Link
 
 ## Installation Success
 
