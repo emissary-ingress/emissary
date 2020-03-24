@@ -13,6 +13,7 @@ metadata:
     helm.sh/chart: {{ include "ambassador.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+    product: aes
     {{- if .Values.deploymentAnnotations }}
   annotations:
       {{- toYaml .Values.deploymentAnnotations | nindent 4 }}
@@ -37,6 +38,7 @@ spec:
         app.kubernetes.io/name: {{ include "ambassador.name" . }}
         app.kubernetes.io/part-of: {{ .Release.Name }}
         app.kubernetes.io/instance: {{ .Release.Name }}
+        product: aes
       {{- if .Values.podLabels }}
         {{- toYaml .Values.podLabels | nindent 8 }}
       {{- end }}

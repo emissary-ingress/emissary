@@ -11,6 +11,7 @@ metadata:
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/component: {{ include "ambassador.name" . }}-auth
+    product: aes
 spec:
   proto: grpc
   {{- if .Values.env }}

@@ -34,7 +34,6 @@ spec:
   scope: Namespaced
   subresources:
     status: {}
-  version: v2
   versions:
   - name: v2
     served: true

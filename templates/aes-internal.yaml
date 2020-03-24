@@ -7,13 +7,13 @@ metadata:
   # This Mapping name is referenced by convention, it's important to leave as-is.
   name: {{ include "ambassador.fullname" . }}-devportal
   labels:
-    product: aes
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/component: {{ include "ambassador.name" . }}-devportal
+    product: aes
 spec:
   {{- if .Values.env }}
   {{- if hasKey .Values.env "AMBASSADOR_ID" }}
@@ -30,13 +30,13 @@ metadata:
   # This Mapping name is what the demo uses. Sigh.
   name: {{ include "ambassador.fullname" . }}-devportal-demo
   labels:
-    product: aes
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/component: {{ include "ambassador.name" . }}-devportal-demo
+    product: aes
 spec:
   {{- if .Values.env }}
   {{- if hasKey .Values.env "AMBASSADOR_ID" }}
@@ -53,13 +53,13 @@ metadata:
   # This Mapping name is referenced by convention, it's important to leave as-is.
   name: {{ include "ambassador.fullname" . }}-devportal-api
   labels:
-    product: aes
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/component: {{ include "ambassador.name" . }}-devportal-api
+    product: aes
 spec:
   {{- if .Values.env }}
   {{- if hasKey .Values.env "AMBASSADOR_ID" }}

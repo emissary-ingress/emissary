@@ -9,7 +9,8 @@ metadata:
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}    
+    product: aes
 rules:
   - apiGroups: [ "apiextensions.k8s.io" ]
     resources:
