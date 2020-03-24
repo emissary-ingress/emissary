@@ -70,7 +70,7 @@ In both the Deployment Pod and the individual Pods, take the necessary action to
 
 The Ambassador logging can provide information on anything that might be abnormal or malfunctioning. While there may be a large amount of data to sort through, look for key errors such as the Ambassador process restarting unexpectedly, or a malformed Envoy configuration.
 
-You can turn on Debug mode in the [Edge Policy Console](../using/edge-policy-console), which generates verbose logging data that can be useful when trying to find a subtle error or bug.
+You can turn on Debug mode in the [Edge Policy Console](../../using/edge-policy-console), which generates verbose logging data that can be useful when trying to find a subtle error or bug.
 
 1. Use the following command to target an individual Ambassador Pod: `kubectl get pods -n ambassador`
 
