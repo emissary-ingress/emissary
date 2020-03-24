@@ -85,7 +85,7 @@ rules:
   verbs: [ "get", "list", "watch" ]
 # kale
 - apiGroups: ["getambassador.io"]
-  resources: [ "projects", "mappings" ]
+  resources: [ "projects", "projectcommits", "mappings" ]
   verbs: [ "get", "list", "watch" ]
 - apiGroups: [""]
   resources: [ "pods" ]

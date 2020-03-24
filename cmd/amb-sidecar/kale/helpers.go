@@ -18,11 +18,12 @@ import (
 	"time"
 
 	// 3rd party
-	git "gopkg.in/src-d/go-git.v4"
-	"gopkg.in/src-d/go-git.v4/config"
-	"gopkg.in/src-d/go-git.v4/plumbing"
-	ghttp "gopkg.in/src-d/go-git.v4/plumbing/transport/http"
-	"gopkg.in/src-d/go-git.v4/storage/memory"
+	libgit "gopkg.in/src-d/go-git.v4"
+	libgitConfig "gopkg.in/src-d/go-git.v4/config"
+	libgitPlumbing "gopkg.in/src-d/go-git.v4/plumbing"
+	libgitPlumbingStorer "gopkg.in/src-d/go-git.v4/plumbing/storer"
+	libgitHTTP "gopkg.in/src-d/go-git.v4/plumbing/transport/http"
+	libgitStorageMemory "gopkg.in/src-d/go-git.v4/storage/memory"
 
 	// 3rd party: k8s types
 	k8sTypesCoreV1 "k8s.io/api/core/v1"
@@ -30,6 +31,7 @@ import (
 	k8sTypesUnstructured "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 	// 3rd party: k8s misc
+	k8sSchema "k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/yaml"
 
 	// 1st party
@@ -162,25 +164,29 @@ func postJSON(url string, payload interface{}, token string) (*http.Response, st
 }
 
 // Get a json payload from a URL.
-func getJSON(url string, token string, target interface{}) *http.Response {
+func getJSON(url string, authToken string, target interface{}) error {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", authToken))
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	defer resp.Body.Close()
-	err = json.NewDecoder(resp.Body).Decode(target)
-	if err != nil {
-		panic(err)
+	if err := json.NewDecoder(resp.Body).Decode(target); err != nil {
+		return err
 	}
-	return resp
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("HTTP %d (%s)", resp.StatusCode, resp.Status)
+	}
+
+	return nil
 }
 
 // Post a status to the github API
@@ -266,11 +272,21 @@ func streamLogs(w http.ResponseWriter, r *http.Request, namespace, selector stri
 	log := dlog.GetLogger(r.Context())
 
 	since := r.Header.Get("Last-Event-ID")
-	args := []string{"logs", "--timestamps", "--tail=10000", "-f", "-n", namespace, "-l", selector}
+
+	args := []string{
+		"kubectl",
+		"--namespace=" + namespace,
+		"logs",
+		"--timestamps",
+		"--tail=10000",
+		"--follow",
+		"--selector=" + selector,
+	}
 	if since != "" {
 		args = append(args, "--since-time", since)
 	}
-	cmd := exec.Command("kubectl", args...)
+
+	cmd := exec.Command(args[0], args[1:]...)
 
 	rawReader, err := cmd.StdoutPipe()
 	if err != nil {
@@ -335,29 +351,37 @@ func streamLogs(w http.ResponseWriter, r *http.Request, namespace, selector stri
 	<-done
 }
 
-// Does a kubectl apply on the passed in yaml.
-func applyStr(yaml string) (string, error) {
-	cmd := exec.Command("kubectl", "apply", "-f", "-")
-	cmd.Stdin = strings.NewReader(yaml)
-	out := strings.Builder{}
-	cmd.Stdout = &out
-	cmd.Stderr = &out
-
-	err := cmd.Run()
-	return out.String(), err
-}
-
-// Does a kubectl apply on the passed in yaml.
-func applyObjs(objs []interface{}) (string, error) {
-	var str string
+func applyAndPrune(labelSelector string, types []k8sSchema.GroupVersionKind, objs []interface{}) error {
+	var yamlStr string
 	for _, obj := range objs {
 		bs, err := yaml.Marshal(obj)
 		if err != nil {
-			return "", err
+			return err
 		}
-		str += "---\n" + string(bs)
+		yamlStr += "---\n" + string(bs)
 	}
-	return applyStr(str)
+
+	args := []string{"kubectl", "apply",
+		"--filename=-",
+		"--prune",
+		"--selector=" + labelSelector,
+	}
+	for _, gvk := range types {
+		if gvk.Group == "" {
+			gvk.Group = "core"
+		}
+		args = append(args, "--prune-whitelist="+gvk.Group+"/"+gvk.Version+"/"+gvk.Kind)
+	}
+
+	cmd := exec.Command(args[0], args[1:]...)
+	cmd.Stdin = strings.NewReader(yamlStr)
+	out := strings.Builder{}
+	cmd.Stdout = &out
+	cmd.Stderr = &out
+	if err := cmd.Run(); err != nil {
+		err = fmt.Errorf("%w\n%s", err, out.String())
+	}
+	return nil
 }
 
 // Evaluates a golang template and returns the result.
@@ -388,132 +412,129 @@ func boolPtr(v bool) *bool {
 	return &v
 }
 
-func deleteResource(kind, name, namespace string) error {
-	out, err := exec.Command("kubectl", "delete", "--namespace="+namespace, kind+"/"+name).CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("%w\n%s", err, out)
-	}
-	return nil
-}
-
-type Deploy struct {
-	Project Project `json:"project"`
-	Ref     *plumbing.Reference
-	Pull    *Pull `json:"pull"`
-}
-
-func (d *Deploy) MarshalJSON() ([]byte, error) {
-	result := make(map[string]interface{})
-	result["project"] = d.Project
-	result["pull"] = d.Pull
-	ref := make(map[string]interface{})
-	ref["name"] = d.Ref.Name().String()
-	ref["short"] = d.Ref.Name().Short()
-	ref["hash"] = d.Ref.Hash().String()
-	result["ref"] = ref
-	return json.Marshal(result)
-}
-
-func PrettyDeploys(deps []Deploy) string {
-	var parts []string
-	for _, d := range deps {
-		parts = append(parts, fmt.Sprintf("%s => %s", d.Ref.Name().Short(), d.Ref.Hash()))
-	}
-	return strings.Join(parts, ", ")
-}
-
 type Pull struct {
-	Number  int    `json:"number"`
-	HtmlUrl string `json:"html_url"`
-	Head    struct {
-		Ref string `json:"ref"`
-		Sha string `json:"sha"`
+	Number int `json:"number"`
+	Head   struct {
+		Ref  string `json:"ref"`
+		Sha  string `json:"sha"`
+		Repo struct {
+			FullName string `json:"full_name"`
+		} `json:"repo"`
 	} `json:"head"`
-	MergeSha string `json:"merge_commit_sha"`
 }
 
-func (d Deploy) IsBuilder(pod *k8sTypesCoreV1.Pod) bool {
-	labels := pod.GetLabels()
-	return (labels["project"] == d.Project.Metadata.Name &&
-		pod.GetNamespace() == d.Project.Metadata.Namespace &&
-		labels["build"] != "" &&
-		labels["commit"] == d.Ref.Hash().String())
-}
-
-func (d Deploy) IsRunner(pod *k8sTypesCoreV1.Pod) bool {
-	labels := pod.GetLabels()
-	return (labels["project"] == d.Project.Metadata.Name &&
-		pod.GetNamespace() == d.Project.Metadata.Namespace &&
-		labels["build"] == "" &&
-		labels["commit"] == d.Ref.Hash().String())
-}
-
-// GetDeploys does a `git ls-remote`, gets the listing of open GitHub
+// calculateCommits does a `git ls-remote`, gets the listing of open GitHub
 // pull-requests, and cross-references the two in order to decide
 // which things we want to deploy.
-func GetDeploys(project Project) []Deploy {
-	repo := project.Spec.GithubRepo
-	token := project.Spec.GithubToken
-	refs := gitLsRemote(fmt.Sprintf("https://github.com/%s", repo), token, "refs/heads/*")
-	var result []Pull
-	resp := getJSON(fmt.Sprintf("https://api.github.com/repos/%s/pulls", repo), token, &result)
-	if resp.StatusCode != 200 {
-		panic(resp.Status)
+func (k *kale) calculateCommits(proj *Project) ([]interface{}, error) {
+	repo := proj.Spec.GithubRepo
+	token := proj.Spec.GithubToken
+
+	// Ask the server for a collection of references
+	refs, err := gitLsRemote(fmt.Sprintf("https://github.com/%s", repo), token)
+	if err != nil {
+		return nil, err
 	}
 
-	pulls := make(map[string]Pull)
-
-	for _, p := range result {
-		pulls[p.Head.Sha] = p
+	// Ask the server for a list of open PRs
+	var openPulls []Pull
+	if err := getJSON(fmt.Sprintf("https://api.github.com/repos/%s/pulls", repo), token, &openPulls); err != nil {
+		return nil, err
 	}
 
-	var deploys []Deploy
-	for _, ref := range refs {
-		pull, ok := pulls[ref.Hash().String()]
-		if ok {
-			deploys = append(deploys, Deploy{project, ref, &pull})
+	// Which refnames to deploy
+	var deployRefNames []libgitPlumbing.ReferenceName
+	// Always deploy HEAD (which is a symbolic ref, usually to
+	// "refs/heads/master").
+	deployRefNames = append(deployRefNames,
+		libgitPlumbing.HEAD)
+	// And also deploy any open first-party PRs.
+	for _, pull := range openPulls {
+		if strings.EqualFold(pull.Head.Repo.FullName, repo) {
+			deployRefNames = append(deployRefNames,
+				libgitPlumbing.ReferenceName(fmt.Sprintf("refs/pull/%d/head", pull.Number)))
 		}
-		if ref.Name().Short() == "master" {
-			deploys = append(deploys, Deploy{project, ref, nil})
-		}
 	}
 
-	return deploys
+	// Resolve all of those refNames, and generate ProjectCommit objects for them.
+	var commits []interface{}
+	for _, refName := range deployRefNames {
+		// Use libgitPlumbing.ReferenceName() instead of refs.Reference() (or even having
+		// gitLsRemote return a simple slice of refs) in order to resolve refs recursively.
+		// This is important, because HEAD is always a symbolic reference.
+		ref, err := libgitPlumbingStorer.ResolveReference(refs, refName)
+		if err != nil {
+			continue
+		}
+		commits = append(commits, &ProjectCommit{
+			TypeMeta: k8sTypesMetaV1.TypeMeta{
+				APIVersion: "getambassador.io/v2",
+				Kind:       "ProjectCommit",
+			},
+			ObjectMeta: k8sTypesMetaV1.ObjectMeta{
+				Name:      proj.Metadata.Name + "-" + ref.Hash().String(), // todo: better id
+				Namespace: proj.Metadata.Namespace,
+				OwnerReferences: []k8sTypesMetaV1.OwnerReference{
+					{
+						APIVersion:         "getambassador.io/v2",
+						Controller:         boolPtr(true),
+						BlockOwnerDeletion: boolPtr(true),
+						Kind:               "Project",
+						Name:               proj.Metadata.Name,
+						UID:                proj.Metadata.UID,
+					},
+				},
+				Labels: map[string]string{
+					GlobalLabelName:  k.cfg.AmbassadorID,
+					ProjectLabelName: proj.Metadata.Name + "." + proj.Metadata.Namespace,
+				},
+			},
+			Spec: ProjectCommitSpec{
+				Project: k8sTypesCoreV1.LocalObjectReference{
+					Name: proj.Metadata.Name,
+				},
+				// Use the resolved ref.Name() instead of the original
+				// refName, in order to resolve symbolic references; users
+				// would rather see "master" instead of "HEAD".
+				Ref: ref.Name(),
+				Rev: ref.Hash().String(),
+			},
+		})
+	}
+	return commits, nil
 }
 
-func gitLsRemote(repo, token string, specs ...string) []*plumbing.Reference {
-	// Create the remote with repository URL
-	rem := git.NewRemote(memory.NewStorage(), &config.RemoteConfig{
+func gitLsRemote(repoURL, authToken string) (libgitPlumbingStorer.ReferenceStorer, error) {
+	remote := libgit.NewRemote(nil, &libgitConfig.RemoteConfig{
 		Name: "origin",
-		URLs: []string{repo},
+		URLs: []string{repoURL},
 	})
 
-	// We can then use every Remote functions to retrieve wanted information
-	refs, err := rem.List(&git.ListOptions{
-		Auth: &ghttp.BasicAuth{Username: token},
+	refs, err := remote.List(&libgit.ListOptions{
+		Auth: &libgitHTTP.BasicAuth{Username: authToken},
 	})
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	var result []*plumbing.Reference
+	// Instead of returning 'refs' as a simple slice, pack the
+	// result in to a ReferenceStorer, so that we can easily
+	// resolve recursive refs by using storer.ResolveReference().
+	storage := libgitStorageMemory.NewStorage()
 	for _, ref := range refs {
-		for _, spec := range specs {
-			rs := config.RefSpec(fmt.Sprintf("%s:", spec))
-			if rs.Match(ref.Name()) {
-				result = append(result, ref)
-			}
+		if err := storage.SetReference(ref); err != nil {
+			return nil, err
 		}
 	}
-	return result
+	return storage, nil
 }
 
-func gitResolveRef(repo, token, refname string) string {
-	refs := gitLsRemote(repo, token, refname)
-	if len(refs) == 0 {
-		return ""
+func gitResolveRef(repoURL, authToken string, refname libgitPlumbing.ReferenceName) (*libgitPlumbing.Reference, error) {
+	storage, err := gitLsRemote(repoURL, authToken)
+	if err != nil {
+		return nil, err
 	}
-	return refs[0].Hash().String()
+	return libgitPlumbingStorer.ResolveReference(storage, refname)
 }
 
 // WatchGroup is used to wait for multiple Watcher queries to all be
@@ -546,7 +567,7 @@ func (wg *WatchGroup) Wrap(ctx context.Context, listener func(*k8s.Watcher)) fun
 //
 //  1. For use with a k8sClientDynamic.Interface
 //  2. For use as a k8sRuntime.Object
-func unstructureProject(project Project) *k8sTypesUnstructured.Unstructured {
+func unstructureProject(project *Project) *k8sTypesUnstructured.Unstructured {
 	return &k8sTypesUnstructured.Unstructured{
 		Object: map[string]interface{}{
 			"apiVersion": "getambassador.io/v2",
@@ -554,6 +575,24 @@ func unstructureProject(project Project) *k8sTypesUnstructured.Unstructured {
 			"metadata":   unstructureMetadata(&project.Metadata),
 			"spec":       project.Spec,
 			"status":     project.Status,
+		},
+	}
+}
+
+// unstructureCommit returns a *k8sTypesUnstructured.Unstructured
+// representation of an *ambassadorTypesV2.ProjectCommit.  There are 2
+// reasons why we might want this:
+//
+//  1. For use with a k8sClientDynamic.Interface
+//  2. For use as a k8sRuntime.Object
+func unstructureCommit(commit *ProjectCommit) *k8sTypesUnstructured.Unstructured {
+	return &k8sTypesUnstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": "getambassador.io/v2",
+			"kind":       "ProjectCommit",
+			"metadata":   unstructureMetadata(&commit.ObjectMeta),
+			"spec":       commit.Spec,
+			"status":     commit.Status,
 		},
 	}
 }
