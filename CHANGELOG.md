@@ -66,8 +66,8 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
-## [1.3.1-rc.1] March 24, 2020
-[1.3.1-rc.1]: https://github.com/datawire/ambassador/compare/v1.3.0...v1.3.1-rc.1
+## [1.3.1] March 24, 2020
+[1.3.1]: https://github.com/datawire/ambassador/compare/v1.3.0...v1.3.1
 
 ### Ambassador Edge Stack
 
