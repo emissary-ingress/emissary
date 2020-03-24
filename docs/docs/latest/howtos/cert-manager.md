@@ -1,5 +1,7 @@
 # Cert-Manager and Ambassador Edge Stack
 
+**Note:** The Ambassador Edge Stack can issue and manage certificate with the ACME HTTP-01 challenge.
+
 Creating and managing certificates in Kubernetes is made simple with Jetstack's [cert-manager](https://github.com/jetstack/cert-manager). Cert-manager will automatically create and renew TLS certificates and store them in Kubernetes secrets for easy use in a cluster. Ambassador will automatically watch for secret changes and reload certificates upon renewal.
 
 Note: Ambassador Edge Stack will automatically create and renew TLS certificates with the HTTP-01 challenge. You should use cert-manager if you need support for the DNS-01 challenge and/or wildcard certificates.
@@ -34,6 +36,76 @@ By duplicating issuers, certificates, and secrets one can support multiple domai
 ### Challenge
 
 cert-manager supports two kinds of ACME challenges that verify domain ownership in different ways: HTTP-01 and DNS-01.
+
+### DNS-01 Challenge
+
+The DNS-01 challenge verifies domain ownership by proving you have control over its DNS records. Issuer configuration will depend on your [DNS provider](https://cert-manager.readthedocs.io/en/latest/tasks/acme/configuring-dns01/index.html#supported-dns01-providers). This example uses [AWS Route53](https://cert-manager.readthedocs.io/en/latest/tasks/acme/configuring-dns01/route53.html).
+
+1. Create the IAM policy specified in the cert-manager [AWS Route53](https://cert-manager.readthedocs.io/en/latest/tasks/acme/configuring-dns01/route53.html) documentation.
+
+2. Note the `accessKeyID` and create a secret named `prod-route53-credentials-secret` holding the `secret-access-key`.
+
+3. Create and apply a `ClusterIssuer`:
+
+    ```yaml
+    ---
+    apiVersion: cert-manager.io/v1alpha2
+    kind: ClusterIssuer
+    metadata:
+      name: letsencrypt-prod
+      namespace: default
+    spec:
+      acme:
+        email: example@example.com
+        server: https://acme-v02.api.letsencrypt.org/directory
+        privateKeySecretRef:
+          name: letsencrypt-prod
+        dns01:
+          providers:
+          - name: route53
+            route53:
+              region: us-east-1
+              accessKeyID: {SECRET_KEY}
+              secretAccessKeySecretRef:
+                name: prod-route53-credentials-secret
+                key: secret-access-key
+    ```
+
+4. Create and apply a certificate:
+
+
+    ```yaml
+    ---
+    apiVersion: cert-manager.io/v1alpha2
+    kind: Certificate
+    metadata:
+      name: ambassador-certs
+      namespace: default
+    spec:
+      secretName: ambassador-certs
+      issuerRef:
+        name: letsencrypt-prod
+        kind: ClusterIssuer
+      commonName: example.com
+      dnsNames:
+      - example.com
+      acme:
+        config:
+        - dns01:
+            provider: route53
+          domains:
+          - example.com
+    ```
+
+5. Verify the secret is created
+
+    ```shell
+    $ kubectl get secrets
+    NAME                     TYPE                                  DATA      AGE
+    ambassador-certs         kubernetes.io/tls                     2         1h
+    ambassador-token-846d5   kubernetes.io/service-account-token   3         2h
+    default-token-4l772      kubernetes.io/service-account-token   3         2h
+    ```
 
 #### HTTP-01 Challenge
 
@@ -140,76 +212,6 @@ cert-manager uses an `Ingress` resource to issue the challenge to `/.well-known/
 Apply the YAML and wait a couple of minutes. cert-manager will retry the challenge and issue the certificate.
 
 5. Verify the secret is created:
-
-    ```shell
-    $ kubectl get secrets
-    NAME                     TYPE                                  DATA      AGE
-    ambassador-certs         kubernetes.io/tls                     2         1h
-    ambassador-token-846d5   kubernetes.io/service-account-token   3         2h
-    default-token-4l772      kubernetes.io/service-account-token   3         2h
-    ```
-
-### DNS-01 Challenge
-
-The DNS-01 challenge verifies domain ownership by proving you have control over its DNS records. Issuer configuration will depend on your [DNS provider](https://cert-manager.readthedocs.io/en/latest/tasks/acme/configuring-dns01/index.html#supported-dns01-providers). This example uses [AWS Route53](https://cert-manager.readthedocs.io/en/latest/tasks/acme/configuring-dns01/route53.html).
-
-1. Create the IAM policy specified in the cert-manager [AWS Route53](https://cert-manager.readthedocs.io/en/latest/tasks/acme/configuring-dns01/route53.html) documentation.
-
-2. Note the `accessKeyID` and create a secret named `prod-route53-credentials-secret` holding the `secret-access-key`.
-
-3. Create and apply a `ClusterIssuer`:
-
-    ```yaml
-    ---
-    apiVersion: cert-manager.io/v1alpha2
-    kind: ClusterIssuer
-    metadata:
-      name: letsencrypt-prod
-      namespace: default
-    spec:
-      acme:
-        email: example@example.com
-        server: https://acme-v02.api.letsencrypt.org/directory
-        privateKeySecretRef:
-          name: letsencrypt-prod
-        dns01:
-          providers:
-          - name: route53
-            route53:
-              region: us-east-1
-              accessKeyID: {SECRET_KEY}
-              secretAccessKeySecretRef:
-                name: prod-route53-credentials-secret
-                key: secret-access-key
-    ```
-
-4. Create and apply a certificate:
-
-
-    ```yaml
-    ---
-    apiVersion: cert-manager.io/v1alpha2
-    kind: Certificate
-    metadata:
-      name: ambassador-certs
-      namespace: default
-    spec:
-      secretName: ambassador-certs
-      issuerRef:
-        name: letsencrypt-prod
-        kind: ClusterIssuer
-      commonName: example.com
-      dnsNames:
-      - example.com
-      acme:
-        config:
-        - dns01:
-            provider: route53
-          domains:
-          - example.com
-    ```
-
-5. Verify the secret is created
 
     ```shell
     $ kubectl get secrets
