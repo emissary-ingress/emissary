@@ -47,4 +47,4 @@ The Ambassador Edge Stack supports routing both to Kubernetes services and direc
 ## Further reading
 
 * [Kubernetes Ingress 101](https://blog.getambassador.io/kubernetes-ingress-nodeport-load-balancers-and-ingress-controllers-6e29f1c44f2d)
-* [Envoy Proxy Performance on Kubernetes](https://www.getambassador.io/resources/envoyproxy-performance-on-k8s/)
+* [Envoy Proxy Performance on Kubernetes](/resources/envoyproxy-performance-on-k8s/)

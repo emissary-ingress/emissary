@@ -1,6 +1,6 @@
 # Authentication
 
-Ambassador can authenticate incoming requests before routing them to a backing service. In this tutorial, we'll configure Ambassador to use an external third party authentication service. Note that if you're using the Ambassador Edge Stack, the [`External` filter](../topics/using/filters) is a more powerful way to manage authentication. 
+Ambassador can authenticate incoming requests before routing them to a backing service. In this tutorial, we'll configure Ambassador to use an external third party authentication service. Note that if you're using the Ambassador Edge Stack, the [`External` filter](../../topics/using/filters) is a more powerful way to manage authentication. 
 
 ## Before You Get Started
 
