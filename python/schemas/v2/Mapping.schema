@@ -101,6 +101,7 @@
         "priority": { "type": "string" },
         "precedence": { "type": "integer" },
         "cluster_tag": { "type": "string" },
+        "proper_case": { "type": "boolean" },
         "remove_request_headers": {
             "anyOf": [
                 { "type": "string" },
