@@ -18,7 +18,6 @@ spec:
     - fp
     singular: filterpolicy
   scope: Namespaced
-  version: v1beta2
   versions:
   - name: v1beta2
     served: true
