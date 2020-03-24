@@ -155,4 +155,4 @@ Story](/about/why-ambassador).
 
 For a custom configuration, you can install the Ambassador Edge Stack [manually](/user-guide/manual-install).
 
-**Note that the provided `random-word.edgestack.me` domain name will expire after 90 days**.
+**Note that the provided `random-word-3421.edgestack.me` domain name will expire after 90 days**.
