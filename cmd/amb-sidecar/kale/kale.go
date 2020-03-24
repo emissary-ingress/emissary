@@ -152,7 +152,11 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 			}
 		}
 
-		w.Start()
+		if err := safeInvoke(w.Start); err != nil {
+			// RBAC!
+			l.Errorf("kale: w.Start(): %v", err)
+			return nil
+		}
 		go func() {
 			<-softCtx.Done()
 			w.Stop()
