@@ -366,7 +366,7 @@ func (k *kale) updateInternalState(ctx context.Context, snapshot Snapshot) {
 	// map["projectName.projectNamespace"]*projectAndChildren
 	projects := make(map[string]*projectAndChildren)
 	for _, proj := range snapshot.Projects {
-		key := proj.Metadata.Name + "." + proj.Metadata.Namespace
+		key := proj.GetName() + "." + proj.GetNamespace()
 		if _, ok := projects[key]; !ok {
 			projects[key] = new(projectAndChildren)
 		}
@@ -536,7 +536,7 @@ func (k *kale) handlePush(r *http.Request, key string) httpResult {
 		// bits in memory because we might not be the elected leader.
 		proj.Status.LastPush = time.Now()
 		uProj := unstructureProject(proj.Project)
-		_, err := k.projectsGetter.Namespace(proj.Metadata.Namespace).UpdateStatus(uProj, k8sTypesMetaV1.UpdateOptions{})
+		_, err := k.projectsGetter.Namespace(proj.GetNamespace()).UpdateStatus(uProj, k8sTypesMetaV1.UpdateOptions{})
 		if err != nil {
 			log.Println("update project status:", err)
 		}
@@ -631,7 +631,7 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 		}
 		selectors := []string{
 			GlobalLabelName + "==" + k.cfg.AmbassadorID,
-			ProjectLabelName + "==" + proj.Metadata.Name + "." + proj.Metadata.Namespace,
+			ProjectLabelName + "==" + proj.GetName() + "." + proj.GetNamespace(),
 		}
 		err = applyAndPrune(
 			strings.Join(selectors, ","),
@@ -641,7 +641,7 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 			commitManifests)
 		if err != nil {
 			log.Errorf("updating ProjectCommits for Project %q.%q: %v",
-				proj.Metadata.Name, proj.Metadata.Namespace,
+				proj.GetName(), proj.GetNamespace(),
 				err)
 		}
 	}
@@ -650,8 +650,8 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 	for _, commit := range snapshot.Commits {
 		var project *Project
 		for _, proj := range snapshot.Projects {
-			if proj.Metadata.Namespace == commit.GetNamespace() &&
-				proj.Metadata.Name == commit.Spec.Project.Name {
+			if proj.GetNamespace() == commit.GetNamespace() &&
+				proj.GetName() == commit.Spec.Project.Name {
 				project = proj
 			}
 		}
