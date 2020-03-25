@@ -66,7 +66,7 @@ func NewController(l *logrus.Logger, hostedZoneId string, dnsRegistrationTLD str
 }
 
 func (c *dnsclient) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	remoteIp, _, _ := net.SplitHostPort(r.RemoteAddr)
+	remoteIp := extractUserIP(r)
 
 	decoder := json.NewDecoder(r.Body)
 
@@ -288,4 +288,14 @@ func (c *dnsclient) doRegister(domainName string, recordValue string, recordType
 	c.l.Infof(result.String())
 
 	return nil
+}
+
+func extractUserIP(r *http.Request) string {
+	xForwardedFor := strings.Split(r.Header.Get("X-Forwarded-For"), ",")
+	if len(xForwardedFor) > 0 && net.ParseIP(xForwardedFor[0]) != nil {
+		return xForwardedFor[0]
+	}
+
+	ip, _, _ := net.SplitHostPort(r.RemoteAddr)
+	return ip
 }
