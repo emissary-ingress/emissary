@@ -6,7 +6,6 @@ class ClusterTagTest(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        self.debug = True
         self.target_1 = HTTP(name="target1")
         self.target_2 = HTTP(name="target2")
 
@@ -51,6 +50,26 @@ spec:
   prefix: /mapping-4/
   service: {self.target_2.path.fqdn}
   cluster_tag: tag-2
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: cluster-tag-5
+spec:
+  ambassador_id: {self.ambassador_id}
+  prefix: /mapping-5/
+  service: {self.target_1.path.fqdn}
+  cluster_tag: some-really-long-tag-that-is-really-long
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: cluster-tag-6
+spec:
+  ambassador_id: {self.ambassador_id}
+  prefix: /mapping-6/
+  service: {self.target_2.path.fqdn}
+  cluster_tag: some-really-long-tag-that-is-really-long
 ''') + super().manifests()
 
     def assert_cluster(self, cluster, target_ip):
@@ -75,3 +94,9 @@ spec:
 
         cluster_4 = clusters["cluster_tag_2_clustertagtest_http_target2_default"]
         self.assert_cluster(cluster_4, "clustertagtest-http-target2.default")
+
+        cluster_5 = clusters["cluster_some_really_long_tag_that_is_rea-0"]
+        self.assert_cluster(cluster_5, "clustertagtest-http-target1.default")
+
+        cluster_6 = clusters["cluster_some_really_long_tag_that_is_rea-1"]
+        self.assert_cluster(cluster_6, "clustertagtest-http-target2.default")
