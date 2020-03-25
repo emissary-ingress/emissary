@@ -65,7 +65,7 @@ Windows. For other options, such as Docker, read the [detailed instructions] (/d
 
 1. Download the `edgectl.exe` file
    [here](https://metriton.datawire.io/downloads/windows/edgectl.exe).
-2. Run the installer with `edgectl.exe install`
+2. Run the installer with `edgectl install`
 
 </details>
 
