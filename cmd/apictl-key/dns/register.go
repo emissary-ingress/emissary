@@ -24,9 +24,10 @@ type dnsclient struct {
 }
 
 type registrationRequest struct {
-	Email    string
-	Ip       string
-	Hostname string
+	Email     string
+	Ip        string
+	Hostname  string
+	InstallId string
 }
 
 var privateIPBlocks []*net.IPNet
@@ -138,7 +139,7 @@ func (c *dnsclient) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		domainName = fmt.Sprintf("%s%s", generateRandomName(), c.dnsRegistrationTLD)
 
 		// Validate it is not already registered
-		exists, err := c.datasource.DomainExists(domainName)
+		exists, err := c.datasource.DomainNameExists(domainName)
 		if err != nil {
 			c.l.WithError(err).Error("failed to verify the domain was not already registered")
 			http.Error(w, "domain name registration failed", http.StatusInternalServerError)
@@ -163,7 +164,14 @@ func (c *dnsclient) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Save the registration information in database
-	if err := c.datasource.AddDomain(domainName, registration.Ip, registration.Hostname, registration.Email, remoteIp); err != nil {
+	if err := c.datasource.AddDomain(datasource.DomainEntry{
+		DomainName:       domainName,
+		IP:               registration.Ip,
+		Hostname:         registration.Hostname,
+		InstallId:        registration.InstallId,
+		RequesterContact: registration.Email,
+		RequesterIp:      remoteIp,
+	}); err != nil {
 		c.l.WithError(err).Errorf("failed to persists the domain registration request; a dns record '%s' was registered and must be cleaned up manually", domainName)
 		http.Error(w, "domain name registration failed", http.StatusInternalServerError)
 		return
