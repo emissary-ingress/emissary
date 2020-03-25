@@ -8,6 +8,12 @@ releases. Please keep it up to date.
 
 - Bugfix: The "Filters" tab in the webui no longer renders the value of OAuth client secrets that are stored in Kubernetes secrets.
 
+## 1.3.1 (2020-03-24)
+
+- Bugfix: `OAuth2` Filter: Correctly ask the user to re-authenticate when the Refresh Token expires, rather than emitting an internal server error.
+- Bugfix: The `Password` grant type properly uses a session per user, rather than client-wide
+- Bugfix: The `Password` grant type also separates sessions by `Filter`, so multiple `Filter`s can work together correctly.
+
 ## 1.3.0 (2020-03-17)
 
 - Feature: Support username and password as headers for OAuth2 authentication (`grantType: Password`)
