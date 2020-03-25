@@ -15,5 +15,4 @@ A few sentences describing what testing you've done, e.g., manual tests, automat
   + [ ] Did you add them to DEVELOPING.md?
 
 ## Other
-* If this is a documentation change, please open the pull request at https://github.com/datawire/ambassador-docs instead.
-* Code changes should occur against `master`.
+* If this is a documentation change for a particular release, please open the pull request against the release branch.

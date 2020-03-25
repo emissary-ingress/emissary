@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+
+# Copyright 2019 Datawire. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License
+
+set -o errexit
+set -o nounset
+
+website_branch=${1:-master}
+
+if ! [[ -d /tmp/getambassador.io-$website_branch/public ]]; then
+	echo '[blc-website-preview] skipping: website preview was not built'
+	exit 0
+fi
+
+if [[ -n "$TRAVIS_PULL_REQUEST_SHA" ]]; then
+	build_type=pr
+else
+	build_type=push
+fi
+
+set -o verbose
+
+pushd "/tmp/getambassador.io-$website_branch/public"
+python3 -m http.server 2>/dev/null &
+trap "kill $!" EXIT
+popd
+
+cd /tmp/getambassador.io-blc
+./blc.js http://localhost:8000/ > /tmp/blc.txt
+
+set +o verbose
+num_complaints=$(grep ^Page /tmp/blc.txt | sort -u | wc -l)
+RED=$'\033[1;31m'
+GRN=$'\033[1;32m'
+BLD=$'\033[1m'
+END=$'\033[0m'
+if [[ $num_complaints -eq 0 ]]; then
+	printf "%s======================= 0 broken-link-checker complaints for %s =======================%s\n" "$GRN$BLD" "$website_branch" "$END"
+else
+	printf "%s======================= %d broken-link-checker complaints for %s ======================%s\n" "$RED$BLD" $num_complaints "$website_branch" "$END"
+	grep ^Page /tmp/blc.txt | sort -u
+	printf "%s====================== end broken-link-checker complaints for %s ======================%s\n" "$RED$BLD" "$website_branch" "$END"
+fi
+set -o verbose
+
+cat >/tmp/github-status.json <<EOF
+{
+  "context": "broken-link-check/${build_type}",
+  "state": "$(if [[ $num_complaints -eq 0 ]]; then echo success; else echo failure; fi)",
+  "target_url": "${TRAVIS_JOB_WEB_URL}",
+  "description": "Found ${num_complaints} bad links in the website ${website_branch} preview"
+}
+EOF
+
+cat /tmp/github-status.json
+
+curl --fail \
+	-H "Accept: application/json" \
+	-H "Content-Type: application/json" \
+	-X POST \
+	--data '@/tmp/github-status.json' \
+	"https://${GH_TOKEN}@api.github.com/repos/datawire/ambassador/statuses/${TRAVIS_PULL_REQUEST_SHA:-${TRAVIS_COMMIT}}"
