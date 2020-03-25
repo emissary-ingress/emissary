@@ -20,6 +20,7 @@ import (
 	k8sTypesBatchV1 "k8s.io/api/batch/v1"
 	k8sTypesCoreV1 "k8s.io/api/core/v1"
 	k8sTypesMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	k8sTypes "k8s.io/apimachinery/pkg/types"
 
 	// 3rd party: k8s clients
 	k8sClientDynamic "k8s.io/client-go/dynamic"
@@ -90,9 +91,12 @@ import (
 // to kubernetes resources and a web server.
 
 const (
-	GlobalLabelName  = "kale"                              // cfg.AmbassadorID
-	ProjectLabelName = "projects.getambassador.io/project" // proj.GetName()+"."+proj.GetNamespace()
-	CommitLabelName  = "projects.getambassador.io/commit"  // commit.GetName()+"."+commit.GetNamespace()
+	// We use human-unfriendly `UID`s instead of `name.namespace`s,
+	// because label values are limited to 63 characters or less.
+	// https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+	GlobalLabelName  = "projects.getambassador.io/ambassador_id" // cfg.AmbassadorID
+	ProjectLabelName = "projects.getambassador.io/project-uid"   // proj.GetUID()
+	CommitLabelName  = "projects.getambassador.io/commit-uid"    // commit.GetUID()
 )
 
 func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8s.KubeInfo, dynamicClient k8sClientDynamic.Interface) {
@@ -300,7 +304,7 @@ func NewKale(dynamicClient k8sClientDynamic.Interface) *kale {
 	return &kale{
 		projectsGetter: dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "projects"}),
 		commitsGetter:  dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "projectcommits"}),
-		Projects:       make(map[string]*projectAndChildren),
+		Projects:       make(map[k8sTypes.UID]*projectAndChildren),
 	}
 }
 
@@ -311,7 +315,7 @@ type kale struct {
 	commitsGetter  k8sClientDynamic.NamespaceableResourceInterface
 
 	mu       sync.RWMutex
-	Projects map[string]*projectAndChildren
+	Projects map[k8sTypes.UID]*projectAndChildren
 }
 
 func (k *kale) reconcile(ctx context.Context, snapshot Snapshot) {
@@ -337,17 +341,17 @@ type commitAndChildren struct {
 func (k *kale) updateInternalState(ctx context.Context, snapshot Snapshot) {
 	log := dlog.GetLogger(ctx)
 
-	// map["commitName.commitNamespace"]*commitAndChildren
-	commits := make(map[string]*commitAndChildren)
+	// map[commitUID]*commitAndChildren
+	commits := make(map[k8sTypes.UID]*commitAndChildren)
 	for _, commit := range snapshot.Commits {
-		key := commit.GetName() + "." + commit.GetNamespace()
+		key := commit.GetUID()
 		if _, ok := commits[key]; !ok {
 			commits[key] = new(commitAndChildren)
 		}
 		commits[key].ProjectCommit = commit
 	}
 	for _, job := range snapshot.Jobs {
-		key := job.GetLabels()[CommitLabelName]
+		key := k8sTypes.UID(job.GetLabels()[CommitLabelName])
 		if _, ok := commits[key]; !ok {
 			log.Errorf("Unable to pair Job %q.%q with ProjectCommit; ignoring", job.GetName(), job.GetNamespace())
 			continue
@@ -355,7 +359,7 @@ func (k *kale) updateInternalState(ctx context.Context, snapshot Snapshot) {
 		commits[key].Children.Builders = append(commits[key].Children.Builders, job)
 	}
 	for _, statefulset := range snapshot.StatefulSets {
-		key := statefulset.GetLabels()[CommitLabelName]
+		key := k8sTypes.UID(statefulset.GetLabels()[CommitLabelName])
 		if _, ok := commits[key]; !ok {
 			log.Errorf("Unable to pair StatefulSet %q.%q with ProjectCommit; ignoring", statefulset.GetName(), statefulset.GetNamespace())
 			continue
@@ -363,17 +367,17 @@ func (k *kale) updateInternalState(ctx context.Context, snapshot Snapshot) {
 		commits[key].Children.Runners = append(commits[key].Children.Runners, statefulset)
 	}
 
-	// map["projectName.projectNamespace"]*projectAndChildren
-	projects := make(map[string]*projectAndChildren)
+	// map[projectUID]*projectAndChildren
+	projects := make(map[k8sTypes.UID]*projectAndChildren)
 	for _, proj := range snapshot.Projects {
-		key := proj.GetName() + "." + proj.GetNamespace()
+		key := proj.GetUID()
 		if _, ok := projects[key]; !ok {
 			projects[key] = new(projectAndChildren)
 		}
 		projects[key].Project = proj
 	}
 	for _, commit := range commits {
-		key := commit.GetLabels()[ProjectLabelName]
+		key := k8sTypes.UID(commit.GetLabels()[ProjectLabelName])
 		if _, ok := projects[key]; !ok {
 			log.Errorf("Unable to pair ProjectCommit %q.%q with Project; ignoring", commit.GetName(), commit.GetNamespace())
 			continue
@@ -424,9 +428,30 @@ func (k *kale) dispatch(r *http.Request) httpResult {
 			return httpResult{status: http.StatusNotFound, body: "not found"}
 		}
 		namespace := commitQName[sep+1:]
+
+		// resolve commitQName to a UID
+		var commitUID k8sTypes.UID
+		k.mu.RLock()
+	OuterLoop:
+		for _, proj := range k.Projects {
+			if proj.GetNamespace() != namespace {
+				continue
+			}
+			for _, commit := range proj.Children.Commits {
+				if commit.GetName()+"."+commit.GetNamespace() == commitQName {
+					commitUID = commit.GetUID()
+					break OuterLoop
+				}
+			}
+		}
+		k.mu.RUnlock()
+		if commitUID == "" {
+			return httpResult{status: http.StatusNotFound, body: "not found"}
+		}
+
 		selectors := []string{
 			GlobalLabelName + "==" + k.cfg.AmbassadorID,
-			CommitLabelName + "==" + commitQName,
+			CommitLabelName + "==" + string(commitUID),
 		}
 		if logType == "slogs" {
 			selectors = append(selectors, "statefulset.kubernetes.io/pod-name")
@@ -451,13 +476,13 @@ func (k *kale) projectsJSON() string {
 
 	var keys []string
 	for key, _ := range k.Projects {
-		keys = append(keys, key)
+		keys = append(keys, string(key))
 	}
 	sort.Strings(keys)
 
 	results := make([]*projectAndChildren, 0, len(k.Projects))
 	for _, key := range keys {
-		results = append(results, k.Projects[key])
+		results = append(results, k.Projects[k8sTypes.UID(key)])
 	}
 
 	bytes, err := json.MarshalIndent(results, "", "  ")
@@ -475,7 +500,7 @@ func (k *kale) handlePush(r *http.Request, key string) httpResult {
 	log := dlog.GetLogger(r.Context())
 
 	k.mu.RLock()
-	proj, ok := k.Projects[key]
+	proj, ok := k.Projects[k8sTypes.UID(key)]
 	k.mu.RUnlock()
 	if !ok {
 		return httpResult{status: 404, body: fmt.Sprintf("no such project %s", key)}
@@ -574,7 +599,7 @@ func (k *kale) calculateBuild(proj *Project, commit *ProjectCommit) []interface{
 				Namespace: commit.GetNamespace(),
 				Labels: map[string]string{
 					GlobalLabelName: k.cfg.AmbassadorID,
-					CommitLabelName: commit.GetName() + "." + commit.GetNamespace(),
+					CommitLabelName: string(commit.GetUID()),
 				},
 				OwnerReferences: []k8sTypesMetaV1.OwnerReference{
 					{
@@ -593,7 +618,7 @@ func (k *kale) calculateBuild(proj *Project, commit *ProjectCommit) []interface{
 					ObjectMeta: k8sTypesMetaV1.ObjectMeta{
 						Labels: map[string]string{
 							GlobalLabelName: k.cfg.AmbassadorID,
-							CommitLabelName: commit.GetName() + "." + commit.GetNamespace(),
+							CommitLabelName: string(commit.GetUID()),
 						},
 					},
 					Spec: k8sTypesCoreV1.PodSpec{
@@ -631,7 +656,7 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 		}
 		selectors := []string{
 			GlobalLabelName + "==" + k.cfg.AmbassadorID,
-			ProjectLabelName + "==" + proj.GetName() + "." + proj.GetNamespace(),
+			ProjectLabelName + "==" + string(proj.GetUID()),
 		}
 		err = applyAndPrune(
 			strings.Join(selectors, ","),
@@ -657,13 +682,13 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 		}
 		var commitBuilders []*k8sTypesBatchV1.Job
 		for _, job := range snapshot.Jobs {
-			if job.GetLabels()[CommitLabelName] == commit.GetName()+"."+commit.GetNamespace() {
+			if k8sTypes.UID(job.GetLabels()[CommitLabelName]) == commit.GetUID() {
 				commitBuilders = append(commitBuilders, job)
 			}
 		}
 		var commitRunners []*k8sTypesAppsV1.StatefulSet
 		for _, statefulset := range snapshot.StatefulSets {
-			if statefulset.GetLabels()[CommitLabelName] == commit.GetName()+"."+commit.GetNamespace() {
+			if k8sTypes.UID(statefulset.GetLabels()[CommitLabelName]) == commit.GetUID() {
 				commitRunners = append(commitRunners, statefulset)
 			}
 		}
@@ -753,7 +778,7 @@ func (k *kale) reconcileCommit(ctx context.Context, proj *Project, commit *Proje
 	}
 	selectors := []string{
 		GlobalLabelName + "==" + k.cfg.AmbassadorID,
-		CommitLabelName + "==" + commit.GetName() + "." + commit.GetNamespace(),
+		CommitLabelName + "==" + string(commit.GetUID()),
 	}
 	err := applyAndPrune(
 		strings.Join(selectors, ","),
@@ -798,7 +823,7 @@ func (k *kale) calculateRun(proj *Project, commit *ProjectCommit) []interface{} 
 				},
 				Labels: map[string]string{
 					GlobalLabelName: k.cfg.AmbassadorID,
-					CommitLabelName: commit.GetName() + "." + commit.GetNamespace(),
+					CommitLabelName: string(commit.GetUID()),
 				},
 			},
 			Spec: MappingSpec{
@@ -829,13 +854,13 @@ func (k *kale) calculateRun(proj *Project, commit *ProjectCommit) []interface{} 
 				},
 				Labels: map[string]string{
 					GlobalLabelName: k.cfg.AmbassadorID,
-					CommitLabelName: commit.GetName() + "." + commit.GetNamespace(),
+					CommitLabelName: string(commit.GetUID()),
 				},
 			},
 			Spec: k8sTypesCoreV1.ServiceSpec{
 				Selector: map[string]string{
 					GlobalLabelName: k.cfg.AmbassadorID,
-					CommitLabelName: commit.GetName() + "." + commit.GetNamespace(),
+					CommitLabelName: string(commit.GetUID()),
 				},
 				Ports: []k8sTypesCoreV1.ServicePort{
 					{
@@ -868,14 +893,14 @@ func (k *kale) calculateRun(proj *Project, commit *ProjectCommit) []interface{} 
 				},
 				Labels: map[string]string{
 					GlobalLabelName: k.cfg.AmbassadorID,
-					CommitLabelName: commit.GetName() + "." + commit.GetNamespace(),
+					CommitLabelName: string(commit.GetUID()),
 				},
 			},
 			Spec: k8sTypesAppsV1.StatefulSetSpec{
 				Selector: &k8sTypesMetaV1.LabelSelector{
 					MatchLabels: map[string]string{
 						GlobalLabelName: k.cfg.AmbassadorID,
-						CommitLabelName: commit.GetName() + "." + commit.GetNamespace(),
+						CommitLabelName: string(commit.GetUID()),
 					},
 				},
 				ServiceName: commit.GetName(),
@@ -883,7 +908,7 @@ func (k *kale) calculateRun(proj *Project, commit *ProjectCommit) []interface{} 
 					ObjectMeta: k8sTypesMetaV1.ObjectMeta{
 						Labels: map[string]string{
 							GlobalLabelName: k.cfg.AmbassadorID,
-							CommitLabelName: commit.GetName() + "." + commit.GetNamespace(),
+							CommitLabelName: string(commit.GetUID()),
 						},
 					},
 					Spec: k8sTypesCoreV1.PodSpec{

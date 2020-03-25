@@ -497,7 +497,7 @@ func (k *kale) calculateCommits(proj *Project) ([]interface{}, error) {
 				},
 				Labels: map[string]string{
 					GlobalLabelName:  k.cfg.AmbassadorID,
-					ProjectLabelName: proj.GetName() + "." + proj.GetNamespace(),
+					ProjectLabelName: string(proj.GetUID()),
 				},
 			},
 			Spec: ProjectCommitSpec{
