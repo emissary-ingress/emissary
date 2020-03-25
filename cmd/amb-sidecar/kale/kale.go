@@ -556,7 +556,7 @@ func (k *kale) handlePush(r *http.Request, key string) httpResult {
 		}
 	}
 	if gitReady && apiReady {
-		// Bump the project's .Status, to trigger a rectify via
+		// Bump the project's .Status, to trigger a reconcile via
 		// Kubernetes.  We do this instead of just poking the right
 		// bits in memory because we might not be the elected leader.
 		proj.Status.LastPush = time.Now()
@@ -671,7 +671,7 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 		}
 	}
 
-	// reconcile things manage by commits
+	// reconcile things managed by commits
 	for _, commit := range snapshot.Commits {
 		var project *Project
 		for _, proj := range snapshot.Projects {
