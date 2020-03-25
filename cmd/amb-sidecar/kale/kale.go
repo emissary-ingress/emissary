@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"regexp"
 	"sort"
 	"strings"
 	"sync"
@@ -790,11 +791,14 @@ func (k *kale) reconcileCommit(ctx context.Context, proj *Project, commit *Proje
 		},
 		manifests)
 	if err != nil {
-		log.Errorf("deploying ProjectCommit %q.%q: %v",
-			commit.GetName(), commit.GetNamespace(),
-			err)
 		if strings.Contains(err.Error(), "Forbidden: updates to statefulset spec for fields other than 'replicas', 'template', and 'updateStrategy' are forbidden") {
 			deleteResource("statefulset.v1.apps", commit.GetName(), commit.GetNamespace())
+		} else if regexp.MustCompile("The Job .* is invalid .* field is immutable").MatchString(err.Error()) {
+			deleteResource("job.v1.batch", commit.GetName()+"-build", commit.GetNamespace())
+		} else {
+			log.Errorf("deploying ProjectCommit %q.%q: %v",
+				commit.GetName(), commit.GetNamespace(),
+				err)
 		}
 	}
 
