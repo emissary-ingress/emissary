@@ -393,7 +393,7 @@ class IR:
 
             ctx.referenced_by(self.ambassador_module)
             self.save_tls_context(ctx)
-            
+
             self.logger.info(f"Intercept agent: saving origination TLSContext {ctx.name}")
             self.logger.info(ctx.as_json())
 
@@ -853,7 +853,7 @@ class IR:
             od[key] = self.ambassador_module.get(key, {}).get('enabled', False)
 
         for key in [ 'use_proxy_proto', 'use_remote_address', 'x_forwarded_proto_redirect', 'enable_http10',
-                     'add_linkerd_headers', 'use_ambassador_namespace_for_service_resolution' ]:
+                     'add_linkerd_headers', 'use_ambassador_namespace_for_service_resolution', 'proper_case' ]:
             od[key] = self.ambassador_module.get(key, False)
 
         od['service_resource_total'] = len(list(self.services.keys()))
