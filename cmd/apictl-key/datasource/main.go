@@ -19,7 +19,8 @@ type DomainEntry struct {
 	DomainName       string
 	IP               string
 	Hostname         string
-	InstallId        string
+	EdgectlInstallId string
+	AESInstallId     string
 	RequesterContact string
 	RequesterIp      string
 }
@@ -57,11 +58,11 @@ func (d *PostgresqlDatasource) Close() error {
 
 // AddDomain will insert a new aes_domain row in the SQL datasource
 func (d *PostgresqlDatasource) AddDomain(e DomainEntry) error {
-	stmt, err := d.db.Prepare("INSERT INTO aes_domains(domain, ip_address, hostname, install_id, requester_ip_address, requester_contact) VALUES($1, $2, $3, $4, $5, $6)")
+	stmt, err := d.db.Prepare("INSERT INTO aes_domains(domain, ip_address, hostname, edgectl_install_id, aes_install_id, requester_ip_address, requester_contact) VALUES($1, $2, $3, $4, $5, $6)")
 	if err != nil {
 		return err
 	}
-	_, err = stmt.Exec(e.DomainName, nullString(e.IP), nullString(e.Hostname), nullString(e.InstallId), e.RequesterIp, e.RequesterContact)
+	_, err = stmt.Exec(e.DomainName, nullString(e.IP), nullString(e.Hostname), nullString(e.EdgectlInstallId), nullString(e.AESInstallId), e.RequesterIp, e.RequesterContact)
 	if err != nil {
 		return err
 	}

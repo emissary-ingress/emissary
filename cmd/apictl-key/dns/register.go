@@ -24,10 +24,11 @@ type dnsclient struct {
 }
 
 type registrationRequest struct {
-	Email     string
-	Ip        string
-	Hostname  string
-	InstallId string
+	Email            string
+	Ip               string
+	Hostname         string
+	EdgectlInstallId string
+	AESInstallId     string
 }
 
 var privateIPBlocks []*net.IPNet
@@ -168,7 +169,8 @@ func (c *dnsclient) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		DomainName:       domainName,
 		IP:               registration.Ip,
 		Hostname:         registration.Hostname,
-		InstallId:        registration.InstallId,
+		EdgectlInstallId: registration.EdgectlInstallId,
+		AESInstallId:     registration.AESInstallId,
 		RequesterContact: registration.Email,
 		RequesterIp:      remoteIp,
 	}); err != nil {
