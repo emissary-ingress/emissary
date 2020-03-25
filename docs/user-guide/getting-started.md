@@ -25,7 +25,7 @@ Windows. For other options, such as Docker, read the [detailed instructions] (/u
 1. Download the `edgectl` file [here](https://metriton.datawire.io/downloads/darwin/edgectl) or download it with a curl command:
 
     ```shell
-    sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && sudo chmod a+X /usr/local/bin/edgectl
+    sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl
     ```
 
     If you decide to download the file, you may encounter a security block. To change this:
@@ -33,7 +33,7 @@ Windows. For other options, such as Docker, read the [detailed instructions] (/u
     * Click the **Open Anyway** button.
     * On the new dialog, click the **Open** button.
 
-2. Run the installer with `./edgectl install`
+2. Run the installer with `edgectl install`
 
 </details>
 
@@ -51,7 +51,7 @@ Windows. For other options, such as Docker, read the [detailed instructions] (/u
     ```shell
     sudo curl -fL https://metriton.datawire.io/downloads/linux/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl
     ```
-2. Run the installer with `./edgectl install`
+2. Run the installer with `edgectl install`
 
 </details>
 
@@ -63,7 +63,7 @@ Windows. For other options, such as Docker, read the [detailed instructions] (/u
 
 </summary>
 
-1. Download the `edgectl` file
+1. Download the `edgectl.exe` file
    [here](https://metriton.datawire.io/downloads/windows/edgectl.exe).
 2. Run the installer with `edgectl.exe install`
 
