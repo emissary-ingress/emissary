@@ -34,6 +34,15 @@ func _1_initial_up_sql() ([]byte, error) {
 	)
 }
 
+var __2_domains_hostname_up_sql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\xf4\x09\x71\x0d\x52\x08\x71\x74\xf2\x71\x55\x48\x4c\x2d\x8e\x4f\xc9\xcf\x4d\xcc\xcc\x2b\x56\x80\x88\x3b\xfb\xfb\x84\xfa\xfa\x29\x64\x16\xc4\x27\xa6\xa4\x14\xa5\x16\x17\x2b\xb8\x04\xf9\x07\x28\xf8\xf9\x87\x28\xf8\x85\xfa\xf8\x58\x73\x71\xe1\xd4\xef\xe2\x02\xd3\x9d\x91\x5f\x5c\x92\x97\x98\x9b\xaa\x10\xe2\x1a\x11\x62\xcd\x05\x08\x00\x00\xff\xff\x75\xbd\x19\x86\x72\x00\x00\x00")
+
+func _2_domains_hostname_up_sql() ([]byte, error) {
+	return bindata_read(
+		__2_domains_hostname_up_sql,
+		"2_domains_hostname.up.sql",
+	)
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -56,7 +65,8 @@ func AssetNames() []string {
 
 // _bindata is a table, holding each asset generator, mapped to its name.
 var _bindata = map[string]func() ([]byte, error){
-	"1_initial.up.sql": _1_initial_up_sql,
+	"1_initial.up.sql":          _1_initial_up_sql,
+	"2_domains_hostname.up.sql": _2_domains_hostname_up_sql,
 }
 
 // AssetDir returns the file names below a certain
@@ -100,5 +110,6 @@ type _bintree_t struct {
 }
 
 var _bintree = &_bintree_t{nil, map[string]*_bintree_t{
-	"1_initial.up.sql": &_bintree_t{_1_initial_up_sql, map[string]*_bintree_t{}},
+	"1_initial.up.sql":          &_bintree_t{_1_initial_up_sql, map[string]*_bintree_t{}},
+	"2_domains_hostname.up.sql": &_bintree_t{_2_domains_hostname_up_sql, map[string]*_bintree_t{}},
 }}
