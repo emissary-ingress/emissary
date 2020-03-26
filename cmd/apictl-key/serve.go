@@ -194,9 +194,10 @@ func init() {
 
 			now := time.Now()
 			expiresAt := now.Add(time.Duration(365) * 24 * time.Hour)
+			customerId := fmt.Sprintf("%s-%d", s.Email, now.Unix())
 			communityLicenseClaims := licensekeys.NewCommunityLicenseClaims()
 			metadata := map[string]string{}
-			licenseKey := createTokenString(false, s.Email, s.Email, communityLicenseClaims.EnabledFeatures, communityLicenseClaims.EnforcedLimits, metadata, now, expiresAt)
+			licenseKey := createTokenString(false, customerId, s.Email, communityLicenseClaims.EnabledFeatures, communityLicenseClaims.EnforcedLimits, metadata, now, expiresAt)
 			// #nosec G107
 			resp, err = http.Post(url, "application/json", bytes.NewBuffer(encode(map[string]interface{}{
 				"properties": []interface{}{
