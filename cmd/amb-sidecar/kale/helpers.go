@@ -483,26 +483,26 @@ func (k *kale) calculateCommits(proj *Project) ([]interface{}, error) {
 				Kind:       "ProjectCommit",
 			},
 			ObjectMeta: k8sTypesMetaV1.ObjectMeta{
-				Name:      proj.Metadata.Name + "-" + ref.Hash().String(), // todo: better id
-				Namespace: proj.Metadata.Namespace,
+				Name:      proj.GetName() + "-" + ref.Hash().String(), // todo: better id
+				Namespace: proj.GetNamespace(),
 				OwnerReferences: []k8sTypesMetaV1.OwnerReference{
 					{
 						APIVersion:         "getambassador.io/v2",
 						Controller:         boolPtr(true),
 						BlockOwnerDeletion: boolPtr(true),
 						Kind:               "Project",
-						Name:               proj.Metadata.Name,
-						UID:                proj.Metadata.UID,
+						Name:               proj.GetName(),
+						UID:                proj.GetUID(),
 					},
 				},
 				Labels: map[string]string{
 					GlobalLabelName:  k.cfg.AmbassadorID,
-					ProjectLabelName: proj.Metadata.Name + "." + proj.Metadata.Namespace,
+					ProjectLabelName: string(proj.GetUID()),
 				},
 			},
 			Spec: ProjectCommitSpec{
 				Project: k8sTypesCoreV1.LocalObjectReference{
-					Name: proj.Metadata.Name,
+					Name: proj.GetName(),
 				},
 				// Use the resolved ref.Name() instead of the original
 				// refName, in order to resolve symbolic references; users
@@ -583,7 +583,7 @@ func unstructureProject(project *Project) *k8sTypesUnstructured.Unstructured {
 		Object: map[string]interface{}{
 			"apiVersion": "getambassador.io/v2",
 			"kind":       "Project",
-			"metadata":   unstructureMetadata(&project.Metadata),
+			"metadata":   unstructureMetadata(&project.ObjectMeta),
 			"spec":       project.Spec,
 			"status":     project.Status,
 		},

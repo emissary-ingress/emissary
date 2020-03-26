@@ -17,8 +17,9 @@ import (
 )
 
 type Project struct {
-	Metadata k8sTypesMetaV1.ObjectMeta `json:"metadata"`
-	Spec     struct {
+	k8sTypesMetaV1.TypeMeta
+	k8sTypesMetaV1.ObjectMeta `json:"metadata"`
+	Spec                      struct {
 		Host        string `json:"host"`
 		Prefix      string `json:"prefix"`
 		GithubRepo  string `json:"githubRepo"`
@@ -30,7 +31,7 @@ type Project struct {
 }
 
 func (p Project) Key() string {
-	return p.Metadata.Namespace + "/" + p.Metadata.Name
+	return p.GetNamespace() + "/" + p.GetName()
 }
 
 func (p Project) PreviewUrl(commit *ProjectCommit) string {
