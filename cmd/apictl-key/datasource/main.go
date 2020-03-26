@@ -2,6 +2,7 @@ package datasource
 
 import (
 	"database/sql"
+	"fmt"
 	"net/url"
 
 	"github.com/jackc/pgx"
@@ -58,6 +59,9 @@ func (d *PostgresqlDatasource) Close() error {
 
 // AddDomain will insert a new aes_domain row in the SQL datasource
 func (d *PostgresqlDatasource) AddDomain(e DomainEntry) error {
+	if e.IP == "" && e.Hostname == "" {
+		return fmt.Errorf("cannot add aes_domains entry without ip_address or hostname")
+	}
 	stmt, err := d.db.Prepare("INSERT INTO aes_domains(domain, ip_address, hostname, edgectl_install_id, aes_install_id, requester_ip_address, requester_contact) VALUES($1, $2, $3, $4, $5, $6)")
 	if err != nil {
 		return err
