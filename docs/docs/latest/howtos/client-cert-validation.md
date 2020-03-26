@@ -1,7 +1,7 @@
 # Client Certificate Validation
 
 Sometimes, for additional security or authentication purposes, you will want
-the server to validate who the client is before establishing an encryopted 
+the server to validate who the client is before establishing an encrypted 
 connection.
 
 To support this, Ambassador can be configured to use a provided CA certificate 
@@ -9,7 +9,7 @@ to validate certificates sent from your clients. This allows for client-side
 mTLS where both Ambassador and the client provide and validate each other's 
 certificates.
 
-## Prerequesites
+## Prerequisites
 
 - [openssl](https://www.openssl.org/source/) For creating client certificates
 - [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
@@ -44,7 +44,7 @@ certificates.
 
    2. Open "Keychain Access" on your system and select "File"->"Import Items..."
 
-   3. Navigate to your working directoy and select the `certificate.p12` file
+   3. Navigate to your working directory and select the `certificate.p12` file
    we just created above.
 
 2. Create a secret to hold the client CA certificate.

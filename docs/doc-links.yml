@@ -160,9 +160,11 @@
           link: /docs/latest/topics/running/tls/
           items:
             - title: Client Certificate Validation
-              link: /docs/latest/topics/running/tls/client-cert-validation
+              link: /docs/latest/howtos/client-cert-validation
+            - title: HTTP and HTTPS Routing
+              link: /docs/latest/topics/running/tls/cleartext-support#cleartext-routing
             - title: HTTP -> HTTPS Redirection
-              link: /docs/latest/topics/running/tls/cleartext-redirection
+              link: /docs/latest/topics/running/tls/cleartext-support#http---https-redirection
             - title: Mutual TLS (mTLS)
               link: /docs/latest/topics/running/tls/mtls
             - title: Server Name Indication (SNI)
@@ -232,8 +234,8 @@
       items:
         - title: Using cert-manager
           link: /docs/latest/howtos/cert-manager
-        - title: TLS termination
-          link: /docs/latest/howtos/tls-termination
+        - title: Client Certificate Validation
+          link: /docs/latest/howtos/client-cert-validation
 - title: Frequently Asked Questions
   link: /docs/latest/about/faq
 - title: Community
