@@ -40,7 +40,25 @@ const (
 	sessionExpiry = 365 * 24 * time.Hour
 )
 
-// OAuth2Client implements the OAuth Client part of the Filter.
+// OAuth2Client implements the OAuth 2.0 "Client" part of the OAuth Filter.  An
+// OAuth2Client has two main entry points: 'Filter' and 'ServeHTTP'.  Both are called
+// by the upper-level machinery in oauth2handler/oauth2handler.go.
+//
+// 'Filter' gets called (at ext_authz-time) for a request that either
+//  - matched a FilterPolicy that told it to use this filter for auth, or
+//  - hit the special-case '/.ambassador/oauth2/redirection-endpoint' override
+// either way; ruleForURL() returned a rule containing this filter.matched our
+// configured FilterPolicy, or tripped one of the special cases for OAuth (i.e.,
+// ruleForURL returned this filter).  The 'Filter' method gets handed the request,
+// and it must return a response indicating what Ambassador should do with it
+// (continue unmodiefied, continue with modification, or reject it).
+//
+// 'ServeHTTP' gets called (at Mapping-time) for HTTP endpoints that we're the
+// Mapping for; ruleForURL is hard-coded to return nil for those endpoints; so Filter
+// is never called on them.  Right now, that's just the logout endpoint
+// (/.ambassador/oauth2/logout) -- anything else is a 404 error.  (For historical
+// reasons, the redirection endpoint is handled in Filter(), though it would make
+// more sense to handle it in ServeHTTP()).
 type OAuth2Client struct {
 	QName     string
 	Spec      crd.FilterOAuth2
@@ -62,26 +80,52 @@ func (c *OAuth2Client) xsrfCookieName() string {
 	return "ambassador_xsrf." + c.QName
 }
 
+// Filter is called with a request, and must return a response indicating what to
+// do with the request.
 func (c *OAuth2Client) Filter(ctx context.Context, logger dlog.Logger, httpClient *http.Client, discovered *discovery.Discovered, redisClient *redis.Client, request *filterapi.FilterRequest) filterapi.FilterResponse {
+	// Our 'filter' method (lowercase) does the heavy lifting here. Call it to get a response
+	// and/or some cookies.
 	resp, cookies := c.filter(ctx, logger, httpClient, discovered, redisClient, request)
-	if _, allowThrough := resp.(*filterapi.HTTPRequestModification); allowThrough && len(cookies) > 0 {
+
+	// Is the response an HTTPRequestModification that allows the request
+	// through, or an HTTPResponse that denies the request?
+	_, allowThrough := resp.(*filterapi.HTTPRequestModification)
+
+	if allowThrough && len(cookies) > 0 {
+		// Unfortunately, we have no mechanism by which we can set cookies if
+		// we're allowing the request through.  So, instead we'll deny it,
+		// and have the deny response (1) set the cookies, and (2) redirect
+		// back to the same page.
 		resp = &filterapi.HTTPResponse{
+			// 307 "Temporary Redirect" (unlike other redirect codes)
+			// does not allow the user-agent to change from POST to GET
+			// when following the redirect--we don't want to discard any
+			// form data being submitted!
 			StatusCode: http.StatusTemporaryRedirect,
 			Header: http.Header{
 				"Location": {request.GetRequest().GetHttp().GetPath()},
 			},
 		}
 	}
+
+	// If we have cookies, make sure they get set.
 	for _, cookie := range cookies {
 		// If len(cookies) > 0 and the response wasn't an HTTPResponse, then the
 		// above block has already converted it to be an HTTPResponse; so no need
 		// to check this type assertion.
 		resp.(*filterapi.HTTPResponse).Header.Add("Set-Cookie", cookie.String())
 	}
+
 	return resp
 }
 
+// 'filter' (lowercase) is where the lion's share of the work happens: we need to figure
+// out if this is a good request, or not, and tell the upper layers what to do, whatever
+// is up.
 func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClient *http.Client, discovered *discovery.Discovered, redisClient *redis.Client, request *filterapi.FilterRequest) (response filterapi.FilterResponse, cookies []*http.Cookie) {
+	// Start by setting up the OAuth client.  (Note that in "ClientPasswordHeader",
+	// "client" refers to the OAuth client, not the end user's User-Agent -- which is
+	// to say, this is Ambassador identifying itself to the IdP.)
 	oauthClient, err := rfc6749client.NewAuthorizationCodeClient(
 		c.Spec.ClientID,
 		discovered.AuthorizationEndpoint,
@@ -93,41 +137,58 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 		return middleware.NewErrorResponse(ctx, http.StatusBadGateway,
 			err, nil), nil
 	}
+
+	// RFC6750 specifies the "bearer token" access-token-type.  That's the
+	// access-token-type that we use!
 	oauthClient.RegisterProtocolExtensions(rfc6750client.OAuthProtocolExtension)
 
 	sessionInfo := &SessionInfo{c: c}
 	var sessionErr error
+
+	// Load our session from Redis.
 	sessionInfo.sessionID, sessionInfo.xsrfToken, sessionInfo.sessionData, sessionErr = c.loadSession(redisClient, filterutil.GetHeader(request))
+
+	// Whenever this method returns, we should update our session info in Redis, if
+	// need be.
 	defer func() {
-		// If we have new session data, store it in to Redis, delete the old data
-		// from Redis, and rev the cookies.
+		// If we have no new session data, we can just bail here.
 		if sessionInfo.sessionData == nil || !sessionInfo.sessionData.IsDirty() {
 			return
 		}
+
+		// OK, we have some new stuff.  Store it in Redis, delete the old data
+		// from Redis, and rev the cookies.
+
 		newSessionID, err := randomString(sessionBits)
 		if err != nil {
 			response = middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
 				errors.Wrap(err, "failed to generate session ID"), nil)
 			return
 		}
+
 		newXsrfToken, err := randomString(xsrfBits)
 		if err != nil {
 			response = middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
 				errors.Wrap(err, "failed to generate XSRF token"), nil)
 			return
 		}
+
 		sessionDataBytes, err := json.Marshal(sessionInfo.sessionData)
 		if err != nil {
 			response = middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
 				errors.New("failed to serialize session information"), nil)
 			return
 		}
+
 		redisClient.PipeAppend("SET", "session:"+newSessionID, string(sessionDataBytes), "EX", int(sessionExpiry.Seconds()))
 		redisClient.PipeAppend("SET", "session-xsrf:"+newSessionID, newXsrfToken, "EX", int(sessionExpiry.Seconds()))
+
 		if sessionInfo.sessionID != "" {
 			redisClient.PipeAppend("DEL", "session:"+sessionInfo.sessionID)
 			redisClient.PipeAppend("DEL", "session-xsrf:"+sessionInfo.sessionID)
 		}
+
+		// Empty the pipeline, and scream about anything that goes wrong in the middle.
 		for err != redis.ErrPipelineEmpty {
 			err = redisClient.PipeResp().Err
 			if err != nil && err != redis.ErrPipelineEmpty {
@@ -136,6 +197,12 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 				return
 			}
 		}
+
+		// Note that "useSessionCookies" is about whether or not we use cookies that
+		// expire when the browser is closed (session cookies) or cookies that expire
+		// at a particular time, irrespective of how long the browser has been open
+		// (uh... non-session cookies, I guess?). It's not about whether we use cookies
+		// at all -- we always set a cookie, the thing that changes is the expiry.
 		useSessionCookies := *c.Spec.UseSessionCookies.Value
 		if !c.Spec.UseSessionCookies.IfRequestHeader.Matches(filterutil.GetHeader(request)) {
 			useSessionCookies = !useSessionCookies
@@ -144,6 +211,7 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 		if useSessionCookies {
 			maxAge = 0 // unset
 		}
+
 		cookies = append(cookies,
 			&http.Cookie{
 				Name:  sessionInfo.c.sessionCookieName(),
@@ -197,18 +265,32 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 			},
 		)
 	}()
+
+	// OK, back to processing the request.  (Remeber, the last thing we did was load
+	// the session info from Redis.)
 	logger.Debugf("session data: %#v", sessionInfo.sessionData)
+
+	// The "happy-path" is that we end up with a set of authorization headers to
+	// inject in to the request before allowing it through.
 	var authorization http.Header
 	switch {
 	case sessionErr != nil:
+		// No (valid) session data. This isn't that big a deal, but log it for
+		// debugging, then fall past the switch to treat this like an
+		// unauthenticated session.
 		logger.Debugln("session status:", errors.Wrap(sessionErr, "no session"))
 	case c.readXSRFCookie(filterutil.GetHeader(request)) != sessionInfo.xsrfToken:
+		// Yikes!  Someone is trying to hack our users!
 		return middleware.NewErrorResponse(ctx, http.StatusForbidden,
 			errors.New("XSRF protection"), nil), nil
 	case sessionInfo.sessionData.CurrentAccessToken == nil:
+		// This is a non-authenticated session; we've previously redirected the
+		// user to the IdP, but they never completed the authorization flow.
 		logger.Debugln("session status:", "non-authenticated session")
 	default:
+		// This is a fully-authenticated session, so try to update the access token.
 		logger.Debugln("session status:", "authenticated session")
+
 		authorization, err = oauthClient.AuthorizationForResourceRequest(sessionInfo.sessionData, func() io.Reader {
 			return strings.NewReader(request.GetRequest().GetHttp().GetBody())
 		})
@@ -228,6 +310,8 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 				errors.Wrap(err, "unknown error"), nil), nil
 		}
 	}
+	// If we made it this far: We haven't encountered any errors, and we
+	// may-or-may-not have 'authorization' to inject in to the request.
 
 	u, err := url.ParseRequestURI(request.GetRequest().GetHttp().GetPath())
 	if err != nil {
@@ -236,8 +320,21 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 	}
 	switch u.Path {
 	case "/.ambassador/oauth2/redirection-endpoint":
+		// OK, this is a diversion from train-of-thought you should have when reading this
+		// method--because this doesn't belong in this method, and belongs in ServeHTTP();
+		// but is here for historical reasons, and the only reason for it to stay here is
+		// that it would be effort to change it.
+
+		// At the redirection-endpoint, whenever we encounter an XSRF error, we should
+		// handle it not by returning an error page, but by redirecting-to-IdP (as we would
+		// for an unauthenticated request; i.e. call .handleUnauthenticatedProxyRequest()).
+		// https://github.com/datawire/apro/issues/999
+
 		if sessionInfo.sessionData == nil {
-			// Regard this as an XSRF error
+			// How we "should" get here is that the IdP redirects to here after a
+			// successful authentication, which of course requires a session.
+			//
+			// Regard lack of a session as an XSRF error.
 			return sessionInfo.handleUnauthenticatedProxyRequest(ctx, logger, httpClient, oauthClient, discovered, request), nil
 		}
 		var originalURL *url.URL
@@ -263,6 +360,7 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 					errors.New("no representation of /.ambassador/oauth2/redirection-endpoint resource"), nil), nil
 			}
 		} else {
+			// First time back here after auth! Let's see if we have an access token.
 			authorizationCode, err := oauthClient.ParseAuthorizationResponse(sessionInfo.sessionData, u)
 			if err != nil {
 				if errors.As(err, new(rfc6749client.XSRFError)) {
@@ -271,6 +369,7 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 				return middleware.NewErrorResponse(ctx, http.StatusBadRequest,
 					err, nil), nil
 			}
+
 			originalURL, err = ReadState(sessionInfo.sessionData.Request.State)
 			if err != nil {
 				// This should never happen--the state matched what we stored in Redis
@@ -281,11 +380,14 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 				return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
 					errors.Wrapf(err, "invalid state"), nil), nil
 			}
+
 			if err := oauthClient.AccessToken(sessionInfo.sessionData, authorizationCode); err != nil {
 				return middleware.NewErrorResponse(ctx, http.StatusBadGateway,
 					err, nil), nil
 			}
 		}
+
+		// OK, all's well, let's redirect to the original URL.
 		logger.Debugf("redirecting user-agent to: %s", originalURL)
 		return &filterapi.HTTPResponse{
 			StatusCode: http.StatusSeeOther,
@@ -294,7 +396,12 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 			},
 			Body: "",
 		}, nil
+
 	default:
+		// This is the "any path other than the redirection-endpoint" case; back to the
+		// "proper" flow through this method.
+
+		// Do the right thing depending on whether we're authenticated or not.
 		if authorization != nil {
 			return sessionInfo.handleAuthenticatedProxyRequest(ctx, logger, httpClient, discovered, request, authorization), nil
 		} else {
@@ -303,6 +410,8 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 	}
 }
 
+// ServeHTTP gets called to handle the special `/.ambassador/oauth2/**` endpoints.  Because of
+// overrides hard-coded in to ruleForURL(), no Filters have modified or intercepted these requests.
 func (c *OAuth2Client) ServeHTTP(w http.ResponseWriter, r *http.Request, ctx context.Context, discovered *discovery.Discovered, redisClient *redis.Client) {
 	switch r.URL.Path {
 	case "/.ambassador/oauth2/logout":
@@ -349,6 +458,7 @@ func (c *OAuth2Client) ServeHTTP(w http.ResponseWriter, r *http.Request, ctx con
 	}
 }
 
+// Why prithee isn't this up at the top of the file?
 type SessionInfo struct {
 	c           *OAuth2Client
 	sessionID   string
@@ -356,11 +466,15 @@ type SessionInfo struct {
 	sessionData *rfc6749client.AuthorizationCodeClientSessionData
 }
 
+// handleAuthenticatedProxyRequest is pretty "simple" in that we can just farm it out
+// to the clientcommon package.
 func (sessionInfo *SessionInfo) handleAuthenticatedProxyRequest(ctx context.Context, logger dlog.Logger, httpClient *http.Client, discovered *discovery.Discovered, request *filterapi.FilterRequest, authorization http.Header) filterapi.FilterResponse {
 	return clientcommon.HandleAuthenticatedProxyRequest(dlog.WithLogger(ctx, logger), httpClient, discovered, request, authorization, sessionInfo.sessionData.CurrentAccessToken.Scope, sessionInfo.c.ResourceServer)
 }
 
+// handleUnauthenticatedProxyRequest is less simple -- we have to do that ourselves.
 func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Context, logger dlog.Logger, httpClient *http.Client, oauthClient *rfc6749client.AuthorizationCodeClient, discovered *discovery.Discovered, request *filterapi.FilterRequest) filterapi.FilterResponse {
+	// Start by grabbing the original URL.
 	originalURL, err := filterutil.GetURL(request)
 	if err != nil {
 		return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
@@ -411,6 +525,7 @@ func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Co
 		return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
 			err, nil)
 	}
+
 	var authorizationRequestURI *url.URL
 	authorizationRequestURI, sessionInfo.sessionData, err = oauthClient.AuthorizationRequest(
 		sessionInfo.c.Spec.CallbackURL(),
