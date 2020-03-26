@@ -339,7 +339,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
 
         if not redir:
             for mapping in self.mappings:
-                mapping.cluster = self.add_cluster_for_mapping(ir, aconf, mapping)
+                mapping.cluster = self.add_cluster_for_mapping(ir, aconf, mapping, mapping.cluster_tag)
 
             self.logger.debug(f"Normalizing weights in mappings now...")
             if not self.normalize_weights_in_mappings():

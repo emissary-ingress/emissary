@@ -116,6 +116,7 @@ class IRHTTPMapping (IRBaseMapping):
                  apiVersion: str="getambassador.io/v2",   # Not a typo! See below.
                  precedence: int=0,
                  rewrite: str="/",
+                 cluster_tag: Optional[str]=None,
                  **kwargs) -> None:
         # OK, this is a bit of a pain. We want to preserve the name and rkey and
         # such here, unlike most kinds of IRResource. So. Shallow copy the keys
@@ -167,7 +168,7 @@ class IRHTTPMapping (IRBaseMapping):
             ir=ir, aconf=aconf, rkey=rkey, location=location,
             kind=kind, name=name, namespace=namespace, metadata_labels=metadata_labels,
             apiVersion=apiVersion, headers=hdrs, add_request_headers=add_request_hdrs,
-            precedence=precedence, rewrite=rewrite,
+            precedence=precedence, rewrite=rewrite, cluster_tag=cluster_tag,
             **new_args
         )
 
