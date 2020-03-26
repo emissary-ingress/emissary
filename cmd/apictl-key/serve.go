@@ -215,6 +215,7 @@ func init() {
 				panic(err)
 			}
 			defer resp.Body.Close()
+			l.Infof("Generated a new community license key %s", customerId)
 			_, err = io.Copy(w, resp.Body)
 			if err != nil {
 				panic(err)
