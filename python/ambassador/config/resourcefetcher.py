@@ -803,6 +803,10 @@ class ResourceFetcher:
         # Again, we're trusting that the input isn't overly bloated on that latter bit.
 
         metadata = k8s_object.get('metadata', None)
+        if not metadata:
+            self.logger.debug("ignoring K8s Service with no metadata")
+            return None
+
         metadata_labels: Optional[Dict[str, str]] = metadata.get('labels')
         resource_name = metadata.get('name') if metadata else None
         resource_namespace = metadata.get('namespace', 'default') if metadata else None
