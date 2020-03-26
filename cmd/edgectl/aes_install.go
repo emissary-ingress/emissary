@@ -24,6 +24,9 @@ import (
 	"github.com/datawire/ambassador/pkg/supervisor"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	k8sTypesMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	k8sClientCoreV1 "k8s.io/client-go/kubernetes/typed/core/v1"
+	"k8s.io/client-go/rest"
 )
 
 func aesInstallCmd() *cobra.Command {
@@ -212,22 +215,28 @@ func (i *Installer) GrabAESInstallID() error {
 	return nil
 }
 
-// GrabLoadBalancerIP return's the AES service load balancer's IP address
-func (i *Installer) GrabLoadBalancerIP() (string, error) {
-	ipAddress, err := i.CaptureKubectl("get IP address", "", "get", "-n", "ambassador", "service", "ambassador", "-o", `go-template={{range .status.loadBalancer.ingress}}{{print .ip "\n"}}{{end}}`)
+// GrabLoadBalancerAddress return's the AES service load balancer's address (IP
+// address or hostname)
+func (i *Installer) GrabLoadBalancerAddress() (string, error) {
+	serviceInterface := i.coreClient.Services("ambassador") // namespace
+	service, err := serviceInterface.Get("ambassador", k8sTypesMetaV1.GetOptions{})
 	if err != nil {
 		return "", err
 	}
-	ipAddress = strings.TrimSpace(ipAddress)
-	if ipAddress == "" {
-		return "", errors.New("empty IP address")
+	for _, ingress := range service.Status.LoadBalancer.Ingress {
+		if net.ParseIP(ingress.IP) != nil {
+			return ingress.IP, nil
+		}
+		if ingress.Hostname != "" {
+			return ingress.Hostname, nil
+		}
 	}
-	return ipAddress, nil
+	return "", errors.New("no address found")
 }
 
 // CheckAESServesACME performs the same checks that the edgestack.me name
-// service performs against the AES load balancer IP
-func (i *Installer) CheckAESServesACME(ipAddress string) (err error) {
+// service performs against the AES load balancer host
+func (i *Installer) CheckAESServesACME(host string) (err error) {
 	defer func() {
 		if err != nil {
 			i.log.Print(err.Error())
@@ -235,7 +244,7 @@ func (i *Installer) CheckAESServesACME(ipAddress string) (err error) {
 	}()
 
 	// Verify that we can connect to something
-	resp, err := http.Get("http://" + ipAddress + "/.well-known/acme-challenge/")
+	resp, err := http.Get("http://" + host + "/.well-known/acme-challenge/")
 	if err != nil {
 		err = errors.Wrap(err, "check for AES")
 		return
@@ -319,10 +328,78 @@ func (i *Installer) CheckACMEIsDone(hostname string) error {
 	return nil
 }
 
+// GetAESCRDs returns the names of the AES CRDs available in the cluster (and
+// logs them as a side effect)
+func (i *Installer) GetAESCRDs() ([]string, error) {
+	crds, err := i.CaptureKubectl("get AES crds", "", "get", "crds", "-lproduct=aes", "-o", "name")
+	if err != nil {
+		return nil, err
+	}
+	res := make([]string, 0, 15)
+	scanner := bufio.NewScanner(strings.NewReader(crds))
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line != "" {
+			res = append(res, line)
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+// GetInstalledImageVersion returns the image of the installed AES deployment or the
+// empty string if none is found.
+// TODO: Try to search all namespaces (which may fail due to RBAC) and capture a
+// correct namespace for an Ambassador installation (what if there is more than
+// one?), then proceed operating on that Ambassador in that namespace. Right now
+// we hard-code the "ambassador" namespace in a number of spots.
+// TODO: Also look for Ambassador OSS and do something intelligent.
+func (i *Installer) GetInstalledImageVersion() (string, error) {
+	aesVersionRE := regexp.MustCompile("quay[.]io/datawire/aes:([[:^space:]]+)")
+	deploys, err := i.CaptureKubectl("get AES deployment", "", "-nambassador", "get", "deploy", "-lproduct=aes", "-o", "go-template={{range .items}}{{range .spec.template.spec.containers}}{{.image}}\n{{end}}{{end}}")
+	if err != nil {
+		return "", err
+	}
+	scanner := bufio.NewScanner(strings.NewReader(deploys))
+	for scanner.Scan() {
+		image := strings.TrimSpace(scanner.Text())
+		if matches := aesVersionRE.FindStringSubmatch(image); len(matches) == 2 {
+			return matches[1], nil
+		}
+	}
+	return "", scanner.Err()
+}
+
 // Perform is the main function for the installer
 func (i *Installer) Perform(kcontext string) error {
 	// Start
 	i.Report("install")
+
+	// Attempt to use kubectl
+	_, err := i.GetKubectlPath()
+	if err != nil {
+		i.Report("fail_no_kubectl")
+		return fmt.Errorf(noKubectl)
+	}
+
+	// Attempt to talk to the specified cluster
+	i.kubeinfo = k8s.NewKubeInfo("", kcontext, "")
+	if err := i.ShowKubectl("cluster-info", "", "cluster-info"); err != nil {
+		i.Report("fail_no_cluster")
+		return fmt.Errorf(noCluster)
+	}
+	i.restConfig, err = i.kubeinfo.GetRestConfig()
+	if err != nil {
+		i.Report("fail_no_cluster")
+		return err
+	}
+	i.coreClient, err = k8sClientCoreV1.NewForConfig(i.restConfig)
+	if err != nil {
+		i.Report("fail_no_cluster")
+		return err
+	}
 
 	// Allow overriding the source domain (e.g., for smoke tests before release)
 	manifestsDomain := "www.getambassador.io"
@@ -350,6 +427,7 @@ func (i *Installer) Perform(kcontext string) error {
 	matches := aesVersionRE.FindStringSubmatch(aesManifests)
 	if len(matches) != 2 {
 		i.log.Printf("matches is %+v", matches)
+		i.Report("fail_bad_manifests")
 		return errors.Errorf("Failed to parse downloaded manifests. Is there a proxy server interfering with HTTP downloads?")
 	}
 	aesVersion := matches[1]
@@ -357,14 +435,6 @@ func (i *Installer) Perform(kcontext string) error {
 
 	// Display version information
 	i.ShowWrapped(fmt.Sprintf("-> Installing the Ambassador Edge Stack %s.", aesVersion))
-	i.ShowWrapped("Downloading images. (This may take a minute.)")
-
-	// Attempt to talk to the specified cluster
-	i.kubeinfo = k8s.NewKubeInfo("", kcontext, "")
-	if err := i.ShowKubectl("cluster-info", "", "cluster-info"); err != nil {
-		i.Report("fail_no_cluster")
-		return err
-	}
 
 	// Try to determine cluster type from node labels
 	isKnownLocalCluster := false
@@ -391,26 +461,74 @@ func (i *Installer) Perform(kcontext string) error {
 		i.SetMetadatum("Cluster Info", "cluster_info", clusterInfo)
 	}
 
-	// Install the AES manifests
-
-	if err := i.ShowKubectl("install CRDs", crdManifests, "apply", "-f", "-"); err != nil {
-		i.Report("fail_install_crds")
-		return err
+	// Find existing AES CRDs
+	aesCrds, err := i.GetAESCRDs()
+	if err != nil {
+		i.show.Println("Failed to get existing CRDs:", err)
+		aesCrds = []string{}
+		// Things will likely fail when we try to apply CRDs
 	}
 
-	if err := i.ShowKubectl("wait for CRDs", "", "wait", "--for", "condition=established", "--timeout=90s", "crd", "-lproduct=aes"); err != nil {
-		i.Report("fail_wait_crds")
-		return err
+	// Figure out whether we need to apply the manifests
+	// TODO: Parse the downloaded manifests and look for specific CRDs.
+	// Installed CRDs may be out of date or incomplete (e.g., if there's an
+	// OSS installation present).
+	alreadyApplied := false
+	if len(aesCrds) > 0 {
+		// AES CRDs exist so there is likely an existing installation. Try to
+		// verify the existence of an Ambassador deployment in the Ambassador
+		// namespace.
+		installedVersion, err := i.GetInstalledImageVersion()
+		if err != nil {
+			i.show.Println("Failed to look for an existing installation:", err)
+			installedVersion = ""
+			// Things will likely fail when we try to apply manifests
+		}
+		switch {
+		case aesVersion == installedVersion:
+			alreadyApplied = true
+			i.ShowWrapped(fmt.Sprintf("-> Found an existing installation of Ambassador Edge Stack %s.", aesVersion))
+		case installedVersion != "":
+			i.ShowWrapped(fmt.Sprintf("-> Found an existing installation of Ambassador Edge Stack %s.", installedVersion))
+			i.show.Println()
+			i.ShowWrapped(abortExisting)
+			i.show.Println()
+			i.ShowWrapped(seeDocs)
+			i.Report("fail_existing_aes", ScoutMeta{"installing", aesVersion}, ScoutMeta{"found", installedVersion})
+			return errors.Errorf("existing AES %s found when installing AES %s", installedVersion, aesVersion)
+		default:
+			i.ShowWrapped(abortCRDs)
+			i.show.Println()
+			i.ShowWrapped(seeDocs)
+			i.Report("fail_existing_crds")
+			return errors.New("CRDs found")
+		}
 	}
 
-	if err := i.ShowKubectl("install AES", aesManifests, "apply", "-f", "-"); err != nil {
-		i.Report("fail_install_aes")
-		return err
-	}
+	if !alreadyApplied {
+		// Install the AES manifests
 
-	if err := i.ShowKubectl("wait for AES", "", "-n", "ambassador", "wait", "--for", "condition=available", "--timeout=90s", "deploy", "-lproduct=aes"); err != nil {
-		i.Report("fail_wait_aes")
-		return err
+		i.ShowWrapped("Downloading images. (This may take a minute.)")
+
+		if err := i.ShowKubectl("install CRDs", crdManifests, "apply", "-f", "-"); err != nil {
+			i.Report("fail_install_crds")
+			return err
+		}
+
+		if err := i.ShowKubectl("wait for CRDs", "", "wait", "--for", "condition=established", "--timeout=90s", "crd", "-lproduct=aes"); err != nil {
+			i.Report("fail_wait_crds")
+			return err
+		}
+
+		if err := i.ShowKubectl("install AES", aesManifests, "apply", "-f", "-"); err != nil {
+			i.Report("fail_install_aes")
+			return err
+		}
+
+		if err := i.ShowKubectl("wait for AES", "", "-n", "ambassador", "wait", "--for", "condition=available", "--timeout=90s", "deploy", "-lproduct=aes"); err != nil {
+			i.Report("fail_wait_aes")
+			return err
+		}
 	}
 
 	// Wait for Ambassador Pod; grab AES install ID
@@ -446,15 +564,15 @@ func (i *Installer) Perform(kcontext string) error {
 		return nil
 	}
 
-	// Grab load balancer IP address
+	// Grab load balancer address
 	i.ShowWrapped("-> Provisioning a cloud load balancer. (This may take a minute, depending on your cloud provider.)")
-	ipAddress := ""
-	grabIP := func() error {
+	lbAddress := ""
+	grabAddress := func() error {
 		var err error
-		ipAddress, err = i.GrabLoadBalancerIP()
+		lbAddress, err = i.GrabLoadBalancerAddress()
 		return err
 	}
-	if err := i.loopUntil("Load Balancer", grabIP, lc5); err != nil {
+	if err := i.loopUntil("Load Balancer", grabAddress, lc5); err != nil {
 		i.Report("fail_loadbalancer_timeout")
 		i.show.Println()
 		i.ShowWrapped(failLoadBalancer)
@@ -464,12 +582,12 @@ func (i *Installer) Perform(kcontext string) error {
 		return err
 	}
 	i.Report("cluster_accessible")
-	i.show.Println("Your AES installation's IP address is", ipAddress)
+	i.show.Println("Your AES installation's address is", lbAddress)
 
 	// Wait for Ambassador to be ready to serve ACME requests.
-	if err := i.loopUntil("AES to serve ACME", func() error { return i.CheckAESServesACME(ipAddress) }, lc2); err != nil {
+	if err := i.loopUntil("AES to serve ACME", func() error { return i.CheckAESServesACME(lbAddress) }, lc2); err != nil {
 		i.Report("aes_listening_timeout")
-		i.ShowWrapped("It seems AES did not start in the expected time, or your IP address is not reachable from here.")
+		i.ShowWrapped("It seems AES did not start in the expected time, or the AES load balancer is not reachable from here.")
 		i.ShowWrapped(tryAgain)
 		i.ShowWrapped(noTlsSuccess)
 		i.ShowWrapped(seeDocs)
@@ -512,10 +630,16 @@ func (i *Installer) Perform(kcontext string) error {
 
 	i.log.Printf("Using email address %q", emailAddress)
 
-	// Send a request to acquire a DNS name for this cluster's IP address
+	// Send a request to acquire a DNS name for this cluster's load balancer
 	regURL := "https://metriton.datawire.io/register-domain"
+	regData := &registration{Email: emailAddress}
+	if net.ParseIP(lbAddress) != nil {
+		regData.Ip = lbAddress
+	} else {
+		regData.Hostname = lbAddress
+	}
 	buf := new(bytes.Buffer)
-	_ = json.NewEncoder(buf).Encode(registration{emailAddress, ipAddress})
+	_ = json.NewEncoder(buf).Encode(regData)
 	resp, err := http.Post(regURL, "application/json", buf)
 	if err != nil {
 		i.Report("dns_name_failure", ScoutMeta{"err", err.Error()})
@@ -535,7 +659,7 @@ func (i *Installer) Perform(kcontext string) error {
 		i.show.Println()
 		i.ShowWrapped(noTlsSuccess)
 		i.ShowWrapped("If this IP address is reachable from here, you can access your installation without a DNS name.")
-		i.ShowWrapped(fmt.Sprintf(loginViaIP, ipAddress))
+		i.ShowWrapped(fmt.Sprintf(loginViaIP, lbAddress))
 		i.ShowWrapped(loginViaPortForward)
 		i.ShowWrapped(seeDocs)
 		return nil
@@ -601,15 +725,17 @@ func (i *Installer) Perform(kcontext string) error {
 
 // Installer represents the state of the installation process
 type Installer struct {
-	kubeinfo *k8s.KubeInfo
-	scout    *Scout
-	ctx      context.Context
-	cancel   context.CancelFunc
-	show     *log.Logger
-	log      *log.Logger
-	cmdOut   *log.Logger
-	cmdErr   *log.Logger
-	logName  string
+	kubeinfo   *k8s.KubeInfo
+	restConfig *rest.Config
+	coreClient *k8sClientCoreV1.CoreV1Client
+	scout      *Scout
+	ctx        context.Context
+	cancel     context.CancelFunc
+	show       *log.Logger
+	log        *log.Logger
+	cmdOut     *log.Logger
+	cmdErr     *log.Logger
+	logName    string
 }
 
 // NewInstaller returns an Installer object after setting up logging.
@@ -666,8 +792,12 @@ func (i *Installer) ShowKubectl(name string, input string, args ...string) error
 	if err != nil {
 		return errors.Wrapf(err, "cluster access for %s", name)
 	}
-	i.log.Printf("$ kubectl %s", strings.Join(kargs, " "))
-	cmd := exec.Command("kubectl", kargs...)
+	kubectl, err := i.GetKubectlPath()
+	if err != nil {
+		return errors.Wrapf(err, "kubectl not found %s", name)
+	}
+	i.log.Printf("$ %v %s", kubectl, strings.Join(kargs, " "))
+	cmd := exec.Command(kubectl, kargs...)
 	cmd.Stdin = strings.NewReader(input)
 	cmd.Stdout = NewLoggingWriter(i.cmdOut)
 	cmd.Stderr = NewLoggingWriter(i.cmdErr)
@@ -686,8 +816,18 @@ func (i *Installer) CaptureKubectl(name, input string, args ...string) (res stri
 		err = errors.Wrapf(err, "cluster access for %s", name)
 		return
 	}
-	kargs = append([]string{"kubectl"}, kargs...)
+	kubectl, err := i.GetKubectlPath()
+	if err != nil {
+		err = errors.Wrapf(err, "kubectl not found %s", name)
+		return
+	}
+	kargs = append([]string{kubectl}, kargs...)
 	return i.Capture(name, input, kargs...)
+}
+
+// GetKubectlPath returns the full path to the kubectl executable, or an error if not found
+func (i *Installer) GetKubectlPath() (string, error) {
+	return exec.LookPath("kubectl")
 }
 
 // Capture calls a command and returns its stdout, dumping all output to the
@@ -748,8 +888,9 @@ func doWordWrap(text string, prefix string, lineWidth int) []string {
 
 // registration is used to register edgestack.me domains
 type registration struct {
-	Email string
-	Ip    string
+	Email    string
+	Ip       string
+	Hostname string
 }
 
 const hostManifest = `
@@ -788,10 +929,38 @@ Timed out waiting for the load balancer's IP address for the AES Service.
 
 const tryAgain = "If this appears to be a transient failure, please try running the installer again. It is safe to run the installer repeatedly on a cluster."
 
-const seeDocs = "See https://www.getambassador.io/user-guide/getting-started/"
+const abortExisting = `
+This tool does not support upgrades/downgrades at this time.
+
+Aborting the installer to avoid corrupting an existing installation of AES.
+`
+
+const abortCRDs = `
+-> Found Ambassador CRDs in your cluster, but no AES installation.
+
+You can manually remove installed CRDs if you are confident they are not in use by any installation.
+Removing the CRDs will cause your existing Ambassador Mappings and other resources to be deleted as well.
+
+$ kubectl delete crd -l product=aes
+
+Aborting the installer to avoid corrupting an existing (but undetected) installation.
+`
+
+const seeDocs = "See https://www.getambassador.io/docs/latest/tutorials/getting-started/"
 
 var validEmailAddress = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 
 const fullSuccess = "Congratulations! You've successfully installed the Ambassador Edge Stack in your Kubernetes cluster. Visit %s to access your Edge Stack installation and for additional configuration." // hostname
 
 const noTlsSuccess = "Congratulations! You've successfully installed the Ambassador Edge Stack in your Kubernetes cluster. However, we cannot connect to your cluster from the Internet, so we could not configure TLS automatically."
+
+const noKubectl = `
+The installer depends on the 'kubectl' executable. Make sure you have the latest release downloaded in your PATH, and that you have executable permissions.
+
+Visit https://kubernetes.io/docs/tasks/tools/install-kubectl/ for more information and instructions.`
+
+const noCluster = `
+Unable to communicate with the remote Kubernetes cluster using your kubectl context.
+
+To further debug and diagnose cluster problems, use 'kubectl cluster-info dump' 
+or get started and run Kubernetes https://kubernetes.io/docs/setup/`
