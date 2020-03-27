@@ -425,7 +425,6 @@ func (i *Installer) Perform(kcontext string) error {
 
 	// Attempt to use kubectl
 	_, err := i.GetKubectlPath()
-	//err = errors.New("early error for testing")  // TODO: remove for production
 	if err != nil {
 		i.Report("fail_no_kubectl")
 		return fmt.Errorf(noKubectl)
