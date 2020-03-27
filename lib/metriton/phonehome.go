@@ -21,8 +21,11 @@ type MetritonResponse struct {
 
 const phoneHomeEveryPeriod = 12 * time.Hour
 
-// THIS CAN'T BE AN ENVIRONMENT VARIABLE, OR METRITON MIGHT BE HIJACKED
-// Use "https://kubernaut.io/beta/scout" for testing purposes without polluting production data.
+// This can't be an environment variable, or else the user will be
+// able to spoof Metriton responses, bypassing the `hard_limit`
+// response field.
+//
+// Use "https://kubernaut.io/beta/scout" for testing.
 const metritonEndpoint = "https://kubernaut.io/scout"
 
 func PhoneHomeEveryday(claims *licensekeys.LicenseClaimsLatest, limiter *limiter.LimiterImpl, application, version string) {
