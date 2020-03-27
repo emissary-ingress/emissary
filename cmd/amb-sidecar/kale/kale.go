@@ -3,6 +3,7 @@ package kale
 import (
 	// standard library
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -29,6 +30,7 @@ import (
 	// 3rd party: k8s misc
 	k8sSchema "k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	k8sValidation "k8s.io/apimachinery/pkg/util/validation"
 
 	// 1st party
 	"github.com/datawire/ambassador/pkg/dlog"
@@ -98,6 +100,7 @@ const (
 	GlobalLabelName  = "projects.getambassador.io/ambassador_id" // cfg.AmbassadorID
 	ProjectLabelName = "projects.getambassador.io/project-uid"   // proj.GetUID()
 	CommitLabelName  = "projects.getambassador.io/commit-uid"    // commit.GetUID()
+	JobLabelName     = "job-name"                                // Don't change this; it's the label name used by Kubernetes itself
 )
 
 func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8s.KubeInfo, dynamicClient k8sClientDynamic.Interface) {
@@ -457,7 +460,7 @@ func (k *kale) dispatch(r *http.Request) httpResult {
 		if logType == "slogs" {
 			selectors = append(selectors, "statefulset.kubernetes.io/pod-name")
 		} else {
-			selectors = append(selectors, "job-name")
+			selectors = append(selectors, JobLabelName)
 		}
 		return httpResult{
 			stream: func(w http.ResponseWriter) {
@@ -641,6 +644,53 @@ func (k *kale) calculateBuild(proj *Project, commit *ProjectCommit) []interface{
 				},
 			},
 		},
+	}
+
+	if errs := k8sValidation.IsValidLabelValue(job.GetName()); len(errs) != 0 {
+		// The Kubernetes docs say:
+		//
+		//    Leave `manualSelector` unset unless you are certain what
+		//    you are doing. When false or unset, the system pick labels
+		//    unique to this job and appends those labels to the pod
+		//    template.
+		//
+		// ... yeah, except that the code in Kubernetes that does that
+		// is just broken for Jobs with names >63 characters long[1].
+		// Do they document that Jobs must have short names?  No,
+		// because that's not a requirement; it's just a bug in the Job
+		// controller.
+		//
+		// [1] Or rather, any name that isn't a valid label value.
+		// Without thinking about it too hard, I think length is the
+		// only way a valid name can not be a valid label value.
+		//
+		// So, that forces us to set `manualSelector` and do it
+		// ourselves :/ We don't do this if we think the built-in
+		// Kubernetes controller will do the right thing, because it has
+		// access to the Job UID (and we don't), which is a robustness
+		// win.
+		job.Spec.ManualSelector = boolPtr(true)
+		// We can't just set "controller-uid" to job.GetUID() (which
+		// would be a safe subset of Kubernetes' built-in behavior),
+		// because the Job's UID hasn't been populated yet!  And we
+		// can't just generate a UUID to use, because we want this
+		// function to be deterministic.  So cram in the information we
+		// already have, and also add in a hash of the job name.
+		//
+		// I chose SHA-2/224 because I was going to choose SHA-2/256
+		// because that's usually a safe choice, but I needed something
+		// that hex-encodes to <64 characters (SHA-2/256 is 64
+		// characters exactly), and I didn't want to think about if
+		// truncating a hash is safe.
+		nameHash := fmt.Sprintf("%x", sha256.Sum224([]byte(job.GetName())))
+		job.Spec.Selector = &k8sTypesMetaV1.LabelSelector{
+			MatchLabels: map[string]string{
+				GlobalLabelName: k.cfg.AmbassadorID,
+				CommitLabelName: string(commit.GetUID()),
+				JobLabelName:    nameHash,
+			},
+		}
+		job.Spec.Template.ObjectMeta.Labels[JobLabelName] = nameHash
 	}
 
 	return []interface{}{job}
