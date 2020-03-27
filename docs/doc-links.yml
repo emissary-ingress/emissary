@@ -132,7 +132,7 @@
               link: /docs/latest/topics/running/running
         - title: Gzip Compression
           link: /docs/latest/topics/running/gzip
-        - title: Host CRD
+        - title: Host CRD, ACME Support, and External Load Balancer Configuration
           link: /docs/latest/topics/running/host-crd
         - title: Ingress Controller
           link: /docs/latest/topics/running/ingress-controller
