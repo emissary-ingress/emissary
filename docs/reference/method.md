@@ -1,6 +1,6 @@
-# Method-based routing
+# Method-based Routing
 
-Ambassador supports routing based on HTTP method and regular expression.
+Ambassador Edge Stack supports routing based on the HTTP method and regular expression.
 
 ## Using `method`
 
@@ -10,14 +10,16 @@ For example:
 
 ```yaml
 ---
-aapiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
-name: get_mapping
-prefix: /get_only/
-method: GET
-service: qotm
+metadata:
+  name: get
+spec:
+  prefix: /backend/get_only/
+  method: GET
+  service: quote
 ```
 
 ## Using `method_regex`
 
-When `method_regex` is set to `true`, the value of the `method` annotation will be interpreted as a regular expression. 
+When `method_regex` is set to `true`, the value of the `method` annotation will be interpreted as a regular expression.

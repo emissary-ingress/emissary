@@ -1,165 +1,240 @@
 # Transport Layer Security (TLS)
 
-Ambassador supports both terminating TLS and originating TLS. By default, Ambassador will enable TLS termination whenever it finds valid TLS certificates stored in the `ambassador-certs` Kubernetes secret. 
+The Ambassador Edge Stack's robust TLS support exposes configuration options for different TLS use cases including:
 
-## The `tls` module
+- [Client Certificate Validation](../../tls/client-cert-validation)
+- [HTTP -> HTTPS Redirection](../../tls/cleartext-redirection)
+- [Mutual TLS](../../tls/mtls)
+- [Server Name Indication (SNI)](../../../user-guide/sni)
+- [TLS Origination](../../tls/origination)
 
-The `tls` module defines system-wide configuration for TLS when additional configuration is needed.
+## `Host`
 
-```yaml
----
-apiVersion: ambassador/v1
-kind:  Module
-name:  tls
-config:
-  # The 'server' block configures TLS termination. 'enabled' is the only
-  # required element.
-  server:
-    # If 'enabled' is not True, TLS termination will not happen.
-    enabled: True
+The `Host` resource has been added to the Ambassador API Gateway and Ambassador Edge Stack in version 1.0.0.
 
-    # If you set 'redirect_cleartext_from' to a port number, HTTP traffic 
-    # to that port will be redirected to HTTPS traffic. Typically you would
-    # use port 80, of course.
-    # redirect_cleartext_from: 80
+The `Host` resource simplifies TLS by directly connecting how Ambassador performs TLS termination and the domains it serves. With the Ambassador Edge Stack, the `Host` can issue and manage certificates automatically using the ACME protocol. 
 
-    # These are optional. They should not be present unless you are using
-    # a custom Docker build to install certificates onto the container
-    # filesystem, in which case YOU WILL STILL NEED TO SET enabled: True
-    # above.
-    #
-    # cert_chain_file: /etc/certs/tls.crt   # remember to set enabled!
-    # private_key_file: /etc/certs/tls.key  # remember to set enabled!
+For both the Ambassador Edge Stack and API Gateway, the `Host` can read a certificate from a Kubernetes secret and use that certificate to terminate TLS on a domain.
 
-    # Enable TLS ALPN protocol, typically HTTP2 to negotiate it with 
-    # HTTP2 clients over TLS.
-    # This must be set to be able to use grpc over TLS.
-    # alpn_protocols: h2
-
-  # The 'client' block configures TLS client-certificate authentication.
-  # 'enabled' is the only required element.
-  client:
-    # If 'enabled' is not True, TLS client-certificate authentication will
-    # not happen.
-    enabled: False
-
-    # If 'cert_required' is True, TLS client certificates will be required
-    # for every connection.
-    # cert_required: False
-
-    # This is optional. It should not be present unless you are using
-    # a custom Docker build to install certificates onto the container
-    # filesystem, in which case YOU WILL STILL NEED TO SET enabled: True
-    # above.
-    # 
-    # cacert_chain_file: /etc/cacert/tls.crt  # remember to set enabled!
-```
-
-## Redirecting from cleartext to TLS
-
-The most common case requiring a `tls` module is redirecting cleartext traffic on port 80 to HTTPS on port 443, which can be done with the following configuration:
+The following will configure Ambassador to grab a certificate from a secret named `host-secret` and use that secret for terminating TLS on the `host.example.com` domain:
 
 ```yaml
 ---
-apiVersion: ambassador/v1
-kind:  Module
-name:  tls
-config:
-  server:
-    enabled: True
-    redirect_cleartext_from: 80
-```
-
-## X-FORWARDED-PROTO Redirect
-
-In cases when TLS is being terminated at an external layer 7 load balancer, then you would want to redirect only the originating HTTP requests to HTTPS, and let the originating HTTPS requests pass through.
-
-This distinction between an originating HTTP request and an originating HTTPS request is done based on the `X-FORWARDED-PROTO` header that the external layer 7 load balancer adds to every request it forwards after TLS termination.
-
-To enable this `X-FORWARDED-PROTO` based HTTP to HTTPS redirection, add a `x_forwarded_proto_redirect: true` field to the Ambassador module configuration, e.g.,
-
-```yaml
-apiVersion: ambassador/v1
-kind: Module
-name: ambassador
-config:
-  x_forwarded_proto_redirect: true
-```
-
-Note: Setting `x_forwarded_proto_redirect: true` will impact all your Ambassador mappings. Requests that contain have `X-FORWARDED-PROTO` set to `https` will be passed through. Otherwise, for all other values of `X-FORWARDED-PROTO`, they will be redirected to TLS.
-
-## Authentication with TLS Client Certificates
-
-Ambassador also supports TLS client-certificate authentcation. After enabling TLS termination, collect the full CA certificate chain (including all necessary intermediate certificates) into a single file. Store the CA certificate chain used to validate the client certificate into a Kubernetes `secret` named `ambassador-cacert`:
-
-```shell
-kubectl create secret generic ambassador-cacert --from-file=tls.crt=$CACERT_PATH
-```
-
-where `$CACERT_PATH` is the path to the single file mentioned above.
-
-If you want to _require_ client-cert authentication for every connection, you can add the `cert_required` key:
-
-```shell
-kubectl create secret generic ambassador-cacert --from-file=tls.crt=$CACERT_PATH --from-literal=cert_required=true
-```
-
-When Ambassador starts, it will notice the `ambassador-cacert` secret and turn TLS client-certificate auth on (assuming that TLS termination is enabled).
-
-### Using a user defined secret
-
-If you do not wish to use a secret named `ambassador-cacert`, then you can specify your own secret. This can be particularly useful if you want to use different secrets for different Ambassador deployments in your cluster.
-
-Create the secret -
-```shell
-kubectl create secret generic user-secret --from-file=tls.crt=$CACERT_PATH
-```
-
-And then, configure Ambassador's TLS module like the following -
-
-```yaml
-apiVersion: ambassador/v1
-kind:  Module
-name:  tls
-config:
-  client:
-    enabled: True
-    secret: user-secret
-```
-
-Note: If `ambassador-cacert` is present in the cluster and the TLS module is configured to load a custom secret, then `ambassador-cacert` will take precedence, and the custom secret will be ignored.
-
-## TLS Origination
-Ambassador is also able to originate a TLS connection with backend services. This can be easily configured by telling Ambassador to route traffic to a service over HTTPS or setting the [tls](/reference/mappings#using-tls) attribute to `true`.
-
-```yaml
----
-apiVersion: v1
-kind: Service
+apiVersion: getambassador.io/v2
+kind: Host
 metadata:
-  name: qotm
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind:  Mapping
-      name:  qotm_mapping
-      prefix: /qotm/
-      service: https://qotm
+  name: example-host
 spec:
-  selector:
-    app: qotm
-  ports:
-  - port: 443
-    name: http-qotm
-    targetPort: http-api
+  hostname: host.example.com
+  acmeProvider:
+    authority: none
+  tlsSecret:
+    name: host-secret
 ```
-Ambassador will assume it can trust the services in your cluster so will default to not validating the backend's certificates. This allows for your backend services to use self-signed certificates with ease.
 
-### Mutual TLS
-Ambassador can be configured to do mutual TLS with backend services as well. To accomplish this, you will need to provide certificates for Ambassador to use with the backend. An example of this is given in the [Ambassador with Istio](/user-guide/with-istio#istio-mutual-tls) documentation.
+### `Host`and `TLSContext`
 
-## More reading
+The `Host` will configure basic TLS termination settings in Ambassador. If you need more advanced TLS options on a domain, such as setting the minimum TLS version, you can create a [`TLSContext`](#tlscontext) with the name `{{NAME_OF_HOST}}-context` to configure more advanced TLS options.
 
-The [TLS termination guide](/user-guide/tls-termination) provides a tutorial on getting started with TLS in Ambassador. For more informatiom on configuring Ambassador with external L4/L7 load balancers, see the [documentation on AWS](/reference/ambassador-with-aws). Note that this document, while intended for AWS users, has information also applicable to other cloud providers.
+For example, to enforce a minimum TLS version on the `Host` above, create a `TLSContext` named `example-host-context` with the following configuration:
 
+```yaml
+---
+apiVersion: getambassador.io/v2
+kind: TLSContext
+metadata:
+  name: example-host-context
+spec:
+  hosts:
+  - host.example.com
+  secret: host-secret
+  min_tls_version: v1.2
+```
+
+## TLSContext
+
+You control TLS configuration in Ambassador Edge Stack using `TLSContext` resources. Multiple `TLSContext`s can be defined in your cluster and can be used for any combination of TLS use cases.
+
+A full schema of the `TLSContext` can be found below with descriptions of the different configuration options.
+
+```yaml
+---
+apiVersion: getambassador.io/v2
+kind: TLSContext
+metadata:
+  name: tls-context-1
+spec:
+  # 'hosts' defines the hosts for which this TLSContext is relevant.
+  # It ties into SNI. A TLSContext without "hosts" is useful only for 
+  # originating TLS. 
+  # type: array of strings
+  #
+  # hosts: []
+
+  # 'sni' defines the SNI string to use on originated connections.
+  # type: string
+  #
+  # sni: None
+
+  # 'secret' defines a Kubernetes Secret that contains the TLS certificate we
+  # use for origination or termination. If not specified, Ambassador will look
+  # at the value of cert_chain_file and private_key_file.
+  # type: string
+  #
+  # secret: None
+
+  # 'ca_secret' defines a Kubernetes Secret that contains the TLS certificate we
+  # use for verifying incoming TLS client certificates.
+  # type: string
+  #
+  # ca_secret: None
+
+  # Tells Ambassador whether to interpret a "." in the secret name as a "." or 
+  # a namespace identifier.
+  # type: boolean
+  #
+  # secret_namespacing: true
+
+  # If you set 'redirect_cleartext_from' to a port number, HTTP traffic
+  # to that port will be redirected to HTTPS traffic. Make sure that the
+  # port number you specify matches the port on which Ambassador is
+  # listening!
+  # redirect_cleartext_from: 8080
+
+  # 'cert_required' can be set to true to _require_ TLS client certificate
+  # authentication.
+  # type: boolean
+  #
+  # cert_required: false
+
+  # 'alpn_protocols' is used to enable the TLS ALPN protocol. It is required
+  # if you want to do GRPC over TLS; typically it will be set to "h2" for that
+  # case.
+  # type: string (comma-separated list)
+  #
+  # alpn_protocols: None
+
+  # 'min_tls_version' sets the minimum acceptable TLS version: v1.0, v1.1,
+  # v1.2, or v1.3. It defaults to v1.0.
+  # min_tls_version: v1.0
+
+  # 'max_tls_version' sets the maximum acceptable TLS version: v1.0, v1.1,
+  # v1.2, or v1.3. It defaults to v1.3.
+  # max_tls_version: v1.3
+
+  # Tells Ambassador to load TLS certificates from a file in its container.
+  # type: string
+  #
+  # cert_chain_file: None
+  # private_key_file: None
+  # cacert_chain_file: None
+```
+
+### `alpn_protocols`
+
+The `alpn_protocols` setting configures the TLS ALPN protocol. To use gRPC over TLS, set `alpn_protocols: h2`. If you need to support HTTP/2 upgrade from HTTP/1, set `alpn_protocols: h2,http/1.1` in the configuration.
+
+#### HTTP/2 Support
+
+The `alpn_protocols` setting is also required for HTTP/2 support.
+
+```yaml
+apiVersion: getambassador.io/v2
+kind:  TLSContext
+metadata:
+  name:  tls
+spec:
+  secret: ambassador-certs
+  hosts: ["*"]
+  alpn_protocols: h2[, http/1.1]
+```
+Without setting alpn_protocols as shown above, HTTP2 will not be available via negotiation and will have to be explicitly requested by the client.
+
+If you leave off http/1.1, only HTTP2 connections will be supported.
+
+### TLS Parameters
+
+The `min_tls_version` setting configures the minimum TLS protocol version that Ambassador Edge Stack will use to establish a secure connection. When a client using a lower version attempts to connect to the server, the handshake will result in the following error: `tls: protocol version not supported`.
+
+The `max_tls_version` setting configures the maximum TLS protocol version that Ambassador Edge Stack will use to establish a secure connection. When a client using a higher version attempts to connect to the server, the handshake will result in the following error: `tls: server selected unsupported protocol version`.
+
+The `cipher_suites` setting configures the supported [cipher list](https://commondatastorage.googleapis.com/chromium-boringssl-docs/ssl.h.html#Cipher-suite-configuration) when negotiating a TLS 1.0-1.2 connection. This setting has no effect when negotiating a TLS 1.3 connection.  When a client does not support a matching cipher a handshake error will result.
+
+The `ecdh_curves` setting configures the supported ECDH curves when negotiating a TLS connection.  When a client does not support a matching ECDH a handshake error will result.
+
+```yaml
+---
+apiVersion: getambassador.io/v2
+kind:  TLSContext
+metadata:
+  name:  tls
+spec:
+  hosts: ["*"]
+  secret: ambassador-certs
+  min_tls_version: v1.0
+  max_tls_version: v1.3
+  cipher_suites:
+  - "[ECDHE-ECDSA-AES128-GCM-SHA256|ECDHE-ECDSA-CHACHA20-POLY1305]"
+  - "[ECDHE-RSA-AES128-GCM-SHA256|ECDHE-RSA-CHACHA20-POLY1305]"
+  ecdh_curves:
+  - X25519
+  - P-256
+```
+
+## TLS `Module` (*Deprecated*)
+
+The TLS `Module` is deprecated. `TLSContext` should be used when using Ambassador version 0.50.0 and above.
+
+For users of the Ambassador Edge Stack, see the [Host CRD](/reference/host-crd) reference for more information.
+
+```yaml
+---
+apiVersion: getambassador.io/v2
+kind:  Module
+metadata:
+  name:  tls
+spec:
+  config:
+    # The 'server' block configures TLS termination. 'enabled' is the only
+    # required element.
+    server:
+      # If 'enabled' is not True, TLS termination will not happen.
+      enabled: True
+
+      # If you set 'redirect_cleartext_from' to a port number, HTTP traffic
+      # to that port will be redirected to HTTPS traffic. Make sure that the
+      # port number you specify matches the port on which Ambassador is
+      # listening!
+      # redirect_cleartext_from: 8080
+
+      # These are optional. They should not be present unless you are using
+      # a custom Docker build to install certificates onto the container
+      # filesystem, in which case YOU WILL STILL NEED TO SET enabled: True
+      # above.
+      #
+      # cert_chain_file: /etc/certs/tls.crt   # remember to set enabled!
+      # private_key_file: /etc/certs/tls.key  # remember to set enabled!
+
+      # Enable TLS ALPN protocol, typically HTTP2 to negotiate it with
+      # HTTP2 clients over TLS.
+      # This must be set to be able to use grpc over TLS.
+      # alpn_protocols: h2
+
+    # The 'client' block configures TLS client-certificate authentication.
+    # 'enabled' is the only required element.
+    client:
+      # If 'enabled' is not True, TLS client-certificate authentication will
+      # not happen.
+      enabled: False
+
+      # If 'cert_required' is True, TLS client certificates will be required
+      # for every connection.
+      # cert_required: False
+
+      # This is optional. It should not be present unless you are using
+      # a custom Docker build to install certificates onto the container
+      # filesystem, in which case YOU WILL STILL NEED TO SET enabled: True
+      # above.
+      #
+      # cacert_chain_file: /etc/cacert/tls.crt  # remember to set enabled!
+```

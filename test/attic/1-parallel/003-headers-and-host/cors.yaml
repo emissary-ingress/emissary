@@ -1,0 +1,10 @@
+---
+url: "{BASE}/cors/"
+tests:
+- name: host
+  host: cors.datawire.io
+  headers:
+    Origin: https://www.test-cors.org
+  iterations: 1
+  expect_response_headers:
+    Access-Control-Allow-Origin: https://www.test-cors.org

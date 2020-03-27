@@ -1,5 +1,7 @@
 # Deploying Ambassador to Docker Compose for local development
 
+**This page is deprecated. For Docker, check out the [Docker installation guide](../../about/quickstart).**
+
 Docker Compose is useful for local development where Minikube may be undesirable. This guide is not intended for production deployments but it is intended to allow developers to quickly try out Ambassador features in a simple, local environment.
 
 *It is important to note that any change to Ambassador's configuration using this method requires a restart of the Ambassador container and thus downtime.*
@@ -21,10 +23,10 @@ version: '3.5'
 
 services:
   ambassador:
-    image: quay.io/datawire/ambassador:%version%
+    image: quay.io/datawire/ambassador:$version$
     ports:
-    # expose port 80 via 8080 on the host machine
-    - 8080:80
+    # expose port 8080 via 8080 on the host machine
+    - 8080:8080
     volumes:
     # mount a volume where we can inject configuration files
     - ./config:/ambassador/ambassador-config
@@ -33,7 +35,7 @@ services:
     - AMBASSADOR_NO_KUBEWATCH=no_kubewatch
 ```
 
-Note the mounted volume. When Ambassador bootstraps on container startup it checks the `/ambassador/ambassador-config` directory for configuration files. We will use this behavior to configure ambassador.
+Note the mounted volume. When Ambassador bootstraps on container startup it checks the `/ambassador/ambassador-config` directory for configuration files. We will use this behavior to configure Ambassador.
 
 Note also the `AMBASSADOR_NO_KUBEWATCH` environment variable. Without this, Ambassador will try to use the Kubernetes API to watch for service changes, which won't work in Docker.
 
@@ -42,18 +44,18 @@ Note also the `AMBASSADOR_NO_KUBEWATCH` environment variable. Without this, Amba
 Ambassador will interpret a total absence of configuration information as meaning that it should wait for dynamic configuration, so we'll give it a bare-bones configuration to get started.
 
 Create a `config` folder (which must match the mounted volume in the `docker-compose.yaml` file) and add a file called `ambassador.yaml` to the directory.
-(Note: Configuration files can have any name or combined into the same yaml file)
+(Note: Configuration files can have any name or combined into the same YAML file)
 
 ```bash
 mkdir config
 touch config/ambassador.yaml
 ```
 
-Set the contents of the `config/ambassador.yaml` to this yaml configuration:
+Set the contents of the `config/ambassador.yaml` to this YAML configuration:
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: ambassador/v2
 kind: Module
 name: ambassador
 config: {}
@@ -85,11 +87,11 @@ x-envoy-upstream-service-time: 10
 
 Let's turn off the diagnostics page to demonstrate how we will enable and configure Ambassador.
 
-Edit the contents of the `config/ambassador.yaml` to this yaml configuration:
+Edit the contents of the `config/ambassador.yaml` to this YAML configuration:
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: ambassador/v2
 kind: Module
 name: ambassador
 config:
@@ -98,7 +100,7 @@ config:
     enabled: false
 ```
 
-Now restart ambassador and test the diagnostics endpoint to ensure our configuration is in use:
+Now restart Ambassador and test the diagnostics endpoint to ensure our configuration is in use:
 
 ```bash
 # restart the container to pick up new configuration settings
@@ -124,7 +126,7 @@ Create a new file `config/mapping-httpbin.yaml` with these contents:
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: ambassador/v2
 kind:  Mapping
 name:  httpbin_mapping
 prefix: /httpbin/
@@ -132,7 +134,7 @@ service: httpbin.org
 host_rewrite: httpbin.org   
 ```
 
-Once again, restart ambassador and test the new mapping:
+Once again, restart Ambassador and test the new mapping:
 
 ```bash
 # restart the container to pick up new configuration settings
@@ -151,44 +153,54 @@ curl localhost:8080/httpbin/ip
 
 While routing to an external service is useful, more often than not our Docker Compose environment will contain a number of services that need routing.
 
-### Add the qotm service to the docker-compose.yaml file
+### Add the tour-ui and tour-backend service to the docker-compose.yaml file
 
-Edit the `docker-compose.yaml` file and add a new `qotm` service. It should now look like this:
+Edit the `docker-compose.yaml` file and add a new `tour` service. It should now look like this:
 
 ```yaml
 version: '3.5'
 
 services:
   ambassador:
-    image: quay.io/datawire/ambassador:%version%
+    image: quay.io/datawire/ambassador:$version$
     ports:
-    - 8080:80
+    - 8080:8080
     volumes:
     # mount a volume where we can inject configuration files
     - ./config:/ambassador/ambassador-config
     environment:
     # don't try to watch Kubernetes for configuration changes
     - AMBASSADOR_NO_KUBEWATCH=no_kubewatch
-  qotm:
-    image: datawire/qotm:1.3
+  tour-ui:
+    image: quay.io/datawire/tour:ui-0.2.6
     ports:
     - 5000
+  tour-backend:
+    image: quay.io/datawire/tour:backend-0.2.6
+    ports:
+    - 8080
 ```
 
-### Update the mapping-qotm.yaml file to route to our internal qotm service
+### Update the mapping-tour.yaml file to route to our internal tour service
 
-Edit the `config/mapping-qotm.yaml` file and modify the `service` and `rewrite` field. It should now look like this:
+Edit the `config/mapping-tour.yaml` file and modify the `service` and `rewrite` field. It should now look like this:
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: ambassador/v2
+kind: Mapping
+name: tour-ui_mapping
+prefix: /
+service: tour-ui:5000
+---
+apiVersion: ambassador/v2
 kind:  Mapping
-name:  qotm_mapping
-prefix: /qotm/
-# remove the qotm prefix when talking to the qotm service
+name:  tour-backend_mapping
+prefix: /backend/
+# remove the backend prefix when talking to the backend service
 rewrite: /
 # change the `service` parameter to the name of our service with the port
-service: qotm:5000
+service: tour-backend:8080
 ```
 
 ### Restart Ambassador and test
@@ -196,45 +208,18 @@ service: qotm:5000
 Re-run the same test as in the previous section to ensure the route works as before. This time we will need to bring up the new service first.
 
 ```bash
-# start all new containers (eg. qotm)
+# start all new containers (eg. tour-ui and tour-backend)
 docker-compose up -d
 
 # restart the container to pick up new configuration settings
 docker-compose up -d -V ambassador
-
-# curl the quote-of-the-moment service
-curl localhost:8080/qotm/quote/1
-
-# the response body should be a json object with a quote
-{
-  "hostname": "qotm-3716059461-47tnl",
-  "ok": true,
-  "quote": "The light at the end of the tunnel is interdependent on the relatedness of motivation, subcultures, and management.",
-  "time": "2018-08-17T21:29:24.690950",
-  "version": "1.3"
-}
 ```
 
-### Verify that the local qotm container is serving requests
-
-To ensure that the routing changes worked inspect the docker-compose logs to see the output from the local qotm service. It should look something like this:
-
-```bash
-> docker-compose logs
-Attaching to ambassador-compose_qotm_1
-qotm_1        | 2018-08-17 21:53:13 QotM 1.3 INFO: initializing on local-qotm:5000
-qotm_1        | 2018-08-17 21:53:13 QotM 1.3 INFO:  * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
-qotm_1        | 2018-08-17 21:53:13 QotM 1.3 INFO:  * Restarting with stat
-qotm_1        | 2018-08-17 21:53:14 QotM 1.3 INFO: initializing on local-qotm:5000
-qotm_1        | 2018-08-17 21:53:14 QotM 1.3 WARNING:  * Debugger is active!
-qotm_1        | 2018-08-17 21:53:14 QotM 1.3 INFO:  * Debugger PIN: 336-275-311
-qotm_1        | 2018-08-17 21:53:41 QotM 1.3 DEBUG: GET /: session None, username None, handler statement
-qotm_1        | 2018-08-17 21:53:41 QotM 1.3 INFO: 172.19.0.3 - - [17/Aug/2018 21:53:41] "GET / HTTP/1.1" 200 -
-```
+Go to `http://localhost:8080/` in your browser and see the tour-ui application.
 
 ## 4. Add Authentication
 
-The authentication module can be used to verify the identity and other security concerns at the entrypoint to the docker-compose cluster.
+The authentication module can be used to verify the identity and other security concerns at the entry point to the docker-compose cluster.
 
 We will use the `datawire/ambassador-auth-service` container as an example.
 
@@ -247,19 +232,23 @@ version: '3.5'
 
 services:
   ambassador:
-    image: quay.io/datawire/ambassador:%version%
+    image: quay.io/datawire/ambassador:$version$
     ports:
-    - 8080:80
+    - 8080:8080
     volumes:
     # mount a volume where we can inject configuration files
     - ./config:/ambassador/ambassador-config
     environment:
     # don't try to watch Kubernetes for configuration changes
     - AMBASSADOR_NO_KUBEWATCH=no_kubewatch
-  qotm:
-    image: datawire/qotm:1.3
+  tour-ui:
+    image: quay.io/datawire/tour:ui-0.2.6
     ports:
     - 5000
+  tour-backend:
+    image: quay.io/datawire/tour:backend-0.2.6
+    ports:
+    - 8080
   auth:
     image: datawire/ambassador-auth-service:latest
     ports:
@@ -272,12 +261,14 @@ Make a new file called `config/auth.yaml` with an auth definition inside:
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: ambassador/v2
 kind:  AuthService
 name:  authentication
 auth_service: "auth:3000"
 path_prefix: "/extauth"
-allowed_headers:
+allowed_request_headers:
+- "x-qotm-session"
+allowed_authorization_headers:
 - "x-qotm-session"
 ```
 
@@ -295,31 +286,49 @@ docker-compose up -d
 docker-compose up -d -V ambassador
 
 # curl the quote-of-the-moment service without an auth header
-curl -I localhost:8080/qotm/quote/1
+curl -v localhost:8080/backend/get-quote/
 
 # the response should look like this
-HTTP/1.1 401 Unauthorized
-x-powered-by: Express
-x-request-id: da059f3e-7b9e-4d98-8428-f4f8ca742af7
-www-authenticate: Basic realm="Ambassador Realm"
-content-type: text/html; charset=utf-8
-content-length: 0
-etag: W/"0-2jmj7l5rSw0yVb/vlWAYkK/YBwk"
-date: Fri, 17 Aug 2018 22:25:38 GMT
-x-envoy-upstream-service-time: 1
-server: envoy
+*   Trying ::1...
+* TCP_NODELAY set
+* Connected to localhost (::1) port 8080 (#0)
+> GET /backend/get-quote/ HTTP/1.1
+> Host: localhost:8080
+> User-Agent: curl/7.63.0
+> Accept: */*
+> 
+< HTTP/1.1 403 Forbidden
+< date: Thu, 23 May 2019 18:08:58 GMT
+< server: envoy
+< content-length: 0
+< 
+* Connection #0 to host localhost left intact
 
 # now try with a specific username and password
-curl -I --user username:password localhost:8080/qotm/quote/1
+curl -v --user username:password localhost:8080/backend/get-quote/
 
 # the response should be a 200
-HTTP/1.1 200 OK
-content-type: application/json
-x-qotm-session: 5b75f31f-1155-4827-ab28-74d0f98573da
-content-length: 217
-server: envoy
-date: Fri, 17 Aug 2018 22:29:43 GMT
-x-envoy-upstream-service-time: 2
+* TCP_NODELAY set
+* Connected to 54.165.128.189 (54.165.128.189) port 32281 (#0)
+* Server auth using Basic with user 'username'
+> GET /backend/get-quote/ HTTP/1.1
+> Host: 54.165.128.189:32281
+> Authorization: Basic dXNlcm5hbWU6cGFzc3dvcmQ=
+> User-Agent: curl/7.63.0
+> Accept: */*
+> 
+< HTTP/1.1 200 OK
+< content-type: application/json
+< date: Thu, 23 May 2019 15:25:06 GMT
+< content-length: 172
+< x-envoy-upstream-service-time: 0
+< server: envoy
+< 
+{
+    "server": "humble-blueberry-o2v493st",
+    "quote": "Nihilism gambles with lives, happiness, and even destiny itself!",
+    "time": "2019-05-23T15:25:06.544417902Z"
+* Connection #0 to host 54.165.128.189 left intact
 ```
 
 ## 5. Tracing
@@ -335,19 +344,23 @@ version: '3.5'
 
 services:
   ambassador:
-    image: quay.io/datawire/ambassador:%version%
+    image: quay.io/datawire/ambassador:$version$
     ports:
-    - 8080:80
+    - 8080:8080
     volumes:
     # mount a volume where we can inject configuration files
     - ./config:/ambassador/ambassador-config
     environment:
     # don't try to watch Kubernetes for configuration changes
     - AMBASSADOR_NO_KUBEWATCH=no_kubewatch
-  qotm:
-    image: datawire/qotm:1.3
+  tour-ui:
+    image: quay.io/datawire/tour:ui-0.2.6
     ports:
     - 5000
+  tour-backend:
+    image: quay.io/datawire/tour:backend-0.2.6
+    ports:
+    - 8080
   auth:
     image: datawire/ambassador-auth-service:latest
     ports:
@@ -372,7 +385,7 @@ Add a new configuration file `config/tracing.yaml` with these contents:
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: ambassador/v2
 kind: TracingService
 name: tracing
 service: tracing:9411
@@ -383,7 +396,7 @@ This will forward all of Ambassador's traces to the `tracing` service.
 
 ### Make requests and observe the traces
 
-After reloading the Docker containers and configuration we should be able to make requests to the qotm service and see the traces in the Jaeger front-end UI.
+After reloading the Docker containers and configuration we should be able to make requests to the tour backend service and see the traces in the Jaeger front-end UI.
 
 ```bash
 # start all new containers (eg. tracing)
@@ -393,11 +406,11 @@ docker-compose up -d
 docker-compose up -d -V ambassador
 
 # curl the quote-of-the-moment service as many times as you would like
-curl --user username:password localhost:8080/qotm/quote/1
+curl --user username:password localhost:8080/backend/get-quote/
 ```
 
-In a browser you can go to [http://localhost:16686/](http://localhost:16686/) and search for traces. To make this demonstration more useful one should implement Zipkin tracing middleware into their webserver.
+In a browser you can go to `http://localhost:16686/` and search for traces. To make this demonstration more useful one should implement Zipkin tracing middleware into their webserver.
 
 ## Next Steps
 
-We have demonstrated that all the configurations that would normally be stored in kubernetes annotations can be saved as a yaml document in a volume mapped to `/ambassador/ambassador-config` within the Ambassador docker container. Hopefully this guide can be used to test new configurations locally before moving to a Kubernetes cluster. Of course, there will be differences between docker-compose and the Kubernetes implementation and one should be sure to test thoroughly in the latter before moving to production.
+We have demonstrated that all the configurations that would normally be stored in Kubernetes annotations can be saved as a YAML document in a volume mapped to `/ambassador/ambassador-config` within the Ambassador docker container. Hopefully this guide can be used to test new configurations locally before moving to a Kubernetes cluster. Of course, there will be differences between docker-compose and the Kubernetes implementation and one should be sure to test thoroughly in the latter before moving to production.

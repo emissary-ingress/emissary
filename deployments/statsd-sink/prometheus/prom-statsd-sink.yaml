@@ -1,0 +1,41 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  name: statsd-sink
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        service: statsd-sink
+    spec:
+      containers:
+      - name: statsd-sink
+        image: prom/statsd-exporter:v0.8.1
+        args:
+        - --statsd.listen-udp=":8125"
+        resources: {}
+      restartPolicy: Always
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    service: statsd-sink
+  name: statsd-sink
+spec:
+  ports:
+  - protocol: UDP
+    port: 8125
+    name: statsd-metrics
+  - protocol: TCP
+    port: 9102
+    name: prometheus-metrics
+  selector:
+    service: statsd-sink

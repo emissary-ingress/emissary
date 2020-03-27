@@ -1,0 +1,619 @@
+{
+    "ambassador": {
+        "_active": true,
+        "_errored": false,
+        "_finalized": true,
+        "_referenced_by": [
+            "gzipminimumconfigtest.default.1"
+        ],
+        "_rkey": "gzipminimumconfigtest.default.1",
+        "admin_port": 8001,
+        "debug_mode": false,
+        "default_label_domain": "ambassador",
+        "default_labels": {},
+        "diag_port": 8877,
+        "diagnostics": {
+            "enabled": true,
+            "prefix": "/ambassador/v0/",
+            "rewrite": "/ambassador/v0/",
+            "service": "127.0.0.1:8877"
+        },
+        "enable_http10": false,
+        "enable_ipv4": true,
+        "enable_ipv6": false,
+        "envoy_log_path": "/dev/fd/1",
+        "envoy_log_type": "text",
+        "gzip": {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.gzip",
+            "content_type": [],
+            "enabled": true,
+            "kind": "IRGzip",
+            "location": "gzipminimumconfigtest.default.1",
+            "name": "ir.gzip",
+            "namespace": "default"
+        },
+        "kind": "IRAmbassador",
+        "liveness_probe": {
+            "enabled": true,
+            "prefix": "/ambassador/v0/check_alive",
+            "rewrite": "/ambassador/v0/check_alive",
+            "service": "127.0.0.1:8877"
+        },
+        "location": "gzipminimumconfigtest.default.1",
+        "name": "ir.ambassador",
+        "namespace": "default",
+        "proper_case": false,  
+        "readiness_probe": {
+            "enabled": true,
+            "prefix": "/ambassador/v0/check_ready",
+            "rewrite": "/ambassador/v0/check_ready",
+            "service": "127.0.0.1:8877"
+        },
+        "server_name": "envoy",
+        "service_port": 8080,
+        "use_ambassador_namespace_for_service_resolution": false,
+        "use_proxy_proto": false,
+        "use_remote_address": true,
+        "x_forwarded_proto_redirect": false,
+        "xff_num_trusted_hops": 0
+    },
+    "clusters": {
+        "cluster_127_0_0_1_8877_default": {
+            "_active": true,
+            "_errored": false,
+            "_hostname": "127.0.0.1",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 8877,
+            "_referenced_by": [
+                "gzipminimumconfigtest.default.1"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_127_0_0_1_8877_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "gzipminimumconfigtest.default.1",
+            "name": "cluster_127_0_0_1_8877_default",
+            "namespace": "default",
+            "service": "127.0.0.1:8877",
+            "targets": [
+                {
+                    "ip": "127.0.0.1",
+                    "port": 8877,
+                    "target_kind": "IPaddr"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://127.0.0.1:8877"
+            ]
+        },
+        "cluster_gzipminimumconfigtest_http_default": {
+            "_active": true,
+            "_errored": false,
+            "_hostname": "gzipminimumconfigtest-http",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 80,
+            "_referenced_by": [
+                "gzipminimumconfigtest.default.2"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_gzipminimumconfigtest_http_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "gzipminimumconfigtest.default.2",
+            "name": "cluster_gzipminimumconfigtest_http_default",
+            "namespace": "default",
+            "service": "gzipminimumconfigtest-http",
+            "targets": [
+                {
+                    "ip": "gzipminimumconfigtest-http.default",
+                    "port": 80,
+                    "target_kind": "DNSname"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://gzipminimumconfigtest-http:80"
+            ]
+        }
+    },
+    "filters": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.gzip",
+            "content_type": [],
+            "enabled": true,
+            "kind": "IRGzip",
+            "location": "gzipminimumconfigtest.default.1",
+            "name": "ir.gzip",
+            "namespace": "default"
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.cors",
+            "config": {},
+            "kind": "ir.cors",
+            "location": "--internal--",
+            "name": "cors",
+            "namespace": "default"
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.router",
+            "config": {},
+            "kind": "ir.router",
+            "location": "--internal--",
+            "name": "router",
+            "namespace": "default",
+            "type": "decoder"
+        }
+    ],
+    "groups": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "gzipminimumconfigtest.default.1"
+            ],
+            "_rkey": "gzipminimumconfigtest.default.1",
+            "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
+            "group_weight": [
+                0,
+                26,
+                0,
+                "/ambassador/v0/check_ready",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "gzipminimumconfigtest.default.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_referenced_by": [
+                        "gzipminimumconfigtest.default.1"
+                    ],
+                    "_rkey": "gzipminimumconfigtest.default.1",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8877,
+                        "_referenced_by": [
+                            "gzipminimumconfigtest.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "gzipminimumconfigtest.default.1",
+                        "name": "cluster_127_0_0_1_8877_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8877",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8877,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8877"
+                        ]
+                    },
+                    "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "gzipminimumconfigtest.default.1",
+                    "name": "internal_readiness_probe_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/ambassador/v0/check_ready",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/ambassador/v0/check_ready",
+                    "route_weight": [
+                        0,
+                        26,
+                        0,
+                        "/ambassador/v0/check_ready",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8877",
+                    "timeout_ms": 10000,
+                    "weight": 100
+                }
+            ],
+            "name": "GROUP: internal_readiness_probe_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/check_ready",
+            "rewrite": "/ambassador/v0/check_ready",
+            "timeout_ms": 10000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "gzipminimumconfigtest.default.1"
+            ],
+            "_rkey": "gzipminimumconfigtest.default.1",
+            "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
+            "group_weight": [
+                0,
+                26,
+                0,
+                "/ambassador/v0/check_alive",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "gzipminimumconfigtest.default.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_referenced_by": [
+                        "gzipminimumconfigtest.default.1"
+                    ],
+                    "_rkey": "gzipminimumconfigtest.default.1",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8877,
+                        "_referenced_by": [
+                            "gzipminimumconfigtest.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "gzipminimumconfigtest.default.1",
+                        "name": "cluster_127_0_0_1_8877_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8877",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8877,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8877"
+                        ]
+                    },
+                    "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "gzipminimumconfigtest.default.1",
+                    "name": "internal_liveness_probe_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/ambassador/v0/check_alive",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/ambassador/v0/check_alive",
+                    "route_weight": [
+                        0,
+                        26,
+                        0,
+                        "/ambassador/v0/check_alive",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8877",
+                    "timeout_ms": 10000,
+                    "weight": 100
+                }
+            ],
+            "name": "GROUP: internal_liveness_probe_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/check_alive",
+            "rewrite": "/ambassador/v0/check_alive",
+            "timeout_ms": 10000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "gzipminimumconfigtest.default.1"
+            ],
+            "_rkey": "gzipminimumconfigtest.default.1",
+            "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
+            "group_weight": [
+                0,
+                15,
+                0,
+                "/ambassador/v0/",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "gzipminimumconfigtest.default.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_referenced_by": [
+                        "gzipminimumconfigtest.default.1"
+                    ],
+                    "_rkey": "gzipminimumconfigtest.default.1",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8877,
+                        "_referenced_by": [
+                            "gzipminimumconfigtest.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "gzipminimumconfigtest.default.1",
+                        "name": "cluster_127_0_0_1_8877_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8877",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8877,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8877"
+                        ]
+                    },
+                    "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "gzipminimumconfigtest.default.1",
+                    "name": "internal_diagnostics_probe_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/ambassador/v0/",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/ambassador/v0/",
+                    "route_weight": [
+                        0,
+                        15,
+                        0,
+                        "/ambassador/v0/",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8877",
+                    "timeout_ms": 10000,
+                    "weight": 100
+                }
+            ],
+            "name": "GROUP: internal_diagnostics_probe_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/",
+            "rewrite": "/ambassador/v0/",
+            "timeout_ms": 10000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "gzipminimumconfigtest.default.2"
+            ],
+            "_rkey": "gzipminimumconfigtest.default.2",
+            "group_id": "ef2f76a27cdb850e84f8f5c00ce17c4798f7e065",
+            "group_weight": [
+                0,
+                8,
+                0,
+                "/target/",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "gzipminimumconfigtest.default.2",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_rkey": "gzipminimumconfigtest.default.2",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "gzipminimumconfigtest-http",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 80,
+                        "_referenced_by": [
+                            "gzipminimumconfigtest.default.2"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_gzipminimumconfigtest_http_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "gzipminimumconfigtest.default.2",
+                        "name": "cluster_gzipminimumconfigtest_http_default",
+                        "namespace": "default",
+                        "service": "gzipminimumconfigtest-http",
+                        "targets": [
+                            {
+                                "ip": "gzipminimumconfigtest-http.default",
+                                "port": 80,
+                                "target_kind": "DNSname"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://gzipminimumconfigtest-http:80"
+                        ]
+                    },
+                    "group_id": "ef2f76a27cdb850e84f8f5c00ce17c4798f7e065",
+                    "headers": [],
+                    "kind": "Mapping",
+                    "location": "gzipminimumconfigtest.default.2",
+                    "metadata_labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "gzipminimumconfigtest",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "gzipminimumconfigtest-http",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/target/",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/",
+                    "route_weight": [
+                        0,
+                        8,
+                        0,
+                        "/target/",
+                        "GET"
+                    ],
+                    "serialization": "ambassador_id: gzipminimumconfigtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gzipminimumconfigtest\n  scope: AmbassadorTest\nname: gzipminimumconfigtest-http\nnamespace: default\nprefix: /target/\nservice: gzipminimumconfigtest-http\n",
+                    "service": "gzipminimumconfigtest-http",
+                    "weight": 100
+                }
+            ],
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "gzipminimumconfigtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "GROUP: gzipminimumconfigtest-http",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/target/",
+            "rewrite": "/",
+            "serialization": "ambassador_id: gzipminimumconfigtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gzipminimumconfigtest\n  scope: AmbassadorTest\nname: gzipminimumconfigtest-http\nnamespace: default\nprefix: /target/\nservice: gzipminimumconfigtest-http\n"
+        }
+    ],
+    "grpc_services": {},
+    "hosts": [],
+    "identity": {
+        "ambassador_id": "gzipminimumconfigtest",
+        "ambassador_namespace": "default",
+        "ambassador_nodename": "gzipminimumconfigtest-default"
+    },
+    "k8s_status_updates": {},
+    "listeners": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.listener",
+            "hostname": "*",
+            "insecure_action": "Route",
+            "kind": "IRListener",
+            "location": "gzipminimumconfigtest.default.1",
+            "name": "ir.listener",
+            "namespace": "default",
+            "redirect_listener": false,
+            "secure_action": "Route",
+            "service_port": 8080,
+            "use_proxy_proto": false
+        }
+    ],
+    "services": {
+        "k8s-gzipminimumconfigtest-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "gzipminimumconfigtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-gzipminimumconfigtest-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "gzipminimumconfigtest",
+                "scope": "AmbassadorTest",
+                "service": "gzipminimumconfigtest-admin"
+            },
+            "name": "gzipminimumconfigtest-admin",
+            "namespace": "default",
+            "rkey": "k8s-gzipminimumconfigtest-admin-default",
+            "serialization": "ambassador_id: gzipminimumconfigtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: gzipminimumconfigtest\n  scope: AmbassadorTest\n  service: gzipminimumconfigtest-admin\nname: gzipminimumconfigtest-admin\nnamespace: default\n"
+        },
+        "k8s-gzipminimumconfigtest-default": {
+            "_referenced_by": {},
+            "ambassador_id": "gzipminimumconfigtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-gzipminimumconfigtest-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "gzipminimumconfigtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "gzipminimumconfigtest",
+            "namespace": "default",
+            "rkey": "k8s-gzipminimumconfigtest-default",
+            "serialization": "ambassador_id: gzipminimumconfigtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gzipminimumconfigtest\n  scope: AmbassadorTest\nname: gzipminimumconfigtest\nnamespace: default\n"
+        },
+        "k8s-gzipminimumconfigtest-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "gzipminimumconfigtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-gzipminimumconfigtest-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "gzipminimumconfigtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "gzipminimumconfigtest-http",
+            "namespace": "default",
+            "rkey": "k8s-gzipminimumconfigtest-http-default",
+            "serialization": "ambassador_id: gzipminimumconfigtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: gzipminimumconfigtest\n  scope: AmbassadorTest\nname: gzipminimumconfigtest-http\nnamespace: default\n"
+        }
+    },
+    "tls_contexts": []
+}

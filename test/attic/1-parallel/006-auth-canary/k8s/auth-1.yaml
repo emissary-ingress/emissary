@@ -1,0 +1,47 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-1
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind:  Mapping
+      name:  auth_1_mapping
+      prefix: /auth-1/
+      service: auth-1:3000
+      ambassador_id: 006-auth-canary
+spec:
+  selector:
+    app: auth-1
+  ports:
+  - port: 3000
+    name: http-auth-1
+    targetPort: http-api
+  type: ClusterIP
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: auth-1
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: auth-1
+    spec:
+      containers:
+      - name: auth-1
+        image: dwflynn/demo:1.0.0
+        imagePullPolicy: Always
+        ports:
+        - name: http-api
+          containerPort: 3000
+        resources:
+          limits:
+            cpu: "0.1"
+            memory: 100Mi

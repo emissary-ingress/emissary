@@ -1,0 +1,34 @@
+#!/bin/sh
+
+KUBE_CLIENT_DIR="venv/lib/python3.7/site-packages/kubernetes/client"
+
+if ! test -d "$KUBE_CLIENT_DIR"; then
+    echo "no Kube client to fix"
+    exit 0
+fi
+
+check_for_async_bool () {
+    # Search for 'async bool' (one of the things we edit) and use
+    # the status code of grep to determine if we found it.
+
+    find "$KUBE_CLIENT_DIR" -type f -name '*.py' -print0 | \
+        xargs -0 grep -q "async bool" >/dev/null
+}
+
+if ! check_for_async_bool; then
+    echo "Kube client already fixed"
+    exit 0
+fi
+
+# Not fixed, better do it now.
+
+echo "Fixing Kubernetes Client for Python 3.7"
+
+find "$KUBE_CLIENT_DIR" \
+    -type f -name \*.py \
+    -exec perl -pi -e 's/async=/async_req=/g;' \
+                -e 's/async bool/async_req bool/g;' \
+                -e "s/'async'/'async_req'/g;" {} \;
+
+perl -pi -e "s/if not async/if not async_req/g;" \
+    "$KUBE_CLIENT_DIR/api_client.py"; \

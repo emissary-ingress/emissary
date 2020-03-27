@@ -1,0 +1,12 @@
+*
+!cmd/
+!pkg/
+!python/
+!demo/
+!releng/
+!ambex
+!watt
+!kubestatus
+!bin_linux_amd64/
+bin_linux_amd64/.go-build/
+bin_linux_amd64/*-static

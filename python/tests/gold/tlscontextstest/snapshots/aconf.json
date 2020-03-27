@@ -1,0 +1,232 @@
+{
+    "_errors": {},
+    "_notices": {
+        "tlscontextstest.default.1": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ],
+        "tlscontextstest.default.2": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ]
+    },
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "k8s-tlscontextstest-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tlscontextstest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tlscontextstest-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "tlscontextstest",
+                "scope": "AmbassadorTest",
+                "service": "tlscontextstest-admin"
+            },
+            "name": "tlscontextstest-admin",
+            "namespace": "default",
+            "rkey": "k8s-tlscontextstest-admin-default",
+            "serialization": "ambassador_id: tlscontextstest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tlscontextstest\n  scope: AmbassadorTest\n  service: tlscontextstest-admin\nname: tlscontextstest-admin\nnamespace: default\n"
+        },
+        "k8s-tlscontextstest-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tlscontextstest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tlscontextstest-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tlscontextstest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tlscontextstest",
+            "namespace": "default",
+            "rkey": "k8s-tlscontextstest-default",
+            "serialization": "ambassador_id: tlscontextstest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextstest\n  scope: AmbassadorTest\nname: tlscontextstest\nnamespace: default\n"
+        },
+        "k8s-tlscontextstest-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tlscontextstest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tlscontextstest-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "tlscontextstest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tlscontextstest-http",
+            "namespace": "default",
+            "rkey": "k8s-tlscontextstest-http-default",
+            "serialization": "ambassador_id: tlscontextstest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tlscontextstest\n  scope: AmbassadorTest\nname: tlscontextstest-http\nnamespace: default\n"
+        },
+        "test-tlscontexts-secret.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "tlscontextstest",
+            "apiVersion": "getambassador.io/v2",
+            "kind": "Secret",
+            "location": "test-tlscontexts-secret.default.1",
+            "metadata_labels": {
+                "kat-ambassador-id": "tlscontextstest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "test-tlscontexts-secret",
+            "namespace": "default",
+            "rkey": "test-tlscontexts-secret.default.1",
+            "secret_type": "Opaque",
+            "serialization": "ambassador_id: tlscontextstest\napiVersion: getambassador.io/v2\nkind: Secret\nmetadata_labels:\n  kat-ambassador-id: tlscontextstest\n  scope: AmbassadorTest\nname: test-tlscontexts-secret\nnamespace: default\nsecret_type: Opaque\ntls_crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUR1RENDQXFDZ0F3SUJBZ0lKQUowWDU3ZXlwQk5UTUEwR0NTcUdTSWIzRFFFQkN3VUFNSEV4Q3pBSkJnTlYKQkFZVEFsVlRNUXN3Q1FZRFZRUUlEQUpOUVRFUE1BMEdBMVVFQnd3R1FtOXpkRzl1TVJFd0R3WURWUVFLREFoRQpZWFJoZDJseVpURVVNQklHQTFVRUN3d0xSVzVuYVc1bFpYSnBibWN4R3pBWkJnTlZCQU1NRW0xaGMzUmxjaTVrCllYUmhkMmx5WlM1cGJ6QWVGdzB4T1RBeE1UQXhPVEF6TXpCYUZ3MHlOREF4TURreE9UQXpNekJhTUhFeEN6QUoKQmdOVkJBWVRBbFZUTVFzd0NRWURWUVFJREFKTlFURVBNQTBHQTFVRUJ3d0dRbTl6ZEc5dU1SRXdEd1lEVlFRSwpEQWhFWVhSaGQybHlaVEVVTUJJR0ExVUVDd3dMUlc1bmFXNWxaWEpwYm1jeEd6QVpCZ05WQkFNTUVtMWhjM1JsCmNpNWtZWFJoZDJseVpTNXBiekNDQVNJd0RRWUpLb1pJaHZjTkFRRUJCUUFEZ2dFUEFEQ0NBUW9DZ2dFQkFPdlEKVjVad1NmcmQ1Vndtelo5SmNoOTdyUW40OXA2b1FiNkVIWjF5T2EyZXZBNzE2NWpkMHFqS1BPMlgyRk80MVg4QgpwQWFLZExnMmltaC9wL2NXN2JncjNHNnRHVEZVMVZHanllTE1EV0Q1MGV2TTYydnpYOFRuYVV6ZFRHTjFOdTM2CnJaM2JnK0VLcjhFYjI1b2RabEpyMm1mNktSeDdTcjZzT1N4NlE1VHhSb3NycmZ0d0tjejI5cHZlMGQ4b0NiZGkKRFJPVlZjNXpBaW0zc2Nmd3VwRUJrQzYxdlpKMzhmaXYwRENYOVpna3BMdEZKUTllTEVQSEdKUGp5ZmV3alNTeQovbk52L21Sc2J6aUNtQ3R3Z3BmbFRtODljK3EzSWhvbUE1YXhZQVFjQ0NqOXBvNUhVZHJtSUJKR0xBTVZ5OWJ5CkZnZE50aFdBeHZCNHZmQXl4OXNDQXdFQUFhTlRNRkV3SFFZRFZSME9CQllFRkdUOVAvOHBQeGI3UVJVeFcvV2gKaXpkMnNnbEtNQjhHQTFVZEl3UVlNQmFBRkdUOVAvOHBQeGI3UVJVeFcvV2hpemQyc2dsS01BOEdBMVVkRXdFQgovd1FGTUFNQkFmOHdEUVlKS29aSWh2Y05BUUVMQlFBRGdnRUJBS3NWT2Fyc01aSXhLOUpLUzBHVHNnRXNjYThqCllhTDg1YmFsbndBbnBxMllSMGNIMlhvd2dLYjNyM3VmbVRCNERzWS9RMGllaENKeTMzOUJyNjVQMVBKMGgvemYKZEZOcnZKNGlvWDVMWnc5YkowQVFORCtZUTBFK010dFppbE9DbHNPOVBCdm1tUEp1dWFlYVdvS2pWZnNOL1RjMAoycUxVM1pVMHo5bmhYeDZlOWJxYUZLSU1jYnFiVk9nS2p3V0ZpbDlkRG4vQ29KbGFUUzRJWjlOaHFjUzhYMXd0ClQybWQvSUtaaEtKc3A3VlBGeDU5ZWhuZ0VPakZocGhzd20xdDhnQWVxL1A3SkhaUXlBUGZYbDNyZDFSQVJuRVIKQUpmVUxET2tzWFNFb2RTZittR0NrVWh1b2QvaDhMTUdXTFh6Q2d0SHBKMndaVHA5a1ZWVWtKdkpqSVU9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K\n",
+            "tls_crt": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUR1RENDQXFDZ0F3SUJBZ0lKQUowWDU3ZXlwQk5UTUEwR0NTcUdTSWIzRFFFQkN3VUFNSEV4Q3pBSkJnTlYKQkFZVEFsVlRNUXN3Q1FZRFZRUUlEQUpOUVRFUE1BMEdBMVVFQnd3R1FtOXpkRzl1TVJFd0R3WURWUVFLREFoRQpZWFJoZDJseVpURVVNQklHQTFVRUN3d0xSVzVuYVc1bFpYSnBibWN4R3pBWkJnTlZCQU1NRW0xaGMzUmxjaTVrCllYUmhkMmx5WlM1cGJ6QWVGdzB4T1RBeE1UQXhPVEF6TXpCYUZ3MHlOREF4TURreE9UQXpNekJhTUhFeEN6QUoKQmdOVkJBWVRBbFZUTVFzd0NRWURWUVFJREFKTlFURVBNQTBHQTFVRUJ3d0dRbTl6ZEc5dU1SRXdEd1lEVlFRSwpEQWhFWVhSaGQybHlaVEVVTUJJR0ExVUVDd3dMUlc1bmFXNWxaWEpwYm1jeEd6QVpCZ05WQkFNTUVtMWhjM1JsCmNpNWtZWFJoZDJseVpTNXBiekNDQVNJd0RRWUpLb1pJaHZjTkFRRUJCUUFEZ2dFUEFEQ0NBUW9DZ2dFQkFPdlEKVjVad1NmcmQ1Vndtelo5SmNoOTdyUW40OXA2b1FiNkVIWjF5T2EyZXZBNzE2NWpkMHFqS1BPMlgyRk80MVg4QgpwQWFLZExnMmltaC9wL2NXN2JncjNHNnRHVEZVMVZHanllTE1EV0Q1MGV2TTYydnpYOFRuYVV6ZFRHTjFOdTM2CnJaM2JnK0VLcjhFYjI1b2RabEpyMm1mNktSeDdTcjZzT1N4NlE1VHhSb3NycmZ0d0tjejI5cHZlMGQ4b0NiZGkKRFJPVlZjNXpBaW0zc2Nmd3VwRUJrQzYxdlpKMzhmaXYwRENYOVpna3BMdEZKUTllTEVQSEdKUGp5ZmV3alNTeQovbk52L21Sc2J6aUNtQ3R3Z3BmbFRtODljK3EzSWhvbUE1YXhZQVFjQ0NqOXBvNUhVZHJtSUJKR0xBTVZ5OWJ5CkZnZE50aFdBeHZCNHZmQXl4OXNDQXdFQUFhTlRNRkV3SFFZRFZSME9CQllFRkdUOVAvOHBQeGI3UVJVeFcvV2gKaXpkMnNnbEtNQjhHQTFVZEl3UVlNQmFBRkdUOVAvOHBQeGI3UVJVeFcvV2hpemQyc2dsS01BOEdBMVVkRXdFQgovd1FGTUFNQkFmOHdEUVlKS29aSWh2Y05BUUVMQlFBRGdnRUJBS3NWT2Fyc01aSXhLOUpLUzBHVHNnRXNjYThqCllhTDg1YmFsbndBbnBxMllSMGNIMlhvd2dLYjNyM3VmbVRCNERzWS9RMGllaENKeTMzOUJyNjVQMVBKMGgvemYKZEZOcnZKNGlvWDVMWnc5YkowQVFORCtZUTBFK010dFppbE9DbHNPOVBCdm1tUEp1dWFlYVdvS2pWZnNOL1RjMAoycUxVM1pVMHo5bmhYeDZlOWJxYUZLSU1jYnFiVk9nS2p3V0ZpbDlkRG4vQ29KbGFUUzRJWjlOaHFjUzhYMXd0ClQybWQvSUtaaEtKc3A3VlBGeDU5ZWhuZ0VPakZocGhzd20xdDhnQWVxL1A3SkhaUXlBUGZYbDNyZDFSQVJuRVIKQUpmVUxET2tzWFNFb2RTZittR0NrVWh1b2QvaDhMTUdXTFh6Q2d0SHBKMndaVHA5a1ZWVWtKdkpqSVU9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K"
+        },
+        "tlscontextstest.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "tlscontextstest",
+            "apiVersion": "getambassador.io/v0",
+            "config": {
+                "upstream": {
+                    "enabled": true,
+                    "secret": "test-tlscontexts-secret"
+                }
+            },
+            "kind": "Module",
+            "location": "tlscontextstest.default.1",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tlscontextstest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tls",
+            "namespace": "default",
+            "rkey": "tlscontextstest.default.1",
+            "serialization": "ambassador_id: tlscontextstest\napiVersion: ambassador/v0\nconfig:\n  upstream:\n    enabled: true\n    secret: test-tlscontexts-secret\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextstest\n  scope: AmbassadorTest\nname: tls\nnamespace: default\n"
+        },
+        "tlscontextstest.default.2": {
+            "_referenced_by": {},
+            "ambassador_id": "tlscontextstest",
+            "apiVersion": "getambassador.io/v0",
+            "kind": "Mapping",
+            "location": "tlscontextstest.default.2",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tlscontextstest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tlscontextstest-http",
+            "namespace": "default",
+            "prefix": "/TLSContextsTest/",
+            "rkey": "tlscontextstest.default.2",
+            "serialization": "ambassador_id: tlscontextstest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextstest\n  scope: AmbassadorTest\nname: tlscontextstest-http\nnamespace: default\nprefix: /TLSContextsTest/\nservice: tlscontextstest-http\n",
+            "service": "tlscontextstest-http"
+        }
+    },
+    "mappings": {
+        "tlscontextstest-http": {
+            "ambassador_id": "tlscontextstest",
+            "apiVersion": "getambassador.io/v0",
+            "kind": "Mapping",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tlscontextstest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tlscontextstest-http",
+            "namespace": "default",
+            "prefix": "/TLSContextsTest/",
+            "service": "tlscontextstest-http"
+        }
+    },
+    "modules": {
+        "tls": {
+            "apiVersion": "getambassador.io/v0",
+            "kind": "Module",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tlscontextstest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tls",
+            "namespace": "default",
+            "upstream": {
+                "enabled": true,
+                "secret": "test-tlscontexts-secret"
+            }
+        }
+    },
+    "secrets": {
+        "test-tlscontexts-secret.default.1": {
+            "ambassador_id": "tlscontextstest",
+            "apiVersion": "getambassador.io/v2",
+            "kind": "Secret",
+            "metadata_labels": {
+                "kat-ambassador-id": "tlscontextstest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "test-tlscontexts-secret",
+            "namespace": "default",
+            "secret_type": "Opaque",
+            "tls_crt": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUR1RENDQXFDZ0F3SUJBZ0lKQUowWDU3ZXlwQk5UTUEwR0NTcUdTSWIzRFFFQkN3VUFNSEV4Q3pBSkJnTlYKQkFZVEFsVlRNUXN3Q1FZRFZRUUlEQUpOUVRFUE1BMEdBMVVFQnd3R1FtOXpkRzl1TVJFd0R3WURWUVFLREFoRQpZWFJoZDJseVpURVVNQklHQTFVRUN3d0xSVzVuYVc1bFpYSnBibWN4R3pBWkJnTlZCQU1NRW0xaGMzUmxjaTVrCllYUmhkMmx5WlM1cGJ6QWVGdzB4T1RBeE1UQXhPVEF6TXpCYUZ3MHlOREF4TURreE9UQXpNekJhTUhFeEN6QUoKQmdOVkJBWVRBbFZUTVFzd0NRWURWUVFJREFKTlFURVBNQTBHQTFVRUJ3d0dRbTl6ZEc5dU1SRXdEd1lEVlFRSwpEQWhFWVhSaGQybHlaVEVVTUJJR0ExVUVDd3dMUlc1bmFXNWxaWEpwYm1jeEd6QVpCZ05WQkFNTUVtMWhjM1JsCmNpNWtZWFJoZDJseVpTNXBiekNDQVNJd0RRWUpLb1pJaHZjTkFRRUJCUUFEZ2dFUEFEQ0NBUW9DZ2dFQkFPdlEKVjVad1NmcmQ1Vndtelo5SmNoOTdyUW40OXA2b1FiNkVIWjF5T2EyZXZBNzE2NWpkMHFqS1BPMlgyRk80MVg4QgpwQWFLZExnMmltaC9wL2NXN2JncjNHNnRHVEZVMVZHanllTE1EV0Q1MGV2TTYydnpYOFRuYVV6ZFRHTjFOdTM2CnJaM2JnK0VLcjhFYjI1b2RabEpyMm1mNktSeDdTcjZzT1N4NlE1VHhSb3NycmZ0d0tjejI5cHZlMGQ4b0NiZGkKRFJPVlZjNXpBaW0zc2Nmd3VwRUJrQzYxdlpKMzhmaXYwRENYOVpna3BMdEZKUTllTEVQSEdKUGp5ZmV3alNTeQovbk52L21Sc2J6aUNtQ3R3Z3BmbFRtODljK3EzSWhvbUE1YXhZQVFjQ0NqOXBvNUhVZHJtSUJKR0xBTVZ5OWJ5CkZnZE50aFdBeHZCNHZmQXl4OXNDQXdFQUFhTlRNRkV3SFFZRFZSME9CQllFRkdUOVAvOHBQeGI3UVJVeFcvV2gKaXpkMnNnbEtNQjhHQTFVZEl3UVlNQmFBRkdUOVAvOHBQeGI3UVJVeFcvV2hpemQyc2dsS01BOEdBMVVkRXdFQgovd1FGTUFNQkFmOHdEUVlKS29aSWh2Y05BUUVMQlFBRGdnRUJBS3NWT2Fyc01aSXhLOUpLUzBHVHNnRXNjYThqCllhTDg1YmFsbndBbnBxMllSMGNIMlhvd2dLYjNyM3VmbVRCNERzWS9RMGllaENKeTMzOUJyNjVQMVBKMGgvemYKZEZOcnZKNGlvWDVMWnc5YkowQVFORCtZUTBFK010dFppbE9DbHNPOVBCdm1tUEp1dWFlYVdvS2pWZnNOL1RjMAoycUxVM1pVMHo5bmhYeDZlOWJxYUZLSU1jYnFiVk9nS2p3V0ZpbDlkRG4vQ29KbGFUUzRJWjlOaHFjUzhYMXd0ClQybWQvSUtaaEtKc3A3VlBGeDU5ZWhuZ0VPakZocGhzd20xdDhnQWVxL1A3SkhaUXlBUGZYbDNyZDFSQVJuRVIKQUpmVUxET2tzWFNFb2RTZittR0NrVWh1b2QvaDhMTUdXTFh6Q2d0SHBKMndaVHA5a1ZWVWtKdkpqSVU9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K"
+        }
+    },
+    "service": {
+        "k8s-tlscontextstest-admin-default": {
+            "ambassador_id": "tlscontextstest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "tlscontextstest",
+                "scope": "AmbassadorTest",
+                "service": "tlscontextstest-admin"
+            },
+            "name": "tlscontextstest-admin",
+            "namespace": "default"
+        },
+        "k8s-tlscontextstest-default": {
+            "ambassador_id": "tlscontextstest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tlscontextstest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tlscontextstest",
+            "namespace": "default"
+        },
+        "k8s-tlscontextstest-http-default": {
+            "ambassador_id": "tlscontextstest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "tlscontextstest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tlscontextstest-http",
+            "namespace": "default"
+        }
+    }
+}

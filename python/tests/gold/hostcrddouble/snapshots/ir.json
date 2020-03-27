@@ -1,0 +1,1073 @@
+{
+    "ambassador": {
+        "_active": true,
+        "_errored": false,
+        "_finalized": true,
+        "_rkey": "ir.ambassador",
+        "admin_port": 8001,
+        "debug_mode": false,
+        "default_label_domain": "ambassador",
+        "default_labels": {},
+        "diag_port": 8877,
+        "diagnostics": {
+            "enabled": true,
+            "prefix": "/ambassador/v0/",
+            "rewrite": "/ambassador/v0/",
+            "service": "127.0.0.1:8877"
+        },
+        "enable_http10": false,
+        "enable_ipv4": true,
+        "enable_ipv6": false,
+        "envoy_log_path": "/dev/fd/1",
+        "envoy_log_type": "text",
+        "kind": "IRAmbassador",
+        "liveness_probe": {
+            "enabled": true,
+            "prefix": "/ambassador/v0/check_alive",
+            "rewrite": "/ambassador/v0/check_alive",
+            "service": "127.0.0.1:8877"
+        },
+        "location": "--internal--",
+        "name": "ir.ambassador",
+        "namespace": "default",
+        "proper_case": false,  
+        "readiness_probe": {
+            "enabled": true,
+            "prefix": "/ambassador/v0/check_ready",
+            "rewrite": "/ambassador/v0/check_ready",
+            "service": "127.0.0.1:8877"
+        },
+        "server_name": "envoy",
+        "service_port": 8443,
+        "use_ambassador_namespace_for_service_resolution": false,
+        "use_proxy_proto": false,
+        "use_remote_address": true,
+        "x_forwarded_proto_redirect": false,
+        "xff_num_trusted_hops": 0
+    },
+    "clusters": {
+        "cluster_127_0_0_1_8877_default": {
+            "_active": true,
+            "_errored": false,
+            "_hostname": "127.0.0.1",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 8877,
+            "_referenced_by": [
+                "--internal--"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_127_0_0_1_8877_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "--internal--",
+            "name": "cluster_127_0_0_1_8877_default",
+            "namespace": "default",
+            "service": "127.0.0.1:8877",
+            "targets": [
+                {
+                    "ip": "127.0.0.1",
+                    "port": 8877,
+                    "target_kind": "IPaddr"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://127.0.0.1:8877"
+            ]
+        },
+        "cluster_hostcrddouble_http_target1_default": {
+            "_active": true,
+            "_errored": false,
+            "_hostname": "hostcrddouble-http-target1",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 80,
+            "_referenced_by": [
+                "host-1-mapping.default.1"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_hostcrddouble_http_target1_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "host-1-mapping.default.1",
+            "name": "cluster_hostcrddouble_http_target1_default",
+            "namespace": "default",
+            "service": "hostcrddouble-http-target1",
+            "targets": [
+                {
+                    "ip": "hostcrddouble-http-target1.default",
+                    "port": 80,
+                    "target_kind": "DNSname"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://hostcrddouble-http-target1:80"
+            ]
+        },
+        "cluster_hostcrddouble_http_target2_default": {
+            "_active": true,
+            "_errored": false,
+            "_hostname": "hostcrddouble-http-target2",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 80,
+            "_referenced_by": [
+                "host-2-mapping.default.1"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_hostcrddouble_http_target2_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "host-2-mapping.default.1",
+            "name": "cluster_hostcrddouble_http_target2_default",
+            "namespace": "default",
+            "service": "hostcrddouble-http-target2",
+            "targets": [
+                {
+                    "ip": "hostcrddouble-http-target2.default",
+                    "port": 80,
+                    "target_kind": "DNSname"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://hostcrddouble-http-target2:80"
+            ]
+        }
+    },
+    "filters": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.cors",
+            "config": {},
+            "kind": "ir.cors",
+            "location": "--internal--",
+            "name": "cors",
+            "namespace": "default"
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.router",
+            "config": {},
+            "kind": "ir.router",
+            "location": "--internal--",
+            "name": "router",
+            "namespace": "default",
+            "type": "decoder"
+        }
+    ],
+    "groups": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "--internal--"
+            ],
+            "_rkey": "ir.ambassador",
+            "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
+            "group_weight": [
+                0,
+                26,
+                0,
+                "/ambassador/v0/check_ready",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "--internal--",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_referenced_by": [
+                        "--internal--"
+                    ],
+                    "_rkey": "ir.ambassador",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8877,
+                        "_referenced_by": [
+                            "--internal--"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "--internal--",
+                        "name": "cluster_127_0_0_1_8877_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8877",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8877,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8877"
+                        ]
+                    },
+                    "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "--internal--",
+                    "name": "internal_readiness_probe_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/ambassador/v0/check_ready",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/ambassador/v0/check_ready",
+                    "route_weight": [
+                        0,
+                        26,
+                        0,
+                        "/ambassador/v0/check_ready",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8877",
+                    "timeout_ms": 10000,
+                    "weight": 100
+                }
+            ],
+            "name": "GROUP: internal_readiness_probe_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/check_ready",
+            "rewrite": "/ambassador/v0/check_ready",
+            "timeout_ms": 10000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "--internal--"
+            ],
+            "_rkey": "ir.ambassador",
+            "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
+            "group_weight": [
+                0,
+                26,
+                0,
+                "/ambassador/v0/check_alive",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "--internal--",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_referenced_by": [
+                        "--internal--"
+                    ],
+                    "_rkey": "ir.ambassador",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8877,
+                        "_referenced_by": [
+                            "--internal--"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "--internal--",
+                        "name": "cluster_127_0_0_1_8877_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8877",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8877,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8877"
+                        ]
+                    },
+                    "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "--internal--",
+                    "name": "internal_liveness_probe_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/ambassador/v0/check_alive",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/ambassador/v0/check_alive",
+                    "route_weight": [
+                        0,
+                        26,
+                        0,
+                        "/ambassador/v0/check_alive",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8877",
+                    "timeout_ms": 10000,
+                    "weight": 100
+                }
+            ],
+            "name": "GROUP: internal_liveness_probe_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/check_alive",
+            "rewrite": "/ambassador/v0/check_alive",
+            "timeout_ms": 10000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "--internal--"
+            ],
+            "_rkey": "ir.ambassador",
+            "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
+            "group_weight": [
+                0,
+                15,
+                0,
+                "/ambassador/v0/",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "--internal--",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_referenced_by": [
+                        "--internal--"
+                    ],
+                    "_rkey": "ir.ambassador",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8877,
+                        "_referenced_by": [
+                            "--internal--"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "--internal--",
+                        "name": "cluster_127_0_0_1_8877_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8877",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8877,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8877"
+                        ]
+                    },
+                    "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "--internal--",
+                    "name": "internal_diagnostics_probe_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/ambassador/v0/",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/ambassador/v0/",
+                    "route_weight": [
+                        0,
+                        15,
+                        0,
+                        "/ambassador/v0/",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8877",
+                    "timeout_ms": 10000,
+                    "weight": 100
+                }
+            ],
+            "name": "GROUP: internal_diagnostics_probe_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/",
+            "rewrite": "/ambassador/v0/",
+            "timeout_ms": 10000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "host-2-mapping.default.1"
+            ],
+            "_rkey": "host-2-mapping.default.1",
+            "group_id": "71750be2fb62d17e512edea00a02eef7a9ff2120",
+            "group_weight": [
+                0,
+                8,
+                28,
+                "/target/",
+                "GET",
+                ":authority-tls-context-host-2"
+            ],
+            "headers": [
+                {
+                    "name": ":authority",
+                    "regex": false,
+                    "value": "tls-context-host-2"
+                }
+            ],
+            "kind": "IRHTTPMappingGroup",
+            "location": "host-2-mapping.default.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_rkey": "host-2-mapping.default.1",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "hostcrddouble-http-target2",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 80,
+                        "_referenced_by": [
+                            "host-2-mapping.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_hostcrddouble_http_target2_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "host-2-mapping.default.1",
+                        "name": "cluster_hostcrddouble_http_target2_default",
+                        "namespace": "default",
+                        "service": "hostcrddouble-http-target2",
+                        "targets": [
+                            {
+                                "ip": "hostcrddouble-http-target2.default",
+                                "port": 80,
+                                "target_kind": "DNSname"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://hostcrddouble-http-target2:80"
+                        ]
+                    },
+                    "group_id": "71750be2fb62d17e512edea00a02eef7a9ff2120",
+                    "headers": [
+                        {
+                            "name": ":authority",
+                            "regex": false,
+                            "value": "tls-context-host-2"
+                        }
+                    ],
+                    "host": "tls-context-host-2",
+                    "kind": "Mapping",
+                    "location": "host-2-mapping.default.1",
+                    "metadata_labels": {
+                        "ambassador_crd": "host-2-mapping.default",
+                        "hostname": "tls-context-host-2",
+                        "kat-ambassador-id": "hostcrddouble",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "host-2-mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/target/",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/",
+                    "route_weight": [
+                        0,
+                        8,
+                        28,
+                        "/target/",
+                        "GET",
+                        ":authority-tls-context-host-2"
+                    ],
+                    "serialization": "ambassador_id:\n- hostcrddouble\napiVersion: getambassador.io/v2\ngeneration: 1\nhost: tls-context-host-2\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: host-2-mapping.default\n  hostname: tls-context-host-2\n  kat-ambassador-id: hostcrddouble\n  scope: AmbassadorTest\nname: host-2-mapping\nnamespace: default\nprefix: /target/\nservice: hostcrddouble-http-target2\n",
+                    "service": "hostcrddouble-http-target2",
+                    "sni": true,
+                    "tls_context": {
+                        "_active": true,
+                        "_errored": false,
+                        "_referenced_by": [
+                            "host-2.default.1"
+                        ],
+                        "_rkey": "host-2.default.1",
+                        "hosts": [
+                            "tls-context-host-2"
+                        ],
+                        "is_fallback": false,
+                        "kind": "IRTLSContext",
+                        "location": "host-2.default.1",
+                        "name": "host-2-context",
+                        "namespace": "default",
+                        "secret_info": {
+                            "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-2/4CB5C4C15C3BBBF727E8572838933519EA42D103.crt",
+                            "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-2/4CB5C4C15C3BBBF727E8572838933519EA42D103.key",
+                            "secret": "test-tlscontext-secret-2"
+                        }
+                    },
+                    "weight": 100
+                }
+            ],
+            "metadata_labels": {
+                "ambassador_crd": "host-2-mapping.default",
+                "hostname": "tls-context-host-2",
+                "kat-ambassador-id": "hostcrddouble",
+                "scope": "AmbassadorTest"
+            },
+            "name": "GROUP: host-2-mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/target/",
+            "rewrite": "/",
+            "serialization": "ambassador_id:\n- hostcrddouble\napiVersion: getambassador.io/v2\ngeneration: 1\nhost: tls-context-host-2\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: host-2-mapping.default\n  hostname: tls-context-host-2\n  kat-ambassador-id: hostcrddouble\n  scope: AmbassadorTest\nname: host-2-mapping\nnamespace: default\nprefix: /target/\nservice: hostcrddouble-http-target2\n",
+            "sni": true,
+            "tls_context": {
+                "_active": true,
+                "_errored": false,
+                "_referenced_by": [
+                    "host-2.default.1"
+                ],
+                "_rkey": "host-2.default.1",
+                "hosts": [
+                    "tls-context-host-2"
+                ],
+                "is_fallback": false,
+                "kind": "IRTLSContext",
+                "location": "host-2.default.1",
+                "name": "host-2-context",
+                "namespace": "default",
+                "secret_info": {
+                    "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-2/4CB5C4C15C3BBBF727E8572838933519EA42D103.crt",
+                    "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-2/4CB5C4C15C3BBBF727E8572838933519EA42D103.key",
+                    "secret": "test-tlscontext-secret-2"
+                }
+            }
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "host-1-mapping.default.1"
+            ],
+            "_rkey": "host-1-mapping.default.1",
+            "group_id": "69a164aa0a3ba53d424d34d69c5edd5466f561ee",
+            "group_weight": [
+                0,
+                8,
+                28,
+                "/target/",
+                "GET",
+                ":authority-tls-context-host-1"
+            ],
+            "headers": [
+                {
+                    "name": ":authority",
+                    "regex": false,
+                    "value": "tls-context-host-1"
+                }
+            ],
+            "kind": "IRHTTPMappingGroup",
+            "location": "host-1-mapping.default.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_rkey": "host-1-mapping.default.1",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "hostcrddouble-http-target1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 80,
+                        "_referenced_by": [
+                            "host-1-mapping.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_hostcrddouble_http_target1_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "host-1-mapping.default.1",
+                        "name": "cluster_hostcrddouble_http_target1_default",
+                        "namespace": "default",
+                        "service": "hostcrddouble-http-target1",
+                        "targets": [
+                            {
+                                "ip": "hostcrddouble-http-target1.default",
+                                "port": 80,
+                                "target_kind": "DNSname"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://hostcrddouble-http-target1:80"
+                        ]
+                    },
+                    "group_id": "69a164aa0a3ba53d424d34d69c5edd5466f561ee",
+                    "headers": [
+                        {
+                            "name": ":authority",
+                            "regex": false,
+                            "value": "tls-context-host-1"
+                        }
+                    ],
+                    "host": "tls-context-host-1",
+                    "kind": "Mapping",
+                    "location": "host-1-mapping.default.1",
+                    "metadata_labels": {
+                        "ambassador_crd": "host-1-mapping.default",
+                        "hostname": "tls-context-host-1",
+                        "kat-ambassador-id": "hostcrddouble",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "host-1-mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/target/",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/",
+                    "route_weight": [
+                        0,
+                        8,
+                        28,
+                        "/target/",
+                        "GET",
+                        ":authority-tls-context-host-1"
+                    ],
+                    "serialization": "ambassador_id:\n- hostcrddouble\napiVersion: getambassador.io/v2\ngeneration: 1\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: host-1-mapping.default\n  hostname: tls-context-host-1\n  kat-ambassador-id: hostcrddouble\n  scope: AmbassadorTest\nname: host-1-mapping\nnamespace: default\nprefix: /target/\nservice: hostcrddouble-http-target1\n",
+                    "service": "hostcrddouble-http-target1",
+                    "sni": true,
+                    "tls_context": {
+                        "_active": true,
+                        "_errored": false,
+                        "_referenced_by": [
+                            "host-1.default.1"
+                        ],
+                        "_rkey": "host-1.default.1",
+                        "hosts": [
+                            "tls-context-host-1"
+                        ],
+                        "is_fallback": false,
+                        "kind": "IRTLSContext",
+                        "location": "host-1.default.1",
+                        "name": "host-1-context",
+                        "namespace": "default",
+                        "secret_info": {
+                            "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-1/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.crt",
+                            "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-1/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.key",
+                            "secret": "test-tlscontext-secret-1"
+                        }
+                    },
+                    "weight": 100
+                }
+            ],
+            "metadata_labels": {
+                "ambassador_crd": "host-1-mapping.default",
+                "hostname": "tls-context-host-1",
+                "kat-ambassador-id": "hostcrddouble",
+                "scope": "AmbassadorTest"
+            },
+            "name": "GROUP: host-1-mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/target/",
+            "rewrite": "/",
+            "serialization": "ambassador_id:\n- hostcrddouble\napiVersion: getambassador.io/v2\ngeneration: 1\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: host-1-mapping.default\n  hostname: tls-context-host-1\n  kat-ambassador-id: hostcrddouble\n  scope: AmbassadorTest\nname: host-1-mapping\nnamespace: default\nprefix: /target/\nservice: hostcrddouble-http-target1\n",
+            "sni": true,
+            "tls_context": {
+                "_active": true,
+                "_errored": false,
+                "_referenced_by": [
+                    "host-1.default.1"
+                ],
+                "_rkey": "host-1.default.1",
+                "hosts": [
+                    "tls-context-host-1"
+                ],
+                "is_fallback": false,
+                "kind": "IRTLSContext",
+                "location": "host-1.default.1",
+                "name": "host-1-context",
+                "namespace": "default",
+                "secret_info": {
+                    "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-1/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.crt",
+                    "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-1/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.key",
+                    "secret": "test-tlscontext-secret-1"
+                }
+            }
+        }
+    ],
+    "grpc_services": {},
+    "hosts": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "host-1.default.1"
+            ],
+            "_rkey": "host-1.default.1",
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "context": {
+                "_active": true,
+                "_errored": false,
+                "_referenced_by": [
+                    "host-1.default.1"
+                ],
+                "_rkey": "host-1.default.1",
+                "hosts": [
+                    "tls-context-host-1"
+                ],
+                "is_fallback": false,
+                "kind": "IRTLSContext",
+                "location": "host-1.default.1",
+                "name": "host-1-context",
+                "namespace": "default",
+                "secret_info": {
+                    "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-1/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.crt",
+                    "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-1/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.key",
+                    "secret": "test-tlscontext-secret-1"
+                }
+            },
+            "hostname": "tls-context-host-1",
+            "kind": "Host",
+            "location": "host-1.default.1",
+            "name": "host-1",
+            "namespace": "default",
+            "selector": {
+                "matchLabels": {
+                    "hostname": "tls-context-host-1"
+                }
+            },
+            "tlsSecret": {
+                "name": "test-tlscontext-secret-1"
+            }
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "host-2.default.1"
+            ],
+            "_rkey": "host-2.default.1",
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "context": {
+                "_active": true,
+                "_errored": false,
+                "_referenced_by": [
+                    "host-2.default.1"
+                ],
+                "_rkey": "host-2.default.1",
+                "hosts": [
+                    "tls-context-host-2"
+                ],
+                "is_fallback": false,
+                "kind": "IRTLSContext",
+                "location": "host-2.default.1",
+                "name": "host-2-context",
+                "namespace": "default",
+                "secret_info": {
+                    "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-2/4CB5C4C15C3BBBF727E8572838933519EA42D103.crt",
+                    "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-2/4CB5C4C15C3BBBF727E8572838933519EA42D103.key",
+                    "secret": "test-tlscontext-secret-2"
+                }
+            },
+            "hostname": "tls-context-host-2",
+            "kind": "Host",
+            "location": "host-2.default.1",
+            "name": "host-2",
+            "namespace": "default",
+            "selector": {
+                "matchLabels": {
+                    "hostname": "tls-context-host-2"
+                }
+            },
+            "tlsSecret": {
+                "name": "test-tlscontext-secret-2"
+            }
+        }
+    ],
+    "identity": {
+        "ambassador_id": "hostcrddouble",
+        "ambassador_namespace": "default",
+        "ambassador_nodename": "hostcrddouble-default"
+    },
+    "k8s_status_updates": {
+        "host-1-mapping.default": [
+            "Mapping",
+            "default",
+            {
+                "state": "Running"
+            }
+        ],
+        "host-2-mapping.default": [
+            "Mapping",
+            "default",
+            {
+                "state": "Running"
+            }
+        ]
+    },
+    "listeners": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.listener",
+            "context": {
+                "_active": true,
+                "_errored": false,
+                "_referenced_by": [
+                    "host-1.default.1"
+                ],
+                "_rkey": "host-1.default.1",
+                "hosts": [
+                    "tls-context-host-1"
+                ],
+                "is_fallback": false,
+                "kind": "IRTLSContext",
+                "location": "host-1.default.1",
+                "name": "host-1-context",
+                "namespace": "default",
+                "secret_info": {
+                    "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-1/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.crt",
+                    "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-1/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.key",
+                    "secret": "test-tlscontext-secret-1"
+                }
+            },
+            "hostname": "tls-context-host-1",
+            "insecure_action": "Redirect",
+            "insecure_addl_port": 8080,
+            "kind": "IRListener",
+            "location": "host-1.default.1",
+            "name": "ir.listener",
+            "namespace": "default",
+            "redirect_listener": false,
+            "secure_action": "Route",
+            "service_port": 8443,
+            "use_proxy_proto": false
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.listener",
+            "context": {
+                "_active": true,
+                "_errored": false,
+                "_referenced_by": [
+                    "host-2.default.1"
+                ],
+                "_rkey": "host-2.default.1",
+                "hosts": [
+                    "tls-context-host-2"
+                ],
+                "is_fallback": false,
+                "kind": "IRTLSContext",
+                "location": "host-2.default.1",
+                "name": "host-2-context",
+                "namespace": "default",
+                "secret_info": {
+                    "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-2/4CB5C4C15C3BBBF727E8572838933519EA42D103.crt",
+                    "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-2/4CB5C4C15C3BBBF727E8572838933519EA42D103.key",
+                    "secret": "test-tlscontext-secret-2"
+                }
+            },
+            "hostname": "tls-context-host-2",
+            "insecure_action": "Redirect",
+            "insecure_addl_port": 8080,
+            "kind": "IRListener",
+            "location": "host-2.default.1",
+            "name": "ir.listener",
+            "namespace": "default",
+            "redirect_listener": false,
+            "secure_action": "Route",
+            "service_port": 8443,
+            "use_proxy_proto": false
+        }
+    ],
+    "services": {
+        "k8s-hostcrddouble-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "hostcrddouble",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-hostcrddouble-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "hostcrddouble",
+                "scope": "AmbassadorTest",
+                "service": "hostcrddouble-admin"
+            },
+            "name": "hostcrddouble-admin",
+            "namespace": "default",
+            "rkey": "k8s-hostcrddouble-admin-default",
+            "serialization": "ambassador_id: hostcrddouble\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: hostcrddouble\n  scope: AmbassadorTest\n  service: hostcrddouble-admin\nname: hostcrddouble-admin\nnamespace: default\n"
+        },
+        "k8s-hostcrddouble-default": {
+            "_referenced_by": {},
+            "ambassador_id": "hostcrddouble",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-hostcrddouble-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "hostcrddouble",
+                "scope": "AmbassadorTest"
+            },
+            "name": "hostcrddouble",
+            "namespace": "default",
+            "rkey": "k8s-hostcrddouble-default",
+            "serialization": "ambassador_id: hostcrddouble\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: hostcrddouble\n  scope: AmbassadorTest\nname: hostcrddouble\nnamespace: default\n"
+        },
+        "k8s-hostcrddouble-http-target1-default": {
+            "_referenced_by": {},
+            "ambassador_id": "hostcrddouble",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-hostcrddouble-http-target1-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "hostcrddouble",
+                "scope": "AmbassadorTest"
+            },
+            "name": "hostcrddouble-http-target1",
+            "namespace": "default",
+            "rkey": "k8s-hostcrddouble-http-target1-default",
+            "serialization": "ambassador_id: hostcrddouble\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: hostcrddouble\n  scope: AmbassadorTest\nname: hostcrddouble-http-target1\nnamespace: default\n"
+        },
+        "k8s-hostcrddouble-http-target2-default": {
+            "_referenced_by": {},
+            "ambassador_id": "hostcrddouble",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-hostcrddouble-http-target2-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "hostcrddouble",
+                "scope": "AmbassadorTest"
+            },
+            "name": "hostcrddouble-http-target2",
+            "namespace": "default",
+            "rkey": "k8s-hostcrddouble-http-target2-default",
+            "serialization": "ambassador_id: hostcrddouble\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: hostcrddouble\n  scope: AmbassadorTest\nname: hostcrddouble-http-target2\nnamespace: default\n"
+        }
+    },
+    "tls_contexts": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "host-1.default.1"
+            ],
+            "_rkey": "host-1.default.1",
+            "hosts": [
+                "tls-context-host-1"
+            ],
+            "is_fallback": false,
+            "kind": "IRTLSContext",
+            "location": "host-1.default.1",
+            "name": "host-1-context",
+            "namespace": "default",
+            "secret_info": {
+                "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-1/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.crt",
+                "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-1/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.key",
+                "secret": "test-tlscontext-secret-1"
+            }
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "host-2.default.1"
+            ],
+            "_rkey": "host-2.default.1",
+            "hosts": [
+                "tls-context-host-2"
+            ],
+            "is_fallback": false,
+            "kind": "IRTLSContext",
+            "location": "host-2.default.1",
+            "name": "host-2-context",
+            "namespace": "default",
+            "secret_info": {
+                "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-2/4CB5C4C15C3BBBF727E8572838933519EA42D103.crt",
+                "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-2/4CB5C4C15C3BBBF727E8572838933519EA42D103.key",
+                "secret": "test-tlscontext-secret-2"
+            }
+        }
+    ]
+}

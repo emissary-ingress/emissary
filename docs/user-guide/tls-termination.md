@@ -1,181 +1,123 @@
-# TLS Termination
+# TLS Termination and Enabling HTTPS
 
-To enable TLS termination for Ambassador you'll need a few things:
+TLS encryption is one of the basic requirements of having a secure system. Ambassador Edge Stack automatically enables TLS termination/HTTPs, making TLS encryption easy and centralizing TLS termination for all of your services in Kubernetes automatically during configuration if you have a fully qualified domain name (FQDN).
 
-1. You'll need a TLS certificate.
-2. For any production use, you'll need a DNS record that matches your TLS certificate's `Common Name`.
-3. You'll need to store the certificate in a Kubernetes `secret`.
-4. You'll need a basic `tls` module configuration in Ambassador.
+However, if you don't have an FQDN for your Ambassador Edge Stack, you can manually enable TLS. This guide will show you how to quickly enable TLS termination in Ambassador Edge Stack with a self-signed certificate.
 
-All these requirements mean that it's easiest to decide to enable TLS _before_ you configure Ambassador the first time. It's possible to switch after setting up Ambassador, but it's annoying.
+**Note** that these instructions do not work with the Ambassador API Gateway.
 
-## 1. You'll need a TLS certificate.
+## Prerequisites
 
-There are a great many ways to get a certificate; [Let's Encrypt](https://www.letsencrypt.org) is a good option if you're not already working with something else. Check out the "Certificate Manager" section below to get set up with Let's Encrypt on Kubernetes.
+This guide requires you have the following installed:
 
-Note that requesting a certificate _requires_ a `Common Name` (`CN`) for your Ambassador. The `CN` becomes very important when you try to use HTTPS in practice: if the `CN` does not match the DNS name you use to reach the Ambassador, most TLS libraries will refuse to make the connection. So use a DNS name for the `CN`, and in step 2 make sure everything matches.
+- A Kubernetes cluster v1.11 or newer
+- The Kubernetes command-line tool, [`kubectl`](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
+- [openssl](https://www.openssl.org/source/)
 
-## 2. You'll need a DNS name.
+## Install Ambassador Edge Stack
 
-As noted above, the DNS name must match the `CN` in the certificate. The simplest way to manage this is to create an `ambassador` Kubernetes service up front, before you do anything else, so that you can point DNS to whatever Kubernetes gives you for it -- then don't delete the `ambassador` service, even if you later need to update it or delete and recreate the `ambassador` deployment.
+Install Ambassador Edge Stack in Kubernetes using the [YAML manifests](../install).
+
+## Create a Self-Signed Certificate
+
+OpenSSL is a tool that allows us to create self-signed certificates for opening a TLS encrypted connection. The following commands will quickly create a certificate we can use for this purpose.
+
+- Create a private key.
+
+   ```
+   openssl genrsa -out key.pem 2048
+   ```
+
+- Create a certificate signed by the private key just created
+
+   ```
+   openssl req -x509 -key key.pem -out cert.pem -days 365 -new -subj '/CN=ambassador-cert'
+   ```
+
+- Verify the `key.pem` and `cert.pem` files were created
+
+   ```
+   ls *.pem
+   cert.pem	key.pem
+   ```
+
+## Store the Certificate and Key in a Kubernetes Secret
+
+Ambassador Edge Stack dynamically loads TLS certificates by reading them from Kubernetes secrets. Use `kubectl` to create a `tls` secret to hold the pem files we created above.
+
+```
+kubectl create secret tls tls-cert --cert=cert.pem --key=key.pem
+```
+
+## Tell Ambassador Edge Stack to Use this Secret for TLS Termination
+
+Now that we have stored our certificate and private key in a Kubernetes secret named `tls-cert`, we need to tell Ambassador Edge Stack to use this certificate for terminating TLS. This is done with a `TLSContext`.
+
+Run the following command to create a `TLSContext` CRD that configures Ambassador Edge Stack to use the certificates stored in the `tls-cert` secret for terminating TLS for all hosts and endpoints.
 
 ```shell
-kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-https.yaml
+cat << EOF | kubectl apply -f -
+apiVersion: getambassador.io/v2
+kind: TLSContext
+metadata:
+  name: tls
+spec:
+  hosts: ["*"]
+  secret: tls-cert
+EOF
 ```
 
-will create a minimal `ambassador` service for this purpose; you can then use its external appearance to configure either a `CNAME` or an `A` record in DNS. Make sure that there's a matching `PTR` record, too.
+## Send a Request Over HTTPS
 
-It's OK to include annotations on the `ambassador` service at this point, if you need to configure additional TLS options (see below for more on this).
+We can now send encrypted traffic over HTTPS.
 
-## 3. You'll need to store the certificate in a Kubernetes `secret`.
+First, make sure the Ambassador Edge Stack service is listening on 443 and forwarding to port 8443. Verify this with `kubectl`:
 
-Create a Kubernetes `secret` named `ambassador-certs`:
-
-```shell
-kubectl create secret tls ambassador-certs --cert=$FULLCHAIN_PATH --key=$PRIVKEY_PATH
 ```
+kubectl get service ambassador -o yaml
 
-where `$FULLCHAIN_PATH` is the path to a single PEM file containing the certificate chain for your cert (including the certificate for your Ambassador and all relevant intermediate certs -- this is what Let's Encrypt calls `fullchain.pem`), and `$PRIVKEY_PATH` is the path to the corresponding private key.
-
-When Ambassador starts, it will notice the `ambassador-certs` secret and turn TLS on.
-
-**Important.** Note that the `ambassador-certs` Secret _must_ be in the same Kubernetes namespace as the Ambassador Service.
-
-##### Configuring using a user defined secret
-
-If you do not wish to use a secret named `ambassador-certs`, then you can tell Ambassador to use your own secret. This can be particularly useful if you want to use different secrets for different Ambassador deployments.
-
-Create the secret -
-```shell
-kubectl create secret tls user-secret --cert=$FULLCHAIN_PATH --key=$PRIVKEY_PATH
-```
-
-And then, configure Ambassador's TLS module like the following -
-
-```yaml
-apiVersion: ambassador/v1
-kind: Module
-name: tls
-config:
-  server:
-    enabled: True
-    secret: user-secret
-```
-
-This will make Ambassador load a secret called `user-secret` to configure TLS termination.
-
-Note: If `ambassador-certs` is present in the cluster and the TLS module is configured to load a custom secret, then `ambassador-certs` will take precedence, and the custom secret will be ignored.
-
-## 4. Configure other Ambassador TLS options using the `tls` module.
-
-You'll need a minimal `tls` module to configure Ambassador TLS, e.g.,
-
-```yaml
----
-apiVersion: ambassador/v1
-kind: Module
-name: tls
-config:
-  server:
-    secret: ambassador-certs
-```
-
-The `tls` module supports additional configuration options.
-
-```yaml
----
-apiVersion: ambassador/v1
-kind: Module
-name: tls
-config:
-  # The 'server' block configures TLS termination. 'enabled' is the only
-  # required element.
-  server:
-    # If 'enabled' is True, TLS termination will be enabled.
-    enabled: True
-
-    # If you set 'redirect_cleartext_from' to a port number, HTTP traffic
-    # to that port will be redirected to HTTPS traffic. Typically you would
-    # use port 80, of course.
-    # redirect_cleartext_from: 80
-
-    # These are optional. They should not be present unless you are using
-    # a custom Docker build to install certificates onto the container
-    # filesystem, in which case YOU WILL STILL NEED TO SET enabled: True
-    # above.
-    #
-    # cert_chain_file: /etc/certs/tls.crt   # remember to set enabled!
-    # private_key_file: /etc/certs/tls.key  # remember to set enabled!
-
-    # Enable TLS ALPN protocol, typically HTTP2 to negotiate it with HTTP2
-    # clients over TLS. This must be set to be able to use grpc over TLS.
-    # alpn_protocols: h2
-
-  # The 'client' block configures TLS client-certificate authentication.
-  # 'enabled' is the only required element.
-  client:
-    # If 'enabled' is True, TLS client-certificate authentication will occur.
-    enabled: False
-
-    # If 'cert_required' is True, TLS client certificates will be required
-    # for every connection.
-    # cert_required: False
-
-    # This is optional. It should not be present unless you are using
-    # a custom Docker build to install certificates onto the container
-    # filesystem, in which case YOU WILL STILL NEED TO SET enabled: True
-    # above.
-    #
-    # cacert_chain_file: /etc/cacert/tls.crt  # remember to set enabled!
-```
-
-Of these, `redirect_cleartext_from` is the most likely to be relevant: to make Ambassador redirect HTTP traffic on port 80 to HTTPS on port 443:
-
-```yaml
----
-apiVersion: ambassador/v1
-kind: Module
-name: tls
-config:
-  server:
-    enabled: True
-    redirect_cleartext_from: 80
-    secret: ambassador-certs
-```
-
-is the minimal YAML to do this.
-
-In terms of the `tls` module, it's simplest to include it as an `annotation` on the `ambassador` service itself, like so:
-
-```yaml
 apiVersion: v1
 kind: Service
-metadata:
-  name: ambassador
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind: Module
-      name: tls
-      config:
-        server:
-          enabled: True
-          redirect_cleartext_from: 80
-          secret: ambassador-certs
+...
 spec:
   ports:
-    - name: http
-      protocol: TCP
-      port: 80
-    - name: https
-      protocol: TCP
-      port: 443
-  ...
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  - name: https
+    port: 443
+    protocol: TCP
+    targetPort: 8443
+...
 ```
 
-**Important.** Note that the name of the Module is case-sensitive! It must be `name: tls` as opposed to `name: TLS`.
+If the output to the `kubectl` command is not similar to the example above, edit the Ambassador Edge Stack service to add the `https` port.
 
-## Certificate Manager
+After verifying Ambassador Edge Stack is listening on port 443, send a request to your backend service with curl:
 
-Jetstack's [cert-manager](https://github.com/jetstack/cert-manager) lets you easily provision and manage TLS certificates on Kubernetes. See documentation on using [cert-manager with Ambassador](/user-guide/cert-manager).
+```
+curl -Lk https://{{AMBASSADOR_IP}}/backend/
+
+{
+    "server": "trim-kumquat-fccjxh8x",
+    "quote": "Abstraction is ever present.",
+    "time": "2019-07-24T16:36:56.7983516Z"
+}
+```
+
+**Note:** Since we are using a self-signed certificate, you must set the `-k` flag in curl to disable hostname validation.
+
+## Next Steps
+
+This guide walked you through how to enable basic TLS termination in Ambassador Edge Stack using a self-signed certificate for simplicity.
+
+### Get a Valid Certificate from a Certificate Authority
+
+While a self-signed certificate is a simple and quick way to get Ambassador Edge Stack to terminate TLS, it should not be used by production systems. In order to serve HTTPS traffic without being returned a security warning, you will need to get a certificate from an official Certificate Authority like Let's Encrypt.
+
+In Kubernetes, Jetstack's `cert-manager` provides a simple way to manage certificates from Let's Encrypt. See our documentation for more information on how to [use `cert-manager` with Ambassador Edge Stack](../cert-manager).
+
+### Enable Advanced TLS options
+
+Ambassador Edge Stack exposes configuration for many more advanced options around TLS termination, origination, client certificate validation, and SNI support. See the full [TLS reference](../../reference/core/tls) for more information.

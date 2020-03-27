@@ -1,114 +1,114 @@
-pro-env.sh
-/apro-abi.txt
-
+*.pyc
+*~
+.cache
+.coverage
+.dmypy
+.dmypy.json
+.python-version
+.DS_Store
+.skip_test_warning
 venv
+__pycache__
+.pytest_cache
+.mypy_cache
 
-/bin
+# binaries
 /bin_*/
-/vendor/
-/vendor.hash
 
-/ambassador/
-/ambassador.stamp
+vendor_bootstrap_hack.go
 
-/devportal-content/
+/tools/sandbox/grpc_auth/docker-compose.yml
+/tools/sandbox/grpc_web/docker-compose.yaml
+/tools/sandbox/grpc_web/*_pb.js
+/tools/sandbox/http_auth/docker-compose.yml
 
 *.docker
 *.docker.stamp
 *.docker.tag.*
 *.docker.push.*
-*.knaut
-*.knaut.claim
-*.tar.gz
-*.yaml.o
-*.tap
-*.pid
 
-*.pem
-/k8s*/*.o
-/k8s*/??-auth0-secret.yaml
-/build-aux/docker-registry.preload
-node_modules/
+*.egg-info
+build
+dist
 
+*.out
 *.log
-.tmp*
 *.tmp
-.DS_Store
+*.bak
+log.txt
 
-# --- IDE/text editor stuff ---
+# From `make update-aws`
+/stable.txt
+/app.json
+
+docs/_book
+docs/_site
+docs/Gemfile.lock
+docs/node_modules
+package-lock.json
+.netlify
+node_modules
+unused-e2e
+
+/vendor/
+
+.forge
+forge.yaml
+
+# Editor nonsense
+.vscode
 .idea
-.vscode/
-#*#
-.#*
-*~
+*.iml
+tags
+
+# Test outputs
+no-such-file
+envoy.json
+intermediate.json
+gold.no_yaml.json
+v1.json
+check-*.json
+stats.json
+ambassador-deployment-*.yaml
+ambassador-secrets-deployment.yaml
+*failures.txt
+*.swp
 
 # --- Files ignored by older versions ---
 # Remove the tail of this list when the commit making the change gets
 # far enough in to the past.
 
-# 2020-03-05
-/docker/traffic-proxy
-# 2020-02-13
-/docker/app-sidecar/ambex
-/docker/app-sidecar/app-sidecar
-# 2019-10-24
-/k8s*/??-ambassador-certs.yaml
-# 2019-10-19
-/docker/amb-sidecar/amb-sidecar
-/docker/model-cluster-amb-sidecar-plugins/Dockerfile
-/docker/model-cluster-amb-sidecar-plugins/*.so
-# 2019-10-18
-/cmd/certified-envoy/envoy.go
-# 2019-10-10
-/tests/cluster/oauth-e2e/*.png
-/tests/cluster/oauth-e2e/node_modules/
-# 2019-09-23
-/cmd/certified-envoy/envoy.bin
-# 2019-09-16
-/docker/dev-portal-server/dev-portal-server
-# 2019-09-12
-/tests/cluster/consul/new_root.crt
-/tests/cluster/consul/new_root.key
-# 2019-09-04
-/docker/apro-internal-access/apro-internal-access
-# 2019-08-29
-/ambassador-nolicense/
-/ambassador-withlicense/
-# 2019-08-14
-/docker/amb-sidecar-plugins/Dockerfile
-/docker/amb-sidecar-plugins/*.so
-# 2019-08-14
-/docker/max-load/kubeapply
-/docker/max-load/kubectl
-/docker/max-load/max-load
-# 2019-08-14
-*.docker.knaut-push
-# 2019-01-23
-/docker/traffic-proxy/proxy
-# 2019-01-23
-/docker/app-sidecar/sidecar
-# 2019-01-23 386e530eca29f38a0bbf4dd1b4ccf97f4e577230
-/docker/amb-sidecar/oauth
-/docker/amb-sidecar/apictl
-/docker/amb-sidecar/ratelimit
-# 2019-01-23 5962fe6f1fd0ed7969b63a0a90e062c2f648a6ed
-/docker/amb-sidecar/ambassador-oauth
-# 2019-01-22 978512decab17696b82ad962a04de6770e7f1458
-/docker/amb-sidecar-ratelimit/apictl
-/docker/amb-sidecar-ratelimit/ratelimit
-/docker/amb-sidecar-ratelimit/ratelimit_check
-/docker/amb-sidecar-ratelimit/ratelimit_client
-/docker/amb-sidecar-oauth/ambassador-oauth
-# 2019-01-18 0abb1c9e4bdc8ce04034c16d796bf3b67cce68f5
-/tests/oauth-e2e/k8s/??-ambassador-certs.yaml tests/oauth-e2e/k8s/*.pem
-# 2019-01-18 f9210ead4d2e67c51ebdcde48372658a862d3612
-/e2e-oauth/k8s/??-ambassador-certs.yaml e2e-oauth/k8s/*.pem
-/e2e-oauth/node_modules/
-# 2019-01-18 d33436c1bfeaa187f649a21917443c5eb9ec3617
-/docker/traffic-sidecar/sidecar
-/docker/ambassador-ratelimit/apictl
-/docker/ambassador-ratelimit/ratelimit
-/docker/ambassador-ratelimit/ratelimit_check
-/docker/ambassador-ratelimit/ratelimit_client
-/docker/ambassador-oauth/ambassador-oauth
-/docker/traffic-sidecar/ambex
+# 2019-10-13
+/build/kat/client/kat_client
+/build/kat/client/teleproxy
+/build/kat/server/kat-server
+# 2019-10-13
+/.docker_port_forward
+# 2019-10-13
+/cluster.yaml
+/kubernaut-claim.txt
+# 2019-10-13
+/ambex
+/kubestatus
+/watt
+/cmd/ambex/ambex
+# 2019-10-11
+/envoy-src/
+/envoy-bin/
+/envoy-build-image.txt
+/envoy-build-container.txt
+# 2019-10-08
+/kat-sandbox/grpc_auth/docker-compose.yml
+/kat-sandbox/grpc_web/*_pb.js
+/kat-sandbox/grpc_web/docker-compose.yaml
+/kat-sandbox/http_auth/docker-compose.yml
+/kat-server-docker-image/kat-server
+/kat/docs/**/_build
+/unused-e2e/**/ambassador-deployment-mounts.yaml
+/unused-e2e/**/ambassador-deployment.yaml
+/unused-e2e/**/kubernaut
+/unused-e2e/*/k8s/ambassador-deployment*.yaml
+# 2019-06-14
+/envoy/
+# 2019-04-05 0388efe75c16540c71223320596accbbe3fe6ac2
+/kat/kat/client

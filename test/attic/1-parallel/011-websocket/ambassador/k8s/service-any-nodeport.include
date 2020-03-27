@@ -1,0 +1,16 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: {{ service.name }}
+  name: {{ service.name }}
+  namespace: {{ build.profile.namespace }}
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      nodePort: 30900
+      targetPort: envoy
+  selector:
+    service: {{ service.name }}

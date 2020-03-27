@@ -12,12 +12,15 @@ spec:
     name: http-qotm
     targetPort: http-api
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: qotm
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: qotm
   strategy:
     type: RollingUpdate
   template:

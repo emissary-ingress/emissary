@@ -1,0 +1,204 @@
+{
+    "_errors": {},
+    "_notices": {
+        "gzipnotsupportedcontenttypetest.default.1": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ],
+        "gzipnotsupportedcontenttypetest.default.2": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ]
+    },
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "gzipnotsupportedcontenttypetest.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "gzipnotsupportedcontenttypetest",
+            "apiVersion": "getambassador.io/v0",
+            "config": {
+                "gzip": {
+                    "content_type": [
+                        "application/json"
+                    ],
+                    "min_content_length": 32
+                }
+            },
+            "kind": "Module",
+            "location": "gzipnotsupportedcontenttypetest.default.1",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "gzipnotsupportedcontenttypetest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "ambassador",
+            "namespace": "default",
+            "rkey": "gzipnotsupportedcontenttypetest.default.1",
+            "serialization": "ambassador_id: gzipnotsupportedcontenttypetest\napiVersion: ambassador/v0\nconfig:\n  gzip:\n    content_type:\n    - application/json\n    min_content_length: 32\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gzipnotsupportedcontenttypetest\n  scope: AmbassadorTest\nname: ambassador\nnamespace: default\n"
+        },
+        "gzipnotsupportedcontenttypetest.default.2": {
+            "_referenced_by": {},
+            "ambassador_id": "gzipnotsupportedcontenttypetest",
+            "apiVersion": "getambassador.io/v0",
+            "kind": "Mapping",
+            "location": "gzipnotsupportedcontenttypetest.default.2",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "gzipnotsupportedcontenttypetest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "gzipnotsupportedcontenttypetest-http",
+            "namespace": "default",
+            "prefix": "/target/",
+            "rkey": "gzipnotsupportedcontenttypetest.default.2",
+            "serialization": "ambassador_id: gzipnotsupportedcontenttypetest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gzipnotsupportedcontenttypetest\n  scope: AmbassadorTest\nname: gzipnotsupportedcontenttypetest-http\nnamespace: default\nprefix: /target/\nservice: gzipnotsupportedcontenttypetest-http\n",
+            "service": "gzipnotsupportedcontenttypetest-http"
+        },
+        "k8s-gzipnotsupportedcontenttypetest-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "gzipnotsupportedcontenttypetest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-gzipnotsupportedcontenttypetest-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "gzipnotsupportedcontenttypetest",
+                "scope": "AmbassadorTest",
+                "service": "gzipnotsupportedcontenttypetest-admin"
+            },
+            "name": "gzipnotsupportedcontenttypetest-admin",
+            "namespace": "default",
+            "rkey": "k8s-gzipnotsupportedcontenttypetest-admin-default",
+            "serialization": "ambassador_id: gzipnotsupportedcontenttypetest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: gzipnotsupportedcontenttypetest\n  scope: AmbassadorTest\n  service: gzipnotsupportedcontenttypetest-admin\nname: gzipnotsupportedcontenttypetest-admin\nnamespace: default\n"
+        },
+        "k8s-gzipnotsupportedcontenttypetest-default": {
+            "_referenced_by": {},
+            "ambassador_id": "gzipnotsupportedcontenttypetest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-gzipnotsupportedcontenttypetest-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "gzipnotsupportedcontenttypetest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "gzipnotsupportedcontenttypetest",
+            "namespace": "default",
+            "rkey": "k8s-gzipnotsupportedcontenttypetest-default",
+            "serialization": "ambassador_id: gzipnotsupportedcontenttypetest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gzipnotsupportedcontenttypetest\n  scope: AmbassadorTest\nname: gzipnotsupportedcontenttypetest\nnamespace: default\n"
+        },
+        "k8s-gzipnotsupportedcontenttypetest-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "gzipnotsupportedcontenttypetest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-gzipnotsupportedcontenttypetest-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "gzipnotsupportedcontenttypetest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "gzipnotsupportedcontenttypetest-http",
+            "namespace": "default",
+            "rkey": "k8s-gzipnotsupportedcontenttypetest-http-default",
+            "serialization": "ambassador_id: gzipnotsupportedcontenttypetest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: gzipnotsupportedcontenttypetest\n  scope: AmbassadorTest\nname: gzipnotsupportedcontenttypetest-http\nnamespace: default\n"
+        }
+    },
+    "mappings": {
+        "gzipnotsupportedcontenttypetest-http": {
+            "ambassador_id": "gzipnotsupportedcontenttypetest",
+            "apiVersion": "getambassador.io/v0",
+            "kind": "Mapping",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "gzipnotsupportedcontenttypetest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "gzipnotsupportedcontenttypetest-http",
+            "namespace": "default",
+            "prefix": "/target/",
+            "service": "gzipnotsupportedcontenttypetest-http"
+        }
+    },
+    "modules": {
+        "ambassador": {
+            "apiVersion": "getambassador.io/v0",
+            "gzip": {
+                "content_type": [
+                    "application/json"
+                ],
+                "min_content_length": 32
+            },
+            "kind": "Module",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "gzipnotsupportedcontenttypetest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "ambassador",
+            "namespace": "default"
+        }
+    },
+    "service": {
+        "k8s-gzipnotsupportedcontenttypetest-admin-default": {
+            "ambassador_id": "gzipnotsupportedcontenttypetest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "gzipnotsupportedcontenttypetest",
+                "scope": "AmbassadorTest",
+                "service": "gzipnotsupportedcontenttypetest-admin"
+            },
+            "name": "gzipnotsupportedcontenttypetest-admin",
+            "namespace": "default"
+        },
+        "k8s-gzipnotsupportedcontenttypetest-default": {
+            "ambassador_id": "gzipnotsupportedcontenttypetest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "gzipnotsupportedcontenttypetest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "gzipnotsupportedcontenttypetest",
+            "namespace": "default"
+        },
+        "k8s-gzipnotsupportedcontenttypetest-http-default": {
+            "ambassador_id": "gzipnotsupportedcontenttypetest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "gzipnotsupportedcontenttypetest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "gzipnotsupportedcontenttypetest-http",
+            "namespace": "default"
+        }
+    }
+}

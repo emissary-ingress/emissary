@@ -1,0 +1,193 @@
+{
+    "Consul": {},
+    "Kubernetes": {
+        "AuthService": null,
+        "ConsulResolver": null,
+        "Host": null,
+        "KubernetesEndpointResolver": null,
+        "KubernetesServiceResolver": null,
+        "LogService": null,
+        "Mapping": null,
+        "Module": null,
+        "RateLimitService": null,
+        "TCPMapping": null,
+        "TLSContext": null,
+        "TracingService": null,
+        "ingresses": null,
+        "service": [
+            {
+                "apiVersion": "v1",
+                "kind": "Service",
+                "metadata": {
+                    "annotations": {
+                        "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind: RateLimitService\nname: ratelimit-v0\nservice: rate-limit-v0:5000\ntimeout_ms: 500\nambassador_id: ratelimitv0test\n",
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v0\\nkind: RateLimitService\\nname: ratelimit-v0\\nservice: rate-limit-v0:5000\\ntimeout_ms: 500\\nambassador_id: ratelimitv0test\\n\"},\"labels\":{\"kat-ambassador-id\":\"ratelimitv0test\",\"scope\":\"AmbassadorTest\"},\"name\":\"rate-limit-v0\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"grpc\",\"port\":5000,\"targetPort\":\"grpc\"}],\"selector\":{\"app\":\"rate-limit-v0\"},\"type\":\"ClusterIP\"}}\n"
+                    },
+                    "creationTimestamp": "2020-02-26T15:52:48Z",
+                    "labels": {
+                        "kat-ambassador-id": "ratelimitv0test",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "rate-limit-v0",
+                    "namespace": "default",
+                    "resourceVersion": "67507",
+                    "selfLink": "/api/v1/namespaces/default/services/rate-limit-v0",
+                    "uid": "097aa85a-58b0-11ea-86d6-0e674b3ff44f"
+                },
+                "spec": {
+                    "clusterIP": "10.111.228.110",
+                    "ports": [
+                        {
+                            "name": "grpc",
+                            "port": 5000,
+                            "protocol": "TCP",
+                            "targetPort": "grpc"
+                        }
+                    ],
+                    "selector": {
+                        "app": "rate-limit-v0"
+                    },
+                    "sessionAffinity": "None",
+                    "type": "ClusterIP"
+                },
+                "status": {
+                    "loadBalancer": {}
+                }
+            },
+            {
+                "apiVersion": "v1",
+                "kind": "Service",
+                "metadata": {
+                    "annotations": {
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"ratelimitv0test\",\"scope\":\"AmbassadorTest\"},\"name\":\"ratelimitv0test\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"ratelimitv0test\"},\"type\":\"NodePort\"}}\n"
+                    },
+                    "creationTimestamp": "2020-02-26T15:52:52Z",
+                    "labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "ratelimitv0test",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "ratelimitv0test",
+                    "namespace": "default",
+                    "resourceVersion": "67559",
+                    "selfLink": "/api/v1/namespaces/default/services/ratelimitv0test",
+                    "uid": "0bb9fe8f-58b0-11ea-86d6-0e674b3ff44f"
+                },
+                "spec": {
+                    "clusterIP": "10.103.26.139",
+                    "externalTrafficPolicy": "Cluster",
+                    "ports": [
+                        {
+                            "name": "http",
+                            "nodePort": 32415,
+                            "port": 80,
+                            "protocol": "TCP",
+                            "targetPort": 8080
+                        },
+                        {
+                            "name": "https",
+                            "nodePort": 30614,
+                            "port": 443,
+                            "protocol": "TCP",
+                            "targetPort": 8443
+                        }
+                    ],
+                    "selector": {
+                        "service": "ratelimitv0test"
+                    },
+                    "sessionAffinity": "None",
+                    "type": "NodePort"
+                },
+                "status": {
+                    "loadBalancer": {}
+                }
+            },
+            {
+                "apiVersion": "v1",
+                "kind": "Service",
+                "metadata": {
+                    "annotations": {
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"ratelimitv0test\",\"scope\":\"AmbassadorTest\",\"service\":\"ratelimitv0test-admin\"},\"name\":\"ratelimitv0test-admin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"ratelimitv0test-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"ratelimitv0test\"},\"type\":\"NodePort\"}}\n"
+                    },
+                    "creationTimestamp": "2020-02-26T15:52:52Z",
+                    "labels": {
+                        "kat-ambassador-id": "ratelimitv0test",
+                        "scope": "AmbassadorTest",
+                        "service": "ratelimitv0test-admin"
+                    },
+                    "name": "ratelimitv0test-admin",
+                    "namespace": "default",
+                    "resourceVersion": "67566",
+                    "selfLink": "/api/v1/namespaces/default/services/ratelimitv0test-admin",
+                    "uid": "0be6cf4c-58b0-11ea-86d6-0e674b3ff44f"
+                },
+                "spec": {
+                    "clusterIP": "10.105.82.49",
+                    "externalTrafficPolicy": "Cluster",
+                    "ports": [
+                        {
+                            "name": "ratelimitv0test-admin",
+                            "nodePort": 30181,
+                            "port": 8877,
+                            "protocol": "TCP",
+                            "targetPort": 8877
+                        }
+                    ],
+                    "selector": {
+                        "service": "ratelimitv0test"
+                    },
+                    "sessionAffinity": "None",
+                    "type": "NodePort"
+                },
+                "status": {
+                    "loadBalancer": {}
+                }
+            },
+            {
+                "apiVersion": "v1",
+                "kind": "Service",
+                "metadata": {
+                    "annotations": {
+                        "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind: Mapping\nname: ratelimit_target_mapping\nprefix: /target/\nservice: ratelimitv0test-http\nrate_limits:\n- descriptor: A test case\n  headers:\n  - \"x-ambassador-test-allow\"\nambassador_id: ratelimitv0test\n---\napiVersion: ambassador/v1\nkind: Mapping\nname: ratelimit_label_mapping\nprefix: /labels/\nservice: ratelimitv0test-http\nlabels:\n  ambassador:\n  - host_and_user:\n    - custom-label:\n        header: \":authority\"\n        omit_if_not_present: true\n    - user:\n        header: \"x-user\"\n        omit_if_not_present: true\n  - omg_header:\n    - custom-label:\n        header: \"x-omg\"\n        default: \"OMFG!\"\nambassador_id: ratelimitv0test\n",
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v0\\nkind: Mapping\\nname: ratelimit_target_mapping\\nprefix: /target/\\nservice: ratelimitv0test-http\\nrate_limits:\\n- descriptor: A test case\\n  headers:\\n  - \\\"x-ambassador-test-allow\\\"\\nambassador_id: ratelimitv0test\\n---\\napiVersion: ambassador/v1\\nkind: Mapping\\nname: ratelimit_label_mapping\\nprefix: /labels/\\nservice: ratelimitv0test-http\\nlabels:\\n  ambassador:\\n  - host_and_user:\\n    - custom-label:\\n        header: \\\":authority\\\"\\n        omit_if_not_present: true\\n    - user:\\n        header: \\\"x-user\\\"\\n        omit_if_not_present: true\\n  - omg_header:\\n    - custom-label:\\n        header: \\\"x-omg\\\"\\n        default: \\\"OMFG!\\\"\\nambassador_id: ratelimitv0test\\n\"},\"labels\":{\"kat-ambassador-id\":\"ratelimitv0test\",\"scope\":\"AmbassadorTest\"},\"name\":\"ratelimitv0test-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8115},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8478}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
+                    },
+                    "creationTimestamp": "2020-02-26T15:52:53Z",
+                    "labels": {
+                        "kat-ambassador-id": "ratelimitv0test",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "ratelimitv0test-http",
+                    "namespace": "default",
+                    "resourceVersion": "67583",
+                    "selfLink": "/api/v1/namespaces/default/services/ratelimitv0test-http",
+                    "uid": "0c55577e-58b0-11ea-86d6-0e674b3ff44f"
+                },
+                "spec": {
+                    "clusterIP": "10.99.109.52",
+                    "ports": [
+                        {
+                            "name": "http",
+                            "port": 80,
+                            "protocol": "TCP",
+                            "targetPort": 8115
+                        },
+                        {
+                            "name": "https",
+                            "port": 443,
+                            "protocol": "TCP",
+                            "targetPort": 8478
+                        }
+                    ],
+                    "selector": {
+                        "backend": "superpod-default"
+                    },
+                    "sessionAffinity": "None",
+                    "type": "ClusterIP"
+                },
+                "status": {
+                    "loadBalancer": {}
+                }
+            }
+        ]
+    }
+}

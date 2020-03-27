@@ -8,7 +8,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v0
+      apiVersion: getambassador.io/v2
       kind: Mapping
       name: grpc_mapping
       grpc: true
@@ -24,12 +24,15 @@ spec:
   selector:
     service: grpc-greet
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: grpc-greet
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      service: grpc-greet
   template:
     metadata:
       labels:

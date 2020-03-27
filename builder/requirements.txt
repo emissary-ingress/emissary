@@ -1,0 +1,29 @@
+# Runtime requirements
+attrs==19.1.0
+requests==2.20.1
+clize==4.0.3
+flask==1.0.2
+gunicorn==19.9.0
+jinja2==2.10.1
+jsonschema==2.6.0
+jwt==0.5.4
+k8s-proto==0.0.2
+protobuf==3.10.0
+scout.py==0.5.0
+semantic-version==2.6.0
+kubernetes==8.0.0
+click==7.0
+jsonpatch==1.24
+expiringdict==1.2.0
+
+# Dev requirements
+gitpython
+docopt
+pytest
+pytest-cov
+dpath
+mypy
+pexpect
+pytest
+pyyaml>=5.1
+retry

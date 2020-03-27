@@ -1,0 +1,714 @@
+{
+    "ambassador": {
+        "_active": true,
+        "_errored": false,
+        "_finalized": true,
+        "_referenced_by": [
+            "retrypolicytest.default.3"
+        ],
+        "_rkey": "retrypolicytest.default.3",
+        "admin_port": 8001,
+        "debug_mode": false,
+        "default_label_domain": "ambassador",
+        "default_labels": {},
+        "diag_port": 8877,
+        "diagnostics": {
+            "enabled": true,
+            "prefix": "/ambassador/v0/",
+            "rewrite": "/ambassador/v0/",
+            "service": "127.0.0.1:8877"
+        },
+        "enable_http10": false,
+        "enable_ipv4": true,
+        "enable_ipv6": false,
+        "envoy_log_path": "/dev/fd/1",
+        "envoy_log_type": "text",
+        "kind": "IRAmbassador",
+        "liveness_probe": {
+            "enabled": true,
+            "prefix": "/ambassador/v0/check_alive",
+            "rewrite": "/ambassador/v0/check_alive",
+            "service": "127.0.0.1:8877"
+        },
+        "location": "retrypolicytest.default.3",
+        "name": "ir.ambassador",
+        "namespace": "default",
+        "proper_case": false,  
+        "readiness_probe": {
+            "enabled": true,
+            "prefix": "/ambassador/v0/check_ready",
+            "rewrite": "/ambassador/v0/check_ready",
+            "service": "127.0.0.1:8877"
+        },
+        "retry_policy": {
+            "num_retries": 4,
+            "retry_on": "retriable-4xx"
+        },
+        "server_name": "envoy",
+        "service_port": 8080,
+        "use_ambassador_namespace_for_service_resolution": false,
+        "use_proxy_proto": false,
+        "use_remote_address": true,
+        "x_forwarded_proto_redirect": false,
+        "xff_num_trusted_hops": 0
+    },
+    "clusters": {
+        "cluster_127_0_0_1_8877_default": {
+            "_active": true,
+            "_errored": false,
+            "_hostname": "127.0.0.1",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 8877,
+            "_referenced_by": [
+                "retrypolicytest.default.3"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_127_0_0_1_8877_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "retrypolicytest.default.3",
+            "name": "cluster_127_0_0_1_8877_default",
+            "namespace": "default",
+            "service": "127.0.0.1:8877",
+            "targets": [
+                {
+                    "ip": "127.0.0.1",
+                    "port": 8877,
+                    "target_kind": "IPaddr"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://127.0.0.1:8877"
+            ]
+        },
+        "cluster_retrypolicytest_http_default": {
+            "_active": true,
+            "_errored": false,
+            "_hostname": "retrypolicytest-http",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 80,
+            "_referenced_by": [
+                "retrypolicytest.default.1",
+                "retrypolicytest.default.2"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_retrypolicytest_http_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "retrypolicytest.default.1",
+            "name": "cluster_retrypolicytest_http_default",
+            "namespace": "default",
+            "service": "retrypolicytest-http",
+            "targets": [
+                {
+                    "ip": "retrypolicytest-http.default",
+                    "port": 80,
+                    "target_kind": "DNSname"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://retrypolicytest-http:80"
+            ]
+        }
+    },
+    "filters": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.cors",
+            "config": {},
+            "kind": "ir.cors",
+            "location": "--internal--",
+            "name": "cors",
+            "namespace": "default"
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.router",
+            "config": {},
+            "kind": "ir.router",
+            "location": "--internal--",
+            "name": "router",
+            "namespace": "default",
+            "type": "decoder"
+        }
+    ],
+    "groups": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "retrypolicytest.default.3"
+            ],
+            "_rkey": "retrypolicytest.default.3",
+            "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
+            "group_weight": [
+                0,
+                26,
+                0,
+                "/ambassador/v0/check_ready",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "retrypolicytest.default.3",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_referenced_by": [
+                        "retrypolicytest.default.3"
+                    ],
+                    "_rkey": "retrypolicytest.default.3",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8877,
+                        "_referenced_by": [
+                            "retrypolicytest.default.3"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "retrypolicytest.default.3",
+                        "name": "cluster_127_0_0_1_8877_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8877",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8877,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8877"
+                        ]
+                    },
+                    "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "retrypolicytest.default.3",
+                    "name": "internal_readiness_probe_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/ambassador/v0/check_ready",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/ambassador/v0/check_ready",
+                    "route_weight": [
+                        0,
+                        26,
+                        0,
+                        "/ambassador/v0/check_ready",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8877",
+                    "timeout_ms": 10000,
+                    "weight": 100
+                }
+            ],
+            "name": "GROUP: internal_readiness_probe_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/check_ready",
+            "rewrite": "/ambassador/v0/check_ready",
+            "timeout_ms": 10000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "retrypolicytest.default.3"
+            ],
+            "_rkey": "retrypolicytest.default.3",
+            "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
+            "group_weight": [
+                0,
+                26,
+                0,
+                "/ambassador/v0/check_alive",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "retrypolicytest.default.3",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_referenced_by": [
+                        "retrypolicytest.default.3"
+                    ],
+                    "_rkey": "retrypolicytest.default.3",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8877,
+                        "_referenced_by": [
+                            "retrypolicytest.default.3"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "retrypolicytest.default.3",
+                        "name": "cluster_127_0_0_1_8877_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8877",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8877,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8877"
+                        ]
+                    },
+                    "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "retrypolicytest.default.3",
+                    "name": "internal_liveness_probe_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/ambassador/v0/check_alive",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/ambassador/v0/check_alive",
+                    "route_weight": [
+                        0,
+                        26,
+                        0,
+                        "/ambassador/v0/check_alive",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8877",
+                    "timeout_ms": 10000,
+                    "weight": 100
+                }
+            ],
+            "name": "GROUP: internal_liveness_probe_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/check_alive",
+            "rewrite": "/ambassador/v0/check_alive",
+            "timeout_ms": 10000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "retrypolicytest.default.1"
+            ],
+            "_rkey": "retrypolicytest.default.1",
+            "group_id": "bf5da5864ac5ac6b48dcbcc0500ad18df3cd0bad",
+            "group_weight": [
+                0,
+                24,
+                0,
+                "/RetryPolicyTest-normal/",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "retrypolicytest.default.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_rkey": "retrypolicytest.default.1",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "retrypolicytest-http",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 80,
+                        "_referenced_by": [
+                            "retrypolicytest.default.1",
+                            "retrypolicytest.default.2"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_retrypolicytest_http_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "retrypolicytest.default.1",
+                        "name": "cluster_retrypolicytest_http_default",
+                        "namespace": "default",
+                        "service": "retrypolicytest-http",
+                        "targets": [
+                            {
+                                "ip": "retrypolicytest-http.default",
+                                "port": 80,
+                                "target_kind": "DNSname"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://retrypolicytest-http:80"
+                        ]
+                    },
+                    "group_id": "bf5da5864ac5ac6b48dcbcc0500ad18df3cd0bad",
+                    "headers": [],
+                    "kind": "Mapping",
+                    "location": "retrypolicytest.default.1",
+                    "metadata_labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "retrypolicytest",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "RetryPolicyTest-normal",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/RetryPolicyTest-normal/",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/",
+                    "route_weight": [
+                        0,
+                        24,
+                        0,
+                        "/RetryPolicyTest-normal/",
+                        "GET"
+                    ],
+                    "serialization": "ambassador_id: retrypolicytest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: retrypolicytest\n  scope: AmbassadorTest\nname: RetryPolicyTest-normal\nnamespace: default\nprefix: /RetryPolicyTest-normal/\nservice: retrypolicytest-http\ntimeout_ms: 3000\n",
+                    "service": "retrypolicytest-http",
+                    "timeout_ms": 3000,
+                    "weight": 100
+                }
+            ],
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "retrypolicytest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "GROUP: RetryPolicyTest-normal",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/RetryPolicyTest-normal/",
+            "rewrite": "/",
+            "serialization": "ambassador_id: retrypolicytest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: retrypolicytest\n  scope: AmbassadorTest\nname: RetryPolicyTest-normal\nnamespace: default\nprefix: /RetryPolicyTest-normal/\nservice: retrypolicytest-http\ntimeout_ms: 3000\n",
+            "timeout_ms": 3000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "retrypolicytest.default.2"
+            ],
+            "_rkey": "retrypolicytest.default.2",
+            "group_id": "41d9c749b9c43622cdc1915f6d10dc4326344450",
+            "group_weight": [
+                0,
+                23,
+                0,
+                "/RetryPolicyTest-retry/",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "retrypolicytest.default.2",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_rkey": "retrypolicytest.default.2",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "retrypolicytest-http",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 80,
+                        "_referenced_by": [
+                            "retrypolicytest.default.1",
+                            "retrypolicytest.default.2"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_retrypolicytest_http_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "retrypolicytest.default.1",
+                        "name": "cluster_retrypolicytest_http_default",
+                        "namespace": "default",
+                        "service": "retrypolicytest-http",
+                        "targets": [
+                            {
+                                "ip": "retrypolicytest-http.default",
+                                "port": 80,
+                                "target_kind": "DNSname"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://retrypolicytest-http:80"
+                        ]
+                    },
+                    "group_id": "41d9c749b9c43622cdc1915f6d10dc4326344450",
+                    "headers": [],
+                    "kind": "Mapping",
+                    "location": "retrypolicytest.default.2",
+                    "metadata_labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "retrypolicytest",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "RetryPolicyTest-target",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/RetryPolicyTest-retry/",
+                    "resolver": "kubernetes-service",
+                    "retry_policy": {
+                        "num_retries": 4,
+                        "retry_on": "5xx"
+                    },
+                    "rewrite": "/",
+                    "route_weight": [
+                        0,
+                        23,
+                        0,
+                        "/RetryPolicyTest-retry/",
+                        "GET"
+                    ],
+                    "serialization": "ambassador_id: retrypolicytest\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: retrypolicytest\n  scope: AmbassadorTest\nname: RetryPolicyTest-target\nnamespace: default\nprefix: /RetryPolicyTest-retry/\nretry_policy:\n  num_retries: 4\n  retry_on: 5xx\nservice: retrypolicytest-http\ntimeout_ms: 3000\n",
+                    "service": "retrypolicytest-http",
+                    "timeout_ms": 3000,
+                    "weight": 100
+                }
+            ],
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "retrypolicytest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "GROUP: RetryPolicyTest-target",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/RetryPolicyTest-retry/",
+            "retry_policy": {
+                "num_retries": 4,
+                "retry_on": "5xx"
+            },
+            "rewrite": "/",
+            "serialization": "ambassador_id: retrypolicytest\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: retrypolicytest\n  scope: AmbassadorTest\nname: RetryPolicyTest-target\nnamespace: default\nprefix: /RetryPolicyTest-retry/\nretry_policy:\n  num_retries: 4\n  retry_on: 5xx\nservice: retrypolicytest-http\ntimeout_ms: 3000\n",
+            "timeout_ms": 3000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "retrypolicytest.default.3"
+            ],
+            "_rkey": "retrypolicytest.default.3",
+            "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
+            "group_weight": [
+                0,
+                15,
+                0,
+                "/ambassador/v0/",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "retrypolicytest.default.3",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_referenced_by": [
+                        "retrypolicytest.default.3"
+                    ],
+                    "_rkey": "retrypolicytest.default.3",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8877,
+                        "_referenced_by": [
+                            "retrypolicytest.default.3"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "retrypolicytest.default.3",
+                        "name": "cluster_127_0_0_1_8877_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8877",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8877,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8877"
+                        ]
+                    },
+                    "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "retrypolicytest.default.3",
+                    "name": "internal_diagnostics_probe_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/ambassador/v0/",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/ambassador/v0/",
+                    "route_weight": [
+                        0,
+                        15,
+                        0,
+                        "/ambassador/v0/",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8877",
+                    "timeout_ms": 10000,
+                    "weight": 100
+                }
+            ],
+            "name": "GROUP: internal_diagnostics_probe_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/",
+            "rewrite": "/ambassador/v0/",
+            "timeout_ms": 10000
+        }
+    ],
+    "grpc_services": {},
+    "hosts": [],
+    "identity": {
+        "ambassador_id": "retrypolicytest",
+        "ambassador_namespace": "default",
+        "ambassador_nodename": "retrypolicytest-default"
+    },
+    "k8s_status_updates": {},
+    "listeners": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.listener",
+            "hostname": "*",
+            "insecure_action": "Route",
+            "kind": "IRListener",
+            "location": "retrypolicytest.default.3",
+            "name": "ir.listener",
+            "namespace": "default",
+            "redirect_listener": false,
+            "secure_action": "Route",
+            "service_port": 8080,
+            "use_proxy_proto": false
+        }
+    ],
+    "services": {
+        "k8s-retrypolicytest-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "retrypolicytest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-retrypolicytest-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "retrypolicytest",
+                "scope": "AmbassadorTest",
+                "service": "retrypolicytest-admin"
+            },
+            "name": "retrypolicytest-admin",
+            "namespace": "default",
+            "rkey": "k8s-retrypolicytest-admin-default",
+            "serialization": "ambassador_id: retrypolicytest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: retrypolicytest\n  scope: AmbassadorTest\n  service: retrypolicytest-admin\nname: retrypolicytest-admin\nnamespace: default\n"
+        },
+        "k8s-retrypolicytest-default": {
+            "_referenced_by": {},
+            "ambassador_id": "retrypolicytest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-retrypolicytest-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "retrypolicytest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "retrypolicytest",
+            "namespace": "default",
+            "rkey": "k8s-retrypolicytest-default",
+            "serialization": "ambassador_id: retrypolicytest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: retrypolicytest\n  scope: AmbassadorTest\nname: retrypolicytest\nnamespace: default\n"
+        },
+        "k8s-retrypolicytest-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "retrypolicytest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-retrypolicytest-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "retrypolicytest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "retrypolicytest-http",
+            "namespace": "default",
+            "rkey": "k8s-retrypolicytest-http-default",
+            "serialization": "ambassador_id: retrypolicytest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: retrypolicytest\n  scope: AmbassadorTest\nname: retrypolicytest-http\nnamespace: default\n"
+        }
+    },
+    "tls_contexts": []
+}

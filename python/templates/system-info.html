@@ -1,0 +1,68 @@
+<div class="row">
+  <div class="col-7">
+    Ambassador version <samp>{{ system.version }}</samp>
+    <br/>
+    Hostname <samp>{{ system.hostname }}</samp>
+    <br/>
+    Cluster ID <samp>{{ system.cluster_id }}</samp>
+    <br/>
+    Configuration from {{ system.boot_time }} &mdash; {{ system.hr_uptime }} ago
+    <br/>
+    {% if envoy_status.ready %}
+    Envoy ready, last status report {{ envoy_status.since_update }}
+    {% elif envoy_status.alive %}
+    Envoy alive but not yet ready, running {{ envoy_status.uptime }}
+    {% else %}
+    Envoy not running!!
+    {% endif %}
+    <br/>
+    <br/>
+    Ambassador ID <samp>{{ system.ambassador_id }}</samp>
+    <br/>
+    Ambassador namespace <samp>{{ system.ambassador_namespace }}</samp>{%- if system.single_namespace %} (single namespace only){%- endif -%}
+    <br/>
+    {%- if system.knative_enabled -%}KNative support enabled<br/>{%- endif %}
+    {%- if system.statsd_enabled -%}Statsd support enabled<br/>{%- endif %}
+    {%- if not system.endpoints_enabled -%}Endpoint routing disabled<br/>{%- endif %}
+  </div>
+  <div class="col-5">
+    {% if loginfo %}
+      {% if loginfo.all %}
+        Current log level: {{ loginfo.all }}
+      {% else %}
+        Current log levels:
+        <ul>
+          {% for level, elements in loginfo.items() | sort %}
+          <li>{{ level }}: {{ ", ".join(elements) }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% else %}
+      Current log levels: unknown
+    {% endif %}
+
+    <div class="row">
+      <table border="0" width="100%">
+        <tbody>
+          <tr>
+            <td width="50%" align="center">
+              <a href="/ambassador/v0/diag/?loglevel=debug">
+                <button type="button" class="btn btn-warning">Set Debug On</button>
+              </a>
+            </td>
+            <td width="50%" align="center">
+              <a href="/ambassador/v0/diag/?loglevel=info">
+                <button type="button" class="btn btn-warning">Set Debug Off</button>
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% if banner_content %}
+  <div class="col-12">
+    {{banner_content|safe}}
+  </div>
+  {% endif %}
+</div>

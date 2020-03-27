@@ -1,0 +1,595 @@
+{
+    "ambassador": {
+        "_active": true,
+        "_errored": false,
+        "_finalized": true,
+        "_referenced_by": [
+            "redirecttestswithproxyproto.default.1"
+        ],
+        "_rkey": "redirecttestswithproxyproto.default.1",
+        "admin_port": 8001,
+        "debug_mode": false,
+        "default_label_domain": "ambassador",
+        "default_labels": {},
+        "diag_port": 8877,
+        "diagnostics": {
+            "enabled": true,
+            "prefix": "/ambassador/v0/",
+            "rewrite": "/ambassador/v0/",
+            "service": "127.0.0.1:8877"
+        },
+        "enable_http10": false,
+        "enable_ipv4": true,
+        "enable_ipv6": true,
+        "envoy_log_path": "/dev/fd/1",
+        "envoy_log_type": "text",
+        "kind": "IRAmbassador",
+        "liveness_probe": {
+            "enabled": true,
+            "prefix": "/ambassador/v0/check_alive",
+            "rewrite": "/ambassador/v0/check_alive",
+            "service": "127.0.0.1:8877"
+        },
+        "location": "redirecttestswithproxyproto.default.1",
+        "name": "ir.ambassador",
+        "namespace": "default",
+        "proper_case": false,  
+        "readiness_probe": {
+            "enabled": true,
+            "prefix": "/ambassador/v0/check_ready",
+            "rewrite": "/ambassador/v0/check_ready",
+            "service": "127.0.0.1:8877"
+        },
+        "server_name": "envoy",
+        "service_port": 8080,
+        "use_ambassador_namespace_for_service_resolution": false,
+        "use_proxy_proto": true,
+        "use_remote_address": true,
+        "x_forwarded_proto_redirect": false,
+        "xff_num_trusted_hops": 0
+    },
+    "clusters": {
+        "cluster_127_0_0_1_8877_default": {
+            "_active": true,
+            "_errored": false,
+            "_hostname": "127.0.0.1",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 8877,
+            "_referenced_by": [
+                "redirecttestswithproxyproto.default.1"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_127_0_0_1_8877_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": true,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "redirecttestswithproxyproto.default.1",
+            "name": "cluster_127_0_0_1_8877_default",
+            "namespace": "default",
+            "service": "127.0.0.1:8877",
+            "targets": [
+                {
+                    "ip": "127.0.0.1",
+                    "port": 8877,
+                    "target_kind": "IPaddr"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://127.0.0.1:8877"
+            ]
+        },
+        "cluster_redirecttestswithproxyproto_http_default": {
+            "_active": true,
+            "_errored": false,
+            "_hostname": "redirecttestswithproxyproto-http",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 80,
+            "_referenced_by": [
+                "redirecttestswithproxyproto-http.default.1"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_redirecttestswithproxyproto_http_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": true,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "redirecttestswithproxyproto-http.default.1",
+            "name": "cluster_redirecttestswithproxyproto_http_default",
+            "namespace": "default",
+            "service": "redirecttestswithproxyproto-http",
+            "targets": [
+                {
+                    "ip": "redirecttestswithproxyproto-http.default",
+                    "port": 80,
+                    "target_kind": "DNSname"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://redirecttestswithproxyproto-http:80"
+            ]
+        }
+    },
+    "filters": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.cors",
+            "config": {},
+            "kind": "ir.cors",
+            "location": "--internal--",
+            "name": "cors",
+            "namespace": "default"
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.router",
+            "config": {},
+            "kind": "ir.router",
+            "location": "--internal--",
+            "name": "router",
+            "namespace": "default",
+            "type": "decoder"
+        }
+    ],
+    "groups": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "redirecttestswithproxyproto.default.1"
+            ],
+            "_rkey": "redirecttestswithproxyproto.default.1",
+            "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
+            "group_weight": [
+                0,
+                26,
+                0,
+                "/ambassador/v0/check_ready",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "redirecttestswithproxyproto.default.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_referenced_by": [
+                        "redirecttestswithproxyproto.default.1"
+                    ],
+                    "_rkey": "redirecttestswithproxyproto.default.1",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8877,
+                        "_referenced_by": [
+                            "redirecttestswithproxyproto.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": true,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "redirecttestswithproxyproto.default.1",
+                        "name": "cluster_127_0_0_1_8877_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8877",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8877,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8877"
+                        ]
+                    },
+                    "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "redirecttestswithproxyproto.default.1",
+                    "name": "internal_readiness_probe_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/ambassador/v0/check_ready",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/ambassador/v0/check_ready",
+                    "route_weight": [
+                        0,
+                        26,
+                        0,
+                        "/ambassador/v0/check_ready",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8877",
+                    "timeout_ms": 10000,
+                    "weight": 100
+                }
+            ],
+            "name": "GROUP: internal_readiness_probe_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/check_ready",
+            "rewrite": "/ambassador/v0/check_ready",
+            "timeout_ms": 10000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "redirecttestswithproxyproto.default.1"
+            ],
+            "_rkey": "redirecttestswithproxyproto.default.1",
+            "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
+            "group_weight": [
+                0,
+                26,
+                0,
+                "/ambassador/v0/check_alive",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "redirecttestswithproxyproto.default.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_referenced_by": [
+                        "redirecttestswithproxyproto.default.1"
+                    ],
+                    "_rkey": "redirecttestswithproxyproto.default.1",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8877,
+                        "_referenced_by": [
+                            "redirecttestswithproxyproto.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": true,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "redirecttestswithproxyproto.default.1",
+                        "name": "cluster_127_0_0_1_8877_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8877",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8877,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8877"
+                        ]
+                    },
+                    "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "redirecttestswithproxyproto.default.1",
+                    "name": "internal_liveness_probe_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/ambassador/v0/check_alive",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/ambassador/v0/check_alive",
+                    "route_weight": [
+                        0,
+                        26,
+                        0,
+                        "/ambassador/v0/check_alive",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8877",
+                    "timeout_ms": 10000,
+                    "weight": 100
+                }
+            ],
+            "name": "GROUP: internal_liveness_probe_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/check_alive",
+            "rewrite": "/ambassador/v0/check_alive",
+            "timeout_ms": 10000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "redirecttestswithproxyproto.default.1"
+            ],
+            "_rkey": "redirecttestswithproxyproto.default.1",
+            "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
+            "group_weight": [
+                0,
+                15,
+                0,
+                "/ambassador/v0/",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "redirecttestswithproxyproto.default.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_referenced_by": [
+                        "redirecttestswithproxyproto.default.1"
+                    ],
+                    "_rkey": "redirecttestswithproxyproto.default.1",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8877,
+                        "_referenced_by": [
+                            "redirecttestswithproxyproto.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": true,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "redirecttestswithproxyproto.default.1",
+                        "name": "cluster_127_0_0_1_8877_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8877",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8877,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8877"
+                        ]
+                    },
+                    "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "redirecttestswithproxyproto.default.1",
+                    "name": "internal_diagnostics_probe_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/ambassador/v0/",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/ambassador/v0/",
+                    "route_weight": [
+                        0,
+                        15,
+                        0,
+                        "/ambassador/v0/",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8877",
+                    "timeout_ms": 10000,
+                    "weight": 100
+                }
+            ],
+            "name": "GROUP: internal_diagnostics_probe_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/",
+            "rewrite": "/ambassador/v0/",
+            "timeout_ms": 10000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "redirecttestswithproxyproto-http.default.1"
+            ],
+            "_rkey": "redirecttestswithproxyproto-http.default.1",
+            "group_id": "9eccc921286b70de60af96cffd4a81f462053be6",
+            "group_weight": [
+                0,
+                12,
+                0,
+                "/tls-target/",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "redirecttestswithproxyproto-http.default.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_rkey": "redirecttestswithproxyproto-http.default.1",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "redirecttestswithproxyproto-http",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 80,
+                        "_referenced_by": [
+                            "redirecttestswithproxyproto-http.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_redirecttestswithproxyproto_http_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": true,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "redirecttestswithproxyproto-http.default.1",
+                        "name": "cluster_redirecttestswithproxyproto_http_default",
+                        "namespace": "default",
+                        "service": "redirecttestswithproxyproto-http",
+                        "targets": [
+                            {
+                                "ip": "redirecttestswithproxyproto-http.default",
+                                "port": 80,
+                                "target_kind": "DNSname"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://redirecttestswithproxyproto-http:80"
+                        ]
+                    },
+                    "group_id": "9eccc921286b70de60af96cffd4a81f462053be6",
+                    "headers": [],
+                    "kind": "Mapping",
+                    "location": "redirecttestswithproxyproto-http.default.1",
+                    "metadata_labels": {
+                        "kat-ambassador-id": "redirecttestswithproxyproto",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "tls_target_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/tls-target/",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/",
+                    "route_weight": [
+                        0,
+                        12,
+                        0,
+                        "/tls-target/",
+                        "GET"
+                    ],
+                    "serialization": "ambassador_id: redirecttestswithproxyproto\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: redirecttestswithproxyproto\n  scope: AmbassadorTest\nname: tls_target_mapping\nnamespace: default\nprefix: /tls-target/\nservice: redirecttestswithproxyproto-http\n",
+                    "service": "redirecttestswithproxyproto-http",
+                    "weight": 100
+                }
+            ],
+            "metadata_labels": {
+                "kat-ambassador-id": "redirecttestswithproxyproto",
+                "scope": "AmbassadorTest"
+            },
+            "name": "GROUP: tls_target_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/tls-target/",
+            "rewrite": "/",
+            "serialization": "ambassador_id: redirecttestswithproxyproto\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: redirecttestswithproxyproto\n  scope: AmbassadorTest\nname: tls_target_mapping\nnamespace: default\nprefix: /tls-target/\nservice: redirecttestswithproxyproto-http\n"
+        }
+    ],
+    "grpc_services": {},
+    "hosts": [],
+    "identity": {
+        "ambassador_id": "redirecttestswithproxyproto",
+        "ambassador_namespace": "default",
+        "ambassador_nodename": "redirecttestswithproxyproto-default"
+    },
+    "k8s_status_updates": {},
+    "listeners": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.listener",
+            "hostname": "*",
+            "insecure_action": "Route",
+            "kind": "IRListener",
+            "location": "redirecttestswithproxyproto.default.1",
+            "name": "ir.listener",
+            "namespace": "default",
+            "redirect_listener": false,
+            "secure_action": "Route",
+            "service_port": 8080,
+            "use_proxy_proto": true
+        }
+    ],
+    "services": {
+        "k8s-redirecttestswithproxyproto-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "redirecttestswithproxyproto",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-redirecttestswithproxyproto-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "redirecttestswithproxyproto",
+                "scope": "AmbassadorTest",
+                "service": "redirecttestswithproxyproto-admin"
+            },
+            "name": "redirecttestswithproxyproto-admin",
+            "namespace": "default",
+            "rkey": "k8s-redirecttestswithproxyproto-admin-default",
+            "serialization": "ambassador_id: redirecttestswithproxyproto\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: redirecttestswithproxyproto\n  scope: AmbassadorTest\n  service: redirecttestswithproxyproto-admin\nname: redirecttestswithproxyproto-admin\nnamespace: default\n"
+        },
+        "k8s-redirecttestswithproxyproto-default": {
+            "_referenced_by": {},
+            "ambassador_id": "redirecttestswithproxyproto",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-redirecttestswithproxyproto-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "redirecttestswithproxyproto",
+                "scope": "AmbassadorTest"
+            },
+            "name": "redirecttestswithproxyproto",
+            "namespace": "default",
+            "rkey": "k8s-redirecttestswithproxyproto-default",
+            "serialization": "ambassador_id: redirecttestswithproxyproto\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: redirecttestswithproxyproto\n  scope: AmbassadorTest\nname: redirecttestswithproxyproto\nnamespace: default\n"
+        },
+        "k8s-redirecttestswithproxyproto-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "redirecttestswithproxyproto",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-redirecttestswithproxyproto-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "redirecttestswithproxyproto",
+                "scope": "AmbassadorTest"
+            },
+            "name": "redirecttestswithproxyproto-http",
+            "namespace": "default",
+            "rkey": "k8s-redirecttestswithproxyproto-http-default",
+            "serialization": "ambassador_id: redirecttestswithproxyproto\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: redirecttestswithproxyproto\n  scope: AmbassadorTest\nname: redirecttestswithproxyproto-http\nnamespace: default\n"
+        }
+    },
+    "tls_contexts": []
+}

@@ -62,15 +62,13 @@
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
 _docker-cluster.mk := $(lastword $(MAKEFILE_LIST))
 include $(dir $(_docker-cluster.mk))kubeapply.mk
-include $(dir $(_docker-cluster.mk))var.mk
 
 _docker.clean.groups += cluster
 include $(dir $(_docker-cluster.mk))docker.mk
 
 DOCKER_K8S_ENABLE_PVC ?=
 
-_docker-cluster.port-forward = $(dir $(_docker-cluster.mk))docker-port-forward
-_docker-cluster.registry     = $(dir $(_docker-cluster.mk))docker-registry
+_docker.port-forward = $(dir $(_docker-cluster.mk))docker-port-forward
 
 # file contents:
 #   line 1: image ID
@@ -78,28 +76,14 @@ _docker-cluster.registry     = $(dir $(_docker-cluster.mk))docker-registry
 %.docker.tag.cluster: %.docker $(WRITE_DOCKERTAGFILE) FORCE
 	printf '%s\n' $$(cat $<) $(docker.LOCALHOST):31000/$(notdir $*):$$(sed -n '1{ s/:/-/g; p; }' $<) | $(WRITE_DOCKERTAGFILE) $@
 
-$(_docker-cluster.registry).deploy: $(_docker-cluster.registry).yaml
-$(_docker-cluster.registry).deploy: $(var.)KUBECONFIG $(KUBECONFIG) $(var.)DOCKER_K8S_ENABLE_PVC
-$(_docker-cluster.registry).deploy: $(var.)DOCKER_K8S_ENABLE_PVC
-$(_docker-cluster.registry).deploy: $(FLOCK) $(KUBEAPPLY)
-# the FLOCK for KUBEAPPLY is to work around https://github.com/datawire/teleproxy/issues/77
-	DOCKER_K8S_ENABLE_PVC=$(DOCKER_K8S_ENABLE_PVC) \
-	    $(FLOCK) $(_docker-cluster.port-forward).lock \
-	    $(KUBEAPPLY) -f $(_docker-cluster.registry).yaml
-	touch $@
-
 # file contents:
 #   line 1: image ID
 #   line 2: in-cluster tag name (hash-based)
-%.docker.push.cluster: %.docker.tag.cluster $(_docker-cluster.registry).deploy $(FLOCK) $(var.)KUBECONFIG $(KUBECONFIG)
-	@PS4=; set -ex; { \
-	    trap \
-	        "kill $$( \
-	            $(FLOCK) $(_docker-cluster.port-forward).lock \
-	                sh -c ' \
-	                    kubectl port-forward --namespace=docker-registry $(if $(DOCKER_K8S_ENABLE_PVC),statefulset,deployment)/registry 31000:5000 >$(_docker-cluster.port-forward).log 2>&1 & \
-	                    echo $$!')" \
-	        EXIT; \
+%.docker.push.cluster: %.docker.tag.cluster $(KUBEAPPLY) $(FLOCK) $(KUBECONFIG)
+# the FLOCK for KUBEAPPLY is to work around https://github.com/datawire/teleproxy/issues/77
+	DOCKER_K8S_ENABLE_PVC=$(DOCKER_K8S_ENABLE_PVC) $(FLOCK) $(_docker.port-forward).lock $(KUBEAPPLY) -f $(dir $(_docker-cluster.mk))docker-registry.yaml
+	{ \
+	    trap "kill $$($(FLOCK) $(_docker.port-forward).lock sh -c 'kubectl port-forward --namespace=docker-registry $(if $(filter true,$(DOCKER_K8S_ENABLE_PVC)),statefulset,deployment)/registry 31000:5000 >$(_docker.port-forward).log 2>&1 & echo $$!')" EXIT; \
 	    while ! curl -i http://localhost:31000/ 2>/dev/null; do sleep 1; done; \
 	    sed 1d $< | xargs -n1 docker push; \
 	}
@@ -114,10 +98,9 @@ $(_docker-cluster.registry).deploy: $(FLOCK) $(KUBEAPPLY)
 # $(FLOCK).  But if the user runs `make clobber`, the prelude.mk
 # cleanup might delete $(FLOCK) before we get to run it.
 _clean-docker-cluster:
-	cd $(dir $(_docker-cluster.mk))bin-go/flock && GO111MODULE=on go run . $(abspath $(_docker-cluster.port-forward).lock) rm $(abspath $(_docker-cluster.port-forward).lock)
-	rm -f $(_docker-cluster.port-forward).log
-	rm -f $(_docker-cluster.registry).deploy
-	rm -f $(_docker-cluster.registry).yaml.o
+	cd $(dir $(_docker-cluster.mk))bin-go/flock && GO111MODULE=on go run . $(abspath $(_docker.port-forward).lock) rm $(abspath $(_docker.port-forward).lock)
+	rm -f $(_docker.port-forward).log
+	rm -f $(dir $(_docker-cluster.mk))docker-registry.yaml.o
 clean: _clean-docker-cluster
 .PHONY: _clean-docker-cluster
 

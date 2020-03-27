@@ -1,0 +1,31 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ambassador
+  annotations:
+    getambassador.io/config: |
+      ---
+      # Disabling the default diagnostic route
+      apiVersion: ambassador/v0
+      kind: Module
+      name: ambassador
+      config:
+        diagnostics:
+          enabled: false
+      ---
+      apiVersion: ambassador/v0
+      kind:  Mapping
+      name:  httpbin2_mapping
+      prefix: /hb/
+      service: https://httpbin.org
+      host_rewrite: httpbin.org      
+spec:
+  selector:
+    service: ambassador
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 80
+  type: NodePort

@@ -1,0 +1,316 @@
+<!--
+Copyright 2018 Datawire. All rights reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="/ambassador/v0/favicon.ico">
+
+    <title>Ambassador Diagnostic Overview</title>
+
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
+
+    <!-- Custom styles for this template -->
+    <link href="https://getbootstrap.com/docs/4.0/examples/grid/grid.css" rel="stylesheet">
+  </head>
+
+  <body>
+    <div class="container">
+
+      <div class="row">
+        <div class="{%- if system.debug_mode -%}col-7{%- else -%}col-12{%- endif -%}">
+          <h1>Ambassador Diagnostic Overview</h1>
+        </div>
+        {% if system.debug_mode %}
+        <div class="col-5">
+          <h1 style="color: red; text-align: right">DEBUG MODE</h1>
+        </div>
+        {% endif %}
+      </div>
+
+      {%- include "system-info.html" -%}
+      {%- include "guidance.html" -%}
+
+      {% if notices %}
+        <div class="row">
+          <div class="col-12">
+            {% for notice in notices %}
+              <span 
+              {% if (notice.level == 'WARNING') or (notice.level == 'ERROR') %}
+              style="color:red"
+              {% elif notice.level == 'NOTICE' %}
+              style="color:orange"
+              {% elif notice.level == 'INFO' %}
+              style="color:green"
+              {% endif %}
+            >{{ notice.level }}</span>: {{ notice.message }}<br/>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+      {% if errors %}
+        <div class="row">
+          <div class="col-12">
+            <span style="color:red">CONFIGURATION ERRORS</span>
+            <ul>
+            {% for error in errors | sort %}
+              <li>
+                {% if error[0] %}
+                  <a href="/ambassador/v0/diag/{{ error[0] }}">
+                    <span style="color:red">{{ error[0] }}: {{ error[1] }}</span>
+                  </a>
+                {% else %}
+                  <span style="color:red">{{ error[1] }}</span>
+                {% endif %}
+              </li>
+            {% endfor %}
+            </ul>
+          </div>
+        </div>
+      {% endif %}
+
+      <div class="row">
+        <div class="col-12">
+          <a href="https://www.getambassador.io/docs/">Ambassador Documentation</a>
+
+          <div class="row">
+            <div class="col-12">
+              <table cellpadding="2em" width="100%">
+                <thead>
+                  <td><b>Getting Started</b></td>
+                  <td><b>Using Ambassador</b></td>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><a href="https://www.getambassador.io/concepts/architecture?utm_source=diagnostics">Ambassador Architecture</a></td>
+                    <td><a href="https://www.getambassador.io/reference/configuration?utm_source=diagnostics">Configuration Reference</a></td>
+                  </tr>
+                  <tr>
+                    <td><a href="https://www.getambassador.io/reference/running?utm_source=diagnostics">Running Ambassador</a></td>
+                    <td><a href="https://www.getambassador.io/user-guide/oauth-oidc-auth?utm_source=diagnostics">Single Sign-On with OAuth/OIDC</a></td>
+                  </tr>
+                  <tr>
+                    <td><a href="https://www.getambassador.io/reference/statistics?utm_source=diagnostics">Statistics and Monitoring</a></td>
+                    <td><a href="https://www.getambassador.io/reference/filter-reference?utm_source=diagnostics">Custom Filters</a></td>
+                  </tr>
+                  <tr>
+                    <td><a href="https://www.getambassador.io/reference/debugging?utm_source=diagnostics">Troubleshooting Ambassador</a></td>
+                    <td><a href="https://www.getambassador.io/user-guide/advanced-rate-limiting?utm_source=diagnostics">Rate Limiting</a></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {% if ambassador_services %}
+      <div class="row">
+        <div class="col-12">
+          Ambassador Services In Use
+
+          <div class="row">
+            <div class="col-12">
+              <table cellpadding="2em" width="100%">
+                <thead>
+                  <td><b>Type</b></td>
+                  <td><b>Service</b></td>
+                  <td><b>Weight</b></td>
+                </thead>
+                <tbody>
+                  {% for service in ambassador_services %}
+                  <tr 
+                    {% if loop.index % 2 %}
+                      style="background: rgba(86,61,124,.05);"
+                    {% endif %}
+                    >
+                    <td>
+                      <samp>{{ service.type }}</samp>
+                    </td>
+                    <td>
+                      <a href="/ambassador/v0/diag/{{ service['_source'] }}">
+                        <code><span style="color:{{ cluster_stats[service.cluster].hcolor }}">
+                          {{ service.name }}
+                        </span></code>
+                      </a>
+                    </td>
+                    <td>
+                      {{ service._service_weight }}%
+                    </td>
+                  {% endfor %}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+  
+      {% if ambassador_resolvers %}
+      <div class="row">
+        <div class="col-12">
+          Ambassador Resolvers In Use
+
+          <div class="row">
+            <div class="col-12">
+              <table cellpadding="2em" width="100%">
+                <thead>
+                  <td><b>Kind</b></td>
+                  <td><b>Resolver</b></td>
+                </thead>
+                <tbody>
+                  {% for resolver in ambassador_resolvers %}
+                  <tr
+                    {% if loop.index % 2 %}
+                      style="background: rgba(86,61,124,.05);"
+                    {% endif %}
+                    >
+                    <td>
+                      <samp>{{ resolver.kind }}</samp>
+                    </td>
+                    <td>
+                        <a href="/ambassador/v0/diag/{{ resolver['_source'] }}">
+                            {{ resolver.name }}
+                      </a>
+                    </td>
+                  {% endfor %}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="row">
+        <div class="col-12">
+          Ambassador Route Table
+
+          <div class="row">
+            <div class="col-12">
+              <table cellpadding="2em" width="100%">
+                <thead>
+                  <td><b>URL</b></td>
+                  <td><b>Service</b></td>
+                  <td><b>Weight</b></td>
+                </thead>
+                <tbody>
+                  {% for route in route_info %}
+                    <tr 
+                      style="
+                        {%- if loop.index % 2 -%}
+                        background: rgba(86,61,124,.05);
+                        {%- endif -%}
+                        {%- if route.diag_class == "private" -%}
+                        font-style: oblique; opacity: 60%;
+                        {%- endif -%}
+                      ">
+                      <td>
+                        <a href="/ambassador/v0/diag/grp-{{ route['_group_id'] }}">
+                          <code>
+                            {%- if route.diag_class == "private" -%}[internal route]<br/>{%- endif -%}
+                            {{ route.key }}
+                          {% if route['headers'] %}
+                            {% for hdr in route['headers'] %}
+                              <br/>
+                              {{ hdr['name'] }}: {{ hdr['value'] }}
+                            {% endfor %}
+                          {% endif %}
+                          {% if route['precedence'] != 0 %}
+                            <br/>
+                            precedence {{ route.precedence }}
+                          {% endif %}
+                          </code>
+                        </a>
+                      </td>
+                      <td>
+                        {% for cluster in route.clusters| sort_clusters_by_service %}
+                          <a href="/ambassador/v0/diag/{{ route['_source'] }}">
+                            <code><span style="color:{{ cluster._hcolor }}">
+                              {% if cluster.type_label %}
+                                {{ cluster.type_label }}:
+                              {% endif %}
+                              {{ cluster.service }}
+                            </span></code>
+                          </a>
+                          {% if not loop.last %}
+                          <br/>
+                          {% endif %}
+                        {% endfor %}
+                      </td>
+                      <td>
+                        {% for cluster in route.clusters| sort_clusters_by_service %}
+                          {{ ((cluster.weight * 10.0) + 0.9) // 10 }}%
+                          {% if not loop.last %}
+                          <br/>
+                          {% endif %}
+                        {% endfor %}
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12">
+          Color Legend
+          <div class="row">
+            <div class="col-12">
+              <table cellpadding="2em" width="100%">
+                <thead>
+                  <tr>
+                    <td>Color</td>
+                    <td>Success Rate</td>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr style="background: rgba(86,61,124,.05)">
+                    <td style="color:red">Red</td>
+                    <td>0% - 70%</td>
+                  </tr>
+                  <tr>
+                    <td style="color:yellow">Yellow</td>
+                    <td>70% - 90%</td>
+                  </tr>
+                  <tr style="background: rgba(86,61,124,.05)">
+                    <td style="color:green">Green</td>
+                    <td>90% - 100%</td>
+                  </tr>
+                  <tr>
+                    <td style="color:gray">Gray</td>
+                    <td>Unknown</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div> <!-- /container -->
+  </body>
+</html>

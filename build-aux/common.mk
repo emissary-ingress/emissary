@@ -86,7 +86,7 @@ bin:
 	ln -s bin_$(GOHOSTOS)_$(GOHOSTARCH)/ $@
 
 check: lint build
-	$(MAKE) -f $(firstword $(MAKEFILE_LIST)) test-suite.tap.summary
+	$(MAKE) test-suite.tap.summary
 test-suite.tap: $(TAP_DRIVER)
 	@$(TAP_DRIVER) cat $(sort $(filter %.tap,$^)) > $@
 

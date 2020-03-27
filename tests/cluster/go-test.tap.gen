@@ -1,8 +1,0 @@
-#!/usr/bin/env bash
-
-# for consulconnect_test.go
-PATH="$PWD/venv/bin:$PATH"
-
-# -count=1 to disable caching
-go test -json -tags=test -count=1 ./tests/cluster/go-test/... 2>/dev/null |
-	./build-aux/bin/gotest2tap

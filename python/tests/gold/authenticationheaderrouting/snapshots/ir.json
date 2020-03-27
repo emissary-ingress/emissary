@@ -1,0 +1,870 @@
+{
+    "ambassador": {
+        "_active": true,
+        "_errored": false,
+        "_finalized": true,
+        "_rkey": "ir.ambassador",
+        "admin_port": 8001,
+        "debug_mode": false,
+        "default_label_domain": "ambassador",
+        "default_labels": {},
+        "diag_port": 8877,
+        "diagnostics": {
+            "enabled": true,
+            "prefix": "/ambassador/v0/",
+            "rewrite": "/ambassador/v0/",
+            "service": "127.0.0.1:8877"
+        },
+        "enable_http10": false,
+        "enable_ipv4": true,
+        "enable_ipv6": false,
+        "envoy_log_path": "/dev/fd/1",
+        "envoy_log_type": "text",
+        "kind": "IRAmbassador",
+        "liveness_probe": {
+            "enabled": true,
+            "prefix": "/ambassador/v0/check_alive",
+            "rewrite": "/ambassador/v0/check_alive",
+            "service": "127.0.0.1:8877"
+        },
+        "location": "--internal--",
+        "name": "ir.ambassador",
+        "namespace": "default",
+        "proper_case": false,  
+        "readiness_probe": {
+            "enabled": true,
+            "prefix": "/ambassador/v0/check_ready",
+            "rewrite": "/ambassador/v0/check_ready",
+            "service": "127.0.0.1:8877"
+        },
+        "server_name": "envoy",
+        "service_port": 8080,
+        "use_ambassador_namespace_for_service_resolution": false,
+        "use_proxy_proto": false,
+        "use_remote_address": true,
+        "x_forwarded_proto_redirect": false,
+        "xff_num_trusted_hops": 0
+    },
+    "clusters": {
+        "cluster_127_0_0_1_8877_default": {
+            "_active": true,
+            "_errored": false,
+            "_hostname": "127.0.0.1",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 8877,
+            "_referenced_by": [
+                "--internal--"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_127_0_0_1_8877_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "--internal--",
+            "name": "cluster_127_0_0_1_8877_default",
+            "namespace": "default",
+            "service": "127.0.0.1:8877",
+            "targets": [
+                {
+                    "ip": "127.0.0.1",
+                    "port": 8877,
+                    "target_kind": "IPaddr"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://127.0.0.1:8877"
+            ]
+        },
+        "cluster_extauth_authenticationheaderrouting_headerroutingauth_default": {
+            "_active": true,
+            "_errored": false,
+            "_hostname": "authenticationheaderrouting-headerroutingauth",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 80,
+            "_referenced_by": [
+                "authenticationheaderrouting.default.1"
+            ],
+            "_rkey": "cluster_extauth_authenticationheaderrouting_headerroutingauth_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "authenticationheaderrouting.default.1",
+            "name": "cluster_extauth_authenticationheaderrout-0",
+            "namespace": "default",
+            "service": "authenticationheaderrouting-headerroutingauth",
+            "targets": [
+                {
+                    "ip": "authenticationheaderrouting-headerroutingauth.default",
+                    "port": 80,
+                    "target_kind": "DNSname"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://authenticationheaderrouting-headerroutingauth:80"
+            ]
+        },
+        "cluster_http___authenticationheaderrouting_http_target1_default": {
+            "_active": true,
+            "_errored": false,
+            "_hostname": "authenticationheaderrouting-http-target1",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 80,
+            "_referenced_by": [
+                "authenticationheaderrouting-http-target1.default.1"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_http___authenticationheaderrouting_http_target1_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "authenticationheaderrouting-http-target1.default.1",
+            "name": "cluster_http___authenticationheaderrouti-0",
+            "namespace": "default",
+            "service": "authenticationheaderrouting-http-target1",
+            "targets": [
+                {
+                    "ip": "authenticationheaderrouting-http-target1.default",
+                    "port": 80,
+                    "target_kind": "DNSname"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://authenticationheaderrouting-http-target1:80"
+            ]
+        },
+        "cluster_http___authenticationheaderrouting_http_target2_default": {
+            "_active": true,
+            "_errored": false,
+            "_hostname": "authenticationheaderrouting-http-target2",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 80,
+            "_referenced_by": [
+                "authenticationheaderrouting-http-target2.default.1"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_http___authenticationheaderrouting_http_target2_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "authenticationheaderrouting-http-target2.default.1",
+            "name": "cluster_http___authenticationheaderrouti-1",
+            "namespace": "default",
+            "service": "authenticationheaderrouting-http-target2",
+            "targets": [
+                {
+                    "ip": "authenticationheaderrouting-http-target2.default",
+                    "port": 80,
+                    "target_kind": "DNSname"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://authenticationheaderrouting-http-target2:80"
+            ]
+        }
+    },
+    "filters": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "authenticationheaderrouting.default.1"
+            ],
+            "_rkey": "authenticationheaderrouting.default.1",
+            "add_linkerd_headers": false,
+            "allow_request_body": false,
+            "allowed_authorization_headers": [
+                "extauth",
+                "x-auth-route"
+            ],
+            "allowed_headers": [],
+            "allowed_request_headers": [],
+            "api_version": "getambassador.io/v1",
+            "cluster": {
+                "_active": true,
+                "_errored": false,
+                "_hostname": "authenticationheaderrouting-headerroutingauth",
+                "_is_sidecar": false,
+                "_namespace": "default",
+                "_port": 80,
+                "_referenced_by": [
+                    "authenticationheaderrouting.default.1"
+                ],
+                "_rkey": "cluster_extauth_authenticationheaderrouting_headerroutingauth_default",
+                "connect_timeout_ms": 3000,
+                "enable_endpoints": false,
+                "enable_ipv4": true,
+                "enable_ipv6": false,
+                "ignore_cluster": false,
+                "kind": "IRCluster",
+                "lb_type": "round_robin",
+                "location": "authenticationheaderrouting.default.1",
+                "name": "cluster_extauth_authenticationheaderrout-0",
+                "namespace": "default",
+                "service": "authenticationheaderrouting-headerroutingauth",
+                "targets": [
+                    {
+                        "ip": "authenticationheaderrouting-headerroutingauth.default",
+                        "port": 80,
+                        "target_kind": "DNSname"
+                    }
+                ],
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://authenticationheaderrouting-headerroutingauth:80"
+                ]
+            },
+            "connect_timeout_ms": 3000,
+            "hosts": {
+                "authenticationheaderrouting-headerroutingauth": [
+                    100,
+                    false,
+                    null,
+                    "authenticationheaderrouting.default.1"
+                ]
+            },
+            "kind": "IRAuth",
+            "location": "authenticationheaderrouting.default.1",
+            "name": "extauth",
+            "namespace": "default",
+            "proto": "http",
+            "timeout_ms": 5000,
+            "type": "decoder"
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.cors",
+            "config": {},
+            "kind": "ir.cors",
+            "location": "--internal--",
+            "name": "cors",
+            "namespace": "default"
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.router",
+            "config": {},
+            "kind": "ir.router",
+            "location": "--internal--",
+            "name": "router",
+            "namespace": "default",
+            "type": "decoder"
+        }
+    ],
+    "groups": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "--internal--"
+            ],
+            "_rkey": "ir.ambassador",
+            "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
+            "group_weight": [
+                0,
+                26,
+                0,
+                "/ambassador/v0/check_ready",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "--internal--",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_referenced_by": [
+                        "--internal--"
+                    ],
+                    "_rkey": "ir.ambassador",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8877,
+                        "_referenced_by": [
+                            "--internal--"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "--internal--",
+                        "name": "cluster_127_0_0_1_8877_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8877",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8877,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8877"
+                        ]
+                    },
+                    "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "--internal--",
+                    "name": "internal_readiness_probe_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/ambassador/v0/check_ready",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/ambassador/v0/check_ready",
+                    "route_weight": [
+                        0,
+                        26,
+                        0,
+                        "/ambassador/v0/check_ready",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8877",
+                    "timeout_ms": 10000,
+                    "weight": 100
+                }
+            ],
+            "name": "GROUP: internal_readiness_probe_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/check_ready",
+            "rewrite": "/ambassador/v0/check_ready",
+            "timeout_ms": 10000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "--internal--"
+            ],
+            "_rkey": "ir.ambassador",
+            "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
+            "group_weight": [
+                0,
+                26,
+                0,
+                "/ambassador/v0/check_alive",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "--internal--",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_referenced_by": [
+                        "--internal--"
+                    ],
+                    "_rkey": "ir.ambassador",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8877,
+                        "_referenced_by": [
+                            "--internal--"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "--internal--",
+                        "name": "cluster_127_0_0_1_8877_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8877",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8877,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8877"
+                        ]
+                    },
+                    "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "--internal--",
+                    "name": "internal_liveness_probe_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/ambassador/v0/check_alive",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/ambassador/v0/check_alive",
+                    "route_weight": [
+                        0,
+                        26,
+                        0,
+                        "/ambassador/v0/check_alive",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8877",
+                    "timeout_ms": 10000,
+                    "weight": 100
+                }
+            ],
+            "name": "GROUP: internal_liveness_probe_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/check_alive",
+            "rewrite": "/ambassador/v0/check_alive",
+            "timeout_ms": 10000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "--internal--"
+            ],
+            "_rkey": "ir.ambassador",
+            "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
+            "group_weight": [
+                0,
+                15,
+                0,
+                "/ambassador/v0/",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "--internal--",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_referenced_by": [
+                        "--internal--"
+                    ],
+                    "_rkey": "ir.ambassador",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8877,
+                        "_referenced_by": [
+                            "--internal--"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "--internal--",
+                        "name": "cluster_127_0_0_1_8877_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8877",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8877,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8877"
+                        ]
+                    },
+                    "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "--internal--",
+                    "name": "internal_diagnostics_probe_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/ambassador/v0/",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/ambassador/v0/",
+                    "route_weight": [
+                        0,
+                        15,
+                        0,
+                        "/ambassador/v0/",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8877",
+                    "timeout_ms": 10000,
+                    "weight": 100
+                }
+            ],
+            "name": "GROUP: internal_diagnostics_probe_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/",
+            "rewrite": "/ambassador/v0/",
+            "timeout_ms": 10000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "authenticationheaderrouting-http-target2.default.1"
+            ],
+            "_rkey": "authenticationheaderrouting-http-target2.default.1",
+            "group_id": "978fc256660ec251e05d04506fa31124b3fcaebe",
+            "group_weight": [
+                0,
+                8,
+                17,
+                "/target/",
+                "GET",
+                "X-Auth-Route-Route"
+            ],
+            "headers": [
+                {
+                    "name": "X-Auth-Route",
+                    "regex": false,
+                    "value": "Route"
+                }
+            ],
+            "kind": "IRHTTPMappingGroup",
+            "location": "authenticationheaderrouting-http-target2.default.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_rkey": "authenticationheaderrouting-http-target2.default.1",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "authenticationheaderrouting-http-target2",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 80,
+                        "_referenced_by": [
+                            "authenticationheaderrouting-http-target2.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_http___authenticationheaderrouting_http_target2_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "authenticationheaderrouting-http-target2.default.1",
+                        "name": "cluster_http___authenticationheaderrouti-1",
+                        "namespace": "default",
+                        "service": "authenticationheaderrouting-http-target2",
+                        "targets": [
+                            {
+                                "ip": "authenticationheaderrouting-http-target2.default",
+                                "port": 80,
+                                "target_kind": "DNSname"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://authenticationheaderrouting-http-target2:80"
+                        ]
+                    },
+                    "group_id": "978fc256660ec251e05d04506fa31124b3fcaebe",
+                    "headers": [
+                        {
+                            "name": "X-Auth-Route",
+                            "regex": false,
+                            "value": "Route"
+                        }
+                    ],
+                    "kind": "Mapping",
+                    "location": "authenticationheaderrouting-http-target2.default.1",
+                    "metadata_labels": {
+                        "kat-ambassador-id": "authenticationheaderrouting",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "X-Auth-Route",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/target/",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/",
+                    "route_weight": [
+                        0,
+                        8,
+                        17,
+                        "/target/",
+                        "GET",
+                        "X-Auth-Route-Route"
+                    ],
+                    "serialization": "ambassador_id: authenticationheaderrouting\napiVersion: ambassador/v0\nheaders:\n  X-Auth-Route: Route\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: AuthenticationHeaderRouting-target2\nnamespace: default\nprefix: /target/\nservice: http://authenticationheaderrouting-http-target2\n",
+                    "service": "http://authenticationheaderrouting-http-target2",
+                    "weight": 100
+                }
+            ],
+            "metadata_labels": {
+                "kat-ambassador-id": "authenticationheaderrouting",
+                "scope": "AmbassadorTest"
+            },
+            "name": "GROUP: X-Auth-Route",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/target/",
+            "rewrite": "/",
+            "serialization": "ambassador_id: authenticationheaderrouting\napiVersion: ambassador/v0\nheaders:\n  X-Auth-Route: Route\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: AuthenticationHeaderRouting-target2\nnamespace: default\nprefix: /target/\nservice: http://authenticationheaderrouting-http-target2\n"
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "authenticationheaderrouting-http-target1.default.1"
+            ],
+            "_rkey": "authenticationheaderrouting-http-target1.default.1",
+            "group_id": "ef2f76a27cdb850e84f8f5c00ce17c4798f7e065",
+            "group_weight": [
+                0,
+                8,
+                0,
+                "/target/",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "authenticationheaderrouting-http-target1.default.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_rkey": "authenticationheaderrouting-http-target1.default.1",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "authenticationheaderrouting-http-target1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 80,
+                        "_referenced_by": [
+                            "authenticationheaderrouting-http-target1.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_http___authenticationheaderrouting_http_target1_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "authenticationheaderrouting-http-target1.default.1",
+                        "name": "cluster_http___authenticationheaderrouti-0",
+                        "namespace": "default",
+                        "service": "authenticationheaderrouting-http-target1",
+                        "targets": [
+                            {
+                                "ip": "authenticationheaderrouting-http-target1.default",
+                                "port": 80,
+                                "target_kind": "DNSname"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://authenticationheaderrouting-http-target1:80"
+                        ]
+                    },
+                    "group_id": "ef2f76a27cdb850e84f8f5c00ce17c4798f7e065",
+                    "headers": [],
+                    "kind": "Mapping",
+                    "location": "authenticationheaderrouting-http-target1.default.1",
+                    "metadata_labels": {
+                        "kat-ambassador-id": "authenticationheaderrouting",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "AuthenticationHeaderRouting-target1",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/target/",
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/",
+                    "route_weight": [
+                        0,
+                        8,
+                        0,
+                        "/target/",
+                        "GET"
+                    ],
+                    "serialization": "ambassador_id: authenticationheaderrouting\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: AuthenticationHeaderRouting-target1\nnamespace: default\nprefix: /target/\nservice: http://authenticationheaderrouting-http-target1\n",
+                    "service": "http://authenticationheaderrouting-http-target1",
+                    "weight": 100
+                }
+            ],
+            "metadata_labels": {
+                "kat-ambassador-id": "authenticationheaderrouting",
+                "scope": "AmbassadorTest"
+            },
+            "name": "GROUP: AuthenticationHeaderRouting-target1",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/target/",
+            "rewrite": "/",
+            "serialization": "ambassador_id: authenticationheaderrouting\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: AuthenticationHeaderRouting-target1\nnamespace: default\nprefix: /target/\nservice: http://authenticationheaderrouting-http-target1\n"
+        }
+    ],
+    "grpc_services": {},
+    "hosts": [],
+    "identity": {
+        "ambassador_id": "authenticationheaderrouting",
+        "ambassador_namespace": "default",
+        "ambassador_nodename": "authenticationheaderrouting-default"
+    },
+    "k8s_status_updates": {},
+    "listeners": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.listener",
+            "hostname": "*",
+            "insecure_action": "Route",
+            "kind": "IRListener",
+            "location": "--internal--",
+            "name": "ir.listener",
+            "namespace": "default",
+            "redirect_listener": false,
+            "secure_action": "Route",
+            "service_port": 8080,
+            "use_proxy_proto": false
+        }
+    ],
+    "services": {
+        "k8s-authenticationheaderrouting-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "authenticationheaderrouting",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-authenticationheaderrouting-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "authenticationheaderrouting",
+                "scope": "AmbassadorTest",
+                "service": "authenticationheaderrouting-admin"
+            },
+            "name": "authenticationheaderrouting-admin",
+            "namespace": "default",
+            "rkey": "k8s-authenticationheaderrouting-admin-default",
+            "serialization": "ambassador_id: authenticationheaderrouting\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\n  service: authenticationheaderrouting-admin\nname: authenticationheaderrouting-admin\nnamespace: default\n"
+        },
+        "k8s-authenticationheaderrouting-default": {
+            "_referenced_by": {},
+            "ambassador_id": "authenticationheaderrouting",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-authenticationheaderrouting-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "authenticationheaderrouting",
+                "scope": "AmbassadorTest"
+            },
+            "name": "authenticationheaderrouting",
+            "namespace": "default",
+            "rkey": "k8s-authenticationheaderrouting-default",
+            "serialization": "ambassador_id: authenticationheaderrouting\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: authenticationheaderrouting\nnamespace: default\n"
+        },
+        "k8s-authenticationheaderrouting-headerroutingauth-default": {
+            "_referenced_by": {},
+            "ambassador_id": "authenticationheaderrouting",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-authenticationheaderrouting-headerroutingauth-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "authenticationheaderrouting",
+                "scope": "AmbassadorTest"
+            },
+            "name": "authenticationheaderrouting-headerroutingauth",
+            "namespace": "default",
+            "rkey": "k8s-authenticationheaderrouting-headerroutingauth-default",
+            "serialization": "ambassador_id: authenticationheaderrouting\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: authenticationheaderrouting-headerroutingauth\nnamespace: default\n"
+        },
+        "k8s-authenticationheaderrouting-http-target1-default": {
+            "_referenced_by": {},
+            "ambassador_id": "authenticationheaderrouting",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-authenticationheaderrouting-http-target1-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "authenticationheaderrouting",
+                "scope": "AmbassadorTest"
+            },
+            "name": "authenticationheaderrouting-http-target1",
+            "namespace": "default",
+            "rkey": "k8s-authenticationheaderrouting-http-target1-default",
+            "serialization": "ambassador_id: authenticationheaderrouting\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: authenticationheaderrouting-http-target1\nnamespace: default\n"
+        },
+        "k8s-authenticationheaderrouting-http-target2-default": {
+            "_referenced_by": {},
+            "ambassador_id": "authenticationheaderrouting",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-authenticationheaderrouting-http-target2-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "authenticationheaderrouting",
+                "scope": "AmbassadorTest"
+            },
+            "name": "authenticationheaderrouting-http-target2",
+            "namespace": "default",
+            "rkey": "k8s-authenticationheaderrouting-http-target2-default",
+            "serialization": "ambassador_id: authenticationheaderrouting\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: authenticationheaderrouting-http-target2\nnamespace: default\n"
+        }
+    },
+    "tls_contexts": []
+}

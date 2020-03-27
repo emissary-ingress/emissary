@@ -1,0 +1,26 @@
+dist: xenial
+language: go
+go:
+- 1.11.x
+
+script:
+- make build image
+- "./smoketest.sh"
+
+before_deploy:
+- mkdir -p ambex-s3/ambex/${TRAVIS_TAG}/
+- cp bin_linux_amd64/ambex ambex-s3/ambex/${TRAVIS_TAG}/ambex
+
+deploy:
+  provider: s3
+  bucket: datawire-static-files
+  local_dir: ambex-s3
+  skip_cleanup: true
+  access_key_id: AKIAIH5JLBXLCNDGOLRA
+  secret_access_key:
+    secure: X/DYfqfz9Pbuw4QVt8e6DXKvYGObQcoE5l+B+tAZVmSSQ99WdEdB15eVEdGk5soPCjI3y9sYzzRtSKkJafW8txx/dSDgK2GH8uMHnqeH+aWUFreeMJcjSlg6KV5pgD+LJkztKFCrDyi9/LcBlhKQGBh+t0yt0SIOzTlECf9QLIw62MKOBULr7Iv2f7fle6DkBSpI64UaORKcX46bjxBhOg9pvkUC/1kMEhdYBDI1V2kTMnt9qvooyIkHWx5KFVXtT+yeJ2Km7Iciy8cQneIG4FVbJUyB8TLdDF4G1KFJkSGKMp8UG/dldikMbjuujtmgW6sSHkuqwnfThw9z0ScPLxbXzergQaen1ANZGkTAh4pQ3r8oi5/y6KalmkzdcHLiQ5OXhaPUlKU4XSymTP+yXL5bcriRMVg+JQo8WUjePx7zYhbvFHzLpjYMIgaEM6ybQUIx750EY5VGpD4BEOPrICJkU0UQ82+XKRl8+RQ+3c1Q+BC4d9g1xcAbCjCXV80XAco8fGKqvN+pu65h8beVNaFq2v9jm0ghCgCw5Avv5Z4U+dXBreNoZ49m8c94LfNMYpGjiqF666lWePRF3mtEejamVfi5yQ3Ez0KWhuuH3W6hRHqmeZ17e4y9stWIbR/IdJ7j2D5PNcPF7QGSrL/C+txVTH8rP820/heyVzBiEKI=
+  on:
+    tags: true
+
+notifications:
+  email: false

@@ -1,181 +1,244 @@
-- title: Getting Started
-  link: /docs
+- title: First Steps
   collapsable: false
+  link: /docs/latest/
   items:
-    - title: Why Ambassador?
-      link: /about/why-ambassador
-    - title: Features and Benefits
-      link: /about/features-and-benefits
-    - title: Using Ambassador in Your Organization
-      link: /concepts/using-ambassador-in-org
-    - title: Ambassador vs. Other Software
-      link: /about/alternatives
-    - title: Installing Ambassador
-      link: /user-guide/install
-      items:
-      - title: Kubernetes (YAML)
-        link: /user-guide/getting-started
-      - title: Kubernetes (Helm)
-        link: /user-guide/helm
-      - title: Docker Quickstart
-        link: /about/quickstart
-      - title: Docker Compose
-        link: /user-guide/docker-compose
-      - title: Bare Metal
-        link: /user-guide/bare-metal
-      - title: Ambassador Pro
-        link: /user-guide/ambassador-pro-install
-      - title: Early Access Releases
-        link: /user-guide/early-access
-      - title: Certified Builds
-        link: /user-guide/certified-builds
-
-- title: Concepts
-  link: /concepts/overview
-  items:
-    - title: Ambassador Architecture
-      link: /concepts/architecture
-    - title: Continuous Delivery, Declarative Config, and GitOps
-      link: /user-guide/cd-declarative-gitops
-    - title: Microservices API Gateways
-      link: /about/microservices-api-gateways
-    - title: Rate Limiting Concepts
-      link: /user-guide/rate-limiting
-    - title: Self-Service Routing and Deployment Control
-      link: /concepts/developers
-    - title: Safely Testing in Production
-      link: /docs/dev-guide/test-in-prod
-    - title: OAuth & OIDC Overview
-      link: /concepts/auth-overview
-    - title: Why Ambassador Uses Envoy Proxy (External Link)
-      link: https://blog.getambassador.io/envoy-vs-nginx-vs-haproxy-why-the-open-source-ambassador-api-gateway-chose-envoy-23826aed79ef
-
-- title: Guides
-  link: /docs/guides/
-  items:
-    - title: Build
-      items:
-      - title: Use gRPC with Ambassador
-        link: /user-guide/grpc
-      - title: Use WebSockets with Ambassador
-        link: /user-guide/websockets-ambassador
-      - title: Integration Testing with Service Preview
-        link: /docs/dev-guide/service-preview
-      - title: Adding a Custom Filter for Routing
-        link: /docs/guides/filter-dev-guide
-    - title: Secure
-      link: /user-guide/security
-      items:
-      - title: Enabling Transport Level Security (TLS)
-        link: /user-guide/tls-termination
-      - title: Server Name Indication (SNI)
-        link: /user-guide/sni
-      - title: cert-manager with Ambassador
-        link: /user-guide/cert-manager
-      - title: Basic Authentication
-        link: /user-guide/auth-tutorial
-      - title: Single Sign-On with OAuth & OIDC
-        link: /user-guide/oauth-oidc-auth
-      - title: Basic Rate Limiting
-        link: /user-guide/rate-limiting-tutorial
-      - title: Advanced Rate Limiting
-        link: /user-guide/advanced-rate-limiting
-    - title: Release
-      items:
-      - title: Consul Connect and Ambassador
-        link: /user-guide/consul-connect-ambassador
-      - title: Distributed Tracing
-        link: /user-guide/tracing-tutorial
-      - title: Implementing GitOps with Ambassador
-        link: /user-guide/gitops-ambassador
-      - title: Istio and Ambassador
-        link: /user-guide/with-istio
-      - title: Testing in Production with Canary Releases
-        link: /docs/dev-guide/canary-release-concepts
-
-- title: Reference
+    - title: Quick Start
+      link: /docs/latest/tutorials/getting-started
+- title: Install Ambassador Edge Stack
+  link: /docs/latest/topics/install/
+  items: 
+  - title: Install with Helm
+    link: /docs/latest/topics/install/helm  
+  - title: Upgrade to the Ambassador Edge Stack
+    link: /docs/latest/topics/install/upgrade-to-edge-stack
+  - title: Upgrade to a Newer Version
+    link: /docs/latest/topics/install/upgrading
+  - title: Install the Ambassador API Gateway
+    link: /docs/latest/topics/install/install-ambassador-oss
+  - title: Install with Docker
+    link: /docs/latest/topics/install/docker
+  - title: Install with Bare Metal
+    link: /docs/latest/topics/install/bare-metal
+  - title: Install Manually
+    link: /docs/latest/topics/install/yaml-install  
+  - title: Ambassador Edge Stack Operator
+    link: /docs/latest/topics/install/aes-operator   
+- title: Running and Using Ambassador
   collapsable: false
-  items:
-    - title: Configuring Ambassador
-      link: /reference/configuration
-      items:
-        - title: Global Configuration
-          link: /reference/modules
-          items:
-            - title: Ambassador Core Configuration
-              link: /reference/core/ambassador
-            - title: Load Balancing Configuration
-              link: /reference/core/load-balancer
-            - title: TLS Configuration
-              link: /reference/core/tls
-        - title: Configuring Services
-          link: /reference/mappings
-          items:
+  items:  
+    - title: Core Concepts
+      link: /docs/latest/topics/concepts/
+      items: 
+        - title: Kubernetes Network Architecture
+          link: /docs/latest/topics/concepts/kubernetes-network-architecture
+        - title: "The Ambassador Operating Model: GitOps and Continuous Delivery"
+          link: /docs/latest/topics/concepts/gitops-continuous-delivery
+        - title: Progressive Delivery
+          link: /docs/latest/topics/concepts/progressive-delivery
+        - title: Microservices API Gateways
+          link: /docs/latest/topics/concepts/microservices-api-gateways
+        - title: Ambassador Architecture
+          link: /docs/latest/topics/concepts/architecture
+    - title: Using Ambassador
+      link: /docs/latest/topics/using/
+      items: 
+        - title: The Mapping Object
+          link: /docs/latest/topics/using/intro-mappings
+        - title: Mapping Configuration
+          link: /docs/latest/topics/using/mappings
+          items: 
+            - title: Automatic Retries
+              link: /docs/latest/topics/using/retries
             - title: Canary Releases
-              link: /reference/canary
-            - title: Cross Origin Resource Sharing
-              link: /reference/cors
-            - title: Header-based routing
-              link: /reference/headers
-            - title: Host Header
-              link: /reference/host
-            - title: Rate Limits
-              link: /reference/rate-limits
+              link: /docs/latest/topics/using/canary
+            - title: Circuit Breakers
+              link: /docs/latest/topics/using/circuit-breakers
+            - title: Cross-Origin Resource Sharing
+              link: /docs/latest/topics/using/cors
+            - title: Headers
+              link: /docs/latest/topics/using/headers/headers
+              items: 
+                - title: Add Request Headers
+                  link: /docs/latest/topics/using/headers/add_request_headers
+                - title: Remove Request Headers
+                  link: /docs/latest/topics/using/headers/remove_request_headers
+                - title: Add Response Headers
+                  link: /docs/latest/topics/using/headers/add_response_headers
+                - title: Remove Response Headers
+                  link: /docs/latest/topics/using/headers/remove_response_headers
+                - title: Header Based Routing
+                  link: /docs/latest/topics/using/headers/headers
+                - title: Host Header
+                  link: /docs/latest/topics/using/headers/host
+            - title: Keepalive
+              link: /docs/latest/topics/using/keepalive
+            - title: Prefix Regex
+              link: /docs/latest/topics/using/prefix_regex
+            - title: Protocols
+              items:
+                - title: TCP
+                  link: /docs/latest/topics/using/tcpmappings
+                - title: gRPC and gRPC-Web
+                  link: /docs/latest/howtos/grpc
+                - title: WebSockets
+                  link: /docs/latest/howtos/websockets
+            - title: Rate Limit Concepts
+              link: /docs/latest/topics/using/rate-limits/
+              items:
+                - title: Using Rate Limits
+                  link: /docs/latest/topics/using/rate-limits/rate-limits
             - title: Redirects
-              link: /reference/redirects
-            - title: Request Headers
-              link: /reference/add_request_headers
-            - title: Response Headers
-              link: /reference/add_response_headers
+              link: /docs/latest/topics/using/redirects
             - title: Rewrites
-              link: /reference/rewrites
-            - title: Routing TCP Connections
-              link: /reference/tcpmappings
+              link: /docs/latest/topics/using/rewrites
+            - title: Timeouts
+              link: /docs/latest/topics/using/timeouts
             - title: Traffic Shadowing
-              link: /reference/shadowing
-        - title: Plugins
-          link: /reference/services/services
+              link: /docs/latest/topics/using/shadowing
+        - title: Filters and Authentication
+          items: 
+            - title: OAuth and OIDC Overview
+              link: /docs/latest/topics/using/filters/
+            - title: OAuth2 Filter
+              link: /docs/latest/topics/using/filters/oauth2
+            - title: JWT Filter
+              link: /docs/latest/topics/using/filters/jwt 
+            - title: External Filter
+              link: /docs/latest/topics/using/filters/external
+            - title: Plugin Filter
+              link: /docs/latest/topics/using/filters/plugin
+        - title: Edge Control
           items:
-            - title: Authentication
-              link: /reference/services/auth-service
-            - title: Access Control
-              link: /reference/services/access-control
-            - title: Rate Limiting
-              link: /reference/services/rate-limit-service
-            - title: Tracing
-              link: /reference/services/tracing-service
-        - title: Filters
-          link: /reference/filter-reference
-        - title: Advanced configuration topics
-          link: /reference/advanced
-    - title: Running Ambassador
-      link: /reference/running
+            - title: Introduction to Edge Control
+              link: /docs/latest/topics/using/edgectl/edge-control
+            - title: Using Edge Control in CI
+              link: /docs/latest/topics/using/edgectl/edge-control-in-ci
+        - title: Developer Portal
+          link: /docs/latest/topics/using/dev-portal
+        - title: Edge Policy Console
+          link: /docs/latest/topics/using/edge-policy-console
+    - title: Running Ambassador in Production
+      link: /docs/latest/topics/running/
+      items: 
+        - title: The Ambassador Module
+          link: /docs/latest/topics/running/ambassador
+        - title: Deploying Ambassador
+          items:
+            - title: Ambassador with AWS
+              link: /docs/latest/topics/running/ambassador-with-aws
+            - title: Ambassador with GKE
+              link: /docs/latest/topics/running/ambassador-with-gke
+            - title: Advanced Deployment Configuration
+              link: /docs/latest/topics/running/running
+        - title: Gzip Compression
+          link: /docs/latest/topics/running/gzip
+        - title: Host CRD
+          link: /docs/latest/topics/running/host-crd
+        - title: Ingress Controller
+          link: /docs/latest/topics/running/ingress-controller
+        - title: Load Balancing and Service Discovery
+          items:
+            - title: Load Balancing
+              link: /docs/latest/topics/running/load-balancer
+            - title: Service Discovery and Resolvers
+              link: /docs/latest/topics/running/resolvers
+        - title: Monitoring
+          link: /docs/latest/topics/running/statistics
+        - title: Plug-in Services
+          items:
+            - title: Authentication Service
+              link: /docs/latest/topics/running/services/auth-service
+            - title: ExtAuth Protocol
+              link: /docs/latest/topics/running/services/ext_authz
+            - title: Log Service
+              link: /docs/latest/topics/running/services/log-service
+            - title: Rate Limit Service
+              link: /docs/latest/topics/running/services/rate-limit-service
+            - title: Tracing Service
+              link: /docs/latest/topics/running/services/tracing-service            
+        - title: TLS
+          link: /docs/latest/topics/running/tls/
+          items:
+            - title: Client Certificate Validation
+              link: /docs/latest/topics/running/tls/client-cert-validation
+            - title: HTTP -> HTTPS Redirection
+              link: /docs/latest/topics/running/tls/cleartext-redirection
+            - title: Mutual TLS (mTLS)
+              link: /docs/latest/topics/running/tls/mtls
+            - title: Server Name Indication (SNI)
+              link: /docs/latest/topics/running/tls/sni
+            - title: TLS Origination
+              link: /docs/latest/topics/running/tls/origination
+        - title: Troubleshooting Ambassador
+          link: /docs/latest/topics/running/debugging
+- title: HOWTO Guides
+  link: /docs/latest/howtos
+  items: 
+    - title: Authentication
       items:
-        - title: Diagnostics
-          link: /reference/diagnostics
-        - title: Ambassador with AWS
-          link: /reference/ambassador-with-aws
-        - title: Debugging Ambassador
-          link: /reference/debugging
-    - title: Upgrading Ambassador
-      link: /reference/upgrading
-    - title: Statistics and Monitoring
-      link: /reference/statistics
-
-- title: Contributors
+        - title: Basic Authentication
+          link: /docs/latest/howtos/basic-auth
+        - title: Single Sign-On with Auth0
+          link: /docs/latest/howtos/sso/auth0
+        - title: Single Sign-On with Azure Active Directory
+          link: /docs/latest/howtos/sso/azure
+        - title: Single Sign-On with Google
+          link: /docs/latest/howtos/sso/google
+        - title: Single Sign-On with Keycloak
+          link: /docs/latest/howtos/sso/keycloak
+        - title: Single Sign-On with Okta
+          link: /docs/latest/howtos/sso/okta
+        - title: Single Sign-On with OneLogin
+          link: /docs/latest/howtos/sso/onelogin
+        - title: Single Sign-On with Salesforce
+          link: /docs/latest/howtos/sso/salesforce
+        - title: Single Sign-On with UAA
+          link: /docs/latest/howtos/sso/uaa
+        - title: Using the OAuth2 filter
+          link: /docs/latest/howtos/oauth-oidc-auth
+    - title: Custom Filters
+      link: /docs/latest/howtos/filter-dev-guide
+    - title: Distributed Tracing
+      items:
+        - title: DataDog
+          link: /docs/latest/howtos/tracing-datadog
+        - title: Zipkin
+          link: /docs/latest/howtos/tracing-zipkin
+    - title: Knative Serverless Framework
+      link: /docs/latest/howtos/knative
+    - title: Protocols
+      items:
+        - title: gRPC
+          link: /docs/latest/howtos/grpc
+        - title: WebSockets
+          link: /docs/latest/howtos/websockets
+    - title: Prometheus monitoring
+      link: /docs/latest/howtos/prometheus
+    - title: Rate Limiting
+      items:
+        - title: Basic Rate Limiting
+          link: /docs/latest/howtos/rate-limiting-tutorial
+        - title: Advanced Rate Limiting
+          link: /docs/latest/howtos/advanced-rate-limiting
+    - title: Service Mesh Integration
+      items:
+        - title: Consul
+          link: /docs/latest/howtos/consul
+        - title: Istio
+          link: /docs/latest/howtos/istio
+        - title: Linkerd 2
+          link: /docs/latest/howtos/linkerd2
+    - title: TLS
+      items:
+        - title: Using cert-manager
+          link: /docs/latest/howtos/cert-manager
+        - title: TLS termination
+          link: /docs/latest/howtos/tls-termination
+- title: Frequently Asked Questions
+  link: /docs/latest/about/faq
+- title: Community
   items:
-    - title: Building Ambassador (GitHub)
-      link: https://github.com/datawire/ambassador/blob/master/BUILDING.md
-    - title: Changelog (GitHub)
+    - title: Contributor's Guide
+      link: https://github.com/datawire/ambassador/blob/master/DEVELOPING.md
+    - title: CHANGELOG
       link: https://github.com/datawire/ambassador/blob/master/CHANGELOG.md
-
-- title: Need Help?
-  items:
-    - title: Support
-      link: /about/support
-    - title: Ask on Slack
-      link: https://d6e.co/slack
-    - title: File a GitHub Issue
-      link: https://github.com/datawire/ambassador/issues/new
-    - title: Visit Datawire.io
-      link: https://www.datawire.io

@@ -1,5 +1,0 @@
-ARG artifacts="builder"
-FROM ${artifacts} as artifacts
-FROM frolvlad/alpine-glibc:alpine-3.10
-COPY --from=artifacts /buildroot/bin/apictl-key /usr/bin/apictl-key
-ENTRYPOINT ["/usr/bin/apictl-key", "serve-aes-backend"]

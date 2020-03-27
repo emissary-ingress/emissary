@@ -1,0 +1,193 @@
+{
+    "_errors": {},
+    "_notices": {},
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "k8s-redirecttestsinvalidsecret-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "redirecttestsinvalidsecret",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-redirecttestsinvalidsecret-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "redirecttestsinvalidsecret",
+                "scope": "AmbassadorTest",
+                "service": "redirecttestsinvalidsecret-admin"
+            },
+            "name": "redirecttestsinvalidsecret-admin",
+            "namespace": "default",
+            "rkey": "k8s-redirecttestsinvalidsecret-admin-default",
+            "serialization": "ambassador_id: redirecttestsinvalidsecret\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: redirecttestsinvalidsecret\n  scope: AmbassadorTest\n  service: redirecttestsinvalidsecret-admin\nname: redirecttestsinvalidsecret-admin\nnamespace: default\n"
+        },
+        "k8s-redirecttestsinvalidsecret-default": {
+            "_referenced_by": {},
+            "ambassador_id": "redirecttestsinvalidsecret",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-redirecttestsinvalidsecret-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "redirecttestsinvalidsecret",
+                "scope": "AmbassadorTest"
+            },
+            "name": "redirecttestsinvalidsecret",
+            "namespace": "default",
+            "rkey": "k8s-redirecttestsinvalidsecret-default",
+            "serialization": "ambassador_id: redirecttestsinvalidsecret\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: redirecttestsinvalidsecret\n  scope: AmbassadorTest\nname: redirecttestsinvalidsecret\nnamespace: default\n"
+        },
+        "k8s-redirecttestsinvalidsecret-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "redirecttestsinvalidsecret",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-redirecttestsinvalidsecret-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "redirecttestsinvalidsecret",
+                "scope": "AmbassadorTest"
+            },
+            "name": "redirecttestsinvalidsecret-http",
+            "namespace": "default",
+            "rkey": "k8s-redirecttestsinvalidsecret-http-default",
+            "serialization": "ambassador_id: redirecttestsinvalidsecret\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: redirecttestsinvalidsecret\n  scope: AmbassadorTest\nname: redirecttestsinvalidsecret-http\nnamespace: default\n"
+        },
+        "redirecttestsinvalidsecret-http.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "redirecttestsinvalidsecret",
+            "apiVersion": "getambassador.io/v1",
+            "kind": "Mapping",
+            "location": "redirecttestsinvalidsecret-http.default.1",
+            "metadata_labels": {
+                "kat-ambassador-id": "redirecttestsinvalidsecret",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tls_target_mapping",
+            "namespace": "default",
+            "prefix": "/tls-target/",
+            "rkey": "redirecttestsinvalidsecret-http.default.1",
+            "serialization": "ambassador_id: redirecttestsinvalidsecret\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: redirecttestsinvalidsecret\n  scope: AmbassadorTest\nname: tls_target_mapping\nnamespace: default\nprefix: /tls-target/\nservice: redirecttestsinvalidsecret-http\n",
+            "service": "redirecttestsinvalidsecret-http"
+        },
+        "redirecttestsinvalidsecret.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "redirecttestsinvalidsecret",
+            "apiVersion": "getambassador.io/v1",
+            "config": {
+                "server": {
+                    "enabled": true,
+                    "redirect_cleartext_from": 8080,
+                    "secret": "does-not-exist-secret"
+                }
+            },
+            "kind": "Module",
+            "location": "redirecttestsinvalidsecret.default.1",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "redirecttestsinvalidsecret",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tls",
+            "namespace": "default",
+            "rkey": "redirecttestsinvalidsecret.default.1",
+            "serialization": "ambassador_id: redirecttestsinvalidsecret\napiVersion: ambassador/v1\nconfig:\n  server:\n    enabled: true\n    redirect_cleartext_from: 8080\n    secret: does-not-exist-secret\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: redirecttestsinvalidsecret\n  scope: AmbassadorTest\nname: tls\nnamespace: default\n"
+        }
+    },
+    "mappings": {
+        "tls_target_mapping": {
+            "ambassador_id": "redirecttestsinvalidsecret",
+            "apiVersion": "getambassador.io/v1",
+            "kind": "Mapping",
+            "metadata_labels": {
+                "kat-ambassador-id": "redirecttestsinvalidsecret",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tls_target_mapping",
+            "namespace": "default",
+            "prefix": "/tls-target/",
+            "service": "redirecttestsinvalidsecret-http"
+        }
+    },
+    "modules": {
+        "tls": {
+            "apiVersion": "getambassador.io/v1",
+            "kind": "Module",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "redirecttestsinvalidsecret",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tls",
+            "namespace": "default",
+            "server": {
+                "enabled": true,
+                "redirect_cleartext_from": 8080,
+                "secret": "does-not-exist-secret"
+            }
+        }
+    },
+    "service": {
+        "k8s-redirecttestsinvalidsecret-admin-default": {
+            "ambassador_id": "redirecttestsinvalidsecret",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "redirecttestsinvalidsecret",
+                "scope": "AmbassadorTest",
+                "service": "redirecttestsinvalidsecret-admin"
+            },
+            "name": "redirecttestsinvalidsecret-admin",
+            "namespace": "default"
+        },
+        "k8s-redirecttestsinvalidsecret-default": {
+            "ambassador_id": "redirecttestsinvalidsecret",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "redirecttestsinvalidsecret",
+                "scope": "AmbassadorTest"
+            },
+            "name": "redirecttestsinvalidsecret",
+            "namespace": "default"
+        },
+        "k8s-redirecttestsinvalidsecret-http-default": {
+            "ambassador_id": "redirecttestsinvalidsecret",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "redirecttestsinvalidsecret",
+                "scope": "AmbassadorTest"
+            },
+            "name": "redirecttestsinvalidsecret-http",
+            "namespace": "default"
+        }
+    }
+}

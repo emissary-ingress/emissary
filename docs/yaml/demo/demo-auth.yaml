@@ -12,12 +12,15 @@ spec:
     name: http-example-auth
     targetPort: http-api
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-auth
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: example-auth
   strategy:
     type: RollingUpdate
   template:
@@ -27,7 +30,7 @@ spec:
     spec:
       containers:
       - name: example-auth
-        image: datawire/ambassador-auth-service:1.1.1
+        image: datawire/ambassador-auth-service:2.0.0
         livenessProbe:
           httpGet:
             path: /ready

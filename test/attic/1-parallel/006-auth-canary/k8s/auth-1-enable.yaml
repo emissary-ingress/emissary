@@ -1,0 +1,32 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-1
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind:  Mapping
+      name:  auth_1_mapping
+      prefix: /auth-1/
+      service: auth-1:3000
+      ambassador_id: 006-auth-canary
+      ---
+      apiVersion: ambassador/v0
+      kind: AuthService
+      name: auth-1
+      auth_service: "auth-1:3000"
+      path_prefix: "/auth-1"
+      allowed_headers:
+      - "x-demo-version"
+      - "x-qotm-session"
+      ambassador_id: 006-auth-canary
+spec:
+  selector:
+    app: auth-1
+  ports:
+  - port: 3000
+    name: http-auth-1
+    targetPort: http-api
+  type: ClusterIP
