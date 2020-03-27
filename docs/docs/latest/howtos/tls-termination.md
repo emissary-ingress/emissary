@@ -2,8 +2,8 @@
 
 TLS encryption is one of the basic requirements of having a secure system.
 Ambassador Edge Stack [automatically enables TLS termination/HTTPs
-](../../topics/host-crd#acme-and-tls-settings), making TLS encryption easy
-and centralizing TLS termination for all of your services in Kubernetes.
+](../../topics/running/host-crd#acme-and-tls-settings), making TLS encryption
+easy and centralizing TLS termination for all of your services in Kubernetes.
 
 While this automatic certificate management in the Ambassador Edge Stack helps
 simply TLS configuration in your cluster, the Open-Source Ambassador API
@@ -153,7 +153,8 @@ Edge Stack using a self-signed certificate for simplicity.
 While a self-signed certificate is a simple and quick way to get Ambassador Edge Stack to terminate TLS, it should not be used by production systems. In order to serve HTTPS traffic without being returned a security warning, you will need to get a certificate from an official Certificate Authority like Let's Encrypt.
 
 With the Ambassador Edge Stack, this can be simply done by requesting a
-certificate using the built in [ACME support](../../topics/host-crd#acme-support)
+certificate using the built in [ACME support
+](../../topics/running/host-crd#acme-support)
 
 For the Open-Source API Gateway, Jetstack's `cert-manager` provides a simple
 way to manage certificates from Let's Encrypt. See our documentation for more
