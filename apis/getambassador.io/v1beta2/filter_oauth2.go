@@ -25,14 +25,14 @@ type FilterOAuth2 struct {
 	GrantType string `json:"grantType"`
 
 	// grantType=AuthorizationCode
-	RawClientURL       string             `json:"clientURL"` // formerly tenant.tenantUrl
-	ClientURL          *url.URL           `json:"-"`         // calculated from RawClientURL
-	DeprecatedStateTTL string             `json:"stateTTL"`
-	ClientID           string             `json:"clientID"`
-	Secret             string             `json:"secret"`
-	SecretName         string             `json:"secretName"`
-	SecretNamespace    string             `json:"secretNamespace"`
-	UseSessionCookies  *UseSessionCookies `json:"useSessionCookies"`
+	DeprecatedClientURL string             `json:"clientURL"` // formerly tenant.tenantUrl
+	DeprecatedStateTTL  string             `json:"stateTTL"`
+	ClientID            string             `json:"clientID"`
+	Secret              string             `json:"secret"`
+	SecretName          string             `json:"secretName"`
+	SecretNamespace     string             `json:"secretNamespace"`
+	UseSessionCookies   *UseSessionCookies `json:"useSessionCookies"`
+	ProtectedOrigins    []Origin           `json:"protectedOrigins"`
 
 	RawMaxStale string        `json:"maxStale"`
 	MaxStale    time.Duration `json:"-"` // calculated from RawMaxStale
@@ -66,8 +66,38 @@ type JWTFilterReference struct {
 	Arguments FilterJWTArguments `json:"arguments"`
 }
 
+type Origin struct {
+	RawOrigin         string   `json:"origin"`
+	Origin            *url.URL `json:"-"` // RawOrigin
+	IncludeSubdomains bool     `json:"includeSubdomains"`
+}
+
+func (m *Origin) Validate() error {
+	u, err := url.Parse(m.RawOrigin)
+	if err != nil {
+		return errors.Wrapf(err, "parsing origin: %q", m.RawOrigin)
+	}
+	if !u.IsAbs() {
+		return errors.New("origin is not an absolute URL")
+	}
+	m.Origin = u
+	return nil
+}
+
 //nolint:gocyclo
 func (m *FilterOAuth2) Validate(namespace string, secretsGetter coreV1client.SecretsGetter) error {
+	// Convert deprecated fields
+	if m.DeprecatedClientURL != "" {
+		if len(m.ProtectedOrigins) > 0 {
+			return errors.New("it is invalid to set both \"clientURL\" and \"protectedOrigins\"; \"clientURL\" is deprecated and should be replaced by \"protectedOrigins\"")
+		}
+		m.ProtectedOrigins = []Origin{
+			{RawOrigin: m.DeprecatedClientURL},
+		}
+		m.DeprecatedClientURL = ""
+	}
+
+	// Main
 	u, err := url.Parse(m.RawAuthorizationURL)
 	if err != nil {
 		return errors.Wrapf(err, "parsing authorizationURL: %q", m.RawAuthorizationURL)
@@ -82,14 +112,15 @@ func (m *FilterOAuth2) Validate(namespace string, secretsGetter coreV1client.Sec
 	}
 	switch m.GrantType {
 	case GrantType_AuthorizationCode:
-		u, err = url.Parse(m.RawClientURL)
-		if err != nil {
-			return errors.Wrapf(err, "parsing clientURL: %q", m.RawClientURL)
+		if len(m.ProtectedOrigins) < 1 {
+			return errors.New("must have at least one 'protectedOrigin' when 'grantType==AuthorizationCode'")
 		}
-		if !u.IsAbs() {
-			return errors.New("clientURL is not an absolute URL")
+		for i := range m.ProtectedOrigins {
+			origin := &(m.ProtectedOrigins[i])
+			if err := origin.Validate(); err != nil {
+				return errors.Wrapf(err, "protectedOrigins[%d]", i)
+			}
 		}
-		m.ClientURL = u
 
 		if m.SecretName != "" {
 			if m.Secret != "" {
@@ -119,8 +150,11 @@ func (m *FilterOAuth2) Validate(namespace string, secretsGetter coreV1client.Sec
 			return errors.Wrap(err, "useSessionCookies")
 		}
 	case GrantType_ClientCredentials:
-		if m.RawClientURL != "" {
+		if m.DeprecatedClientURL != "" {
 			return errors.New("it is invalid to set 'clientURL' when 'grantType==ClientCredentials'")
+		}
+		if len(m.ProtectedOrigins) > 0 {
+			return errors.New("it is invalid to set 'protectedOrigins' when 'grantType==ClientCredentials'")
 		}
 		if m.ClientID != "" {
 			return errors.New("it is invalid to set 'clientID' when 'grantType==ClientCredentials'")
@@ -136,8 +170,11 @@ func (m *FilterOAuth2) Validate(namespace string, secretsGetter coreV1client.Sec
 		}
 
 	case GrantType_Password:
-		if m.RawClientURL != "" {
+		if m.DeprecatedClientURL != "" {
 			return errors.New("it is invalid to set 'clientURL' when 'grantType==HeaderCrentials'")
+		}
+		if len(m.ProtectedOrigins) > 0 {
+			return errors.New("it is invalid to set 'protectedOrigins' when 'grantType==HeaderCrentials'")
 		}
 
 		if m.SecretName != "" {
@@ -229,16 +266,16 @@ func (m *FilterOAuth2) Validate(namespace string, secretsGetter coreV1client.Sec
 }
 
 func (m FilterOAuth2) CallbackURL() *url.URL {
-	u, _ := m.ClientURL.Parse("/.ambassador/oauth2/redirection-endpoint")
+	u, _ := m.ProtectedOrigins[0].Origin.Parse("/.ambassador/oauth2/redirection-endpoint")
 	return u
 }
 
 func (m FilterOAuth2) Domain() string {
-	return m.ClientURL.Host
+	return m.ProtectedOrigins[0].Origin.Host
 }
 
 func (m FilterOAuth2) TLS() bool {
-	return m.ClientURL.Scheme == "https"
+	return m.ProtectedOrigins[0].Origin.Scheme == "https"
 }
 
 //////////////////////////////////////////////////////////////////////
