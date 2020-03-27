@@ -20,7 +20,7 @@ for a `Host`.
 ### Only Cleartext
 
 The default for the Open-Source Ambassador API Gateway is to serve cleartext on
-port 8080 in the container. See [TLS documentation](tls) for information on
+port 8080 in the container. See [TLS documentation](../) for information on
 how to configure TLS termination.
 
 For the Ambassador Edge Stack, TLS termination is enabled by default with a
