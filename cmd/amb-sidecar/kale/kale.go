@@ -150,7 +150,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 			err := w.WatchQuery(query, wg.Wrap(softCtx, handler))
 			if err != nil {
 				// this is non fatal (mostly just to facilitate local dev); don't `return err`
-				l.Errorf("not watching %q resources: %v",
+				l.Errorf("not watching %q resources: %+v",
 					query.Kind,
 					fmt.Errorf("WatchQuery(%#v, ...): %w", query, err))
 				return nil
@@ -159,7 +159,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 
 		if err := safeInvoke(w.Start); err != nil {
 			// RBAC!
-			l.Errorf("kale: w.Start(): %v", err)
+			l.Errorf("kale: w.Start(): %+v", err)
 			return nil
 		}
 		go func() {
@@ -509,7 +509,7 @@ func (k *kale) handlePush(r *http.Request, key string) httpResult {
 
 	var push Push
 	if err := json.NewDecoder(r.Body).Decode(&push); err != nil {
-		log.Printf("WEBHOOK PARSE ERROR: %v", err)
+		log.Printf("WEBHOOK PARSE ERROR: %+v", err)
 		return httpResult{status: 400, body: err.Error()}
 	}
 
@@ -666,7 +666,7 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 			},
 			commitManifests)
 		if err != nil {
-			log.Errorf("updating ProjectCommits for Project %q.%q: %v",
+			log.Errorf("updating ProjectCommits for Project %q.%q: %+v",
 				proj.GetName(), proj.GetNamespace(),
 				err)
 		}
@@ -696,7 +696,7 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 
 		err := safeInvoke1(func() error { return k.reconcileCommit(ctx, project, commit, commitBuilders, commitRunners) })
 		if err != nil {
-			log.Printf("ERROR: %v", err)
+			log.Printf("ERROR: %+v", err)
 		}
 	}
 }
@@ -796,7 +796,7 @@ func (k *kale) reconcileCommit(ctx context.Context, proj *Project, commit *Proje
 		} else if regexp.MustCompile("The Job .* is invalid .* field is immutable").MatchString(err.Error()) {
 			deleteResource("job.v1.batch", commit.GetName()+"-build", commit.GetNamespace())
 		} else {
-			log.Errorf("deploying ProjectCommit %q.%q: %v",
+			log.Errorf("deploying ProjectCommit %q.%q: %+v",
 				commit.GetName(), commit.GetNamespace(),
 				err)
 		}
