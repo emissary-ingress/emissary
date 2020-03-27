@@ -28,6 +28,7 @@ These guides are designed to help users quickly accomplish common tasks. The gui
 * Security. Ambassador supports a number of strategies for securing Kubernetes services.
   * [HTTPS and TLS termination](tls-termination)
   * [Certificate Manager](cert-manager) can be used to automatically obtain and renew TLS certificates; Ambassador Edge Stack natively integrates this functionality.
+  * [Client Certificate Validation](client-cert-validation)
   * [Basic Authentication](basic-auth) is a tutorial on how to use the external authentication API to code your own authentication service.
   * [Basic Rate Limiting](rate-limiting-tutorial)
   * [Advanced Rate Limiting](advanced-rate-limiting)

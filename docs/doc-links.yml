@@ -159,8 +159,6 @@
         - title: TLS
           link: /docs/latest/topics/running/tls/
           items:
-            - title: Client Certificate Validation
-              link: /docs/latest/howtos/client-cert-validation
             - title: HTTP and HTTPS Routing
               link: /docs/latest/topics/running/tls/cleartext-redirection#cleartext-routing
             - title: HTTP -> HTTPS Redirection
