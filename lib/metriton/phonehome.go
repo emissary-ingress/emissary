@@ -1,32 +1,21 @@
 package metriton
 
 import (
-	"bytes"
-	"encoding/json"
+	"context"
 	"fmt"
-	"net/http"
 	"os"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/jpillora/backoff"
 
+	"github.com/datawire/ambassador/pkg/metriton"
 	"github.com/datawire/apro/cmd/amb-sidecar/limiter"
 	"github.com/datawire/apro/lib/licensekeys"
 )
 
-type MetritonResponse struct {
-	IsHardLimit bool `json:"hard_limit"`
-}
-
 const phoneHomeEveryPeriod = 12 * time.Hour
 
-// This can't be an environment variable, or else the user will be
-// able to spoof Metriton responses, bypassing the `hard_limit`
-// response field.
-//
-// Use "https://kubernaut.io/beta/scout" for testing.
-const metritonEndpoint = "https://kubernaut.io/scout"
+var reporter *metriton.Reporter
 
 func PhoneHomeEveryday(claims *licensekeys.LicenseClaimsLatest, limiter *limiter.LimiterImpl, application, version string) {
 	// Phone home every X period
@@ -68,9 +57,7 @@ func PhoneHome(claims *licensekeys.LicenseClaimsLatest, limiter *limiter.Limiter
 }
 
 func phoneHome(claims *licensekeys.LicenseClaimsLatest, limiter *limiter.LimiterImpl, component, version string) error {
-	data := prepareData(claims, limiter, component, version)
-
-	if os.Getenv("SCOUT_DISABLE") != "" {
+	if metriton.IsDisabledByUser() {
 		fmt.Println("SCOUT_DISABLE, enforcing hard-limits")
 		if limiter != nil {
 			limiter.SetPhoneHomeHardLimits(true)
@@ -78,22 +65,27 @@ func phoneHome(claims *licensekeys.LicenseClaimsLatest, limiter *limiter.Limiter
 		return nil
 	}
 
-	body, err := json.MarshalIndent(data, "", "  ")
-	if err != nil {
-		panic(err)
-	}
-	resp, err := http.Post(metritonEndpoint, "application/json", bytes.NewBuffer(body))
-	if err != nil {
-		if limiter != nil {
-			fmt.Println("Metriton call was not a success... allow soft-limit")
-			limiter.SetPhoneHomeHardLimits(false)
-		}
-		return err
-	}
-	defer resp.Body.Close()
+	if reporter == nil {
+		reporter = &metriton.Reporter{
+			Application: "aes",
+			Version:     version,
+			GetInstallID: func(*metriton.Reporter) (string, error) {
+				return getenvDefault("AMBASSADOR_CLUSTER_ID",
+					getenvDefault("AMBASSADOR_SCOUT_ID",
+						"00000000-0000-0000-0000-000000000000")), nil
+			},
+			BaseMetadata: nil,
 
-	metritonResponse := MetritonResponse{}
-	err = json.NewDecoder(resp.Body).Decode(&metritonResponse)
+			// This can't be an environment variable, or else the user will be
+			// able to spoof Metriton responses, bypassing the `hard_limit`
+			// response field.
+			//
+			// Use "https://kubernaut.io/beta/scout" for testing.
+			Endpoint: "https://kubernaut.io/scout",
+		}
+	}
+
+	resp, err := reporter.Report(context.TODO(), prepareData(claims, limiter, component))
 	if err != nil {
 		if limiter != nil {
 			fmt.Println("Metriton call was not a success... allow soft-limit")
@@ -101,7 +93,7 @@ func phoneHome(claims *licensekeys.LicenseClaimsLatest, limiter *limiter.Limiter
 		}
 		return err
 	}
-	if limiter != nil && metritonResponse.IsHardLimit {
+	if limiter != nil && resp != nil && resp.HardLimit {
 		fmt.Println("Metriton is enforcing hard-limits")
 		limiter.SetPhoneHomeHardLimits(true)
 		return nil
@@ -109,7 +101,7 @@ func phoneHome(claims *licensekeys.LicenseClaimsLatest, limiter *limiter.Limiter
 	return nil
 }
 
-func prepareData(claims *licensekeys.LicenseClaimsLatest, limiter *limiter.LimiterImpl, component, version string) map[string]interface{} {
+func prepareData(claims *licensekeys.LicenseClaimsLatest, limiter *limiter.LimiterImpl, component string) map[string]interface{} {
 	activeClaims := claims
 	if limiter != nil && limiter.GetClaims() != nil {
 		activeClaims = limiter.GetClaims()
@@ -144,23 +136,11 @@ func prepareData(claims *licensekeys.LicenseClaimsLatest, limiter *limiter.Limit
 		customerContact = activeClaims.CustomerEmail
 	}
 
-	installID, err := uuid.Parse(
-		getenvDefault("AMBASSADOR_CLUSTER_ID",
-			getenvDefault("AMBASSADOR_SCOUT_ID", "00000000-0000-0000-0000-000000000000")))
-	if err != nil {
-		panic(err)
-	}
-
 	return map[string]interface{}{
-		"application": "aes",
-		"install_id":  installID,
-		"version":     version,
-		"metadata": map[string]interface{}{
-			"id":        customerID,
-			"contact":   customerContact,
-			"component": component,
-			"features":  featuresDataSet,
-		},
+		"id":        customerID,
+		"contact":   customerContact,
+		"component": component,
+		"features":  featuresDataSet,
 	}
 }
 
