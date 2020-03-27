@@ -33,18 +33,6 @@ In this guide, you will register a service with Consul and use Ambassador Edge S
     spec:
       address: consul-server.default.svc.cluster.local:8500
       datacenter: dc1
-    ---
-    apiVersion: v1
-    kind: Service
-    metadata:
-      name: ambassador
-    spec:
-      type: LoadBalancer
-      selector:
-        service: ambassador
-      ports:
-      - port: 80
-        targetPort: 8080
     ```
 
     This will tell Ambassador Edge Stack that Consul is a service discovery endpoint. Save the configuration to a file (e.g., `ambassador-service.yaml`, and apply this configuration with `kubectl apply -f ambassador-service.yaml`. For more information about resolver configuration, see the [resolver reference documentation](../../topics/running/resolvers). (If you're using Consul deployed elsewhere in your data center, make sure the `address` points to your Consul FQDN or IP address).
