@@ -232,6 +232,8 @@
           link: /docs/latest/howtos/linkerd2
     - title: TLS
       items:
+        - title: TLS Termination
+          link: /docs/howtos/tls-termination
         - title: Using cert-manager
           link: /docs/latest/howtos/cert-manager
         - title: Client Certificate Validation
