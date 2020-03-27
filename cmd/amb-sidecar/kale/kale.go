@@ -589,61 +589,61 @@ func (k *kale) calculateBuild(proj *Project, commit *ProjectCommit) []interface{
 	// todo: the ambassador namespace is hardcoded below in the registry
 	//       we to which we push
 
-	return []interface{}{
-		&k8sTypesBatchV1.Job{
-			TypeMeta: k8sTypesMetaV1.TypeMeta{
-				APIVersion: "batch/v1",
-				Kind:       "Job",
+	job := &k8sTypesBatchV1.Job{
+		TypeMeta: k8sTypesMetaV1.TypeMeta{
+			APIVersion: "batch/v1",
+			Kind:       "Job",
+		},
+		ObjectMeta: k8sTypesMetaV1.ObjectMeta{
+			Name:      commit.GetName() + "-build",
+			Namespace: commit.GetNamespace(),
+			Labels: map[string]string{
+				GlobalLabelName: k.cfg.AmbassadorID,
+				CommitLabelName: string(commit.GetUID()),
 			},
-			ObjectMeta: k8sTypesMetaV1.ObjectMeta{
-				Name:      commit.GetName() + "-build",
-				Namespace: commit.GetNamespace(),
-				Labels: map[string]string{
-					GlobalLabelName: k.cfg.AmbassadorID,
-					CommitLabelName: string(commit.GetUID()),
-				},
-				OwnerReferences: []k8sTypesMetaV1.OwnerReference{
-					{
-						Controller:         boolPtr(true),
-						BlockOwnerDeletion: boolPtr(true),
-						Kind:               commit.TypeMeta.Kind,
-						APIVersion:         commit.TypeMeta.APIVersion,
-						Name:               commit.GetName(),
-						UID:                commit.GetUID(),
-					},
+			OwnerReferences: []k8sTypesMetaV1.OwnerReference{
+				{
+					Controller:         boolPtr(true),
+					BlockOwnerDeletion: boolPtr(true),
+					Kind:               commit.TypeMeta.Kind,
+					APIVersion:         commit.TypeMeta.APIVersion,
+					Name:               commit.GetName(),
+					UID:                commit.GetUID(),
 				},
 			},
-			Spec: k8sTypesBatchV1.JobSpec{
-				BackoffLimit: int32Ptr(1),
-				Template: k8sTypesCoreV1.PodTemplateSpec{
-					ObjectMeta: k8sTypesMetaV1.ObjectMeta{
-						Labels: map[string]string{
-							GlobalLabelName: k.cfg.AmbassadorID,
-							CommitLabelName: string(commit.GetUID()),
-						},
+		},
+		Spec: k8sTypesBatchV1.JobSpec{
+			BackoffLimit: int32Ptr(1),
+			Template: k8sTypesCoreV1.PodTemplateSpec{
+				ObjectMeta: k8sTypesMetaV1.ObjectMeta{
+					Labels: map[string]string{
+						GlobalLabelName: k.cfg.AmbassadorID,
+						CommitLabelName: string(commit.GetUID()),
 					},
-					Spec: k8sTypesCoreV1.PodSpec{
-						Containers: []k8sTypesCoreV1.Container{
-							{
-								Name:  "kaniko",
-								Image: "gcr.io/kaniko-project/executor:v0.16.0",
-								Args: []string{
-									"--cache=true",
-									"--skip-tls-verify",
-									"--skip-tls-verify-pull",
-									"--skip-tls-verify-registry",
-									"--dockerfile=Dockerfile",
-									"--context=git://github.com/" + proj.Spec.GithubRepo + ".git#" + commit.Spec.Ref.String(),
-									"--destination=registry.ambassador/" + commit.Spec.Rev,
-								},
+				},
+				Spec: k8sTypesCoreV1.PodSpec{
+					Containers: []k8sTypesCoreV1.Container{
+						{
+							Name:  "kaniko",
+							Image: "gcr.io/kaniko-project/executor:v0.16.0",
+							Args: []string{
+								"--cache=true",
+								"--skip-tls-verify",
+								"--skip-tls-verify-pull",
+								"--skip-tls-verify-registry",
+								"--dockerfile=Dockerfile",
+								"--context=git://github.com/" + proj.Spec.GithubRepo + ".git#" + commit.Spec.Ref.String(),
+								"--destination=registry.ambassador/" + commit.Spec.Rev,
 							},
 						},
-						RestartPolicy: k8sTypesCoreV1.RestartPolicyNever,
 					},
+					RestartPolicy: k8sTypesCoreV1.RestartPolicyNever,
 				},
 			},
 		},
 	}
+
+	return []interface{}{job}
 }
 
 func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
