@@ -105,8 +105,7 @@ class Project extends SingleResource {
   // override to ignore pods, since that's an artifical resource we stuff into things
   mergeStrategy(pathName) {
     switch (pathName) {
-    case "commits":
-    case "pods":
+    case "children":
       return "ignore";
     default:
       return undefined;
