@@ -33,6 +33,16 @@ spec:
 apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
+  name: aes-backend-crash-report-beta
+  namespace: metriton
+spec:
+  prefix: /beta/crash-report
+  rewrite: /crash-report
+  service: aes-backend-beta
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
   name: grafana-beta
   namespace: metriton
 spec:
