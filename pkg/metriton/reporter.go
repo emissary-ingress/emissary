@@ -193,5 +193,11 @@ func (r *Reporter) Report(metadata map[string]interface{}) (*Response, error) {
 		}
 	}
 
+	if resp != nil && resp.DisableScout {
+		r.mu.Lock()
+		r.disabled = true
+		r.mu.Unlock()
+	}
+
 	return resp, nil
 }

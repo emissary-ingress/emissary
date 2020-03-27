@@ -60,6 +60,15 @@ type Response struct {
 
 	// Only set for .Application=="aes"
 	HardLimit bool `json:"hard_limit"`
+
+	// Disable submitting any more telemetry for the remaining
+	// lifetime of this process.
+	//
+	// This way, if we ever make another release that turns out to
+	// effectively DDoS Metriton, we can adjust the Metriton
+	// server's `api.py:handle_report()` to be able to tell the
+	// offending processes to shut up.
+	DisableScout bool `json:"disable_scout"`
 }
 
 // AppInfo is the information that Metriton knows about an
