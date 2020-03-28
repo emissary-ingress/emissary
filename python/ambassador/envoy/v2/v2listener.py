@@ -1038,6 +1038,20 @@ class V2Listener(dict):
                                     action=None,
                                     insecure_action='Reject')
 
+        # Preprocess the list of "HOST" CRDs we have, asking for specific insecure action
+        hostsWithInsecureRoute = {}
+        for hname, hostconfig in config.ir.hosts.items():
+            insecure_config = hostconfig.get('requestPolicy', {}).get('insecure', {})
+            insecure_config_action = insecure_config.get('action', None)
+            insecure_config_addl_port = insecure_config.get('additionalPort', None)
+            if insecure_config_addl_port and insecure_config_addl_port <= 0 :
+                insecure_config_addl_port = None
+            if hostconfig.hostname and insecure_config_action:
+                hostsWithInsecureRoute[hostconfig.hostname] = {
+                    'action': insecure_config_action,
+                    'additionalPort': insecure_config_addl_port
+                }
+
         # OK. We have all the listeners. Time to walk the routes (note that they are already ordered).
         for route in config.routes:
             # If this an SNI route, remember the host[s] to which it pertains.
@@ -1066,9 +1080,16 @@ class V2Listener(dict):
             secure_route = dict(insecure_route)
 
             found_xfp = False
+            found_route_host = False
+            _route_host = ''
             for header in secure_route["match"].get("headers", []):
-                if header.get("name", "").lower() == "x-forwarded-proto":
+                header_name = header.get("name", "").lower()
+                if not found_xfp and header_name == "x-forwarded-proto":
                     found_xfp = True
+                elif not found_route_host and header_name == ":authority":
+                    _route_host = header.get("exact_match", '')
+                    found_route_host = True
+                if found_xfp and found_route_host:
                     break
 
             if not found_xfp:
@@ -1108,7 +1129,32 @@ class V2Listener(dict):
                         candidates.append(( True, secure_route, vhost._action ))
 
                     if vhost._insecure_action == "Redirect":
-                        candidates.append(( False, redirect_route, "Redirect" ))
+                        # Check if that for this route hostname we have a "Host" CRD asking for specific insecure action
+                        if (_route_host in hostsWithInsecureRoute and
+                                (not hostsWithInsecureRoute[_route_host]['additionalPort'] or
+                                 hostsWithInsecureRoute[_route_host]['additionalPort'] == port)):
+                            # In this case, we don't redirect, as the "Host" CRD is explicitely asking for
+                            # this hostname to a specific action.
+                            # Host config example:
+                            #
+                            #    apiVersion: getambassador.io/v2
+                            #    kind: Host
+                            #    metadata:
+                            #      name: test-dont-redirect-http
+                            #      namespace: default
+                            #    spec:
+                            #      hostname: hostnamebla.example.com
+                            #      requestPolicy:
+                            #        insecure:
+                            #          action: Route
+                            #
+                            # This is a hack to fix https://github.com/datawire/ambassador/issues/2216
+                            # There might be more refactoring needed, as for http,
+                            # server_names filter_chain is irrelevant and only the first filter is used
+                            candidates.append((False, insecure_route, hostsWithInsecureRoute[_route_host]['action']))
+                        else:
+                            # Otherwise, we redirect as we used to do.
+                            candidates.append(( False, redirect_route, "Redirect" ))
                     elif vhost._insecure_action is not None:
                         candidates.append((False, insecure_route, vhost._insecure_action))
 
