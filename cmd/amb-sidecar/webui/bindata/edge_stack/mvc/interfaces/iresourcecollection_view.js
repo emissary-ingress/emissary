@@ -46,6 +46,20 @@ export class IResourceCollectionView extends ResourceCollectionView {
     super(model);
   }
 
+  /**
+   * renderResource(resource)
+   *
+   * Renders a single resource. This is normally just:
+   *
+   *   return html`<dw-resourcename .model=${resource}></dw-resourcename>`
+   *
+   * But can be customized as whatever you like if desired.
+   */
+
+  renderResource(resource) {
+    throw new Error("please implement ${this.constructor.name}.renderResource(resource)")
+  }
+
   /* pageDescription()
    * Return the text describing the contents of the IResourceCollection being viewed
    * e.g. "Hosts are domains that are managed by Ambassador Edge Stack, e.g., example.org"
@@ -67,14 +81,6 @@ export class IResourceCollectionView extends ResourceCollectionView {
   */
   pageTitle() {
     throw new Error("please implement ${this.constructor.name}.pageTitle()")
-  }
-
-  /* viewClass()
-   * Return the IView class to create a new single-resource view in the IResourceCollectionView.
-   * e.g. for a HostCollection, return HostView.
-   */
-  viewClass() {
-    throw new Error("please implement ${this.constructor.name}.viewClass()")
   }
 
   /* readOnly()
