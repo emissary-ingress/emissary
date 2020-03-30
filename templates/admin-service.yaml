@@ -25,7 +25,7 @@ spec:
       protocol: TCP
       name: ambassador-admin
       {{- if (and (eq .Values.adminService.type "NodePort") (not (empty .Values.adminService.nodePort))) }}
-      nodePort: {{ .Values.adminService.nodePort }}
+      nodePort: {{ int .Values.adminService.nodePort }}
       {{- end }}
   selector:
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
