@@ -159,7 +159,7 @@
         - title: TLS
           link: /docs/latest/topics/running/tls/
           items:
-            - title: HTTP and HTTPS Routing
+            - title: Simultaneously Routing HTTP and HTTPS
               link: /docs/latest/topics/running/tls/cleartext-redirection#cleartext-routing
             - title: HTTP -> HTTPS Redirection
               link: /docs/latest/topics/running/tls/cleartext-redirection#http---https-redirection
