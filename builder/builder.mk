@@ -32,8 +32,8 @@ COPY_GOLD = $(abspath $(BUILDER_HOME)/copy-gold.sh)
 # 3. docker tag kindest/node:latest quay.io/datawire/kindest-node:latest
 # 4. docker push quay.io/datawire/kindest-node:latest
 # This will not be necessary once the KIND images are built for a Kubernetes 1.18 and support Ingress v1beta1 improvements.
-# KIND_IMAGE ?= kindest/node:latest
-KIND_IMAGE ?= quay.io/datawire/kindest-node:latest
+KIND_IMAGE ?= kindest/node:v1.18.0
+#KIND_IMAGE ?= quay.io/datawire/kindest-node:latest
 KIND_KUBECONFIG = /tmp/kind-kubeconfig
 
 # The ingress conformance tests directory
@@ -47,6 +47,7 @@ INGRESS_TEST_IMAGE ?= quay.io/datawire/ingress-controller-conformance:latest
 # local ports for the Ingress conformance tests
 INGRESS_TEST_LOCAL_PLAIN_PORT = 8000
 INGRESS_TEST_LOCAL_TLS_PORT = 8443
+INGRESS_TEST_LOCAL_ADMIN_PORT = 8877
 
 # directory with the manifests for loading Ambassador for running the Ingress Conformance tests
 # NOTE: these manifests can be slightly different to the regular ones asd they include
@@ -257,10 +258,10 @@ ingresstest:
 
 	@printf "$(CYN)==> $(GRN)Forwarding traffic to Ambassador service$(END)\n"
 	@kubectl --kubeconfig=$(KIND_KUBECONFIG) port-forward --address=$(HOST_IP) svc/ambassador \
-		$(INGRESS_TEST_LOCAL_PLAIN_PORT):8080 $(INGRESS_TEST_LOCAL_TLS_PORT):8443 &
+		$(INGRESS_TEST_LOCAL_PLAIN_PORT):8080 $(INGRESS_TEST_LOCAL_TLS_PORT):8443 $(INGRESS_TEST_LOCAL_ADMIN_PORT):8877 &
 	@sleep 5
 
-	@for url in "http://$(HOST_IP):$(INGRESS_TEST_LOCAL_PLAIN_PORT)" "https://$(HOST_IP):$(INGRESS_TEST_LOCAL_TLS_PORT)" ; do \
+	@for url in "http://$(HOST_IP):$(INGRESS_TEST_LOCAL_PLAIN_PORT)" "https://$(HOST_IP):$(INGRESS_TEST_LOCAL_TLS_PORT)" "http://$(HOST_IP):$(INGRESS_TEST_LOCAL_ADMIN_PORT)/ambassador/v0/check_ready" ; do \
 		printf "$(CYN)==> $(GRN)Waiting until $$url is ready...$(END)\n" ; \
 		until curl --silent -k "$$url" ; do printf "$(CYN)==> $(GRN)... still waiting.$(END)\n" ; sleep 2 ; done ; \
 		printf "$(CYN)==> $(GRN)... $$url seems to be ready.$(END)\n" ; \
