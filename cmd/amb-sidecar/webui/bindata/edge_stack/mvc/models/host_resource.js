@@ -13,99 +13,85 @@ import { html } from '../../vendor/lit-element.min.js'
 /* The interface class we extend. */
 import { IResource } from "../interfaces/iresource.js";
 
-export const _defaultAcmeProvider = "https://acme-v02.api.letsencrypt.org/directory";
-export const _defaultAcmeEmail    = "<specify contact email here>";
-
 export class HostResource extends IResource {
-  /* override and extend method from interface */
-  constructor(yaml = { kind: "Host"}) {
-    /*
-     * Define the instance variables that are part of the model. Views and other Resource users will access
-     * these for rendering and modification.  All resource objects have a kind, a name, and a namespace, which
-     * together are a unique identifier throughout the Kubernetes system.  They may also have annotations,
-     * labels, and a status, which are also saved as instance variables (but handled by the internal
-     * framework classes we inherit from, thus we don't have to deal with them).  The only thing we have
-     * to deal with are the instance variables specific to a Host: hostname,
-     * an acmeProvider and email, and a flag specifying whether acme is being used.
-    */
-    super(yaml);
 
-    this.hostname     = this.hostname     || "";  /* we use this conditional initialization..         */
-    this.acmeProvider = this.acmeProvider || "";  /* ..scheme because the super(yaml) will..          */
-    this.acmeEmail    = this.acmeEmail    || "";  /* ..call updateSelfFrom() which will usually..     */
-    this.useAcme      = this.useAcme      || false; /* ..initialize the variables and we don't want.. */
-    this.cached_terms_of_service = null;          /* ..to override that initialization if it happens  */
+  // override
+  static get defaultYaml() {
+    let yaml = IResource.defaultYaml
+    yaml.kind = "Host"
+    yaml.spec = {
+      hostname: "<please enter a hostname>",
+      acmeProvider: {
+        authority: "https://acme-v02.api.letsencrypt.org/directory",
+        email: "<specify contact email here>"
+      }
+    }
+    return yaml
   }
 
-  /* override */
-  copySelf() {
-    return new HostResource(this._fullYAML);
+  get hostname() {
+    return this.spec.hostname
   }
 
-  /* override and extend */
-  getYAML() {
-    let yaml = super.getYAML();
-    /*
-     * Set hostname, acmeProvider in the existing spec. Leave any other spec info there as needed,
-     * such as acmeProvider.privateKeySecret and acmeProvider.registration.  Note that these are
-     * guaranteed to exist since they are set to defaults in updateSelfFrom() if needed.
-     */
-    yaml.spec.hostname               = this.hostname;
-    yaml.spec.acmeProvider.authority = this.useAcme ? this.acmeProvider : "none";
-    yaml.spec.acmeProvider.email     = this.useAcme ? this.acmeEmail : "";
-
-    return yaml;
+  set hostname(value) {
+    this.spec.hostname = value
   }
 
-  /* override */
-  updateSelfFrom(yaml) {
-    let changed = false;
-    /*
-     * If yaml does not include a spec, set it, and its subfield acmeProvider, to a default object so that
-     * the hostname, acmeProvider, and acmeEmail fields will be set to their default values during initialization.
-     * Otherwise javascript would fail, trying to access a field of "null".  Set other fields to default values
-     * if they do not exist.
-     */
-    yaml.spec                         = yaml.spec                         || { acmeProvider: {}};
-    yaml.spec.hostname                = yaml.spec.hostname                || "<specify new hostname>";
-    let has_acmeProvider              = (yaml.spec.acmeProvider.authority || false) !== false;
-    yaml.spec.acmeProvider.authority  = yaml.spec.acmeProvider.authority  || _defaultAcmeProvider;
-    yaml.spec.acmeProvider.email      = yaml.spec.acmeProvider.email      || _defaultAcmeEmail;
-    /*
-     * Initialize host-specific instance variables from yaml. For those fields that are unknown, initialize
-     * to default values (this occurs when adding a new HostResource whose values will be specified by the user).
-     */
-    if (this.hostname !== yaml.spec.hostname) {
-      this.hostname = yaml.spec.hostname;
-      changed = true;
+  get acmeProvider() {
+    return this.yaml.spec.acmeProvider || {}
+  }
+
+  set acmeProvider(value) {
+    this.yaml.spec.acmeProvider = value
+  }
+
+  get acmeAuthority() {
+    return this.acmeProvider.authority
+  }
+
+  set acmeAuthority(value) {
+    if (this.acmeProvider === undefined) {
+      this.acmeProvider = {}
     }
+    this.acmeProvider.authority = value
+    // when changing the ACME provider, we have to clear the cached
+    // terms of service because the terms of service url is linked to
+    // the specific ACME provider
+    this.cached_terms_of_service = null;
+    this._agreed = false;
+  }
 
-    if (this.acmeProvider !== yaml.spec.acmeProvider.authority) {
-      this.acmeProvider = yaml.spec.acmeProvider.authority;
-      this.cached_terms_of_service = null;
-      this.agreed_terms_of_service = has_acmeProvider;
-      changed = true;
+  get acmeEmail() {
+    return this.acmeProvider.email
+  }
+
+  set acmeEmail(value) {
+    if (this.acmeProvider === undefined) {
+      this.acmeProvider = {}
     }
+    this.acmeProvider.email = value
+  }
 
-    if (this.acmeEmail !== yaml.spec.acmeProvider.email) {
-      this.acmeEmail = yaml.spec.acmeProvider.email;
-      changed = true;
+  get useAcme() {
+    return this.acmeProvider !== "none" && this.acmeProvider !== ""
+  }
+
+  set useAcme(value) {
+    if (false) {
+      this.acmeProvider = "none"
     }
+  }
 
-    /* Are we using Acme or not? we just check to see if the authority is "none" or "" and assume if there is an
-     * authority, the user intends to use Acme.
-     */
-    let useAcme = (this.acmeProvider !== "none" && this.acmeProvider !== "");
-
-    /* Update the useAcme flag if it is different than before, e.g. there is a provider now and there wasn't before,
-     * or there is no longer a provider when there once was one specified.
-     */
-    if (this.useAcme !== useAcme) {
-      this.useAcme = useAcme;
-      changed = true;
+  get agreed_terms_of_service() {
+    if (typeof this._agreed === "undefined") {
+      this._agreed = !this.isNew()
+    } else {
+      return this._agreed
     }
+  }
 
-    return changed;
+  set agreed_terms_of_service(value) {
+    this._agreed = value
   }
 
   /* override */
@@ -129,16 +115,6 @@ export class HostResource extends IResource {
 
   /* ================================ Utility Functions ================================ */
 
-  /* setAcmeProvider()
-   * when changing the ACME provider, we have to clear the cached terms of service because the terms of service
-   * url is linked to the specific ACME provider
-   */
-  setAcmeProvider(value) {
-    if (this.acmeProvider !== value) {
-      this.acmeProvider = value;
-      this.cached_terms_of_service = null;
-    }
-  }
 
   /* getTermsOfService()
    * Here we get the Terms of Service url from the ACME provider so that we can show it to the user. We do this
@@ -150,13 +126,13 @@ export class HostResource extends IResource {
       /* if we have a cached copy, return that */
       return this.cached_terms_of_service;
     } else {
-      let value = this.acmeProvider;
-      /* if there is no acmeProvider, then there are no terms of service */
-      if(!(this.acmeProvider !== "none" && this.acmeProvider !== "")) {
+      let value = this.acmeAuthority;
+      /* if there is no acmeAuthority, then there are no terms of service */
+      if(!(this.acmeAuthority !== "none" && this.acmeAuthority !== "")) {
         this.cached_terms_of_service = html`<em>none</em>`;
         return this.cached_terms_of_service;
       } else {
-        /* otherwise, if there is an acmeProvider, then make the async API call
+        /* otherwise, if there is an acmeAuthority, then make the async API call
          * to get the terms of service */
         let url = new URL('/edge_stack/api/tos-url', window.location);
         url.searchParams.set('ca-url', value);
@@ -182,7 +158,7 @@ export class HostResource extends IResource {
                   d = t;
                 }
                 this.cached_terms_of_service = html`<a href="${t}" target="_blank">${d}</a>`;
-                this.notifyListenersUpdated();
+                this.notify();
               } else {
                 console.error("not-understood tos-url result: " + t);
               }
@@ -200,5 +176,5 @@ export class HostResource extends IResource {
       }
     }
   }
-}
 
+}
