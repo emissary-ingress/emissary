@@ -1,22 +1,56 @@
 # Transport Layer Security (TLS)
 
-The Ambassador Edge Stack's robust TLS support exposes configuration options for different TLS use cases including:
+The Ambassador Edge Stack's robust TLS support exposes configuration options 
+for different TLS use cases including:
 
-- [Client Certificate Validation](client-cert-validation)
-- [HTTP -> HTTPS Redirection](cleartext-redirection)
+- [Simultaneously Routing HTTP and HTTPS](cleartext-redirection#cleartext-routing)
+- [HTTP -> HTTPS Redirection](cleartext-redirection#http---https-redirection)
 - [Mutual TLS](mtls)
 - [Server Name Indication (SNI)](sni)
 - [TLS Origination](origination)
 
 ## `Host`
 
-The `Host` resource has been added to the Ambassador API Gateway and Ambassador Edge Stack in version 1.0.0.
+As explained in the [Host](../host-crd) reference, a `Host` represents a domain
+in Ambassador and defines how TLS is managed on that domain. In the Ambassador 
+Edge Stack, the simplest configuration of a `Host` will enable TLS with a 
+self-signed certificate and redirect cleartext traffic to HTTPS. 
 
-The `Host` resource simplifies TLS by directly connecting how Ambassador performs TLS termination and the domains it serves. With the Ambassador Edge Stack, the `Host` can issue and manage certificates automatically using the ACME protocol. 
+### Automatic TLS with ACME
 
-For both the Ambassador Edge Stack and API Gateway, the `Host` can read a certificate from a Kubernetes secret and use that certificate to terminate TLS on a domain.
+With the Ambassador Edge Stack, the `Host` can be configured to completely 
+manage TLS by requesting a certificate from a Certificate Authority using the
+[ACME HTTP-01 challenge](https://letsencrypt.org/docs/challenge-types/).
 
-The following will configure Ambassador to grab a certificate from a secret named `host-secret` and use that secret for terminating TLS on the `host.example.com` domain:
+After creating a DNS record, configuring the Ambassador Edge Stack to get a 
+certificate from the default CA [Let's Encrypt](https://letsencrypt.org) is as
+simple as providing a hostname and your email for the certificate:
+
+```yaml
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: example-host
+spec:
+  hostname: host.example.com
+  acmeProvider:
+    authority: https://acme-v02.api.letsencrypt.org/directory # Optional: The CA you want to get your certificate from. Defaults to Let's Encrypt
+    email: julian@example.com
+```
+
+Ambassador will now request a certificate from the CA and store it in a secret 
+in the same namespace as the `Host`.
+
+### Bring your own certificate
+
+For both the Ambassador Edge Stack and API Gateway, the `Host` can read a 
+certificate from a Kubernetes secret and use that certificate to terminate TLS 
+on a domain.
+
+The following will configure Ambassador to grab a certificate from a secret 
+named `host-secret` and use that secret for terminating TLS on the 
+`host.example.com` domain:
 
 ```yaml
 ---
@@ -32,11 +66,18 @@ spec:
     name: host-secret
 ```
 
+Ambassador will now use the certificate in `host-secret` to terminate TLS.
+
 ### `Host`and `TLSContext`
 
-The `Host` will configure basic TLS termination settings in Ambassador. If you need more advanced TLS options on a domain, such as setting the minimum TLS version, you can create a [`TLSContext`](#tlscontext) with the name `{{NAME_OF_HOST}}-context` to configure more advanced TLS options.
+The `Host` will configure basic TLS termination settings in Ambassador. If you 
+need more advanced TLS options on a domain, such as setting the minimum TLS 
+version, you can create a [`TLSContext`](#tlscontext) with the name 
+`{{NAME_OF_HOST}}-context`, `hosts` set to the same `hostname`, and `secret` 
+set to the same `tlsSecret`.
 
-For example, to enforce a minimum TLS version on the `Host` above, create a `TLSContext` named `example-host-context` with the following configuration:
+For example, to enforce a minimum TLS version on the `Host` above, create a 
+`TLSContext` named `example-host-context` with the following configuration:
 
 ```yaml
 ---
@@ -51,18 +92,22 @@ spec:
   min_tls_version: v1.2
 ```
 
+Full reference for all options available to the `TLSContext` can be found below.
+
 ## TLSContext
 
-You control TLS configuration in Ambassador Edge Stack using `TLSContext` resources. Multiple `TLSContext`s can be defined in your cluster and can be used for any combination of TLS use cases.
+The `TLSContext` is used to configure advanced TLS options in Ambassador. 
+Remember, a `TLSContext` should always be paired with a `Host`. 
 
-A full schema of the `TLSContext` can be found below with descriptions of the different configuration options.
+A full schema of the `TLSContext` can be found below with descriptions of the 
+different configuration options.
 
 ```yaml
 ---
 apiVersion: getambassador.io/v2
 kind: TLSContext
 metadata:
-  name: tls-context-1
+  name: example-host-context
 spec:
   # 'hosts' defines the hosts for which this TLSContext is relevant.
   # It ties into SNI. A TLSContext without "hosts" is useful only for 
@@ -132,7 +177,9 @@ spec:
 
 ### `alpn_protocols`
 
-The `alpn_protocols` setting configures the TLS ALPN protocol. To use gRPC over TLS, set `alpn_protocols: h2`. If you need to support HTTP/2 upgrade from HTTP/1, set `alpn_protocols: h2,http/1.1` in the configuration.
+The `alpn_protocols` setting configures the TLS ALPN protocol. To use gRPC over
+TLS, set `alpn_protocols: h2`. If you need to support HTTP/2 upgrade from 
+HTTP/1, set `alpn_protocols: h2,http/1.1` in the configuration.
 
 #### HTTP/2 Support
 
@@ -148,19 +195,33 @@ spec:
   hosts: ["*"]
   alpn_protocols: h2[, http/1.1]
 ```
-Without setting alpn_protocols as shown above, HTTP2 will not be available via negotiation and will have to be explicitly requested by the client.
+Without setting alpn_protocols as shown above, HTTP2 will not be available via 
+negotiation and will have to be explicitly requested by the client.
 
 If you leave off http/1.1, only HTTP2 connections will be supported.
 
 ### TLS Parameters
 
-The `min_tls_version` setting configures the minimum TLS protocol version that Ambassador Edge Stack will use to establish a secure connection. When a client using a lower version attempts to connect to the server, the handshake will result in the following error: `tls: protocol version not supported`.
+The `min_tls_version` setting configures the minimum TLS protocol version that 
+Ambassador Edge Stack will use to establish a secure connection. When a client 
+using a lower version attempts to connect to the server, the handshake will 
+result in the following error: `tls: protocol version not supported`.
 
-The `max_tls_version` setting configures the maximum TLS protocol version that Ambassador Edge Stack will use to establish a secure connection. When a client using a higher version attempts to connect to the server, the handshake will result in the following error: `tls: server selected unsupported protocol version`.
+The `max_tls_version` setting configures the maximum TLS protocol version that 
+Ambassador Edge Stack will use to establish a secure connection. When a client 
+using a higher version attempts to connect to the server, the handshake will 
+result in the following error: 
+`tls: server selected unsupported protocol version`.
 
-The `cipher_suites` setting configures the supported [cipher list](https://commondatastorage.googleapis.com/chromium-boringssl-docs/ssl.h.html#Cipher-suite-configuration) when negotiating a TLS 1.0-1.2 connection. This setting has no effect when negotiating a TLS 1.3 connection.  When a client does not support a matching cipher a handshake error will result.
+The `cipher_suites` setting configures the supported 
+[cipher list](https://commondatastorage.googleapis.com/chromium-boringssl-docs/ssl.h.html#Cipher-suite-configuration) 
+when negotiating a TLS 1.0-1.2 connection. This setting has no effect when 
+negotiating a TLS 1.3 connection.  When a client does not support a matching 
+cipher a handshake error will result.
 
-The `ecdh_curves` setting configures the supported ECDH curves when negotiating a TLS connection.  When a client does not support a matching ECDH a handshake error will result.
+The `ecdh_curves` setting configures the supported ECDH curves when negotiating
+a TLS connection.  When a client does not support a matching ECDH a handshake 
+error will result.
 
 ```yaml
 ---
