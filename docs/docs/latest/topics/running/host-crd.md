@@ -1,6 +1,8 @@
-# The `Host` CRD
+# The `Host` CRD, ACME Support, and External Load Balancer Configuration
 
-The custom `Host` resource defines how the Ambassador Edge Stack will be visible to the outside world. It collects all the following information in a single configuration resource:
+The custom `Host` resource defines how the Ambassador Edge Stack will be
+visible to the outside world. It collects all the following information in a
+single configuration resource:
 
 * The hostname by which Ambassador will be reachable
 * How Ambassador should handle TLS certificates
@@ -20,24 +22,97 @@ spec:
     email: julian@example.com
 ```
 
-This Host tells Ambassador to expect to be reached at `host.example.com`, and to manage TLS certificates using Let’s Encrypt, registering as `julian@example.com`. Since it doesn’t specify otherwise, requests using cleartext will be automatically redirected to use HTTPS, and Ambassador will not search for any specific further configuration resources related to this Host.
+This Host tells Ambassador to expect to be reached at `host.example.com`,
+and to manage TLS certificates using Let’s Encrypt, registering as
+`julian@example.com`. Since it doesn’t specify otherwise, requests using
+cleartext will be automatically redirected to use HTTPS, and Ambassador will
+not search for any specific further configuration resources related to this
+Host.
 
 ## ACME and TLS Settings
 
-The acmeProvider element in a Host defines how Ambassador should handle TLS certificates:
+The `Host` is responsible for high-level TLS configuration in Ambassador.
+
+The are two settings in the `Host` that are responsible for TLS configuration:
+
+- `acmeProvider` defines how Ambassador should handle TLS certificates
+- `tlsSecret` tells Ambassador which secret to look for the certificate in
+
+In combination, these settings tell Ambassador how it should manage TLS
+certificates.
+
+### ACME Support
+
+The Ambassador Edge Stack comes with built in support for automatic certificate
+management using the [ACME protocol](https://tools.ietf.org/html/rfc8555).
+
+It does this by using the `hostname` of a `Host` to request a certificate from
+the `acmeProvider.authority` using the `HTTP-01` challenge. After requesting a
+certificate, Ambassador will then manage the renewal process automatically.
+
+The `acmeProvider` element of the `Host` configures the Certificate Authority
+Ambassador will request the certificate from and the email address that the CA
+will use to notify about any lifecycle events of the certificate.
 
 ```yaml
 acmeProvider:
   authority: url-to-provider
   email: email-of-registrant
-tlsSecret:
-  name: secret-name
 ```
 
-* In general, `email-of-registrant` is mandatory when using ACME: it should be a valid email address that will reach someone responsible for certificate management.
-* ACME stores certificates in Kubernetes secrets. The name of the secret can be set using the `tlsSecret` element; if not supplied, a name will be automatically generated from the `hostname` and `email`.
+**Notes on ACME Support:**
+
 * If the authority is not supplied, the Let’s Encrypt production environment is assumed.
-* **If the authority is the literal string “none”, TLS certificate management will be disabled.** You’ll need to manually create a TLSContext to use for your host in order to use HTTPS.
+
+* In general, `email-of-registrant` is mandatory when using ACME: it should be
+a valid email address that will reach someone responsible for certificate 
+management.
+
+* ACME stores certificates in Kubernetes secrets. The name of the secret can be
+set using the `tlsSecret` element:
+   ```yaml
+   acmeProvider:
+     email: user@example.com
+   tlsSecret:
+     name: tls-cert
+   ```
+   if not supplied, a name will be automatically generated from the `hostname` and `email`.
+
+* Ambassador uses the [`HTTP-01` challenge
+](https://letsencrypt.org/docs/challenge-types/) for ACME support:
+   - Does not require permission to edit DNS records
+   - The `hostname` must be reachable from the internet so the CA can check
+   `POST` to an endpoint in Ambassador.
+   - Wildcard domains are not supported.
+
+### TLS Configuration
+
+Regardless of if you are using the built in ACME support in the Ambassador Edge
+Stack, the `Host` is responsible for reading TLS certificates from Kubernetes
+`Secret`s and configuring Ambassador to terminate TLS using those certificates.
+
+If you are using the Open-Source Ambassador API Gateway or choosing to not use
+the provided ACME support, you need to tell Ambassador to not request a
+certificate with ACME by setting `acmeProvider.authority: none` in the `Host`.
+
+After that you simply point Ambassador at the secret you are using to store
+your certificates with the `tlsSecret` field.
+
+The following `Host` will configure Ambassador to read a `Secret` named
+`tls-cert` for a certificate to use when terminating TLS.
+
+```yaml
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: example-host
+spec:
+  hostname: host.example.com
+  acmeProvider:
+    authority: none
+  tlsSecret:
+    name: tls-cert
+```
 
 ## Secure and Insecure Requests
 
