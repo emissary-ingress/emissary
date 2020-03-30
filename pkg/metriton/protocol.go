@@ -2,6 +2,7 @@ package metriton
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -24,13 +25,19 @@ type Report struct {
 // Metriton has not yet been configured to know about the Report's
 // `.Application`; i.e. a Response is only returned for known
 // applications.
-func (r Report) Send(httpClient *http.Client, endpoint string) (*Response, error) {
+func (r Report) Send(ctx context.Context, httpClient *http.Client, endpoint string) (*Response, error) {
 	body, err := json.MarshalIndent(r, "", "  ")
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := httpClient.Post(endpoint, "application/json", bytes.NewReader(body))
+	req, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}

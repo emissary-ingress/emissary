@@ -13,6 +13,7 @@
 package metriton
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"net/url"
@@ -135,7 +136,7 @@ func IsDisabledByUser() bool {
 // Report submits a telemetry report to Metriton.  It is safe to call .Report() from
 // different goroutines.  It is NOT safe to mutate the public fields in the Reporter while
 // .Report() is being called.
-func (r *Reporter) Report(metadata map[string]interface{}) (*Response, error) {
+func (r *Reporter) Report(ctx context.Context, metadata map[string]interface{}) (*Response, error) {
 	r.mu.Lock()
 
 	if err := r.ensureInitialized(); err != nil {
@@ -178,7 +179,7 @@ func (r *Reporter) Report(metadata map[string]interface{}) (*Response, error) {
 		}
 
 		r.mu.Unlock()
-		resp, err = report.Send(client, endpoint)
+		resp, err = report.Send(ctx, client, endpoint)
 		if err != nil {
 			return nil, err
 		}
