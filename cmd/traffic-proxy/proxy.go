@@ -368,7 +368,7 @@ func Main() {
 			err = licenseClaims.RequireFeature(licensekeys.FeatureTraffic)
 		}
 		if err == nil {
-			go metriton.PhoneHome(licenseClaims, nil, "traffic-proxy", Version)
+			go metriton.PhoneHome(licenseClaims, nil, "traffic-proxy")
 			return
 		}
 		fmt.Fprintln(os.Stderr, err)
