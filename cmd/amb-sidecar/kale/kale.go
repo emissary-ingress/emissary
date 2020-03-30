@@ -323,7 +323,7 @@ type kale struct {
 }
 
 func (k *kale) reconcile(ctx context.Context, snapshot Snapshot) {
-	k.reconcileGitHub(snapshot.Projects)
+	k.reconcileGitHub(ctx, snapshot.Projects)
 	k.reconcileCluster(ctx, snapshot)
 }
 
@@ -394,11 +394,14 @@ func (k *kale) updateInternalState(ctx context.Context, snapshot Snapshot) {
 	k.mu.Unlock()
 }
 
-func (k *kale) reconcileGitHub(projects []*Project) {
+func (k *kale) reconcileGitHub(ctx context.Context, projects []*Project) {
 	for _, pr := range projects {
-		postHook(pr.Spec.GithubRepo,
+		err := postHook(pr.Spec.GithubRepo,
 			fmt.Sprintf("https://%s/edge_stack/api/githook/%s", pr.Spec.Host, pr.Key()),
 			pr.Spec.GithubToken)
+		if err != nil {
+			dlog.GetLogger(ctx).Errorln(err)
+		}
 	}
 }
 
@@ -464,7 +467,11 @@ func (k *kale) dispatch(r *http.Request) httpResult {
 		}
 		return httpResult{
 			stream: func(w http.ResponseWriter) {
-				streamLogs(w, r, namespace, strings.Join(selectors, ","))
+				err := streamLogs(w, r, namespace, strings.Join(selectors, ","))
+				if err != nil {
+					// safe panic()--will be handled appropriately by safeHandleFunco
+					panic(err)
+				}
 			},
 		}
 	}
@@ -796,7 +803,7 @@ func (k *kale) reconcileCommit(ctx context.Context, proj *Project, commit *Proje
 		if err != nil {
 			log.Println("update commit status:", err)
 		}
-		postStatus(ctx, fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, commit.Spec.Rev),
+		err = postStatus(ctx, fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, commit.Spec.Rev),
 			GitHubStatus{
 				State: map[CommitPhase]string{
 					CommitPhase_Received:  "pending",
@@ -819,7 +826,9 @@ func (k *kale) reconcileCommit(ctx context.Context, proj *Project, commit *Proje
 				Context:     "aes",
 			},
 			proj.Spec.GithubToken)
-
+		if err != nil {
+			log.Println("update commit status:", err)
+		}
 	}
 
 	var manifests []interface{}
