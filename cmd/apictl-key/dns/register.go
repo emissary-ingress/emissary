@@ -3,8 +3,6 @@ package dns
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/datawire/apro/cmd/apictl-key/datasource"
-	"github.com/sirupsen/logrus"
 	"math/rand"
 	"net"
 	"net/http"
@@ -14,6 +12,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/route53"
+	"github.com/sirupsen/logrus"
+
+	"github.com/datawire/apro/cmd/apictl-key/datasource"
+	"github.com/datawire/apro/cmd/apictl-key/util"
 )
 
 type dnsclient struct {
@@ -68,7 +70,7 @@ func NewController(l *logrus.Logger, hostedZoneId string, dnsRegistrationTLD str
 }
 
 func (c *dnsclient) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	remoteIp := extractUserIP(r)
+	remoteIp := util.ExtractRequesterIP(r)
 
 	decoder := json.NewDecoder(r.Body)
 
@@ -298,14 +300,4 @@ func (c *dnsclient) doRegister(domainName string, recordValue string, recordType
 	c.l.Infof(result.String())
 
 	return nil
-}
-
-func extractUserIP(r *http.Request) string {
-	xForwardedFor := strings.Split(r.Header.Get("X-Forwarded-For"), ",")
-	if len(xForwardedFor) > 0 && net.ParseIP(xForwardedFor[0]) != nil {
-		return xForwardedFor[0]
-	}
-
-	ip, _, _ := net.SplitHostPort(r.RemoteAddr)
-	return ip
 }

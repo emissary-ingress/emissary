@@ -2,6 +2,7 @@ package datasource
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"net/url"
 
@@ -26,10 +27,17 @@ type DomainEntry struct {
 	RequesterIp      string
 }
 
+type CrashReportEntry struct {
+	Id          string
+	RequesterIp string
+	Metadata    interface{}
+}
+
 type Datasource interface {
 	Close() error
 	AddDomain(DomainEntry) error
 	DomainNameExists(string) (bool, error)
+	AddCrashReport(CrashReportEntry) error
 }
 
 // NewDatasource initializes a new SQL datasource connection
@@ -83,6 +91,26 @@ func (d *PostgresqlDatasource) DomainNameExists(domainName string) (bool, error)
 		return false, err
 	}
 	return exists, nil
+}
+
+// AddCrashReport will insert a new crash_report row in the SQL datasource
+func (d *PostgresqlDatasource) AddCrashReport(e CrashReportEntry) error {
+	if e.Id == "" {
+		return fmt.Errorf("cannot add crash_report entry without id")
+	}
+	jsonMetadata, err := json.Marshal(e.Metadata)
+	if err != nil {
+		return err
+	}
+	stmt, err := d.db.Prepare("INSERT INTO crash_report(id, requester_ip_address, metadata) VALUES($1, $2, $3)")
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec(e.Id, e.RequesterIp, jsonMetadata)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func nullString(s string) sql.NullString {

@@ -14,6 +14,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/datawire/apro/cmd/apictl-key/datasource"
+	"github.com/datawire/apro/cmd/apictl-key/util"
 )
 
 type client struct {
@@ -43,18 +44,35 @@ func (c *client) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
+	remoteIp := util.ExtractRequesterIP(r)
 
-	// TODO: Read request information metadata, extracing product, install_ids, etc.
+	decoder := json.NewDecoder(r.Body)
+	var jsonMetadata interface{}
+	err := decoder.Decode(&jsonMetadata)
+	if err != nil {
+		c.l.WithError(err).Error("failed to parse request")
+		http.Error(w, "failed to parse request", http.StatusBadRequest)
+		return
+	}
 
 	crashReportId := uuid.New().String()
 	signedUploadURL, err := c.generateSignedURL(crashReportId)
-
 	if err != nil {
 		http.Error(w, "crash-report creation failure", http.StatusInternalServerError)
 		return
 	}
 
-	// TODO: Save crashReportId and metadata in database
+	err = c.datasource.AddCrashReport(datasource.CrashReportEntry{
+		Id:          crashReportId,
+		Metadata:    jsonMetadata,
+		RequesterIp: remoteIp,
+	})
+	if err != nil {
+		c.l.WithError(err).Error("failed to save crash-report to database")
+		http.Error(w, "crash-report creation failure", http.StatusInternalServerError)
+		return
+	}
+
 	c.l.Infof("generated crash-report %s", crashReportId)
 
 	response := crashReportCreationResponse{
@@ -64,7 +82,7 @@ func (c *client) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO: Remove this sample usage. Leaving it here to serve as an example for edgectl
-	c.exampleUpload(response)
+	// c.exampleUpload(response)
 
 	// If all is good, return 201 and the generated upload URL.
 	w.WriteHeader(http.StatusCreated)
@@ -86,7 +104,7 @@ func (c *client) generateSignedURL(uniqueBucketObjectKey string) (string, error)
 		Bucket: aws.String(c.s3Bucket),
 		Key:    aws.String(uniqueBucketObjectKey),
 	})
-	signedUrl, err := req.Presign(1 * time.Hour)
+	signedUrl, err := req.Presign(15 * time.Minute)
 
 	if err != nil {
 		c.l.WithError(err).Error("error creating aws s3 signed url")
