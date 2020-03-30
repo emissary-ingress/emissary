@@ -154,6 +154,9 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `prometheusExporter.repository`    | DEPRECATED: Prometheus exporter image                                           | `prom/statsd-exporter`            |
 | `prometheusExporter.tag`           | DEPRECATED: Prometheus exporter image                                           | `v0.8.1`                          |
 | `prometheusExporter.resources`     | DEPRECATED: CPU/memory resource requests/limits                                 | `{}`                              |
+| `metrics.serviceMonitor.enabled`   | Create ServiceMonitor object (`adminService.create` should be to `true`)        | `false`                           |
+| `metrics.serviceMonitor.interval`  | Interval at which metrics should be scraped                                     | `30s`                             |
+| `metrics.serviceMonitor.scrapeTimeout` | Timeout after which the scrape is ended                                     | `30s`                             |
 
 **NOTE:** Make sure the configured `service.http.targetPort` and `service.https.targetPort` ports match your [Ambassador Module's](https://www.getambassador.io/reference/modules/#the-ambassador-module) `service_port` and `redirect_cleartext_from` configurations.
 
