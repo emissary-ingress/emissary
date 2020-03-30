@@ -30,10 +30,10 @@ The Ambassador Edge Stack is typically deployed to Kubernetes from the command l
     kubectl -n ambassador wait --for condition=available --timeout=90s deploy -lproduct=aes
     ```
 
-2. Determine the IP address of your cluster by running the following command:
+2. Determine the IP address or hostname of your cluster by running the following command:
 
     ```bash
-    kubectl get -n ambassador service ambassador -o 'go-template={{range .status.loadBalancer.ingress}}{{print .ip "\n"}}{{end}}'
+    kubectl get -n ambassador service ambassador -o "go-template={{range .status.loadBalancer.ingress}}{{or .ip .hostname}}{{end}}"
     ```
 
     Your load balancer may take several minutes to provision your IP address. Repeat the provided command until you get an IP address.
