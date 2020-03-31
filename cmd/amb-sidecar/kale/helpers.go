@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -62,16 +63,6 @@ func safeInvoke(code func()) (err error) {
 	return
 }
 
-func safeInvoke1(fn func() error) (err error) {
-	defer func() {
-		if _err := util.PanicToError(recover()); _err != nil {
-			err = _err
-		}
-	}()
-	err = fn()
-	return
-}
-
 // Turn an ordinary http handler function into a safe one that will
 // automatically turn panics into a useful 500.
 func safeHandleFunc(handler func(*http.Request) httpResult) func(http.ResponseWriter, *http.Request) {
@@ -108,7 +99,7 @@ func streamingFunc(handler http.HandlerFunc) http.HandlerFunc {
 			if !ok {
 				// This is a bug--this should never be called with a
 				// ResponseWriter that is not a Flusher.
-				panic("streaming unsupported")
+				panicThisIsABug(errors.New("streaming unsupported"))
 			}
 			w.Header().Set("Content-Type", "text/event-stream")
 			io.WriteString(w, "\n") // just something to get readyState=1
@@ -557,13 +548,13 @@ func unstructureMetadata(in *k8sTypesMetaV1.ObjectMeta) map[string]interface{} {
 	bs, err := json.Marshal(in)
 	if err != nil {
 		// 'in' is a valid object.  This should never happen.
-		panic(err)
+		panicThisIsABug(err)
 	}
 
 	if err := json.Unmarshal(bs, &metadata); err != nil {
 		// 'bs' is valid JSON, we just generated it.  This
 		// should never happen.
-		panic(err)
+		panicThisIsABug(err)
 	}
 
 	return metadata
@@ -584,4 +575,69 @@ func jobConditionMet(obj *k8sTypesBatchV1.Job, condType k8sTypesBatchV1.JobCondi
 		return cond.Status == condStatus, nil
 	}
 	return false, nil
+}
+
+func _logErr(ctx context.Context, err error) {
+	if commit := CtxGetCommit(ctx); commit != nil {
+		err = fmt.Errorf("ProjectCommit %q.%q: %w",
+			commit.GetName(), commit.GetNamespace(), err)
+	}
+	if project := CtxGetProject(ctx); project != nil {
+		err = fmt.Errorf("Project %q.%q: %w",
+			project.GetName(), project.GetNamespace(), err)
+	}
+	dlog.GetLogger(ctx).Errorf("%+v", err)
+}
+
+func reportThisIsABug(ctx context.Context, err error) {
+	err = fmt.Errorf("this is a bug: error: %w", err)
+	_logErr(ctx, err)
+}
+
+func reportRuntimeError(ctx context.Context, err error) {
+	err = fmt.Errorf("runtime error: %w", err)
+	_logErr(ctx, err)
+}
+
+func panicThisIsABugContext(ctx context.Context, err error) {
+	err = fmt.Errorf("this is a bug: panicking: %w", err)
+	_logErr(ctx, err)
+	panic(err)
+}
+
+func panicThisIsABug(err error) {
+	err = fmt.Errorf("this is a bug: panicking: %w", err)
+	panic(err)
+}
+
+func panicFlowControl(err error) {
+	panic(err)
+}
+
+type projectContextKey struct{}
+
+func CtxWithProject(ctx context.Context, proj *Project) context.Context {
+	return context.WithValue(ctx, projectContextKey{}, proj)
+}
+
+func CtxGetProject(ctx context.Context) *Project {
+	projInterface := ctx.Value(projectContextKey{})
+	if projInterface == nil {
+		return nil
+	}
+	return projInterface.(*Project)
+}
+
+type commitContextKey struct{}
+
+func CtxWithCommit(ctx context.Context, commit *ProjectCommit) context.Context {
+	return context.WithValue(ctx, commitContextKey{}, commit)
+}
+
+func CtxGetCommit(ctx context.Context) *ProjectCommit {
+	commitInterface := ctx.Value(commitContextKey{})
+	if commitInterface == nil {
+		return nil
+	}
+	return commitInterface.(*ProjectCommit)
 }

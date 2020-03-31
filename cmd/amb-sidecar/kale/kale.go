@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -106,12 +107,12 @@ const (
 func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8s.KubeInfo, dynamicClient k8sClientDynamic.Interface) {
 	k := NewKale(dynamicClient)
 
-	upstreamWorker := make(chan Snapshot)
-	downstreamWorker := make(chan Snapshot)
+	upstreamWorker := make(chan UntypedSnapshot)
+	downstreamWorker := make(chan UntypedSnapshot)
 	go coalesce(upstreamWorker, downstreamWorker)
 
-	upstreamWebUI := make(chan Snapshot)
-	downstreamWebUI := make(chan Snapshot)
+	upstreamWebUI := make(chan UntypedSnapshot)
+	downstreamWebUI := make(chan UntypedSnapshot)
 	go coalesce(upstreamWebUI, downstreamWebUI)
 
 	group.Go("kale_watcher", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
@@ -121,7 +122,8 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 		client, err := k8s.NewClient(info)
 		if err != nil {
 			// this is non fatal (mostly just to facilitate local dev); don't `return err`
-			l.Errorln("not watching Project resources:", fmt.Errorf("k8s.NewClient: %w", err))
+			reportRuntimeError(softCtx,
+				fmt.Errorf("kale disabled: k8s.NewClient: %w", err))
 			return nil
 		}
 
@@ -135,10 +137,8 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 				Jobs:         w.List("jobs.batch"),
 				StatefulSets: w.List("statefulsets.apps"),
 			}
-			// More so out of paranoia than in response to an actual issue: repeat the
-			// .TypedAndFiltered() call for each stream, so that they share no pointers.
-			upstreamWorker <- snapshot.TypedAndFiltered(softCtx, cfg.AmbassadorID)
-			upstreamWebUI <- snapshot.TypedAndFiltered(softCtx, cfg.AmbassadorID)
+			upstreamWorker <- snapshot
+			upstreamWebUI <- snapshot
 		}
 
 		labelSelector := GlobalLabelName + "=" + cfg.AmbassadorID
@@ -153,16 +153,16 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 			err := w.WatchQuery(query, wg.Wrap(softCtx, handler))
 			if err != nil {
 				// this is non fatal (mostly just to facilitate local dev); don't `return err`
-				l.Errorf("not watching %q resources: %+v",
-					query.Kind,
-					fmt.Errorf("WatchQuery(%#v, ...): %w", query, err))
+				reportRuntimeError(softCtx,
+					fmt.Errorf("kale disabled: WatchQuery(%#v, ...): %w", query, err))
 				return nil
 			}
 		}
 
 		if err := safeInvoke(w.Start); err != nil {
 			// RBAC!
-			l.Errorf("kale: w.Start(): %+v", err)
+			reportRuntimeError(softCtx,
+				fmt.Errorf("kale disabled: Start(): %w", err))
 			return nil
 		}
 		go func() {
@@ -183,20 +183,22 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 				select {
 				case <-ctx.Done():
 					return
-				case snapshot, ok := <-downstreamWorker:
+				case _snapshot, ok := <-downstreamWorker:
 					if !ok {
 						return
 					}
+					snapshot := _snapshot.TypedAndFiltered(ctx, cfg.AmbassadorID)
 					err := safeInvoke(func() { k.reconcile(ctx, snapshot) })
 					if err != nil {
-						l.Errorln("panic:", err)
+						reportThisIsABug(ctx, err)
 					}
 				}
 			}
 		})
 		if err != nil {
-			// make this non-fatal
-			l.Errorln("failed to participate in kale leader election, kale is disabled:", err)
+			// Similar to Setup(), this is non-fatal
+			reportRuntimeError(softCtx,
+				fmt.Errorf("kale disabled: leader election: %w", err))
 		}
 		return nil
 	})
@@ -208,13 +210,15 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 			select {
 			case <-softCtx.Done():
 				return nil
-			case snapshot, ok := <-downstreamWebUI:
+			case _snapshot, ok := <-downstreamWebUI:
 				if !ok {
 					return nil
 				}
+				snapshot := _snapshot.TypedAndFiltered(softCtx, cfg.AmbassadorID)
 				err := safeInvoke(func() { k.updateInternalState(softCtx, snapshot) })
 				if err != nil {
-					l.Errorln("panic:", err)
+					// recovered from a panic--this is a bug
+					reportThisIsABug(softCtx, fmt.Errorf("recovered from panic: %w", err))
 				}
 			}
 		}
@@ -244,7 +248,6 @@ type Snapshot struct {
 }
 
 func (in UntypedSnapshot) TypedAndFiltered(ctx context.Context, ambassadorID string) Snapshot {
-	log := dlog.GetLogger(ctx)
 	var out Snapshot
 
 	// For built-in resource types, it is appropriate to a panic
@@ -254,10 +257,10 @@ func (in UntypedSnapshot) TypedAndFiltered(ctx context.Context, ambassadorID str
 	// all at once, because we don't need to do individual
 	// validation, because they're all valid.
 	if err := mapstructure.Convert(in.Jobs, &out.Jobs); err != nil {
-		panic(fmt.Errorf("Jobs: %w", err))
+		panicThisIsABug(fmt.Errorf("Jobs: %w", err))
 	}
 	if err := mapstructure.Convert(in.StatefulSets, &out.StatefulSets); err != nil {
-		panic(fmt.Errorf("StatefulSets: %w", err))
+		panicThisIsABug(fmt.Errorf("StatefulSets: %w", err))
 	}
 
 	// However, for our CRDs, because the api-server can't
@@ -268,7 +271,8 @@ func (in UntypedSnapshot) TypedAndFiltered(ctx context.Context, ambassadorID str
 	for _, inProj := range in.Projects {
 		var outProj *Project
 		if err := mapstructure.Convert(inProj, &outProj); err != nil {
-			log.Println(fmt.Errorf("Project: %w", err))
+			reportRuntimeError(ctx,
+				fmt.Errorf("Project: %w", err))
 			continue
 		}
 		out.Projects = append(out.Projects, outProj)
@@ -276,7 +280,7 @@ func (in UntypedSnapshot) TypedAndFiltered(ctx context.Context, ambassadorID str
 	for _, inCommit := range in.Commits {
 		var outCommit *ProjectCommit
 		if err := mapstructure.Convert(inCommit, &outCommit); err != nil {
-			log.Println(fmt.Errorf("Commit: %w", err))
+			reportThisIsABug(ctx, fmt.Errorf("Commit: %w", err))
 			continue
 		}
 		out.Commits = append(out.Commits, outCommit)
@@ -285,7 +289,7 @@ func (in UntypedSnapshot) TypedAndFiltered(ctx context.Context, ambassadorID str
 	return out
 }
 
-func coalesce(upstream <-chan Snapshot, downstream chan<- Snapshot) {
+func coalesce(upstream <-chan UntypedSnapshot, downstream chan<- UntypedSnapshot) {
 do_read:
 	item, ok := <-upstream
 did_read:
@@ -343,8 +347,6 @@ type commitAndChildren struct {
 }
 
 func (k *kale) updateInternalState(ctx context.Context, snapshot Snapshot) {
-	log := dlog.GetLogger(ctx)
-
 	// map[commitUID]*commitAndChildren
 	commits := make(map[k8sTypes.UID]*commitAndChildren)
 	for _, commit := range snapshot.Commits {
@@ -357,7 +359,9 @@ func (k *kale) updateInternalState(ctx context.Context, snapshot Snapshot) {
 	for _, job := range snapshot.Jobs {
 		key := k8sTypes.UID(job.GetLabels()[CommitLabelName])
 		if _, ok := commits[key]; !ok {
-			log.Errorf("Unable to pair Job %q.%q with ProjectCommit; ignoring", job.GetName(), job.GetNamespace())
+			reportRuntimeError(ctx,
+				fmt.Errorf("unable to pair Job %q.%q with ProjectCommit; ignoring",
+					job.GetName(), job.GetNamespace()))
 			continue
 		}
 		commits[key].Children.Builders = append(commits[key].Children.Builders, job)
@@ -365,7 +369,9 @@ func (k *kale) updateInternalState(ctx context.Context, snapshot Snapshot) {
 	for _, statefulset := range snapshot.StatefulSets {
 		key := k8sTypes.UID(statefulset.GetLabels()[CommitLabelName])
 		if _, ok := commits[key]; !ok {
-			log.Errorf("Unable to pair StatefulSet %q.%q with ProjectCommit; ignoring", statefulset.GetName(), statefulset.GetNamespace())
+			reportRuntimeError(ctx,
+				fmt.Errorf("unable to pair StatefulSet %q.%q with ProjectCommit; ignoring",
+					statefulset.GetName(), statefulset.GetNamespace()))
 			continue
 		}
 		commits[key].Children.Runners = append(commits[key].Children.Runners, statefulset)
@@ -383,7 +389,9 @@ func (k *kale) updateInternalState(ctx context.Context, snapshot Snapshot) {
 	for _, commit := range commits {
 		key := k8sTypes.UID(commit.GetLabels()[ProjectLabelName])
 		if _, ok := projects[key]; !ok {
-			log.Errorf("Unable to pair ProjectCommit %q.%q with Project; ignoring", commit.GetName(), commit.GetNamespace())
+			reportRuntimeError(ctx,
+				fmt.Errorf("unable to pair ProjectCommit %q.%q with Project; ignoring",
+					commit.GetName(), commit.GetNamespace()))
 			continue
 		}
 		projects[key].Children.Commits = append(projects[key].Children.Commits, commit)
@@ -395,12 +403,13 @@ func (k *kale) updateInternalState(ctx context.Context, snapshot Snapshot) {
 }
 
 func (k *kale) reconcileGitHub(ctx context.Context, projects []*Project) {
-	for _, pr := range projects {
-		err := postHook(pr.Spec.GithubRepo,
-			fmt.Sprintf("https://%s/edge_stack/api/githook/%s", pr.Spec.Host, pr.Key()),
-			pr.Spec.GithubToken)
+	for _, proj := range projects {
+		ctx := CtxWithProject(ctx, proj)
+		err := postHook(proj.Spec.GithubRepo,
+			fmt.Sprintf("https://%s/edge_stack/api/githook/%s", proj.Spec.Host, proj.Key()),
+			proj.Spec.GithubToken)
 		if err != nil {
-			dlog.GetLogger(ctx).Errorln(err)
+			reportRuntimeError(ctx, err)
 		}
 	}
 }
@@ -412,7 +421,7 @@ func (k *kale) reconcileGitHub(ctx context.Context, projects []*Project) {
 func (k *kale) dispatch(r *http.Request) httpResult {
 	parts := strings.Split(r.URL.Path[1:], "/")
 	if parts[0] != "api" {
-		panic("this shouldn't happen")
+		panicThisIsABug(errors.New("this shouldn't happen"))
 	}
 	switch parts[1] {
 	case "githook":
@@ -469,8 +478,7 @@ func (k *kale) dispatch(r *http.Request) httpResult {
 			stream: func(w http.ResponseWriter) {
 				err := streamLogs(w, r, namespace, strings.Join(selectors, ","))
 				if err != nil {
-					// safe panic()--will be handled appropriately by safeHandleFunco
-					panic(err)
+					panicFlowControl(err)
 				}
 			},
 		}
@@ -500,7 +508,7 @@ func (k *kale) projectsJSON() string {
 	if err != nil {
 		// Everything in results should be serializable to
 		// JSON--this should never happen.
-		panic(err)
+		panicThisIsABug(err)
 	}
 
 	return string(bytes) + "\n"
@@ -704,10 +712,9 @@ func (k *kale) calculateBuild(proj *Project, commit *ProjectCommit) []interface{
 }
 
 func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
-	log := dlog.GetLogger(ctx)
-
 	// reconcile commits
 	for _, proj := range snapshot.Projects {
+		ctx := CtxWithProject(ctx, proj)
 		commitManifests, err := k.calculateCommits(proj)
 		if err != nil {
 			continue
@@ -723,14 +730,14 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 			},
 			commitManifests)
 		if err != nil {
-			log.Errorf("updating ProjectCommits for Project %q.%q: %+v",
-				proj.GetName(), proj.GetNamespace(),
-				err)
+			reportRuntimeError(ctx,
+				fmt.Errorf("updating ProjectCommits: %w", err))
 		}
 	}
 
 	// reconcile things managed by commits
 	for _, commit := range snapshot.Commits {
+		ctx := CtxWithCommit(ctx, commit)
 		var project *Project
 		for _, proj := range snapshot.Projects {
 			if proj.GetNamespace() == commit.GetNamespace() &&
@@ -738,6 +745,7 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 				project = proj
 			}
 		}
+		ctx = CtxWithProject(ctx, project)
 		var commitBuilders []*k8sTypesBatchV1.Job
 		for _, job := range snapshot.Jobs {
 			if k8sTypes.UID(job.GetLabels()[CommitLabelName]) == commit.GetUID() {
@@ -751,9 +759,14 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 			}
 		}
 
-		err := safeInvoke1(func() error { return k.reconcileCommit(ctx, project, commit, commitBuilders, commitRunners) })
+		err := safeInvoke(func() {
+			if err := k.reconcileCommit(ctx, project, commit, commitBuilders, commitRunners); err != nil {
+				reportRuntimeError(ctx, err)
+			}
+		})
 		if err != nil {
-			log.Printf("ERROR: %+v", err)
+			reportThisIsABug(ctx,
+				fmt.Errorf("recovered from panic: %w", err))
 		}
 	}
 }
@@ -855,9 +868,10 @@ func (k *kale) reconcileCommit(ctx context.Context, proj *Project, commit *Proje
 		} else if regexp.MustCompile("The Job .* is invalid .* field is immutable").MatchString(err.Error()) {
 			deleteResource("job.v1.batch", commit.GetName()+"-build", commit.GetNamespace())
 		} else {
-			log.Errorf("deploying ProjectCommit %q.%q: %+v",
-				commit.GetName(), commit.GetNamespace(),
-				err)
+			reportRuntimeError(ctx,
+				fmt.Errorf("deploying ProjectCommit %q.%q: %w",
+					commit.GetName(), commit.GetNamespace(),
+					err))
 		}
 	}
 
