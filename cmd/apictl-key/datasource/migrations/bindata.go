@@ -52,6 +52,15 @@ func _3_install_id_up_sql() ([]byte, error) {
 	)
 }
 
+var __4_crash_report_up_sql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\xce\xc1\x4a\x03\x31\x10\x06\xe0\xfb\x3e\xc5\x7f\xab\x82\x4f\xd0\x5b\xda\x8e\x18\xcd\x66\x4b\x3a\x41\xea\x25\x84\x66\xc0\x1c\xd6\x5d\x93\x78\x12\xdf\x5d\x58\x61\x41\xed\xdc\x86\xe1\x9b\xff\xdf\x3b\x52\x4c\x60\xb5\x33\x84\x4b\x89\xf5\x35\x14\x99\xa7\xd2\x70\xd3\x01\x40\x4e\xb8\x32\xde\xeb\x03\x8e\x4e\xf7\xca\x9d\xf1\x44\x67\xd8\x81\x61\xbd\x31\x77\x0b\xba\x14\x89\x2d\x4f\x6f\xa1\xe5\x51\x56\xc4\xba\xa7\x13\xab\xfe\x88\x67\xcd\x0f\xcb\x8a\x97\xc1\xd2\x8a\x71\xa0\x7b\xe5\x0d\x63\xef\x9d\x23\xcb\x61\x15\x3f\x6f\x8b\xbc\x7f\x48\x6d\x52\x42\x9e\x43\x4c\xa9\x48\xad\x80\xb6\xc4\x7f\xf2\x47\x69\x31\xc5\x16\x7f\x97\x7e\x3c\x0d\x76\xf7\x3f\x6c\xf3\xf9\xb5\xd9\x6e\x97\x63\x77\xdb\x7d\x07\x00\x00\xff\xff\xf8\x83\x0d\x27\x10\x01\x00\x00")
+
+func _4_crash_report_up_sql() ([]byte, error) {
+	return bindata_read(
+		__4_crash_report_up_sql,
+		"4_crash-report.up.sql",
+	)
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -77,6 +86,7 @@ var _bindata = map[string]func() ([]byte, error){
 	"1_initial.up.sql":          _1_initial_up_sql,
 	"2_domains_hostname.up.sql": _2_domains_hostname_up_sql,
 	"3_install_id.up.sql":       _3_install_id_up_sql,
+	"4_crash-report.up.sql":     _4_crash_report_up_sql,
 }
 
 // AssetDir returns the file names below a certain
@@ -123,4 +133,5 @@ var _bintree = &_bintree_t{nil, map[string]*_bintree_t{
 	"1_initial.up.sql":          &_bintree_t{_1_initial_up_sql, map[string]*_bintree_t{}},
 	"2_domains_hostname.up.sql": &_bintree_t{_2_domains_hostname_up_sql, map[string]*_bintree_t{}},
 	"3_install_id.up.sql":       &_bintree_t{_3_install_id_up_sql, map[string]*_bintree_t{}},
+	"4_crash-report.up.sql":     &_bintree_t{_4_crash_report_up_sql, map[string]*_bintree_t{}},
 }}

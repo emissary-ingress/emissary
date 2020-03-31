@@ -13,15 +13,21 @@ resource "aws_iam_user" "aes-backend-dns" {
 
 resource "aws_iam_policy" "aes-backend-dns" {
   name = "aes-backend-dns"
-  description = "AES Backend DNS policy for easy DNS registration"
+  description = "AES Backend DNS policy for easy DNS registration and crash-report uploads to S3"
   policy = <<EOF
 {
     "Version": "2012-10-17",
     "Statement": [
         {
             "Effect": "Allow",
-            "Action": "route53:ChangeResourceRecordSets",
-            "Resource": "arn:aws:route53:::hostedzone/Z80AVJZQXUM45"
+            "Action": [
+                "s3:PutObject",
+                "route53:ChangeResourceRecordSets"
+            ],
+            "Resource": [
+                "arn:aws:s3:::datawire-crash-reports/*",
+                "arn:aws:route53:::hostedzone/Z80AVJZQXUM45"
+            ]
         }
     ]
 }
