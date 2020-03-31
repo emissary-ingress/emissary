@@ -22,7 +22,9 @@ How do I hack on the UI?
    ```
 
 2. Run the sidecar locally with the local backend forwarding all
-   snapshot requests to the backend in the cluster.
+   snapshot requests to the backend in the cluster:
+
+   The long and flexible way:
 
    ```sh
    DEV_WEBUI_SNAPSHOT_HOST=${MY_CLUSTER_HOST_OR_IP} \
@@ -33,7 +35,17 @@ How do I hack on the UI?
    go run ./cmd/ambassador amb-sidecar
    ```
 
-3. Visit http://localhost:9000 in your browser
+   The short and opinionated way:
+
+   ```sh
+   ./ui-dev.sh
+   ```
+
+3. Visit in your browser:
+
+  - http://localhost:9000 to see all dev endpoints
+  - http://localhost:9000/tests to run the javascript tests
+  - http://localhost:9000/edge_stack/mvc/docs/ to read documentation for our UI code
 
 4. Hack away at the files in `${PWD}/cmd/amb-sidecar/webui/bindata/`. Refresh (or shift-refresh)
    your browser as necessary to get the updated files.
