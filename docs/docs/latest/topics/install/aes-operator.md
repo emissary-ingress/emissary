@@ -8,7 +8,10 @@ installations and seamless upgrades to new versions of Ambassador.  [Read
 more](https://github.com/datawire/ambassador-operator/blob/master/README.md#version-syntax)
 about the benefits of the Operator.
 
-A Kubernetes operator is a software extension that makes it easier to manage and automate your Kubernetes-based applications, in the spirit of a human operator. Operators complete actions such as deploying, upgrading and maintaining applications, and many others. Read more about Kubernetes Operators [here](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/).
+A Kubernetes operator is a software extension that makes it easier to manage and automate your
+Kubernetes-based applications, in the spirit of a human operator. Operators complete actions such
+as deploying, upgrading and maintaining applications, and many others. Read more about Kubernetes
+Operators [here](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/).
 
 This document covers installing the Operator:
 
@@ -22,9 +25,12 @@ updates](#updates-by-the-operator) versions.
 
 Start by installing the operator:
 
-1. Create the Operator Custom Resource schema with the following command: `kubectl apply -f https://github.com/datawire/ambassador-operator/releases/latest/download/ambassador-operator-crds.yaml`
-2. Install the actual CRD for the Ambassador Operator in the `ambassador` namespace with the following command: `kubectl apply -n ambassador -f https://github.com/datawire/ambassador-operator/releases/latest/download/ambassador-operator.yaml`
-3. To install the Ambassador Operator CRD in a different namespace, you can specify it in `NS` and then run the following command:
+1. Create the Operator Custom Resource schema with the following command:
+   `kubectl apply -f https://github.com/datawire/ambassador-operator/releases/latest/download/ambassador-operator-crds.yaml`
+2. Install the actual CRD for the Ambassador Operator in the `ambassador` namespace with the following command:
+   `kubectl apply -n ambassador -f https://github.com/datawire/ambassador-operator/releases/latest/download/ambassador-operator.yaml`
+3. To install the Ambassador Operator CRD in a different namespace, you can specify it in `NS` and
+   then run the following command:
 
     ```shell
     $ NS="custom-namespace"
@@ -35,7 +41,9 @@ Start by installing the operator:
 
 Then, create the `AmbassadorInstallation` Custom Resource schema and apply it to the AES Operator.
 
-1. To create the `AmbassadorInstallation` Custom Resource schema, use the following YAML as your guideline: [https://github.com/datawire/ambassador-operator#the-operator-custom-resource-cr](https://github.com/datawire/ambassador-operator#the-operator-custom-resource-cr).
+1. To create the `AmbassadorInstallation` Custom Resource schema, use
+   [the following YAML](https://github.com/datawire/ambassador-operator#the-operator-custom-resource-cr)
+   as your guideline.
 2. Save that file as `amb-install.yaml`
 3. Edit the `amb-install.yaml` and optionally complete configurations such as Version constraint or UpdateWindow:
 4. Finally, apply your `AmbassadorInstallation` CRD to the AES Operator schema
@@ -43,7 +51,10 @@ Then, create the `AmbassadorInstallation` Custom Resource schema and apply it to
 
 ### Configuration for the Ambassador Edge Stack
 
-After the initial installation of Ambassador, the Operator will check for updates every 24 hours and delay the update until the Update Window allows the update to proceed. It will use the Version Syntax for determining if any new release is acceptable. When a new release is available and acceptable, the Operator will upgrade Ambassador.
+After the initial installation of Ambassador, the Operator will check for updates every 24 hours and
+delay the update until the Update Window allows the update to proceed. It will use the Version Syntax for
+determining if any new release is acceptable. When a new release is available and acceptable, the Operator
+will upgrade Ambassador.
 
 ### Version Syntax and Update Window
 
@@ -55,14 +66,15 @@ precision. This can optionally end in `*`.  For example:
   * `1.1.*` = version 1.1 and any bug fix versions 1.1.1, 1.1.2, 1.1.3, etc.
   * `2.*` = version 2.0 and any incremental and bug fix versions 2.0, 2.0.1, 2.0.2, 2.1, 2.2, 2.2.1, etc.
   * `*` = all versions.
-  * `3.0-ea` = version 3.0-ea1 and any subsequent EA releases on 3.0. Also selects the final 3.0 once the final GA version is released.
+  * `3.0-ea` = version 3.0-ea1 and any subsequent EA releases on 3.0. Also selects the final 3.0 once the
+    final GA version is released.
   * `4.*-ea` = version 4.0-ea1 and any subsequent EA release on 4.0. This also selects:
       * the final GA 4.0.
       * any incremental and bug fix versions 4.* and 4
       * the most recent 4.* EA release (i.e., if 4.0.5 is the last GA version and
         there is a 4.1-EA3, then this selects 4.1-EA3 over the 4.0.5 GA).
 
-Read more about SemVer [here](https://github.com/Masterminds/semver#basic-comparisons).
+Read more about _SemVer_ [here](https://github.com/Masterminds/semver#basic-comparisons).
 
 `updateWindow` is an optional item that will control when the updates can take
 place. This is used to force system updates to happen during specified times.
@@ -79,7 +91,63 @@ examples of `updateWindow` are:
 * `0-6 * * * SUN`: every Sunday, from 0am to 6am
 * `5 1 * * *`: every first day of the month, at 5am
 
-The Operator cannot guarantee minute time granularity, so specifying a minute in the crontab expression can lead to some updates happening sooner/later than expected.
+The Operator cannot guarantee minute time granularity, so specifying a minute in the crontab
+expression can lead to some updates happening sooner/later than expected.
+
+## Customizing the installation with some Helm values
+
+`helmValues` is an optional map of configurable parameters of the Ambassador chart
+with some overriden values. Take a look at the [current list of values](https://github.com/helm/charts/tree/master/stable/ambassador#configuration)
+and their default values.
+
+You must take into account some rules when settings these values in the `AmbassadorInstallation`:
+
+  * All the values must be encoded as strings. This is specially important for integers (ie, use `"80"`
+    instead of just `80`).
+  * You must use a backslash to escape the `,` characters:
+    ```yaml
+    helmValues:
+      name: "value1\,value2"
+    ```
+    You must escape _dot_ sequences as well, which may come in handy when charts use the `toYaml`
+    function to parse annotations, labels and node selectors. So you must use:
+    ```yaml
+    # this is valid
+    helmValues:
+      nodeSelector.kubernetes\.io/role: master
+    ```
+    instead of:
+    ```yaml
+    # this is NOT valid
+    helmValues:
+      nodeSelector:
+        kubernetes.io/role: master
+    ```
+  * Complex data structures must be _collapsed_, using dots for separating all the elements in a tree
+    and `[]` for creating lists. For example, you should use:
+    ```yaml
+    # this is valid
+    helmValues:
+      service.ports[0].name: "http"
+      service.ports[0].port: "80"
+      service.ports[0].targetPort: "8080"
+      service.ports[1].name: "https"
+      service.ports[1].port: "443"
+      service.ports[1].targetPort: "8443"
+    ```
+    instead of:
+    ```yaml
+    # this is NOT valid
+    helmValues:
+      service:
+        ports:
+        - name: http
+          port: 80
+          targetPort: 8080
+        - name: https
+          port: 443
+          targetPort: 8443
+    ```
 
 ## Install via Helm Chart
 
@@ -113,7 +181,8 @@ will then use the list of releases available for the Ambassador Helm Chart for
 determining the most recent version that can be installed, using the optional
 Version Syntax for filtering the releases that are acceptable.
 
-It will then install Ambassador, using any extra arguments provided in the `AmbassadorInstallation`, like the `baseImage`, the `logLevel` or any of the `helmValues`.
+It will then install Ambassador, using any extra arguments provided in the `AmbassadorInstallation`,
+like the `baseImage`, the `logLevel` or any of the `helmValues`.
 
 For example:
 
