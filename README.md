@@ -190,7 +190,7 @@ If you intend to use `service.annotations`, remember to include the `getambassad
 
 ### Prometheus Metrics
 
-Using the Prometheus Exporter has been deprecated and is no longer recommended.
+Using the Prometheus Exporter has been deprecated and is no longer recommended. You can now use `metrics.serviceMonitor.enabled` to create a `ServiceMonitor` from the chart if the [Prometheus Operator](https://github.com/coreos/prometheus-operator) has been installed on your cluster.
 
 Please see Ambassador's [monitoring with Prometheus](https://www.getambassador.io/user-guide/monitoring/) docs for more information on using the `/metrics` endpoint for metrics collection.
 
