@@ -3,6 +3,7 @@ package kale
 import (
 	// standard library
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -29,6 +30,7 @@ import (
 	// 3rd party: k8s misc
 	k8sSchema "k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	k8sValidation "k8s.io/apimachinery/pkg/util/validation"
 
 	// 1st party
 	"github.com/datawire/ambassador/pkg/dlog"
@@ -98,6 +100,7 @@ const (
 	GlobalLabelName  = "projects.getambassador.io/ambassador_id" // cfg.AmbassadorID
 	ProjectLabelName = "projects.getambassador.io/project-uid"   // proj.GetUID()
 	CommitLabelName  = "projects.getambassador.io/commit-uid"    // commit.GetUID()
+	JobLabelName     = "job-name"                                // Don't change this; it's the label name used by Kubernetes itself
 )
 
 func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8s.KubeInfo, dynamicClient k8sClientDynamic.Interface) {
@@ -150,7 +153,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 			err := w.WatchQuery(query, wg.Wrap(softCtx, handler))
 			if err != nil {
 				// this is non fatal (mostly just to facilitate local dev); don't `return err`
-				l.Errorf("not watching %q resources: %v",
+				l.Errorf("not watching %q resources: %+v",
 					query.Kind,
 					fmt.Errorf("WatchQuery(%#v, ...): %w", query, err))
 				return nil
@@ -159,7 +162,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 
 		if err := safeInvoke(w.Start); err != nil {
 			// RBAC!
-			l.Errorf("kale: w.Start(): %v", err)
+			l.Errorf("kale: w.Start(): %+v", err)
 			return nil
 		}
 		go func() {
@@ -457,7 +460,7 @@ func (k *kale) dispatch(r *http.Request) httpResult {
 		if logType == "slogs" {
 			selectors = append(selectors, "statefulset.kubernetes.io/pod-name")
 		} else {
-			selectors = append(selectors, "job-name")
+			selectors = append(selectors, JobLabelName)
 		}
 		return httpResult{
 			stream: func(w http.ResponseWriter) {
@@ -509,7 +512,7 @@ func (k *kale) handlePush(r *http.Request, key string) httpResult {
 
 	var push Push
 	if err := json.NewDecoder(r.Body).Decode(&push); err != nil {
-		log.Printf("WEBHOOK PARSE ERROR: %v", err)
+		log.Printf("WEBHOOK PARSE ERROR: %+v", err)
 		return httpResult{status: 400, body: err.Error()}
 	}
 
@@ -589,61 +592,108 @@ func (k *kale) calculateBuild(proj *Project, commit *ProjectCommit) []interface{
 	// todo: the ambassador namespace is hardcoded below in the registry
 	//       we to which we push
 
-	return []interface{}{
-		&k8sTypesBatchV1.Job{
-			TypeMeta: k8sTypesMetaV1.TypeMeta{
-				APIVersion: "batch/v1",
-				Kind:       "Job",
+	job := &k8sTypesBatchV1.Job{
+		TypeMeta: k8sTypesMetaV1.TypeMeta{
+			APIVersion: "batch/v1",
+			Kind:       "Job",
+		},
+		ObjectMeta: k8sTypesMetaV1.ObjectMeta{
+			Name:      commit.GetName() + "-build",
+			Namespace: commit.GetNamespace(),
+			Labels: map[string]string{
+				GlobalLabelName: k.cfg.AmbassadorID,
+				CommitLabelName: string(commit.GetUID()),
 			},
-			ObjectMeta: k8sTypesMetaV1.ObjectMeta{
-				Name:      commit.GetName() + "-build",
-				Namespace: commit.GetNamespace(),
-				Labels: map[string]string{
-					GlobalLabelName: k.cfg.AmbassadorID,
-					CommitLabelName: string(commit.GetUID()),
-				},
-				OwnerReferences: []k8sTypesMetaV1.OwnerReference{
-					{
-						Controller:         boolPtr(true),
-						BlockOwnerDeletion: boolPtr(true),
-						Kind:               commit.TypeMeta.Kind,
-						APIVersion:         commit.TypeMeta.APIVersion,
-						Name:               commit.GetName(),
-						UID:                commit.GetUID(),
-					},
+			OwnerReferences: []k8sTypesMetaV1.OwnerReference{
+				{
+					Controller:         boolPtr(true),
+					BlockOwnerDeletion: boolPtr(true),
+					Kind:               commit.TypeMeta.Kind,
+					APIVersion:         commit.TypeMeta.APIVersion,
+					Name:               commit.GetName(),
+					UID:                commit.GetUID(),
 				},
 			},
-			Spec: k8sTypesBatchV1.JobSpec{
-				BackoffLimit: int32Ptr(1),
-				Template: k8sTypesCoreV1.PodTemplateSpec{
-					ObjectMeta: k8sTypesMetaV1.ObjectMeta{
-						Labels: map[string]string{
-							GlobalLabelName: k.cfg.AmbassadorID,
-							CommitLabelName: string(commit.GetUID()),
-						},
+		},
+		Spec: k8sTypesBatchV1.JobSpec{
+			BackoffLimit: int32Ptr(1),
+			Template: k8sTypesCoreV1.PodTemplateSpec{
+				ObjectMeta: k8sTypesMetaV1.ObjectMeta{
+					Labels: map[string]string{
+						GlobalLabelName: k.cfg.AmbassadorID,
+						CommitLabelName: string(commit.GetUID()),
 					},
-					Spec: k8sTypesCoreV1.PodSpec{
-						Containers: []k8sTypesCoreV1.Container{
-							{
-								Name:  "kaniko",
-								Image: "gcr.io/kaniko-project/executor:v0.16.0",
-								Args: []string{
-									"--cache=true",
-									"--skip-tls-verify",
-									"--skip-tls-verify-pull",
-									"--skip-tls-verify-registry",
-									"--dockerfile=Dockerfile",
-									"--context=git://github.com/" + proj.Spec.GithubRepo + ".git#" + commit.Spec.Ref.String(),
-									"--destination=registry.ambassador/" + commit.Spec.Rev,
-								},
+				},
+				Spec: k8sTypesCoreV1.PodSpec{
+					Containers: []k8sTypesCoreV1.Container{
+						{
+							Name:  "kaniko",
+							Image: "gcr.io/kaniko-project/executor:v0.16.0",
+							Args: []string{
+								"--cache=true",
+								"--skip-tls-verify",
+								"--skip-tls-verify-pull",
+								"--skip-tls-verify-registry",
+								"--dockerfile=Dockerfile",
+								"--context=git://github.com/" + proj.Spec.GithubRepo + ".git#" + commit.Spec.Ref.String(),
+								"--destination=registry.ambassador/" + commit.Spec.Rev,
 							},
 						},
-						RestartPolicy: k8sTypesCoreV1.RestartPolicyNever,
 					},
+					RestartPolicy: k8sTypesCoreV1.RestartPolicyNever,
 				},
 			},
 		},
 	}
+
+	if errs := k8sValidation.IsValidLabelValue(job.GetName()); len(errs) != 0 {
+		// The Kubernetes docs say:
+		//
+		//    Leave `manualSelector` unset unless you are certain what
+		//    you are doing. When false or unset, the system pick labels
+		//    unique to this job and appends those labels to the pod
+		//    template.
+		//
+		// ... yeah, except that the code in Kubernetes that does that
+		// is just broken for Jobs with names >63 characters long[1].
+		// Do they document that Jobs must have short names?  No,
+		// because that's not a requirement; it's just a bug in the Job
+		// controller.
+		//
+		// [1] Or rather, any name that isn't a valid label value.
+		// Without thinking about it too hard, I think length is the
+		// only way a valid name can not be a valid label value.
+		//
+		// So, that forces us to set `manualSelector` and do it
+		// ourselves :/ We don't do this if we think the built-in
+		// Kubernetes controller will do the right thing, because it has
+		// access to the Job UID (and we don't), which is a robustness
+		// win.
+		job.Spec.ManualSelector = boolPtr(true)
+		// We can't just set "controller-uid" to job.GetUID() (which
+		// would be a safe subset of Kubernetes' built-in behavior),
+		// because the Job's UID hasn't been populated yet!  And we
+		// can't just generate a UUID to use, because we want this
+		// function to be deterministic.  So cram in the information we
+		// already have, and also add in a hash of the job name.
+		//
+		// I chose SHA-2/224 because I was going to choose SHA-2/256
+		// because that's usually a safe choice, but I needed something
+		// that hex-encodes to <64 characters (SHA-2/256 is 64
+		// characters exactly), and I didn't want to think about if
+		// truncating a hash is safe.
+		nameHash := fmt.Sprintf("%x", sha256.Sum224([]byte(job.GetName())))
+		job.Spec.Selector = &k8sTypesMetaV1.LabelSelector{
+			MatchLabels: map[string]string{
+				GlobalLabelName: k.cfg.AmbassadorID,
+				CommitLabelName: string(commit.GetUID()),
+				JobLabelName:    nameHash,
+			},
+		}
+		job.Spec.Template.ObjectMeta.Labels[JobLabelName] = nameHash
+	}
+
+	return []interface{}{job}
 }
 
 func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
@@ -666,7 +716,7 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 			},
 			commitManifests)
 		if err != nil {
-			log.Errorf("updating ProjectCommits for Project %q.%q: %v",
+			log.Errorf("updating ProjectCommits for Project %q.%q: %+v",
 				proj.GetName(), proj.GetNamespace(),
 				err)
 		}
@@ -696,7 +746,7 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 
 		err := safeInvoke1(func() error { return k.reconcileCommit(ctx, project, commit, commitBuilders, commitRunners) })
 		if err != nil {
-			log.Printf("ERROR: %v", err)
+			log.Printf("ERROR: %+v", err)
 		}
 	}
 }
@@ -796,7 +846,7 @@ func (k *kale) reconcileCommit(ctx context.Context, proj *Project, commit *Proje
 		} else if regexp.MustCompile("The Job .* is invalid .* field is immutable").MatchString(err.Error()) {
 			deleteResource("job.v1.batch", commit.GetName()+"-build", commit.GetNamespace())
 		} else {
-			log.Errorf("deploying ProjectCommit %q.%q: %v",
+			log.Errorf("deploying ProjectCommit %q.%q: %+v",
 				commit.GetName(), commit.GetNamespace(),
 				err)
 		}

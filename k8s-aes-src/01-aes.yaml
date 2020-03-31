@@ -113,6 +113,9 @@ rules:
   resources: [ "jobs" ]
   verbs: [ "get", "list", "create", "patch", "delete", "watch" ]
 - apiGroups: [""]
+  resources: [ "pods" ]
+  verbs: [ "get", "list" ]
+- apiGroups: [""]
   resources: [ "pods/log" ]
   verbs: [ "get" ]
 ---
