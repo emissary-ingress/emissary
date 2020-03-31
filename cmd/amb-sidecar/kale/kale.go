@@ -738,12 +738,17 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 	// reconcile things managed by commits
 	for _, commit := range snapshot.Commits {
 		ctx := CtxWithCommit(ctx, commit)
+		projectUID := k8sTypes.UID(commit.GetLabels()[ProjectLabelName])
 		var project *Project
 		for _, proj := range snapshot.Projects {
-			if proj.GetNamespace() == commit.GetNamespace() &&
-				proj.GetName() == commit.Spec.Project.Name {
+			if proj.GetUID() == projectUID {
 				project = proj
 			}
+		}
+		if project == nil {
+			reportRuntimeError(ctx, StepReconcileCommitsToAction,
+				errors.New("unable to pair ProjectCommit with Project"))
+			continue
 		}
 		ctx = CtxWithProject(ctx, project)
 		var commitBuilders []*k8sTypesBatchV1.Job
