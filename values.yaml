@@ -40,7 +40,7 @@ podDisruptionBudget: {}
 
 # Additional container environment variable
 # Uncomment or add additional environment variables for the container here.
-env:
+env: {}
   # Exposing statistics via StatsD
   # STATSD_ENABLED: true
   # STATSD_HOST: statsd-sink
@@ -90,7 +90,7 @@ service:
 
   externalTrafficPolicy:
 
-  annotations:
+  annotations: {}
   #############################################################################
   ## Ambassador should be configured using CRD definition. If you want
   ## to use annotations, the following is an example of annotating the
@@ -152,8 +152,7 @@ adminService:
 rbac:
   # Specifies whether RBAC resources should be created
   create: true
-  podSecurityPolicies:
-    {}
+  podSecurityPolicies: []
   # Name of the RBAC resources defaults to the name of the release.
   # Set nameOverride when installing Ambassador with cluster-wide scope in
   # different namespaces with the same release name to avoid conflicts.
