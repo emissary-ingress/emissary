@@ -592,16 +592,19 @@ func _logErr(ctx context.Context, err error) {
 func reportThisIsABug(ctx context.Context, err error) {
 	err = fmt.Errorf("this is a bug: error: %w", err)
 	_logErr(ctx, err)
+	telemetryErr(ctx, StepBug, err)
 }
 
-func reportRuntimeError(ctx context.Context, err error) {
+func reportRuntimeError(ctx context.Context, step string, err error) {
 	err = fmt.Errorf("runtime error: %w", err)
 	_logErr(ctx, err)
+	telemetryErr(ctx, step, err)
 }
 
 func panicThisIsABugContext(ctx context.Context, err error) {
 	err = fmt.Errorf("this is a bug: panicking: %w", err)
 	_logErr(ctx, err)
+	telemetryErr(ctx, StepBug, err)
 	panic(err)
 }
 
@@ -612,6 +615,21 @@ func panicThisIsABug(err error) {
 
 func panicFlowControl(err error) {
 	panic(err)
+}
+
+type iterationContextKey struct{}
+
+func CtxWithIteration(ctx context.Context, itr uint64) context.Context {
+	return context.WithValue(ctx, iterationContextKey{}, itr)
+}
+
+func CtxGetIteration(ctx context.Context) *uint64 {
+	itrInterface := ctx.Value(iterationContextKey{})
+	if itrInterface == nil {
+		return nil
+	}
+	itr := itrInterface.(uint64)
+	return &itr
 }
 
 type projectContextKey struct{}
