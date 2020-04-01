@@ -913,6 +913,12 @@ service: https://{self.target.path.fqdn}
                 if host_header == 'tls-context-host-3':
                     host_header = 'localhost'
 
+                # Yep, that's expected. Since the TLS secret for 'tls-context-host-1' is
+                # not namespaced it should only resolve to the Ingress' own
+                # namespace, and can't use the 'secret.namespace' Ambassador syntax
+                if host_header == 'tls-context-host-1':
+                    host_header = 'localhost'
+
                 assert host_header == tls_common_name, "test %d wanted CN %s, but got %s" % (idx, host_header, tls_common_name)
 
             idx += 1

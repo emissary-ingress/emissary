@@ -83,6 +83,7 @@ class IRHTTPMapping (IRBaseMapping):
         # Do not include precedence.
         "prefix": True,
         "prefix_regex": True,
+        "prefix_exact": True,
         "priority": True,
         "proper_case": True,
         "rate_limits": True,   # Only supported in v0, handled in setup
