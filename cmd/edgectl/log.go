@@ -27,7 +27,7 @@ func (f *DaemonFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 		b = &bytes.Buffer{}
 	}
 
-	fmt.Fprintf(b, "%s %s", entry.Time.Format(f.TimestampFormat), entry.Message)
+	_, _ = fmt.Fprintf(b, "%s %s", entry.Time.Format(f.TimestampFormat), entry.Message)
 
 	if len(entry.Data) > 0 {
 		keys := make([]string, 0, len(entry.Data))
@@ -37,7 +37,7 @@ func (f *DaemonFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 		sort.Strings(keys)
 		for _, k := range keys {
 			v := entry.Data[k]
-			fmt.Fprintf(b, " %s=%+v", k, v)
+			_, _ = fmt.Fprintf(b, " %s=%+v", k, v)
 		}
 	}
 	b.WriteByte('\n')

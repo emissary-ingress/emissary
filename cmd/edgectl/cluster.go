@@ -64,7 +64,7 @@ func (d *Daemon) Connect(
 		out.Println(err.Error())
 		out.Send("failed", err.Error())
 		out.SendExit(1)
-		d.cluster.Close()
+		_ = d.cluster.Close()
 		d.cluster = nil
 		return nil
 	}
@@ -121,13 +121,13 @@ func (d *Daemon) Disconnect(p *supervisor.Process, out *Emitter) error {
 
 // checkBridge checks the status of teleproxy bridge by doing the equivalent of
 // curl -k https://kubernetes/api/.
-func checkBridge(p *supervisor.Process) error {
+func checkBridge(_ *supervisor.Process) error {
 	res, err := hClient.Get("https://kubernetes.default/api/")
 	if err != nil {
 		return errors.Wrap(err, "get")
 	}
 	_, err = ioutil.ReadAll(res.Body)
-	res.Body.Close()
+	_ = res.Body.Close()
 	if err != nil {
 		return errors.Wrap(err, "read body")
 	}
@@ -225,7 +225,7 @@ func (tm *TrafficManager) check(p *supervisor.Process) error {
 			return nil
 		}
 		_, _ = ioutil.ReadAll(resp.Body)
-		resp.Body.Close()
+		_ = resp.Body.Close()
 		p.Log("snapshot sent!")
 	}
 
@@ -243,7 +243,9 @@ func (tm *TrafficManager) request(method, path string, data []byte) (result stri
 		err = errors.Wrap(err, "get")
 		return
 	}
-	defer resp.Body.Close()
+	// Defer anonymous function to handle error
+	defer func() { _ = resp.Body.Close() }()
+
 	code = resp.StatusCode
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {

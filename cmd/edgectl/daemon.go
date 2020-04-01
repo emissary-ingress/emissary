@@ -102,18 +102,18 @@ func (d *Daemon) acceptLoop(p *supervisor.Process) error {
 }
 
 func (d *Daemon) handle(p *supervisor.Process, conn net.Conn) error {
-	defer conn.Close()
+	defer closeConn(conn)
 
 	decoder := json.NewDecoder(conn)
 	data := &ClientMessage{}
 	if err := decoder.Decode(data); err != nil {
 		p.Logf("Failed to read message: %v", err)
-		fmt.Fprintln(conn, "API mismatch. Server", displayVersion)
+		_, _ = fmt.Fprintln(conn, "API mismatch. Server", displayVersion)
 		return nil
 	}
 	if data.APIVersion != apiVersion {
 		p.Logf("API version mismatch (got %d, need %d)", data.APIVersion, apiVersion)
-		fmt.Fprintf(conn, "API version mismatch (got %d, server %s)", data.APIVersion, displayVersion)
+		_, _ = fmt.Fprintf(conn, "API version mismatch (got %d, server %s)", data.APIVersion, displayVersion)
 		return nil
 	}
 	p.Logf("Received command: %q", data.Args)

@@ -29,7 +29,7 @@ func (d *Daemon) MakeNetOverride(p *supervisor.Process) error {
 
 // checkNetOverride checks the status of teleproxy intercept by doing the
 // equivalent of curl http://teleproxy/api/tables/.
-func checkNetOverride(p *supervisor.Process) error {
+func checkNetOverride(_ *supervisor.Process) error {
 	res, err := hClient.Get(fmt.Sprintf(
 		"http://teleproxy%d.cachebust.telepresence.io/api/tables",
 		time.Now().Unix(),
@@ -38,7 +38,7 @@ func checkNetOverride(p *supervisor.Process) error {
 		return err
 	}
 	_, err = ioutil.ReadAll(res.Body)
-	res.Body.Close()
+	_ = res.Body.Close()
 	if err != nil {
 		return err
 	}

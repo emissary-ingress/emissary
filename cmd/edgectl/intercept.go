@@ -208,7 +208,7 @@ func (d *Daemon) AddIntercept(p *supervisor.Process, out *Emitter, ii *Intercept
 }
 
 // RemoveIntercept removes one intercept by name
-func (d *Daemon) RemoveIntercept(p *supervisor.Process, out *Emitter, name string) error {
+func (d *Daemon) RemoveIntercept(_ *supervisor.Process, out *Emitter, name string) error {
 	msg := d.interceptMessage()
 	for idx, cept := range d.intercepts {
 		if cept.ii.Name == name {
@@ -264,8 +264,8 @@ func (cept *Intercept) removeMapping(p *supervisor.Process) error {
 
 	if cept.mappingExists {
 		p.Logf("%v: Deleting mapping in namespace %v", cept.ii.Name, cept.ii.Namespace)
-		delete := cept.cluster.GetKubectlCmd(p, "delete", "-n", cept.ii.Namespace, "mapping", fmt.Sprintf("%s-mapping", cept.ii.Name))
-		err = delete.Run()
+		kubeDelete := cept.cluster.GetKubectlCmd(p, "delete", "-n", cept.ii.Namespace, "mapping", fmt.Sprintf("%s-mapping", cept.ii.Name))
+		err = kubeDelete.Run()
 		p.Logf("%v: Deleted mapping in namespace %v", cept.ii.Name, cept.ii.Namespace)
 	}
 
@@ -377,7 +377,7 @@ func (cept *Intercept) quit(p *supervisor.Process) error {
 
 	p.Logf("cept.Quit removing %v", cept.ii.Name)
 
-	cept.removeMapping(p)
+	_ = cept.removeMapping(p)
 
 	p.Logf("cept.Quit removed %v", cept.ii.Name)
 

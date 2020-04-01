@@ -22,7 +22,7 @@ type RunAsInfo struct {
 
 // GetRunAsInfo returns an RAI for the current user context
 func GetRunAsInfo() (*RunAsInfo, error) {
-	user, err := user.Current()
+	thisUser, err := user.Current()
 	if err != nil {
 		return nil, errors.Wrap(err, "user.Current()")
 	}
@@ -31,7 +31,7 @@ func GetRunAsInfo() (*RunAsInfo, error) {
 		return nil, errors.Wrap(err, "os.Getwd()")
 	}
 	rai := &RunAsInfo{
-		Name: user.Username,
+		Name: thisUser.Username,
 		Cwd:  cwd,
 		Env:  os.Environ(),
 	}

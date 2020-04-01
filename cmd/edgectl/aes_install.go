@@ -80,9 +80,11 @@ func getEmailAddress(defaultEmail string, log *log.Logger) string {
 	}
 }
 
-func aesInstall(cmd *cobra.Command, args []string) error {
+func aesInstall(cmd *cobra.Command, _ []string) error {
+	// args parameter unused.
 	verbose, _ := cmd.Flags().GetBool("verbose")
 	kcontext, _ := cmd.Flags().GetString("context")
+
 	i := NewInstaller(verbose)
 
 	// If Scout is disabled (environment variable set to non-null), inform the user.
@@ -140,7 +142,7 @@ func getManifest(url string) (string, error) {
 		return "", err
 	}
 	bodyBytes, err := ioutil.ReadAll(res.Body)
-	res.Body.Close()
+	_ = res.Body.Close()
 	if err != nil {
 		return "", err
 	}
@@ -297,7 +299,7 @@ func (i *Installer) CheckAESServesACME() (err error) {
 		return
 	}
 	_, _ = ioutil.ReadAll(resp.Body)
-	resp.Body.Close()
+	_ = resp.Body.Close()
 
 	// Verify that we get the expected status code. If Ambassador is still
 	// starting up, then Envoy may return "upstream request timeout" (503),
@@ -323,7 +325,7 @@ func (i *Installer) CheckAESHealth() error {
 		return err
 	}
 	_, _ = ioutil.ReadAll(resp.Body)
-	resp.Body.Close()
+	_ = resp.Body.Close()
 
 	if resp.StatusCode != 200 {
 		return errors.Errorf("check for AES health: wrong status code: %d instead of 200", resp.StatusCode)
@@ -338,7 +340,7 @@ func (i *Installer) CheckAESHealth() error {
 func (i *Installer) CheckHostnameFound() error {
 	conn, err := net.Dial("tcp", fmt.Sprintf("check-%d.%s:443", time.Now().Unix(), i.hostname))
 	if err == nil {
-		conn.Close()
+		_ = conn.Close()
 	}
 	return err
 }
@@ -443,7 +445,7 @@ func (i *Installer) Perform(kcontext string) error {
 	i.show.Println()
 	i.ShowWrapped(emailAsk)
 	// Do the goroutine dance to let the user hit Ctrl-C at the email prompt
-	gotEmail := make(chan (string))
+	gotEmail := make(chan string)
 	var emailAddress string
 	go func() {
 		gotEmail <- getEmailAddress(defaultEmail, i.log)
@@ -704,7 +706,7 @@ func (i *Installer) Perform(kcontext string) error {
 		return errors.Wrap(err, "acquire DNS name (post)")
 	}
 	content, err := ioutil.ReadAll(resp.Body)
-	resp.Body.Close()
+	_ = resp.Body.Close()
 	if err != nil {
 		i.Report("dns_name_failure", ScoutMeta{"err", err.Error()})
 		return errors.Wrap(err, "acquire DNS name (read body)")
@@ -717,8 +719,11 @@ func (i *Installer) Perform(kcontext string) error {
 		i.show.Println()
 		i.ShowWrapped(color.Bold.Sprintf(noTlsSuccess))
 		i.show.Println()
-		
+
+		i.show.Println()
 		i.ShowWrapped("If this IP address is reachable from here, you can access your installation without a DNS name.")
+
+		i.show.Println()
 		i.ShowWrapped(loginViaIP)
 		i.show.Println(color.Bold.Sprintf("$ edgectl login -n ambassador %s", i.address))
 
@@ -782,7 +787,7 @@ func (i *Installer) Perform(kcontext string) error {
 	i.show.Println()
 
 	// Open a browser window to the Edge Policy Console
-	if err := do_login(i.kubeinfo, kcontext, "ambassador", i.hostname, true, true, false); err != nil {
+	if err := doLogin(i.kubeinfo, kcontext, "ambassador", i.hostname, true, true, false); err != nil {
 		return err
 	}
 
@@ -838,7 +843,7 @@ func NewInstaller(verbose bool) *Installer {
 	logfile, err := os.Create(logfileName)
 	if err != nil {
 		logfile = os.Stderr
-		fmt.Fprintf(logfile, "WARNING: Failed to open logfile %q: %+v\n", logfileName, err)
+		_, _ = fmt.Fprintf(logfile, "WARNING: Failed to open logfile %q: %+v\n", logfileName, err)
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	i := &Installer{
@@ -1024,8 +1029,7 @@ The installer will now quit to avoid corrupting an existing installation of AES.
 const abortCRDs = `
 -> Found Ambassador CRDs in your cluster, but no AES installation.
 
-You can manually remove installed CRDs if you are confident they are not in use by any installation.
-Removing the CRDs will cause your existing Ambassador Mappings and other resources to be deleted as well.
+You can manually remove installed CRDs if you are confident they are not in use by any installation. Removing the CRDs will cause your existing Ambassador Mappings and other resources to be deleted as well.
 
 $ kubectl delete crd -l product=aes
 

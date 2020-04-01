@@ -26,7 +26,7 @@ func NewCmdUsage(cmd *cobra.Command, groups []CmdGroup) func(*cobra.Command) err
 			cmdMap[subCmd.Name()] = subCmd
 		}
 	}
-	lines := []string{}
+	lines := make([]string, 0)
 	for _, cmdGroup := range groups {
 		lines = append(lines, fmt.Sprintf("%s:", cmdGroup.GroupName))
 		for _, cmdName := range cmdGroup.CmdNames {
@@ -49,7 +49,8 @@ func NewCmdUsage(cmd *cobra.Command, groups []CmdGroup) func(*cobra.Command) err
 	return func(cmd *cobra.Command) error {
 		origOutput := cmd.OutOrStderr()
 		var buf bytes.Buffer
-		cmd.SetOutput(&buf)
+		cmd.SetOut(&buf)
+		cmd.SetErr(&buf)
 		if err := origUF(cmd); err != nil {
 			return err
 		}
@@ -64,9 +65,9 @@ func NewCmdUsage(cmd *cobra.Command, groups []CmdGroup) func(*cobra.Command) err
 				// to state 1.
 				if line == "Available Commands:" {
 					state = 1
-					fmt.Fprintln(origOutput, usage)
+					_, _ = fmt.Fprintln(origOutput, usage)
 				} else {
-					fmt.Fprintln(origOutput, line)
+					_, _ = fmt.Fprintln(origOutput, line)
 				}
 			case 1:
 				// Skipping past the original command list, which should end
@@ -78,7 +79,7 @@ func NewCmdUsage(cmd *cobra.Command, groups []CmdGroup) func(*cobra.Command) err
 			case 2:
 				// Done skipping past the original command list. Just pass
 				// through the rest.
-				fmt.Fprintln(origOutput, line)
+				_, _ = fmt.Fprintln(origOutput, line)
 			default:
 				panic(fmt.Sprintf("Unknown state %d", state))
 			}

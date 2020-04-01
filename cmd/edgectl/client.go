@@ -22,6 +22,7 @@ type ClientMessage struct {
 	ClientVersion string
 }
 
+
 // ExitPrefix is the token used by the daemon ot tell the client to
 // exit with the specified status
 const ExitPrefix = "-- exit "
@@ -31,7 +32,8 @@ func isServerRunning() bool {
 	if err != nil {
 		return false
 	}
-	defer conn.Close()
+
+	defer closeConn(conn)
 
 	data := ClientMessage{
 		Args:          []string{"edgectl", "version"},
@@ -55,7 +57,7 @@ func mainViaDaemon() error {
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
+	defer closeConn(conn)
 
 	rai, err := GetRunAsInfo()
 	if err != nil {

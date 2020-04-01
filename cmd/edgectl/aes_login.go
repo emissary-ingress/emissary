@@ -38,13 +38,13 @@ func aesLogin(cmd *cobra.Command, args []string) error {
 	// Prepare to talk to the cluster
 	kubeinfo := k8s.NewKubeInfo("", context, namespace) // Default namespace is "ambassador"
 
-	return do_login(kubeinfo, context, namespace, hostname, !justShowURL, justShowURL, showToken)
+	return doLogin(kubeinfo, context, namespace, hostname, !justShowURL, justShowURL, showToken)
 }
 
-func do_login(kubeinfo *k8s.KubeInfo, context, namespace, hostname string, openInBrowser, showURL, showToken bool) error {
+func doLogin(kubeinfo *k8s.KubeInfo, context, namespace, hostname string, openInBrowser, showURL, showToken bool) error {
 	restconfig, err := kubeinfo.GetRestConfig()
 	if err != nil {
-		return errors.Wrap(err, "Failed to connect to cluster (rest)")
+		return errors.Wrap(err, fmt.Sprintf("Failed to connect to cluster (rest), context = %s", context))
 	}
 
 	// Obtain signing key

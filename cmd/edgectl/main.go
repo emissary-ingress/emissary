@@ -55,10 +55,18 @@ var hClient = &http.Client{
 	Timeout:   15 * time.Second,
 }
 
+// For deferred closes, to handle errors correctly.
+func closeConn(conn net.Conn) {
+	err := conn.Close()
+	if err != nil {
+		// TODO: Should consider logging here
+	}
+}
+
 func main() {
 	// Figure out our executable and save it
 	if executable, err := os.Executable(); err != nil {
-		fmt.Fprintf(os.Stderr, "Internal error: %v", err)
+		_, _ = fmt.Fprintf(os.Stderr, "Internal error: %v", err)
 		os.Exit(1)
 	} else {
 		edgectl = executable
@@ -69,30 +77,30 @@ func main() {
 	var cg []CmdGroup
 	if DaemonWorks() {
 		cg = []CmdGroup{
-			CmdGroup{
+			{
 				GroupName: "Management Commands",
 				CmdNames:  []string{"install", "login", "license"},
 			},
-			CmdGroup{
+			{
 				GroupName: "Development Commands",
 				CmdNames:  []string{"status", "connect", "disconnect", "intercept"},
 			},
-			CmdGroup{
+			{
 				GroupName: "Advanced Commands",
 				CmdNames:  []string{"daemon", "pause", "resume", "quit"},
 			},
-			CmdGroup{
+			{
 				GroupName: "Other Commands",
 				CmdNames:  []string{"version", "help"},
 			},
 		}
 	} else {
 		cg = []CmdGroup{
-			CmdGroup{
+			{
 				GroupName: "Management Commands",
 				CmdNames:  []string{"install", "login", "license"},
 			},
-			CmdGroup{
+			{
 				GroupName: "Other Commands",
 				CmdNames:  []string{"version", "help"},
 			},

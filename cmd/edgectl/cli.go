@@ -15,7 +15,8 @@ import (
 func (d *Daemon) handleCommand(p *supervisor.Process, conn net.Conn, data *ClientMessage) error {
 	out := NewEmitter(conn)
 	rootCmd := d.getRootCommand(p, out, data)
-	rootCmd.SetOutput(conn) // FIXME replace with SetOut and SetErr
+	rootCmd.SetOut(conn)
+	rootCmd.SetErr(conn)
 	rootCmd.PersistentPreRun = func(cmd *cobra.Command, _ []string) {
 		if batch, _ := cmd.Flags().GetBool("batch"); batch {
 			out.SetKV()
@@ -288,7 +289,7 @@ func (d *Daemon) getRootCommand(p *supervisor.Process, out *Emitter, data *Clien
 
 	interceptCmd.AddCommand(interceptAddCmd)
 	interceptCG := []CmdGroup{
-		CmdGroup{
+		{
 			GroupName: "Available Commands",
 			CmdNames:  []string{"available", "list", "add", "remove"},
 		},

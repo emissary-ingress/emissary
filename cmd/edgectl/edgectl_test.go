@@ -21,7 +21,7 @@ var kubeconfig string
 func TestMain(m *testing.M) {
 	testprocess.Dispatch()
 	kubeconfig = dtest.Kubeconfig()
-	os.Setenv("DTEST_KUBECONFIG", kubeconfig)
+	_ = os.Setenv("DTEST_KUBECONFIG", kubeconfig)
 	dtest.WithMachineLock(func() {
 		os.Exit(m.Run())
 	})
