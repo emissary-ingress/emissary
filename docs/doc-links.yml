@@ -124,6 +124,8 @@
           link: /docs/latest/topics/running/ambassador
         - title: Deploying Ambassador
           items:
+            - title: Deployment Architecture
+              link: /docs/latest/topics/running/ambassador-deployment
             - title: Ambassador with AWS
               link: /docs/latest/topics/running/ambassador-with-aws
             - title: Ambassador with GKE
