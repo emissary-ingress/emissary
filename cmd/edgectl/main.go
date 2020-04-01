@@ -38,6 +38,7 @@ to troubleshoot problems.
 // edgectl is the full path to the Edge Control binary
 var edgectl string
 
+// DualStack deprecated: Fast Fallback is enabled by default (see https://golang.org/src/net/dial.go)
 var simpleTransport = &http.Transport{
 	// #nosec G402
 	TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -45,7 +46,6 @@ var simpleTransport = &http.Transport{
 	DialContext: (&net.Dialer{
 		Timeout:   10 * time.Second,
 		KeepAlive: 1 * time.Second,
-		DualStack: true,
 	}).DialContext,
 	DisableKeepAlives: true,
 }
