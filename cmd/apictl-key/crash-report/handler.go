@@ -2,9 +2,7 @@ package crash_report
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -81,9 +79,6 @@ func (c *client) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		UploadURL: signedUploadURL,
 	}
 
-	// TODO: Remove this sample usage. Leaving it here to serve as an example for edgectl
-	// c.exampleUpload(response)
-
 	// If all is good, return 201 and the generated upload URL.
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(&response)
@@ -112,29 +107,4 @@ func (c *client) generateSignedURL(uniqueBucketObjectKey string) (string, error)
 	}
 
 	return signedUrl, nil
-}
-
-func (c *client) exampleUpload(response crashReportCreationResponse) {
-	uploadContent := "Hello world!"
-
-	client := &http.Client{}
-	req, err := http.NewRequest(response.Method, response.UploadURL, strings.NewReader(uploadContent))
-	if err != nil {
-		c.l.Error(err)
-		return
-	}
-
-	res, err := client.Do(req)
-	if err != nil {
-		c.l.Error(err)
-		return
-	}
-	defer res.Body.Close()
-	bodyBytes, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		c.l.Error(err)
-		return
-	}
-	bodyString := string(bodyBytes)
-	c.l.Infof("%s: %s", res.Status, bodyString)
 }
