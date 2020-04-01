@@ -1,117 +1,76 @@
 # Mutual TLS (mTLS)
 
-Ambassador Edge Stack can be configured to both provide certificates from upstream services, and to validate them. This behavior is called mutual TLS (mTLS) and is commonly done when using a service mesh to enforce end-to-end TLS for all services in your cluster.
+Many organizations have security concerns that require all network traffic 
+throughout their cluster be encrypted. With traditional architectures,
+this was not that complicated of a requirement since internal network traffic
+was fairly minimal. With microservices, we are making many more requests over
+the network that must all be authenticated and secured.
 
-To configure mTLS between Ambassador Edge Stack and your upstream services, you need to create a `TLSContext` with certificates that are signed by the Certificate Authority (CA) of your upstream service.
+In order for services to authenticate with each other, they will each need to 
+provide a certificate and key that the other trusts before establishing a 
+connection. This action of both the client and server providing and validating
+certificates is referred to as mutual TLS. 
 
-Below are examples of how to configure Ambassador Edge Stack to do mTLS with two popular service meshes, Istio and Consul Connect.
+## mTLS with Ambassador
 
-## Istio mTLS
+Since Ambassador is a reverse proxy acting as the entry point to your cluster,
+Ambassador is acting as the client as it proxies requests to services upstream.
 
-Istio stores its TLS certificates as Kubernetes secrets by default, so accessing them is a matter of YAML configuration changes.
+It is trivial to configure Ambassador to simply originate TLS connections as 
+the client to upstream services by setting 
+`service: https://{{UPSTREAM_SERVICE}}` in the `Mapping` configuration. 
+However, in order to do mTLS with services upstream, Ambassador must also 
+have certificates to authenticate itself with the service. 
 
-1. Load Istio's TLS certificates
+To do this, we can use the `TLSContext` object to get certificates from a 
+Kubernetes `Secret` and use those to authenticate with the upstream service.
 
-Istio creates and stores its TLS certificates in a form that Ambassador Edge Stack is currently unable to automatically read. Because of this, you will need to mount the `istio.default` secret in a volume in the Ambassador Edge Stack container. This is done by configuring a `volume` and `volumeMount` in the Ambassador Edge Stack deployment manifest.
+```yaml
+---
+apiVersion: getambassador.io/v2
+kind: TLSContext
+metadata:
+  name: upstream-context
+spec:
+  hosts: []
+  secret: upstream-certs
+```
 
-   ```yaml
-    ---
-    apiVersion: apps/v1
-    kind: Deployment
-    metadata:
-      name: ambassador
-    spec:
-    ...
-            volumeMounts:
-              - mountPath: /etc/istiocerts/
-                name: istio-certs
-                readOnly: true
-          restartPolicy: Always
-          volumes:
-          - name: istio-certs
-            secret:
-              optional: true
-              secretName: istio.default
-   ```
+We give it `host: []` since we do not want to use this to terminate TLS
+connections from the client. We are just using this to load certificates for
+requests upstream.
 
-2. Create a `TLSContext` to load these certificates
+After loading the certificates, we can tell Ambassador when to use them by
+setting the `tls` parameter in a `Mapping`:
 
-   ```yaml
-   ---
-   apiVersion: getambassador.io/v2
-   kind: TLSContext
-   metadata:
-     name: istio-upstream
-   spec:
-     cert_chain_file: /etc/istiocerts/cert-chain.pem
-     private_key_file: /etc/istiocerts/key.pem
-     cacert_chain_file: /etc/istiocerts/root-cert.pem
-   ```
+```yaml
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: upstream-mapping
+spec:
+  prefix: /upstream/
+  service: upstream-service
+  tls: upstream-context
+```
 
-3. Configure Ambassador Edge Stack to use this `TLSContext` when making connections to upstream services.
+Now, when Ambassador proxies a request to `upstream-service`, it will provide
+the certificates in the `upstream-certs` secret for authentication when 
+encrypting traffic.
 
-   The `tls` attribute in a `Mapping` configuration tells Ambassador Edge Stack to use the `TLSContext` we created above when making connections to upstream services.
+## Service Mesh
 
-   ```yaml
-   ---
-   apiVersion: getambassador.io/v2
-   kind: Mapping
-   metadata:
-     name: productpage
-   spec:
-     prefix: /productpage/
-     rewrite: /productpage
-     service: https://productpage:9080
-     tls: istio-upstream
-   ```
+As you can imagine, when you have many services in your cluster all 
+authenticating with each other, managing all of those certificates can become a
+very big challenge.
 
-Ambassador Edge Stack will now use the certificate stored in the `istio.default` secret to originate TLS to Istio-powered services. See the [Ambassador Edge Stack with Istio](../../../../howtos/istio#istio-mutual-tls) documentation for an example with more information.
+For this reason, many organizations rely on a service mesh for their
+service-to-service authentication and encryption. 
 
-## Consul mTLS
+Ambassador integrates with multiple service meshes and makes it easy to
+configure mTLS to upstream services for all of them. Click the links below to 
+see how to configure Ambassador to do mTLS with any of these service meshes:
 
-Since Consul does not expose TLS Certificates as Kubernetes secrets, we will need a way to export those from Consul.
+- [Consul Connect](../../../../howtos/consul/#encrypted-tls)
 
-1. Install the Ambassador Edge Stack Consul connector.
-
-   ```
-   kubectl apply -f https://www.getambassador.io/yaml/consul/ambassador-consul-connector.yaml
-   ```
-
-   This will grab the certificate issued by Consul CA and store it in a Kubernetes secret named `ambassador-consul-connect`. It will also create a Service named `ambassador-consul-connector` which will configure the following `TLSContext`:
-
-   ```yaml
-   ---
-   apiVersion: getambassador.io/v2
-   kind: TLSContext
-   metadata:
-     name: ambassador-consul
-   spec:
-     hosts: []
-     secret: ambassador-consul-connect
-   ```
-
-2. Tell Ambassador to use the `TLSContext` when proxying requests by setting the `tls` attribute in a `Mapping`
-
-   ```yaml
-   ---
-   apiVersion: getambassador.io/v2
-   kind: Mapping
-   metadata:
-     name: qotm-mtls
-   spec:
-     prefix: /qotm-consul-mtls/
-     service: https://qotm-proxy
-     tls: ambassador-consul
-   ```
-
-Ambassador Edge Stack will now use the certificates loaded into the `ambassador-consul` `TLSContext` when proxying requests with `prefix: /qotm-consul-mtls`. See the [Consul example](../../../../howtos/consul#encrypted-tls) for an example configuration.
-
-**Note:** The Consul connector can be configured with the following environment variables. The defaults will be best for most use-cases.
-
-| Environment Variable | Description | Default |
-| -------------------- | ----------- | ------- |
-| \_AMBASSADOR\_ID        | Set the Ambassador ID so multiple instances of this integration can run per-Cluster when there are multiple Ambassadors (Required if `AMBASSADOR_ID` is set in your Ambassador deployment) | `""` |
-| \_CONSUL\_HOST          | Set the IP or DNS name of the target Consul HTTP API server | `127.0.0.1` |
-| \_CONSUL\_PORT          | Set the port number of the target Consul HTTP API server | `8500` |
-| \_AMBASSADOR\_TLS\_SECRET\_NAME | Set the name of the Kubernetes `v1.Secret` created by this program that contains the Consul-generated TLS certificate. | `$AMBASSADOR_ID-consul-connect` |
-| \_AMBASSADOR\_TLS\_SECRET\_NAMESPACE | Set the namespace of the Kubernetes `v1.Secret` created by this program. | (same Namespace as the Pod running this integration) |
+- [Istio](../../../../howtos/istio/#istio-mutual-tls)

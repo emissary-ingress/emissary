@@ -1,9 +1,85 @@
-# HTTP -> HTTPS Redirection
+# Cleartext Support
 
-Most modern websites that force HTTPS will also automatically redirect any requests that come into it over HTTP.
+While most modern web applications will choose to encrypt all traffic, there
+are reasons why you will want to support clients who access your website
+without encryption in cleartext.
+
+Ambassador supports both forcing 
+[automatic redirection to HTTPS](#http---https-redirection) and 
+[serving cleartext](#cleartext-routing) traffic on a `Host`.
+
+**Note:** Currently you can only configure a single Ambassador to `Route` 
+**or** `Redirect` cleartext. Future versions of Ambassador will allow this
+to be configured on a per-`Host` basis.
+
+## Cleartext Routing
+
+Ambassador has full support for routing cleartext traffic to upstream services
+for a `Host`.
+
+### Only Cleartext
+
+The default for the Open-Source Ambassador API Gateway is to serve cleartext on
+port 8080 in the container. See [TLS documentation](../) for information on
+how to configure TLS termination.
+
+For the Ambassador Edge Stack, TLS termination is enabled by default with a
+self-signed certificate or an ACME `Host`. To disable TLS termination in the 
+Ambassador Edge Stack, delete any existing `Host`s and set the 
+`requestPolicy.insecure.action` to `Route` in a `Host`:
+
+```yaml
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: example-host
+spec:
+  hostname: host.example.com
+  acmeProvider:
+    authority: none
+  requestPolicy:
+    insecure:
+      action: Route
+```
+
+### HTTPS and Cleartext
+
+Ambassador can also support serving both HTTPS and cleartext traffic from a
+single Ambassador.
+
+This configuration is the same whether you are running the Open-Source API 
+Gateway or the Ambassador Edge Stack. The configuration is very similar to the
+`Host` above but with the `Host` configured to terminate TLS.
+
+```yaml
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: example-host
+spec:
+  hostname: host.example.com
+  acmeProvider:
+    authority: none
+  tlsSecret:
+    name: example-cert
+  requestPolicy:
+    insecure:
+      action: Route
+      additionalPort: 8080
+```
+
+With the above configuration, we are tell Ambassador to terminate TLS with the
+certificate in the `example-cert` `Secret` and route cleartext traffic that
+comes in over port `8080`.
+
+## HTTP->HTTPS Redirection
+
+Most modern websites that force HTTPS will also automatically redirect any 
+requests that come into it over HTTP. In the Ambassador Edge Stack, this is
+enabled by default but can easily be enabled in any version of Ambassador.
 
 ```
-Client                    Ambassador Edge Stack
+Client              Ambassador Edge Stack
 |                             |
 | http://<hostname>/api       |
 | --------------------------> |
@@ -14,112 +90,65 @@ Client                    Ambassador Edge Stack
 |                             |
 ```
 
-Ambassador Edge Stack exposes configuration for this in two ways:
-
-- Redirecting based off the incoming port
-- Redirecting based off the incoming protocol (via the `x-forwarded-proto` header)
-
-Typically, port-based redirection is the preferred method since it is simpler to manage and will work with all use cases. Redirecting based off of the `x-forwarded-proto` header requires an L7 load-balancer or proxy in front of Ambassador Edge Stack to set that header.
-
-## Using the `Host` resource
-
-The [`Host`](../../host-crd) resource is used to configure how Ambassador handles cleartext on a domain. You can configure Ambassador to [deny, allow, or redirect](../../host-crd/#secure-and-insecure-requests) cleartext to HTTPS on a domain using a single resource.
-
-The following `Host` gives an example of how to enable Ambassador to redirect cleartext to HTTPS on the `host.example.com` domain. 
+In Ambassador, this is configured by setting the 
+`insecure.action` in a `Host` to `Redirect`. 
 
 ```yaml
----
+requestPolicy:
+  insecure:
+    action: Redirect
+    additionalPort: 8080
+```
+
+Ambassador will then enable cleartext redrection in two ways.
+
+First, Ambassador will listen on the `insecure.additionalPort` and consider any
+traffic on this port as `insecure` and redirect it to HTTPS. 
+
+```yaml
+requestPolicy:
+  insecure:
+    action: Redirect
+    additionalPort: 8080
+```
+
+Additionally, Ambassador will also check the `X-Forwarded-Proto` header of 
+the incoming request on the `secure` port (`8443`)and issue a 301 redirect if 
+it is set to `HTTP`.
+
+The value of `X-Forwarded-Proto` is dependent on whatever is forwarding traffic
+to Ambassador. A couple of options are
+
+- Layer 4 Load Balancer, Proxy, or direct from the client:
+
+   `X-Forwarded-Proto`  is not set or is untrusted. Envoy will set it based 
+   off the protocol of the incoming request.
+
+   If Envoy determines the request is encrypted, it will be set to `HTTPS`. If
+   not, it will be set to `HTTP`.
+
+- Layer 7 Load Balancer or Proxy:
+
+   `X-Forwarded-Proto` is set by the load balancer or proxy and trusted by
+   Envoy. Envoy will trust the value of `X-Forwarded-For` even if the request
+   comes in over cleartext.
+
+## tl;dr
+
+The Ambassador Edge Stack will enabled cleartext redirection by default.
+
+To enable cleartext redirection in any version of Ambassador, simply configure
+a `Host` to redirect cleartext to HTTPS like below:
+
+```yaml
 apiVersion: getambassador.io/v2
 kind: Host
 metadata:
   name: example-host
 spec:
   hostname: host.example.com
-  acmeProvider:
-    email: julian@example.com
-  insecure:
-    action: Redirect
+  requestPolicy:
+    insecure:
+      action: Redirect     # Configures Ambassador to redirect cleartext
+      additionalPort: 8080 # Optional: The redirect port. Defaults to 8080
 ```
-
-**Note:** Ambassador defaults to redirecting cleartext to HTTPS for all `Host`s. 
-
-## For Ambassador 0.86.1 and below
-
-In Ambassador 0.86.1 and below, TLS behavior was configured with the `TLSContext`. This included cleartext redirection. 
-
-The follow reference is **deprecated**. For those using old versions of Ambassador, [upgrade to the latest verion](../../../install/upgrade-to-edge-stack) of Ambassador to use the `Host` resource to manage TLS termination. 
-
-### Port-based Redirection
-
-Port-based redirection opens up Ambassador to listen on a defined port and issue a `301` redirect to HTTPS for all traffic that comes in on that port.
-
-In the example at the top of the page;
-
-- The client sends a standard HTTP request (port 80) to Ambassador Edge Stack.
-- The request hits Ambassador Edge Stack's redirect listener and Ambassador returns a `301` redirect to https.
-- The client resends the request as a standard https request (port 443) to Ambassador Edge Stack.
-
-To configure Ambassador to handle this behavior you need set `redirect_cleartext_from: <http_port>` in a `TLSContext`:
-
-1. Create a `TLSContext` to handle TLS termination, and tell it to enforce redirection. This example shows redirecting traffic to Ambassador's default cleartext service port, `8080`:
-
-    ```yaml
-    apiVersion: getambassador.io/v2
-    kind: TLSContext
-    metadata:
-      name: tls
-    spec:
-      hosts: ["*"]
-      secret: ambassador-cert
-      redirect_cleartext_from: 8080
-    ```
-
-2. Verify that the port assignments on the Ambassador service are correct.
-
-    The below service definition uses the default HTTP and HTTPS port assignments
-
-    ```yaml
-    apiVersion: v1
-    kind: Service
-    metadata:
-      name: ambassador
-    spec:
-      ports:
-      - name: http
-        port: 80
-        targetPort: 8080
-      - name: https
-        port: 443
-        targetPort: 8443
-      selector:
-        service: ambassador
-    ```
-
-**Notes:**
-
-- The ability to `redirect_cleartext_from` was added to the `TLSContext` in Ambassador 0.84.0. Earlier versions of Ambassador need to use a tls `Module` for cleartext redirection.
-
-- As shown above, Ambassador performs this http -> https redirection by issuing a `301` redirect to `https://<hostname>/`. The `<hostname>` represents the domain name/IP address and port of the incoming request. This means if a port is defined on an incoming request, it will be redirected to https on that port. Because of this, cleartext redirection is not supported when using non-default HTTP and HTTPS ports.
-
-- If you use multiple `TLSContext`s, it doesn't matter which `TLSContext` sets `redirect_cleartext_from`. However, it is an error to attempt to set `redirect_cleartext_from` on multiple distinct ports in multiple distinct `TLSContext`s.
-
-### Protocol-based Redirection
-
-Ambassador can perform HTTP -> HTTPS redirection based on the protocol of the incoming request. This is done by checking the `x-forwarded-proto` header that can be set by an L7 load balancer or proxy sitting in front of Ambassador Edge Stack.
-
-While port-based redirection is preferred for most use cases, using the `x-forwarded-proto` header to redirect to HTTPS is useful when the front load balancer or proxy is terminating TLS.
-
-Protocol-based redirection is configured in the Ambassador `Module`:
-
-```yaml
-apiVersion: getambassador.io/v2
-kind: Module
-metadata:
-  name: ambassador
-spec:
-  config:
-    use_remote_address: false
-    x_forwarded_proto_redirect: true
-```
-
-**Note**: Ambassador will need to be restarted for this configuration to take effect.
