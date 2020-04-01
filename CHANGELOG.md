@@ -6,6 +6,7 @@ numbering uses [semantic versioning](http://semver.org).
 ## v6.2.3
 
 - Upgrade Ambassador to version 1.3.2.
+- Use explicit types for things like ports, so that things like `helm .. --set service.ports[0].port=80` will be integers instead of ending up as strings
 
 ## v6.2.2
 
