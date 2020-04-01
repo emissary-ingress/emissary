@@ -1,5 +1,5 @@
-import {Model} from "../framework/model2.js";
-import {View, html} from "../framework/view2.js";
+import {Model} from "../framework/model.js";
+import {View, html} from "../framework/view.js";
 
 describe('View', function() {
   it('should render when non-model properties are set', function(done) {

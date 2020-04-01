@@ -1,4 +1,4 @@
-import {Resource} from '../framework/resource2.js'
+import {Resource} from '../framework/resource.js'
 import {ResourceStore} from '../framework/resource_store.js'
 
 // mock implementations for use in resource.js and resource_collection.js

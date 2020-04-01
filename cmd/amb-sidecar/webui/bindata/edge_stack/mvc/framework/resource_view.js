@@ -11,7 +11,7 @@ import "../../vendor/js-yaml.min.js"
 import { mapMerge, objectMerge } from "../framework/utilities.js"
 
 /* View superclass */
-import { View } from './view2.js'
+import { View } from './view.js'
 import { CoW } from './cow.js'
 
 export class ResourceView extends View {

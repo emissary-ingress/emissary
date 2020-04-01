@@ -7,7 +7,7 @@
 
 /* LitElement superclass. */
 import { html, css, repeat } from '../../vendor/lit-element.min.js'
-import { View } from './view2.js'
+import { View } from './view.js'
 
 export class ResourceCollectionView extends View {
 

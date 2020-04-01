@@ -1,5 +1,5 @@
 //SECTION:Clock
-import { Model } from '../framework/model2.js'
+import { Model } from '../framework/model.js'
 
 class Clock extends Model {
 
@@ -62,7 +62,7 @@ function pad(n) { return n.toString().padStart(2, 0) }
 let CLOCK = new Clock()
 
 //SECTION:Digital
-import { View, html, css } from '../framework/view2.js'
+import { View, html, css } from '../framework/view.js'
 
 class Digital extends View {
 

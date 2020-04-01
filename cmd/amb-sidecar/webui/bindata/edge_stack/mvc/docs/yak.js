@@ -2,7 +2,7 @@
 import { IResourceCollection } from '../interfaces/iresource_collection.js'
 import { IResource } from '../interfaces/iresource.js'
 import { MemoryStore } from '../tests/store_mocks.js'
-import { Model } from '../framework/model2.js'
+import { Model } from '../framework/model.js'
 
 class Yak extends IResource {
 
@@ -37,7 +37,7 @@ class Yak extends IResource {
 
 }
 //SECTION:YakHerd
-import { View, html, repeat, css } from '../framework/view2.js'
+import { View, html, repeat, css } from '../framework/view.js'
 
 class YakHerd extends View {
 

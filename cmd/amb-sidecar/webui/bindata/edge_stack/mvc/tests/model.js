@@ -1,4 +1,4 @@
-import {Model} from "../framework/model2.js"
+import {Model} from "../framework/model.js"
 
 let assert = chai.assert
 
