@@ -125,7 +125,7 @@ spec:
           ports:
             {{- range .Values.service.ports }}
             - name: {{ .name }}
-              containerPort: {{ .targetPort }}
+              containerPort: {{ int .targetPort }}
               {{- if .protocol }}
               protocol: {{ .protocol }}
               {{- end }}
