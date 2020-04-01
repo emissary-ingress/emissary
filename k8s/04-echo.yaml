@@ -42,16 +42,19 @@ spec:
       - name: echo
         image: jmalloc/echo-server
         ports:
-        - containerPort: 8080
+        - containerPort: 8000
+        env:
+        - name: PORT
+          value: "8000"
       - name: traffic-sidecar
         image: {{env "AES_IMAGE"}}
         ports:
-          - containerPort: 9900
+          - containerPort: 8080
         env:
         - name: AGENT_SERVICE
           value: echo
         - name: AGENT_PORT
-          value: "8080"
+          value: "8000"
         - name: AGENT_MANAGER_NAMESPACE
           value: ambassador
         - name: AMBASSADOR_NAMESPACE
