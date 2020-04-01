@@ -1,6 +1,6 @@
 # Welcome to edgestack.me!
 
-edgestack.me is a URL used by getambassador.io to simplify the installation process for Ambassador Edge Stack.
+edgestack.me is a URL used by getambassador.io to simplify the installation process for the Ambassador Edge Stack. 
 
 To learn more about the Ambassador Edge Stack, please visit [getambassador.io](http://getambassador.io). 
 
