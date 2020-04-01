@@ -132,7 +132,7 @@
               link: /docs/latest/topics/running/running
         - title: Gzip Compression
           link: /docs/latest/topics/running/gzip
-        - title: Host CRD
+        - title: Host CRD, ACME Support, and External Load Balancer Configuration
           link: /docs/latest/topics/running/host-crd
         - title: Ingress Controller
           link: /docs/latest/topics/running/ingress-controller
@@ -159,10 +159,10 @@
         - title: TLS
           link: /docs/latest/topics/running/tls/
           items:
-            - title: Client Certificate Validation
-              link: /docs/latest/topics/running/tls/client-cert-validation
+            - title: Simultaneously Routing HTTP and HTTPS
+              link: /docs/latest/topics/running/tls/cleartext-redirection#cleartext-routing
             - title: HTTP -> HTTPS Redirection
-              link: /docs/latest/topics/running/tls/cleartext-redirection
+              link: /docs/latest/topics/running/tls/cleartext-redirection#http---https-redirection
             - title: Mutual TLS (mTLS)
               link: /docs/latest/topics/running/tls/mtls
             - title: Server Name Indication (SNI)
@@ -230,10 +230,12 @@
           link: /docs/latest/howtos/linkerd2
     - title: TLS
       items:
+        - title: TLS Termination
+          link: /docs/latest/howtos/tls-termination
         - title: Using cert-manager
           link: /docs/latest/howtos/cert-manager
-        - title: TLS termination
-          link: /docs/latest/howtos/tls-termination
+        - title: Client Certificate Validation
+          link: /docs/latest/howtos/client-cert-validation
 - title: Frequently Asked Questions
   link: /docs/latest/about/faq
 - title: Community
