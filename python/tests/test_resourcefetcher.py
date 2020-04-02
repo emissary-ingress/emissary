@@ -41,12 +41,16 @@ def test_resourcefetcher_handle_k8s_service():
     aconf = Config()
 
     fetcher = ResourceFetcher(logger, aconf)
-    svc = {
-        "metadata": {
-            "name": "testservice",
-            "annotations": {
-                "foo": "bar"
-            }
+
+    # Test no metadata key
+    svc = {}
+    result = fetcher.handle_k8s_service(svc)
+    assert result == None
+
+    svc["metadata"] = {
+        "name": "testservice",
+        "annotations": {
+            "foo": "bar"
         }
     }
     # Test no ambassador annotation
