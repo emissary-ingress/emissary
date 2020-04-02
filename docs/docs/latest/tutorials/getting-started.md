@@ -8,6 +8,12 @@ import DetectOS from './DetectOS'
 
 # Quick Start Installation Guide
 
+[/reference/pro/authentication](/reference/pro/authentication)
+
+[/reference/authentication](/reference/authentication)
+
+[/incorrect-link](/incorrect-link)
+
 In just four minutes, your cluster will be routing HTTPS requests from the
 Internet to a backend service.
 
