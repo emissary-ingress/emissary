@@ -107,10 +107,7 @@ const (
 	JobLabelName     = "job-name"                                // Don't change this; it's the label name used by Kubernetes itself
 )
 
-var (
-	telemetryReporter  *metriton.Reporter
-	telemetryReplicaID uuid.UUID
-)
+var globalKale *kale
 
 const (
 	StepSetup                      = "00-setup"
@@ -132,7 +129,7 @@ const (
 func telemetry(ctx context.Context, argData map[string]interface{}) {
 	data := map[string]interface{}{
 		"component":        "kale",
-		"trace_replica_id": telemetryReplicaID.String(),
+		"trace_replica_id": globalKale.telemetryReplicaID.String(),
 		"trace_iteration":  CtxGetIteration(ctx),
 	}
 	if proj := CtxGetProject(ctx); proj != nil {
@@ -145,7 +142,7 @@ func telemetry(ctx context.Context, argData map[string]interface{}) {
 	for k, v := range argData {
 		data[k] = v
 	}
-	if _, err := telemetryReporter.Report(ctx, data); err != nil {
+	if _, err := globalKale.telemetryReporter.Report(ctx, data); err != nil {
 		dlog.GetLogger(ctx).Errorln("telemetry:", err)
 	}
 }
@@ -165,9 +162,8 @@ func telemetryOK(ctx context.Context, traceStep string) {
 }
 
 func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8s.KubeInfo, dynamicClient k8sClientDynamic.Interface) {
-	telemetryReporter = aes_metriton.Reporter
-	telemetryReplicaID = uuid.New()
 	k := NewKale(dynamicClient)
+	globalKale = k
 
 	upstreamWorker := make(chan UntypedSnapshot)
 	downstreamWorker := make(chan UntypedSnapshot)
@@ -259,6 +255,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 					if err != nil {
 						reportThisIsABug(ctx, err)
 					}
+					k.flushIterationErrors()
 				}
 			}
 		})
@@ -378,6 +375,9 @@ did_read:
 // cluster, so this is global to the entire cluster.
 func NewKale(dynamicClient k8sClientDynamic.Interface) *kale {
 	return &kale{
+		telemetryReporter:  aes_metriton.Reporter,
+		telemetryReplicaID: uuid.New(),
+
 		projectsGetter: dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "projects"}),
 		commitsGetter:  dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "projectcommits"}),
 		Projects:       make(map[k8sTypes.UID]*projectAndChildren),
@@ -387,11 +387,94 @@ func NewKale(dynamicClient k8sClientDynamic.Interface) *kale {
 type kale struct {
 	cfg types.Config
 
+	telemetryReporter  *metriton.Reporter
+	telemetryReplicaID uuid.UUID
+
 	projectsGetter k8sClientDynamic.NamespaceableResourceInterface
 	commitsGetter  k8sClientDynamic.NamespaceableResourceInterface
 
-	mu       sync.RWMutex
-	Projects map[k8sTypes.UID]*projectAndChildren
+	mu                  sync.RWMutex
+	Projects            map[k8sTypes.UID]*projectAndChildren
+	GlobalErrors        []string
+	ErrorsDirty         bool
+	PersistentErrors    []recordedError
+	PrevIterationErrors []recordedError
+
+	NextIterationErrors []recordedError
+}
+
+func (k *kale) addPersistentError(err error, projectUID, commitUID k8sTypes.UID) {
+	now := time.Now()
+	k.mu.Lock()
+	defer k.mu.Unlock()
+	k.PersistentErrors = append(k.PersistentErrors, recordedError{
+		TS:         now,
+		Err:        err,
+		ProjectUID: projectUID,
+		CommitUID:  commitUID,
+	})
+	k.ErrorsDirty = true
+}
+
+func (k *kale) addIterationError(err error, projectUID, commitUID k8sTypes.UID) {
+	now := time.Now()
+	k.NextIterationErrors = append(k.NextIterationErrors, recordedError{
+		TS:         now,
+		Err:        err,
+		ProjectUID: projectUID,
+		CommitUID:  commitUID,
+	})
+}
+
+func (k *kale) syncErrors() {
+	k.mu.Lock()
+	defer k.mu.Unlock()
+	if !k.ErrorsDirty {
+		return
+	}
+	// clear everything
+	k.GlobalErrors = nil
+	for _, project := range k.Projects {
+		project.Children.Errors = nil
+		for _, commit := range project.Children.Commits {
+			commit.Children.Errors = nil
+		}
+	}
+	// re-populate everything
+	for _, err := range append(k.PersistentErrors, k.PrevIterationErrors...) {
+		if project, projectOK := k.Projects[err.ProjectUID]; projectOK {
+			var commit *commitAndChildren
+			for _, straw := range project.Children.Commits {
+				if straw.GetUID() == err.CommitUID {
+					commit = straw
+					break
+				}
+			}
+			if commit != nil {
+				commit.Children.Errors = append(commit.Children.Errors, err.String())
+			} else {
+				project.Children.Errors = append(project.Children.Errors, err.String())
+			}
+		} else {
+			k.GlobalErrors = append(k.GlobalErrors, err.String())
+		}
+	}
+	// sort everything
+	sort.Strings(k.GlobalErrors)
+	for _, project := range k.Projects {
+		sort.Strings(project.Children.Errors)
+		for _, commit := range project.Children.Commits {
+			sort.Strings(commit.Children.Errors)
+		}
+	}
+}
+
+func (k *kale) flushIterationErrors() {
+	k.mu.Lock()
+	defer k.mu.Unlock()
+	k.PrevIterationErrors = k.NextIterationErrors
+	k.NextIterationErrors = nil
+	k.ErrorsDirty = true
 }
 
 func (k *kale) reconcile(ctx context.Context, snapshot Snapshot) {
@@ -399,10 +482,22 @@ func (k *kale) reconcile(ctx context.Context, snapshot Snapshot) {
 	k.reconcileCluster(ctx, snapshot)
 }
 
+type recordedError struct {
+	TS         time.Time
+	Err        error
+	ProjectUID k8sTypes.UID
+	CommitUID  k8sTypes.UID
+}
+
+func (e recordedError) String() string {
+	return fmt.Sprintf("[%s] %+v", e.TS, e.Err)
+}
+
 type projectAndChildren struct {
 	*Project
 	Children struct {
 		Commits []*commitAndChildren `json:"commits"`
+		Errors  []string             `json:"errors"`
 	} `json:"children"`
 }
 
@@ -411,6 +506,7 @@ type commitAndChildren struct {
 	Children struct {
 		Builders []*k8sTypesBatchV1.Job        `json:"builders"`
 		Runners  []*k8sTypesAppsV1.StatefulSet `json:"runners"`
+		Errors   []string                      `json:"errors"`
 	} `json:"children"`
 }
 
@@ -560,6 +656,7 @@ func (k *kale) dispatch(r *http.Request) httpResult {
 // UI. This is a map of all the projects plus nested data as
 // appropriate.
 func (k *kale) projectsJSON() string {
+	k.syncErrors()
 	k.mu.RLock()
 	defer k.mu.RUnlock()
 
@@ -569,9 +666,14 @@ func (k *kale) projectsJSON() string {
 	}
 	sort.Strings(keys)
 
-	results := make([]*projectAndChildren, 0, len(k.Projects))
+	var results struct {
+		Projects []*projectAndChildren `json:"projects"`
+		Errors   []string              `json:"errors"`
+	}
+	results.Errors = k.GlobalErrors
+	results.Projects = make([]*projectAndChildren, 0, len(k.Projects))
 	for _, key := range keys {
-		results = append(results, k.Projects[k8sTypes.UID(key)])
+		results.Projects = append(results.Projects, k.Projects[k8sTypes.UID(key)])
 	}
 
 	bytes, err := json.MarshalIndent(results, "", "  ")

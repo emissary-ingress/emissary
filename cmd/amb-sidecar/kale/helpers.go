@@ -30,6 +30,7 @@ import (
 	k8sTypesCoreV1 "k8s.io/api/core/v1"
 	k8sTypesMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sTypesUnstructured "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	k8sTypes "k8s.io/apimachinery/pkg/types"
 
 	// 3rd party: k8s misc
 	k8sSchema "k8s.io/apimachinery/pkg/runtime/schema"
@@ -578,15 +579,25 @@ func jobConditionMet(obj *k8sTypesBatchV1.Job, condType k8sTypesBatchV1.JobCondi
 }
 
 func _logErr(ctx context.Context, err error) {
+	var commitUID, projectUID k8sTypes.UID
 	if commit := CtxGetCommit(ctx); commit != nil {
 		err = fmt.Errorf("ProjectCommit %q.%q: %w",
 			commit.GetName(), commit.GetNamespace(), err)
+		commitUID = commit.GetUID()
 	}
 	if project := CtxGetProject(ctx); project != nil {
 		err = fmt.Errorf("Project %q.%q: %w",
 			project.GetName(), project.GetNamespace(), err)
+		projectUID = project.GetUID()
 	}
+
 	dlog.GetLogger(ctx).Errorf("%+v", err)
+
+	if CtxGetIteration(ctx) == nil {
+		globalKale.addPersistentError(err, projectUID, commitUID)
+	} else {
+		globalKale.addIterationError(err, projectUID, commitUID)
+	}
 }
 
 func reportThisIsABug(ctx context.Context, err error) {
