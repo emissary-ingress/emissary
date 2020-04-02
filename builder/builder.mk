@@ -285,7 +285,7 @@ ingresstest:
 		printf "$(CYN)==> $(GRN)We are done. You should destroy the cluster with 'kind delete cluster'.$(END)\n"; \
 	fi
 
-test: ingresstest gotest pytest
+test: gotest pytest
 .PHONY: test
 
 shell:

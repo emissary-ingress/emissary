@@ -84,7 +84,7 @@ case "$COMMIT_TYPE" in
     *)
         docker login -u="$DOCKER_BUILD_USERNAME" --password-stdin "${DEV_REGISTRY}" <<<"$DOCKER_BUILD_PASSWORD"
 
-        make test
+        make test ingresstest
         ;;
 esac
 
