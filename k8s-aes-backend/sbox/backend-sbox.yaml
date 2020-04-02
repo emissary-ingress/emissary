@@ -51,5 +51,7 @@ spec:
             value: DUMMY
           - name: AWS_HOSTED_ZONE_ID
             value: DUMMY
+          - name: CRASH_REPORT_S3_BUCKET
+            value: datawire-crash-reports
           - name: POSTGRES_HOST
             value: aes-backend-postgresql

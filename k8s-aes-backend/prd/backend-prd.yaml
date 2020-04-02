@@ -58,6 +58,8 @@ spec:
               secretKeyRef:
                 name: aws
                 key: hosted-zone-id
+          - name: CRASH_REPORT_S3_BUCKET
+            value: datawire-crash-reports
           - name: POSTGRES_DB
             value: metriton
           - name: POSTGRES_HOST

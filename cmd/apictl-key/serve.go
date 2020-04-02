@@ -20,6 +20,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/health"
+	"github.com/datawire/apro/cmd/apictl-key/crash-report"
 	"github.com/datawire/apro/cmd/apictl-key/datasource"
 	"github.com/datawire/apro/cmd/apictl-key/dns"
 	"github.com/datawire/apro/lib/licensekeys"
@@ -28,9 +29,11 @@ import (
 )
 
 var (
-	hubspotKey         = os.Getenv("HUBSPOT_API_KEY")
-	hostedZoneId       = os.Getenv("AWS_HOSTED_ZONE_ID")
-	dnsRegistrationTLD = getEnv("DNS_REGISTRATION_TLD", ".edgestack.me")
+	hubspotKey          = os.Getenv("HUBSPOT_API_KEY")
+	hostedZoneId        = os.Getenv("AWS_HOSTED_ZONE_ID")
+	crashReportS3Bucket = os.Getenv("CRASH_REPORT_S3_BUCKET")
+	s3Region            = getEnv("S3_REGION", "us-east-1")
+	dnsRegistrationTLD  = getEnv("DNS_REGISTRATION_TLD", ".edgestack.me")
 
 	postgresUser     = getEnv("POSTGRES_USER", "aes")
 	postgresPassword = getEnv("POSTGRES_PASSWORD", "aes")
@@ -124,6 +127,9 @@ func init() {
 		if hostedZoneId == "" {
 			return errors.New("please set the AWS_HOSTED_ZONE_ID environment variable")
 		}
+		if crashReportS3Bucket == "" {
+			l.Warn("CRASH_REPORT_S3_BUCKET environment variable is not set; server won't handle crash-report requests")
+		}
 
 		mux := http.NewServeMux()
 		// Liveness and Readiness probes
@@ -194,9 +200,10 @@ func init() {
 
 			now := time.Now()
 			expiresAt := now.Add(time.Duration(365) * 24 * time.Hour)
+			customerId := fmt.Sprintf("%s-%d", s.Email, now.Unix())
 			communityLicenseClaims := licensekeys.NewCommunityLicenseClaims()
 			metadata := map[string]string{}
-			licenseKey := createTokenString(false, s.Email, s.Email, communityLicenseClaims.EnabledFeatures, communityLicenseClaims.EnforcedLimits, metadata, now, expiresAt)
+			licenseKey := createTokenString(false, customerId, s.Email, communityLicenseClaims.EnabledFeatures, communityLicenseClaims.EnforcedLimits, metadata, now, expiresAt)
 			// #nosec G107
 			resp, err = http.Post(url, "application/json", bytes.NewBuffer(encode(map[string]interface{}{
 				"properties": []interface{}{
@@ -214,6 +221,7 @@ func init() {
 				panic(err)
 			}
 			defer resp.Body.Close()
+			l.Infof("Generated a new community license key %s", customerId)
 			_, err = io.Copy(w, resp.Body)
 			if err != nil {
 				panic(err)
@@ -231,6 +239,9 @@ func init() {
 
 		dnsClient := dns.NewController(l, hostedZoneId, dnsRegistrationTLD, ds)
 		mux.HandleFunc("/register-domain", dnsClient.ServeHTTP)
+
+		crashReportClient := crash_report.NewClient(l, crashReportS3Bucket, s3Region, ds)
+		mux.HandleFunc("/crash-report", crashReportClient.ServeHTTP)
 
 		mux.HandleFunc("/downloads/darwin/edgectl", func(w http.ResponseWriter, r *http.Request) {
 			version := getEdgectlStable()
