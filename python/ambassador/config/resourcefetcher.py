@@ -63,6 +63,7 @@ class ResourceFetcher:
         self.k8s_services: Dict[str, AnyDict] = {}
         self.services: Dict[str, AnyDict] = {}
         self.ambassador_service_raw: AnyDict = {}
+        self.ambassador_ingress_class: Dict[str, AnyDict] = {}
 
         self.alerted_about_labels = False
 
@@ -201,6 +202,12 @@ class ResourceFetcher:
         if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_crds_4')):
             self.aconf.post_error("Ambassador could not find the LogService CRD definition. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...")
 
+        # We could be posting errors about the missing IngressClass resource, but given it's new in K8s 1.18
+        # and we assume most users would be worried about it when running on older clusters, we'll rely on
+        # Ambassador logs "Ambassador does not have permission to read IngressClass resources" for the moment.
+        #if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_ingress_class')):
+        #    self.aconf.post_error("Ambassador is not permitted to read IngressClass resources. Please visit https://www.getambassador.io/user-guide/ingress-controller/ for more information. You can continue using Ambassador, but IngressClass resources will be ignored...")
+
         if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_ingress')):
             self.aconf.post_error("Ambassador is not permitted to read Ingress resources. Please visit https://www.getambassador.io/user-guide/ingress-controller/ for more information. You can continue using Ambassador, but Ingress resources will be ignored...")
         
@@ -214,8 +221,8 @@ class ResourceFetcher:
 
             watt_k8s = watt_dict.get('Kubernetes', {})
 
-            # Handle normal Kube objects...
-            for key in [ 'service', 'endpoints', 'secret', 'ingresses' ]:
+            # Handle normal Kube objects... the order is important here as ingresses depend on ingressclasses
+            for key in [ 'service', 'endpoints', 'secret', 'ingressclasses', 'ingresses' ]:
                 for obj in watt_k8s.get(key) or []:
                     # self.logger.debug(f"Handling Kubernetes {key}...")
                     self.handle_k8s(obj)
@@ -462,6 +469,60 @@ class ResourceFetcher:
     def sorted(self, key=lambda x: x.rkey):  # returns an iterator, probably
         return sorted(self.elements, key=key)
 
+    def handle_k8s_ingressclass(self, k8s_object: AnyDict) -> HandlerResult:
+        metadata = k8s_object.get('metadata', None)
+        ingress_class_name = metadata.get('name') if metadata else None
+        ingress_class_spec = k8s_object.get('spec', None)
+
+        # Important: IngressClass is not namespaced!
+        resource_identifier = f'{ingress_class_name}'
+
+        skip = False
+        if not metadata:
+            self.logger.debug('ignoring K8s IngressClass with no metadata')
+            skip = True
+        if not ingress_class_name:
+            self.logger.debug('ignoring K8s IngressClass with no name')
+            skip = True
+        if not ingress_class_spec:
+            self.logger.debug('ignoring K8s IngressClass with no spec')
+            skip = True
+
+        # We only want to deal with IngressClasses that belong to "spec.controller: getambassador.io/ingress-controller"
+        if ingress_class_spec.get('controller', '').lower() != 'getambassador.io/ingress-controller':
+            self.logger.info(f'ignoring IngressClass {ingress_class_name} without controller - getambassador.io/ingress-controller')
+            skip = True
+
+        if skip:
+            return None
+
+        annotations = metadata.get('annotations', {})
+        ambassador_id = annotations.get('getambassador.io/ambassador-id', 'default')
+
+        # We don't want to deal with non-matching Ambassador IDs
+        if ambassador_id != Config.ambassador_id:
+            self.logger.info(f'IngressClass {ingress_class_name} does not have Ambassador ID {Config.ambassador_id}, ignoring...')
+            return None
+
+        # TODO: Do we intend to use this parameter in any way?
+        # `parameters` is of type TypedLocalObjectReference,
+        # meaning it links to another k8s resource in the same namespace.
+        # https://godoc.org/k8s.io/api/core/v1#TypedLocalObjectReference
+        #
+        # In this case, the resource referenced by TypedLocalObjectReference
+        # should not be namespaced, as IngressClass is a non-namespaced resource.
+        #
+        # It was designed to reference a CRD for this specific ingress-controller
+        # implementation... although usage is optional and not prescribed.
+        ingress_parameters = ingress_class_spec.get('parameters', {})
+
+        self.logger.info(f'Handling IngressClass {ingress_class_name} with parameters {ingress_parameters}...')
+
+        # Don't return this as aconf does not care about IngressClass. Instead, save it in self.ambassador_ingress_class
+        self.ambassador_ingress_class[resource_identifier] = ingress_parameters
+
+        return None
+
     def handle_k8s_ingress(self, k8s_object: AnyDict) -> HandlerResult:
         metadata = k8s_object.get('metadata', None)
         metadata_labels: Optional[Dict[str, str]] = metadata.get('labels')
@@ -488,8 +549,22 @@ class ResourceFetcher:
 
         # we don't need an ingress without ingress class set to ambassador
         annotations = metadata.get('annotations', {})
-        if annotations.get('kubernetes.io/ingress.class', '').lower() != 'ambassador':
-            self.logger.info(f'ignoring Ingress {ingress_name} without annotation - kubernetes.io/ingress.class: "ambassador"')
+        ingress_class_name = ingress_spec.get('ingressClassName', '')
+
+        ingress_class = self.ambassador_ingress_class.get(ingress_class_name, None)
+        has_ambassador_ingress_class_annotation = annotations.get('kubernetes.io/ingress.class', '').lower() == 'ambassador'
+
+        # check the Ingress resource has either:
+        #  - a `kubernetes.io/ingress.class: "ambassador"` annotation
+        #  - a `spec.ingressClassName` that references an IngressClass with
+        #      `spec.controller: getambassador.io/ingress-controller`
+        #
+        # also worth noting, the kube-apiserver might assign the `spec.ingressClassName` if unspecified
+        # and only 1 IngressClass has the following annotation:
+        #   annotations:
+        #     ingressclass.kubernetes.io/is-default-class: "true"
+        if (not has_ambassador_ingress_class_annotation) and (ingress_class is None):
+            self.logger.info(f'ignoring Ingress {ingress_name} without annotation (kubernetes.io/ingress.class: "ambassador") or IngressClass controller (getambassador.io/ingress-controller)')
             skip = True
 
         if skip:
@@ -520,36 +595,46 @@ class ResourceFetcher:
 
         ingress_tls = ingress_spec.get('tls', [])
         for tls_count, tls in enumerate(ingress_tls):
-            tls_unique_identifier = f"{ingress_name}-{tls_count}"
 
             tls_secret = tls.get('secretName', None)
-
             if tls_secret is not None:
-                ingress_tls_context: Dict[str, Any] = {
-                    'apiVersion': 'getambassador.io/v2',
-                    'kind': 'TLSContext',
-                    'metadata': {
-                        'name': tls_unique_identifier,
-                        'namespace': ingress_namespace
-                    },
-                    'spec': {
-                        'secret': tls_secret,
-                        'ambassador_id': ambassador_id
+
+                for host_count, host in enumerate(tls.get('hosts', ['*'])):
+                    tls_unique_identifier = f"{ingress_name}-{tls_count}-{host_count}"
+
+                    ingress_host: Dict[str, Any] = {
+                        'apiVersion': 'getambassador.io/v2',
+                        'kind': 'Host',
+                        'metadata': {
+                            'name': tls_unique_identifier,
+                            'namespace': ingress_namespace
+                        },
+                        'spec': {
+                            'ambassador_id': [ambassador_id],
+                            'hostname': host,
+                            'acmeProvider': {
+                                'authority': 'none'
+                            },
+                            'tlsSecret': {
+                                'name': tls_secret
+                            },
+                            'requestPolicy': {
+                                'insecure': {
+                                    'action': 'Route'
+                                }
+                            }
+                        }
                     }
-                }
 
-                if metadata_labels:
-                    ingress_tls_context['metadata']['labels'] = metadata_labels
+                    if metadata_labels:
+                        ingress_host['metadata']['labels'] = metadata_labels
 
-                tls_hosts = tls.get('hosts', None)
-                if tls_hosts is not None:
-                    ingress_tls_context['spec']['hosts'] = tls_hosts
+                    self.logger.info(f"Generated Host from ingress {ingress_name}: {ingress_host}")
+                    self.handle_k8s_crd(ingress_host)
 
-                self.logger.info(f"Generated TLS Context from ingress {ingress_name}: {ingress_tls_context}")
-                self.handle_k8s_crd(ingress_tls_context)
-
-        # parse ingress.spec.backend
-        default_backend = ingress_spec.get('backend', {})
+        # parse ingress.spec.defaultBackend
+        # using ingress.spec.backend as a fallback, for older versions of the Ingress resource.
+        default_backend = ingress_spec.get('defaultBackend', ingress_spec.get('backend', {}))
         db_service_name = default_backend.get('serviceName', None)
         db_service_port = default_backend.get('servicePort', None)
         if db_service_name is not None and db_service_port is not None:
@@ -585,16 +670,21 @@ class ResourceFetcher:
             http_paths = rule_http.get('paths', [])
             for path_count, path in enumerate(http_paths):
                 path_backend = path.get('backend', {})
+                path_type = path.get('pathType', 'ImplementationSpecific')
 
                 service_name = path_backend.get('serviceName', None)
                 service_port = path_backend.get('servicePort', None)
-                service_path = path.get('path', None)
+                path_location = path.get('path', '/')
 
-                if not service_name or not service_port or not service_path:
+                if not service_name or not service_port or not path_location:
                     continue
 
                 unique_suffix = f"{rule_count}-{path_count}"
                 mapping_identifier = f"{ingress_name}-{unique_suffix}"
+
+                # For cases where `pathType: Exact`,
+                # otherwise `Prefix` and `ImplementationSpecific` are handled as regular Mapping prefixes
+                is_exact_prefix = True if path_type == 'Exact' else False
 
                 path_mapping: Dict[str, Any] = {
                     'apiVersion': 'getambassador.io/v2',
@@ -605,7 +695,9 @@ class ResourceFetcher:
                     },
                     'spec': {
                         'ambassador_id': ambassador_id,
-                        'prefix': service_path,
+                        'prefix': path_location,
+                        'prefix_exact': is_exact_prefix,
+                        'precedence': 1 if is_exact_prefix else 0,  # Make sure exact paths are evaluated before prefix
                         'service': f'{service_name}.{ingress_namespace}:{service_port}'
                     }
                 }
@@ -614,7 +706,16 @@ class ResourceFetcher:
                     path_mapping['metadata']['labels'] = metadata_labels
 
                 if rule_host is not None:
-                    path_mapping['spec']['host'] = rule_host
+                    if rule_host.startswith('*.'):
+                        # Ingress allow specifying hosts with a single wildcard as the first label in the hostname.
+                        # Transform the rule_host into a host_regex:
+                        # *.star.com  becomes  ^[a-z0-9]([-a-z0-9]*[a-z0-9])?\.star\.com$
+                        path_mapping['spec']['host'] = rule_host\
+                            .replace('.', '\\.')\
+                            .replace('*', '^[a-z0-9]([-a-z0-9]*[a-z0-9])?', 1) + '$'
+                        path_mapping['spec']['host_regex'] = True
+                    else:
+                        path_mapping['spec']['host'] = rule_host
 
                 self.logger.info(f"Generated mapping from Ingress {ingress_name}: {path_mapping}")
                 self.handle_k8s_crd(path_mapping)
@@ -803,6 +904,10 @@ class ResourceFetcher:
         # Again, we're trusting that the input isn't overly bloated on that latter bit.
 
         metadata = k8s_object.get('metadata', None)
+        if not metadata:
+            self.logger.debug("ignoring K8s Service with no metadata")
+            return None
+
         metadata_labels: Optional[Dict[str, str]] = metadata.get('labels')
         resource_name = metadata.get('name') if metadata else None
         resource_namespace = metadata.get('namespace', 'default') if metadata else None

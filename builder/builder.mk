@@ -24,6 +24,36 @@ BUILDER = BUILDER_NAME=$(BUILDER_NAME) $(abspath $(BUILDER_HOME)/builder.sh)
 DBUILD = $(abspath $(BUILDER_HOME)/dbuild.sh)
 COPY_GOLD = $(abspath $(BUILDER_HOME)/copy-gold.sh)
 
+# the image used for running the Ingress v1 tests with KIND.
+# the current, official image does not support Ingress v1, so we must build our own image with k8s 1.18.
+# build this image with:
+# 1. checkout the Kuberentes sources in a directory like "~/sources/kubernetes"
+# 2. kind build node-image --kube-root ~/sources/kubernetes
+# 3. docker tag kindest/node:latest quay.io/datawire/kindest-node:latest
+# 4. docker push quay.io/datawire/kindest-node:latest
+# This will not be necessary once the KIND images are built for a Kubernetes 1.18 and support Ingress v1beta1 improvements.
+KIND_IMAGE ?= kindest/node:v1.18.0
+#KIND_IMAGE ?= quay.io/datawire/kindest-node:latest
+KIND_KUBECONFIG = /tmp/kind-kubeconfig
+
+# The ingress conformance tests directory
+# build this image with:
+# 1. checkout https://github.com/kubernetes-sigs/ingress-controller-conformance
+# 2. cd ingress-controller-conformance && make image
+# 3. docker tag ingress-controller-conformance:latest quay.io/datawire/ingress-controller-conformance:latest
+# 4. docker push quay.io/datawire/ingress-controller-conformance:latest
+INGRESS_TEST_IMAGE ?= quay.io/datawire/ingress-controller-conformance:latest
+
+# local ports for the Ingress conformance tests
+INGRESS_TEST_LOCAL_PLAIN_PORT = 8000
+INGRESS_TEST_LOCAL_TLS_PORT = 8443
+INGRESS_TEST_LOCAL_ADMIN_PORT = 8877
+
+# directory with the manifests for loading Ambassador for running the Ingress Conformance tests
+# NOTE: these manifests can be slightly different to the regular ones asd they include
+INGRESS_TEST_MANIF_DIR = $(BUILDER_HOME)/../docs/yaml/ambassador/
+INGRESS_TEST_MANIFS = ambassador-crds.yaml ambassador-rbac.yaml
+
 all: help
 .PHONY: all
 
@@ -35,6 +65,9 @@ export DOCKER_ERR=$(RED)ERROR: cannot find docker, please make sure docker is in
 # the name of the Docker network
 # note: use your local k3d/microk8s/kind network for running tests
 DOCKER_NETWORK ?= $(BUILDER_NAME)
+
+# local host IP address (and not 127.0.0.1)
+HOST_IP := $(shell ip -o route get to 8.8.8.8 | sed -n 's/.*src \([0-9.]\+\).*/\1/p' | cut -d' ' -f1)
 
 preflight:
 ifeq ($(strip $(shell $(BUILDER))),)
@@ -172,7 +205,87 @@ gotest: test-ready
 		-it $(shell $(BUILDER)) go build -o /dev/null ./cmd/edgectl
 .PHONY: gotest
 
-test: gotest pytest
+# Ingress v1 conformance tests, using KIND and the Ingress Conformance Tests suite.
+ingresstest:
+	@printf "$(CYN)==> $(GRN)Running $(BLU)Ingress v1$(GRN) tests$(END)\n"
+	@[ -n "$(AMB_IMAGE)" ] || { printf "$(RED)ERROR: no AMB_IMAGE defined$(END)\n"; exit 1; }
+	@[ -n "$(INGRESS_TEST_IMAGE)" ] || { printf "$(RED)ERROR: no INGRESS_TEST_IMAGE defined$(END)\n"; exit 1; }
+	@[ -n "$(INGRESS_TEST_MANIF_DIR)" ] || { printf "$(RED)ERROR: no INGRESS_TEST_MANIF_DIR defined$(END)\n"; exit 1; }
+	@[ -d "$(INGRESS_TEST_MANIF_DIR)" ] || { printf "$(RED)ERROR: $(INGRESS_TEST_MANIF_DIR) does not seem a valid directory$(END)\n"; exit 1; }
+	@[ -n "$(HOST_IP)" ] || { printf "$(RED)ERROR: no IP obtained for host$(END)\n"; ip addr ; exit 1; }
+
+	@printf "$(CYN)==> $(GRN)Creating/recreating KIND cluster with image $(KIND_IMAGE)$(END)\n"
+	@kind delete cluster 2>/dev/null || /bin/true
+	@kind create cluster --image $(KIND_IMAGE)
+
+	@printf "$(CYN)==> $(GRN)Saving KUBECONFIG at $(KIND_KUBECONFIG)$(END)\n"
+	@kind get kubeconfig > $(KIND_KUBECONFIG)
+	@sleep 10
+
+	@APISERVER_IP=`docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' kind-control-plane` ; \
+		[ -n "$$APISERVER_IP" ] || { printf "$(RED)ERROR: no IP obtained for API server$(END)\n"; docker ps ; docker inspect kind-control-plane ; exit 1; } ; \
+		printf "$(CYN)==> $(GRN)API server at $$APISERVER_IP. Fixing server in $(KIND_KUBECONFIG).$(END)\n" ; \
+		sed -i -e "s|server: .*|server: https://$$APISERVER_IP:6443|g" $(KIND_KUBECONFIG)
+
+	@printf "$(CYN)==> $(GRN)Showing some cluster info:$(END)\n"
+	@kubectl --kubeconfig=$(KIND_KUBECONFIG) cluster-info || { printf "$(RED)ERROR: kubernetes cluster not ready $(END)\n"; exit 1 ; }
+	@kubectl --kubeconfig=$(KIND_KUBECONFIG) version || { printf "$(RED)ERROR: kubernetes cluster not ready $(END)\n"; exit 1 ; }
+
+	@printf "$(CYN)==> $(GRN)Loading Ambassador (from the Ingress conformance tests) with image=$(AMB_IMAGE)$(END)\n"
+	@for f in $(INGRESS_TEST_MANIFS) ; do \
+  		printf "$(CYN)==> $(GRN)... $$f $(END)\n" ; \
+		cat $(INGRESS_TEST_MANIF_DIR)/$$f | sed -e "s|image:.*ambassador\:.*|image: $(AMB_IMAGE)|g" | tee /dev/tty | kubectl apply -f - ; \
+	done
+
+	@printf "$(CYN)==> $(GRN)Waiting for Ambassador to be ready$(END)\n"
+	@kubectl --kubeconfig=$(KIND_KUBECONFIG) wait --for=condition=available --timeout=180s deployment/ambassador || { \
+		printf "$(RED)ERROR: Ambassador was not ready after 3 mins $(END)\n"; \
+		kubectl --kubeconfig=$(KIND_KUBECONFIG) get services --all-namespaces ; \
+		exit 1 ; }
+
+	@printf "$(CYN)==> $(GRN)Exposing Ambassador service$(END)\n"
+	@kubectl --kubeconfig=$(KIND_KUBECONFIG) expose deployment ambassador --type=LoadBalancer --name=ambassador
+
+	@printf "$(CYN)==> $(GRN)Starting the tests container (in the background)$(END)\n"
+	@docker stop -t 3 ingress-tests 2>/dev/null || true && docker rm ingress-tests 2>/dev/null || true
+	@docker run -d --rm --name ingress-tests -e KUBECONFIG=/opt/.kube/config --mount type=bind,source=$(KIND_KUBECONFIG),target=/opt/.kube/config \
+		--entrypoint "/bin/sleep" $(INGRESS_TEST_IMAGE) 600
+
+	@printf "$(CYN)==> $(GRN)Loading the Ingress conformance tests manifests$(END)\n"
+	@docker exec -ti ingress-tests \
+		/opt/ingress-controller-conformance apply --api-version=networking.k8s.io/v1beta1 --ingress-controller=getambassador.io/ingress-controller --ingress-class=ambassador
+	@sleep 10
+
+	@printf "$(CYN)==> $(GRN)Forwarding traffic to Ambassador service$(END)\n"
+	@kubectl --kubeconfig=$(KIND_KUBECONFIG) port-forward --address=$(HOST_IP) svc/ambassador \
+		$(INGRESS_TEST_LOCAL_PLAIN_PORT):8080 $(INGRESS_TEST_LOCAL_TLS_PORT):8443 $(INGRESS_TEST_LOCAL_ADMIN_PORT):8877 &
+	@sleep 5
+
+	@for url in "http://$(HOST_IP):$(INGRESS_TEST_LOCAL_PLAIN_PORT)" "https://$(HOST_IP):$(INGRESS_TEST_LOCAL_TLS_PORT)" "http://$(HOST_IP):$(INGRESS_TEST_LOCAL_ADMIN_PORT)/ambassador/v0/check_ready" ; do \
+		printf "$(CYN)==> $(GRN)Waiting until $$url is ready...$(END)\n" ; \
+		until curl --silent -k "$$url" ; do printf "$(CYN)==> $(GRN)... still waiting.$(END)\n" ; sleep 2 ; done ; \
+		printf "$(CYN)==> $(GRN)... $$url seems to be ready.$(END)\n" ; \
+	done
+	@sleep 10
+
+	@printf "$(CYN)==> $(GRN)Running the Ingress conformance tests against $(HOST_IP)$(END)\n"
+	@docker exec -ti ingress-tests \
+		/opt/ingress-controller-conformance verify \
+			--api-version=networking.k8s.io/v1beta1 \
+			--use-insecure-host=$(HOST_IP):$(INGRESS_TEST_LOCAL_PLAIN_PORT) \
+			--use-secure-host=$(HOST_IP):$(INGRESS_TEST_LOCAL_TLS_PORT)
+
+	@printf "$(CYN)==> $(GRN)Cleaning up...$(END)\n"
+	-@pkill kubectl -9
+	@docker stop -t 3 ingress-tests 2>/dev/null || true && docker rm ingress-tests 2>/dev/null || true
+
+	@if [ -n "$(CLEANUP)" ] ; then \
+		printf "$(CYN)==> $(GRN)We are done. Destroying the cluster now.$(END)\n"; kind delete cluster || /bin/true; \
+	else \
+		printf "$(CYN)==> $(GRN)We are done. You should destroy the cluster with 'kind delete cluster'.$(END)\n"; \
+	fi
+
+test: ingresstest gotest pytest
 .PHONY: test
 
 shell:
