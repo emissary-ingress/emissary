@@ -72,6 +72,8 @@
                   link: /docs/latest/topics/using/headers/host
             - title: Keepalive
               link: /docs/latest/topics/using/keepalive
+            - title: Method-based Routing
+              link: /docs/latest/topics/using/method
             - title: Prefix Regex
               link: /docs/latest/topics/using/prefix_regex
             - title: Protocols
@@ -124,12 +126,16 @@
           link: /docs/latest/topics/running/ambassador
         - title: Deploying Ambassador
           items:
+            - title: Deployment Architecture
+              link: /docs/latest/topics/running/ambassador-deployment
             - title: Ambassador with AWS
               link: /docs/latest/topics/running/ambassador-with-aws
             - title: Ambassador with GKE
               link: /docs/latest/topics/running/ambassador-with-gke
             - title: Advanced Deployment Configuration
               link: /docs/latest/topics/running/running
+            - title: The Ambassador Container
+              link: /docs/latest/topics/running/environment
         - title: Gzip Compression
           link: /docs/latest/topics/running/gzip
         - title: Host CRD, ACME Support, and External Load Balancer Configuration
