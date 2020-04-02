@@ -122,7 +122,8 @@ const (
 	//StepGitPull                    = "06-git-pull"
 	//StepGitSanityCheck             = "07-git-sanity-check"
 	StepBuild         = "08-build"
-	StepWebhookUpdate = "09-webhook-update"
+	StepDeploy        = "09-deploy"
+	StepWebhookUpdate = "10-webhook-update"
 
 	StepBackground = "XX-background"
 	StepBug        = "XX-bug"
@@ -136,6 +137,7 @@ func telemetry(ctx context.Context, argData map[string]interface{}) {
 	}
 	if proj := CtxGetProject(ctx); proj != nil {
 		data["trace_project_uid"] = proj.GetUID()
+		data["trace_project_gen"] = proj.GetGeneration()
 	}
 	if commit := CtxGetCommit(ctx); commit != nil {
 		data["trace_commit_uid"] = commit.GetUID()
@@ -805,6 +807,8 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 		if err != nil {
 			reportRuntimeError(ctx, StepReconcileProjectsToCommits,
 				fmt.Errorf("updating ProjectCommits: %w", err))
+		} else {
+			telemetryOK(ctx, StepReconcileProjectsToCommits)
 		}
 	}
 
@@ -837,14 +841,19 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 			}
 		}
 
-		err := safeInvoke(func() {
-			if err := k.reconcileCommit(ctx, project, commit, commitBuilders, commitRunners); err != nil {
-				reportRuntimeError(ctx, StepReconcileCommitsToAction, err)
-			}
+		var runtimeErr, bugErr error
+		bugErr = safeInvoke(func() {
+			runtimeErr = k.reconcileCommit(ctx, project, commit, commitBuilders, commitRunners)
 		})
-		if err != nil {
+		if runtimeErr != nil {
+			reportRuntimeError(ctx, StepReconcileCommitsToAction, runtimeErr)
+		}
+		if bugErr != nil {
 			reportThisIsABug(ctx,
-				fmt.Errorf("recovered from panic: %w", err))
+				fmt.Errorf("recovered from panic: %w", bugErr))
+		}
+		if runtimeErr == nil && bugErr == nil {
+			telemetryOK(ctx, StepReconcileCommitsToAction)
 		}
 	}
 }
@@ -930,6 +939,9 @@ func (k *kale) reconcileCommit(ctx context.Context, proj *Project, commit *Proje
 		telemetryOK(ctx, StepBuild)
 		manifests = append(manifests, k.calculateRun(proj, commit)...)
 	}
+	if commit.Status.Phase == CommitPhase_Deployed {
+		telemetryOK(ctx, StepDeploy)
+	}
 	selectors := []string{
 		GlobalLabelName + "==" + k.cfg.AmbassadorID,
 		CommitLabelName + "==" + string(commit.GetUID()),
@@ -950,8 +962,7 @@ func (k *kale) reconcileCommit(ctx context.Context, proj *Project, commit *Proje
 			deleteResource("job.v1.batch", commit.GetName()+"-build", commit.GetNamespace())
 		} else {
 			reportRuntimeError(ctx, StepReconcileCommitsToAction,
-				fmt.Errorf("deploying ProjectCommit %q.%q: %w",
-					commit.GetName(), commit.GetNamespace(),
+				fmt.Errorf("deploying ProjectCommit: %w",
 					err))
 		}
 	}
