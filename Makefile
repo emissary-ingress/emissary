@@ -68,7 +68,7 @@ version-check: .common-pkgs.txt aes-abi.pkgs.txt
 
 %.so: $(PLUGIN_DIR)/%.go download-go download-docker version-check sync
 	$(go.GOBUILD) -buildmode=plugin -o $@ $<
-	$(container-rsync) -r $(container.ID):${CURDIR}/ .
+	$(container-rsync) -a $(container.ID):${CURDIR}/ .
 
 clean:
 	rm -f -- *.so .docker.stamp .common-pkgs.txt .tmp.* .var.* Dockerfile aes-abi*
