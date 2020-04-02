@@ -1,4 +1,6 @@
-# Environment Variables for the Ambassador Container
+# The Ambassador Container
+
+## Environment Variables
 
 Use the following variables for the environment of your Ambassador container:
 
@@ -42,3 +44,18 @@ Use the following variables for the environment of your Ambassador container:
 
 [Go `net.Dial`]: https://golang.org/pkg/net/#Dial
 [Go `strconv.ParseBool`]: https://golang.org/pkg/strconv/#ParseBool
+
+## Port Assignments
+
+The Ambassador Edge Stack uses the following ports to listen for HTTP/HTTPS traffic automatically via TCP:
+
+| Port	| Process | Function |
+| ----- | ------- | -------- |
+| 8001	| envoy	  | Internal stats, logging, etc.; not exposed outside pod |
+| 8002	| watt	  | Internal watt snapshot access; not exposed outside pod |
+| 8003	| ambex	  | Internal ambex snapshot access; not exposed outside pod |
+| 8080	| envoy	  | Default HTTP service port |
+| 8443	| envoy	  | Default HTTPS service port |
+
+
+
