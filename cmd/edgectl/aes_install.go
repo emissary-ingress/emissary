@@ -434,7 +434,7 @@ func (i *Installer) Perform(kcontext string) error {
 	i.show.Println(color.Bold.Sprintf(welcomeInstall))
 
 	// Attempt to grab a reasonable default for the user's email address
-	defaultEmail, err := i.Capture("get email", "", "git", "config", "--global", "user.email")
+	defaultEmail, err := i.Capture("get email", true, "", "git", "config", "--global", "user.email")
 	if err != nil {
 		i.log.Print(err)
 		defaultEmail = ""
@@ -709,42 +709,6 @@ func (i *Installer) Perform(kcontext string) error {
 
 	i.show.Println("-> Automatically configuring TLS")
 
-<<<<<<< HEAD
-=======
-	// Attempt to grab a reasonable default for the user's email address
-	defaultEmail, err := i.Capture("get email", true, "", "git", "config", "--global", "user.email")
-	if err != nil {
-		i.log.Print(err)
-		defaultEmail = ""
-	} else {
-		defaultEmail = strings.TrimSpace(defaultEmail)
-		if !validEmailAddress.MatchString(defaultEmail) {
-			defaultEmail = ""
-		}
-	}
-
-	// Ask for the user's email address
-	i.show.Println()
-	i.ShowWrapped(emailAsk)
-	// Do the goroutine dance to let the user hit Ctrl-C at the email prompt
-	gotEmail := make(chan (string))
-	var emailAddress string
-	go func() {
-		gotEmail <- getEmailAddress(defaultEmail, i.log)
-		close(gotEmail)
-	}()
-	select {
-	case emailAddress = <-gotEmail:
-		// Continue
-	case <-i.ctx.Done():
-		fmt.Println()
-		return errors.New("Interrupted")
-	}
-	i.show.Println()
-
-	i.log.Printf("Using email address %q", emailAddress)
-
->>>>>>> master
 	// Send a request to acquire a DNS name for this cluster's load balancer
 	regURL := "https://metriton.datawire.io/register-domain"
 	regData := &registration{Email: emailAddress}
