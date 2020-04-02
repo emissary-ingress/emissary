@@ -188,8 +188,9 @@ commands:
             export KAT_REQ_LIMIT=600
             make pytest-only
       # We might want to run ingress-conformance tests in AES in the future
-      # This would require we install `kind` and that the test suite supports
-      # HTTPS redirects (which is the AES behavior)
+      # This would require we install `kind` on circleci and that the test suite
+      # supports HTTP to HTTPS redirects (AES enables cleartext redirection by
+      # default, even for fallback hosts, contrary to AOSS)
       # - run:
       #     name: "Ingress Conformance Tests"
       #     command: |
