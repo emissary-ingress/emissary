@@ -187,18 +187,21 @@ commands:
             export DEV_KUBE110=yes
             export KAT_REQ_LIMIT=600
             make pytest-only
+      # We might want to run ingress-conformance tests in AES in the future
+      # This would require we install `kind` and that the test suite supports
+      # HTTPS redirects (which is the AES behavior)
+      # - run:
+      #     name: "Ingress Conformance Tests"
+      #     command: |
+      #       export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
+      #       export DEV_KUBE110=yes
+      #       make ingresstest
       - run:
           name: "E2E Tests"
           command: |
             export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
             export DEV_KUBE110=yes
             make e2etest
-      - run:
-          name: "Ingress Conformance Tests"
-          command: |
-            export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
-            export DEV_KUBE110=yes
-            make ingresstest
       - run:
           command: ".circleci/kubernaut-unclaim.sh"
           when: "always"
