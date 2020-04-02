@@ -371,6 +371,10 @@ func (i *Installer) CheckACMEIsDone() error {
 			return errors.New("Waiting for NXDOMAIN retry")
 		}
 
+		// TODO: Windows incompatible, will not be bold but otherwise functions.
+		// TODO: rewrite Installer.show to make explicit calls to color.Bold.Printf(...) instead,
+		// TODO: along with logging.  Search for color.Bold to find usages.
+
 		i.show.Println()
 		i.show.Println(color.Bold.Sprintf("Acquiring TLS certificate via ACME has failed: %s", reason))
 		return LoopFailedError(fmt.Sprintf("ACME failed. More information: kubectl get host %s -o yaml", i.hostname))
@@ -434,7 +438,7 @@ func (i *Installer) Perform(kcontext string) error {
 	i.show.Println(color.Bold.Sprintf(welcomeInstall))
 
 	// Attempt to grab a reasonable default for the user's email address
-	defaultEmail, err := i.Capture("get email", true, "", "git", "config", "--global", "user.email")
+	defaultEmail, err := i.Capture("get email", true,"", "git", "config", "--global", "user.email")
 	if err != nil {
 		i.log.Print(err)
 		defaultEmail = ""
@@ -665,6 +669,7 @@ func (i *Installer) Perform(kcontext string) error {
 	// Don't proceed any further if we know we are using a local (not publicly
 	// accessible) cluster. There's no point wasting the user's time on
 	// timeouts.
+
 	if isKnownLocalCluster {
 		i.Report("cluster_not_accessible")
 		i.show.Println("-> Local cluster detected. Not configuring automatic TLS.")
@@ -672,7 +677,7 @@ func (i *Installer) Perform(kcontext string) error {
 		i.ShowWrapped(color.Bold.Sprintf(noTlsSuccess))
 		i.show.Println()
 		loginMsg := "Determine the IP address and port number of your Ambassador service, e.g.\n"
-		loginMsg += color.Bold.Sprintf("$ minikube service -n ambassador ambassador)\n\n")
+		loginMsg += color.Bold.Sprintf("$ minikube service -n ambassador ambassador\n\n")
 		loginMsg += fmt.Sprintf(loginViaIP)
 		loginMsg += color.Bold.Sprintf("$ edgectl login -n ambassador IP_ADDRESS:PORT")
 		i.ShowWrapped(loginMsg)
@@ -760,12 +765,12 @@ func (i *Installer) Perform(kcontext string) error {
 		return nil
 	}
 
-	// Wait for DNS to propagate. This tries to avoid waiting for a ten
-	// minute error backoff if the ACME registration races ahead of the DNS
-	// name appearing for LetsEncrypt.
 	i.hostname = string(content)
 	i.show.Println("-> Acquiring DNS name", color.Bold.Sprintf(i.hostname))
 
+	// Wait for DNS to propagate. This tries to avoid waiting for a ten
+	// minute error backoff if the ACME registration races ahead of the DNS
+	// name appearing for LetsEncrypt.
 	if err := i.loopUntil("DNS propagation to this host", i.CheckHostnameFound, lc2); err != nil {
 		i.Report("dns_name_propagation_timeout")
 		i.ShowWrapped("We are unable to resolve your new DNS name on this machine.")
@@ -1054,7 +1059,7 @@ spec:
 
 const welcomeInstall = "Installing the Ambassador Edge Stack"
 
-const emailAsk = `Please enter an email address. We'll use this contact information to notify you prior to domain and certificate expiration. We also share this with Let's Encrypt to acquire your certificate for TLS.`
+const emailAsk = `Please enter an email address for us to notify you before your TLS certificate and domain name expire. In order to acquire the TLS certificate, we share this email with Let’s Encrypt.`
 
 const beginningAESInstallation = "Beginning Ambassador Edge Stack Installation"
 
