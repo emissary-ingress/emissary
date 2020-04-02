@@ -267,7 +267,8 @@ export class Resource extends Model {
       throw new Error("can only save new or modified or deleted resources")
     }
 
-    let result = new Promise((good, bad)=>{
+    return new Promise((good, bad)=>{
+      this.pending = this
       this.pendingResolver = good
       this.pendingRejector = bad
 
@@ -308,10 +309,9 @@ export class Resource extends Model {
             })
         }
       }
+
+      this.notify()
     })
-    this.pending = result
-    this.notify()
-    return result
   }
 
   validate() {

@@ -73,6 +73,16 @@ describe('Resource', function() {
       r.edit()
       return r.save()
     })
+
+    it('should stop being pending after save() of edited resources with no changes', function() {
+      let c = new ResourceCollection(new GoodStore())
+      let r = c.load(yamlGen())
+      assert.equal(r.state, "stored")
+      r.edit()
+      return r.save().then(()=>{
+        assert.isFalse(r.isPending())
+      })
+    })
   })
 
   describe('#cancel()', function() {
