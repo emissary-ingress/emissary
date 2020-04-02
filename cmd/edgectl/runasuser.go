@@ -44,7 +44,9 @@ func (raiObject *RunAsInfo) Command(p *supervisor.Process, args ...string) *supe
 	rai := raiObject
 
 	// When would the receiver be nil?
-	if rai == nil { rai = &RunAsInfo{} }
+	if rai == nil {
+		rai = &RunAsInfo{}
+	}
 
 	var cmd *supervisor.Cmd
 	if rai.Name == "root" || len(rai.Name) == 0 {

@@ -22,7 +22,6 @@ type ClientMessage struct {
 	ClientVersion string
 }
 
-
 // ExitPrefix is the token used by the daemon ot tell the client to
 // exit with the specified status
 const ExitPrefix = "-- exit "
