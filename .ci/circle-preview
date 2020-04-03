@@ -15,12 +15,12 @@ fi
 
 # TRAVIS_COMMIT_RANGE=${GIT_BASE_COMMIT}..${GIT_HEAD_COMMIT}
 
-CHANGED_DOCS=$(git diff --name-only  "${GIT_BASE_COMMIT}..${GIT_HEAD_COMMIT}" ':ambassador/docs')
+# CHANGED_DOCS=$(git diff --name-only  "${GIT_BASE_COMMIT}..${GIT_HEAD_COMMIT}" -- 'docs')
 
-if [ -z "$CHANGED_DOCS" ]; then
-    echo "No changes in ambassador/docs, so not building docs"
-    exit 0
-fi
+# if [ -z "$CHANGED_DOCS" ]; then
+#     echo "No changes in ambassador/docs, so not building docs"
+#     exit 0
+# fi
 
 # source ./.ci/travis-fix-env
 # ./ambassador/.ci/install-blc
@@ -30,23 +30,24 @@ fi
 set -o xtrace
 set -o verbose
 
-website_branch=release/v1.3
+website_branch=master
 build_dir=$(pwd)
 
-rm -rf "/tmp/getambassador.io-v1.3"
-git clone --single-branch --branch="$website_branch" https://d6e-automaton:${GH_TOKEN}@github.com/datawire/getambassador.io.git "/tmp/getambassador.io-v1.3"
-cd "/tmp/getambassador.io-v1.3"
+rm -rf "/tmp/getambassador.io-${website_branch}"
+git clone --single-branch --branch="$website_branch" https://d6e-automaton:${GH_TOKEN}@github.com/datawire/getambassador.io.git "/tmp/getambassador.io-${website_branch}"
+cd "/tmp/getambassador.io-${website_branch}"
 # git submodule update --init --reference="$TRAVIS_BUILD_DIR"
 # git -C ambassador checkout "$TRAVIS_COMMIT"
 rm -rf ambassador
-ln -sf "${build_dir}/ambassador"
+mkdir -p ambassador/docs
+cp -prv "${build_dir}/ambassador/docs" ambassador/docs
 
 npm install
 npm run build
 
 # From ./ambassador/.ci/publish-website-preview master
 
-if ! [[ -d /tmp/getambassador.io-v1.3/public ]]; then
+if ! [[ -d /tmp/getambassador.io-${website_branch}/public ]]; then
 	echo '[publish-website-preview] skipping: website preview was not built'
 	exit 0
 fi
@@ -54,8 +55,8 @@ fi
 npm install netlify-cli -g
 
 netlify deploy \
-	--dir="/tmp/getambassador.io-v1.3/public" \
-	--message="ambassador.git preview $PIPELINE_ID" \
+	--dir="/tmp/getambassador.io-${website_branch}/public" \
+	--message="ambassador.git preview $website_branch (pipeline $PIPELINE_ID)" \
 	--site=1d6f5395-6386-49af-8b47-e85aa28488f8 \
 	--auth="${NETLIFY_AUTH_TOKEN}" \
 	--json \
