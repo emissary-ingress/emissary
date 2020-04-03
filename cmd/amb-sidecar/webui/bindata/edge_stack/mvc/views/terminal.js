@@ -1,6 +1,6 @@
-import {LitElement, html, css} from '../vendor/lit-element.min.js'
-import {getCookie} from './cookies.js';
-import {ApiFetch} from "./api-fetch.js";
+import {LitElement, html, css} from '../../vendor/lit-element.min.js'
+import {getCookie} from '../../components/cookies.js';
+import {ApiFetch} from "../../components/api-fetch.js";
 
 // todo: vendor these
 import "https://cdn.jsdelivr.net/npm/xterm@4.4.0/lib/xterm.js";
