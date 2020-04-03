@@ -39,8 +39,8 @@ cd "/tmp/getambassador.io-${website_branch}"
 # git submodule update --init --reference="$TRAVIS_BUILD_DIR"
 # git -C ambassador checkout "$TRAVIS_COMMIT"
 rm -rf ambassador
-mkdir -p ambassador/docs
-cp -prv "${build_dir}/ambassador/docs" ambassador/docs
+mkdir -p ambassador
+cp -prv "${build_dir}/ambassador/docs" ambassador
 
 npm install
 npm run build
