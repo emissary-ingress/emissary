@@ -6,7 +6,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/pkg/browser"
 	"io"
 	"io/ioutil"
 	"log"
@@ -20,6 +19,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/pkg/browser"
 
 	"github.com/datawire/ambassador/pkg/k8s"
 	"github.com/datawire/ambassador/pkg/supervisor"
@@ -119,9 +120,16 @@ func aesInstall(cmd *cobra.Command, _ []string) error {
 		Requires: []string{"signal"},
 		Work: func(p *supervisor.Process) error {
 			defer i.Quit()
-			return i.Perform(kcontext)
+			result := i.Perform(kcontext)
+			i.ShowResult(result)
+			return result.Err
 		},
 	})
+
+	// Don't allow messages emitted while opening the browser to mess up our
+	// carefully-crafted terminal output
+	browser.Stdout = ioutil.Discard
+	browser.Stderr = ioutil.Discard
 
 	runErrors := sup.Run()
 	if len(runErrors) > 1 { // This shouldn't happen...
@@ -430,7 +438,7 @@ func (i *Installer) GetInstalledImageVersion() (string, error) {
 }
 
 // Perform is the main function for the installer
-func (i *Installer) Perform(kcontext string) error {
+func (i *Installer) Perform(kcontext string) Result {
 	// Start
 	i.Report("install")
 
@@ -464,7 +472,7 @@ func (i *Installer) Perform(kcontext string) error {
 		// Continue
 	case <-i.ctx.Done():
 		fmt.Println()
-		return errors.New("Interrupted")
+		return UnhandledErrResult(errors.New("Interrupted"))
 	}
 	i.show.Println()
 
@@ -476,11 +484,11 @@ func (i *Installer) Perform(kcontext string) error {
 
 	// Attempt to use kubectl
 	_, err = i.GetKubectlPath()
-	//err = errors.New("early error for testing")  // TODO: remove for production
+	// err = errors.New("early error for testing")  // TODO: remove for production
 	if err != nil {
 		i.Report("fail_no_kubectl")
 		err = browser.OpenURL(noKubectlURL)
-		return fmt.Errorf(noKubectl)
+		return UnhandledErrResult(fmt.Errorf(noKubectl))
 	}
 
 	// Attempt to talk to the specified cluster
@@ -488,23 +496,23 @@ func (i *Installer) Perform(kcontext string) error {
 	if err := i.ShowKubectl("cluster-info", "", "cluster-info"); err != nil {
 		i.Report("fail_no_cluster")
 		err = browser.OpenURL(noClusterURL)
-		return fmt.Errorf(noCluster)
+		return UnhandledErrResult(fmt.Errorf(noCluster))
 	}
 	i.restConfig, err = i.kubeinfo.GetRestConfig()
 	if err != nil {
 		i.Report("fail_no_cluster")
-		return err
+		return UnhandledErrResult(err)
 	}
 	i.coreClient, err = k8sClientCoreV1.NewForConfig(i.restConfig)
 	if err != nil {
 		i.Report("fail_no_cluster")
-		return err
+		return UnhandledErrResult(err)
 	}
 
 	versions, err := i.CaptureKubectl("get versions", "", "version", "-o", "json")
 	if err != nil {
 		i.Report("fail_no_cluster")
-		return err
+		return UnhandledErrResult(err)
 	}
 	kubernetesVersion := &kubernetesVersion{}
 	err = json.Unmarshal([]byte(versions), kubernetesVersion)
@@ -533,12 +541,12 @@ func (i *Installer) Perform(kcontext string) error {
 	crdManifests, err := getManifest(fmt.Sprintf("https://%s/yaml/aes-crds.yaml", manifestsDomain))
 	if err != nil {
 		i.Report("fail_no_internet", ScoutMeta{"err", err.Error()})
-		return errors.Wrap(err, "download AES CRD manifests")
+		return UnhandledErrResult(errors.Wrap(err, "download AES CRD manifests"))
 	}
 	aesManifests, err := getManifest(fmt.Sprintf("https://%s/yaml/aes.yaml", manifestsDomain))
 	if err != nil {
 		i.Report("fail_no_internet", ScoutMeta{"err", err.Error()})
-		return errors.Wrap(err, "download AES manifests")
+		return UnhandledErrResult(errors.Wrap(err, "download AES manifests"))
 	}
 
 	// Figure out what version of AES is being installed
@@ -547,7 +555,7 @@ func (i *Installer) Perform(kcontext string) error {
 	if len(matches) != 2 {
 		i.log.Printf("matches is %+v", matches)
 		i.Report("fail_bad_manifests")
-		return errors.Errorf("Failed to parse downloaded manifests. Is there a proxy server interfering with HTTP downloads?")
+		return UnhandledErrResult(errors.Errorf("Failed to parse downloaded manifests. Is there a proxy server interfering with HTTP downloads?"))
 	}
 	i.version = matches[1]
 	i.SetMetadatum("AES version being installed", "aes_version", i.version)
@@ -614,13 +622,14 @@ func (i *Installer) Perform(kcontext string) error {
 			i.show.Println()
 			i.ShowWrapped(seeDocs)
 			i.Report("fail_existing_aes", ScoutMeta{"installing", i.version}, ScoutMeta{"found", installedVersion})
-			return errors.Errorf("existing AES %s found when installing AES %s", installedVersion, i.version)
+			return UnhandledErrResult(errors.Errorf("existing AES %s found when installing AES %s", installedVersion, i.version))
 		default:
-			i.ShowWrapped(abortCRDs)
-			i.show.Println()
-			i.ShowWrapped(seeDocs)
-			i.Report("fail_existing_crds")
-			return errors.New("CRDs found")
+			return Result{
+				Report:  "fail_existing_crds",
+				Message: abortCRDs,
+				URL:     seeDocsURL,
+				Err:     errors.New("CRDs found"),
+			}
 		}
 	}
 
@@ -631,22 +640,22 @@ func (i *Installer) Perform(kcontext string) error {
 
 		if err := i.ShowKubectl("install CRDs", crdManifests, "apply", "-f", "-"); err != nil {
 			i.Report("fail_install_crds")
-			return err
+			return UnhandledErrResult(err)
 		}
 
 		if err := i.ShowKubectl("wait for CRDs", "", "wait", "--for", "condition=established", "--timeout=90s", "crd", "-lproduct=aes"); err != nil {
 			i.Report("fail_wait_crds")
-			return err
+			return UnhandledErrResult(err)
 		}
 
 		if err := i.ShowKubectl("install AES", aesManifests, "apply", "-f", "-"); err != nil {
 			i.Report("fail_install_aes")
-			return err
+			return UnhandledErrResult(err)
 		}
 
 		if err := i.ShowKubectl("wait for AES", "", "-n", "ambassador", "wait", "--for", "condition=available", "--timeout=90s", "deploy", "-lproduct=aes"); err != nil {
 			i.Report("fail_wait_aes")
-			return err
+			return UnhandledErrResult(err)
 		}
 	}
 
@@ -654,7 +663,7 @@ func (i *Installer) Perform(kcontext string) error {
 	i.show.Println("-> Checking the AES pod deployment")
 	if err := i.loopUntil("AES pod startup", i.GrabAESInstallID, lc2); err != nil {
 		i.Report("fail_pod_timeout")
-		return err
+		return UnhandledErrResult(err)
 	}
 
 	// Grab Helm information if present
@@ -683,7 +692,7 @@ func (i *Installer) Perform(kcontext string) error {
 		i.ShowWrapped(loginMsg)
 		i.show.Println()
 		i.ShowWrapped(seeDocs)
-		return nil
+		return UnhandledErrResult(nil)
 	}
 
 	// Grab load balancer address
@@ -695,7 +704,7 @@ func (i *Installer) Perform(kcontext string) error {
 		i.show.Println()
 		i.ShowWrapped(color.Bold.Sprintf(noTlsSuccess))
 		i.ShowWrapped(seeDocs)
-		return err
+		return UnhandledErrResult(err)
 	}
 	i.Report("cluster_accessible")
 	i.show.Println("-> Your AES installation's address is", color.Bold.Sprintf(i.address))
@@ -708,7 +717,7 @@ func (i *Installer) Perform(kcontext string) error {
 		i.ShowWrapped(tryAgain)
 		i.ShowWrapped(color.Bold.Sprintf(noTlsSuccess))
 		i.ShowWrapped(seeDocs)
-		return err
+		return UnhandledErrResult(err)
 	}
 	i.Report("aes_listening")
 
@@ -731,38 +740,35 @@ func (i *Installer) Perform(kcontext string) error {
 	resp, err := http.Post(regURL, "application/json", buf)
 	if err != nil {
 		i.Report("dns_name_failure", ScoutMeta{"err", err.Error()})
-		return errors.Wrap(err, "acquire DNS name (post)")
+		return UnhandledErrResult(errors.Wrap(err, "acquire DNS name (post)"))
 	}
 	content, err := ioutil.ReadAll(resp.Body)
 	_ = resp.Body.Close()
 	if err != nil {
 		i.Report("dns_name_failure", ScoutMeta{"err", err.Error()})
-		return errors.Wrap(err, "acquire DNS name (read body)")
+		return UnhandledErrResult(errors.Wrap(err, "acquire DNS name (read body)"))
 	}
 
 	if resp.StatusCode != 200 {
 		message := strings.TrimSpace(string(content))
 		i.Report("dns_name_failure", ScoutMeta{"code", resp.StatusCode}, ScoutMeta{"err", message})
 		i.show.Println("-> Failed to create a DNS name:", message)
-		i.show.Println()
-		i.ShowWrapped(color.Bold.Sprintf(noTlsSuccess))
-		i.show.Println()
 
-		i.show.Println()
-		i.ShowWrapped("If this IP address is reachable from here, you can access your installation without a DNS name.")
+		userMessage := `
+<bold>Congratulations! You've successfully installed the Ambassador Edge Stack in your Kubernetes cluster. However, we cannot connect to your cluster from the Internet, so we could not configure TLS automatically.</>
 
-		i.show.Println()
-		i.ShowWrapped(loginViaIP)
-		i.show.Println(color.Bold.Sprintf("$ edgectl login -n ambassador %s", i.address))
+If this IP address is reachable from here, you can access your installation without a DNS name. The following command will open the Edge Policy Console once you accept a self-signed certificate in your browser.
+<bold>$ edgectl login -n ambassador {{ .address }}</>
 
-		i.show.Println()
-		i.ShowWrapped(loginViaPortForward)
-		i.show.Println(color.Bold.Sprintf("$ kubectl -n ambassador port-forward deploy/ambassador 8443 &"))
-		i.show.Println(color.Bold.Sprintf("$ edgectl login -n ambassador 127.0.0.1:8443"))
-		i.show.Println()
-
-		i.ShowWrapped(seeDocs)
-		return nil
+You can use port forwarding to access your Edge Stack installation and the Edge Policy Console.  You will need to accept a self-signed certificate in your browser.
+<bold>$ kubectl -n ambassador port-forward deploy/ambassador 8443 &</>
+<bold>$ edgectl login -n ambassador 127.0.0.1:8443</>
+`
+		return Result{
+			Message: userMessage,
+			URL:     seeDocsURL,
+			Report:  "", // FIXME: reported above due to additional metadata required
+		}
 	}
 
 	i.hostname = string(content)
@@ -776,7 +782,7 @@ func (i *Installer) Perform(kcontext string) error {
 		i.ShowWrapped("We are unable to resolve your new DNS name on this machine.")
 		i.ShowWrapped(seeDocs)
 		i.ShowWrapped(tryAgain)
-		return err
+		return UnhandledErrResult(err)
 	}
 	i.Report("dns_name_propagated")
 
@@ -786,7 +792,7 @@ func (i *Installer) Perform(kcontext string) error {
 		i.Report("fail_host_resource", ScoutMeta{"err", err.Error()})
 		i.ShowWrapped("We failed to create a Host resource in your cluster. This is unexpected.")
 		i.ShowWrapped(seeDocs)
-		return err
+		return UnhandledErrResult(err)
 	}
 
 	i.show.Println("-> Obtaining a TLS certificate from Let's Encrypt")
@@ -795,14 +801,14 @@ func (i *Installer) Perform(kcontext string) error {
 		// Some info is reported by the check function.
 		i.ShowWrapped(seeDocs)
 		i.ShowWrapped(tryAgain)
-		return err
+		return UnhandledErrResult(err)
 	}
 	i.Report("cert_provisioned")
 	i.show.Println("-> TLS configured successfully")
 	if err := i.ShowKubectl("show Host", "", "get", "host", i.hostname); err != nil {
 		i.ShowWrapped("We failed to retrieve the Host resource from your cluster that we just created. This is unexpected.")
 		i.ShowWrapped(tryAgain)
-		return err
+		return UnhandledErrResult(err)
 	}
 
 	i.show.Println()
@@ -816,7 +822,7 @@ func (i *Installer) Perform(kcontext string) error {
 
 	// Open a browser window to the Edge Policy Console
 	if err := doLogin(i.kubeinfo, kcontext, "ambassador", i.hostname, true, true, false); err != nil {
-		return err
+		return UnhandledErrResult(err)
 	}
 
 	// Show how to use edgectl login in the future
@@ -829,7 +835,7 @@ func (i *Installer) Perform(kcontext string) error {
 		i.Report("aes_health_good")
 	}
 
-	return nil
+	return UnhandledErrResult(nil)
 }
 
 // Installer represents the state of the installation process
@@ -1064,8 +1070,6 @@ const emailAsk = `Please enter an email address for us to notify you before your
 const beginningAESInstallation = "Beginning Ambassador Edge Stack Installation"
 
 const loginViaIP = "The following command will open the Edge Policy Console once you accept a self-signed certificate in your browser.\n"
-
-const loginViaPortForward = "You can use port forwarding to access your Edge Stack installation and the Edge Policy Console.  You will need to accept a self-signed certificate in your browser.\n"
 
 const failLoadBalancer = `
 Timed out waiting for the load balancer's IP address for the AES Service.

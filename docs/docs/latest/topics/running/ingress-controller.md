@@ -13,6 +13,8 @@ If you're new to the Ambassador Edge Stack and to Kubernetes, we'd recommend you
    In Kubernetes 1.13 and below, the `Ingress` was only included in the `extensions` api.
 
    Starting in Kubernetes 1.14, the `Ingress` was added to the new `networking.k8s.io` api.
+   
+   Kubernetes 1.18 introduced the `IngressClass` resource to the existing `networking.k8s.io/v1beta1` api.
 
    **Note:** If you are using 1.14 and above, it is recommended to use `apiVersion: networking.k8s.io/v1beta1` when defining `Ingresses`. Since both are still supported in all 1.14+ versions of Kubernetes, this document will use `extensions/v1beta1` for compatibility reasons.
 
@@ -27,7 +29,7 @@ If you're new to the Ambassador Edge Stack and to Kubernetes, we'd recommend you
   file, but this is the critical rule to add to the Ambassador Edge Stack's `Role` or `ClusterRole`:
 
       - apiGroups: [ "extensions", "networking.k8s.io" ]
-        resources: [ "ingresses" ]
+        resources: [ "ingresses", "ingressclasses" ]
         verbs: ["get", "list", "watch"]
       - apiGroups: [ "extensions", "networking.k8s.io" ]
         resources: [ "ingresses/status" ]
