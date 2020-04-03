@@ -3,19 +3,19 @@ import Helmet from 'react-helmet';
 import { graphql } from 'gatsby';
 import { MDXRenderer } from 'gatsby-plugin-mdx';
 
-import Layout from '../../../src/components/Layout';
-import Sidebar from '../../../src/components/Sidebar';
-import DocFooter from '../../../src/components/DocFooter';
+import Layout from '../../../../src/components/Layout';
+import Sidebar from '../../../../src/components/Sidebar';
+import DocFooter from '../../../../src/components/DocFooter';
 
-import Link from '../../../src/components/Link';
+import Link from '../../../../src/components/Link';
 
-import isAesPage from '../../../src/utils/isAesPage';
-import isApiGatewayPage from '../../../src/utils/isApiGatewayPage';
+import isAesPage from './isAesPage';
+import isApiGatewayPage from './isApiGatewayPage';
 
-import template from '../../../src/utils/template';
+import template from '../../../../src/utils/template';
 
-import docLinks from '../../../ambassador/docs/doc-links.yml';
-import versions from '../../../ambassador/docs/versions.yml';
+import docLinks from './doc-links.yml';
+import versions from './versions.yml';
 
 export default ({ data, location }) => {
   const page = data.mdx || {};
