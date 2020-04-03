@@ -1,122 +1,83 @@
+import {LitElement} from '../../vendor/lit-element.min.js'
+import {Model} from './model.js'
+
+export {html, css, repeat} from '../../vendor/lit-element.min.js'
+
 /**
- * View
- * This is the framework class for Views, which are Web Component elements to be rendered in a browser.
- * The View implements listener behavior, receiving notifications from Model objects when they change state,
- * and update their properties to be redisplayed.
+ * The View class provides a base class for building web-components
+ * that are Views of models. You can use it create web-components,
+ * just like you would use LitElement. The only difference is that if
+ * you put an instance of a Model class in a declared property, then
+ * this class will automatically register itself as a listener and be
+ * updated whenever that Model changes:
  *
- * This View implementation also assumes quite a bit about the HTML environment it renders in.  There may be
- * modifiedStyles as well.  This View is for rendering Resources and Resource subclasses.
+ *   class MyModel extends Model {}
  *
+ *   class MyView extends View {
+ *
+ *     static get properties() {
+ *       return {
+ *         model: {type: MyModel}
+ *       }
+ *     }
+ *
+ *     constructor() {
+ *       super()
+ *       this.model = null
+ *     }
+ *
+ *     render() {
+ *       return html`<p>${this.model.importantState()}</p>`
+ *     }
+ *   } 
+ *
+ *   customElements.define("my-view", MyView)
+ *
+ * You can have any number of "Model subclass" properties as you like
+ * and they can be named whatever you like.
+ *
+ * For more info on lit-element and lit-html, please read the following:
+ *   - https://lit-element.polymer-project.org/guide
+ *   - https://lit-html.polymer-project.org/guide
  */
-
-import { LitElement, html } from '../../vendor/lit-element.min.js'
-
 export class View extends LitElement {
 
-  /* properties
-   * These are the properties of the View, which reflect the properties of the underlying Model,
-   * and also include transient state (e.g. viewState).
-   *
-   * LitElement manages these declared properties and provides various services depending on how they are used.
-   * https://lit-element.polymer-project.org/guide/properties
-   */
-
-  static get properties() {
-    return {
-      viewState: {type: String}  // View
+  // The LitElement.createProperty static method is intended to be
+  // overridden in order to customize how property getters/setters are
+  // automatically created based on property descriptors. This
+  // implementation is identical to the default implementation in
+  // LitElement with the exception that if a value is an instance of
+  // the Model class, then the setter will automatically
+  // register/unregister the web-component as a listener.
+  static createProperty(name, options) {
+    this._ensureClassProperties()
+    this._classProperties.set(name, options)
+    if (options.noAccessor || this.prototype.hasOwnProperty(name)) {
+      return
     }
-  }
-
-  /* constructor(model)
-   * The View constructor, which takes a Model as its parameter.
-   */
-
-  constructor(model) {
-    super();
-    this.model     = model;
-    this.viewState = "list";
-
-    /* listen to model changes for updates. Model will call this.onModelNotification with
-     * the model itself, a message, and an optional parameter.
-     */
-
-    model.addListener(this);
-  }
-
-  /**
-   * Override to extend the styles of this resource (see yaml download tab).
-   */
-  modifiedStyles() {
-    return null;
-  }
-
-  /* onModelNotification(model, message, parameter)
-    * When we get a notification from the model that one or more model values have changed, the properties are updated.
-    * Because this is a web component, the property updates queue the appropriate re-rendering at the correct time.
-    */
-
-  onModelNotification(model, message, parameter) {
-    switch (message) {
-      /* if updated, then set our properties to those of the model */
-      case 'updated':
-        this.readFromModel();
-
-        /* Switch back to list view, if we were pending an update. */
-        if (this.viewState === "pending") {
-          this.viewState = "list";
+    const key = typeof name === 'symbol' ? Symbol() : `__${name}`
+    Object.defineProperty(this.prototype, name, {
+      get() {
+        return this[key]
+      },
+      set(value) {
+        const oldValue = this[name]
+        if (oldValue instanceof Model) {
+          oldValue.removeListener(this, name)
         }
-        break;
-      /*
-       * And if we are notified that our model has been deleted, we remove ourselves from our parent.  Again, because
-       * this is a web component, that will queue the appropriate re-render at the correct time.
-       */
-      case 'deleted':
-        if (this.viewState === "pending") {
-          this.viewState = "list";
+        if (value instanceof Model) {
+          value.addListener(this, name)
         }
-        this.parentElement.removeChild(this);
-        break;
-    }
+        this[key] = value
+        this.requestUpdate(name)
+      },
+      configurable: true,
+      enumerable: true
+    })
   }
 
-  /* render()
-   * Render the view.  This html assumes styles are imported properly and a common layout of the view that has
-   * list, edit, detail, and add variants, the current value of which is saved in the viewState instance variable.
-   * The concrete subclass implementation of a View is responsible only for rendering itself (renderSelf()) and
-   * hiding and showing fields based on the viewState.
-   */
-
-  render() {
-    return html`
-      <link rel="stylesheet" href="../../styles/oneresource.css">
-      ${this.modifiedStyles() ? this.modifiedStyles() : ""}
-      <form>
-        <div class="card ${this.viewState === "off" ? "off" : ""}">
-          <div class="col">
-            <div class="row line">
-              <div class="row-col margin-right">${this.kind}:</div>
-              <div class="row-col">
-                <b class="${this.visibleWhen("list", "edit")}">${this.name}</b>
-                <input class="${this.visibleWhen("add")}" name="name" type="text" value="${this.name}"/>
-                <div class="namespace${this.visibleWhen("list", "edit")}">(${this.namespace})</div>
-                <div class="namespace-input ${this.visibleWhen("add")}"><div class="pararen">(</div><input class="${this.visibleWhen("add")}" name="namespace" type="text" value="${this.namespace}"/><div class="pararen">)</div></div>
-              </div>
-            </div>
-      
-          ${this.renderSelf()}
-         
-          </div>
-          <div class="col2">
-          </div>
-        </div>
-      </form>`
+  onModelChanged(model, property) {
+    this.requestUpdate(property)
   }
 
-  /* visibleWhen(...arguments)
-  * return the empty string if the current viewState is listed in the arguments, "off" otherwise.
-  */
-
-  visibleWhen() {
-    return [...arguments].includes(this.viewState) ? "" : "off";
-  }
 }

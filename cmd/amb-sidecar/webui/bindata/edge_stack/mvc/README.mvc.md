@@ -1,14 +1,14 @@
 # MVC-based Edge Policy Console UI
 
+The bulk of the UI documentation now lives at docs/index.html. Please
+run `./ui-dev.sh` from your apro.git root and then visit
+https://localhost:9000/edge_stack/mvc/docs/ to read the documentation.
+
 ### Background Information
 
 * [What is MVC and why are we using it?](docs/why_mvc.md)
 * [Our use of Interfaces and Classes](docs/what_are_interfaces_and_classes.md)
 * [Views and Custom Web-Components and DOMs](docs/views_and_web_components.md)
-
-### How to Use the Framework
-
-* [Quick Start: How to implement a new Model+View](docs/implementing_model_and_view.md)
 
 ### Internal Implementation Details
 _(details that you don't need to know but, as a curious developer, you want to know...)_

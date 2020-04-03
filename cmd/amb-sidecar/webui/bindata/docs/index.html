@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <title>
+      Edgestack UI Documentation
+    </title>
+  </head>
+
+  <style>
+    body {
+        width: 100ch;
+        margin: auto;
+        margin-top: 4em;
+    }
+
+    pre {
+        background: #e5e5e5;
+        padding: 1em;
+        overflow: auto;
+        border-radius: 0.4em;
+    }
+
+    code {
+        background: #e5e5e5;
+        border-radius: 0.4em;
+    }
+  </style>
+
+  <body>
+    <h1>Edge Stack UI Developer Documentation</h1>
+
+    <h2>Prerequisites</h2>
+
+    <p>Reading this in a browser is a much better experience than
+    reading the source directly. You will get to see working examples
+    and play with them! Please note that for the scripts to load you
+    will need to run a local web server rather than pointing your
+    browser at the file (thanks to the magic of CORS). Any web server
+    will do (e.g. <code>python -m SimpleHTTPServer</code> works
+    great), but since you are a datawire developer, you might as well
+    just spin up the the ui dev loop. From your apro.git root,
+    run:</p>
+
+    <pre>./ui-dev.sh</pre>
+
+    <p>Now visit <a href="http://localhost:9000/edge_stack/mvc/docs/">http://localhost:9000/edge_stack/mvc/docs/</a>.</p>
+
+    <p>You can also go
+    to <a href="http://localhost:9000/dev/tests">http://localhost:9000/dev/tests</a>
+    to run all the tests for the UI code. The tests are written in BDD
+    style, so you can use them as a reference for the APIs described
+    in this document. Click on the test name to expand it and see the
+    source code.</p>
+
+    <h2>Introduction</h2>
+
+    <p>This section covers some key material that is important to
+    understand before diving into the quickstart.</p>
+
+    <ol>
+      <li>
+        <p>This isn't a stand-alone framework. The mvc code leverages
+        extension points provided by lit-element and lit-html. A good
+        understanding of both lit-html and lit-element will be
+        required in order to hack on the UI proficiently. This
+        document will assume minimal familiarity with lit-html and
+        lit-element in order to help you get started quickly, but one
+        way or another you will need to end up reading the docs
+        here:</p>
+
+        <ul>
+          <li><a href="https://lit-html.polymer-project.org/guide">https://lit-html.polymer-project.org/guide</a>
+          <li><a href="https://lit-element.polymer-project.org/guide">https://lit-element.polymer-project.org/guide</a>
+        </ul>
+
+        <p>If you are a read-ahead kind of person, do so now. If you
+        are a read-on-demand kind of person, keep these links handy to
+        fill in any gaps in your knowledge. This documentation will
+        not attempt to re-document what is already covered by those
+        projects.</p>
+      </li>
+
+      <li>
+        <p>We are using web-components. Every view you write should be
+        a web-component that follows best-practices outlined here:</p>
+
+        <ul>
+          <li><a href="https://developers.google.com/web/fundamentals/web-components/best-practices">https://developers.google.com/web/fundamentals/web-components/best-practices</a>
+        </ul>
+
+        <p>Luckily, lit-element streamlines a good chunk of
+        implementing those best-practices.</p>
+      </li>
+    </ol>
+
+    <h2>Lit-element + Lit-html</h2>
+
+    <p>The lit-element and lit-html libraries work together in a
+    complementary way that is easy to miss when looking at each
+    library in isolation. The following documentation describes them
+    both in a way that makes this more obvious up front:</p>
+
+    <ul>
+      <li><p>The lit-html library provides an efficient templating primitive.</p>
+
+      <li><p>The lit-element library provides a base class for
+        implementing web-components that understand properties,
+        i.e. web-components that automatically re-render when their
+        properties change.</p>
+    </ul>
+
+    <p>Together lit-element + lit-html define a reconciliation process
+    that lets you declaratively define what the DOM should look like,
+    and when it should be updated. Used in this way they can be
+    extremely efficient and expressive, particularly for implementing
+    the MVC pattern.</p>
+
+    <h3>Lit-html in a nutshell</h3>
+
+    <p>The lit-html library provides three relevant exports:
+    the <var>html</var>, <var>css</var>, and <var>repeat</var>
+    functions.</p>
+
+    <p>The <var>html</var> and <var>css</var> functions are for use with javascript
+      <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals">template literals</a>:</p>
+
+    <pre>html`&lt;foo&gt;${expression}&lt;/foo&gt;`</pre>
+
+    <p>and/or</p>
+
+    <pre>css`{ display: block; ...${expression}...}`</pre>
+
+    <p>The <a href="https://lit-html.polymer-project.org/guide/writing-templates#repeating-templates-with-the-repeat-directive">repeat</a>
+    function is for use within html templates:</p>
+
+    <pre>html`&lt;ul&gt;${
+  repeat(items,
+         (item)=&gt;item.key(),
+         (item, index)=&gt;html`&lt;li&gt;${item}&lt;/li&gt;`)
+}&lt;/ul&gt;`</pre>
+
+    <p>You could also do this with
+    the <a href="https://lit-html.polymer-project.org/guide/writing-templates#repeating-templates-with-array.map"><var>Array.map</var></a>
+    method:</p>
+
+    <pre>html`&lt;ul&gt;${
+  items.map((item, index)=&gt;html`&lt;li&gt;${item}&lt;/li&gt;`)
+}&lt;/ul&gt;`</pre>
+
+    <p>The key difference between the <var>Array.map</var> form and
+    the <var>repeat</var> form is that <var>repeat</var> gives you
+    full control over the reconcilation process, thereby enabling you
+    to define how state (aka models) are mapped to components (aka
+    views) and/or other DOM elements. See the repeat section for more
+    on this.</p>
+
+    <p>Other key details about lit-html to understand:</p>
+
+    <ul>
+      <li>
+        <p>The html template literal (<code>html`...`</code>) provided
+        by lit-html is very efficient. Don't be afraid to use it!</p>
+
+        <p>The templates are lazily evaluated, so they have almost no
+        cost if they are not used. When they are used, the entire
+        fixed portion of your template literal is parsed once and
+        cached as an html5 &lt;template&gt; tag. This means the cost
+        of a helper function or web-component leveraging
+        an <var>html</var> template literal should be thought of as
+        purely the cost of re-evaluating any expressions inside your
+        template:</p>
+
+        <pre>
+helper(foo, bar, baz) {
+  return html`&lt;markup&gt;
+                &lt;and&gt;
+                  &lt;other&gt;
+                    &lt;web-components&gt;${foo.computeFoo()}&lt;/web-components&gt;
+                    ${bar.computeBar()}
+                  &lt;/other&gt;
+                  ${baz.computeBaz()}
+                &lt;/and&gt;
+              &lt;/markup&gt;`
+}</pre>
+      </li>
+    </ul>
+
+    <h3>Lit-element in a nutshell</h3>
+
+    <p>The lit-element library provides a single relevant export: the
+    <var>LitElement</var> base class. Every web-component defined
+    using the LitElement base class has a concept of properties, and
+    only re-renders when those properties change.</p>
+
+    <p>When combined with lit-element, the <code>html`...`</code>
+      template literal is even more efficient.</p>
+
+    <p>Taken together, the rendering process defined by lit-element +
+      lit-html forms a reconciliation process:</p>
+
+    <ul>
+      <li><p>The <code>html`...`</code> template that you write in
+          your render functions get treated as a specification for
+          what you would like the DOM to look like.</p>
+
+      <li><p>The properties you define in your lit-element
+          web-components define when reconcilation needs to occur for
+          a given node in the tree.</p>
+    </ul>
+
+    <p>When data changes, lit-element + lit-html work together to
+    figure out the most efficient way to update the DOM to match your
+    specification.</p>
+
+    <h3>The repeat directive</h3>
+
+    <p>The repeat directive provides key additional control over the
+    reconciliation process. You will need to understand what it does
+    and when to use it in order to write more than just simple
+    components.</p>
+
+    <h4>The short answer:</h4>
+
+    <ol>
+      <li><p><b>What it does --</b> defines a mapping between state (aka
+          models) and components (aka views).</p>
+
+      <li><p><b>When to use --</b> whenever you are writing a
+          component that embeds a dynamic set of children (or just all
+          the time if you don't want to think that hard).</p>
+    </ol>
+
+    <h4>The long answer:</h4>
+
+    <p>Let's say you are defining a view that displays a list of a
+    user's favorite products. Whenever that list changes, the
+    <var>renderFavorites</var> function gets invoked. Let's first
+    define our render function with the <var>Array.map</var>
+    method:</p>
+
+    <pre>
+renderFavorites(products) {
+  return html`
+    &lt;h2&gt;Favorites&lt;/h2&gt;
+    ${products.map((p)=&gt;html`&lt;product model=${p}&gt;&lt;/product&gt;`)}
+    `;
+}
+</pre>
+
+    <p>When the above render function is invoked, the reconcilation
+    process will add/remove <code>&lt;product&gt;</code> DOM elements
+    as needed based on the number of product
+    models. The <code>&lt;product&gt;</code> DOM elements will never
+    be reordered, even if the order of the product models change.</p>
+
+    <p>This works great so long as all the
+    <code>&lt;product&gt;</code> DOM elements are completely
+    interchangeable. In practice though, that is often not the case,
+    a <code>&lt;product&gt;</code> DOM element may include stateful
+    elements such as form inputs for rating and/or commenting on a
+    product, or a flag that controls whether comments are hidden. When
+    the <code>&lt;product&gt;</code> DOM includes any such state,
+    the <code>&lt;product&gt;</code> DOM elements are no longer
+    interchangeable, and that state needs to be correlated with the
+    same product model whenever a re-render occurs. This is where
+    repeat comes in. Lets define our render function
+    with <var>repeat</var> instead of the <var>Array.map</var>
+    method:</p>
+
+
+    <pre>
+renderFavorites(products) {
+  let keyForProduct = (p)=&gt;p.productId()
+  let templateForProduct = (p)=&gt;html`&lt;product model=${p}&gt;&lt;/product&gt;`
+  return html`
+    &lt;h2&gt;Favorites&lt;/h2&gt;
+    ${repeat(products, keyForProduct, templateForProduct)}
+    `;
+}
+</pre>
+
+    <p>The <var>repeat</var> function on the surface behaves similarly to
+    <var>Array.map</var>. It takes a list of items (the first
+    argument) and a template function (the last argument) that is
+    invoked to render each item. But the extra argument (the middle
+    one) lets it be a lot smarter about how reconciliation occurs. The
+    middle argument supplies repeat with a key function that uniquely
+    identify items in the products list. The key function is used by
+    the reconciliation process to match up product models
+    with <code>&lt;product&gt;</code> DOM elements. If the products
+    list is reordered, the DOM will be reordered to match.</p>
+
+    <p>In many cases (e.g. sortable collections) this is also
+    significantly more efficient than the <var>Array.map</var>
+    variation. The <var>Array.map</var> variation will end up
+    rerendering most or all of the <code>&lt;product&gt;</code>
+    web-components since with <var>Array.map</var> resorting the list
+    reassigns the model properties for
+    the <code>&lt;product&gt;</code> children. With <var>repeat</var>
+    resorting the list will simply reorder the DOM without triggering
+    re-renders of the <code>&lt;product&gt;</code> children.</p>
+
+    <h2>The MVC code</h2>
+
+    <p>The MVC code is organized into three layers. The more
+    foundational the layer, the more likely you should be using it
+    either directly or in-directly. You can think of them as MUST,
+    SHOULD, and MAY layers if you like.</p>
+
+    <h3>Layer 1: The Model and View class</h3>
+
+    <p>These are foundational extensions to lit-element +
+    lit-html. They are very simple.</p>
+
+    <ol>
+      <li>The Model class defines a listener API for change notification.
+      <li>A View class that extends LitElement.
+    </ol>
+
+    <p>The Model class has only one kind of event, the "something has
+    changed" event. This is all that is needed because every View
+    leverages the lit-element + lit-html reconciliation process.</p>
+
+    <p>The View class is used identically to the LitElement class. You
+    simply extend View instead of LitElement and declare properties
+    for your Model(s) the same way you would declare properties for
+    any other field. The View subclass will automatically
+    register/unregister itself with related models via the
+    listen/notify API and will therefore automatically re-render when
+    the model changes.</p>
+
+    <p>This is the MUST layer. Most of your UI code that isn't in the
+    helper and/or utility category should either directly or
+      indirectly be a Model or a View.</p>
+
+    <h3>Layer 2: The Resource, ResourceCollection, and ResourceStore classes</h3>
+
+    <p>Resource and ResourceCollection are subclasses of Model and
+    capture the business logic and state transitions associated with
+    creating and editing resources that are persisted in a remote
+    store.<p>
+
+    <p>The ResourceStore class abstracts away the specific details
+    used for persistence so that Resource + ResourceCollection may be
+    used with different kinds of stores.</p>
+
+    <p>This is the SHOULD layer. If you are building UI that is
+    exposing new kinds of kubernetes resources, you should build on
+    these models or subclasses of them.</p>
+
+    <h3>Layer 3: The ResourceCollectionView and ResourceView classes</h3>
+
+    <p>These provide the basis for the standard tabs the Edge Policy
+    Console provides for each kind of resource. This is the MAY
+    layer.</p>
+
+    <p>Use these if that is the sort of UI you are trying to create
+    and/or it is convenient to do so. If you need a more custom UI for
+    a given kind of resource, build your own view on top of the
+    Resource + ResourceCollection classes. Those model classes
+    implement all the relevant business logic to make doing so
+      relatively easy.</p>
+
+    <h2>The Quickstart</h2>
+
+    <h3>Layer 1: Create a Model and View from Scratch</h3>
+
+    <style>
+      .grid {
+          display: inline-grid;
+          grid-template-columns: 1fr 1fr
+          margin: 0.5em;
+          padding: 0.5em;
+      }
+
+      .cell {
+          border-style: solid;
+          border-radius: 0.3em;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0.5em;
+          padding: 0.5em;
+      }
+    </style>
+
+    <p>First let's define a simple model. A clock that updates every
+    second. We follow two rules:</p>
+
+    <ol>
+      <li><p>extend the Model class</p>
+      <li><p>invoke this.notify() whenever our state changes</p>
+    </ol>
+
+    <p>In this case, the 'now' and 'paused' fields are our state.<p>
+
+    <text-include src="./clock.js" section="Clock"></text-include>
+
+    <p>Let's also define a global variable, so our all our views can
+    share a single model instance:</p>
+
+    <text-include src="./clock.js" section="global"></text-include>
+
+    <p>Next we'll define two views for the Clock model: a Digital and
+      an Analog.</p>
+
+    <text-include src="./clock.js" section="Digital"></text-include>
+
+    <p>That's it! Because the clock is a Model and we have extending
+    the View class, we are automatically registered for updates
+    whenever the Model changes:</p>
+
+    <div class="cell">
+      <dw-digital></dw-digital>
+    </div>
+
+    <p>Now let's define an Analog view. Mechanicaly this works
+    identically to the Digital view, but it looks a lot fancier:</p>
+
+    <text-include src="./clock.js" section="Analog"></text-include>
+
+    <p>Here is our same model with the Analog view:</p>
+
+    <div class="cell">
+      <dw-analog></dw-analog>
+    </div>
+
+    <p>Now let's define a start/stop button to control our views:</p>
+
+    <text-include src="./clock.js" section="Control"></text-include>
+
+    <p>Try out the start/stop button and see the views automatically update in sync:</p>
+
+    <div class="grid">
+      <div class="cell">
+        <dw-control></dw-control>
+      </div>
+      <div class="cell">
+        <dw-digital></dw-digital>
+      </div>
+      <div class="cell" style="grid-column: 1 / span 2">
+        <dw-analog></dw-analog>
+      </div>
+    </div>
+
+    <h3>Layer 2 &amp; 3: Save some Yaks</h3>
+
+    <p>First, lets define our resource. We need to define two methods:</p>
+
+    <ol>
+      <li>the defaultYaml static getter
+      <li>the validateSelf() method
+    </ol>
+
+    <p>The defaultYaml getter MUST fill in the kind, as well as supply
+    the default spec that will be used for new resources.</p>
+
+    <p>The validateSelf() method can perform any desired validation on
+    the spec.</p>
+
+    <text-include src="./yak.js" section="Yak"></text-include>
+
+    <p>Now let's define a View to display our yaks. The YakHerd uses
+    the <var>ResourceCollection.new()</var> method to create new
+    yaks. This creates an unsaved Yak. One that exists in the
+    collection, but not in the persistent store.</p>
+
+    <text-include src="./yak.js" section="YakHerd"></text-include>
+
+    <p>We can render our unsaved yaks any way we want to. Let's define
+    a simple yak view:</p>
+
+    <text-include src="./yak.js" section="SimpleYakView"></text-include>
+
+    <p>We want to be able to save our yaks, so lets define a yak-view
+    that extends the standard resource view which will pay attention
+    to the state of the yak, e.g. whether it is unsaved or whether it
+    exists in the store. (Please ignore the ugly styling as well as
+    the extraneous link tag. I did not have time to clean up the
+    standard resource view's usage of styles.):</p>
+
+    <text-include src="./yak.js" section="YakView"></text-include>
+
+    <p>Try toggling to the standard yak view. With the standard view,
+    we see that our newly created yaks are unsaved, and we can in fact
+    save, edit, and delete them.</p>
+
+    <yak-herd></yak-herd>
+
+  </body>
+
+  <script type="module" src="./include.js"></script>
+  <script type="module" src="./clock.js"></script>
+  <script type="module" src="./yak.js"></script>
+</html>

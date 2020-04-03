@@ -553,6 +553,10 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	kale.Setup(group, httpHandler, kubeinfo, dynamicClient)
 
+	if cfg.DevWebUIPort != "" {
+		DevSetup(cfg, httpHandler)
+	}
+
 	// And now we wait.
 	return group.Wait()
 }
