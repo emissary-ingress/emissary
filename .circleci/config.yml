@@ -164,7 +164,7 @@ commands:
             set -x
             set +o pipefail # Our make invocation below will always "fail", so clear pipefail.
             test_targets=$(make -n noop --print-data-base 2>/dev/null | egrep '^test:' | sed -e s'/^test: *//' | tr ' ' '\n' | sort | tr '\n' ' ' | sed -e 's/ $//')
-            if [ "$test_targets" != "e2etest gotest pytest" ]; then
+            if [ "$test_targets" != "e2etest gotest ingresstest pytest" ]; then
               echo "Test target has changed to $test_targets, you need to update Circle" >&2
               exit 1
             fi
@@ -187,6 +187,16 @@ commands:
             export DEV_KUBE110=yes
             export KAT_REQ_LIMIT=600
             make pytest-only
+      # We might want to run ingress-conformance tests in AES in the future
+      # This would require we install `kind` on circleci and that the test suite
+      # supports HTTP to HTTPS redirects (AES enables cleartext redirection by
+      # default, even for fallback hosts, contrary to AOSS)
+      # - run:
+      #     name: "Ingress Conformance Tests"
+      #     command: |
+      #       export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
+      #       export DEV_KUBE110=yes
+      #       make ingresstest
       - run:
           name: "E2E Tests"
           command: |
