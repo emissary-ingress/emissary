@@ -59,3 +59,20 @@ Define the http port of the Ambassador service
 {{- end -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Filter the valid deploymentTool
+*/}}
+{{- define "ambassador.managedBy" -}}
+    {{- if .Values.deploymentTool -}}
+        {{- if (eq .Values.deploymentTool "edgectl") -}}
+            edgectl
+        {{- else if (eq .Values.deploymentTool "amb-oper") -}}
+            amb-oper
+        {{- else -}}
+            {{ .Release.Service -}}
+        {{- end -}}
+    {{- else -}}
+        {{- .Release.Service -}}
+    {{- end -}}
+{{- end -}}

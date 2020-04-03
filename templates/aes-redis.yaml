@@ -10,7 +10,7 @@ metadata:
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/managed-by: {{ include "ambassador.managedBy" . }}
   annotations:
     {{- toYaml .Values.redis.annotations.service | nindent 4}}
 spec:
@@ -32,7 +32,7 @@ metadata:
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/managed-by: {{ include "ambassador.managedBy" . }}
     product: aes
   annotations:
     {{- toYaml .Values.redis.annotations.deployment | nindent 4}}
