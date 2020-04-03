@@ -43,9 +43,9 @@ How do I hack on the UI?
 
 3. Visit in your browser:
 
-  - http://localhost:9000 to see all dev endpoints
-  - http://localhost:9000/tests to run the javascript tests
-  - http://localhost:9000/edge_stack/mvc/docs/ to read documentation for our UI code
+  - http://localhost:9000 to see all endpoints
+  - http://localhost:9000/dev/tests to run the javascript tests
+  - http://localhost:9000/dev/docs/ to read documentation for our UI code
 
 4. Hack away at the files in `${PWD}/cmd/amb-sidecar/webui/bindata/`. Refresh (or shift-refresh)
    your browser as necessary to get the updated files.
@@ -195,7 +195,7 @@ How do I run tests for javascript code?
 
 1. Run the sidecar locally as described in "How do I hack on the UI?".
 
-2. Visit localhost:${DEV_WEBUI_PORT}/tests
+2. Visit localhost:${DEV_WEBUI_PORT}/dev/tests
 
 3. You should see test results displayed on the screen.
 
@@ -206,7 +206,7 @@ library. Visit https://mochajs.org and https://chaijs.com for more
 details on either.
 
 Note that the mocha test endpoint will always run whenever
-DEV_WEBUI_DIR is set.
+DEV_WEBUI_PORT is set.
 
 How do I write tests for javascript code?
 -----------------------------------------
@@ -215,7 +215,7 @@ How do I write tests for javascript code?
    directory within the web root. The web root is
    ./cmd/amb-sidecar/webui/bindata
 
-2. Visit the tests endpoint at localhost:${DEV_WEBUI_PORT}/tests
+2. Visit the tests endpoint at localhost:${DEV_WEBUI_PORT}/dev/tests
 
 3. If your javascript file has valid tests in it, you will see the
 results. If you do not see your tests, make sure you look at the
