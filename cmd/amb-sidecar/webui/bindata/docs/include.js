@@ -1,4 +1,4 @@
-import { View, html, css } from '../framework/view.js'
+import { View, html, css } from '../edge_stack/mvc/framework/view.js'
 import 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.19.0/prism.min.js'
 import 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.19.0/components/prism-javascript.min.js'
 
