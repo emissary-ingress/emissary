@@ -296,7 +296,7 @@ export class Projects extends SortableResourceSet {
   }
 
   getResources(snapshot) {
-    return snapshot;
+    return snapshot.projects;
   }
 
   sortFn(sortByAttribute) {

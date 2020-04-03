@@ -119,7 +119,7 @@ func Main() {
 	// 		err = licenseClaims.RequireFeature(licensekeys.FeatureTraffic)
 	// 	}
 	// 	if err == nil {
-	// 		go metriton.PhoneHome(licenseClaims, nil, "application-sidecar", Version)
+	// 		go metriton.PhoneHome(licenseClaims, nil, "application-sidecar")
 	// 		return
 	// 	}
 	// 	fmt.Fprintln(os.Stderr, err)

@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
+	metriton "github.com/datawire/apro/lib/metriton"
+
 	aes_plugin_runner "github.com/datawire/apro/cmd/aes-plugin-runner-native"
 	amb_sidecar "github.com/datawire/apro/cmd/amb-sidecar"
 	app_sidecar "github.com/datawire/apro/cmd/app-sidecar"
@@ -20,6 +22,8 @@ import (
 var Version = "(unknown version)"
 
 func main() {
+	metriton.Reporter.Version = Version
+
 	ambex.Version = Version
 	// kubestatus.Version = Version // Does not exist
 	watt.Version = Version

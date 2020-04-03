@@ -150,12 +150,12 @@ func runE(cmd *cobra.Command, args []string) error {
 			limit.SetUnregisteredLicenseHardLimits(false)
 		}
 		limit.SetClaims(claims)
-		go metriton.PhoneHome(claims, limit, application, cmd.Version)
+		go metriton.PhoneHome(claims, limit, application)
 		return claims
 	}
 	licenseClaims = keyCheck()
 
-	go metriton.PhoneHomeEveryday(licenseClaims, limit, application, cmd.Version)
+	go metriton.PhoneHomeEveryday(licenseClaims, limit, application)
 
 	if err := os.MkdirAll(filepath.Dir(cfg.RLSRuntimeDir), 0777); err != nil {
 		return err

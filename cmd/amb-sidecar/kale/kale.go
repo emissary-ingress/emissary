@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -14,6 +15,7 @@ import (
 	"time"
 
 	// 3rd party
+	"github.com/google/uuid"
 	libgitPlumbing "gopkg.in/src-d/go-git.v4/plumbing"
 
 	// 3rd/1st party: k8s types
@@ -35,10 +37,12 @@ import (
 	// 1st party
 	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/datawire/ambassador/pkg/k8s"
+	"github.com/datawire/ambassador/pkg/metriton"
 	"github.com/datawire/apro/cmd/amb-sidecar/group"
 	"github.com/datawire/apro/cmd/amb-sidecar/k8s/leaderelection"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/mapstructure"
+	aes_metriton "github.com/datawire/apro/lib/metriton"
 	lyftserver "github.com/lyft/ratelimit/src/server"
 )
 
@@ -103,15 +107,70 @@ const (
 	JobLabelName     = "job-name"                                // Don't change this; it's the label name used by Kubernetes itself
 )
 
+var globalKale *kale
+
+const (
+	StepSetup                      = "00-setup"
+	StepLeader                     = "01-leader"
+	StepValidProject               = "02-validproject"
+	StepReconcileWebhook           = "03-reconcilewebook"
+	StepReconcileProjectsToCommits = "04-reconcileprojectstocommits"
+	StepReconcileCommitsToAction   = "05-reconcilecommitstoaction"
+	//StepGitPull                    = "06-git-pull"
+	//StepGitSanityCheck             = "07-git-sanity-check"
+	StepBuild         = "08-build"
+	StepDeploy        = "09-deploy"
+	StepWebhookUpdate = "10-webhook-update"
+
+	StepBackground = "XX-background"
+	StepBug        = "XX-bug"
+)
+
+func telemetry(ctx context.Context, argData map[string]interface{}) {
+	data := map[string]interface{}{
+		"component":        "kale",
+		"trace_replica_id": globalKale.telemetryReplicaID.String(),
+		"trace_iteration":  CtxGetIteration(ctx),
+	}
+	if proj := CtxGetProject(ctx); proj != nil {
+		data["trace_project_uid"] = proj.GetUID()
+		data["trace_project_gen"] = proj.GetGeneration()
+	}
+	if commit := CtxGetCommit(ctx); commit != nil {
+		data["trace_commit_uid"] = commit.GetUID()
+	}
+	for k, v := range argData {
+		data[k] = v
+	}
+	if _, err := globalKale.telemetryReporter.Report(ctx, data); err != nil {
+		dlog.GetLogger(ctx).Errorln("telemetry:", err)
+	}
+}
+
+func telemetryErr(ctx context.Context, traceStep string, err error) {
+	telemetry(ctx, map[string]interface{}{
+		"trace_step": traceStep,
+		"err":        fmt.Sprintf("%+v", err), // use %+v to include a stack trace if there is one
+	})
+}
+
+func telemetryOK(ctx context.Context, traceStep string) {
+	telemetry(ctx, map[string]interface{}{
+		"trace_step": traceStep,
+		"success":    true,
+	})
+}
+
 func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8s.KubeInfo, dynamicClient k8sClientDynamic.Interface) {
 	k := NewKale(dynamicClient)
+	globalKale = k
 
-	upstreamWorker := make(chan Snapshot)
-	downstreamWorker := make(chan Snapshot)
+	upstreamWorker := make(chan UntypedSnapshot)
+	downstreamWorker := make(chan UntypedSnapshot)
 	go coalesce(upstreamWorker, downstreamWorker)
 
-	upstreamWebUI := make(chan Snapshot)
-	downstreamWebUI := make(chan Snapshot)
+	upstreamWebUI := make(chan UntypedSnapshot)
+	downstreamWebUI := make(chan UntypedSnapshot)
 	go coalesce(upstreamWebUI, downstreamWebUI)
 
 	group.Go("kale_watcher", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
@@ -121,7 +180,8 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 		client, err := k8s.NewClient(info)
 		if err != nil {
 			// this is non fatal (mostly just to facilitate local dev); don't `return err`
-			l.Errorln("not watching Project resources:", fmt.Errorf("k8s.NewClient: %w", err))
+			reportRuntimeError(softCtx, StepSetup,
+				fmt.Errorf("kale disabled: k8s.NewClient: %w", err))
 			return nil
 		}
 
@@ -135,10 +195,8 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 				Jobs:         w.List("jobs.batch"),
 				StatefulSets: w.List("statefulsets.apps"),
 			}
-			// More so out of paranoia than in response to an actual issue: repeat the
-			// .TypedAndFiltered() call for each stream, so that they share no pointers.
-			upstreamWorker <- snapshot.TypedAndFiltered(softCtx, cfg.AmbassadorID)
-			upstreamWebUI <- snapshot.TypedAndFiltered(softCtx, cfg.AmbassadorID)
+			upstreamWorker <- snapshot
+			upstreamWebUI <- snapshot
 		}
 
 		labelSelector := GlobalLabelName + "=" + cfg.AmbassadorID
@@ -153,22 +211,23 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 			err := w.WatchQuery(query, wg.Wrap(softCtx, handler))
 			if err != nil {
 				// this is non fatal (mostly just to facilitate local dev); don't `return err`
-				l.Errorf("not watching %q resources: %+v",
-					query.Kind,
-					fmt.Errorf("WatchQuery(%#v, ...): %w", query, err))
+				reportRuntimeError(softCtx, StepSetup,
+					fmt.Errorf("kale disabled: WatchQuery(%#v, ...): %w", query, err))
 				return nil
 			}
 		}
 
 		if err := safeInvoke(w.Start); err != nil {
 			// RBAC!
-			l.Errorf("kale: w.Start(): %+v", err)
+			reportRuntimeError(softCtx, StepSetup,
+				fmt.Errorf("kale disabled: Start(): %w", err))
 			return nil
 		}
 		go func() {
 			<-softCtx.Done()
 			w.Stop()
 		}()
+		telemetryOK(softCtx, StepSetup)
 		w.Wait()
 		close(upstreamWorker)
 		close(upstreamWebUI)
@@ -177,26 +236,33 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 
 	group.Go("kale_worker", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
 		softCtx = dlog.WithLogger(softCtx, l)
+		var telemetryIteration uint64
 
 		err := leaderelection.RunAsSingleton(softCtx, cfg, info, "kale", 15*time.Second, func(ctx context.Context) {
+			telemetryOK(ctx, StepLeader)
 			for {
 				select {
 				case <-ctx.Done():
 					return
-				case snapshot, ok := <-downstreamWorker:
+				case _snapshot, ok := <-downstreamWorker:
 					if !ok {
 						return
 					}
+					ctx := CtxWithIteration(ctx, telemetryIteration)
+					telemetryIteration++
+					snapshot := _snapshot.TypedAndFiltered(ctx, cfg.AmbassadorID)
 					err := safeInvoke(func() { k.reconcile(ctx, snapshot) })
 					if err != nil {
-						l.Errorln("panic:", err)
+						reportThisIsABug(ctx, err)
 					}
+					k.flushIterationErrors()
 				}
 			}
 		})
 		if err != nil {
-			// make this non-fatal
-			l.Errorln("failed to participate in kale leader election, kale is disabled:", err)
+			// Similar to Setup(), this is non-fatal
+			reportRuntimeError(softCtx, StepLeader,
+				fmt.Errorf("kale disabled: leader election: %w", err))
 		}
 		return nil
 	})
@@ -208,13 +274,15 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 			select {
 			case <-softCtx.Done():
 				return nil
-			case snapshot, ok := <-downstreamWebUI:
+			case _snapshot, ok := <-downstreamWebUI:
 				if !ok {
 					return nil
 				}
+				snapshot := _snapshot.TypedAndFiltered(softCtx, cfg.AmbassadorID)
 				err := safeInvoke(func() { k.updateInternalState(softCtx, snapshot) })
 				if err != nil {
-					l.Errorln("panic:", err)
+					// recovered from a panic--this is a bug
+					reportThisIsABug(softCtx, fmt.Errorf("recovered from panic: %w", err))
 				}
 			}
 		}
@@ -244,7 +312,6 @@ type Snapshot struct {
 }
 
 func (in UntypedSnapshot) TypedAndFiltered(ctx context.Context, ambassadorID string) Snapshot {
-	log := dlog.GetLogger(ctx)
 	var out Snapshot
 
 	// For built-in resource types, it is appropriate to a panic
@@ -254,10 +321,10 @@ func (in UntypedSnapshot) TypedAndFiltered(ctx context.Context, ambassadorID str
 	// all at once, because we don't need to do individual
 	// validation, because they're all valid.
 	if err := mapstructure.Convert(in.Jobs, &out.Jobs); err != nil {
-		panic(fmt.Errorf("Jobs: %w", err))
+		panicThisIsABug(fmt.Errorf("Jobs: %w", err))
 	}
 	if err := mapstructure.Convert(in.StatefulSets, &out.StatefulSets); err != nil {
-		panic(fmt.Errorf("StatefulSets: %w", err))
+		panicThisIsABug(fmt.Errorf("StatefulSets: %w", err))
 	}
 
 	// However, for our CRDs, because the api-server can't
@@ -268,15 +335,17 @@ func (in UntypedSnapshot) TypedAndFiltered(ctx context.Context, ambassadorID str
 	for _, inProj := range in.Projects {
 		var outProj *Project
 		if err := mapstructure.Convert(inProj, &outProj); err != nil {
-			log.Println(fmt.Errorf("Project: %w", err))
+			reportRuntimeError(ctx, StepValidProject,
+				fmt.Errorf("Project: %w", err))
 			continue
 		}
+		telemetryOK(CtxWithProject(ctx, outProj), StepValidProject)
 		out.Projects = append(out.Projects, outProj)
 	}
 	for _, inCommit := range in.Commits {
 		var outCommit *ProjectCommit
 		if err := mapstructure.Convert(inCommit, &outCommit); err != nil {
-			log.Println(fmt.Errorf("Commit: %w", err))
+			reportThisIsABug(ctx, fmt.Errorf("Commit: %w", err))
 			continue
 		}
 		out.Commits = append(out.Commits, outCommit)
@@ -285,7 +354,7 @@ func (in UntypedSnapshot) TypedAndFiltered(ctx context.Context, ambassadorID str
 	return out
 }
 
-func coalesce(upstream <-chan Snapshot, downstream chan<- Snapshot) {
+func coalesce(upstream <-chan UntypedSnapshot, downstream chan<- UntypedSnapshot) {
 do_read:
 	item, ok := <-upstream
 did_read:
@@ -306,6 +375,9 @@ did_read:
 // cluster, so this is global to the entire cluster.
 func NewKale(dynamicClient k8sClientDynamic.Interface) *kale {
 	return &kale{
+		telemetryReporter:  aes_metriton.Reporter,
+		telemetryReplicaID: uuid.New(),
+
 		projectsGetter: dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "projects"}),
 		commitsGetter:  dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "projectcommits"}),
 		Projects:       make(map[k8sTypes.UID]*projectAndChildren),
@@ -315,22 +387,117 @@ func NewKale(dynamicClient k8sClientDynamic.Interface) *kale {
 type kale struct {
 	cfg types.Config
 
+	telemetryReporter  *metriton.Reporter
+	telemetryReplicaID uuid.UUID
+
 	projectsGetter k8sClientDynamic.NamespaceableResourceInterface
 	commitsGetter  k8sClientDynamic.NamespaceableResourceInterface
 
-	mu       sync.RWMutex
-	Projects map[k8sTypes.UID]*projectAndChildren
+	mu                  sync.RWMutex
+	Projects            map[k8sTypes.UID]*projectAndChildren
+	GlobalErrors        []string
+	ErrorsDirty         bool
+	PersistentErrors    []recordedError
+	PrevIterationErrors []recordedError
+
+	NextIterationErrors []recordedError
+}
+
+func (k *kale) addPersistentError(err error, projectUID, commitUID k8sTypes.UID) {
+	now := time.Now()
+	k.mu.Lock()
+	defer k.mu.Unlock()
+	k.PersistentErrors = append(k.PersistentErrors, recordedError{
+		TS:         now,
+		Err:        err,
+		ProjectUID: projectUID,
+		CommitUID:  commitUID,
+	})
+	k.ErrorsDirty = true
+}
+
+func (k *kale) addIterationError(err error, projectUID, commitUID k8sTypes.UID) {
+	now := time.Now()
+	k.NextIterationErrors = append(k.NextIterationErrors, recordedError{
+		TS:         now,
+		Err:        err,
+		ProjectUID: projectUID,
+		CommitUID:  commitUID,
+	})
+}
+
+func (k *kale) syncErrors() {
+	k.mu.Lock()
+	defer k.mu.Unlock()
+	if !k.ErrorsDirty {
+		return
+	}
+	// clear everything
+	k.GlobalErrors = nil
+	for _, project := range k.Projects {
+		project.Children.Errors = nil
+		for _, commit := range project.Children.Commits {
+			commit.Children.Errors = nil
+		}
+	}
+	// re-populate everything
+	for _, err := range append(k.PersistentErrors, k.PrevIterationErrors...) {
+		if project, projectOK := k.Projects[err.ProjectUID]; projectOK {
+			var commit *commitAndChildren
+			for _, straw := range project.Children.Commits {
+				if straw.GetUID() == err.CommitUID {
+					commit = straw
+					break
+				}
+			}
+			if commit != nil {
+				commit.Children.Errors = append(commit.Children.Errors, err.String())
+			} else {
+				project.Children.Errors = append(project.Children.Errors, err.String())
+			}
+		} else {
+			k.GlobalErrors = append(k.GlobalErrors, err.String())
+		}
+	}
+	// sort everything
+	sort.Strings(k.GlobalErrors)
+	for _, project := range k.Projects {
+		sort.Strings(project.Children.Errors)
+		for _, commit := range project.Children.Commits {
+			sort.Strings(commit.Children.Errors)
+		}
+	}
+}
+
+func (k *kale) flushIterationErrors() {
+	k.mu.Lock()
+	defer k.mu.Unlock()
+	k.PrevIterationErrors = k.NextIterationErrors
+	k.NextIterationErrors = nil
+	k.ErrorsDirty = true
 }
 
 func (k *kale) reconcile(ctx context.Context, snapshot Snapshot) {
-	k.reconcileGitHub(snapshot.Projects)
+	k.reconcileGitHub(ctx, snapshot.Projects)
 	k.reconcileCluster(ctx, snapshot)
+}
+
+type recordedError struct {
+	TS         time.Time
+	Err        error
+	ProjectUID k8sTypes.UID
+	CommitUID  k8sTypes.UID
+}
+
+func (e recordedError) String() string {
+	return fmt.Sprintf("[%s] %+v", e.TS, e.Err)
 }
 
 type projectAndChildren struct {
 	*Project
 	Children struct {
 		Commits []*commitAndChildren `json:"commits"`
+		Errors  []string             `json:"errors"`
 	} `json:"children"`
 }
 
@@ -339,12 +506,11 @@ type commitAndChildren struct {
 	Children struct {
 		Builders []*k8sTypesBatchV1.Job        `json:"builders"`
 		Runners  []*k8sTypesAppsV1.StatefulSet `json:"runners"`
+		Errors   []string                      `json:"errors"`
 	} `json:"children"`
 }
 
 func (k *kale) updateInternalState(ctx context.Context, snapshot Snapshot) {
-	log := dlog.GetLogger(ctx)
-
 	// map[commitUID]*commitAndChildren
 	commits := make(map[k8sTypes.UID]*commitAndChildren)
 	for _, commit := range snapshot.Commits {
@@ -357,7 +523,9 @@ func (k *kale) updateInternalState(ctx context.Context, snapshot Snapshot) {
 	for _, job := range snapshot.Jobs {
 		key := k8sTypes.UID(job.GetLabels()[CommitLabelName])
 		if _, ok := commits[key]; !ok {
-			log.Errorf("Unable to pair Job %q.%q with ProjectCommit; ignoring", job.GetName(), job.GetNamespace())
+			reportRuntimeError(ctx, StepBackground,
+				fmt.Errorf("unable to pair Job %q.%q with ProjectCommit; ignoring",
+					job.GetName(), job.GetNamespace()))
 			continue
 		}
 		commits[key].Children.Builders = append(commits[key].Children.Builders, job)
@@ -365,7 +533,9 @@ func (k *kale) updateInternalState(ctx context.Context, snapshot Snapshot) {
 	for _, statefulset := range snapshot.StatefulSets {
 		key := k8sTypes.UID(statefulset.GetLabels()[CommitLabelName])
 		if _, ok := commits[key]; !ok {
-			log.Errorf("Unable to pair StatefulSet %q.%q with ProjectCommit; ignoring", statefulset.GetName(), statefulset.GetNamespace())
+			reportRuntimeError(ctx, StepBackground,
+				fmt.Errorf("unable to pair StatefulSet %q.%q with ProjectCommit; ignoring",
+					statefulset.GetName(), statefulset.GetNamespace()))
 			continue
 		}
 		commits[key].Children.Runners = append(commits[key].Children.Runners, statefulset)
@@ -383,7 +553,9 @@ func (k *kale) updateInternalState(ctx context.Context, snapshot Snapshot) {
 	for _, commit := range commits {
 		key := k8sTypes.UID(commit.GetLabels()[ProjectLabelName])
 		if _, ok := projects[key]; !ok {
-			log.Errorf("Unable to pair ProjectCommit %q.%q with Project; ignoring", commit.GetName(), commit.GetNamespace())
+			reportRuntimeError(ctx, StepBackground,
+				fmt.Errorf("unable to pair ProjectCommit %q.%q with Project; ignoring",
+					commit.GetName(), commit.GetNamespace()))
 			continue
 		}
 		projects[key].Children.Commits = append(projects[key].Children.Commits, commit)
@@ -394,11 +566,17 @@ func (k *kale) updateInternalState(ctx context.Context, snapshot Snapshot) {
 	k.mu.Unlock()
 }
 
-func (k *kale) reconcileGitHub(projects []*Project) {
-	for _, pr := range projects {
-		postHook(pr.Spec.GithubRepo,
-			fmt.Sprintf("https://%s/edge_stack/api/githook/%s", pr.Spec.Host, pr.Key()),
-			pr.Spec.GithubToken)
+func (k *kale) reconcileGitHub(ctx context.Context, projects []*Project) {
+	for _, proj := range projects {
+		ctx := CtxWithProject(ctx, proj)
+		err := postHook(proj.Spec.GithubRepo,
+			fmt.Sprintf("https://%s/edge_stack/api/githook/%s", proj.Spec.Host, proj.Key()),
+			proj.Spec.GithubToken)
+		if err != nil {
+			reportRuntimeError(ctx, StepReconcileWebhook, err)
+		} else {
+			telemetryOK(ctx, StepReconcileWebhook)
+		}
 	}
 }
 
@@ -409,7 +587,7 @@ func (k *kale) reconcileGitHub(projects []*Project) {
 func (k *kale) dispatch(r *http.Request) httpResult {
 	parts := strings.Split(r.URL.Path[1:], "/")
 	if parts[0] != "api" {
-		panic("this shouldn't happen")
+		panicThisIsABug(errors.New("this shouldn't happen"))
 	}
 	switch parts[1] {
 	case "githook":
@@ -464,7 +642,10 @@ func (k *kale) dispatch(r *http.Request) httpResult {
 		}
 		return httpResult{
 			stream: func(w http.ResponseWriter) {
-				streamLogs(w, r, namespace, strings.Join(selectors, ","))
+				err := streamLogs(w, r, namespace, strings.Join(selectors, ","))
+				if err != nil {
+					panicFlowControl(err)
+				}
 			},
 		}
 	}
@@ -475,6 +656,7 @@ func (k *kale) dispatch(r *http.Request) httpResult {
 // UI. This is a map of all the projects plus nested data as
 // appropriate.
 func (k *kale) projectsJSON() string {
+	k.syncErrors()
 	k.mu.RLock()
 	defer k.mu.RUnlock()
 
@@ -484,16 +666,21 @@ func (k *kale) projectsJSON() string {
 	}
 	sort.Strings(keys)
 
-	results := make([]*projectAndChildren, 0, len(k.Projects))
+	var results struct {
+		Projects []*projectAndChildren `json:"projects"`
+		Errors   []string              `json:"errors"`
+	}
+	results.Errors = k.GlobalErrors
+	results.Projects = make([]*projectAndChildren, 0, len(k.Projects))
 	for _, key := range keys {
-		results = append(results, k.Projects[k8sTypes.UID(key)])
+		results.Projects = append(results.Projects, k.Projects[k8sTypes.UID(key)])
 	}
 
 	bytes, err := json.MarshalIndent(results, "", "  ")
 	if err != nil {
 		// Everything in results should be serializable to
 		// JSON--this should never happen.
-		panic(err)
+		panicThisIsABug(err)
 	}
 
 	return string(bytes) + "\n"
@@ -501,18 +688,22 @@ func (k *kale) projectsJSON() string {
 
 // Handle Push events from the github API.
 func (k *kale) handlePush(r *http.Request, key string) httpResult {
-	log := dlog.GetLogger(r.Context())
+	ctx := r.Context()
 
 	k.mu.RLock()
 	proj, ok := k.Projects[k8sTypes.UID(key)]
 	k.mu.RUnlock()
 	if !ok {
+		reportRuntimeError(ctx, StepWebhookUpdate,
+			errors.New("no such project"))
 		return httpResult{status: 404, body: fmt.Sprintf("no such project %s", key)}
 	}
+	ctx = CtxWithProject(ctx, proj.Project)
 
 	var push Push
 	if err := json.NewDecoder(r.Body).Decode(&push); err != nil {
-		log.Printf("WEBHOOK PARSE ERROR: %+v", err)
+		reportRuntimeError(ctx, StepWebhookUpdate,
+			fmt.Errorf("git webhook parse error: %w", err))
 		return httpResult{status: 400, body: err.Error()}
 	}
 
@@ -567,7 +758,8 @@ func (k *kale) handlePush(r *http.Request, key string) httpResult {
 		uProj := unstructureProject(proj.Project)
 		_, err := k.projectsGetter.Namespace(proj.GetNamespace()).UpdateStatus(uProj, k8sTypesMetaV1.UpdateOptions{})
 		if err != nil {
-			log.Println("update project status:", err)
+			dlog.GetLogger(ctx).Println("update project status:", err)
+			telemetryOK(ctx, StepWebhookUpdate)
 		}
 	}
 
@@ -697,10 +889,9 @@ func (k *kale) calculateBuild(proj *Project, commit *ProjectCommit) []interface{
 }
 
 func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
-	log := dlog.GetLogger(ctx)
-
 	// reconcile commits
 	for _, proj := range snapshot.Projects {
+		ctx := CtxWithProject(ctx, proj)
 		commitManifests, err := k.calculateCommits(proj)
 		if err != nil {
 			continue
@@ -716,21 +907,29 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 			},
 			commitManifests)
 		if err != nil {
-			log.Errorf("updating ProjectCommits for Project %q.%q: %+v",
-				proj.GetName(), proj.GetNamespace(),
-				err)
+			reportRuntimeError(ctx, StepReconcileProjectsToCommits,
+				fmt.Errorf("updating ProjectCommits: %w", err))
+		} else {
+			telemetryOK(ctx, StepReconcileProjectsToCommits)
 		}
 	}
 
 	// reconcile things managed by commits
 	for _, commit := range snapshot.Commits {
+		ctx := CtxWithCommit(ctx, commit)
+		projectUID := k8sTypes.UID(commit.GetLabels()[ProjectLabelName])
 		var project *Project
 		for _, proj := range snapshot.Projects {
-			if proj.GetNamespace() == commit.GetNamespace() &&
-				proj.GetName() == commit.Spec.Project.Name {
+			if proj.GetUID() == projectUID {
 				project = proj
 			}
 		}
+		if project == nil {
+			reportRuntimeError(ctx, StepReconcileCommitsToAction,
+				errors.New("unable to pair ProjectCommit with Project"))
+			continue
+		}
+		ctx = CtxWithProject(ctx, project)
 		var commitBuilders []*k8sTypesBatchV1.Job
 		for _, job := range snapshot.Jobs {
 			if k8sTypes.UID(job.GetLabels()[CommitLabelName]) == commit.GetUID() {
@@ -744,9 +943,19 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 			}
 		}
 
-		err := safeInvoke1(func() error { return k.reconcileCommit(ctx, project, commit, commitBuilders, commitRunners) })
-		if err != nil {
-			log.Printf("ERROR: %+v", err)
+		var runtimeErr, bugErr error
+		bugErr = safeInvoke(func() {
+			runtimeErr = k.reconcileCommit(ctx, project, commit, commitBuilders, commitRunners)
+		})
+		if runtimeErr != nil {
+			reportRuntimeError(ctx, StepReconcileCommitsToAction, runtimeErr)
+		}
+		if bugErr != nil {
+			reportThisIsABug(ctx,
+				fmt.Errorf("recovered from panic: %w", bugErr))
+		}
+		if runtimeErr == nil && bugErr == nil {
+			telemetryOK(ctx, StepReconcileCommitsToAction)
 		}
 	}
 }
@@ -765,6 +974,8 @@ func (k *kale) reconcileCommit(ctx context.Context, proj *Project, commit *Proje
 				// advance to next phase
 				commitPhase = CommitPhase_Deploying
 			} else if failed, _ := jobConditionMet(builders[0], k8sTypesBatchV1.JobFailed, k8sTypesCoreV1.ConditionTrue); failed {
+				telemetryErr(ctx, StepBuild,
+					fmt.Errorf("builder Job failed %d times", builders[0].Status.Failed))
 				commitPhase = CommitPhase_BuildFailed
 			} else {
 				// keep waiting for one of the above to become true
@@ -796,7 +1007,7 @@ func (k *kale) reconcileCommit(ctx context.Context, proj *Project, commit *Proje
 		if err != nil {
 			log.Println("update commit status:", err)
 		}
-		postStatus(ctx, fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, commit.Spec.Rev),
+		err = postStatus(ctx, fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, commit.Spec.Rev),
 			GitHubStatus{
 				State: map[CommitPhase]string{
 					CommitPhase_Received:  "pending",
@@ -819,13 +1030,19 @@ func (k *kale) reconcileCommit(ctx context.Context, proj *Project, commit *Proje
 				Context:     "aes",
 			},
 			proj.Spec.GithubToken)
-
+		if err != nil {
+			log.Println("update commit status:", err)
+		}
 	}
 
 	var manifests []interface{}
 	manifests = append(manifests, k.calculateBuild(proj, commit)...)
 	if commit.Status.Phase >= CommitPhase_Deploying {
+		telemetryOK(ctx, StepBuild)
 		manifests = append(manifests, k.calculateRun(proj, commit)...)
+	}
+	if commit.Status.Phase == CommitPhase_Deployed {
+		telemetryOK(ctx, StepDeploy)
 	}
 	selectors := []string{
 		GlobalLabelName + "==" + k.cfg.AmbassadorID,
@@ -846,9 +1063,9 @@ func (k *kale) reconcileCommit(ctx context.Context, proj *Project, commit *Proje
 		} else if regexp.MustCompile("The Job .* is invalid .* field is immutable").MatchString(err.Error()) {
 			deleteResource("job.v1.batch", commit.GetName()+"-build", commit.GetNamespace())
 		} else {
-			log.Errorf("deploying ProjectCommit %q.%q: %+v",
-				commit.GetName(), commit.GetNamespace(),
-				err)
+			reportRuntimeError(ctx, StepReconcileCommitsToAction,
+				fmt.Errorf("deploying ProjectCommit: %w",
+					err))
 		}
 	}
 

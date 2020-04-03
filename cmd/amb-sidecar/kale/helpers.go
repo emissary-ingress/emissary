@@ -6,18 +6,18 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
-	htemplate "html/template"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os/exec"
 	"strings"
 	"sync"
-	"text/template"
 	"time"
 
 	// 3rd party
+	"golang.org/x/sync/errgroup"
 	libgit "gopkg.in/src-d/go-git.v4"
 	libgitConfig "gopkg.in/src-d/go-git.v4/config"
 	libgitPlumbing "gopkg.in/src-d/go-git.v4/plumbing"
@@ -30,6 +30,7 @@ import (
 	k8sTypesCoreV1 "k8s.io/api/core/v1"
 	k8sTypesMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sTypesUnstructured "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	k8sTypes "k8s.io/apimachinery/pkg/types"
 
 	// 3rd party: k8s misc
 	k8sSchema "k8s.io/apimachinery/pkg/runtime/schema"
@@ -61,29 +62,6 @@ func safeInvoke(code func()) (err error) {
 	}()
 	code()
 	return
-}
-
-func safeInvoke1(fn func() error) (err error) {
-	defer func() {
-		if _err := util.PanicToError(recover()); _err != nil {
-			err = _err
-		}
-	}()
-	err = fn()
-	return
-}
-
-// Turn an ordinary watch listener into one that will automatically
-// turn panics into a useful log message.
-func safeWatch(ctx context.Context, listener func(w *k8s.Watcher)) func(*k8s.Watcher) {
-	return func(w *k8s.Watcher) {
-		err := safeInvoke(func() {
-			listener(w)
-		})
-		if err != nil {
-			dlog.GetLogger(ctx).Printf("watch error: %+v", err)
-		}
-	}
 }
 
 // Turn an ordinary http handler function into a safe one that will
@@ -120,7 +98,9 @@ func streamingFunc(handler http.HandlerFunc) http.HandlerFunc {
 		case http.MethodGet, http.MethodHead:
 			_, ok := w.(http.Flusher)
 			if !ok {
-				panic("streaming unsupported")
+				// This is a bug--this should never be called with a
+				// ResponseWriter that is not a Flusher.
+				panicThisIsABug(errors.New("streaming unsupported"))
 			}
 			w.Header().Set("Content-Type", "text/event-stream")
 			io.WriteString(w, "\n") // just something to get readyState=1
@@ -137,15 +117,15 @@ func streamingFunc(handler http.HandlerFunc) http.HandlerFunc {
 }
 
 // Post a json payload to a URL.
-func postJSON(url string, payload interface{}, token string) (*http.Response, string) {
+func postJSON(url string, payload interface{}, token string) (*http.Response, string, error) {
 	buf, err := json.Marshal(payload)
 	if err != nil {
-		panic(err)
+		return nil, "", err
 	}
 
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(buf))
 	if err != nil {
-		panic(err)
+		return nil, "", err
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -153,15 +133,15 @@ func postJSON(url string, payload interface{}, token string) (*http.Response, st
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		panic(err)
+		return nil, "", err
 	}
 
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		panic(err)
+		return nil, "", err
 	}
-	return resp, string(body)
+	return resp, string(body), nil
 }
 
 // Get a json payload from a URL.
@@ -191,14 +171,18 @@ func getJSON(url string, authToken string, target interface{}) error {
 }
 
 // Post a status to the github API
-func postStatus(ctx context.Context, url string, status GitHubStatus, token string) {
-	resp, body := postJSON(url, status, token)
-
-	if resp.Status[0] != '2' {
-		panic(fmt.Errorf("error posting status: %s\n%s", resp.Status, string(body)))
-	} else {
-		dlog.GetLogger(ctx).Printf("posted status, got %s: %s, %q", resp.Status, url, status)
+func postStatus(ctx context.Context, url string, status GitHubStatus, token string) error {
+	resp, body, err := postJSON(url, status, token)
+	if err != nil {
+		return fmt.Errorf("posting GitHub status: %w", err)
 	}
+	if resp.StatusCode/100 != 2 {
+		return fmt.Errorf("posting GitHub status: HTTP %d (%s)\n%s",
+			resp.StatusCode, resp.Status, body)
+	}
+
+	dlog.GetLogger(ctx).Debugf("posted GitHub status, got %s: %s, %q", resp.Status, url, status)
+	return nil
 }
 
 type GitHubStatus struct {
@@ -208,7 +192,7 @@ type GitHubStatus struct {
 	Context     string `json:"context"`
 }
 
-func postHook(repo string, callback string, token string) {
+func postHook(repo string, callback string, token string) error {
 	url := fmt.Sprintf("https://api.github.com/repos/%s/hooks", repo)
 	h := hook{
 		Name:   "web",
@@ -219,16 +203,20 @@ func postHook(repo string, callback string, token string) {
 			ContentType: "json",
 		},
 	}
-	resp, body := postJSON(url, h, token)
-	if resp.Status[0] == '2' {
-		return
+	resp, body, err := postJSON(url, h, token)
+	if err != nil {
+		return fmt.Errorf("posting GitHub status: %w", err)
 	}
+	if resp.StatusCode/100 == 2 {
 
+		return nil
+	}
 	if resp.StatusCode == 422 && strings.Contains(body, "already exists") {
-		return
+		return nil
 	}
 
-	panic(fmt.Errorf("%s: %s", resp.Status, body))
+	return fmt.Errorf("posting GitHub hook: HTTP %d (%s)\n%s",
+		resp.StatusCode, resp.Status, body)
 }
 
 type hook struct {
@@ -243,34 +231,11 @@ type hookConfig struct {
 	ContentType string `json:"content_type"`
 }
 
-// Returns the pod logs for a build of the supplied commit.
-func buildLogs(namespace, name, build string) string {
-	selector := fmt.Sprintf("project=%s,build=%s", name, build)
-	cmd := exec.Command("kubectl", "logs", "--tail=10000", "-n", namespace, "-l", selector)
-	bytes, err := cmd.CombinedOutput()
-	out := string(bytes)
-	if err != nil {
-		panic(fmt.Errorf("%w: %s", err, out))
-	}
-	return out
-}
-
-// Returns the pod logs for the supplied pod name.
-func podLogs(name string) string {
-	cmd := exec.Command("kubectl", "logs", name)
-	bytes, err := cmd.CombinedOutput()
-	out := string(bytes)
-	if err != nil {
-		panic(fmt.Errorf("%w: %s", err, out))
-	}
-	return out
-}
-
 // The streamLogs helper sends logs from the kubernetes pods defined
 // by the namespace and selector args down the supplied
 // http.ResponseWriter using server side events.
-func streamLogs(w http.ResponseWriter, r *http.Request, namespace, selector string) {
-	log := dlog.GetLogger(r.Context())
+func streamLogs(w http.ResponseWriter, r *http.Request, namespace, selector string) error {
+	ctx, cancelCtx := context.WithCancel(r.Context())
 
 	since := r.Header.Get("Last-Event-ID")
 
@@ -287,69 +252,55 @@ func streamLogs(w http.ResponseWriter, r *http.Request, namespace, selector stri
 		args = append(args, "--since-time", since)
 	}
 
-	cmd := exec.Command(args[0], args[1:]...)
+	cmd := exec.CommandContext(ctx, args[0], args[1:]...)
 
-	rawReader, err := cmd.StdoutPipe()
+	reader, err := cmd.StdoutPipe()
 	if err != nil {
-		panic(err)
+		return err
 	}
 	cmd.Stderr = cmd.Stdout
-	reader := bufio.NewReader(rawReader)
 
-	err = cmd.Start()
-	if err != nil {
-		panic(err)
+	if err := cmd.Start(); err != nil {
+		return err
 	}
 
-	done := make(chan struct{})
+	wg, ctx := errgroup.WithContext(ctx)
+	wg.Go(cmd.Wait)
+	wg.Go(func() error {
+		scanner := bufio.NewScanner(reader)
+		for scanner.Scan() {
+			line := scanner.Text() + "\n"
+			id := ""
+			data := line
 
-	go func() {
-		defer close(done)
-		for {
-			line, err := reader.ReadString('\n')
-			exit := false
+			if parts := strings.SplitN(line, " ", 2); len(parts) == 2 {
+				if _, err := time.Parse(time.RFC3339Nano, parts[0]); err == nil {
+					id = parts[0]
+					data = parts[1]
+				}
+			}
+
+			var err error
+			if id == "" {
+				_, err = fmt.Fprintf(w, "data: %s\n\n", data)
+			} else {
+				_, err = fmt.Fprintf(w, "id: %s\ndata: %s\n\n", id, data)
+			}
 			if err != nil {
-				exit = true
-				if err != io.EOF {
-					log.Printf("warning: reading from kubectl logs: %v", err)
-				}
-			}
-
-			if len(line) > 0 {
-				parts := strings.SplitN(line, " ", 2)
-
-				if len(parts) == 2 {
-					_, tserr := time.Parse(time.RFC3339Nano, parts[0])
-					if tserr != nil {
-						_, err = fmt.Fprintf(w, "data: %s\n\n", line)
-					} else {
-						_, err = fmt.Fprintf(w, "id: %s\ndata: %s\n\n", parts[0], parts[1])
-					}
-				} else {
-					_, err = fmt.Fprintf(w, "data: %s\n\n", line)
-				}
-				if err != nil {
-					log.Printf("warning: writing to client: %v", err)
-					cmd.Process.Kill()
-					return
-				}
-
-				w.(http.Flusher).Flush()
-			}
-
-			if exit {
-				fmt.Fprint(w, "event: close\ndata:\n\n")
-				return
+				cancelCtx() // Stop the process.
+				// Don't return--keep draining the process's output so it doesn't deadlock.
 			}
 		}
-	}()
-
-	err = cmd.Wait()
-	if err != nil {
-		log.Printf("warning: %v", err)
+		return scanner.Err()
+	})
+	err = wg.Wait()
+	if ctx.Err() != nil {
+		// Our "success" scenario is the that we run until the context is
+		// canceled; either because the client hung up or because we got EOF or
+		// whatever.
+		return nil
 	}
-
-	<-done
+	return err
 }
 
 func applyAndPrune(labelSelector string, types []k8sSchema.GroupVersionKind, objs []interface{}) error {
@@ -389,30 +340,6 @@ func deleteResource(kind, name, namespace string) error {
 		return fmt.Errorf("%w\n%s", err, out)
 	}
 	return nil
-}
-
-// Evaluates a golang template and returns the result.
-func evalTemplate(text string, data interface{}) string {
-	var out strings.Builder
-	t := template.New("eval")
-	t.Parse(text)
-	err := t.Execute(&out, data)
-	if err != nil {
-		panic(err)
-	}
-	return out.String()
-}
-
-// Evaluates a golang template and returns the html-safe result.
-func evalHtmlTemplate(text string, data interface{}) string {
-	var out strings.Builder
-	t := htemplate.New("eval")
-	t.Parse(text)
-	err := t.Execute(&out, data)
-	if err != nil {
-		panic(err)
-	}
-	return out.String()
 }
 
 func boolPtr(v bool) *bool {
@@ -556,7 +483,6 @@ type WatchGroup struct {
 }
 
 func (wg *WatchGroup) Wrap(ctx context.Context, listener func(*k8s.Watcher)) func(*k8s.Watcher) {
-	listener = safeWatch(ctx, listener)
 	wg.count += 1
 	invoked := false
 	return func(w *k8s.Watcher) {
@@ -567,7 +493,10 @@ func (wg *WatchGroup) Wrap(ctx context.Context, listener func(*k8s.Watcher)) fun
 			invoked = true
 		}
 		if wg.count == 0 {
-			listener(w)
+			err := safeInvoke(func() { listener(w) })
+			if err != nil {
+				dlog.GetLogger(ctx).Printf("watch error: %+v", err)
+			}
 		}
 	}
 }
@@ -620,13 +549,13 @@ func unstructureMetadata(in *k8sTypesMetaV1.ObjectMeta) map[string]interface{} {
 	bs, err := json.Marshal(in)
 	if err != nil {
 		// 'in' is a valid object.  This should never happen.
-		panic(err)
+		panicThisIsABug(err)
 	}
 
 	if err := json.Unmarshal(bs, &metadata); err != nil {
 		// 'bs' is valid JSON, we just generated it.  This
 		// should never happen.
-		panic(err)
+		panicThisIsABug(err)
 	}
 
 	return metadata
@@ -647,4 +576,97 @@ func jobConditionMet(obj *k8sTypesBatchV1.Job, condType k8sTypesBatchV1.JobCondi
 		return cond.Status == condStatus, nil
 	}
 	return false, nil
+}
+
+func _logErr(ctx context.Context, err error) {
+	var commitUID, projectUID k8sTypes.UID
+	if commit := CtxGetCommit(ctx); commit != nil {
+		err = fmt.Errorf("ProjectCommit %q.%q: %w",
+			commit.GetName(), commit.GetNamespace(), err)
+		commitUID = commit.GetUID()
+	}
+	if project := CtxGetProject(ctx); project != nil {
+		err = fmt.Errorf("Project %q.%q: %w",
+			project.GetName(), project.GetNamespace(), err)
+		projectUID = project.GetUID()
+	}
+
+	dlog.GetLogger(ctx).Errorf("%+v", err)
+
+	if CtxGetIteration(ctx) == nil {
+		globalKale.addPersistentError(err, projectUID, commitUID)
+	} else {
+		globalKale.addIterationError(err, projectUID, commitUID)
+	}
+}
+
+func reportThisIsABug(ctx context.Context, err error) {
+	err = fmt.Errorf("this is a bug: error: %w", err)
+	_logErr(ctx, err)
+	telemetryErr(ctx, StepBug, err)
+}
+
+func reportRuntimeError(ctx context.Context, step string, err error) {
+	err = fmt.Errorf("runtime error: %w", err)
+	_logErr(ctx, err)
+	telemetryErr(ctx, step, err)
+}
+
+func panicThisIsABugContext(ctx context.Context, err error) {
+	err = fmt.Errorf("this is a bug: panicking: %w", err)
+	_logErr(ctx, err)
+	telemetryErr(ctx, StepBug, err)
+	panic(err)
+}
+
+func panicThisIsABug(err error) {
+	err = fmt.Errorf("this is a bug: panicking: %w", err)
+	panic(err)
+}
+
+func panicFlowControl(err error) {
+	panic(err)
+}
+
+type iterationContextKey struct{}
+
+func CtxWithIteration(ctx context.Context, itr uint64) context.Context {
+	return context.WithValue(ctx, iterationContextKey{}, itr)
+}
+
+func CtxGetIteration(ctx context.Context) *uint64 {
+	itrInterface := ctx.Value(iterationContextKey{})
+	if itrInterface == nil {
+		return nil
+	}
+	itr := itrInterface.(uint64)
+	return &itr
+}
+
+type projectContextKey struct{}
+
+func CtxWithProject(ctx context.Context, proj *Project) context.Context {
+	return context.WithValue(ctx, projectContextKey{}, proj)
+}
+
+func CtxGetProject(ctx context.Context) *Project {
+	projInterface := ctx.Value(projectContextKey{})
+	if projInterface == nil {
+		return nil
+	}
+	return projInterface.(*Project)
+}
+
+type commitContextKey struct{}
+
+func CtxWithCommit(ctx context.Context, commit *ProjectCommit) context.Context {
+	return context.WithValue(ctx, commitContextKey{}, commit)
+}
+
+func CtxGetCommit(ctx context.Context) *ProjectCommit {
+	commitInterface := ctx.Value(commitContextKey{})
+	if commitInterface == nil {
+		return nil
+	}
+	return commitInterface.(*ProjectCommit)
 }
