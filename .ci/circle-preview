@@ -8,14 +8,14 @@ printf "== Begin: build-docs.sh ==\n"
 echo "Environment:"
 env | fgrep 'GIT' | sort
 
-if [ -z "$GIT_BASE_REVISION" -o -z "$GIT_HEAD_REVISION" ]; then
-    echo "GIT_BASE_REVISION and GIT_HEAD_REVISION must both be set" >&2
+if [ -z "$GIT_BASE_COMMIT" -o -z "$GIT_HEAD_COMMIT" ]; then
+    echo "GIT_BASE_COMMIT and GIT_HEAD_COMMIT must both be set" >&2
     exit 1
 fi
 
-# TRAVIS_COMMIT_RANGE=${GIT_BASE_REVISION}..${GIT_HEAD_REVISION}
+# TRAVIS_COMMIT_RANGE=${GIT_BASE_COMMIT}..${GIT_HEAD_COMMIT}
 
-CHANGED_DOCS=$(git diff --name-only  "${GIT_BASE_REVISION}..${GIT_HEAD_REVISION}" ':ambassador/docs')
+CHANGED_DOCS=$(git diff --name-only  "${GIT_BASE_COMMIT}..${GIT_HEAD_COMMIT}" ':ambassador/docs')
 
 if [ -z "$CHANGED_DOCS" ]; then
     echo "No changes in ambassador/docs, so not building docs"
