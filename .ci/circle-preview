@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+
+set -o errexit
+set -o nounset
+
+printf "== Begin: build-docs.sh ==\n"
+
+echo "Environment:"
+env | fgrep 'GIT' | sort
+
+if [ -z "$GIT_BASE_REVISION" -o -z "$GIT_HEAD_REVISION" ]; then
+    echo "GIT_BASE_REVISION and GIT_HEAD_REVISION must both be set" >&2
+    exit 1
+fi
+
+# TRAVIS_COMMIT_RANGE=${GIT_BASE_REVISION}..${GIT_HEAD_REVISION}
+
+CHANGED_DOCS=$(git diff --name-only  "${GIT_BASE_REVISION}..${GIT_HEAD_REVISION}" ':ambassador/docs')
+
+if [ -z "$CHANGED_DOCS" ]; then
+    echo "No changes in ambassador/docs, so not building docs"
+    exit 0
+fi
+
+# source ./.ci/travis-fix-env
+# ./ambassador/.ci/install-blc
+
+# From ./ambassador/.ci/pr-build-website-preview master
+
+set -o xtrace
+set -o verbose
+
+website_branch=release/v1.3
+build_dir=$(pwd)
+
+rm -rf "/tmp/getambassador.io-v1.3"
+git clone --single-branch --branch="$website_branch" https://d6e-automaton:${GH_TOKEN}@github.com/datawire/getambassador.io.git "/tmp/getambassador.io-v1.3"
+cd "/tmp/getambassador.io-v1.3"
+# git submodule update --init --reference="$TRAVIS_BUILD_DIR"
+# git -C ambassador checkout "$TRAVIS_COMMIT"
+rm -rf ambassador
+ln -sf "${build_dir}/ambassador"
+
+npm install
+npm run build
+
+# From ./ambassador/.ci/publish-website-preview master
+
+if ! [[ -d /tmp/getambassador.io-v1.3/public ]]; then
+	echo '[publish-website-preview] skipping: website preview was not built'
+	exit 0
+fi
+
+npm install netlify-cli -g
+
+netlify deploy \
+	--dir="/tmp/getambassador.io-v1.3/public" \
+	--message="ambassador.git preview $PIPELINE_ID" \
+	--site=1d6f5395-6386-49af-8b47-e85aa28488f8 \
+	--auth="${NETLIFY_AUTH_TOKEN}" \
+	--json \
+	> /tmp/netlify-deploy.json
+
+cat /tmp/netlify-deploy.json
+
+# cat >/tmp/github-status.json <<EOF
+# {
+#   "context": "website-preview/circle",
+#   "state": "success",
+#   "target_url": $(jq .deploy_url </tmp/netlify-deploy.json),
+#   "description": "Website v1.3 preview"
+# }
+# EOF
+
+# curl --fail \
+# 	-H "Accept: application/json" \
+# 	-H "Content-Type: application/json" \
+# 	-X POST \
+# 	--data '@/tmp/github-status.json' \
+# 	"https://${GH_TOKEN}@api.github.com/repos/datawire/ambassador/statuses/${TRAVIS_PULL_REQUEST_SHA:-${TRAVIS_COMMIT}}"
+
+exit 0
+
+# ./ambassador/.ci/blc-website-preview master
