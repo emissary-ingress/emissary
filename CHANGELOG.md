@@ -67,6 +67,14 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## next (TBD)
+
+### Ambassador API Gateway + Ambassador Edge Stack
+
+- Feature: Support Ingress Path types improvements from networking.k8s.io/v1beta1 on Kubernetes 1.18+
+- Feature: Support Ingress hostname wildcards
+- Feature: Support for the IngressClass Resource, added to networking.k8s.io/v1beta1 on Kubernetes 1.18+
+
 ## [1.3.2] April 1, 2020
 [1.3.2]: https://github.com/datawire/ambassador/compare/v1.3.1...v1.3.2
 
