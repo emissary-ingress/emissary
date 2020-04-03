@@ -1,8 +1,8 @@
 //SECTION:Yak
-import { IResourceCollection } from '../interfaces/iresource_collection.js'
-import { IResource } from '../interfaces/iresource.js'
-import { MemoryStore } from '../tests/store_mocks.js'
-import { Model } from '../framework/model.js'
+import { IResourceCollection } from '../edge_stack/mvc/interfaces/iresource_collection.js'
+import { IResource } from '../edge_stack/mvc/interfaces/iresource.js'
+import { MemoryStore } from '../edge_stack/mvc/tests/store_mocks.js'
+import { Model } from '../edge_stack/mvc/framework/model.js'
 
 class Yak extends IResource {
 
@@ -37,7 +37,7 @@ class Yak extends IResource {
 
 }
 //SECTION:YakHerd
-import { View, html, repeat, css } from '../framework/view.js'
+import { View, html, repeat, css } from '../edge_stack/mvc/framework/view.js'
 
 class YakHerd extends View {
 
@@ -125,13 +125,13 @@ class SimpleYakView extends View {
 
 customElements.define('simple-yak-view', SimpleYakView)
 //SECTION:YakView
-import { IResourceView } from '../interfaces/iresource_view.js'
+import { IResourceView } from '../edge_stack/mvc/interfaces/iresource_view.js'
 
 class YakView extends IResourceView {
 
   renderSelf() {
     return html`
-      <link rel="stylesheet" href="../../styles/oneresource.css">
+      <link rel="stylesheet" href="../edge_stack/styles/oneresource.css">
       <div class="row line">
         <label class="row-col margin-right justify-right">odor:</label>
         <div class="row-col">
