@@ -395,7 +395,7 @@ type kale struct {
 
 	mu                  sync.RWMutex
 	Projects            map[k8sTypes.UID]*projectAndChildren
-	GlobalErrors        []string
+	GlobalErrors        []recordedError
 	ErrorsDirty         bool
 	PersistentErrors    []recordedError
 	PrevIterationErrors []recordedError
@@ -408,8 +408,8 @@ func (k *kale) addPersistentError(err error, projectUID, commitUID k8sTypes.UID)
 	k.mu.Lock()
 	defer k.mu.Unlock()
 	k.PersistentErrors = append(k.PersistentErrors, recordedError{
-		TS:         now,
-		Err:        err,
+		Time:       now,
+		Message:    fmt.Sprintf("%+v", err), // use %+v to include a stack trace if there is one
 		ProjectUID: projectUID,
 		CommitUID:  commitUID,
 	})
@@ -419,8 +419,8 @@ func (k *kale) addPersistentError(err error, projectUID, commitUID k8sTypes.UID)
 func (k *kale) addIterationError(err error, projectUID, commitUID k8sTypes.UID) {
 	now := time.Now()
 	k.NextIterationErrors = append(k.NextIterationErrors, recordedError{
-		TS:         now,
-		Err:        err,
+		Time:       now,
+		Message:    fmt.Sprintf("%+v", err), // use %+v to include a stack trace if there is one
 		ProjectUID: projectUID,
 		CommitUID:  commitUID,
 	})
@@ -451,22 +451,28 @@ func (k *kale) syncErrors() {
 				}
 			}
 			if commit != nil {
-				commit.Children.Errors = append(commit.Children.Errors, err.String())
+				commit.Children.Errors = append(commit.Children.Errors, err)
 			} else {
-				project.Children.Errors = append(project.Children.Errors, err.String())
+				project.Children.Errors = append(project.Children.Errors, err)
 			}
 		} else {
-			k.GlobalErrors = append(k.GlobalErrors, err.String())
+			k.GlobalErrors = append(k.GlobalErrors, err)
 		}
 	}
 	// sort everything
-	sort.Strings(k.GlobalErrors)
+	sortErrors(k.GlobalErrors)
 	for _, project := range k.Projects {
-		sort.Strings(project.Children.Errors)
+		sortErrors(project.Children.Errors)
 		for _, commit := range project.Children.Commits {
-			sort.Strings(commit.Children.Errors)
+			sortErrors(commit.Children.Errors)
 		}
 	}
+}
+
+func sortErrors(errs []recordedError) {
+	sort.Slice(errs, func(i, j int) bool {
+		return errs[i].Time.Before(errs[j].Time)
+	})
 }
 
 func (k *kale) flushIterationErrors() {
@@ -483,21 +489,17 @@ func (k *kale) reconcile(ctx context.Context, snapshot Snapshot) {
 }
 
 type recordedError struct {
-	TS         time.Time
-	Err        error
-	ProjectUID k8sTypes.UID
-	CommitUID  k8sTypes.UID
-}
-
-func (e recordedError) String() string {
-	return fmt.Sprintf("[%s] %+v", e.TS, e.Err)
+	Time       time.Time    `json:"time"`
+	Message    string       `json:"message"`
+	ProjectUID k8sTypes.UID `json:"project_uid,omitempty"`
+	CommitUID  k8sTypes.UID `json:"commit_uid,omitempty"`
 }
 
 type projectAndChildren struct {
 	*Project
 	Children struct {
 		Commits []*commitAndChildren `json:"commits"`
-		Errors  []string             `json:"errors"`
+		Errors  []recordedError      `json:"errors"`
 	} `json:"children"`
 }
 
@@ -506,7 +508,7 @@ type commitAndChildren struct {
 	Children struct {
 		Builders []*k8sTypesBatchV1.Job        `json:"builders"`
 		Runners  []*k8sTypesAppsV1.StatefulSet `json:"runners"`
-		Errors   []string                      `json:"errors"`
+		Errors   []recordedError               `json:"errors"`
 	} `json:"children"`
 }
 
@@ -668,7 +670,7 @@ func (k *kale) projectsJSON() string {
 
 	var results struct {
 		Projects []*projectAndChildren `json:"projects"`
-		Errors   []string              `json:"errors"`
+		Errors   []recordedError       `json:"errors"`
 	}
 	results.Errors = k.GlobalErrors
 	results.Projects = make([]*projectAndChildren, 0, len(k.Projects))
