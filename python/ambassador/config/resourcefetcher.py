@@ -11,10 +11,12 @@ from .acresource import ACResource
 from .resourceprocessor import (
     ResourceDict,
     ResourceEmission,
+    ResourceKind,
     ResourceManager,
     ResourceProcessor,
     AggregateResourceProcessor,
     DeduplicatingResourceProcessor,
+    CounterResourceProcessor,
     KnativeIngressResourceProcessor,
 )
 
@@ -66,8 +68,10 @@ class ResourceFetcher:
                  skip_init_dir: bool=False, watch_only=False) -> None:
         self.aconf = aconf
         self.logger = logger
-        self.manager = ResourceManager(self.aconf, self.logger)
+        self.manager = ResourceManager(self.logger, self.aconf)
         self.processor = DeduplicatingResourceProcessor(AggregateResourceProcessor([
+            CounterResourceProcessor(self.aconf, ResourceKind.for_knative_networking('Ingress'), 'knative_ingress'),
+            CounterResourceProcessor(self.aconf, ResourceKind.for_knative_networking('ClusterIngress'), 'knative_cluster_ingress'),
             KnativeIngressResourceProcessor(self.manager),
         ]))
         self.watch_only = watch_only

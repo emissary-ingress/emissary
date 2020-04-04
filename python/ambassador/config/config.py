@@ -16,6 +16,7 @@ import socket
 from typing import Any, Callable, ClassVar, Dict, Iterable, List, Optional, Tuple, Union
 from typing import cast as typecast
 
+import collections
 import importlib
 import json
 import logging
@@ -101,6 +102,8 @@ class Config:
     breakers: Dict[str, ACResource]
     outliers: Dict[str, ACResource]
 
+    counters: Dict[str, int]
+
     # rkey => ACResource
     sources: Dict[str, ACResource]
 
@@ -159,6 +162,8 @@ class Config:
 
         self.breakers = {}
         self.outliers = {}
+
+        self.counters = collections.defaultdict(lambda: 0)
 
         self.sources = {}
 
@@ -222,6 +227,8 @@ class Config:
     # Often good_ambassador_id will be passed an ACResource, but sometimes
     # just a plain old dict.
     def good_ambassador_id(self, resource: dict):
+        resource_kind = resource.get('kind', '')
+
         # Is an ambassador_id present in this object?
         #
         # NOTE WELL: when we update the status of a Host (or a Mapping?) then reserialization
@@ -255,6 +262,12 @@ class Config:
 
                 self.logger.debug(f"{rkey}: {resource_kind} {name} has IDs {allowed_ids}, no match with {Config.ambassador_id}")
                 return False
+
+    def incr_count(self, key: str) -> None:
+        self.counters[key] += 1
+
+    def get_count(self, key: str) -> int:
+        return self.counters.get(key, 0)
 
     def save_source(self, resource: ACResource) -> None:
         """

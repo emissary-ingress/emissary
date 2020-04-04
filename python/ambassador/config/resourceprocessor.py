@@ -51,6 +51,10 @@ class ResourceKind:
     def for_ambassador(cls, kind: str) -> ResourceKind:
         return cls('getambassador.io/v2', kind)
 
+    @classmethod
+    def for_knative_networking(cls, kind: str) -> ResourceKind:
+        return cls('networking.internal.knative.dev/v1alpha1', kind)
+
 
 @dataclasses.dataclass(frozen=True)
 class ResourceIdent:
@@ -247,16 +251,16 @@ class ResourceManager:
     Holder for managed resources before they are processed and emitted as IR.
     """
 
-    aconf: Config
     logger: logging.Logger
+    aconf: Config
     locations: LocationManager
     ambassador_service: Optional[ResourceDict]
     elements: List[ACResource]
     services: Dict[str, Dict[str, Any]]
 
-    def __init__(self, aconf: Config, logger: logging.Logger):
-        self.aconf = aconf
+    def __init__(self, logger: logging.Logger, aconf: Config):
         self.logger = logger
+        self.aconf = aconf
         self.locations = LocationManager()
         self.ambassador_service = None
         self.elements = []
@@ -394,7 +398,6 @@ class AmbassadorResourceProcessor (ManagedResourceProcessor):
     """
 
     def kinds(self) -> FrozenSet[ResourceKind]:
-        api_version = 'getambassador.io/v2'
         kinds = [
             'AuthService',
             'ConsulResolver',
@@ -410,7 +413,7 @@ class AmbassadorResourceProcessor (ManagedResourceProcessor):
             'TracingService',
         ]
 
-        return frozenset([ResourceKind(api_version, kind) for kind in kinds])
+        return frozenset([ResourceKind.for_ambassador(kind) for kind in kinds])
 
     def _process(self, obj: ResourceDict) -> None:
         self.manager.emit(ResourceEmission.from_resource(obj))
@@ -424,13 +427,12 @@ class KnativeIngressResourceProcessor (ManagedResourceProcessor):
     INGRESS_CLASS: ClassVar[str] = 'ambassador.ingress.networking.knative.dev'
 
     def kinds(self) -> FrozenSet[ResourceKind]:
-        api_version = 'networking.internal.knative.dev/v1alpha1'
         kinds = [
             'Ingress',
             'ClusterIngress',
         ]
 
-        return frozenset([ResourceKind(api_version, kind) for kind in kinds])
+        return frozenset([ResourceKind.for_knative_networking(kind) for kind in kinds])
 
     def _has_required_annotations(self, obj: ResourceDict) -> bool:
         annotations = obj.annotations
@@ -552,7 +554,7 @@ class KnativeIngressResourceProcessor (ManagedResourceProcessor):
         current_lb_domain = None
 
         if not self.manager.ambassador_service or not self.manager.ambassador_service.name:
-            self.logger.warn(f"Unable to set Knative {obj.kind.kind} {obj.name}'s load balancer, could not find Ambassador service")
+            self.logger.warning(f"Unable to set Knative {obj.kind.kind} {obj.name}'s load balancer, could not find Ambassador service")
         else:
             # TODO: It is technically possible to use a domain other than
             # cluster.local (common-ish on bare metal clusters). We can resolve
@@ -641,3 +643,25 @@ class DeduplicatingResourceProcessor (ResourceProcessor):
 
     def finalize(self):
         self.delegate.finalize()
+
+
+class CounterResourceProcessor (ResourceProcessor):
+    """
+    This resource processor increments a given configuration counter when it
+    receives a resource.
+    """
+
+    aconf: Config
+    kind: ResourceKind
+    key: str
+
+    def __init__(self, aconf: Config, kind: ResourceKind, key: str) -> None:
+        self.aconf = aconf
+        self.kind = kind
+        self.key = key
+
+    def kinds(self) -> FrozenSet[ResourceKind]:
+        return frozenset([self.kind])
+
+    def _process(self, obj: ResourceDict) -> None:
+        self.aconf.incr_count(self.key)

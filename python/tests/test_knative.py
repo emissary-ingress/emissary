@@ -1,14 +1,20 @@
 import pytest
-from kat.harness import is_knative
+
+import logging
 from urllib import request
 from urllib.error import URLError, HTTPError
 from utils import run_and_assert, apply_kube_artifacts, install_ambassador, qotm_manifests, create_qotm_mapping
-from kat.harness import load_manifest
 from retry import retry
 
-class KnativeTesting:
-    def __init__(self):
-        self.knative_example = """
+from kat.harness import is_knative
+from kat.harness import load_manifest
+from ambassador import Config, IR
+from ambassador.config import ResourceFetcher
+from ambassador.utils import NullSecretHandler
+
+logger = logging.getLogger('ambassador')
+
+knative_service_example = """
 ---
 apiVersion: serving.knative.dev/v1alpha1
 kind: Service
@@ -24,6 +30,32 @@ spec:
          value: "Ambassador is Awesome"
 """
 
+knative_ingress_example = """
+apiVersion: networking.internal.knative.dev/v1alpha1
+kind: Ingress
+metadata:
+  name: helloworld-go
+spec:
+  rules:
+  - hosts:
+    - helloworld-go.default.svc.cluster.local
+    http:
+      paths:
+      - retries:
+          attempts: 3
+          perTryTimeout: 10m0s
+        splits:
+        - percent: 100
+          serviceName: helloworld-go-qf94m
+          serviceNamespace: default
+          servicePort: 80
+        timeout: 10m0s
+    visibility: ClusterLocal
+  visibility: ExternalIP
+"""
+
+
+class KnativeTesting:
     @retry(URLError, tries=5, delay=2)
     def get_code_with_retry(self, req):
         try:
@@ -69,7 +101,7 @@ spec:
         run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'service=qotm', '-n', namespace])
 
         # Create kservice
-        apply_kube_artifacts(namespace=namespace, artifacts=self.knative_example)
+        apply_kube_artifacts(namespace=namespace, artifacts=knative_service_example)
 
         # Let's port-forward ambassador service to talk to QOTM
         port_forward_port = 7000
@@ -111,6 +143,20 @@ spec:
 
         assert connection_correct_code == 200, f"Expected 200, got {connection_correct_code}"
         print(f"{kservice_url} returns 200 OK with host helloworld-go.default.example.com")
+
+
+def test_knative_counters():
+    aconf = Config()
+    fetcher = ResourceFetcher(logger, aconf)
+    fetcher.parse_yaml(knative_ingress_example, k8s=True)
+    aconf.load_all(fetcher.sorted())
+
+    secret_handler = NullSecretHandler(logger, None, None, "0")
+    ir = IR(aconf, secret_handler=secret_handler)
+    feats = ir.features()
+
+    assert feats['knative_ingress_count'] == 1, f"Expected a Knative ingress, did not find one"
+    assert feats['cluster_ingress_count'] == 0, f"Expected no Knative cluster ingresses, found at least one"
 
 
 def test_knative():
