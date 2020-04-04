@@ -6,15 +6,16 @@ If you are a developer working on a service that depends on other in-cluster ser
 
 When you want to test your service with traffic from the cluster, use `edgectl intercept` to designate a subset of requests for this service to be redirected to your laptop. You can use those requests to test and debug your local copy of the service running. All other requests will go to the existing service running in the cluster without disruption.
 
-## Install Edge Control: Laptop
+## Installing Edge Control
 
-1. Grab the latest `edgectl` executable and install it somewhere in your shell’s PATH.
+Edge Control is available as a downloadable executable for both Mac OS X and Linux. While Edge Control clients are available for Windows, these binaries do not support Service Preview.
 
 For MacOS:
 
 ```bash
 curl -fLO https://metriton.datawire.io/downloads/darwin/edgectl
 chmod a+x edgectl
+xattr -d com.apple.quarantine edgectl # Give OS X permission to run the executable
 mv edgectl ~/bin  # Somewhere in your PATH
 ```
 
@@ -26,56 +27,161 @@ chmod a+x edgectl
 mv edgectl ~/bin  # Somewhere in your PATH
 ```
 
-Note: Similar instructions work for Windows:
+### Upgrading
 
-```bash
-curl -fLO https://metriton.datawire.io/downloads/windows/edgectl.exe
-mv edgectl.exe C:\windows\  # Somewhere in your PATH
-```
-
-but Edge Control’s cluster features, as described in this document, do not work correctly on Windows at this time.
-
-2. Launch the daemon component using `sudo`:
-
-```bash
-$ sudo edgectl daemon
-Launching Edge Control Daemon v1.0.0-ea5 (api v1)
-```
-
-In order to mediate traffic to your clusters, Edge Control inserts itself into the DNS for your host (this is why it requires root access to run). It intercepts queries to your system’s primary DNS server, responds to queries that have to do with connected clusters, and forwards any other queries on to a fallback DNS server.
-
-By default, the daemon intercepts queries to the primary DNS server listed in `/etc/resolv.conf`, and uses Google DNS on 8.8.8.8 or 8.8.4.4 for its fallback DNS server. You can override the choice of which DNS server to intercept using the `--dns` option, and you can override the fallback server using the `--fallback` option. For example, if `/etc/resolv.conf` is correct, but you have a local DNS server available on 10.0.0.1 that should be used for non-cluster queries, you could run
-
-```bash
-$ sudo edgectl daemon --fallback 10.0.0.1
-Launching Edge Control Daemon v1.0.0-ea5 (api v1)
-```
-
-It's important that the primary DNS server and the fallback server be different. Otherwise Edge Control would forward queries to itself, resulting in a DNS loop.
-
-3. Make sure everything is okay:
-
-```bash
-$ edgectl version
-Client v1.0.0-ea5 (api v1)
-Daemon v1.0.0-ea5 (api v1)
-
-$ edgectl status
-Not connected
-```
-
-The daemon’s logging output may be found in `/tmp/edgectl.log`.
-
-### Upgrade
-
-Tell the running daemon to exit with:
+Make sure you've terminated the daemon.
 
 ```bash
 $ edgectl quit
 Edge Control Daemon quitting...
 ```
 
-Now you can grab the latest binary and launch the daemon again as above.
+Download the latest binary, as above, and replace your existing binary.
+
+## Service Preview Quick Start
+
+Service Preview creates a connection between your local environment and the cluster. These connections are managed through the Traffic Manager, which is deployed in your cluster, and the `edgectl` daemon, which runs in your local environment.
+
+There are three basic commands that are used for Service Preview:
+
+1. Launch the edgectl daemon:
+
+```bash
+$ sudo edgectl daemon
+Launching Edge Control Daemon v1.3.2 (api v1)
+```
+
+2. Connect your laptop to the cluster. This will enable your local environment to initiate traffic to the cluster.
+
+```
+```
+
+3. Set up an intercept rule. This will enable the cluster initiate traffic to your local environment.
+
+
+## Edge Control commands
+
+### `edgectl connect`
+
+Connect to the cluster. This command allows your local environment to initiate traffic to the cluster, allowing services running locally to send and receive requests to cluster services.
+
+```
+$ edgectl connect
+Connecting to traffic manager in namespace ambassador...
+Connected to context gke_us-east1-b_demo-cluster (https://35.136.57.145)
+```
+
+### `edgectl daemon`
+
+In order to mediate traffic to your clusters, Edge Control inserts itself into the DNS for your host (this is why it requires root access to run). It intercepts queries to your system’s primary DNS server, responds to queries that have to do with connected clusters, and forwards any other queries on to a fallback DNS server.
+
+By default, the daemon intercepts queries to the primary DNS server listed in `/etc/resolv.conf`, and uses Google DNS on 8.8.8.8 or 8.8.4.4 for its fallback DNS server. You can override the choice of which DNS server to intercept using the `--dns` option, and you can override the fallback server using the `--fallback` option.
+
+It's important that the primary DNS server and the fallback server be different. Otherwise Edge Control would forward queries to itself, resulting in a DNS loop.
+
+The daemon’s logging output may be found in `/tmp/edgectl.log`.
+
+#### Examples
+
+Launch Daemon:
+
+```bash
+$ sudo edgectl daemon
+Launching Edge Control Daemon v1.0.0-ea5 (api v1)
+```
+
+If `/etc/resolv.conf` is correct, but you have a local DNS server available on 10.0.0.1 that should be used for non-cluster queries, you could run Configure fallback server:
+
+```bash
+$ sudo edgectl daemon --fallback 10.0.0.1
+Launching Edge Control Daemon v1.0.0-ea5 (api v1)
+```
+
+### `edgectl disconnect`
+
+Disconnect from the cluster.
+
+### `edgectl intercept`
+
+Intercept enables the cluster to initiate traffic to the local environment. To prevent unwanted traffic from being to to the cluster, `intercept` creates routing rules that specify which traffic to send to the local environment. An `intercept` is created on a per (Kubernetes) deployment basis. Each deployment must have a traffic agent installed in order for `intercept` to function.
+
+### `edgectl intercept available`
+
+List available Kubernetes deployments for intercept.
+
+```
+$ edgectl intercept available
+Found 2 interceptable deployment(s):
+   1. xyz in namespace default
+   2. hello in namespace default
+```
+
+### `edgectl intercept list`
+
+List the current active intercepts.
+
+### `edgectl intercept add`
+
+Add an intercept. The basic format of this command is:
+
+```
+  edgectl intercept add DEPLOYMENT -n NAME -t [HOST:]PORT -m HEADER=REGEX ...
+```
+
+* DEPLOYMENT specifies a Kubernetes deployment with a traffic agent installed. You can get the list of available deployments with the `intercept available` command.
+* `--name` or `-n` specifies a name for an intercept.
+* `--target` or `-t` specifies the target of an intercept. Typically, this is a service running in the local environment that is a virtual replacement for the deployment in the cluster.
+* `--match` or `-m` specifies a match rule on requests. Requests that are sent to the traffic agent that match this rule will be routed to the target.
+
+A few other options to `intercept` include:
+
+* `--namespace` to specify the Kubernetes namespace in which to create a mapping for intercept
+* `--prefix` or `-p` which specifies a prefix to intercept (the default is `/`)
+
+#### Example
+
+Intercept all requests to the `hello` deployment that match the HTTP `x-dev` header with a value of `jane` to a service running locally on port 9000:
+
+```
+$ edgectl intercept add hello -n example -m x-dev=jane -t localhost:9000
+Added intercept "example"
+```
+
+### `edgectl pause`
+
+Pause the daemon. The network overrides used by the edgectl daemon are temporarily disabled. Typically, this is used for connecting with a VPN that is not compatible with Edge Control.
+
+```
+$ edgectl pause
+Network overrides paused.
+Used "edgectl resume" to reestablish network overrides.
+```
+
+### `edgectl quit`
+
+Quit the daemon. Ensure that the daemon has quit prior to upgrades.
+
+### `edgectl resume`
+
+Resume the daemon. Used after `edgectl pause`.
+
+### `edgectl status`
+
+Print the status of Edge Control, including the Kubernetes context that is currently being used.
+
+```
+$ edgectl status
+Connected
+  Context:       gke_us-east1-b_demo-cluster (https://35.136.57.145)
+  Proxy:         ON (networking to the cluster is enabled)
+  Interceptable: 2 deployments
+  Intercepts:    0 total, 0 local
+```
+
+edgectl (⎈ |gke_datawireio_us-east1-b_aes-demo-cluster:default)$ edgectl pause
+Edge Control is connected to a cluster.
+See "edgectl status" for details.
+
 
 ## Usage: Outbound Services
 
