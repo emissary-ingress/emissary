@@ -4,7 +4,7 @@ Edge Control is the command-line tool for installing and managing the Ambassador
 
 If you are a developer working on a service that depends on other in-cluster services, use `edgectl connect` to set up connectivity from your laptop to the cluster. This allows software on your laptop, such as your work-in-progress service running in your debugger, to connect to other services in the cluster.
 
-When you want to test your service with traffic from the cluster, use `edgectl intercept` to designate a subset of requests for this service to be redirected to your laptop. You can use those requests to test and debug your local copy of the service running. All other requests will go to the existing service running in the cluster without disruption.
+When you want to test your service with traffic from the cluster, use `edgectl intercept` to designate a subset of requests for this service to be redirected to your laptop. You can use those requests to test and debug your local copy of the service. All other requests will go to the existing service running in the cluster without disruption.
 
 ## Installing Edge Control
 
@@ -54,9 +54,17 @@ Launching Edge Control Daemon v1.3.2 (api v1)
 2. Connect your laptop to the cluster. This will enable your local environment to initiate traffic to the cluster.
 
 ```
+$ edgectl connect
+Connecting to traffic manager in namespace ambassador...
+Connected to context k3s-default (https://172.20.0.3:6443)
 ```
 
 3. Set up an intercept rule. This will enable the cluster initiate traffic to your local environment.
+
+```
+$ edgectl intercept add hello -n example -m x-dev=jane -t localhost:9000
+
+```
 
 
 ## Edge Control commands
@@ -103,7 +111,7 @@ Disconnect from the cluster.
 
 ### `edgectl intercept`
 
-Intercept enables the cluster to initiate traffic to the local environment. To prevent unwanted traffic from being to to the cluster, `intercept` creates routing rules that specify which traffic to send to the local environment. An `intercept` is created on a per (Kubernetes) deployment basis. Each deployment must have a traffic agent installed in order for `intercept` to function.
+Intercept enables the cluster to initiate traffic to the local environment. To prevent unwanted traffic from being routed to the cluster, `intercept` creates routing rules that specify which traffic to send to the local environment. An `intercept` is created on a per (Kubernetes) deployment basis. Each deployment must have a traffic agent installed in order for `intercept` to function.
 
 ### `edgectl intercept available`
 
@@ -154,7 +162,7 @@ Pause the daemon. The network overrides used by the edgectl daemon are temporari
 ```
 $ edgectl pause
 Network overrides paused.
-Used "edgectl resume" to reestablish network overrides.
+Use "edgectl resume" to reestablish network overrides.
 ```
 
 ### `edgectl quit`
@@ -177,11 +185,6 @@ Connected
   Interceptable: 2 deployments
   Intercepts:    0 total, 0 local
 ```
-
-edgectl (⎈ |gke_datawireio_us-east1-b_aes-demo-cluster:default)$ edgectl pause
-Edge Control is connected to a cluster.
-See "edgectl status" for details.
-
 
 ## Usage: Outbound Services
 
