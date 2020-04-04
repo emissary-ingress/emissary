@@ -4,7 +4,7 @@ import { graphql } from 'gatsby';
 import { MDXRenderer } from 'gatsby-plugin-mdx';
 
 import Layout from '../../../../src/components/Layout';
-import Sidebar from '../../../../src/components/Sidebar';
+import Sidebar from './Sidebar';
 import DocFooter from '../../../../src/components/DocFooter';
 
 import Link from '../../../../src/components/Link';
