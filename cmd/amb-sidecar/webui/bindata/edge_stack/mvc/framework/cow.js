@@ -276,7 +276,7 @@ class ArrayProxy {
 function noop() {}
 
 // isn't there a library or package that does this?
-function deepEqual(a, b) {
+export function deepEqual(a, b) {
   if (a === b) {
     return true
   }

@@ -47,7 +47,6 @@ export class ResourceStore {
   apply(collection, yaml) {
     let copy = JSON.parse(JSON.stringify(yaml))
     this.strip(copy)
-    console.log(copy)
     let cookie = getCookie("edge_stack_auth")
     let params = {
       method: "POST",
