@@ -8,8 +8,9 @@ class Errors extends View {
 
   static get properties() {
     return {
+      summarize: {type: Boolean},
       errors: {type: Array},
-      expanded: {type: Set}
+      expanded: {type: Set},
     }
   }
 
@@ -26,6 +27,7 @@ class Errors extends View {
       .triangle {
         display: inline-block;
         font-size: large;
+        padding-left: 5px;
       }
       .expanded .triangle {
         transform: rotate(90deg);
@@ -40,6 +42,9 @@ class Errors extends View {
 	border-radius: 5px;
 	padding: 5px 10px 5px 10px;
       }
+      .off {
+        display: none;
+      }
 `
   }
 
@@ -47,14 +52,22 @@ class Errors extends View {
     super()
     this.errors = []
     this.expanded = new Set()
+    this.summarize = true
   }
 
   render() {
     if (this.errors.length) {
-      return html`<div>${this.errors.map((e, idx)=>this.renderError(e, idx))}</div>`
+      return html`
+<div class="message" @click=${()=>this.toggleSummarize()}>${this.errors.length} messages, click to ${this.summarize ? "show" : "hide" }</div>
+<div class=${this.summarize ? "off" : ""}>${this.errors.map((e, idx)=>this.renderError(e, idx))}</div>
+`
     } else {
       return html``
     }
+  }
+
+  toggleSummarize() {
+    this.summarize = !this.summarize
   }
 
   renderError(e, idx) {

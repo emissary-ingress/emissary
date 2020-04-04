@@ -1,5 +1,5 @@
 import { Model } from '../framework/model.js'
-import { html } from '../framework/view.js'
+import { html, css } from '../framework/view.js'
 import { IResourceView } from '../interfaces/iresource_view.js'
 import './terminal.js'
 import './errors.js'
@@ -19,6 +19,16 @@ export class ProjectView extends IResourceView {
     props.repos = {type: Array}
     props.repo_error = {type: String}
     return props
+  }
+
+  static get styles() {
+    return css`
+      ${super.styles}
+      label.errors {
+        font-weight: 600;
+        padding-left: 5px;
+      }
+`
   }
 
   /* extend */
@@ -74,7 +84,11 @@ export class ProjectView extends IResourceView {
     <div class="row-col">${this.repoPicker()}</div>
   </div>
 </div>
-<dw-errors .errors=${this.project.errors}></dw-errors>
+
+<div class=${this.project.errors.length === 0 ? "off" : ""}>
+  <label class="errors">Project Errors:</label>
+  <dw-errors .errors=${this.project.errors}></dw-errors>
+</div>
 `
   }
 

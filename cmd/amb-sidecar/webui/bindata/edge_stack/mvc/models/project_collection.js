@@ -8,6 +8,7 @@ import { IResourceCollection } from "../interfaces/iresource_collection.js";
 import { ResourceStore } from "../framework/resource_store.js";
 import { getCookie } from '../../components/cookies.js';
 import { ApiFetch } from "../../components/api-fetch.js";
+import { deepEqual } from '../framework/cow.js';
 
 class ProjectStore extends ResourceStore {
 
@@ -26,7 +27,10 @@ class ProjectStore extends ResourceStore {
       }
     }).then(res => res.json())
       .then((snapshot)=>{
-        collection.errors = snapshot.errors || []
+        if (!deepEqual(snapshot.errors, collection.errors)) {
+          collection.errors = snapshot.errors || []
+          collection.notify()
+        }
         collection.reconcile(snapshot.projects)
       })
       .catch(err => console.log('Error fetching projects: ', err));
