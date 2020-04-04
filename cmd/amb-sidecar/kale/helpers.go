@@ -235,8 +235,6 @@ type hookConfig struct {
 // by the namespace and selector args down the supplied
 // http.ResponseWriter using server side events.
 func streamLogs(w http.ResponseWriter, r *http.Request, namespace, selector string) error {
-	ctx, cancelCtx := context.WithCancel(r.Context())
-
 	since := r.Header.Get("Last-Event-ID")
 
 	args := []string{
@@ -252,7 +250,8 @@ func streamLogs(w http.ResponseWriter, r *http.Request, namespace, selector stri
 		args = append(args, "--since-time", since)
 	}
 
-	cmd := exec.CommandContext(ctx, args[0], args[1:]...)
+	cmdCtx, cmdKill := context.WithCancel(r.Context())
+	cmd := exec.CommandContext(cmdCtx, args[0], args[1:]...)
 
 	reader, err := cmd.StdoutPipe()
 	if err != nil {
@@ -264,7 +263,7 @@ func streamLogs(w http.ResponseWriter, r *http.Request, namespace, selector stri
 		return err
 	}
 
-	wg, ctx := errgroup.WithContext(ctx)
+	wg, _ := errgroup.WithContext(r.Context())
 	wg.Go(cmd.Wait)
 	wg.Go(func() error {
 		scanner := bufio.NewScanner(reader)
@@ -287,15 +286,17 @@ func streamLogs(w http.ResponseWriter, r *http.Request, namespace, selector stri
 				_, err = fmt.Fprintf(w, "id: %s\ndata: %s\n\n", id, data)
 			}
 			if err != nil {
-				cancelCtx() // Stop the process.
+				cmdKill() // Stop the process.
 				// Don't return--keep draining the process's output so it doesn't deadlock.
 			}
+
+			w.(http.Flusher).Flush()
 		}
 		return scanner.Err()
 	})
 	err = wg.Wait()
-	if ctx.Err() != nil {
-		// Our "success" scenario is the that we run until the context is
+	if r.Context().Err() != nil {
+		// Our "success" scenario is the that we run until the request context is
 		// canceled; either because the client hung up or because we got EOF or
 		// whatever.
 		return nil
