@@ -25,7 +25,10 @@ class ProjectStore extends ResourceStore {
         'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
       }
     }).then(res => res.json())
-      .then((projects)=>collection.reconcile(projects))
+      .then((snapshot)=>{
+        collection.errors = snapshot.errors || []
+        collection.reconcile(snapshot.projects)
+      })
       .catch(err => console.log('Error fetching projects: ', err));
   }
 
@@ -42,6 +45,7 @@ export class ProjectCollection extends IResourceCollection {
   constructor() {
     super(new ProjectStore(ProjectResource));
     this.store.subscribe(this);
+    this.errors = []
   }
 
 }

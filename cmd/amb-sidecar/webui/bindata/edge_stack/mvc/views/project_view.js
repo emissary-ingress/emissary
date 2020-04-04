@@ -1,11 +1,12 @@
 import { Model } from '../framework/model.js'
 import { html } from '../framework/view.js'
 import { IResourceView } from '../interfaces/iresource_view.js'
-import "./terminal.js";
+import './terminal.js'
+import './errors.js'
 
 import {getCookie} from '../../components/cookies.js';
-import {ApiFetch} from "../../components/api-fetch.js";
-import {HASH} from "../../components/hash.js";
+import {ApiFetch} from '../../components/api-fetch.js';
+import {HASH} from '../../components/hash.js';
 
 import {AllHosts} from '../models/host_collection.js'
 
@@ -34,40 +35,6 @@ export class ProjectView extends IResourceView {
     return this.model
   }
 
-  connectedCallback() {
-    super.connectedCallback();
-    window.addEventListener("hashchange", this.handleHashChange.bind(this), false);
-    // make sure we look at the hash on first load
-    this.handleHashChange()
-  }
-
-  disconnectedCallback() {
-    super.disconnectedCallback();
-    window.removeEventListener("hashchange", this.handleHashChange.bind(this), false);
-  }
-
-  handleHashChange() {
-    let log = HASH.get("log")
-    if (log) {
-      let parts = log.split("/")
-      if (parts.length === 2) {
-        let logType = parts[0];
-        let commitQName = parts[1];
-
-        let commitBelongsToThisProject = this.project.commits.some((commit) => {
-          return `${commit.metadata.name}.${commit.metadata.namespace}` == commitQName;
-        });
-
-        if (commitBelongsToThisProject) {
-          this.source = `../api/${logType === "build" ? "logs" : "slogs"}/${commitQName}`
-          return
-        }
-      }
-    }
-
-    this.source = ""
-  }
-
   /* override */
   validateSelf() {
     let errors = new Map();
@@ -81,8 +48,6 @@ export class ProjectView extends IResourceView {
     return html`
 <div class="${this.visibleWhen("list")}">
   ${this.renderDeployedCommits(this.project.prefix, this.project.commits)}
-
-  <dw-terminal source=${this.source} @close=${(e)=>this.closeTerminal()}></dw-terminal>
 </div>
 <div class="${this.visibleWhen("add", "edit")}">
   <div class="row line">
@@ -108,7 +73,8 @@ export class ProjectView extends IResourceView {
     <label class="row-col margin-right justify-right">github repo:</label>
     <div class="row-col">${this.repoPicker()}</div>
   </div>
-<div>
+</div>
+<dw-errors .errors=${this.project.errors}></dw-errors>
 `
   }
 
@@ -255,7 +221,7 @@ export class ProjectView extends IResourceView {
     let selected = this.logSelected("deploy", commit) ? "background-color:#dcdcdc" : ""
     return html`
 <a style="cursor:pointer;${styles};${selected}" @click=${()=>this.openTerminal("deploy", commit)}>log</a> |
-<a style="text-decoration:none;${styles}" href="/.previews/${this.project.prefix}/${commit.spec.rev}/">url</a>
+<a style="text-decoration:none;${styles}" target="_blank" href="https://${this.project.host}/.previews/${this.project.prefix}/${commit.spec.rev}/">url</a>
 `
   }
 
@@ -271,10 +237,6 @@ export class ProjectView extends IResourceView {
     HASH.set("log", this.logParam(logType, commit))
   }
 
-  closeTerminal() {
-    HASH.delete("log")
-  }
-
   input(type, name, onchange) {
     return html`<input type="${type}"
                        name="${name}"
@@ -288,7 +250,7 @@ export class ProjectView extends IResourceView {
   select(name, options) {
     let sorted = Array.from(options)
     sorted.sort()
-    if (this.project.isNew() && !this.project.isReadOnly() && !this.project[name]) {
+    if (this.project.isNew() && !this.project.isReadOnly() && !sorted.includes(this.project[name])) {
       this.project[name] = sorted[0]
     }
     return html`

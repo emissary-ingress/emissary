@@ -57,6 +57,10 @@ export class ProjectResource extends IResource {
     return (this.yaml.children || {}).commits || []
   }
 
+  get errors() {
+    return (this.yaml.children || {}).errors || []
+  }
+
   /* override */
   validateSelf() {
     let errors  = new Map();
