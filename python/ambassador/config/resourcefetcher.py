@@ -1,18 +1,22 @@
-from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
-# from typing import cast as typecast
+from typing import Any, Dict, List, Optional, Tuple, cast
 
-import datetime
-import itertools
 import json
 import logging
 import os
 import yaml
 import re
 
-import durationpy
-
 from .config import Config
 from .acresource import ACResource
+from .resourceprocessor import (
+    ResourceDict,
+    ResourceEmission,
+    ResourceManager,
+    ResourceProcessor,
+    AggregateResourceProcessor,
+    DeduplicatingResourceProcessor,
+    KnativeIngressResourceProcessor,
+)
 
 from ..utils import parse_yaml, dump_yaml
 
@@ -54,23 +58,22 @@ CRDTypes = frozenset([
 ])
 k8sLabelMatcher = re.compile(r'([\w\-_./]+)=\"(.+)\"')
 
-AMBASSADOR_KNATIVE_INGRESS_CLASS = 'ambassador.ingress.networking.knative.dev'
-
 class ResourceFetcher:
+    manager: ResourceManager
+    processor: ResourceProcessor
+
     def __init__(self, logger: logging.Logger, aconf: 'Config',
                  skip_init_dir: bool=False, watch_only=False) -> None:
         self.aconf = aconf
         self.logger = logger
-        self.elements: List[ACResource] = []
-        self.filename: Optional[str] = None
-        self.ocount: int = 1
-        self.saved: List[Tuple[Optional[str], int]] = []
+        self.manager = ResourceManager(self.aconf, self.logger)
+        self.processor = DeduplicatingResourceProcessor(AggregateResourceProcessor([
+            KnativeIngressResourceProcessor(self.manager),
+        ]))
         self.watch_only = watch_only
 
         self.k8s_endpoints: Dict[str, AnyDict] = {}
         self.k8s_services: Dict[str, AnyDict] = {}
-        self.services: Dict[str, AnyDict] = {}
-        self.ambassador_service_raw: AnyDict = {}
 
         self.alerted_about_labels = False
 
@@ -100,16 +103,16 @@ class ResourceFetcher:
                 self.load_from_filesystem(init_dir, k8s=True, recurse=True, finalize=False)
 
     @property
-    def location(self):
-        return "%s.%d" % (self.filename or "anonymous YAML", self.ocount)
+    def elements(self) -> List[ACResource]:
+        return self.manager.elements
 
-    def push_location(self, filename: Optional[str], ocount: int) -> None:
-        self.saved.append((self.filename, self.ocount))
-        self.filename = filename
-        self.ocount = ocount
+    @property
+    def services(self) -> Dict[str, Dict[str, Any]]:
+        return self.manager.services
 
-    def pop_location(self) -> None:
-        self.filename, self.ocount = self.saved.pop()
+    @property
+    def location(self) -> str:
+        return str(self.manager.locations.current)
 
     def load_from_filesystem(self, config_dir_path, recurse: bool=False,
                              k8s: bool=False, finalize: bool=True):
@@ -158,8 +161,7 @@ class ResourceFetcher:
             self.finalize()
 
     def parse_yaml(self, serialization: str, k8s=False, rkey: Optional[str]=None,
-                   filename: Optional[str]=None, finalize: bool=True, namespace: Optional[str]=None,
-                   metadata_labels: Optional[Dict[str, str]]=None) -> None:
+                   filename: Optional[str]=None, finalize: bool=True, metadata_labels: Optional[Dict[str, str]]=None) -> None:
         # self.logger.info(f"RF YAML: {serialization}")
 
         # Expand environment variables allowing interpolation in manifests.
@@ -168,8 +170,7 @@ class ResourceFetcher:
         try:
             # UGH. This parse_yaml is the one we imported from utils. XXX This needs to be fixed.
             objects = parse_yaml(serialization)
-            self.parse_object(objects=objects, k8s=k8s, rkey=rkey, filename=filename,
-                              namespace=namespace)
+            self.parse_object(objects=objects, k8s=k8s, rkey=rkey, filename=filename)
         except yaml.error.YAMLError as e:
             self.aconf.post_error("%s: could not parse YAML: %s" % (self.location, e))
 
@@ -238,7 +239,7 @@ class ResourceFetcher:
             for key in CRDTypes:
                 for obj in watt_k8s.get(key) or []:
                     # self.logger.debug(f"Handling CRD {key}...")
-                    self.handle_k8s_crd(obj)
+                    self.handle_k8s(obj)
 
             watt_consul = watt_dict.get('Consul', {})
             consul_endpoints = watt_consul.get('Endpoints', {})
@@ -249,8 +250,7 @@ class ResourceFetcher:
                 if result:
                     rkey, parsed_objects = result
 
-                    self.parse_object(parsed_objects, k8s=False,
-                                      filename=self.filename, rkey=rkey)
+                    self.parse_object(parsed_objects, k8s=False, rkey=rkey)
         except json.decoder.JSONDecodeError as e:
             self.aconf.post_error("%s: could not parse WATT: %s" % (self.location, e))
 
@@ -278,7 +278,7 @@ class ResourceFetcher:
                 self.aconf.pod_labels[pod_label_kv[0][0]] = pod_label_kv[0][1]
         self.logger.info(f"Parsed pod labels: {self.aconf.pod_labels}")
 
-    def check_k8s_dup(self, kind: str, namespace: str, name: str) -> bool:
+    def check_k8s_dup(self, kind: str, namespace: Optional[str], name: str) -> bool:
         key = f"{kind}/{name}.{namespace}"
 
         if key in self.k8s_parsed:
@@ -289,59 +289,56 @@ class ResourceFetcher:
         self.k8s_parsed[key] = True
         return True
 
-    def handle_k8s(self, obj: dict) -> None:
+    def handle_k8s(self, raw_obj: dict) -> None:
         # self.logger.debug("handle_k8s obj %s" % json.dumps(obj, indent=4, sort_keys=True))
 
-        kind = obj.get('kind')
-
-        if not kind:
-            # self.logger.debug("%s: ignoring K8s object, no kind" % self.location)
+        try:
+            obj = ResourceDict(raw_obj, default_namespace='default')
+        except ValueError:
+            # The object doesn't contain a kind, API version, or name, so we
+            # can't process it.
             return
 
-        metadata = obj.get('metadata') or {}
-        name = metadata.get('name') or '(no name?)'
-        namespace = metadata.get('namespace') or 'default'
+        with self.manager.locations.push_reset():
+            if self.processor.try_process(obj):
+                # Nothing else to do.
+                return
 
         handler = None
         check_dup = True
 
-        if kind in CRDTypes:
+        if obj.kind.kind in CRDTypes:
             handler = self.handle_k8s_crd
             # self.handle_k8s_crd will do its own dup checking.
             check_dup = False
         else:
-            handler_name = f'handle_k8s_{kind.lower()}'
+            handler_name = f'handle_k8s_{obj.kind.kind.lower()}'
             # self.logger.debug(f"looking for handler {handler_name} for K8s {kind} {name}")
             handler = getattr(self, handler_name, None)
 
         if not handler:
-            self.logger.debug(f"{self.location}: skipping K8s {kind}")
+            self.logger.debug(f"{self.location}: skipping K8s {obj.kind}")
             return
 
         if check_dup:
-            if not self.check_k8s_dup(kind, namespace, name):
+            if not self.check_k8s_dup(obj.kind.kind, obj.namespace, obj.name):
                 return
 
-        result = handler(obj)
+        result = handler(raw_obj)
 
         if result:
             rkey, parsed_objects = result
 
-            self.parse_object(parsed_objects, k8s=False, filename=self.filename, rkey=rkey)
+            self.parse_object(parsed_objects, k8s=False, rkey=rkey)
 
     def handle_k8s_crd(self, obj: dict) -> None:
         # CRDs are _not_ allowed to have embedded objects in annotations, because ew.
         # self.logger.debug(f"Handling K8s CRD: {obj}")
 
-        kind = obj.get('kind')
-
-        if not kind:
-            self.logger.debug("%s: ignoring K8s CRD, no kind" % self.location)
-            return
-
+        kind = cast(str, obj.get('kind'))
         apiVersion = obj.get('apiVersion', '')
         metadata = obj.get('metadata') or {}
-        name = metadata.get('name')
+        name = cast(str, metadata.get('name'))
         namespace = metadata.get('namespace') or 'default'
         metadata_labels: Optional[Dict[str, str]] = metadata.get('labels')
         generation = metadata.get('generation', 1)
@@ -350,31 +347,13 @@ class ResourceFetcher:
             return
 
         spec = obj.get('spec') or {}
-        status = obj.get('status') or {}
 
         # Replace a sentinel value with the namespace of this ambassador pod.
         # This allows hard-coded initialization resources to have a useful namespace.
         if namespace == "_automatic_":
             namespace = Config.ambassador_namespace
 
-        if not name:
-            self.logger.debug(f'{self.location}: ignoring K8s {kind} CRD, no name')
-            return
-
-        if not apiVersion:
-            self.logger.debug(f'{self.location}: ignoring K8s {kind} CRD {name}: no apiVersion')
-            return
-
-        if apiVersion.startswith('networking.internal.knative.dev'):
-            self.handle_k8s_knative_crd(kind, namespace, name, metadata, spec, status)
-            return
-
-        # if not spec:
-        #     self.logger.debug(f'{self.location}: ignoring K8s {kind} CRD {name}: no spec')
-        #     return
-
         # We use this resource identifier as a key into self.k8s_services, and of course for logging .
-        annotations = metadata.get('annotations', {})
         resource_identifier = f'{name}.{namespace}'
 
         # OK. Shallow copy 'spec'...
@@ -394,159 +373,13 @@ class ResourceFetcher:
         amb_object['metadata_labels']['ambassador_crd'] = resource_identifier
 
         # Done. Parse it.
-        self.parse_object([ amb_object ], k8s=False, filename=self.filename, rkey=resource_identifier)
+        self.parse_object([ amb_object ], k8s=False, rkey=resource_identifier)
 
-    def handle_k8s_knative_crd(self, kind: str, namespace: str, name: str,
-                               metadata: AnyDict, spec: AnyDict, status: AnyDict):
-        annotations: Dict[str, str] = metadata.get('annotations', {})
+    def parse_object(self, objects, k8s=False, rkey: Optional[str] = None, filename: Optional[str] = None):
+        if not filename:
+            filename = self.manager.locations.current.filename
 
-        # Let's not parse KnativeIngress if it's not meant for us.
-        # We only need to ignore KnativeIngress iff networking.knative.dev/ingress.class is present in annotation.
-        # If it's not there, then we accept all ingress classes.
-        if annotations.get('networking.knative.dev/ingress.class', AMBASSADOR_KNATIVE_INGRESS_CLASS).lower() != AMBASSADOR_KNATIVE_INGRESS_CLASS:
-            self.logger.debug(f'Ignoring Knative {kind} {name}; set networking.knative.dev/ingress.class '
-                              f'annotation to {AMBASSADOR_KNATIVE_INGRESS_CLASS} for ambassador to parse it.')
-            return
-
-        ambassador_id = annotations.get('getambassador.io/ambassador-id', 'default')
-
-        # We don't want to deal with non-matching Ambassador IDs
-        if ambassador_id != Config.ambassador_id:
-            self.logger.info(f"Knative {kind} {name} does not have Ambassador ID {Config.ambassador_id}, ignoring...")
-            return None
-
-        metadata_labels: Dict[str, str] = metadata.get('labels', {})
-
-        rules = spec.get('rules', [])
-        for rule_count, rule in enumerate(rules):
-            hosts = rule.get('hosts', [])
-
-            split_mapping_specs: List[AnyDict] = []
-
-            paths = rule.get('http', {}).get('paths', [])
-            for path in paths:
-                global_headers = path.get('appendHeaders', {})
-
-                splits = path.get('splits', [])
-                for split in splits:
-                    service_name = split.get('serviceName')
-                    if not service_name:
-                        continue
-
-                    service_namespace = split.get('serviceNamespace', namespace)
-                    service_port = split.get('servicePort', 80)
-
-                    headers = split.get('appendHeaders', {})
-                    headers = {**global_headers, **headers}
-
-                    split_mapping_specs.append({
-                        'service': f"{service_name}.{namespace}:{service_port}",
-                        'add_request_headers': headers,
-                        'weight': split.get('percent', 100),
-                        'prefix': path.get('path', '/'),
-                        'prefix_regex': True,
-                        'timeout_ms': int(durationpy.from_str(path.get('timeout', '15s')).total_seconds() * 1000),
-                    })
-
-            for split_count, (host, split_mapping_spec) in enumerate(itertools.product(hosts, split_mapping_specs)):
-                mapping_identifier = f"{name}-{rule_count}-{split_count}"
-
-                mapping: AnyDict = {
-                    'apiVersion': 'getambassador.io/v2',
-                    'kind': 'Mapping',
-                    'metadata': {
-                        'name': mapping_identifier,
-                        'namespace': namespace,
-                        'labels': metadata_labels,
-                    },
-                    'spec': {
-                        'ambassador_id': ambassador_id,
-                        'host': host,
-                    }
-                }
-                mapping['spec'].update(split_mapping_spec)
-
-                self.logger.debug(f"Generated mapping from Knative {kind}: {mapping}")
-                self.handle_k8s_crd(mapping)
-
-        current_generation = spec.get('generation', 1)
-        has_new_generation = current_generation > status.get('observedGeneration', 0)
-
-        # Knative expects the load balancer information on the ingress, which it
-        # then propagates to an ExternalName service for intra-cluster use. We
-        # pull that information here. Otherwise, it will continue to use the
-        # DNS name configured by the Knative service and go through an
-        # out-of-cluster ingress to access the service.
-        current_lb_domain = None
-
-        if not self.ambassador_service_raw:
-            self.logger.warn(f"Unable to set Knative {kind} {name}'s load balancer, could not find Ambassador service")
-        else:
-            ambassador_service_metadata: AnyDict = self.ambassador_service_raw.get('metadata', {})
-            ambassador_service_name = ambassador_service_metadata.get('name', None)
-            ambassador_service_namespace = ambassador_service_metadata.get('namespace', 'default')
-
-            if not ambassador_service_name:
-                self.logger.error(f"Unable to set Knative {kind} {name}'s load balancer, Ambassador service has no name to reference")
-            else:
-                # TODO: It is technically possible to use a domain other than
-                # cluster.local (common-ish on bare metal clusters). We can
-                # resolve the relevant domain by doing a DNS lookup on
-                # kubernetes.default.svc, but this problem appears elsewhere
-                # in the code as well and probably should just be fixed all at
-                # once.
-                current_lb_domain = f"{ambassador_service_name}.{ambassador_service_namespace}.svc.cluster.local"
-
-        observed_ingress: AnyDict = next(iter(status.get('privateLoadBalancer', {}).get('ingress', [])), {})
-        observed_lb_domain = observed_ingress.get('domainInternal')
-
-        has_new_lb_domain = current_lb_domain != observed_lb_domain
-
-        if has_new_generation or has_new_lb_domain:
-            utcnow = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
-            status = {
-                "observedGeneration": current_generation,
-                "conditions": [
-                    {
-                        "lastTransitionTime": utcnow,
-                        "status": "True",
-                        "type": "LoadBalancerReady"
-                    },
-                    {
-                        "lastTransitionTime": utcnow,
-                        "status": "True",
-                        "type": "NetworkConfigured"
-                    },
-                    {
-                        "lastTransitionTime": utcnow,
-                        "status": "True",
-                        "type": "Ready"
-                    }
-                ]
-            }
-
-            if current_lb_domain:
-                load_balancer = {
-                    "ingress": [
-                        {
-                            "domainInternal": current_lb_domain
-                        }
-                    ]
-                }
-
-                status['loadBalancer'] = load_balancer
-                status['privateLoadBalancer'] = load_balancer
-
-            status_update = (f"{kind.lower()}.networking.internal.knative.dev", namespace, status)
-
-            self.logger.info(f"Updating Knative {kind} {name} status to {status_update}")
-            self.aconf.k8s_status_updates[f"{name}.{namespace}"] = status_update
-        else:
-            self.logger.debug(f"Not reconciling Knative {kind} {name}: observed and current generations are in sync")
-
-    def parse_object(self, objects, k8s=False, rkey: Optional[str]=None,
-                     filename: Optional[str]=None, namespace: Optional[str]=None):
-        self.push_location(filename, 1)
+        self.manager.locations.push(filename=filename)
 
         # self.logger.debug("PARSE_OBJECT: incoming %d" % len(objects))
 
@@ -559,73 +392,9 @@ class ResourceFetcher:
                 # if not obj:
                 #     self.logger.debug("%s: empty object from %s" % (self.location, serialization))
 
-                self.process_object(obj, rkey=rkey, namespace=namespace)
-                self.ocount += 1
+                self.manager.emit(ResourceEmission(obj, rkey=rkey))
 
-        self.pop_location()
-
-    def process_object(self, obj: dict, rkey: Optional[str]=None, namespace: Optional[str]=None) -> None:
-        if not isinstance(obj, dict):
-            # Bug!!
-            if not obj:
-                self.aconf.post_error("%s is empty" % self.location)
-            else:
-                self.aconf.post_error("%s is not a dictionary? %s" %
-                                      (self.location, json.dumps(obj, indent=4, sort_keys=4)))
-            return
-
-        if not self.aconf.good_ambassador_id(obj):
-            self.logger.debug("%s ignoring object with mismatched ambassador_id" % self.location)
-            return
-
-        if 'kind' not in obj:
-            # Bug!!
-            self.aconf.post_error("%s is missing 'kind'?? %s" %
-                                  (self.location, json.dumps(obj, indent=4, sort_keys=True)))
-            return
-
-        # self.logger.debug("%s PROCESS %s initial rkey %s" % (self.location, obj['kind'], rkey))
-
-        # Is this a pragma object?
-        if obj['kind'] == 'Pragma':
-            # Why did I think this was a good idea? [ :) ]
-            new_source = obj.get('source', None)
-
-            if new_source:
-                # We don't save the old self.filename here, so this change will last until
-                # the next input source (or the next Pragma).
-                self.filename = new_source
-
-            # Don't count Pragma objects, since the user generally doesn't write them.
-            self.ocount -= 1
-            return
-
-        if not rkey:
-            rkey = self.filename
-
-        rkey = "%s.%d" % (rkey, self.ocount)
-
-        # self.logger.debug("%s PROCESS %s updated rkey to %s" % (self.location, obj['kind'], rkey))
-
-        # Force the namespace and metadata_labels, if need be.
-        if namespace and not obj.get('namespace', None):
-            obj['namespace'] = namespace
-
-        # Brutal hackery.
-        if obj['kind'] == 'Service':
-            self.logger.debug("%s PROCESS saving service %s" % (self.location, obj['name']))
-            self.services[obj['name']] = obj
-        else:
-            # Fine. Fine fine fine.
-            serialization = dump_yaml(obj, default_flow_style=False)
-
-            try:
-                r = ACResource.from_dict(rkey, rkey, serialization, obj)
-                self.elements.append(r)
-            except Exception as e:
-                self.aconf.post_error(e.args[0])
-
-            self.logger.debug("%s PROCESS %s save %s: %s" % (self.location, obj['kind'], rkey, serialization))
+        self.manager.locations.pop()
 
     def sorted(self, key=lambda x: x.rkey):  # returns an iterator, probably
         return sorted(self.elements, key=key)
@@ -738,11 +507,10 @@ class ResourceFetcher:
 
         parsed_ambassador_annotations = None
         if ambassador_annotations is not None:
-            if (self.filename is not None) and (not self.filename.endswith(":annotation")):
-                self.filename += ":annotation"
+            self.manager.locations.current.mark_annotation()
 
             try:
-                parsed_ambassador_annotations = parse_yaml(ambassador_annotations, namespace=ingress_namespace)
+                parsed_ambassador_annotations = parse_yaml(ambassador_annotations)
             except yaml.error.YAMLError as e:
                 self.logger.debug("could not parse YAML: %s" % e)
 
@@ -795,7 +563,7 @@ class ResourceFetcher:
                         ingress_host['metadata']['labels'] = metadata_labels
 
                     self.logger.info(f"Generated Host from ingress {ingress_name}: {ingress_host}")
-                    self.handle_k8s_crd(ingress_host)
+                    self.handle_k8s(ingress_host)
 
         # parse ingress.spec.defaultBackend
         # using ingress.spec.backend as a fallback, for older versions of the Ingress resource.
@@ -805,7 +573,7 @@ class ResourceFetcher:
         if db_service_name is not None and db_service_port is not None:
             db_mapping_identifier = f"{ingress_name}-default-backend"
 
-            default_backend_mapping = {
+            default_backend_mapping: AnyDict = {
                 'apiVersion': 'getambassador.io/v2',
                 'kind': 'Mapping',
                 'metadata': {
@@ -823,7 +591,7 @@ class ResourceFetcher:
                 default_backend_mapping['metadata']['labels'] = metadata_labels
 
             self.logger.info(f"Generated mapping from Ingress {ingress_name}: {default_backend_mapping}")
-            self.handle_k8s_crd(default_backend_mapping)
+            self.handle_k8s(default_backend_mapping)
 
         # parse ingress.spec.rules
         ingress_rules = ingress_spec.get('rules', [])
@@ -883,13 +651,13 @@ class ResourceFetcher:
                         path_mapping['spec']['host'] = rule_host
 
                 self.logger.info(f"Generated mapping from Ingress {ingress_name}: {path_mapping}")
-                self.handle_k8s_crd(path_mapping)
+                self.handle_k8s(path_mapping)
 
         # let's make arrangements to update Ingress' status now
-        if not self.ambassador_service_raw:
+        if not self.manager.ambassador_service:
             self.logger.error(f"Unable to update Ingress {ingress_name}'s status, could not find Ambassador service")
         else:
-            ingress_status = self.ambassador_service_raw.get('status', {})
+            ingress_status = self.manager.ambassador_service.status
             ingress_status_update = (k8s_object.get('kind'), ingress_namespace, ingress_status)
             self.logger.info(f"Updating Ingress {ingress_name} status to {ingress_status_update}")
             self.aconf.k8s_status_updates[f'{ingress_name}.{ingress_namespace}'] = ingress_status_update
@@ -1119,7 +887,7 @@ class ResourceFetcher:
 
             if self.is_ambassador_service(labels, selector):
                 self.logger.info(f"Found Ambassador service: {resource_name}")
-                self.ambassador_service_raw = k8s_object
+                self.manager.ambassador_service = ResourceDict(k8s_object, default_namespace='default')
 
         else:
             self.logger.debug(f"not saving K8s Service {resource_name}.{resource_namespace} with no ports")
@@ -1127,8 +895,7 @@ class ResourceFetcher:
         result: List[Any] = []
 
         if annotations:
-            if (self.filename is not None) and (not self.filename.endswith(":annotation")):
-                self.filename += ":annotation"
+            self.manager.locations.current.mark_annotation()
 
             try:
                 objects = parse_yaml(annotations)
