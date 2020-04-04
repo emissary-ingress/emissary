@@ -75,8 +75,6 @@ class Config:
         'logservice': "log_services",
     }
 
-    KnativeResources = { 'clusteringress', 'knativeingress' }
-
     SupportedVersions: ClassVar[Dict[str, str]] = {
         "v0": "is deprecated, consider upgrading",
         "v1": "ok",
@@ -221,20 +219,9 @@ class Config:
     def as_json(self):
         return json.dumps(self.as_dict(), sort_keys=True, indent=4)
 
-    def ambassador_id_required(self, resource_kind: str) -> bool:
-        if resource_kind in self.KnativeResources:
-            return False
-
-        return True
-
     # Often good_ambassador_id will be passed an ACResource, but sometimes
     # just a plain old dict.
     def good_ambassador_id(self, resource: dict):
-        resource_kind = resource.get('kind', '').lower()
-        if not self.ambassador_id_required(resource_kind):
-            self.logger.debug(f"Resource: {resource_kind} does not require an Ambassador ID")
-            return True
-
         # Is an ambassador_id present in this object?
         #
         # NOTE WELL: when we update the status of a Host (or a Mapping?) then reserialization
