@@ -6,7 +6,7 @@ Service Preview addresses this challenge by connecting your CI system or local d
 
 ## Service Preview in action
 
-![Preview](../../../../images/service-preview.png)
+![Preview](../../../images/service-preview.png)
 
 When Service Preview is used, incoming requests get routed by Ambassador to a Traffic Agent, which then routes traffic to the microservice. When a request meets a specific criteria (e.g., it has a specific HTTP header value), the Traffic Agent will route that request to the microservice running locally.
 
@@ -18,7 +18,7 @@ There are three main components to Service Preview:
 
 3. The Edge Control local client, which runs in your local environment (Linux or Mac OS X). The client is the command line interface to the Traffic Manager.
 
-## Getting Started
+## Configuring Service Preview
 
 To get started with Service Preview, you'll need to install Traffic Manager, configure a Traffic Agent, and then download and install the `edgectl` client.
 
@@ -98,8 +98,6 @@ spec:
         secret:
           secretName: ambassador-edge-stack
 ```
-
-### Traffic Agent
 
 ### Traffic Agent
 
