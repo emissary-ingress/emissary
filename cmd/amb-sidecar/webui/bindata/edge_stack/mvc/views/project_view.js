@@ -52,6 +52,13 @@ export class ProjectView extends IResourceView {
     return errors;
   }
 
+  onDeleteButton() {
+    super.onDeleteButton(...arguments)
+    // clear the log parameter in case we are narrowed when this
+    // project is deleted
+    HASH.delete("log")
+  }
+
   /* override */
   renderSelf() {
     let hostnames = Array.from(this.hosts).map((h)=>h.hostname)
