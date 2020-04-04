@@ -38,7 +38,7 @@ export default ({ data, location }) => {
         { metaDescription && <meta name="description" content={metaDescription} /> }
       </Helmet>
       <Layout location={location}>
-        <Sidebar location={location} prefix="" items={docLinks} />
+        <Sidebar location={location} prefix="/docs/latest" items={docLinks} />
         <div className="doc-body">
           <main className="main-body">
             <div className="doc-tags">
