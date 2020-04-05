@@ -148,6 +148,10 @@ For example, let's suppose version 1.4 of ambassador needs to be hosted.
   ```js
   <Sidebar location={location} prefix="/docs/latest" items={docLinks} />
   ```
+  - In `docs/js/doc-page.js`, update the footer branch.
+  ```
+  <DocFooter page={page} branch="release/v1.4" />
+  ```
   - Update `.travis.yml` to push on every doc change to `release/v1.4` branch.
   ```yaml
   deploy:
