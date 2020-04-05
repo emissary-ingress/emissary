@@ -212,7 +212,7 @@ export class ProjectView extends IResourceView {
   }
 
   renderPull(commit) {
-    let matches = commit.spec.ref.match(/^refs\/pull\/([0-9])+\/(head|merge)$/);
+    let matches = commit.spec.ref.match(/^refs\/pull\/([0-9]+)\/(head|merge)$/);
     if (!matches)
       return "";
     let prNumber = matches[1];
