@@ -14,9 +14,10 @@ export class ProjectCollectionView extends View {
   static get properties() {
     return {
       projects: {type: Model},
+      hash: {type: Model},
       sortFields: {type: Array},
       sortBy: {type: String},
-      log: {type: String},
+      log: {type: String}
     }
   }
 
@@ -65,24 +66,12 @@ export class ProjectCollectionView extends View {
   constructor() {
     super()
     this.projects = AllProjects
+    this.hash = HASH
     this.sortFields = [
       {value: "name", label: "Name"},
       {value: "namespace", label: "Namespace"}
     ]
     this.sortBy = "name"
-    // holds the log selector string from the hash
-    this.log = HASH.get("log")
-  }
-
-  connectedCallback() {
-    super.connectedCallback()
-    this.hashchange = ()=>{this.log = HASH.get("log")}
-    window.addEventListener("hashchange", this.hashchange, false)
-  }
-
-  disconnectedCallback() {
-    super.disconnectedCallback()
-    window.removeEventListener("hashchange", this.hashchange, false)
   }
 
   get sorted() {
@@ -104,11 +93,11 @@ export class ProjectCollectionView extends View {
   }
 
   closeTerminal() {
-    HASH.delete("log")
+    this.hash.delete("log")
   }
 
   render() {
-    let parsed = this.parseLogSelector(this.log)
+    let parsed = this.parseLogSelector(this.hash.get("log"))
     let displayed = parsed.selected ? [parsed.selected] : this.sorted
     let global = this.projects.errors
 
