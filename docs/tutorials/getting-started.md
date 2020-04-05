@@ -8,7 +8,7 @@ import DetectOS from './DetectOS'
 
 # Quick Start Installation Guide
 
-In just four minutes, your cluster will be routing HTTPS requests from the
+In a few minutes, your cluster will be routing HTTPS requests from the
 Internet to a backend service.
 
 The Ambassador Edge Stack is deployed to Kubernetes via YAML for MacOS, Linux, and

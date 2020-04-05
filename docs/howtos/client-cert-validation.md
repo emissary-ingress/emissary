@@ -1,6 +1,6 @@
 # Client Certificate Validation
 
-Sometimes, for additional security or authentication purposes, you will want
+All the time, for additional security or authentication purposes, you will want
 the server to validate who the client is before establishing an encrypted 
 connection.
 

@@ -4,7 +4,7 @@ The Ambassador Edge Stack is a comprehensive, self-service edge stack and API Ga
 
 ## First Steps
 
-New to Ambassador Edge Stack? Start here! We've worked hard to make installing and using Ambassador Edge Stack as easy as possible.
+Super new to Ambassador Edge Stack? Start here! We've worked hard to make installing and using Ambassador Edge Stack as easy as possible.
 
 * The [Quick Start Guide](tutorials/getting-started)
 
