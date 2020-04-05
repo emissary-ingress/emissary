@@ -66,24 +66,34 @@ func safeInvoke(code func()) (err error) {
 
 // Turn an ordinary http handler function into a safe one that will
 // automatically turn panics into a useful 500.
-func safeHandleFunc(handler func(*http.Request) httpResult) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
+func ezHTTPHandler(handler func(*http.Request) httpResult) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var result httpResult
 		err := safeInvoke(func() {
-			result := handler(r)
-			if result.stream == nil {
-				w.WriteHeader(result.status)
-				w.Write([]byte(result.body))
-			} else {
-				streamingFunc(func(w http.ResponseWriter, r *http.Request) {
-					result.stream(w)
-				})(w, r)
-			}
+			result = handler(r)
 		})
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(w, "%+v\n", err)
+			reportThisIsABug(r.Context(), err)
+			result = httpResult{
+				status: http.StatusInternalServerError,
+				body:   fmt.Sprintf("internal server error: this is a bug: %+v", err),
+			}
 		}
-	}
+
+		if result.stream == nil {
+			w.WriteHeader(result.status)
+			io.WriteString(w, result.body)
+		} else {
+			err := safeInvoke(func() {
+				streamingFunc(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					result.stream(w)
+				})).ServeHTTP(w, r)
+			})
+			if err != nil {
+				reportRuntimeError(r.Context(), StepBackground, err)
+			}
+		}
+	})
 }
 
 type httpResult struct {
@@ -92,8 +102,8 @@ type httpResult struct {
 	stream func(w http.ResponseWriter)
 }
 
-func streamingFunc(handler http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func streamingFunc(handler http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet, http.MethodHead:
 			_, ok := w.(http.Flusher)
@@ -109,11 +119,11 @@ func streamingFunc(handler http.HandlerFunc) http.HandlerFunc {
 				return
 			}
 
-			handler(w, r)
+			handler.ServeHTTP(w, r)
 		default:
 			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		}
-	}
+	})
 }
 
 // Post a json payload to a URL.

@@ -289,7 +289,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 	})
 
 	// todo: lock down all these endpoints with auth
-	handler := http.StripPrefix("/edge_stack_ui/edge_stack", http.HandlerFunc(safeHandleFunc(k.dispatch))).ServeHTTP
+	handler := http.StripPrefix("/edge_stack_ui/edge_stack", ezHTTPHandler(k.dispatch)).ServeHTTP
 	// todo: this is just temporary, we will consolidate these sprawling endpoints later
 	httpHandler.AddEndpoint("/edge_stack_ui/edge_stack/api/projects", "kale projects api", handler)
 	httpHandler.AddEndpoint("/edge_stack_ui/edge_stack/api/githook/", "kale githook", handler)
