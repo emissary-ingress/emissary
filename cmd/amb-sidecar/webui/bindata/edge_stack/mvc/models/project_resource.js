@@ -15,7 +15,7 @@ export class ProjectResource extends IResource {
     yaml.spec = {
       host: "<the published hostname>",
       prefix: "<the published prefix>",
-      githubRepo: "<the github repo>",
+      githubRepo: "",
       githubToken: ""
     }
     return yaml
@@ -65,16 +65,30 @@ export class ProjectResource extends IResource {
   validateSelf() {
     let errors  = new Map();
 
-    if (!/^\S+$/.test(this.prefix)) {
-      errors.set("prefix", "must not contain whitespace")
-    }
+    if (!this.prefix) {
+      errors.set("prefix", "please supply a prefix")
+    } else {
+      if (!/^\S+$/.test(this.prefix)) {
+        errors.set("prefix", "must not contain whitespace")
+      }
 
-    if (!/^\S+\/\S+$/.test(this.repo)) {
-      errors.set("github repo", "must be of the form: owner/repo")
+      if (this.prefix[0] === "/") {
+        errors.set("prefix start", "cannot begin with /")
+      }
+
+      if (this.prefix.length > 1 && this.prefix[this.prefix.length-1] === "/") {
+        errors.set("prefix end", "cannot end with /")
+      }
     }
 
     if (!/^\S+$/.test(this.token)) {
       errors.set("github token", "please supply a github token")
+    }
+
+    if (!this.repo) {
+      errors.set("github repo", "please choose a github repo")
+    } else if (!/^\S+\/\S+$/.test(this.repo)) {
+      errors.set("github repo", "must be of the form: owner/repo")
     }
 
     return errors;
