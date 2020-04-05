@@ -1,16 +1,17 @@
-import pytest
-
 import logging
 from urllib import request
 from urllib.error import URLError, HTTPError
-from utils import run_and_assert, apply_kube_artifacts, install_ambassador, qotm_manifests, create_qotm_mapping
 from retry import retry
+import sys
+
+import pytest
 
 from kat.harness import is_knative
 from kat.harness import load_manifest
 from ambassador import Config, IR
 from ambassador.config import ResourceFetcher
 from ambassador.utils import NullSecretHandler
+from utils import run_and_assert, apply_kube_artifacts, install_ambassador, qotm_manifests, create_qotm_mapping
 
 logger = logging.getLogger('ambassador')
 
@@ -168,4 +169,4 @@ def test_knative():
 
 
 if __name__ == '__main__':
-    test_knative()
+    pytest.main(sys.argv)

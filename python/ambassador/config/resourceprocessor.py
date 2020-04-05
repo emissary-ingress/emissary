@@ -101,15 +101,16 @@ class LocationManager:
         self.current = Location()
 
     def push(self, filename: Optional[str] = None, ocount: int = 1) -> ContextManager[Location]:
+        current = Location(filename, ocount)
         self.previous.append(self.current)
-        self.current = Location(filename, ocount)
+        self.current = current
 
         # This trick lets you use the return value of this method in a `with`
         # statement. At the conclusion of the statement block, the location will
         # automatically be popped from the stack.
         @contextlib.contextmanager
         def popper():
-            yield
+            yield current
             self.pop()
 
         return popper()
@@ -225,23 +226,21 @@ class ResourceEmission:
         ir_obj['namespace'] = namespace
         ir_obj['kind'] = kind.kind
         ir_obj['generation'] = generation
-
-        ir_obj['labels'] = {}
-        if labels:
-            ir_obj['labels'].update(labels)
-
-        ir_obj['labels']['ambassador_crd'] = rkey
+        ir_obj['labels'] = labels or {}
 
         return cls(ir_obj, rkey)
 
     @classmethod
     def from_resource(cls, obj: ResourceDict) -> ResourceEmission:
+        labels = dict(obj.labels)
+        labels['ambassador_crd'] = f"{obj.name}.{obj.namespace or 'default'}"
+
         return cls.from_data(
             obj.kind,
             obj.name,
             namespace=obj.namespace or 'default',
             generation=obj.generation,
-            labels=obj.labels,
+            labels=labels,
             spec=obj.spec,
         )
 
