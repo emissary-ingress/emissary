@@ -9,3 +9,7 @@ The installer timed out while waiting for the load balancer to return its IP add
 You might try running the installer again.
 
 If your cluster doesn't support load balancers, you'll need to expose AES in some other way.
+
+To reinstall AES, see:
+
+https://www.getambassador.io/docs/latest/tutorials/getting-started/

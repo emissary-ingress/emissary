@@ -15,3 +15,7 @@ Run
 `kubectl delete crd -l product=aes`
 
 to remove any existing AES CRD's.
+
+To reinstall AES, see:
+
+https://www.getambassador.io/docs/latest/tutorials/getting-started/

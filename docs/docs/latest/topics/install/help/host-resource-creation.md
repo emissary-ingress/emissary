@@ -9,3 +9,7 @@ The installer was unable to create a new Host resource using `kubectl apply` wit
 ## How to Resolve It
 
 ...
+
+To reinstall AES, see:
+
+https://www.getambassador.io/docs/latest/tutorials/getting-started/

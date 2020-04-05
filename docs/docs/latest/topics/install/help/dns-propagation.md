@@ -8,3 +8,7 @@ was unable to read the response body.
 ## How to Resolve It
 
 ...
+
+To reinstall AES, see:
+
+https://www.getambassador.io/docs/latest/tutorials/getting-started/

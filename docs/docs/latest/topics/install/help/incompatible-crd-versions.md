@@ -8,4 +8,6 @@ upgrades or downgrades at this time.
 
 ## How to Resolve It
 
-...
+To reinstall AES, see:
+
+https://www.getambassador.io/docs/latest/tutorials/getting-started/
