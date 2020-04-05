@@ -830,7 +830,7 @@ func (k *kale) calculateBuild(proj *Project, commit *ProjectCommit) []interface{
 								"--skip-tls-verify-registry",
 								"--dockerfile=Dockerfile",
 								"--context=git://github.com/" + proj.Spec.GithubRepo + ".git#" + commit.Spec.Ref.String(),
-								"--destination=registry.ambassador/" + commit.Spec.Rev,
+								"--destination=registry." + k.cfg.AmbassadorNamespace + "/" + commit.Spec.Rev,
 							},
 						},
 					},
