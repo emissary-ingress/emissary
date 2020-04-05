@@ -822,15 +822,20 @@ func (k *kale) calculateBuild(proj *Project, commit *ProjectCommit) []interface{
 					Containers: []k8sTypesCoreV1.Container{
 						{
 							Name:  "kaniko",
-							Image: "gcr.io/kaniko-project/executor:v0.16.0",
+							Image: "quay.io/datawire/aes-project-builder@sha256:0b040450945683869343d9e5caaa04dac91c52c28722031dc133da18a3b84899",
 							Args: []string{
 								"--cache=true",
 								"--skip-tls-verify",
 								"--skip-tls-verify-pull",
 								"--skip-tls-verify-registry",
 								"--dockerfile=Dockerfile",
-								"--context=git://github.com/" + proj.Spec.GithubRepo + ".git#" + commit.Spec.Ref.String(),
 								"--destination=registry." + k.cfg.AmbassadorNamespace + "/" + commit.Spec.Rev,
+							},
+							Env: []k8sTypesCoreV1.EnvVar{
+								{Name: "KALE_CREDS", Value: proj.Spec.GithubToken},
+								{Name: "KALE_REPO", Value: proj.Spec.GithubRepo},
+								{Name: "KALE_REF", Value: commit.Spec.Ref.String()},
+								{Name: "KALE_REV", Value: commit.Spec.Rev},
 							},
 						},
 					},
