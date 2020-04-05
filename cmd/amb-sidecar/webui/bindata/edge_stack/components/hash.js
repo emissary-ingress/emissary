@@ -1,3 +1,5 @@
+import { Model } from '../mvc/framework/model.js'
+
 // The helpers in this file are intended to centralize the AES UI's
 // interaction with the hash fragment of the URL and allow it to be
 // shared for both authentication and deep linking into different tabs
@@ -66,13 +68,16 @@
 // we might want to have the base be <tabname>/<subtab>. For this
 // reason it is important to use these abstractions when accessing the
 // current tab and/or authToken.
-class Hash {
+class Hash extends Model {
 
   constructor() {
+    super()
     // the base portion of the hash, prior to the question mark (i.e. the path)
     this._base = ""
     // the parameters that appear after the question mark in the hash
     this.params = new URLSearchParams("")
+
+    window.addEventListener("hashchange", this.notify.bind(this), false)
   }
 
   // internal
