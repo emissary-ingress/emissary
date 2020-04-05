@@ -1,11 +1,12 @@
 import sys
 
+import logging
 import pytest
 
 from ambassador import Config
 from ambassador.config.resourceprocessor import (
-    ResourceEmission,
     LocationManager,
+    ResourceManager,
     KubernetesProcessor,
     KubernetesGVK,
     KubernetesObject,
@@ -15,6 +16,14 @@ from ambassador.config.resourceprocessor import (
     AmbassadorProcessor,
 )
 from ambassador.utils import parse_yaml
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s test %(levelname)s: %(message)s",
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
+logger = logging.getLogger("ambassador")
 
 
 def k8s_object_from_yaml(yaml: str, **kwargs) -> KubernetesObject:
@@ -70,8 +79,8 @@ kind: Mapping
 metadata:
   name: test
 spec:
-    prefix: /test/
-    service: test.default
+  prefix: /test/
+  service: test.default
 ''', default_namespace='default')
 
 
@@ -166,10 +175,32 @@ class TestLocationManager:
 
 class FinalizingKubernetesProcessor (KubernetesProcessor):
 
-    finalize: bool = False
+    finalized: bool = False
 
     def finalize(self):
         self.finalized = True
+
+
+class TestAmbassadorProcessor:
+
+    def test_mapping(self):
+        aconf = Config()
+        mgr = ResourceManager(logger, aconf)
+
+        assert AmbassadorProcessor(mgr).try_process(valid_mapping)
+        assert len(mgr.elements) == 1
+
+        aconf.load_all(mgr.elements)
+        assert len(aconf.errors) == 0
+
+        mappings = aconf.get_config('mappings')
+        assert len(mappings) == 1
+
+        mapping = next(iter(mappings.values()))
+        assert mapping.name == valid_mapping.name
+        assert mapping.namespace == valid_mapping.namespace
+        assert mapping.prefix == valid_mapping.spec['prefix']
+        assert mapping.service == valid_mapping.spec['service']
 
 
 class TestAggregateKubernetesProcessor:
