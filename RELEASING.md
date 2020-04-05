@@ -211,7 +211,7 @@ ln -s ../../submodules/1.4/docs 1.4
 ```
 
 ##### Note:
-Now, the website must now display v1.4 docs under getambassador.io/docs/. Make sure everything looks right.
+Now the website must now display v1.4 docs under getambassador.io/docs/. Make sure everything looks right.
 
 ##### In ambassador.git,
 
