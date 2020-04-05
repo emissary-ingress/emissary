@@ -113,7 +113,7 @@ Disconnect from the cluster.
 
 Intercept enables the cluster to initiate traffic to the local environment. To prevent unwanted traffic from being routed to the cluster, `intercept` creates routing rules that specify which traffic to send to the local environment. An `intercept` is created on a per (Kubernetes) deployment basis. Each deployment must have a traffic agent installed in order for `intercept` to function.
 
-### `edgectl intercept available`
+#### `edgectl intercept available`
 
 List available Kubernetes deployments for intercept.
 
@@ -124,11 +124,11 @@ Found 2 interceptable deployment(s):
    2. hello in namespace default
 ```
 
-### `edgectl intercept list`
+#### `edgectl intercept list`
 
 List the current active intercepts.
 
-### `edgectl intercept add`
+#### `edgectl intercept add`
 
 Add an intercept. The basic format of this command is:
 
