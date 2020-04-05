@@ -201,10 +201,10 @@ ln -s ../../submodules/1.4/docs 1.4
                   <button className={classnames(styles.DropdownButton, styles.DocsDropdownColor)}>{ docsVersion((location || {}).pathname) } ▾</button>
                   <div className={styles.DropdownContent}>
                     <Link to="/docs/latest/">Latest</Link>
-                    <Link to="/docs/1.4/">v1.4</Link>
-                    <Link to="/docs/1.3/">v1.3</Link>
-                    <Link to="/docs/1.2/">v1.2</Link>
-                    <Link to="/docs/1.2/">v1.1</Link>
+                    <Link to="/docs/1.4/">1.4</Link>
+                    <Link to="/docs/1.3/">1.3</Link>
+                    <Link to="/docs/1.2/">1.2</Link>
+                    <Link to="/docs/1.1/">1.1</Link>
                   </div>
                 </div>
               </li>
