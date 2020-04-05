@@ -109,9 +109,11 @@
               link: /docs/latest/topics/using/filters/external
             - title: Plugin Filter
               link: /docs/latest/topics/using/filters/plugin
-        - title: Edge Control
+        - title: Service Preview and Edge Control
           items:
-            - title: Introduction to Edge Control
+            - title: Introduction to Service Preview and Edge Control
+              link: /docs/latest/topics/using/edgectl/
+            - title: Edge Control
               link: /docs/latest/topics/using/edgectl/edge-control
             - title: Using Edge Control in CI
               link: /docs/latest/topics/using/edgectl/edge-control-in-ci

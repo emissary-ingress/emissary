@@ -4,17 +4,18 @@ Edge Control is the command-line tool for installing and managing the Ambassador
 
 If you are a developer working on a service that depends on other in-cluster services, use `edgectl connect` to set up connectivity from your laptop to the cluster. This allows software on your laptop, such as your work-in-progress service running in your debugger, to connect to other services in the cluster.
 
-When you want to test your service with traffic from the cluster, use `edgectl intercept` to designate a subset of requests for this service to be redirected to your laptop. You can use those requests to test and debug your local copy of the service running. All other requests will go to the existing service running in the cluster without disruption.
+When you want to test your service with traffic from the cluster, use `edgectl intercept` to designate a subset of requests for this service to be redirected to your laptop. You can use those requests to test and debug your local copy of the service. All other requests will go to the existing service running in the cluster without disruption.
 
-## Install Edge Control: Laptop
+## Installing Edge Control
 
-1. Grab the latest `edgectl` executable and install it somewhere in your shell’s PATH.
+Edge Control is available as a downloadable executable for both Mac OS X and Linux. While Edge Control clients are available for Windows, these binaries do not support Service Preview.
 
 For MacOS:
 
 ```bash
 curl -fLO https://metriton.datawire.io/downloads/darwin/edgectl
 chmod a+x edgectl
+xattr -d com.apple.quarantine edgectl # Give OS X permission to run the executable
 mv edgectl ~/bin  # Somewhere in your PATH
 ```
 
@@ -26,327 +27,164 @@ chmod a+x edgectl
 mv edgectl ~/bin  # Somewhere in your PATH
 ```
 
-Note: Similar instructions work for Windows:
+### Upgrading
 
-```bash
-curl -fLO https://metriton.datawire.io/downloads/windows/edgectl.exe
-mv edgectl.exe C:\windows\  # Somewhere in your PATH
-```
-
-but Edge Control’s cluster features, as described in this document, do not work correctly on Windows at this time.
-
-Note: You can build Edge Control from source, but the straightforward way
-
-```bash
-GO111MODULE=on go get github.com/datawire/ambassador/cmd/edgectl`
-```
-
-leaves you with a binary that has no embedded version number. If you really want to build from source, clone the repository and run `./builder/build_push_cli.sh build`, which will leave a binary in the `~/bin directory`. We will have a better answer for building from source soon.
-
-2. Launch the daemon component using `sudo`:
-
-```bash
-$ sudo edgectl daemon
-Launching Edge Control Daemon v1.0.0-ea5 (api v1)
-```
-
-In order to mediate traffic to your clusters, Edge Control inserts itself into the DNS for your host (this is why it requires root access to run). It intercepts queries to your system’s primary DNS server, responds to queries that have to do with connected clusters, and forwards any other queries on to a fallback DNS server.
-
-By default, the daemon intercepts queries to the primary DNS server listed in `/etc/resolv.conf`, and uses Google DNS on 8.8.8.8 or 8.8.4.4 for its fallback DNS server. You can override the choice of which DNS server to intercept using the `--dns` option, and you can override the fallback server using the `--fallback` option. For example, if `/etc/resolv.conf` is correct, but you have a local DNS server available on 10.0.0.1 that should be used for non-cluster queries, you could run
-
-```bash
-$ sudo edgectl daemon --fallback 10.0.0.1
-Launching Edge Control Daemon v1.0.0-ea5 (api v1)
-```
-
-It's important that the primary DNS server and the fallback server be different. Otherwise Edge Control would forward queries to itself, resulting in a DNS loop.
-
-3. Make sure everything is okay:
-
-```bash
-$ edgectl version
-Client v1.0.0-ea5 (api v1)
-Daemon v1.0.0-ea5 (api v1)
-
-$ edgectl status
-Not connected
-```
-
-The daemon’s logging output may be found in `/tmp/edgectl.log`.
-
-### Upgrade
-
-Tell the running daemon to exit with:
+Make sure you've terminated the daemon.
 
 ```bash
 $ edgectl quit
 Edge Control Daemon quitting...
 ```
 
-Now you can grab the latest binary and launch the daemon again as above.
+Download the latest binary, as above, and replace your existing binary.
 
-## Install Edge Control: Cluster
+## Service Preview Quick Start
 
-Depending on the type of cluster, your operations team may be involved. If you own the cluster, you will likely complete this setup yourself. If the cluster is shared, you may not have permission to complete these next steps, as the cluster owner will need to complete them.
+Service Preview creates a connection between your local environment and the cluster. These connections are managed through the Traffic Manager, which is deployed in your cluster, and the `edgectl` daemon, which runs in your local environment.
 
-### Traffic Manager
+There are three basic commands that are used for Service Preview:
 
-The Traffic Manager is the central point of communication between Traffic Agents in the cluster and Edge Control Daemons on developer workstations.
-
-1. Install the Traffic Manager Kubernetes Deployment and Service using `kubectl`.
-2. Fill in the name of the AES image before applying these manifests.
-3. Note that the Traffic Manager needs access to your Ambassador Edge Stack license key, 
-   so it needs to be installed in the same namespace. The manifests below assume that
-   Ambassador Edge Stack is installed in the `ambassador` namespace.
-4. Note also that the Traffic Manager must currently run as the `root` user.
-5. Save these manifests in a YAML file:
-
-```yaml
-# This is traffic-manager.yaml
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: telepresence-proxy
-  namespace: ambassador
-spec:
-  type: ClusterIP
-  clusterIP: None
-  selector:
-    app: telepresence-proxy
-  ports:
-    - name: sshd
-      protocol: TCP
-      port: 8022
-    - name: api
-      protocol: TCP
-      port: 8081
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: telepresence-proxy
-  namespace: ambassador
-  labels:
-    app: telepresence-proxy
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: telepresence-proxy
-  template:
-    metadata:
-      labels:
-        app: telepresence-proxy
-    spec:
-      containers:
-      - name: telepresence-proxy
-        image: __AES_IMAGE__   # Replace this
-        command: [ "traffic-manager" ]
-        ports:
-          - name: sshd
-            containerPort: 8022
-        env:
-          - name: AMBASSADOR_LICENSE_FILE
-            value: /.config/ambassador/license-key
-        volumeMounts:
-          - mountPath: /tmp/ambassador-pod-info
-            name: ambassador-pod-info
-          - mountPath: /.config/ambassador
-            name: ambassador-edge-stack-secrets
-            readOnly: true
-      restartPolicy: Always
-      terminationGracePeriodSeconds: 0
-      volumes:
-      - downwardAPI:
-          items:
-          - fieldRef:
-              fieldPath: metadata.labels
-            path: labels
-        name: ambassador-pod-info
-      - name: ambassador-edge-stack-secrets
-        secret:
-          secretName: ambassador-edge-stack
-``` 
-
-6. Apply them:
+1. Launch the edgectl daemon:
 
 ```bash
-$ kubectl apply -f traffic-manager.yaml
-service/telepresence-proxy created
-deployment.apps/telepresence-proxy created
+$ sudo edgectl daemon
+Launching Edge Control Daemon v1.3.2 (api v1)
 ```
 
-### Traffic Agent
+2. Connect your laptop to the cluster. This will enable your local environment to initiate traffic to the cluster.
 
-Any microservice running in a cluster with a traffic manager can opt in to intercept functionality by including the Traffic Agent in its pods. 
-
-1. Since the Traffic Agent is built on Ambassador Edge Stack, it needs the same RBAC permissions that Ambassador does. The easiest way to provide this is to create a `ServiceAccount` in your service's namespace, bound to the `ambassador` `ClusterRole`:
-
-```yaml
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: traffic-agent
-  namespace: default
-  labels:
-    product: aes
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRoleBinding
-metadata:
-  name: traffic-agent
-  labels:
-    product: aes
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: ambassador
-subjects:
-- kind: ServiceAccount
-  name: traffic-agent
-  namespace: default
+```
+$ edgectl connect
+Connecting to traffic manager in namespace ambassador...
+Connected to context k3s-default (https://172.20.0.3:6443)
 ```
 
-(If you want to include the Traffic Agent with multiple services, they can all use the same `ServiceAccount`.)
+3. Set up an intercept rule. This will enable the cluster initiate traffic to your local environment.
 
-Copy the above YAML into `traffic-agent-rbac.yaml` and, if necessary, edit the two `namespace`s appropriately. Apply it:
+```
+$ edgectl intercept add hello -n example -m x-dev=jane -t localhost:9000
+
+```
+
+
+## Edge Control commands
+
+### `edgectl connect`
+
+Connect to the cluster. This command allows your local environment to initiate traffic to the cluster, allowing services running locally to send and receive requests to cluster services.
+
+```
+$ edgectl connect
+Connecting to traffic manager in namespace ambassador...
+Connected to context gke_us-east1-b_demo-cluster (https://35.136.57.145)
+```
+
+### `edgectl daemon`
+
+In order to mediate traffic to your clusters, Edge Control inserts itself into the DNS for your host (this is why it requires root access to run). It intercepts queries to your system’s primary DNS server, responds to queries that have to do with connected clusters, and forwards any other queries on to a fallback DNS server.
+
+By default, the daemon intercepts queries to the primary DNS server listed in `/etc/resolv.conf`, and uses Google DNS on 8.8.8.8 or 8.8.4.4 for its fallback DNS server. You can override the choice of which DNS server to intercept using the `--dns` option, and you can override the fallback server using the `--fallback` option.
+
+It's important that the primary DNS server and the fallback server be different. Otherwise Edge Control would forward queries to itself, resulting in a DNS loop.
+
+The daemon’s logging output may be found in `/tmp/edgectl.log`.
+
+#### Examples
+
+Launch Daemon:
 
 ```bash
-$ kubectl apply -f traffic-agent-rbac.yaml
-serviceaccount/traffic-agent created
-clusterrolebinding.rbac.authorization.k8s.io/traffic-agent created
+$ sudo edgectl daemon
+Launching Edge Control Daemon v1.0.0-ea5 (api v1)
 ```
 
-2. Next, you'll need to modify the YAML for each microservice to include the Traffic Agent. We'll start with a set of manifests for a simple microservice:
+If `/etc/resolv.conf` is correct, but you have a local DNS server available on 10.0.0.1 that should be used for non-cluster queries, you could run Configure fallback server:
 
-```yaml
-# This is hello.yaml
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: hello
-  labels:
-    app: hello
-spec:
-  selector:
-    app: hello
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 8000              # Application port
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: hello
-  labels:
-    app: hello
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: hello
-  template:
-    metadata:
-      labels:
-        app: hello
-    spec:
-      containers:                   # Application container
-        - name: hello
-          image: datawire/hello-world:latest
-          ports:
-            - containerPort: 8000   # Application port
+```bash
+$ sudo edgectl daemon --fallback 10.0.0.1
+Launching Edge Control Daemon v1.0.0-ea5 (api v1)
 ```
 
-In order to run the sidecar:
-- you need to include the Traffic Agent container in the microservice pod;
-- you need to switch the microservice's `Service` definition to point to the Traffic Agent's listening port (currently 8080 or 8443); and
-- you need to tell the Traffic Agent how to set up for the microservice, using environment variables.
+### `edgectl disconnect`
 
-Here is a modified set of manifests that includes the Traffic Agent (with notes below):
+Disconnect from the cluster.
 
-```yaml
-# This is hello-intercept.yaml
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: hello
-  labels:
-    app: hello
-spec:
-  selector:
-    app: hello
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 8080              # Traffic Agent port (note 1)
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: hello
-  labels:
-    app: hello
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: hello
-  template:
-    metadata:
-      labels:
-        app: hello
-    spec:
-      containers:
-        - name: hello               # Application container (note 2)
-          image: datawire/hello-world:latest
-          ports:
-            - containerPort: 8000   # Application port
-        - name: traffic-agent       # Traffic Agent container (note 3)
-          image: __AES_IMAGE__      # Replace this (note 4)
-          ports:
-            - containerPort: 8080   # Traffic Agent port
-          env:
-          - name: AGENT_SERVICE     # Name to use for intercepting (note 5)
-            value: hello
-          - name: AGENT_PORT        # Port on which to talk to the microservice (note 6)
-            value: "8000"
-          - name: AGENT_MANAGER_NAMESPACE # Namespace for contacting the Traffic Manager (note 7)
-            value: ambassador
-          - name: AMBASSADOR_NAMESPACE # Namespace in which this microservice is running (note 8)
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.namespace
-      serviceAccountName: traffic-agent
+### `edgectl intercept`
+
+Intercept enables the cluster to initiate traffic to the local environment. To prevent unwanted traffic from being routed to the cluster, `intercept` creates routing rules that specify which traffic to send to the local environment. An `intercept` is created on a per (Kubernetes) deployment basis. Each deployment must have a traffic agent installed in order for `intercept` to function.
+
+#### `edgectl intercept available`
+
+List available Kubernetes deployments for intercept.
+
+```
+$ edgectl intercept available
+Found 2 interceptable deployment(s):
+   1. xyz in namespace default
+   2. hello in namespace default
 ```
 
-Key points include:
+#### `edgectl intercept list`
 
-- **Note 1**: The `Service` now points to the Traffic Agent’s port (8080) instead of the application’s port (8000).
-- **Note 2**: The microservice's application container is actually unchanged.
-- **Note 3**: The Traffic Agent's container has been added.
-- **Note 4**: The Traffic Agent is included in the AES image. You'll need to edit this to have the actual image name.
-- **Note 5**: The `AGENT_SERVICE` environment variable is mandatory. It sets the name that the Traffic Agent will report to the Traffic Manager for this microservice: you will have to provide this name to intercept this microservice.
-- **Note 6**: The `AGENT_PORT` environment variable is mandatory. It tells the Traffic Agent the local port on which the microservice is listening.
-- **Note 7**: The `AGENT_MANAGER_NAMESPACE` environment variable tells the Traffic Agent the namespace in which it will be able to find the Traffic Manager. If not present, it defaults to the `ambassador` namespace.
-- **Note 8**: The `AMBASSADOR_NAMESPACE` environment variable is mandatory. It lets the Traffic Agent tell the Traffic Manager the namespace in which the microservice is running. 
+List the current active intercepts.
 
-In the future we will offer a tool to automate injecting the traffic agent into an existing microservice.
+#### `edgectl intercept add`
 
-#### TLS Support
+Add an intercept. The basic format of this command is:
 
-If other microservices in the cluster expect to speak TLS to this microservice, tell the Traffic Agent to terminate TLS:
-- Set the `AGENT_TLS_TERM_SECRET` environment variable to the name of a Kubernetes Secret that contains a TLS certificate
-- The Traffic Agent will terminate TLS on port 8443 (not port 8080) using the named certificate
-- The Kubernetes Service above must point to port 8443, not 8080 (and not the application's port)
+```
+  edgectl intercept add DEPLOYMENT -n NAME -t [HOST:]PORT -m HEADER=REGEX ...
+```
 
-If this microservice expects incoming requests to speak TLS, tell the Traffic Agent to originate TLS:
-- Set the `AGENT_TLS_ORIG_SECRET` environment variable to the name of a Kubernetes Secret that contains a TLS certificate
-- The Traffic Agent will use that certificate originate HTTPS requests to the application
+* DEPLOYMENT specifies a Kubernetes deployment with a traffic agent installed. You can get the list of available deployments with the `intercept available` command.
+* `--name` or `-n` specifies a name for an intercept.
+* `--target` or `-t` specifies the target of an intercept. Typically, this is a service running in the local environment that is a virtual replacement for the deployment in the cluster.
+* `--match` or `-m` specifies a match rule on requests. Requests that are sent to the traffic agent that match this rule will be routed to the target.
+
+A few other options to `intercept` include:
+
+* `--namespace` to specify the Kubernetes namespace in which to create a mapping for intercept
+* `--prefix` or `-p` which specifies a prefix to intercept (the default is `/`)
+
+#### Example
+
+Intercept all requests to the `hello` deployment that match the HTTP `x-dev` header with a value of `jane` to a service running locally on port 9000:
+
+```
+$ edgectl intercept add hello -n example -m x-dev=jane -t localhost:9000
+Added intercept "example"
+```
+
+### `edgectl pause`
+
+Pause the daemon. The network overrides used by the edgectl daemon are temporarily disabled. Typically, this is used for connecting with a VPN that is not compatible with Edge Control.
+
+```
+$ edgectl pause
+Network overrides paused.
+Use "edgectl resume" to reestablish network overrides.
+```
+
+### `edgectl quit`
+
+Quit the daemon. Ensure that the daemon has quit prior to upgrades.
+
+### `edgectl resume`
+
+Resume the daemon. Used after `edgectl pause`.
+
+### `edgectl status`
+
+Print the status of Edge Control, including the Kubernetes context that is currently being used.
+
+```
+$ edgectl status
+Connected
+  Context:       gke_us-east1-b_demo-cluster (https://35.136.57.145)
+  Proxy:         ON (networking to the cluster is enabled)
+  Interceptable: 2 deployments
+  Intercepts:    0 total, 0 local
+```
 
 ## Usage: Outbound Services
 
