@@ -89,3 +89,66 @@ and the CI will be green.
       - If you want to test before submitting, use `npm install && npm start` and point a web browser to `localhost:8000`
 
    Submit a PR to the Ambassador website repository to update the version on the homepage.
+
+---
+
+### Host a release branch on getambassador.io
+
+getambassador.io can host multiple versions of ambassador documentation. As a matter of policy, only the documentation for major and minor releases is hosted, documentation changes for patch releases are expected to be folded in the associated minor release.
+
+After a new major/minor release is cut, this is how to host it on the website.
+For example, let's suppose version 1.4 of ambassador needs to be hosted.
+
+##### In ambassador.git,
+
+- In the branch `release/v1.4`,
+  - In `docs/js/doc-page.js`, update Sidebar's prefix to `/docs/latest`
+  ```js
+  <Sidebar location={location} prefix="/docs/latest" items={docLinks} />
+  ```
+
+##### In getambassador.io.git,
+- Add the submodule pointing to `release/v1.4` branch to the `submodules/1.4/` directory
+```
+git submodule add --name ambassador-1.4 --branch release/v1.4 https://github.com/datawire/ambassador.git submodules/1.4/
+```
+- Now link only the docs in this branch under `/docs-structure/docs/` directory.
+```
+cd docs-structure/docs/
+ln -s ../../submodules/1.4/docs 1.4
+```
+- Add 1.4 dropdown link in `src/components/Header/Header.js` file.
+```js
+              <li>
+                <div className={classnames(styles.Dropdown, !isDocLink((location || {}).pathname) && styles.hidden)}>
+                  <button className={classnames(styles.DropdownButton, styles.DocsDropdownColor)}>{ docsVersion((location || {}).pathname) } ▾</button>
+                  <div className={styles.DropdownContent}>
+                    <Link to="/docs/latest/">Latest</Link>
+                    <Link to="/docs/1.4/">v1.4</Link>
+                    <Link to="/docs/1.3/">v1.3</Link>
+                    <Link to="/docs/1.2/">v1.2</Link>
+                    <Link to="/docs/1.2/">v1.1</Link>
+                  </div>
+                </div>
+              </li>
+```
+
+##### Note:
+Now, the website must now display v1.4 docs under getambassador.io/docs/. Make sure everything looks right.
+
+##### In ambassador.git,
+
+Now that the latest release is `1.4`, we need to remove that tag from `1.3`.
+
+- In the branch `release/v1.3`,
+  - In `docs/js/doc-page.js`, update Sidebar's prefix to `/docs/1.3`
+  ```js
+  <Sidebar location={location} prefix="/docs/1.3" items={docLinks} />
+  ```
+
+##### Note:
+You should be all set now.
+- `/docs/latest/` must now show v1.4 docs.
+- `/docs/1.4/` must now point to `/docs/latest/`.
+- `/docs/1.3/` must now show docs under `release/v1.3` branch.
+- The rest of the versions must also show the right set of docs.
