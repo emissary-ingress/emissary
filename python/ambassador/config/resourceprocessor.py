@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, ClassVar, ContextManager, Dict, FrozenSet, Iterator, List, Mapping, Optional, Set
+from typing import Any, ClassVar, ContextManager, Dict, FrozenSet, Iterator, List, Mapping, Optional, Type, TypeVar, Set
 
 import collections
 import collections.abc
@@ -16,55 +16,6 @@ from .config import Config
 from .acresource import ACResource
 
 from ..utils import dump_yaml
-
-
-@dataclasses.dataclass(frozen=True)
-class ResourceKind:
-    """
-    Represents a Kubernetes resource type (API version and kind).
-    """
-
-    api_version: str
-    kind: str
-
-    @property
-    def api_group(self) -> Optional[str]:
-        # These are backward-indexed to support apiVersion: v1, which has a
-        # version but no group.
-        try:
-            return self.api_version.split('/', 1)[-2]
-        except IndexError:
-            return None
-
-    @property
-    def version(self) -> str:
-        return self.api_version.split('/', 1)[-1]
-
-    @property
-    def domain(self) -> str:
-        if self.api_group:
-            return f'{self.kind.lower()}.{self.api_group}'
-        else:
-            return self.kind.lower()
-
-    @classmethod
-    def for_ambassador(cls, kind: str) -> ResourceKind:
-        return cls('getambassador.io/v2', kind)
-
-    @classmethod
-    def for_knative_networking(cls, kind: str) -> ResourceKind:
-        return cls('networking.internal.knative.dev/v1alpha1', kind)
-
-
-@dataclasses.dataclass(frozen=True)
-class ResourceIdent:
-    """
-    Represents a single Kubernetes resource by kind and name.
-    """
-
-    kind: ResourceKind
-    namespace: Optional[str]
-    name: str
 
 
 @dataclasses.dataclass
@@ -128,9 +79,86 @@ class LocationManager:
         return current
 
 
-class ResourceDict(collections.abc.Mapping):
+@dataclasses.dataclass
+class ResourceEmission:
     """
-    Represents a raw resource from Kubernetes.
+    Represents an Ambassador resource emitted after processing fetched data.
+    """
+
+    object: dict
+    rkey: Optional[str] = None
+
+    @classmethod
+    def from_data(cls, kind: str, name: str, namespace: str = 'default', generation: int = 1,
+                  version: str = 'v2', labels: Dict[str, Any] = None, spec: Dict[str, Any] = None) -> ResourceEmission:
+        rkey = f'{name}.{namespace}'
+
+        ir_obj = {}
+        if spec:
+            ir_obj.update(spec)
+
+        ir_obj['apiVersion'] = f'getambassador.io/{version}'
+        ir_obj['name'] = name
+        ir_obj['namespace'] = namespace
+        ir_obj['kind'] = kind
+        ir_obj['generation'] = generation
+        ir_obj['labels'] = labels or {}
+
+        return cls(ir_obj, rkey)
+
+
+@dataclasses.dataclass(frozen=True)
+class KubernetesGVK:
+    """
+    Represents a Kubernetes resource type (API group, version and kind).
+    """
+
+    api_version: str
+    kind: str
+
+    @property
+    def api_group(self) -> Optional[str]:
+        # These are backward-indexed to support apiVersion: v1, which has a
+        # version but no group.
+        try:
+            return self.api_version.split('/', 1)[-2]
+        except IndexError:
+            return None
+
+    @property
+    def version(self) -> str:
+        return self.api_version.split('/', 1)[-1]
+
+    @property
+    def domain(self) -> str:
+        if self.api_group:
+            return f'{self.kind.lower()}.{self.api_group}'
+        else:
+            return self.kind.lower()
+
+    @classmethod
+    def for_ambassador(cls, kind: str) -> KubernetesGVK:
+        return cls('getambassador.io/v2', kind)
+
+    @classmethod
+    def for_knative_networking(cls, kind: str) -> KubernetesGVK:
+        return cls('networking.internal.knative.dev/v1alpha1', kind)
+
+
+@dataclasses.dataclass(frozen=True)
+class KubernetesObjectKey:
+    """
+    Represents a single Kubernetes resource by kind and name.
+    """
+
+    gvk: KubernetesGVK
+    namespace: Optional[str]
+    name: str
+
+
+class KubernetesObject(collections.abc.Mapping):
+    """
+    Represents a raw object from Kubernetes.
     """
 
     default_namespace: Optional[str]
@@ -140,10 +168,10 @@ class ResourceDict(collections.abc.Mapping):
         self.default_namespace = default_namespace
 
         try:
-            self.kind
+            self.gvk
             self.name
         except KeyError:
-            raise ValueError('delegate is not a valid Kubernetes resource')
+            raise ValueError('delegate is not a valid Kubernetes object')
 
     def __getitem__(self, key: str) -> Any:
         return self.delegate[key]
@@ -155,8 +183,8 @@ class ResourceDict(collections.abc.Mapping):
         return len(self.delegate)
 
     @property
-    def kind(self) -> ResourceKind:
-        return ResourceKind(self['apiVersion'], self['kind'])
+    def gvk(self) -> KubernetesGVK:
+        return KubernetesGVK(self['apiVersion'], self['kind'])
 
     @property
     def metadata(self) -> Dict[str, Any]:
@@ -175,8 +203,8 @@ class ResourceDict(collections.abc.Mapping):
         return self.metadata['name']
 
     @property
-    def ident(self) -> ResourceIdent:
-        return ResourceIdent(self.kind, self.namespace, self.name)
+    def key(self) -> KubernetesObjectKey:
+        return KubernetesObjectKey(self.gvk, self.namespace, self.name)
 
     @property
     def generation(self) -> int:
@@ -202,46 +230,23 @@ class ResourceDict(collections.abc.Mapping):
     def status(self) -> Dict[str, Any]:
         return self.get('status', {})
 
+    def as_resource_emission(self) -> ResourceEmission:
+        if self.gvk.api_group != 'getambassador.io':
+            raise ValueError(f'Cannot construct resource from non-Ambassador Kubernetes object with API version {self.gvk.api_version}')
+        if self.namespace is None:
+            raise ValueError(f'Cannot construct resource from Kubernetes object {self.key} without namespace')
 
-@dataclasses.dataclass
-class ResourceEmission:
-    """
-    Represents an object emitted after processing a resource.
-    """
+        labels = dict(self.labels)
+        labels['ambassador_crd'] = f"{self.name}.{self.namespace}"
 
-    object: dict
-    rkey: Optional[str] = None
-
-    @classmethod
-    def from_data(cls, kind: ResourceKind, name: str, namespace: str = 'default',
-                  generation: int = 1, labels: Dict[str, Any] = None, spec: Dict[str, Any] = None) -> ResourceEmission:
-        rkey = f'{name}.{namespace}'
-
-        ir_obj = {}
-        if spec:
-            ir_obj.update(spec)
-
-        ir_obj['apiVersion'] = kind.api_version
-        ir_obj['name'] = name
-        ir_obj['namespace'] = namespace
-        ir_obj['kind'] = kind.kind
-        ir_obj['generation'] = generation
-        ir_obj['labels'] = labels or {}
-
-        return cls(ir_obj, rkey)
-
-    @classmethod
-    def from_resource(cls, obj: ResourceDict) -> ResourceEmission:
-        labels = dict(obj.labels)
-        labels['ambassador_crd'] = f"{obj.name}.{obj.namespace or 'default'}"
-
-        return cls.from_data(
-            obj.kind,
-            obj.name,
-            namespace=obj.namespace or 'default',
-            generation=obj.generation,
+        return ResourceEmission.from_data(
+            self.gvk.kind,
+            self.name,
+            namespace=self.namespace,
+            generation=self.generation,
+            version=self.gvk.version,
             labels=labels,
-            spec=obj.spec,
+            spec=self.spec,
         )
 
 
@@ -253,7 +258,7 @@ class ResourceManager:
     logger: logging.Logger
     aconf: Config
     locations: LocationManager
-    ambassador_service: Optional[ResourceDict]
+    ambassador_service: Optional[KubernetesObject]
     elements: List[ACResource]
     services: Dict[str, Dict[str, Any]]
 
@@ -342,25 +347,25 @@ class ResourceManager:
             self.locations.current.ocount += 1
 
 
-class ResourceProcessor:
+class KubernetesProcessor:
     """
-    An abstract processor for Kubernetes resources that emit configuration
+    An abstract processor for Kubernetes objects that emit configuration
     resources.
     """
 
-    def kinds(self) -> FrozenSet[ResourceKind]:
+    def kinds(self) -> FrozenSet[KubernetesGVK]:
         # Override kinds to describe the types of resources this processor wants
         # to process.
         return frozenset()
 
-    def _process(self, obj: ResourceDict) -> None:
+    def _process(self, obj: KubernetesObject) -> None:
         # Override _process to handle a single resource. Note that the entry
         # point for _process is try_process; _process should not be called
         # directly.
         pass
 
-    def try_process(self, obj: ResourceDict) -> bool:
-        if obj.kind not in self.kinds():
+    def try_process(self, obj: KubernetesObject) -> bool:
+        if obj.gvk not in self.kinds():
             return False
 
         self._process(obj)
@@ -372,7 +377,7 @@ class ResourceProcessor:
         pass
 
 
-class ManagedResourceProcessor (ResourceProcessor):
+class ManagedKubernetesProcessor (KubernetesProcessor):
     """
     An abstract processor that provides access to a resource manager.
     """
@@ -391,12 +396,12 @@ class ManagedResourceProcessor (ResourceProcessor):
         return self.manager.logger
 
 
-class AmbassadorResourceProcessor (ManagedResourceProcessor):
+class AmbassadorProcessor (ManagedKubernetesProcessor):
     """
-    A resource processor that emits direct IR from an Ambassador CRD.
+    A Kubernetes object processor that emits direct IR from an Ambassador CRD.
     """
 
-    def kinds(self) -> FrozenSet[ResourceKind]:
+    def kinds(self) -> FrozenSet[KubernetesGVK]:
         kinds = [
             'AuthService',
             'ConsulResolver',
@@ -412,28 +417,28 @@ class AmbassadorResourceProcessor (ManagedResourceProcessor):
             'TracingService',
         ]
 
-        return frozenset([ResourceKind.for_ambassador(kind) for kind in kinds])
+        return frozenset([KubernetesGVK.for_ambassador(kind) for kind in kinds])
 
-    def _process(self, obj: ResourceDict) -> None:
-        self.manager.emit(ResourceEmission.from_resource(obj))
+    def _process(self, obj: KubernetesObject) -> None:
+        self.manager.emit(obj.as_resource_emission())
 
 
-class KnativeIngressResourceProcessor (ManagedResourceProcessor):
+class KnativeIngressProcessor (ManagedKubernetesProcessor):
     """
-    A resource processor that emits mappings from Knative Ingresses.
+    A Kubernetes object processor that emits mappings from Knative Ingresses.
     """
 
     INGRESS_CLASS: ClassVar[str] = 'ambassador.ingress.networking.knative.dev'
 
-    def kinds(self) -> FrozenSet[ResourceKind]:
+    def kinds(self) -> FrozenSet[KubernetesGVK]:
         kinds = [
             'Ingress',
             'ClusterIngress',
         ]
 
-        return frozenset([ResourceKind.for_knative_networking(kind) for kind in kinds])
+        return frozenset([KubernetesGVK.for_knative_networking(kind) for kind in kinds])
 
-    def _has_required_annotations(self, obj: ResourceDict) -> bool:
+    def _has_required_annotations(self, obj: KubernetesObject) -> bool:
         annotations = obj.annotations
 
         # Let's not parse KnativeIngress if it's not meant for us. We only need
@@ -442,18 +447,18 @@ class KnativeIngressResourceProcessor (ManagedResourceProcessor):
         # classes.
         ingress_class = annotations.get('networking.knative.dev/ingress.class', self.INGRESS_CLASS)
         if ingress_class.lower() != self.INGRESS_CLASS:
-            self.logger.debug(f'Ignoring Knative {obj.kind.kind} {obj.name}; set networking.knative.dev/ingress.class '
+            self.logger.debug(f'Ignoring Knative {obj.gvk.kind} {obj.name}; set networking.knative.dev/ingress.class '
                               f'annotation to {self.INGRESS_CLASS} for ambassador to parse it.')
             return False
 
         # We don't want to deal with non-matching Ambassador IDs
         if obj.ambassador_id != Config.ambassador_id:
-            self.logger.info(f"Knative {obj.kind.kind} {obj.name} does not have Ambassador ID {Config.ambassador_id}, ignoring...")
+            self.logger.info(f"Knative {obj.gvk.kind} {obj.name} does not have Ambassador ID {Config.ambassador_id}, ignoring...")
             return False
 
         return True
 
-    def _emit_mapping(self, obj: ResourceDict, rule_count: int, rule: Dict[str, Any]) -> None:
+    def _emit_mapping(self, obj: KubernetesObject, rule_count: int, rule: Dict[str, Any]) -> None:
         hosts = rule.get('hosts', [])
 
         split_mapping_specs: List[Dict[str, Any]] = []
@@ -493,7 +498,7 @@ class KnativeIngressResourceProcessor (ManagedResourceProcessor):
             spec.update(split_mapping_spec)
 
             mapping = ResourceEmission.from_data(
-                ResourceKind.for_ambassador('Mapping'),
+                'Mapping',
                 mapping_identifier,
                 namespace=obj.namespace or 'default',
                 generation=obj.generation,
@@ -501,7 +506,7 @@ class KnativeIngressResourceProcessor (ManagedResourceProcessor):
                 spec=spec,
             )
 
-            self.logger.debug(f"Generated mapping from Knative {obj.kind.kind}: {mapping}")
+            self.logger.debug(f"Generated mapping from Knative {obj.gvk.kind}: {mapping}")
             self.manager.emit(mapping)
 
     def _make_status(self, generation: int = 1, lb_domain: Optional[str] = None) -> Dict[str, Any]:
@@ -541,7 +546,7 @@ class KnativeIngressResourceProcessor (ManagedResourceProcessor):
 
         return status
 
-    def _update_status(self, obj: ResourceDict) -> None:
+    def _update_status(self, obj: KubernetesObject) -> None:
         current_generation = obj.spec.get('generation', 1)
         has_new_generation = current_generation > obj.status.get('observedGeneration', 0)
 
@@ -553,7 +558,7 @@ class KnativeIngressResourceProcessor (ManagedResourceProcessor):
         current_lb_domain = None
 
         if not self.manager.ambassador_service or not self.manager.ambassador_service.name:
-            self.logger.warning(f"Unable to set Knative {obj.kind.kind} {obj.name}'s load balancer, could not find Ambassador service")
+            self.logger.warning(f"Unable to set Knative {obj.gvk.kind} {obj.name}'s load balancer, could not find Ambassador service")
         else:
             # TODO: It is technically possible to use a domain other than
             # cluster.local (common-ish on bare metal clusters). We can resolve
@@ -569,14 +574,14 @@ class KnativeIngressResourceProcessor (ManagedResourceProcessor):
 
         if has_new_generation or has_new_lb_domain:
             status = self._make_status(generation=current_generation, lb_domain=current_lb_domain)
-            status_update = (obj.kind.domain, obj.namespace, status)
+            status_update = (obj.gvk.domain, obj.namespace, status)
 
-            self.logger.info(f"Updating Knative {obj.kind.kind} {obj.name} status to {status_update}")
+            self.logger.info(f"Updating Knative {obj.gvk.kind} {obj.name} status to {status_update}")
             self.aconf.k8s_status_updates[f"{obj.name}.{obj.namespace}"] = status_update
         else:
-            self.logger.debug(f"Not reconciling Knative {obj.kind.kind} {obj.name}: observed and current generations are in sync")
+            self.logger.debug(f"Not reconciling Knative {obj.gvk.kind} {obj.name}: observed and current generations are in sync")
 
-    def _process(self, obj: ResourceDict) -> None:
+    def _process(self, obj: KubernetesObject) -> None:
         if not self._has_required_annotations(obj):
             return
 
@@ -587,16 +592,16 @@ class KnativeIngressResourceProcessor (ManagedResourceProcessor):
         self._update_status(obj)
 
 
-class AggregateResourceProcessor (ResourceProcessor):
+class AggregateKubernetesProcessor (KubernetesProcessor):
     """
-    This resource processor aggregates many resource processors into a single
-    convenient processor.
+    This processor aggregates many other processors into a single convenient
+    processor.
     """
 
-    delegates: List[ResourceProcessor]
-    mapping: Mapping[ResourceKind, List[ResourceProcessor]]
+    delegates: List[KubernetesProcessor]
+    mapping: Mapping[KubernetesGVK, List[KubernetesProcessor]]
 
-    def __init__(self, delegates: List[ResourceProcessor]) -> None:
+    def __init__(self, delegates: List[KubernetesProcessor]) -> None:
         self.delegates = delegates
         self.mapping = collections.defaultdict(list)
 
@@ -604,11 +609,11 @@ class AggregateResourceProcessor (ResourceProcessor):
             for kind in proc.kinds():
                 self.mapping[kind].append(proc)
 
-    def kinds(self) -> FrozenSet[ResourceKind]:
+    def kinds(self) -> FrozenSet[KubernetesGVK]:
         return frozenset(iter(self.mapping))
 
-    def _process(self, obj: ResourceDict) -> None:
-        procs = self.mapping.get(obj.kind, [])
+    def _process(self, obj: KubernetesObject) -> None:
+        procs = self.mapping.get(obj.gvk, [])
         for proc in procs:
             proc.try_process(obj)
 
@@ -617,50 +622,50 @@ class AggregateResourceProcessor (ResourceProcessor):
             proc.finalize()
 
 
-class DeduplicatingResourceProcessor (ResourceProcessor):
+class DeduplicatingKubernetesProcessor (KubernetesProcessor):
     """
-    This resource processor delegates work to another processor but prevents the
-    same object from being processed multiple times.
+    This processor delegates work to another processor but prevents the same
+    Kubernetes object from being processed multiple times.
     """
 
-    delegate: ResourceProcessor
-    cache: Set[ResourceIdent]
+    delegate: KubernetesProcessor
+    cache: Set[KubernetesObjectKey]
 
-    def __init__(self, delegate: ResourceProcessor) -> None:
+    def __init__(self, delegate: KubernetesProcessor) -> None:
         self.delegate = delegate
         self.cache = set()
 
-    def kinds(self) -> FrozenSet[ResourceKind]:
+    def kinds(self) -> FrozenSet[KubernetesGVK]:
         return self.delegate.kinds()
 
-    def _process(self, obj: ResourceDict) -> None:
-        if obj.ident in self.cache:
+    def _process(self, obj: KubernetesObject) -> None:
+        if obj.key in self.cache:
             return
 
-        self.cache.add(obj.ident)
+        self.cache.add(obj.key)
         self.delegate.try_process(obj)
 
     def finalize(self):
         self.delegate.finalize()
 
 
-class CounterResourceProcessor (ResourceProcessor):
+class CountingKubernetesProcessor (KubernetesProcessor):
     """
-    This resource processor increments a given configuration counter when it
-    receives a resource.
+    This processor increments a given configuration counter when it receives an
+    object.
     """
 
     aconf: Config
-    kind: ResourceKind
+    kind: KubernetesGVK
     key: str
 
-    def __init__(self, aconf: Config, kind: ResourceKind, key: str) -> None:
+    def __init__(self, aconf: Config, kind: KubernetesGVK, key: str) -> None:
         self.aconf = aconf
         self.kind = kind
         self.key = key
 
-    def kinds(self) -> FrozenSet[ResourceKind]:
+    def kinds(self) -> FrozenSet[KubernetesGVK]:
         return frozenset([self.kind])
 
-    def _process(self, obj: ResourceDict) -> None:
+    def _process(self, obj: KubernetesObject) -> None:
         self.aconf.incr_count(self.key)

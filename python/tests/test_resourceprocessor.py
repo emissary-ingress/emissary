@@ -4,23 +4,24 @@ import pytest
 
 from ambassador import Config
 from ambassador.config.resourceprocessor import (
-    ResourceKind,
-    ResourceDict,
     ResourceEmission,
     LocationManager,
-    ResourceProcessor,
-    AggregateResourceProcessor,
-    CounterResourceProcessor,
-    DeduplicatingResourceProcessor,
+    KubernetesProcessor,
+    KubernetesGVK,
+    KubernetesObject,
+    AggregateKubernetesProcessor,
+    CountingKubernetesProcessor,
+    DeduplicatingKubernetesProcessor,
+    AmbassadorProcessor,
 )
 from ambassador.utils import parse_yaml
 
 
-def resource_dict_from_yaml(yaml: str, **kwargs) -> ResourceDict:
-    return ResourceDict(parse_yaml(yaml)[0], **kwargs)
+def k8s_object_from_yaml(yaml: str, **kwargs) -> KubernetesObject:
+    return KubernetesObject(parse_yaml(yaml)[0], **kwargs)
 
 
-valid_knative_ingress = resource_dict_from_yaml('''
+valid_knative_ingress = k8s_object_from_yaml('''
 ---
 apiVersion: networking.internal.knative.dev/v1alpha1
 kind: Ingress
@@ -62,7 +63,7 @@ status:
   observedGeneration: 2
 ''')
 
-valid_mapping = resource_dict_from_yaml('''
+valid_mapping = k8s_object_from_yaml('''
 ---
 apiVersion: getambassador.io/v2
 kind: Mapping
@@ -74,31 +75,31 @@ spec:
 ''', default_namespace='default')
 
 
-class TestResourceKind:
+class TestKubernetesGVK:
 
     def test_legacy(self):
-        rk = ResourceKind('v1', 'Service')
+        gvk = KubernetesGVK('v1', 'Service')
 
-        assert rk.api_version == 'v1'
-        assert rk.kind == 'Service'
-        assert rk.api_group is None
-        assert rk.version == 'v1'
-        assert rk.domain == 'service'
+        assert gvk.api_version == 'v1'
+        assert gvk.kind == 'Service'
+        assert gvk.api_group is None
+        assert gvk.version == 'v1'
+        assert gvk.domain == 'service'
 
     def test_group(self):
-        rk = ResourceKind.for_ambassador('Mapping')
+        gvk = KubernetesGVK.for_ambassador('Mapping')
 
-        assert rk.api_version == 'getambassador.io/v2'
-        assert rk.kind == 'Mapping'
-        assert rk.api_group == 'getambassador.io'
-        assert rk.version == 'v2'
-        assert rk.domain == 'mapping.getambassador.io'
+        assert gvk.api_version == 'getambassador.io/v2'
+        assert gvk.kind == 'Mapping'
+        assert gvk.api_group == 'getambassador.io'
+        assert gvk.version == 'v2'
+        assert gvk.domain == 'mapping.getambassador.io'
 
 
-class TestResourceDict:
+class TestKubernetesObject:
 
     def test_valid(self):
-        assert valid_knative_ingress.kind == ResourceKind.for_knative_networking('Ingress')
+        assert valid_knative_ingress.gvk == KubernetesGVK.for_knative_networking('Ingress')
         assert valid_knative_ingress.namespace == 'test'
         assert valid_knative_ingress.name == 'helloworld-go'
         assert valid_knative_ingress.generation == 2
@@ -112,18 +113,18 @@ class TestResourceDict:
         assert valid_mapping.namespace == 'default'
 
     def test_invalid(self):
-        with pytest.raises(ValueError, match='not a valid Kubernetes resource'):
-            resource_dict_from_yaml('apiVersion: v1')
+        with pytest.raises(ValueError, match='not a valid Kubernetes object'):
+            k8s_object_from_yaml('apiVersion: v1')
 
 
 class TestResourceEmission:
 
-    def test_from_resource(self):
-        emission = ResourceEmission.from_resource(valid_mapping)
+    def test_kubernetes_object_conversion(self):
+        emission = valid_mapping.as_resource_emission()
 
         assert emission.rkey == f'{valid_mapping.name}.{valid_mapping.namespace}'
-        assert emission.object['apiVersion'] == valid_mapping.kind.api_version
-        assert emission.object['kind'] == valid_mapping.kind.kind
+        assert emission.object['apiVersion'] == valid_mapping.gvk.api_version
+        assert emission.object['kind'] == valid_mapping.gvk.kind
         assert emission.object['name'] == valid_mapping.name
         assert emission.object['namespace'] == valid_mapping.namespace
         assert emission.object['generation'] == valid_mapping.generation
@@ -163,7 +164,7 @@ class TestLocationManager:
         assert lm.current.ocount == 1
 
 
-class FinalizingResourceProcessor (ResourceProcessor):
+class FinalizingKubernetesProcessor (KubernetesProcessor):
 
     finalize: bool = False
 
@@ -171,57 +172,57 @@ class FinalizingResourceProcessor (ResourceProcessor):
         self.finalized = True
 
 
-class TestAggregateResourceProcessor:
+class TestAggregateKubernetesProcessor:
 
     def test_aggregation(self):
         aconf = Config()
 
-        frp = FinalizingResourceProcessor()
+        fp = FinalizingKubernetesProcessor()
 
-        rp = AggregateResourceProcessor([
-            CounterResourceProcessor(aconf, valid_knative_ingress.kind, 'test_1'),
-            CounterResourceProcessor(aconf, valid_mapping.kind, 'test_2'),
-            frp,
+        p = AggregateKubernetesProcessor([
+            CountingKubernetesProcessor(aconf, valid_knative_ingress.gvk, 'test_1'),
+            CountingKubernetesProcessor(aconf, valid_mapping.gvk, 'test_2'),
+            fp,
         ])
 
-        assert len(rp.kinds()) == 2
+        assert len(p.kinds()) == 2
 
-        assert rp.try_process(valid_knative_ingress)
-        assert rp.try_process(valid_mapping)
+        assert p.try_process(valid_knative_ingress)
+        assert p.try_process(valid_mapping)
 
         assert aconf.get_count('test_1') == 1
         assert aconf.get_count('test_2') == 1
 
-        rp.finalize()
-        assert frp.finalized, 'Aggregate resource processor did not call finalizers'
+        p.finalize()
+        assert fp.finalized, 'Aggregate processor did not call finalizers'
 
 
-class TestDeduplicatingResourceProcessor:
+class TestDeduplicatingKubernetesProcessor:
 
     def test_deduplication(self):
         aconf = Config()
 
-        rp = DeduplicatingResourceProcessor(CounterResourceProcessor(aconf, valid_mapping.kind, 'test'))
+        p = DeduplicatingKubernetesProcessor(CountingKubernetesProcessor(aconf, valid_mapping.gvk, 'test'))
 
-        assert rp.try_process(valid_mapping)
-        assert rp.try_process(valid_mapping)
-        assert rp.try_process(valid_mapping)
+        assert p.try_process(valid_mapping)
+        assert p.try_process(valid_mapping)
+        assert p.try_process(valid_mapping)
 
         assert aconf.get_count('test') == 1
 
 
-class TestCounterResourceProcessor:
+class TestCountingKubernetesProcessor:
 
     def test_count(self):
         aconf = Config()
 
-        rp = CounterResourceProcessor(aconf, valid_mapping.kind, 'test')
+        p = CountingKubernetesProcessor(aconf, valid_mapping.gvk, 'test')
 
-        assert rp.try_process(valid_mapping), 'Resource processor rejected matching resource'
-        assert rp.try_process(valid_mapping), 'Resource processor rejected matching resource (again)'
-        assert not rp.try_process(valid_knative_ingress), 'Resource processor accepted non-matching resource'
+        assert p.try_process(valid_mapping), 'Processor rejected matching resource'
+        assert p.try_process(valid_mapping), 'Processor rejected matching resource (again)'
+        assert not p.try_process(valid_knative_ingress), 'Processor accepted non-matching resource'
 
-        assert aconf.get_count('test') == 2, 'Resource processor did not increment counter'
+        assert aconf.get_count('test') == 2, 'Processor did not increment counter'
 
 
 if __name__ == '__main__':

@@ -9,15 +9,15 @@ import re
 from .config import Config
 from .acresource import ACResource
 from .resourceprocessor import (
-    ResourceDict,
     ResourceEmission,
-    ResourceKind,
     ResourceManager,
-    ResourceProcessor,
-    AggregateResourceProcessor,
-    DeduplicatingResourceProcessor,
-    CounterResourceProcessor,
-    KnativeIngressResourceProcessor,
+    KubernetesObject,
+    KubernetesGVK,
+    KubernetesProcessor,
+    AggregateKubernetesProcessor,
+    DeduplicatingKubernetesProcessor,
+    CountingKubernetesProcessor,
+    KnativeIngressProcessor,
 )
 
 from ..utils import parse_yaml, dump_yaml
@@ -62,20 +62,20 @@ k8sLabelMatcher = re.compile(r'([\w\-_./]+)=\"(.+)\"')
 
 class ResourceFetcher:
     manager: ResourceManager
-    processor: ResourceProcessor
+    k8s_processor: KubernetesProcessor
 
     def __init__(self, logger: logging.Logger, aconf: 'Config',
                  skip_init_dir: bool=False, watch_only=False) -> None:
         self.aconf = aconf
         self.logger = logger
         self.manager = ResourceManager(self.logger, self.aconf)
-        self.processor = DeduplicatingResourceProcessor(AggregateResourceProcessor([
-            CounterResourceProcessor(self.aconf, ResourceKind.for_knative_networking('Ingress'), 'knative_ingress'),
-            CounterResourceProcessor(self.aconf, ResourceKind.for_knative_networking('ClusterIngress'), 'knative_cluster_ingress'),
-            KnativeIngressResourceProcessor(self.manager),
-        ]))
         self.watch_only = watch_only
 
+        self.k8s_processor = DeduplicatingKubernetesProcessor(AggregateKubernetesProcessor([
+            CountingKubernetesProcessor(self.aconf, KubernetesGVK.for_knative_networking('Ingress'), 'knative_ingress'),
+            CountingKubernetesProcessor(self.aconf, KubernetesGVK.for_knative_networking('ClusterIngress'), 'knative_cluster_ingress'),
+            KnativeIngressProcessor(self.manager),
+        ]))
         self.k8s_endpoints: Dict[str, AnyDict] = {}
         self.k8s_services: Dict[str, AnyDict] = {}
 
@@ -297,35 +297,35 @@ class ResourceFetcher:
         # self.logger.debug("handle_k8s obj %s" % json.dumps(obj, indent=4, sort_keys=True))
 
         try:
-            obj = ResourceDict(raw_obj, default_namespace='default')
+            obj = KubernetesObject(raw_obj, default_namespace='default')
         except ValueError:
             # The object doesn't contain a kind, API version, or name, so we
             # can't process it.
             return
 
         with self.manager.locations.push_reset():
-            if self.processor.try_process(obj):
+            if self.k8s_processor.try_process(obj):
                 # Nothing else to do.
                 return
 
         handler = None
         check_dup = True
 
-        if obj.kind.kind in CRDTypes:
+        if obj.gvk.kind in CRDTypes:
             handler = self.handle_k8s_crd
             # self.handle_k8s_crd will do its own dup checking.
             check_dup = False
         else:
-            handler_name = f'handle_k8s_{obj.kind.kind.lower()}'
+            handler_name = f'handle_k8s_{obj.gvk.kind.lower()}'
             # self.logger.debug(f"looking for handler {handler_name} for K8s {kind} {name}")
             handler = getattr(self, handler_name, None)
 
         if not handler:
-            self.logger.debug(f"{self.location}: skipping K8s {obj.kind}")
+            self.logger.debug(f"{self.location}: skipping K8s {obj.gvk}")
             return
 
         if check_dup:
-            if not self.check_k8s_dup(obj.kind.kind, obj.namespace, obj.name):
+            if not self.check_k8s_dup(obj.gvk.kind, obj.namespace, obj.name):
                 return
 
         result = handler(raw_obj)
@@ -891,7 +891,7 @@ class ResourceFetcher:
 
             if self.is_ambassador_service(labels, selector):
                 self.logger.info(f"Found Ambassador service: {resource_name}")
-                self.manager.ambassador_service = ResourceDict(k8s_object, default_namespace='default')
+                self.manager.ambassador_service = KubernetesObject(k8s_object, default_namespace='default')
 
         else:
             self.logger.debug(f"not saving K8s Service {resource_name}.{resource_namespace} with no ports")
