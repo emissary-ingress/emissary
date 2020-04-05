@@ -76,10 +76,10 @@ after_script:
   - ./releng/travis-cleanup.sh
   # - docker tag builder:latest ${DEV_REGISTRY}/builder:latest && docker push ${DEV_REGISTRY}/builder:latest
 
-deploy:
-  # publish to getambassador.io
-  - provider: script
-    script: ./.ci/publish-website
-    skip_cleanup: true
-    on:
-      branch: release/v1.3
+#deploy:
+#  # publish to getambassador.io
+#  - provider: script
+#    script: ./.ci/publish-website
+#    skip_cleanup: true
+#    on:
+#      branch: release/v1.3
