@@ -1,4 +1,5 @@
-import { LitElement, html, css } from '../vendor/lit-element.min.js'
+import { Model } from '../mvc/framework/model.js'
+import { View, html, css } from '../mvc/framework/view.js'
 import {useContext} from './context.js';
 import {HASH} from './hash.js';
 
@@ -6,7 +7,7 @@ import {HASH} from './hash.js';
  * Provides a small wrapper around named slots, to properly
  * render one of a series of "tabs".
  */
-export class Tabs extends LitElement {
+export class Tabs extends View {
   /**
    * A list of properties to track for "re-render".
    *
@@ -317,6 +318,7 @@ export class Tabs extends LitElement {
       
   static get properties() {
     return {
+      hash: { type: Model },
       current: { type: String },
       tabs: { type: Array }
     };
@@ -325,6 +327,7 @@ export class Tabs extends LitElement {
   constructor() {
     super();
 
+    this.hash = HASH;
     this.current = '';
     this.tabs = [];
     Array.from(this.children).forEach(node => {
@@ -332,25 +335,6 @@ export class Tabs extends LitElement {
         this.tabs.push(node);
       }
     });
-  }
-
-  handleHashChange() {
-    for (let idx = 0; idx < this.tabs.length; idx++) {
-      if(HASH.tab === this.tabs[idx].tabHashName()) {
-        this.current = this.tabs[idx].name;
-        break;
-      }
-    }
-  }
-
-  connectedCallback() {
-    super.connectedCallback();
-    window.addEventListener("hashchange", this.handleHashChange.bind(this), false);
-  }
-
-  disconnectedCallback() {
-    super.disconnectedCallback();
-    window.remmoveEventListener("hashchange", this.handleHashChange.bind(this), false);
   }
 
   renderLinks() {
@@ -361,15 +345,22 @@ export class Tabs extends LitElement {
     }
 
     for (let idx = 0; idx < this.tabs.length; ++idx) {
+      let code = this.hash.get("code")
+      if (this.tabs[idx].code && this.tabs[idx].code !== code) {
+        continue
+      }
+
       let classes = "";
       if (this.tabs[idx].name === currentTab) {
-        HASH.tab = this.tabs[idx].tabHashName();
+        this.hash.tab = this.tabs[idx].tabHashName();
         classes += " selected";
       }
 
+      let addendum = code ? `?code=${code}` : ""
+
       // todo: this is literally the most deeply nesed usage of the turnary operator I have ever seen, it should probably die
       links.push(html`
-          <a href="#${this.tabs[idx].tabHashName()}" class="${classes}">
+          <a href="#${this.tabs[idx].tabHashName()}${addendum}" class="${classes}">
             <div class="selected_stripe"></div>
             <div class="label">
               <div class="icon">
@@ -397,14 +388,11 @@ export class Tabs extends LitElement {
   }
 
   render() {
-    if (this.current === '') {
-      let hashTab = HASH.tab;
-      this.tabs.forEach(tab => {
-        if (hashTab === tab.tabHashName()) {
-          this.current = tab.name;
-        }
-      })
-    }
+    this.tabs.forEach(tab => {
+      if (this.hash.tab === tab.tabHashName()) {
+        this.current = tab.name;
+      }
+    })
 
     let tabName = this.current;
     if (tabName === '') {
@@ -432,12 +420,14 @@ export class Tabs extends LitElement {
 
 customElements.define('dw-tabs', Tabs);
 
-export class Tab extends LitElement {
+export class Tab extends View {
   static get properties() {
     return {
       _name: { type: String },
       icon: { type: String },
-      hashname: { type: String }
+      hashname: { type: String },
+      hash: { type: Model },
+      code: { type: String }
     }
   }
 
@@ -447,6 +437,7 @@ export class Tab extends LitElement {
     this.icon = "";
     this._name = (this.getAttribute('slot') || '');
     this.updateHashname();
+    this.hash = HASH;
   }
 
   updateHashname() {
@@ -480,7 +471,12 @@ export class Tab extends LitElement {
   }
 
   render() {
-    return html`<slot></slot>`;
+    let code = this.hash.get("code")
+    if (!this.code || code === this.code) {
+      return html`<slot></slot>`
+    } else {
+      return html``
+    }
   }
 }
 
