@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import Layout from '../../../../src/components/Layout';
-import CopyButton from '../../../../src/components/CopyButton';
+import CopyButton from '../../../../src/components/CodeBlock/CopyButton';
 
 class EasyQuickstart extends Component {
   componentDidMount() {
