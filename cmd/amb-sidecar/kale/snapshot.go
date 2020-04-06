@@ -19,6 +19,7 @@ import (
 )
 
 type UntypedSnapshot struct {
+	Controllers []k8s.Resource
 	Projects    []k8s.Resource
 	Commits     []k8s.Resource
 	Jobs        []k8s.Resource
@@ -26,6 +27,7 @@ type UntypedSnapshot struct {
 }
 
 type Snapshot struct {
+	Controllers map[k8sTypes.UID]*controllerAndChildren
 	Projects    map[k8sTypes.UID]*projectAndChildren
 	Commits     map[k8sTypes.UID]*commitAndChildren
 	Jobs        map[k8sTypes.UID]*k8sTypesBatchV1.Job
@@ -88,10 +90,21 @@ func (in UntypedSnapshot) TypedAndIndexed(ctx context.Context) *Snapshot {
 	for _, inCommit := range in.Commits {
 		var outCommit *ProjectCommit
 		if err := mapstructure.Convert(inCommit, &outCommit); err != nil {
-			reportThisIsABug(ctx, fmt.Errorf("Commit: %w", err))
+			reportThisIsABug(ctx, fmt.Errorf("ProjectCommit: %w", err))
 			continue
 		}
 		out.Commits[outCommit.GetUID()] = &commitAndChildren{ProjectCommit: outCommit}
+	}
+
+	// controllers
+	out.Controllers = make(map[k8sTypes.UID]*controllerAndChildren, len(in.Controllers))
+	for _, inController := range in.Controllers {
+		var outController *ProjectController
+		if err := mapstructure.Convert(inController, &outController); err != nil {
+			reportThisIsABug(ctx, fmt.Errorf("ProjectController: %w", err))
+			continue
+		}
+		out.Controllers[outController.GetUID()] = &controllerAndChildren{ProjectController: outController}
 	}
 
 	return &out
@@ -100,12 +113,12 @@ func (in UntypedSnapshot) TypedAndIndexed(ctx context.Context) *Snapshot {
 // All lists are sorted by UID (which essentially means ordering is
 // arbitrary but stable).
 type GroupedSnapshot struct {
-	Projects     []*projectAndChildren
-	GlobalErrors []recordedError
+	Controllers []*controllerAndChildren
 
 	OrphanedCommits     []*commitAndChildren
 	OrphanedJobs        []*k8sTypesBatchV1.Job
 	OrphanedDeployments []*k8sTypesAppsV1.Deployment
+	OrphanedErrors      []recordedError
 }
 
 type recordedError struct {
@@ -115,8 +128,17 @@ type recordedError struct {
 	CommitUID  k8sTypes.UID `json:"commit_uid,omitempty"`
 }
 
+type controllerAndChildren struct {
+	*ProjectController
+	Children struct {
+		Projects []*projectAndChildren `json:"projects"`
+		Errors   []recordedError       `json:"errors"`
+	} `json:"children"`
+}
+
 type projectAndChildren struct {
 	*Project
+	Parent   *controllerAndChildren `json:"-"`
 	Children struct {
 		Commits []*commitAndChildren `json:"commits"`
 		Errors  []recordedError      `json:"errors"`
@@ -143,8 +165,17 @@ func (in *Snapshot) Grouped() *GroupedSnapshot {
 	}
 	var out GroupedSnapshot
 
+	for _, controllerUID := range sortedUIDKeys(in.Controllers) {
+		out.Controllers = append(out.Controllers, in.Controllers[controllerUID])
+	}
+	if len(out.Controllers) == 0 {
+		out.Controllers = append(out.Controllers, &controllerAndChildren{})
+	}
 	for _, projUID := range sortedUIDKeys(in.Projects) {
-		out.Projects = append(out.Projects, in.Projects[projUID])
+		controller := out.Controllers[0]
+		proj := in.Projects[projUID]
+		proj.Parent = controller
+		controller.Children.Projects = append(controller.Children.Projects, proj)
 	}
 	for _, commitUID := range sortedUIDKeys(in.Commits) {
 		commit := in.Commits[commitUID]
@@ -176,12 +207,22 @@ func (in *Snapshot) Grouped() *GroupedSnapshot {
 	}
 	sortErrors(in.Errors)
 	for _, err := range in.Errors {
-		if commit, ok := in.Commits[err.CommitUID]; ok {
-			commit.Children.Errors = append(commit.Children.Errors, err)
-		} else if project, ok := in.Projects[err.ProjectUID]; ok {
-			project.Children.Errors = append(project.Children.Errors, err)
-		} else {
-			out.GlobalErrors = append(out.GlobalErrors, err)
+		switch {
+		case err.CommitUID != "":
+			if commit, ok := in.Commits[err.CommitUID]; ok {
+				commit.Children.Errors = append(commit.Children.Errors, err)
+			} else {
+				out.OrphanedErrors = append(out.OrphanedErrors, err)
+			}
+		case err.ProjectUID != "":
+			if project, ok := in.Projects[err.ProjectUID]; ok {
+				project.Children.Errors = append(project.Children.Errors, err)
+			} else {
+				out.OrphanedErrors = append(out.OrphanedErrors, err)
+			}
+		default:
+			controller := out.Controllers[0]
+			controller.Children.Errors = append(controller.Children.Errors, err)
 		}
 	}
 

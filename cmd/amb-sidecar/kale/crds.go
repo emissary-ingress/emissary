@@ -132,3 +132,15 @@ type MappingSpec struct {
 	Prefix  string `json:"prefix"`
 	Service string `json:"service"`
 }
+
+type ProjectController struct {
+	k8sTypesMetaV1.TypeMeta
+	k8sTypesMetaV1.ObjectMeta `json:"metadata"`
+	Spec                      ProjectControllerSpec   `json:"spec"`
+	Status                    ProjectControllerStatus `json:"status"`
+}
+
+type ProjectControllerSpec struct {
+}
+
+type ProjectControllerStatus struct{}

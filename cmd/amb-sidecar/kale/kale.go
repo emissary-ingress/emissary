@@ -116,13 +116,14 @@ const (
 	StepLeader                     = "01-leader"
 	StepValidProject               = "02-validproject"
 	StepReconcileWebhook           = "03-reconcilewebook"
-	StepReconcileProjectsToCommits = "04-reconcileprojectstocommits"
-	StepReconcileCommitsToAction   = "05-reconcilecommitstoaction"
-	//StepGitPull                    = "06-git-pull"
-	//StepGitSanityCheck             = "07-git-sanity-check"
-	StepBuild         = "08-build"
-	StepDeploy        = "09-deploy"
-	StepWebhookUpdate = "10-webhook-update"
+	StepReconcileController        = "04-reconcilecontroller"
+	StepReconcileProjectsToCommits = "05-reconcileprojectstocommits"
+	StepReconcileCommitsToAction   = "06-reconcilecommitstoaction"
+	//StepGitPull                    = "07-git-pull"
+	//StepGitSanityCheck             = "08-git-sanity-check"
+	StepBuild         = "09-build"
+	StepDeploy        = "10-deploy"
+	StepWebhookUpdate = "11-webhook-update"
 
 	StepBackground = "XX-background"
 	StepBug        = "XX-bug"
@@ -192,6 +193,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 
 		handler := func(w *k8s.Watcher) {
 			snapshot := UntypedSnapshot{
+				Controllers: w.List("projectcontrollers.getambassador.io"),
 				Projects:    w.List("projects.getambassador.io"),
 				Commits:     w.List("projectcommits.getambassador.io"),
 				Jobs:        w.List("jobs.batch"),
@@ -203,6 +205,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 
 		labelSelector := GlobalLabelName + "=" + cfg.AmbassadorID
 		queries := []k8s.Query{
+			{Kind: "projectcontrollers.getambassador.io", LabelSelector: labelSelector},
 			{Kind: "projects.getambassador.io"},
 			{Kind: "projectcommits.getambassador.io"},
 			{Kind: "jobs.batch", LabelSelector: labelSelector},
@@ -476,15 +479,7 @@ func (k *kale) projectsJSON() string {
 	k.mu.RLock()
 	defer k.mu.RUnlock()
 
-	results := struct {
-		Projects []*projectAndChildren `json:"projects"`
-		Errors   []recordedError       `json:"errors"`
-	}{
-		Projects: snapshot.Projects,
-		Errors:   snapshot.GlobalErrors,
-	}
-
-	bytes, err := json.MarshalIndent(results, "", "  ")
+	bytes, err := json.MarshalIndent(snapshot.Controllers[0].Children, "", "  ")
 	if err != nil {
 		// Everything in results should be serializable to
 		// JSON--this should never happen.
@@ -722,6 +717,38 @@ func (k *kale) calculateBuild(proj *Project, commit *ProjectCommit) []interface{
 }
 
 func (k *kale) reconcileCluster(ctx context.Context, snapshot *Snapshot) {
+	if len(snapshot.Controllers) != 1 {
+		name := "projectcontroller"
+		if k.cfg.AmbassadorID != "default" {
+			name += "-" + k.cfg.AmbassadorID
+		}
+		err := applyAndPrune(
+			GlobalLabelName+"=="+k.cfg.AmbassadorID,
+			[]k8sSchema.GroupVersionKind{
+				{Group: "getambassador.io", Version: "v2", Kind: "ProjectController"},
+			},
+			[]interface{}{
+				&ProjectController{
+					TypeMeta: k8sTypesMetaV1.TypeMeta{
+						APIVersion: "getambassador.io/v2",
+						Kind:       "ProjectController",
+					},
+					ObjectMeta: k8sTypesMetaV1.ObjectMeta{
+						Name:      name,
+						Namespace: k.cfg.AmbassadorNamespace,
+						Labels: map[string]string{
+							GlobalLabelName: k.cfg.AmbassadorID,
+						},
+					},
+					Spec: ProjectControllerSpec{},
+				},
+			})
+		if err != nil {
+			reportRuntimeError(ctx, StepReconcileController,
+				fmt.Errorf("initializing ProjectController: %q", err))
+		}
+	}
+
 	// reconcile commits
 	for _, proj := range snapshot.Projects {
 		ctx := CtxWithProject(ctx, proj.Project)
