@@ -106,6 +106,7 @@ const (
 	ProjectLabelName = "projects.getambassador.io/project-uid"   // proj.GetUID()
 	CommitLabelName  = "projects.getambassador.io/commit-uid"    // commit.GetUID()
 	JobLabelName     = "job-name"                                // Don't change this; it's the label name used by Kubernetes itself
+	ServicePod       = "projects.getambassador.io/service"
 )
 
 var globalKale *kale
@@ -191,10 +192,10 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 
 		handler := func(w *k8s.Watcher) {
 			snapshot := UntypedSnapshot{
-				Projects:     w.List("projects.getambassador.io"),
-				Commits:      w.List("projectcommits.getambassador.io"),
-				Jobs:         w.List("jobs.batch"),
-				StatefulSets: w.List("statefulsets.apps"),
+				Projects:    w.List("projects.getambassador.io"),
+				Commits:     w.List("projectcommits.getambassador.io"),
+				Jobs:        w.List("jobs.batch"),
+				Deployments: w.List("deployments.apps"),
 			}
 			upstreamWorker <- snapshot
 			upstreamWebUI <- snapshot
@@ -205,7 +206,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 			{Kind: "projects.getambassador.io"},
 			{Kind: "projectcommits.getambassador.io"},
 			{Kind: "jobs.batch", LabelSelector: labelSelector},
-			{Kind: "statefulset.apps", LabelSelector: labelSelector},
+			{Kind: "deployments.apps", LabelSelector: labelSelector},
 		}
 
 		for _, query := range queries {
@@ -299,17 +300,17 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 }
 
 type UntypedSnapshot struct {
-	Projects     []k8s.Resource
-	Commits      []k8s.Resource
-	Jobs         []k8s.Resource
-	StatefulSets []k8s.Resource
+	Projects    []k8s.Resource
+	Commits     []k8s.Resource
+	Jobs        []k8s.Resource
+	Deployments []k8s.Resource
 }
 
 type Snapshot struct {
-	Projects     []*Project
-	Commits      []*ProjectCommit
-	Jobs         []*k8sTypesBatchV1.Job
-	StatefulSets []*k8sTypesAppsV1.StatefulSet
+	Projects    []*Project
+	Commits     []*ProjectCommit
+	Jobs        []*k8sTypesBatchV1.Job
+	Deployments []*k8sTypesAppsV1.Deployment
 }
 
 func (in UntypedSnapshot) TypedAndFiltered(ctx context.Context, ambassadorID string) Snapshot {
@@ -324,8 +325,8 @@ func (in UntypedSnapshot) TypedAndFiltered(ctx context.Context, ambassadorID str
 	if err := mapstructure.Convert(in.Jobs, &out.Jobs); err != nil {
 		panicThisIsABug(fmt.Errorf("Jobs: %w", err))
 	}
-	if err := mapstructure.Convert(in.StatefulSets, &out.StatefulSets); err != nil {
-		panicThisIsABug(fmt.Errorf("StatefulSets: %w", err))
+	if err := mapstructure.Convert(in.Deployments, &out.Deployments); err != nil {
+		panicThisIsABug(fmt.Errorf("Deployments: %w", err))
 	}
 
 	// However, for our CRDs, because the api-server can't
@@ -507,9 +508,9 @@ type projectAndChildren struct {
 type commitAndChildren struct {
 	*ProjectCommit
 	Children struct {
-		Builders []*k8sTypesBatchV1.Job        `json:"builders"`
-		Runners  []*k8sTypesAppsV1.StatefulSet `json:"runners"`
-		Errors   []recordedError               `json:"errors"`
+		Builders []*k8sTypesBatchV1.Job       `json:"builders"`
+		Runners  []*k8sTypesAppsV1.Deployment `json:"runners"`
+		Errors   []recordedError              `json:"errors"`
 	} `json:"children"`
 }
 
@@ -533,15 +534,15 @@ func (k *kale) updateInternalState(ctx context.Context, snapshot Snapshot) {
 		}
 		commits[key].Children.Builders = append(commits[key].Children.Builders, job)
 	}
-	for _, statefulset := range snapshot.StatefulSets {
-		key := k8sTypes.UID(statefulset.GetLabels()[CommitLabelName])
+	for _, deployment := range snapshot.Deployments {
+		key := k8sTypes.UID(deployment.GetLabels()[CommitLabelName])
 		if _, ok := commits[key]; !ok {
 			reportRuntimeError(ctx, StepBackground,
-				fmt.Errorf("unable to pair StatefulSet %q.%q with ProjectCommit; ignoring",
-					statefulset.GetName(), statefulset.GetNamespace()))
+				fmt.Errorf("unable to pair Deployment %q.%q with ProjectCommit; ignoring",
+					deployment.GetName(), deployment.GetNamespace()))
 			continue
 		}
-		commits[key].Children.Runners = append(commits[key].Children.Runners, statefulset)
+		commits[key].Children.Runners = append(commits[key].Children.Runners, deployment)
 	}
 
 	// map[projectUID]*projectAndChildren
@@ -639,7 +640,7 @@ func (k *kale) dispatch(r *http.Request) httpResult {
 			CommitLabelName + "==" + string(commitUID),
 		}
 		if logType == "slogs" {
-			selectors = append(selectors, "statefulset.kubernetes.io/pod-name")
+			selectors = append(selectors, ServicePod)
 		} else {
 			selectors = append(selectors, JobLabelName)
 		}
@@ -944,10 +945,10 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 				commitBuilders = append(commitBuilders, job)
 			}
 		}
-		var commitRunners []*k8sTypesAppsV1.StatefulSet
-		for _, statefulset := range snapshot.StatefulSets {
-			if k8sTypes.UID(statefulset.GetLabels()[CommitLabelName]) == commit.GetUID() {
-				commitRunners = append(commitRunners, statefulset)
+		var commitRunners []*k8sTypesAppsV1.Deployment
+		for _, deployment := range snapshot.Deployments {
+			if k8sTypes.UID(deployment.GetLabels()[CommitLabelName]) == commit.GetUID() {
+				commitRunners = append(commitRunners, deployment)
 			}
 		}
 
@@ -968,7 +969,7 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 	}
 }
 
-func (k *kale) reconcileCommit(ctx context.Context, proj *Project, commit *ProjectCommit, builders []*k8sTypesBatchV1.Job, runners []*k8sTypesAppsV1.StatefulSet) error {
+func (k *kale) reconcileCommit(ctx context.Context, proj *Project, commit *ProjectCommit, builders []*k8sTypesBatchV1.Job, runners []*k8sTypesAppsV1.Deployment) error {
 	ctx = dlog.WithLogger(ctx, dlog.GetLogger(ctx).WithField("commit", commit.GetName()+"."+commit.GetNamespace()))
 	log := dlog.GetLogger(ctx)
 
@@ -994,13 +995,15 @@ func (k *kale) reconcileCommit(ctx context.Context, proj *Project, commit *Proje
 		if len(runners) != 1 {
 			commitPhase = CommitPhase_Deploying
 		} else {
-			if runners[0].Status.ObservedGeneration == runners[0].ObjectMeta.Generation &&
-				runners[0].Status.CurrentRevision == runners[0].Status.UpdateRevision &&
-				runners[0].Status.ReadyReplicas >= *runners[0].Spec.Replicas {
+			dep := runners[0]
+			if dep.Status.ObservedGeneration == dep.ObjectMeta.Generation &&
+				(dep.Spec.Replicas == nil || dep.Status.UpdatedReplicas >= *dep.Spec.Replicas) &&
+				dep.Status.UpdatedReplicas == dep.Status.Replicas &&
+				dep.Status.AvailableReplicas == dep.Status.Replicas {
 				// advance to next phase
 				commitPhase = CommitPhase_Deployed
 			} else {
-				// TODO: Maybe inspect the pods that belong to this StatefulSet, in
+				// TODO: Maybe inspect the pods that belong to this Deployment, in
 				// order to detect a "failed" state.
 				commitPhase = CommitPhase_Deploying
 			}
@@ -1062,12 +1065,12 @@ func (k *kale) reconcileCommit(ctx context.Context, proj *Project, commit *Proje
 			{Group: "getambassador.io", Version: "v2", Kind: "Mapping"},
 			{Group: "", Version: "v1", Kind: "Service"},
 			{Group: "batch", Version: "v1", Kind: "Job"},
-			{Group: "apps", Version: "v1", Kind: "StatefulSet"},
+			{Group: "apps", Version: "v1", Kind: "Deployment"},
 		},
 		manifests)
 	if err != nil {
-		if strings.Contains(err.Error(), "Forbidden: updates to statefulset spec for fields other than 'replicas', 'template', and 'updateStrategy' are forbidden") {
-			deleteResource("statefulset.v1.apps", commit.GetName(), commit.GetNamespace())
+		if strings.Contains(err.Error(), "Forbidden: updates to deployment spec for fields other than 'replicas', 'template', and 'updateStrategy' are forbidden") {
+			deleteResource("deployment.v1.apps", commit.GetName(), commit.GetNamespace())
 		} else if regexp.MustCompile("(?s)The Job .* is invalid.* field is immutable").MatchString(err.Error()) {
 			deleteResource("job.v1.batch", commit.GetName()+"-build", commit.GetNamespace())
 		} else {
@@ -1154,12 +1157,10 @@ func (k *kale) calculateRun(proj *Project, commit *ProjectCommit) []interface{} 
 				},
 			},
 		},
-		// Use a StatefulSet (as opposed to a Deployment) so that the Pod name is
-		// friendlier.
-		&k8sTypesAppsV1.StatefulSet{
+		&k8sTypesAppsV1.Deployment{
 			TypeMeta: k8sTypesMetaV1.TypeMeta{
 				APIVersion: "apps/v1",
-				Kind:       "StatefulSet",
+				Kind:       "Deployment",
 			},
 			ObjectMeta: k8sTypesMetaV1.ObjectMeta{
 				Name:      commit.GetName(),
@@ -1179,19 +1180,19 @@ func (k *kale) calculateRun(proj *Project, commit *ProjectCommit) []interface{} 
 					CommitLabelName: string(commit.GetUID()),
 				},
 			},
-			Spec: k8sTypesAppsV1.StatefulSetSpec{
+			Spec: k8sTypesAppsV1.DeploymentSpec{
 				Selector: &k8sTypesMetaV1.LabelSelector{
 					MatchLabels: map[string]string{
 						GlobalLabelName: k.cfg.AmbassadorID,
 						CommitLabelName: string(commit.GetUID()),
 					},
 				},
-				ServiceName: commit.GetName(),
 				Template: k8sTypesCoreV1.PodTemplateSpec{
 					ObjectMeta: k8sTypesMetaV1.ObjectMeta{
 						Labels: map[string]string{
 							GlobalLabelName: k.cfg.AmbassadorID,
 							CommitLabelName: string(commit.GetUID()),
+							ServicePod:      "true",
 						},
 					},
 					Spec: k8sTypesCoreV1.PodSpec{

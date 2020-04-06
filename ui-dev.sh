@@ -23,7 +23,10 @@ if [ "$1" != "force" ] && [ "${ACTUAL_COMMIT}" != "${PINNED_COMMIT}" ]; then
     exit 1
 fi
 
-DEV_WEBUI_SNAPSHOT_HOST=${IP} DEV_WEBUI_DIR=${DIR}/cmd/amb-sidecar/webui/bindata POD_NAMESPACE=ambassador \
-                       DEV_AES_HTTP_PORT=8501 \
-                       DEV_WEBUI_PORT=9000 \
-                       go run ./cmd/ambassador amb-sidecar
+DEV_WEBUI_SNAPSHOT_HOST=${IP} \
+DEV_WEBUI_DIR=${DIR}/cmd/amb-sidecar/webui/bindata \
+DEV_AES_HTTP_PORT=8501 \
+DEV_WEBUI_PORT=9000 \
+POD_NAMESPACE=ambassador \
+AMBASSADOR_NAMESPACE=ambassador \
+  go run ./cmd/ambassador amb-sidecar

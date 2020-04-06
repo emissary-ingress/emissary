@@ -58,12 +58,23 @@ export class ProjectResource extends IResource {
   }
 
   get errors() {
-    return (this.yaml.children || {}).errors || []
+    let result = []
+    // add project errors
+    result.push(...(this.yaml.children || {}).errors || [])
+    // add errors for all the child commits
+    for (let c of this.commits) {
+      result.push(...((c.children || {}).errors || []))
+    }
+    return result
   }
 
   /* override */
   validateSelf() {
     let errors  = new Map();
+
+    if (this.name && this.name.length > 22) {
+      errors.set("project name", "too long, please choose a name that is less than 22 characters")
+    }
 
     if (!this.prefix) {
       errors.set("prefix", "please supply a prefix")
@@ -87,7 +98,7 @@ export class ProjectResource extends IResource {
 
     if (!this.repo) {
       errors.set("github repo", "please choose a github repo")
-    } else if (!/^\S+\/\S+$/.test(this.repo)) {
+    } else if (!/^[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+$/.test(this.repo)) {
       errors.set("github repo", "must be of the form: owner/repo")
     }
 
