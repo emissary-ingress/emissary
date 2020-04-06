@@ -105,7 +105,7 @@ The Quote service we just deployed publishes its API as a Swagger document. This
 The Ambassador Edge Stack has a comprehensive range of [features](/features/) to support the requirements of any edge microservice.
 
 To learn more about how the Ambassador Edge Stack works, along with use cases,
-best practices, and more, check out the [Welcome page](/docs/latest/) or read the
-[Ambassador Story](/docs/latest/about/why-ambassador).
+best practices, and more, check out the [Welcome page](../../) or read the
+[Ambassador Story](../../about/why-ambassador).
 
-For a custom configuration, you can install the Ambassador Edge Stack [manually](/docs/latest/topics/install/yaml-install).
+For a custom configuration, you can install the Ambassador Edge Stack [manually](../../topics/install/yaml-install).
