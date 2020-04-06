@@ -305,11 +305,15 @@ func streamLogs(w http.ResponseWriter, r *http.Request, namespace, selector stri
 		return scanner.Err()
 	})
 	err = wg.Wait()
-	if r.Context().Err() != nil {
-		// Our "success" scenario is the that we run until the request context is
-		// canceled; either because the client hung up or because we got EOF or
-		// whatever.
-		return nil
+	if cmdCtx.Err() != nil {
+		// If we bailed early because the client hung up (signalled either by
+		// `r.Context()` being canceled, or by writes failing and us calling
+		// `cmdKill()`; both of which set `cmdCtx.Err()`), then that's not really
+		// an error.
+		err = nil
+	}
+	if err == nil {
+		io.WriteString(w, "event: close\ndata:\n\n")
 	}
 	return err
 }
