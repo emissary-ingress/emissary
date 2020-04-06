@@ -12,13 +12,13 @@ In just four minutes, your cluster will be routing HTTPS requests from the
 Internet to a backend service.
 
 The Ambassador Edge Stack is deployed to Kubernetes via YAML for MacOS, Linux, and
-Windows. For other options, such as Docker, read the [detailed instructions] (/docs/latest/topics/install/).
+Windows. For other options, such as Docker, read the [detailed instructions] (../../topics/install/).
 
 <details class="os-instructions" data-os="mac">
 <summary class="heading">
 
 ### Install on MacOS
-<img class="os-logo" src="/../../docs/latest/images/apple.png"/>
+<img class="os-logo" src="/images/apple.png"/>
 
 </summary>
 
@@ -41,7 +41,7 @@ Windows. For other options, such as Docker, read the [detailed instructions] (/d
 <summary class="heading">
 
 ### Install on Linux
-<img class="os-logo" src="/../../docs/latest/images/linux.png"/>
+<img class="os-logo" src="/images/linux.png"/>
 </summary>
 
 1. Download the `edgectl` file
@@ -59,7 +59,7 @@ Windows. For other options, such as Docker, read the [detailed instructions] (/d
 <summary class="heading">
 
 ### Install on Windows
-<img class="os-logo" src="/../../docs/latest/images/windows.png"/>
+<img class="os-logo" src="/images/windows.png"/>
 
 </summary>
 
@@ -111,10 +111,10 @@ The `random-word-3421.edgestack.me` is a provided subdomain that allows the
 Ambassador Edge Stack to automatically provision TLS and HTTPS for a domain
 name, so you can get started right away.
 
-Your new [Edge Policy Console](/docs/latest/topics/using/edge-policy-console) will open
+Your new [Edge Policy Console](../../topics/using/edge-policy-console) will open
 automatically in your browser at the provided URL or IP address. 
 
-![AES success](/../../docs/latest/images/aes-success.png)
+![AES success](/images/aes-success.png)
 
 ### Minikube
 
@@ -138,13 +138,13 @@ The following command will open the Edge Policy Console once you accept a
 self-signed certificate in your browser.
 $ <span class="userInputText">edgectl login -n ambassador IP_ADDRESS:PORT</span>
 
-See [https://www.getambassador.io/docs/latest/tutorials/getting-started/](/docs/latest/tutorials/getting-started/)
+See [https://www.getambassador.io/docs/latest/tutorials/getting-started/](../getting-started/)
 </div>
 
 ## Installation Success
 
 Congratulations, you've installed the Ambassador Edge Stack! Take advantage of
-the quick start demo by [creating a mapping](/docs/latest/tutorials/quickstart-demo) on
+the quick start demo by [creating a mapping](../quickstart-demo) on
 your cluster using the Ambassador Edge Stack.
 
 ### What’s Next?
@@ -152,9 +152,9 @@ your cluster using the Ambassador Edge Stack.
 The Ambassador Edge Stack has a comprehensive range of [features](/features/) to
 support the requirements of any edge microservice. To learn more about how the
 Ambassador Edge Stack works, along with use cases, best practices, and more,
-check out the [Welcome page](/docs/latest/) or read the [Ambassador
-Story](/docs/latest/about/why-ambassador).
+check out the [Welcome page](../../) or read the [Ambassador
+Story](../../about/why-ambassador).
 
-For a custom configuration, you can install the Ambassador Edge Stack [manually](/docs/latest/topics/install/yaml-install).
+For a custom configuration, you can install the Ambassador Edge Stack [manually](../../topics/install/yaml-install).
 
 **Note that the provided `random-word-3421.edgestack.me` domain name will expire after 90 days**.
