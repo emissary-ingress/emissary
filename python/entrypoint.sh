@@ -387,6 +387,10 @@ wait_for_url "diagd" "http://localhost:8877/_internal/v0/ping"
 if [[ -z "${AMBASSADOR_NO_KUBEWATCH}" ]]; then
     KUBEWATCH_SYNC_KINDS="-s service"
 
+    if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_ingress_class" ]; then
+        KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s ingressclasses"
+    fi
+
     if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_ingress" ]; then
         KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s ingresses"
     fi

@@ -67,6 +67,26 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## next (TBD)
+
+### Ambassador API Gateway + Ambassador Edge Stack
+
+- Feature: Support Ingress Path types improvements from networking.k8s.io/v1beta1 on Kubernetes 1.18+
+- Feature: Support Ingress hostname wildcards
+- Feature: Support for the IngressClass Resource, added to networking.k8s.io/v1beta1 on Kubernetes 1.18+
+
+## [1.3.2] April 1, 2020
+[1.3.2]: https://github.com/datawire/ambassador/compare/v1.3.1...v1.3.2
+
+### Ambassador Edge Stack
+
+- Bugfix: `edgectl install` correctly installs on Amazon EKS and other clusters that provide load balancers with fixed DNS names
+- Bugfix: `edgectl install` when using Helm once again works as documented
+- Bugfix: `edgectl install` console logs are improved and neatened
+- Bugfix: `edgectl install --verbose` output is improved
+- Bugfix: `edgectl install` automatically opens documentation pages for some errors
+- Bugfix: `edgectl install` help text is improved
+
 ## [1.3.1] March 24, 2020
 [1.3.1]: https://github.com/datawire/ambassador/compare/v1.3.0...v1.3.1
 
