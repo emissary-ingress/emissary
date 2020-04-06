@@ -1,9 +1,13 @@
-# edgectl install: Can't Download the AES CRD Manifests
+# `edgectl install`: Can't reach the Internet
 
-## The Problem
+The installer retrieves information required to install AES over the Internet. If Internet connectivity is not available, the installer cannot proceed. 
 
-Ambassador was unable to download the AES CRD manifests.
+## What's next?
 
-## How to Resolve It
+1. Restore Internet connectivity. Perhaps there is a VPN or firewall preventing access to the Internet.
+2. Start the installer again:
+   ```shell
+   edgectl install
+   ```
 
-...
+It is safe to run the installer repeatedly on a cluster.

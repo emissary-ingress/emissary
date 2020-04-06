@@ -1,16 +1,17 @@
-# edgectl install: kubectl must be installed
- 
-Ambassador's `edgectl install` uses `kubectl` to communicate with Kubernetes.  
+# `edgectl install`: `kubectl` not found
 
-## The Problem
+Installation of AES requires the `kubectl` command. The installer did not find `kubectl` in your shell PATH.
 
-For some reason it was unable to be found.
+## What's next?
 
-## How to Resolve It
+1. Install `kubectl`: see the [Kubernetes documentation on how to install `kubectl`](https://kubernetes.io/docs/tasks/tools/install-kubectl/).
+2. Start the installer again:
+   ```shell
+   edgectl install
+   ```
 
-Be sure that you have the latest release of Kubernetes installed, `kubectl` is in your PATH, and that
-it is executable.   For more information on how to install `kubectl`, see
+It is safe to run the installer repeatedly on a cluster.
 
-https://kubernetes.io/docs/tasks/tools/install-kubectl/
+## What is `kubectl`?
 
-
+`kubectl` is a command line tool for controlling Kubernetes clusters. See the [Kubernetes documentation about `kubectl`](https://kubernetes.io/docs/reference/kubectl/overview/) for more information.
