@@ -91,6 +91,8 @@ class V2Route(dict):
 
         if envoy_route == 'prefix':
             match['prefix'] = route_prefix
+        elif envoy_route == 'path':
+            match['path'] = route_prefix
         else:
             # Cheat.
             if config.ir.edge_stack_allowed and (self.get('_precedence', 0) == -1000000):

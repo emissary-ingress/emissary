@@ -21,41 +21,29 @@ Below, we'll configure Ambassador to map `/httpbin/` to `httpbin.org`.
 
 ### 1. Deploying the Ambassador API Gateway
 
-To deploy Ambassador in your **default** namespace, first you need to check if Kubernetes has RBAC enabled:
+The following steps deploy Ambassador in the default namespace. 
 
-```shell
-kubectl cluster-info dump --namespace kube-system | grep authorization-mode
-```
-
-If you see something like `--authorization-mode=Node,RBAC` in the output, then RBAC is enabled. The majority of current hosted Kubernetes providers (such as GKE) create clusters with RBAC enabled by default, and unfortunately, the above command may not return any information indicating this.
-
-**Note:** If you're using Google Kubernetes Engine with RBAC, you'll need to grant permissions to the account that will be setting up the Ambassador API Gateway. To do this, get your official GKE username, and then grant `cluster-admin` role privileges to that username:
+**Note:** If you're using Google Kubernetes Engine, you'll need to grant permissions to the account that will be setting up the Ambassador API Gateway. To do this, get your official GKE username, and then grant `cluster-admin` role privileges to that username:
 
 ```shell
 kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=$(gcloud info --format="value(config.account)")
 ```
 
-Start by installing CRDs required by Ambassador:
+Then, you can deploy the Ambassador API Gateway. Start by installing CRDs required by Ambassador:
 
 ```shell
 kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-crds.yaml
 ```
 
-If RBAC is enabled:
+Then, apply the RBAC configuration with:
 
 ```shell
 kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-rbac.yaml
 ```
 
-Without RBAC, you can use:
+We recommend downloading the YAML files and exploring the content. You will see that an `ambassador-admin` NodePort Service is created (which provides an Ambassador ODD Diagnostic web UI), along with an ambassador ClusterRole, ServiceAccount, and ClusterRoleBinding. An Ambassador Deployment is also created.
 
-```shell
-kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-no-rbac.yaml
-```
-
-We recommend downloading the YAML files and exploring the content. You will see that an `ambassador-admin` NodePort Service is created (which provides an Ambassador ODD Diagnostic web UI), along with an ambassador ClusterRole, ServiceAccount, and ClusterRoleBinding (if RBAC is enabled). An Ambassador Deployment is also created.
-
-When not installing the Ambassador API Gateway into the default namespace you must update the namespace used in the `ClusterRoleBinding` when RBAC is enabled.
+When not installing the Ambassador API Gateway into the default namespace you must update the namespace used in the `ClusterRoleBinding`.
 
 For production configurations, we recommend you download these YAML files as your starting point, and customize them accordingly.
 
@@ -127,7 +115,11 @@ will then let us view the diagnostics at `http://localhost:8877/ambassador/v0/di
 
 ### 4. Enable HTTPS
 
-The versatile HTTPS configuration of Ambassador lets it support various HTTPS use cases whether simple or complex. See the [TLS HOWTO](../../../howtos/tls-termination) for details.
+The versatile HTTPS configuration of the Ambassador API Gateway lets it support various HTTPS use cases whether simple or complex.
+
+See the [TLS HOWTO](../../../howtos/tls-termination) to quickly enable HTTPS support for your applications.
+
+**Note that the Ambassador Edge Stack automatically enables HTTPs.** Read more about its configuration on the [Host CRD](../../../running/host-crd) page.
 
 ## Helm
 
@@ -185,3 +177,7 @@ You can also install the chart with the `--set` flag:
 ```
 helm install ambassador datawire/ambassador --set image.repository=quay.io/datawire/ambassador --set image.tag=$version$ --set enableAES=false
 ```
+
+## Want More?
+
+For more features, check out the latest build of the [Ambassador Edge Stack](../).

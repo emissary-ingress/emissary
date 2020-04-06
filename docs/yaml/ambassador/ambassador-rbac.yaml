@@ -38,7 +38,7 @@ rules:
   resources: [ "ingresses/status", "clusteringresses/status" ]
   verbs: ["update"]
 - apiGroups: [ "extensions", "networking.k8s.io" ]
-  resources: [ "ingresses" ]
+  resources: [ "ingresses", "ingressclasses" ]
   verbs: ["get", "list", "watch"]
 - apiGroups: [ "extensions", "networking.k8s.io" ]
   resources: [ "ingresses/status" ]
