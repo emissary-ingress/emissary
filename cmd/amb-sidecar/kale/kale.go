@@ -255,6 +255,9 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 					ctx := CtxWithIteration(ctx, telemetryIteration)
 					telemetryIteration++
 					snapshot := _snapshot.TypedAndFiltered(ctx, cfg.AmbassadorID)
+					for _, proj := range snapshot.Projects {
+						telemetryOK(CtxWithProject(ctx, proj), StepValidProject)
+					}
 					err := safeInvoke(func() { k.reconcile(ctx, snapshot) })
 					if err != nil {
 						reportThisIsABug(ctx, err)
@@ -347,7 +350,6 @@ func (in UntypedSnapshot) TypedAndFiltered(ctx context.Context, ambassadorID str
 				fmt.Errorf("Project: %w", err))
 			continue
 		}
-		telemetryOK(CtxWithProject(ctx, outProj), StepValidProject)
 		out.Projects = append(out.Projects, outProj)
 	}
 	for _, inCommit := range in.Commits {
