@@ -609,6 +609,9 @@ func _logErr(ctx context.Context, err error) {
 
 	dlog.GetLogger(ctx).Errorf("%+v", err)
 
+	// Because I've thought it before, and I know I'm going to think it again: Yes, it
+	// might be the case that 'project' is set but 'iteration' isn't.  This can happen
+	// if we'd like to report an error from the GitHub webhook.
 	if CtxGetIteration(ctx) == nil {
 		globalKale.addPersistentError(err, projectUID, commitUID)
 	} else {
