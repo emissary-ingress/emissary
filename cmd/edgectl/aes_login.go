@@ -7,6 +7,7 @@ import (
 
 	"github.com/datawire/ambassador/pkg/k8s"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/gookit/color"
 	"github.com/pkg/browser"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -23,7 +24,7 @@ type LoginClaimsV1 struct {
 }
 
 func aesLogin(cmd *cobra.Command, args []string) error {
-	fmt.Println("Connecting to the Ambassador Edge Policy Console in this cluster...")
+	fmt.Println(color.Info.Sprintf("Connecting to the Ambassador Edge Policy Console in this cluster..."))
 
 	// Grab options
 	context, _ := cmd.Flags().GetString("context")
@@ -37,10 +38,10 @@ func aesLogin(cmd *cobra.Command, args []string) error {
 	// Prepare to talk to the cluster
 	kubeinfo := k8s.NewKubeInfo("", context, namespace) // Default namespace is "ambassador"
 
-	return do_login(kubeinfo, context, namespace, hostname, justShowURL, showToken)
+	return do_login(kubeinfo, context, namespace, hostname, !justShowURL, justShowURL, showToken)
 }
 
-func do_login(kubeinfo *k8s.KubeInfo, context, namespace, hostname string, justShowURL, showToken bool) error {
+func do_login(kubeinfo *k8s.KubeInfo, context, namespace, hostname string, openInBrowser, showURL, showToken bool) error {
 	restconfig, err := kubeinfo.GetRestConfig()
 	if err != nil {
 		return errors.Wrap(err, "Failed to connect to cluster (rest)")
@@ -86,25 +87,34 @@ func do_login(kubeinfo *k8s.KubeInfo, context, namespace, hostname string, justS
 	// Output
 	url := fmt.Sprintf("https://%s/edge_stack/admin/#%s", hostname, tokenString)
 
-	if !justShowURL {
+	if showURL {
+		fmt.Println("Visit the following URL to access the Ambassador Edge Policy Console:")
+		fmt.Println(url)
+
+		// Whitespace if we are also showing the token or opening in the browser
+		if showToken || openInBrowser {
+			fmt.Println()
+		}
+	}
+
+	if showToken {
+		fmt.Println("The login token is")
+		fmt.Println("    ", tokenString)
+
+		// Whitespace if we are also opening the URL in the browser.
+		if openInBrowser {
+			fmt.Println()
+		}
+	}
+
+	if openInBrowser {
 		err = browser.OpenURL(url)
 		if err != nil {
 			fmt.Println("Unexpected error while trying to open your browser.")
 			err = errors.Wrap(err, "browse")
+		} else {
+			fmt.Println("The Ambassador Edge Policy Console has been opened in your browser.")
 		}
-	}
-
-	if justShowURL || err != nil {
-		fmt.Println("Visit the following URL to access the Ambassador Edge Policy Console:")
-		fmt.Println("    ", url)
-	} else {
-		fmt.Println("The Ambassador Edge Policy Console has been opened in your browser.")
-	}
-
-	if showToken {
-		fmt.Println()
-		fmt.Println("The login token is")
-		fmt.Println("    ", tokenString)
 	}
 
 	return err
