@@ -2,30 +2,21 @@
    description: In this guide, we'll walk through the process of deploying Ambassador Edge Stack in Kubernetes for ingress routing.
 ---
 
-import DetectOS from './DetectOS'
+# Installing the Ambassador Edge Stack
 
-<DetectOS/>
+The Ambassador Edge Stack can be installed in a variety of ways:  Mac / Linux / Windows / Kubernetes / Helm / Docker / Bare Metal / the Operator / Manual Install. Please see the relevant section below for details.
 
-# Quick Start Installation Guide
+# Install on Mac / Linux / Windows 
 
-In just four minutes, your cluster will be routing HTTPS requests from the
-Internet to a backend service.
+In just four minutes, your cluster will be routing HTTPS requests from the Internet to a backend service. The Ambassador Edge Stack is deployed to Kubernetes via YAML for MacOS, Linux, and
+Windows. 
 
-The Ambassador Edge Stack is deployed to Kubernetes via YAML for MacOS, Linux, and
-Windows. For other options, such as Docker, read the [detailed instructions] (../../topics/install/).
-
-<details class="os-instructions" data-os="mac">
-<summary class="heading">
-
-### Install on MacOS
-<img class="os-logo" src="../../images/apple.png"/>
-
-</summary>
+### Install on MacOS <img class="os-logo" src="/../../docs/latest/images/apple.png"/>
 
 1. Download the `edgectl` file [here](https://metriton.datawire.io/downloads/darwin/edgectl) or download it with a curl command:
 
     ```shell
-    sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl
+    sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && sudo chmod a+X /usr/local/bin/edgectl
     ```
 
     If you decide to download the file, you may encounter a security block. To change this:
@@ -33,16 +24,10 @@ Windows. For other options, such as Docker, read the [detailed instructions] (..
     * Click the **Open Anyway** button.
     * On the new dialog, click the **Open** button.
 
-2. Run the installer with `edgectl install`
+2. Run the installer with `./edgectl install`
 
-</details>
 
-<details class="os-instructions" data-os="linux">
-<summary class="heading">
-
-### Install on Linux
-<img class="os-logo" src="../../images/linux.png"/>
-</summary>
+### Install on Linux <img class="os-logo" src="/../../docs/latest/images/linux.png"/>
 
 1. Download the `edgectl` file
    [here](https://metriton.datawire.io/downloads/linux/edgectl) or download it with a curl
@@ -51,25 +36,16 @@ Windows. For other options, such as Docker, read the [detailed instructions] (..
     ```shell
     sudo curl -fL https://metriton.datawire.io/downloads/linux/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl
     ```
-2. Run the installer with `edgectl install`
+2. Run the installer with `./edgectl install`
 
-</details>
+### Install on Windows <img class="os-logo" src="/../../docs/latest/images/windows.png"/>
 
-<details class="os-instructions" data-os="windows">
-<summary class="heading">
-
-### Install on Windows
-<img class="os-logo" src="../../images/windows.png"/>
-
-</summary>
-
-1. Download the `edgectl.exe` file
+1. Download the `edgectl` file
    [here](https://metriton.datawire.io/downloads/windows/edgectl.exe).
-2. Run the installer with `edgectl install`
+2. Run the installer with `edgectl.exe install`
 
-</details>
 
-## Installation
+## Setting up TLS
 
 Your terminal will show you something similar to the following as the installer provisions
 a load balancer, configures TLS, and provides you with an `edgestack.me` subdomain:
@@ -111,10 +87,32 @@ The `random-word-3421.edgestack.me` is a provided subdomain that allows the
 Ambassador Edge Stack to automatically provision TLS and HTTPS for a domain
 name, so you can get started right away.
 
-Your new [Edge Policy Console](../../topics/using/edge-policy-console) will open
+Your new [Edge Policy Console](/docs/latest/topics/using/edge-policy-console) will open
 automatically in your browser at the provided URL or IP address. 
 
-![AES success](../../images/aes-success.png)
+![AES success](/../../docs/latest/images/aes-success.png)
+
+
+## Kubernetes
+
+Kubernetes via YAML is the most common approach to install with our default, customizable manifest. The Ambassador Edge Stack is designed to run in Kubernetes for production. **If you're new to Kubernetes and/or Ambassador, we recommend using this method.**
+
+See the [Quick Start](../../tutorials/install-options) installation guide to
+get started in just a few minutes.
+
+[![YAML](../../images/kubernetes.png)](../../tutorials/install-options)
+
+## Other Methods
+
+You can also install the Ambassador Edge Stack using Helm, Docker, Bare Metal,
+the Operator, or installing manually.
+
+| [![Helm](../../images/helm.png)](helm) | [![Docker](../../images/docker.png)](docker) | [Kubernetes Bare Metal](bare-metal) | [AES Operator](aes-operator) | [YAML Install](yaml-install) |
+|----------------|----------|----------------------|---------------------------|-------|
+| Helm is a package manager for Kubernetes. The Ambassador Edge Stack comes pre-packaged as a Helm chart. [Install via Helm.](helm) | The Docker install will let you try the Ambassador Edge Stack locally in seconds, but is not supported for production. [Try with Docker.](docker) | Bare Metal can expose the Ambassador Edge Stack if you don't have a load balancer in place. [Install on Bare Metal.](bare-metal) | The Ambassador Edge Stack Operator automates install and updates, among other actions. [Install with the Operator](aes-operator) | For a custom configuration with specific parameters, you can install the Ambassador Edge Stack [manually](/docs/latest/topics/install/yaml-install). |
+
+Looking for just the API Gateway? [Install the Ambassador API Gateway](install-ambassador-oss).
+
 
 ### Minikube
 
@@ -138,23 +136,15 @@ The following command will open the Edge Policy Console once you accept a
 self-signed certificate in your browser.
 $ <span class="userInputText">edgectl login -n ambassador IP_ADDRESS:PORT</span>
 
-See [https://www.getambassador.io/docs/latest/tutorials/getting-started/](../getting-started/)
+See [https://www.getambassador.io/docs/latest/tutorials/install-options/](/docs/latest/tutorials/install-options/)
 </div>
 
-## Installation Success
+## Upgrade Options
 
-Congratulations, you've installed the Ambassador Edge Stack! Take advantage of
-the quick start demo by [creating a mapping](../quickstart-demo) on
-your cluster using the Ambassador Edge Stack.
+If you already have the Ambassador Edge Stack, here are a few different ways you can upgrade your instance:
 
-### What’s Next?
 
-The Ambassador Edge Stack has a comprehensive range of [features](/features/) to
-support the requirements of any edge microservice. To learn more about how the
-Ambassador Edge Stack works, along with use cases, best practices, and more,
-check out the [Welcome page](../../) or read the [Ambassador
-Story](../../about/why-ambassador).
-
-For a custom configuration, you can install the Ambassador Edge Stack [manually](../../topics/install/yaml-install).
+1. [Upgrade to the Ambassador Edge Stack from the API Gateway](upgrade-to-edge-stack).
+2. [Upgrade your Ambassador Edge Stack instance](upgrading) to the latest version.
 
 **Note that the provided `random-word-3421.edgestack.me` domain name will expire after 90 days**.
