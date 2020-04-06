@@ -1194,6 +1194,12 @@ func (k *kale) calculateRun(proj *Project, commit *ProjectCommit) []interface{} 
 							{
 								Name:  "app",
 								Image: "127.0.0.1:31000/" + commit.Spec.Rev,
+								Env: []k8sTypesCoreV1.EnvVar{
+									{Name: "AMB_PROJECT_PREVIEW", Value: strconv.FormatBool(commit.Spec.IsPreview)},
+									{Name: "AMB_PROJECT_REPO", Value: proj.Spec.GithubRepo},
+									{Name: "AMB_PROJECT_REF", Value: commit.Spec.Ref.String()},
+									{Name: "AMB_PROJECT_REV", Value: commit.Spec.Rev},
+								},
 							},
 						},
 					},
