@@ -821,6 +821,7 @@ class IR:
 
         if self.aconf.helm_chart:
             od['helm_chart'] = self.aconf.helm_chart
+        od['managed_by'] = self.aconf.pod_labels.get('app.kubernetes.io/managed-by', '')
 
         tls_termination_count = 0   # TLS termination contexts
         tls_origination_count = 0   # TLS origination contexts

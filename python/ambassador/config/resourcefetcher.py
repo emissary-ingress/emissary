@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import yaml
+import re
 
 from .config import Config
 from .acresource import ACResource
@@ -47,6 +48,7 @@ CRDTypes = frozenset([
     'clusteringresses.networking.internal.knative.dev',
     'ingresses.networking.internal.knative.dev'
 ])
+k8sLabelMatcher = re.compile(r'([\w\-_./]+)=\"(.+)\"')
 
 class ResourceFetcher:
     def __init__(self, logger: logging.Logger, aconf: 'Config',
@@ -213,7 +215,7 @@ class ResourceFetcher:
         # Expand environment variables allowing interpolation in manifests.
         serialization = os.path.expandvars(serialization)
 
-        # self.logger.info(f"RF WATT: {serialization}")
+        self.load_pod_labels()
 
         try:
             watt_dict = json.loads(serialization)
@@ -248,6 +250,27 @@ class ResourceFetcher:
 
         if finalize:
             self.finalize()
+
+    def load_pod_labels(self):
+        pod_labels_path = '/tmp/ambassador-pod-info/labels'
+        if not os.path.isfile(pod_labels_path):
+            if not self.alerted_about_labels:
+                self.aconf.post_error(f"Pod labels are not mounted in the Ambassador container; Kubernetes Ingress support is likely to be limited")
+                self.alerted_about_labels = True
+
+            return False
+
+        with open(pod_labels_path) as pod_labels_file:
+            pod_labels = pod_labels_file.readlines()
+
+        self.logger.debug(f"Found pod labels: {pod_labels}")
+        for pod_label in pod_labels:
+            pod_label_kv = k8sLabelMatcher.findall(pod_label)
+            if len(pod_label_kv) != 1 or len(pod_label_kv[0]) != 2:
+                self.logger.warning(f"Dropping pod label {pod_label}")
+            else:
+                self.aconf.pod_labels[pod_label_kv[0][0]] = pod_label_kv[0][1]
+        self.logger.info(f"Parsed pod labels: {self.aconf.pod_labels}")
 
     def check_k8s_dup(self, kind: str, namespace: str, name: str) -> bool:
         key = f"{kind}/{name}.{namespace}"
@@ -756,22 +779,10 @@ class ResourceFetcher:
         # Now that we have the Ambassador label, let's verify that this Ambassador service routes to this very
         # Ambassador pod.
         # We do this by checking that the pod's labels match the selector in the service.
-        pod_labels_path = '/tmp/ambassador-pod-info/labels'
-        if not os.path.isfile(pod_labels_path):
-            if not self.alerted_about_labels:
-                self.aconf.post_error(f"Pod labels are not mounted in the Ambassador container; Kubernetes Ingress support is likely to be limited")
-                self.alerted_about_labels = True
-
-            return False
-
-        with open(pod_labels_path) as pod_labels_file:
-            pod_labels = pod_labels_file.readlines()
-
-        self.logger.info(f"Found pod labels: {pod_labels}")
-        for pod_label in pod_labels:
-            for key, value in service_selector.items():
-                if pod_label.rstrip() == f'{key}="{value}"':
-                    return True
+        for key, value in service_selector.items():
+            pod_label_value = self.aconf.pod_labels.get(key)
+            if pod_label_value == value:
+                return True
 
     def handle_k8s_endpoints(self, k8s_object: AnyDict) -> HandlerResult:
         # Don't include Endpoints unless endpoint routing is enabled.

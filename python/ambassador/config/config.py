@@ -143,6 +143,7 @@ class Config:
         self.k8s_status_updates: Dict[str, Tuple] = {}
         self.k8s_ingresses: Dict[str, Any] = {}
         self.k8s_ingress_classes: Dict[str, Any] = {}
+        self.pod_labels: Dict[str, str] = {}
         self._reset()
 
     def _reset(self) -> None:
