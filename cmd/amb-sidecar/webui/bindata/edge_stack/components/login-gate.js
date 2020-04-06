@@ -1077,7 +1077,8 @@ navigation a.selected .label {
 `;
   }
 
-  copyToKeyboard(theId) {
+  copyToKeyboard(evt, theId) {
+    evt.preventDefault();
     const copyText = this.shadowRoot.getElementById(theId).innerText;
     const el = document.createElement('textarea');  // Create a <textarea> element
     el.value = copyText;                            // Set its value to the string that you want copied
@@ -1098,20 +1099,20 @@ navigation a.selected .label {
     }
   }
 
-  copyLoginToKeyboard() {
-    this.copyToKeyboard('login-cmd');
+  copyLoginToKeyboard(evt) {
+    this.copyToKeyboard(evt, 'login-cmd');
   }
 
-  copyDarwinInstallToKeyboard() {
-    this.copyToKeyboard('install-darwin');
+  copyDarwinInstallToKeyboard(evt) {
+    this.copyToKeyboard(evt, 'install-darwin');
   }
 
-  copyLinuxInstallToKeyboard() {
-    this.copyToKeyboard('install-linux');
+  copyLinuxInstallToKeyboard(evt) {
+    this.copyToKeyboard(evt, 'install-linux');
   }
 
-  copyWindowsInstallToKeyboard() {
-    this.copyToKeyboard('install-windows');
+  copyWindowsInstallToKeyboard(evt) {
+    this.copyToKeyboard(evt, 'install-windows');
   }
 
   static get properties() {
@@ -1139,7 +1140,7 @@ navigation a.selected .label {
                 <p><span>Repeat users</span> can log in to the Edge Policy Console directly with this command:</p>
                 <div class="cta">
                     <div class="copy" id="login-cmd">edgectl login --namespace=${this.namespace} ${window.location.host}</div>
-                    <a class="button" href="#" @click=${this.copyLoginToKeyboard.bind(this)}><?xml version="1.0" encoding="UTF-8"?>
+                    <a class="button" href="#" @click=${(e)=>this.copyLoginToKeyboard(e)}><?xml version="1.0" encoding="UTF-8"?>
 <svg width="16px" height="15px" viewBox="0 0 16 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <g id="Screen" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
         <g id="login" transform="translate(-640.000000, -241.000000)" fill="#505050" fill-rule="nonzero">
@@ -1174,7 +1175,7 @@ Once complete, log in to Ambassador with the edgectl command</p>
                     <div class="subtitle">Download with this CLI</div>
                     <div class="card_option1">
                        <div class="card_copy" id="install-darwin">sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl</div>
-                       <a href="#" class="button" @click=${this.copyDarwinInstallToKeyboard.bind(this)}><?xml version="1.0" encoding="UTF-8"?>
+                       <a href="#" class="button" @click=${(e)=>this.copyDarwinInstallToKeyboard(e)}><?xml version="1.0" encoding="UTF-8"?>
 <svg width="16px" height="15px" viewBox="0 0 16 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <g id="Screen" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
         <g id="login" transform="translate(-640.000000, -241.000000)" fill="#505050" fill-rule="nonzero">
@@ -1218,7 +1219,7 @@ Once complete, log in to Ambassador with the edgectl command</p>
                     <div class="subtitle">Download with this CLI</div>
                     <div class="card_option1">
                         <div class="card_copy" id="install-linux">sudo curl -fL https://metriton.datawire.io/downloads/linux/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl</div>
-                        <a href="#" class="button" @click=${this.copyLinuxInstallToKeyboard.bind(this)}><?xml version="1.0" encoding="UTF-8"?>
+                        <a href="#" class="button" @click=${(e)=>this.copyLinuxInstallToKeyboard(e)}><?xml version="1.0" encoding="UTF-8"?>
 <svg width="16px" height="15px" viewBox="0 0 16 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <g id="Screen" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
         <g id="login" transform="translate(-640.000000, -241.000000)" fill="#505050" fill-rule="nonzero">
@@ -1268,7 +1269,7 @@ Once complete, log in to Ambassador with the edgectl command</p>
       return html`
       <div id="debug-dev-loop-box" style="position:absolute; background-color:red; top: 5px; left: 500px;"><div>
         <h3>Debug</h3>
-        1. <button style="margin-right: 1em" @click=${this.copyLoginToKeyboard.bind(this)}>Copy edgectl command to clipboard</button>
+        1. <button style="margin-right: 1em" @click=${(e)=>this.copyLoginToKeyboard(e)}>Copy edgectl command to clipboard</button>
         2. <button @click="${this.enterDebugDetails.bind(this)}">Enter the URL+JWT</button>
       </div></div>
 ` } else {
