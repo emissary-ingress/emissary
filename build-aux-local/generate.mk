@@ -281,7 +281,7 @@ $(OSS_HOME)/vendor: FORCE
 	}
 	cp -a $(@D)/go.mod $(@D)/go.mod.vendor-hack.bak
 	cd $(@D) && go mod vendor
-	find $(@D)/pkg/api -name vendor_bootstrap_hack.go -delete
+	find $(@D) -name vendor_bootstrap_hack.go -delete
 	mv -f $(@D)/go.mod.vendor-hack.bak $(@D)/go.mod
 
 clean: _makefile_clean

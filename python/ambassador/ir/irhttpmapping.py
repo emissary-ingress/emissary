@@ -83,7 +83,9 @@ class IRHTTPMapping (IRBaseMapping):
         # Do not include precedence.
         "prefix": True,
         "prefix_regex": True,
+        "prefix_exact": True,
         "priority": True,
+        "proper_case": True,
         "rate_limits": True,   # Only supported in v0, handled in setup
         "remove_response_headers": True,
         "remove_request_headers": True,
@@ -115,6 +117,7 @@ class IRHTTPMapping (IRBaseMapping):
                  apiVersion: str="getambassador.io/v2",   # Not a typo! See below.
                  precedence: int=0,
                  rewrite: str="/",
+                 cluster_tag: Optional[str]=None,
                  **kwargs) -> None:
         # OK, this is a bit of a pain. We want to preserve the name and rkey and
         # such here, unlike most kinds of IRResource. So. Shallow copy the keys
@@ -154,7 +157,7 @@ class IRHTTPMapping (IRBaseMapping):
         if 'method' in kwargs:
             hdrs.append(Header(":method", kwargs['method'], kwargs.get('method_regex', False)))
 
-        # XXX BRUTAL HACK HERE: 
+        # XXX BRUTAL HACK HERE:
         # If we _don't_ have an origination context, but our IR has an agent_origination_ctx,
         # force TLS origination because it's the agent. I know, I know. It's a hack.
         if ('tls' not in new_args) and ir.agent_origination_ctx:
@@ -166,7 +169,7 @@ class IRHTTPMapping (IRBaseMapping):
             ir=ir, aconf=aconf, rkey=rkey, location=location,
             kind=kind, name=name, namespace=namespace, metadata_labels=metadata_labels,
             apiVersion=apiVersion, headers=hdrs, add_request_headers=add_request_hdrs,
-            precedence=precedence, rewrite=rewrite,
+            precedence=precedence, rewrite=rewrite, cluster_tag=cluster_tag,
             **new_args
         )
 

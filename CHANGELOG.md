@@ -46,6 +46,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ## RELEASE NOTES
 
+- Feature: Add proper_case mapping property to support upper casing(content-type -> Content-Type) of response headers.
 <!---
 Add release notes right after this point.
 
@@ -66,6 +67,26 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## next (TBD)
+
+### Ambassador API Gateway + Ambassador Edge Stack
+
+- Feature: Support Ingress Path types improvements from networking.k8s.io/v1beta1 on Kubernetes 1.18+
+- Feature: Support Ingress hostname wildcards
+- Feature: Support for the IngressClass Resource, added to networking.k8s.io/v1beta1 on Kubernetes 1.18+
+
+## [1.3.2] April 1, 2020
+[1.3.2]: https://github.com/datawire/ambassador/compare/v1.3.1...v1.3.2
+
+### Ambassador Edge Stack
+
+- Bugfix: `edgectl install` correctly installs on Amazon EKS and other clusters that provide load balancers with fixed DNS names
+- Bugfix: `edgectl install` when using Helm once again works as documented
+- Bugfix: `edgectl install` console logs are improved and neatened
+- Bugfix: `edgectl install --verbose` output is improved
+- Bugfix: `edgectl install` automatically opens documentation pages for some errors
+- Bugfix: `edgectl install` help text is improved
+
 ## [1.3.1] March 24, 2020
 [1.3.1]: https://github.com/datawire/ambassador/compare/v1.3.0...v1.3.1
 
@@ -204,7 +225,7 @@ Format:
 
 ### Caution!
 
-All of Ambassador's CRDs have been switched to `apiVersion: getambassador.io/v2`, and 
+All of Ambassador's CRDs have been switched to `apiVersion: getambassador.io/v2`, and
 **your resources will be upgraded when you apply the new CRDs**. We recommend that you
 follow the [migration instructions](https://getambassador.io/early-access/user-guide/upgrade-to-edge-stack/) and check your installation's
 behavior before upgrading your CRDs.
@@ -219,7 +240,7 @@ behavior before upgrading your CRDs.
 
 ### Features
 
-- The Host CR provides an easy way to tell Ambassador about domains it should expect to handle, and 
+- The Host CR provides an easy way to tell Ambassador about domains it should expect to handle, and
   how it should handle secure and insecure requests for those domains
 - Redirection from HTTP to HTTPS defaults to ON when termination contexts are present
 - Mapping and Host CRs, as well as Ingress resources, get Status updates to provide better feedback
@@ -322,7 +343,7 @@ Ambassador Edge Stack incorporates the functionality of the old Ambassador Pro p
 [1.0.0-ea7]: https://github.com/datawire/ambassador/compare/v1.0.0-ea6...v1.0.0-ea7
 
 - Bugfix: UI buttons can hide themselves
-- Bugfix: Developer Portal API acquisition 
+- Bugfix: Developer Portal API acquisition
 - Bugfix: Developer Portal internal routing
 - Internal: Better JS console usage
 - Internal: Rationalize usage reporting for Edge Stack
@@ -359,7 +380,7 @@ previous version.
 
 ### Caution!
 
-All of Ambassador's CRDs have been switched to `apiVersion: getambassador.io/v2`, and 
+All of Ambassador's CRDs have been switched to `apiVersion: getambassador.io/v2`, and
 **your resources will be upgraded when you apply the new CRDs**. We recommend that you
 follow the [migration instructions](https://getambassador.io/early-access/user-guide/upgrade-to-edge-stack/) and check your installation's
 behavior before upgrading your CRDs.
@@ -419,7 +440,7 @@ behavior before upgrading your CRDs.
 ### Developer Notes:
 
 - Many many things about the build system have changed under the hood!
-   - Start with `make help`, and 
+   - Start with `make help`, and
    - Join our [Slack channel](https://d6e.co/slack) for more help!
 
 ## [0.83.0] October 08, 2019
@@ -605,7 +626,7 @@ NOTE: this switches the default regex engine! See the documentation for the `amb
 
 ### Major changes:
 - Feature: Support CRDs in the `getambassador.io` API group for configuration ([#482])
-- Feature: Update to Envoy 1.10 
+- Feature: Update to Envoy 1.10
 
 ### Minor changes:
 - Feature: Support removing request headers (thanks @ysaakpr!)
@@ -663,7 +684,7 @@ Ambassador 0.61.0 metadata
 ### Changes since 0.60.0
 
 - Speed up initial parsing of WATT snapshots considerably ([#1465])
-- Don't look at secrets in the kube-system namespace, or for service-account tokens. 
+- Don't look at secrets in the kube-system namespace, or for service-account tokens.
 - Make sure that secrets we do look at are correctly associated with their namespaces ([#1467] -- thanks to @flands and @derrickburns for their contributions here!)
 - Allow tuning the number of input snapshots retained for debugging
 - Include the grab-snapshots.py script to help with debuggability
@@ -700,7 +721,7 @@ Ambassador 0.53.1 addresses two security issues in Envoy Proxy, CVE-2019-9900 an
 - CVE-2019-9901 (Score 8.3/High). Envoy does not normalize HTTP URL paths in Envoy 1.9 and before.
 
 Since these issues can potentially allow a remote attacker to use maliciously-crafted URLs to bypass
-authentication, anyone running an Ambassador prior to 0.53.1 should upgrade. 
+authentication, anyone running an Ambassador prior to 0.53.1 should upgrade.
 
 ### UPCOMING CHANGES
 
@@ -717,7 +738,7 @@ will try to warn you if your configuration will be affected by this change.
 
 ### Changes since 0.52.0
 
-- You can specify the `AMBASSADOR_NO_SECRETS` environment variable to prevent Ambassador from 
+- You can specify the `AMBASSADOR_NO_SECRETS` environment variable to prevent Ambassador from
   watching Kubernetes secrets at all (thanks [@esmet](https://github.com/esmet)!) ([#1293])
 - The services used when you do `docker run ambassador --demo` have been moved into the Docker image,
   to remove external dependencies from the Ambassador quickstart.  
@@ -731,7 +752,7 @@ will try to warn you if your configuration will be affected by this change.
 
 - Initial support for endpoint routing, rather than relying on `kube-proxy` ([#1031])
    - set `AMBASSADOR_ENABLE_ENDPOINTS` in the environment to allow this
-- Initial support for Envoy ring hashing and session affinity (requires endpoint routing!) 
+- Initial support for Envoy ring hashing and session affinity (requires endpoint routing!)
 - Support Lua filters (thanks to [@lolletsoc](https://github.com/lolletsoc)!)
 - Support gRPC-Web (thanks to [@gertvdijk](https://github.com/gertvdijk)!) ([#456])
 - Support for gRPC HTTP 1.1 bridge (thanks to [@rotemtam](https://github.com/rotemtam)!)
@@ -779,7 +800,7 @@ will try to warn you if your configuration will be affected by this change.
 
 ### Limitations in 0.51.0
 
-At present, you cannot mix HTTP and HTTPS upstream `service`s in any Ambassador resource. This restriction will be lifted in a future Ambassador release. 
+At present, you cannot mix HTTP and HTTPS upstream `service`s in any Ambassador resource. This restriction will be lifted in a future Ambassador release.
 
 ## [0.50.3] February 21, 2019
 [0.50.3]: https://github.com/datawire/ambassador/compare/0.50.2...0.50.3
@@ -793,7 +814,7 @@ At present, you cannot mix HTTP and HTTPS upstream `service`s in any Ambassador 
 
 ### Limitations in 0.50.3
 
-At present, you cannot mix HTTP and HTTPS upstream `service`s in any Ambassador resource. This restriction will be lifted in a future Ambassador release. 
+At present, you cannot mix HTTP and HTTPS upstream `service`s in any Ambassador resource. This restriction will be lifted in a future Ambassador release.
 
 ## [0.50.2] February 15, 2019
 [0.50.2]: https://github.com/datawire/ambassador/compare/0.50.1...0.50.2
@@ -810,7 +831,7 @@ At present, you cannot mix HTTP and HTTPS upstream `service`s in any Ambassador 
 
 ### Limitations in 0.50.2
 
-At present, you cannot mix HTTP and HTTPS upstream `service`s in any Ambassador resource. This restriction will be lifted in a future Ambassador release. 
+At present, you cannot mix HTTP and HTTPS upstream `service`s in any Ambassador resource. This restriction will be lifted in a future Ambassador release.
 
 [#1202]: https://github.com/datawire/ambassador/issues/1202
 [#1203]: https://github.com/datawire/ambassador/issues/1203
@@ -839,19 +860,19 @@ At present, you cannot mix HTTP and HTTPS upstream `service`s in any Ambassador 
 **Ambassador 0.50.0 is a major rearchitecture of Ambassador onto Envoy V2 using the ADS. See the "BREAKING NEWS"
 section above for more information.**
 
-(Note that Ambassador 0.50.0-rc7 and -rc8 were internal releases.) 
+(Note that Ambassador 0.50.0-rc7 and -rc8 were internal releases.)
 
 ### Changes since 0.50.0-rc6
 
 - `AMBASSADOR_SINGLE_NAMESPACE` is finally correctly supported and properly tested ([#1098])
 - Ambassador won't throw an exception for name collisions between resources ([#1155])
 - A TLS `Module` can now coexist with SNI (the TLS `Module` effectively defines a fallback cert) ([#1156])
-- `ambassador dump --diag` no longer requires you to explicitly state `--v1` or `--v2` 
+- `ambassador dump --diag` no longer requires you to explicitly state `--v1` or `--v2`
 
 ### Limitations in 0.50.0 GA
 
 - Configuration from the filesystem is not supported in 0.50.0. It will be resupported in 0.50.1.
-- A `TLSContext` referencing a `secret` in another namespace will not function when `AMBASSADOR_SINGLE_NAMESPACE` is set. 
+- A `TLSContext` referencing a `secret` in another namespace will not function when `AMBASSADOR_SINGLE_NAMESPACE` is set.
 
 [#1098]: https://github.com/datawire/ambassador/issues/1098
 [#1155]: https://github.com/datawire/ambassador/issues/1155
@@ -936,10 +957,10 @@ updates after running for a short time. This will be fixed in 0.50.0-GA.
 
 ### Changes since 0.50.0-rc2
 
-- The `Location` and `Set-Cookie` headers should always be allowed from the auth service when using an `ambassador/v0` config [#1054] 
+- The `Location` and `Set-Cookie` headers should always be allowed from the auth service when using an `ambassador/v0` config [#1054]
 - `add_response_headers` (parallel to `add_request_headers`) is now supported (thanks, @n1koo!)
 - `host_redirect` and `shadow` both now work correctly [#1057], [#1069]
-- Kat is able to give better information when it cannot parse a YAML specification. 
+- Kat is able to give better information when it cannot parse a YAML specification.
 
 [#1054]: https://github.com/datawire/ambassador/issues/1054
 [#1057]: https://github.com/datawire/ambassador/issues/1057
@@ -971,9 +992,9 @@ updates after running for a short time. This will be fixed in 0.50.0-GA.
 ### Changes since 0.50.0-ea7:
 
 - Websockets should work happily with external authentication [#1026]
-- A `TracingService` using a long cluster name works now [#1025] 
+- A `TracingService` using a long cluster name works now [#1025]
 - TLS origination certificates are no longer offered to clients when Ambassador does TLS termination [#983]
-- Ambassador will listen on port 443 only if TLS termination contexts are present; a TLS origination context will not cause the switch 
+- Ambassador will listen on port 443 only if TLS termination contexts are present; a TLS origination context will not cause the switch
 - The diagnostics service is working, and correctly reporting errors, again. [#1019]
 - `timeout_ms` in a `Mapping` works correctly again [#990]
 - Ambassador sends additional anonymized usage data to help Datawire prioritize bug fixes, etc.
@@ -992,7 +1013,7 @@ updates after running for a short time. This will be fixed in 0.50.0-GA.
 
 ### Upcoming major changes:
 
-- **API version `ambassador/v0` will be officially deprecated in Ambassador 0.50.0.** 
+- **API version `ambassador/v0` will be officially deprecated in Ambassador 0.50.0.**
   API version `ambassador/v1` will the minimum recommended version for resources in Ambassador 0.50.0.
 
 - Some resources will change between `ambassador/v0` and `ambassador/v1`.
@@ -1001,16 +1022,16 @@ updates after running for a short time. This will be fixed in 0.50.0-GA.
 
 ### Changes since 0.50.0-ea6:
 
-- Ambassador now supports `labels` for all `Mapping`s. 
+- Ambassador now supports `labels` for all `Mapping`s.
 - Configuration of rate limits for a `Mapping` is now handled by providing `labels` in the domain configured
   for the `RateLimitService` (by default, this is "ambassador").    
-- Ambassador, once again, supports `statsd` for statistics gathering. 
+- Ambassador, once again, supports `statsd` for statistics gathering.
 - The Envoy `buffer` filter is supported.
 - Ambassador can now use GRPC to call the external authentication service, and also include the message body
   in the auth call.
 - It's now possible to use environment variables to modify the configuration directory (thanks @n1koo!).
 - Setting environment variable `AMBASSADOR_KUBEWATCH_NO_RETRY` will cause the Ambassador pod to exit, and be
-  rescheduled, if it loses its connection to the Kubernetes API server. 
+  rescheduled, if it loses its connection to the Kubernetes API server.
 - Many dependencies have been updated, most notably including switching to kube-client 8.0.0.
 
 ## [0.50.0-ea6] November 19, 2018
@@ -1065,7 +1086,7 @@ updates after running for a short time. This will be fixed in 0.50.0-GA.
 - Websockets are now supported, **including** mapping the same websocket prefix to multiple upstream services for canary releases or load balancing.
 - KAT supports full debug logs by individual `Test` or `Query`.
 
-**Ambassador 0.50.0 is not yet feature-complete. Read the Limitations and Breaking Changes sections in the 0.50.0-ea1 section below for more information.** 
+**Ambassador 0.50.0 is not yet feature-complete. Read the Limitations and Breaking Changes sections in the 0.50.0-ea1 section below for more information.**
 
 ## [0.50.0-ea2] October 16, 2018
 [0.50.0-ea2]: https://github.com/datawire/ambassador/compare/0.50.0-ea1...0.50.0-ea2
@@ -1074,14 +1095,14 @@ updates after running for a short time. This will be fixed in 0.50.0-GA.
 
 ### Changes since 0.50.0-ea1:
 
-- Attempting to enable TLS termination without supplying a valid cert secret will result in HTTP on port 80, rather than HTTP on port 443. **No error will be displayed in the diagnostic service yet.** This is a bug and will be fixed in `-ea3`. 
+- Attempting to enable TLS termination without supplying a valid cert secret will result in HTTP on port 80, rather than HTTP on port 443. **No error will be displayed in the diagnostic service yet.** This is a bug and will be fixed in `-ea3`.
 - CORS is now supported.
 - Logs are no longer full of accesses from the diagnostic service.
 - KAT supports isolating OptionTests.
 - The diagnostics service now shows the V2 config actually in use, not V1.
 - `make` will no longer rebuild the Python venv so aggressively.
 
-**Ambassador 0.50.0 is not yet feature-complete. Read the Limitations and Breaking Changes sections in the 0.50.0-ea1 section below for more information.** 
+**Ambassador 0.50.0 is not yet feature-complete. Read the Limitations and Breaking Changes sections in the 0.50.0-ea1 section below for more information.**
 
 ## [0.50.0-ea1] October 11, 2018
 [0.50.0-ea1]: https://github.com/datawire/ambassador/compare/0.40.0...0.50.0-ea1
@@ -1146,7 +1167,7 @@ updates after running for a short time. This will be fixed in 0.50.0-GA.
 [0.40.1]: https://github.com/datawire/ambassador/compare/0.40.0...0.40.1
 
 ### Minor changes:
-- Feature: Support running Ambassador as a `Daemonset` via Helm (thanks @DipeshMitthalal!) 
+- Feature: Support running Ambassador as a `Daemonset` via Helm (thanks @DipeshMitthalal!)
 - Feature: Switch to Envoy commit 5f795fe2 to fix a crash if attempting to add headers after using an AuthService (#647, #680)
 
 ## [0.40.0] September 25, 2018
@@ -1208,7 +1229,7 @@ updates after running for a short time. This will be fixed in 0.50.0-GA.
 ### Major changes:
 - Fix: HEAD requests no longer cause segfaults
 - Feature: TLS can now be configured with arbitrary secret names, instead of predefined secrets
-- Change: The Envoy dynamic header value `%CLIENT_IP%` is no longer supported. Use `%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%` instead. (This is due to a change in Envoy 1.7.0.) 
+- Change: The Envoy dynamic header value `%CLIENT_IP%` is no longer supported. Use `%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%` instead. (This is due to a change in Envoy 1.7.0.)
 
 ## [0.35.3] July 18, 2018: **READ THE WARNING ABOVE**
 [0.35.3]: https://github.com/datawire/ambassador/compare/0.35.2...0.35.3
