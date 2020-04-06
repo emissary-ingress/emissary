@@ -45,6 +45,7 @@ class IRTCPMapping (IRBaseMapping):
                  kind: str="IRTCPMapping",
                  apiVersion: str="getambassador.io/v2",   # Not a typo! See below.
                  precedence: int=0,
+                 cluster_tag: Optional[str]=None,
                  **kwargs) -> None:
         # OK, this is a bit of a pain. We want to preserve the name and rkey and
         # such here, unlike most kinds of IRResource. So. Shallow copy the keys
@@ -56,7 +57,7 @@ class IRTCPMapping (IRBaseMapping):
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, location=location,
             kind=kind, name=name, namespace=namespace, metadata_labels=metadata_labels,
-            apiVersion=apiVersion, precedence=precedence,
+            apiVersion=apiVersion, precedence=precedence, cluster_tag=cluster_tag,
             **new_args
         )
 

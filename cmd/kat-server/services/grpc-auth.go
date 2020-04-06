@@ -18,9 +18,9 @@ import (
 	pb_legacy "github.com/datawire/ambassador/pkg/api/envoy/service/auth/v2alpha"
 	envoy_type "github.com/datawire/ambassador/pkg/api/envoy/type"
 
-	rpc "istio.io/gogo-genproto/googleapis/google/rpc"
 	gogo_type "github.com/gogo/protobuf/types"
 	"google.golang.org/grpc"
+	rpc "istio.io/gogo-genproto/googleapis/google/rpc"
 )
 
 // GRPCAUTH server object (all fields are required).
@@ -231,8 +231,8 @@ func (r *Response) GetResponse() *pb.CheckResponse {
 	rs := &pb.CheckResponse{}
 	switch {
 	// Ok respose.
-	case r.status == 200 || r.status == 0:
-		rs.Status = &rpc.Status{Code: int32(0)}
+	case r.status == http.StatusOK || r.status == 0:
+		rs.Status = &rpc.Status{Code: int32(rpc.OK)}
 		rs.HttpResponse = &pb.CheckResponse_OkResponse{
 			OkResponse: &pb.OkHttpResponse{
 				Headers: r.headers,
@@ -241,7 +241,7 @@ func (r *Response) GetResponse() *pb.CheckResponse {
 
 	// Denied response.
 	default:
-		rs.Status = &rpc.Status{Code: int32(16)}
+		rs.Status = &rpc.Status{Code: int32(rpc.UNAUTHENTICATED)}
 		rs.HttpResponse = &pb.CheckResponse_DeniedResponse{
 			DeniedResponse: &pb.DeniedHttpResponse{
 				Status: &envoy_type.HttpStatus{

@@ -29,6 +29,7 @@
         "enable_ipv6": { "type": "boolean" },
         "resolver": { "type": "string" },
         "tls": { "type": [ "string", "boolean" ] },
+        "cluster_tag": { "type": "string" },
 
         "service": { "type": "string" }
     },
