@@ -445,8 +445,9 @@ func (k *kale) calculateCommits(proj *Project) ([]interface{}, error) {
 				// Use the resolved ref.Name() instead of the original
 				// refName, in order to resolve symbolic references; users
 				// would rather see "master" instead of "HEAD".
-				Ref: ref.Name(),
-				Rev: ref.Hash().String(),
+				Ref:       ref.Name(),
+				Rev:       ref.Hash().String(),
+				IsPreview: refName != libgitPlumbing.HEAD,
 			},
 		})
 	}

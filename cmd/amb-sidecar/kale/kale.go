@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -1080,6 +1081,12 @@ func (k *kale) reconcileCommit(ctx context.Context, proj *Project, commit *Proje
 }
 
 func (k *kale) calculateRun(proj *Project, commit *ProjectCommit) []interface{} {
+	prefix := "/" + proj.Spec.Prefix + "/"
+	if commit.Spec.IsPreview {
+		// todo: figure out what is going on with /edge_stack/previews
+		// not being routable
+		prefix = "/.previews/" + proj.Spec.Prefix + "/" + commit.Spec.Rev + "/"
+	}
 	return []interface{}{
 		&Mapping{
 			TypeMeta: k8sTypesMetaV1.TypeMeta{
@@ -1106,10 +1113,8 @@ func (k *kale) calculateRun(proj *Project, commit *ProjectCommit) []interface{} 
 			},
 			Spec: MappingSpec{
 				AmbassadorID: aproTypesV2.AmbassadorID{k.cfg.AmbassadorID},
-				// todo: figure out what is going on with /edge_stack/previews
-				// not being routable
-				Prefix:  "/.previews/" + proj.Spec.Prefix + "/" + commit.Spec.Rev + "/",
-				Service: commit.GetName(),
+				Prefix:       prefix,
+				Service:      commit.GetName(),
 			},
 		},
 		&k8sTypesCoreV1.Service{
@@ -1194,6 +1199,12 @@ func (k *kale) calculateRun(proj *Project, commit *ProjectCommit) []interface{} 
 							{
 								Name:  "app",
 								Image: "127.0.0.1:31000/" + commit.Spec.Rev,
+								Env: []k8sTypesCoreV1.EnvVar{
+									{Name: "AMB_PROJECT_PREVIEW", Value: strconv.FormatBool(commit.Spec.IsPreview)},
+									{Name: "AMB_PROJECT_REPO", Value: proj.Spec.GithubRepo},
+									{Name: "AMB_PROJECT_REF", Value: commit.Spec.Ref.String()},
+									{Name: "AMB_PROJECT_REV", Value: commit.Spec.Rev},
+								},
 							},
 						},
 					},
