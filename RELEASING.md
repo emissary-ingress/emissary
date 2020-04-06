@@ -89,3 +89,137 @@ and the CI will be green.
       - If you want to test before submitting, use `npm install && npm start` and point a web browser to `localhost:8000`
 
    Submit a PR to the Ambassador website repository to update the version on the homepage.
+
+---
+
+### Host a release branch on getambassador.io
+
+getambassador.io can host multiple versions of ambassador documentation. As a matter of policy, only the documentation for major and minor releases is hosted, documentation changes for patch releases are expected to be folded in the associated minor release.
+
+#### Introduction
+
+Whenever a new release is cut in ambassador, a release branch is created for that release. Generally these release branches are named as `release/v<release version>`.
+A major and a minor release branch is expected to be long lived, protected and it contains the documentation for that particular branch under `/docs/` directory.
+
+To host these different versions of documentation on the website, the following machinery is set up.
+
+In getambassador.io.git repository:
+
+- The release branches are exposed via git submodules under /submodules/ directory.
+```
+submodules/
+├── 1.1 <--- links to `release/v1.1` branch
+├── 1.2 <--- links to `release/v1.2` branch
+├── 1.3 <--- links to `release/v1.3` branch
+└── latest <--- links to `release/v1.3` branch
+```
+- All markdown files under `/docs-structure/` directory make their way to the getambassador.io website with the _exact_ path as they are in.
+```
+docs-structure/
+├── docs <--- This is where we want to expose the /docs/ directory from our release branches
+├── edgestack.me
+├── kat
+├── libraries.md
+├── README.md
+└── yaml -> ../submodules/latest/docs/yaml/
+```
+- Now that we have all release branches under `/submodules/`, we further link their `/docs/` directories under `/docs-structure/docs/`.
+```
+docs-structure/docs/
+├── 1.1 -> ../../submodules/1.1/docs
+├── 1.2 -> ../../submodules/1.2/docs
+├── 1.3 -> ../../submodules/1.3/docs
+└── latest -> ../../submodules/latest/docs
+```
+
+This is how our docs are laid out.
+
+In ambassador.git, the CI is configured to update the submodules in getambassador.io.git on every documentation update to the release branches, which deploys to the website.
+
+#### How to host a new release branch.
+
+After a new major/minor release is cut, this is how to host it on the website.
+For example, let's suppose version 1.4 of ambassador needs to be hosted.
+
+##### In ambassador.git,
+
+- In the branch `release/v1.4`,
+  - In `docs/js/doc-links.yml`, make sure the links are pointed at `/docs/latest/...`
+  - In `docs/js/doc-page.js`, update the footer branch.
+  ```
+  <DocFooter page={page} branch="release/v1.4" />
+  ```
+  - Update `.travis.yml` to push on every doc change to `release/v1.4` branch.
+  ```yaml
+  deploy:
+  # Add this section
+  - provider: script
+    script: ./.ci/publish-website
+    skip_cleanup: true
+    on:
+      branch: release/v1.4
+  - provider: script
+    script: ./.ci/publish-website
+    skip_cleanup: true
+    on:
+      branch: release/v1.3
+  - provider: script
+    script: ./.ci/publish-website
+    skip_cleanup: true
+    on:
+      branch: release/v1.2
+  ```
+
+##### In getambassador.io.git,
+- Add the submodule pointing to `release/v1.4` branch to the `submodules/1.4/` directory
+```
+git submodule add --name ambassador-1.4 --branch release/v1.4 https://github.com/datawire/ambassador.git submodules/1.4/
+```
+- Update `ambassador-latest` submodule to point to `release/v1.4` branch.
+```
+$ cat .gitmodules
+[submodule "ambassador-latest"]
+        path = submodules/latest
+        url = https://github.com/datawire/ambassador.git
+        branch = release/v1.4
+...
+...
+...
+```
+- Now link only the docs in this branch under `/docs-structure/docs/` directory.
+```
+cd docs-structure/docs/
+ln -s ../../submodules/1.4/docs 1.4
+```
+- Add 1.4 dropdown link in `src/components/Header/Header.js` file.
+```js
+              <li>
+                <div className={classnames(styles.Dropdown, !isDocLink((location || {}).pathname) && styles.hidden)}>
+                  <button className={classnames(styles.DropdownButton, styles.DocsDropdownColor)}>{ docsVersion((location || {}).pathname) } ▾</button>
+                  <div className={styles.DropdownContent}>
+                    <Link to="/docs/latest/">Latest</Link>
+                    <Link to="/docs/1.4/">1.4</Link>
+                    <Link to="/docs/1.3/">1.3</Link>
+                    <Link to="/docs/1.2/">1.2</Link>
+                    <Link to="/docs/1.1/">1.1</Link>
+                  </div>
+                </div>
+              </li>
+```
+
+##### Note:
+Now the website must now display v1.4 docs under getambassador.io/docs/. Make sure everything looks right.
+
+##### In ambassador.git,
+
+Now that the latest release is `1.4`, we need to remove that tag from `1.3`.
+
+- In the branch `release/v1.3`,
+  - In `docs/js/doc-links.yml`, change all link prefixes to `/docs/1.3` from `/docs/latest`
+
+##### Note:
+You should be all set now.
+- `/docs/latest/` must now show v1.4 docs.
+- `/docs/1.4/` must now point to `/docs/latest/`.
+- `/docs/1.3/` must now show docs under `release/v1.3` branch.
+- The rest of the versions must also show the right set of docs.
