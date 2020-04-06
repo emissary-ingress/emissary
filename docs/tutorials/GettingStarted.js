@@ -63,14 +63,14 @@ class GettingStarted extends Component {
           </div>
 
           <div id="QS-header1">
-            <span id="QS-showMac" data-os="mac" className="QS-header1">Mac<img className="os-logo" src="/../../docs/latest/images/apple.png" /></span>
+            <span id="QS-showMac" data-os="mac" className="QS-header1">Mac<img className="os-logo" src="../../images/apple.png" /></span>
 
-            <span id="QS-showLinux" data-os="linux" className="QS-header1">Linux<img className="os-logo" src="/../../docs/latest/images/linux.png" /></span>
+            <span id="QS-showLinux" data-os="linux" className="QS-header1">Linux<img className="os-logo" src="../../images/linux.png" /></span>
 
-            <span id="QS-showWindows" data-os="windows" className="QS-header1">Windows<img className="os-logo" src="/../../docs/latest/images/windows.png" /></span>
+            <span id="QS-showWindows" data-os="windows" className="QS-header1">Windows<img className="os-logo" src="../../images/windows.png" /></span>
           </div>
 
-          <div className="QS-moreInstallOptions"><a id="QS-moreInstallOptions" href="/docs/latest/tutorials/getting-started/">More Install Options</a></div>
+          <div className="QS-moreInstallOptions"><a id="QS-moreInstallOptions" href="/docs/tutorials/getting-started/">More Install Options</a></div>
 
 
           <div className="QS-aside1">
@@ -180,11 +180,10 @@ class GettingStarted extends Component {
               3. Take it for a spin! 
               
                   <div className="QS-Aside3codeblockInstall">
-                  <a href="/docs/latest/tutorials/installation-success/">➞ See how Ambassador works with a service.</a><br/>
-                  <a href="/docs/latest/topics/using/">➞ Check out custom options and integrations.</a>  
+                  <a href="/docs/tutorials/installation-success/">➞ See how Ambassador works with a service.</a><br/>
+                  <a href="/docs/topics/using/">➞ Check out custom options and integrations.</a>  
                   </div>
                 </div>
-
           </div>
 
         </div>
