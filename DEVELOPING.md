@@ -529,3 +529,15 @@ listen for the CRD.  Now you need to add it to the YAML:
     1. If you made any changes in `ambassador.git`, update
       `apro.git/ambassador.commit`.
     2. In `apro.git`, run `make update-yaml-locally`.
+
+How do I update the builder image used by route-to-code?
+--------------------------------------------------------
+
+Push the desired changes to
+https://github.com/datawire/aes-project-builder .  Quay will
+automatically build a `quay.io/datawire/aes-project-builder` image
+from any branches or tags pushed.  Go to
+https://quay.io/repository/datawire/aes-project-builder?tab=tags and
+find the Docker tag that it made, click the download button on the
+right and select "Docker Pull (by digest)".  Copy the image name, and
+put it in `./cmd/amb-sidecar/kale/kale.go`.
