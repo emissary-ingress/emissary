@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/managed-by: {{ include "ambassador.managedBy" . }}
 data:
   exporterConfiguration:
 {{- if .Values.prometheusExporter.configuration }} |

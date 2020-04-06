@@ -9,7 +9,7 @@ metadata:
     helm.sh/chart: {{ include "ambassador.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/part-of: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/managed-by: {{ include "ambassador.managedBy" . }}
     # Hard-coded label for Prometheus Operator ServiceMonitor
     service: ambassador-admin
     product: aes

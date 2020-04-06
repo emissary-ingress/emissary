@@ -8,7 +8,7 @@ metadata:
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/managed-by: {{ include "ambassador.managedBy" . }}
     app.kubernetes.io/component: ambassador-service
     product: aes
   {{- with .Values.service.annotations }}
