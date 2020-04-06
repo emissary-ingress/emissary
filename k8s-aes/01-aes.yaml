@@ -102,7 +102,7 @@ rules:
   resources: [ "services" ]
   verbs: [ "get", "list", "create", "patch", "delete", "watch" ]
 - apiGroups: ["apps"]
-  resources: [ "statefulsets" ]
+  resources: [ "deployments" ]
   verbs: [ "get", "list", "create", "patch", "delete", "watch" ]
 - apiGroups: ["batch"]
   resources: [ "jobs" ]
