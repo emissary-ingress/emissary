@@ -18,7 +18,7 @@ Windows. For other options, such as Docker, read the [detailed instructions] (..
 <summary class="heading">
 
 ### Install on MacOS
-<img class="os-logo" src="/images/apple.png"/>
+<img class="os-logo" src="../../images/apple.png"/>
 
 </summary>
 
@@ -41,7 +41,7 @@ Windows. For other options, such as Docker, read the [detailed instructions] (..
 <summary class="heading">
 
 ### Install on Linux
-<img class="os-logo" src="/images/linux.png"/>
+<img class="os-logo" src="../../images/linux.png"/>
 </summary>
 
 1. Download the `edgectl` file
@@ -59,7 +59,7 @@ Windows. For other options, such as Docker, read the [detailed instructions] (..
 <summary class="heading">
 
 ### Install on Windows
-<img class="os-logo" src="/images/windows.png"/>
+<img class="os-logo" src="../../images/windows.png"/>
 
 </summary>
 
@@ -114,7 +114,7 @@ name, so you can get started right away.
 Your new [Edge Policy Console](../../topics/using/edge-policy-console) will open
 automatically in your browser at the provided URL or IP address. 
 
-![AES success](/images/aes-success.png)
+![AES success](../../images/aes-success.png)
 
 ### Minikube
 

@@ -136,7 +136,7 @@ Settings that are only valid when `grantType: "AuthorizationCode"`:
       not support the `\C` escape sequence.
 
 [RE2]: https://github.com/google/re2/wiki/Syntax
-[`regex_type`]: /docs/latest/topics/running/ambassador/#regular-expressions-regex_type
+[`regex_type`]: ../../../running/ambassador/#regular-expressions-regex_type
 
 HTTP client settings for talking to the identity provider:
 
