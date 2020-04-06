@@ -41,7 +41,7 @@ class Term extends LitElement {
       }
 
       let style = window.getComputedStyle(div)
-      if (style.height === "auto") {
+      if (this.source && style.height === "auto") {
         // Try again later because we can't show the terminal if we
         // don't have a height yet. This appears to be due to a bug in
         // the fitter add on. It tries to compute the size of the
