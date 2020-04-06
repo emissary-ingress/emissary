@@ -63,14 +63,14 @@ class GettingStarted extends Component {
           </div>
 
           <div id="QS-header1">
-            <span id="QS-showMac" data-os="mac" className="QS-header1">Mac<img className="os-logo" src="../../images/apple.png" /></span>
+            <span id="QS-showMac" data-os="mac" className="QS-header1">Mac<img className="os-logo" src="../../../images/apple.png" /></span>
 
-            <span id="QS-showLinux" data-os="linux" className="QS-header1">Linux<img className="os-logo" src="../../images/linux.png" /></span>
+            <span id="QS-showLinux" data-os="linux" className="QS-header1">Linux<img className="os-logo" src="../../../images/linux.png" /></span>
 
-            <span id="QS-showWindows" data-os="windows" className="QS-header1">Windows<img className="os-logo" src="../../images/windows.png" /></span>
+            <span id="QS-showWindows" data-os="windows" className="QS-header1">Windows<img className="os-logo" src="../../../images/windows.png" /></span>
           </div>
 
-          <div className="QS-moreInstallOptions"><a id="QS-moreInstallOptions" href="/docs/tutorials/getting-started/">More Install Options</a></div>
+          <div className="QS-moreInstallOptions"><a id="QS-moreInstallOptions" href="../../topics/install">More Install Options</a></div>
 
 
           <div className="QS-aside1">
@@ -78,7 +78,7 @@ class GettingStarted extends Component {
               1. Get Edgectl, the Ambassador installer.
               <div className="styles-module--CodeBlock--1UB4s">
                 <div className="QS-codeblockInstall">
-                <span className="QS-copyButton"><CopyButton content="sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && sudo chmod a+X /usr/local/bin/edgectl">Copy</CopyButton></span>
+                <span className="QS-copyButton"><CopyButton content="sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl">Copy</CopyButton></span>
                   <div className="token-line">
                     <span className="QS-token-function">sudo</span>
                     <span className="token plain"> </span>
@@ -89,7 +89,7 @@ class GettingStarted extends Component {
                     <span className="QS-token-function">sudo</span>
                     <span className="token plain"> </span>
                     <span className="QS-token-function">chmod</span>
-                    <span className="token plain"> a+X /usr/local/bin/edgectl</span>
+                    <span className="token plain"> a+x /usr/local/bin/edgectl</span>
                   </div>
                 </div>
               </div>
@@ -100,7 +100,7 @@ class GettingStarted extends Component {
               1. Get Edgectl, the Ambassador installer.
               <div className="styles-module--CodeBlock--1UB4s">
                 <div className="QS-codeblockInstall">
-                  <span className="QS-copyButton"><CopyButton content="sudo curl -fL https://metriton.datawire.io/downloads/linux/edgectl -o /usr/local/bin/edgectl && sudo chmod a+X /usr/local/bin/edgectl">Copy</CopyButton></span>
+                  <span className="QS-copyButton"><CopyButton content="sudo curl -fL https://metriton.datawire.io/downloads/linux/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl">Copy</CopyButton></span>
                   <div className="token-line">
                     <span className="QS-token-function">sudo</span>
                     <span className="token plain"> </span>
@@ -111,7 +111,7 @@ class GettingStarted extends Component {
                     <span className="QS-token-function">sudo</span>
                     <span className="token plain"> </span>
                     <span className="QS-token-function">chmod</span>
-                    <span className="token plain"> a+X /usr/local/bin/edgectl</span>
+                    <span className="token plain"> a+x /usr/local/bin/edgectl</span>
                   </div>
                 </div>
               </div>
@@ -136,9 +136,9 @@ class GettingStarted extends Component {
               2. Install Ambassador.
               <div className="styles-module--CodeBlock--1UB4s">
                 <div className="QS-codeblockInstall">
-                <span className="QS-copyButton"><CopyButton content="./edgectl install">Copy</CopyButton></span>
+                <span className="QS-copyButton"><CopyButton content="edgectl install">Copy</CopyButton></span>
                   <div className="token-line">
-                    <span className="QS-token-function">./edgectl</span>
+                    <span className="QS-token-function">edgectl</span>
                     <span className="token plain"> </span>
                     <span className="QS-token-function">install</span>
                   </div>
@@ -150,9 +150,9 @@ class GettingStarted extends Component {
               2. Install Ambassador.
               <div className="styles-module--CodeBlock--1UB4s">
                 <div className="QS-codeblockInstall">
-                  <span className="QS-copyButton"><CopyButton content="./edgectl install">Copy</CopyButton></span>
+                  <span className="QS-copyButton"><CopyButton content="edgectl install">Copy</CopyButton></span>
                   <div className="token-line">
-                    <span className="QS-token-function">./edgectl</span>
+                    <span className="QS-token-function">edgectl</span>
                     <span className="token plain"> </span>
                     <span className="QS-token-function">install</span>
                   </div>
@@ -163,9 +163,9 @@ class GettingStarted extends Component {
             <div id="QS-showWindowsAside2" data-os="windows" className="QS-asideText">2. Install Ambassador.
               <div className="styles-module--CodeBlock--1UB4s">
                   <div className="QS-codeblockInstall">
-                    <span className="QS-copyButton"><CopyButton content="edgectl.exe install">Copy</CopyButton></span>
+                    <span className="QS-copyButton"><CopyButton content="edgectl install">Copy</CopyButton></span>
                     <div className="token-line">
-                      <span className="QS-token-function">edgectl.exe</span>
+                      <span className="QS-token-function">edgectl</span>
                       <span className="token plain"> </span>
                       <span className="QS-token-function">install</span>
                     </div>
@@ -180,8 +180,8 @@ class GettingStarted extends Component {
               3. Take it for a spin! 
               
                   <div className="QS-Aside3codeblockInstall">
-                  <a href="/docs/tutorials/installation-success/">➞ See how Ambassador works with a service.</a><br/>
-                  <a href="/docs/topics/using/">➞ Check out custom options and integrations.</a>  
+                  <a href="../../topics/install/installation-success/">➞ See how Ambassador works with a service.</a><br/>
+                  <a href="../../topics/using/">➞ Check out custom options and integrations.</a>  
                   </div>
                 </div>
           </div>

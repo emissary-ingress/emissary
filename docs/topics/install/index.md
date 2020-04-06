@@ -7,12 +7,12 @@ The Ambassador Edge Stack can be installed in a variety of ways. Please see the 
 In just four minutes, your cluster will be routing HTTPS requests from the Internet to a backend service. The Ambassador Edge Stack is deployed to Kubernetes via YAML for MacOS, Linux, and
 Windows. 
 
-### Install on MacOS <img class="os-logo" src="/../../docs/latest/images/apple.png"/>
+### Install on MacOS <img class="os-logo" src="../../../latest/images/apple.png"/>
 
 1. Download the `edgectl` file [here](https://metriton.datawire.io/downloads/darwin/edgectl) or download it with a curl command:
 
     ```shell
-    sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && sudo chmod a+X /usr/local/bin/edgectl
+    sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl
     ```
 
     If you decide to download the file, you may encounter a security block. To change this:
@@ -20,10 +20,10 @@ Windows.
     * Click the **Open Anyway** button.
     * On the new dialog, click the **Open** button.
 
-2. Run the installer with `./edgectl install`
+2. Run the installer with `edgectl install`
 
 
-### Install on Linux <img class="os-logo" src="/../../docs/latest/images/linux.png"/>
+### Install on Linux <img class="os-logo" src="../../../images/linux.png"/> 
 
 1. Download the `edgectl` file
    [here](https://metriton.datawire.io/downloads/linux/edgectl) or download it with a curl
@@ -32,13 +32,13 @@ Windows.
     ```shell
     sudo curl -fL https://metriton.datawire.io/downloads/linux/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl
     ```
-2. Run the installer with `./edgectl install`
+2. Run the installer with `edgectl install`
 
-### Install on Windows <img class="os-logo" src="/../../docs/latest/images/windows.png"/>
+### Install on Windows <img class="os-logo" src="../../../latest/images/windows.png"/>
 
-1. Download the `edgectl` file
+1. Download the `edgectl.exe` file
    [here](https://metriton.datawire.io/downloads/windows/edgectl.exe).
-2. Run the installer with `edgectl.exe install`
+2. Run the installer with `edgectl install`
 
 
 ## Setting up TLS
@@ -83,11 +83,12 @@ The `random-word-3421.edgestack.me` is a provided subdomain that allows the
 Ambassador Edge Stack to automatically provision TLS and HTTPS for a domain
 name, so you can get started right away.
 
-Your new [Edge Policy Console](/docs/latest/topics/using/edge-policy-console) will open
+Your new [Edge Policy Console](../../using/edge-policy-console) will open
 automatically in your browser at the provided URL or IP address. 
 
-![AES success](/../../docs/latest/images/aes-success.png)
+![AES success](../../../images/aes-success.png)
 
+**Note that the provided `random-word-3421.edgestack.me` domain name will expire after 90 days**.
 
 ## Kubernetes
 
@@ -107,18 +108,18 @@ Looking for just the API Gateway? [Install the Ambassador API Gateway](install-a
 ## Installation Success
 
 Congratulations, you've installed the Ambassador Edge Stack! Take advantage of
-the quick start demo by [creating a mapping](/docs/latest/tutorials/quickstart-demo) on
+the quick start demo by [creating a mapping](../../../tutorials/quickstart-demo) on
 your cluster using the Ambassador Edge Stack.
 
-Ambassador offers a lot under the hood to help manage your edge policies.  Check out [core elements] (/docs/latest/topics/using) of interest to your team.
+Ambassador offers a lot under the hood to help manage your edge policies.  Check out [core elements] (../../using) of interest to your team.
 
 ### What’s Next?
 
 The Ambassador Edge Stack has a comprehensive range of [features](/features/) to
 support the requirements of any edge microservice. To learn more about how the
 Ambassador Edge Stack works, along with use cases, best practices, and more,
-check out the [Welcome page](/docs/latest/) or read the [Ambassador
-Story](/docs/latest/about/why-ambassador).
+check out the [Welcome page](../../../) or read the [Ambassador
+Story](../../../about/why-ambassador).
 
 ## Upgrade Options
 
@@ -127,5 +128,3 @@ If you already have the Ambassador Edge Stack, here are a few different ways you
 
 1. [Upgrade to the Ambassador Edge Stack from the API Gateway](upgrade-to-edge-stack).
 2. [Upgrade your Ambassador Edge Stack instance](upgrading) to the latest version.
-
-**Note that the provided `random-word-3421.edgestack.me` domain name will expire after 90 days**.
