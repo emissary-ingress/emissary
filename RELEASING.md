@@ -144,10 +144,7 @@ For example, let's suppose version 1.4 of ambassador needs to be hosted.
 ##### In ambassador.git,
 
 - In the branch `release/v1.4`,
-  - In `docs/js/doc-page.js`, update Sidebar's prefix to `/docs/latest`
-  ```js
-  <Sidebar location={location} prefix="/docs/latest" items={docLinks} />
-  ```
+  - In `docs/js/doc-links.yml`, make sure the links are pointed at `/docs/latest/...`
   - In `docs/js/doc-page.js`, update the footer branch.
   ```
   <DocFooter page={page} branch="release/v1.4" />
@@ -218,10 +215,7 @@ Now the website must now display v1.4 docs under getambassador.io/docs/. Make su
 Now that the latest release is `1.4`, we need to remove that tag from `1.3`.
 
 - In the branch `release/v1.3`,
-  - In `docs/js/doc-page.js`, update Sidebar's prefix to `/docs/1.3`
-  ```js
-  <Sidebar location={location} prefix="/docs/1.3" items={docLinks} />
-  ```
+  - In `docs/js/doc-links.yml`, change all link prefixes to `/docs/1.3` from `/docs/latest`
 
 ##### Note:
 You should be all set now.
