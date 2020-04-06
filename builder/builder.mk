@@ -259,14 +259,14 @@ ingresstest:
 	@printf "$(CYN)==> $(GRN)Forwarding traffic to Ambassador service$(END)\n"
 	@kubectl --kubeconfig=$(KIND_KUBECONFIG) port-forward --address=$(HOST_IP) svc/ambassador \
 		$(INGRESS_TEST_LOCAL_PLAIN_PORT):8080 $(INGRESS_TEST_LOCAL_TLS_PORT):8443 $(INGRESS_TEST_LOCAL_ADMIN_PORT):8877 &
-	@sleep 5
+	@sleep 10
 
 	@for url in "http://$(HOST_IP):$(INGRESS_TEST_LOCAL_PLAIN_PORT)" "https://$(HOST_IP):$(INGRESS_TEST_LOCAL_TLS_PORT)" "http://$(HOST_IP):$(INGRESS_TEST_LOCAL_ADMIN_PORT)/ambassador/v0/check_ready" ; do \
 		printf "$(CYN)==> $(GRN)Waiting until $$url is ready...$(END)\n" ; \
 		until curl --silent -k "$$url" ; do printf "$(CYN)==> $(GRN)... still waiting.$(END)\n" ; sleep 2 ; done ; \
 		printf "$(CYN)==> $(GRN)... $$url seems to be ready.$(END)\n" ; \
 	done
-	@sleep 10
+	@sleep 30
 
 	@printf "$(CYN)==> $(GRN)Running the Ingress conformance tests against $(HOST_IP)$(END)\n"
 	@docker exec -ti ingress-tests \
