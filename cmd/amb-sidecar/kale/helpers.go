@@ -597,12 +597,12 @@ func jobConditionMet(obj *k8sTypesBatchV1.Job, condType k8sTypesBatchV1.JobCondi
 func _logErr(ctx context.Context, err error) {
 	var commitUID, projectUID k8sTypes.UID
 	if commit := CtxGetCommit(ctx); commit != nil {
-		err = fmt.Errorf("ProjectCommit %q.%q: %w",
+		err = fmt.Errorf("ProjectCommit %s.%s: %w",
 			commit.GetName(), commit.GetNamespace(), err)
 		commitUID = commit.GetUID()
 	}
 	if project := CtxGetProject(ctx); project != nil {
-		err = fmt.Errorf("Project %q.%q: %w",
+		err = fmt.Errorf("Project %s.%s: %w",
 			project.GetName(), project.GetNamespace(), err)
 		projectUID = project.GetUID()
 	}
