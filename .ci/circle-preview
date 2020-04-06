@@ -22,9 +22,6 @@ fi
 #     exit 0
 # fi
 
-# source ./.ci/travis-fix-env
-# ./ambassador/.ci/install-blc
-
 # From ./ambassador/.ci/pr-build-website-preview master
 
 set -o xtrace
@@ -36,11 +33,18 @@ build_dir=$(pwd)
 rm -rf "/tmp/getambassador.io-${website_branch}"
 git clone --single-branch --branch="$website_branch" https://d6e-automaton:${GH_TOKEN}@github.com/datawire/getambassador.io.git "/tmp/getambassador.io-${website_branch}"
 cd "/tmp/getambassador.io-${website_branch}"
-# git submodule update --init --reference="$TRAVIS_BUILD_DIR"
-# git -C ambassador checkout "$TRAVIS_COMMIT"
-rm -rf ambassador
-mkdir -p ambassador
-cp -prv "${build_dir}/ambassador/docs" ambassador
+
+# In the Real World, we use git submodule to update all the docs, but for our purposes here, we're
+# not "really" building all the docs -- we just want a single preview.
+rm -rf submodules/*
+mkdir submodules/latest
+cp -prv $build_dir/ambassador/docs submodules/latest/docs
+
+# Since we only want the one preview, toss out links to other versions from the header...
+sed -e '/to="\/docs\/[0-9]/d' < src/components/Header/Header.js > H2.js && mv H2.js src/components/Header/Header.js
+
+# ...and in docs-structure.
+rm -f docs-structure/docs/[0-9]*
 
 npm install
 npm run build
@@ -64,22 +68,37 @@ netlify deploy \
 
 cat /tmp/netlify-deploy.json
 
-# cat >/tmp/github-status.json <<EOF
-# {
-#   "context": "website-preview/circle",
-#   "state": "success",
-#   "target_url": $(jq .deploy_url </tmp/netlify-deploy.json),
-#   "description": "Website v1.3 preview"
-# }
-# EOF
+# Don't post to GitHub.
 
-# curl --fail \
-# 	-H "Accept: application/json" \
-# 	-H "Content-Type: application/json" \
-# 	-X POST \
-# 	--data '@/tmp/github-status.json' \
-# 	"https://${GH_TOKEN}@api.github.com/repos/datawire/ambassador/statuses/${TRAVIS_PULL_REQUEST_SHA:-${TRAVIS_COMMIT}}"
+# ./ambassador/.ci/install-blc
 
-exit 0
+# from blc-website-preview
 
-# ./ambassador/.ci/blc-website-preview master
+set -o verbose
+
+pyenv shell 3.7.0
+
+pushd "/tmp/getambassador.io-$website_branch/public"
+python3 -m http.server 2>/dev/null &
+trap "kill $!" EXIT
+popd
+
+cd /tmp/getambassador.io-blc
+./blc.js http://localhost:8000/ > /tmp/blc.txt
+
+set +o verbose
+num_complaints=$(grep ^Page /tmp/blc.txt | sort -u | wc -l)
+RED=$'\033[1;31m'
+GRN=$'\033[1;32m'
+BLD=$'\033[1m'
+END=$'\033[0m'
+if [[ $num_complaints -eq 0 ]]; then
+	printf "%s======================= 0 broken-link-checker complaints for %s =======================%s\n" "$GRN$BLD" "$website_branch" "$END"
+else
+	printf "%s======================= %d broken-link-checker complaints for %s ======================%s\n" "$RED$BLD" $num_complaints "$website_branch" "$END"
+	grep ^Page /tmp/blc.txt | sort -u
+	printf "%s====================== end broken-link-checker complaints for %s ======================%s\n" "$RED$BLD" "$website_branch" "$END"
+	exit $num_complaints
+fi
+
+# Don't post to GitHub.
