@@ -7,7 +7,7 @@ The Ambassador Edge Stack can be installed in a variety of ways. Please see the 
 In just four minutes, your cluster will be routing HTTPS requests from the Internet to a backend service. The Ambassador Edge Stack is deployed to Kubernetes via YAML for MacOS, Linux, and
 Windows. 
 
-### Install on MacOS <img class="os-logo" src="../../../latest/images/apple.png"/>
+### Install on MacOS <img class="os-logo" src="../../../images/apple.png"/>
 
 1. Download the `edgectl` file [here](https://metriton.datawire.io/downloads/darwin/edgectl) or download it with a curl command:
 
@@ -34,7 +34,7 @@ Windows.
     ```
 2. Run the installer with `edgectl install`
 
-### Install on Windows <img class="os-logo" src="../../../latest/images/windows.png"/>
+### Install on Windows <img class="os-logo" src="../../../images/windows.png"/>
 
 1. Download the `edgectl.exe` file
    [here](https://metriton.datawire.io/downloads/windows/edgectl.exe).
