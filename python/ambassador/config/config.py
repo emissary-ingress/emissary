@@ -141,6 +141,8 @@ class Config:
 
         self.logger.debug("SCHEMA DIR    %s" % os.path.abspath(self.schema_dir_path))
         self.k8s_status_updates: Dict[str, Tuple] = {}
+        self.k8s_ingresses: Dict[str, Any] = {}
+        self.k8s_ingress_classes: Dict[str, Any] = {}
         self._reset()
 
     def _reset(self) -> None:

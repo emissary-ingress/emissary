@@ -63,7 +63,6 @@ class ResourceFetcher:
         self.k8s_services: Dict[str, AnyDict] = {}
         self.services: Dict[str, AnyDict] = {}
         self.ambassador_service_raw: AnyDict = {}
-        self.ambassador_ingress_class: Dict[str, AnyDict] = {}
 
         self.alerted_about_labels = False
 
@@ -518,8 +517,9 @@ class ResourceFetcher:
 
         self.logger.info(f'Handling IngressClass {ingress_class_name} with parameters {ingress_parameters}...')
 
-        # Don't return this as aconf does not care about IngressClass. Instead, save it in self.ambassador_ingress_class
-        self.ambassador_ingress_class[resource_identifier] = ingress_parameters
+        # Don't return this as we won't handle IngressClass downstream.
+        # Instead, save it in self.aconf.k8s_ingress_classes for reference in handle_k8s_ingress
+        self.aconf.k8s_ingress_classes[resource_identifier] = ingress_parameters
 
         return None
 
@@ -551,7 +551,7 @@ class ResourceFetcher:
         annotations = metadata.get('annotations', {})
         ingress_class_name = ingress_spec.get('ingressClassName', '')
 
-        ingress_class = self.ambassador_ingress_class.get(ingress_class_name, None)
+        ingress_class = self.aconf.k8s_ingress_classes.get(ingress_class_name, None)
         has_ambassador_ingress_class_annotation = annotations.get('kubernetes.io/ingress.class', '').lower() == 'ambassador'
 
         # check the Ingress resource has either:
@@ -592,6 +592,9 @@ class ResourceFetcher:
             return None
 
         self.logger.info(f"Handling Ingress {ingress_name}...")
+        # We will translate the Ingress resource into Hosts and Mappings,
+        # but keep a reference to the k8s resource in aconf for debugging and stats
+        self.aconf.k8s_ingresses[resource_identifier] = k8s_object
 
         ingress_tls = ingress_spec.get('tls', [])
         for tls_count, tls in enumerate(ingress_tls):
