@@ -1,11 +1,7 @@
-# edgectl install: Timeout Waiting for AES to be established
- 
-Ambassador's `edgectl install` uses `kubectl` to communicate with Kubernetes.  
+# `edgectl install`: Error while applying manifests
 
-## The Problem
+The installer received an error from `kubectl` when applying the Kubernetes manifests used to install Ambassador Edge Stack.
 
-The installer timed out while waiting for Kubernetes to establish the AES manifests that were applied.
+## What's next?
 
-## How to Resolve It
-
-...
+Please get in touch on [Slack](http://d6e.co/slack).

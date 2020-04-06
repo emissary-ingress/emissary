@@ -1,10 +1,13 @@
-# edgectl install: Can't Parse the AES Manifests
- 
-## The Problem
+# `edgectl install`: Error processing downloaded information
 
-Ambassador was unable to parse the downloaded AES manifests.  
+The installer retrieves information required to install AES over the Internet. Some of that information seems to have been corrupted in transit.
 
-## How to Resolve It
+## What's next?
 
-Is there a proxy server interfering with HTTP downloads?
+1. Restore Internet connectivity. Perhaps there is a web proxy interfering with access to the Internet.
+2. Start the installer again:
+   ```shell
+   edgectl install
+   ```
 
+It is safe to run the installer repeatedly on a cluster.

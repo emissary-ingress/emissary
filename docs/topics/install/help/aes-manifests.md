@@ -1,9 +1,13 @@
-# edgectl install: Can't Download the AES Manifests
- 
-## The Problem
+# `edgectl install`: Can't reach the Internet
 
-Ambassador was unable to download the Edge Stack manifests.
+The installer retrieves information required to install AES over the Internet. If Internet connectivity is not available, the installer cannot proceed. 
 
-## How to Resolve It
+## What's next?
 
-...
+1. Restore Internet connectivity. Perhaps there is a VPN or firewall preventing access to the Internet.
+2. Start the installer again:
+   ```shell
+   edgectl install
+   ```
+
+It is safe to run the installer repeatedly on a cluster.
