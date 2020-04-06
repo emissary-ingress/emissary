@@ -57,9 +57,10 @@ type ProjectCommit struct {
 }
 
 type ProjectCommitSpec struct {
-	Project k8sTypesCoreV1.LocalObjectReference `json:"project"`
-	Ref     libgitPlumbing.ReferenceName        `json:"ref"` // string
-	Rev     string                              `json:"rev"` // libgitPlumbing.Hash
+	Project   k8sTypesCoreV1.LocalObjectReference `json:"project"`
+	Ref       libgitPlumbing.ReferenceName        `json:"ref"` // string
+	Rev       string                              `json:"rev"` // libgitPlumbing.Hash
+	IsPreview bool                                `json:"isPreview"`
 }
 
 type ProjectCommitStatus struct {

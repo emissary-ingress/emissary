@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -1080,6 +1081,12 @@ func (k *kale) reconcileCommit(ctx context.Context, proj *Project, commit *Proje
 }
 
 func (k *kale) calculateRun(proj *Project, commit *ProjectCommit) []interface{} {
+	prefix := "/" + proj.Spec.Prefix + "/"
+	if commit.Spec.IsPreview {
+		// todo: figure out what is going on with /edge_stack/previews
+		// not being routable
+		prefix = "/.previews/" + proj.Spec.Prefix + "/" + commit.Spec.Rev + "/"
+	}
 	return []interface{}{
 		&Mapping{
 			TypeMeta: k8sTypesMetaV1.TypeMeta{
@@ -1106,10 +1113,8 @@ func (k *kale) calculateRun(proj *Project, commit *ProjectCommit) []interface{} 
 			},
 			Spec: MappingSpec{
 				AmbassadorID: aproTypesV2.AmbassadorID{k.cfg.AmbassadorID},
-				// todo: figure out what is going on with /edge_stack/previews
-				// not being routable
-				Prefix:  "/.previews/" + proj.Spec.Prefix + "/" + commit.Spec.Rev + "/",
-				Service: commit.GetName(),
+				Prefix:       prefix,
+				Service:      commit.GetName(),
 			},
 		},
 		&k8sTypesCoreV1.Service{
