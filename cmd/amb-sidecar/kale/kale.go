@@ -289,7 +289,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 	})
 
 	// todo: lock down all these endpoints with auth
-	handler := http.StripPrefix("/edge_stack_ui/edge_stack", http.HandlerFunc(safeHandleFunc(k.dispatch))).ServeHTTP
+	handler := http.StripPrefix("/edge_stack_ui/edge_stack", ezHTTPHandler(k.dispatch)).ServeHTTP
 	// todo: this is just temporary, we will consolidate these sprawling endpoints later
 	httpHandler.AddEndpoint("/edge_stack_ui/edge_stack/api/projects", "kale projects api", handler)
 	httpHandler.AddEndpoint("/edge_stack_ui/edge_stack/api/githook/", "kale githook", handler)
@@ -822,15 +822,20 @@ func (k *kale) calculateBuild(proj *Project, commit *ProjectCommit) []interface{
 					Containers: []k8sTypesCoreV1.Container{
 						{
 							Name:  "kaniko",
-							Image: "gcr.io/kaniko-project/executor:v0.16.0",
+							Image: "quay.io/datawire/aes-project-builder@sha256:0b040450945683869343d9e5caaa04dac91c52c28722031dc133da18a3b84899",
 							Args: []string{
 								"--cache=true",
 								"--skip-tls-verify",
 								"--skip-tls-verify-pull",
 								"--skip-tls-verify-registry",
 								"--dockerfile=Dockerfile",
-								"--context=git://github.com/" + proj.Spec.GithubRepo + ".git#" + commit.Spec.Ref.String(),
-								"--destination=registry.ambassador/" + commit.Spec.Rev,
+								"--destination=registry." + k.cfg.AmbassadorNamespace + "/" + commit.Spec.Rev,
+							},
+							Env: []k8sTypesCoreV1.EnvVar{
+								{Name: "KALE_CREDS", Value: proj.Spec.GithubToken},
+								{Name: "KALE_REPO", Value: proj.Spec.GithubRepo},
+								{Name: "KALE_REF", Value: commit.Spec.Ref.String()},
+								{Name: "KALE_REV", Value: commit.Spec.Rev},
 							},
 						},
 					},
@@ -1062,7 +1067,7 @@ func (k *kale) reconcileCommit(ctx context.Context, proj *Project, commit *Proje
 	if err != nil {
 		if strings.Contains(err.Error(), "Forbidden: updates to statefulset spec for fields other than 'replicas', 'template', and 'updateStrategy' are forbidden") {
 			deleteResource("statefulset.v1.apps", commit.GetName(), commit.GetNamespace())
-		} else if regexp.MustCompile("The Job .* is invalid .* field is immutable").MatchString(err.Error()) {
+		} else if regexp.MustCompile("(?s)The Job .* is invalid.* field is immutable").MatchString(err.Error()) {
 			deleteResource("job.v1.batch", commit.GetName()+"-build", commit.GetNamespace())
 		} else {
 			reportRuntimeError(ctx, StepReconcileCommitsToAction,
