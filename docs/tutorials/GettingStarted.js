@@ -63,11 +63,11 @@ class GettingStarted extends Component {
           </div>
 
           <div id="QS-header1">
-            <span id="QS-showMac" data-os="mac" className="QS-header1">Mac<img className="os-logo" src="../../../images/apple.png" /></span>
+            <span id="QS-showMac" data-os="mac" className="QS-header1">Mac<img className="os-logo" src="../../images/apple.png" /></span>
 
-            <span id="QS-showLinux" data-os="linux" className="QS-header1">Linux<img className="os-logo" src="../../../images/linux.png" /></span>
+            <span id="QS-showLinux" data-os="linux" className="QS-header1">Linux<img className="os-logo" src="../../images/linux.png" /></span>
 
-            <span id="QS-showWindows" data-os="windows" className="QS-header1">Windows<img className="os-logo" src="../../../images/windows.png" /></span>
+            <span id="QS-showWindows" data-os="windows" className="QS-header1">Windows<img className="os-logo" src="../../images/windows.png" /></span>
           </div>
 
           <div className="QS-moreInstallOptions"><a id="QS-moreInstallOptions" href="../../topics/install">More Install Options</a></div>
