@@ -88,7 +88,6 @@ Format:
 - Bugfix: The ACME client of of one Ambassador install will no longer interfere with the ACME client of another Ambassador install in the same namespace with a different AMBASSADOR_ID.
 - Bugfix: `edgectl intercept` supports matching headers values against regular expressions once more
 - Bugfix: `edgectl install` correctly handles more local and cluster environments
-- Internal: `edgectl install` uses Helm under the hood
 
 ## [1.3.2] April 1, 2020
 [1.3.2]: https://github.com/datawire/ambassador/compare/v1.3.1...v1.3.2
