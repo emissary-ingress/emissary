@@ -96,10 +96,43 @@ export class ProjectCollectionView extends View {
     this.hash.delete("log")
   }
 
+  renderEmptyDescription() {
+      return html`<p>Projects are custom HTTP services managed by Ambassador Edge Stack</p>`
+  }
+
+  renderEmpty() {
+    return html`
+<div class="card">
+
+  <p>
+    There are no projects to display. You can use the Add button to
+    create one. You will need:
+  </p>
+
+  <div style="margin: 1em; margin-left: 2em;">
+    <ol>
+      <li>A github repo with an HTTP service implementation.</li>
+      <li>A Dockerfile in the root of your repo that builds and runs your service on port 8080.</li>
+      <li>A github token with repo scope.</li>
+    </ol>
+  </div>
+
+  <p>
+    If you'd like an example github repo to get you started, please
+    <a target="_blank" href="https://github.com/datawire/project-template/generate">
+      click here to generate one from our template
+    </a>.
+  </p>
+</div>
+`
+  }
+
   render() {
     let parsed = this.parseLogSelector(this.hash.get("log"))
     let displayed = parsed.selected ? [parsed.selected] : this.sorted
     let global = this.projects.errors
+
+    let title = parsed.selected ? `Project ${parsed.selected.name}` : 'Projects'
 
     return html`
 <div>
@@ -115,8 +148,8 @@ export class ProjectCollectionView extends View {
     </div>
 
     <div class="col">
-      <h1>Projects</h1>
-      <p>Projects are custom HTTP services managed by Ambassador Edge Stack</p>
+      <h1>${title}</h1>
+      ${displayed.length == 0 ? this.renderEmptyDescription() : ""}
     </div>
 
     <div class="col2">
@@ -134,18 +167,36 @@ export class ProjectCollectionView extends View {
   </div>
 
   <div class="${global.length > 0 ? "global card" : "off"}">
-   <label>Global Errors:</label> <dw-errors .errors=${global}></dw-errors>
+   <label>Global Errors:</label> <dw-errors .errors=${global} .columns=${80}></dw-errors>
   </div>
 
   <div>
     ${repeat(displayed, (r)=>r.key(), (r)=>html`<dw-mvc-project .model=${r}></dw-mvc-project>`)}
+    ${displayed.length == 0 ? this.renderEmpty() : ""}
   </div>
 
   <div class="${parsed.source ? "card" : "off"}">
-    <dw-terminal source=${parsed.source} @close=${(e)=>this.closeTerminal()}></dw-terminal>
+    <dw-terminal
+      source=${parsed.source}
+      .transform=${(x)=>this.transform(x, parsed.type)}
+      @close=${(e)=>this.closeTerminal()}></dw-terminal>
   </div>
 </div>
 `
+  }
+
+  transform(x, type) {
+    if (type === "build") {
+      if (/^ERROR:\s+logging\s+before\s+flag.Parse:.*$/.test(x)) {
+        return undefined
+      } else if (/^#\s+(Checking|Performing|Building).*$/.test(x)) {
+        return "\u001b[32;1m" + x + "\u001b[0m"
+      } else {
+        return x
+      }
+    } else {
+      return x
+    }
   }
 
   parseLogSelector(log) {
@@ -153,7 +204,9 @@ export class ProjectCollectionView extends View {
       // the selected project
       selected: null,
       // the source url for logs
-      source: ""
+      source: "",
+      // the type of logs (build vs server logs)
+      type: ""
     }
     if (log) {
       let parts = log.split("/")
@@ -164,6 +217,7 @@ export class ProjectCollectionView extends View {
         result.selected = this.projectForCommit(commitQName)
         if (result.selected) {
           result.source = `../api/${logType === "build" ? "logs" : "slogs"}/${commitQName}`
+          result.type = logType
         }
       }
     }

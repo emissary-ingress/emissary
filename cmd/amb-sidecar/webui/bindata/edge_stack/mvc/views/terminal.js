@@ -1,22 +1,43 @@
 import {LitElement, html, css} from '../../vendor/lit-element.min.js'
-import {getCookie} from '../../components/cookies.js';
-import {ApiFetch} from "../../components/api-fetch.js";
+import {getCookie} from '../../components/cookies.js'
+import {ApiFetch} from "../../components/api-fetch.js"
+import {top, bottom, close} from './icons.js'
 
 // todo: vendor these
-import "https://cdn.jsdelivr.net/npm/xterm@4.4.0/lib/xterm.js";
-import "https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.3.0/lib/xterm-addon-fit.js";
+import "https://cdn.jsdelivr.net/npm/xterm@4.4.0/lib/xterm.js"
+import "https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.3.0/lib/xterm-addon-fit.js"
 
 class Term extends LitElement {
 
   static get properties() {
     return {
-      source: {type: String}
+      source: {type: String},
+      transform: {type: Function}
     };
+  }
+
+  static get styles() {
+    return css`
+      .controls {
+        display: flex;
+        flex-direction: row-reverse;
+        padding: 0 0 7px 0;
+      }
+
+      .controls div {
+        padding: 0 2px;
+      }
+
+      ${top()}
+      ${bottom()}
+      ${close()}
+`
   }
 
   constructor() {
     super();
     this.source = "";
+    this.transform = (x)=>x
     this.activeSource = this.source;
     this.term = null;
     this.es = null;
@@ -66,7 +87,10 @@ class Term extends LitElement {
           this.es.close();
         });
         this.es.onmessage = (e) => {
-          this.term.write(e.data + "\n");
+          let xformed = this.transform(e.data)
+          if (xformed !== undefined) {
+            this.term.write(xformed + "\n");
+          }
         };
       }
 
@@ -83,10 +107,10 @@ class Term extends LitElement {
     return html`
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@4.4.0/css/xterm.css" integrity="sha256-I3n7q4Kl55oWvltoLRCCpA5HW8W3O34RUeC/ob43fWY=" crossorigin="anonymous">
 <div style="display:${this.source ? "block" : "none"}">
-  <div>
-    <a style="cursor:pointer;color:blue" @click=${()=>this.onClose()}>close</a> |
-    <a style="cursor:pointer;color:blue" @click=${()=>this.term.scrollToTop()}>top</a> |
-    <a style="cursor:pointer;color:blue" @click=${()=>this.term.scrollToBottom()}>bottom</a>
+  <div class="controls">
+    <div class="close" @click=${()=>this.onClose()}></div>
+    <div class="bottom" @click=${()=>this.term.scrollToBottom()}></div>
+    <div class="top" @click=${()=>this.term.scrollToTop()}></div>
   </div>
   <div id="terminal"></div>
 </div>

@@ -812,7 +812,7 @@ func (k *kale) calculateBuild(proj *Project, commit *ProjectCommit) []interface{
 			},
 		},
 		Spec: k8sTypesBatchV1.JobSpec{
-			BackoffLimit: int32Ptr(1),
+			BackoffLimit: int32Ptr(0),
 			Template: k8sTypesCoreV1.PodTemplateSpec{
 				ObjectMeta: k8sTypesMetaV1.ObjectMeta{
 					Labels: map[string]string{

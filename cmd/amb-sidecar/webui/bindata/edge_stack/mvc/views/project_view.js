@@ -185,6 +185,7 @@ export class ProjectView extends IResourceView {
 <div class="row line">
   <label class="row-col margin-right justify-right">Deployed Commits:</label>
   <div class="row-col">
+    ${commits.length > 0 ? "" : "..."}
     <div style="display:grid; grid-template-columns: 0.5fr 1fr 1fr 2fr;">
       ${commits.map((c)=>this.renderCommit(c))}
     </div>
