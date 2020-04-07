@@ -70,11 +70,14 @@ netlify deploy \
 
 cat /tmp/netlify-deploy.json
 
-# Don't post to GitHub.
+# If you look in publish-website-preview, you'll see it post status to GitHub. Skip that
+# since we're not running inside Travis.
 
-# ./ambassador/.ci/install-blc
+# Install the broken link checker...
 
-# from blc-website-preview
+./ambassador/.ci/install-blc
+
+# ...then continue with stuff from blc-website-preview
 
 set -o verbose
 
