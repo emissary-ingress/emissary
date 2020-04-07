@@ -96,10 +96,43 @@ export class ProjectCollectionView extends View {
     this.hash.delete("log")
   }
 
+  renderEmptyDescription() {
+      return html`<p>Projects are custom HTTP services managed by Ambassador Edge Stack</p>`
+  }
+
+  renderEmpty() {
+    return html`
+<div class="card">
+
+  <p>
+    There are no projects to display. You can use the Add button to
+    create one. You will need:
+  </p>
+
+  <div style="margin: 1em; margin-left: 2em;">
+    <ol>
+      <li>A github repo with an HTTP service implementation.</li>
+      <li>A Dockerfile in the root of your repo that builds and runs your service on port 8080.</li>
+      <li>A github token with repo scope.</li>
+    </ol>
+  </div>
+
+  <p>
+    If you'd like an example github repo to get you started, please
+    <a target="_blank" href="https://github.com/datawire/project-template/generate">
+      click here to generate one from our template
+    </a>.
+  </p>
+</div>
+`
+  }
+
   render() {
     let parsed = this.parseLogSelector(this.hash.get("log"))
     let displayed = parsed.selected ? [parsed.selected] : this.sorted
     let global = this.projects.errors
+
+    let title = parsed.selected ? `Project ${parsed.selected.name}` : 'Projects'
 
     return html`
 <div>
@@ -115,8 +148,8 @@ export class ProjectCollectionView extends View {
     </div>
 
     <div class="col">
-      <h1>Projects</h1>
-      <p>Projects are custom HTTP services managed by Ambassador Edge Stack</p>
+      <h1>${title}</h1>
+      ${displayed.length == 0 ? this.renderEmptyDescription() : ""}
     </div>
 
     <div class="col2">
@@ -139,6 +172,7 @@ export class ProjectCollectionView extends View {
 
   <div>
     ${repeat(displayed, (r)=>r.key(), (r)=>html`<dw-mvc-project .model=${r}></dw-mvc-project>`)}
+    ${displayed.length == 0 ? this.renderEmpty() : ""}
   </div>
 
   <div class="${parsed.source ? "card" : "off"}">
