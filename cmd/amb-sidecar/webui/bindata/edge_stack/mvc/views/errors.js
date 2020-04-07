@@ -1,5 +1,6 @@
 import { Model } from '../framework/model.js'
 import { View, html, css } from '../framework/view.js'
+import { controls } from './icons.js'
 
 /**
  * Display a log of errors in accordion style.
@@ -11,39 +12,63 @@ class Errors extends View {
       summarize: {type: Boolean},
       errors: {type: Array},
       expanded: {type: Set},
+      columns: {type: Number}
     }
   }
 
   static get styles() {
     return css`
+      .summary {
+        display: inline-block;
+      }
+      .error-count {
+        color: red;
+      }
+      .errors {
+        font-family: monospace;
+        max-height: 60ch;
+        overflow-y: auto;
+      }
       .error {
+        display: flex;
         white-space: nowrap;
-        overflow: hidden;
-        width: 80ch;
+      }
+      .error, .plus, .minus {
+        margin: 0.2em;
       }
       .expanded {
         white-space: normal;
       }
-      .triangle {
-        display: inline-block;
-        font-size: large;
-        padding-left: 5px;
-      }
-      .expanded .triangle {
-        transform: rotate(90deg);
-      }
-      .message {
-        display: inline-block;
-        color: red;
-      }
-      .expanded .message {
-        margin-left: 0.8em;
+      .block {
+        display: flex;
+        padding: 0.2em;
 	background: #eee;
 	border-radius: 5px;
-	padding: 5px 10px 5px 10px;
+      }
+      .message {
+        word-wrap: break-word;
+        color: red;
+        flex-grow: 1;
+        width: calc(var(--columns));
+      }
+      .expanded .message {
+        width: calc(var(--columns) - 44px);
+      }
+      .error .controls {
+        display: none;
+      }
+      .expanded .controls {
+        display: flex;
       }
       .off {
         display: none;
+      }
+
+      ${controls()}
+
+      .link {
+        color: blue;
+        text-decoration: none;
       }
 `
   }
@@ -53,13 +78,36 @@ class Errors extends View {
     this.errors = []
     this.expanded = new Set()
     this.summarize = true
+    this.columns = 70
+  }
+
+  bugUrl() {
+    let start = "Steps to reproduce:\n  1.\n\n```\n"
+    let end = "\n```"
+    let urlFor = (e)=>`https://github.com/rhs/futz/issues/new?body=${encodeURIComponent(start+e+end)}`
+
+    let max = 4096
+    let encoded = JSON.stringify(this.errors)
+    let overhead = urlFor("...").length
+    let shortened = encoded.slice(0, max-overhead)
+    if (shortened !== encoded) {
+      shortened += "..."
+    }
+    return urlFor(shortened)
   }
 
   render() {
     if (this.errors.length) {
+      let bugUrl = this.bugUrl()
       return html`
-<div class="message" @click=${()=>this.toggleSummarize()}>${this.errors.length} messages, click to ${this.summarize ? "show" : "hide" }</div>
-<div class=${this.summarize ? "off" : ""}>${this.errors.map((e, idx)=>this.renderError(e, idx))}</div>
+<div class="summary">
+  <span class="error-count">${this.errors.length} error${this.errors.length === 1 ? "" : "s"}</span>
+    &mdash;
+  <span class="link" @click=${()=>this.toggleSummarize()}>${this.summarize ? "show" : "hide" }</span>
+    |
+  <a class="link" target="_blank" href="${bugUrl}">report a bug</a>
+</div>
+<div class=${this.summarize ? "off" : "errors"} style="--columns: ${this.columns}ch">${this.errors.map((e, idx)=>this.renderError(e, idx))}</div>
 `
     } else {
       return html``
@@ -72,11 +120,21 @@ class Errors extends View {
 
   renderError(e, idx) {
     let expanded = this.expanded.has(idx)
-    let message = expanded ? e.message : e.message.slice(0, 77)
+    let message = expanded ? e.message : e.message.slice(0, this.columns - 3)
     if (message !== e.message) {
       message += "..."
     }
-    return html`<div class="${expanded ? "expanded" : ""} error" @click=${()=>this.toggle(idx)}><div class="triangle"><div>&#8227;</div></div><div class="message">${message}</div></div>`
+    return html`
+<div class="${expanded ? "expanded" : ""} error">
+  <div class="${expanded ? "minus" : "plus"}" @click=${()=>this.toggle(idx)}></div>
+  <div class="block">
+    <div class="message" @click=${()=>this.toggle(idx)}>${message}</div>
+    <div class="controls">
+      <div class="copy" @click=${()=>this.copy(e.message)}></div>
+      <div class="close" @click=${()=>this.toggle(idx)}></div>
+    </div>
+  </div>
+</div>`
   }
 
   toggle(idx) {
@@ -86,6 +144,26 @@ class Errors extends View {
       this.expanded.add(idx)
     }
     this.requestUpdate("expanded")
+  }
+
+  copy(text) {
+    const el = document.createElement('textarea');  // Create a <textarea> element
+    el.value = text;                            // Set its value to the string that you want copied
+    el.setAttribute('readonly', '');                // Make it readonly to be tamper-proof
+    el.style.position = 'absolute';
+    el.style.left = '-9999px';                      // Move outside the screen to make it invisible
+    document.body.appendChild(el);                  // Append the <textarea> element to the HTML document
+    const selected =
+      document.getSelection().rangeCount > 0        // Check if there is any content selected previously
+        ? document.getSelection().getRangeAt(0)     // Store selection if found
+        : false;                                    // Mark as false to know no selection existed before
+    el.select();                                    // Select the <textarea> content
+    document.execCommand('copy');                   // Copy - only works as a result of a user action (e.g. click events)
+    document.body.removeChild(el);                  // Remove the <textarea> element
+    if (selected) {                                 // If a selection existed before copying
+      document.getSelection().removeAllRanges();    // Unselect everything on the HTML document
+      document.getSelection().addRange(selected);   // Restore the original selection
+    }
   }
 
 }
