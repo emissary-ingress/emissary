@@ -67,13 +67,22 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
-## next (TBD)
+## [1.4.0-rc.0] April 6, 2020
+[1.4.0]: https://github.com/datawire/ambassador/compare/v1.3.2...v1.4.0
 
 ### Ambassador API Gateway + Ambassador Edge Stack
 
 - Feature: Support Ingress Path types improvements from networking.k8s.io/v1beta1 on Kubernetes 1.18+
 - Feature: Support Ingress hostname wildcards
 - Feature: Support for the IngressClass Resource, added to networking.k8s.io/v1beta1 on Kubernetes 1.18+
+- Feature: `Mapping`s support the `cluster_tag` attribute to control the name of the generated Envoy cluster (thanks, [Stefan Sedich](https://github.com/stefansedich)!) 
+- Feature: Support Envoy's ability to force response headers to canonical HTTP case (thanks, [Puneet Loya](https://github.com/puneetloya)!)
+- Bugfix: Correctly ignore Kubernetes services with no metadata (thanks, [Fabrice](https://github.com/jfrabaute)!)
+
+### Ambassador Edge Stack Only
+
+- Bugfix: The "Filters" tab in the webui no longer renders the value of OAuth client secrets that are stored in Kubernetes secrets.
+- Bugfix: The ACME client of of one Ambassador install will no longer interfere with the ACME client of another Ambassador install in the same namespace with a different AMBASSADOR_ID.
 
 ## [1.3.2] April 1, 2020
 [1.3.2]: https://github.com/datawire/ambassador/compare/v1.3.1...v1.3.2
