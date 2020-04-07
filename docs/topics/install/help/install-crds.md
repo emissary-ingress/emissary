@@ -1,11 +1,7 @@
-# edgectl install: Can't apply the AES CRD manifests
- 
-Ambassador's `edgectl install` uses `kubectl` to communicate with Kubernetes.  
+# `edgectl install`: Error while applying manifests
 
-## The Problem
+The installer received an error from `kubectl` when applying the Kubernetes manifests used to install Ambassador Edge Stack.
 
-Ambassador was unable to perform `edgectl apply` on the AES CRD manifests.
+## What's next?
 
-## How to Resolve It
-
-...
+Please get in touch on [Slack](http://d6e.co/slack).
