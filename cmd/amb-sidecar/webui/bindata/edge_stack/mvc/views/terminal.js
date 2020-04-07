@@ -11,7 +11,8 @@ class Term extends LitElement {
 
   static get properties() {
     return {
-      source: {type: String}
+      source: {type: String},
+      transform: {type: Function}
     };
   }
 
@@ -36,6 +37,7 @@ class Term extends LitElement {
   constructor() {
     super();
     this.source = "";
+    this.transform = (x)=>x
     this.activeSource = this.source;
     this.term = null;
     this.es = null;
@@ -85,7 +87,10 @@ class Term extends LitElement {
           this.es.close();
         });
         this.es.onmessage = (e) => {
-          this.term.write(e.data + "\n");
+          let xformed = this.transform(e.data)
+          if (xformed !== undefined) {
+            this.term.write(xformed + "\n");
+          }
         };
       }
 
