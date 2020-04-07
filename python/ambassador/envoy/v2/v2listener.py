@@ -811,8 +811,7 @@ class V2Listener(dict):
             if req_hdrs:
                 self.base_http_config["tracing"]["request_headers_for_tags"] = req_hdrs
 
-        proper_case = self.config.ir.ambassador_module.get('proper_case', False)
-        if proper_case:
+        if self.config.ir.ambassador_module.proper_case:
             proper_case_header = {'header_key_format': {'proper_case_words': {}}}
             if 'http_protocol_options' in self.base_http_config:
                 self.base_http_config["http_protocol_options"].update(proper_case_header)
