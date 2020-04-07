@@ -75,6 +75,7 @@ Format:
 - Feature: Support Ingress Path types improvements from networking.k8s.io/v1beta1 on Kubernetes 1.18+
 - Feature: Support Ingress hostname wildcards
 - Feature: Support for the IngressClass Resource, added to networking.k8s.io/v1beta1 on Kubernetes 1.18+
+   - For more about new Ingress support, see the [Ingress Controller documentation](https://getambassador.io/docs/1.4/topics/running/ingress-controller).
 - Feature: `Mapping`s support the `cluster_tag` attribute to control the name of the generated Envoy cluster (thanks, [Stefan Sedich](https://github.com/stefansedich)!)
    - See the [Advanced Mapping Configuration documentation](https://getambassador.io/docs/1.4/topics/using/mappings) for more.
 - Feature: Support Envoy's ability to force response headers to canonical HTTP case (thanks, [Puneet Loya](https://github.com/puneetloya)!)
@@ -90,6 +91,7 @@ Format:
 - Bugfix: The ACME client of of one Ambassador install will no longer interfere with the ACME client of another Ambassador install in the same namespace with a different AMBASSADOR_ID.
 - Bugfix: `edgectl intercept` supports matching headers values against regular expressions once more
 - Bugfix: `edgectl install` correctly handles more local and cluster environments
+   - For more about `edgectl` improvements, see the [Service Preview and Edge Control documentation](https://getambassador.io/docs/1.4/topics/using/edgectl).
 
 ## [1.3.2] April 1, 2020
 [1.3.2]: https://github.com/datawire/ambassador/compare/v1.3.1...v1.3.2
