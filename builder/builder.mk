@@ -215,8 +215,10 @@ ingresstest:
 	@[ -n "$(HOST_IP)" ] || { printf "$(RED)ERROR: no IP obtained for host$(END)\n"; ip addr ; exit 1; }
 
 	@printf "$(CYN)==> $(GRN)Creating/recreating KIND cluster with image $(KIND_IMAGE)$(END)\n"
-	@kind delete cluster 2>/dev/null || /bin/true
-	@kind create cluster --image $(KIND_IMAGE)
+	@for i in {1..5} ; do \
+        kind delete cluster 2>/dev/null || true ; \
+        kind create cluster --image $(KIND_IMAGE) && break || sleep 10 ; \
+    done
 
 	@printf "$(CYN)==> $(GRN)Saving KUBECONFIG at $(KIND_KUBECONFIG)$(END)\n"
 	@kind get kubeconfig > $(KIND_KUBECONFIG)
@@ -280,7 +282,7 @@ ingresstest:
 	@docker stop -t 3 ingress-tests 2>/dev/null || true && docker rm ingress-tests 2>/dev/null || true
 
 	@if [ -n "$(CLEANUP)" ] ; then \
-		printf "$(CYN)==> $(GRN)We are done. Destroying the cluster now.$(END)\n"; kind delete cluster || /bin/true; \
+		printf "$(CYN)==> $(GRN)We are done. Destroying the cluster now.$(END)\n"; kind delete cluster || true; \
 	else \
 		printf "$(CYN)==> $(GRN)We are done. You should destroy the cluster with 'kind delete cluster'.$(END)\n"; \
 	fi
