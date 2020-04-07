@@ -75,7 +75,7 @@ cat /tmp/netlify-deploy.json
 
 # Install the broken link checker...
 
-./ambassador/.ci/install-blc
+${build_dir}/ambassador/.ci/install-blc
 
 # ...then continue with stuff from blc-website-preview
 
