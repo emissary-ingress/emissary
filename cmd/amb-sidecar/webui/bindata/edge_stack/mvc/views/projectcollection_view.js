@@ -134,7 +134,7 @@ export class ProjectCollectionView extends View {
   </div>
 
   <div class="${global.length > 0 ? "global card" : "off"}">
-   <label>Global Errors:</label> <dw-errors .errors=${global}></dw-errors>
+   <label>Global Errors:</label> <dw-errors .errors=${global} .columns=${80}></dw-errors>
   </div>
 
   <div>
