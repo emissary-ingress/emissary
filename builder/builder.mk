@@ -216,9 +216,9 @@ ingresstest:
 
 	@printf "$(CYN)==> $(GRN)Creating/recreating KIND cluster with image $(KIND_IMAGE)$(END)\n"
 	@for i in {1..5} ; do \
-        kind delete cluster 2>/dev/null || true ; \
-        kind create cluster --image $(KIND_IMAGE) && break || sleep 10 ; \
-    done
+		kind delete cluster 2>/dev/null || true ; \
+		kind create cluster --image $(KIND_IMAGE) && break || sleep 10 ; \
+	done
 
 	@printf "$(CYN)==> $(GRN)Saving KUBECONFIG at $(KIND_KUBECONFIG)$(END)\n"
 	@kind get kubeconfig > $(KIND_KUBECONFIG)
