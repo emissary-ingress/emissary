@@ -94,8 +94,8 @@ update-yaml-locally: sync
 .PHONY: update-yaml-locally
 
 preflight-docs:
-	@if [ -z "$${AMBASSADOR_DOCS}" ]; then printf "$(RED)Please set AMBASSADOR_DOCS to point to your ambassador-docs.git checkout$(END)\n" >&2; exit 1; fi
-	@if ! [ -f "$${AMBASSADOR_DOCS}/versions.yml" ]; then printf "$(RED)AMBASSADOR_DOCS=$${AMBASSADOR_DOCS} does not look like an ambassador-docs.git checkout$(END)\n" >&2; exit 1; fi
+	@if [ -z "$${AMBASSADOR_DOCS}" ]; then printf "$(RED)Please set AMBASSADOR_DOCS to point to your ambassador.git/docs checkout$(END)\n" >&2; exit 1; fi
+	@if ! [ -f "$${AMBASSADOR_DOCS}/index.md" ]; then printf "$(RED)AMBASSADOR_DOCS=$${AMBASSADOR_DOCS} does not look like an ambassador-docs.git checkout$(END)\n" >&2; exit 1; fi
 .PHONY: preflight-docs
 
 update-yaml: update-yaml-locally preflight-docs
