@@ -81,8 +81,14 @@ Format:
 
 ### Ambassador Edge Stack Only
 
+- Feature: `edgectl install` output has clearer formatting
+- Feature: `edgectl install` offers help when installation does not succeed
+- Feature: `edgectl install` uploads installer and AES logs to a private area upon failure so Datawire support can help
 - Bugfix: The "Filters" tab in the webui no longer renders the value of OAuth client secrets that are stored in Kubernetes secrets.
 - Bugfix: The ACME client of of one Ambassador install will no longer interfere with the ACME client of another Ambassador install in the same namespace with a different AMBASSADOR_ID.
+- Bugfix: `edgectl intercept` supports matching headers values against regular expressions once more
+- Bugfix: `edgectl install` correctly handles more local and cluster environments
+- Internal: `edgectl install` uses Helm under the hood
 
 ## [1.3.2] April 1, 2020
 [1.3.2]: https://github.com/datawire/ambassador/compare/v1.3.1...v1.3.2
