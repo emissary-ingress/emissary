@@ -141,6 +141,15 @@ type ProjectController struct {
 }
 
 type ProjectControllerSpec struct {
+	MaximumConcurrentBuilds *int
+}
+
+func (pc *ProjectController) GetMaximumConcurrentBuilds() int {
+	if pc != nil && pc.Spec.MaximumConcurrentBuilds != nil {
+		return *pc.Spec.MaximumConcurrentBuilds
+	}
+	// default
+	return 3
 }
 
 type ProjectControllerStatus struct{}

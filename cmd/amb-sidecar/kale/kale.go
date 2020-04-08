@@ -775,7 +775,19 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot *Snapshot) {
 	}
 
 	// reconcile things managed by commits
-	for _, commit := range snapshot.Commits {
+	//
+	// Because we're limiting the number of concurrent Jobs, it's
+	// important that we iterate over Commits in a stable (but
+	// possibly arbitrary) order.  So, sort them by UID.
+	runningJobs := 0
+	for _, commitUID := range sortedUIDKeys(snapshot.Commits) {
+		commit := snapshot.Commits[commitUID]
+		if len(commit.Children.Builders) > 0 && commit.Status.Phase <= CommitPhase_Building {
+			runningJobs++
+		}
+	}
+	for _, commitUID := range sortedUIDKeys(snapshot.Commits) {
+		commit := snapshot.Commits[commitUID]
 		ctx := CtxWithCommit(ctx, commit.ProjectCommit)
 		if commit.Parent == nil {
 			//reportRuntimeError(ctx, StepReconcileCommitsToAction,
@@ -786,7 +798,7 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot *Snapshot) {
 
 		var runtimeErr, bugErr error
 		bugErr = safeInvoke(func() {
-			runtimeErr = k.reconcileCommit(ctx, commit)
+			runtimeErr = k.reconcileCommit(ctx, commit, &runningJobs)
 		})
 		if runtimeErr != nil {
 			reportRuntimeError(ctx, StepReconcileCommitsToAction, runtimeErr)
@@ -801,7 +813,7 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot *Snapshot) {
 	}
 }
 
-func (k *kale) reconcileCommit(ctx context.Context, _commit *commitAndChildren) error {
+func (k *kale) reconcileCommit(ctx context.Context, _commit *commitAndChildren, runningJobs *int) error {
 	proj := _commit.Parent.Project
 	commit := _commit.ProjectCommit
 	builders := _commit.Children.Builders
@@ -884,7 +896,12 @@ func (k *kale) reconcileCommit(ctx context.Context, _commit *commitAndChildren) 
 	}
 
 	var manifests []interface{}
-	manifests = append(manifests, k.calculateBuild(proj, commit)...)
+	if *runningJobs < _commit.Parent.Parent.GetMaximumConcurrentBuilds() || commit.Status.Phase > CommitPhase_Building {
+		manifests = append(manifests, k.calculateBuild(proj, commit)...)
+		if len(_commit.Children.Builders) == 0 {
+			*runningJobs++
+		}
+	}
 	if commit.Status.Phase >= CommitPhase_Deploying {
 		telemetryOK(ctx, StepBuild)
 		manifests = append(manifests, k.calculateRun(proj, commit)...)
@@ -895,6 +912,9 @@ func (k *kale) reconcileCommit(ctx context.Context, _commit *commitAndChildren) 
 	selectors := []string{
 		GlobalLabelName + "==" + k.cfg.AmbassadorID,
 		CommitLabelName + "==" + string(commit.GetUID()),
+	}
+	if len(manifests) == 0 {
+		return nil
 	}
 	err := applyAndPrune(
 		strings.Join(selectors, ","),
