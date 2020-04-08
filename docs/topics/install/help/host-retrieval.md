@@ -12,4 +12,4 @@ edgectl install
 
 Don't worry: it is safe to run the installer repeatedly on a cluster.
 
-Otherwise, please get in touch on [Slack](http://d6e.co/slack).
+If running the installer again does not work, please reach out to us on [Slack](http://d6e.co/slack).
