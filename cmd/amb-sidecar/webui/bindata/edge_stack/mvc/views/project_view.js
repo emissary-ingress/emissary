@@ -4,11 +4,12 @@ import { IResourceView } from '../interfaces/iresource_view.js'
 import './terminal.js'
 import './errors.js'
 
-import {getCookie} from '../../components/cookies.js';
-import {ApiFetch} from '../../components/api-fetch.js';
-import {HASH} from '../../components/hash.js';
+import { getCookie } from '../../components/cookies.js';
+import { ApiFetch } from '../../components/api-fetch.js';
+import { HASH } from '../../components/hash.js';
 
-import {AllHosts} from '../models/host_collection.js'
+import { AllHosts } from '../models/host_collection.js'
+import { parseGithubPagination } from './helpers.js'
 
 export class ProjectView extends IResourceView {
 
@@ -140,38 +141,45 @@ export class ProjectView extends IResourceView {
       this.repo_error = ""
     }
 
-    let repos_by_affiliation = new Map()
-    let repo_errors = new Set()
-    for (let affiliation of ["owner,collaborator", "organization_member"]) {
-      fetch(`https://api.github.com/user/repos?affiliation=${affiliation}`,
-            {
-              headers: {
-                Authorization: `Bearer ${this.project.token}`
-              }
-            })
-        .then((r)=>r.json())
-        .then((repos)=>{
-          if (!Array.isArray(repos)) {
-            let message = repos.message
-            if (typeof message === "string") {
-              repo_errors.add(message)
-            } else {
-              repo_errors.add(JSON.stringify(repos, undefined, 2))
-            }
-            this.repo_error = Array.from(repo_errors).join(", ")
-          } else {
-            repos_by_affiliation.set(affiliation, repos)
-            let unique = new Set()
-            for (let values of repos_by_affiliation.values()) {
-              for (let n of values.map((r)=>r.full_name)) {
-                unique.add(n)
-              }
-            }
-            this.repos = Array.from(unique)
-            this.repos.sort()
-          }
-        })
+    let startLink = `https://api.github.com/user/repos?per_page=100`
+    let opts = {
+      headers: {
+        Authorization: `Bearer ${this.project.token}`
+      }
     }
+
+    let paginate = (r) => {
+      let hdr = r.headers.get("Link")
+      if (hdr) {
+        let links = parseGithubPagination(hdr)
+        if (links.next) {
+          fetch(links.next, opts).then(paginate).then(addRepos)
+        }
+      }
+      return r.json()
+    }
+
+    let repo_errors = new Set()
+    let allRepos = new Set()
+    let addRepos = (repos) => {
+      if (!Array.isArray(repos)) {
+        let message = repos.message
+        if (typeof message === "string") {
+          repo_errors.add(message)
+        } else {
+          repo_errors.add(JSON.stringify(repos, undefined, 2))
+        }
+        this.repo_error = Array.from(repo_errors).join(", ")
+      } else {
+        for (let r of repos) {
+          allRepos.add(r.full_name)
+        }
+        this.repos = Array.from(allRepos)
+        this.repos.sort()
+      }
+    }
+
+    fetch(startLink, opts).then(paginate).then(addRepos)
   }
 
   renderDeployedCommits(prefix, commits) {
