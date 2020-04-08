@@ -1,4 +1,4 @@
-# `edgectl install`: DNS Failed to Propagate to This Host
+# Edgectl Install: DNS Failed to Propagate to This Host
 
 The installer has acquired a DNS name for your cluster but is unable to resolve that name on your host.
 

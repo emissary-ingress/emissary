@@ -1,4 +1,4 @@
-# `edgectl install`: Error processing downloaded information
+# Edgectl Install: Error processing downloaded information
 
 The installer retrieves information required to install AES over the Internet. Some of that information seems to have been corrupted in transit.
 

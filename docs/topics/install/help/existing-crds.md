@@ -1,4 +1,4 @@
-# `edgectl install`: Existing installation detected
+# Edgectl Install: Existing installation detected
 
 The installer detected that Ambassador is already installed in your Kubernetes cluster. To avoid causing damage to your current setup, the installer has quit. The installer does not support upgrades or downgrades at this time.
 

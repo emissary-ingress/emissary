@@ -1,4 +1,4 @@
-# `edgectl install`: Can't communicate with the Kubernetes cluster
+# Edgectl Install: Can't communicate with the Kubernetes cluster
 
 Installation of AES requires a Kubernetes cluster. The installer was unable to access your cluster using `kubectl`.
 

@@ -1,4 +1,4 @@
-# `edgectl install`: No address for the load balancer service
+# Edgectl Install: No address for the load balancer service
  
 The installer could not retrieve an address (DNS name or IP address) for the load balancer that enables traffic from outside the Kubernetes cluster to reach Ambassador. 
 

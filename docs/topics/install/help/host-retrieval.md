@@ -1,4 +1,4 @@
-# `edgectl install`: Installer Failed to Retrieve Host Resource
+# Edgectl Install: Installer Failed to Retrieve Host Resource
 
 After creating a new Host resource using `kubectl apply` the installer was unable to retrieve the Host resource from your cluster. This is unexpected.
 

@@ -1,4 +1,4 @@
-# `edgectl install`: Can't reach the Internet
+# Edgectl Install: Can't reach the Internet
 
 The installer retrieves information required to install AES over the Internet. If Internet connectivity is not available, the installer cannot proceed. 
 
