@@ -1,4 +1,4 @@
-# edgectl install: requesting your email address
+# `edgectl install`: requesting your email address
  
 ## The Problem
 

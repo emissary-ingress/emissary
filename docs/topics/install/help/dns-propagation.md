@@ -1,4 +1,4 @@
-# edgectl install: DNS Failed to Propagate to This Host
+# `edgectl install`: DNS Failed to Propagate to This Host
  
 ## The Problem
 

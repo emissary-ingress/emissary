@@ -1,4 +1,4 @@
-# edgectl install: Installer Failed to Retrieve Host Resource
+# `edgectl install`: Installer Failed to Retrieve Host Resource
 
 Ambassador's `edgectl install` uses `kubectl` to communicate with Kubernetes.  
 

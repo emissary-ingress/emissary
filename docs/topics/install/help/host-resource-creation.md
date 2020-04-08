@@ -1,4 +1,4 @@
-# edgectl install: Installer Failed to Create Host Resource
+# `edgectl install`: Installer Failed to Create Host Resource
 
 Ambassador's `edgectl install` uses `kubectl` to communicate with Kubernetes.  
 

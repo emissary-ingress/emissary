@@ -1,4 +1,4 @@
-# edgectl install: Failed to Acquire TLS Certificate
+# `edgectl install`: Failed to Acquire TLS Certificate
  
  
 ## The Problem
