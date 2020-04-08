@@ -81,7 +81,7 @@ class Term extends LitElement {
         this.term.open(div);
         fitter.fit();
         // todo: auth?
-        this.es = new EventSource(this.source);
+        this.es = new EventSource(this.source, {withCredentials: true});
         this.es.onerror = (e) => { console.log("terminal event error", e); };
         this.es.addEventListener("close", (e) => {
           this.es.close();
