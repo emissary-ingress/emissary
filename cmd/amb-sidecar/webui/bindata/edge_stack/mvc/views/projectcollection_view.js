@@ -178,25 +178,10 @@ export class ProjectCollectionView extends View {
   <div class="${parsed.source ? "card" : "off"}">
     <dw-terminal
       source=${parsed.source}
-      .transform=${(x)=>this.transform(x, parsed.type)}
       @close=${(e)=>this.closeTerminal()}></dw-terminal>
   </div>
 </div>
 `
-  }
-
-  transform(x, type) {
-    if (type === "build") {
-      if (/^ERROR:\s+logging\s+before\s+flag.Parse:.*$/.test(x)) {
-        return undefined
-      } else if (/^#\s+(Checking|Performing|Building).*$/.test(x)) {
-        return "\u001b[32;1m" + x + "\u001b[0m"
-      } else {
-        return x
-      }
-    } else {
-      return x
-    }
   }
 
   parseLogSelector(log) {
