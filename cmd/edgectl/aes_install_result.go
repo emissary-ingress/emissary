@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"text/template"
 
 	"github.com/gookit/color"
@@ -11,11 +10,12 @@ import (
 
 // Result represents the result of an installation attempt
 type Result struct {
-	Report   string // Action to report to Metriton
-	Message  string // Message to show to the user
-	TryAgain bool   // Whether to show the "try again" message (TODO: Is this necessary?)
-	URL      string // Docs URL to show and open
-	Err      error  // Error condition (nil -> successful installation)
+	Report       string // Action to report to Metriton
+	ShortMessage string // Short human-readable error message
+	Message      string // Message to show to the user
+	TryAgain     bool   // Whether to show the "try again" message (TODO: Is this necessary?)
+	URL          string // Docs URL to show and open
+	Err          error  // Error condition (nil -> successful installation)
 }
 
 // UnhandledErrResult returns a minimal Result that passes along an error but
@@ -93,16 +93,20 @@ func (i *Installer) ShowResult(r Result) {
 			i.Report(r.Report, ScoutMeta{"err", r.Err.Error()})
 		}
 
+		if r.ShortMessage != "" {
+			i.show.Println()
+			i.show.Println(r.ShortMessage)
+		}
+
 		if r.Message != "" {
 			i.show.Println()
-			i.show.Println("AES Installation Unsuccessful")
+			i.show.Println("AES Installation UNSUCCESSFUL")
 			i.show.Println("========================================================================")
 			i.show.Println()
 			i.ShowTemplated(r.Message, templateData...)
 
 			if r.URL != "" {
 				i.show.Println()
-				i.ShowWrapped(fmt.Sprintf("Visit %s for more information and instructions.", r.URL))
 
 				if err := browser.OpenURL(r.URL); err != nil {
 					i.log.Printf("Failed to open browser: %+v", err)
@@ -130,11 +134,7 @@ func (i *Installer) ShowResult(r Result) {
 			i.ShowTemplated(r.Message, templateData...)
 
 			if r.URL != "" {
-				// TODO: Consider leaving out this fixed "visit" message.
-				// Instead, it may be better to let Result.Message offer useful
-				// context for visiting a URL.
 				i.show.Println()
-				i.ShowWrapped(fmt.Sprintf("Visit %s for more information and instructions.", r.URL))
 
 				if err := browser.OpenURL(r.URL); err != nil {
 					i.log.Printf("Failed to open browser: %+v", err)
