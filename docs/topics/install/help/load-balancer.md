@@ -13,4 +13,4 @@ The installer could not retrieve an address (DNS name or IP address) for the loa
      ```shell
      edgectl install
      ```
-* If your cluster doesn't support load balancers, you'll need to expose AES in some other way. See the [Bare Metal Installation Guide](https://www.getambassador.io/docs/latest/topics/install/bare-metal/) for some options.
+* If your Kubernetes cluster doesn't support load balancers, you'll need to expose AES in some other way. See the [Bare Metal Installation Guide](https://www.getambassador.io/docs/latest/topics/install/bare-metal/) for some options.

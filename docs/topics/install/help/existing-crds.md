@@ -13,7 +13,7 @@ The installer detected that Ambassador is already installed in your Kubernetes c
   * Once `kubectl` refers to the intended cluster, you can run the installer again with `edgectl install`
 
 * If you are **absolutely certain** it's safe to do so, you can delete your existing installation
-  * Use `kubectl get ambassador-crds --all-namespaces` to view all the Ambassador custom resources in your cluster
+  * Use `kubectl get ambassador-crds --all-namespaces` to view all the Ambassador custom resources in your Kubernetes cluster
   * Use `kubectl delete crd -l product=aes` to delete existing CRDs. This will also delete all the Ambassador resources shown in the prior step.
   * Use `kubectl delete namespace ambassador` to delete the Kubernetes Services and Deployments for Ambassador
   * Restart the installation with `edgectl install`
