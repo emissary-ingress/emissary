@@ -1,6 +1,6 @@
 # Edgectl Install: `kubectl` not found
 
-Installation of AES requires the `kubectl` command. The installer did not find `kubectl` in your shell PATH.
+Installation of Ambassador Edge Stack (AES) requires the `kubectl` command. The installer did not find `kubectl` in your shell PATH.
 
 ## What's next?
 
