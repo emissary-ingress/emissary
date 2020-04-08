@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"reflect"
 	"sort"
-	"time"
 
 	// 3rd party: k8s types
 	k8sTypesAppsV1 "k8s.io/api/apps/v1"
 	k8sTypesBatchV1 "k8s.io/api/batch/v1"
+	k8sTypesCoreV1 "k8s.io/api/core/v1"
 	k8sTypes "k8s.io/apimachinery/pkg/types"
 
 	// 1st party
@@ -24,6 +24,7 @@ type UntypedSnapshot struct {
 	Commits     []k8s.Resource
 	Jobs        []k8s.Resource
 	Deployments []k8s.Resource
+	Events      []k8s.Resource
 }
 
 type Snapshot struct {
@@ -32,7 +33,7 @@ type Snapshot struct {
 	Commits     map[k8sTypes.UID]*commitAndChildren
 	Jobs        map[k8sTypes.UID]*k8sTypesBatchV1.Job
 	Deployments map[k8sTypes.UID]*k8sTypesAppsV1.Deployment
-	Errors      []recordedError
+	Events      map[k8sTypes.UID]*k8sTypesCoreV1.Event
 
 	grouped *GroupedSnapshot `json:"-"`
 }
@@ -65,6 +66,16 @@ func (in UntypedSnapshot) TypedAndIndexed(ctx context.Context) *Snapshot {
 	out.Deployments = make(map[k8sTypes.UID]*k8sTypesAppsV1.Deployment, len(outDeployments))
 	for _, outDeployment := range outDeployments {
 		out.Deployments[outDeployment.GetUID()] = outDeployment
+	}
+
+	// events
+	var outEvents []*k8sTypesCoreV1.Event
+	if err := mapstructure.Convert(in.Events, &outEvents); err != nil {
+		panicThisIsABug(fmt.Errorf("Events: %w", err))
+	}
+	out.Events = make(map[k8sTypes.UID]*k8sTypesCoreV1.Event, len(outEvents))
+	for _, outEvent := range outEvents {
+		out.Events[outEvent.GetUID()] = outEvent
 	}
 
 	// However, for our CRDs, because the api-server can't
@@ -118,21 +129,13 @@ type GroupedSnapshot struct {
 	OrphanedCommits     []*commitAndChildren
 	OrphanedJobs        []*k8sTypesBatchV1.Job
 	OrphanedDeployments []*k8sTypesAppsV1.Deployment
-	OrphanedErrors      []recordedError
-}
-
-type recordedError struct {
-	Time       time.Time    `json:"time"`
-	Message    string       `json:"message"`
-	ProjectUID k8sTypes.UID `json:"project_uid,omitempty"`
-	CommitUID  k8sTypes.UID `json:"commit_uid,omitempty"`
 }
 
 type controllerAndChildren struct {
 	*ProjectController
 	Children struct {
-		Projects []*projectAndChildren `json:"projects"`
-		Errors   []recordedError       `json:"errors"`
+		Projects []*projectAndChildren   `json:"projects"`
+		Errors   []*k8sTypesCoreV1.Event `json:"errors"`
 	} `json:"children"`
 }
 
@@ -140,8 +143,8 @@ type projectAndChildren struct {
 	*Project
 	Parent   *controllerAndChildren `json:"-"`
 	Children struct {
-		Commits []*commitAndChildren `json:"commits"`
-		Errors  []recordedError      `json:"errors"`
+		Commits []*commitAndChildren    `json:"commits"`
+		Errors  []*k8sTypesCoreV1.Event `json:"errors"`
 	} `json:"children"`
 }
 
@@ -151,7 +154,7 @@ type commitAndChildren struct {
 	Children struct {
 		Builders []*k8sTypesBatchV1.Job       `json:"builders"`
 		Runners  []*k8sTypesAppsV1.Deployment `json:"runners"`
-		Errors   []recordedError              `json:"errors"`
+		Errors   []*k8sTypesCoreV1.Event      `json:"errors"`
 	} `json:"children"`
 }
 
@@ -205,24 +208,27 @@ func (in *Snapshot) Grouped() *GroupedSnapshot {
 			out.OrphanedDeployments = append(out.OrphanedDeployments, deployment)
 		}
 	}
-	sortErrors(in.Errors)
-	for _, err := range in.Errors {
-		switch {
-		case err.CommitUID != "":
-			if commit, ok := in.Commits[err.CommitUID]; ok {
-				commit.Children.Errors = append(commit.Children.Errors, err)
-			} else {
-				out.OrphanedErrors = append(out.OrphanedErrors, err)
+	for _, eventUID := range sortedUIDKeys(in.Events) {
+		event := in.Events[eventUID]
+		if event.Type != k8sTypesCoreV1.EventTypeWarning {
+			// The field is .Children.Errors, not .Children.Events
+			continue
+		}
+		// Don't worry about orphaned Events--we expect a lot
+		// of them, just drop them on the floor.
+		switch event.InvolvedObject.Kind {
+		case "ProjectController":
+			if controller, ok := in.Controllers[event.InvolvedObject.UID]; ok {
+				controller.Children.Errors = append(controller.Children.Errors, event)
 			}
-		case err.ProjectUID != "":
-			if project, ok := in.Projects[err.ProjectUID]; ok {
-				project.Children.Errors = append(project.Children.Errors, err)
-			} else {
-				out.OrphanedErrors = append(out.OrphanedErrors, err)
+		case "Project":
+			if project, ok := in.Projects[event.InvolvedObject.UID]; ok {
+				project.Children.Errors = append(project.Children.Errors, event)
 			}
-		default:
-			controller := out.Controllers[0]
-			controller.Children.Errors = append(controller.Children.Errors, err)
+		case "ProjectCommit":
+			if commit, ok := in.Commits[event.InvolvedObject.UID]; ok {
+				commit.Children.Errors = append(commit.Children.Errors, event)
+			}
 		}
 	}
 
@@ -249,10 +255,4 @@ func sortedUIDKeys(m interface{}) []k8sTypes.UID {
 	})
 
 	return out
-}
-
-func sortErrors(errs []recordedError) {
-	sort.Slice(errs, func(i, j int) bool {
-		return errs[i].Time.Before(errs[j].Time)
-	})
 }

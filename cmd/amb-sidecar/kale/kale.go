@@ -41,6 +41,7 @@ import (
 	"github.com/datawire/ambassador/pkg/metriton"
 	"github.com/datawire/apro/cmd/amb-sidecar/api"
 	"github.com/datawire/apro/cmd/amb-sidecar/group"
+	"github.com/datawire/apro/cmd/amb-sidecar/k8s/events"
 	"github.com/datawire/apro/cmd/amb-sidecar/k8s/leaderelection"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	aes_metriton "github.com/datawire/apro/lib/metriton"
@@ -164,8 +165,8 @@ func telemetryOK(ctx context.Context, traceStep string) {
 	})
 }
 
-func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8s.KubeInfo, dynamicClient k8sClientDynamic.Interface, pubkey *rsa.PublicKey) {
-	k := NewKale(dynamicClient)
+func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8s.KubeInfo, dynamicClient k8sClientDynamic.Interface, pubkey *rsa.PublicKey, eventLogger *events.EventLogger) {
+	k := NewKale(dynamicClient, eventLogger)
 	globalKale = k
 
 	upstreamWorker := make(chan UntypedSnapshot)
@@ -198,6 +199,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 				Commits:     w.List("projectcommits.getambassador.io"),
 				Jobs:        w.List("jobs.batch"),
 				Deployments: w.List("deployments.apps"),
+				Events:      w.List("events."),
 			}
 			upstreamWorker <- snapshot
 			upstreamWebUI <- snapshot
@@ -210,6 +212,10 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 			{Kind: "projectcommits.getambassador.io"},
 			{Kind: "jobs.batch", LabelSelector: labelSelector},
 			{Kind: "deployments.apps", LabelSelector: labelSelector},
+
+			{Kind: "events.", FieldSelector: "involvedObject.apiVersion=getmabassador.io/v2,involvedObject.kind=ProjectController"},
+			{Kind: "events.", FieldSelector: "involvedObject.apiVersion=getmabassador.io/v2,involvedObject.kind=Project"},
+			{Kind: "events.", FieldSelector: "involvedObject.apiVersion=getmabassador.io/v2,involvedObject.kind=ProjectCommit"},
 		}
 
 		for _, query := range queries {
@@ -326,74 +332,96 @@ did_read:
 // A kale contains the global state for the controller/webhook. We
 // assume there is only one copy of the controller running in the
 // cluster, so this is global to the entire cluster.
-func NewKale(dynamicClient k8sClientDynamic.Interface) *kale {
+func NewKale(dynamicClient k8sClientDynamic.Interface, eventLogger *events.EventLogger) *kale {
 	return &kale{
+		eventLogger:        eventLogger,
 		telemetryReporter:  aes_metriton.Reporter,
 		telemetryReplicaID: uuid.New(),
 
 		projectsGetter: dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "projects"}),
 		commitsGetter:  dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "projectcommits"}),
+
+		PrevIterationErrors: make(map[recordedError]struct{}),
+		NextIterationErrors: make(map[recordedError]struct{}),
 	}
 }
 
 type kale struct {
 	cfg types.Config
 
+	eventLogger        *events.EventLogger
 	telemetryReporter  *metriton.Reporter
 	telemetryReplicaID uuid.UUID
 
 	projectsGetter k8sClientDynamic.NamespaceableResourceInterface
 	commitsGetter  k8sClientDynamic.NamespaceableResourceInterface
 
-	mu                  sync.RWMutex
-	webSnapshot         *Snapshot
-	ErrorsDirty         bool
-	PersistentErrors    []recordedError
-	PrevIterationErrors []recordedError
+	mu          sync.RWMutex
+	webSnapshot *Snapshot
+	// Errors to include in webui snapshots, but aren't in the
+	// regular snapshot.  (Probably errors complaining that we
+	// don't have RBAC to generate the regular snapshot).
+	webErrors []*k8sTypesCoreV1.Event
 
-	NextIterationErrors []recordedError
+	PrevIterationErrors map[recordedError]struct{}
+	NextIterationErrors map[recordedError]struct{}
 }
 
-func (k *kale) addPersistentError(err error, projectUID, commitUID k8sTypes.UID) {
-	now := time.Now()
+type recordedError struct {
+	Message    string
+	ProjectUID k8sTypes.UID
+	CommitUID  k8sTypes.UID
+}
+
+func (k *kale) addIterationError(err error, projectUID, commitUID k8sTypes.UID) bool {
+	key := recordedError{
+		Message:    fmt.Sprintf("%+v", err), // use %+v to include a stack trace if there is one
+		ProjectUID: projectUID,
+		CommitUID:  commitUID,
+	}
+	k.NextIterationErrors[key] = struct{}{}
+	_, inPrev := k.NextIterationErrors[key]
+	isNew := !inPrev
+	return isNew
+}
+
+// addWebError adds an error to show in the webui, that isn't in a
+// regular snapshot (Probably errors complaining that we don't have
+// RBAC to generate the regular snapshot).
+func (k *kale) addWebError(event *k8sTypesCoreV1.Event) {
 	k.mu.Lock()
-	defer k.mu.Unlock()
-	k.PersistentErrors = append(k.PersistentErrors, recordedError{
-		Time:       now,
-		Message:    fmt.Sprintf("%+v", err), // use %+v to include a stack trace if there is one
-		ProjectUID: projectUID,
-		CommitUID:  commitUID,
-	})
-	k.ErrorsDirty = true
-}
-
-func (k *kale) addIterationError(err error, projectUID, commitUID k8sTypes.UID) {
-	now := time.Now()
-	k.NextIterationErrors = append(k.NextIterationErrors, recordedError{
-		Time:       now,
-		Message:    fmt.Sprintf("%+v", err), // use %+v to include a stack trace if there is one
-		ProjectUID: projectUID,
-		CommitUID:  commitUID,
-	})
+	k.webErrors = append(k.webErrors, event)
+	k.webSnapshot.grouped = nil
+	k.mu.Unlock()
 }
 
 func (k *kale) updateWebGroupedSnapshot() *GroupedSnapshot {
-	k.mu.Lock()
+	k.mu.Lock() // need a write-lock to call .Grouped()
 	defer k.mu.Unlock()
-	if k.ErrorsDirty || k.webSnapshot.grouped == nil {
-		k.webSnapshot.Errors = append(k.PersistentErrors, k.PrevIterationErrors...)
-		k.webSnapshot.grouped = nil
-		k.ErrorsDirty = false
+	ret := k.webSnapshot.Grouped()
+	if len(k.webErrors) > 0 {
+		ret.Controllers[0].Children.Errors = append(k.webErrors, ret.Controllers[0].Children.Errors...)
 	}
-	return k.webSnapshot.Grouped()
+	return ret
 }
 
 func (k *kale) flushIterationErrors() {
-	k.mu.Lock()
-	defer k.mu.Unlock()
-	k.PrevIterationErrors = k.NextIterationErrors
-	k.NextIterationErrors = nil
-	k.ErrorsDirty = true
+	// We could just do
+	//
+	//    prev = next
+	//    next = make()
+	//
+	// But instead let's clear the old prev instead of making a
+	// new map.  It's easy enough, and avoids putting extra
+	// pressure on the GC.  (Yes, I did actually observe that it
+	// makes a substantial impact on memory use).
+
+	// swap
+	k.PrevIterationErrors, k.NextIterationErrors = k.NextIterationErrors, k.PrevIterationErrors
+	// clear
+	for key := range k.NextIterationErrors {
+		delete(k.NextIterationErrors, key)
+	}
 }
 
 func (k *kale) reconcile(ctx context.Context, snapshot *Snapshot) {

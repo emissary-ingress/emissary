@@ -33,6 +33,7 @@ import (
 	k8sTypes "k8s.io/apimachinery/pkg/types"
 
 	// 3rd party: k8s misc
+	k8sRuntime "k8s.io/apimachinery/pkg/runtime"
 	k8sSchema "k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/yaml"
 
@@ -560,6 +561,24 @@ func unstructureCommit(commit *ProjectCommit) *k8sTypesUnstructured.Unstructured
 	}
 }
 
+// unstructureController returns a *k8sTypesUnstructured.Unstructured
+// representation of an *ambassadorTypesV2.ProjectController.  There are 2
+// reasons why we might want this:
+//
+//  1. For use with a k8sClientDynamic.Interface
+//  2. For use as a k8sRuntime.Object
+func unstructureController(controller *ProjectController) *k8sTypesUnstructured.Unstructured {
+	return &k8sTypesUnstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": "getambassador.io/v2",
+			"kind":       "ProjectController",
+			"metadata":   unstructureMetadata(&controller.ObjectMeta),
+			"spec":       controller.Spec,
+			"status":     controller.Status,
+		},
+	}
+}
+
 // unstructureMetadata marshals a *k8sTypesMetaV1.ObjectMeta for use
 // in a `*k8sTypesUnstructured.Unstructured`.
 //
@@ -602,16 +621,24 @@ func jobConditionMet(obj *k8sTypesBatchV1.Job, condType k8sTypesBatchV1.JobCondi
 }
 
 func _logErr(ctx context.Context, err error) {
+	var eventTarget interface {
+		k8sRuntime.Object
+		GetNamespace() string
+	}
 	var commitUID, projectUID k8sTypes.UID
 	if commit := CtxGetCommit(ctx); commit != nil {
 		err = fmt.Errorf("ProjectCommit %s.%s: %w",
 			commit.GetName(), commit.GetNamespace(), err)
 		commitUID = commit.GetUID()
+		eventTarget = unstructureCommit(commit)
 	}
 	if project := CtxGetProject(ctx); project != nil {
 		err = fmt.Errorf("Project %s.%s: %w",
 			project.GetName(), project.GetNamespace(), err)
 		projectUID = project.GetUID()
+		if eventTarget == nil {
+			eventTarget = unstructureProject(project)
+		}
 	}
 
 	dlog.GetLogger(ctx).Errorf("%+v", err)
@@ -619,10 +646,40 @@ func _logErr(ctx context.Context, err error) {
 	// Because I've thought it before, and I know I'm going to think it again: Yes, it
 	// might be the case that 'project' is set but 'iteration' isn't.  This can happen
 	// if we'd like to report an error from the GitHub webhook.
-	if CtxGetIteration(ctx) == nil {
-		globalKale.addPersistentError(err, projectUID, commitUID)
+	if CtxGetIteration(ctx) != nil {
+		isNew := globalKale.addIterationError(err, projectUID, commitUID)
+		if !isNew {
+			eventTarget = nil
+		}
+	}
+	if eventTarget == nil {
+		globalKale.mu.RLock()
+		if globalKale.webSnapshot != nil && len(globalKale.webSnapshot.Controllers) == 1 {
+			for _, controller := range globalKale.webSnapshot.Controllers {
+				eventTarget = unstructureController(controller.ProjectController)
+			}
+		}
+		globalKale.mu.RUnlock()
+	}
+	if eventTarget != nil {
+		globalKale.eventLogger.Namespace(eventTarget.GetNamespace()).Eventf(
+			eventTarget,                     // InvolvedObject
+			k8sTypesCoreV1.EventTypeWarning, // EventType
+			"Err",                           // Reason
+			"%+v", err,                      // Message
+		)
 	} else {
-		globalKale.addIterationError(err, projectUID, commitUID)
+		// It's important that we don't discard these, because
+		// they're probably RBAC errors.
+		t := k8sTypesMetaV1.Time{Time: time.Now()}
+		globalKale.addWebError(&k8sTypesCoreV1.Event{
+			Reason:         "err",
+			Message:        fmt.Sprintf("%+v", err),
+			FirstTimestamp: t,
+			LastTimestamp:  t,
+			Count:          1,
+			Type:           k8sTypesCoreV1.EventTypeWarning,
+		})
 	}
 }
 
