@@ -1,12 +1,15 @@
 # `edgectl install`: Installer Failed to Retrieve Host Resource
 
-Ambassador's `edgectl install` uses `kubectl` to communicate with Kubernetes.  
+After creating a new Host resource using `kubectl apply` the installer was unable to retrieve the Host resource from your cluster. This is unexpected.
 
-## The Problem
+## What's next?
 
-After creating a new Host resource using `kubectl apply` with the Host manifest, the installer was unable
-to retrieve the Host resource from your cluster.  This is unexpected.
+If this appears to be an intermittent failure, try running the installer again:
 
-## How to Resolve It
+```shell
+edgectl install
+```
 
-...
+It is safe to run the installer repeatedly on a cluster.
+
+Otherwise, please get in touch on [Slack](http://d6e.co/slack).

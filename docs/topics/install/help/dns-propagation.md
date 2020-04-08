@@ -1,14 +1,15 @@
 # `edgectl install`: DNS Failed to Propagate to This Host
- 
-## The Problem
 
-The installer, after sending a request to acquire a DNS entry for the load balancer, received a reply but
-was unable to read the response body.
+The installer has acquired a DNS name for your cluster but is unable to resolve that name on your host.
 
-## How to Resolve It
+## What's next?
 
-...
+If this appears to be an intermittent failure, try running the installer again:
 
-To reinstall AES, see:
+```shell
+edgectl install
+```
 
-https://www.getambassador.io/docs/latest/tutorials/getting-started/
+It is safe to run the installer repeatedly on a cluster.
+
+Otherwise, please get in touch on [Slack](http://d6e.co/slack).

@@ -1,14 +1,15 @@
 # `edgectl install`: Failed to Acquire TLS Certificate
  
- 
-## The Problem
-
 The installer was unable to acquire a TLS certificate from Let's Encrypt.
 
-## How to Resolve It
+## What's next?
 
-...
+If this appears to be an intermittent failure, try running the installer again:
 
-To reinstall AES, see:
+```shell
+edgectl install
+```
 
-https://www.getambassador.io/docs/latest/tutorials/getting-started/
+It is safe to run the installer repeatedly on a cluster.
+
+Otherwise, please get in touch on [Slack](http://d6e.co/slack).
