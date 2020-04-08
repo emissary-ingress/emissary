@@ -9,7 +9,7 @@ The installer could not retrieve an address (DNS name or IP address) for the loa
      ```shell
      kubectl get -n ambassador service ambassador -o "go-template={{range .status.loadBalancer.ingress}}{{or .ip .hostname}}{{end}}"
      ```
-  2. Start the installer again:
+  2. Run the installer again:
      ```shell
      edgectl install
      ```

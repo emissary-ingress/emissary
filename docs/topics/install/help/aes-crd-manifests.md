@@ -5,7 +5,7 @@ The installer retrieves information required to install AES over the Internet. I
 ## What's next?
 
 1. Restore Internet connectivity. Perhaps there is a VPN or firewall preventing access to the Internet.
-2. Start the installer again:
+2. Run the installer again:
    ```shell
    edgectl install
    ```

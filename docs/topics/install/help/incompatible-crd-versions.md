@@ -10,7 +10,7 @@ The installer detected that Ambassador is already installed in your Kubernetes c
   * Set the environment variable `KUBECONFIG` to use a configuration file other than the default
   * Use `kubectl config current-context` and `kubectl config set-context` to view or set the current context from among the contexts defined in the configuration file
   * Use `kubectl version` to see version information for the cluster specified by the current configuration and context
-  * Once `kubectl` refers to the intended cluster, you can restart the installation with `edgectl install`
+  * Once `kubectl` refers to the intended cluster, you can run the installer again with `edgectl install`
 
 * If you are **absolutely certain** it's safe to do so, you can delete your existing installation
   * Use `kubectl get ambassador-crds --all-namespaces` to view all the Ambassador custom resources in your cluster

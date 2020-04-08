@@ -5,7 +5,7 @@ The installer could not verify that Ambassador is answering queries. This could 
 ## What's next?
 
 1. Verify that the load balancer address is reachable from this host
-2. Start the installer again:
+2. Run the installer again:
    ```shell
    edgectl install
    ```
