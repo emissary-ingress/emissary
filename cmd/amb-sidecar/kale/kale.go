@@ -3,6 +3,7 @@ package kale
 import (
 	// standard library
 	"context"
+	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/json"
 	"errors"
@@ -39,6 +40,7 @@ import (
 	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/datawire/ambassador/pkg/k8s"
 	"github.com/datawire/ambassador/pkg/metriton"
+	"github.com/datawire/apro/cmd/amb-sidecar/api"
 	"github.com/datawire/apro/cmd/amb-sidecar/group"
 	"github.com/datawire/apro/cmd/amb-sidecar/k8s/leaderelection"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
@@ -163,7 +165,7 @@ func telemetryOK(ctx context.Context, traceStep string) {
 	})
 }
 
-func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8s.KubeInfo, dynamicClient k8sClientDynamic.Interface) {
+func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8s.KubeInfo, dynamicClient k8sClientDynamic.Interface, pubkey *rsa.PublicKey) {
 	k := NewKale(dynamicClient)
 	globalKale = k
 
@@ -290,13 +292,17 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 		}
 	})
 
-	// todo: lock down all these endpoints with auth
-	handler := http.StripPrefix("/edge_stack_ui/edge_stack", ezHTTPHandler(k.dispatch)).ServeHTTP
-	// todo: this is just temporary, we will consolidate these sprawling endpoints later
-	httpHandler.AddEndpoint("/edge_stack_ui/edge_stack/api/projects", "kale projects api", handler)
-	httpHandler.AddEndpoint("/edge_stack_ui/edge_stack/api/githook/", "kale githook", handler)
-	httpHandler.AddEndpoint("/edge_stack_ui/edge_stack/api/logs/", "kale logs api", handler)
-	httpHandler.AddEndpoint("/edge_stack_ui/edge_stack/api/slogs/", "kale server logs api", handler)
+	unauthenticated := ezHTTPHandler(k.dispatch)
+	authenticated := api.PermitCookieAuth(
+		func(path string) bool {
+			return strings.HasPrefix(path, "/logs/")
+		},
+		api.AuthenticatedHTTPHandler(unauthenticated, pubkey))
+	handler := http.StripPrefix("/edge_stack_ui/edge_stack/api/projects", authenticated).ServeHTTP
+	httpHandler.AddEndpoint("/edge_stack_ui/edge_stack/api/projects/snapshot", "kale projects api", handler)
+	httpHandler.AddEndpoint("/edge_stack_ui/edge_stack/api/projects/logs/", "kale logs api", handler)
+	githook := http.StripPrefix("/edge_stack_ui/edge_stack/api/projects", unauthenticated).ServeHTTP
+	httpHandler.AddEndpoint("/edge_stack_ui/edge_stack/api/projects/githook/", "kale githook", githook)
 }
 
 type UntypedSnapshot struct {
@@ -574,7 +580,7 @@ func (k *kale) reconcileGitHub(ctx context.Context, projects []*Project) {
 	for _, proj := range projects {
 		ctx := CtxWithProject(ctx, proj)
 		err := postHook(proj.Spec.GithubRepo,
-			fmt.Sprintf("https://%s/edge_stack/api/githook/%s", proj.Spec.Host, proj.Key()),
+			fmt.Sprintf("https://%s/edge_stack/api/projects/githook/%s", proj.Spec.Host, proj.Key()),
 			proj.Spec.GithubToken)
 		if err != nil {
 			reportRuntimeError(ctx, StepReconcileWebhook, err)
@@ -590,27 +596,24 @@ func (k *kale) reconcileGitHub(ctx context.Context, projects []*Project) {
 // this calls.
 func (k *kale) dispatch(r *http.Request) httpResult {
 	parts := strings.Split(r.URL.Path[1:], "/")
-	if parts[0] != "api" {
-		panicThisIsABug(errors.New("this shouldn't happen"))
-	}
-	switch parts[1] {
+	switch parts[0] {
 	case "githook":
 		eventType := r.Header.Get("X-GitHub-Event")
 		switch eventType {
 		case "ping":
 			return httpResult{status: 200, body: "pong"}
 		case "push":
-			return k.handlePush(r, strings.Join(parts[2:], "/"))
+			return k.handlePush(r, strings.Join(parts[1:], "/"))
 		default:
 			return httpResult{status: 500, body: fmt.Sprintf("don't know how to handle %s events", eventType)}
 		}
-	case "projects":
+	case "snapshot":
 		return httpResult{status: 200, body: k.projectsJSON()}
-	case "logs", "slogs":
+	case "logs":
 		logType := parts[1]
 		commitQName := parts[2]
 		sep := strings.LastIndexByte(commitQName, '.')
-		if len(parts) > 3 || sep < 0 {
+		if len(parts) > 3 || sep < 0 || !(logType == "build" || logType == "deploy") {
 			return httpResult{status: http.StatusNotFound, body: "not found"}
 		}
 		namespace := commitQName[sep+1:]
@@ -639,7 +642,7 @@ func (k *kale) dispatch(r *http.Request) httpResult {
 			GlobalLabelName + "==" + k.cfg.AmbassadorID,
 			CommitLabelName + "==" + string(commitUID),
 		}
-		if logType == "slogs" {
+		if logType == "deploy" {
 			selectors = append(selectors, ServicePod)
 		} else {
 			selectors = append(selectors, JobLabelName)
@@ -690,14 +693,23 @@ func (k *kale) projectsJSON() string {
 	return string(bytes) + "\n"
 }
 
+func (k *kale) GetProject(key string) *projectAndChildren {
+	k.mu.RLock()
+	defer k.mu.RUnlock()
+	for _, proj := range k.Projects {
+		if key == proj.Key() {
+			return proj
+		}
+	}
+	return nil
+}
+
 // Handle Push events from the github API.
 func (k *kale) handlePush(r *http.Request, key string) httpResult {
 	ctx := r.Context()
 
-	k.mu.RLock()
-	proj, ok := k.Projects[k8sTypes.UID(key)]
-	k.mu.RUnlock()
-	if !ok {
+	proj := k.GetProject(key)
+	if proj == nil {
 		reportRuntimeError(ctx, StepWebhookUpdate,
 			errors.New("no such project"))
 		return httpResult{status: 404, body: fmt.Sprintf("no such project %s", key)}

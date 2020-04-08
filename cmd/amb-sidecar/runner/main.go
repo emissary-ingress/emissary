@@ -217,6 +217,8 @@ func runE(cmd *cobra.Command, args []string) error {
 	})
 	// Initialize the httpHandler we use for all public facing endpoints.
 	httpHandler := lyftserver.NewDebugHTTPHandler()
+	// keys for jwt auth
+	privkey, pubKey, err := secret.GetKeyPair(cfg, coreClient)
 
 	// Launch all of the worker goroutines...
 	//
@@ -471,7 +473,6 @@ func runE(cmd *cobra.Command, args []string) error {
 		}
 
 		// web ui
-		privkey, pubKey, err := secret.GetKeyPair(cfg, coreClient)
 		if err != nil {
 			err = errors.Wrap(err, "GetKeyPair")
 			// this is non fatal (mostly just to facilitate local dev); don't `return err`
@@ -551,7 +552,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		return util.ListenAndServeHTTPWithContext(hardCtx, softCtx, server)
 	})
 
-	kale.Setup(group, httpHandler, kubeinfo, dynamicClient)
+	kale.Setup(group, httpHandler, kubeinfo, dynamicClient, pubKey)
 
 	if cfg.DevWebUIPort != "" {
 		DevSetup(cfg, httpHandler)

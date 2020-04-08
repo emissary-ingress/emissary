@@ -16,7 +16,6 @@ import (
 	"os"
 	"path"
 	"sort"
-	"strconv"
 	"time"
 
 	"github.com/datawire/ambassador/pkg/dlog"
@@ -32,6 +31,7 @@ import (
 	k8sClientDynamic "k8s.io/client-go/dynamic"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
+	"github.com/datawire/apro/cmd/amb-sidecar/api"
 	filtercontroller "github.com/datawire/apro/cmd/amb-sidecar/filters/controller"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/httpclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
@@ -39,15 +39,8 @@ import (
 	rls "github.com/datawire/apro/cmd/amb-sidecar/ratelimits"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/cmd/amb-sidecar/watt"
-	"github.com/datawire/apro/lib/jwtsupport"
 	"github.com/datawire/apro/lib/licensekeys"
-	"github.com/datawire/apro/resourceserver/rfc6750"
 )
-
-type LoginClaimsV1 struct {
-	LoginTokenVersion string `json:"login_token_version"`
-	jwt.StandardClaims
-}
 
 type Snapshot struct {
 	Watt       map[string]map[string]interface{}
@@ -206,46 +199,7 @@ func getTermsOfServiceURL(httpClient *http.Client, caURL string) (string, error)
 }
 
 func (fb *firstBootWizard) isAuthorized(r *http.Request) bool {
-	now := time.Now()
-	duration := -5 * time.Minute
-	toleratedNow := now.Add(duration)
-
-	nowUnix := now.Unix()
-	toleratedNowUnix := toleratedNow.Unix()
-
-	tokenString, _ := rfc6750.GetFromHeader(r.Header)
-	if tokenString == "" {
-		return false
-	}
-
-	var claims LoginClaimsV1
-
-	if fb.pubkey == nil {
-		dlog.GetLogger(r.Context()).Warningln("bypassing JWT validation for request")
-		return true
-	}
-	jwtParser := jwt.Parser{ValidMethods: []string{"PS512"}}
-	_, err := jwtsupport.SanitizeParse(jwtParser.ParseWithClaims(tokenString, &claims, func(_ *jwt.Token) (interface{}, error) {
-		return fb.pubkey, nil
-	}))
-	if err != nil {
-		return false
-	}
-
-	var expiresAtVerification = claims.VerifyExpiresAt(nowUnix, true)
-	var issuedAtVerification = claims.VerifyIssuedAt(toleratedNowUnix, true)
-	var notBeforeVerification = claims.VerifyNotBefore(toleratedNowUnix, true)
-	var loginTokenVersionVerification = claims.LoginTokenVersion == "v1"
-	if expiresAtVerification && /* issuedAtVerification && notBeforeVerification && */ loginTokenVersionVerification {
-		return true
-	} else {
-		dlog.GetLogger(r.Context()).Warningln("token failed verification (exp,iat,nbf,vers): " +
-			strconv.FormatBool(expiresAtVerification) + " " +
-			strconv.FormatBool(issuedAtVerification) + " " +
-			strconv.FormatBool(notBeforeVerification) + " " +
-			strconv.FormatBool(loginTokenVersionVerification))
-		return false
-	}
+	return api.IsAuthorized(r, fb.pubkey)
 }
 
 func (fb *firstBootWizard) registerActivity(w http.ResponseWriter, r *http.Request) {
@@ -256,7 +210,7 @@ func (fb *firstBootWizard) registerActivity(w http.ResponseWriter, r *http.Reque
 	// Keep this in-sync with edgectl/aes_login.go
 	now := time.Now()
 	duration := 30 * time.Minute
-	token, err := jwt.NewWithClaims(jwt.GetSigningMethod("PS512"), &LoginClaimsV1{
+	token, err := jwt.NewWithClaims(jwt.GetSigningMethod("PS512"), &api.LoginClaimsV1{
 		"v1",
 		jwt.StandardClaims{
 			IssuedAt:  now.Unix(),
@@ -271,7 +225,7 @@ func (fb *firstBootWizard) registerActivity(w http.ResponseWriter, r *http.Reque
 
 	// Keep this in-sync with snapshot.js:updateCredentials()
 	http.SetCookie(w, &http.Cookie{
-		Name:  "edge_stack_auth",
+		Name:  api.AuthCookie,
 		Value: token,
 		Path:  "/edge_stack/",
 	})
@@ -286,12 +240,6 @@ func (fb *firstBootWizard) notFound(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	io.Copy(w, file)
-}
-
-func (fb *firstBootWizard) forbidden(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	w.WriteHeader(http.StatusForbidden)
-	io.WriteString(w, "Ambassador Edge Stack admin webui API forbidden")
 }
 
 //nolint:gocyclo
@@ -328,7 +276,7 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.URL.Path {
 	case "/edge_stack/api/tos-url":
 		if !fb.isAuthorized(r) {
-			fb.forbidden(w, r)
+			api.Forbidden(w, r)
 			return
 		}
 		fb.registerActivity(w, r)
@@ -344,7 +292,7 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, tosURL)
 	case "/edge_stack/api/acme-host-qualifies":
 		if !fb.isAuthorized(r) {
-			fb.forbidden(w, r)
+			api.Forbidden(w, r)
 			return
 		}
 		fb.registerActivity(w, r)
@@ -375,7 +323,7 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if !fb.isAuthorized(r) {
-			fb.forbidden(w, r)
+			api.Forbidden(w, r)
 			return
 		}
 		jsonBytes, err := json.Marshal(fb.getSnapshot(r.URL.Query().Get("client_session")))
@@ -387,7 +335,7 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Write(jsonBytes)
 	case "/edge_stack/api/activity":
 		if !fb.isAuthorized(r) {
-			fb.forbidden(w, r)
+			api.Forbidden(w, r)
 			return
 		}
 		switch r.Method {
@@ -399,7 +347,7 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	case "/edge_stack/api/apply":
 		if !fb.isAuthorized(r) {
-			fb.forbidden(w, r)
+			api.Forbidden(w, r)
 			return
 		}
 		switch r.Method {
@@ -425,7 +373,7 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Write(output.Bytes())
 	case "/edge_stack/api/delete":
 		if !fb.isAuthorized(r) {
-			fb.forbidden(w, r)
+			api.Forbidden(w, r)
 			return
 		}
 		switch r.Method {
@@ -466,7 +414,7 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if !fb.isAuthorized(r) {
-			fb.forbidden(w, r)
+			api.Forbidden(w, r)
 			return
 		}
 		fb.registerActivity(w, r)

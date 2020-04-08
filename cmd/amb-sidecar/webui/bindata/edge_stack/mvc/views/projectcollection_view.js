@@ -216,7 +216,7 @@ export class ProjectCollectionView extends View {
 
         result.selected = this.projectForCommit(commitQName)
         if (result.selected) {
-          result.source = `../api/${logType === "build" ? "logs" : "slogs"}/${commitQName}`
+          result.source = `../api/projects/logs/${logType}/${commitQName}`
           result.type = logType
         }
       }
