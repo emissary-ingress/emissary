@@ -96,7 +96,7 @@ func aesInstall(cmd *cobra.Command, args []string) error {
 	}
 
 	// Both printed and logged when verbose (Installer.log is responsible for --verbose)
-	i.log.Printf(fmt.Sprintf("INFO: install_id = #{i.scout.installID}; trace_id = #{i.scout.metadata['trace_id']}"))
+	i.log.Printf(fmt.Sprintf("INFO: install_id = %v; trace_id = %v", i.scout.installID, i.scout.metadata["trace_id"]))
 
 	sup := supervisor.WithContext(i.ctx)
 	sup.Logger = i.log
@@ -517,7 +517,7 @@ func (i *Installer) Perform(kcontext string) Result {
 		i.log.Printf("failed to read Kubernetes client and server versions: %v", err.Error())
 	}
 
-	i.k8sVersion = kubernetesVersion
+	i.k8sVersion = *kubernetesVersion
 	// Metriton tries to parse fields with `version` in their keys and discards them if it can't.
 	// Using _v to keep the version value as string since Kubernetes versions vary in formats.
 	i.SetMetadatum("kubectl Version", "kubectl_v", i.k8sVersion.Client.GitVersion)
@@ -612,10 +612,10 @@ func (i *Installer) Perform(kcontext string) Result {
 			i.ShowAESExistingVersion(i.version)
 		case installedVersion != "":
 			i.ShowAESExistingVersion(installedVersion)
-			return i.IncompatibleCRDVersionsError(err, installedVersion)
+			return i.IncompatibleCRDVersionsError(installedVersion)
 		default:
 			i.ShowAESCRDsButNoAESInstallation()
-			return i.ExistingCRDsError(err)
+			return i.ExistingCRDsError()
 		}
 	}
 
@@ -754,7 +754,8 @@ func (i *Installer) Perform(kcontext string) Result {
 	// Show how to use edgectl login in the future
 	i.show.Println()
 
-	futureLogin := `In the future, to log in to the Ambassador Edge Policy Console, run\n$ %s`
+	futureLogin := `In the future, to log in to the Ambassador Edge Policy Console, run 
+%s`
 	i.ShowWrapped(fmt.Sprintf(futureLogin, color.Bold.Sprintf("edgectl login "+i.hostname)))
 
 	if err := i.CheckAESHealth(); err != nil {
@@ -773,7 +774,6 @@ type Installer struct {
 	kubeinfo   *k8s.KubeInfo
 	restConfig *rest.Config
 	coreClient *k8sClientCoreV1.CoreV1Client
-	k8sVersion *kubernetesVersion
 
 	// Reporting
 
@@ -791,10 +791,11 @@ type Installer struct {
 
 	// Install results
 
-	version   string // which AES is being installed
-	address   string // load balancer address
-	hostname  string // of the Host resource
-	clusterID string // the Ambassador unique clusterID
+	k8sVersion kubernetesVersion // cluster version information
+	version    string            // which AES is being installed
+	address    string            // load balancer address
+	hostname   string            // of the Host resource
+	clusterID  string            // the Ambassador unique clusterID
 }
 
 // NewInstaller returns an Installer object after setting up logging.
