@@ -10,4 +10,4 @@ The installer retrieves information required to install AES over the Internet. S
    edgectl install
    ```
 
-It is safe to run the installer repeatedly on a cluster.
+Don't worry: it is safe to run the installer repeatedly on a cluster.

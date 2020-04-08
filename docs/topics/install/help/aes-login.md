@@ -10,6 +10,6 @@ If this appears to be an intermittent failure, try running the installer again:
 edgectl install
 ```
 
-It is safe to run the installer repeatedly on a cluster.
+Don't worry: it is safe to run the installer repeatedly on a cluster.
 
 Otherwise, please get in touch on [Slack](http://d6e.co/slack).

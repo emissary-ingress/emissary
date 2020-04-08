@@ -10,4 +10,4 @@ The installer could not verify that Ambassador is answering queries. This could 
    edgectl install
    ```
 
-It is safe to run the installer repeatedly on a cluster.
+Don't worry: it is safe to run the installer repeatedly on a cluster.

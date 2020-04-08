@@ -10,6 +10,6 @@ This is likely an intermittant failure of the service. Please try again later. S
 edgectl install
 ```
 
-It is safe to run the installer repeatedly on a cluster.
+Don't worry: it is safe to run the installer repeatedly on a cluster.
 
 If this failure persists, please get in touch on [Slack](http://d6e.co/slack).
