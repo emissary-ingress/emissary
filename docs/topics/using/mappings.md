@@ -41,6 +41,11 @@ In most cases, you won't need the `tls` attribute: just use a `service` with an 
 
 If `tls` is present with a value that is not `true`, the value is assumed to be the name of a defined TLS context, which will determine the certificate presented to the upstream service. TLS context handling is a beta feature of Ambassador Edge Stack at present; please [contact us on Slack](https://d6e.co/slack) if you need to specify TLS origination certificates.
 
+### Using `cluster_tag`
+
+If the `cluster_tag` attribute is present, its value will be prepended to cluster names generated from
+the `Mapping`. This provides a simple mechanism for customizing the `cluster` name when working with metrics.
+
 ## Namespaces and Mappings
 
 If `AMBASSADOR_NAMESPACE` is correctly set, Ambassador Edge Stack can map to services in other namespaces by taking advantage of Kubernetes DNS:
