@@ -312,6 +312,13 @@ func streamLogs(w http.ResponseWriter, r *http.Request, namespace, selector stri
 		// an error.
 		err = nil
 	}
+	if ee, isEE := err.(*exec.ExitError); isEE && ee.ExitCode() >= 0 {
+		// The exit codes from `kubectl logs` don't appear to be meaningful;
+		// discard the error, we'll need to rely on grepping stdout/stderr to
+		// detect runtime errors from `kubectl logs`.  Note that we don't discard
+		// the error if kubectl was terminated by a signal.
+		err = nil
+	}
 	if err == nil {
 		io.WriteString(w, "event: close\ndata:\n\n")
 	}
