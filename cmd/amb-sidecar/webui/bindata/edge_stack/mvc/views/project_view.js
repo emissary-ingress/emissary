@@ -148,12 +148,12 @@ export class ProjectView extends IResourceView {
       }
     }
 
-    let paginate = (r) => {
+    let depaginate = (r) => {
       let hdr = r.headers.get("Link")
       if (hdr) {
         let links = parseGithubPagination(hdr)
         if (links.next) {
-          fetch(links.next, opts).then(paginate).then(addRepos)
+          fetch(links.next, opts).then(depaginate).then(addRepos)
         }
       }
       return r.json()
@@ -179,7 +179,7 @@ export class ProjectView extends IResourceView {
       }
     }
 
-    fetch(startLink, opts).then(paginate).then(addRepos)
+    fetch(startLink, opts).then(depaginate).then(addRepos)
   }
 
   renderDeployedCommits(prefix, commits) {
