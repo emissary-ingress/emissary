@@ -3,6 +3,14 @@
 This file documents all notable changes to Ambassador Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
+## v6.2.5
+
+- Upgrade Ambassador to version 1.4.0: [CHANGELOG}](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
+
+## v6.2.4
+
+- Fix typing so that Helm3 doesn't complain (thanks, [Fabrice Rabaute](https://github.com/jfrabaute)!)
+
 ## v6.2.3
 
 - Upgrade Ambassador to version 1.3.2.
