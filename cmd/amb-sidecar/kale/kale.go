@@ -605,7 +605,7 @@ func (k *kale) dispatch(r *http.Request) httpResult {
 		case "push":
 			return k.handlePush(r, strings.Join(parts[1:], "/"))
 		default:
-			return httpResult{status: 500, body: fmt.Sprintf("don't know how to handle %s events", eventType)}
+			return httpResult{status: 500, body: fmt.Sprintf("don't know how to handle %q events", eventType)}
 		}
 	case "snapshot":
 		return httpResult{status: 200, body: k.projectsJSON()}
