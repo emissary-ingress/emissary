@@ -8,7 +8,7 @@
   link: /docs/latest/topics/install/
   items: 
   - title: Install with Edgectl
-    link: /docs/latest/topics/install/help  
+    link: /docs/latest/topics/install/help/
   - title: Install with Helm
     link: /docs/latest/topics/install/helm  
   - title: Upgrade to the Ambassador Edge Stack
