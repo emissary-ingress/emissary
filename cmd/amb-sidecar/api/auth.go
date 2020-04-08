@@ -36,14 +36,13 @@ var allowCookieMarker = struct{}{}
 
 func allowCookieToken(r *http.Request) bool {
 	ctx := r.Context()
-	return ctx != nil && ctx.Value(allowCookieMarker) == allowCookieMarker
+	return ctx.Value(allowCookieMarker) == allowCookieMarker
 }
 
 // Authorize a request with some tolerence. This is used from webui.go
 // and kale.go.
 func IsAuthorized(r *http.Request, pubkey *rsa.PublicKey) bool {
 	log := dlog.GetLogger(r.Context())
-	log.Warningln("PATH: %s", r.URL.Path)
 
 	now := time.Now()
 	duration := -5 * time.Minute
