@@ -60,6 +60,16 @@ export class ProjectCollectionView extends View {
       .off {
         display: none;
       }
+      .projects-cta {
+        display: flex;
+      }
+      .projects-cta > * {
+        align-self: center;
+      }
+      .projects-cta a.cta {
+        margin: 0 5px;
+        flex-grow: 0;
+      }
     `
    }
 
@@ -100,14 +110,21 @@ export class ProjectCollectionView extends View {
       return html`<p>Projects are custom HTTP services managed by Ambassador Edge Stack</p>`
   }
 
+  renderAdd() {
+      return html`<a class="cta add" @click=${()=>this.projects.new()}>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30"><defs><style>.cls-a{fill:none;stroke:#000;stroke-linecap:square;stroke-miterlimit:10;stroke-width:2px;}</style></defs><title>add_1</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"><line class="cls-a" x1="15" y1="9" x2="15" y2="21"/><line class="cls-a" x1="9" y1="15" x2="21" y2="15"/><circle class="cls-a" cx="15" cy="15" r="14"/></g></g></svg>
+        <div class="label">add</div>
+      </a>`
+  }
+
   renderEmpty() {
     return html`
 <div class="card">
-
-  <p>
-    There are no projects to display. You can use the Add button to
-    create one. You will need:
-  </p>
+  <div class="projects-cta">
+    <div>There are no projects to display. You can click</div>
+    ${this.renderAdd()}
+    <div>to create one. You will need:</div>
+  </div>
 
   <div style="margin: 1em; margin-left: 2em;">
     <ol>
@@ -117,12 +134,12 @@ export class ProjectCollectionView extends View {
     </ol>
   </div>
 
-  <p>
+  <div>
     If you'd like an example github repo to get you started, please
     <a target="_blank" href="https://github.com/datawire/project-template/generate">
       click here to generate one from our template
     </a>.
-  </p>
+  </div>
 </div>
 `
   }
@@ -153,10 +170,7 @@ export class ProjectCollectionView extends View {
     </div>
 
     <div class="col2">
-      <a class="cta add" @click=${()=>this.projects.new()}>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30"><defs><style>.cls-a{fill:none;stroke:#000;stroke-linecap:square;stroke-miterlimit:10;stroke-width:2px;}</style></defs><title>add_1</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"><line class="cls-a" x1="15" y1="9" x2="15" y2="21"/><line class="cls-a" x1="9" y1="15" x2="21" y2="15"/><circle class="cls-a" cx="15" cy="15" r="14"/></g></g></svg>
-        <div class="label">add</div>
-      </a>
+      ${this.renderAdd()}
 
       <div class="sortby" >
         <select id="sortByAttribute" @change=${(e)=>{this.sortBy = e.target.value}}>
