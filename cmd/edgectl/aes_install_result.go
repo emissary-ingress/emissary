@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"text/template"
 
 	"github.com/gookit/color"
@@ -11,11 +10,12 @@ import (
 
 // Result represents the result of an installation attempt
 type Result struct {
-	Report   string // Action to report to Metriton
-	Message  string // Message to show to the user
-	TryAgain bool   // Whether to show the "try again" message (TODO: Is this necessary?)
-	URL      string // Docs URL to show and open
-	Err      error  // Error condition (nil -> successful installation)
+	Report       string // Action to report to Metriton
+	ShortMessage string // Short human-readable error message
+	Message      string // Message to show to the user
+	TryAgain     bool   // Whether to show the "try again" message (TODO: Is this necessary?)
+	URL          string // Docs URL to show and open
+	Err          error  // Error condition (nil -> successful installation)
 }
 
 // UnhandledErrResult returns a minimal Result that passes along an error but
@@ -27,6 +27,53 @@ func UnhandledErrResult(err error) Result {
 	}
 }
 
+// AdditionalDatum represents a key-value pair that may be used in template
+// expansion
+type AdditionalDatum struct {
+	key   string
+	value interface{}
+}
+
+// ShowTemplated displays a string to the user (using ShowWrapped) after
+// rendering the supplied text as a template using values from the installer
+// object and the additional parameters. It also processes color tags.
+// TODO: Fix color tag processing so it is effective on Windows.
+func (i *Installer) ShowTemplated(text string, more ...AdditionalDatum) {
+	t := template.New("installer")
+	template.Must(t.Parse(text))
+
+	// Note: May fail before we have k8sVersion, so handle this special case.
+	var k8sClientVersion = "unknown"
+	var k8sServerVersion = "unknown"
+
+	// Assign if we have k8sVersion available.
+	if i.k8sVersion.Server.GitVersion != "" {
+		k8sClientVersion = i.k8sVersion.Client.GitVersion
+		k8sServerVersion = i.k8sVersion.Server.GitVersion
+	}
+
+	data := map[string]interface{}{
+		"version":   i.version,
+		"address":   i.address,
+		"hostname":  i.hostname,
+		"clusterID": i.clusterID,
+		"kubectl":   k8sClientVersion,
+		"k8s":       k8sServerVersion,
+	}
+
+	for _, ad := range more {
+		data[ad.key] = ad.value
+	}
+
+	templateBuffer := &bytes.Buffer{}
+	if err := t.Execute(templateBuffer, data); err != nil {
+		//i.log.Printf("WARNING: failed to render template: %+v", err)
+		//return text
+		panic(err) // An error here indicates a bug in our code
+	}
+
+	i.ShowWrapped(color.Render(templateBuffer.String()))
+}
 func (i *Installer) ShowResult(r Result) {
 	templateData := []AdditionalDatum{
 		AdditionalDatum{key: "Report", value: r.Report},
@@ -46,16 +93,20 @@ func (i *Installer) ShowResult(r Result) {
 			i.Report(r.Report, ScoutMeta{"err", r.Err.Error()})
 		}
 
+		if r.ShortMessage != "" {
+			i.show.Println()
+			i.show.Println(r.ShortMessage)
+		}
+
 		if r.Message != "" {
 			i.show.Println()
-			i.show.Println("AES Installation Unsuccessful")
+			i.show.Println("AES Installation UNSUCCESSFUL")
 			i.show.Println("========================================================================")
 			i.show.Println()
 			i.ShowTemplated(r.Message, templateData...)
 
 			if r.URL != "" {
 				i.show.Println()
-				i.ShowWrapped(fmt.Sprintf("Visit %s for more information and instructions.", r.URL))
 
 				if err := browser.OpenURL(r.URL); err != nil {
 					i.log.Printf("Failed to open browser: %+v", err)
@@ -64,7 +115,8 @@ func (i *Installer) ShowResult(r Result) {
 
 			if r.TryAgain {
 				i.show.Println()
-				i.ShowWrapped(tryAgain)
+				i.ShowWrapped("If this appears to be a transient failure, please try running the installer again. It is safe to run the installer repeatedly on a cluster.")
+				i.show.Println()
 			}
 		}
 
@@ -77,17 +129,10 @@ func (i *Installer) ShowResult(r Result) {
 
 		if r.Message != "" {
 			i.show.Println()
-			i.show.Println("AES Installation Complete!")
-			i.show.Println("========================================================================")
-			i.show.Println()
 			i.ShowTemplated(r.Message, templateData...)
 
 			if r.URL != "" {
-				// TODO: Consider leaving out this fixed "visit" message.
-				// Instead, it may be better to let Result.Message offer useful
-				// context for visiting a URL.
 				i.show.Println()
-				i.ShowWrapped(fmt.Sprintf("Visit %s for more information and instructions.", r.URL))
 
 				if err := browser.OpenURL(r.URL); err != nil {
 					i.log.Printf("Failed to open browser: %+v", err)
@@ -97,41 +142,4 @@ func (i *Installer) ShowResult(r Result) {
 			// Assume there's no need to show the "try again" message.
 		}
 	}
-}
-
-// AdditionalDatum represents a key-value pair that may be used in template
-// expansion
-type AdditionalDatum struct {
-	key   string
-	value interface{}
-}
-
-// ShowTemplated displays a string to the user (using ShowWrapped) after
-// rendering the supplied text as a template using values from the installer
-// object and the additional parameters. It also processes color tags.
-// TODO: Fix color tag processing so it is effective on Windows.
-func (i *Installer) ShowTemplated(text string, more ...AdditionalDatum) {
-	t := template.New("installer")
-	template.Must(t.Parse(text))
-
-	data := map[string]interface{}{
-		"version":   i.version,
-		"address":   i.address,
-		"hostname":  i.hostname,
-		"clusterID": i.clusterID,
-		"kubectl":   i.k8sVersion.Client.GitVersion,
-		"k8s":       i.k8sVersion.Server.GitVersion,
-	}
-	for _, ad := range more {
-		data[ad.key] = ad.value
-	}
-
-	templateBuffer := &bytes.Buffer{}
-	if err := t.Execute(templateBuffer, data); err != nil {
-		//i.log.Printf("WARNING: failed to render template: %+v", err)
-		//return text
-		panic(err) // An error here indicates a bug in our code
-	}
-
-	i.ShowWrapped(color.Render(templateBuffer.String()))
 }
