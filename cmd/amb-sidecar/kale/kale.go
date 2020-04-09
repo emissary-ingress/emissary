@@ -199,6 +199,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 				Commits:     w.List("projectcommits.getambassador.io"),
 				Jobs:        w.List("jobs.batch"),
 				Deployments: w.List("deployments.apps"),
+				Pods:        w.List("pods."),
 				Events:      w.List("events."),
 			}
 			upstreamWorker <- snapshot
@@ -212,10 +213,14 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 			{Kind: "projectcommits.getambassador.io"},
 			{Kind: "jobs.batch", LabelSelector: labelSelector},
 			{Kind: "deployments.apps", LabelSelector: labelSelector},
+			{Kind: "pods.", LabelSelector: labelSelector},
 
 			{Kind: "events.", FieldSelector: "involvedObject.apiVersion=getmabassador.io/v2,involvedObject.kind=ProjectController"},
 			{Kind: "events.", FieldSelector: "involvedObject.apiVersion=getmabassador.io/v2,involvedObject.kind=Project"},
 			{Kind: "events.", FieldSelector: "involvedObject.apiVersion=getmabassador.io/v2,involvedObject.kind=ProjectCommit"},
+			{Kind: "events.", FieldSelector: "involvedObject.apiVersion=batch/v1,involvedObject.kind=Job"},
+			{Kind: "events.", FieldSelector: "involvedObject.apiVersion=apps/v1,involvedObject.kind=Deployment"},
+			{Kind: "events.", FieldSelector: "involvedObject.apiVersion=v1,involvedObject.kind=Pod"},
 		}
 
 		for _, query := range queries {
@@ -856,10 +861,10 @@ func (k *kale) reconcileCommit(ctx context.Context, _commit *commitAndChildren, 
 		if len(builders) != 1 {
 			commitPhase = CommitPhase_Received
 		} else {
-			if complete, _ := jobConditionMet(builders[0], k8sTypesBatchV1.JobComplete, k8sTypesCoreV1.ConditionTrue); complete {
+			if complete, _ := jobConditionMet(builders[0].Job, k8sTypesBatchV1.JobComplete, k8sTypesCoreV1.ConditionTrue); complete {
 				// advance to next phase
 				commitPhase = CommitPhase_Deploying
-			} else if failed, _ := jobConditionMet(builders[0], k8sTypesBatchV1.JobFailed, k8sTypesCoreV1.ConditionTrue); failed {
+			} else if failed, _ := jobConditionMet(builders[0].Job, k8sTypesBatchV1.JobFailed, k8sTypesCoreV1.ConditionTrue); failed {
 				telemetryErr(ctx, StepBuild,
 					fmt.Errorf("builder Job failed %d times", builders[0].Status.Failed))
 				commitPhase = CommitPhase_BuildFailed

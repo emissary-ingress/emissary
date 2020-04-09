@@ -11,7 +11,11 @@ import (
 	k8sTypesAppsV1 "k8s.io/api/apps/v1"
 	k8sTypesBatchV1 "k8s.io/api/batch/v1"
 	k8sTypesCoreV1 "k8s.io/api/core/v1"
+	k8sTypesMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sTypes "k8s.io/apimachinery/pkg/types"
+
+	// 3rd party: k8s misc
+	k8sLabels "k8s.io/apimachinery/pkg/labels"
 
 	// 1st party
 	"github.com/datawire/ambassador/pkg/k8s"
@@ -24,6 +28,7 @@ type UntypedSnapshot struct {
 	Commits     []k8s.Resource
 	Jobs        []k8s.Resource
 	Deployments []k8s.Resource
+	Pods        []k8s.Resource
 	Events      []k8s.Resource
 }
 
@@ -31,8 +36,9 @@ type Snapshot struct {
 	Controllers map[k8sTypes.UID]*controllerAndChildren
 	Projects    map[k8sTypes.UID]*projectAndChildren
 	Commits     map[k8sTypes.UID]*commitAndChildren
-	Jobs        map[k8sTypes.UID]*k8sTypesBatchV1.Job
-	Deployments map[k8sTypes.UID]*k8sTypesAppsV1.Deployment
+	Jobs        map[k8sTypes.UID]*jobAndChildren
+	Deployments map[k8sTypes.UID]*deploymentAndChildren
+	Pods        map[k8sTypes.UID]*podAndChildren
 	Events      map[k8sTypes.UID]*k8sTypesCoreV1.Event
 
 	grouped *GroupedSnapshot `json:"-"`
@@ -53,9 +59,9 @@ func (in UntypedSnapshot) TypedAndIndexed(ctx context.Context) *Snapshot {
 	if err := mapstructure.Convert(in.Jobs, &outJobs); err != nil {
 		panicThisIsABug(fmt.Errorf("Jobs: %w", err))
 	}
-	out.Jobs = make(map[k8sTypes.UID]*k8sTypesBatchV1.Job, len(outJobs))
+	out.Jobs = make(map[k8sTypes.UID]*jobAndChildren, len(outJobs))
 	for _, outJob := range outJobs {
-		out.Jobs[outJob.GetUID()] = outJob
+		out.Jobs[outJob.GetUID()] = &jobAndChildren{Job: outJob}
 	}
 
 	// deployments
@@ -63,9 +69,19 @@ func (in UntypedSnapshot) TypedAndIndexed(ctx context.Context) *Snapshot {
 	if err := mapstructure.Convert(in.Deployments, &outDeployments); err != nil {
 		panicThisIsABug(fmt.Errorf("Deployments: %w", err))
 	}
-	out.Deployments = make(map[k8sTypes.UID]*k8sTypesAppsV1.Deployment, len(outDeployments))
+	out.Deployments = make(map[k8sTypes.UID]*deploymentAndChildren, len(outDeployments))
 	for _, outDeployment := range outDeployments {
-		out.Deployments[outDeployment.GetUID()] = outDeployment
+		out.Deployments[outDeployment.GetUID()] = &deploymentAndChildren{Deployment: outDeployment}
+	}
+
+	// pods
+	var outPods []*k8sTypesCoreV1.Pod
+	if err := mapstructure.Convert(in.Pods, &outPods); err != nil {
+		panicThisIsABug(fmt.Errorf("Pods: %w", err))
+	}
+	out.Pods = make(map[k8sTypes.UID]*podAndChildren, len(outPods))
+	for _, outPod := range outPods {
+		out.Pods[outPod.GetUID()] = &podAndChildren{Pod: outPod}
 	}
 
 	// events
@@ -127,8 +143,9 @@ type GroupedSnapshot struct {
 	Controllers []*controllerAndChildren
 
 	OrphanedCommits     []*commitAndChildren
-	OrphanedJobs        []*k8sTypesBatchV1.Job
-	OrphanedDeployments []*k8sTypesAppsV1.Deployment
+	OrphanedJobs        []*jobAndChildren
+	OrphanedDeployments []*deploymentAndChildren
+	OrphanedPods        []*podAndChildren
 }
 
 type controllerAndChildren struct {
@@ -152,10 +169,45 @@ type commitAndChildren struct {
 	*ProjectCommit
 	Parent   *projectAndChildren `json:"-"`
 	Children struct {
-		Builders []*k8sTypesBatchV1.Job       `json:"builders"`
-		Runners  []*k8sTypesAppsV1.Deployment `json:"runners"`
-		Errors   []*k8sTypesCoreV1.Event      `json:"errors"`
+		Builders []*jobAndChildren        `json:"builders"`
+		Runners  []*deploymentAndChildren `json:"runners"`
+		Errors   []*k8sTypesCoreV1.Event  `json:"errors"`
 	} `json:"children"`
+}
+
+type jobAndChildren struct {
+	*k8sTypesBatchV1.Job
+	Parent   *commitAndChildren `json:"-"`
+	Children struct {
+		Pods   []*jobPodAndChildren    `json:"pods"`
+		Events []*k8sTypesCoreV1.Event `json:"events"`
+	} `json:"children"`
+}
+
+type deploymentAndChildren struct {
+	*k8sTypesAppsV1.Deployment
+	Parent   *commitAndChildren `json:"-"`
+	Children struct {
+		Pods   []*deploymentPodAndChildren `json:"pods"`
+		Events []*k8sTypesCoreV1.Event     `json:"events"`
+	} `json:"children"`
+}
+
+type podAndChildren struct {
+	*k8sTypesCoreV1.Pod
+	Children struct {
+		Events []*k8sTypesCoreV1.Event `json:"events"`
+	} `json:"children"`
+}
+
+type jobPodAndChildren struct {
+	*podAndChildren
+	Parent *jobAndChildren `json:"-"`
+}
+
+type deploymentPodAndChildren struct {
+	*podAndChildren
+	Parent *deploymentAndChildren `json:"-"`
 }
 
 // Grouped (1) mutates the Snapshot such that the .Children and
@@ -208,9 +260,47 @@ func (in *Snapshot) Grouped() *GroupedSnapshot {
 			out.OrphanedDeployments = append(out.OrphanedDeployments, deployment)
 		}
 	}
+	for _, podUID := range sortedUIDKeys(in.Pods) {
+		pod := in.Pods[podUID]
+		if pod.GetLabels()[JobLabelName] != "" {
+			for _, jobUID := range sortedUIDKeys(in.Jobs) {
+				job := in.Jobs[jobUID]
+				selector, err := k8sTypesMetaV1.LabelSelectorAsSelector(job.Spec.Selector)
+				if err != nil {
+					continue
+				}
+				if selector.Empty() {
+					continue
+				}
+				if selector.Matches(k8sLabels.Set(pod.GetLabels())) {
+					pod := &jobPodAndChildren{podAndChildren: pod}
+					pod.Parent = job
+					job.Children.Pods = append(job.Children.Pods, pod)
+					break
+				}
+			}
+		} else {
+			for _, deploymentUID := range sortedUIDKeys(in.Deployments) {
+				deployment := in.Deployments[deploymentUID]
+				selector, err := k8sTypesMetaV1.LabelSelectorAsSelector(deployment.Spec.Selector)
+				if err != nil {
+					continue
+				}
+				if selector.Empty() {
+					continue
+				}
+				if selector.Matches(k8sLabels.Set(pod.GetLabels())) {
+					pod := &deploymentPodAndChildren{podAndChildren: pod}
+					pod.Parent = deployment
+					deployment.Children.Pods = append(deployment.Children.Pods, pod)
+					break
+				}
+			}
+		}
+	}
 	for _, eventUID := range sortedUIDKeys(in.Events) {
 		event := in.Events[eventUID]
-		if event.Type != k8sTypesCoreV1.EventTypeWarning {
+		if event.InvolvedObject.APIVersion == "getambassador.io/v2" && event.Type != k8sTypesCoreV1.EventTypeWarning {
 			// The field is .Children.Errors, not .Children.Events
 			continue
 		}
@@ -228,6 +318,18 @@ func (in *Snapshot) Grouped() *GroupedSnapshot {
 		case "ProjectCommit":
 			if commit, ok := in.Commits[event.InvolvedObject.UID]; ok {
 				commit.Children.Errors = append(commit.Children.Errors, event)
+			}
+		case "Job":
+			if job, ok := in.Jobs[event.InvolvedObject.UID]; ok {
+				job.Children.Events = append(job.Children.Events, event)
+			}
+		case "Deployment":
+			if deployment, ok := in.Deployments[event.InvolvedObject.UID]; ok {
+				deployment.Children.Events = append(deployment.Children.Events, event)
+			}
+		case "Pod":
+			if pod, ok := in.Pods[event.InvolvedObject.UID]; ok {
+				pod.Children.Events = append(pod.Children.Events, event)
 			}
 		}
 	}
