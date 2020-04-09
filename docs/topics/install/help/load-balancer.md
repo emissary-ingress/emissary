@@ -1,4 +1,4 @@
-# `edgectl install`: No address for the load balancer service
+# Edgectl Install: No address for the load balancer service
  
 The installer could not retrieve an address (DNS name or IP address) for the load balancer that enables traffic from outside the Kubernetes cluster to reach Ambassador. 
 
@@ -9,8 +9,8 @@ The installer could not retrieve an address (DNS name or IP address) for the loa
      ```shell
      kubectl get -n ambassador service ambassador -o "go-template={{range .status.loadBalancer.ingress}}{{or .ip .hostname}}{{end}}"
      ```
-  2. Start the installer again:
+  2. Run the installer again:
      ```shell
      edgectl install
      ```
-* If your cluster doesn't support load balancers, you'll need to expose AES in some other way. See the [Bare Metal Installation Guide](https://www.getambassador.io/docs/latest/topics/install/bare-metal/) for some options.
+* If your Kubernetes cluster doesn't support load balancers, you'll need to expose AES in some other way. See the [Bare Metal Installation Guide](../../bare-metal/) for some options.

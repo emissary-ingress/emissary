@@ -1,4 +1,4 @@
-# `edgectl install`: Error while applying manifests
+# Edgectl Install: Error while applying manifests
 
 The installer received an error from `kubectl` when applying the Kubernetes manifests used to install Ambassador Edge Stack.
 
