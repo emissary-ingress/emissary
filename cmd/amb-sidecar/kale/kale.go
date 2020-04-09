@@ -254,7 +254,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 					}
 					ctx := CtxWithIteration(ctx, telemetryIteration)
 					telemetryIteration++
-					snapshot := _snapshot.TypedAndFiltered(ctx, cfg.AmbassadorID)
+					snapshot := _snapshot.TypedAndIndexed(ctx)
 					for _, proj := range snapshot.Projects {
 						telemetryOK(CtxWithProject(ctx, proj), StepValidProject)
 					}
@@ -285,7 +285,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 				if !ok {
 					return nil
 				}
-				snapshot := _snapshot.TypedAndFiltered(softCtx, cfg.AmbassadorID)
+				snapshot := _snapshot.TypedAndIndexed(softCtx)
 				err := safeInvoke(func() { k.updateInternalState(softCtx, snapshot) })
 				if err != nil {
 					// recovered from a panic--this is a bug
@@ -316,13 +316,13 @@ type UntypedSnapshot struct {
 }
 
 type Snapshot struct {
-	Projects    []*Project
-	Commits     []*ProjectCommit
-	Jobs        []*k8sTypesBatchV1.Job
-	Deployments []*k8sTypesAppsV1.Deployment
+	Projects    map[k8sTypes.UID]*Project
+	Commits     map[k8sTypes.UID]*ProjectCommit
+	Jobs        map[k8sTypes.UID]*k8sTypesBatchV1.Job
+	Deployments map[k8sTypes.UID]*k8sTypesAppsV1.Deployment
 }
 
-func (in UntypedSnapshot) TypedAndFiltered(ctx context.Context, ambassadorID string) Snapshot {
+func (in UntypedSnapshot) TypedAndIndexed(ctx context.Context) Snapshot {
 	var out Snapshot
 
 	// For built-in resource types, it is appropriate to a panic
@@ -331,11 +331,25 @@ func (in UntypedSnapshot) TypedAndFiltered(ctx context.Context, ambassadorID str
 	// we're parsing.  For the same reason, it's "safe" to do this
 	// all at once, because we don't need to do individual
 	// validation, because they're all valid.
-	if err := mapstructure.Convert(in.Jobs, &out.Jobs); err != nil {
+
+	// jobs
+	var outJobs []*k8sTypesBatchV1.Job
+	if err := mapstructure.Convert(in.Jobs, &outJobs); err != nil {
 		panicThisIsABug(fmt.Errorf("Jobs: %w", err))
 	}
-	if err := mapstructure.Convert(in.Deployments, &out.Deployments); err != nil {
+	out.Jobs = make(map[k8sTypes.UID]*k8sTypesBatchV1.Job, len(outJobs))
+	for _, outJob := range outJobs {
+		out.Jobs[outJob.GetUID()] = outJob
+	}
+
+	// deployments
+	var outDeployments []*k8sTypesAppsV1.Deployment
+	if err := mapstructure.Convert(in.Deployments, &outDeployments); err != nil {
 		panicThisIsABug(fmt.Errorf("Deployments: %w", err))
+	}
+	out.Deployments = make(map[k8sTypes.UID]*k8sTypesAppsV1.Deployment, len(outDeployments))
+	for _, outDeployment := range outDeployments {
+		out.Deployments[outDeployment.GetUID()] = outDeployment
 	}
 
 	// However, for our CRDs, because the api-server can't
@@ -343,6 +357,9 @@ func (in UntypedSnapshot) TypedAndFiltered(ctx context.Context, ambassadorID str
 	// built-in Resources, we have to safely deal with the
 	// possibility that any individual resource is invalid, and
 	// not let that affect the others.
+
+	// projects
+	out.Projects = make(map[k8sTypes.UID]*Project, len(in.Projects))
 	for _, inProj := range in.Projects {
 		var outProj *Project
 		if err := mapstructure.Convert(inProj, &outProj); err != nil {
@@ -350,15 +367,18 @@ func (in UntypedSnapshot) TypedAndFiltered(ctx context.Context, ambassadorID str
 				fmt.Errorf("Project: %w", err))
 			continue
 		}
-		out.Projects = append(out.Projects, outProj)
+		out.Projects[outProj.GetUID()] = outProj
 	}
+
+	// commits
+	out.Commits = make(map[k8sTypes.UID]*ProjectCommit, len(in.Commits))
 	for _, inCommit := range in.Commits {
 		var outCommit *ProjectCommit
 		if err := mapstructure.Convert(inCommit, &outCommit); err != nil {
 			reportThisIsABug(ctx, fmt.Errorf("Commit: %w", err))
 			continue
 		}
-		out.Commits = append(out.Commits, outCommit)
+		out.Commits[outCommit.GetUID()] = outCommit
 	}
 
 	return out
@@ -494,7 +514,7 @@ func (k *kale) flushIterationErrors() {
 }
 
 func (k *kale) reconcile(ctx context.Context, snapshot Snapshot) {
-	k.reconcileGitHub(ctx, snapshot.Projects)
+	k.reconcileGitHub(ctx, snapshot)
 	k.reconcileCluster(ctx, snapshot)
 }
 
@@ -578,8 +598,8 @@ func (k *kale) updateInternalState(ctx context.Context, snapshot Snapshot) {
 	k.mu.Unlock()
 }
 
-func (k *kale) reconcileGitHub(ctx context.Context, projects []*Project) {
-	for _, proj := range projects {
+func (k *kale) reconcileGitHub(ctx context.Context, snapshot Snapshot) {
+	for _, proj := range snapshot.Projects {
 		ctx := CtxWithProject(ctx, proj)
 		err := postHook(proj.Spec.GithubRepo,
 			fmt.Sprintf("https://%s/edge_stack/api/projects/githook/%s", proj.Spec.Host, proj.Key()),
