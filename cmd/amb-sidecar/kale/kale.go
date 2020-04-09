@@ -104,11 +104,11 @@ const (
 	// We use human-unfriendly `UID`s instead of `name.namespace`s,
 	// because label values are limited to 63 characters or less.
 	// https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
-	GlobalLabelName  = "projects.getambassador.io/ambassador_id" // cfg.AmbassadorID
-	ProjectLabelName = "projects.getambassador.io/project-uid"   // proj.GetUID()
-	CommitLabelName  = "projects.getambassador.io/commit-uid"    // commit.GetUID()
-	JobLabelName     = "job-name"                                // Don't change this; it's the label name used by Kubernetes itself
-	ServicePod       = "projects.getambassador.io/service"
+	GlobalLabelName     = "projects.getambassador.io/ambassador_id" // cfg.AmbassadorID
+	ProjectLabelName    = "projects.getambassador.io/project-uid"   // proj.GetUID()
+	CommitLabelName     = "projects.getambassador.io/commit-uid"    // commit.GetUID()
+	JobLabelName        = "job-name"                                // Don't change this; it's the label name used by Kubernetes itself
+	ServicePodLabelName = "projects.getambassador.io/service"       // "true"
 )
 
 var globalKale *kale
@@ -643,7 +643,7 @@ func (k *kale) dispatch(r *http.Request) httpResult {
 			CommitLabelName + "==" + string(commitUID),
 		}
 		if logType == "deploy" {
-			selectors = append(selectors, ServicePod)
+			selectors = append(selectors, ServicePodLabelName)
 		} else {
 			selectors = append(selectors, JobLabelName)
 		}
@@ -1202,9 +1202,9 @@ func (k *kale) calculateRun(proj *Project, commit *ProjectCommit) []interface{} 
 				Template: k8sTypesCoreV1.PodTemplateSpec{
 					ObjectMeta: k8sTypesMetaV1.ObjectMeta{
 						Labels: map[string]string{
-							GlobalLabelName: k.cfg.AmbassadorID,
-							CommitLabelName: string(commit.GetUID()),
-							ServicePod:      "true",
+							GlobalLabelName:     k.cfg.AmbassadorID,
+							CommitLabelName:     string(commit.GetUID()),
+							ServicePodLabelName: "true",
 						},
 					},
 					Spec: k8sTypesCoreV1.PodSpec{
