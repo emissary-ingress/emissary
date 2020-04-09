@@ -1,4 +1,4 @@
-# `edgectl install`: Failed to Acquire TLS Certificate
+# Edgectl Install: Failed to Acquire TLS Certificate
  
 The installer was unable to acquire a TLS certificate from Let's Encrypt.
 
@@ -10,6 +10,6 @@ If this appears to be an intermittent failure, try running the installer again:
 edgectl install
 ```
 
-It is safe to run the installer repeatedly on a cluster.
+Don't worry: it is safe to run the installer repeatedly on a cluster.
 
-Otherwise, please get in touch on [Slack](http://d6e.co/slack).
+If running the installer again does not work, please reach out to us on [Slack](http://d6e.co/slack).
