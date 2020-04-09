@@ -4,7 +4,7 @@ The installer could not access the EdgeStack.me service to acquire a DNS name fo
 
 ## What's next?
 
-This is likely an intermittant failure of the service. Please try again later. Simply run the installer again:
+This is likely an intermittent failure of the service. Please try again later. Simply run the installer again:
 
 ```shell
 edgectl install
