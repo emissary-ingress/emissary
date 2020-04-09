@@ -258,14 +258,14 @@ and clear the cache.
 How do I make documentation-only changes?
 -----------------------------------------
 
-If you want to make a change that **only** affects documentation, and is not
-tied to a future feature, you'll need to make your change directly in the
-`datawire/ambassador-docs` repository. Clone that repository and check out
-its `README.md`.
+Ambassador documentation lives in the `docs` directory. For new features, make
+your doc changes along with your feature, and PR them at the same time.
 
-(It is technically possible to make these changes from the `ambassador` repo.
-Please don't, unless you're fixing docs for an upcoming feature that hasn't
-yet shipped.)
+If you want to make a change that **only** affects documentation, and is not
+tied to a future feature (say you want to fix a problem in the docs that are
+currently up on the website), you'll PR your change in `docs` against the release
+branch for the version of the docs you want to fix, e.g. `release/v1.4` if you're
+fixing documentation for the Ambassador 1.4.X release.
 
 How do I get the source code for a release?
 -------------------------------------------
@@ -305,3 +305,48 @@ How do I make a contribution?
 
 6. When all is well, maintainers will merge the PR into `master`, accepting your
    change for the next Ambassador release. Thanks!
+
+How do I make changes to the Envoy that ships with Ambassador?
+--------------------------------------------------------------
+
+This is a bit more complex than you might like, but here goes:
+
+1. Fork the `datawire/envoy` GitHub repo. We'll assume that your fork is the
+   GitHub repo `your-github-id/envoy`.
+
+2. `cd` to the root of your `ambassador` clone.
+
+3. Clear out any Envoy sources that might be present from earlier builds:
+   
+   ```
+   rm -rf cxx/envoy
+   ```
+
+4. Clone your Envoy fork into `cxx/envoy`:
+
+   ```
+   git clone git@github.com:your-github-id/envoy cxx/envoy
+   ```
+
+5. Build Envoy:
+
+   ```
+   export YES_I_AM_OK_WITH_COMPILING_ENVOY=true
+   export YES_I_AM_UPDATING_THE_BASE_IMAGES=true
+   export ENVOY_COMMIT=-
+   export ENVOY_DOCKER_REPO=<your-envoy-docker-registry>
+   make update-base && make
+   ```
+
+   - Building Envoy is slow, so we require the first two environment variables as a safety.
+
+   - Setting `ENVOY_COMMIT=-` tells the build system not to try to fetch the sources on its
+     own, and instead just to use what you've cloned into `cxx/envoy`.
+
+   - `ENVOY_DOCKER_REPO` is where the build system will push the built Envoy image. You must
+     be logged in with write access.
+
+   Again, this is _not_ a quick process. You can set `DOCKER_HOST` to point to a powerful
+   machine if you like.
+
+6. Test your Ambassador build!
