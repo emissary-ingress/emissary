@@ -350,20 +350,6 @@ workflows:
           filters:
             tags:
               only: /^v[0-9]+\.[0-9]+\.[0-9]+-.*/
-  "AES 1.4.0a":
-    jobs:
-      - "Windows-cli-tools":
-          filters:
-            tags:
-              only: /^v1\.4\.0a$/
-      - "Linux-cli-tools":
-          filters:
-            tags:
-              only: /^v1\.4\.0a$/
-      - "macOS-cli-tools":
-          filters:
-            tags:
-              only: /^v1\.4\.0a$/
   "AES Promote to GA":
     jobs:
       - "promote":
