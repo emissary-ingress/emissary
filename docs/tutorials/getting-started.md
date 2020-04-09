@@ -15,11 +15,11 @@ Internet to a backend service.
 The Ambassador Edge Stack is deployed to Kubernetes via YAML for MacOS, Linux, and
 Windows. For other options, such as Docker, read the [detailed instructions] (../../topics/install/).
 
-<details class="os-instructions" data-os="mac">
+<details-test class="os-instructions" data-os="mac">
 <summary class="heading">
 
 ### Install on MacOS
-<img class="os-logo" src="../../images/apple.png"/>
+<img class="os-logo-test" src="../../images/apple.png"/>
 
 </summary>
 
@@ -36,13 +36,13 @@ Windows. For other options, such as Docker, read the [detailed instructions] (..
 
 2. Run the installer with `edgectl install`
 
-</details>
+</details-test>
 
-<details class="os-instructions" data-os="linux">
+<details-test class="os-instructions" data-os="linux">
 <summary class="heading">
 
 ### Install on Linux
-<img class="os-logo" src="../../images/linux.png"/>
+<img class="os-logo-test" src="../../images/linux.png"/>
 </summary>
 
 1. Download the `edgectl` file
@@ -54,13 +54,13 @@ Windows. For other options, such as Docker, read the [detailed instructions] (..
     ```
 2. Run the installer with `edgectl install`
 
-</details>
+</details-test>
 
-<details class="os-instructions" data-os="windows">
+<details-test class="os-instructions" data-os="windows">
 <summary class="heading">
 
 ### Install on Windows
-<img class="os-logo" src="../../images/windows.png"/>
+<img class="os-logo-test" src="../../images/windows.png"/>
 
 </summary>
 
@@ -68,7 +68,7 @@ Windows. For other options, such as Docker, read the [detailed instructions] (..
    [here](https://metriton.datawire.io/downloads/windows/edgectl.exe).
 2. Run the installer with `edgectl install`
 
-</details>
+</details-test>
 
 ## Installation
 
@@ -76,8 +76,8 @@ Your terminal will show you something similar to the following as the installer 
 a load balancer, configures TLS, and provides you with an `edgestack.me` subdomain:
 
 
-<div class="codeblockInstall">
-$ <span class="userInputText">edgectl install</span><br/>
+<div class="codeblockInstall-test">
+$ <span class="userInputText-test">edgectl install</span><br/>
 -> Installing the Ambassador Edge Stack $version$.<br/>
 Downloading images. (This may take a minute.)<br/>
 
@@ -96,15 +96,15 @@ Let's Encrypt to acquire your certificate for TLS.
 Provide an email address as required by the ACME TLS certificate provider, Let's
 Encrypt. Then your terminal will print something similar to the following:
 
-<div class="codeblockInstall">
-Email address [<span class="userInputText">john@example.com</span>]:<br/>
+<div class="codeblockInstall-test">
+Email address [<span class="userInputText-test">john@example.com</span>]:<br/>
 
 -> Acquiring DNS name random-word-3421.edgestack.me 
 -> Obtaining a TLS certificate from Let's Encrypt 
 -> TLS configured successfully
 
 Congratulations! You've successfully installed the Ambassador Edge Stack in
-your Kubernetes cluster. Visit <span class="userGuidanceText">random-word-3421.edgestack.me</span> to access your
+your Kubernetes cluster. Visit <span class="userGuidanceText-test">random-word-3421.edgestack.me</span> to access your
 Edge Stack installation and for additional configuration.
 </div>
 
@@ -121,8 +121,8 @@ automatically in your browser at the provided URL or IP address.
 
 Minikube users will see something similar to the following:
 
-<div class="codeblockInstall">
-$ <span class="userInputText">edgectl install</span><br/>
+<div class="codeblockInstall-test">
+$ <span class="userInputText-test">edgectl install</span><br/>
 -> Installing the Ambassador Edge Stack $version$.<br/>
 Downloading images. (This may take a minute.)<br/>
 
@@ -133,11 +133,11 @@ your Kubernetes cluster. However, we cannot connect to your cluster from the
 Internet, so we could not configure TLS automatically.<br/>
 
 Determine the IP address and port number of your Ambassador service.
-(e.g., <span class="userInputText">minikube service -n ambassador ambassador</span>)<br/>
+(e.g., <span class="userInputText-test">minikube service -n ambassador ambassador</span>)<br/>
 
 The following command will open the Edge Policy Console once you accept a
 self-signed certificate in your browser.
-$ <span class="userInputText">edgectl login -n ambassador IP_ADDRESS:PORT</span>
+$ <span class="userInputText-test">edgectl login -n ambassador IP_ADDRESS:PORT</span>
 
 See [https://www.getambassador.io/docs/latest/tutorials/getting-started/](../getting-started/)
 </div>
