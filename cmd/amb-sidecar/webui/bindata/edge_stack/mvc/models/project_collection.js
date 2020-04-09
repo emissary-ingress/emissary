@@ -27,8 +27,9 @@ class ProjectStore extends ResourceStore {
       }
     }).then(res => res.json())
       .then((snapshot)=>{
-        if (!deepEqual(snapshot.errors, collection.errors)) {
-          collection.errors = snapshot.errors || []
+        let updatedErrors = snapshot.errors || []
+        if (!deepEqual(updatedErrors, collection.errors)) {
+          collection.errors = updatedErrors
           collection.notify()
         }
         collection.reconcile(snapshot.projects)
