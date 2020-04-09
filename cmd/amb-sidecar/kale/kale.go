@@ -255,7 +255,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 					telemetryIteration++
 					snapshot := _snapshot.TypedAndIndexed(ctx)
 					for _, proj := range snapshot.Projects {
-						telemetryOK(CtxWithProject(ctx, proj), StepValidProject)
+						telemetryOK(CtxWithProject(ctx, proj.Project), StepValidProject)
 					}
 					err := safeInvoke(func() { k.reconcile(ctx, snapshot) })
 					if err != nil {
@@ -451,7 +451,7 @@ func (k *kale) updateInternalState(ctx context.Context, snapshot Snapshot) {
 
 func (k *kale) reconcileGitHub(ctx context.Context, snapshot Snapshot) {
 	for _, proj := range snapshot.Projects {
-		ctx := CtxWithProject(ctx, proj)
+		ctx := CtxWithProject(ctx, proj.Project)
 		err := postHook(proj.Spec.GithubRepo,
 			fmt.Sprintf("https://%s/edge_stack/api/projects/githook/%s", proj.Spec.Host, proj.Key()),
 			proj.Spec.GithubToken)
@@ -786,8 +786,8 @@ func (k *kale) calculateBuild(proj *Project, commit *ProjectCommit) []interface{
 func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 	// reconcile commits
 	for _, proj := range snapshot.Projects {
-		ctx := CtxWithProject(ctx, proj)
-		commitManifests, err := k.calculateCommits(proj)
+		ctx := CtxWithProject(ctx, proj.Project)
+		commitManifests, err := k.calculateCommits(proj.Project)
 		if err != nil {
 			continue
 		}
@@ -811,12 +811,12 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 
 	// reconcile things managed by commits
 	for _, commit := range snapshot.Commits {
-		ctx := CtxWithCommit(ctx, commit)
+		ctx := CtxWithCommit(ctx, commit.ProjectCommit)
 		projectUID := k8sTypes.UID(commit.GetLabels()[ProjectLabelName])
 		var project *Project
 		for _, proj := range snapshot.Projects {
 			if proj.GetUID() == projectUID {
-				project = proj
+				project = proj.Project
 			}
 		}
 		if project == nil {
@@ -840,7 +840,7 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 
 		var runtimeErr, bugErr error
 		bugErr = safeInvoke(func() {
-			runtimeErr = k.reconcileCommit(ctx, project, commit, commitBuilders, commitRunners)
+			runtimeErr = k.reconcileCommit(ctx, project, commit.ProjectCommit, commitBuilders, commitRunners)
 		})
 		if runtimeErr != nil {
 			reportRuntimeError(ctx, StepReconcileCommitsToAction, runtimeErr)

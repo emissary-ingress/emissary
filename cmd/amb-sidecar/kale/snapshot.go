@@ -24,8 +24,8 @@ type UntypedSnapshot struct {
 }
 
 type Snapshot struct {
-	Projects    map[k8sTypes.UID]*Project
-	Commits     map[k8sTypes.UID]*ProjectCommit
+	Projects    map[k8sTypes.UID]*projectAndChildren
+	Commits     map[k8sTypes.UID]*commitAndChildren
 	Jobs        map[k8sTypes.UID]*k8sTypesBatchV1.Job
 	Deployments map[k8sTypes.UID]*k8sTypesAppsV1.Deployment
 }
@@ -67,7 +67,7 @@ func (in UntypedSnapshot) TypedAndIndexed(ctx context.Context) Snapshot {
 	// not let that affect the others.
 
 	// projects
-	out.Projects = make(map[k8sTypes.UID]*Project, len(in.Projects))
+	out.Projects = make(map[k8sTypes.UID]*projectAndChildren, len(in.Projects))
 	for _, inProj := range in.Projects {
 		var outProj *Project
 		if err := mapstructure.Convert(inProj, &outProj); err != nil {
@@ -75,18 +75,18 @@ func (in UntypedSnapshot) TypedAndIndexed(ctx context.Context) Snapshot {
 				fmt.Errorf("Project: %w", err))
 			continue
 		}
-		out.Projects[outProj.GetUID()] = outProj
+		out.Projects[outProj.GetUID()] = &projectAndChildren{Project: outProj}
 	}
 
 	// commits
-	out.Commits = make(map[k8sTypes.UID]*ProjectCommit, len(in.Commits))
+	out.Commits = make(map[k8sTypes.UID]*commitAndChildren, len(in.Commits))
 	for _, inCommit := range in.Commits {
 		var outCommit *ProjectCommit
 		if err := mapstructure.Convert(inCommit, &outCommit); err != nil {
 			reportThisIsABug(ctx, fmt.Errorf("Commit: %w", err))
 			continue
 		}
-		out.Commits[outCommit.GetUID()] = outCommit
+		out.Commits[outCommit.GetUID()] = &commitAndChildren{ProjectCommit: outCommit}
 	}
 
 	return out
@@ -119,12 +119,9 @@ type commitAndChildren struct {
 func (snapshot Snapshot) Grouped(ctx context.Context) map[k8sTypes.UID]*projectAndChildren {
 	// map[commitUID]*commitAndChildren
 	commits := make(map[k8sTypes.UID]*commitAndChildren)
-	for _, commit := range snapshot.Commits {
-		key := commit.GetUID()
-		if _, ok := commits[key]; !ok {
-			commits[key] = new(commitAndChildren)
-		}
-		commits[key].ProjectCommit = commit
+	for k, _v := range snapshot.Commits {
+		v := *_v
+		commits[k] = &v
 	}
 	for _, job := range snapshot.Jobs {
 		key := k8sTypes.UID(job.GetLabels()[CommitLabelName])
@@ -149,12 +146,9 @@ func (snapshot Snapshot) Grouped(ctx context.Context) map[k8sTypes.UID]*projectA
 
 	// map[projectUID]*projectAndChildren
 	projects := make(map[k8sTypes.UID]*projectAndChildren)
-	for _, proj := range snapshot.Projects {
-		key := proj.GetUID()
-		if _, ok := projects[key]; !ok {
-			projects[key] = new(projectAndChildren)
-		}
-		projects[key].Project = proj
+	for k, _v := range snapshot.Projects {
+		v := *_v
+		projects[k] = &v
 	}
 	for _, commit := range commits {
 		key := k8sTypes.UID(commit.GetLabels()[ProjectLabelName])
