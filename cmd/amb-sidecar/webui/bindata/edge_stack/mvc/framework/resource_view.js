@@ -391,6 +391,25 @@ export class ResourceView extends View {
       this.focus()
       this._needsFocus = false;
     }
+
+    // css doesn't seem to have a way to select the last *visible*
+    // child, so we do it here
+    let lastVisible = null
+    let last = null
+    for (let el of this.shadowRoot.querySelectorAll(".card .line")) {
+      if (el.offsetParent != null) {
+        lastVisible = el
+      }
+      last = el
+    }
+    if (lastVisible) {
+      lastVisible.style.borderBottom = "none"
+    } else {
+      // This probably means we are being rendered even though we
+      // aren't visible. The best we can do is take a guess on the
+      // last one.
+      last.style.borderBottom = "none"
+    }
   }
 
   focus() {

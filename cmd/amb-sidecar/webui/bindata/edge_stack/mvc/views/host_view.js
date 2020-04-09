@@ -132,7 +132,7 @@ export class HostView extends IResourceView {
         </div>
       </div>
       
-     <div class="row line">
+      <div class="row line">
         <div class="row-col margin-right justify-right ${this.visibleWhen("list", "edit", "pending")}">status:</div>
         <div class="row-col">
           <span class="${this.visibleWhen("list", "edit", "pending")}">${state} ${reason}</span>
