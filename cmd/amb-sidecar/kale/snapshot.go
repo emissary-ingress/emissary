@@ -3,9 +3,11 @@ package kale
 import (
 	// standard library
 	"context"
-	"fmt"
 	"reflect"
 	"sort"
+
+	// 3rd party
+	"github.com/pkg/errors"
 
 	// 3rd party: k8s types
 	k8sTypesAppsV1 "k8s.io/api/apps/v1"
@@ -57,7 +59,7 @@ func (in UntypedSnapshot) TypedAndIndexed(ctx context.Context) *Snapshot {
 	// jobs
 	var outJobs []*k8sTypesBatchV1.Job
 	if err := mapstructure.Convert(in.Jobs, &outJobs); err != nil {
-		panicThisIsABug(fmt.Errorf("Jobs: %w", err))
+		panicThisIsABug(errors.Wrap(err, "Jobs"))
 	}
 	out.Jobs = make(map[k8sTypes.UID]*jobAndChildren, len(outJobs))
 	for _, outJob := range outJobs {
@@ -67,7 +69,7 @@ func (in UntypedSnapshot) TypedAndIndexed(ctx context.Context) *Snapshot {
 	// deployments
 	var outDeployments []*k8sTypesAppsV1.Deployment
 	if err := mapstructure.Convert(in.Deployments, &outDeployments); err != nil {
-		panicThisIsABug(fmt.Errorf("Deployments: %w", err))
+		panicThisIsABug(errors.Wrap(err, "Deployments"))
 	}
 	out.Deployments = make(map[k8sTypes.UID]*deploymentAndChildren, len(outDeployments))
 	for _, outDeployment := range outDeployments {
@@ -77,7 +79,7 @@ func (in UntypedSnapshot) TypedAndIndexed(ctx context.Context) *Snapshot {
 	// pods
 	var outPods []*k8sTypesCoreV1.Pod
 	if err := mapstructure.Convert(in.Pods, &outPods); err != nil {
-		panicThisIsABug(fmt.Errorf("Pods: %w", err))
+		panicThisIsABug(errors.Wrap(err, "Pods"))
 	}
 	out.Pods = make(map[k8sTypes.UID]*podAndChildren, len(outPods))
 	for _, outPod := range outPods {
@@ -87,7 +89,7 @@ func (in UntypedSnapshot) TypedAndIndexed(ctx context.Context) *Snapshot {
 	// events
 	var outEvents []*k8sTypesCoreV1.Event
 	if err := mapstructure.Convert(in.Events, &outEvents); err != nil {
-		panicThisIsABug(fmt.Errorf("Events: %w", err))
+		panicThisIsABug(errors.Wrap(err, "Events"))
 	}
 	out.Events = make(map[k8sTypes.UID]*k8sTypesCoreV1.Event, len(outEvents))
 	for _, outEvent := range outEvents {
@@ -106,7 +108,7 @@ func (in UntypedSnapshot) TypedAndIndexed(ctx context.Context) *Snapshot {
 		var outProj *Project
 		if err := mapstructure.Convert(inProj, &outProj); err != nil {
 			reportRuntimeError(ctx, StepValidProject,
-				fmt.Errorf("Project: %w", err))
+				errors.Wrap(err, "Project"))
 			continue
 		}
 		out.Projects[outProj.GetUID()] = &projectAndChildren{Project: outProj}
@@ -117,7 +119,7 @@ func (in UntypedSnapshot) TypedAndIndexed(ctx context.Context) *Snapshot {
 	for _, inCommit := range in.Commits {
 		var outCommit *ProjectCommit
 		if err := mapstructure.Convert(inCommit, &outCommit); err != nil {
-			reportThisIsABug(ctx, fmt.Errorf("ProjectCommit: %w", err))
+			reportThisIsABug(ctx, errors.Wrap(err, "ProjectCommit"))
 			continue
 		}
 		out.Commits[outCommit.GetUID()] = &commitAndChildren{ProjectCommit: outCommit}
@@ -128,7 +130,7 @@ func (in UntypedSnapshot) TypedAndIndexed(ctx context.Context) *Snapshot {
 	for _, inController := range in.Controllers {
 		var outController *ProjectController
 		if err := mapstructure.Convert(inController, &outController); err != nil {
-			reportThisIsABug(ctx, fmt.Errorf("ProjectController: %w", err))
+			reportThisIsABug(ctx, errors.Wrap(err, "ProjectController"))
 			continue
 		}
 		out.Controllers[outController.GetUID()] = &controllerAndChildren{ProjectController: outController}

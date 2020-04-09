@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -17,6 +16,7 @@ import (
 	"time"
 
 	// 3rd party
+	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 	libgit "gopkg.in/src-d/go-git.v4"
 	libgitConfig "gopkg.in/src-d/go-git.v4/config"
@@ -175,7 +175,7 @@ func getJSON(url string, authToken string, target interface{}) error {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("HTTP %d (%s)", resp.StatusCode, resp.Status)
+		return errors.Errorf("HTTP %d (%s)", resp.StatusCode, resp.Status)
 	}
 
 	return nil
@@ -185,10 +185,10 @@ func getJSON(url string, authToken string, target interface{}) error {
 func postStatus(ctx context.Context, url string, status GitHubStatus, token string) error {
 	resp, body, err := postJSON(url, status, token)
 	if err != nil {
-		return fmt.Errorf("posting GitHub status: %w", err)
+		return errors.Wrap(err, "posting GitHub status")
 	}
 	if resp.StatusCode/100 != 2 {
-		return fmt.Errorf("posting GitHub status: HTTP %d (%s)\n%s",
+		return errors.Errorf("posting GitHub status: HTTP %d (%s)\n%s",
 			resp.StatusCode, resp.Status, body)
 	}
 
@@ -216,7 +216,7 @@ func postHook(repo string, callback string, token string) error {
 	}
 	resp, body, err := postJSON(url, h, token)
 	if err != nil {
-		return fmt.Errorf("posting GitHub status: %w", err)
+		return errors.Wrap(err, "posting GitHub status")
 	}
 	if resp.StatusCode/100 == 2 {
 
@@ -226,7 +226,7 @@ func postHook(repo string, callback string, token string) error {
 		return nil
 	}
 
-	return fmt.Errorf("posting GitHub hook: HTTP %d (%s)\n%s",
+	return errors.Errorf("posting GitHub hook: HTTP %d (%s)\n%s",
 		resp.StatusCode, resp.Status, body)
 }
 
@@ -352,7 +352,7 @@ func applyAndPrune(labelSelector string, types []k8sSchema.GroupVersionKind, obj
 	cmd.Stdin = strings.NewReader(yamlStr)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("%w\n%s", err, out)
+		return errors.Errorf("%v\n%s", err, out)
 	}
 	return nil
 }
@@ -360,7 +360,7 @@ func applyAndPrune(labelSelector string, types []k8sSchema.GroupVersionKind, obj
 func deleteResource(kind, name, namespace string) error {
 	out, err := exec.Command("kubectl", "delete", "--namespace="+namespace, kind+"/"+name).CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("%w\n%s", err, out)
+		return errors.Errorf("%v\n%s", err, out)
 	}
 	return nil
 }
@@ -627,14 +627,14 @@ func _logErr(ctx context.Context, err error) {
 	}
 	var commitUID, projectUID k8sTypes.UID
 	if commit := CtxGetCommit(ctx); commit != nil {
-		err = fmt.Errorf("ProjectCommit %s.%s: %w",
-			commit.GetName(), commit.GetNamespace(), err)
+		err = errors.Wrapf(err, "ProjectCommit %s.%s",
+			commit.GetName(), commit.GetNamespace())
 		commitUID = commit.GetUID()
 		eventTarget = unstructureCommit(commit)
 	}
 	if project := CtxGetProject(ctx); project != nil {
-		err = fmt.Errorf("Project %s.%s: %w",
-			project.GetName(), project.GetNamespace(), err)
+		err = errors.Wrapf(err, "Project %s.%s",
+			project.GetName(), project.GetNamespace())
 		projectUID = project.GetUID()
 		if eventTarget == nil {
 			eventTarget = unstructureProject(project)
@@ -684,26 +684,26 @@ func _logErr(ctx context.Context, err error) {
 }
 
 func reportThisIsABug(ctx context.Context, err error) {
-	err = fmt.Errorf("this is a bug: error: %w", err)
+	err = errors.Wrap(err, "this is a bug: error")
 	_logErr(ctx, err)
 	telemetryErr(ctx, StepBug, err)
 }
 
 func reportRuntimeError(ctx context.Context, step string, err error) {
-	err = fmt.Errorf("runtime error: %w", err)
+	err = errors.Wrap(err, "runtime error")
 	_logErr(ctx, err)
 	telemetryErr(ctx, step, err)
 }
 
 func panicThisIsABugContext(ctx context.Context, err error) {
-	err = fmt.Errorf("this is a bug: panicking: %w", err)
+	err = errors.Wrap(err, "this is a bug: panicking")
 	_logErr(ctx, err)
 	telemetryErr(ctx, StepBug, err)
 	panic(err)
 }
 
 func panicThisIsABug(err error) {
-	err = fmt.Errorf("this is a bug: panicking: %w", err)
+	err = errors.Wrap(err, "this is a bug: panicking")
 	panic(err)
 }
 

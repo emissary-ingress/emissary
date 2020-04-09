@@ -6,7 +6,6 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -17,6 +16,7 @@ import (
 
 	// 3rd party
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 	libgitPlumbing "gopkg.in/src-d/go-git.v4/plumbing"
 
 	// 3rd/1st party: k8s types
@@ -185,7 +185,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 		if err != nil {
 			// this is non fatal (mostly just to facilitate local dev); don't `return err`
 			reportRuntimeError(softCtx, StepSetup,
-				fmt.Errorf("kale disabled: k8s.NewClient: %w", err))
+				errors.Wrap(err, "kale disabled: k8s.NewClient"))
 			return nil
 		}
 
@@ -232,7 +232,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 			if err != nil {
 				// this is non fatal (mostly just to facilitate local dev); don't `return err`
 				reportRuntimeError(softCtx, StepSetup,
-					fmt.Errorf("kale disabled: WatchQuery(%#v, ...): %w", query, err))
+					errors.Wrapf(err, "kale disabled: WatchQuery(%#v, ...)", query))
 				return nil
 			}
 		}
@@ -240,7 +240,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 		if err := safeInvoke(w.Start); err != nil {
 			// RBAC!
 			reportRuntimeError(softCtx, StepSetup,
-				fmt.Errorf("kale disabled: Start(): %w", err))
+				errors.Wrap(err, "kale disabled: Start()"))
 			return nil
 		}
 		go func() {
@@ -285,7 +285,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 		if err != nil {
 			// Similar to Setup(), this is non-fatal
 			reportRuntimeError(softCtx, StepLeader,
-				fmt.Errorf("kale disabled: leader election: %w", err))
+				errors.Wrap(err, "kale disabled: leader election"))
 		}
 		return nil
 	})
@@ -563,7 +563,7 @@ func (k *kale) handlePush(r *http.Request, key string) httpResult {
 	var push Push
 	if err := json.NewDecoder(r.Body).Decode(&push); err != nil {
 		reportRuntimeError(ctx, StepWebhookUpdate,
-			fmt.Errorf("git webhook parse error: %w", err))
+			errors.Wrap(err, "git webhook parse error"))
 		return httpResult{status: 400, body: err.Error()}
 	}
 
@@ -782,7 +782,7 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot *Snapshot) {
 			})
 		if err != nil {
 			reportRuntimeError(ctx, StepReconcileController,
-				fmt.Errorf("initializing ProjectController: %q", err))
+				errors.Wrap(err, "initializing ProjectController"))
 		}
 	}
 
@@ -805,7 +805,7 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot *Snapshot) {
 			commitManifests)
 		if err != nil {
 			reportRuntimeError(ctx, StepReconcileProjectsToCommits,
-				fmt.Errorf("updating ProjectCommits: %w", err))
+				errors.Wrap(err, "updating ProjectCommits"))
 		} else {
 			telemetryOK(ctx, StepReconcileProjectsToCommits)
 		}
@@ -842,7 +842,7 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot *Snapshot) {
 		}
 		if bugErr != nil {
 			reportThisIsABug(ctx,
-				fmt.Errorf("recovered from panic: %w", bugErr))
+				errors.Wrap(bugErr, "recovered from panic"))
 		}
 		if runtimeErr == nil && bugErr == nil {
 			telemetryOK(ctx, StepReconcileCommitsToAction)
@@ -870,7 +870,7 @@ func (k *kale) reconcileCommit(ctx context.Context, _commit *commitAndChildren, 
 				commitPhase = CommitPhase_Deploying
 			} else if failed, _ := jobConditionMet(builders[0].Job, k8sTypesBatchV1.JobFailed, k8sTypesCoreV1.ConditionTrue); failed {
 				telemetryErr(ctx, StepBuild,
-					fmt.Errorf("builder Job failed %d times", builders[0].Status.Failed))
+					errors.Errorf("builder Job failed %d times", builders[0].Status.Failed))
 				commitPhase = CommitPhase_BuildFailed
 			} else {
 				// keep waiting for one of the above to become true
@@ -969,8 +969,7 @@ func (k *kale) reconcileCommit(ctx context.Context, _commit *commitAndChildren, 
 			deleteResource("job.v1.batch", commit.GetName()+"-build", commit.GetNamespace())
 		} else {
 			reportRuntimeError(ctx, StepReconcileCommitsToAction,
-				fmt.Errorf("deploying ProjectCommit: %w",
-					err))
+				errors.Wrap(err, "deploying ProjectCommit"))
 		}
 	}
 
