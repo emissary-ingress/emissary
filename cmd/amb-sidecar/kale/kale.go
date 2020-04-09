@@ -1096,11 +1096,11 @@ func (k *kale) reconcileCommit(ctx context.Context, proj *Project, commit *Proje
 }
 
 func (k *kale) calculateRun(proj *Project, commit *ProjectCommit) []interface{} {
-	prefix := "/" + proj.Spec.Prefix + "/"
+	prefix := proj.Spec.Prefix
 	if commit.Spec.IsPreview {
 		// todo: figure out what is going on with /edge_stack/previews
 		// not being routable
-		prefix = "/.previews/" + proj.Spec.Prefix + "/" + commit.Spec.Rev + "/"
+		prefix = "/.previews" + proj.Spec.Prefix + commit.Spec.Rev + "/"
 	}
 	return []interface{}{
 		&Mapping{

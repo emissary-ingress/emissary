@@ -270,9 +270,9 @@ export class ProjectView extends IResourceView {
     // TODO: We'd have to inspect individual pods to detect a failure :(
     //styles = "color:red"
     let selected = this.logSelected("deploy", commit) ? "background-color:#dcdcdc" : ""
-    let url = `https://${this.project.host}/` + (commit.spec.isPreview
-                                                 ? `.previews/${this.project.prefix}/${commit.spec.rev}/`
-                                                 : `${this.project.prefix}/`);
+    let url = `https://${this.project.host}` + (commit.spec.isPreview
+                                                 ? `/.previews${this.project.prefix}${commit.spec.rev}/`
+                                                 : `${this.project.prefix}`);
     return html`
 <a style="cursor:pointer;${styles};${selected}" @click=${()=>this.openTerminal("deploy", commit)}>log</a> |
 <a style="text-decoration:none;${styles}" target="_blank" href="${url}">url</a>
