@@ -1,0 +1,72 @@
+details summary::-webkit-details-marker {
+  display:none;
+ }
+ details {
+  summary.heading {
+    /* Mimic margins of the above `h{1-6}` rule.  */
+    margin-top: 2.1rem;
+    margin-bottom: 1.05rem;
+    /* Set display:block to get rid of the default show/hide marker (and
+     * re-create with the :before blocks below).  We do this so that
+     * we can put the marker on the inner `h{1-6}` element instead of
+     * the outer `summary` element, so that it doesn't cover up the
+     * link-to-header button that appears to the left of headers when
+     * you hover over them.  And also so that it changes size with the
+     * level of the heading (but that's secondary).  */
+    display: block;
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      display: inline;
+      &:before {
+        content: "▶ ";
+      }
+    }
+  }
+  &[open] summary.heading {
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      display: inline;
+      &:before {
+        content: "▼ ";
+      }
+    }
+  }
+ }
+
+.codeblockInstall {
+  font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+  font-size: 16px;
+  padding: 30px 30px;
+  margin: 0.5em 0 .5em;
+  overflow: auto;
+  background: #f5f2f0;
+  text-align: left;
+  white-space: pre;
+  word-spacing: normal;
+  word-break: normal;
+  word-wrap: normal;
+  line-height: 29px;
+  letter-spacing: 0.2px;
+  margin-bottom: 1.05rem;
+ }
+ .userInputText {
+  color: blue;
+  font-weight: 900;
+ }
+ .userGuidanceText {
+  color: green;
+  font-weight: 900;
+ }
+ .os-logo {
+  width: 30px;
+  margin: 0 0 -4px 4px;
+ }

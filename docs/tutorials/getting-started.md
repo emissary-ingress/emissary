@@ -3,6 +3,7 @@
 ---
 
 import DetectOS from './DetectOS'
+import './gettting-started.less';
 
 <DetectOS/>
 
