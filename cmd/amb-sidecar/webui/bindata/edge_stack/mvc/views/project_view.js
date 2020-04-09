@@ -186,7 +186,19 @@ export class ProjectView extends IResourceView {
     commits = Array.from(commits);
 
     commits.sort((a,b) => {
-      return Date.parse(a.metadata.creationTimestamp) - Date.parse(b.metadata.creationTimestamp);
+      let delta = Date.parse(a.metadata.creationTimestamp) - Date.parse(b.metadata.creationTimestamp)
+      if (delta === 0) {
+        delta = a.spec.rev.localeCompare(b.spec.rev)
+      }
+      if (a.spec.isPreview && b.spec.isPreview) {
+        return delta
+      } else if (a.spec.isPreview) {
+        return 1
+      } else if (b.spec.isPreview) {
+        return -1
+      } else {
+        return 0
+      }
     })
 
     return html`
