@@ -85,7 +85,6 @@ class IRHTTPMapping (IRBaseMapping):
         "prefix_regex": True,
         "prefix_exact": True,
         "priority": True,
-        "proper_case": True,
         "rate_limits": True,   # Only supported in v0, handled in setup
         "remove_response_headers": True,
         "remove_request_headers": True,

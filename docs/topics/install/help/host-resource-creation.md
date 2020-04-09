@@ -1,15 +1,15 @@
-# edgectl install: Installer Failed to Create Host Resource
-
-Ambassador's `edgectl install` uses `kubectl` to communicate with Kubernetes.  
-
-## The Problem
+# Edgectl Install: Installer Failed to Create Host Resource
 
 The installer was unable to create a new Host resource using `kubectl apply` with the Host manifest.
 
-## How to Resolve It
+## What's next?
 
-...
+If this appears to be an intermittent failure, try running the installer again:
 
-To reinstall AES, see:
+```shell
+edgectl install
+```
 
-https://www.getambassador.io/docs/latest/tutorials/getting-started/
+Don't worry: it is safe to run the installer repeatedly on a cluster.
+
+If running the installer again does not work, please reach out to us on [Slack](http://d6e.co/slack).

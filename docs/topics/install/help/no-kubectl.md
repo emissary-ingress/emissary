@@ -1,16 +1,16 @@
-# `edgectl install`: `kubectl` not found
+# Edgectl Install: `kubectl` not found
 
-Installation of AES requires the `kubectl` command. The installer did not find `kubectl` in your shell PATH.
+Installation of Ambassador Edge Stack (AES) requires the `kubectl` command. The installer did not find `kubectl` in your shell PATH.
 
 ## What's next?
 
 1. Install `kubectl`: see the [Kubernetes documentation on how to install `kubectl`](https://kubernetes.io/docs/tasks/tools/install-kubectl/).
-2. Start the installer again:
+2. Run the installer again:
    ```shell
    edgectl install
    ```
 
-It is safe to run the installer repeatedly on a cluster.
+Don't worry: it is safe to run the installer repeatedly on a cluster.
 
 ## What is `kubectl`?
 

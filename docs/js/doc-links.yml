@@ -8,7 +8,7 @@
   link: /docs/latest/topics/install/
   items: 
   - title: Install with Helm
-    link: /docs/latest/topics/install/helm  
+    link: /docs/latest/topics/install/helm
   - title: Upgrade to the Ambassador Edge Stack
     link: /docs/latest/topics/install/upgrade-to-edge-stack
   - title: Upgrade to a Newer Version
@@ -20,9 +20,11 @@
   - title: Install with Bare Metal
     link: /docs/latest/topics/install/bare-metal
   - title: Install Manually
-    link: /docs/latest/topics/install/yaml-install  
+    link: /docs/latest/topics/install/yaml-install
   - title: Ambassador Edge Stack Operator
     link: /docs/latest/topics/install/aes-operator   
+  - title: Install with Edgectl
+    link: /docs/latest/topics/install/help/
 - title: Running and Using Ambassador
   collapsable: false
   items:  
@@ -104,7 +106,7 @@
             - title: OAuth2 Filter
               link: /docs/latest/topics/using/filters/oauth2
             - title: JWT Filter
-              link: /docs/latest/topics/using/filters/jwt 
+              link: /docs/latest/topics/using/filters/jwt
             - title: External Filter
               link: /docs/latest/topics/using/filters/external
             - title: Plugin Filter
@@ -163,7 +165,7 @@
             - title: Rate Limit Service
               link: /docs/latest/topics/running/services/rate-limit-service
             - title: Tracing Service
-              link: /docs/latest/topics/running/services/tracing-service            
+              link: /docs/latest/topics/running/services/tracing-service
         - title: TLS
           link: /docs/latest/topics/running/tls/
           items:

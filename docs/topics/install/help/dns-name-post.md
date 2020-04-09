@@ -1,10 +1,15 @@
-# edgectl install: Installer Failed to Post Request to Acquire DNS Entry
- 
-## The Problem
+# Edgectl Install: Couldn't access the EdgeStack.me service
 
-The installer tried to send a request to acquire a DNS name for your cluster's load balancer.  The `http Post`
-request failed.
+The installer could not access the EdgeStack.me service to acquire a DNS name for your Kubernetes cluster's load balancer.
 
-## How to Resolve It
+## What's next?
 
-...
+This is likely an intermittent failure of the service. Please try again later. Simply run the installer again:
+
+```shell
+edgectl install
+```
+
+Don't worry: it is safe to run the installer repeatedly on a cluster.
+
+If this failure persists, please get in touch on [Slack](http://d6e.co/slack).
