@@ -1,10 +1,10 @@
-# `edgectl install`: Can't communicate with the Kubernetes cluster
+# Edgectl Install: Can't communicate with the Kubernetes cluster
 
-Installation of AES requires a Kubernetes cluster. The installer was unable to access your cluster using `kubectl`.
+Installation of Ambassador Edge Stack (AES) requires a Kubernetes cluster. The installer was unable to access your Kubernetes cluster using `kubectl`.
 
 ## Details
 
-The installer uses the current `kubectl` configuration and context to access your cluster.
+The installer uses the current `kubectl` configuration and context to access your Kubernetes cluster.
 
 * Set the environment variable `KUBECONFIG` to use a configuration file other than the default
 * Use `kubectl config current-context` and `kubectl config set-context` to view or set the current context from among the contexts defined in the configuration file

@@ -1,4 +1,4 @@
-# `edgectl install`: Installer Failed to Create Host Resource
+# Edgectl Install: Installer Failed to Create Host Resource
 
 The installer was unable to create a new Host resource using `kubectl apply` with the Host manifest.
 
@@ -10,6 +10,6 @@ If this appears to be an intermittent failure, try running the installer again:
 edgectl install
 ```
 
-It is safe to run the installer repeatedly on a cluster.
+Don't worry: it is safe to run the installer repeatedly on a cluster.
 
-Otherwise, please get in touch on [Slack](http://d6e.co/slack).
+If running the installer again does not work, please reach out to us on [Slack](http://d6e.co/slack).
