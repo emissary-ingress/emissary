@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
-	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -285,11 +284,9 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 					return nil
 				}
 				snapshot := _snapshot.TypedAndIndexed(softCtx)
-				err := safeInvoke(func() { k.updateInternalState(softCtx, snapshot) })
-				if err != nil {
-					// recovered from a panic--this is a bug
-					reportThisIsABug(softCtx, fmt.Errorf("recovered from panic: %w", err))
-				}
+				k.mu.Lock()
+				k.webSnapshot = snapshot
+				k.mu.Unlock()
 			}
 		}
 	})
@@ -333,7 +330,6 @@ func NewKale(dynamicClient k8sClientDynamic.Interface) *kale {
 
 		projectsGetter: dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "projects"}),
 		commitsGetter:  dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "projectcommits"}),
-		Projects:       make(map[k8sTypes.UID]*projectAndChildren),
 	}
 }
 
@@ -347,8 +343,7 @@ type kale struct {
 	commitsGetter  k8sClientDynamic.NamespaceableResourceInterface
 
 	mu                  sync.RWMutex
-	Projects            map[k8sTypes.UID]*projectAndChildren
-	GlobalErrors        []recordedError
+	webSnapshot         *Snapshot
 	ErrorsDirty         bool
 	PersistentErrors    []recordedError
 	PrevIterationErrors []recordedError
@@ -379,53 +374,15 @@ func (k *kale) addIterationError(err error, projectUID, commitUID k8sTypes.UID) 
 	})
 }
 
-func (k *kale) syncErrors() {
+func (k *kale) updateWebGroupedSnapshot() *GroupedSnapshot {
 	k.mu.Lock()
 	defer k.mu.Unlock()
-	if !k.ErrorsDirty {
-		return
+	if k.ErrorsDirty || k.webSnapshot.grouped == nil {
+		k.webSnapshot.Errors = append(k.PersistentErrors, k.PrevIterationErrors...)
+		k.webSnapshot.grouped = nil
+		k.ErrorsDirty = false
 	}
-	// clear everything
-	k.GlobalErrors = nil
-	for _, project := range k.Projects {
-		project.Children.Errors = nil
-		for _, commit := range project.Children.Commits {
-			commit.Children.Errors = nil
-		}
-	}
-	// re-populate everything
-	for _, err := range append(k.PersistentErrors, k.PrevIterationErrors...) {
-		if project, projectOK := k.Projects[err.ProjectUID]; projectOK {
-			var commit *commitAndChildren
-			for _, straw := range project.Children.Commits {
-				if straw.GetUID() == err.CommitUID {
-					commit = straw
-					break
-				}
-			}
-			if commit != nil {
-				commit.Children.Errors = append(commit.Children.Errors, err)
-			} else {
-				project.Children.Errors = append(project.Children.Errors, err)
-			}
-		} else {
-			k.GlobalErrors = append(k.GlobalErrors, err)
-		}
-	}
-	// sort everything
-	sortErrors(k.GlobalErrors)
-	for _, project := range k.Projects {
-		sortErrors(project.Children.Errors)
-		for _, commit := range project.Children.Commits {
-			sortErrors(commit.Children.Errors)
-		}
-	}
-}
-
-func sortErrors(errs []recordedError) {
-	sort.Slice(errs, func(i, j int) bool {
-		return errs[i].Time.Before(errs[j].Time)
-	})
+	return k.webSnapshot.Grouped()
 }
 
 func (k *kale) flushIterationErrors() {
@@ -436,20 +393,13 @@ func (k *kale) flushIterationErrors() {
 	k.ErrorsDirty = true
 }
 
-func (k *kale) reconcile(ctx context.Context, snapshot Snapshot) {
+func (k *kale) reconcile(ctx context.Context, snapshot *Snapshot) {
+	_ = snapshot.Grouped() // populate .Children
 	k.reconcileGitHub(ctx, snapshot)
 	k.reconcileCluster(ctx, snapshot)
 }
 
-func (k *kale) updateInternalState(ctx context.Context, snapshot Snapshot) {
-	projects := snapshot.Grouped(ctx)
-
-	k.mu.Lock()
-	k.Projects = projects
-	k.mu.Unlock()
-}
-
-func (k *kale) reconcileGitHub(ctx context.Context, snapshot Snapshot) {
+func (k *kale) reconcileGitHub(ctx context.Context, snapshot *Snapshot) {
 	for _, proj := range snapshot.Projects {
 		ctx := CtxWithProject(ctx, proj.Project)
 		err := postHook(proj.Spec.GithubRepo,
@@ -491,29 +441,14 @@ func (k *kale) dispatch(r *http.Request) httpResult {
 		}
 		namespace := commitQName[sep+1:]
 
-		// resolve commitQName to a UID
-		var commitUID k8sTypes.UID
-		k.mu.RLock()
-	OuterLoop:
-		for _, proj := range k.Projects {
-			if proj.GetNamespace() != namespace {
-				continue
-			}
-			for _, commit := range proj.Children.Commits {
-				if commit.GetName()+"."+commit.GetNamespace() == commitQName {
-					commitUID = commit.GetUID()
-					break OuterLoop
-				}
-			}
-		}
-		k.mu.RUnlock()
-		if commitUID == "" {
+		commit := k.GetCommit(commitQName)
+		if commit == nil {
 			return httpResult{status: http.StatusNotFound, body: "not found"}
 		}
 
 		selectors := []string{
 			GlobalLabelName + "==" + k.cfg.AmbassadorID,
-			CommitLabelName + "==" + string(commitUID),
+			CommitLabelName + "==" + string(commit.GetUID()),
 		}
 		if logType == "deploy" {
 			selectors = append(selectors, ServicePodLabelName)
@@ -537,24 +472,16 @@ func (k *kale) dispatch(r *http.Request) httpResult {
 // UI. This is a map of all the projects plus nested data as
 // appropriate.
 func (k *kale) projectsJSON() string {
-	k.syncErrors()
+	snapshot := k.updateWebGroupedSnapshot()
 	k.mu.RLock()
 	defer k.mu.RUnlock()
 
-	var keys []string
-	for key, _ := range k.Projects {
-		keys = append(keys, string(key))
-	}
-	sort.Strings(keys)
-
-	var results struct {
+	results := struct {
 		Projects []*projectAndChildren `json:"projects"`
 		Errors   []recordedError       `json:"errors"`
-	}
-	results.Errors = k.GlobalErrors
-	results.Projects = make([]*projectAndChildren, 0, len(k.Projects))
-	for _, key := range keys {
-		results.Projects = append(results.Projects, k.Projects[k8sTypes.UID(key)])
+	}{
+		Projects: snapshot.Projects,
+		Errors:   snapshot.GlobalErrors,
 	}
 
 	bytes, err := json.MarshalIndent(results, "", "  ")
@@ -570,9 +497,20 @@ func (k *kale) projectsJSON() string {
 func (k *kale) GetProject(key string) *projectAndChildren {
 	k.mu.RLock()
 	defer k.mu.RUnlock()
-	for _, proj := range k.Projects {
+	for _, proj := range k.webSnapshot.Projects {
 		if key == proj.Key() {
 			return proj
+		}
+	}
+	return nil
+}
+
+func (k *kale) GetCommit(qname string) *commitAndChildren {
+	k.mu.RLock()
+	defer k.mu.RUnlock()
+	for _, commit := range k.webSnapshot.Commits {
+		if commit.GetName()+"."+commit.GetNamespace() == qname {
+			return commit
 		}
 	}
 	return nil
@@ -783,7 +721,7 @@ func (k *kale) calculateBuild(proj *Project, commit *ProjectCommit) []interface{
 	return []interface{}{job}
 }
 
-func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
+func (k *kale) reconcileCluster(ctx context.Context, snapshot *Snapshot) {
 	// reconcile commits
 	for _, proj := range snapshot.Projects {
 		ctx := CtxWithProject(ctx, proj.Project)
@@ -812,35 +750,16 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 	// reconcile things managed by commits
 	for _, commit := range snapshot.Commits {
 		ctx := CtxWithCommit(ctx, commit.ProjectCommit)
-		projectUID := k8sTypes.UID(commit.GetLabels()[ProjectLabelName])
-		var project *Project
-		for _, proj := range snapshot.Projects {
-			if proj.GetUID() == projectUID {
-				project = proj.Project
-			}
-		}
-		if project == nil {
-			reportRuntimeError(ctx, StepReconcileCommitsToAction,
-				errors.New("unable to pair ProjectCommit with Project"))
+		if commit.Parent == nil {
+			//reportRuntimeError(ctx, StepReconcileCommitsToAction,
+			//	errors.New("unable to pair ProjectCommit with Project"))
 			continue
 		}
-		ctx = CtxWithProject(ctx, project)
-		var commitBuilders []*k8sTypesBatchV1.Job
-		for _, job := range snapshot.Jobs {
-			if k8sTypes.UID(job.GetLabels()[CommitLabelName]) == commit.GetUID() {
-				commitBuilders = append(commitBuilders, job)
-			}
-		}
-		var commitRunners []*k8sTypesAppsV1.Deployment
-		for _, deployment := range snapshot.Deployments {
-			if k8sTypes.UID(deployment.GetLabels()[CommitLabelName]) == commit.GetUID() {
-				commitRunners = append(commitRunners, deployment)
-			}
-		}
+		ctx = CtxWithProject(ctx, commit.Parent.Project)
 
 		var runtimeErr, bugErr error
 		bugErr = safeInvoke(func() {
-			runtimeErr = k.reconcileCommit(ctx, project, commit.ProjectCommit, commitBuilders, commitRunners)
+			runtimeErr = k.reconcileCommit(ctx, commit)
 		})
 		if runtimeErr != nil {
 			reportRuntimeError(ctx, StepReconcileCommitsToAction, runtimeErr)
@@ -855,7 +774,12 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot Snapshot) {
 	}
 }
 
-func (k *kale) reconcileCommit(ctx context.Context, proj *Project, commit *ProjectCommit, builders []*k8sTypesBatchV1.Job, runners []*k8sTypesAppsV1.Deployment) error {
+func (k *kale) reconcileCommit(ctx context.Context, _commit *commitAndChildren) error {
+	proj := _commit.Parent.Project
+	commit := _commit.ProjectCommit
+	builders := _commit.Children.Builders
+	runners := _commit.Children.Runners
+
 	ctx = dlog.WithLogger(ctx, dlog.GetLogger(ctx).WithField("commit", commit.GetName()+"."+commit.GetNamespace()))
 	log := dlog.GetLogger(ctx)
 

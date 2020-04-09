@@ -4,6 +4,8 @@ import (
 	// standard library
 	"context"
 	"fmt"
+	"reflect"
+	"sort"
 	"time"
 
 	// 3rd party: k8s types
@@ -28,9 +30,12 @@ type Snapshot struct {
 	Commits     map[k8sTypes.UID]*commitAndChildren
 	Jobs        map[k8sTypes.UID]*k8sTypesBatchV1.Job
 	Deployments map[k8sTypes.UID]*k8sTypesAppsV1.Deployment
+	Errors      []recordedError
+
+	grouped *GroupedSnapshot `json:"-"`
 }
 
-func (in UntypedSnapshot) TypedAndIndexed(ctx context.Context) Snapshot {
+func (in UntypedSnapshot) TypedAndIndexed(ctx context.Context) *Snapshot {
 	var out Snapshot
 
 	// For built-in resource types, it is appropriate to a panic
@@ -89,7 +94,18 @@ func (in UntypedSnapshot) TypedAndIndexed(ctx context.Context) Snapshot {
 		out.Commits[outCommit.GetUID()] = &commitAndChildren{ProjectCommit: outCommit}
 	}
 
-	return out
+	return &out
+}
+
+// All lists are sorted by UID (which essentially means ordering is
+// arbitrary but stable).
+type GroupedSnapshot struct {
+	Projects     []*projectAndChildren
+	GlobalErrors []recordedError
+
+	OrphanedCommits     []*commitAndChildren
+	OrphanedJobs        []*k8sTypesBatchV1.Job
+	OrphanedDeployments []*k8sTypesAppsV1.Deployment
 }
 
 type recordedError struct {
@@ -109,6 +125,7 @@ type projectAndChildren struct {
 
 type commitAndChildren struct {
 	*ProjectCommit
+	Parent   *projectAndChildren `json:"-"`
 	Children struct {
 		Builders []*k8sTypesBatchV1.Job       `json:"builders"`
 		Runners  []*k8sTypesAppsV1.Deployment `json:"runners"`
@@ -116,50 +133,85 @@ type commitAndChildren struct {
 	} `json:"children"`
 }
 
-func (snapshot Snapshot) Grouped(ctx context.Context) map[k8sTypes.UID]*projectAndChildren {
-	// map[commitUID]*commitAndChildren
-	commits := make(map[k8sTypes.UID]*commitAndChildren)
-	for k, _v := range snapshot.Commits {
-		v := *_v
-		commits[k] = &v
+// Grouped (1) mutates the Snapshot such that the .Children and
+// .Parent members are populated, and (2) returns a top-level
+// GroupedSnapshot, that has pointers to the items in the original
+// Snapshot.
+func (in *Snapshot) Grouped() *GroupedSnapshot {
+	if in.grouped != nil {
+		return in.grouped
 	}
-	for _, job := range snapshot.Jobs {
-		key := k8sTypes.UID(job.GetLabels()[CommitLabelName])
-		if _, ok := commits[key]; !ok {
-			reportRuntimeError(ctx, StepBackground,
-				fmt.Errorf("unable to pair Job %q.%q with ProjectCommit; ignoring",
-					job.GetName(), job.GetNamespace()))
-			continue
-		}
-		commits[key].Children.Builders = append(commits[key].Children.Builders, job)
+	var out GroupedSnapshot
+
+	for _, projUID := range sortedUIDKeys(in.Projects) {
+		out.Projects = append(out.Projects, in.Projects[projUID])
 	}
-	for _, deployment := range snapshot.Deployments {
-		key := k8sTypes.UID(deployment.GetLabels()[CommitLabelName])
-		if _, ok := commits[key]; !ok {
-			reportRuntimeError(ctx, StepBackground,
-				fmt.Errorf("unable to pair Deployment %q.%q with ProjectCommit; ignoring",
-					deployment.GetName(), deployment.GetNamespace()))
-			continue
+	for _, commitUID := range sortedUIDKeys(in.Commits) {
+		commit := in.Commits[commitUID]
+		projUID := k8sTypes.UID(commit.GetLabels()[ProjectLabelName])
+		if proj, ok := in.Projects[projUID]; ok {
+			commit.Parent = proj
+			proj.Children.Commits = append(proj.Children.Commits, commit)
+		} else {
+			out.OrphanedCommits = append(out.OrphanedCommits, commit)
 		}
-		commits[key].Children.Runners = append(commits[key].Children.Runners, deployment)
+	}
+	for _, jobUID := range sortedUIDKeys(in.Jobs) {
+		job := in.Jobs[jobUID]
+		commitUID := k8sTypes.UID(job.GetLabels()[CommitLabelName])
+		if commit, ok := in.Commits[commitUID]; ok {
+			commit.Children.Builders = append(commit.Children.Builders, job)
+		} else {
+			out.OrphanedJobs = append(out.OrphanedJobs, job)
+		}
+	}
+	for _, deploymentUID := range sortedUIDKeys(in.Deployments) {
+		deployment := in.Deployments[deploymentUID]
+		commitUID := k8sTypes.UID(deployment.GetLabels()[CommitLabelName])
+		if commit, ok := in.Commits[commitUID]; ok {
+			commit.Children.Runners = append(commit.Children.Runners, deployment)
+		} else {
+			out.OrphanedDeployments = append(out.OrphanedDeployments, deployment)
+		}
+	}
+	sortErrors(in.Errors)
+	for _, err := range in.Errors {
+		if commit, ok := in.Commits[err.CommitUID]; ok {
+			commit.Children.Errors = append(commit.Children.Errors, err)
+		} else if project, ok := in.Projects[err.ProjectUID]; ok {
+			project.Children.Errors = append(project.Children.Errors, err)
+		} else {
+			out.GlobalErrors = append(out.GlobalErrors, err)
+		}
 	}
 
-	// map[projectUID]*projectAndChildren
-	projects := make(map[k8sTypes.UID]*projectAndChildren)
-	for k, _v := range snapshot.Projects {
-		v := *_v
-		projects[k] = &v
-	}
-	for _, commit := range commits {
-		key := k8sTypes.UID(commit.GetLabels()[ProjectLabelName])
-		if _, ok := projects[key]; !ok {
-			reportRuntimeError(ctx, StepBackground,
-				fmt.Errorf("unable to pair ProjectCommit %q.%q with Project; ignoring",
-					commit.GetName(), commit.GetNamespace()))
-			continue
-		}
-		projects[key].Children.Commits = append(projects[key].Children.Commits, commit)
+	in.grouped = &out
+	return in.grouped
+}
+
+// sortedUIDKeys takes a map[k8sTypes.UID]ANYTHING, and returns a
+// sorted list of the keys.  It is invalid to call it (it will panic)
+// when the input is not a map or the key of the map isn't a
+// k8sTypes.UID.
+func sortedUIDKeys(m interface{}) []k8sTypes.UID {
+	value := reflect.ValueOf(m)
+
+	out := make([]k8sTypes.UID, 0, value.Len())
+
+	iter := value.MapRange()
+	for iter.Next() {
+		out = append(out, iter.Key().Interface().(k8sTypes.UID))
 	}
 
-	return projects
+	sort.Slice(out, func(i, j int) bool {
+		return out[i] < out[j]
+	})
+
+	return out
+}
+
+func sortErrors(errs []recordedError) {
+	sort.Slice(errs, func(i, j int) bool {
+		return errs[i].Time.Before(errs[j].Time)
+	})
 }
