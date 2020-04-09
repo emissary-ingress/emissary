@@ -206,7 +206,7 @@ export class ProjectView extends IResourceView {
   <label class="row-col margin-right justify-right">Deployed Commits:</label>
   <div class="row-col">
     ${commits.length > 0 ? "" : "..."}
-    <div style="display:grid; grid-template-columns: 0.5fr 1fr 1fr 2fr;">
+    <div style="display:grid; grid-template-columns: 1fr 1fr 2fr;">
       ${commits.map((c)=>this.renderCommit(c))}
     </div>
   </div>
@@ -217,10 +217,7 @@ export class ProjectView extends IResourceView {
   renderCommit(commit) {
     return html`
   <div>
-    ${this.renderPull(commit)}
-  </div>
-  <div>
-    ${commit ? html`<a target="_blank" href="https://github.com/${this.project.repo}/tree/${commit.spec.ref}">${shortenRefName(commit.spec.ref)}</a>` : ""}
+    ${this.renderRef(commit)}
   </div>
   <div>
     <a target="_blank" href="https://github.com/${this.project.repo}/commit/${commit.spec.rev}">${commit.spec.rev.slice(0, 7)}...</a>
@@ -232,12 +229,24 @@ export class ProjectView extends IResourceView {
 `
   }
 
-  renderPull(commit) {
-    let matches = commit.spec.ref.match(/^refs\/pull\/([0-9]+)\/(head|merge)$/);
-    if (!matches)
-      return "";
-    let prNumber = matches[1];
-    return html`<a target="_blank" href="https://github.com/${this.project.repo}/pull/${prNumber}/">PR#${prNumber}</a>`;
+  renderRef(commit) {
+    let ref = commit.spec.ref
+    let sha = commit.spec.rev
+    let name = shortenRefName(ref)
+
+    let matches = ref.match(/^refs\/pull\/([0-9]+)\/(head|merge)$/)
+    if (matches) {
+      let prNumber = matches[1]
+      return html`<a target="_blank" href="https://github.com/${this.project.repo}/pull/${prNumber}/">PR#${prNumber}</a>`
+    }
+
+    matches = ref.match(/^refs\/heads\/(.*)$/)
+    if (matches) {
+      return html`<a target="_blank" href="https://github.com/${this.project.repo}/tree/${matches[1]}/">${name}</a>`
+    }
+
+    // We fallback to linking to the specific commit.
+    return html`<a target="_blank" href="https://github.com/${this.project.repo}/commit/${sha}/">${name}</a>`
   }
 
   renderBuild(commit, job) {
