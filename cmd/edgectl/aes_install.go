@@ -142,7 +142,6 @@ func aesInstall(cmd *cobra.Command, args []string) error {
 		if !skipReport {
 			i.generateCrashReport(runErrors[0])
 		}
-		i.show.Println()
 		i.show.Printf("Full logs at %s\n\n", i.logName)
 		return runErrors[0]
 	}
@@ -539,6 +538,7 @@ func (i *Installer) Perform(kcontext string) Result {
 	}
 
 	aesManifests, err := getManifest(fmt.Sprintf("https://%s/yaml/aes.yaml", manifestsDomain))
+
 	if err != nil {
 		return i.AESManifestsError(err)
 	}
@@ -643,6 +643,7 @@ func (i *Installer) Perform(kcontext string) Result {
 
 	// Wait for Ambassador Pod; grab AES install ID
 	i.ShowCheckingAESPodDeployment()
+
 	if err := i.loopUntil("AES pod startup", i.GrabAESInstallID, lc2); err != nil {
 		return i.AESPodStartupError(err)
 	}
@@ -662,6 +663,7 @@ func (i *Installer) Perform(kcontext string) Result {
 
 	if isKnownLocalCluster {
 		i.ShowLocalClusterDetected()
+		i.ShowAESInstallationPartiallyComplete()
 		return i.KnownLocalClusterResult()
 	}
 
@@ -671,6 +673,7 @@ func (i *Installer) Perform(kcontext string) Result {
 	if err := i.loopUntil("Load Balancer", i.GrabLoadBalancerAddress, lc5); err != nil {
 		return i.LoadBalancerError(err)
 	}
+
 	i.Report("cluster_accessible")
 	i.ShowAESInstallAddress(i.address)
 
@@ -697,6 +700,7 @@ func (i *Installer) Perform(kcontext string) Result {
 	buf := new(bytes.Buffer)
 	_ = json.NewEncoder(buf).Encode(regData)
 	resp, err := http.Post(regURL, "application/json", buf)
+
 	if err != nil {
 		return i.DNSNamePostError(err)
 	}
@@ -711,6 +715,7 @@ func (i *Installer) Perform(kcontext string) Result {
 	if resp.StatusCode != 200 {
 		message := strings.TrimSpace(string(content))
 		i.ShowFailedToCreateDNSName(message)
+		i.ShowAESInstallationPartiallyComplete()
 		return i.AESInstalledNoDNSResult(resp.StatusCode, message)
 	}
 
@@ -756,7 +761,7 @@ func (i *Installer) Perform(kcontext string) Result {
 
 	futureLogin := `In the future, to log in to the Ambassador Edge Policy Console, run 
 %s`
-	i.ShowWrapped(fmt.Sprintf(futureLogin, color.Bold.Sprintf("edgectl login "+i.hostname)))
+	i.ShowWrapped(fmt.Sprintf(futureLogin, color.Bold.Sprintf("$ edgectl login "+i.hostname)))
 
 	if err := i.CheckAESHealth(); err != nil {
 		i.Report("aes_health_bad", ScoutMeta{"err", err.Error()})
