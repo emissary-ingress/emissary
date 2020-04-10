@@ -48,17 +48,15 @@ class GettingStarted extends Component {
 
               <div id="QS-mainText1">Ambassador Edge Stack gives you:</div>
                 <div id="QS-mainTextSmall">
-                  <ul>
-                    <li className="QS-mainBullet" id="QS-bullet1">First-in-class Kubernetes ingress support with CRD- based configuration</li><br/>
+                  <p className="bulletText" id="QS-bullet1">First-in-class Kubernetes ingress support with CRD- based configuration</p><br/>
 
-                    <li className="QS-mainBullet" id="QS-bullet2">Authentication with OAuth/OIDC integration</li><br/>
+                  <p className="bulletText" id="QS-bullet2">Authentication with OAuth/OIDC integration</p><br/>
 
-                    <li className="QS-mainBullet" id="QS-bullet3">Integrations with tools like Grafana, Prometheus, Okta, Consul, and Istio</li><br/>
+                  <p className="bulletText" id="QS-bullet3">Integrations with tools like Grafana, Prometheus, Okta, Consul, and Istio</p><br/>
 
-                    <li className="QS-mainBullet" id="QS-bullet4">Layer 7 Load Balancing including support for circuit breakers and automatic retries</li><br/>
+                  <p className="bulletText" id="QS-bullet4">Layer 7 Load Balancing including support for circuit breakers and automatic retries</p><br/>
 
-                    <li className="QS-mainBullet" id="QS-bullet5">A Developer Portal with a fully customizable API catalog plus Swagger/OpenAPI support and more...</li>
-                  </ul>
+                  <p className="bulletText" id="QS-bullet5">A Developer Portal with a fully customizable API catalog plus Swagger/OpenAPI support and more...</p>
                 </div>
             </div>
 
