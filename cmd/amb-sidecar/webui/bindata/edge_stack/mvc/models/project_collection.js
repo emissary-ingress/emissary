@@ -32,7 +32,7 @@ class ProjectStore extends ResourceStore {
           collection.errors = updatedErrors
           collection.notify()
         }
-        collection.reconcile(snapshot.projects)
+        collection.reconcile(snapshot.projects || [])
       })
       .catch(err => console.log('Error fetching projects: ', err));
   }
