@@ -223,7 +223,6 @@ export class ProjectView extends IResourceView {
 
   renderDeployedCommits(prefix, commits) {
     commits = Array.from(commits);
-
     commits.sort((a,b) => {
       let delta = Date.parse(a.metadata.creationTimestamp) - Date.parse(b.metadata.creationTimestamp)
       if (delta === 0) {
@@ -239,6 +238,22 @@ export class ProjectView extends IResourceView {
         return 0
       }
     })
+
+    let byRef = new Map();
+    for (let c of commits) {
+      let ref = c.spec.ref
+      if (byRef.has(ref)) {
+        let orig = byRef.get(ref)
+        // keep the newer one
+        if (Date.parse(c.metadata.creationTimestamp) > Date.parse(orig.metadata.creationTimestamp)) {
+          byRef.set(ref, c)
+        }
+      } else {
+        byRef.set(ref, c)
+      }
+    }
+
+    commits = Array.from(byRef.values())
 
     return html`
 <div class="row line">
@@ -295,7 +310,8 @@ export class ProjectView extends IResourceView {
     } else if (commit.status.phase === "BuildFailed") {
       styles = "color:red"
     }
-    let cls = ["Building", "Deploying"].includes(commit.status.phase) ? "spin" : ""
+    // todo: for some reason we never see the Received phase
+    let cls = ["Received", "Building", "Deploying"].includes(commit.status.phase) ? "spin" : ""
     let selected = this.logSelected("build", commit) ? "selected" : ""
     return html`<div class="spinner ${cls}"></div><a class="log ${selected}" style="cursor:pointer;${styles}" @click=${()=>this.openTerminal("build", commit)}>build</a>`
   }
