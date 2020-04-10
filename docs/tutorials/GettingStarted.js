@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import CopyButton from '../../../../src/components/CodeBlock/CopyButton';
-import '../../../../src/components/layout.less';
+import '../../../../src/components/Layout/layout.less';
 import './getting-started.less';
 
 class GettingStarted extends Component {
