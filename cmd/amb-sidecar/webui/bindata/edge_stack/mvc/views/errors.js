@@ -71,6 +71,10 @@ class Errors extends View {
         color: blue;
         text-decoration: none;
       }
+
+      .link:hover {
+        cursor: pointer;
+      }
 `
   }
 

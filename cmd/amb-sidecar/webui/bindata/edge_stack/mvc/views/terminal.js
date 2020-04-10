@@ -1,7 +1,7 @@
 import {LitElement, html, css} from '../../vendor/lit-element.min.js'
 import {getCookie} from '../../components/cookies.js'
 import {ApiFetch} from "../../components/api-fetch.js"
-import {top, bottom, close} from './icons.js'
+import {top, bottom, close, tooltip} from './icons.js'
 
 // todo: vendor these
 import "https://cdn.jsdelivr.net/npm/xterm@4.4.0/lib/xterm.js"
@@ -31,6 +31,7 @@ class Term extends LitElement {
       ${top()}
       ${bottom()}
       ${close()}
+      ${tooltip()}
 `
   }
 
@@ -108,9 +109,15 @@ class Term extends LitElement {
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@4.4.0/css/xterm.css" integrity="sha256-I3n7q4Kl55oWvltoLRCCpA5HW8W3O34RUeC/ob43fWY=" crossorigin="anonymous">
 <div style="display:${this.source ? "block" : "none"}">
   <div class="controls">
-    <div class="close" @click=${()=>this.onClose()}></div>
-    <div class="bottom" @click=${()=>this.term.scrollToBottom()}></div>
-    <div class="top" @click=${()=>this.term.scrollToTop()}></div>
+    <div class="close" @click=${()=>this.onClose()}>
+      <div class="tooltip"><p>Close Terminal</p></div>
+    </div>
+    <div class="bottom" @click=${()=>this.term.scrollToBottom()}>
+      <div class="tooltip"><p>Scroll to Bottom</p></div>
+    </div>
+    <div class="top" @click=${()=>this.term.scrollToTop()}>
+      <div class="tooltip"><p>Scroll to Top</p></div>
+    </div>
   </div>
   <div id="terminal"></div>
 </div>

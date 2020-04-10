@@ -79,16 +79,8 @@ export class ProjectResource extends IResource {
     if (!this.prefix) {
       errors.set("prefix", "please supply a prefix")
     } else {
-      if (!/^\S+$/.test(this.prefix)) {
-        errors.set("prefix", "must not contain whitespace")
-      }
-
-      if (this.prefix[0] === "/") {
-        errors.set("prefix start", "cannot begin with /")
-      }
-
-      if (this.prefix.length > 1 && this.prefix[this.prefix.length-1] === "/") {
-        errors.set("prefix end", "cannot end with /")
+      if (!/^\/\S+\/$/.test(this.prefix)) {
+        errors.set("prefix", 'must not contain whitespace and must begin and end with a "/"')
       }
     }
 

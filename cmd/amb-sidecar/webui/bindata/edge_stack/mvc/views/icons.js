@@ -210,3 +210,33 @@ export function bottom() {
      }
 `
 }
+
+export function tooltip() {
+  return css`
+     .tooltip {
+       visibility: hidden;
+       position: absolute;
+       white-space: nowrap;
+
+       background-color: #dadada;
+       border-radius: 0.4em;
+
+       right: calc(105% + 0.3em);
+       top: calc(-105% - 0.3em);
+
+       z-index: 1;
+       opacity: 0;
+     }
+
+     .tooltip p {
+       margin: 0;
+       padding: 0.3em;
+     }
+
+     *:hover > .tooltip {
+       transition: all 0.1s linear 0.5s;
+       visibility: visible;
+       opacity: 1;
+     } 
+`
+}
