@@ -12,6 +12,7 @@ We recommend edgectl for [installing Ambassador Edge Stack](../../../tutorials/g
 - [Failed to register DNS name for the current installation](dns-name-body)
 - [Failed to retrieve the Host resource from your cluster](host-retrieval)
 - [Found existing AES CRD but no Ambassador Edge Stack installation](existing-crds)
+- [Found existing Ambassador Edge Stack installation](existing-installation)
 - [Found incompatible AES CRD versions](incompatible-crd-versions)
 - [kubectl not found in $PATH](no-kubectl)
 - [Timeout while waiting for AES manifests to be deployed](wait-for-aes)
