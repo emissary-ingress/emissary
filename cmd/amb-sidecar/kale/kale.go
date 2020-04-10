@@ -299,7 +299,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 		},
 		api.AuthenticatedHTTPHandler(unauthenticated, pubkey))
 	handler := http.StripPrefix("/edge_stack_ui/edge_stack/api/projects", authenticated).ServeHTTP
-	httpHandler.AddEndpoint("/edge_stack_ui/edge_stack/api/projects/snapshot", "kale projects api", handler)
+	httpHandler.AddEndpoint("/edge_stack_ui/edge_stack/api/projects/kale-snapshot", "kale projects api", handler)
 	httpHandler.AddEndpoint("/edge_stack_ui/edge_stack/api/projects/logs/", "kale logs api", handler)
 	githook := http.StripPrefix("/edge_stack_ui/edge_stack/api/projects", unauthenticated).ServeHTTP
 	httpHandler.AddEndpoint("/edge_stack_ui/edge_stack/api/projects/githook/", "kale githook", githook)
@@ -607,7 +607,7 @@ func (k *kale) dispatch(r *http.Request) httpResult {
 		default:
 			return httpResult{status: 500, body: fmt.Sprintf("don't know how to handle %q events", eventType)}
 		}
-	case "snapshot":
+	case "kale-snapshot":
 		return httpResult{status: 200, body: k.projectsJSON()}
 	case "logs":
 		logType := parts[1]
@@ -655,8 +655,9 @@ func (k *kale) dispatch(r *http.Request) httpResult {
 				}
 			},
 		}
+	default:
+		return httpResult{status: http.StatusNotFound, body: "not found"}
 	}
-	return httpResult{status: 400, body: "bad request"}
 }
 
 // Returns the a JSON string with all the data for the root of the

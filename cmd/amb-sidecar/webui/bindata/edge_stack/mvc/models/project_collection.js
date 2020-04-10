@@ -21,7 +21,7 @@ class ProjectStore extends ResourceStore {
   }
 
   _poll(collection) {
-    ApiFetch(`/edge_stack/api/projects/snapshot`, {
+    ApiFetch(`/edge_stack/api/projects/kale-snapshot`, {
       headers: {
         'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
       }
