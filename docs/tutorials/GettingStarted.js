@@ -33,6 +33,8 @@ class GettingStarted extends Component {
           break;
       }
     };
+
+    console.log(os);
     renderHeader(os);
   }
 
