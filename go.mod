@@ -12,7 +12,7 @@ require (
 	github.com/datawire/pf v0.0.0-20180510150411-31a823f9495a
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/ecodia/golang-awaitility v0.0.0-20180710094957-fb55e59708c7
-	github.com/envoyproxy/protoc-gen-validate v0.0.15-0.20190405222122-d6164de49109
+	github.com/envoyproxy/protoc-gen-validate v0.1.0
 	github.com/fsnotify/fsnotify v1.4.7
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/protobuf v1.3.2
@@ -30,22 +30,22 @@ require (
 	github.com/mitchellh/protoc-gen-go-json v0.0.0-20190813154521-ece073100ced
 	github.com/operator-framework/operator-sdk v0.16.0
 	github.com/pkg/browser v0.0.0-20180916011732-0a3d74bf9ce4
-	github.com/pkg/errors v0.8.1
+	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.4.0
-	golang.org/x/crypto v0.0.0-20191028145041-f83a4685e152
+	golang.org/x/crypto v0.0.0-20200128174031-69ecbb4d6d5d
 	golang.org/x/net v0.0.0-20191028085509-fe3aa8a45271
 	golang.org/x/sys v0.0.0-20191028164358-195ce5e7f934
-	google.golang.org/grpc v1.24.0
+	google.golang.org/grpc v1.27.0
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/yaml.v2 v2.2.7
-	helm.sh/helm/v3 v3.0.2
+	helm.sh/helm/v3 v3.1.2
 	istio.io/gogo-genproto v0.0.0-20190904133402-ee07f2785480
 	k8s.io/api v0.17.2
 	k8s.io/apimachinery v0.17.2
-	k8s.io/cli-runtime v0.0.0
+	k8s.io/cli-runtime v0.17.2
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/helm v2.16.5+incompatible
 	sigs.k8s.io/controller-runtime v0.5.2
