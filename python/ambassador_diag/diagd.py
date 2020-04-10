@@ -236,6 +236,13 @@ class DiagApp (Flask):
         # ...and reset next_timer_log so we don't log forever.
         self.next_timer_log = None
 
+    def update_estats(self) -> None:
+        try:
+            self.estats.update()
+        except Exception as e:
+            self.logger.error("could not update estats: %s" % e)
+            self.logger.exception(e)
+
 
 # get the "templates" directory, or raise "FileNotFoundError" if not found
 def get_templates_dir():
@@ -912,9 +919,6 @@ class AmbassadorEventWatcher(threading.Thread):
 
         return rqueue.get()
 
-    def update_estats(self) -> None:
-        self.post('ESTATS', '')
-
     def run(self):
         self.logger.info("starting Scout checker and timer logger")
         self.app.scout_checker = PeriodicTrigger(lambda: self.check_scout("checkin"), period=86400)     # Yup, one day.
@@ -926,16 +930,7 @@ class AmbassadorEventWatcher(threading.Thread):
             cmd, arg, rqueue = self.events.get()
             # self.logger.info("EVENT: %s" % cmd)
 
-            if cmd == 'ESTATS':
-                # self.logger.info("updating estats")
-                try:
-                    self._respond(rqueue, 200, 'updating')
-                    self.app.estats.update()
-                except Exception as e:
-                    self.logger.error("could not update estats: %s" % e)
-                    self.logger.exception(e)
-                    self._respond(rqueue, 500, 'Envoy stats update failed')
-            elif cmd == 'CONFIG_FS':
+            if cmd == 'CONFIG_FS':
                 try:
                     self.load_config_fs(rqueue, arg)
                 except Exception as e:
@@ -1277,7 +1272,7 @@ class AmbassadorEventWatcher(threading.Thread):
         app.next_timer_log = app.last_reconfigure + 10.0
 
         if app.health_checks and not app.stats_updater:
-            app.logger.debug("starting Envoy status updater")
+            app.logger.info("starting Envoy status updater")
             app.stats_updater = PeriodicTrigger(app.watcher.update_estats, period=5)
 
         # Check our environment...
