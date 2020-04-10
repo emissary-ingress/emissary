@@ -35,7 +35,7 @@ go 1.13
 
 require (
 	git.lukeshu.com/go/libsystemd v0.5.3
-	github.com/Masterminds/semver v1.4.2
+	github.com/Masterminds/semver v1.5.0
 	github.com/Masterminds/sprig v2.17.1+incompatible
 	github.com/aokoli/goutils v1.1.0 // indirect
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869
@@ -46,36 +46,37 @@ require (
 	github.com/fsnotify/fsnotify v1.4.7
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/protobuf v1.3.2
-	github.com/google/shlex v0.0.0-20181106134648-c34317bd91bf
+	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/google/uuid v1.1.1
 	github.com/gookit/color v1.2.3
 	github.com/gorilla/websocket v1.4.0
-	github.com/hashicorp/consul/api v1.1.0
-	github.com/iancoleman/strcase v0.0.0-20180726023541-3605ed457bf7
+	github.com/hashicorp/consul/api v1.3.0
+	github.com/iancoleman/strcase v0.0.0-20190422225806-e506e3ef7365
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/lyft/protoc-gen-star v0.4.4
 	github.com/mholt/archiver/v3 v3.3.0
-	github.com/miekg/dns v1.1.6
+	github.com/miekg/dns v1.1.22
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/mitchellh/protoc-gen-go-json v0.0.0-20190813154521-ece073100ced
+	github.com/operator-framework/operator-sdk v0.16.1-0.20200331173026-a00c1b716663
 	github.com/pkg/browser v0.0.0-20180916011732-0a3d74bf9ce4
 	github.com/pkg/errors v0.9.1
-	github.com/sirupsen/logrus v1.4.2
+	github.com/sirupsen/logrus v1.5.0
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.4.0
 	golang.org/x/crypto v0.0.0-20200220183623-bac4c82f6975
-	golang.org/x/net v0.0.0-20191004110552-13f9640d40b9
-	golang.org/x/sys v0.0.0-20191024073052-e66fe6eb8e0c
+	golang.org/x/net v0.0.0-20200226121028-0de0cce0169b
+	golang.org/x/sys v0.0.0-20200122134326-e047566fdf82
 	google.golang.org/grpc v1.27.0
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/yaml.v2 v2.2.8
-	helm.sh/helm/v3 v3.1.0
+	helm.sh/helm/v3 v3.1.2
 	istio.io/gogo-genproto v0.0.0-20190904133402-ee07f2785480
 	k8s.io/api v0.17.4
 	k8s.io/apimachinery v0.17.4
 	k8s.io/cli-runtime v0.17.4
-	k8s.io/client-go v0.17.4
+	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/helm v2.16.5+incompatible
 	sigs.k8s.io/controller-runtime v0.5.2
 	sigs.k8s.io/yaml v1.1.0
@@ -83,6 +84,7 @@ require (
 
 // From the go.mod files in some of our dependencies...
 replace (
-	github.com/Azure/go-autorest => github.com/Azure/go-autorest v13.3.2+incompatible // from helm.sh/helm/v3@v3.1.0
+	github.com/Azure/go-autorest => github.com/Azure/go-autorest v13.3.2+incompatible // from helm.sh/helm/v3@v3.1.0 and github.com/operator-framework/operator-sdk@v0.16.1-0.20200331173026-a00c1b716663
 	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20191216044856-a8371794149d // from helm.sh/helm/v3@v3.1.0
+	k8s.io/client-go => k8s.io/client-go v0.17.4 // from github.com/operator-framework/operator-sdk@v0.16.1-0.20200331173026-a00c1b716663
 )
