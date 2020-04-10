@@ -43,9 +43,15 @@ How do I hack on the UI?
 
 3. Visit in your browser:
 
-  - http://localhost:9000 to see all endpoints
-  - http://localhost:9000/dev/tests to run the javascript tests
-  - http://localhost:9000/dev/docs/ to read documentation for our UI code
+   - http://localhost:9000 to see all endpoints
+   - http://localhost:9000/dev/tests to run the javascript tests
+   - http://localhost:9000/dev/docs/ to read documentation for our UI code
+
+   Or run `edgectl login --namespace=ambassador localhost:9000`, then
+   replace "https://" with "http://" when it opens your web browser.
+   Note that you won't be able to run log in if you don't also have a
+   copy of Ambassador running in the cluster for the local copy to
+   talk to.
 
 4. Hack away at the files in `${PWD}/cmd/amb-sidecar/webui/bindata/`. Refresh (or shift-refresh)
    your browser as necessary to get the updated files.
