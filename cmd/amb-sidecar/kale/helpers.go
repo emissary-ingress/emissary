@@ -511,7 +511,7 @@ func (wg *WatchGroup) Wrap(ctx context.Context, listener func(*k8s.Watcher)) fun
 		if wg.count == 0 {
 			err := safeInvoke(func() { listener(w) })
 			if err != nil {
-				dlog.GetLogger(ctx).Printf("watch error: %+v", err)
+				reportThisIsABug(ctx, err)
 			}
 		}
 	}
