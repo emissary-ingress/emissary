@@ -93,12 +93,15 @@ rules:
 - apiGroups: ["getambassador.io"]
   resources: [ "projects", "projectcommits", "mappings" ]
   verbs: [ "get", "list", "watch" ]
-- apiGroups: [""]
-  resources: [ "statefulsets" ]
+- apiGroups: ["apps"]
+  resources: [ "depoyments" ]
   verbs: [ "get", "list", "watch" ]
 - apiGroups: ["batch"]
   resources: [ "jobs" ]
   verbs: [ "get", "list", "watch" ]
+- apiGroups: [""]
+  resources: [ "pods" ]
+  verbs: [ "get", "list" ]
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
