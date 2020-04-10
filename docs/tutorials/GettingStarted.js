@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import Layout from '../../../../src/components/Layout';
 import CopyButton from '../../../../src/components/CodeBlock/CopyButton';
 import './getting-started.less';
 
@@ -40,7 +39,6 @@ class GettingStarted extends Component {
 
   render() {
     return (
-      <Layout>
       <div id="QS-overlay">
         <div className="QS-grid">
 
@@ -190,7 +188,6 @@ class GettingStarted extends Component {
 
         </div>
       </div >
-    </Layout>
     )
   }
 }
