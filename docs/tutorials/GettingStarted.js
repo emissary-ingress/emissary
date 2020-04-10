@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import CopyButton from '../../../../src/components/CodeBlock/CopyButton';
-import Layout from '../../../../src/components/Layout';
+import '../../../../src/components/layout.less';
 import './getting-started.less';
 
 class GettingStarted extends Component {
@@ -8,7 +8,7 @@ class GettingStarted extends Component {
     var os = "other";
     if (/Mac(intosh|Intel|PPC|68K)/.test(window.navigator.platform)) {
       os = 'mac';
-    } else if (/Win(dows|36|64|CE)/.test(window.navigator.platform)) {
+    } else if (/Win(dows|32|64|CE)/.test(window.navigator.platform)) {
       os = 'windows';
     } else if (/Linux/.test(window.navigator.platform)) {
       os = 'linux';
@@ -40,7 +40,6 @@ class GettingStarted extends Component {
 
   render() {
     return (
-      <Layout>
         <div id="QS-overlay">
           <div className="QS-grid">
 
@@ -188,7 +187,6 @@ class GettingStarted extends Component {
 
           </div>
         </div >
-      </Layout>
     )
   }
 }
