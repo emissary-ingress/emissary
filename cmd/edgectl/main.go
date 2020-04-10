@@ -11,8 +11,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const UnknownVersion = "(unknown version)"
+
 // Version is inserted at build using --ldflags -X
-var Version = "(unknown version)"
+var Version = UnknownVersion
 
 const (
 	socketName = "/var/run/edgectl.socket"

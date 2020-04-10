@@ -16,6 +16,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 	"syscall"
 	"time"
@@ -56,6 +57,12 @@ const (
 	// env variable used for overriding the image tag (ie, '1.3.2')
 	// this will install the latest Chart from the Helm repo, but with an overridden `image.tag`
 	defEnvVarImageTag = "AES_IMAGE_TAG"
+
+	// defHelmValueRootEdgectlInfo is a Helm value root where edgectl info will be added
+	defHelmValueRootEdgectlInfo = "podLabels"
+
+	// defMetadataLabelsBase is the base for all the metadata labels
+	defMetadataLabelsBase = "getambassador.io"
 )
 
 var validEmailAddress = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
@@ -618,6 +625,25 @@ func (i *Installer) Perform(kcontext string) Result {
 		}
 
 		i.clusterinfo.CopyChartValuesTo(chartValues)
+
+		reportedVersion := "unknown"
+		if Version != UnknownVersion {
+			reportedVersion = Version
+			// replace all the forbidden chars in the value by a `-`
+			for _, forbidden := range []string{",", " ", "\\", "/", "(", ")", "\"", "*", "^", "$", "#", "@", "\n", "\t"} {
+				reportedVersion = strings.ReplaceAll(reportedVersion, forbidden, "-")
+			}
+		}
+
+		// Save some environment info as Helm values
+		currentTime := time.Now()
+		chartValues[defHelmValueRootEdgectlInfo] = map[string]interface{}{
+			fmt.Sprintf("%s/install-cluster-type", defMetadataLabelsBase): i.clusterinfo.name,
+			fmt.Sprintf("%s/install-date", defMetadataLabelsBase):         currentTime.Format("2006-01-02.15-04-05"),
+			fmt.Sprintf("%s/installer-version", defMetadataLabelsBase):    reportedVersion,
+			fmt.Sprintf("%s/installer-os", defMetadataLabelsBase):         runtime.GOOS,
+			fmt.Sprintf("%s/installer-arch", defMetadataLabelsBase):       runtime.GOARCH,
+		}
 
 		installedRelease, err := chartDown.Install(defInstallNamespace, chartValues)
 		if err != nil {
