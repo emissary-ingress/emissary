@@ -1,0 +1,229 @@
+#QS-overlay {
+  position: fixed; /* Sit on top of the page content */
+  display: block; 
+  width: 100%; /* Full width (cover the whole page) */
+  height: 100%; /* Full height (cover the whole page) */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: white;
+  z-index: 2; /* Specify a stack order in case you're using a different order for other elements */
+  cursor: default; /* Add a pointer on hover */
+}
+.QS-grid {
+  display: grid;
+  grid-template-areas: 
+  "main header1 header2"
+  "main sidebar1 sidebar1"
+  "main sidebar1 sidebar1"
+  "main sidebar1 sidebar1"
+  "main sidebar2 sidebar2"
+  "main sidebar2 sidebar2"
+  "main sidebar2 sidebar2"
+  "main sidebar3 sidebar3"
+  "main sidebar3 sidebar3"
+  "main sidebar3 sidebar3";
+  grid-auto-flow: column;
+  grid-gap: 20px;
+  grid-column-gap: 40px;
+  align-items: start;
+  margin-top: 70px;
+  margin-left: 50px;
+  cursor: default;
+}
+@media (max-width: 1400px) {
+  #QS-bullet5 {
+    display: none;
+  }
+}
+@media (max-width: 1250px) {
+  #QS-bullet4 {
+  display: none;
+  }
+}
+@media (max-width: 1200px) {
+  .QS-grid {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 43px);
+    grid-template-areas: 
+    "header1 header2"
+    "sidebar1 sidebar1"
+    "sidebar1 sidebar1"
+    "sidebar1 sidebar1"
+    "sidebar2 sidebar2"
+    "sidebar2 sidebar2"
+    "sidebar2 sidebar2"
+    "sidebar3 sidebar3"
+    "sidebar3 sidebar3"
+    "sidebar3 sidebar3"
+    "main main";
+  }
+  .QS-main {
+    width: 550px;
+  }
+}
+.QS-rightTopWrapper {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  margin-bottom: 5px;
+  margin-left: 40px;
+}
+.QS-header1 {
+  color: #5F3EFF;
+  font-size: 1.5em;
+  font-weight: 600;
+  font-style: italic;
+  width: 280px;
+  position: relative;
+  grid-area: header1;
+  z-index: 2;
+  display: none;
+}
+#QS-displayMac, #QS-displayLinux, #QS-displayWindows {
+  display: none;
+  margin-top: 25px;
+}
+.QS-moreInstallOptions {
+  font-size: 1.2em;
+  font-weight: 600;
+  width: 300px;
+  position: relative;
+  grid-area: header2;
+  z-index: 2;
+  cursor: pointer;
+}
+a#QS-moreInstallOptions {
+  color: darkgrey;
+}
+.QS-main {
+  background-image: linear-gradient(#EEEEFF, white);
+  border: 0.1875em solid black;
+  border-radius: 20px;
+  box-shadow: 0.375em 0.375em 0 0 rgba(15, 28, 63, 0.125);
+  grid-area: main;
+  padding: 5%;
+  margin: 20px 0 0 15px;
+  height: 570px;
+  width: 620px;
+  position: relative;
+  z-index: 2;
+  cursor: default;
+}
+
+#QS-mainText1 {
+  color: darkgrey;
+  font-weight: 700;
+  font-size: 2em;
+  display: inline-block;
+  position: relative;
+  text-align: center;
+  z-index: 2;
+  padding: 10px 20px 10px 20px;
+}
+li.QS-mainBullet {
+  list-style-type: none;
+}
+#QS-mainTextSmall {
+  font-size: 1.26em;
+  color:black;
+  font-style: default;
+  padding: 20px 20px 20px 0px;
+}
+#QS-showMacAside1, #QS-showLinuxAside1, #QS-showWindowsAside1 {
+  display: none;
+}
+#QS-showMacAside2, #QS-showLinuxAside2, #QS-showWindowsAside2 {
+  display: none;
+}
+.QS-aside1 {
+  border: 0.1875em solid black;
+  border-radius: 20px;
+  box-shadow: 0.375em 0.375em 0 0 rgba(15, 28, 63, 0.125);
+  grid-area: sidebar1;
+  height: 160px;
+  width: 550px;
+  position: relative;
+  margin-top: -21px;
+  padding-top: 15px;
+  padding-left: 30px;
+  display: flex;
+  z-index: 2;
+}
+.QS-aside2 {
+  border: 0.1875em solid black;
+  border-radius: 20px;
+  box-shadow: 0.375em 0.375em 0 0 rgba(15, 28, 63, 0.125);
+  grid-area: sidebar2;
+  height: 160px;
+  width: 550px;
+  position: relative;
+  padding-top: 15px;
+  padding-left: 30px;
+  display: flex;
+  z-index: 2;
+}
+.QS-aside3 {
+  border: 0.1875em solid black;
+  border-radius: 20px;
+  box-shadow: 0.375em 0.375em 0 0 rgba(15, 28, 63, 0.125);
+  grid-area: sidebar3;
+  height: 160px;
+  width: 550px;
+  position: relative;
+  padding-top: 15px;
+  padding-left: 30px;
+  display: flex;
+  z-index: 2;
+}
+.QS-codeblockInstall {
+  font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+  font-size: 16px;
+  padding: 10px 15px;
+  margin: 0.5em 0 .5em;
+  overflow: scroll;
+  background-color: #f5f2f0;
+  text-align: left;
+  white-space: pre;
+  word-spacing: normal;
+  word-break: normal;
+  word-wrap: normal;
+  line-height: 55px;
+  letter-spacing: 0.2px;
+  margin-bottom: 1.05rem;
+  width: 485px;
+}
+.QS-Aside3codeblockInstall {
+  font-size: 18px;
+  padding: 5px 15px;
+  margin: 0.2em 0 .5em;
+  overflow: auto;
+  background-color: white;
+  text-align: left;
+  white-space: pre;
+  word-spacing: normal;
+  word-break: normal;
+  word-wrap: normal;
+  line-height: 30px;
+  letter-spacing: 0.2px;
+  margin-bottom: 1.05rem;
+  width: 470px;
+}
+.QS-asideText {
+  font-weight: 600;
+  font-size: 1.7em;
+}
+.QS-copyButton {
+  cursor: pointer;
+  position: absolute;
+  display: flex;
+  bottom: 36px;
+  right: 6px;
+}
+.QS-token-function {
+  color: #FF4329;
+}
+.QS-windowsDownloadButton {
+  color: black;
+}

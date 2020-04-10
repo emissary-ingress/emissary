@@ -4,8 +4,7 @@ The Ambassador Edge Stack can be installed in a variety of ways. Please see the 
 
 # Install on Mac / Linux / Windows 
 
-In just four minutes, your cluster will be routing HTTPS requests from the Internet to a backend service. The Ambassador Edge Stack is deployed to Kubernetes via YAML for MacOS, Linux, and
-Windows. 
+In just four minutes, your cluster will be routing HTTPS requests from the Internet to a backend service. The Ambassador Edge Stack is deployed to Kubernetes via YAML for MacOS, Linux, and Windows. 
 
 ### Install on MacOS <img class="os-logo" src="../../images/apple.png"/>
 
@@ -22,6 +21,11 @@ Windows.
 
 2. Run the installer with `edgectl install`
 
+*To make the installer executable on Catalina, run the following command:
+
+    ```shell
+    xattr -d com.apple.quarantine /path/to/file
+    ```
 
 ### Install on Linux <img class="os-logo" src="../../images/linux.png"/> 
 

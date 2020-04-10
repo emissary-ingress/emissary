@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import Layout from '../../../../src/components/Layout';
 import CopyButton from '../../../../src/components/CodeBlock/CopyButton';
+import './gettting-started.less';
 
 class GettingStarted extends Component {
   componentDidMount() {
@@ -12,9 +13,6 @@ class GettingStarted extends Component {
     } else if (/Linux/.test(window.navigator.platform)) {
       os = 'linux';
     }
-
-    os = 'mac';
-    console.log(os);
 
     function renderHeader() {
       switch (os) {
@@ -35,7 +33,6 @@ class GettingStarted extends Component {
           break;
       }
     };
-
     renderHeader(os);
   }
 
@@ -46,32 +43,35 @@ class GettingStarted extends Component {
         <div className="QS-grid">
 
           <div className="QS-main">
+
             <div id="QS-mainText1">Ambassador Edge Stack gives you:</div>
-            <div id="QS-mainTextSmall">
-              <ul>
-                <li className="QS-mainBullets">First-in-class Kubernetes ingress support with CRD- based configuration</li><br/>
+              <div id="QS-mainTextSmall">
+                <ul>
+                  <li className="QS-mainBullet" id="QS-bullet1">First-in-class Kubernetes ingress support with CRD- based configuration</li><br/>
 
-                <li className="QS-mainBullets">Authentication with OAuth/OIDC integration</li><br/>
+                  <li className="QS-mainBullet" id="QS-bullet2">Authentication with OAuth/OIDC integration</li><br/>
 
-                <li className="QS-mainBullets">Integrations with tools like Grafana, Prometheus, Okta, Consul, and Istio</li><br/>
+                  <li className="QS-mainBullet" id="QS-bullet3">Integrations with tools like Grafana, Prometheus, Okta, Consul, and Istio</li><br/>
 
-                <li className="QS-mainBullets">Layer 7 Load Balancing including support for circuit breakers and automatic retries</li><br/>
+                  <li className="QS-mainBullet" id="QS-bullet4">Layer 7 Load Balancing including support for circuit breakers and automatic retries</li><br/>
 
-                <li className="QS-mainBullets">A Developer Portal with a fully customizable API catalog plus Swagger/OpenAPI support and more...</li>
-              </ul>
+                  <li className="QS-mainBullet" id="QS-bullet5">A Developer Portal with a fully customizable API catalog plus Swagger/OpenAPI support and more...</li>
+                </ul>
+              </div>
+          </div>
+
+          <span className="QS-rightTopWrapper">
+            <div id="QS-header1">
+              <span id="QS-showMac" data-os="mac" className="QS-header1">Mac<img className="os-logo" src="../../images/apple.png" /></span>
+
+              <span id="QS-showLinux" data-os="linux" className="QS-header1">Linux<img className="os-logo" src="../../images/linux.png" /></span>
+
+              <span id="QS-showWindows" data-os="windows" className="QS-header1">Windows<img className="os-logo" src="../../images/windows.png" /></span>
             </div>
-          </div>
 
-          <div id="QS-header1">
-            <span id="QS-showMac" data-os="mac" className="QS-header1">Mac<img className="os-logo" src="../../images/apple.png" /></span>
-
-            <span id="QS-showLinux" data-os="linux" className="QS-header1">Linux<img className="os-logo" src="../../images/linux.png" /></span>
-
-            <span id="QS-showWindows" data-os="windows" className="QS-header1">Windows<img className="os-logo" src="../../images/windows.png" /></span>
-          </div>
-
-          <div className="QS-moreInstallOptions"><a id="QS-moreInstallOptions" href="../../topics/install">More Install Options</a></div>
-
+            <div className="QS-moreInstallOptions"><a id="QS-moreInstallOptions" href="../../topics/install">More Install Options</a>
+            </div>
+          </span>
 
           <div className="QS-aside1">
             <div id="QS-showMacAside1" data-os="mac" className="QS-asideText">
@@ -183,7 +183,7 @@ class GettingStarted extends Component {
                   <a href="../../topics/install/installation-success/">➞ See how Ambassador works with a service.</a><br/>
                   <a href="../../topics/using/">➞ Check out custom options and integrations.</a>  
                   </div>
-                </div>
+            </div>
           </div>
 
         </div>
