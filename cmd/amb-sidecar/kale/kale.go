@@ -554,9 +554,9 @@ func (k *kale) handlePush(r *http.Request, key string) httpResult {
 
 	proj := k.GetProject(key)
 	if proj == nil {
-		reportRuntimeError(ctx, StepWebhookUpdate,
-			errors.New("no such project"))
-		return httpResult{status: 404, body: fmt.Sprintf("no such project %s", key)}
+		err := errors.Errorf("Git webhook called for non-existent project: %q")
+		reportRuntimeError(ctx, StepWebhookUpdate, err)
+		return httpResult{status: 404, body: err.Error()}
 	}
 	ctx = CtxWithProject(ctx, proj.Project)
 
