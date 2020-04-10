@@ -306,28 +306,29 @@ func (in *Snapshot) Grouped() *GroupedSnapshot {
 		}
 		// Don't worry about orphaned Events--we expect a lot
 		// of them, just drop them on the floor.
-		switch event.InvolvedObject.Kind {
-		case "ProjectController":
+		kind := vk{event.InvolvedObject.APIVersion, event.InvolvedObject.Kind}
+		switch kind {
+		case vk{"getambassador.io/v2", "ProjectController"}:
 			if controller, ok := in.Controllers[event.InvolvedObject.UID]; ok {
 				controller.Children.Errors = append(controller.Children.Errors, event)
 			}
-		case "Project":
+		case vk{"getambassador.io/v2", "Project"}:
 			if project, ok := in.Projects[event.InvolvedObject.UID]; ok {
 				project.Children.Errors = append(project.Children.Errors, event)
 			}
-		case "ProjectCommit":
+		case vk{"getambassador.io/v2", "ProjectCommit"}:
 			if commit, ok := in.Commits[event.InvolvedObject.UID]; ok {
 				commit.Children.Errors = append(commit.Children.Errors, event)
 			}
-		case "Job":
+		case vk{"batch/v1", "Job"}:
 			if job, ok := in.Jobs[event.InvolvedObject.UID]; ok {
 				job.Children.Events = append(job.Children.Events, event)
 			}
-		case "Deployment":
+		case vk{"apps/v1", "Deployment"}:
 			if deployment, ok := in.Deployments[event.InvolvedObject.UID]; ok {
 				deployment.Children.Events = append(deployment.Children.Events, event)
 			}
-		case "Pod":
+		case vk{"v1", "Pod"}:
 			if pod, ok := in.Pods[event.InvolvedObject.UID]; ok {
 				pod.Children.Events = append(pod.Children.Events, event)
 			}
@@ -336,6 +337,11 @@ func (in *Snapshot) Grouped() *GroupedSnapshot {
 
 	in.grouped = &out
 	return in.grouped
+}
+
+type vk struct {
+	apiVersion string
+	kind       string
 }
 
 // sortedUIDKeys takes a map[k8sTypes.UID]ANYTHING, and returns a

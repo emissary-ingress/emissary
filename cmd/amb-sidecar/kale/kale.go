@@ -215,12 +215,16 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 			{Kind: "deployments.apps", LabelSelector: labelSelector},
 			{Kind: "pods.", LabelSelector: labelSelector},
 
-			{Kind: "events.", FieldSelector: "involvedObject.apiVersion=getmabassador.io/v2,involvedObject.kind=ProjectController"},
-			{Kind: "events.", FieldSelector: "involvedObject.apiVersion=getmabassador.io/v2,involvedObject.kind=Project"},
-			{Kind: "events.", FieldSelector: "involvedObject.apiVersion=getmabassador.io/v2,involvedObject.kind=ProjectCommit"},
-			{Kind: "events.", FieldSelector: "involvedObject.apiVersion=batch/v1,involvedObject.kind=Job"},
-			{Kind: "events.", FieldSelector: "involvedObject.apiVersion=apps/v1,involvedObject.kind=Deployment"},
-			{Kind: "events.", FieldSelector: "involvedObject.apiVersion=v1,involvedObject.kind=Pod"},
+			// BUG(lukeshu): It seems that if we give a watcher multiple queries with the same type but
+			// different field selectors, only 1 of their callbacks gets called.  That's a bug in
+			// github.com/datawire/ambassador/pkg/k8s, but I don't have time to fix it now.
+			{Kind: "events."},
+			//{Kind: "events.", FieldSelector: "involvedObject.apiVersion=getmabassador.io/v2,involvedObject.kind=ProjectController"},
+			//{Kind: "events.", FieldSelector: "involvedObject.apiVersion=getmabassador.io/v2,involvedObject.kind=Project"},
+			//{Kind: "events.", FieldSelector: "involvedObject.apiVersion=getmabassador.io/v2,involvedObject.kind=ProjectCommit"},
+			//{Kind: "events.", FieldSelector: "involvedObject.apiVersion=batch/v1,involvedObject.kind=Job"},
+			//{Kind: "events.", FieldSelector: "involvedObject.apiVersion=apps/v1,involvedObject.kind=Deployment"},
+			//{Kind: "events.", FieldSelector: "involvedObject.apiVersion=v1,involvedObject.kind=Pod"},
 		}
 
 		for _, query := range queries {
