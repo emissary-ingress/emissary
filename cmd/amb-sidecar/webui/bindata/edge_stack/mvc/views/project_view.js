@@ -294,7 +294,7 @@ export class ProjectView extends IResourceView {
       return html`<a target="_blank" href="https://github.com/${this.project.repo}/pull/${prNumber}/">PR#${prNumber}</a>`
     }
 
-    matches = ref.match(/^refs\/heads\/(.*)$/)
+    matches = ref.match(/^refs\/(?:heads|tags)\/(.*)$/)
     if (matches) {
       return html`<a target="_blank" href="https://github.com/${this.project.repo}/tree/${matches[1]}/">${name}</a>`
     }
