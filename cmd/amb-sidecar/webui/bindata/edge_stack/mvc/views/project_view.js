@@ -25,9 +25,48 @@ export class ProjectView extends IResourceView {
   static get styles() {
     return css`
       ${super.styles}
+
       label.errors {
         font-weight: 600;
         padding-left: 5px;
+      }
+
+      .log {
+        display: inline-block;
+        padding: 0 4px;
+        border-radius: 4px;
+      }
+
+      .selected {
+        background-color: #dadada;
+      }
+
+      .spinner {
+        display: inline-block;
+        width: 18px;
+        height: 18px;
+        border-radius: 9px;
+        margin: 0 4px;
+      }
+
+      .spin {
+        border: 4px solid #dadada;
+        border-top: 4px solid blue;
+        animation-name: spin;
+        animation-timing-function: linear;
+        animation-iteration-count: infinite;
+        animation-duration: 2s;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      @keyframes scale {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.2); }
+        100% { transform: scale(1); }
       }
 `
   }
@@ -223,8 +262,8 @@ export class ProjectView extends IResourceView {
     <a target="_blank" href="https://github.com/${this.project.repo}/commit/${commit.spec.rev}">${commit.spec.rev.slice(0, 7)}...</a>
   </div>
   <div class="justify-right">
-    ${(commit.children.builders || []).length > 0 ? commit.children.builders.map(p=>this.renderBuild(commit, p)) : html`<span style="opacity:0.5">build</span>`} |
-    ${(commit.children.runners || []).length > 0 ? commit.children.runners.map(p=>this.renderPreview(commit, p)) : html`<span style="opacity:0.5">log</span> | <span style="opacity:0.5">url</span>`}
+    ${(commit.children.builders || []).length > 0 ? commit.children.builders.map(p=>this.renderBuild(commit, p)) : html`<span class="log" style="opacity:0.5">build</span>`} |
+    ${(commit.children.runners || []).length > 0 ? commit.children.runners.map(p=>this.renderPreview(commit, p)) : html`<span class="log" style="opacity:0.5">log</span> | <span class="log" style="opacity:0.5">url</span>`}
   </div>
 `
   }
@@ -251,31 +290,30 @@ export class ProjectView extends IResourceView {
 
   renderBuild(commit, job) {
     var styles = "color:blue"
-    if ((job.status.conditions||[]).some((cond)=>{return cond.type==="Complete" && cond.status==="True"})) {
+    if (["Deploying", "Deployed"].includes(commit.status.phase)) {
       styles = "color:green"
-    } else if ((job.status.conditions||[]).some((cond)=>{return cond.type==="Failed" && cond.status==="True"})) {
+    } else if (commit.status.phase === "BuildFailed") {
       styles = "color:red"
     }
-    let selected = this.logSelected("build", commit) ? "background-color:#dcdcdc" : ""
-    return html`<a style="cursor:pointer;${styles};${selected}" @click=${()=>this.openTerminal("build", commit)}>build</a>`
+    let cls = ["Building", "Deploying"].includes(commit.status.phase) ? "spin" : ""
+    let selected = this.logSelected("build", commit) ? "selected" : ""
+    return html`<div class="spinner ${cls}"></div><a class="log ${selected}" style="cursor:pointer;${styles}" @click=${()=>this.openTerminal("build", commit)}>build</a>`
   }
 
-  renderPreview(commit, statefulset) {
+  renderPreview(commit, deployment) {
     var styles = "color:blue"
-    if ((statefulset.status.observedGeneration === statefulset.metadata.generation) &&
-        (statefulset.status.currentRevision === statefulset.status.updateRevision) &&
-        (statefulset.status.readyReplicas >= statefulset.spec.replicas)) {
+    if (commit.status.phase === "Deployed") {
       styles = "color:green"
+    } else if (commit.status.phase === "DeployFailed") {
+      styles = "color:red"
     }
-    // TODO: We'd have to inspect individual pods to detect a failure :(
-    //styles = "color:red"
-    let selected = this.logSelected("deploy", commit) ? "background-color:#dcdcdc" : ""
+    let selected = this.logSelected("deploy", commit) ? "selected" : ""
     let url = `https://${this.project.host}` + (commit.spec.isPreview
                                                  ? `/.previews${this.project.prefix}${commit.spec.rev}/`
                                                  : `${this.project.prefix}`);
     return html`
-<a style="cursor:pointer;${styles};${selected}" @click=${()=>this.openTerminal("deploy", commit)}>log</a> |
-<a style="text-decoration:none;${styles}" target="_blank" href="${url}">url</a>
+<a class="log ${selected}" style="cursor:pointer;${styles}" @click=${()=>this.openTerminal("deploy", commit)}>log</a> |
+<a class="log" style="text-decoration:none;${styles}" target="_blank" href="${url}">url</a>
 `
   }
 
