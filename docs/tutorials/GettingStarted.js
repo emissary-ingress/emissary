@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import Layout from '../../../../src/components/Layout';
 import CopyButton from '../../../../src/components/CodeBlock/CopyButton';
-import './gettting-started.less';
+import './getting-started.less';
 
 class GettingStarted extends Component {
   componentDidMount() {
