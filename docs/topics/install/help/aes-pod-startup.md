@@ -7,7 +7,7 @@ The installer failed to communicate with an Ambassador Edge Stack (AES) Pod in y
 * What is the status of the associated Deployment?
   * `kubectl -n ambassador get deploy ambassador`
   * `kubectl -n ambassador describe deploy ambassador`
-* What Pods exist in the ambassador namespace?
+* What Pods exist in the `ambassador` namespace?
   * `kubectl -n ambassador get po`
 * If there is an Ambassador Pod, what do the logs tell us?
   * `kubectl -n ambassador logs <name of the pod>`

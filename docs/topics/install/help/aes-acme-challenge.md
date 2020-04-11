@@ -10,4 +10,4 @@ The installer could not verify that Ambassador Edge Stack (AES) is answering que
    edgectl install
    ```
 
-Don't worry: it is safe to run the installer repeatedly on a cluster.
+Don't worry: it is safe to run the installer repeatedly on a Kubernetes cluster.
