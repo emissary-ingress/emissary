@@ -4,12 +4,14 @@ The installer could not access the EdgeStack.me service to acquire a DNS name fo
 
 ## What's next?
 
-This is likely an intermittent failure of the service. Please try again later. Simply run the installer again:
+This is likely an intermittent failure of the EdgeStack.me service. Sorry about that!
+
+Please try again later. Simply run the installer again:
 
 ```shell
 edgectl install
 ```
 
-Don't worry: it is safe to run the installer repeatedly on a cluster.
+Don't worry: it is safe to run the installer repeatedly on a Kubernetes cluster.
 
 If this failure persists, please get in touch on [Slack](http://d6e.co/slack).
