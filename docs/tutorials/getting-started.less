@@ -1,0 +1,197 @@
+
+.QS-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 755px) 0px;
+  grid-template-areas: 
+  "wrapper"
+  "sidebar1"
+  "sidebar2"
+  "sidebar3"
+  "main";
+  grid-gap: 20px;
+  margin-top: -20px;
+  align-items: start;
+  cursor: default;
+  overflow: hidden;
+}
+
+@media (max-width: 800px) {
+  .QS-aside1, .QS-aside2, .QS-aside3 {
+    font-size: .8em;
+   }
+   .QS-Aside3codeblockInstall {
+     max-width: 80%;
+  }
+}
+@media (max-width: 320px) {
+  .QS-codeblockInstall1 {
+    max-width: 25%;
+  }
+  .QS-aside1, .QS-aside2, .QS-aside3 {
+   font-size: .8em;
+  }
+  .QS-Aside3codeblockInstall {
+    max-width: 85%;
+  }
+}
+.QS-rightTopWrapper {
+  display: flex;
+  justify-content: space-between;
+  grid-area: wrapper;
+  margin-bottom: 5px;
+}
+.QS-header1 {
+  color: #5F3EFF;
+  font-size: 1.5em;
+  font-weight: 600;
+  font-style: italic;
+  width: auto;
+  position: relative;
+  margin-left: 40px;
+  z-index: 2;
+  display: none;
+}
+#QS-displayMac, #QS-displayLinux, #QS-displayWindows {
+  display: none;
+  margin-top: 25px;
+}
+.QS-moreInstallOptions {
+  font-size: 1.2em;
+  font-weight: 600;
+  width: auto;
+  position: relative;
+  z-index: 2;
+  cursor: pointer;
+}
+a#QS-moreInstallOptions {
+  color: darkgrey;
+}
+.QS-main {
+  background-image: linear-gradient(#EEEEFF, white);
+  border: 0.1875em solid black;
+  border-radius: 20px;
+  box-shadow: 0.375em 0.375em 0 0 rgba(15, 28, 63, 0.125);
+  grid-area: main;
+  padding: 5%;
+  margin-top: 20px;
+  height: 550px;
+  position: relative;
+  z-index: 2;
+  cursor: default;
+}
+#QS-mainText1 {
+  color: darkgrey;
+  font-weight: 700;
+  font-size: 2em;
+  display: inline-block;
+  position: relative;
+  text-align: center;
+  z-index: 2;
+  padding: 10px 20px 10px 20px;
+}
+#QS-mainTextSmall {
+  color:black;
+  font-style: default;
+  font-size: 1.5em;
+  line-height: 1.2em;
+  padding: 20px 20px 0px 20px;
+}
+p.bulletText {
+  font-size: 1.2em;
+}
+#QS-showMacAside1, #QS-showLinuxAside1, #QS-showWindowsAside1 {
+  display: none;
+}
+#QS-showMacAside2, #QS-showLinuxAside2, #QS-showWindowsAside2 {
+  display: none;
+}
+.QS-aside1 {
+  border: 0.1875em solid black;
+  border-radius: 20px;
+  box-shadow: 0.375em 0.375em 0 0 rgba(15, 28, 63, 0.125);
+  grid-area: sidebar1;
+  height: 160px;
+  position: relative;
+  margin-top: -21px;
+  padding-top: 15px;
+  padding-left: 30px;
+  padding-right: 30px;
+  display: flex;
+  z-index: 2;
+  overflow: hidden;
+}
+.QS-aside2 {
+  border: 0.1875em solid black;
+  border-radius: 20px;
+  box-shadow: 0.375em 0.375em 0 0 rgba(15, 28, 63, 0.125);
+  grid-area: sidebar2;
+  height: 160px;
+  position: relative;
+  padding-top: 15px;
+  padding-left: 30px;
+  display: flex;
+  z-index: 2;
+}
+.QS-aside3 {
+  border: 0.1875em solid black;
+  border-radius: 20px;
+  box-shadow: 0.375em 0.375em 0 0 rgba(15, 28, 63, 0.125);
+  grid-area: sidebar3;
+  height: 160px;
+  position: relative;
+  padding-top: 15px;
+  padding-left: 30px;
+  display: flex;
+  z-index: 2;
+}
+.QS-codeblockInstall1 {
+  font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+  font-size: 16px;
+  padding: 10px 15px;
+  margin: 0.5em 0 .5em;
+  background-color: #f5f2f0;
+  text-align: left;
+  white-space: pre;
+  word-spacing: normal;
+  word-break: normal;
+  word-wrap: normal;
+  line-height: 55px;
+  letter-spacing: 0.2px;
+  margin-bottom: 1.05rem;
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+}
+
+.QS-Aside3codeblockInstall {
+  font-size: 18px;
+  padding: 5px 15px;
+  margin: 0.2em 0 .5em;
+  overflow: auto;
+  background-color: white;
+  text-align: left;
+  white-space: pre;
+  word-spacing: normal;
+  word-break: normal;
+  word-wrap: normal;
+  line-height: 30px;
+  letter-spacing: 0.2px;
+  margin-bottom: 1.05rem;
+  width: 470px;
+}
+.QS-asideText {
+  font-weight: 600;
+  font-size: 1.7em;
+}
+.QS-copyButton {
+  position: absolute;
+  left: 4em;
+  top: 0em;
+}
+
+.QS-token-function {
+  color: #FF4329;
+}
+.QS-windowsDownloadButton {
+  color: black;
+}
