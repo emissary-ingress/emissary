@@ -688,7 +688,7 @@ func (k *kale) calculateBuild(proj *Project, commit *ProjectCommit) []interface{
 								"--skip-tls-verify-pull",
 								"--skip-tls-verify-registry",
 								"--dockerfile=Dockerfile",
-								"--destination=registry." + k.cfg.AmbassadorNamespace + "/" + commit.Spec.Rev,
+								"--destination=registry." + k.cfg.AmbassadorNamespace + "/" + proj.Namespace + "/" + proj.Name + ":" + commit.Spec.Rev,
 							},
 							Env: []k8sTypesCoreV1.EnvVar{
 								{Name: "KALE_CREDS", Value: proj.Spec.GithubToken},
@@ -1093,7 +1093,7 @@ func (k *kale) calculateRun(proj *Project, commit *ProjectCommit) []interface{} 
 						Containers: []k8sTypesCoreV1.Container{
 							{
 								Name:  "app",
-								Image: "127.0.0.1:31000/" + commit.Spec.Rev,
+								Image: "127.0.0.1:31000/" + proj.Namespace + "/" + proj.Name + ":" + commit.Spec.Rev,
 								Env: []k8sTypesCoreV1.EnvVar{
 									{Name: "AMB_PROJECT_PREVIEW", Value: strconv.FormatBool(commit.Spec.IsPreview)},
 									{Name: "AMB_PROJECT_REPO", Value: proj.Spec.GithubRepo},
