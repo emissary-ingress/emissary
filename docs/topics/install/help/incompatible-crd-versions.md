@@ -1,6 +1,8 @@
 # Edgectl Install: Existing installation detected
 
-The installer detected that Ambassador is already installed in your Kubernetes cluster. To avoid causing damage to your current setup, the installer has quit. The installer does not support upgrades or downgrades at this time.
+The installer detected that an existing version of Ambassador is already installed in your Kubernetes cluster. To avoid causing damage to your current setup, the installer has stopped. 
+
+The Edgectl Installer is designed for easy first-time installs, but not for upgrading or downgrading an existing installation. We recommend that you use the [Ambassador Operator](../../aes-operator/) to automatically manage those Day 2 operations (upgrades, etc).
 
 ## What's next?
 
@@ -11,9 +13,3 @@ The installer detected that Ambassador is already installed in your Kubernetes c
   * Use `kubectl config current-context` and `kubectl config set-context` to view or set the current context from among the contexts defined in the configuration file
   * Use `kubectl version` to see version information for the cluster specified by the current configuration and context
   * Once `kubectl` refers to the intended cluster, you can run the installer again with `edgectl install`
-
-* If you are **absolutely certain** it's safe to do so, you can delete your existing installation
-  * Use `kubectl get ambassador-crds --all-namespaces` to view all the Ambassador custom resources in your Kubernetes cluster
-  * Use `kubectl delete crd -l product=aes` to delete existing CRDs. This will also delete all the Ambassador resources shown in the prior step.
-  * Use `kubectl delete namespace ambassador` to delete the Kubernetes Services and Deployments for Ambassador
-  * Restart the installation with `edgectl install`
