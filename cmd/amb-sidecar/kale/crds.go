@@ -37,7 +37,7 @@ func (p Project) Key() string {
 const CODE = "butterscotch"
 
 func (p Project) PreviewUrl(commit *ProjectCommit) string {
-	return fmt.Sprintf("https://%s/.previews/%s/%s/", p.Spec.Host, p.Spec.Prefix, commit.Spec.Rev)
+	return fmt.Sprintf("https://%s/.previews%s%s/", p.Spec.Host, p.Spec.Prefix, commit.Spec.Rev)
 }
 
 func (p Project) ServerLogUrl(commit *ProjectCommit) string {

@@ -554,7 +554,7 @@ func (k *kale) handlePushOrPR(r *http.Request, key string) httpResult {
 
 	proj := k.GetProject(key)
 	if proj == nil {
-		err := errors.Errorf("Git webhook called for non-existent project: %q")
+		err := errors.Errorf("Git webhook called for non-existent project: %q", key)
 		reportRuntimeError(ctx, StepWebhookUpdate, err)
 		return httpResult{status: 404, body: err.Error()}
 	}
