@@ -17,7 +17,6 @@ import (
 
 	// 3rd party
 	"github.com/pkg/errors"
-	"golang.org/x/sync/errgroup"
 	libgit "gopkg.in/src-d/go-git.v4"
 	libgitConfig "gopkg.in/src-d/go-git.v4/config"
 	libgitPlumbing "gopkg.in/src-d/go-git.v4/plumbing"
@@ -274,38 +273,38 @@ func streamLogs(w http.ResponseWriter, r *http.Request, namespace, selector stri
 		return err
 	}
 
-	wg, _ := errgroup.WithContext(r.Context())
-	wg.Go(cmd.Wait)
-	wg.Go(func() error {
-		scanner := bufio.NewScanner(reader)
-		for scanner.Scan() {
-			line := scanner.Text() + "\n"
-			id := ""
-			data := line
+	scanner := bufio.NewScanner(reader)
+	for scanner.Scan() {
+		line := scanner.Text() + "\n"
+		id := ""
+		data := line
 
-			if parts := strings.SplitN(line, " ", 2); len(parts) == 2 {
-				if _, err := time.Parse(time.RFC3339Nano, parts[0]); err == nil {
-					id = parts[0]
-					data = parts[1]
-				}
+		if parts := strings.SplitN(line, " ", 2); len(parts) == 2 {
+			if _, err := time.Parse(time.RFC3339Nano, parts[0]); err == nil {
+				id = parts[0]
+				data = parts[1]
 			}
-
-			var err error
-			if id == "" {
-				_, err = fmt.Fprintf(w, "data: %s\n\n", data)
-			} else {
-				_, err = fmt.Fprintf(w, "id: %s\ndata: %s\n\n", id, data)
-			}
-			if err != nil {
-				cmdKill() // Stop the process.
-				// Don't return--keep draining the process's output so it doesn't deadlock.
-			}
-
-			w.(http.Flusher).Flush()
 		}
-		return scanner.Err()
-	})
-	err = wg.Wait()
+
+		var err error
+		if id == "" {
+			_, err = fmt.Fprintf(w, "data: %s\n\n", data)
+		} else {
+			_, err = fmt.Fprintf(w, "id: %s\ndata: %s\n\n", id, data)
+		}
+		if err != nil {
+			cmdKill() // Stop the process.
+			// Don't return--keep draining the process's output so it doesn't deadlock.
+		}
+
+		w.(http.Flusher).Flush()
+	}
+	err = scanner.Err()
+	if err != nil {
+		reportRuntimeError(r.Context(), "streamLogs:scanner", err)
+	}
+
+	err = cmd.Wait()
 	if cmdCtx.Err() != nil {
 		// If we bailed early because the client hung up (signalled either by
 		// `r.Context()` being canceled, or by writes failing and us calling
@@ -665,8 +664,8 @@ func _logErr(ctx context.Context, err error) {
 		globalKale.eventLogger.Namespace(eventTarget.GetNamespace()).Eventf(
 			eventTarget,                     // InvolvedObject
 			k8sTypesCoreV1.EventTypeWarning, // EventType
-			"Err",                           // Reason
-			"%+v", err,                      // Message
+			"Err",      // Reason
+			"%+v", err, // Message
 		)
 	} else {
 		// It's important that we don't discard these, because

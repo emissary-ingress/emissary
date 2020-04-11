@@ -352,6 +352,7 @@ func NewKale(dynamicClient k8sClientDynamic.Interface, eventLogger *events.Event
 
 		PrevIterationErrors: make(map[recordedError]struct{}),
 		NextIterationErrors: make(map[recordedError]struct{}),
+		webSnapshot:         &Snapshot{},
 	}
 }
 
@@ -680,7 +681,7 @@ func (k *kale) calculateBuild(proj *Project, commit *ProjectCommit) []interface{
 					Containers: []k8sTypesCoreV1.Container{
 						{
 							Name:  "kaniko",
-							Image: "quay.io/datawire/aes-project-builder@sha256:f107422a588a2925634722c341b7174ff263610d9557e123e4ef41291cbf6c5e",
+							Image: "quay.io/datawire/aes-project-builder@sha256:a2d1cfaa5aa6df6832934254c68f12572868a2cea2f8b023db0857bc1eb1564c",
 							Args: []string{
 								"--cache=true",
 								"--skip-tls-verify",
