@@ -79,9 +79,23 @@ export class ProjectResource extends IResource {
     if (!this.prefix) {
       errors.set("prefix", "please supply a prefix")
     } else {
+      let messages = []
       if (!/^\/\S+\/$/.test(this.prefix)) {
-        errors.set("prefix", 'must not contain whitespace and must begin and end with a "/"')
+        messages.push('must not contain whitespace and must begin and end with a "/"')
       }
+
+      let prefixes = new Set()
+      for (let p of this.collection) {
+        if (p !== this) {
+          prefixes.add(p.prefix)
+        }
+      }
+
+      if (prefixes.has(this.prefix)) {
+        messages.push("already in use")
+      }
+
+      errors.set("prefix", messages.join(", "))
     }
 
     if (!/^\S+$/.test(this.token)) {
