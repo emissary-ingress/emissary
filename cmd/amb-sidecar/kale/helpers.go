@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -17,7 +16,7 @@ import (
 	"time"
 
 	// 3rd party
-	"golang.org/x/sync/errgroup"
+	"github.com/pkg/errors"
 	libgit "gopkg.in/src-d/go-git.v4"
 	libgitConfig "gopkg.in/src-d/go-git.v4/config"
 	libgitPlumbing "gopkg.in/src-d/go-git.v4/plumbing"
@@ -33,6 +32,7 @@ import (
 	k8sTypes "k8s.io/apimachinery/pkg/types"
 
 	// 3rd party: k8s misc
+	k8sRuntime "k8s.io/apimachinery/pkg/runtime"
 	k8sSchema "k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/yaml"
 
@@ -174,7 +174,7 @@ func getJSON(url string, authToken string, target interface{}) error {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("HTTP %d (%s)", resp.StatusCode, resp.Status)
+		return errors.Errorf("HTTP %d (%s)", resp.StatusCode, resp.Status)
 	}
 
 	return nil
@@ -184,10 +184,10 @@ func getJSON(url string, authToken string, target interface{}) error {
 func postStatus(ctx context.Context, url string, status GitHubStatus, token string) error {
 	resp, body, err := postJSON(url, status, token)
 	if err != nil {
-		return fmt.Errorf("posting GitHub status: %w", err)
+		return errors.Wrap(err, "posting GitHub status")
 	}
 	if resp.StatusCode/100 != 2 {
-		return fmt.Errorf("posting GitHub status: HTTP %d (%s)\n%s",
+		return errors.Errorf("posting GitHub status: HTTP %d (%s)\n%s",
 			resp.StatusCode, resp.Status, body)
 	}
 
@@ -215,7 +215,7 @@ func postHook(repo string, callback string, token string) error {
 	}
 	resp, body, err := postJSON(url, h, token)
 	if err != nil {
-		return fmt.Errorf("posting GitHub status: %w", err)
+		return errors.Wrap(err, "posting GitHub status")
 	}
 	if resp.StatusCode/100 == 2 {
 
@@ -225,7 +225,7 @@ func postHook(repo string, callback string, token string) error {
 		return nil
 	}
 
-	return fmt.Errorf("posting GitHub hook: HTTP %d (%s)\n%s",
+	return errors.Errorf("posting GitHub hook: HTTP %d (%s)\n%s",
 		resp.StatusCode, resp.Status, body)
 }
 
@@ -273,43 +273,50 @@ func streamLogs(w http.ResponseWriter, r *http.Request, namespace, selector stri
 		return err
 	}
 
-	wg, _ := errgroup.WithContext(r.Context())
-	wg.Go(cmd.Wait)
-	wg.Go(func() error {
-		scanner := bufio.NewScanner(reader)
-		for scanner.Scan() {
-			line := scanner.Text() + "\n"
-			id := ""
-			data := line
+	scanner := bufio.NewScanner(reader)
+	for scanner.Scan() {
+		line := scanner.Text() + "\n"
+		id := ""
+		data := line
 
-			if parts := strings.SplitN(line, " ", 2); len(parts) == 2 {
-				if _, err := time.Parse(time.RFC3339Nano, parts[0]); err == nil {
-					id = parts[0]
-					data = parts[1]
-				}
+		if parts := strings.SplitN(line, " ", 2); len(parts) == 2 {
+			if _, err := time.Parse(time.RFC3339Nano, parts[0]); err == nil {
+				id = parts[0]
+				data = parts[1]
 			}
-
-			var err error
-			if id == "" {
-				_, err = fmt.Fprintf(w, "data: %s\n\n", data)
-			} else {
-				_, err = fmt.Fprintf(w, "id: %s\ndata: %s\n\n", id, data)
-			}
-			if err != nil {
-				cmdKill() // Stop the process.
-				// Don't return--keep draining the process's output so it doesn't deadlock.
-			}
-
-			w.(http.Flusher).Flush()
 		}
-		return scanner.Err()
-	})
-	err = wg.Wait()
+
+		var err error
+		if id == "" {
+			_, err = fmt.Fprintf(w, "data: %s\n\n", data)
+		} else {
+			_, err = fmt.Fprintf(w, "id: %s\ndata: %s\n\n", id, data)
+		}
+		if err != nil {
+			cmdKill() // Stop the process.
+			// Don't return--keep draining the process's output so it doesn't deadlock.
+		}
+
+		w.(http.Flusher).Flush()
+	}
+	err = scanner.Err()
+	if err != nil {
+		reportRuntimeError(r.Context(), "streamLogs:scanner", err)
+	}
+
+	err = cmd.Wait()
 	if cmdCtx.Err() != nil {
 		// If we bailed early because the client hung up (signalled either by
 		// `r.Context()` being canceled, or by writes failing and us calling
 		// `cmdKill()`; both of which set `cmdCtx.Err()`), then that's not really
 		// an error.
+		err = nil
+	}
+	if ee, isEE := err.(*exec.ExitError); isEE && ee.ExitCode() >= 0 {
+		// The exit codes from `kubectl logs` don't appear to be meaningful;
+		// discard the error, we'll need to rely on grepping stdout/stderr to
+		// detect runtime errors from `kubectl logs`.  Note that we don't discard
+		// the error if kubectl was terminated by a signal.
 		err = nil
 	}
 	if err == nil {
@@ -344,7 +351,7 @@ func applyAndPrune(labelSelector string, types []k8sSchema.GroupVersionKind, obj
 	cmd.Stdin = strings.NewReader(yamlStr)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("%w\n%s", err, out)
+		return errors.Errorf("%v\n%s", err, out)
 	}
 	return nil
 }
@@ -352,7 +359,7 @@ func applyAndPrune(labelSelector string, types []k8sSchema.GroupVersionKind, obj
 func deleteResource(kind, name, namespace string) error {
 	out, err := exec.Command("kubectl", "delete", "--namespace="+namespace, kind+"/"+name).CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("%w\n%s", err, out)
+		return errors.Errorf("%v\n%s", err, out)
 	}
 	return nil
 }
@@ -511,7 +518,7 @@ func (wg *WatchGroup) Wrap(ctx context.Context, listener func(*k8s.Watcher)) fun
 		if wg.count == 0 {
 			err := safeInvoke(func() { listener(w) })
 			if err != nil {
-				dlog.GetLogger(ctx).Printf("watch error: %+v", err)
+				reportThisIsABug(ctx, err)
 			}
 		}
 	}
@@ -549,6 +556,24 @@ func unstructureCommit(commit *ProjectCommit) *k8sTypesUnstructured.Unstructured
 			"metadata":   unstructureMetadata(&commit.ObjectMeta),
 			"spec":       commit.Spec,
 			"status":     commit.Status,
+		},
+	}
+}
+
+// unstructureController returns a *k8sTypesUnstructured.Unstructured
+// representation of an *ambassadorTypesV2.ProjectController.  There are 2
+// reasons why we might want this:
+//
+//  1. For use with a k8sClientDynamic.Interface
+//  2. For use as a k8sRuntime.Object
+func unstructureController(controller *ProjectController) *k8sTypesUnstructured.Unstructured {
+	return &k8sTypesUnstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": "getambassador.io/v2",
+			"kind":       "ProjectController",
+			"metadata":   unstructureMetadata(&controller.ObjectMeta),
+			"spec":       controller.Spec,
+			"status":     controller.Status,
 		},
 	}
 }
@@ -595,48 +620,89 @@ func jobConditionMet(obj *k8sTypesBatchV1.Job, condType k8sTypesBatchV1.JobCondi
 }
 
 func _logErr(ctx context.Context, err error) {
+	var eventTarget interface {
+		k8sRuntime.Object
+		GetNamespace() string
+	}
 	var commitUID, projectUID k8sTypes.UID
 	if commit := CtxGetCommit(ctx); commit != nil {
-		err = fmt.Errorf("ProjectCommit %q.%q: %w",
-			commit.GetName(), commit.GetNamespace(), err)
+		err = errors.Wrapf(err, "ProjectCommit %s.%s",
+			commit.GetName(), commit.GetNamespace())
 		commitUID = commit.GetUID()
+		eventTarget = unstructureCommit(commit)
 	}
 	if project := CtxGetProject(ctx); project != nil {
-		err = fmt.Errorf("Project %q.%q: %w",
-			project.GetName(), project.GetNamespace(), err)
+		err = errors.Wrapf(err, "Project %s.%s",
+			project.GetName(), project.GetNamespace())
 		projectUID = project.GetUID()
+		if eventTarget == nil {
+			eventTarget = unstructureProject(project)
+		}
 	}
 
 	dlog.GetLogger(ctx).Errorf("%+v", err)
 
-	if CtxGetIteration(ctx) == nil {
-		globalKale.addPersistentError(err, projectUID, commitUID)
+	// Because I've thought it before, and I know I'm going to think it again: Yes, it
+	// might be the case that 'project' is set but 'iteration' isn't.  This can happen
+	// if we'd like to report an error from the GitHub webhook.
+	if CtxGetIteration(ctx) != nil {
+		isNew := globalKale.addIterationError(err, projectUID, commitUID)
+		if !isNew {
+			eventTarget = nil
+		}
+	}
+	if eventTarget == nil {
+		globalKale.mu.RLock()
+		if globalKale.webSnapshot != nil && len(globalKale.webSnapshot.Controllers) == 1 {
+			for _, controller := range globalKale.webSnapshot.Controllers {
+				eventTarget = unstructureController(controller.ProjectController)
+			}
+		}
+		globalKale.mu.RUnlock()
+	}
+	if eventTarget != nil {
+		globalKale.eventLogger.Namespace(eventTarget.GetNamespace()).Eventf(
+			eventTarget,                     // InvolvedObject
+			k8sTypesCoreV1.EventTypeWarning, // EventType
+			"Err",      // Reason
+			"%+v", err, // Message
+		)
 	} else {
-		globalKale.addIterationError(err, projectUID, commitUID)
+		// It's important that we don't discard these, because
+		// they're probably RBAC errors.
+		t := k8sTypesMetaV1.Time{Time: time.Now()}
+		globalKale.addWebError(&k8sTypesCoreV1.Event{
+			Reason:         "err",
+			Message:        fmt.Sprintf("%+v", err),
+			FirstTimestamp: t,
+			LastTimestamp:  t,
+			Count:          1,
+			Type:           k8sTypesCoreV1.EventTypeWarning,
+		})
 	}
 }
 
 func reportThisIsABug(ctx context.Context, err error) {
-	err = fmt.Errorf("this is a bug: error: %w", err)
+	err = errors.Wrap(err, "this is a bug: error")
 	_logErr(ctx, err)
 	telemetryErr(ctx, StepBug, err)
 }
 
 func reportRuntimeError(ctx context.Context, step string, err error) {
-	err = fmt.Errorf("runtime error: %w", err)
+	err = errors.Wrap(err, "runtime error")
 	_logErr(ctx, err)
 	telemetryErr(ctx, step, err)
 }
 
 func panicThisIsABugContext(ctx context.Context, err error) {
-	err = fmt.Errorf("this is a bug: panicking: %w", err)
+	err = errors.Wrap(err, "this is a bug: panicking")
 	_logErr(ctx, err)
 	telemetryErr(ctx, StepBug, err)
 	panic(err)
 }
 
 func panicThisIsABug(err error) {
-	err = fmt.Errorf("this is a bug: panicking: %w", err)
+	err = errors.Wrap(err, "this is a bug: panicking")
 	panic(err)
 }
 

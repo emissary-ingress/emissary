@@ -21,7 +21,7 @@ class ProjectStore extends ResourceStore {
   }
 
   _poll(collection) {
-    ApiFetch(`/edge_stack/api/projects/snapshot`, {
+    ApiFetch(`/edge_stack/api/projects/kale-snapshot`, {
       headers: {
         'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
       }
@@ -32,7 +32,7 @@ class ProjectStore extends ResourceStore {
           collection.errors = updatedErrors
           collection.notify()
         }
-        collection.reconcile(snapshot.projects)
+        collection.reconcile(snapshot.projects || [])
       })
       .catch(err => console.log('Error fetching projects: ', err));
   }
