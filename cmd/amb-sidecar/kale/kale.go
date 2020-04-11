@@ -681,7 +681,7 @@ func (k *kale) calculateBuild(proj *Project, commit *ProjectCommit) []interface{
 					Containers: []k8sTypesCoreV1.Container{
 						{
 							Name:  "kaniko",
-							Image: "quay.io/datawire/aes-project-builder@sha256:a2d1cfaa5aa6df6832934254c68f12572868a2cea2f8b023db0857bc1eb1564c",
+							Image: "quay.io/datawire/aes-project-builder:release_v0.1.0",
 							Args: []string{
 								"--cache=true",
 								"--skip-tls-verify",
