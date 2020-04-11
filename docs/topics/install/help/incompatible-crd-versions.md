@@ -9,7 +9,7 @@ The Edgectl Installer is designed for easy first-time installs, but not for upgr
 * Perhaps your installation is ready to go, having been installed in a different manner. Try `edgectl login` to access the Edge Policy Console running on your existing installation.
 
 * Is `kubectl` talking to the cluster you intended?
-  * Set the environment variable `KUBECONFIG` to use a configuration file other than the default
+  * If you are using a non-default Kubernetes configuration file, remember to set your `KUBECONFIG` environment variable
   * Use `kubectl config current-context` and `kubectl config set-context` to view or set the current context from among the contexts defined in the configuration file
   * Use `kubectl version` to see version information for the cluster specified by the current configuration and context
   * Once `kubectl` refers to the intended cluster, you can run the installer again with `edgectl install`
