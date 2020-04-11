@@ -212,6 +212,20 @@ type deploymentPodAndChildren struct {
 	Parent *deploymentAndChildren `json:"-"`
 }
 
+func (p *deploymentPodAndChildren) InCrashLoopBackOff() bool {
+	for _, cs := range p.Status.ContainerStatuses {
+		w := cs.State.Waiting
+		if w != nil {
+			reason := w.Reason
+			if reason == "CrashLoopBackOff" {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
 // Grouped (1) mutates the Snapshot such that the .Children and
 // .Parent members are populated, and (2) returns a top-level
 // GroupedSnapshot, that has pointers to the items in the original

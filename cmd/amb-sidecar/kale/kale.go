@@ -834,9 +834,13 @@ func (k *kale) reconcileCommit(ctx context.Context, _commit *commitAndChildren, 
 				// advance to next phase
 				commitPhase = CommitPhase_Deployed
 			} else {
-				// TODO: Maybe inspect the pods that belong to this Deployment, in
-				// order to detect a "failed" state.
 				commitPhase = CommitPhase_Deploying
+				for _, p := range dep.Children.Pods {
+					if p.InCrashLoopBackOff() {
+						commitPhase = CommitPhase_DeployFailed
+						break
+					}
+				}
 			}
 		}
 	}
