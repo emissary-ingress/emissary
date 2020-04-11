@@ -260,7 +260,7 @@ export class ProjectView extends IResourceView {
   <label class="row-col margin-right justify-right">Deployed Commits:</label>
   <div class="row-col">
     ${commits.length > 0 ? "" : "..."}
-    <div style="display:grid; grid-template-columns: 1fr 1fr 2fr;">
+    <div style="display:grid; grid-template-columns: 1fr 1fr 2fr 2fr;">
       ${commits.map((c)=>this.renderCommit(c))}
     </div>
   </div>
@@ -269,12 +269,16 @@ export class ProjectView extends IResourceView {
   }
 
   renderCommit(commit) {
+    let cls = ["Received", "Building", "Deploying"].includes(commit.status.phase) ? "spin" : ""
     return html`
   <div>
     ${this.renderRef(commit)}
   </div>
   <div>
     <a target="_blank" href="https://github.com/${this.project.repo}/commit/${commit.spec.rev}">${commit.spec.rev.slice(0, 7)}...</a>
+  </div>
+  <div>
+    <div class="spinner ${cls}"></div> ${prettyPhase(commit.status.phase)}
   </div>
   <div class="justify-right">
     ${(commit.children.builders || []).length > 0 ? commit.children.builders.map(p=>this.renderBuild(commit, p)) : html`<span class="log" style="opacity:0.5">build</span>`} |
@@ -310,10 +314,8 @@ export class ProjectView extends IResourceView {
     } else if (commit.status.phase === "BuildFailed") {
       styles = "color:red"
     }
-    // todo: for some reason we never see the Received phase
-    let cls = ["Received", "Building", "Deploying"].includes(commit.status.phase) ? "spin" : ""
     let selected = this.logSelected("build", commit) ? "selected" : ""
-    return html`<div class="spinner ${cls}"></div><a class="log ${selected}" style="cursor:pointer;${styles}" @click=${()=>this.openTerminal("build", commit)}>build</a>`
+    return html`<a class="log ${selected}" style="cursor:pointer;${styles}" @click=${()=>this.openTerminal("build", commit)}>build</a>`
   }
 
   renderPreview(commit, deployment) {
@@ -400,3 +402,14 @@ function shortenRefName(refname) {
   }
   return ret;
 };
+
+function prettyPhase(phase) {
+  switch (phase) {
+  case "BuildFailed":
+    return "Build Failed"
+  case "DeployFailed":
+    return "Deploy Failed"
+  default:
+    return phase
+  }
+}

@@ -95,7 +95,9 @@ export class ProjectResource extends IResource {
         messages.push("already in use")
       }
 
-      errors.set("prefix", messages.join(", "))
+      if (messages.length > 0) {
+        errors.set("prefix", messages.join(", "))
+      }
     }
 
     if (!/^\S+$/.test(this.token)) {
