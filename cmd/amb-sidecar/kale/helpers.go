@@ -128,12 +128,21 @@ func streamingFunc(handler http.Handler) http.Handler {
 
 // Post a json payload to a URL.
 func postJSON(url string, payload interface{}, token string) (*http.Response, string, error) {
+	return requestJSON(http.MethodPost, url, payload, token)
+}
+
+// Post a json payload to a URL.
+func patchJSON(url string, payload interface{}, token string) (*http.Response, string, error) {
+	return requestJSON(http.MethodPatch, url, payload, token)
+}
+
+func requestJSON(method string, url string, payload interface{}, token string) (*http.Response, string, error) {
 	buf, err := json.Marshal(payload)
 	if err != nil {
 		return nil, "", err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(buf))
+	req, err := http.NewRequest(method, url, bytes.NewReader(buf))
 	if err != nil {
 		return nil, "", err
 	}
@@ -202,26 +211,52 @@ type GitHubStatus struct {
 	Context     string `json:"context"`
 }
 
-func postHook(repo string, callback string, token string) error {
-	url := fmt.Sprintf("https://api.github.com/repos/%s/hooks", repo)
-	h := hook{
-		Name:   "web",
-		Active: true,
-		Events: []string{"push"},
-		Config: hookConfig{
-			Url:         callback,
-			ContentType: "json",
-		},
-	}
-	resp, body, err := postJSON(url, h, token)
+func getHook(repo string, callback string, token string) (*hook, error) {
+	url := fmt.Sprintf("https://api.github.com/repos/%s/hooks?per_page=100", repo)
+	var hooks []*hook
+	err := getJSON(url, token, &hooks)
 	if err != nil {
-		return errors.Wrap(err, "posting GitHub status")
+		return nil, err
+	}
+	for _, hook := range hooks {
+		if hook.Config.Url == callback {
+			return hook, nil
+		}
+	}
+	return nil, nil
+}
+
+func postHook(repo string, callback string, token string) error {
+	h, err := getHook(repo, callback, token)
+	if err != nil {
+		return err
+	}
+
+	postOrPatch := postJSON
+	url := fmt.Sprintf("https://api.github.com/repos/%s/hooks", repo)
+	if h != nil {
+		h.ensureEvent("push")
+		h.ensureEvent("pull_request")
+		h.Config.ContentType = "json"
+		url = fmt.Sprintf("https://api.github.com/repos/%s/hooks/%d", repo, h.Id)
+		postOrPatch = patchJSON
+	} else {
+		h = &hook{
+			Name:   "web",
+			Active: true,
+			Events: []string{"push", "pull_request"},
+			Config: hookConfig{
+				Url:         callback,
+				ContentType: "json",
+			},
+		}
+	}
+
+	resp, body, err := postOrPatch(url, h, token)
+	if err != nil {
+		return errors.Wrap(err, "posting GitHub webhook")
 	}
 	if resp.StatusCode/100 == 2 {
-
-		return nil
-	}
-	if resp.StatusCode == 422 && strings.Contains(body, "already exists") {
 		return nil
 	}
 
@@ -230,6 +265,7 @@ func postHook(repo string, callback string, token string) error {
 }
 
 type hook struct {
+	Id     int        `json:"id"`
 	Name   string     `json:"name"`
 	Active bool       `json:"active"`
 	Events []string   `json:"events"`
@@ -239,6 +275,15 @@ type hook struct {
 type hookConfig struct {
 	Url         string `json:"url"`
 	ContentType string `json:"content_type"`
+}
+
+func (h *hook) ensureEvent(event string) {
+	for _, evt := range h.Events {
+		if event == evt {
+			return
+		}
+	}
+	h.Events = append(h.Events, event)
 }
 
 // The streamLogs helper sends logs from the kubernetes pods defined

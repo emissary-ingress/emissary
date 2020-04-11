@@ -17,7 +17,6 @@ import (
 	// 3rd party
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	libgitPlumbing "gopkg.in/src-d/go-git.v4/plumbing"
 
 	// 3rd/1st party: k8s types
 	aproTypesV2 "github.com/datawire/apro/apis/getambassador.io/v1beta2"
@@ -466,8 +465,8 @@ func (k *kale) dispatch(r *http.Request) httpResult {
 		switch eventType {
 		case "ping":
 			return httpResult{status: 200, body: "pong"}
-		case "push":
-			return k.handlePush(r, strings.Join(parts[1:], "/"))
+		case "push", "pull_request":
+			return k.handlePushOrPR(r, strings.Join(parts[1:], "/"))
 		default:
 			return httpResult{status: 500, body: fmt.Sprintf("don't know how to handle %q events", eventType)}
 		}
@@ -549,8 +548,8 @@ func (k *kale) GetCommit(qname string) *commitAndChildren {
 	return nil
 }
 
-// Handle Push events from the github API.
-func (k *kale) handlePush(r *http.Request, key string) httpResult {
+// Handle push or pull_request events from the github API.
+func (k *kale) handlePushOrPR(r *http.Request, key string) httpResult {
 	ctx := r.Context()
 
 	proj := k.GetProject(key)
@@ -561,67 +560,12 @@ func (k *kale) handlePush(r *http.Request, key string) httpResult {
 	}
 	ctx = CtxWithProject(ctx, proj.Project)
 
-	var push Push
-	if err := json.NewDecoder(r.Body).Decode(&push); err != nil {
-		reportRuntimeError(ctx, StepWebhookUpdate,
-			errors.Wrap(err, "git webhook parse error"))
-		return httpResult{status: 400, body: err.Error()}
-	}
-
-	// GitHub calls the hook asynchronously--it might not actually
-	// be ready for us to do things based on the hook.  Poll
-	// GitHub until we see that what the hook says has come to
-	// pass... or we time out.
-	gitReady := false
-	apiReady := false
-	deadline := time.Now().Add(2 * time.Minute)
-	backoff := 1 * time.Second
-	for (!gitReady || !apiReady) && time.Now().Before(deadline) {
-		if !gitReady {
-			ref, err := gitResolveRef("https://github.com/"+proj.Spec.GithubRepo, proj.Spec.GithubToken,
-				libgitPlumbing.ReferenceName(push.Ref))
-			if err != nil {
-				continue
-			}
-			if ref.Hash().String() == push.After {
-				gitReady = true
-			}
-		}
-		if !apiReady {
-			var prs []Pull
-			if err := getJSON(fmt.Sprintf("https://api.github.com/repos/%s/pulls", proj.Spec.GithubRepo), proj.Spec.GithubToken, &prs); err != nil {
-				continue
-			}
-			havePr := false
-			for _, pr := range prs {
-				if strings.EqualFold(pr.Head.Repo.FullName, proj.Spec.GithubRepo) &&
-					"refs/heads/"+pr.Head.Ref == push.Ref {
-					havePr = true
-					if pr.Head.Sha == push.After {
-						apiReady = true
-					}
-				}
-			}
-			if !havePr {
-				apiReady = true
-			}
-		}
-		time.Sleep(backoff)
-		if backoff < 10*time.Second {
-			backoff *= 2
-		}
-	}
-	if gitReady && apiReady {
-		// Bump the project's .Status, to trigger a reconcile via
-		// Kubernetes.  We do this instead of just poking the right
-		// bits in memory because we might not be the elected leader.
-		proj.Status.LastPush = time.Now()
-		uProj := unstructureProject(proj.Project)
-		_, err := k.projectsGetter.Namespace(proj.GetNamespace()).UpdateStatus(uProj, k8sTypesMetaV1.UpdateOptions{})
-		if err != nil {
-			dlog.GetLogger(ctx).Println("update project status:", err)
-			telemetryOK(ctx, StepWebhookUpdate)
-		}
+	proj.Status.LastPush = time.Now()
+	uProj := unstructureProject(proj.Project)
+	_, err := k.projectsGetter.Namespace(proj.GetNamespace()).UpdateStatus(uProj, k8sTypesMetaV1.UpdateOptions{})
+	if err != nil {
+		dlog.GetLogger(ctx).Println("update project status:", err)
+		telemetryOK(ctx, StepWebhookUpdate)
 	}
 
 	return httpResult{status: 200, body: ""}
