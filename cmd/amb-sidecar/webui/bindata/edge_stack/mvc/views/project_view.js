@@ -309,7 +309,7 @@ export class ProjectView extends IResourceView {
 
   renderBuild(commit, job) {
     var styles = "color:blue"
-    if (["Deploying", "Deployed"].includes(commit.status.phase)) {
+    if (["Deploying", "Deployed", "DeployFailed"].includes(commit.status.phase)) {
       styles = "color:green"
     } else if (commit.status.phase === "BuildFailed") {
       styles = "color:red"
