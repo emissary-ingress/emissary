@@ -180,14 +180,14 @@ commands:
           command: |
             export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
             make gotest GOTEST_PKGS=github.com/datawire/apro/...
-      # - run:
-      #     name: "KAT"
-      #     command: |
-      #       export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
-      #       export DEV_KUBE110=yes
-      #       export DEV_KUBE_NO_PVC=yes
-      #       export KAT_REQ_LIMIT=600
-      #       make pytest-only
+      - run:
+          name: "KAT"
+          command: |
+            export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
+            export DEV_KUBE110=yes
+            export DEV_KUBE_NO_PVC=yes
+            export KAT_REQ_LIMIT=600
+            make pytest-only
       - run:
           name: "E2E Tests"
           command: |
