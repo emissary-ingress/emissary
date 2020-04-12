@@ -20,7 +20,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/gookit/color"
 	"github.com/pkg/browser"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -127,7 +126,7 @@ func aesInstall(cmd *cobra.Command, args []string) error {
 
 	// If Scout is disabled (environment variable set to non-null), inform the user.
 	if i.scout.Disabled() {
-		i.show.Printf("INFO: phone-home is disabled by environment variable")
+		i.ShowScoutDisabled()
 	}
 
 	// Both printed and logged when verbose (Installer.log is responsible for --verbose)
@@ -403,9 +402,7 @@ func (i *Installer) CheckACMEIsDone() error {
 		// TODO: Windows incompatible, will not be bold but otherwise functions.
 		// TODO: rewrite Installer.show to make explicit calls to color.Bold.Printf(...) instead,
 		// TODO: along with logging.  Search for color.Bold to find usages.
-
-		i.show.Println()
-		i.show.Println(color.Bold.Sprintf("Acquiring TLS certificate via ACME has failed: %s", reason))
+		i.ShowACMEFailed(reason)
 		return LoopFailedError(fmt.Sprintf("ACME failed. More information: kubectl get host %s -o yaml", i.hostname))
 	}
 	if state != "Ready" {
@@ -432,8 +429,8 @@ func (i *Installer) Perform(kcontext string) Result {
 	// Start
 	i.Report("install")
 
-	i.show.Println()
-	i.show.Println(color.Bold.Sprintf("Installing the Ambassador Edge Stack"))
+	// Bold: Installing the Ambassador Edge Stack
+	i.ShowFirstInstalling()
 
 	// Attempt to grab a reasonable default for the user's email address
 	defaultEmail, err := i.Capture("get email", true, "", "git", "config", "--global", "user.email")
@@ -448,8 +445,7 @@ func (i *Installer) Perform(kcontext string) Result {
 	}
 
 	// Ask for the user's email address
-	i.show.Println()
-	i.ShowWrapped("Please enter an email address for us to notify you before your TLS certificate and domain name expire. In order to acquire the TLS certificate, we share this email with Let’s Encrypt.")
+	i.ShowRequestEmail()
 
 	// Do the goroutine dance to let the user hit Ctrl-C at the email prompt
 	gotEmail := make(chan string)
@@ -464,7 +460,7 @@ func (i *Installer) Perform(kcontext string) Result {
 	case <-i.ctx.Done():
 		return i.EmailRequestError(errors.New("Interrupted"))
 	}
-	i.show.Println()
+
 	i.log.Printf("Using email address %q", emailAddress)
 
 	// Beginning the AES Installation
@@ -481,6 +477,7 @@ func (i *Installer) Perform(kcontext string) Result {
 		return i.NoClusterError(err)
 	}
 	i.restConfig, err = i.kubeinfo.GetRestConfig()
+
 	if err != nil {
 		return i.GetRestConfigError(err)
 	}
@@ -526,8 +523,9 @@ func (i *Installer) Perform(kcontext string) Result {
 			"-o", "go-template='{{range .items}}{{range .spec.template.spec.containers}}{{.image}}\n{{end}}{{end}}'")
 	}
 	installedVersion, installedInfo, err := getExistingInstallation(getDeployForLabel)
+
 	if err != nil {
-		i.show.Println("Failed to look for an existing installation:", err)
+		i.ShowFailedWhenLookingForExistingVersion()
 		installedVersion = "" // Things will likely fail when we try to apply manifests
 	}
 
@@ -538,33 +536,36 @@ func (i *Installer) Perform(kcontext string) Result {
 
 		switch installedInfo.Method {
 		case instOSS, instAES, instEdgectl, instOperator:
-			return i.ExistingInstallationFoundError(installedVersion)
+			return i.CantReplaceExistingInstallationError(installedVersion)
 		case instHelm:
 			// if a previous Helm installation has been found MAYBE we can continue with
 			// the setup: it depends on the version
 			// continue with the setup and check the version later on
-			i.ShowWrapped("-> Ambassador was installed with Helm...")
+			i.ShowAESInstalledByHelm()
 
 		default:
 			// any other case: continue with the rest of the setup
 		}
 	}
 
+	// New Helm-based install
+	i.FindingRepositoriesAndVersions()
+
 	// the Helm chart heuristics look for the latest release that matches `version_rule`
 	version_rule := defHelmVersionRule
 	if vr := os.Getenv(defEnvVarChartVersionRule); vr != "" {
-		i.ShowWrapped(fmt.Sprintf("Overriding Chart version rule from %q: %s.", defEnvVarChartVersionRule, vr))
+		i.ShowOverridingChartVersion(defEnvVarChartVersionRule, vr)
 		version_rule = vr
 	} else {
 		// Allow overriding the image repo and tag
 		// This is mutually exclusive with the Chart version rule: it would be too messy otherwise.
 		if ir := os.Getenv(defEnvVarImageRepo); ir != "" {
-			i.ShowWrapped(fmt.Sprintf("Overriding image repo from %q: %s.", defEnvVarImageRepo, ir))
+			i.ShowOverridingImageRepo(defEnvVarImageRepo, ir)
 			strvals.ParseInto(fmt.Sprintf("image.repository=%s", ir), chartValues)
 		}
 
 		if it := os.Getenv(defEnvVarImageTag); it != "" {
-			i.ShowWrapped(fmt.Sprintf("Overriding image tag from %q: %s.", defEnvVarImageTag, it))
+			i.ShowOverridingImageTag(defEnvVarImageTag, it)
 			strvals.ParseInto(fmt.Sprintf("image.tag=%s", it), chartValues)
 		}
 	}
@@ -582,7 +583,7 @@ func (i *Installer) Perform(kcontext string) Result {
 		KubeInfo: i.kubeinfo,
 	}
 	if u := os.Getenv(defEnvVarHelmRepo); u != "" {
-		i.ShowWrapped(fmt.Sprintf("Overriding Helm repo from %q: %s.", defEnvVarHelmRepo, u))
+		i.ShowOverridingHelmRepo(defEnvVarHelmRepo, u)
 		helmDownloaderOptions.URL = u
 	}
 
@@ -593,7 +594,6 @@ func (i *Installer) Perform(kcontext string) Result {
 		return i.InternalError(err)
 	}
 
-	i.ShowDownloadingImages()
 	if err := chartDown.Download(); err != nil {
 		return i.DownloadError(err)
 	}
@@ -606,32 +606,33 @@ func (i *Installer) Perform(kcontext string) Result {
 		// if a previous Helm installation was found, check that the version matches
 		// the downloaded chart version, because we do not support upgrades
 		if installedVersion != i.version {
-			return i.ExistingInstallationFoundError(installedVersion)
+			return i.CantReplaceExistingInstallationError(installedVersion)
 		}
 	} else if installedInfo.Method == instNone {
 		// nothing was installed: install the Chart
 		i.ShowInstalling(i.version)
+
 		err = i.CreateNamespace()
 		if err != nil {
-			i.ShowWrapped(fmt.Sprintf("Namespace creation failed: %s", err))
-			i.Report("fail_install_aes", ScoutMeta{"err", err.Error()})
-			return i.InstallAESError(err)
+			return i.NamespaceCreationFailed(err)
 		}
 
 		i.clusterinfo.CopyChartValuesTo(chartValues)
 
 		installedRelease, err := chartDown.Install(defInstallNamespace, chartValues)
 		if err != nil {
-			msg := fmt.Sprintf("Installation of a release failed: %s", err)
+			version := ""
 			if installedRelease != nil {
-				msg += fmt.Sprintf(" (version %s)", installedRelease.Chart.AppVersion())
+				version = installedRelease.Chart.AppVersion()
 			}
-			i.ShowWrapped(msg)
+
+			notes := ""
 			if ir := os.Getenv("DEBUG"); ir != "" {
-				i.ShowWrapped(installedRelease.Info.Notes)
+				notes = installedRelease.Info.Notes
 			}
-			i.Report("fail_install_aes", ScoutMeta{"err", err.Error()})
-			return i.InstallAESError(err)
+
+			// Helm downloader failed
+			return i.FailedToInstallChart(err, version, notes)
 		}
 
 		// record that this cluster is managed with edgectl
@@ -668,6 +669,7 @@ func (i *Installer) Perform(kcontext string) Result {
 
 	// Wait for Ambassador to be ready to serve ACME requests.
 	i.ShowAESRespondingToACME()
+
 	if err := i.loopUntil("AES to serve ACME", i.CheckAESServesACME, lc2); err != nil {
 		return i.AESACMEChallengeError(err)
 	}
@@ -677,15 +679,18 @@ func (i *Installer) Perform(kcontext string) Result {
 	// Send a request to acquire a DNS name for this cluster's load balancer
 	regURL := "https://metriton.datawire.io/register-domain"
 	regData := &registration{Email: emailAddress}
+
 	if !i.scout.Disabled() {
 		regData.AESInstallId = i.clusterID
 		regData.EdgectlInstallId = i.scout.installID
 	}
+
 	if net.ParseIP(i.address) != nil {
 		regData.Ip = i.address
 	} else {
 		regData.Hostname = i.address
 	}
+
 	buf := new(bytes.Buffer)
 	_ = json.NewEncoder(buf).Encode(regData)
 	resp, err := http.Post(regURL, "application/json", buf)
@@ -714,6 +719,7 @@ func (i *Installer) Perform(kcontext string) Result {
 	// Wait for DNS to propagate. This tries to avoid waiting for a ten
 	// minute error backoff if the ACME registration races ahead of the DNS
 	// name appearing for LetsEncrypt.
+
 	if err := i.loopUntil("DNS propagation to this host", i.CheckHostnameFound, lc2); err != nil {
 		return i.DNSPropagationError(err)
 	}
@@ -731,8 +737,10 @@ func (i *Installer) Perform(kcontext string) Result {
 	if err := i.loopUntil("TLS certificate acquisition", i.CheckACMEIsDone, lc5); err != nil {
 		return i.CertificateProvisionError(err)
 	}
+
 	i.Report("cert_provisioned")
 	i.ShowTLSConfiguredSuccessfully()
+
 	if err := i.ShowKubectl("show Host", "", "get", "host", i.hostname); err != nil {
 		return i.HostRetrievalError(err)
 	}
@@ -746,11 +754,7 @@ func (i *Installer) Perform(kcontext string) Result {
 	}
 
 	// Show how to use edgectl login in the future
-	i.show.Println()
-
-	futureLogin := `In the future, to log in to the Ambassador Edge Policy Console, run 
-%s`
-	i.ShowWrapped(fmt.Sprintf(futureLogin, color.Bold.Sprintf("$ edgectl login "+i.hostname)))
+	i.ShowFutureLogin(i.hostname)
 
 	if err := i.CheckAESHealth(); err != nil {
 		i.Report("aes_health_bad", ScoutMeta{"err", err.Error()})
