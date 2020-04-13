@@ -72,7 +72,7 @@ Format:
 
 ### Ambassador Edge Stack Only
 
-- Internal: `edgectl install` uses Helm under the hood (edited) 
+- Internal: `edgectl install` uses Helm under the hood 
 
 ## [1.4.0] April 8, 2020
 [1.4.0]: https://github.com/datawire/ambassador/compare/v1.3.2...v1.4.0
