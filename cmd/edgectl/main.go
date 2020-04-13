@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/tls"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"os"
@@ -62,6 +63,15 @@ func closeConn(conn net.Conn) {
 		// TODO: Should consider logging here
 	}
 }
+
+// For deferred closes, to handle errors correctly.
+func closeRead(reader io.ReadCloser) {
+	err := reader.Close()
+	if err != nil {
+		// TODO: Should consider logging here
+	}
+}
+
 
 func main() {
 	// Figure out our executable and save it

@@ -118,7 +118,7 @@ func (i *Installer) DownloadError(err error) Result {
 	}
 }
 
-func (i *Installer) CantReplaceExistingInstallationError(installedVersion string) Result {
+func (i *Installer) CantReplaceExistingInstallationError() Result {
 	url := "https://www.getambassador.io/docs/latest/topics/install/help/existing-installation"
 
 	return Result{
@@ -358,8 +358,8 @@ func (i *Installer) HostRetrievalError(err error) Result {
 
 // AESInstallCompleteMessage occurs here in the sequence.
 
-// Attempted to log in to the cluster but failed.
-func (i *Installer) AESLoginError(err error) Result {
+// Attempted to log in to the cluster but failed.  Not a failed installation, so return nil.
+func (i *Installer) AESLoginError() Result {
 	url := "https://www.getambassador.io/docs/latest/topics/install/help/aes-login"
 
 	message := "The installer failed to log in to the Ambassador Edge Policy Console.\n\n"

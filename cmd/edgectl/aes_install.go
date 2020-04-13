@@ -414,8 +414,8 @@ func (i *Installer) CheckACMEIsDone() error {
 
 // CreateNamespace creates the namespace for installing AES
 func (i *Installer) CreateNamespace() error {
-	i.CaptureKubectl("create namespace", "", "create", "namespace", defInstallNamespace)
 	// ignore errors: it will fail if the namespace already exists
+	_, _ = i.CaptureKubectl("create namespace", "", "create", "namespace", defInstallNamespace)
 	// TODO: check that the error message contains "already exists"
 	return nil
 }
@@ -424,7 +424,7 @@ func (i *Installer) CreateNamespace() error {
 func (i *Installer) Perform(kcontext string) Result {
 	chartValues := map[string]interface{}{}
 	for key, value := range defChartValues {
-		strvals.ParseInto(fmt.Sprintf("%s=%s", key, value), chartValues)
+		_ = strvals.ParseInto(fmt.Sprintf("%s=%s", key, value), chartValues)
 	}
 
 	// Start
@@ -540,7 +540,7 @@ func (i *Installer) Perform(kcontext string) Result {
 
 		switch installedInfo.Method {
 		case instOSS, instAES, instOperator:
-			return i.CantReplaceExistingInstallationError(installedVersion)
+			return i.CantReplaceExistingInstallationError()
 		case instEdgectl, instHelm:
 			// if a previous Helm/Edgectl installation has been found MAYBE we can continue with
 			// the setup: it depends on the version: continue with the setup and check the version later on
@@ -550,26 +550,26 @@ func (i *Installer) Perform(kcontext string) Result {
 	}
 
 	// the Helm chart heuristics look for the latest release that matches `version_rule`
-	version_rule := defHelmVersionRule
+	versionRule := defHelmVersionRule
 	if vr := os.Getenv(defEnvVarChartVersionRule); vr != "" {
 		i.ShowOverridingChartVersion(defEnvVarChartVersionRule, vr)
-		version_rule = vr
+		versionRule = vr
 	} else {
 		// Allow overriding the image repo and tag
 		// This is mutually exclusive with the Chart version rule: it would be too messy otherwise.
 		if ir := os.Getenv(defEnvVarImageRepo); ir != "" {
 			i.ShowOverridingImageRepo(defEnvVarImageRepo, ir)
-			strvals.ParseInto(fmt.Sprintf("image.repository=%s", ir), chartValues)
+			_ = strvals.ParseInto(fmt.Sprintf("image.repository=%s", ir), chartValues)
 		}
 
 		if it := os.Getenv(defEnvVarImageTag); it != "" {
 			i.ShowOverridingImageTag(defEnvVarImageTag, it)
-			strvals.ParseInto(fmt.Sprintf("image.tag=%s", it), chartValues)
+			_ = strvals.ParseInto(fmt.Sprintf("image.tag=%s", it), chartValues)
 		}
 	}
 
 	// create a new parsed checker for versions
-	chartVersion, err := helm.NewChartVersionRule(version_rule)
+	chartVersion, err := helm.NewChartVersionRule(versionRule)
 	if err != nil {
 		// this should never happen: it currently breaks only if the version rule ("*") is wrong
 		return i.InternalError(err)
@@ -604,7 +604,7 @@ func (i *Installer) Perform(kcontext string) Result {
 		// if a previous installation was found, check that the installed version matches
 		// the downloaded chart version, because we do not support upgrades
 		if installedVersion != i.version {
-			return i.CantReplaceExistingInstallationError(installedVersion)
+			return i.CantReplaceExistingInstallationError()
 		}
 	} else if installedInfo.Method == instNone {
 		// nothing was installed: install the Chart
@@ -748,7 +748,7 @@ func (i *Installer) Perform(kcontext string) Result {
 
 	// Open a browser window to the Edge Policy Console
 		if err := doLogin(i.kubeinfo, kcontext, "ambassador", i.hostname, true, true, false); err != nil {
-		return i.AESLoginError(err)
+		return i.AESLoginError()
 	}
 
 	// Show how to use edgectl login in the future

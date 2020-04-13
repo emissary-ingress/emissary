@@ -36,19 +36,22 @@ func (i *Installer) generateCrashReport(sourceError error) {
 		i.log.Printf("failed to initiate anonymous crash report due to error: %v", err.Error())
 		return
 	}
-	defer resp.Body.Close()
+	defer closeRead(resp.Body)
+
 	content, err := ioutil.ReadAll(resp.Body)
 	if resp.StatusCode != 201 {
 		i.log.Print("skipping anonymous crash report and log submission for this failure")
 		i.log.Printf("%v: %q", resp.StatusCode, string(content))
 		return
 	}
+
 	crashReport := crashReportCreationResponse{}
 	err = json.Unmarshal(content, &crashReport)
 	if err != nil {
 		i.log.Printf("failed to generate anonymous crash report due to error: %v", err.Error())
 		return
 	}
+
 	i.log.Printf("uploading anonymous crash report and logs under report ID: %v", crashReport.ReportId)
 	i.Report("crash_report", ScoutMeta{"crash_report_id", crashReport.ReportId})
 	i.uploadCrashReportData(crashReport, i.gatherCrashReportData())
@@ -99,7 +102,8 @@ func (i *Installer) uploadCrashReportData(crashReport crashReportCreationRespons
 		i.log.Print(err.Error())
 		return
 	}
-	defer res.Body.Close()
+	defer closeRead(res.Body)
+
 	_, err = ioutil.ReadAll(res.Body)
 	if err != nil {
 		i.log.Print(err.Error())

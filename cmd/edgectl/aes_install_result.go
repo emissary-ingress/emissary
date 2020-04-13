@@ -18,15 +18,6 @@ type Result struct {
 	Err          error  // Error condition (nil -> successful installation)
 }
 
-// UnhandledErrResult returns a minimal Result that passes along an error but
-// otherwise does not do anything. It is intended for transitional use, until
-// *every* error is handled explicitly to yield a meaningful Result.
-func UnhandledErrResult(err error) Result {
-	return Result{
-		Err: err,
-	}
-}
-
 // AdditionalDatum represents a key-value pair that may be used in template
 // expansion
 type AdditionalDatum struct {
@@ -76,11 +67,11 @@ func (i *Installer) ShowTemplated(text string, more ...AdditionalDatum) {
 }
 func (i *Installer) ShowResult(r Result) {
 	templateData := []AdditionalDatum{
-		AdditionalDatum{key: "Report", value: r.Report},
-		AdditionalDatum{key: "Message", value: r.Message},
-		AdditionalDatum{key: "TryAgain", value: r.TryAgain},
-		AdditionalDatum{key: "URL", value: r.URL},
-		AdditionalDatum{key: "Err", value: r.Err},
+		{key: "Report", value: r.Report},
+		{key: "Message", value: r.Message},
+		{key: "TryAgain", value: r.TryAgain},
+		{key: "URL", value: r.URL},
+		{key: "Err", value: r.Err},
 	}
 
 	if r.Err != nil {
