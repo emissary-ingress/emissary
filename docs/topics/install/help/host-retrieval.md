@@ -4,7 +4,9 @@ After creating a new Host resource using `kubectl apply` the installer was unabl
 
 ## What's next?
 
-If this appears to be an intermittent failure, try running the installer again:
+This is an unusual, unexpected failure. Sorry about that!
+
+Please run the installer again:
 
 ```shell
 edgectl install

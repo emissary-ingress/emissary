@@ -4,7 +4,9 @@ The installer was unable to create a new Host resource in your Kubernetes cluste
 
 ## What's next?
 
-If this appears to be an intermittent failure, try running the installer again:
+This is an unusual, unexpected failure. Sorry about that!
+
+Please run the installer again:
 
 ```shell
 edgectl install
