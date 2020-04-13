@@ -73,29 +73,32 @@ type CommitPhase int32
 
 const (
 	CommitPhase_Received     CommitPhase = 0
-	CommitPhase_Building     CommitPhase = 1
-	CommitPhase_BuildFailed  CommitPhase = 2
-	CommitPhase_Deploying    CommitPhase = 3
-	CommitPhase_DeployFailed CommitPhase = 4
-	CommitPhase_Deployed     CommitPhase = 5
+	CommitPhase_BuildQueued  CommitPhase = 1
+	CommitPhase_Building     CommitPhase = 2
+	CommitPhase_BuildFailed  CommitPhase = 3
+	CommitPhase_Deploying    CommitPhase = 4
+	CommitPhase_DeployFailed CommitPhase = 5
+	CommitPhase_Deployed     CommitPhase = 6
 )
 
 var CommitPhase_name = map[int32]string{
 	0: "Received",
-	1: "Building",
-	2: "BuildFailed",
-	3: "Deploying",
-	4: "DeployFailed",
-	5: "Deployed",
+	1: "BuildQueued",
+	2: "Building",
+	3: "BuildFailed",
+	4: "Deploying",
+	5: "DeployFailed",
+	6: "Deployed",
 }
 
 var CommitPhase_value = map[string]int32{
 	"Received":     0,
-	"Building":     1,
-	"BuildFailed":  2,
-	"Deploying":    3,
-	"DeployFailed": 4,
-	"Deployed":     5,
+	"BuildQueued":  1,
+	"Building":     2,
+	"BuildFailed":  3,
+	"Deploying":    4,
+	"DeployFailed": 5,
+	"Deployed":     6,
 }
 
 func (x CommitPhase) String() string {

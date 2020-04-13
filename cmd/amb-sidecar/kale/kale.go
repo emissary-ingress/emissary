@@ -809,6 +809,9 @@ func (k *kale) reconcileCommit(ctx context.Context, _commit *commitAndChildren, 
 	if len(runners) == 0 {
 		if len(builders) != 1 {
 			commitPhase = CommitPhase_Received
+			if len(builders) == 0 && *runningJobs >= _commit.Parent.Parent.GetMaximumConcurrentBuilds() {
+				commitPhase = CommitPhase_BuildQueued
+			}
 		} else {
 			if complete, _ := jobConditionMet(builders[0].Job, k8sTypesBatchV1.JobComplete, k8sTypesCoreV1.ConditionTrue); complete {
 				// advance to next phase
@@ -882,7 +885,7 @@ func (k *kale) reconcileCommit(ctx context.Context, _commit *commitAndChildren, 
 	}
 
 	var manifests []interface{}
-	if *runningJobs < _commit.Parent.Parent.GetMaximumConcurrentBuilds() || commit.Status.Phase > CommitPhase_Building {
+	if commit.Status.Phase != CommitPhase_BuildQueued {
 		manifests = append(manifests, k.calculateBuild(proj, commit)...)
 		if len(_commit.Children.Builders) == 0 {
 			*runningJobs++
