@@ -221,5 +221,6 @@ func getExistingInstallation(deploys deployGetter) (string, installationMethodIn
 			return version, info, nil
 		}
 	}
+
 	return "", installationMethodInfo{Method: instNone}, nil
 }
