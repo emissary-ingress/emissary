@@ -151,6 +151,7 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 		newCookies, err := c.saveSession(redisClient, sessionInfo, filterutil.GetHeader(request))
 
 		if err != nil {
+			// Change the response of all of 'filter'.
 			response = middleware.NewErrorResponse(ctx, http.StatusInternalServerError, err, nil)
 		} else {
 			cookies = append(cookies, newCookies...)
@@ -538,6 +539,7 @@ func (c *OAuth2Client) saveSession(redisClient *redis.Client, sessionInfo *Sessi
 		return nil, errors.New("failed to serialize session information")
 	}
 
+	// Set up a pipeline of Redis updates...
 	redisClient.PipeAppend("SET", "session:"+newSessionID, string(sessionDataBytes), "EX", int(sessionExpiry.Seconds()))
 	redisClient.PipeAppend("SET", "session-xsrf:"+newSessionID, newXsrfToken, "EX", int(sessionExpiry.Seconds()))
 
@@ -546,7 +548,7 @@ func (c *OAuth2Client) saveSession(redisClient *redis.Client, sessionInfo *Sessi
 		redisClient.PipeAppend("DEL", "session-xsrf:"+sessionInfo.sessionID)
 	}
 
-	// Empty the pipeline, and scream about anything that goes wrong in the middle.
+	// ...then make sure everything in the pipeline works.
 	for err != redis.ErrPipelineEmpty {
 		err = redisClient.PipeResp().Err
 		if err != nil && err != redis.ErrPipelineEmpty {
@@ -554,6 +556,8 @@ func (c *OAuth2Client) saveSession(redisClient *redis.Client, sessionInfo *Sessi
 		}
 	}
 
+	// OK, build up some cookies.
+	//
 	// Note that "useSessionCookies" is about whether or not we use cookies that
 	// expire when the browser is closed (session cookies) or cookies that expire
 	// at a particular time, irrespective of how long the browser has been open
