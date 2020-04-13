@@ -805,14 +805,38 @@ func (k *kale) reconcileCommit(ctx context.Context, _commit *commitAndChildren, 
 	log := dlog.GetLogger(ctx)
 
 	var commitPhase CommitPhase
-	// Decide what the phase of the commit should be, based on available evidence
-	if len(runners) == 0 {
-		if len(builders) != 1 {
+	// Decide what the phase of the commit should be, based on available evidence.
+	//
+	//     | runners | builders | phase                                                                   |
+	//     |---------+----------+-------------------------------------------------------------------------|
+	//     |       0 |        0 | Received or BuildQueued (depending on if there are job slots available) |
+	//     |       0 |        1 | Building or BuildFailed or Deploying (depending on job.status)          |
+	//     |       0 |       >1 | Building (should not happen)                                            |
+	//     |       1 |        n | Deploying or DeployFailed or Deployed (depending on deployment.status)  |
+	//     |      >1 |        n | Deploying (should not happen)                                           |
+	//
+	// Or, inverted:
+	//
+	//     | phase                | builders | runners  |
+	//     |----------------------+----------+----------|
+	//     | Received/BuildQueued | 0        | 0        |
+	//     | Building             | 1+       | 0        |
+	//     | BuildFailed          | 1 (fail) | 0        |
+	//     | Deploying            | 1 (succ) | 0        |
+	//     | Deploying            | n        | 1+       |
+	//     | DeployFailed         | n        | 1 (fail) |
+	//     | Deployed             | n        | 1 (succ) |
+	//
+	// It may help to think of "Deploying" as a synonym for "Build Completed Successfully".
+	switch len(runners) {
+	case 0:
+		switch len(builders) {
+		case 0:
 			commitPhase = CommitPhase_Received
-			if len(builders) == 0 && *runningJobs >= _commit.Parent.Parent.GetMaximumConcurrentBuilds() {
+			if *runningJobs >= _commit.Parent.Parent.GetMaximumConcurrentBuilds() {
 				commitPhase = CommitPhase_BuildQueued
 			}
-		} else {
+		case 1:
 			if complete, _ := jobConditionMet(builders[0].Job, k8sTypesBatchV1.JobComplete, k8sTypesCoreV1.ConditionTrue); complete {
 				// advance to next phase
 				commitPhase = CommitPhase_Deploying
@@ -824,28 +848,33 @@ func (k *kale) reconcileCommit(ctx context.Context, _commit *commitAndChildren, 
 				// keep waiting for one of the above to become true
 				commitPhase = CommitPhase_Building
 			}
+		default: // >= 2
+			// Something weird is going on here, don't let it advance.
+			// This should fix itself after we do an applyAndPrune().
+			commitPhase = CommitPhase_Building
 		}
-	} else {
-		if len(runners) != 1 {
-			commitPhase = CommitPhase_Deploying
+	case 1:
+		dep := runners[0]
+		if dep.Status.ObservedGeneration == dep.ObjectMeta.Generation &&
+			(dep.Spec.Replicas == nil || dep.Status.UpdatedReplicas >= *dep.Spec.Replicas) &&
+			dep.Status.UpdatedReplicas == dep.Status.Replicas &&
+			dep.Status.AvailableReplicas == dep.Status.Replicas {
+			// advance to next phase
+			commitPhase = CommitPhase_Deployed
 		} else {
-			dep := runners[0]
-			if dep.Status.ObservedGeneration == dep.ObjectMeta.Generation &&
-				(dep.Spec.Replicas == nil || dep.Status.UpdatedReplicas >= *dep.Spec.Replicas) &&
-				dep.Status.UpdatedReplicas == dep.Status.Replicas &&
-				dep.Status.AvailableReplicas == dep.Status.Replicas {
-				// advance to next phase
-				commitPhase = CommitPhase_Deployed
-			} else {
-				commitPhase = CommitPhase_Deploying
-				for _, p := range dep.Children.Pods {
-					if p.InCrashLoopBackOff() {
-						commitPhase = CommitPhase_DeployFailed
-						break
-					}
+			commitPhase = CommitPhase_Deploying
+			for _, p := range dep.Children.Pods {
+				if p.InCrashLoopBackOff() {
+					commitPhase = CommitPhase_DeployFailed
+					break
 				}
 			}
 		}
+	default: // >= 2
+		// Something weird is going on here, don't let it
+		// reach a terminal Deployed/DeployFailed phase.
+		// This should fix itself after we do an applyAndPrune().
+		commitPhase = CommitPhase_Deploying
 	}
 	// If the detected phase of the commit doesn't match what's in the commit.status, inform
 	// both Kubernetes and GitHub of the change.
