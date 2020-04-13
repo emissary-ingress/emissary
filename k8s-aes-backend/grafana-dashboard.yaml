@@ -646,7 +646,7 @@ data:
               "group": [],
               "metricColumn": "none",
               "rawQuery": true,
-              "rawSql": "SELECT creation_time as time, metadata->>'Product' as product, metadata->>'ProductVersion' as version, metadata->>'AESVersion' as aes_version, id, metadata->>'Error' as error from crash_report",
+              "rawSql": "SELECT creation_time as time, metadata->>'Product' as product, metadata->>'ProductVersion' as version, metadata->>'AESVersion' as aes_version, id, metadata->>'Error' as error from crash_report WHERE metadata->>'ProductVersion' NOT LIKE '%unknown%' AND metadata->>'ProductVersion' NOT LIKE '%dirty%' AND $__timeFilter(creation_time)",
               "refId": "A",
               "select": [
                 [
