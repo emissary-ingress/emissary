@@ -29,7 +29,11 @@ class GettingStarted extends Component {
           document.getElementById("QS-showWindows").style.display = "inline-block";
           document.getElementById("QS-showWindowsAside1").style.display = "inline-block";
           document.getElementById("QS-showWindowsAside2").style.display = "inline-block";
-          break;
+          break;        
+        case "other":
+          document.getElementById("QS-showLinux").style.display = "inline-block";
+          document.getElementById("QS-showLinuxAside1").style.display = "inline-block";
+          document.getElementById("QS-showLinuxAside2").style.display = "inline-block";
       }
     };
     renderHeader(os);
