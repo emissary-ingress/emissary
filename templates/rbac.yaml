@@ -18,9 +18,7 @@ metadata:
 rules:
   - apiGroups: [""]
     resources:
-    {{- if not .Values.scope.singleNamespace }}
     - namespaces
-    {{- end }}
     - services
     - secrets
     - endpoints
