@@ -2,6 +2,33 @@ module github.com/datawire/ambassador
 
 go 1.13
 
+// If you're editing this file, there's a few things you should know:
+//
+//  1. Avoid the `replace` command as much as possible.  Go only pays
+//     attention to the `replace` command when it appears in the main
+//     module, which means that if the `replace` command is required
+//     for the compile to work, then anything using ambassador.git as
+//     a library needs to duplicate that `replace` in their go.mod.
+//     We don't want to burden our users with that if we can avoid it
+//     (since we encourage them to use the gRPC Go libraries when
+//     implementing plugin services), and we don't want to deal with
+//     that ourselves in apro.git.
+//
+//     The biggest reason we wouldn't be able to avoid it is if we
+//     need to pull in a library that has a `replace` in its
+//     go.mod--just as us adding a `replace` to our go.mod would
+//     require our dependents to do the same, our dependencies adding
+//     a `replace` requires us to do the same.  And even then, if
+//     we're careful we might be able to avoid it.
+//
+//  2. If you do add a `replace` command to this file, you must also
+//     add it to the go.mod in apro.git (see above for explanation).
+//
+//  3. We use https://github.com/datawire/libk8s to manage the
+//     Kubernetes library versions (since the Kubernetes folks make it
+//     such a nightmare).  See the docs there if you need to fuss with
+//     the versions of any of the k8s.io/ libraries.
+
 require (
 	git.lukeshu.com/go/libsystemd v0.5.3
 	github.com/Masterminds/semver v1.4.2 // indirect
