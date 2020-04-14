@@ -35,6 +35,7 @@ require (
 	github.com/Masterminds/sprig v2.17.1+incompatible
 	github.com/aokoli/goutils v1.1.0 // indirect
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869
+	github.com/datawire/ambassador/pkg/ignore/sub v0.0.0-00010101000000-000000000000
 	github.com/datawire/libk8s v0.0.0-20191023073802-9add2eb01af2
 	github.com/datawire/pf v0.0.0-20180510150411-31a823f9495a
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -74,3 +75,5 @@ require (
 	k8s.io/client-go v0.0.0-20191004120905-f06fe3961ca9
 	sigs.k8s.io/yaml v1.1.0
 )
+
+replace github.com/datawire/ambassador/pkg/ignore/sub => ./pkg/ignore/sub
