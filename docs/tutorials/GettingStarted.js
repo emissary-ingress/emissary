@@ -51,7 +51,7 @@ class GettingStarted extends Component {
           <span id="QS-showWindows" data-os="windows" className="QS-header1">Windows<img className="os-logo" src="../../images/windows.png" /></span>
         </div>
 
-        <div className="QS-moreInstallOptions"><a id="QS-moreInstallOptions"    href="../../topics/install">(more install options)</a>
+        <div className="QS-moreInstallOptions"><a id="QS-moreInstallOptions"    href="../../topics/install/">(more install options)</a>
         </div>
       </span>
     
@@ -163,8 +163,11 @@ class GettingStarted extends Component {
           3. Take it for a spin! 
           
               <div className="QS-Aside3codeblockInstall">
-                <span className="QS-aside3prose">➞ <a href="../../topics/install/installation-success/">See how Ambassador works with a service</a>.</span><br/>
+                <span className="QS-aside3prose">➞ <a href="../../tutorials/quickstart-demo/">See how Ambassador works with a service</a>.</span><br/>
                 <span className="QS-aside3prose">➞ <a href="../../topics/using/">Check out custom options and integrations</a>.</span>
+              </div>
+              <div className="QS-blackbird-image">
+                <img alt="Ambassador's OpenSource Blackbird" src="/images/features-page-bird.svg"/>
               </div>
         </div>
       </div>
