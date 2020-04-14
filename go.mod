@@ -107,11 +107,13 @@ replace (
 // This is terrible.  We're bypassing Go's ability to actually reason
 // about k8s.io/ versions.  But we're forced in to it because of the
 // operator-sdk people putting `replaces` in something meant to be
-// consumed as a library (the jerks).
+// consumed as a library (the jerks).  Make sure anything that
+// overlaps with libk8s with the libk8s `cmd/fix-go.mod/versions.go`
+// matches the libk8s version.
 //
 // v0.0.0 bogus versions
 replace (
-	k8s.io/api v0.0.0 => k8s.io/api v0.0.0-20191016110408-35e52d86657a
+	k8s.io/api v0.0.0 => k8s.io/api v0.0.0-20191004120104-195af9ec3521
 	k8s.io/apiextensions-apiserver v0.0.0 => k8s.io/apiextensions-apiserver v0.0.0-20191016113550-5357c4baaf65
 	k8s.io/apimachinery v0.0.0 => k8s.io/apimachinery v0.0.0-20191004115801-a2eda9f80ab8
 	k8s.io/apiserver v0.0.0 => k8s.io/apiserver v0.0.0-20191016112112-5190913f932d
@@ -133,9 +135,10 @@ replace (
 	k8s.io/metrics v0.0.0 => k8s.io/metrics v0.0.0-20191016113814-3b1a734dba6e
 	k8s.io/sample-apiserver v0.0.0 => k8s.io/sample-apiserver v0.0.0-20191016112829-06bb3c9d77c9
 )
+
 // downgrades
 replace (
-	k8s.io/api v0.17.2 => k8s.io/api v0.0.0-20191016110408-35e52d86657a
+	k8s.io/api v0.17.2 => k8s.io/api v0.0.0-20191004120104-195af9ec3521
 	k8s.io/apiextensions-apiserver v0.17.2 => k8s.io/apiextensions-apiserver v0.0.0-20191016113550-5357c4baaf65
 	k8s.io/apimachinery v0.17.2 => k8s.io/apimachinery v0.0.0-20191004115801-a2eda9f80ab8
 	k8s.io/client-go v12.0.0+incompatible => k8s.io/client-go v0.0.0-20191004120905-f06fe3961ca9
