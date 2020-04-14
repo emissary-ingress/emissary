@@ -7,7 +7,7 @@ In this guide, we'll walk you through installing, configuring, and customizing
 the Ambassador Edge Stack in your Kubernetes cluster.
 
 The manual install process does require more user configuration than the [quick
-start method](../../tutorials/getting-started/), but it does allow you to control the
+start method](../../../tutorials/getting-started/), but it does allow you to control the
 aspects of your base Edge Stack installation.
 
 ## Before You Begin
