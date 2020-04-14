@@ -7,3 +7,4 @@
 /Dockerfile
 apro-abi@*
 aes-abi*
+/vendor/
