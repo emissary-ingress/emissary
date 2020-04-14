@@ -6,7 +6,7 @@ require (
 	github.com/Jeffail/gabs v1.2.0
 	github.com/aclements/go-moremath v0.0.0-20180329182055-b1aff36309c7
 	github.com/aws/aws-sdk-go v1.23.0
-	github.com/datawire/ambassador v0.83.1-ea10
+	github.com/datawire/ambassador v1.0.0-local-vendored-copy
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/die-net/lrucache v0.0.0-20181227122439-19a39ef22a11
 	github.com/fsnotify/fsnotify v1.4.7
@@ -24,7 +24,7 @@ require (
 	github.com/jpillora/backoff v1.0.0
 	github.com/lyft/goruntime v0.1.8
 	github.com/lyft/gostats v0.2.6
-	github.com/lyft/ratelimit v1.3.0
+	github.com/lyft/ratelimit v1.3.0-local-vendored-copy
 	github.com/mediocregopher/radix.v2 v0.0.0-20180603022615-94360be26253
 	github.com/mholt/certmagic v0.8.3
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d
