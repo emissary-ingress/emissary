@@ -21,10 +21,24 @@ go 1.13
 //     a `replace` requires us to do the same.  And even then, if
 //     we're careful we might be able to avoid it.
 //
-//  2. If you do add a `replace` command to this file, you must also
+//  2. If you do add a `replace` command to this file, always include
+//     a version number to the left of the "=>" (even if you're
+//     copying the command from a dependnecy and the dependency's
+//     go.mod doesn't have a version on the left side).  This way we
+//     don't accidentally keep pinning to an older version after our
+//     dependency's `replace` goes away.  Sometimes it can be tricky
+//     to figure out what version to put on the left side; often the
+//     easiest way to figure it out is to get it working without a
+//     version, run `go mod vendor`, then grep for "=>" in
+//     `./vendor/modules.txt`.  If you don't see a "=>" line for that
+//     replacement in modules.txt, then that's an indicator that we
+//     don't really need that `replace`, maybe replacing it with a
+//     `require` (or not; see the notes on go-autorest below).
+//
+//  3. If you do add a `replace` command to this file, you must also
 //     add it to the go.mod in apro.git (see above for explanation).
 //
-//  3. We used to use https://github.com/datawire/libk8s to manage the
+//  4. We used to use https://github.com/datawire/libk8s to manage the
 //     Kubernetes library versions (since the Kubernetes folks de it
 //     such a nightmare), but recent versions of Kubernetes 1.x.y now
 //     have useful "v0.x.y" git tags that Go understands, so it's
@@ -83,8 +97,23 @@ require (
 )
 
 // From the go.mod files in some of our dependencies...
+//
+// The go-autorest one is a little funny; we don't actually use that
+// module; we use the nested "github.com/Azure/go-autorest/autorest"
+// module, which split off from it some time between v11 and v13; and
+// we just need to tell it to consider v13 instead of v11 so that it
+// knows to use the nested module (instead of complaining about
+// "ambiguous import: found package in multiple modules").  We could
+// do this with
+//
+//     require github.com/Azure/go-autorest v13.3.2+incompatible
+//
+// but `go mod tidy` would remove it and break the build.  We could
+// inhibit `go mod tidy` from removing it by importing a package from
+// it in `./pkg/ignore/pin.go`, but there are actually no packages in
+// it to import; it's entirely nested modules.
 replace (
-	github.com/Azure/go-autorest => github.com/Azure/go-autorest v13.3.2+incompatible // from helm.sh/helm/v3@v3.1.0 and github.com/operator-framework/operator-sdk@v0.16.1-0.20200331173026-a00c1b716663
-	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20191216044856-a8371794149d // from helm.sh/helm/v3@v3.1.0
-	k8s.io/client-go => k8s.io/client-go v0.17.4 // from github.com/operator-framework/operator-sdk@v0.16.1-0.20200331173026-a00c1b716663
+	github.com/Azure/go-autorest v11.2.8+incompatible => github.com/Azure/go-autorest v13.3.2+incompatible // from helm.sh/helm/v3@v3.1.0 and github.com/operator-framework/operator-sdk@v0.16.1-0.20200331173026-a00c1b716663
+	github.com/docker/distribution v2.7.1+incompatible => github.com/docker/distribution v0.0.0-20191216044856-a8371794149d // from helm.sh/helm/v3@v3.1.0
+	k8s.io/client-go v12.0.0+incompatible => k8s.io/client-go v0.17.4 // from github.com/operator-framework/operator-sdk@v0.16.1-0.20200331173026-a00c1b716663
 )
