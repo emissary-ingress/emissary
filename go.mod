@@ -33,7 +33,7 @@ go 1.13
 //     `./vendor/modules.txt`.  If you don't see a "=>" line for that
 //     replacement in modules.txt, then that's an indicator that we
 //     don't really need that `replace`, maybe replacing it with a
-//     `require` (or not; sometimes things are weird).
+//     `require` (or not; see the notes on go-autorest below).
 //
 //  3. If you do add a `replace` command to this file, you must also
 //     add it to the go.mod in apro.git (see above for explanation).
@@ -96,29 +96,63 @@ require (
 	sigs.k8s.io/yaml v1.1.0
 )
 
-replace github.com/docker/docker => github.com/moby/moby v0.7.3-0.20190826074503-38ab9da00309 // Required by Helm
-
-// Pinned to kubernetes-1.16.2
+// We need to inherit this from helm.sh/helm/v3
 replace (
-	k8s.io/api => k8s.io/api v0.0.0-20191016110408-35e52d86657a
-	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20191016113550-5357c4baaf65
-	k8s.io/apimachinery => k8s.io/apimachinery v0.0.0-20191004115801-a2eda9f80ab8
-	k8s.io/apiserver => k8s.io/apiserver v0.0.0-20191016112112-5190913f932d
-	k8s.io/cli-runtime => k8s.io/cli-runtime v0.0.0-20191004123735-6bff60de4370
-	k8s.io/client-go => k8s.io/client-go v0.0.0-20191004120905-f06fe3961ca9
-	k8s.io/cloud-provider => k8s.io/cloud-provider v0.0.0-20191016115326-20453efc2458
-	k8s.io/cluster-bootstrap => k8s.io/cluster-bootstrap v0.0.0-20191016115129-c07a134afb42
-	k8s.io/code-generator => k8s.io/code-generator v0.0.0-20191004115455-8e001e5d1894
-	k8s.io/component-base => k8s.io/component-base v0.0.0-20191016111319-039242c015a9
-	k8s.io/cri-api => k8s.io/cri-api v0.0.0-20190828162817-608eb1dad4ac
-	k8s.io/csi-translation-lib => k8s.io/csi-translation-lib v0.0.0-20191016115521-756ffa5af0bd
-	k8s.io/kube-aggregator => k8s.io/kube-aggregator v0.0.0-20191016112429-9587704a8ad4
-	k8s.io/kube-controller-manager => k8s.io/kube-controller-manager v0.0.0-20191016114939-2b2b218dc1df
-	k8s.io/kube-proxy => k8s.io/kube-proxy v0.0.0-20191016114407-2e83b6f20229
-	k8s.io/kube-scheduler => k8s.io/kube-scheduler v0.0.0-20191016114748-65049c67a58b
-	k8s.io/kubectl => k8s.io/kubectl v0.0.0-20191016120415-2ed914427d51
-	k8s.io/kubelet => k8s.io/kubelet v0.0.0-20191016114556-7841ed97f1b2
-	k8s.io/legacy-cloud-providers => k8s.io/legacy-cloud-providers v0.0.0-20191016115753-cf0698c3a16b
-	k8s.io/metrics => k8s.io/metrics v0.0.0-20191016113814-3b1a734dba6e
-	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.0.0-20191016112829-06bb3c9d77c9
+	github.com/docker/docker v0.0.0-00010101000000-000000000000 => github.com/moby/moby v0.7.3-0.20190826074503-38ab9da00309
+	github.com/docker/docker v1.4.2-0.20181221150755-2cb26cfe9cbf => github.com/moby/moby v0.7.3-0.20190826074503-38ab9da00309
 )
+
+// We need inherit these from github.com/operator-framework/operator-sdk@v0.16.0
+//
+// This is terrible.  We're bypassing Go's ability to actually reason
+// about k8s.io/ versions.  But we're forced in to it because of the
+// operator-sdk people putting `replaces` in something meant to be
+// consumed as a library (the jerks).
+//
+// v0.0.0 bogus versions
+replace (
+	k8s.io/api v0.0.0 => k8s.io/api v0.0.0-20191016110408-35e52d86657a
+	k8s.io/apiextensions-apiserver v0.0.0 => k8s.io/apiextensions-apiserver v0.0.0-20191016113550-5357c4baaf65
+	k8s.io/apimachinery v0.0.0 => k8s.io/apimachinery v0.0.0-20191004115801-a2eda9f80ab8
+	k8s.io/apiserver v0.0.0 => k8s.io/apiserver v0.0.0-20191016112112-5190913f932d
+	k8s.io/cli-runtime v0.0.0 => k8s.io/cli-runtime v0.0.0-20191004123735-6bff60de4370
+	k8s.io/client-go v0.0.0 => k8s.io/client-go v0.0.0-20191004120905-f06fe3961ca9
+	k8s.io/cloud-provider v0.0.0 => k8s.io/cloud-provider v0.0.0-20191016115326-20453efc2458
+	k8s.io/cluster-bootstrap v0.0.0 => k8s.io/cluster-bootstrap v0.0.0-20191016115129-c07a134afb42
+	k8s.io/code-generator v0.0.0 => k8s.io/code-generator v0.0.0-20191004115455-8e001e5d1894
+	k8s.io/component-base v0.0.0 => k8s.io/component-base v0.0.0-20191016111319-039242c015a9
+	k8s.io/cri-api v0.0.0 => k8s.io/cri-api v0.0.0-20190828162817-608eb1dad4ac
+	k8s.io/csi-translation-lib v0.0.0 => k8s.io/csi-translation-lib v0.0.0-20191016115521-756ffa5af0bd
+	k8s.io/kube-aggregator v0.0.0 => k8s.io/kube-aggregator v0.0.0-20191016112429-9587704a8ad4
+	k8s.io/kube-controller-manager v0.0.0 => k8s.io/kube-controller-manager v0.0.0-20191016114939-2b2b218dc1df
+	k8s.io/kube-proxy v0.0.0 => k8s.io/kube-proxy v0.0.0-20191016114407-2e83b6f20229
+	k8s.io/kube-scheduler v0.0.0 => k8s.io/kube-scheduler v0.0.0-20191016114748-65049c67a58b
+	k8s.io/kubectl v0.0.0 => k8s.io/kubectl v0.0.0-20191016120415-2ed914427d51
+	k8s.io/kubelet v0.0.0 => k8s.io/kubelet v0.0.0-20191016114556-7841ed97f1b2
+	k8s.io/legacy-cloud-providers v0.0.0 => k8s.io/legacy-cloud-providers v0.0.0-20191016115753-cf0698c3a16b
+	k8s.io/metrics v0.0.0 => k8s.io/metrics v0.0.0-20191016113814-3b1a734dba6e
+	k8s.io/sample-apiserver v0.0.0 => k8s.io/sample-apiserver v0.0.0-20191016112829-06bb3c9d77c9
+)
+// downgrades
+replace (
+	k8s.io/api v0.17.2 => k8s.io/api v0.0.0-20191016110408-35e52d86657a
+	k8s.io/apiextensions-apiserver v0.17.2 => k8s.io/apiextensions-apiserver v0.0.0-20191016113550-5357c4baaf65
+	k8s.io/apimachinery v0.17.2 => k8s.io/apimachinery v0.0.0-20191004115801-a2eda9f80ab8
+	k8s.io/client-go v12.0.0+incompatible => k8s.io/client-go v0.0.0-20191004120905-f06fe3961ca9
+)
+
+// The go-autorest one is a little funny; we don't actually use that
+// module; we use the nested "github.com/Azure/go-autorest/autorest"
+// module, which split off from it some time between v11 and v13; and
+// we just need to tell it to consider v13 instead of v11 so that it
+// knows to use the nested module (instead of complaining about
+// "ambiguous import: found package in multiple modules").  We could
+// do this with
+//
+//     require github.com/Azure/go-autorest v13.3.2+incompatible
+//
+// but `go mod tidy` would remove it and break the build.  We could
+// inhibit `go mod tidy` from removing it by importing a package from
+// it in `./pkg/ignore/pin.go`, but there are actually no packages in
+// it to import; it's entirely nested modules.
+replace github.com/Azure/go-autorest v11.1.2+incompatible => github.com/Azure/go-autorest v13.3.2+incompatible
