@@ -25,6 +25,3 @@ replace (
 	github.com/datawire/apro => ../
 	github.com/lyft/ratelimit => ./
 )
-
-// Inherit nescessary replacements from the apro go.mod
-replace gopkg.in/russross/blackfriday.v2 => github.com/russross/blackfriday v2.0.0+incompatible
