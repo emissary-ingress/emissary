@@ -25,9 +25,6 @@ import (
 	"github.com/google/shlex"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
-
-	// help pin dependencies
-	_ "github.com/datawire/libk8s"
 )
 
 const (

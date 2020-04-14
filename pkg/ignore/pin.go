@@ -22,7 +22,4 @@ import (
 
 	// protoc-gen-go-json
 	_ "github.com/mitchellh/protoc-gen-go-json"
-
-	// other
-	_ "github.com/datawire/ambassador/pkg/ignore/sub"
 )
