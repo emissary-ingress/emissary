@@ -258,14 +258,20 @@ and clear the cache.
 How do I make documentation-only changes?
 -----------------------------------------
 
-If you want to make a change that **only** affects documentation, and is not
-tied to a future feature, you'll need to make your change directly in the
-`datawire/ambassador-docs` repository. Clone that repository and check out
-its `README.md`.
+The Ambassador documentation lives in the `docs` directory. If you're working
+on documentation for an upcoming feature or fix, make your docs changes along
+with your code changes, and include them all in the same PR.
 
-(It is technically possible to make these changes from the `ambassador` repo.
-Please don't, unless you're fixing docs for an upcoming feature that hasn't
-yet shipped.)
+If you want to make a change that **only** affects the live documentation for
+an already-released version of Ambassador, you'll need to make your changes in
+a branch from the `release` branch for that version, then PR back to the 
+`release` branch. For example, if you find a typo while reading the documentation
+for Ambassador 1.3:
+
+- Check out `release/v1.3`
+- Make a branch from it.
+- Fix the typo.
+- Push your branch and PR it back to `release/v1.3`.
 
 How do I get the source code for a release?
 -------------------------------------------
@@ -390,3 +396,47 @@ This is a bit more complex than anyone likes, but here goes:
 
     d. Push/PR the `envoy.mk` `ENVOY_COMMIT` change to
     https://github.com/datawire/ambassador
+
+### Datawire Only
+
+At the moment, these techniques will only work internally to Datawire. Mostly
+this is because they require credentials to access internal resources at the
+moment, though in several cases we're working to fix that.
+
+How do I test my documentation work?
+------------------------------------
+
+*This will currently only work within Datawire.*
+
+After you've made some documentation changes, run 
+
+```
+bash scripts/doc-setup
+```
+
+to do all the Javascript work needed to get a local documentation server
+running. You can point a web browser to `http://localhost:8000` to view docs
+with your changes.
+
+After running `scripts/doc-setup`, if you need to make further changes, run
+
+```
+bash scripts/doc-sync
+```
+
+to push your changes to the local webserver. They should appear immediately
+(you may have to reload the page in your browser).
+
+How do I share a preview of my documentation work with others?
+--------------------------------------------------------------
+
+*This will currently only work within Datawire.*
+
+After running `scripts/doc-setup`, run
+
+```
+bash scripts/doc-preview
+```
+
+to push a preview to Netlify. Find the Netlify preview URL in the output
+and hand it off to others.
