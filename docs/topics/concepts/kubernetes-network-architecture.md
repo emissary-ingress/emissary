@@ -8,9 +8,7 @@ Each Kubernetes cluster provides its own isolated network namespace. This approa
 
 While there are a number of techniques for routing traffic to a Kubernetes cluster, by far the most common and popular method involves deploying an in-cluster edge proxy / ingress controller along with an external load balancer. In this architecture, the network topology looks like this:
 
-```
-Load balancer --> Edge Proxy / Ingress Controller --> Kubernetes services/pods
-```
+![Network Architecture](../../../images/network-architecture.png)
 
 Each of the components in this topology is discussed in further detail below.
 

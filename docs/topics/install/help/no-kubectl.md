@@ -10,7 +10,7 @@ Installation of Ambassador Edge Stack (AES) requires the `kubectl` command. The 
    edgectl install
    ```
 
-Don't worry: it is safe to run the installer repeatedly on a cluster.
+Don't worry: it is safe to run the installer repeatedly on a Kubernetes cluster.
 
 ## What is `kubectl`?
 

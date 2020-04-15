@@ -1,12 +1,12 @@
 # Edgectl Install: Error Requesting Your Email Address
  
-When you run `edgectl install` to install the Ambassador Edge Stack, the system requests your email address. This email address is used to notify you before your TLS certificate and domain name expire. In order to acquire the TLS certificate, we share this email with Let’s Encrypt.
+In order to acquire a TLS certificate for you from [Let's Encrypt](https://letsencrypt.org/) and to provide you with an edgestack.me domain name, both Let’s Encrypt and edgestack.me require an email address to be able to contact you about your TLS certificate and domain name expiration.
 
 For some reason this request failed. 
 
 ## What's next?
 
-Please run the installer again and enter a valid email address.
+Please run the installer again and enter a valid email address for the installer to send to Let's Encrypt.
 
 ```shell
 edgectl install
