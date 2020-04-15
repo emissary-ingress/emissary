@@ -4,12 +4,14 @@ After creating a new Host resource using `kubectl apply` the installer was unabl
 
 ## What's next?
 
-If this appears to be an intermittent failure, try running the installer again:
+This is an unusual, unexpected failure. Sorry about that!
+
+Please run the installer again:
 
 ```shell
 edgectl install
 ```
 
-Don't worry: it is safe to run the installer repeatedly on a cluster.
+Don't worry: it is safe to run the installer repeatedly on a Kubernetes cluster.
 
 If running the installer again does not work, please reach out to us on [Slack](http://d6e.co/slack).
