@@ -210,7 +210,9 @@ func (c *dnsclient) verifyHostIsReady(host string) error {
 		//  --> should return 404
 		//  --> should return header "server: envoy"
 		response, err := client.Get(fmt.Sprintf("http://%s/.well-known/acme-challenge/", host))
-		defer response.Body.Close()
+		if err == nil {
+			defer response.Body.Close()
+		}
 		if err == nil && (response.StatusCode != 404 || response.Header.Get("server") != "envoy") {
 			err = fmt.Errorf("failed to validate the target host is running AES")
 		}
