@@ -12,7 +12,11 @@ metadata:
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ include "ambassador.managedBy" . }}
+    {{- if .Values.deploymentTool }}
+    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+    {{- else }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
     product: aes
     {{- if .Values.deploymentAnnotations }}
   annotations:
@@ -38,7 +42,11 @@ spec:
         app.kubernetes.io/name: {{ include "ambassador.name" . }}
         app.kubernetes.io/part-of: {{ .Release.Name }}
         app.kubernetes.io/instance: {{ .Release.Name }}
-        app.kubernetes.io/managed-by: {{ include "ambassador.managedBy" . }}
+        {{- if .Values.deploymentTool }}
+        app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+        {{- else }}
+        app.kubernetes.io/managed-by: {{ .Release.Service }}
+        {{- end }}
         product: aes
       {{- if .Values.podLabels }}
         {{- toYaml .Values.podLabels | nindent 8 }}
