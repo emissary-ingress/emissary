@@ -51,6 +51,7 @@ spec:
         sidecar.istio.io/inject: "false"
       labels:
         service: ambassador
+        app.kubernetes.io/managed-by: getambassador.io
     spec:
 +     hostNetwork: true
 +     dnsPolicy: ClusterFirstWithHostNet

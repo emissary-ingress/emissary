@@ -821,6 +821,7 @@ class IR:
 
         if self.aconf.helm_chart:
             od['helm_chart'] = self.aconf.helm_chart
+        od['managed_by'] = self.aconf.pod_labels.get('app.kubernetes.io/managed-by', '')
 
         tls_termination_count = 0   # TLS termination contexts
         tls_origination_count = 0   # TLS origination contexts
@@ -982,6 +983,9 @@ class IR:
         knative_ingresses = self.aconf.get_config("KnativeIngress")
         od['knative_ingress_count'] = len(knative_ingresses.keys()) if knative_ingresses else 0
 
+        od['k8s_ingress_count'] = len(self.aconf.k8s_ingresses)
+        od['k8s_ingress_class_count'] = len(self.aconf.k8s_ingress_classes)
+
         extauth = False
         extauth_proto: Optional[str] = None
         extauth_allow_body = False
@@ -1110,5 +1114,6 @@ class IR:
         od['mapping_count'] = mapping_count
 
         od['listener_count'] = len(self.listeners)
+        od['host_count'] = len(self.hosts)
 
         return od
