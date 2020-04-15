@@ -3,6 +3,10 @@
 This file documents all notable changes to Ambassador Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
+## v6.3.1
+
+- Upgrade Ambassador to version 1.4.1: [CHANGELOG}](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
+
 ## v6.3.0
 
 - Adds: Option to create a ServiceMonitor for scraping via Prometheus Operator
