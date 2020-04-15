@@ -99,6 +99,7 @@ def transform_oss_file(which, oss_file):
                 #   'value': 'DEBUG' }
             ]
         })
+        dpath.util.delete(deployment, 'spec|template|metadata|labels|app.kubernetes.io/managed-by', separator='|')
     elif which == 'edge_stack':
         dpath.util.set(deployment, 'spec/template/spec/containers/0/image', 'quay.io/datawire/aes:$version$')
 
