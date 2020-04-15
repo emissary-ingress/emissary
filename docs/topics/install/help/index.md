@@ -7,6 +7,7 @@ We recommend edgectl for [installing Ambassador Edge Stack](../../../tutorials/g
 - [Failed to create a Host resource in your cluster](host-resource-creation)
 - [Failed to download AES manifests](aes-manifests)
 - [Failed to download CRD manifests](aes-crd-manifests)
+- [Failed to download Helm chart](download-error)
 - [Failed to log in to the cluster](aes-login)
 - [Failed to parse AES manifests](manifest-parsing)
 - [Failed to register DNS name for the current installation](dns-name-body)
