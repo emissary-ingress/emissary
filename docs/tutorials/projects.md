@@ -9,6 +9,8 @@ Project CRD to:
 4. Make updates to your service.
 5. Preview updates before pushing them live.
 
+See [The Project CRD section](../../topics/using/projects/) for a more in-depth introduction to the `Project` resource.
+
 ## Before You Begin
 
 You will need:
@@ -82,7 +84,7 @@ Every PR gets published at its own preview url, so you can have as many as you l
 
 ## What’s Next?
 
-Read more about [using `Projects` here](../topics/using/projects).
+Read more about [using `Projects` here](../../topics/using/projects/).
 
 The Ambassador Edge Stack has a comprehensive range of [features](/features/) to support the requirements of any edge microservice.
 
