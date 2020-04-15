@@ -172,6 +172,10 @@ class GettingStarted extends Component {
         </div>
       </div>
 
+      <div id="QS-fullManual">
+        <a href="../../topics/install/">Want to view the full installation manual?</a>
+      </div>
+      
       <div className="QS-main">
 
         <h2>Ambassador Edge Stack gives you:</h2>
