@@ -43,6 +43,7 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/k8s/events"
 	"github.com/datawire/apro/cmd/amb-sidecar/k8s/leaderelection"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
+	"github.com/datawire/apro/cmd/amb-sidecar/webui"
 	aes_metriton "github.com/datawire/apro/lib/metriton"
 	lyftserver "github.com/lyft/ratelimit/src/server"
 )
@@ -200,6 +201,11 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 				Deployments: w.List("deployments.apps"),
 				Pods:        w.List("pods."),
 				Events:      w.List("events."),
+			}
+			if len(snapshot.Controllers) == 0 {
+				return
+			} else {
+				webui.SetFeatureFlag("butterscotch")
 			}
 			upstreamWorker <- snapshot
 			upstreamWebUI <- snapshot

@@ -63,9 +63,6 @@ type Config struct {
 	DevPortalContentSubdir string        `env:"DEVPORTAL_CONTENT_DIR         ,parser=nonempty-string ,default=/"`
 	DevPortalContentBranch string        `env:"DEVPORTAL_CONTENT_BRANCH      ,parser=nonempty-string ,default=master"`
 
-	// Feature Flags
-	FeatureFlag string `env:"AMBASSADOR_FEATURE ,parser=nonempty-string ,default=default"`
-
 	// Local development
 	DevWebUIPort         string `env:"DEV_WEBUI_PORT ,parser=possibly-empty-string                                     "`
 	DevWebUIDir          string `env:"DEV_WEBUI_DIR  ,parser=nonempty-string       ,default=/ambassador/webui/bindata/ "`

@@ -16,6 +16,7 @@ import (
 	"os"
 	"path"
 	"sort"
+	"sync/atomic"
 	"time"
 
 	"github.com/datawire/ambassador/pkg/dlog"
@@ -41,6 +42,16 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/watt"
 	"github.com/datawire/apro/lib/licensekeys"
 )
+
+var featureFlag atomic.Value
+
+func SetFeatureFlag(str string) {
+	featureFlag.Store(str)
+}
+
+func init() {
+	SetFeatureFlag("default")
+}
 
 type Snapshot struct {
 	Watt        map[string]map[string]interface{}
@@ -131,7 +142,7 @@ func (fb *firstBootWizard) getSnapshot(clientSession string) Snapshot {
 	}
 
 	ret.RedisInUse = fb.haveRedis
-	ret.FeatureFlag = fb.cfg.FeatureFlag
+	ret.FeatureFlag = featureFlag.Load().(string)
 
 	return ret
 }
