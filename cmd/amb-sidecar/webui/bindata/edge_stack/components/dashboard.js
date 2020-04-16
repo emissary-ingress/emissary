@@ -3,8 +3,10 @@
 /* ===================================================================================*/
 
 import { LitElement, html, css, svg } from '../vendor/lit-element.min.js';
+
 import { Snapshot } from './snapshot.js';
 import { License } from './license.js';
+import { ApiFetch } from "./api-fetch.js";
 
 /**
  * This is a Promise-like object used to synchronize between google charts loaded callback and the
@@ -593,6 +595,9 @@ export class Dashboard extends LitElement {
     /* Initialize the list of dashboard panels */
     this._panels = [ CountsPanel, StatusPanel, SystemServicesPanel, ResYAMLPanel, LicensePanel ];
 
+    this.onceModal = null;
+    this.onceModalFetch = null;
+
     Snapshot.subscribe(this.onSnapshotChange.bind(this));
   };
 
@@ -621,11 +626,39 @@ export class Dashboard extends LitElement {
         });
     });
 
+    let urlParams = new URLSearchParams(window.location.search);
+    if( urlParams.has('first-install') ) {
+      if (urlParams.get('first-install') === "true") {
+        if (this.onceModalFetch === null) {
+          this.onceModalFetch = true;
+          ApiFetch("/edge_stack/api/config/aes-celebration").then(
+            (response) => {
+              if (response.status === 200) {
+                response.text().then((s) => {
+                  this.onceModal = s;
+                  this.update();
+                });
+              } else {
+                this.onceModal = null;
+              }
+            }).catch((error) => {
+              this.onceModal = null;
+          })
+
+        }
+      }
+    }
     /*
      * Return the concatenated html renderings for each panel
      */
-    return( html `
+    if( this.onceModal !== null ) {
+      return( html `
+      <div class="element" style="width:86%;">${returnString(this.onceModal)}</div>
 ${this._panels.reduce( (accum, each) => html`${accum} ${each.render()}`, html`` )}` );
+    } else {
+      return( html `
+${this._panels.reduce( (accum, each) => html`${accum} ${each.render()}`, html`` )}` );
+    }
   }
 
   /*
@@ -637,6 +670,10 @@ ${this._panels.reduce( (accum, each) => html`${accum} ${each.render()}`, html`` 
   chartsLoaded() {
     WhenChartsAreLoadedPromise.resolve();
   }
+}
+
+function returnString(thestring) {
+  return document.createRange().createContextualFragment(`${thestring}`);
 }
 
 /* ===================================================================================*/
