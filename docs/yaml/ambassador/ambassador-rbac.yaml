@@ -4,6 +4,7 @@ kind: Service
 metadata:
   labels:
     service: ambassador-admin
+    app.kubernetes.io/managed-by: getambassador.io
   name: ambassador-admin
 spec:
   type: NodePort
@@ -78,6 +79,7 @@ spec:
         sidecar.istio.io/inject: 'false'
       labels:
         service: ambassador
+        app.kubernetes.io/managed-by: getambassador.io
     spec:
       affinity:
         podAntiAffinity:

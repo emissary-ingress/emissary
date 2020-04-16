@@ -1,6 +1,6 @@
-# Edgectl Install: Error while applying manifests
+# Edgectl Install: Error while installing AES
 
-The installer received an error from `kubectl` when applying the Kubernetes manifests used to install Ambassador Edge Stack.
+The installer received an error when installing Ambassador Edge Stack to your Kubernetes cluster.
 
 ## What's next?
 

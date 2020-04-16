@@ -256,8 +256,13 @@ Unless disabled, the Ambassador Edge Stack will also report the following anonym
 | `group_shadow_count` | int | count of groups using shadows |
 | `group_shadow_weighted_count` | int | count of groups using shadows but not shadowing all traffic |
 | `group_tcp_count` | int | count of TCP Mapping groups |
+| `host_count` | int | count of Host resources in use |
+| `k8s_ingress_class_count` | int | count of IngressClass resources in use |
+| `k8s_ingress_count` | int | count of Ingress resources in use |
 | `listener_count` | int | count of active listeners (1 unless `redirect_cleartext_from` or TCP Mappings are in use) |
 | `liveness_probe` | bool | are liveness probes enabled? |
+| `managed_by` | string | tool that manages the Ambassador deployment, if any (e.g. helm, edgectl, etc.) |
+| `mapping_count` | int | count of Mapping resources in use  |
 | `ratelimit` | bool | is rate limiting in use? |
 | `ratelimit_custom_domain` | bool | has the rate limiting domain been changed from 'ambassador'? |
 | `ratelimit_data_plane_proto` | bool | is rate limiting using the data plane proto? |

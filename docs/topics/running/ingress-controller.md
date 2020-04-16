@@ -17,6 +17,7 @@ If you're new to the Ambassador Edge Stack and to Kubernetes, we'd recommend you
    Kubernetes 1.18 introduced the `IngressClass` resource to the existing `networking.k8s.io/v1beta1` api.
 
    **Note:** If you are using 1.14 and above, it is recommended to use `apiVersion: networking.k8s.io/v1beta1` when defining `Ingresses`. Since both are still supported in all 1.14+ versions of Kubernetes, this document will use `extensions/v1beta1` for compatibility reasons.
+   If you are using 1.18 and above, sample usage of the `IngressClass` resource and `pathType` field are [available on our blog](https://blog.getambassador.io/new-kubernetes-1-18-extends-ingress-c34abdc2f064).
 
 - You will need RBAC permissions to create `Ingress` resources in either
   the `extensions` `apiGroup` (present in all supported versions of

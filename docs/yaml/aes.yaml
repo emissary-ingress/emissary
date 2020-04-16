@@ -252,6 +252,7 @@ spec:
         consul.hashicorp.com/connect-inject: 'false'
         sidecar.istio.io/inject: 'false'
       labels:
+        app.kubernetes.io/managed-by: getambassador.io
         service: ambassador
     spec:
       affinity:
