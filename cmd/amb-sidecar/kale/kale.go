@@ -770,8 +770,12 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot *Snapshot) {
 	runningJobs := 0
 	for _, commitUID := range sortedUIDKeys(snapshot.Commits) {
 		commit := snapshot.Commits[commitUID]
-		if len(commit.Children.Builders) > 0 && commit.Status.Phase <= CommitPhase_Building {
-			runningJobs++
+		if len(commit.Children.Builders) > 0 {
+			succeeded, _ := jobConditionMet(commit.Children.Builders[0].Job, k8sTypesBatchV1.JobComplete, k8sTypesCoreV1.ConditionTrue)
+			failed, _ := jobConditionMet(commit.Children.Builders[0].Job, k8sTypesBatchV1.JobFailed, k8sTypesCoreV1.ConditionTrue)
+			if !(succeeded || failed) {
+				runningJobs++
+			}
 		}
 	}
 	for _, commitUID := range sortedUIDKeys(snapshot.Commits) {
@@ -920,7 +924,7 @@ func (k *kale) reconcileCommit(ctx context.Context, _commit *commitAndChildren, 
 	}
 
 	var manifests []interface{}
-	if commit.Status.Phase != CommitPhase_BuildQueued {
+	if len(_commit.Children.Builders) > 0 || *runningJobs < _commit.Parent.Parent.GetMaximumConcurrentBuilds() {
 		manifests = append(manifests, k.calculateBuild(proj, commit)...)
 		if len(_commit.Children.Builders) == 0 {
 			*runningJobs++
