@@ -19,15 +19,19 @@ import (
 type Project struct {
 	k8sTypesMetaV1.TypeMeta
 	k8sTypesMetaV1.ObjectMeta `json:"metadata"`
-	Spec                      struct {
-		Host        string `json:"host"`
-		Prefix      string `json:"prefix"`
-		GithubRepo  string `json:"githubRepo"`
-		GithubToken string `json:"githubToken"` // todo: make this a secret ref
-	} `json:"spec"`
-	Status struct {
-		LastPush time.Time `json:"lastPush"`
-	} `json:"status"`
+	Spec                      ProjectSpec   `json:"spec"`
+	Status                    ProjectStatus `json:"status"`
+}
+
+type ProjectSpec struct {
+	Host        string `json:"host"`
+	Prefix      string `json:"prefix"`
+	GithubRepo  string `json:"githubRepo"`
+	GithubToken string `json:"githubToken"` // todo: make this a secret ref
+}
+
+type ProjectStatus struct {
+	LastPush time.Time `json:"lastPush"`
 }
 
 func (p Project) Key() string {
