@@ -46,7 +46,6 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ## RELEASE NOTES
 
-- Feature: Add proper_case mapping property to support upper casing(content-type -> Content-Type) of response headers.
 <!---
 Add release notes right after this point.
 
@@ -67,8 +66,8 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
-## [1.4.1-rc.0] April 13, 2020
-[1.4.1-rc.0]: https://github.com/datawire/ambassador/compare/v1.4.0...v1.4.1-rc.0
+## [1.4.1] April 15, 2020
+[1.4.1]: https://github.com/datawire/ambassador/compare/v1.4.0...v1.4.1
 
 ### Ambassador Edge Stack Only
 
