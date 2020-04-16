@@ -453,9 +453,18 @@ func (k *kale) reconcileGitHub(ctx context.Context, snapshot *Snapshot) {
 			proj.Spec.GithubToken)
 		if err != nil {
 			reportRuntimeError(ctx, StepReconcileWebhook, err)
-		} else {
-			telemetryOK(ctx, StepReconcileWebhook)
+			continue
 		}
+		if proj.Status.Phase < ProjectPhase_WebhookCreated {
+			proj.Status.Phase = ProjectPhase_WebhookCreated
+			uProj := unstructureProject(proj.Project)
+			_, err := k.projectsGetter.Namespace(proj.GetNamespace()).UpdateStatus(uProj, k8sTypesMetaV1.UpdateOptions{})
+			if err != nil {
+				reportRuntimeError(ctx, StepReconcileWebhook, err)
+				continue
+			}
+		}
+		telemetryOK(ctx, StepReconcileWebhook)
 	}
 }
 
@@ -467,15 +476,7 @@ func (k *kale) dispatch(r *http.Request) httpResult {
 	parts := strings.Split(r.URL.Path[1:], "/")
 	switch parts[0] {
 	case "githook":
-		eventType := r.Header.Get("X-GitHub-Event")
-		switch eventType {
-		case "ping":
-			return httpResult{status: 200, body: "pong"}
-		case "push", "pull_request":
-			return k.handlePushOrPR(r, strings.Join(parts[1:], "/"))
-		default:
-			return httpResult{status: 500, body: fmt.Sprintf("don't know how to handle %q events", eventType)}
-		}
+		return k.handleWebhook(r, strings.Join(parts[1:], "/"))
 	case "kale-snapshot":
 		return httpResult{status: 200, body: k.projectsJSON()}
 	case "logs":
@@ -555,26 +556,46 @@ func (k *kale) GetCommit(qname string) *commitAndChildren {
 }
 
 // Handle push or pull_request events from the github API.
-func (k *kale) handlePushOrPR(r *http.Request, key string) httpResult {
+func (k *kale) handleWebhook(r *http.Request, key string) httpResult {
 	ctx := r.Context()
 
-	proj := k.GetProject(key)
-	if proj == nil {
+	_proj := k.GetProject(key)
+	if _proj == nil {
 		err := errors.Errorf("Git webhook called for non-existent project: %q", key)
 		reportRuntimeError(ctx, StepWebhookUpdate, err)
-		return httpResult{status: 404, body: err.Error()}
+		return httpResult{status: http.StatusNotFound, body: err.Error()}
 	}
-	ctx = CtxWithProject(ctx, proj.Project)
+	ctx = CtxWithProject(ctx, _proj.Project)
+	proj := *_proj.Project // get the value (not a pointer) so we can mutate it locally
 
-	proj.Status.LastPush = time.Now()
-	uProj := unstructureProject(proj.Project)
-	_, err := k.projectsGetter.Namespace(proj.GetNamespace()).UpdateStatus(uProj, k8sTypesMetaV1.UpdateOptions{})
-	if err != nil {
-		dlog.GetLogger(ctx).Println("update project status:", err)
-		telemetryOK(ctx, StepWebhookUpdate)
+	projDirty := false
+	if proj.Status.Phase < ProjectPhase_WebhookConfirmed {
+		proj.Status.Phase = ProjectPhase_WebhookConfirmed
+		projDirty = true
 	}
 
-	return httpResult{status: 200, body: ""}
+	eventType := r.Header.Get("X-GitHub-Event")
+	switch eventType {
+	case "ping":
+		// do nothing
+	case "push", "pull_request":
+		proj.Status.LastWebhook = time.Now()
+		projDirty = true
+	default:
+		return httpResult{status: http.StatusBadRequest, body: fmt.Sprintf("don't know how to handle %q events", eventType)}
+	}
+
+	telemetryOK(ctx, StepWebhookUpdate)
+
+	if projDirty {
+		uProj := unstructureProject(&proj)
+		_, err := k.projectsGetter.Namespace(proj.GetNamespace()).UpdateStatus(uProj, k8sTypesMetaV1.UpdateOptions{})
+		if err != nil {
+			reportRuntimeError(ctx, StepWebhookUpdate, errors.Wrap(err, "update project status"))
+		}
+	}
+
+	return httpResult{status: http.StatusOK, body: "ok"}
 }
 
 type Push struct {

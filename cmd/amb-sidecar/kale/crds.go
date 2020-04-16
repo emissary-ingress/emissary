@@ -31,7 +31,50 @@ type ProjectSpec struct {
 }
 
 type ProjectStatus struct {
-	LastPush time.Time `json:"lastPush"`
+	Phase       ProjectPhase `json:"phase"`
+	LastWebhook time.Time    `json:"lastWebhook"`
+}
+
+type ProjectPhase int32
+
+const (
+	ProjectPhase_Received         ProjectPhase = 0
+	ProjectPhase_WebhookCreated   ProjectPhase = 1
+	ProjectPhase_WebhookConfirmed ProjectPhase = 2
+)
+
+var ProjectPhase_name = map[int32]string{
+	0: "Received",
+	1: "WebhookCreated",
+	2: "WebhookConfirmed",
+}
+
+var ProjectPhase_value = map[string]int32{
+	"Received":         0,
+	"WebhookCreated":   1,
+	"WebhookConfirmed": 2,
+}
+
+func (x ProjectPhase) String() string {
+	return proto.EnumName(ProjectPhase_name, int32(x))
+}
+
+func (x ProjectPhase) MarshalJSON() ([]byte, error) {
+	return json.Marshal(x.String())
+}
+
+func (x *ProjectPhase) UnmarshalJSON(bs []byte) error {
+	var str string
+	if err := json.Unmarshal(bs, &str); err != nil {
+		return err
+	}
+	val, ok := ProjectPhase_value[str]
+	if !ok {
+		// non-fatal, for now?
+		val = 0
+	}
+	*x = ProjectPhase(val)
+	return nil
 }
 
 func (p Project) Key() string {
