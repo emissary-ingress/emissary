@@ -595,9 +595,13 @@ export class Dashboard extends LitElement {
     /* Initialize the list of dashboard panels */
     this._panels = [ CountsPanel, StatusPanel, SystemServicesPanel, ResYAMLPanel, LicensePanel ];
 
-    this.onceModal = null;
-    this.onceModalFetch = null;
+    /* modalHTML is the HTML fetched for the AES "Welcome" page on first edgectl install.
+     * fetchingModal is a flag to avoid multiple fetches from the async process.
+     */
+    this.modalHTML = null;
+    this.fetchingModal = null;
 
+    /* Subscribe to the snapshot data */
     Snapshot.subscribe(this.onSnapshotChange.bind(this));
   };
 
@@ -626,23 +630,28 @@ export class Dashboard extends LitElement {
         });
     });
 
+    /* Get the query string ?first-install and if true, show a modal window with content from
+     * aes-celebration (redirected from https://metriton.datawire.io/beta/aes-celebration in webui.go).
+     * This is done on first login after edgectl install.
+     */
+
     let urlParams = new URLSearchParams(window.location.search);
     if( urlParams.has('first-install') ) {
       if (urlParams.get('first-install') === "true") {
-        if (this.onceModalFetch === null) {
-          this.onceModalFetch = true;
+        if (this.fetchingModal === null) {
+          this.fetchingModal = true;
           ApiFetch("/edge_stack/api/config/aes-celebration").then(
             (response) => {
               if (response.status === 200) {
                 response.text().then((s) => {
-                  this.onceModal = s;
+                  this.modalHTML = s;
                   this.update();
                 });
               } else {
-                this.onceModal = null;
+                this.modalHTML = null;
               }
             }).catch((error) => {
-              this.onceModal = null;
+              this.modalHTML = null;
           })
 
         }
@@ -651,9 +660,9 @@ export class Dashboard extends LitElement {
     /*
      * Return the concatenated html renderings for each panel
      */
-    if( this.onceModal !== null ) {
+    if( this.modalHTML !== null ) {
       return( html `
-      <div class="element" style="width:86%;">${returnString(this.onceModal)}</div>
+      <div class="element" style="width:86%;">${returnString(this.modalHTML)}</div>
 ${this._panels.reduce( (accum, each) => html`${accum} ${each.render()}`, html`` )}` );
     } else {
       return( html `

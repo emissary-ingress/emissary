@@ -365,9 +365,15 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// no authentication for this one
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		io.WriteString(w, fb.cfg.AmbassadorClusterID)
+
 	case "/edge_stack/api/config/aes-celebration":
+		// Redirect from the browser to avoid CORS problems.  This fetches HTML from Metriton to be displayed
+		// in the AES Edge Policy Console Welcome dialog on first login after edgectl install.
 		// no authentication for this one
-		resp, err := http.Get("https://metriton.datawire.io/beta/aes-celebration")
+
+		resp, err := http.Get("https://metriton.datawire.io/aes-celebration")
+		defer resp.Body.Close()
+
 		if err != nil {
 			// if there is an error fetching the promotion, return no-content to the UI
 			w.WriteHeader(http.StatusNoContent)
@@ -383,7 +389,7 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				w.Write([]byte(s))
 			}
 		}
-		resp.Body.Close()
+
 	case "/edge_stack/api/config/pod-namespace":
 		// no authentication for this one
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
