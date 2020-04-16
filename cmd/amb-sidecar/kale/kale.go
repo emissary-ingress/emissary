@@ -263,6 +263,17 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 		softCtx = dlog.WithLogger(softCtx, l)
 		var telemetryIteration uint64
 
+		timer := time.NewTimer(0)
+		<-timer.C
+		setTimeout := func(d time.Duration) {
+			timer.Stop()
+			select {
+			case <-timer.C:
+			default:
+			}
+			timer.Reset(d)
+		}
+
 		main := func(ctx context.Context, _snapshot UntypedSnapshot) {
 			ctx = CtxWithIteration(ctx, telemetryIteration)
 			telemetryIteration++
@@ -275,19 +286,24 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 				reportThisIsABug(ctx, err)
 			}
 			k.flushIterationErrors()
+			setTimeout(20 * time.Second)
 		}
 
 		err := leaderelection.RunAsSingleton(softCtx, cfg, info, "kale", 15*time.Second, func(ctx context.Context) {
 			telemetryOK(ctx, StepLeader)
 			for {
+				var snapshot UntypedSnapshot
+				var ok bool
 				select {
 				case <-ctx.Done():
 					return
-				case _snapshot, ok := <-downstreamWorker:
+				case <-timer.C:
+					main(ctx, snapshot)
+				case snapshot, ok = <-downstreamWorker:
 					if !ok {
 						return
 					}
-					main(ctx, _snapshot)
+					main(ctx, snapshot)
 				}
 			}
 		})
