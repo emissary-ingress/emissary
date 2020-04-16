@@ -552,7 +552,9 @@ func runE(cmd *cobra.Command, args []string) error {
 		return util.ListenAndServeHTTPWithContext(hardCtx, softCtx, server)
 	})
 
-	kale.Setup(group, httpHandler, kubeinfo, dynamicClient, pubKey, eventLogger)
+	if cfg.FeatureFlag == "butterscotch" {
+		kale.Setup(group, httpHandler, kubeinfo, dynamicClient, pubKey, eventLogger)
+	}
 
 	if cfg.DevWebUIPort != "" {
 		DevSetup(cfg, httpHandler)

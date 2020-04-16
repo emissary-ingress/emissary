@@ -36,6 +36,7 @@ class SnapshotWrapper {
       Watt: newData.Watt,
       License: newData.License,
       RedisInUse: newData.RedisInUse,
+      FeatureFlag: newData.FeatureFlag,
     };
 
     if (Array.isArray(newData.Diag)) {
