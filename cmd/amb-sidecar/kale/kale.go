@@ -263,6 +263,20 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 		softCtx = dlog.WithLogger(softCtx, l)
 		var telemetryIteration uint64
 
+		main := func(ctx context.Context, _snapshot UntypedSnapshot) {
+			ctx = CtxWithIteration(ctx, telemetryIteration)
+			telemetryIteration++
+			snapshot := _snapshot.TypedAndIndexed(ctx)
+			for _, proj := range snapshot.Projects {
+				telemetryOK(CtxWithProject(ctx, proj.Project), StepValidProject)
+			}
+			err := safeInvoke(func() { k.reconcile(ctx, snapshot) })
+			if err != nil {
+				reportThisIsABug(ctx, err)
+			}
+			k.flushIterationErrors()
+		}
+
 		err := leaderelection.RunAsSingleton(softCtx, cfg, info, "kale", 15*time.Second, func(ctx context.Context) {
 			telemetryOK(ctx, StepLeader)
 			for {
@@ -273,17 +287,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 					if !ok {
 						return
 					}
-					ctx := CtxWithIteration(ctx, telemetryIteration)
-					telemetryIteration++
-					snapshot := _snapshot.TypedAndIndexed(ctx)
-					for _, proj := range snapshot.Projects {
-						telemetryOK(CtxWithProject(ctx, proj.Project), StepValidProject)
-					}
-					err := safeInvoke(func() { k.reconcile(ctx, snapshot) })
-					if err != nil {
-						reportThisIsABug(ctx, err)
-					}
-					k.flushIterationErrors()
+					main(ctx, _snapshot)
 				}
 			}
 		})
