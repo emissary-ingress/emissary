@@ -428,10 +428,10 @@ type Pull struct {
 	} `json:"head"`
 }
 
-// calculateCommits does a `git ls-remote`, gets the listing of open GitHub
+// calculateRevisions does a `git ls-remote`, gets the listing of open GitHub
 // pull-requests, and cross-references the two in order to decide
 // which things we want to deploy.
-func (k *kale) calculateCommits(proj *Project) ([]interface{}, error) {
+func (k *kale) calculateRevisions(proj *Project) ([]interface{}, error) {
 	repo := proj.Spec.GithubRepo
 	token := proj.Spec.GithubToken
 
@@ -461,8 +461,8 @@ func (k *kale) calculateCommits(proj *Project) ([]interface{}, error) {
 		}
 	}
 
-	// Resolve all of those refNames, and generate ProjectCommit objects for them.
-	var commits []interface{}
+	// Resolve all of those refNames, and generate ProjectRevision objects for them.
+	var revisions []interface{}
 	for _, refName := range deployRefNames {
 		// Use libgitPlumbing.ReferenceName() instead of refs.Reference() (or even having
 		// gitLsRemote return a simple slice of refs) in order to resolve refs recursively.
@@ -471,10 +471,10 @@ func (k *kale) calculateCommits(proj *Project) ([]interface{}, error) {
 		if err != nil {
 			continue
 		}
-		commits = append(commits, &ProjectCommit{
+		revisions = append(revisions, &ProjectRevision{
 			TypeMeta: k8sTypesMetaV1.TypeMeta{
 				APIVersion: "getambassador.io/v2",
-				Kind:       "ProjectCommit",
+				Kind:       "ProjectRevision",
 			},
 			ObjectMeta: k8sTypesMetaV1.ObjectMeta{
 				Name:      proj.GetName() + "-" + ref.Hash().String(), // todo: better id
@@ -494,7 +494,7 @@ func (k *kale) calculateCommits(proj *Project) ([]interface{}, error) {
 					ProjectLabelName: string(proj.GetUID()),
 				},
 			},
-			Spec: ProjectCommitSpec{
+			Spec: ProjectRevisionSpec{
 				Project: k8sTypesCoreV1.LocalObjectReference{
 					Name: proj.GetName(),
 				},
@@ -507,7 +507,7 @@ func (k *kale) calculateCommits(proj *Project) ([]interface{}, error) {
 			},
 		})
 	}
-	return commits, nil
+	return revisions, nil
 }
 
 func gitLsRemote(repoURL, authToken string) (libgitPlumbingStorer.ReferenceStorer, error) {
@@ -587,20 +587,20 @@ func unstructureProject(project *Project) *k8sTypesUnstructured.Unstructured {
 	}
 }
 
-// unstructureCommit returns a *k8sTypesUnstructured.Unstructured
-// representation of an *ambassadorTypesV2.ProjectCommit.  There are 2
+// unstructureRevision returns a *k8sTypesUnstructured.Unstructured
+// representation of an *ambassadorTypesV2.ProjectRevision.  There are 2
 // reasons why we might want this:
 //
 //  1. For use with a k8sClientDynamic.Interface
 //  2. For use as a k8sRuntime.Object
-func unstructureCommit(commit *ProjectCommit) *k8sTypesUnstructured.Unstructured {
+func unstructureRevision(revision *ProjectRevision) *k8sTypesUnstructured.Unstructured {
 	return &k8sTypesUnstructured.Unstructured{
 		Object: map[string]interface{}{
 			"apiVersion": "getambassador.io/v2",
-			"kind":       "ProjectCommit",
-			"metadata":   unstructureMetadata(&commit.ObjectMeta),
-			"spec":       commit.Spec,
-			"status":     commit.Status,
+			"kind":       "ProjectRevision",
+			"metadata":   unstructureMetadata(&revision.ObjectMeta),
+			"spec":       revision.Spec,
+			"status":     revision.Status,
 		},
 	}
 }
@@ -669,12 +669,12 @@ func _logErr(ctx context.Context, err error) {
 		k8sRuntime.Object
 		GetNamespace() string
 	}
-	var commitUID, projectUID k8sTypes.UID
-	if commit := CtxGetCommit(ctx); commit != nil {
-		err = errors.Wrapf(err, "ProjectCommit %s.%s",
-			commit.GetName(), commit.GetNamespace())
-		commitUID = commit.GetUID()
-		eventTarget = unstructureCommit(commit)
+	var revisionUID, projectUID k8sTypes.UID
+	if revision := CtxGetRevision(ctx); revision != nil {
+		err = errors.Wrapf(err, "ProjectRevision %s.%s",
+			revision.GetName(), revision.GetNamespace())
+		revisionUID = revision.GetUID()
+		eventTarget = unstructureRevision(revision)
 	}
 	if project := CtxGetProject(ctx); project != nil {
 		err = errors.Wrapf(err, "Project %s.%s",
@@ -691,7 +691,7 @@ func _logErr(ctx context.Context, err error) {
 	// might be the case that 'project' is set but 'iteration' isn't.  This can happen
 	// if we'd like to report an error from the GitHub webhook.
 	if CtxGetIteration(ctx) != nil {
-		isNew := globalKale.addIterationError(err, projectUID, commitUID)
+		isNew := globalKale.addIterationError(err, projectUID, revisionUID)
 		if !isNew {
 			eventTarget = nil
 		}
@@ -709,8 +709,8 @@ func _logErr(ctx context.Context, err error) {
 		globalKale.eventLogger.Namespace(eventTarget.GetNamespace()).Eventf(
 			eventTarget,                     // InvolvedObject
 			k8sTypesCoreV1.EventTypeWarning, // EventType
-			"Err",      // Reason
-			"%+v", err, // Message
+			"Err",                           // Reason
+			"%+v", err,                      // Message
 		)
 	} else {
 		// It's important that we don't discard these, because
@@ -784,16 +784,16 @@ func CtxGetProject(ctx context.Context) *Project {
 	return projInterface.(*Project)
 }
 
-type commitContextKey struct{}
+type revisionContextKey struct{}
 
-func CtxWithCommit(ctx context.Context, commit *ProjectCommit) context.Context {
-	return context.WithValue(ctx, commitContextKey{}, commit)
+func CtxWithRevision(ctx context.Context, revision *ProjectRevision) context.Context {
+	return context.WithValue(ctx, revisionContextKey{}, revision)
 }
 
-func CtxGetCommit(ctx context.Context) *ProjectCommit {
-	commitInterface := ctx.Value(commitContextKey{})
-	if commitInterface == nil {
+func CtxGetRevision(ctx context.Context) *ProjectRevision {
+	revisionInterface := ctx.Value(revisionContextKey{})
+	if revisionInterface == nil {
 		return nil
 	}
-	return commitInterface.(*ProjectCommit)
+	return revisionInterface.(*ProjectRevision)
 }

@@ -139,7 +139,7 @@ kind: CustomResourceDefinition
 metadata:
   labels:
     product: aes
-  name: projectcommits.getambassador.io
+  name: projectrevisions.getambassador.io
 spec:
   additionalPrinterColumns:
   - JSONPath: .spec.project.name
@@ -161,9 +161,9 @@ spec:
   names:
     categories:
     - ambassador-crds
-    kind: ProjectCommit
-    plural: projectcommits
-    singular: projectcommit
+    kind: ProjectRevision
+    plural: projectrevisions
+    singular: projectrevision
   scope: Namespaced
   subresources:
     status: {}

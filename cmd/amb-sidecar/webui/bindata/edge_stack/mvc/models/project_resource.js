@@ -53,16 +53,16 @@ export class ProjectResource extends IResource {
     this.spec.githubToken = value
   }
 
-  get commits() {
-    return (this.yaml.children || {}).commits || []
+  get revisions() {
+    return (this.yaml.children || {}).revisions || []
   }
 
   get errors() {
     let result = []
     // add project errors
     result.push(...(this.yaml.children || {}).errors || [])
-    // add errors for all the child commits
-    for (let c of this.commits) {
+    // add errors for all the child revisions
+    for (let c of this.revisions) {
       result.push(...((c.children || {}).errors || []))
     }
     return result
