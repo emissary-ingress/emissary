@@ -635,6 +635,9 @@ export class Dashboard extends LitElement {
      * This is done on first login after edgectl install.
      */
 
+    /* fetching null, then check URL, then ... then set flag so never checks again
+     * make it so it doesn't do the expensive stuff more than once.
+     */
     let urlParams = new URLSearchParams(window.location.search);
     if( urlParams.has('first-install') ) {
       if (urlParams.get('first-install') === "true") {

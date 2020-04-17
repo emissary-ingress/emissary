@@ -372,7 +372,6 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// no authentication for this one
 
 		resp, err := http.Get("https://metriton.datawire.io/aes-celebration")
-		defer resp.Body.Close()
 
 		if err != nil {
 			// if there is an error fetching the promotion, return no-content to the UI
@@ -384,11 +383,15 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			} else {
 				// return the content of the promotion to the UI
 				w.WriteHeader(resp.StatusCode)
-				contents, _ := ioutil.ReadAll(resp.Body)
-				s := string(contents)
-				w.Write([]byte(s))
+				io.Copy(w, resp.Body)
+				// was:
+				// contents, _ := ioutil.ReadAll(resp.Body)
+				// s := string(contents)
+				// w.Write([]byte(s))
 			}
 		}
+
+		defer resp.Body.Close()
 
 	case "/edge_stack/api/config/pod-namespace":
 		// no authentication for this one
