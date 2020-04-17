@@ -109,9 +109,12 @@ class V2Route(dict):
                 match.update(regex_matcher(config, route_prefix))
 
         headers = self.generate_headers(config, group)
-
         if len(headers) > 0:
             match['headers'] = headers
+
+        query_parameters = self.generate_query_parameters(config, group)
+        if len(query_parameters) > 0:
+            match['query_parameters'] = query_parameters
 
         self['match'] = match
 
@@ -290,6 +293,34 @@ class V2Route(dict):
             headers.append(header)
 
         return headers
+
+    @staticmethod
+    def generate_query_parameters(config: 'V2Config', mapping_group: IRHTTPMappingGroup) -> List[dict]:
+        query_parameters = []
+
+        group_query_parameters = mapping_group.get('query_parameters', [])
+
+        for group_query_parameter in group_query_parameters:
+            query_parameter = { 'name': group_query_parameter.get('name') }
+
+            if group_query_parameter.get('regex'):
+                query_parameter.update({
+                    'string_match': regex_matcher(
+                        config,
+                        group_query_parameter.get('value'),
+                        key='regex'
+                    )
+                })
+            else:
+                query_parameter.update({
+                    'string_match': {
+                        'exact': group_query_parameter.get('value')
+                    }
+                })
+
+            query_parameters.append(query_parameter)
+
+        return query_parameters
 
     @staticmethod
     def generate_hash_policy(mapping_group: IRHTTPMappingGroup) -> dict:
