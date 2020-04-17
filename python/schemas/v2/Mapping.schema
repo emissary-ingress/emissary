@@ -22,6 +22,7 @@
 
         "prefix": { "type": "string" },
         "prefix_regex": { "type": "boolean" },
+        "prefix_exact": { "type": "boolean" },
         "service": { "type": "string" },
         "add_request_headers": { "$ref": "#/definitions/mapStrObj" },
         "add_response_headers": { "$ref": "#/definitions/mapStrObj" },
@@ -100,6 +101,7 @@
         "path_redirect": { "type": "string" },
         "priority": { "type": "string" },
         "precedence": { "type": "integer" },
+        "cluster_tag": { "type": "string" },
         "remove_request_headers": {
             "anyOf": [
                 { "type": "string" },

@@ -48,6 +48,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
         'method': True,
         'prefix': True,
         'prefix_regex': True,
+        'prefix_exact': True,
         # 'rewrite': True,
         # 'timeout_ms': True
     }
@@ -339,7 +340,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
 
         if not redir:
             for mapping in self.mappings:
-                mapping.cluster = self.add_cluster_for_mapping(ir, aconf, mapping)
+                mapping.cluster = self.add_cluster_for_mapping(ir, aconf, mapping, mapping.cluster_tag)
 
             self.logger.debug(f"Normalizing weights in mappings now...")
             if not self.normalize_weights_in_mappings():

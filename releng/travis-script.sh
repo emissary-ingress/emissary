@@ -19,6 +19,22 @@ set -o nounset
 
 printf "== Begin: travis-script.sh ==\n"
 
+echo "Environment:"
+env | fgrep 'TRAVIS
+AMB
+KUBE
+DOCKER' | sort
+
+if [ -n "$TRAVIS_COMMIT_RANGE" ]; then
+    CHANGED_FILES_EXCEPT_DOCS=$(git diff --name-only  "$TRAVIS_COMMIT_RANGE" ':!docs')
+    if [ -z "$CHANGED_FILES_EXCEPT_DOCS" ]; then
+        echo "Only /docs/ directory has been modified in this PR, code tests will not be run"
+        exit 0
+    fi
+else
+    echo "No TRAVIS_COMMIT_RANGE, running tests"
+fi
+
 if [[ -n "$TRAVIS_TAG" ]]; then
     if [[ "$TRAVIS_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
         COMMIT_TYPE=GA
