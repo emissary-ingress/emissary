@@ -955,7 +955,7 @@ func (k *kale) reconcileRevision(ctx context.Context, _revision *revisionAndChil
 					RevisionPhase_Deployed:     proj.PreviewUrl(revision),
 				}[revisionPhase],
 				Description: revisionPhase.String(),
-				Context:     "aes",
+				Context:     "aes/" + revision.Spec.Ref.String(),
 			},
 			proj.Spec.GithubToken)
 		if err != nil {
