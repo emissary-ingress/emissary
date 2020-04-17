@@ -653,7 +653,9 @@ export class Dashboard extends LitElement {
      */
     if( this.modalHTML !== null ) {
       return( html `
-      <div class="element" style="width:86%;">${unsafeStringToHTML(this.modalHTML)}</div>
+      <div class="element" style="width:81.2%; padding:30px; position:relative;">
+      ${unsafeStringToHTML(this.modalHTML)}
+      </div>
 ${this._panels.reduce( (accum, each) => html`${accum} ${each.render()}`, html`` )}` );
     } else {
       return( html `
