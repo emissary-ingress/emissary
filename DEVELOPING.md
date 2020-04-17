@@ -258,14 +258,20 @@ and clear the cache.
 How do I make documentation-only changes?
 -----------------------------------------
 
-If you want to make a change that **only** affects documentation, and is not
-tied to a future feature, you'll need to make your change directly in the
-`datawire/ambassador-docs` repository. Clone that repository and check out
-its `README.md`.
+The Ambassador documentation lives in the `docs` directory. If you're working
+on documentation for an upcoming feature or fix, make your docs changes along
+with your code changes, and include them all in the same PR.
 
-(It is technically possible to make these changes from the `ambassador` repo.
-Please don't, unless you're fixing docs for an upcoming feature that hasn't
-yet shipped.)
+If you want to make a change that **only** affects the live documentation for
+an already-released version of Ambassador, you'll need to make your changes in
+a branch from the `release` branch for that version, then PR back to the 
+`release` branch. For example, if you find a typo while reading the documentation
+for Ambassador 1.3:
+
+- Check out `release/v1.3`
+- Make a branch from it.
+- Fix the typo.
+- Push your branch and PR it back to `release/v1.3`.
 
 How do I get the source code for a release?
 -------------------------------------------
@@ -305,3 +311,132 @@ How do I make a contribution?
 
 6. When all is well, maintainers will merge the PR into `master`, accepting your
    change for the next Ambassador release. Thanks!
+
+How do I make changes to the Envoy that ships with Ambassador?
+--------------------------------------------------------------
+
+This is a bit more complex than anyone likes, but here goes:
+
+1. From your `ambassador.git` checkout, get Ambassador's current
+   version of the Envoy sources, and create a branch from that:
+
+   ```shell
+   make $(pwd)/cxx/envoy
+   git -C cxx/envoy checkout -b YOUR_BRANCHNAME
+   ```
+
+2. Tell the build system that, yes, you really would like to be
+   compiling envoy, as you'll be modifying Envoy:
+
+   ```shell
+   export YES_I_AM_OK_WITH_COMPILING_ENVOY=true
+   export YES_I_AM_UPDATING_THE_BASE_IMAGES=true
+   export ENVOY_COMMIT='-'
+   ```
+
+   Building Envoy is slow, and most Ambassador contributors do not
+   want to rebuild Envoy, so we require the first two environment
+   variables as a safety.
+
+   Setting `ENVOY_COMMIT=-` does 3 things
+    a. Tell it to use whatever is currently checked out in
+       `./cxx/envoy/` (instead of checking out a specific commit), so
+       that you are free to modify those sources.
+    b. Don't try to download a cached build of Envoy from a Docker
+       cache (since it wouldn't know which `ENVOY_COMMIT` do download
+       the cached build for).
+    c. Don't push the build of Envoy to a Docker cache (since you're
+       still actively working on it).
+
+3. Modify the sources in `./cxx/envoy/`.
+
+4. Build Envoy with `make update-base`.  Again, this is _not_ a quick
+   process.  The build happens in a Docker container; you can set
+   `DOCKER_HOST` to point to a powerful machine if you like.
+
+   You can build and test Ambassador with the usual `make` commands,
+   with the exception that you MUST run `make update-base` first
+   whenever Envoy needs to be recompiled; it won't happen
+   automatically.  So `make test` to build-and-test Ambassador would
+   become `make update-base && make test`, and `make images` to just
+   build Ambassador would become `make update-base && make images`.
+
+   You can run Envoy's test suite by running `make check-envoy`.  Be
+   warned that Envoy's test suite requires several hundred gigabytes
+   of disk space to run.
+
+   You can run `make envoy-shell` to get a Bash shell in the Docker
+   container that does the Envoy builds.
+
+5. Once you're happy with your changes to Envoy:
+
+    a. Ensure they're committed to `cxx/envoy/` and push/PR them in to
+       https://github.com/datawire/envoy branch `rebase/master`.
+
+       If you're outside of Datawire, you'll need to
+        1. Create a fork of https://github.com/datawire/envoy on the
+           GitHub web interface
+        2. Add it as a remote to your `./cxx/envoy/`:
+           `git remote add my-fork git@github.com:YOUR_USERNAME/envoy.git`
+        3. Push the branch to that fork:
+           `git push my-fork YOUR_BRANCHNAME`
+
+    b. Update `ENVOY_COMMIT` in `cxx/envoy.mk`
+
+    c. Unset `ENVOY_COMMIT=-` and run a final `make update-base` to
+       push a cached build:
+
+       `unset ENVOY_COMMIT && make update-base`
+
+       If you're outside of Datawire, you can skip this step if you
+       don't want to share your Envoy binary anywhere.  If you don't
+       skip this step, you'll need to `export
+       ENVOY_DOCKER_REPO=${your-envoy-docker-registry}` to tell it to
+       push somewhere other than the `quay.io/datawire/ambassador-base`.
+
+    d. Push/PR the `envoy.mk` `ENVOY_COMMIT` change to
+    https://github.com/datawire/ambassador
+
+### Datawire Only
+
+At the moment, these techniques will only work internally to Datawire. Mostly
+this is because they require credentials to access internal resources at the
+moment, though in several cases we're working to fix that.
+
+How do I test my documentation work?
+------------------------------------
+
+*This will currently only work within Datawire.*
+
+After you've made some documentation changes, run 
+
+```
+bash scripts/doc-setup
+```
+
+to do all the Javascript work needed to get a local documentation server
+running. You can point a web browser to `http://localhost:8000` to view docs
+with your changes.
+
+After running `scripts/doc-setup`, if you need to make further changes, run
+
+```
+bash scripts/doc-sync
+```
+
+to push your changes to the local webserver. They should appear immediately
+(you may have to reload the page in your browser).
+
+How do I share a preview of my documentation work with others?
+--------------------------------------------------------------
+
+*This will currently only work within Datawire.*
+
+After running `scripts/doc-setup`, run
+
+```
+bash scripts/doc-preview
+```
+
+to push a preview to Netlify. Find the Netlify preview URL in the output
+and hand it off to others.
