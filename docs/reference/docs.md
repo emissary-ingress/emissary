@@ -15,9 +15,6 @@
     - [HostTLSCertificateSource](#getambassador.io.v2.HostTLSCertificateSource)
     - [InsecureRequestAction](#getambassador.io.v2.InsecureRequestAction)
   
-  
-  
-
 - [Scalar Value Types](#scalar-value-types)
 
 
@@ -55,7 +52,7 @@ examine for further configuration.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| authority | [string](#string) |  | Specifies who to talk ACME with to get certs. Defaults to Let&#39;s Encrypt; if &#34;none&#34;, do not try to do TLS for this Host. |
+| authority | [string](#string) |  | Specifies who to talk ACME with to get certs. Defaults to Let's Encrypt; if "none", do not try to do TLS for this Host. |
 | email | [string](#string) |  |  |
 | privateKeySecret | [k8s.io.api.core.v1.LocalObjectReference](#k8s.io.api.core.v1.LocalObjectReference) |  |  |
 | registration | [string](#string) |  | This is normally set automatically |
@@ -70,8 +67,8 @@ examine for further configuration.
 ### HostSpec
 The Host resource will usually be a Kubernetes CRD, but it could
 appear in other forms. The HostSpec is the part of the Host resource
-that doesn&#39;t change, no matter what form it&#39;s in -- when it&#39;s a CRD,
-this is the part in the &#34;spec&#34; dictionary.
+that doesn't change, no matter what form it's in -- when it's a CRD,
+this is the part in the "spec" dictionary.
 
 
 | Field | Type | Label | Description |
@@ -80,7 +77,7 @@ this is the part in the &#34;spec&#34; dictionary.
 | generation | [int32](#int32) |  | Common to all Ambassador objects (and optional). |
 | hostname | [string](#string) |  | Hostname by which the Ambassador can be reached. |
 | selector | [k8s.io.apimachinery.pkg.apis.meta.v1.LabelSelector](#k8s.io.apimachinery.pkg.apis.meta.v1.LabelSelector) |  | Selector by which we can find further configuration. Defaults to hostname=$hostname |
-| acmeProvider | [ACMEProviderSpec](#getambassador.io.v2.ACMEProviderSpec) |  | Specifies who to talk ACME with to get certs. Defaults to Let&#39;s Encrypt; if &#34;none&#34;, do not try to do TLS for this Host. |
+| acmeProvider | [ACMEProviderSpec](#getambassador.io.v2.ACMEProviderSpec) |  | Specifies who to talk ACME with to get certs. Defaults to Let's Encrypt; if "none", do not try to do TLS for this Host. |
 | tlsSecret | [k8s.io.api.core.v1.LocalObjectReference](#k8s.io.api.core.v1.LocalObjectReference) |  | Name of the Kubernetes secret into which to save generated certificates. Defaults to $hostname |
 | requestPolicy | [RequestPolicy](#getambassador.io.v2.RequestPolicy) |  | Request policy definition. |
 
@@ -140,7 +137,7 @@ this is the part in the &#34;spec&#34; dictionary.
 
 
 
- 
+
 
 
 <a name="getambassador.io.v2.HostPhase"></a>
@@ -165,7 +162,7 @@ this is the part in the &#34;spec&#34; dictionary.
 
 | Name | Number | Description |
 | ---- | ------ | ----------- |
-| Initial | 0 | The default value is the &#34;zero&#34; value, and it would be great if &#34;Pending&#34; could be the default value; but it&#39;s Important that the &#34;zero&#34; value be able to be shown as empty/omitted from display, and we really do want `kubectl get hosts` to say &#34;Pending&#34; in the &#34;STATE&#34; column, and not leave the column empty. |
+| Initial | 0 | The default value is the "zero" value, and it would be great if "Pending" could be the default value; but it's Important that the "zero" value be able to be shown as empty/omitted from display, and we really do want `kubectl get hosts` to say "Pending" in the "STATE" column, and not leave the column empty. |
 | Pending | 1 |  |
 | Ready | 2 |  |
 | Error | 3 |  |
@@ -198,11 +195,11 @@ this is the part in the &#34;spec&#34; dictionary.
 | Route | 2 |  |
 
 
- 
 
- 
 
- 
+
+
+
 
 
 
