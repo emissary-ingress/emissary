@@ -595,11 +595,29 @@ export class Dashboard extends LitElement {
     /* Initialize the list of dashboard panels */
     this._panels = [ CountsPanel, StatusPanel, SystemServicesPanel, ResYAMLPanel, LicensePanel ];
 
-    /* modalHTML is the HTML fetched for the AES "Welcome" page on first edgectl install.
-     * fetchingModal is a flag to avoid multiple fetches from the async process.
+    /* Get the query string ?first-install and if true, show a modal window with content from
+     * aes-celebration (redirected from https://metriton.datawire.io/beta/aes-celebration in webui.go).
+     * This is done on first login after edgectl install.  this.modalHTML is the HTML to render if
+     * we are showing the modal window.  Initialized to null in case we don't have first-install.
      */
+
     this.modalHTML = null;
-    this.fetchingModal = null;
+
+    let urlParams = new URLSearchParams(window.location.search);
+    if( urlParams.has('first-install') ) {
+      if (urlParams.get('first-install') === "true") {
+        ApiFetch("/edge_stack/api/config/aes-celebration").then(
+          (response) => {
+            if (response.status === 200) {
+              response.text().then((s) => {
+                this.modalHTML = s;
+                this.update();
+              });
+            }
+          }).catch((error) => {
+            this.modalHTML = null;
+          })};
+    }
 
     /* Subscribe to the snapshot data */
     Snapshot.subscribe(this.onSnapshotChange.bind(this));
@@ -630,36 +648,6 @@ export class Dashboard extends LitElement {
         });
     });
 
-    /* Get the query string ?first-install and if true, show a modal window with content from
-     * aes-celebration (redirected from https://metriton.datawire.io/beta/aes-celebration in webui.go).
-     * This is done on first login after edgectl install.
-     */
-
-    /* fetching null, then check URL, then ... then set flag so never checks again
-     * make it so it doesn't do the expensive stuff more than once.
-     */
-    let urlParams = new URLSearchParams(window.location.search);
-    if( urlParams.has('first-install') ) {
-      if (urlParams.get('first-install') === "true") {
-        if (this.fetchingModal === null) {
-          this.fetchingModal = true;
-          ApiFetch("/edge_stack/api/config/aes-celebration").then(
-            (response) => {
-              if (response.status === 200) {
-                response.text().then((s) => {
-                  this.modalHTML = s;
-                  this.update();
-                });
-              } else {
-                this.modalHTML = null;
-              }
-            }).catch((error) => {
-              this.modalHTML = null;
-          })
-
-        }
-      }
-    }
     /*
      * Return the concatenated html renderings for each panel
      */

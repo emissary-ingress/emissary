@@ -371,7 +371,7 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// in the AES Edge Policy Console Welcome dialog on first login after edgectl install.
 		// no authentication for this one
 
-		resp, err := http.Get("https://metriton.datawire.io/aes-celebration")
+		resp, err := http.Get("https://metriton.datawire.io/beta/aes-celebration")
 
 		if err != nil {
 			// if there is an error fetching the promotion, return no-content to the UI
@@ -384,10 +384,6 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				// return the content of the promotion to the UI
 				w.WriteHeader(resp.StatusCode)
 				io.Copy(w, resp.Body)
-				// was:
-				// contents, _ := ioutil.ReadAll(resp.Body)
-				// s := string(contents)
-				// w.Write([]byte(s))
 			}
 		}
 
