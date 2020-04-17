@@ -281,6 +281,21 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 			for _, proj := range snapshot.Projects {
 				telemetryOK(CtxWithProject(ctx, proj.Project), StepValidProject)
 			}
+			for uid, oldResourceVersion := range k.knownChangedProjects {
+				newInstance, stillExists := snapshot.Projects[uid]
+				if !stillExists || newInstance.GetResourceVersion() != oldResourceVersion {
+					delete(k.knownChangedProjects, uid)
+				}
+			}
+			for uid, oldResourceVersion := range k.knownChangedRevisions {
+				newInstance, stillExists := snapshot.Revisions[uid]
+				if !stillExists || newInstance.GetResourceVersion() != oldResourceVersion {
+					delete(k.knownChangedRevisions, uid)
+				}
+			}
+			if len(k.knownChangedProjects) > 0 || len(k.knownChangedRevisions) > 0 {
+				return
+			}
 			err := safeInvoke(func() { k.reconcile(ctx, snapshot) })
 			if err != nil {
 				reportThisIsABug(ctx, err)
@@ -375,6 +390,9 @@ func NewKale(dynamicClient k8sClientDynamic.Interface, eventLogger *events.Event
 		projectsGetter:  dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "projects"}),
 		revisionsGetter: dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "projectrevisions"}),
 
+		knownChangedProjects:  make(map[k8sTypes.UID]string),
+		knownChangedRevisions: make(map[k8sTypes.UID]string),
+
 		PrevIterationErrors: make(map[recordedError]struct{}),
 		NextIterationErrors: make(map[recordedError]struct{}),
 		webSnapshot:         &Snapshot{},
@@ -390,6 +408,9 @@ type kale struct {
 
 	projectsGetter  k8sClientDynamic.NamespaceableResourceInterface
 	revisionsGetter k8sClientDynamic.NamespaceableResourceInterface
+
+	knownChangedProjects  map[k8sTypes.UID]string
+	knownChangedRevisions map[k8sTypes.UID]string
 
 	mu          sync.RWMutex
 	webSnapshot *Snapshot
@@ -483,6 +504,7 @@ func (k *kale) reconcileGitHub(ctx context.Context, snapshot *Snapshot) {
 				reportRuntimeError(ctx, StepReconcileWebhook, err)
 				continue
 			}
+			k.knownChangedProjects[proj.GetUID()] = proj.GetResourceVersion()
 		}
 		telemetryOK(ctx, StepReconcileWebhook)
 	}
@@ -934,6 +956,8 @@ func (k *kale) reconcileRevision(ctx context.Context, _revision *revisionAndChil
 		_, err := k.revisionsGetter.Namespace(revision.GetNamespace()).UpdateStatus(uRevision, k8sTypesMetaV1.UpdateOptions{})
 		if err != nil {
 			reportRuntimeError(ctx, StepBackground, errors.Wrap(err, "update revision status in Kubernetes"))
+		} else {
+			k.knownChangedRevisions[revision.GetUID()] = revision.GetResourceVersion()
 		}
 		err = postStatus(ctx, fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, revision.Spec.Rev),
 			GitHubStatus{
