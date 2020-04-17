@@ -1,4 +1,11 @@
 
+
+<a name="getambassador.io/v2/Host.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## getambassador.io/v2/Host.proto
+
+
 - [getambassador.io/v2/Host.proto](#getambassador.io/v2/Host.proto)
     - [ACMEProviderSpec](#ACMEProviderSpec)
     - [HostSpec](#HostSpec)
@@ -10,16 +17,7 @@
     - [HostState](#HostState)
     - [HostTLSCertificateSource](#HostTLSCertificateSource)
     - [InsecureRequestAction](#InsecureRequestAction)
-  
-- [Scalar Value Types](#scalar-value-types)
-
-
-
-<a name="getambassador.io/v2/Host.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## getambassador.io/v2/Host.proto
-
+  - [Scalar Value Types](#scalar-value-types)
 
 ## Attributes
 

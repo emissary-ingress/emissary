@@ -1,4 +1,11 @@
 {{range .Files}}
+{{$file_name := .Name}}
+<a name="{{.Name}}"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## {{.Name}}
+{{.Description}}
+
 {{$file_name := .Name}}- [{{.Name}}](#{{.Name}})
   {{- if .Messages }}
   {{range .Messages}}  - [{{.LongName}}](#{{.LongName}})
@@ -16,16 +23,7 @@
   {{range .Services}}  - [{{.Name}}](#{{.LongName}})
   {{end}}
   {{- end -}}
-{{end}}
 - [Scalar Value Types](#scalar-value-types)
-
-{{range .Files}}
-{{$file_name := .Name}}
-<a name="{{.Name}}"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## {{.Name}}
-{{.Description}}
 
 ## Attributes
 
