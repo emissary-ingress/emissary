@@ -16,25 +16,23 @@ import (
 	"github.com/spf13/pflag"
 )
 
-var mainNative func(socketName, pluginFilepath string) error = nil
-
 // Version is inserted at build using --ldflags -X
 var Version = "(unknown version)"
 
 func usage() {
-	fmt.Printf("Usage: %s [OPTIONS] TCP_ADDR PATH/TO/PLUGIN.so\n", os.Args[0])
+	fmt.Printf("Usage: %s [OPTIONS] TCP_ADDR PATH/TO/PLUGIN.so [-- DOCKER_RUN_OPTIONS]\n", os.Args[0])
 	fmt.Printf("   or: %s <-h|--help>\n", os.Args[0])
 	fmt.Printf("   or: %s --version\n", os.Args[0])
 	fmt.Printf("Run an Ambassador Edge Stack Filter plugin as an Ambassador AuthService, for plugin development\n")
 	fmt.Printf("\n")
-	fmt.Printf("OPTIONS:\n")
-	fmt.Printf("  --docker   Force the use of Docker, for increased realism\n")
-	if mainNative == nil {
-		fmt.Printf("             (no-op; this build of aes-plugin-runner always uses Docker)\n")
-	}
+	fmt.Printf("Any desired extra flags to `docker run` may be included after the main argument list.\n")
 	fmt.Printf("\n")
-	fmt.Printf("Example:\n")
+	fmt.Printf("OPTIONS:\n")
+	fmt.Printf("  --docker   Does nothing, exists for backward compatibility\n")
+	fmt.Printf("\n")
+	fmt.Printf("Examples:\n")
 	fmt.Printf("    %s :8080 ./myplugin.so\n", os.Args[0])
+	fmt.Printf("    %s :8080 ./envplugin.so -- --env=MYVAR=myvalue\n", os.Args[0])
 }
 
 func errusage(msg string) {
@@ -47,7 +45,7 @@ func main() {
 	argparser := pflag.NewFlagSet(os.Args[0], pflag.ContinueOnError)
 	argparser.Usage = func() {}
 	flagVersion := argparser.Bool("version", false, "")
-	flagDocker := argparser.Bool("docker", mainNative == nil, "")
+	_ = argparser.Bool("docker", true, "") // ignored, still exists for backward compatibility
 
 	if err := argparser.Parse(os.Args[1:]); err != nil {
 		if err == pflag.ErrHelp {
@@ -78,8 +76,8 @@ Docker image.
 		})
 		return
 	}
-	if argparser.NArg() != 2 {
-		errusage(fmt.Sprintf("expected exactly 2 arguments, but got %d", argparser.NArg()))
+	if argparser.NArg() < 2 {
+		errusage(fmt.Sprintf("expected at least 2 arguments, but got %d", argparser.NArg()))
 	}
 	if !strings.HasSuffix(argparser.Arg(1), ".so") {
 		errusage(fmt.Sprintf("plugin file path does not end with '.so': %s", argparser.Arg(1)))
@@ -95,34 +93,25 @@ Docker image.
 
 	fmt.Fprintf(os.Stderr, " > aes-plugin-runner %s (%s %s/%s)\n", Version, runtime.Version(), runtime.GOOS, runtime.GOARCH)
 
-	if !*flagDocker && mainNative != nil {
-		fmt.Fprintf(os.Stderr, " > running natively\n")
-		err := mainNative(argparser.Arg(0), argparser.Arg(1))
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s: error: %v\n", os.Args[0], err)
-			os.Exit(1)
-		}
-	} else {
-		fmt.Fprintf(os.Stderr, " > running in Docker\n")
-		err := mainDocker(argparser.Arg(0), argparser.Arg(1))
-		if err != nil {
-			if ee, ok := err.(*exec.ExitError); ok {
-				ws := ee.ProcessState.Sys().(syscall.WaitStatus)
-				switch {
-				case ws.Exited():
-					os.Exit(ws.ExitStatus())
-				case ws.Signaled():
-					os.Exit(128 + int(ws.Signal()))
-				}
-			} else {
-				fmt.Fprintf(os.Stderr, "%s: error: %v\n", os.Args[0], err)
-				os.Exit(255)
+	fmt.Fprintf(os.Stderr, " > running in Docker\n")
+	err = mainDocker(argparser.Arg(0), argparser.Arg(1), argparser.Args()[2:])
+	if err != nil {
+		if ee, ok := err.(*exec.ExitError); ok {
+			ws := ee.ProcessState.Sys().(syscall.WaitStatus)
+			switch {
+			case ws.Exited():
+				os.Exit(ws.ExitStatus())
+			case ws.Signaled():
+				os.Exit(128 + int(ws.Signal()))
 			}
+		} else {
+			fmt.Fprintf(os.Stderr, "%s: error: %v\n", os.Args[0], err)
+			os.Exit(255)
 		}
 	}
 }
 
-func mainDocker(socketName, pluginFilepath string) error {
+func mainDocker(socketName, pluginFilepath string, extraFlags []string) error {
 	host, portName, _ := net.SplitHostPort(socketName)
 	if host != "" {
 		return errors.New("unfortunately, it is not valid to specify a host part of the TCP address when running in Docker, you may only specify a ':PORT'")
@@ -140,12 +129,15 @@ func mainDocker(socketName, pluginFilepath string) error {
 	}
 
 	pluginFileDir := filepath.Dir(pluginFilepath)
-	cmd := exec.Command("docker", "run", "--rm", "-it",
+	args := append(append([]string{
+		"docker", "run", "--rm", "-it",
 		"--volume="+pluginFileDir+":"+pluginFileDir+":ro",
 		"--publish="+net.JoinHostPort(host, strconv.Itoa(portNumber))+":"+strconv.Itoa(portNumber),
-		"--entrypoint=/ambassador/aes-plugin-runner",
+		"--entrypoint=/ambassador/aes-plugin-runner"},
+		extraFlags...),
 		aes_image,
 		fmt.Sprintf(":%d", portNumber), pluginFilepath)
+	cmd := exec.Command(args[0], args[1:]...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

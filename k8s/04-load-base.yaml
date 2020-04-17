@@ -19,12 +19,15 @@ spec:
     name: http
     targetPort: http-api
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: load-http-echo
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: load-http-echo
   strategy:
     type: RollingUpdate
   template:

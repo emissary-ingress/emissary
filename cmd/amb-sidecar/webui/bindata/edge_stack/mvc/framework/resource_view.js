@@ -475,7 +475,6 @@ export class ResourceView extends View {
 
     /* Return the HTML, including calls to renderSelf() to allow subclasses to specialize. */
     return html`
-      ${this.modifiedStyles() ? this.modifiedStyles() : ""}
       <form>
         <div class="card ${this.viewState === "off" ? "off" : ""}">
           <div class="col">

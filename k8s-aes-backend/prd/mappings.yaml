@@ -33,6 +33,16 @@ spec:
 apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
+  name: aes-backend-crash-report
+  namespace: metriton
+spec:
+  prefix: /crash-report
+  rewrite: /crash-report
+  service: aes-backend
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
   name: edgestack-me-redirect
   namespace: metriton
 spec:

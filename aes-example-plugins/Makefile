@@ -3,7 +3,7 @@ PLUGIN_DIR ?= .
 DOCKER_REGISTRY ?= localhost:31000
 DOCKER_IMAGE ?= $(DOCKER_REGISTRY)/aes-custom:$(shell git describe --tags --always --dirty)
 
-AES_VERSION ?= 1.2.2
+AES_VERSION ?= 1.4.1
 AES_IMAGE ?= quay.io/datawire/aes:$(AES_VERSION)
 
 all: .docker.stamp
@@ -68,7 +68,7 @@ version-check: .common-pkgs.txt aes-abi.pkgs.txt
 
 %.so: $(PLUGIN_DIR)/%.go download-go download-docker version-check sync
 	$(go.GOBUILD) -buildmode=plugin -o $@ $<
-	$(container-rsync) -r $(container.ID):${CURDIR}/ .
+	$(container-rsync) -a $(container.ID):${CURDIR}/ .
 
 clean:
 	rm -f -- *.so .docker.stamp .common-pkgs.txt .tmp.* .var.* Dockerfile aes-abi*
