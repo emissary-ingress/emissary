@@ -853,7 +853,6 @@ func (k *kale) reconcileRevision(ctx context.Context, _revision *revisionAndChil
 	runners := _revision.Children.Runners
 
 	ctx = dlog.WithLogger(ctx, dlog.GetLogger(ctx).WithField("revision", revision.GetName()+"."+revision.GetNamespace()))
-	log := dlog.GetLogger(ctx)
 
 	var revisionPhase RevisionPhase
 	// Decide what the phase of the revision should be, based on available evidence.
@@ -934,7 +933,7 @@ func (k *kale) reconcileRevision(ctx context.Context, _revision *revisionAndChil
 		uRevision := unstructureRevision(revision)
 		_, err := k.revisionsGetter.Namespace(revision.GetNamespace()).UpdateStatus(uRevision, k8sTypesMetaV1.UpdateOptions{})
 		if err != nil {
-			log.Println("update revision status:", err)
+			reportRuntimeError(ctx, StepBackground, errors.Wrap(err, "update revision status in Kubernetes"))
 		}
 		err = postStatus(ctx, fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, revision.Spec.Rev),
 			GitHubStatus{
@@ -960,7 +959,7 @@ func (k *kale) reconcileRevision(ctx context.Context, _revision *revisionAndChil
 			},
 			proj.Spec.GithubToken)
 		if err != nil {
-			log.Println("update revision status:", err)
+			reportRuntimeError(ctx, StepBackground, errors.Wrap(err, "update revision status in GitHub"))
 		}
 	}
 
