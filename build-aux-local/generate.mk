@@ -19,7 +19,7 @@ generate-clean:
 	rm -f $(OSS_HOME)/tools/sandbox/grpc_web/*_pb.js
 	rm -rf $(OSS_HOME)/pkg/envoy-control-plane
 generate-crd-docs:
-	protoc --doc_opt $(OSS_HOME)/docs/reference/markdown.tmpl,host.md --doc_out $(OSS_HOME)/docs/reference/ $(addprefix --proto_path=,$(proto_path)) getambassador.io/v2/Host.proto
+	$(tools/protoc) --doc_opt $(OSS_HOME)/docs/reference/markdown.tmpl,host.md --doc_out $(OSS_HOME)/docs/reference/ $(addprefix --proto_path=,$(proto_path)) getambassador.io/v2/Host.proto
 .PHONY: generate _generate generate-clean
 
 #
