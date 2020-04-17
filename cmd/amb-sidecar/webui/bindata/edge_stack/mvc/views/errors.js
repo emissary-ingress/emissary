@@ -43,16 +43,16 @@ class Errors extends View {
       .block {
         display: flex;
         padding: 0.2em;
-	background: #eee;
-	border-radius: 5px;
+        background: #eee;
+        border-radius: 5px;
       }
       .message {
-        word-wrap: break-word;
         color: red;
         flex-grow: 1;
         width: calc(var(--columns));
       }
       .expanded .message {
+        white-space: pre-wrap;
         width: calc(var(--columns) - 44px);
       }
       .error .controls {
