@@ -265,7 +265,7 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 		} else {
 			authorizationCode, err := oauthClient.ParseAuthorizationResponse(sessionInfo.sessionData, u)
 			if err != nil {
-				if errors.Is(err, rfc6749client.XSRFError("")) {
+				if errors.As(err, new(rfc6749client.XSRFError)) {
 					return sessionInfo.handleUnauthenticatedProxyRequest(ctx, logger, httpClient, oauthClient, discovered, request), nil
 				}
 				return middleware.NewErrorResponse(ctx, http.StatusBadRequest,
