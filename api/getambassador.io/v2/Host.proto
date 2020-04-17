@@ -1,4 +1,5 @@
 /**
+ * @exclude
  * === HACK HACK HACK ===
  *
  * The existence of Host_nojson.proto is because if we bring in all the
