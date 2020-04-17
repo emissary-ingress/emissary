@@ -160,32 +160,72 @@ describe('CoW', function() {
     })
   })
 
-  it('should track changes', function() {
+  it('should track changes and mutations', function() {
     let target = {}
     let cow = new CoW(target)
+    assert.isFalse(CoW.mutated(cow))
     assert.isFalse(CoW.changed(cow))
     cow.foo = "bar"
+    assert.isTrue(CoW.mutated(cow))
     assert.isTrue(CoW.changed(cow))
   })
 
-  it('should track changes in nested objects', function() {
+  it('should distinguish between changes and mutations', function() {
+    let target = {foo: "bar"}
+    let cow = new CoW(target)
+    assert.isFalse(CoW.mutated(cow))
+    assert.isFalse(CoW.changed(cow))
+    cow.foo = "bar"
+    assert.isTrue(CoW.mutated(cow))
+    assert.isFalse(CoW.changed(cow))
+  })
+
+  it('should track changes and mutations in nested objects', function() {
     let target = {
       foo: {bar: "baz"}
     }
     let cow = new CoW(target)
+    assert.isFalse(CoW.mutated(cow))
     assert.isFalse(CoW.changed(cow))
     cow.foo.bar = "moo"
+    assert.isTrue(CoW.mutated(cow))
     assert.isTrue(CoW.changed(cow))
   })
 
-  it('should track changes in nested objects underneath arrays', function() {
+  it('should distinguish between changes and mutations in nested objects', function() {
+    let target = {
+      foo: {bar: "moo"}
+    }
+    let cow = new CoW(target)
+    assert.isFalse(CoW.mutated(cow))
+    assert.isFalse(CoW.changed(cow))
+    cow.foo.bar = "moo"
+    assert.isTrue(CoW.mutated(cow))
+    assert.isFalse(CoW.changed(cow))
+  })
+
+  it('should track changes and mutations in nested objects underneath arrays', function() {
     let target = {
       foo: ["blah", {bar: "baz"}, "blah"]
     }
     let cow = new CoW(target)
+    assert.isFalse(CoW.mutated(cow))
     assert.isFalse(CoW.changed(cow))
     cow.foo[1].bar = "moo"
+    assert.isTrue(CoW.mutated(cow))
     assert.isTrue(CoW.changed(cow))
+  })
+
+  it('should distinguish between changes and mutations in nested objects underneath arrays', function() {
+    let target = {
+      foo: ["blah", {bar: "moo"}, "blah"]
+    }
+    let cow = new CoW(target)
+    assert.isFalse(CoW.mutated(cow))
+    assert.isFalse(CoW.changed(cow))
+    cow.foo[1].bar = "moo"
+    assert.isTrue(CoW.mutated(cow))
+    assert.isFalse(CoW.changed(cow))
   })
 
   it('should stringify', function() {
@@ -212,5 +252,29 @@ describe('CoW', function() {
     assert.isTrue(CoW.changed(cow))
     assert.sameMembers(Object.keys(cow), [])
     assert.deepEqual(target, copy)
+  })
+
+  it('should deal with null values', function() {
+    let target = {key: null}
+    let cow = new CoW(target)
+    assert.deepEqual(cow, target)
+  })
+
+  it('should have no deltas when writing a new value that is the same as the old', function() {
+    let values = [null, undefined, "pie", 3.14159, [1, 2, 3]]
+    let sames = [null, undefined, "pie", 3.14159, [1, 2, 3]]
+    let diffs = [undefined, null, "pi", 6.28, [3, 2, 1]]
+    for (let i = 0; i < values.length; i++) {
+      let value = values[i]
+      let same = sames[i]
+      let diff = diffs[i]
+
+      let target = {key: value}
+      let cow = new CoW(target)
+      cow.key = same
+      assert.deepEqual(CoW.deltas(cow), {})
+      cow.key = diff
+      assert.deepEqual(CoW.deltas(cow), {key: diff})
+    }
   })
 })

@@ -58,6 +58,7 @@ export class CoW {
    * CoW.
    */
   static deltas(cow) {
+    let target = cow[TARGET]
     let writes = cow[WRITES]
 
     let result = {}
@@ -65,19 +66,15 @@ export class CoW {
     for (let prop in writes) {
       let value = writes[prop]
       if (CoW.is(value)) {
-        result[prop] = CoW.deltas(value)
-      } else if (Array.isArray(value)) {
-        if (value[CHANGED] === true) {
-          result[prop] = value.map((x)=>{
-            if (CoW.is(x)) {
-              return CoW.deltas(x)
-            } else {
-              return x
-            }
-          })
+        let d = CoW.deltas(value)
+        if (!deepEqual(d, {})) {
+          result[prop] = d
         }
       } else {
-        result[prop] = value
+        let orig = Reflect.get(target, prop)
+        if (!deepEqual(orig, value)) {
+          result[prop] = value
+        }
       }
     }
 
@@ -87,9 +84,18 @@ export class CoW {
   /**
    * CoW.changed(cow)
    *
-   * Reports whether a CoW object has been changed at all relative to its target.
+   * Reports whether mutation of a CoW resulted in changes.
    */
   static changed(cow) {
+    return CoW.mutated(cow) && !deepEqual(CoW.deltas(cow), {})
+  }
+
+  /**
+   * CoW.mutated(cow)
+   *
+   * Reports whether a CoW has been mutated.
+   */
+  static mutated(cow) {
     return cow[CHANGED]
   }
 
@@ -97,12 +103,13 @@ export class CoW {
    * Detects whether an object is a CoW or not.
    */
   static is(obj) {
-    return typeof obj[WRITES] === "object"
+    return obj !== null && typeof obj === "object" && typeof obj[WRITES] === "object"
   }
 
   // ================== everything below here is implementation ========================
 
   constructor(target, onChange = noop) {
+    this[TARGET] = target
     // The WRITES map holds the modified value for scalars. For nested objects and arrays it holds a
     // value even if there are no changes. That value is a CoW wrapper for objects and an ArrayProxy
     // for Arrays.
@@ -127,12 +134,15 @@ export class CoW {
     if (prop === CHANGED) {
       return this[CHANGED]
     }
+    if (prop === TARGET) {
+      return this[TARGET]
+    }
 
     if (this[WRITES].hasOwnProperty(prop)) {
       return this[WRITES][prop]
     } else {
       let result = Reflect.get(...arguments)
-      if (typeof result === "object") {
+      if (result !== null && typeof result === "object") {
         if (Array.isArray(result)) {
           result = new ArrayProxy(result, this.trackChanges.bind(this))
         } else {
@@ -194,6 +204,7 @@ export class CoW {
 // we use these symbols for our own properties so that we can guarantee no collision with user defined
 // property names
 
+const TARGET = Symbol()
 const WRITES = Symbol()
 const CHANGED = Symbol()
 const TOMBSTONE = Symbol()
@@ -208,6 +219,11 @@ const MUTATING = new Set(["reverse", "sort", "shift", "splice", "push", "pop", "
  * to an Array, we just consider the whole array to be changed.
  */
 class ArrayProxy {
+
+  static is(obj) {
+    return obj !== null && typeof obj === "object" && typeof obj[CHANGED] === "boolean"
+
+  }
 
   constructor(orig, onChange) {
     this.target = orig.map((x)=>{
@@ -258,3 +274,45 @@ class ArrayProxy {
 }
 
 function noop() {}
+
+// isn't there a library or package that does this?
+function deepEqual(a, b) {
+  if (a === b) {
+    return true
+  }
+
+  if (a === null || b === null || typeof a !== "object" || typeof b !== "object") {
+    return a === b
+  }
+
+  if (Array.isArray(a)) {
+    if (Array.isArray(b) && a.length === b.length) {
+      for (let i = 0; i < a.length; i++) {
+        if (!deepEqual(a[i], b[i])) {
+          return false
+        }
+      }
+      return true
+    }
+    return false
+  }
+
+  if (Array.isArray(b)) {
+    return false
+  }
+
+  // they are both non-null objects
+  for (let key of Object.keys(a)) {
+    if (!deepEqual(a[key], b[key])) {
+      return false
+    }
+  }
+
+  for (let key of Object.keys(b)) {
+    if (!deepEqual(a[key], b[key])) {
+      return false
+    }
+  }
+
+  return true
+}

@@ -34,20 +34,20 @@
 
     <p>Reading this in a browser is a much better experience than
     reading the source directly. You will get to see working examples
-    and play with them! For some browsers you can load this file from
-    the filesystem and it will just work. For others (e.g. chrome)
-    loading the script tags from the filesystem counts as a
-    cross-origin request and is forbidden, so you will need to view
-    this code using an http server. Any will do, but since you are a
-    datawire developer, you might as well just spin up the the ui dev
-    loop. From your apro.git root, run:</p>
+    and play with them! Please note that for the scripts to load you
+    will need to run a local web server rather than pointing your
+    browser at the file (thanks to the magic of CORS). Any web server
+    will do (e.g. <code>python -m SimpleHTTPServer</code> works
+    great), but since you are a datawire developer, you might as well
+    just spin up the the ui dev loop. From your apro.git root,
+    run:</p>
 
     <pre>./ui-dev.sh</pre>
 
     <p>Now visit <a href="http://localhost:9000/edge_stack/mvc/docs/">http://localhost:9000/edge_stack/mvc/docs/</a>.</p>
 
     <p>You can also go
-    to <a href="http://localhost:9000/tests">http://localhost:9000/tests</a>
+    to <a href="http://localhost:9000/dev/tests">http://localhost:9000/dev/tests</a>
     to run all the tests for the UI code. The tests are written in BDD
     style, so you can use them as a reference for the APIs described
     in this document. Click on the test name to expand it and see the
@@ -131,7 +131,8 @@
 
     <pre>css`{ display: block; ...${expression}...}`</pre>
 
-    <p>The repeat function is for use within html templates:</p>
+    <p>The <a href="https://lit-html.polymer-project.org/guide/writing-templates#repeating-templates-with-the-repeat-directive">repeat</a>
+    function is for use within html templates:</p>
 
     <pre>html`&lt;ul&gt;${
   repeat(items,
@@ -139,7 +140,9 @@
          (item, index)=&gt;html`&lt;li&gt;${item}&lt;/li&gt;`)
 }&lt;/ul&gt;`</pre>
 
-    <p>You could also do this with the <var>Array.map</var> method:</p>
+    <p>You could also do this with
+    the <a href="https://lit-html.polymer-project.org/guide/writing-templates#repeating-templates-with-array.map"><var>Array.map</var></a>
+    method:</p>
 
     <pre>html`&lt;ul&gt;${
   items.map((item, index)=&gt;html`&lt;li&gt;${item}&lt;/li&gt;`)

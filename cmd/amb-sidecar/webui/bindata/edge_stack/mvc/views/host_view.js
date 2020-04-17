@@ -99,7 +99,7 @@ export class HostView extends IResourceView {
               type="url"
               size="60"
               name="provider"
-              @input="${(e)=>{this.model.acmeAuthority=e.target.value; this.requestUpdate()}}"
+              @input="${(e)=>{this.model.acmeAuthority=e.target.value}}"
               .value="${this.model.acmeAuthority}"
               ?disabled="${!this.model.useAcme}"
             />
