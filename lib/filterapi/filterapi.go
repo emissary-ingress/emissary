@@ -145,6 +145,8 @@ type HTTPRequestModification struct {
 	Header []HTTPHeaderModification
 }
 
+// This is a compile-time check that HTTPRequestModification does indeed implement
+// the FilterResponse interface.
 var _ FilterResponse = &HTTPRequestModification{}
 
 type HTTPHeaderModification interface {
@@ -156,7 +158,7 @@ type HTTPHeaderAppendValue struct {
 	Value string
 }
 
-var _ HTTPHeaderModification = &HTTPHeaderAppendValue{}
+var _ HTTPHeaderModification = &HTTPHeaderAppendValue{} // Another compile-time type check.
 
 // use a pointer-receiver so that code doing a type-switch doesn't
 // need to handle both the pointer and non-pointer cases; force

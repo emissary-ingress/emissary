@@ -1,4 +1,4 @@
-package main
+package app_sidecar
 
 import (
 	"io"

@@ -151,7 +151,7 @@ func (ctx *LicenseContext) GetClaims() (*LicenseClaimsLatest, error) {
 		}
 	}
 
-	claims := NewCommunityLicenseClaims()
+	claims := NewUnregisteredLicenseClaims()
 	claims.CustomerID = DefUnregisteredCustomerID
 	return claims, nil
 }

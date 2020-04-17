@@ -3,16 +3,19 @@ package dns
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/datawire/apro/cmd/apictl-key/datasource"
-	"github.com/sirupsen/logrus"
 	"math/rand"
 	"net"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/route53"
+	"github.com/sirupsen/logrus"
+
+	"github.com/datawire/apro/cmd/apictl-key/datasource"
+	"github.com/datawire/apro/cmd/apictl-key/util"
 )
 
 type dnsclient struct {
@@ -22,12 +25,18 @@ type dnsclient struct {
 	datasource         datasource.Datasource
 }
 
-type registration struct {
-	Email string
-	Ip    string
+type registrationRequest struct {
+	Email            string
+	Ip               string
+	Hostname         string
+	EdgectlInstallId string
+	AESInstallId     string
 }
 
 var privateIPBlocks []*net.IPNet
+
+const ARecord = "A"
+const CnameRecord = "CNAME"
 
 func init() {
 	// Make sure our generator is truly random
@@ -61,13 +70,15 @@ func NewController(l *logrus.Logger, hostedZoneId string, dnsRegistrationTLD str
 }
 
 func (c *dnsclient) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	remoteIp, _, _ := net.SplitHostPort(r.RemoteAddr)
+	remoteIp := util.ExtractRequesterIP(r)
 
 	decoder := json.NewDecoder(r.Body)
 
 	// Decode the registration request:
 	//   {"email":"alex@datawire.io","ip":"34.94.127.81"}
-	var registration registration
+	//   or
+	//   {"email":"alex@datawire.io","hostname":"elb-x-y-z.compute-1.amazonaws.com"}
+	var registration registrationRequest
 	if err := decoder.Decode(&registration); err != nil {
 		c.l.WithError(err).Warn("failed to parse http request")
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -81,10 +92,45 @@ func (c *dnsclient) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check the IP is public and is serving an AES install
-	if err := c.verifyIPIsReady(registration.Ip); err != nil {
-		c.l.WithError(err).Warn("failed to verify ip is in ready state")
-		http.Error(w, err.Error(), http.StatusPreconditionFailed)
+	var recordValue = ""
+	var recordType = ""
+	if registration.Ip != "" {
+		// Check the IP is public
+		if !c.isPublicIP(registration.Ip) {
+			c.l.Warn("failed to verify ip is public")
+			http.Error(w, "failed to verify ip is public", http.StatusPreconditionFailed)
+			return
+		}
+
+		// Check the IP is serving an AES install
+		if err := c.verifyHostIsReady(registration.Ip); err != nil {
+			c.l.WithError(err).Warn("failed to verify ip is in ready state")
+			http.Error(w, err.Error(), http.StatusPreconditionFailed)
+			return
+		}
+
+		recordValue = registration.Ip
+		recordType = ARecord
+	} else if registration.Hostname != "" {
+		// Check the hostname is valid and not `localhost` or `loopback`
+		if !strings.Contains(registration.Hostname, ".") {
+			c.l.Warn("failed to verify hostname")
+			http.Error(w, "failed to verify hostname", http.StatusPreconditionFailed)
+			return
+		}
+
+		// Check the hostname is serving an AES install
+		if err := c.verifyHostIsReady(registration.Hostname); err != nil {
+			c.l.WithError(err).Warn("failed to verify hostname is in ready state")
+			http.Error(w, err.Error(), http.StatusPreconditionFailed)
+			return
+		}
+
+		recordValue = registration.Hostname
+		recordType = CnameRecord
+	} else {
+		c.l.Warn("ip, or hostname, is missing from registration request")
+		http.Error(w, "one of ip or hostname is required", http.StatusBadRequest)
 		return
 	}
 
@@ -96,7 +142,7 @@ func (c *dnsclient) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		domainName = fmt.Sprintf("%s%s", generateRandomName(), c.dnsRegistrationTLD)
 
 		// Validate it is not already registered
-		exists, err := c.datasource.DomainExists(domainName)
+		exists, err := c.datasource.DomainNameExists(domainName)
 		if err != nil {
 			c.l.WithError(err).Error("failed to verify the domain was not already registered")
 			http.Error(w, "domain name registration failed", http.StatusInternalServerError)
@@ -114,14 +160,22 @@ func (c *dnsclient) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Do register a DNS entry
-	if err := c.doRegister(domainName, registration.Ip); err != nil {
+	if err := c.doRegister(domainName, recordValue, recordType); err != nil {
 		c.l.WithError(err).Error("failed to register the dns record")
 		http.Error(w, "domain name registration failed", http.StatusInternalServerError)
 		return
 	}
 
 	// Save the registration information in database
-	if err := c.datasource.AddDomain(domainName, registration.Ip, registration.Email, remoteIp); err != nil {
+	if err := c.datasource.AddDomain(datasource.DomainEntry{
+		DomainName:       domainName,
+		IP:               registration.Ip,
+		Hostname:         registration.Hostname,
+		EdgectlInstallId: registration.EdgectlInstallId,
+		AESInstallId:     registration.AESInstallId,
+		RequesterContact: registration.Email,
+		RequesterIp:      remoteIp,
+	}); err != nil {
 		c.l.WithError(err).Errorf("failed to persists the domain registration request; a dns record '%s' was registered and must be cleaned up manually", domainName)
 		http.Error(w, "domain name registration failed", http.StatusInternalServerError)
 		return
@@ -132,11 +186,7 @@ func (c *dnsclient) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(domainName))
 }
 
-func (c *dnsclient) verifyIPIsReady(ip string) error {
-	if !c.isPublicIP(ip) {
-		return fmt.Errorf("ip address is not public")
-	}
-
+func (c *dnsclient) verifyHostIsReady(host string) error {
 	var transport = &http.Transport{
 		Proxy: http.ProxyFromEnvironment,
 		DialContext: (&net.Dialer{
@@ -156,16 +206,18 @@ func (c *dnsclient) verifyIPIsReady(ip string) error {
 	attempt := 1
 	const maxAttempts = 5
 	for {
-		// GET http://{IP}/.well-known/acme-challenge/
+		// GET http://{host}/.well-known/acme-challenge/
 		//  --> should return 404
 		//  --> should return header "server: envoy"
-		response, err := client.Get(fmt.Sprintf("http://%s/.well-known/acme-challenge/", ip))
-		defer response.Body.Close()
+		response, err := client.Get(fmt.Sprintf("http://%s/.well-known/acme-challenge/", host))
+		if err == nil {
+			defer response.Body.Close()
+		}
 		if err == nil && (response.StatusCode != 404 || response.Header.Get("server") != "envoy") {
-			err = fmt.Errorf("failed to validate the target ip is running AES")
+			err = fmt.Errorf("failed to validate the target host is running AES")
 		}
 		if err != nil {
-			c.l.WithError(err).Warnf("error while attempting to validate the target IP %d/%d", attempt, maxAttempts)
+			c.l.WithError(err).Warnf("error while attempting to validate the target host %d/%d", attempt, maxAttempts)
 			// Retry a few times... it's a new installation of AES and initialization might not be complete
 			if attempt == maxAttempts {
 				return err
@@ -197,7 +249,7 @@ func (c *dnsclient) isPublicIP(ipString string) bool {
 	return true
 }
 
-func (c *dnsclient) doRegister(domainName string, ip string) error {
+func (c *dnsclient) doRegister(domainName string, recordValue string, recordType string) error {
 	// Start a route53 session
 	sess, err := session.NewSession()
 	if err != nil {
@@ -216,11 +268,11 @@ func (c *dnsclient) doRegister(domainName string, ip string) error {
 						Name: aws.String(domainName),
 						ResourceRecords: []*route53.ResourceRecord{
 							{
-								Value: aws.String(ip),
+								Value: aws.String(recordValue),
 							},
 						},
-						TTL:  aws.Int64(5),
-						Type: aws.String("A"),
+						TTL:  aws.Int64(60),
+						Type: aws.String(recordType),
 					},
 				},
 				{
@@ -229,11 +281,11 @@ func (c *dnsclient) doRegister(domainName string, ip string) error {
 						Name: aws.String(fmt.Sprintf("*.%s", domainName)), // Saving a second wildcard record, helping bust dns caches
 						ResourceRecords: []*route53.ResourceRecord{
 							{
-								Value: aws.String(ip),
+								Value: aws.String(recordValue),
 							},
 						},
-						TTL:  aws.Int64(5),
-						Type: aws.String("A"),
+						TTL:  aws.Int64(60),
+						Type: aws.String(recordType),
 					},
 				},
 			},

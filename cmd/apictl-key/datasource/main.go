@@ -2,6 +2,8 @@ package datasource
 
 import (
 	"database/sql"
+	"encoding/json"
+	"fmt"
 	"net/url"
 
 	"github.com/jackc/pgx"
@@ -15,12 +17,30 @@ type PostgresqlDatasource struct {
 	db *sql.DB
 }
 
-type Datasource interface {
-	Close() error
-	AddDomain(string, string, string, string) error
-	DomainExists(string) (bool, error)
+type DomainEntry struct {
+	DomainName       string
+	IP               string
+	Hostname         string
+	EdgectlInstallId string
+	AESInstallId     string
+	RequesterContact string
+	RequesterIp      string
 }
 
+type CrashReportEntry struct {
+	Id          string
+	RequesterIp string
+	Metadata    interface{}
+}
+
+type Datasource interface {
+	Close() error
+	AddDomain(DomainEntry) error
+	DomainNameExists(string) (bool, error)
+	AddCrashReport(CrashReportEntry) error
+}
+
+// NewDatasource initializes a new SQL datasource connection
 func NewDatasource(logger *logrus.Logger, pgURL *url.URL) (*PostgresqlDatasource, error) {
 	connConfig, err := pgx.ParseURI(pgURL.String())
 	if err != nil {
@@ -40,23 +60,29 @@ func NewDatasource(logger *logrus.Logger, pgURL *url.URL) (*PostgresqlDatasource
 	}, nil
 }
 
+// Close closes the SQL datasource connection
 func (d *PostgresqlDatasource) Close() error {
 	return d.db.Close()
 }
 
-func (d *PostgresqlDatasource) AddDomain(domainName string, ip string, requesterContact string, requesterIp string) error {
-	stmt, err := d.db.Prepare("INSERT INTO aes_domains(domain, ip_address, requester_ip_address, requester_contact) VALUES($1, $2, $3, $4)")
+// AddDomain will insert a new aes_domain row in the SQL datasource
+func (d *PostgresqlDatasource) AddDomain(e DomainEntry) error {
+	if e.IP == "" && e.Hostname == "" {
+		return fmt.Errorf("cannot add aes_domains entry without ip_address or hostname")
+	}
+	stmt, err := d.db.Prepare("INSERT INTO aes_domains(domain, ip_address, hostname, edgectl_install_id, aes_install_id, requester_ip_address, requester_contact) VALUES($1, $2, $3, $4, $5, $6, $7)")
 	if err != nil {
 		return err
 	}
-	_, err = stmt.Exec(domainName, ip, requesterIp, requesterContact)
+	_, err = stmt.Exec(e.DomainName, nullString(e.IP), nullString(e.Hostname), nullString(e.EdgectlInstallId), nullString(e.AESInstallId), e.RequesterIp, e.RequesterContact)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (d *PostgresqlDatasource) DomainExists(domainName string) (bool, error) {
+// DomainNameExists validates a domain name already exists in database
+func (d *PostgresqlDatasource) DomainNameExists(domainName string) (bool, error) {
 	var exists bool
 	err := d.db.
 		QueryRow("SELECT exists (SELECT domain FROM aes_domains WHERE domain=$1);", domainName).
@@ -65,4 +91,34 @@ func (d *PostgresqlDatasource) DomainExists(domainName string) (bool, error) {
 		return false, err
 	}
 	return exists, nil
+}
+
+// AddCrashReport will insert a new crash_report row in the SQL datasource
+func (d *PostgresqlDatasource) AddCrashReport(e CrashReportEntry) error {
+	if e.Id == "" {
+		return fmt.Errorf("cannot add crash_report entry without id")
+	}
+	jsonMetadata, err := json.Marshal(e.Metadata)
+	if err != nil {
+		return err
+	}
+	stmt, err := d.db.Prepare("INSERT INTO crash_report(id, requester_ip_address, metadata) VALUES($1, $2, $3)")
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec(e.Id, e.RequesterIp, jsonMetadata)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func nullString(s string) sql.NullString {
+	if len(s) == 0 {
+		return sql.NullString{}
+	}
+	return sql.NullString{
+		String: s,
+		Valid:  true,
+	}
 }

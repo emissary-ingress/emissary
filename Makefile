@@ -1,5 +1,7 @@
 NAME ?= aes
 
+PYTEST_GOLD_DIR = $(abspath $(CURDIR)/tests/pytest/gold)
+
 ifndef OSS_HOME
 AMBASSADOR_COMMIT = $(shell cat ambassador.commit)
 
@@ -92,14 +94,15 @@ update-yaml-locally: sync
 .PHONY: update-yaml-locally
 
 preflight-docs:
-	@if [ -z "$${AMBASSADOR_DOCS}" ]; then printf "$(RED)Please set AMBASSADOR_DOCS to point to your ambassador-docs.git checkout$(END)\n" >&2; exit 1; fi
-	@if ! [ -f "$${AMBASSADOR_DOCS}/versions.yml" ]; then printf "$(RED)AMBASSADOR_DOCS=$${AMBASSADOR_DOCS} does not look like an ambassador-docs.git checkout$(END)\n" >&2; exit 1; fi
+	@if [ -z "$${AMBASSADOR_DOCS}" ]; then printf "$(RED)Please set AMBASSADOR_DOCS to point to your ambassador.git/docs checkout$(END)\n" >&2; exit 1; fi
+	@if ! [ -f "$${AMBASSADOR_DOCS}/js/versions.yml" ]; then printf "$(RED)AMBASSADOR_DOCS=$${AMBASSADOR_DOCS} does not look like an ambassador.git/docs checkout$(END)\n" >&2; exit 1; fi
 .PHONY: preflight-docs
 
 update-yaml: update-yaml-locally preflight-docs
 	@printf "$(CYN)==> $(GRN)Checking whether AMBASSADOR_DOCS is up to date$(END)\n"
 	git -C "$${AMBASSADOR_DOCS}" fetch --all --prune --tags
-	@printf "$(GRN)In another terminal, verify that your AMBASSADOR_DOCS ($(AMBASSADOR_DOCS)) checkout is up-to-date with the desired branch (probably $(BLU)early-access$(GRN))$(END)\n"
+	@printf "$(GRN)In another terminal, verify that your AMBASSADOR_DOCS ($(AMBASSADOR_DOCS))\n"
+	@printf "$(GRN)checkout is up-to-date with the desired branch (probably $(BLU)ambassador.git/docs$(GRN) branch=$(BLU)master$(GRN))$(END)\n"
 	@read -s -p "$$(printf '$(GRN)Press $(BLU)enter$(GRN) once you have verified this:$(END)')"
 	@echo
 	@printf "$(CYN)==> $(GRN)Updating AMBASSADOR_DOCS YAML$(END)\n"
@@ -190,9 +193,18 @@ release/promote-aes/to-ga:
 	                              "s3://datawire-static-files/edgectl/$(RELEASE_VERSION)/darwin/amd64/edgectl"; \
 	  aws s3 cp --acl public-read "s3://datawire-static-files/edgectl/$$rc_latest/windows/amd64/edgectl.exe" \
 	                              "s3://datawire-static-files/edgectl/$(RELEASE_VERSION)/windows/amd64/edgectl.exe"; \
+	  printf '  $(CYN)apictl-key$(END)\n'; \
+	  aws s3 cp "s3://datawire-static-files/apictl-key/$$rc_latest/linux/amd64/apictl-key" \
+	            "s3://datawire-static-files/apictl-key/$(RELEASE_VERSION)/linux/amd64/apictl-key"; \
+	  aws s3 cp "s3://datawire-static-files/apictl-key/$$rc_latest/darwin/amd64/apictl-key" \
+	            "s3://datawire-static-files/apictl-key/$(RELEASE_VERSION)/darwin/amd64/apictl-key"; \
+	  aws s3 cp "s3://datawire-static-files/apictl-key/$$rc_latest/windows/amd64/apictl-key.exe" \
+	            "s3://datawire-static-files/apictl-key/$(RELEASE_VERSION)/windows/amd64/apictl-key.exe"; \
 	}
 	@printf '  $(CYN)edgectl (metadata)$(END)\n'
 	echo "$(RELEASE_VERSION)" | aws s3 cp --acl public-read - s3://datawire-static-files/edgectl/stable.txt
+	@printf '  $(CYN)apictl-key (metadata)$(END)\n'
+	echo "$(RELEASE_VERSION)" | aws s3 cp - s3://datawire-static-files/apictl-key/stable.txt
 .PHONY: release/promote-aes/to-ga
 
 define _help.aes-targets

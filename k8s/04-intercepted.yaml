@@ -7,6 +7,31 @@ metadata:
 spec:
   prefix: /intercepted/
   service: intercepted
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: telepresence-proxy
+  namespace: default
+  labels:
+    product: aes
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: telepresence-proxy
+  labels:
+    product: aes
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ambassador
+subjects:
+- kind: ServiceAccount
+  name: telepresence-proxy
+  namespace: default
+
 ---
 apiVersion: v1
 kind: Service
@@ -20,7 +45,7 @@ spec:
   - name: proxied
     protocol: TCP
     port: 80
-    targetPort: 9900
+    targetPort: 8080              # Traffic agent port
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -38,22 +63,26 @@ spec:
       labels:
         service: intercepted
     spec:
-      containers:
+      containers:                   # Application container
       - name: intercepted
         image: kennethreitz/httpbin
         ports:
         - containerPort: 80
-      - name: traffic-sidecar
+      - name: traffic-agent         # Traffic Agent container
         image: {{env "AES_IMAGE"}}
-        command: ["app-sidecar"]
+        ports:
+          - containerPort: 9900
         env:
-        - name: APPNAME
+        - name: AGENT_SERVICE
           value: intercepted
-        - name: APPPORT
+        - name: AGENT_PORT
           value: "80"
         - name: APP_LOG_LEVEL
           value: "debug"
-        - name: AMBASSADOR_LICENSE_KEY
-          value: {{env "AMBASSADOR_LICENSE_KEY"}}
-        ports:
-        - containerPort: 9900
+        - name: AGENT_MANAGER_NAMESPACE
+          value: ambassador
+        - name: AMBASSADOR_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+      serviceAccountName: telepresence-proxy

@@ -178,16 +178,6 @@ kind: Service
 metadata:
   name: grafana-prd
   namespace: grafana
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind: Mapping
-      name: grafana-prd
-      ambassador_id: metriton
-      prefix: /grafana
-      rewrite: /grafana
-      service: grafana-prd.grafana:80
 spec:
   ports:
     - port: 80

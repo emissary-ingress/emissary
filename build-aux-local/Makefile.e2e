@@ -11,7 +11,6 @@ include build-aux/common.mk
 
 # "Release"-ish images
 images += consul_connect_integration
-images += traffic-proxy
 # Purely testing images
 images += model-cluster-app
 images += model-cluster-grpc-auth
@@ -40,16 +39,18 @@ push:   $(foreach i,$(images) aes-example-plugins, docker/$i.docker.push.dev )
 deploy: $(foreach i,$(images) aes-example-plugins, docker/$i.docker.push.dev )
 	@PS4=; set -ex; { \
 	  set -a && . ./k8s-env.sh; \
+	  cd ambassador; \
 	  go run github.com/datawire/ambassador/cmd/edgectl license "$$AMBASSADOR_LICENSE_KEY"; \
 	  kubectl --namespace=ambassador set image deployment/ambassador aes="$$AES_EXAMPLE_PLUGINS_IMAGE"; \
-	  go run github.com/datawire/ambassador/cmd/kubeapply --timeout=6m --filename=k8s; \
+	  go run github.com/datawire/ambassador/cmd/kubeapply --timeout=6m --filename=$(CURDIR)/k8s; \
 	}
 apply: | $(foreach i,$(images) aes-example-plugins, docker/$i.docker.push.dev )
 	@PS4=; set -ex; { \
 	  set -a && . ./k8s-env.sh; \
+	  cd ambassador; \
 	  go run github.com/datawire/ambassador/cmd/edgectl license "$$AMBASSADOR_LICENSE_KEY"; \
 	  kubectl --namespace=ambassador set image deployment/ambassador aes="$$AES_EXAMPLE_PLUGINS_IMAGE"; \
-	  go run github.com/datawire/ambassador/cmd/kubeapply --timeout=6m --filename=k8s; \
+	  go run github.com/datawire/ambassador/cmd/kubeapply --timeout=6m --filename=$(CURDIR)/k8s; \
 	}
 .PHONY: deploy apply
 
@@ -73,7 +74,6 @@ docker/aes-example-plugins.docker.stamp: FORCE
 
 # "Release"-ish binaries
 bins += github.com/datawire/apro/cmd/consul_connect_integration
-bins += github.com/datawire/apro/cmd/traffic-proxy
 # Purely testing binaries
 bins += github.com/datawire/apro/cmd/model-cluster-app
 bins += github.com/datawire/apro/cmd/model-cluster-grpc-auth

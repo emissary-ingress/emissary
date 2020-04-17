@@ -55,7 +55,7 @@ rules:
 #  4. It needs permission to "get"/"create"/"update" Leases (or
 #     Endpoints, if on Kubernetes <1.12).
 - apiGroups: [""]
-  resources: [ "namespaces", "services" ]
+  resources: [ "namespaces", "services", "pods" ]
   verbs: ["get", "list", "watch"]
 - apiGroups: [ "getambassador.io" ]
   resources: [ "*" ]

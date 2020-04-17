@@ -1,0 +1,339 @@
+{
+    "_errors": {},
+    "_notices": {},
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "ambassador-edge-stack.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": [
+                "_automatic_"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "location": "ambassador-edge-stack.default.1",
+            "metadata_labels": {
+                "ambassador_crd": "ambassador-edge-stack.default",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "ambassador-edge-stack",
+            "namespace": "default",
+            "precedence": 1000000,
+            "prefix": "/.ambassador/",
+            "rewrite": "",
+            "rkey": "ambassador-edge-stack.default.1",
+            "serialization": "ambassador_id:\n- _automatic_\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: ambassador-edge-stack.default\n  ambassador_diag_class: private\n  product: aes\nname: ambassador-edge-stack\nnamespace: default\nprecedence: 1000000\nprefix: /.ambassador/\nrewrite: ''\nservice: 127.0.0.1:8500\n",
+            "service": "127.0.0.1:8500"
+        },
+        "cleartext-host-globalcorstest.default.1": {
+            "_referenced_by": {},
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "ambassador_id": [
+                "globalcorstest"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "hostname": "*",
+            "kind": "Host",
+            "location": "cleartext-host-globalcorstest.default.1",
+            "metadata_labels": {
+                "ambassador_crd": "cleartext-host-globalcorstest.default",
+                "kat-ambassador-id": "globalcorstest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cleartext-host-globalcorstest",
+            "namespace": "default",
+            "requestPolicy": {
+                "insecure": {
+                    "action": "Route"
+                }
+            },
+            "rkey": "cleartext-host-globalcorstest.default.1",
+            "selector": {
+                "matchLabels": {
+                    "hostname": "globalcorstest"
+                }
+            },
+            "serialization": "acmeProvider:\n  authority: none\nambassador_id:\n- globalcorstest\napiVersion: getambassador.io/v2\ngeneration: 1\nhostname: '*'\nkind: Host\nmetadata_labels:\n  ambassador_crd: cleartext-host-globalcorstest.default\n  kat-ambassador-id: globalcorstest\n  scope: AmbassadorTest\nname: cleartext-host-globalcorstest\nnamespace: default\nrequestPolicy:\n  insecure:\n    action: Route\nselector:\n  matchLabels:\n    hostname: globalcorstest\n"
+        },
+        "globalcorstest.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "globalcorstest",
+            "apiVersion": "getambassador.io/v1",
+            "config": {
+                "cors": {
+                    "methods": "POST, GET, OPTIONS",
+                    "origins": "http://foo.example.com"
+                }
+            },
+            "kind": "Module",
+            "location": "globalcorstest.default.1",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "globalcorstest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "ambassador",
+            "namespace": "default",
+            "rkey": "globalcorstest.default.1",
+            "serialization": "ambassador_id: globalcorstest\napiVersion: ambassador/v1\nconfig:\n  cors:\n    methods: POST, GET, OPTIONS\n    origins: http://foo.example.com\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: globalcorstest\n  scope: AmbassadorTest\nname: ambassador\nnamespace: default\n"
+        },
+        "globalcorstest.default.2": {
+            "_referenced_by": {},
+            "ambassador_id": "globalcorstest",
+            "apiVersion": "getambassador.io/v1",
+            "kind": "Mapping",
+            "location": "globalcorstest.default.2",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "globalcorstest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "globalcorstest-http-foo",
+            "namespace": "default",
+            "prefix": "/foo/",
+            "rkey": "globalcorstest.default.2",
+            "serialization": "ambassador_id: globalcorstest\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: globalcorstest\n  scope: AmbassadorTest\nname: globalcorstest-http-foo\nnamespace: default\nprefix: /foo/\nservice: globalcorstest-http\n",
+            "service": "globalcorstest-http"
+        },
+        "globalcorstest.default.3": {
+            "_referenced_by": {},
+            "ambassador_id": "globalcorstest",
+            "apiVersion": "getambassador.io/v1",
+            "cors": {
+                "methods": "POST, GET, OPTIONS",
+                "origins": "http://bar.example.com"
+            },
+            "kind": "Mapping",
+            "location": "globalcorstest.default.3",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "globalcorstest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "globalcorstest-http-bar",
+            "namespace": "default",
+            "prefix": "/bar/",
+            "rkey": "globalcorstest.default.3",
+            "serialization": "ambassador_id: globalcorstest\napiVersion: ambassador/v1\ncors:\n  methods: POST, GET, OPTIONS\n  origins: http://bar.example.com\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: globalcorstest\n  scope: AmbassadorTest\nname: globalcorstest-http-bar\nnamespace: default\nprefix: /bar/\nservice: globalcorstest-http\n",
+            "service": "globalcorstest-http"
+        },
+        "k8s-globalcorstest-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "globalcorstest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-globalcorstest-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "globalcorstest",
+                "scope": "AmbassadorTest",
+                "service": "globalcorstest-admin"
+            },
+            "name": "globalcorstest-admin",
+            "namespace": "default",
+            "rkey": "k8s-globalcorstest-admin-default",
+            "serialization": "ambassador_id: globalcorstest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: globalcorstest\n  scope: AmbassadorTest\n  service: globalcorstest-admin\nname: globalcorstest-admin\nnamespace: default\n"
+        },
+        "k8s-globalcorstest-default": {
+            "_referenced_by": {},
+            "ambassador_id": "globalcorstest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-globalcorstest-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "globalcorstest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "globalcorstest",
+            "namespace": "default",
+            "rkey": "k8s-globalcorstest-default",
+            "serialization": "ambassador_id: globalcorstest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: globalcorstest\n  scope: AmbassadorTest\nname: globalcorstest\nnamespace: default\n"
+        },
+        "k8s-globalcorstest-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "globalcorstest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-globalcorstest-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "globalcorstest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "globalcorstest-http",
+            "namespace": "default",
+            "rkey": "k8s-globalcorstest-http-default",
+            "serialization": "ambassador_id: globalcorstest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: globalcorstest\n  scope: AmbassadorTest\nname: globalcorstest-http\nnamespace: default\n"
+        }
+    },
+    "hosts": {
+        "cleartext-host-globalcorstest": {
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "ambassador_id": [
+                "globalcorstest"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "hostname": "*",
+            "kind": "Host",
+            "metadata_labels": {
+                "ambassador_crd": "cleartext-host-globalcorstest.default",
+                "kat-ambassador-id": "globalcorstest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cleartext-host-globalcorstest",
+            "namespace": "default",
+            "requestPolicy": {
+                "insecure": {
+                    "action": "Route"
+                }
+            },
+            "selector": {
+                "matchLabels": {
+                    "hostname": "globalcorstest"
+                }
+            }
+        }
+    },
+    "mappings": {
+        "ambassador-edge-stack": {
+            "ambassador_id": [
+                "_automatic_"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "metadata_labels": {
+                "ambassador_crd": "ambassador-edge-stack.default",
+                "ambassador_diag_class": "private",
+                "product": "aes"
+            },
+            "name": "ambassador-edge-stack",
+            "namespace": "default",
+            "precedence": 1000000,
+            "prefix": "/.ambassador/",
+            "rewrite": "",
+            "service": "127.0.0.1:8500"
+        },
+        "globalcorstest-http-bar": {
+            "ambassador_id": "globalcorstest",
+            "apiVersion": "getambassador.io/v1",
+            "cors": {
+                "methods": "POST, GET, OPTIONS",
+                "origins": "http://bar.example.com"
+            },
+            "kind": "Mapping",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "globalcorstest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "globalcorstest-http-bar",
+            "namespace": "default",
+            "prefix": "/bar/",
+            "service": "globalcorstest-http"
+        },
+        "globalcorstest-http-foo": {
+            "ambassador_id": "globalcorstest",
+            "apiVersion": "getambassador.io/v1",
+            "kind": "Mapping",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "globalcorstest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "globalcorstest-http-foo",
+            "namespace": "default",
+            "prefix": "/foo/",
+            "service": "globalcorstest-http"
+        }
+    },
+    "modules": {
+        "ambassador": {
+            "apiVersion": "getambassador.io/v1",
+            "cors": {
+                "methods": "POST, GET, OPTIONS",
+                "origins": "http://foo.example.com"
+            },
+            "kind": "Module",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "globalcorstest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "ambassador",
+            "namespace": "default"
+        }
+    },
+    "service": {
+        "k8s-globalcorstest-admin-default": {
+            "ambassador_id": "globalcorstest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "globalcorstest",
+                "scope": "AmbassadorTest",
+                "service": "globalcorstest-admin"
+            },
+            "name": "globalcorstest-admin",
+            "namespace": "default"
+        },
+        "k8s-globalcorstest-default": {
+            "ambassador_id": "globalcorstest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "globalcorstest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "globalcorstest",
+            "namespace": "default"
+        },
+        "k8s-globalcorstest-http-default": {
+            "ambassador_id": "globalcorstest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "globalcorstest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "globalcorstest-http",
+            "namespace": "default"
+        }
+    }
+}

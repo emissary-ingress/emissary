@@ -1,15 +1,17 @@
-package main
+package traffic_manager
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net"
 	"net/http"
 	"os"
+	"os/signal"
 	"sort"
-	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/jcuga/golongpoll"
@@ -21,9 +23,46 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
+	"github.com/datawire/ambassador/pkg/k8s"
+	"github.com/datawire/ambassador/pkg/supervisor"
 	"github.com/datawire/apro/lib/licensekeys"
 	"github.com/datawire/apro/lib/metriton"
 )
+
+// Helper types for the Watcher
+
+type svcResource struct {
+	Spec svcSpec
+}
+
+type svcSpec struct {
+	ClusterIP string
+	Ports     []svcPort
+}
+
+type svcPort struct {
+	Name     string
+	Port     int
+	Protocol string
+}
+
+type Table struct {
+	Name   string  `json:"name"`
+	Routes []Route `json:"routes"`
+}
+
+func (t *Table) Add(route Route) {
+	t.Routes = append(t.Routes, route)
+}
+
+type Route struct {
+	Name   string `json:"name,omitempty"`
+	Ip     string `json:"ip"`
+	Proto  string `json:"proto"`
+	Port   string `json:"port,omitempty"`
+	Target string `json:"target"`
+	Action string `json:"action,omitempty"`
+}
 
 // PatternInfo represents one Envoy header regex_match
 type PatternInfo struct {
@@ -55,6 +94,7 @@ type ProxyState struct {
 	FreePorts   []int
 	Deployments map[string]*DeploymentInfo
 	manager     *golongpoll.LongpollManager
+	snapshot    *Table
 }
 
 func newProxyState(manager *golongpoll.LongpollManager) *ProxyState {
@@ -66,6 +106,7 @@ func newProxyState(manager *golongpoll.LongpollManager) *ProxyState {
 		FreePorts:   make([]int, numPorts),
 		Deployments: make(map[string]*DeploymentInfo),
 		manager:     manager,
+		snapshot:    nil, // 503 until we have a snapshot
 	}
 	for idx := range res.FreePorts {
 		res.FreePorts[idx] = portOffset + idx
@@ -85,6 +126,22 @@ func (state *ProxyState) handleState(w http.ResponseWriter, r *http.Request) {
 	w.Write(result)
 }
 
+func (state *ProxyState) handleSnapshot(w http.ResponseWriter, r *http.Request) {
+	state.mutex.Lock()
+	defer state.mutex.Unlock()
+
+	if state.snapshot == nil {
+		http.Error(w, "snapshot unavailable", http.StatusServiceUnavailable)
+		return
+	}
+
+	result, err := json.Marshal([]Table{*state.snapshot})
+	if err != nil {
+		panic(err)
+	}
+	w.Write(result)
+}
+
 func (state *ProxyState) publish(deployment string) error {
 	dInfo, known := state.Deployments[deployment]
 	if !known {
@@ -95,36 +152,32 @@ func (state *ProxyState) publish(deployment string) error {
 
 // Track that a deployment exists, handle long poll to get routes
 func (state *ProxyState) handleRoutes(w http.ResponseWriter, r *http.Request) {
-	state.mutex.Lock()
-	locked := true
-	defer func() {
-		if locked {
-			state.mutex.Unlock()
+	func () {
+		state.mutex.Lock()
+		defer state.mutex.Unlock()
+
+		deployment := r.URL.Query().Get("category")
+		if len(deployment) == 0 {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Missing required URL param: category"))
+			return
+		}
+		dInfo := state.Deployments[deployment]
+		if dInfo == nil {
+			dInfo = &DeploymentInfo{
+				Intercepts:  make([]*InterceptInfo, 0),
+				LastQueryAt: time.Now(),
+			}
+			state.Deployments[deployment] = dInfo
+			err := state.publish(deployment)
+			if err != nil {
+				panic(err)
+			}
+		} else {
+			dInfo.LastQueryAt = time.Now()
 		}
 	}()
 
-	deployment := r.URL.Query().Get("category")
-	if len(deployment) == 0 {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Missing required URL param: category"))
-		return
-	}
-	dInfo := state.Deployments[deployment]
-	if dInfo == nil {
-		dInfo = &DeploymentInfo{
-			Intercepts:  make([]*InterceptInfo, 0),
-			LastQueryAt: time.Now(),
-		}
-		state.Deployments[deployment] = dInfo // FIXME need to garbage collect
-		err := state.publish(deployment)
-		if err != nil {
-			panic(err)
-		}
-	} else {
-		dInfo.LastQueryAt = time.Now()
-	}
-	state.mutex.Unlock()
-	locked = false
 	state.manager.SubscriptionHandler(w, r)
 }
 
@@ -216,7 +269,11 @@ func (state *ProxyState) handleIntercept(w http.ResponseWriter, r *http.Request)
 	state.mutex.Lock()
 	defer state.mutex.Unlock()
 
-	deployment := strings.TrimRight(r.URL.Path, "/")
+	// deployment := strings.TrimRight(r.URL.Path, "/")
+	deployment := r.URL.Path
+
+	log.Printf("handleIntercept: deployment is %v", deployment)
+
 	if deployment == "" {
 		deployments := make([]string, len(state.Deployments))
 		i := 0
@@ -296,47 +353,141 @@ func (state *ProxyState) handleIntercept(w http.ResponseWriter, r *http.Request)
 }
 
 // cleanup expired proxy requests
-func (state *ProxyState) cleanup() {
+func (state *ProxyState) cleanup(p *supervisor.Process) {
 	state.mutex.Lock()
 	defer state.mutex.Unlock()
 
-	log.Printf("cleanup: started")
+	keepMsg := []string{}
+	expireMsg := []string{}
+	expireDeploys := []string{}
 	for deployment, dinfo := range state.Deployments {
+		// Expire deployments that haven't updated within the last 2 minutes
+		msg := fmt.Sprintf("deploy/%s", deployment)
+		if time.Since(dinfo.LastQueryAt) > 2*time.Minute {
+			expireMsg = append(expireMsg, msg)
+			expireDeploys = append(expireDeploys, deployment)
+			continue
+		}
+		keepMsg = append(keepMsg, msg)
+
 		var remaining []*InterceptInfo
-		var freePorts []int
+		var freedPorts []int
 		for _, intercept := range dinfo.Intercepts {
-			// only keep intercepts older than 10 seconds
+			msg := fmt.Sprintf("cept/%s:%d", deployment, intercept.Port)
+			// only keep intercepts that updated within the last 10 seconds
 			if time.Since(intercept.LastQueryAt) < 10*time.Second {
 				remaining = append(remaining, intercept)
-				fmt.Printf("keeping intercept %s:%d", deployment, intercept.Port)
+				keepMsg = append(keepMsg, msg)
 			} else {
-				fmt.Printf("expiring intercept %s:%d", deployment, intercept.Port)
-				freePorts = append(freePorts, intercept.Port)
+				freedPorts = append(freedPorts, intercept.Port)
+				expireMsg = append(expireMsg, msg)
 			}
 		}
-		if len(freePorts) > 0 {
+		if len(freedPorts) > 0 {
 			dinfo.Intercepts = remaining
-			state.FreePorts = append(state.FreePorts, freePorts...)
+			state.FreePorts = append(state.FreePorts, freedPorts...)
 			// Post an event to update the deployment's pods
 			err := state.publish(deployment)
 			if err != nil {
-				log.Printf("cleanup: %v", err)
+				p.Logf("error posting to %s: %v", deployment, err)
 			}
 		}
 	}
-	log.Printf("cleanup: finished")
+
+	for _, deployment := range expireDeploys {
+		delete(state.Deployments, deployment)
+	}
+
+	if len(expireMsg) > 0 {
+		p.Logf("Keeping %q; Expiring %q", keepMsg, expireMsg)
+	}
+}
+
+func updateTable(p *supervisor.Process, w *k8s.Watcher, state *ProxyState) {
+	const ProxyRedirPort = "1234" // Client can always override this
+	table := Table{Name: "kubernetes"}
+
+	for _, svc := range w.List("services") {
+		decoded := svcResource{}
+		err := svc.Decode(&decoded)
+		if err != nil {
+			p.Logf("error decoding service: %v", err)
+			continue
+		}
+
+		spec := decoded.Spec
+
+		ports := ""
+		for _, port := range spec.Ports {
+			if ports == "" {
+				ports = fmt.Sprintf("%d", port.Port)
+			} else {
+				ports = fmt.Sprintf("%s,%d", ports, port.Port)
+			}
+		}
+
+		ip := spec.ClusterIP
+		// for headless services the IP is None, we should properly handle
+		// these by listening for endpoints and returning multiple A records
+		if ip != "" && ip != "None" {
+			qualName := svc.Name() + "." + svc.Namespace() + ".svc.cluster.local"
+			table.Add(Route{
+				Name:   qualName,
+				Ip:     ip,
+				Port:   ports,
+				Proto:  "tcp",
+				Target: ProxyRedirPort,
+			})
+		}
+	}
+
+	for _, pod := range w.List("pods") {
+		qname := ""
+
+		hostname, ok := pod.Spec()["hostname"]
+		if ok && hostname != "" {
+			qname += hostname.(string)
+		}
+
+		subdomain, ok := pod.Spec()["subdomain"]
+		if ok && subdomain != "" {
+			qname += "." + subdomain.(string)
+		}
+
+		if qname == "" {
+			// Note: this is a departure from kubernetes, kubernetes will
+			// simply not publish a dns name in this case.
+			qname = pod.Name() + "." + pod.Namespace() + ".pod.cluster.local"
+		} else {
+			qname += ".svc.cluster.local"
+		}
+
+		ip, ok := pod.Status()["podIP"]
+		if ok && ip != "" {
+			table.Add(Route{
+				Name:   qname,
+				Ip:     ip.(string),
+				Proto:  "tcp",
+				Target: ProxyRedirPort,
+			})
+		}
+	}
+	state.mutex.Lock()
+	state.snapshot = &table
+	state.mutex.Unlock()
 }
 
 // Version is inserted at build using --ldflags -X
 var Version = "(unknown version)"
 
-func main() {
-	log.Printf("Proxy version %s", Version)
+func Main() {
+	log.Printf("Traffic Manager version %s", Version)
 
 	argparser := &cobra.Command{
-		Use:     os.Args[0],
-		Version: Version,
-		Run:     Main,
+		Use:          os.Args[0],
+		Version:      Version,
+		RunE:         Run,
+		SilenceUsage: true,
 	}
 
 	cmdContext := &licensekeys.LicenseContext{}
@@ -347,6 +498,7 @@ func main() {
 
 	argparser.PersistentPreRun = func(cmd *cobra.Command, args []string) {
 		licenseClaims, err := cmdContext.GetClaims()
+
 		if err == nil {
 			err = licenseClaims.RequireFeature(licensekeys.FeatureTraffic)
 		}
@@ -363,7 +515,7 @@ func main() {
 	}
 }
 
-func Main(flags *cobra.Command, args []string) {
+func Run(flags *cobra.Command, args []string) error {
 	manager, err := golongpoll.StartLongpoll(golongpoll.Options{
 		LoggingEnabled:                 true,
 		MaxLongpollTimeoutSeconds:      120,
@@ -376,15 +528,9 @@ func Main(flags *cobra.Command, args []string) {
 	}
 	state := newProxyState(manager)
 
-	go func() {
-		for {
-			time.Sleep(1 * time.Second)
-			state.cleanup()
-		}
-	}()
-
 	http.HandleFunc("/state", state.handleState)
 	http.HandleFunc("/routes", state.handleRoutes)
+	http.HandleFunc("/snapshot", state.handleSnapshot)
 	http.Handle("/intercept/", http.StripPrefix("/intercept/", http.HandlerFunc(state.handleIntercept)))
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
@@ -394,6 +540,7 @@ func Main(flags *cobra.Command, args []string) {
 		result, err := json.Marshal(map[string]interface{}{"paths": []string{
 			"/state",
 			"/routes",
+			"/snapshot",
 			"/intercept/",
 		}})
 		if err != nil {
@@ -402,10 +549,121 @@ func Main(flags *cobra.Command, args []string) {
 		w.Write(result)
 	})
 
-	fmt.Println("Starting server...")
-	httpPort := os.Getenv("APRO_HTTP_PORT")
-	if httpPort == "" {
-		httpPort = "8081"
+	sup := supervisor.WithContext(context.Background())
+	sup.Supervise(&supervisor.Worker{
+		Name: "longpoll",
+		Work: func(p *supervisor.Process) error {
+			p.Ready()
+			<-p.Shutdown()
+			manager.Shutdown()
+			return nil
+		},
+	})
+	sup.Supervise(&supervisor.Worker{
+		Name: "cleanup",
+		Work: func(p *supervisor.Process) error {
+			ticker := time.NewTicker(time.Second)
+			defer ticker.Stop()
+			p.Ready()
+			for {
+				select {
+				case <-ticker.C:
+					state.cleanup(p)
+				case <-p.Shutdown():
+					return nil
+				}
+			}
+		},
+	})
+	sup.Supervise(&supervisor.Worker{
+		Name: "watcher",
+		Work: func(p *supervisor.Process) error {
+			client, err := k8s.NewClient(nil)
+			if err != nil {
+				return err
+			}
+			watcher := client.Watcher()
+			callback := func(w *k8s.Watcher) { updateTable(p, w, state) }
+			if err := watcher.Watch("services", callback); err != nil {
+				return err
+			}
+			if err := watcher.Watch("pods", callback); err != nil {
+				return err
+			}
+
+			// The watcher panics on error, so...
+			defer func() {
+				if r := recover(); r != nil {
+					p.Logf("Failed: %v", r)
+				}
+			}()
+			watcher.Start()
+
+			p.Ready()
+			<-p.Shutdown()
+			watcher.Stop()
+
+			return nil
+		},
+	})
+	sup.Supervise(&supervisor.Worker{
+		Name: "server",
+		Work: func(p *supervisor.Process) error {
+			httpPort := os.Getenv("APRO_HTTP_PORT")
+			if httpPort == "" {
+				httpPort = "8081"
+			}
+			server := &http.Server{Addr: net.JoinHostPort("0.0.0.0", httpPort)}
+			p.Ready()
+			return p.DoClean(
+				func() error {
+					err := server.ListenAndServe()
+					if err == http.ErrServerClosed {
+						return nil
+					}
+					return err
+				},
+				func() error {
+					return server.Shutdown(context.Background())
+				})
+		},
+	})
+	sup.Supervise(&supervisor.Worker{
+		Name: "signal",
+		Work: func(p *supervisor.Process) error {
+			sigs := make(chan os.Signal, 1)
+			signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+			p.Ready()
+			select {
+			case sig := <-sigs:
+				return errors.Errorf("Received signal %v", sig)
+			case <-p.Shutdown():
+				return nil
+			}
+		},
+	})
+	sup.Supervise(&supervisor.Worker{
+		Name: "sshd",
+		Work: func(p *supervisor.Process) error {
+			cmd := p.Command("/usr/sbin/sshd", "-De")
+			if err := cmd.Start(); err != nil {
+				return err
+			}
+			p.Ready()
+			return p.DoClean(cmd.Wait, cmd.Process.Kill)
+		},
+	})
+
+	sup.Logger.Printf("Starting server...")
+	runErrors := sup.Run()
+	sup.Logger.Printf("")
+
+	if len(runErrors) > 0 {
+		sup.Logger.Printf("Traffic Manager has exited with %d error(s):", len(runErrors))
+		for _, err := range runErrors {
+			sup.Logger.Printf("- %v", err)
+		}
 	}
-	http.ListenAndServe(net.JoinHostPort("0.0.0.0", httpPort), nil)
+
+	return errors.New("Traffic Manager has exited")
 }

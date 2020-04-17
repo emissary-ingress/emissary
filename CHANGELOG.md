@@ -6,7 +6,24 @@ releases. Please keep it up to date.
 
 ## next (TBD)
 
+- Bugfix: The "Filters" tab in the webui no longer renders the value of OAuth client secrets that are stored in Kubernetes secrets.
+- Bugfix: The ACME client of of one Ambassador install will no longer interfere with the ACME client of another Ambassador install in the same namespace with a different AMBASSADOR_ID.
 - Bugfix: The `OAuth2` Filter redirection-endpoint now handles various XSRF errors more consistently (the way we meant it to in 1.2.1)
+
+## 1.3.1 (2020-03-24)
+
+- Bugfix: `OAuth2` Filter: Correctly ask the user to re-authenticate when the Refresh Token expires, rather than emitting an internal server error.
+- Bugfix: The `Password` grant type properly uses a session per user, rather than client-wide
+- Bugfix: The `Password` grant type also separates sessions by `Filter`, so multiple `Filter`s can work together correctly.
+
+## 1.3.0 (2020-03-17)
+
+- Feature: Support username and password as headers for OAuth2 authentication (`grantType: Password`)
+- Bugfix: The Edge Policy Console now honors the `diagnostics.enabled` setting in the `ambassador` Module
+- Bugfix: If the `DEVPORTAL_CONTENT_URL` is not accessible, log a warning but don't crash.
+- Change: There is no longer a separate traffic-proxy image; that functionality is now part of the main AES image. Set `command: ["traffic-manager"]` to use it.
+- Bugfix: The `Plugin` Filter now correctly sets `request.TLS` to nil/non-nil based on if the original request was encrypted or not.
+- Feature: `aes-plugin-runner` now allows passing in `docker run` flags after the main argument list.
 
 ## 1.2.2 (2020-03-04)
 

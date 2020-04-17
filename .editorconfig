@@ -26,6 +26,11 @@ indent_size = 4
 [*.js]
 indent_style = tab
 
+[*.json]
+insert_final_newline = false
+indent_style = space
+indent_size = 4
+
 [*.el]
 indent_style = space
 
