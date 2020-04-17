@@ -20,6 +20,8 @@ set -o xtrace
 
 website_branch=${1:-master}
 
+make generate-crd-docs
+
 rm -rf "/tmp/getambassador.io-$website_branch"
 git clone --single-branch --branch="$website_branch" https://d6e-automaton:${GH_TOKEN}@github.com/datawire/getambassador.io.git "/tmp/getambassador.io-$website_branch"
 cd "/tmp/getambassador.io-$website_branch"
