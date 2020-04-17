@@ -2,6 +2,7 @@ import {LitElement, css, html} from '../vendor/lit-element.min.js'
 import {registerContextChangeHandler, useContext} from './context.js'
 import {ApiFetch, hasDebugBackend} from './api-fetch.js'
 import {updateCredentials} from './snapshot.js'
+import {HASH} from './hash.js'
 
 export class LoginPage extends LitElement {
   static get styles() {
@@ -1317,7 +1318,7 @@ export class LoginGate extends LitElement {
     if( this.authenticated !== auth ) {
       this.authenticated = auth;
       this.loading = false;
-
+      HASH.authToken = "";
     }
   }
 

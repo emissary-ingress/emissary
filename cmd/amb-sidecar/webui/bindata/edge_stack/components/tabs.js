@@ -1,5 +1,6 @@
 import { LitElement, html, css } from '../vendor/lit-element.min.js'
 import {useContext} from './context.js';
+import {HASH} from './hash.js';
 
 /**
  * Provides a small wrapper around named slots, to properly
@@ -335,7 +336,7 @@ export class Tabs extends LitElement {
 
   handleHashChange() {
     for (let idx = 0; idx < this.tabs.length; idx++) {
-      if(window.location.hash === ('#' + this.tabs[idx].tabHashName())) {
+      if(HASH.tab === this.tabs[idx].tabHashName()) {
         this.current = this.tabs[idx].name;
         break;
       }
@@ -362,22 +363,11 @@ export class Tabs extends LitElement {
     for (let idx = 0; idx < this.tabs.length; ++idx) {
       let classes = "";
       if (this.tabs[idx].name === currentTab) {
-        if (window.location.hash.length > 300) {
-          /* if a long hash, then it might be a login cookie */
-          if (useContext('auth-state', null)[0]) {
-            /* logged in, so don't need to preserve the hash tag */
-            window.location.hash = "#" + this.tabs[idx].tabHashName();
-          } else {
-            /* not logged in, so don't change the hash cookie */
-          }
-        } else {
-          /* shorter hash, so it can't be a login cookie, so go ahead and change it */
-          window.location.hash = "#" + this.tabs[idx].tabHashName();
-        }
-
+        HASH.tab = this.tabs[idx].tabHashName();
         classes += " selected";
       }
 
+      // todo: this is literally the most deeply nesed usage of the turnary operator I have ever seen, it should probably die
       links.push(html`
           <a href="#${this.tabs[idx].tabHashName()}" class="${classes}">
             <div class="selected_stripe"></div>
@@ -385,17 +375,18 @@ export class Tabs extends LitElement {
               <div class="icon">
                  ${(this.tabs[idx].name === "Dashboard") ? html`<img alt="dashboard logo" class="tabLogo" src="../images/svgs/dashboard.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
         : (this.tabs[idx].name === "Hosts") ? html`<img alt="hosts logo" class="tabLogo" src="../images/svgs/hosts.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
-          : (this.tabs[idx].name === "Mappings") ? html`<img alt="mappings logo" class="tabLogo" src="../images/svgs/mappings.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
-            : (this.tabs[idx].name === "Rate Limits") ? html`<img alt="ratelimits logo" class="tabLogo" src="../images/svgs/ratelimits.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
-              : (this.tabs[idx].name === "Plugins") ? html`<img alt="plugins logo" class="tabLogo" src="../images/svgs/plugins.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
-                : (this.tabs[idx].name === "Resolvers") ? html`<img alt="resolvers logo" class="tabLogo" src="../images/svgs/resolvers.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
-                  : (this.tabs[idx].name === "Debugging") ? html`<img alt="debugging logo" class="tabLogo" src="../images/svgs/debugging.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
-                    : (this.tabs[idx].name === "APIs") ? html`<img alt="api logo" class="tabLogo" src="../images/svgs/apis.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
-                      : (this.tabs[idx].name === "Documentation") ? html`<img alt="docs logo" class="tabLogo" src="../images/svgs/docs.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
-                        : (this.tabs[idx].name === "Support") ? html`<img alt="support logo" class="tabLogo" src="../images/svgs/support.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
-                          : (this.tabs[idx].name === "Filters") ? html`<img alt="filters logo" class="tabLogo" src="../images/svgs/filters.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
-                            : (this.tabs[idx].name === "YAML Download") ? html`<img alt="yaml logo" class="tabLogo" src="../images/svgs/yaml-downloads2.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
-                            : html``}
+          : (this.tabs[idx].name === "Projects") ? html`<img alt="projects logo" class="tabLogo" src="../images/svgs/projects.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
+            : (this.tabs[idx].name === "Mappings") ? html`<img alt="mappings logo" class="tabLogo" src="../images/svgs/mappings.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
+              : (this.tabs[idx].name === "Rate Limits") ? html`<img alt="ratelimits logo" class="tabLogo" src="../images/svgs/ratelimits.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
+                : (this.tabs[idx].name === "Plugins") ? html`<img alt="plugins logo" class="tabLogo" src="../images/svgs/plugins.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
+                  : (this.tabs[idx].name === "Resolvers") ? html`<img alt="resolvers logo" class="tabLogo" src="../images/svgs/resolvers.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
+                    : (this.tabs[idx].name === "Debugging") ? html`<img alt="debugging logo" class="tabLogo" src="../images/svgs/debugging.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
+                      : (this.tabs[idx].name === "APIs") ? html`<img alt="api logo" class="tabLogo" src="../images/svgs/apis.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
+                        : (this.tabs[idx].name === "Documentation") ? html`<img alt="docs logo" class="tabLogo" src="../images/svgs/docs.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
+                          : (this.tabs[idx].name === "Support") ? html`<img alt="support logo" class="tabLogo" src="../images/svgs/support.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
+                            : (this.tabs[idx].name === "Filters") ? html`<img alt="filters logo" class="tabLogo" src="../images/svgs/filters.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
+                              : (this.tabs[idx].name === "YAML Download") ? html`<img alt="yaml logo" class="tabLogo" src="../images/svgs/yaml-downloads2.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
+                              : html``}
               </div>
               <div class="name">${this.tabs[idx].tabName()}</div>
             </div>
@@ -407,9 +398,9 @@ export class Tabs extends LitElement {
 
   render() {
     if (this.current === '') {
-      let hash = window.location.hash.slice(1);
+      let hashTab = HASH.tab;
       this.tabs.forEach(tab => {
-        if (hash === tab.tabHashName()) {
+        if (hashTab === tab.tabHashName()) {
           this.current = tab.name;
         }
       })

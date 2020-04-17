@@ -45,8 +45,8 @@ import (
 )
 
 type LoginClaimsV1 struct {
-	LoginTokenVersion  string `json:"login_token_version"`
-	jwt.StandardClaims `json:",inline"`
+	LoginTokenVersion string `json:"login_token_version"`
+	jwt.StandardClaims
 }
 
 type Snapshot struct {

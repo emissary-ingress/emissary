@@ -2,6 +2,7 @@ import {LitElement, html} from '../vendor/lit-element.min.js';
 import {registerContextChangeHandler, useContext} from './context.js';
 import {getCookie} from './cookies.js';
 import {ApiFetch} from "./api-fetch.js";
+import {HASH} from "./hash.js";
 
 export const aes_res_editable   = "getambassador.io/resource-editable";
 export const aes_res_changed    = "getambassador.io/resource-changed";
@@ -162,7 +163,7 @@ export class Snapshot extends LitElement {
     if (getCookie("edge_stack_auth")) {  // if cookie is available, use cookie
       this.URLfragment = "should-try"; // cookie is not available, try the fragment
     } else {
-      updateCredentials(window.location.hash.slice(1)); // update login credentials with fragment
+      updateCredentials(HASH.authToken); // update login credentials with fragment
       this.URLfragment = "trying"; // try fragment, if it works save it to the cookie
     }
   }     
@@ -194,7 +195,7 @@ export class Snapshot extends LitElement {
   fetchResponse(response) {
     if (response.status === 400 || response.status === 401 || response.status === 403) { // indicates user may be unauthorized, invalid/expired token
       if (this.URLfragment === "should-try") { // cookie is not available, try the fragment
-        updateCredentials(window.location.hash.slice(1)); // update login credentials with fragment 
+        updateCredentials(HASH.authToken); // update login credentials with fragment 
         this.URLfragment = "trying"; // try fragment, if it works save it to cookie
         setTimeout(this.fetchData.bind(this), 0); // try fetching again immediately
       } else {
@@ -228,7 +229,7 @@ export class Snapshot extends LitElement {
       return
     }
     if (this.URLfragment === "trying") {  // try fragment, if it works save it to cookie
-      window.location.hash = ""; // clear fragment
+      HASH.authToken = ""; // clear token
     }
     this.URLfragment = ""; // clear fragment
     this.setAuthenticated(true);
