@@ -209,7 +209,7 @@ spec:
   ports:
     - protocol: TCP
       port: 80
-      targetPort: 8080              # Traffic Agent port (note 1)
+      targetPort: 9900              # Traffic Agent listen port (note 1)
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -233,9 +233,9 @@ spec:
           ports:
             - containerPort: 8000   # Application port
         - name: traffic-agent       # Traffic Agent container (note 3)
-          image: quay.io/datawire/aes:$version$ # see note 3
+          image: quay.io/datawire/aes:$version$ # (note 4)
           ports:
-            - containerPort: 8080   # Traffic Agent port
+            - containerPort: 9900   # Traffic Agent listen port
           env:
           - name: AGENT_SERVICE     # Name to use for intercepting (note 5)
             value: hello
@@ -247,26 +247,29 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
+          - name: AGENT_LISTEN_PORT # Port on which to listen for connections (note 9)
+            value: "9900"
       serviceAccountName: traffic-agent
 ```
 
 Key points include:
 
-- **Note 1**: The `Service` now points to the Traffic Agent’s port (8080) instead of the application’s port (8000).
+- **Note 1**: The `Service` now points to the Traffic Agent’s listen port (9900) instead of the application’s port (8000).
 - **Note 2**: The microservice's application container is actually unchanged.
 - **Note 3**: The Traffic Agent's container has been added.
-- **Note 4**: The Traffic Agent is included in the AES image. You'll need to edit this to have the actual image name.
+- **Note 4**: The Traffic Agent is included in the AES image.
 - **Note 5**: The `AGENT_SERVICE` environment variable is mandatory. It sets the name that the Traffic Agent will report to the Traffic Manager for this microservice: you will have to provide this name to intercept this microservice.
 - **Note 6**: The `AGENT_PORT` environment variable is mandatory. It tells the Traffic Agent the local port on which the microservice is listening.
 - **Note 7**: The `AGENT_MANAGER_NAMESPACE` environment variable tells the Traffic Agent the namespace in which it will be able to find the Traffic Manager. If not present, it defaults to the `ambassador` namespace.
 - **Note 8**: The `AMBASSADOR_NAMESPACE` environment variable is mandatory. It lets the Traffic Agent tell the Traffic Manager the namespace in which the microservice is running. 
+- **Note 9**: The `AGENT_LISTEN_PORT` environment variable tells the Traffic Agent the port on which to listen for incoming connections. The `Service` must point to this port (see Note 1). If not present, it defaults to port 9900.
 
 #### TLS Support
 
 If other microservices in the cluster expect to speak TLS to this microservice, tell the Traffic Agent to terminate TLS:
 - Set the `AGENT_TLS_TERM_SECRET` environment variable to the name of a Kubernetes Secret that contains a TLS certificate
-- The Traffic Agent will terminate TLS on port 8443 (not port 8080) using the named certificate
-- The Kubernetes Service above must point to port 8443, not 8080 (and not the application's port)
+- The Traffic Agent will terminate TLS on its listen port (9900 by default) using the named certificate
+- The Traffic Agent will not accept cleartext communication when configured to terminate TLS
 
 If this microservice expects incoming requests to speak TLS, tell the Traffic Agent to originate TLS:
 - Set the `AGENT_TLS_ORIG_SECRET` environment variable to the name of a Kubernetes Secret that contains a TLS certificate
