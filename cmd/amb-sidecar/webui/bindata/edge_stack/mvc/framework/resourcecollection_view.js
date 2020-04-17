@@ -1,16 +1,19 @@
-/*
+/**
  * ResourceCollectionView
- * A LitElement subclass that implements a generic view on a sortable list of Views.
- * This class listens to a ResourceCollection, and adds/removes views on those Resources
- * as needed.
+ *
+ * A LitElement subclass that implements a generic view on a sortable list of Views.  This class listens to a
+ * ResourceCollection, and adds/removes views on those Resources as needed.
  */
 
 /* LitElement superclass. */
-import { LitElement, html, css } from '../../vendor/lit-element.min.js'
+import { html, css, repeat } from '../../vendor/lit-element.min.js'
+import { View } from './view2.js'
 
-export class ResourceCollectionView extends LitElement {
+export class ResourceCollectionView extends View {
 
-  /* properties()
+  /**
+   * properties
+   *
    * These are the properties of the ResourceCollectionView. LitElement manages these declared properties and
    * provides various services depending on how they are used.  For further details on LitElement, see
    * https://lit-element.polymer-project.org/guide/properties
@@ -18,15 +21,17 @@ export class ResourceCollectionView extends LitElement {
 
   static get properties() {
     return {
-      addState: {type: Boolean},
+      model: {type: Object},
       sortFields: {type: Array},
       sortBy: {type: String}
     };
   }
 
-  /* styles
-   * These are the styles of the ResourceCollectionView. LitElement allows each Element to provide
-   * additional css style specifications that are valid only for that LitElement.
+  /**
+   * styles
+   *
+   * These are the styles of the ResourceCollectionView. LitElement allows each Element to provide additional css style
+   * specifications that are valid only for that LitElement.
    */
 
   static get styles() {
@@ -202,18 +207,16 @@ export class ResourceCollectionView extends LitElement {
     `
   }
 
-  /* constructor()
+  /**
+   * constructor()
+   *
    * model is the ResourceCollection that is being rendered by this ResourceCollectionView.
    */
-
   constructor(model) {
     super();
 
     /* model is a ResourceCollection (e.g. HostCollection) */
     this.model = model;
-
-    /* Listen to changes from this model */
-    model.addListener(this);
 
     /* sortFields is an array of {value: label} objects, where the value is the Resource property
      * on which to sort, and label is the display name for the HTML component.  For example, to allow
@@ -230,125 +233,48 @@ export class ResourceCollectionView extends LitElement {
     this.sortBy = "name";
   }
 
-  /* doSort(attribute)
-   * Sort the ResourceCollectionView entries by the given attribute.  Since sorting in-place is not
-   * possible, remove all the views from the slot, sort them, and then re-append them in order.
+  /**
+   * onAddButton()
    *
+   * This method is called when the user has clicked on the Add button, to create a new Resource in the collection.
    */
 
-  doSort(attribute) {
-    /* Perform the sort if the attribute being given is not null. */
-    if (attribute !== null) {
-      /* Copy all the child views from  <slot> ... </slot> and remove from the parent. */
-      let children = [];
-
-      /* Clear out the shadowRoot DOM entries, by removing each child in turn from the parent and appending to
-       * our children array.  This is done by repeatedly removing the last child from the parent until there
-       * are no more children. this is expected to be the highest-performance approach).
-       */
-      while (this.lastChild) {
-        let child = this.lastChild;
-        children.push(child);
-        this.removeChild(child);
-      }
-
-      /* Sort our array using localeCompare.  Note that for resources to be compared, they must
-       * directly implement the attribute as part of the resource, and keep the value of that attribute
-       * up to date by properly implementing IResource.updateSelfFrom(yaml).
-       */
-
-      children.sort((child1, child2) => {
-        /* any pending adds sort to the top of the list. */
-        if (child1.model.isPending("add"))
-          return -1;
-
-        if (child2.model.isPending("add"))
-          return 1;
-
-        return child1.model[attribute].localeCompare(child2.model[attribute])
-      });
-
-      /* Re-append the sorted views in order. */
-      for (const child of children) {
-        this.appendChild(child);
-      }
-    }
-
-    /* Save the sort choice */
-    this.sortBy = attribute;
-  }
-
-  /* onAddButton()
-  * This method is called when the user has clicked on the Add button, to create a new Resource in the collection.
-  */
-
   onAddButton() {
-    let modelClass = this.model.resourceClass();
-    let resource   = new modelClass();
-
-    /* Create the specific ResourceView needed, added it to our View at the start of the list,
-     * and begin editing the newly-added ResourceView.  Note that, while the View does have a Model (Resource)
-     * that was just created, the Resource is not represented in the ResourceCollection and is thus detached
-     * and unaffected by any snapshot updates.
-     */
-    let viewClass  = this.viewClass();
-    let child_view = new viewClass();
-    child_view.model = resource;
-    child_view.collection = this.model;
-    this.insertBefore(child_view, this.firstChild);
-    child_view.onAdd();
+    this.model.new()
   }
 
-  /* onChangeSortByAttribute(event)
-  * This method is called when the user has selected an attribute for sorting the ResourceCollectionView.
-  *
-  */
+  /**
+   * onChangeSortByAttribute(event)
+   *
+   * This method is called when the user has selected an attribute for sorting the ResourceCollectionView.
+   */
   onChangeSortByAttribute(event) {
-    let attribute = event.target.options[event.target.selectedIndex].value;
-    this.doSort(attribute);
+    this.sortBy = event.target.options[event.target.selectedIndex].value;
   }
 
-  /* onModelNotification.
-  * This method is called for model-created notifications when a new Host has been created, and a
-  * new view must be created to display that Host, or when a Host has been deleted, and thus the
-  * view must be removed from the ResourceCollectionView.
-  */
+  /**
+   * sortedResources()
+   *
+   * Returns the resources sorted in the order the user has selected.
+   */
+  sortedResources() {
+    let result = Array.from(this.model);
+    result.sort((r1, r2) => {
+      /* any pending adds sort to the top of the list. */
+      if (r1.isNew() && r1.isPending())
+        return -1;
 
-  onModelNotification(model, message, parameter) {
-    /* Create a new view web component and add it as a child. Because this view is a web component, adding
-     * that child component queues the appropriate re-render at the correct time,and are rendered in our <slot>.
-     * TODO: if message is created, check to see that the model does not already have a corresponding view.
-     * TODO: if it does, then do not create the view.  This is to handle a possible race condition with
-     * TODO: firstUpdated possibly running after views have already been created for some of the models.
-     * TODO: This has not been observed but is theoretically possible depending on when the callback occurs.
-    */
-    if (message === 'created') {
-      let viewClass = this.viewClass();
-      let child_view = new viewClass();
-      child_view.model = model;
-      child_view.collection = this.model;
-      this.appendChild(child_view);
-    }
+      if (r2.isNew() && r2.isPending())
+        return 1;
 
-    /* The model is being deleted.  Have it notify any views that it might have, including ones in this
-    * ResourceCollectionView.  The ResourceView object will remove itself from its parent.
-    */
-    if (message === 'deleted') {
-      model.notifyListenersDeleted();
-    }
-
-    /* If created or deleted, there may be a different number of views being displayed, in which case
-     * we hide the sortMenu if there are fewer than 2 ResourceViews, or show them if there are 2 or more.
-     * TODO: find a better place to do this since rendering may happen afterwards and override this change.
-     */
-
-    this.sortMenu().style.display == (this.children.length < 2 ? "none" : "block");
-
-    /* Re-sort the views if needed, by the sortBy attribute.  If null, doSort will not attempt to sort. */
-    this.doSort(this.sortBy);
+      return r1[this.sortBy].localeCompare(r2[this.sortBy])
+    })
+    return result;
   }
 
-  /* readOnly()
+  /**
+   * readOnly()
+   *
    * If readOnly is set to false, then the collection can be added to by the user, e.g. a HostCollection, if
    * readOnly is false, will provide an Add button so that the end user can create a new Host and set its
    * attributes.
@@ -361,17 +287,14 @@ export class ResourceCollectionView extends LitElement {
     return false;
   }
 
-  firstUpdated() {
-    this.model.notifyMeAboutAllCreates(this);
-  }
-
-  /* render()
+  /**
+   * render()
+   *
    * Render the list.  Key requirements:
    *   a) include the add-button
    *   b) include a single slot for where you want add to be
    *   c) include a slot for all the rest of the data
    */
-
   render() {
       let logoPair  = this.pageLogo();
       let logoText  = logoPair[0];
@@ -410,12 +333,20 @@ export class ResourceCollectionView extends LitElement {
                     </div>
                  </div>
             </div>
-            <slot name="add"></slot>
-            <slot></slot>
+            ${repeat(this.sortedResources(), (r)=>r.key(), this.renderResource.bind(this))}
         </div>`
   }
 
-  /* sortMenu()
+  /**
+   * Override to customize how an individual resource is rendered.
+   */
+  renderResource(resource) {
+    throw new Error("must implement renderResource()")
+  }
+
+  /**
+   * sortMenu()
+   *
    * Returns the element for the sort popup menu.  This is used for dynamically hiding and showing the element
    * depending on whether there are any views being displayed; if none, no need for sorting.
    */
