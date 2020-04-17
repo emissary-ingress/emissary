@@ -1,15 +1,11 @@
-# CRDs reference
-<a name="top"></a>
-
-## Table of Contents
 {{range .Files}}
 {{$file_name := .Name}}- [{{.Name}}](#{{.Name}})
   {{- if .Messages }}
-  {{range .Messages}}  - [{{.LongName}}](#{{.FullName}})
+  {{range .Messages}}  - [{{.LongName}}](#{{.LongName}})
   {{end}}
   {{- end -}}
   {{- if .Enums }}
-  {{range .Enums}}  - [{{.LongName}}](#{{.FullName}})
+  {{range .Enums}}  - [{{.LongName}}](#{{.LongName}})
   {{end}}
   {{- end -}}
   {{- if .Extensions }}
@@ -17,7 +13,7 @@
   {{end}}
   {{- end -}}
   {{- if .Services }}
-  {{range .Services}}  - [{{.Name}}](#{{.FullName}})
+  {{range .Services}}  - [{{.Name}}](#{{.LongName}})
   {{end}}
   {{- end -}}
 {{end}}
@@ -31,13 +27,13 @@
 ## {{.Name}}
 {{.Description}}
 
+## Attributes
+
 {{range .Messages}}
-<a name="{{.FullName}}"></a>
+<a name="{{.LongName}}"></a>
 
 ### {{.LongName}}
 {{.Description}}
-
-## Attributes
 
 {{if .HasFields}}
 | Field | Type | Label | Description |
@@ -58,7 +54,7 @@
 {{end}}
 
 {{range .Enums}}
-<a name="{{.FullName}}"></a>
+<a name="{{.LongName}}"></a>
 
 ### {{.LongName}}
 {{.Description}}
@@ -83,7 +79,7 @@
 {{end}}
 
 {{range .Services}}
-<a name="{{.FullName}}"></a>
+<a name="{{.LongName}}"></a>
 
 ### {{.Name}}
 {{.Description}}

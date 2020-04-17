@@ -1,53 +1,46 @@
-# Protocol Documentation
-<a name="top"></a>
 
-## Table of Contents
-
-- [Host.proto](#Host.proto)
-    - [ACMEProviderSpec](#getambassador.io.v2.ACMEProviderSpec)
-    - [HostSpec](#getambassador.io.v2.HostSpec)
-    - [HostStatus](#getambassador.io.v2.HostStatus)
-    - [InsecureRequestPolicy](#getambassador.io.v2.InsecureRequestPolicy)
-    - [RequestPolicy](#getambassador.io.v2.RequestPolicy)
+- [getambassador.io/v2/Host.proto](#getambassador.io/v2/Host.proto)
+    - [ACMEProviderSpec](#ACMEProviderSpec)
+    - [HostSpec](#HostSpec)
+    - [HostStatus](#HostStatus)
+    - [InsecureRequestPolicy](#InsecureRequestPolicy)
+    - [RequestPolicy](#RequestPolicy)
   
-    - [HostPhase](#getambassador.io.v2.HostPhase)
-    - [HostState](#getambassador.io.v2.HostState)
-    - [HostTLSCertificateSource](#getambassador.io.v2.HostTLSCertificateSource)
-    - [InsecureRequestAction](#getambassador.io.v2.InsecureRequestAction)
+    - [HostPhase](#HostPhase)
+    - [HostState](#HostState)
+    - [HostTLSCertificateSource](#HostTLSCertificateSource)
+    - [InsecureRequestAction](#InsecureRequestAction)
   
 - [Scalar Value Types](#scalar-value-types)
 
 
 
-<a name="Host.proto"></a>
+<a name="getambassador.io/v2/Host.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## Host.proto
-=== HACK HACK HACK ===
-
-The existence of Host_nojson.proto is because if we bring in all the
-k8s.io types that we would want to, the generated *.pb.json.go files try
-to import github.com/gogo/protobuf/jsonpb, and that turns out to crash on
-some of the k8s.io types. Sigh.
-
-So, instead, we split out the minimal high-level stuff we need in most of
-of the Go code into Host_nojson.proto, and leave the more detailed things
-with the breaking types here. For more information on this brutality, see
-https://github.com/datawire/ambassador/pull/1999#issuecomment-548939518.
-
-=== end hack ===
-
-Host defines a way that an Ambassador will be visible to the
-outside world. A minimal Host defines a hostname (of course) by
-which the Ambassador will be reachable, but a Host can also
-tell an Ambassador how to manage TLS, and which resources to 
-examine for further configuration.
+## getambassador.io/v2/Host.proto
 
 
-<a name="getambassador.io.v2.ACMEProviderSpec"></a>
+## Attributes
+
+
+<a name="ACMEProviderSpec"></a>
 
 ### ACMEProviderSpec
+The acmeProvider element in a Host defines how Ambassador should handle TLS certificates:
 
+```yaml
+acmeProvider:
+authority: url-to-provider
+email: email-of-registrant
+tlsSecret:
+name: secret-name
+```
+
+In general, `email-of-registrant` is mandatory when using ACME: it should be a valid email address that will reach someone responsible for certificate management.
+ACME stores certificates in Kubernetes secrets. The name of the secret can be set using the `tlsSecret` element; if not supplied, a name will be automatically generated from the `hostname` and `email`.
+If the authority is not supplied, the Let’s Encrypt production environment is assumed.
+**If the authority is the literal string “none”, TLS certificate management will be disabled.** You’ll need to manually create a TLSContext to use for your host in order to use HTTPS.
 
 
 | Field | Type | Label | Description |
@@ -62,13 +55,30 @@ examine for further configuration.
 
 
 
-<a name="getambassador.io.v2.HostSpec"></a>
+<a name="HostSpec"></a>
 
 ### HostSpec
-The Host resource will usually be a Kubernetes CRD, but it could
-appear in other forms. The HostSpec is the part of the Host resource
-that doesn't change, no matter what form it's in -- when it's a CRD,
-this is the part in the "spec" dictionary.
+The custom `Host` resource defines how the Ambassador Edge Stack will be visible to the outside world. It collects all the following information in a single configuration resource:
+
+The hostname by which Ambassador will be reachable
+How Ambassador should handle TLS certificates
+How Ambassador should handle secure and insecure requests
+Which resources to examine for further configuration
+
+A minimal Host resource, using Let’s Encrypt to handle TLS, would be:
+
+```yaml
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+name: minimal-host
+spec:
+hostname: host.example.com
+acmeProvider:
+email: julian@example.com
+```
+
+This Host tells Ambassador to expect to be reached at `host.example.com`, and to manage TLS certificates using Let’s Encrypt, registering as `julian@example.com`. Since it doesn’t specify otherwise, requests using cleartext will be automatically redirected to use HTTPS, and Ambassador will not search for any specific further configuration resources related to this Host.
 
 
 | Field | Type | Label | Description |
@@ -77,7 +87,9 @@ this is the part in the "spec" dictionary.
 | generation | [int32](#int32) |  | Common to all Ambassador objects (and optional). |
 | hostname | [string](#string) |  | Hostname by which the Ambassador can be reached. |
 | selector | [k8s.io.apimachinery.pkg.apis.meta.v1.LabelSelector](#k8s.io.apimachinery.pkg.apis.meta.v1.LabelSelector) |  | Selector by which we can find further configuration. Defaults to hostname=$hostname |
-| acmeProvider | [ACMEProviderSpec](#getambassador.io.v2.ACMEProviderSpec) |  | Specifies who to talk ACME with to get certs. Defaults to Let's Encrypt; if "none", do not try to do TLS for this Host. |
+| acmeProvider | [ACMEProviderSpec](#getambassador.io.v2.ACMEProviderSpec) |  | Specifies who to talk ACME with to get certs. Defaults to Let's Encrypt; if "none", do not try to do TLS for this Host.
+
+The acmeProvider element in a Host defines how Ambassador should handle TLS certificates |
 | tlsSecret | [k8s.io.api.core.v1.LocalObjectReference](#k8s.io.api.core.v1.LocalObjectReference) |  | Name of the Kubernetes secret into which to save generated certificates. Defaults to $hostname |
 | requestPolicy | [RequestPolicy](#getambassador.io.v2.RequestPolicy) |  | Request policy definition. |
 
@@ -86,7 +98,7 @@ this is the part in the "spec" dictionary.
 
 
 
-<a name="getambassador.io.v2.HostStatus"></a>
+<a name="HostStatus"></a>
 
 ### HostStatus
 
@@ -107,10 +119,29 @@ this is the part in the "spec" dictionary.
 
 
 
-<a name="getambassador.io.v2.InsecureRequestPolicy"></a>
+<a name="InsecureRequestPolicy"></a>
 
 ### InsecureRequestPolicy
+The `insecure-action` can be one of:
 
+`Redirect` (the default): redirect to HTTPS
+`Route`: go ahead and route as normal; this will allow handling HTTP requests normally
+`Reject`: reject the request with a 400 response
+
+The `additionalPort` element tells Ambassador to listen on the specified `insecure-port` and treat any request arriving on that port as insecure. **By default, `additionalPort` will be set to 8080 for any `Host` using TLS.** To disable this redirection entirely, set `additionalPort` explicitly to `-1`:
+
+```yaml
+requestPolicy:
+insecure:
+additionalPort: -1   # This is how to disable the default redirection from 8080.
+```
+
+Some special cases to be aware of here:
+
+**Case matters in the actions:** you must use e.g. `Reject`, not `reject`.
+The `X-Forwarded-Proto` header is honored when determining whether a request is secure or insecure. For more information, see "Load Balancers, the `Host` Resource, and `X-Forwarded-Proto`" below.
+ACME challenges with prefix `/.well-known/acme-challenge/` are always forced to be considered insecure, since they are not supposed to arrive over HTTPS.
+Ambassador Edge Stack provides native handling of ACME challenges. If you are using this support, Ambassador will automatically arrange for insecure ACME challenges to be handled correctly. If you are handling ACME yourself - as you must when running Ambassador Open Source - you will need to supply appropriate Host resources and Mappings to correctly direct ACME challenges to your ACME challenge handler.
 
 
 | Field | Type | Label | Description |
@@ -123,10 +154,17 @@ this is the part in the "spec" dictionary.
 
 
 
-<a name="getambassador.io.v2.RequestPolicy"></a>
+<a name="RequestPolicy"></a>
 
 ### RequestPolicy
+A **secure** request arrives via HTTPS; an **insecure** request does not. By default, secure requests will be routed and insecure requests will be redirected (using an HTTP 301 response) to HTTPS. The behavior of insecure requests can be overridden using the `requestPolicy` element of a Host:
 
+```yaml
+requestPolicy:
+insecure:
+action: insecure-action
+additionalPort: insecure-port
+```
 
 
 | Field | Type | Label | Description |
@@ -140,7 +178,7 @@ this is the part in the "spec" dictionary.
 
 
 
-<a name="getambassador.io.v2.HostPhase"></a>
+<a name="HostPhase"></a>
 
 ### HostPhase
 
@@ -155,7 +193,7 @@ this is the part in the "spec" dictionary.
 
 
 
-<a name="getambassador.io.v2.HostState"></a>
+<a name="HostState"></a>
 
 ### HostState
 
@@ -169,7 +207,7 @@ this is the part in the "spec" dictionary.
 
 
 
-<a name="getambassador.io.v2.HostTLSCertificateSource"></a>
+<a name="HostTLSCertificateSource"></a>
 
 ### HostTLSCertificateSource
 
@@ -183,7 +221,7 @@ this is the part in the "spec" dictionary.
 
 
 
-<a name="getambassador.io.v2.InsecureRequestAction"></a>
+<a name="InsecureRequestAction"></a>
 
 ### InsecureRequestAction
 
