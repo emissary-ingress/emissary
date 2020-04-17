@@ -377,6 +377,9 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			// if there is an error fetching the promotion, return no-content to the UI
 			w.WriteHeader(http.StatusNoContent)
 		} else {
+			// Have a response so can defer closing.
+			defer resp.Body.Close()
+
 			if resp.StatusCode != 200 {
 				// if fetching the promotion is not 100% successful, return no-content to the UI
 				w.WriteHeader(http.StatusNoContent)
@@ -387,7 +390,6 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		defer resp.Body.Close()
 
 	case "/edge_stack/api/config/pod-namespace":
 		// no authentication for this one
