@@ -20,7 +20,6 @@ import (
 	"k8s.io/helm/pkg/helm/helmpath"
 	"k8s.io/helm/pkg/proto/hapi/chart"
 	"k8s.io/helm/pkg/repo"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
 
 	"github.com/datawire/ambassador/pkg/k8s"
 )
@@ -92,7 +91,6 @@ type HelmDownloader struct {
 	downDir        string
 	downDirCleanup bool
 
-	mgr manager.Manager
 	log *log.Logger
 }
 
@@ -102,7 +100,6 @@ type HelmDownloaderOptions struct {
 	KubeInfo *k8s.KubeInfo
 	Version  ChartVersionRule
 	Logger   *log.Logger
-	Manager  manager.Manager
 }
 
 // NewHelmDownloader creates a new charts manager
@@ -123,7 +120,6 @@ func NewHelmDownloader(options HelmDownloaderOptions) (HelmDownloader, error) {
 	}
 
 	return HelmDownloader{
-		mgr:      options.Manager,
 		URL:      pu,
 		KubeInfo: options.KubeInfo,
 		Version:  options.Version,
