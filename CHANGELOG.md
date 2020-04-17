@@ -66,6 +66,12 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## Next release
+
+### Ambassador Edge Stack Only
+
+- Bugfix: The Traffic Agent binds to port 9900 by default. That port can be configured in the Agent's Pod spec.
+
 ## [1.4.1] April 15, 2020
 [1.4.1]: https://github.com/datawire/ambassador/compare/v1.4.0...v1.4.1
 

@@ -339,7 +339,7 @@ class IR:
         self.logger.info(f"Intercept agent active for {self.agent_service}, initializing")
 
         # We're going to either create a Host to terminate TLS, or to do cleartext. In neither
-        # case will we do ACME.
+        # case will we do ACME. Set additionalPort to -1 so we don't grab 8080 in the TLS case.
         host_args = {
             "hostname": "*",
             "selector": {
@@ -349,7 +349,12 @@ class IR:
             },
             "acmeProvider": {
                 "authority": "none"
-            }
+            },
+            "requestPolicy": {
+                "insecure": {
+                    "additionalPort": -1,
+                },
+            },
         }
 
         # Have they asked us to do TLS?
@@ -360,11 +365,7 @@ class IR:
             host_args["tlsSecret"] = { "name": agent_termination_secret }
         else:
             # No termination secret, so do cleartext.
-            host_args["requestPolicy"] = {
-                "insecure": {
-                    "action": "Route"
-                }
-            }
+            host_args["requestPolicy"]["insecure"]["action"] = "Route"
 
         host = IRHost(self, aconf, rkey=self.ambassador_module.rkey, location=self.ambassador_module.location,
                       name="agent-host",
@@ -405,6 +406,20 @@ class IR:
             return
 
         self.logger.info(f"Intercept agent active for {self.agent_service}, finalizing")
+
+        # We don't want to listen on the default AES ports (8080, 8443) as that is likely to
+        # conflict with the user's application running in the same Pod.
+        agent_listen_port_str = os.environ.get("AGENT_LISTEN_PORT", None)
+
+        if agent_listen_port_str is None:
+            self.ambassador_module.service_port = Constants.SERVICE_PORT_AGENT
+        else:
+            try:
+                self.ambassador_module.service_port = int(agent_listen_port_str)
+            except ValueError:
+                self.post_error(f"Intercept agent listen port {agent_listen_port_str} is not valid")
+                self.agent_active = False
+                return
 
         agent_port_str = os.environ.get("AGENT_PORT", None)
 
