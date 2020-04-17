@@ -653,7 +653,7 @@ export class Dashboard extends LitElement {
      */
     if( this.modalHTML !== null ) {
       return( html `
-      <div class="element" style="width:86%;">${returnString(this.modalHTML)}</div>
+      <div class="element" style="width:86%;">${unsafeStringToHTML(this.modalHTML)}</div>
 ${this._panels.reduce( (accum, each) => html`${accum} ${each.render()}`, html`` )}` );
     } else {
       return( html `
@@ -672,8 +672,8 @@ ${this._panels.reduce( (accum, each) => html`${accum} ${each.render()}`, html`` 
   }
 }
 
-function returnString(thestring) {
-  return document.createRange().createContextualFragment(`${thestring}`);
+function unsafeStringToHTML(str) {
+  return document.createRange().createContextualFragment(`${str}`);
 }
 
 /* ===================================================================================*/
