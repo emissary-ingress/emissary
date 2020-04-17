@@ -4,7 +4,7 @@
  * This is the Interface class for ResourceCollection.
  */
 
-import { ResourceCollection } from "../framework/resource_collection2.js";
+import { ResourceCollection } from "../framework/resource_collection.js";
 
 export class IResourceCollection extends ResourceCollection {
 

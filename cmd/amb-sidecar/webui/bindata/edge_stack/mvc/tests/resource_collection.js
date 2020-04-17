@@ -1,5 +1,5 @@
-import {ResourceCollection} from '../framework/resource_collection2.js'
-import {Resource} from '../framework/resource2.js'
+import {ResourceCollection} from '../framework/resource_collection.js'
+import {Resource} from '../framework/resource.js'
 
 import {GoodStore, SpecializedResource, yamlGen} from './store_mocks.js'
 

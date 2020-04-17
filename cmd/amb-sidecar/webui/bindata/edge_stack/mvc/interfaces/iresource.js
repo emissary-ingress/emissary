@@ -18,7 +18,7 @@
  * a spec--that we display and modify in the Web user interface.
  */
 
-import { Resource } from "../framework/resource2.js"
+import { Resource } from "../framework/resource.js"
 
 export class IResource extends Resource {
 

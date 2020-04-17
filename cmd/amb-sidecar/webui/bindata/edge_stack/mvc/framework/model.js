@@ -1,135 +1,109 @@
 /**
- * Model
- * This is the concrete Model class.
- * A Model maintains specific state for that Model, and a set of Listeners that require notification of
- * the model's state changes.  These listeners, typically Views in a Model-View-Controller architecture,
- * register themselves with one or more Models and will be called when any of the Models' state changes.
+ * Model is the concrete base class for all model classes.
  *
- * Listeners are notified of changes through the Listeners onModelNotification method:
- * onModelNotification(notifyingModel, message, parameter).
+ * A model class is intended to capture business logic within a given
+ * domain in a way that:
  *
- * Any object that defines onModelNotification can be a listener.
+ * - Allows a separation of concerns between business and presentation
+ *   logic.
  *
- * Standard messages are:
- *    notifyingModel 'created'  = has been created
- *    notifyingModel 'updated'  = one or more instance variables have new values
- *    notifyingModel 'deleted'  = just about to be deleted
+ * - Facilitates automated testing of business logic.
  *
- * Subclasses of Model may want to have additional messages for specific changes that they note.
- * Listeners may subscribe to all messages or a selected list of messages.c
+ * - Facilitates building multiple views of a given domain object and
+ *   keeping them in sync.
+ *
+ * - Achieves a high performance UI by minimizing what needs to be
+ *   re-rendered when data changes.
+ *
+ * What exactly this means in practice can be fuzzy, so here are some
+ * guidelines:
+ *
+ * - A model class should never depend on any views or UI code. It
+ *   must be possible to run all model code outside the browser in
+ *   nodejs.
+ *
+ * - An instance of a model class must function as a source of truth
+ *   for the state of the domain object it represents. In practice
+ *   this means a model object will have a well defined concept of
+ *   externalizable identity, and this identity will be used to ensure
+ *   that there is only ever one instance of a model class associated
+ *   with a given identity at a time.
+ *
+ * The code in this base class facilitates keeping multiple views in
+ * sync by providing a simple listener API that notifies objects when
+ * a Model has changed.
+ *
+ * Whenever Model.notify() is invoked, the onModelChanged(model, tag)
+ * method is invoked on all registered objects.
+ *
+ * The listener API consists of addListener(listener[, tag]),
+ * removeListener(listener[, tag]), and notify(). The
+ * addListener/removeListener methods can be used manually, but there
+ * is no need to do so if your web-component extends the View
+ * class. The View class is a specialized subclass of LitElement that
+ * has been made aware of the Model class and will automatically
+ * register/unregister for notifications from any declared properties
+ * that extend the Model class.
+ *
+ * This makes writing a View for one or more Models as simple as:
+ *
+ * 1. Write a web component, but extend View instead of LitElement.
+ * 2. Make sure you store any relevant models in declared properties.
+ *
+ * That's it. Whenever Model.notify() is invoked, all Views that store
+ * their Models in a declared property will automatically get a
+ * requestUpdate(property), and will re-render.
+ *
  */
-
-/* Utility functions . */
-import { setUnion } from "../framework/utilities.js"
 
 export class Model {
 
-  /* constructor()
-   * Here the model initializes any internal state including any structures for storing Listeners
-   * that have subscribed to the Model.
-   */
-
   constructor() {
-    /* The listeners are stored in Sets, and the sets are stored in a Map where the map's keys are the
-      * message names and the values are sets of listeners to be called when that message is sent.
-      * _listenersToAll is the set of listeners that want to be notified on all messages.
-      */
-
-    this._listenersByMessage  = new Map();
-    this._listenersToAll      = new Set();
+    // This map is keyed by listener and the value is a Set of tag names.
+    this.listeners = new Map()
   }
 
-  /* addListener(listener, messageSet = null)
-   * Add a new listener for changes.  The listener's onModelNotification method will be called when the
-   *  model is notifying it for any of the  messages listed in the message set.  if the message set is
-   *  null, then add this listener for all messages.
+  /**
+   * Ask the model to invoke listener.onModelChanged(model, tag) when
+   * changes occur.
    */
-
-  addListener(listener, messageSet = null) {
-    if (messageSet === null) {
-      this._listenersToAll.add(listener);
+  addListener(listener, tag = "") {
+    if (typeof listener.onModelChanged === "undefined") {
+      throw new Error("listener does not have onModelChanged method")
     }
-    else {
-      for (let message of messageSet) {
-        let set = this._listenersByMessage.has(message) ? this._listenersByMessage[message] : new Set();
-        set.add(listener);
-        this._listenersByMessage[message] = set;
+    var tags
+    if (this.listeners.has(listener)) {
+      tags = this.listeners.get(listener)
+    } else {
+      tags = new Set()
+      this.listeners.set(listener, tags)
+    }
+    tags.add(tag)
+  }
+
+  /**
+   * Ask the model to not invoke listener.onModelChanged(model, tag)
+   * when changes occur.
+   */
+  removeListener(listener, tag = "") {
+    if (this.listeners.has(listener)) {
+      let tags = this.listeners.get(listener)
+      tags.delete(tag)
+      if (tags.size === 0) {
+        this.listeners.delete(listener)
       }
     }
   }
 
-
-  /* removeListener(listener, messageSet = null)
-   * Remove a listener from the given messages, or from all messages if null
+  /**
+   * Notify all listeners that the model has changed.
    */
-
-  removeListener(listener, messageSet = null) {
-    /* Complete removal */
-    if (messageSet === null) {
-      /* Go through every message set and remove. */
-      for (let [_, listeners] of this._listenersByMessage) {
-        listeners.delete(listener);
-      }
-      /* Delete from allListeners too. */
-      this._listenersToAll.delete(listener);
-    }
-
-    /* Remove from each requested message set */
-    else {
-      for (let message of messageSet) {
-        if (this._listenersByMessage.has(message)) {
-          this._listenersByMessage[message].delete(listener);
-        }
+  notify() {
+    for (let [listener, tags] of this.listeners.entries()) {
+      for (let tag of tags) {
+        listener.onModelChanged(this, tag)
       }
     }
   }
 
-  /* notifyListeners(notifyingModel, message, parameter)
-   * Notify listeners of a update in the model with the given message.  Only listeners who have subscribed
-   * to the message will be notified.  Listeners that have subscribed to all messages will also be notified.
-   * The listener's onModelNotification(model, message, parameter) method will be called.  Only listeners
-   * who have subscribed to the message will be notified. Listeners that have subscribed to all messages
-   * will also receive a callback. Includes a notification message, the model itself, and an optional parameter.
-   */
-
-  notifyListeners(notifyingModel = this, message, parameter = null) {
-    for (let listener of this._listenersForMessage(message)) {
-      listener.onModelNotification(notifyingModel, message, parameter);
-    }
-  }
-
-  /* notifyListenerUpdated(notifyingModel)
-   * Convenience methods for notifying listeners of an updated model.
-   */
-
-  notifyListenersUpdated(notifyingModel = this) {
-    this.notifyListeners(notifyingModel, 'updated');
-  }
-
-  /* notifyListenersCreated(notifyingModel)
-   * Convenience methods for notifying listeners of a newly-created model.
-   */
-
-  notifyListenersCreated(notifyingModel = this) {
-    this.notifyListeners(notifyingModel, 'created');
-  }
-
-  /* notifyListenersDeleted(notifyingModel)
-   * Convenience method for notifying listeners of a deleted model.
-   */
-
-  notifyListenersDeleted(notifyingModel = this) {
-    this.notifyListeners(notifyingModel, 'deleted');
-  }
-
-  /* _listenersForMessage(message)
-   * Return the listeners for a given message, or an empty set if none.
-   */
-
-  _listenersForMessage(message) {
-    let allListeners = this._listenersToAll;
-    let msgListeners = this._listenersByMessage.has(message) ? this._listenersByMessage[message] : new Set();
-
-    return setUnion(allListeners, msgListeners);
-  }
 }
