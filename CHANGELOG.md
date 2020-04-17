@@ -4,6 +4,10 @@ releases. Please keep it up to date.
 
 # Ambassador Edge Stack CHANGELOG
 
+## next (TBD)
+
+- Bugfix: The `OAuth2` Filter redirection-endpoint now handles various XSRF errors more consistently (the way we meant it to in 1.2.1)
+
 ## 1.2.2 (2020-03-04)
 
 - Internal: Track maximum usage for 24-hour periods, not just instantaneous whenever we phone home.
