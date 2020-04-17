@@ -693,7 +693,7 @@ func _logErr(ctx context.Context, err error) {
 	if CtxGetIteration(ctx) != nil {
 		isNew := globalKale.addIterationError(err, projectUID, revisionUID)
 		if !isNew {
-			eventTarget = nil
+			return
 		}
 	}
 	if eventTarget == nil {

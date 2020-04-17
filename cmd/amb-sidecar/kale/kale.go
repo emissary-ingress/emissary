@@ -415,7 +415,7 @@ func (k *kale) addIterationError(err error, projectUID, revisionUID k8sTypes.UID
 		RevisionUID: revisionUID,
 	}
 	k.NextIterationErrors[key] = struct{}{}
-	_, inPrev := k.NextIterationErrors[key]
+	_, inPrev := k.PrevIterationErrors[key]
 	isNew := !inPrev
 	return isNew
 }
