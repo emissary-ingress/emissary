@@ -37,25 +37,25 @@ export class ProjectCollectionView extends View {
         border: 2px #5f3eff solid;
       }
       .card {
-	background: #fff;
-	border-radius: 10px;
-	padding: 10px 30px 10px 30px;
-	box-shadow: 0 10px 5px -11px rgba(0, 0, 0, .6);
-	width: 100%;
-	-webkit-flex-direction: row;
-	-ms-flex-direction: row;
-	flex-direction: row;
-	-webkit-flex: 1 1 1;
-	-ms-flex: 1 1 1;
-	flex: 1 1 1;
-	margin: 5px 0 0;
-	font-size: .9rem;
+        background: #fff;
+        border-radius: 10px;
+        padding: 10px 30px 10px 30px;
+        box-shadow: 0 10px 5px -11px rgba(0, 0, 0, .6);
+        width: 100%;
+        -webkit-flex-direction: row;
+        -ms-flex-direction: row;
+        flex-direction: row;
+        -webkit-flex: 1 1 1;
+        -ms-flex: 1 1 1;
+        flex: 1 1 1;
+        margin: 5px 0 0;
+        font-size: .9rem;
       }
       .global {
         margin-top: 10px;
       }
       .global label {
-	font-weight: 600;
+        font-weight: 600;
       }
       .off {
         display: none;
