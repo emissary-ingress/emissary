@@ -211,11 +211,11 @@ export class ProjectCollectionView extends View {
       let parts = log.split("/")
       if (parts.length === 2) {
         let logType = parts[0];
-        let commitQName = parts[1];
+        let revisionQName = parts[1];
 
-        result.selected = this.projectForCommit(commitQName)
+        result.selected = this.projectForRevision(revisionQName)
         if (result.selected) {
-          result.source = `../api/projects/logs/${logType}/${commitQName}`
+          result.source = `../api/projects/logs/${logType}/${revisionQName}`
           result.type = logType
         }
       }
@@ -224,9 +224,9 @@ export class ProjectCollectionView extends View {
     return result
   }
 
-  projectForCommit(qname) {
+  projectForRevision(qname) {
     for (let p of this.projects) {
-      if (p.commits.some((c) => `${c.metadata.name}.${c.metadata.namespace}` === qname)) {
+      if (p.revisions.some((c) => `${c.metadata.name}.${c.metadata.namespace}` === qname)) {
         return p
       }
     }

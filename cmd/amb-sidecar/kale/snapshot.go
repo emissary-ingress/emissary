@@ -27,7 +27,7 @@ import (
 type UntypedSnapshot struct {
 	Controllers []k8s.Resource
 	Projects    []k8s.Resource
-	Commits     []k8s.Resource
+	Revisions   []k8s.Resource
 	Jobs        []k8s.Resource
 	Deployments []k8s.Resource
 	Pods        []k8s.Resource
@@ -37,7 +37,7 @@ type UntypedSnapshot struct {
 type Snapshot struct {
 	Controllers map[k8sTypes.UID]*controllerAndChildren
 	Projects    map[k8sTypes.UID]*projectAndChildren
-	Commits     map[k8sTypes.UID]*commitAndChildren
+	Revisions   map[k8sTypes.UID]*revisionAndChildren
 	Jobs        map[k8sTypes.UID]*jobAndChildren
 	Deployments map[k8sTypes.UID]*deploymentAndChildren
 	Pods        map[k8sTypes.UID]*podAndChildren
@@ -114,15 +114,15 @@ func (in UntypedSnapshot) TypedAndIndexed(ctx context.Context) *Snapshot {
 		out.Projects[outProj.GetUID()] = &projectAndChildren{Project: outProj}
 	}
 
-	// commits
-	out.Commits = make(map[k8sTypes.UID]*commitAndChildren, len(in.Commits))
-	for _, inCommit := range in.Commits {
-		var outCommit *ProjectCommit
-		if err := mapstructure.Convert(inCommit, &outCommit); err != nil {
-			reportThisIsABug(ctx, errors.Wrap(err, "ProjectCommit"))
+	// revisions
+	out.Revisions = make(map[k8sTypes.UID]*revisionAndChildren, len(in.Revisions))
+	for _, inRevision := range in.Revisions {
+		var outRevision *ProjectRevision
+		if err := mapstructure.Convert(inRevision, &outRevision); err != nil {
+			reportThisIsABug(ctx, errors.Wrap(err, "ProjectRevision"))
 			continue
 		}
-		out.Commits[outCommit.GetUID()] = &commitAndChildren{ProjectCommit: outCommit}
+		out.Revisions[outRevision.GetUID()] = &revisionAndChildren{ProjectRevision: outRevision}
 	}
 
 	// controllers
@@ -144,7 +144,7 @@ func (in UntypedSnapshot) TypedAndIndexed(ctx context.Context) *Snapshot {
 type GroupedSnapshot struct {
 	Controllers []*controllerAndChildren
 
-	OrphanedCommits     []*commitAndChildren
+	OrphanedRevisions   []*revisionAndChildren
 	OrphanedJobs        []*jobAndChildren
 	OrphanedDeployments []*deploymentAndChildren
 	OrphanedPods        []*podAndChildren
@@ -162,13 +162,13 @@ type projectAndChildren struct {
 	*Project
 	Parent   *controllerAndChildren `json:"-"`
 	Children struct {
-		Commits []*commitAndChildren    `json:"commits"`
-		Errors  []*k8sTypesCoreV1.Event `json:"errors"`
+		Revisions []*revisionAndChildren  `json:"revisions"`
+		Errors    []*k8sTypesCoreV1.Event `json:"errors"`
 	} `json:"children"`
 }
 
-type commitAndChildren struct {
-	*ProjectCommit
+type revisionAndChildren struct {
+	*ProjectRevision
 	Parent   *projectAndChildren `json:"-"`
 	Children struct {
 		Builders []*jobAndChildren        `json:"builders"`
@@ -179,7 +179,7 @@ type commitAndChildren struct {
 
 type jobAndChildren struct {
 	*k8sTypesBatchV1.Job
-	Parent   *commitAndChildren `json:"-"`
+	Parent   *revisionAndChildren `json:"-"`
 	Children struct {
 		Pods   []*jobPodAndChildren    `json:"pods"`
 		Events []*k8sTypesCoreV1.Event `json:"events"`
@@ -188,7 +188,7 @@ type jobAndChildren struct {
 
 type deploymentAndChildren struct {
 	*k8sTypesAppsV1.Deployment
-	Parent   *commitAndChildren `json:"-"`
+	Parent   *revisionAndChildren `json:"-"`
 	Children struct {
 		Pods   []*deploymentPodAndChildren `json:"pods"`
 		Events []*k8sTypesCoreV1.Event     `json:"events"`
@@ -248,30 +248,30 @@ func (in *Snapshot) Grouped() *GroupedSnapshot {
 		proj.Parent = controller
 		controller.Children.Projects = append(controller.Children.Projects, proj)
 	}
-	for _, commitUID := range sortedUIDKeys(in.Commits) {
-		commit := in.Commits[commitUID]
-		projUID := k8sTypes.UID(commit.GetLabels()[ProjectLabelName])
+	for _, revisionUID := range sortedUIDKeys(in.Revisions) {
+		revision := in.Revisions[revisionUID]
+		projUID := k8sTypes.UID(revision.GetLabels()[ProjectLabelName])
 		if proj, ok := in.Projects[projUID]; ok {
-			commit.Parent = proj
-			proj.Children.Commits = append(proj.Children.Commits, commit)
+			revision.Parent = proj
+			proj.Children.Revisions = append(proj.Children.Revisions, revision)
 		} else {
-			out.OrphanedCommits = append(out.OrphanedCommits, commit)
+			out.OrphanedRevisions = append(out.OrphanedRevisions, revision)
 		}
 	}
 	for _, jobUID := range sortedUIDKeys(in.Jobs) {
 		job := in.Jobs[jobUID]
-		commitUID := k8sTypes.UID(job.GetLabels()[CommitLabelName])
-		if commit, ok := in.Commits[commitUID]; ok {
-			commit.Children.Builders = append(commit.Children.Builders, job)
+		revisionUID := k8sTypes.UID(job.GetLabels()[RevisionLabelName])
+		if revision, ok := in.Revisions[revisionUID]; ok {
+			revision.Children.Builders = append(revision.Children.Builders, job)
 		} else {
 			out.OrphanedJobs = append(out.OrphanedJobs, job)
 		}
 	}
 	for _, deploymentUID := range sortedUIDKeys(in.Deployments) {
 		deployment := in.Deployments[deploymentUID]
-		commitUID := k8sTypes.UID(deployment.GetLabels()[CommitLabelName])
-		if commit, ok := in.Commits[commitUID]; ok {
-			commit.Children.Runners = append(commit.Children.Runners, deployment)
+		revisionUID := k8sTypes.UID(deployment.GetLabels()[RevisionLabelName])
+		if revision, ok := in.Revisions[revisionUID]; ok {
+			revision.Children.Runners = append(revision.Children.Runners, deployment)
 		} else {
 			out.OrphanedDeployments = append(out.OrphanedDeployments, deployment)
 		}
@@ -332,9 +332,9 @@ func (in *Snapshot) Grouped() *GroupedSnapshot {
 			if project, ok := in.Projects[event.InvolvedObject.UID]; ok {
 				project.Children.Errors = append(project.Children.Errors, event)
 			}
-		case vk{"getambassador.io/v2", "ProjectCommit"}:
-			if commit, ok := in.Commits[event.InvolvedObject.UID]; ok {
-				commit.Children.Errors = append(commit.Children.Errors, event)
+		case vk{"getambassador.io/v2", "ProjectRevision"}:
+			if revision, ok := in.Revisions[event.InvolvedObject.UID]; ok {
+				revision.Children.Errors = append(revision.Children.Errors, event)
 			}
 		case vk{"batch/v1", "Job"}:
 			if job, ok := in.Jobs[event.InvolvedObject.UID]; ok {

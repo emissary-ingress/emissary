@@ -104,7 +104,7 @@ export class ProjectView extends IResourceView {
     let hostnames = Array.from(this.hosts).map((h)=>h.hostname)
     return html`
 <div class="${this.visibleWhen("list")}">
-  ${this.renderDeployedCommits(this.project.prefix, this.project.commits)}
+  ${this.renderDeployedRevisions(this.project.prefix, this.project.revisions)}
 </div>
 <div class="${this.visibleWhen("add", "edit")}">
   <div class="row line">
@@ -221,9 +221,9 @@ export class ProjectView extends IResourceView {
     fetch(startLink, opts).then(depaginate).then(addRepos)
   }
 
-  renderDeployedCommits(prefix, commits) {
-    commits = Array.from(commits);
-    commits.sort((a,b) => {
+  renderDeployedRevisions(prefix, revisions) {
+    revisions = Array.from(revisions);
+    revisions.sort((a,b) => {
       let delta = Date.parse(a.metadata.creationTimestamp) - Date.parse(b.metadata.creationTimestamp)
       if (delta === 0) {
         delta = a.spec.rev.localeCompare(b.spec.rev)
@@ -240,7 +240,7 @@ export class ProjectView extends IResourceView {
     })
 
     let byRef = new Map();
-    for (let c of commits) {
+    for (let c of revisions) {
       let ref = c.spec.ref
       if (byRef.has(ref)) {
         let orig = byRef.get(ref)
@@ -253,43 +253,43 @@ export class ProjectView extends IResourceView {
       }
     }
 
-    commits = Array.from(byRef.values())
+    revisions = Array.from(byRef.values())
 
     return html`
 <div class="row line">
-  <label class="row-col margin-right justify-right">Deployed Commits:</label>
+  <label class="row-col margin-right justify-right">Deployed Revisions:</label>
   <div class="row-col">
-    ${commits.length > 0 ? "" : "..."}
+    ${revisions.length > 0 ? "" : "..."}
     <div style="display:grid; grid-template-columns: 1fr 1fr 2fr 2fr;">
-      ${commits.map((c)=>this.renderCommit(c))}
+      ${revisions.map((c)=>this.renderRevision(c))}
     </div>
   </div>
 </div>
 `
   }
 
-  renderCommit(commit) {
-    let cls = ["Received", "Building", "Deploying"].includes(commit.status.phase) ? "spin" : ""
+  renderRevision(revision) {
+    let cls = ["Received", "Building", "Deploying"].includes(revision.status.phase) ? "spin" : ""
     return html`
   <div>
-    ${this.renderRef(commit)}
+    ${this.renderRef(revision)}
   </div>
   <div>
-    <a target="_blank" href="https://github.com/${this.project.repo}/commit/${commit.spec.rev}">${commit.spec.rev.slice(0, 7)}...</a>
+    <a target="_blank" href="https://github.com/${this.project.repo}/revision/${revision.spec.rev}">${revision.spec.rev.slice(0, 7)}...</a>
   </div>
   <div>
-    <div class="spinner ${cls}"></div> ${prettyPhase(commit.status.phase)}
+    <div class="spinner ${cls}"></div> ${prettyPhase(revision.status.phase)}
   </div>
   <div class="justify-right">
-    ${(commit.children.builders || []).length > 0 ? commit.children.builders.map(p=>this.renderBuild(commit, p)) : html`<span class="log" style="opacity:0.5">build</span>`} |
-    ${(commit.children.runners || []).length > 0 ? commit.children.runners.map(p=>this.renderPreview(commit, p)) : html`<span class="log" style="opacity:0.5">log</span> | <span class="log" style="opacity:0.5">url</span>`}
+    ${(revision.children.builders || []).length > 0 ? revision.children.builders.map(p=>this.renderBuild(revision, p)) : html`<span class="log" style="opacity:0.5">build</span>`} |
+    ${(revision.children.runners || []).length > 0 ? revision.children.runners.map(p=>this.renderPreview(revision, p)) : html`<span class="log" style="opacity:0.5">log</span> | <span class="log" style="opacity:0.5">url</span>`}
   </div>
 `
   }
 
-  renderRef(commit) {
-    let ref = commit.spec.ref
-    let sha = commit.spec.rev
+  renderRef(revision) {
+    let ref = revision.spec.ref
+    let sha = revision.spec.rev
     let name = shortenRefName(ref)
 
     let matches = ref.match(/^refs\/pull\/([0-9]+)\/(head|merge)$/)
@@ -307,44 +307,44 @@ export class ProjectView extends IResourceView {
     return html`<a target="_blank" href="https://github.com/${this.project.repo}/commit/${sha}/">${name}</a>`
   }
 
-  renderBuild(commit, job) {
+  renderBuild(revision, job) {
     var styles = "color:blue"
-    if (["Deploying", "Deployed", "DeployFailed"].includes(commit.status.phase)) {
+    if (["Deploying", "Deployed", "DeployFailed"].includes(revision.status.phase)) {
       styles = "color:green"
-    } else if (commit.status.phase === "BuildFailed") {
+    } else if (revision.status.phase === "BuildFailed") {
       styles = "color:red"
     }
-    let selected = this.logSelected("build", commit) ? "selected" : ""
-    return html`<a class="log ${selected}" style="cursor:pointer;${styles}" @click=${()=>this.openTerminal("build", commit)}>build</a>`
+    let selected = this.logSelected("build", revision) ? "selected" : ""
+    return html`<a class="log ${selected}" style="cursor:pointer;${styles}" @click=${()=>this.openTerminal("build", revision)}>build</a>`
   }
 
-  renderPreview(commit, deployment) {
+  renderPreview(revision, deployment) {
     var styles = "color:blue"
-    if (commit.status.phase === "Deployed") {
+    if (revision.status.phase === "Deployed") {
       styles = "color:green"
-    } else if (commit.status.phase === "DeployFailed") {
+    } else if (revision.status.phase === "DeployFailed") {
       styles = "color:red"
     }
-    let selected = this.logSelected("deploy", commit) ? "selected" : ""
-    let url = `https://${this.project.host}` + (commit.spec.isPreview
-                                                 ? `/.previews${this.project.prefix}${commit.spec.rev}/`
+    let selected = this.logSelected("deploy", revision) ? "selected" : ""
+    let url = `https://${this.project.host}` + (revision.spec.isPreview
+                                                 ? `/.previews${this.project.prefix}${revision.spec.rev}/`
                                                  : `${this.project.prefix}`);
     return html`
-<a class="log ${selected}" style="cursor:pointer;${styles}" @click=${()=>this.openTerminal("deploy", commit)}>log</a> |
+<a class="log ${selected}" style="cursor:pointer;${styles}" @click=${()=>this.openTerminal("deploy", revision)}>log</a> |
 <a class="log" style="text-decoration:none;${styles}" target="_blank" href="${url}">url</a>
 `
   }
 
-  logSelected(logType, commit) {
-    return HASH.get("log") === this.logParam(logType, commit)
+  logSelected(logType, revision) {
+    return HASH.get("log") === this.logParam(logType, revision)
   }
 
-  logParam(logType, commit) {
-    return `${logType}/${commit.metadata.name}.${commit.metadata.namespace}`;
+  logParam(logType, revision) {
+    return `${logType}/${revision.metadata.name}.${revision.metadata.namespace}`;
   }
 
-  openTerminal(logType, commit) {
-    HASH.set("log", this.logParam(logType, commit))
+  openTerminal(logType, revision) {
+    HASH.set("log", this.logParam(logType, revision))
   }
 
   input(type, name, onchange) {

@@ -1,6 +1,6 @@
 import { Model } from '../mvc/framework/model.js'
 import { View, html, css } from '../mvc/framework/view.js'
-import {useContext} from './context.js';
+import {Snapshot} from './snapshot.js'
 import {HASH} from './hash.js';
 
 /**
@@ -320,7 +320,8 @@ export class Tabs extends View {
     return {
       hash: { type: Model },
       current: { type: String },
-      tabs: { type: Array }
+      tabs: { type: Array },
+      enabledFeatureFlag: { type: String },
     };
   }
 
@@ -335,6 +336,11 @@ export class Tabs extends View {
         this.tabs.push(node);
       }
     });
+
+    this.enabledFeatureFlag = "";
+    Snapshot.subscribe((snapshot)=>{
+      this.enabledFeatureFlag = snapshot.data.FeatureFlag;
+    })
   }
 
   renderLinks() {
@@ -345,9 +351,8 @@ export class Tabs extends View {
     }
 
     for (let idx = 0; idx < this.tabs.length; ++idx) {
-      let code = this.hash.get("code")
-      if (this.tabs[idx].code && this.tabs[idx].code !== code) {
-        continue
+      if (this.tabs[idx].featureflag && this.tabs[idx].featureflag !== this.enabledFeatureFlag) {
+        continue;
       }
 
       let classes = "";
@@ -356,11 +361,9 @@ export class Tabs extends View {
         classes += " selected";
       }
 
-      let addendum = code ? `?code=${code}` : ""
-
       // todo: this is literally the most deeply nesed usage of the turnary operator I have ever seen, it should probably die
       links.push(html`
-          <a href="#${this.tabs[idx].tabHashName()}${addendum}" class="${classes}">
+          <a href="#${this.tabs[idx].tabHashName()}" class="${classes}">
             <div class="selected_stripe"></div>
             <div class="label">
               <div class="icon">
@@ -427,7 +430,8 @@ export class Tab extends View {
       icon: { type: String },
       hashname: { type: String },
       hash: { type: Model },
-      code: { type: String }
+      featureflag: { type: String },
+      enabledFeatureFlag: { type: String },
     }
   }
 
@@ -438,6 +442,11 @@ export class Tab extends View {
     this._name = (this.getAttribute('slot') || '');
     this.updateHashname();
     this.hash = HASH;
+
+    this.enabledFeatureFlag = "";
+    Snapshot.subscribe((snapshot)=>{
+      this.enabledFeatureFlag = snapshot.data.FeatureFlag;
+    })
   }
 
   updateHashname() {
@@ -471,8 +480,7 @@ export class Tab extends View {
   }
 
   render() {
-    let code = this.hash.get("code")
-    if (!this.code || code === this.code) {
+    if (!this.featureflag || this.featureflag === this.enabledFeatureFlag) {
       return html`<slot></slot>`
     } else {
       return html``

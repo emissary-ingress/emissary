@@ -16,6 +16,7 @@ import (
 	"os"
 	"path"
 	"sort"
+	"sync/atomic"
 	"time"
 
 	"github.com/datawire/ambassador/pkg/dlog"
@@ -42,11 +43,22 @@ import (
 	"github.com/datawire/apro/lib/licensekeys"
 )
 
+var featureFlag atomic.Value
+
+func SetFeatureFlag(str string) {
+	featureFlag.Store(str)
+}
+
+func init() {
+	SetFeatureFlag("default")
+}
+
 type Snapshot struct {
-	Watt       map[string]map[string]interface{}
-	Diag       json.RawMessage
-	License    LicenseInfo
-	RedisInUse bool
+	Watt        map[string]map[string]interface{}
+	Diag        json.RawMessage
+	License     LicenseInfo
+	RedisInUse  bool
+	FeatureFlag string
 }
 
 type LicenseInfo struct {
@@ -130,6 +142,7 @@ func (fb *firstBootWizard) getSnapshot(clientSession string) Snapshot {
 	}
 
 	ret.RedisInUse = fb.haveRedis
+	ret.FeatureFlag = featureFlag.Load().(string)
 
 	return ret
 }

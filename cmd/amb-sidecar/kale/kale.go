@@ -43,6 +43,7 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/k8s/events"
 	"github.com/datawire/apro/cmd/amb-sidecar/k8s/leaderelection"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
+	"github.com/datawire/apro/cmd/amb-sidecar/webui"
 	aes_metriton "github.com/datawire/apro/lib/metriton"
 	lyftserver "github.com/lyft/ratelimit/src/server"
 )
@@ -104,7 +105,7 @@ const (
 	// https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 	GlobalLabelName     = "projects.getambassador.io/ambassador_id" // cfg.AmbassadorID
 	ProjectLabelName    = "projects.getambassador.io/project-uid"   // proj.GetUID()
-	CommitLabelName     = "projects.getambassador.io/commit-uid"    // commit.GetUID()
+	RevisionLabelName   = "projects.getambassador.io/revision-uid"  // revision.GetUID()
 	JobLabelName        = "job-name"                                // Don't change this; it's the label name used by Kubernetes itself
 	ServicePodLabelName = "projects.getambassador.io/service"       // "true"
 )
@@ -112,13 +113,13 @@ const (
 var globalKale *kale
 
 const (
-	StepSetup                      = "00-setup"
-	StepLeader                     = "01-leader"
-	StepValidProject               = "02-validproject"
-	StepReconcileWebhook           = "03-reconcilewebook"
-	StepReconcileController        = "04-reconcilecontroller"
-	StepReconcileProjectsToCommits = "05-reconcileprojectstocommits"
-	StepReconcileCommitsToAction   = "06-reconcilecommitstoaction"
+	StepSetup                        = "00-setup"
+	StepLeader                       = "01-leader"
+	StepValidProject                 = "02-validproject"
+	StepReconcileWebhook             = "03-reconcilewebook"
+	StepReconcileController          = "04-reconcilecontroller"
+	StepReconcileProjectsToRevisions = "05-reconcileprojectstorevisions"
+	StepReconcileRevisionsToAction   = "06-reconcilerevisionstoaction"
 	//StepGitPull                    = "07-git-pull"
 	//StepGitSanityCheck             = "08-git-sanity-check"
 	StepBuild         = "09-build"
@@ -139,8 +140,8 @@ func telemetry(ctx context.Context, argData map[string]interface{}) {
 		data["trace_project_uid"] = proj.GetUID()
 		data["trace_project_gen"] = proj.GetGeneration()
 	}
-	if commit := CtxGetCommit(ctx); commit != nil {
-		data["trace_commit_uid"] = commit.GetUID()
+	if revision := CtxGetRevision(ctx); revision != nil {
+		data["trace_revision_uid"] = revision.GetUID()
 	}
 	for k, v := range argData {
 		data[k] = v
@@ -195,11 +196,16 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 			snapshot := UntypedSnapshot{
 				Controllers: w.List("projectcontrollers.getambassador.io"),
 				Projects:    w.List("projects.getambassador.io"),
-				Commits:     w.List("projectcommits.getambassador.io"),
+				Revisions:   w.List("projectrevisions.getambassador.io"),
 				Jobs:        w.List("jobs.batch"),
 				Deployments: w.List("deployments.apps"),
 				Pods:        w.List("pods."),
 				Events:      w.List("events."),
+			}
+			if len(snapshot.Controllers) == 0 {
+				return
+			} else {
+				webui.SetFeatureFlag("butterscotch")
 			}
 			upstreamWorker <- snapshot
 			upstreamWebUI <- snapshot
@@ -209,7 +215,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 		queries := []k8s.Query{
 			{Kind: "projectcontrollers.getambassador.io", LabelSelector: labelSelector},
 			{Kind: "projects.getambassador.io"},
-			{Kind: "projectcommits.getambassador.io"},
+			{Kind: "projectrevisions.getambassador.io"},
 			{Kind: "jobs.batch", LabelSelector: labelSelector},
 			{Kind: "deployments.apps", LabelSelector: labelSelector},
 			{Kind: "pods.", LabelSelector: labelSelector},
@@ -220,7 +226,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 			{Kind: "events."},
 			//{Kind: "events.", FieldSelector: "involvedObject.apiVersion=getmabassador.io/v2,involvedObject.kind=ProjectController"},
 			//{Kind: "events.", FieldSelector: "involvedObject.apiVersion=getmabassador.io/v2,involvedObject.kind=Project"},
-			//{Kind: "events.", FieldSelector: "involvedObject.apiVersion=getmabassador.io/v2,involvedObject.kind=ProjectCommit"},
+			//{Kind: "events.", FieldSelector: "involvedObject.apiVersion=getmabassador.io/v2,involvedObject.kind=ProjectRevision"},
 			//{Kind: "events.", FieldSelector: "involvedObject.apiVersion=batch/v1,involvedObject.kind=Job"},
 			//{Kind: "events.", FieldSelector: "involvedObject.apiVersion=apps/v1,involvedObject.kind=Deployment"},
 			//{Kind: "events.", FieldSelector: "involvedObject.apiVersion=v1,involvedObject.kind=Pod"},
@@ -257,27 +263,62 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 		softCtx = dlog.WithLogger(softCtx, l)
 		var telemetryIteration uint64
 
+		timer := time.NewTimer(0)
+		<-timer.C
+		setTimeout := func(d time.Duration) {
+			timer.Stop()
+			select {
+			case <-timer.C:
+			default:
+			}
+			timer.Reset(d)
+		}
+
+		main := func(ctx context.Context, _snapshot UntypedSnapshot) {
+			ctx = CtxWithIteration(ctx, telemetryIteration)
+			telemetryIteration++
+			snapshot := _snapshot.TypedAndIndexed(ctx)
+			for _, proj := range snapshot.Projects {
+				telemetryOK(CtxWithProject(ctx, proj.Project), StepValidProject)
+			}
+			for uid, oldResourceVersion := range k.knownChangedProjects {
+				newInstance, stillExists := snapshot.Projects[uid]
+				if !stillExists || newInstance.GetResourceVersion() != oldResourceVersion {
+					delete(k.knownChangedProjects, uid)
+				}
+			}
+			for uid, oldResourceVersion := range k.knownChangedRevisions {
+				newInstance, stillExists := snapshot.Revisions[uid]
+				if !stillExists || newInstance.GetResourceVersion() != oldResourceVersion {
+					delete(k.knownChangedRevisions, uid)
+				}
+			}
+			if len(k.knownChangedProjects) > 0 || len(k.knownChangedRevisions) > 0 {
+				return
+			}
+			err := safeInvoke(func() { k.reconcile(ctx, snapshot) })
+			if err != nil {
+				reportThisIsABug(ctx, err)
+			}
+			k.flushIterationErrors()
+			setTimeout(20 * time.Second)
+		}
+
 		err := leaderelection.RunAsSingleton(softCtx, cfg, info, "kale", 15*time.Second, func(ctx context.Context) {
 			telemetryOK(ctx, StepLeader)
 			for {
+				var snapshot UntypedSnapshot
+				var ok bool
 				select {
 				case <-ctx.Done():
 					return
-				case _snapshot, ok := <-downstreamWorker:
+				case <-timer.C:
+					main(ctx, snapshot)
+				case snapshot, ok = <-downstreamWorker:
 					if !ok {
 						return
 					}
-					ctx := CtxWithIteration(ctx, telemetryIteration)
-					telemetryIteration++
-					snapshot := _snapshot.TypedAndIndexed(ctx)
-					for _, proj := range snapshot.Projects {
-						telemetryOK(CtxWithProject(ctx, proj.Project), StepValidProject)
-					}
-					err := safeInvoke(func() { k.reconcile(ctx, snapshot) })
-					if err != nil {
-						reportThisIsABug(ctx, err)
-					}
-					k.flushIterationErrors()
+					main(ctx, snapshot)
 				}
 			}
 		})
@@ -346,8 +387,11 @@ func NewKale(dynamicClient k8sClientDynamic.Interface, eventLogger *events.Event
 		telemetryReporter:  aes_metriton.Reporter,
 		telemetryReplicaID: uuid.New(),
 
-		projectsGetter: dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "projects"}),
-		commitsGetter:  dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "projectcommits"}),
+		projectsGetter:  dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "projects"}),
+		revisionsGetter: dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "projectrevisions"}),
+
+		knownChangedProjects:  make(map[k8sTypes.UID]string),
+		knownChangedRevisions: make(map[k8sTypes.UID]string),
 
 		PrevIterationErrors: make(map[recordedError]struct{}),
 		NextIterationErrors: make(map[recordedError]struct{}),
@@ -362,8 +406,11 @@ type kale struct {
 	telemetryReporter  *metriton.Reporter
 	telemetryReplicaID uuid.UUID
 
-	projectsGetter k8sClientDynamic.NamespaceableResourceInterface
-	commitsGetter  k8sClientDynamic.NamespaceableResourceInterface
+	projectsGetter  k8sClientDynamic.NamespaceableResourceInterface
+	revisionsGetter k8sClientDynamic.NamespaceableResourceInterface
+
+	knownChangedProjects  map[k8sTypes.UID]string
+	knownChangedRevisions map[k8sTypes.UID]string
 
 	mu          sync.RWMutex
 	webSnapshot *Snapshot
@@ -377,19 +424,19 @@ type kale struct {
 }
 
 type recordedError struct {
-	Message    string
-	ProjectUID k8sTypes.UID
-	CommitUID  k8sTypes.UID
+	Message     string
+	ProjectUID  k8sTypes.UID
+	RevisionUID k8sTypes.UID
 }
 
-func (k *kale) addIterationError(err error, projectUID, commitUID k8sTypes.UID) bool {
+func (k *kale) addIterationError(err error, projectUID, revisionUID k8sTypes.UID) bool {
 	key := recordedError{
-		Message:    fmt.Sprintf("%+v", err), // use %+v to include a stack trace if there is one
-		ProjectUID: projectUID,
-		CommitUID:  commitUID,
+		Message:     fmt.Sprintf("%+v", err), // use %+v to include a stack trace if there is one
+		ProjectUID:  projectUID,
+		RevisionUID: revisionUID,
 	}
 	k.NextIterationErrors[key] = struct{}{}
-	_, inPrev := k.NextIterationErrors[key]
+	_, inPrev := k.PrevIterationErrors[key]
 	isNew := !inPrev
 	return isNew
 }
@@ -447,9 +494,19 @@ func (k *kale) reconcileGitHub(ctx context.Context, snapshot *Snapshot) {
 			proj.Spec.GithubToken)
 		if err != nil {
 			reportRuntimeError(ctx, StepReconcileWebhook, err)
-		} else {
-			telemetryOK(ctx, StepReconcileWebhook)
+			continue
 		}
+		if proj.Status.Phase < ProjectPhase_WebhookCreated {
+			proj.Status.Phase = ProjectPhase_WebhookCreated
+			uProj := unstructureProject(proj.Project)
+			_, err := k.projectsGetter.Namespace(proj.GetNamespace()).UpdateStatus(uProj, k8sTypesMetaV1.UpdateOptions{})
+			if err != nil {
+				reportRuntimeError(ctx, StepReconcileWebhook, err)
+				continue
+			}
+			k.knownChangedProjects[proj.GetUID()] = proj.GetResourceVersion()
+		}
+		telemetryOK(ctx, StepReconcileWebhook)
 	}
 }
 
@@ -461,34 +518,26 @@ func (k *kale) dispatch(r *http.Request) httpResult {
 	parts := strings.Split(r.URL.Path[1:], "/")
 	switch parts[0] {
 	case "githook":
-		eventType := r.Header.Get("X-GitHub-Event")
-		switch eventType {
-		case "ping":
-			return httpResult{status: 200, body: "pong"}
-		case "push", "pull_request":
-			return k.handlePushOrPR(r, strings.Join(parts[1:], "/"))
-		default:
-			return httpResult{status: 500, body: fmt.Sprintf("don't know how to handle %q events", eventType)}
-		}
+		return k.handleWebhook(r, strings.Join(parts[1:], "/"))
 	case "kale-snapshot":
 		return httpResult{status: 200, body: k.projectsJSON()}
 	case "logs":
 		logType := parts[1]
-		commitQName := parts[2]
-		sep := strings.LastIndexByte(commitQName, '.')
+		revisionQName := parts[2]
+		sep := strings.LastIndexByte(revisionQName, '.')
 		if len(parts) > 3 || sep < 0 || !(logType == "build" || logType == "deploy") {
 			return httpResult{status: http.StatusNotFound, body: "not found"}
 		}
-		namespace := commitQName[sep+1:]
+		namespace := revisionQName[sep+1:]
 
-		commit := k.GetCommit(commitQName)
-		if commit == nil {
+		revision := k.GetRevision(revisionQName)
+		if revision == nil {
 			return httpResult{status: http.StatusNotFound, body: "not found"}
 		}
 
 		selectors := []string{
 			GlobalLabelName + "==" + k.cfg.AmbassadorID,
-			CommitLabelName + "==" + string(commit.GetUID()),
+			RevisionLabelName + "==" + string(revision.GetUID()),
 		}
 		if logType == "deploy" {
 			selectors = append(selectors, ServicePodLabelName)
@@ -537,38 +586,58 @@ func (k *kale) GetProject(key string) *projectAndChildren {
 	return nil
 }
 
-func (k *kale) GetCommit(qname string) *commitAndChildren {
+func (k *kale) GetRevision(qname string) *revisionAndChildren {
 	k.mu.RLock()
 	defer k.mu.RUnlock()
-	for _, commit := range k.webSnapshot.Commits {
-		if commit.GetName()+"."+commit.GetNamespace() == qname {
-			return commit
+	for _, revision := range k.webSnapshot.Revisions {
+		if revision.GetName()+"."+revision.GetNamespace() == qname {
+			return revision
 		}
 	}
 	return nil
 }
 
 // Handle push or pull_request events from the github API.
-func (k *kale) handlePushOrPR(r *http.Request, key string) httpResult {
+func (k *kale) handleWebhook(r *http.Request, key string) httpResult {
 	ctx := r.Context()
 
-	proj := k.GetProject(key)
-	if proj == nil {
+	_proj := k.GetProject(key)
+	if _proj == nil {
 		err := errors.Errorf("Git webhook called for non-existent project: %q", key)
 		reportRuntimeError(ctx, StepWebhookUpdate, err)
-		return httpResult{status: 404, body: err.Error()}
+		return httpResult{status: http.StatusNotFound, body: err.Error()}
 	}
-	ctx = CtxWithProject(ctx, proj.Project)
+	ctx = CtxWithProject(ctx, _proj.Project)
+	proj := *_proj.Project // get the value (not a pointer) so we can mutate it locally
 
-	proj.Status.LastPush = time.Now()
-	uProj := unstructureProject(proj.Project)
-	_, err := k.projectsGetter.Namespace(proj.GetNamespace()).UpdateStatus(uProj, k8sTypesMetaV1.UpdateOptions{})
-	if err != nil {
-		dlog.GetLogger(ctx).Println("update project status:", err)
-		telemetryOK(ctx, StepWebhookUpdate)
+	projDirty := false
+	if proj.Status.Phase < ProjectPhase_WebhookConfirmed {
+		proj.Status.Phase = ProjectPhase_WebhookConfirmed
+		projDirty = true
 	}
 
-	return httpResult{status: 200, body: ""}
+	eventType := r.Header.Get("X-GitHub-Event")
+	switch eventType {
+	case "ping":
+		// do nothing
+	case "push", "pull_request":
+		proj.Status.LastWebhook = time.Now()
+		projDirty = true
+	default:
+		return httpResult{status: http.StatusBadRequest, body: fmt.Sprintf("don't know how to handle %q events", eventType)}
+	}
+
+	telemetryOK(ctx, StepWebhookUpdate)
+
+	if projDirty {
+		uProj := unstructureProject(&proj)
+		_, err := k.projectsGetter.Namespace(proj.GetNamespace()).UpdateStatus(uProj, k8sTypesMetaV1.UpdateOptions{})
+		if err != nil {
+			reportRuntimeError(ctx, StepWebhookUpdate, errors.Wrap(err, "update project status"))
+		}
+	}
+
+	return httpResult{status: http.StatusOK, body: "ok"}
 }
 
 type Push struct {
@@ -580,7 +649,7 @@ type Push struct {
 	}
 }
 
-func (k *kale) calculateBuild(proj *Project, commit *ProjectCommit) []interface{} {
+func (k *kale) calculateBuild(proj *Project, revision *ProjectRevision) []interface{} {
 	// Note: If the kaniko destination is set to the full service name
 	// (registry.ambassador.svc.cluster.local), then we can't seem to push
 	// to the no matter how we tweak the settings. I assume this is due to
@@ -595,20 +664,20 @@ func (k *kale) calculateBuild(proj *Project, commit *ProjectCommit) []interface{
 			Kind:       "Job",
 		},
 		ObjectMeta: k8sTypesMetaV1.ObjectMeta{
-			Name:      commit.GetName() + "-build",
-			Namespace: commit.GetNamespace(),
+			Name:      revision.GetName() + "-build",
+			Namespace: revision.GetNamespace(),
 			Labels: map[string]string{
-				GlobalLabelName: k.cfg.AmbassadorID,
-				CommitLabelName: string(commit.GetUID()),
+				GlobalLabelName:   k.cfg.AmbassadorID,
+				RevisionLabelName: string(revision.GetUID()),
 			},
 			OwnerReferences: []k8sTypesMetaV1.OwnerReference{
 				{
 					Controller:         boolPtr(true),
 					BlockOwnerDeletion: boolPtr(true),
-					Kind:               commit.TypeMeta.Kind,
-					APIVersion:         commit.TypeMeta.APIVersion,
-					Name:               commit.GetName(),
-					UID:                commit.GetUID(),
+					Kind:               revision.TypeMeta.Kind,
+					APIVersion:         revision.TypeMeta.APIVersion,
+					Name:               revision.GetName(),
+					UID:                revision.GetUID(),
 				},
 			},
 		},
@@ -617,8 +686,8 @@ func (k *kale) calculateBuild(proj *Project, commit *ProjectCommit) []interface{
 			Template: k8sTypesCoreV1.PodTemplateSpec{
 				ObjectMeta: k8sTypesMetaV1.ObjectMeta{
 					Labels: map[string]string{
-						GlobalLabelName: k.cfg.AmbassadorID,
-						CommitLabelName: string(commit.GetUID()),
+						GlobalLabelName:   k.cfg.AmbassadorID,
+						RevisionLabelName: string(revision.GetUID()),
 					},
 				},
 				Spec: k8sTypesCoreV1.PodSpec{
@@ -632,13 +701,13 @@ func (k *kale) calculateBuild(proj *Project, commit *ProjectCommit) []interface{
 								"--skip-tls-verify-pull",
 								"--skip-tls-verify-registry",
 								"--dockerfile=Dockerfile",
-								"--destination=registry." + k.cfg.AmbassadorNamespace + "/" + proj.Namespace + "/" + proj.Name + ":" + commit.Spec.Rev,
+								"--destination=registry." + k.cfg.AmbassadorNamespace + "/" + proj.Namespace + "/" + proj.Name + ":" + revision.Spec.Rev,
 							},
 							Env: []k8sTypesCoreV1.EnvVar{
 								{Name: "KALE_CREDS", Value: proj.Spec.GithubToken},
 								{Name: "KALE_REPO", Value: proj.Spec.GithubRepo},
-								{Name: "KALE_REF", Value: commit.Spec.Ref.String()},
-								{Name: "KALE_REV", Value: commit.Spec.Rev},
+								{Name: "KALE_REF", Value: revision.Spec.Ref.String()},
+								{Name: "KALE_REV", Value: revision.Spec.Rev},
 							},
 						},
 					},
@@ -687,9 +756,9 @@ func (k *kale) calculateBuild(proj *Project, commit *ProjectCommit) []interface{
 		nameHash := fmt.Sprintf("%x", sha256.Sum224([]byte(job.GetName())))
 		job.Spec.Selector = &k8sTypesMetaV1.LabelSelector{
 			MatchLabels: map[string]string{
-				GlobalLabelName: k.cfg.AmbassadorID,
-				CommitLabelName: string(commit.GetUID()),
-				JobLabelName:    nameHash,
+				GlobalLabelName:   k.cfg.AmbassadorID,
+				RevisionLabelName: string(revision.GetUID()),
+				JobLabelName:      nameHash,
 			},
 		}
 		job.Spec.Template.ObjectMeta.Labels[JobLabelName] = nameHash
@@ -731,10 +800,10 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot *Snapshot) {
 		}
 	}
 
-	// reconcile commits
+	// reconcile revisions
 	for _, proj := range snapshot.Projects {
 		ctx := CtxWithProject(ctx, proj.Project)
-		commitManifests, err := k.calculateCommits(proj.Project)
+		revisionManifests, err := k.calculateRevisions(proj.Project)
 		if err != nil {
 			continue
 		}
@@ -745,159 +814,196 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot *Snapshot) {
 		err = applyAndPrune(
 			strings.Join(selectors, ","),
 			[]k8sSchema.GroupVersionKind{
-				{Group: "getambassador.io", Version: "v2", Kind: "ProjectCommit"},
+				{Group: "getambassador.io", Version: "v2", Kind: "ProjectRevision"},
 			},
-			commitManifests)
+			revisionManifests)
 		if err != nil {
-			reportRuntimeError(ctx, StepReconcileProjectsToCommits,
-				errors.Wrap(err, "updating ProjectCommits"))
+			reportRuntimeError(ctx, StepReconcileProjectsToRevisions,
+				errors.Wrap(err, "updating ProjectRevisions"))
 		} else {
-			telemetryOK(ctx, StepReconcileProjectsToCommits)
+			telemetryOK(ctx, StepReconcileProjectsToRevisions)
 		}
 	}
 
-	// reconcile things managed by commits
+	// reconcile things managed by revisions
 	//
 	// Because we're limiting the number of concurrent Jobs, it's
-	// important that we iterate over Commits in a stable (but
+	// important that we iterate over Revisions in a stable (but
 	// possibly arbitrary) order.  So, sort them by UID.
 	runningJobs := 0
-	for _, commitUID := range sortedUIDKeys(snapshot.Commits) {
-		commit := snapshot.Commits[commitUID]
-		if len(commit.Children.Builders) > 0 && commit.Status.Phase <= CommitPhase_Building {
-			runningJobs++
+	for _, revisionUID := range sortedUIDKeys(snapshot.Revisions) {
+		revision := snapshot.Revisions[revisionUID]
+		if len(revision.Children.Builders) > 0 {
+			succeeded, _ := jobConditionMet(revision.Children.Builders[0].Job, k8sTypesBatchV1.JobComplete, k8sTypesCoreV1.ConditionTrue)
+			failed, _ := jobConditionMet(revision.Children.Builders[0].Job, k8sTypesBatchV1.JobFailed, k8sTypesCoreV1.ConditionTrue)
+			if !(succeeded || failed) {
+				runningJobs++
+			}
 		}
 	}
-	for _, commitUID := range sortedUIDKeys(snapshot.Commits) {
-		commit := snapshot.Commits[commitUID]
-		ctx := CtxWithCommit(ctx, commit.ProjectCommit)
-		if commit.Parent == nil {
-			//reportRuntimeError(ctx, StepReconcileCommitsToAction,
-			//	errors.New("unable to pair ProjectCommit with Project"))
+	for _, revisionUID := range sortedUIDKeys(snapshot.Revisions) {
+		revision := snapshot.Revisions[revisionUID]
+		ctx := CtxWithRevision(ctx, revision.ProjectRevision)
+		if revision.Parent == nil {
+			//reportRuntimeError(ctx, StepReconcileRevisionsToAction,
+			//	errors.New("unable to pair ProjectRevision with Project"))
 			continue
 		}
-		ctx = CtxWithProject(ctx, commit.Parent.Project)
+		ctx = CtxWithProject(ctx, revision.Parent.Project)
 
 		var runtimeErr, bugErr error
 		bugErr = safeInvoke(func() {
-			runtimeErr = k.reconcileCommit(ctx, commit, &runningJobs)
+			runtimeErr = k.reconcileRevision(ctx, revision, &runningJobs)
 		})
 		if runtimeErr != nil {
-			reportRuntimeError(ctx, StepReconcileCommitsToAction, runtimeErr)
+			reportRuntimeError(ctx, StepReconcileRevisionsToAction, runtimeErr)
 		}
 		if bugErr != nil {
 			reportThisIsABug(ctx,
 				errors.Wrap(bugErr, "recovered from panic"))
 		}
 		if runtimeErr == nil && bugErr == nil {
-			telemetryOK(ctx, StepReconcileCommitsToAction)
+			telemetryOK(ctx, StepReconcileRevisionsToAction)
 		}
 	}
 }
 
-func (k *kale) reconcileCommit(ctx context.Context, _commit *commitAndChildren, runningJobs *int) error {
-	proj := _commit.Parent.Project
-	commit := _commit.ProjectCommit
-	builders := _commit.Children.Builders
-	runners := _commit.Children.Runners
+func (k *kale) reconcileRevision(ctx context.Context, _revision *revisionAndChildren, runningJobs *int) error {
+	proj := _revision.Parent.Project
+	revision := _revision.ProjectRevision
+	builders := _revision.Children.Builders
+	runners := _revision.Children.Runners
 
-	ctx = dlog.WithLogger(ctx, dlog.GetLogger(ctx).WithField("commit", commit.GetName()+"."+commit.GetNamespace()))
-	log := dlog.GetLogger(ctx)
+	ctx = dlog.WithLogger(ctx, dlog.GetLogger(ctx).WithField("revision", revision.GetName()+"."+revision.GetNamespace()))
 
-	var commitPhase CommitPhase
-	// Decide what the phase of the commit should be, based on available evidence
-	if len(runners) == 0 {
-		if len(builders) != 1 {
-			commitPhase = CommitPhase_Received
-		} else {
+	var revisionPhase RevisionPhase
+	// Decide what the phase of the revision should be, based on available evidence.
+	//
+	//     | runners | builders | phase                                                                   |
+	//     |---------+----------+-------------------------------------------------------------------------|
+	//     |       0 |        0 | Received or BuildQueued (depending on if there are job slots available) |
+	//     |       0 |        1 | Building or BuildFailed or Deploying (depending on job.status)          |
+	//     |       0 |       >1 | Building (should not happen)                                            |
+	//     |       1 |        n | Deploying or DeployFailed or Deployed (depending on deployment.status)  |
+	//     |      >1 |        n | Deploying (should not happen)                                           |
+	//
+	// Or, inverted:
+	//
+	//     | phase                | builders | runners  |
+	//     |----------------------+----------+----------|
+	//     | Received/BuildQueued | 0        | 0        |
+	//     | Building             | 1+       | 0        |
+	//     | BuildFailed          | 1 (fail) | 0        |
+	//     | Deploying            | 1 (succ) | 0        |
+	//     | Deploying            | n        | 1+       |
+	//     | DeployFailed         | n        | 1 (fail) |
+	//     | Deployed             | n        | 1 (succ) |
+	//
+	// It may help to think of "Deploying" as a synonym for "Build Completed Successfully".
+	switch len(runners) {
+	case 0:
+		switch len(builders) {
+		case 0:
+			revisionPhase = RevisionPhase_Received
+			if *runningJobs >= _revision.Parent.Parent.GetMaximumConcurrentBuilds() {
+				revisionPhase = RevisionPhase_BuildQueued
+			}
+		case 1:
 			if complete, _ := jobConditionMet(builders[0].Job, k8sTypesBatchV1.JobComplete, k8sTypesCoreV1.ConditionTrue); complete {
 				// advance to next phase
-				commitPhase = CommitPhase_Deploying
+				revisionPhase = RevisionPhase_Deploying
 			} else if failed, _ := jobConditionMet(builders[0].Job, k8sTypesBatchV1.JobFailed, k8sTypesCoreV1.ConditionTrue); failed {
 				telemetryErr(ctx, StepBuild,
 					errors.Errorf("builder Job failed %d times", builders[0].Status.Failed))
-				commitPhase = CommitPhase_BuildFailed
+				revisionPhase = RevisionPhase_BuildFailed
 			} else {
 				// keep waiting for one of the above to become true
-				commitPhase = CommitPhase_Building
+				revisionPhase = RevisionPhase_Building
 			}
+		default: // >= 2
+			// Something weird is going on here, don't let it advance.
+			// This should fix itself after we do an applyAndPrune().
+			revisionPhase = RevisionPhase_Building
 		}
-	} else {
-		if len(runners) != 1 {
-			commitPhase = CommitPhase_Deploying
+	case 1:
+		dep := runners[0]
+		if dep.Status.ObservedGeneration == dep.ObjectMeta.Generation &&
+			(dep.Spec.Replicas == nil || dep.Status.UpdatedReplicas >= *dep.Spec.Replicas) &&
+			dep.Status.UpdatedReplicas == dep.Status.Replicas &&
+			dep.Status.AvailableReplicas == dep.Status.Replicas {
+			// advance to next phase
+			revisionPhase = RevisionPhase_Deployed
 		} else {
-			dep := runners[0]
-			if dep.Status.ObservedGeneration == dep.ObjectMeta.Generation &&
-				(dep.Spec.Replicas == nil || dep.Status.UpdatedReplicas >= *dep.Spec.Replicas) &&
-				dep.Status.UpdatedReplicas == dep.Status.Replicas &&
-				dep.Status.AvailableReplicas == dep.Status.Replicas {
-				// advance to next phase
-				commitPhase = CommitPhase_Deployed
-			} else {
-				commitPhase = CommitPhase_Deploying
-				for _, p := range dep.Children.Pods {
-					if p.InCrashLoopBackOff() {
-						commitPhase = CommitPhase_DeployFailed
-						break
-					}
+			revisionPhase = RevisionPhase_Deploying
+			for _, p := range dep.Children.Pods {
+				if p.InCrashLoopBackOff() {
+					revisionPhase = RevisionPhase_DeployFailed
+					break
 				}
 			}
 		}
+	default: // >= 2
+		// Something weird is going on here, don't let it
+		// reach a terminal Deployed/DeployFailed phase.
+		// This should fix itself after we do an applyAndPrune().
+		revisionPhase = RevisionPhase_Deploying
 	}
-	// If the detected phase of the commit doesn't match what's in the commit.status, inform
+	// If the detected phase of the revision doesn't match what's in the revision.status, inform
 	// both Kubernetes and GitHub of the change.
-	if commitPhase != commit.Status.Phase {
-		commit.Status.Phase = commitPhase
-		uCommit := unstructureCommit(commit)
-		_, err := k.commitsGetter.Namespace(commit.GetNamespace()).UpdateStatus(uCommit, k8sTypesMetaV1.UpdateOptions{})
+	if revisionPhase != revision.Status.Phase {
+		revision.Status.Phase = revisionPhase
+		uRevision := unstructureRevision(revision)
+		_, err := k.revisionsGetter.Namespace(revision.GetNamespace()).UpdateStatus(uRevision, k8sTypesMetaV1.UpdateOptions{})
 		if err != nil {
-			log.Println("update commit status:", err)
+			reportRuntimeError(ctx, StepBackground, errors.Wrap(err, "update revision status in Kubernetes"))
+		} else {
+			k.knownChangedRevisions[revision.GetUID()] = revision.GetResourceVersion()
 		}
-		err = postStatus(ctx, fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, commit.Spec.Rev),
+		err = postStatus(ctx, fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, revision.Spec.Rev),
 			GitHubStatus{
-				State: map[CommitPhase]string{
-					CommitPhase_Received:  "pending",
-					CommitPhase_Building:  "pending",
-					CommitPhase_Deploying: "pending",
-					CommitPhase_Deployed:  "success",
+				State: map[RevisionPhase]string{
+					RevisionPhase_Received:  "pending",
+					RevisionPhase_Building:  "pending",
+					RevisionPhase_Deploying: "pending",
+					RevisionPhase_Deployed:  "success",
 
-					CommitPhase_BuildFailed:  "failure",
-					CommitPhase_DeployFailed: "failure",
-				}[commitPhase],
-				TargetUrl: map[CommitPhase]string{
-					CommitPhase_Received:     proj.BuildLogUrl(commit),
-					CommitPhase_Building:     proj.BuildLogUrl(commit),
-					CommitPhase_BuildFailed:  proj.BuildLogUrl(commit),
-					CommitPhase_Deploying:    proj.ServerLogUrl(commit),
-					CommitPhase_DeployFailed: proj.ServerLogUrl(commit),
-					CommitPhase_Deployed:     proj.PreviewUrl(commit),
-				}[commitPhase],
-				Description: commitPhase.String(),
-				Context:     "aes",
+					RevisionPhase_BuildFailed:  "failure",
+					RevisionPhase_DeployFailed: "failure",
+				}[revisionPhase],
+				TargetUrl: map[RevisionPhase]string{
+					RevisionPhase_Received:     proj.BuildLogUrl(revision),
+					RevisionPhase_Building:     proj.BuildLogUrl(revision),
+					RevisionPhase_BuildFailed:  proj.BuildLogUrl(revision),
+					RevisionPhase_Deploying:    proj.ServerLogUrl(revision),
+					RevisionPhase_DeployFailed: proj.ServerLogUrl(revision),
+					RevisionPhase_Deployed:     proj.PreviewUrl(revision),
+				}[revisionPhase],
+				Description: revisionPhase.String(),
+				Context:     "aes/" + revision.Spec.Ref.String(),
 			},
 			proj.Spec.GithubToken)
 		if err != nil {
-			log.Println("update commit status:", err)
+			reportRuntimeError(ctx, StepBackground, errors.Wrap(err, "update revision status in GitHub"))
 		}
 	}
 
 	var manifests []interface{}
-	if *runningJobs < _commit.Parent.Parent.GetMaximumConcurrentBuilds() || commit.Status.Phase > CommitPhase_Building {
-		manifests = append(manifests, k.calculateBuild(proj, commit)...)
-		if len(_commit.Children.Builders) == 0 {
+	if len(_revision.Children.Builders) > 0 || *runningJobs < _revision.Parent.Parent.GetMaximumConcurrentBuilds() {
+		manifests = append(manifests, k.calculateBuild(proj, revision)...)
+		if len(_revision.Children.Builders) == 0 {
 			*runningJobs++
 		}
 	}
-	if commit.Status.Phase >= CommitPhase_Deploying {
+	if revision.Status.Phase >= RevisionPhase_Deploying {
 		telemetryOK(ctx, StepBuild)
-		manifests = append(manifests, k.calculateRun(proj, commit)...)
+		manifests = append(manifests, k.calculateRun(proj, revision)...)
 	}
-	if commit.Status.Phase == CommitPhase_Deployed {
+	if revision.Status.Phase == RevisionPhase_Deployed {
 		telemetryOK(ctx, StepDeploy)
 	}
 	selectors := []string{
 		GlobalLabelName + "==" + k.cfg.AmbassadorID,
-		CommitLabelName + "==" + string(commit.GetUID()),
+		RevisionLabelName + "==" + string(revision.GetUID()),
 	}
 	if len(manifests) == 0 {
 		return nil
@@ -913,24 +1019,24 @@ func (k *kale) reconcileCommit(ctx context.Context, _commit *commitAndChildren, 
 		manifests)
 	if err != nil {
 		if strings.Contains(err.Error(), "Forbidden: updates to deployment spec for fields other than 'replicas', 'template', and 'updateStrategy' are forbidden") {
-			deleteResource("deployment.v1.apps", commit.GetName(), commit.GetNamespace())
+			deleteResource("deployment.v1.apps", revision.GetName(), revision.GetNamespace())
 		} else if regexp.MustCompile("(?s)The Job .* is invalid.* field is immutable").MatchString(err.Error()) {
-			deleteResource("job.v1.batch", commit.GetName()+"-build", commit.GetNamespace())
+			deleteResource("job.v1.batch", revision.GetName()+"-build", revision.GetNamespace())
 		} else {
-			reportRuntimeError(ctx, StepReconcileCommitsToAction,
-				errors.Wrap(err, "deploying ProjectCommit"))
+			reportRuntimeError(ctx, StepReconcileRevisionsToAction,
+				errors.Wrap(err, "deploying ProjectRevision"))
 		}
 	}
 
 	return nil
 }
 
-func (k *kale) calculateRun(proj *Project, commit *ProjectCommit) []interface{} {
+func (k *kale) calculateRun(proj *Project, revision *ProjectRevision) []interface{} {
 	prefix := proj.Spec.Prefix
-	if commit.Spec.IsPreview {
+	if revision.Spec.IsPreview {
 		// todo: figure out what is going on with /edge_stack/previews
 		// not being routable
-		prefix = "/.previews" + proj.Spec.Prefix + commit.Spec.Rev + "/"
+		prefix = "/.previews" + proj.Spec.Prefix + revision.Spec.Rev + "/"
 	}
 	return []interface{}{
 		&Mapping{
@@ -939,27 +1045,27 @@ func (k *kale) calculateRun(proj *Project, commit *ProjectCommit) []interface{} 
 				Kind:       "Mapping",
 			},
 			ObjectMeta: k8sTypesMetaV1.ObjectMeta{
-				Name:      commit.GetName(),
-				Namespace: commit.GetNamespace(),
+				Name:      revision.GetName(),
+				Namespace: revision.GetNamespace(),
 				OwnerReferences: []k8sTypesMetaV1.OwnerReference{
 					{
 						Controller:         boolPtr(true),
 						BlockOwnerDeletion: boolPtr(true),
-						Kind:               commit.TypeMeta.Kind,
-						APIVersion:         commit.TypeMeta.APIVersion,
-						Name:               commit.GetName(),
-						UID:                commit.GetUID(),
+						Kind:               revision.TypeMeta.Kind,
+						APIVersion:         revision.TypeMeta.APIVersion,
+						Name:               revision.GetName(),
+						UID:                revision.GetUID(),
 					},
 				},
 				Labels: map[string]string{
-					GlobalLabelName: k.cfg.AmbassadorID,
-					CommitLabelName: string(commit.GetUID()),
+					GlobalLabelName:   k.cfg.AmbassadorID,
+					RevisionLabelName: string(revision.GetUID()),
 				},
 			},
 			Spec: MappingSpec{
 				AmbassadorID: aproTypesV2.AmbassadorID{k.cfg.AmbassadorID},
 				Prefix:       prefix,
-				Service:      commit.GetName(),
+				Service:      revision.GetName(),
 			},
 		},
 		&k8sTypesCoreV1.Service{
@@ -968,27 +1074,27 @@ func (k *kale) calculateRun(proj *Project, commit *ProjectCommit) []interface{} 
 				Kind:       "Service",
 			},
 			ObjectMeta: k8sTypesMetaV1.ObjectMeta{
-				Name:      commit.GetName(),
-				Namespace: commit.GetNamespace(),
+				Name:      revision.GetName(),
+				Namespace: revision.GetNamespace(),
 				OwnerReferences: []k8sTypesMetaV1.OwnerReference{
 					{
 						Controller:         boolPtr(true),
 						BlockOwnerDeletion: boolPtr(true),
-						Kind:               commit.TypeMeta.Kind,
-						APIVersion:         commit.TypeMeta.APIVersion,
-						Name:               commit.GetName(),
-						UID:                commit.GetUID(),
+						Kind:               revision.TypeMeta.Kind,
+						APIVersion:         revision.TypeMeta.APIVersion,
+						Name:               revision.GetName(),
+						UID:                revision.GetUID(),
 					},
 				},
 				Labels: map[string]string{
-					GlobalLabelName: k.cfg.AmbassadorID,
-					CommitLabelName: string(commit.GetUID()),
+					GlobalLabelName:   k.cfg.AmbassadorID,
+					RevisionLabelName: string(revision.GetUID()),
 				},
 			},
 			Spec: k8sTypesCoreV1.ServiceSpec{
 				Selector: map[string]string{
-					GlobalLabelName: k.cfg.AmbassadorID,
-					CommitLabelName: string(commit.GetUID()),
+					GlobalLabelName:   k.cfg.AmbassadorID,
+					RevisionLabelName: string(revision.GetUID()),
 				},
 				Ports: []k8sTypesCoreV1.ServicePort{
 					{
@@ -1005,35 +1111,35 @@ func (k *kale) calculateRun(proj *Project, commit *ProjectCommit) []interface{} 
 				Kind:       "Deployment",
 			},
 			ObjectMeta: k8sTypesMetaV1.ObjectMeta{
-				Name:      commit.GetName(),
-				Namespace: commit.GetNamespace(),
+				Name:      revision.GetName(),
+				Namespace: revision.GetNamespace(),
 				OwnerReferences: []k8sTypesMetaV1.OwnerReference{
 					{
 						Controller:         boolPtr(true),
 						BlockOwnerDeletion: boolPtr(true),
-						Kind:               commit.TypeMeta.Kind,
-						APIVersion:         commit.TypeMeta.APIVersion,
-						Name:               commit.GetName(),
-						UID:                commit.GetUID(),
+						Kind:               revision.TypeMeta.Kind,
+						APIVersion:         revision.TypeMeta.APIVersion,
+						Name:               revision.GetName(),
+						UID:                revision.GetUID(),
 					},
 				},
 				Labels: map[string]string{
-					GlobalLabelName: k.cfg.AmbassadorID,
-					CommitLabelName: string(commit.GetUID()),
+					GlobalLabelName:   k.cfg.AmbassadorID,
+					RevisionLabelName: string(revision.GetUID()),
 				},
 			},
 			Spec: k8sTypesAppsV1.DeploymentSpec{
 				Selector: &k8sTypesMetaV1.LabelSelector{
 					MatchLabels: map[string]string{
-						GlobalLabelName: k.cfg.AmbassadorID,
-						CommitLabelName: string(commit.GetUID()),
+						GlobalLabelName:   k.cfg.AmbassadorID,
+						RevisionLabelName: string(revision.GetUID()),
 					},
 				},
 				Template: k8sTypesCoreV1.PodTemplateSpec{
 					ObjectMeta: k8sTypesMetaV1.ObjectMeta{
 						Labels: map[string]string{
 							GlobalLabelName:     k.cfg.AmbassadorID,
-							CommitLabelName:     string(commit.GetUID()),
+							RevisionLabelName:   string(revision.GetUID()),
 							ServicePodLabelName: "true",
 						},
 					},
@@ -1041,12 +1147,12 @@ func (k *kale) calculateRun(proj *Project, commit *ProjectCommit) []interface{} 
 						Containers: []k8sTypesCoreV1.Container{
 							{
 								Name:  "app",
-								Image: "127.0.0.1:31000/" + proj.Namespace + "/" + proj.Name + ":" + commit.Spec.Rev,
+								Image: "127.0.0.1:31000/" + proj.Namespace + "/" + proj.Name + ":" + revision.Spec.Rev,
 								Env: []k8sTypesCoreV1.EnvVar{
-									{Name: "AMB_PROJECT_PREVIEW", Value: strconv.FormatBool(commit.Spec.IsPreview)},
+									{Name: "AMB_PROJECT_PREVIEW", Value: strconv.FormatBool(revision.Spec.IsPreview)},
 									{Name: "AMB_PROJECT_REPO", Value: proj.Spec.GithubRepo},
-									{Name: "AMB_PROJECT_REF", Value: commit.Spec.Ref.String()},
-									{Name: "AMB_PROJECT_REV", Value: commit.Spec.Rev},
+									{Name: "AMB_PROJECT_REF", Value: revision.Spec.Ref.String()},
+									{Name: "AMB_PROJECT_REV", Value: revision.Spec.Rev},
 								},
 							},
 						},

@@ -19,15 +19,62 @@ import (
 type Project struct {
 	k8sTypesMetaV1.TypeMeta
 	k8sTypesMetaV1.ObjectMeta `json:"metadata"`
-	Spec                      struct {
-		Host        string `json:"host"`
-		Prefix      string `json:"prefix"`
-		GithubRepo  string `json:"githubRepo"`
-		GithubToken string `json:"githubToken"` // todo: make this a secret ref
-	} `json:"spec"`
-	Status struct {
-		LastPush time.Time `json:"lastPush"`
-	} `json:"status"`
+	Spec                      ProjectSpec   `json:"spec"`
+	Status                    ProjectStatus `json:"status"`
+}
+
+type ProjectSpec struct {
+	Host        string `json:"host"`
+	Prefix      string `json:"prefix"`
+	GithubRepo  string `json:"githubRepo"`
+	GithubToken string `json:"githubToken"` // todo: make this a secret ref
+}
+
+type ProjectStatus struct {
+	Phase       ProjectPhase `json:"phase"`
+	LastWebhook time.Time    `json:"lastWebhook"`
+}
+
+type ProjectPhase int32
+
+const (
+	ProjectPhase_Received         ProjectPhase = 0
+	ProjectPhase_WebhookCreated   ProjectPhase = 1
+	ProjectPhase_WebhookConfirmed ProjectPhase = 2
+)
+
+var ProjectPhase_name = map[int32]string{
+	0: "Received",
+	1: "WebhookCreated",
+	2: "WebhookConfirmed",
+}
+
+var ProjectPhase_value = map[string]int32{
+	"Received":         0,
+	"WebhookCreated":   1,
+	"WebhookConfirmed": 2,
+}
+
+func (x ProjectPhase) String() string {
+	return proto.EnumName(ProjectPhase_name, int32(x))
+}
+
+func (x ProjectPhase) MarshalJSON() ([]byte, error) {
+	return json.Marshal(x.String())
+}
+
+func (x *ProjectPhase) UnmarshalJSON(bs []byte) error {
+	var str string
+	if err := json.Unmarshal(bs, &str); err != nil {
+		return err
+	}
+	val, ok := ProjectPhase_value[str]
+	if !ok {
+		// non-fatal, for now?
+		val = 0
+	}
+	*x = ProjectPhase(val)
+	return nil
 }
 
 func (p Project) Key() string {
@@ -36,87 +83,90 @@ func (p Project) Key() string {
 
 const CODE = "butterscotch"
 
-func (p Project) PreviewUrl(commit *ProjectCommit) string {
-	return fmt.Sprintf("https://%s/.previews%s%s/", p.Spec.Host, p.Spec.Prefix, commit.Spec.Rev)
+func (p Project) PreviewUrl(revision *ProjectRevision) string {
+	return fmt.Sprintf("https://%s/.previews%s%s/", p.Spec.Host, p.Spec.Prefix, revision.Spec.Rev)
 }
 
-func (p Project) ServerLogUrl(commit *ProjectCommit) string {
+func (p Project) ServerLogUrl(revision *ProjectRevision) string {
 	return fmt.Sprintf("https://%s/edge_stack/admin/#projects?code=%s&log=deploy/%s.%s",
-		p.Spec.Host, CODE, commit.GetName(), commit.GetNamespace())
+		p.Spec.Host, CODE, revision.GetName(), revision.GetNamespace())
 }
 
-func (p Project) BuildLogUrl(commit *ProjectCommit) string {
+func (p Project) BuildLogUrl(revision *ProjectRevision) string {
 	return fmt.Sprintf("https://%s/edge_stack/admin/#projects?code=%s&log=build/%s.%s",
-		p.Spec.Host, CODE, commit.GetName(), commit.GetNamespace())
+		p.Spec.Host, CODE, revision.GetName(), revision.GetNamespace())
 
 }
 
-type ProjectCommit struct {
+type ProjectRevision struct {
 	k8sTypesMetaV1.TypeMeta
 	k8sTypesMetaV1.ObjectMeta `json:"metadata"`
-	Spec                      ProjectCommitSpec   `json:"spec"`
-	Status                    ProjectCommitStatus `json:"status"`
+	Spec                      ProjectRevisionSpec   `json:"spec"`
+	Status                    ProjectRevisionStatus `json:"status"`
 }
 
-type ProjectCommitSpec struct {
+type ProjectRevisionSpec struct {
 	Project   k8sTypesCoreV1.LocalObjectReference `json:"project"`
 	Ref       libgitPlumbing.ReferenceName        `json:"ref"` // string
 	Rev       string                              `json:"rev"` // libgitPlumbing.Hash
 	IsPreview bool                                `json:"isPreview"`
 }
 
-type ProjectCommitStatus struct {
-	Phase CommitPhase `json:"phase"`
+type ProjectRevisionStatus struct {
+	Phase RevisionPhase `json:"phase"`
 }
 
-type CommitPhase int32
+type RevisionPhase int32
 
 const (
-	CommitPhase_Received     CommitPhase = 0
-	CommitPhase_Building     CommitPhase = 1
-	CommitPhase_BuildFailed  CommitPhase = 2
-	CommitPhase_Deploying    CommitPhase = 3
-	CommitPhase_DeployFailed CommitPhase = 4
-	CommitPhase_Deployed     CommitPhase = 5
+	RevisionPhase_Received     RevisionPhase = 0
+	RevisionPhase_BuildQueued  RevisionPhase = 1
+	RevisionPhase_Building     RevisionPhase = 2
+	RevisionPhase_BuildFailed  RevisionPhase = 3
+	RevisionPhase_Deploying    RevisionPhase = 4
+	RevisionPhase_DeployFailed RevisionPhase = 5
+	RevisionPhase_Deployed     RevisionPhase = 6
 )
 
-var CommitPhase_name = map[int32]string{
+var RevisionPhase_name = map[int32]string{
 	0: "Received",
-	1: "Building",
-	2: "BuildFailed",
-	3: "Deploying",
-	4: "DeployFailed",
-	5: "Deployed",
+	1: "BuildQueued",
+	2: "Building",
+	3: "BuildFailed",
+	4: "Deploying",
+	5: "DeployFailed",
+	6: "Deployed",
 }
 
-var CommitPhase_value = map[string]int32{
+var RevisionPhase_value = map[string]int32{
 	"Received":     0,
-	"Building":     1,
-	"BuildFailed":  2,
-	"Deploying":    3,
-	"DeployFailed": 4,
-	"Deployed":     5,
+	"BuildQueued":  1,
+	"Building":     2,
+	"BuildFailed":  3,
+	"Deploying":    4,
+	"DeployFailed": 5,
+	"Deployed":     6,
 }
 
-func (x CommitPhase) String() string {
-	return proto.EnumName(CommitPhase_name, int32(x))
+func (x RevisionPhase) String() string {
+	return proto.EnumName(RevisionPhase_name, int32(x))
 }
 
-func (x CommitPhase) MarshalJSON() ([]byte, error) {
+func (x RevisionPhase) MarshalJSON() ([]byte, error) {
 	return json.Marshal(x.String())
 }
 
-func (x *CommitPhase) UnmarshalJSON(bs []byte) error {
+func (x *RevisionPhase) UnmarshalJSON(bs []byte) error {
 	var str string
 	if err := json.Unmarshal(bs, &str); err != nil {
 		return err
 	}
-	val, ok := CommitPhase_value[str]
+	val, ok := RevisionPhase_value[str]
 	if !ok {
 		// non-fatal, for now?
 		val = 0
 	}
-	*x = CommitPhase(val)
+	*x = RevisionPhase(val)
 	return nil
 }
 
