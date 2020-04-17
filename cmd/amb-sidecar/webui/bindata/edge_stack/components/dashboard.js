@@ -595,17 +595,17 @@ export class Dashboard extends LitElement {
     /* Initialize the list of dashboard panels */
     this._panels = [ CountsPanel, StatusPanel, SystemServicesPanel, ResYAMLPanel, LicensePanel ];
 
-    /* Get the query string ?first-install and if true, show a modal window with content from
+    /* Get the query string ?welcome and if true, show a modal window with content from
      * aes-celebration (redirected from https://metriton.datawire.io/beta/aes-celebration in webui.go).
      * This is done on first login after edgectl install.  this.modalHTML is the HTML to render if
-     * we are showing the modal window.  Initialized to null in case we don't have first-install.
+     * we are showing the modal window.  Initialized to null in case we don't have welcome.
      */
 
     this.modalHTML = null;
 
     let urlParams = new URLSearchParams(window.location.search);
-    if( urlParams.has('first-install') ) {
-      if (urlParams.get('first-install') === "true") {
+    if( urlParams.has('welcome') ) {
+      if (urlParams.get('welcome') === "true") {
         ApiFetch("/edge_stack/api/config/aes-celebration").then(
           (response) => {
             if (response.status === 200) {
