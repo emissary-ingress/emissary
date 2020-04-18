@@ -25,6 +25,7 @@ class IRBaseMapping (IRResource):
                  metadata_labels: Optional[Dict[str, str]] = None,
                  apiVersion: str="getambassador.io/v2",
                  precedence: int=0,
+                 cluster_tag: Optional[str]=None,
                  **kwargs) -> None:
         # Default status.
         self.cached_status = None
@@ -34,7 +35,7 @@ class IRBaseMapping (IRResource):
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, location=location,
             kind=kind, name=name, namespace=namespace, metadata_labels=metadata_labels,
-            apiVersion=apiVersion, precedence=precedence,
+            apiVersion=apiVersion, precedence=precedence, cluster_tag=cluster_tag,
             **kwargs
         )
 

@@ -127,6 +127,46 @@ def check_ingresses():
     return status
 
 
+def check_ingress_classes():
+    status = False
+
+    api_client = client.ApiClient(client.Configuration())
+
+    if api_client:
+        try:
+            # Sadly, the Kubernetes Python library is not built with forward-compatibility in mind.
+            # Since IngressClass is a new resource, it is not discoverable through the python wrapper apis.
+            # Here, we extracted (read copy/pasted) a sample call from k8s_v1b1.list_ingress_for_all_namespaces()
+            # where we use the rest ApiClient to read ingressclasses.
+
+            path_params = {}
+            query_params = []
+            header_params = {}
+
+            header_params['Accept'] = api_client. \
+                select_header_accept(['application/json',
+                                      'application/yaml',
+                                      'application/vnd.kubernetes.protobuf',
+                                      'application/json;stream=watch',
+                                      'application/vnd.kubernetes.protobuf;stream=watch'])
+
+            header_params['Content-Type'] = api_client. \
+                select_header_content_type(['*/*'])
+
+            auth_settings = ['BearerToken']
+
+            api_client.call_api('/apis/networking.k8s.io/v1beta1/ingressclasses', 'GET',
+                                path_params,
+                                query_params,
+                                header_params,
+                                auth_settings=auth_settings)
+            status = True
+        except ApiException as e:
+            logger.debug(f'IngressClass check got {e.status}')
+
+    return status
+
+
 def touch_file(touchfile):
     touchpath = Path(ambassador_basedir, touchfile)
     touchpath.touch()
@@ -237,6 +277,13 @@ def main(debug):
                                  ' To enable CRD support, configure the Ambassador CRD type definitions and RBAC,' +
                                  ' then restart the Ambassador pod.')
                     # logger.debug(f'touched {touchpath}')
+
+        if not check_ingress_classes():
+            touch_file('.ambassador_ignore_ingress_class')
+
+            logger.debug(f'Ambassador does not have permission to read IngressClass resources.' +
+                         ' To enable IngressClass support, configure RBAC to allow Ambassador to read IngressClass'
+                         ' resources, then restart the Ambassador pod.')
 
         if not check_ingresses():
             touch_file('.ambassador_ignore_ingress')

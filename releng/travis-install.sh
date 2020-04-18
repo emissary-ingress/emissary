@@ -14,10 +14,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
+this_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+[ -d "$this_dir" ] || {
+        echo "FATAL: no current dir (maybe running in zsh?)"
+        exit 1
+}
+TOP_DIR=$(realpath $this_dir/..)
+
 GO_VERSION=1.13
 HELM_VERSION=2.9.1
-KUBECTL_VERSION=1.10.2
+KUBECTL_VERSION=1.17.4
 KUBERNAUT_VERSION=2018.10.24-d46c1f1
+KIND_VERSION=v0.7.0  # see https://github.com/kubernetes-sigs/kind/releases
 
 set -o errexit
 set -o nounset
@@ -47,6 +55,10 @@ source ~/.gimme/envs/latest.env
 
 # Install awscli
 sudo pip install awscli
+
+# Install KIND (for running the Ingress v1 conformance tests)
+curl -Lo ~/bin/kind "https://github.com/kubernetes-sigs/kind/releases/download/${KIND_VERSION}/kind-$(uname)-amd64"
+chmod +x ~/bin/kind
 
 # Configure kubernaut
 base64 -d < kconf.b64 | ( cd ~ ; tar xzf - )
