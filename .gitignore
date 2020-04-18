@@ -4,6 +4,7 @@
 .coverage
 .dmypy
 .dmypy.json
+.golangci.yml
 .python-version
 .DS_Store
 .skip_test_warning
@@ -14,6 +15,8 @@ __pycache__
 
 # binaries
 /bin_*/
+
+vendor_bootstrap_hack.go
 
 /tools/sandbox/grpc_auth/docker-compose.yml
 /tools/sandbox/grpc_web/docker-compose.yaml

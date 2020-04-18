@@ -93,5 +93,7 @@ class EnvoyRoute:
     def _get_envoy_route(self, group: IRHTTPMappingGroup) -> str:
         if group.get('prefix_regex', False):
             return self.regex
+        if group.get('prefix_exact', False):
+            return self.path
         else:
             return self.prefix

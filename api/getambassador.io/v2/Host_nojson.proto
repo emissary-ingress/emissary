@@ -28,7 +28,7 @@ import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 import "getambassador.io/v2/Host.proto";
 
 message Host {
-  k8s.io.apimachinery.pkg.apis.meta.v1.TypeMeta type_meta = 1 [(gogoproto.embed) = true, (gogoproto.jsontag) = ",inline"];
+  k8s.io.apimachinery.pkg.apis.meta.v1.TypeMeta type_meta = 1 [(gogoproto.embed) = true, (gogoproto.jsontag) = ",omitempty"];
 
   // Standard object's metadata.
   // More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata

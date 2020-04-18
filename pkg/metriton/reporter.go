@@ -133,6 +133,13 @@ func IsDisabledByUser() bool {
 	return os.Getenv("SCOUT_DISABLE") != ""
 }
 
+func (r *Reporter) InstallID() string {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	_ = r.ensureInitialized()
+	return r.installID
+}
+
 // Report submits a telemetry report to Metriton.  It is safe to call .Report() from
 // different goroutines.  It is NOT safe to mutate the public fields in the Reporter while
 // .Report() is being called.
