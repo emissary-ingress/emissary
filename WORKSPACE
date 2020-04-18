@@ -34,8 +34,8 @@ py_repositories()
 load("@rules_python//python:pip.bzl", "pip_repositories", "pip3_import")
 pip_repositories()
 pip3_import(
-    name = "ambassador_cheeseshop",
+    name = "my_deps",
     requirements = "//builder:requirements.txt",
 )
-load("@ambassador_cheeseshop//:requirements.bzl", "pip_install")
+load("@my_deps//:requirements.bzl", "pip_install")
 pip_install()
