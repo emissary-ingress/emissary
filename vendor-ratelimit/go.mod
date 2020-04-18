@@ -3,8 +3,8 @@ module github.com/lyft/ratelimit
 go 1.13
 
 require (
-	github.com/datawire/ambassador v0.83.1-ea10
-	github.com/datawire/apro v0.0.0-00010101000000-000000000000
+	github.com/datawire/ambassador v1.0.0-local-vendored-copy
+	github.com/datawire/apro v1.0.0-local-vendored-copy
 	github.com/golang/mock v1.2.0
 	github.com/gorilla/mux v1.7.3
 	github.com/kavu/go_reuseport v1.2.0
@@ -25,6 +25,3 @@ replace (
 	github.com/datawire/apro => ../
 	github.com/lyft/ratelimit => ./
 )
-
-// Inherit nescessary replacements from the apro go.mod
-replace gopkg.in/russross/blackfriday.v2 => github.com/russross/blackfriday v2.0.0+incompatible

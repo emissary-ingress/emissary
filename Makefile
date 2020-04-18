@@ -95,14 +95,15 @@ update-yaml-locally: sync
 .PHONY: update-yaml-locally
 
 preflight-docs:
-	@if [ -z "$${AMBASSADOR_DOCS}" ]; then printf "$(RED)Please set AMBASSADOR_DOCS to point to your ambassador-docs.git checkout$(END)\n" >&2; exit 1; fi
-	@if ! [ -f "$${AMBASSADOR_DOCS}/versions.yml" ]; then printf "$(RED)AMBASSADOR_DOCS=$${AMBASSADOR_DOCS} does not look like an ambassador-docs.git checkout$(END)\n" >&2; exit 1; fi
+	@if [ -z "$${AMBASSADOR_DOCS}" ]; then printf "$(RED)Please set AMBASSADOR_DOCS to point to your ambassador.git/docs checkout$(END)\n" >&2; exit 1; fi
+	@if ! [ -f "$${AMBASSADOR_DOCS}/js/versions.yml" ]; then printf "$(RED)AMBASSADOR_DOCS=$${AMBASSADOR_DOCS} does not look like an ambassador.git/docs checkout$(END)\n" >&2; exit 1; fi
 .PHONY: preflight-docs
 
 update-yaml: update-yaml-locally preflight-docs
 	@printf "$(CYN)==> $(GRN)Checking whether AMBASSADOR_DOCS is up to date$(END)\n"
 	git -C "$${AMBASSADOR_DOCS}" fetch --all --prune --tags
-	@printf "$(GRN)In another terminal, verify that your AMBASSADOR_DOCS ($(AMBASSADOR_DOCS)) checkout is up-to-date with the desired branch (probably $(BLU)early-access$(GRN))$(END)\n"
+	@printf "$(GRN)In another terminal, verify that your AMBASSADOR_DOCS ($(AMBASSADOR_DOCS))\n"
+	@printf "$(GRN)checkout is up-to-date with the desired branch (probably $(BLU)ambassador.git/docs$(GRN) branch=$(BLU)master$(GRN))$(END)\n"
 	@read -s -p "$$(printf '$(GRN)Press $(BLU)enter$(GRN) once you have verified this:$(END)')"
 	@echo
 	@printf "$(CYN)==> $(GRN)Updating AMBASSADOR_DOCS YAML$(END)\n"

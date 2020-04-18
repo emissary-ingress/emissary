@@ -70,7 +70,7 @@ rules:
 # Note: If you edit this, be sure to also edit the pytest
 # `manifests/rbac_*_scope.yaml` files.
 - apiGroups: [""]
-  resources: [ "namespaces", "services" ]
+  resources: [ "namespaces", "services", "pods" ]
   verbs: ["get", "list", "watch"]
 - apiGroups: [ "getambassador.io" ]
   resources: [ "*" ]
