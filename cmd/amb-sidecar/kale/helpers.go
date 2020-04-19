@@ -431,7 +431,7 @@ type Pull struct {
 // calculateRevisions does a `git ls-remote`, gets the listing of open GitHub
 // pull-requests, and cross-references the two in order to decide
 // which things we want to deploy.
-func (k *kale) calculateRevisions(proj *Project) ([]interface{}, error) {
+func (k *kale) calculateRevisions(proj *projectAndChildren) ([]interface{}, error) {
 	repo := proj.Spec.GithubRepo
 	token := proj.Spec.GithubToken
 
@@ -462,7 +462,7 @@ func (k *kale) calculateRevisions(proj *Project) ([]interface{}, error) {
 	}
 
 	// Resolve all of those refNames, and generate ProjectRevision objects for them.
-	var revisions []interface{}
+	var revisions []*ProjectRevision
 	for _, refName := range deployRefNames {
 		// Use libgitPlumbing.ReferenceName() instead of refs.Reference() (or even having
 		// gitLsRemote return a simple slice of refs) in order to resolve refs recursively.
@@ -507,7 +507,45 @@ func (k *kale) calculateRevisions(proj *Project) ([]interface{}, error) {
 			},
 		})
 	}
-	return revisions, nil
+
+	// Take extra steps to make sure that we never delete the (1) newest (2) non-preview
+	// ProjectRevision that (3) has reached the "Deployed" phase.
+	//
+	// Part 1: Figure out which revision that is (if any).
+	var oldProd *ProjectRevision
+	for _, revision := range proj.Children.Revisions {
+		if revision.Spec.IsPreview {
+			continue
+		}
+		if revision.Status.Phase != RevisionPhase_Deployed {
+			continue
+		}
+		if oldProd != nil && revision.GetCreationTimestamp().Time.Before(oldProd.GetCreationTimestamp().Time) {
+			continue
+		}
+		oldProd = revision.ProjectRevision
+	}
+	// Part 2: Make sure we're not deleting it.
+	if oldProd != nil {
+		stillHasOldProd := false
+		for _, revision := range revisions {
+			if !revision.Spec.IsPreview &&
+				revision.GetName() == oldProd.GetName() &&
+				revision.GetNamespace() == oldProd.GetNamespace() {
+				stillHasOldProd = true
+				break
+			}
+		}
+		if !stillHasOldProd {
+			revisions = append(revisions, oldProd)
+		}
+	}
+
+	untypedRevisions := make([]interface{}, 0, len(revisions))
+	for _, rev := range revisions {
+		untypedRevisions = append(untypedRevisions, rev)
+	}
+	return untypedRevisions, nil
 }
 
 func gitLsRemote(repoURL, authToken string) (libgitPlumbingStorer.ReferenceStorer, error) {

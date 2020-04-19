@@ -163,6 +163,7 @@ type projectAndChildren struct {
 	Parent   *controllerAndChildren `json:"-"`
 	Children struct {
 		Revisions []*revisionAndChildren  `json:"revisions"`
+		Events    []*k8sTypesCoreV1.Event `json:"events"`
 		Errors    []*k8sTypesCoreV1.Event `json:"errors"`
 	} `json:"children"`
 }
@@ -316,23 +317,28 @@ func (in *Snapshot) Grouped() *GroupedSnapshot {
 	}
 	for _, eventUID := range sortedUIDKeys(in.Events) {
 		event := in.Events[eventUID]
-		if event.InvolvedObject.APIVersion == "getambassador.io/v2" && event.Type != k8sTypesCoreV1.EventTypeWarning {
-			// The field is .Children.Errors, not .Children.Events
-			continue
-		}
 		// Don't worry about orphaned Events--we expect a lot
 		// of them, just drop them on the floor.
 		kind := vk{event.InvolvedObject.APIVersion, event.InvolvedObject.Kind}
 		switch kind {
 		case vk{"getambassador.io/v2", "ProjectController"}:
+			if event.Type != k8sTypesCoreV1.EventTypeWarning {
+				continue
+			}
 			if controller, ok := in.Controllers[event.InvolvedObject.UID]; ok {
 				controller.Children.Errors = append(controller.Children.Errors, event)
 			}
 		case vk{"getambassador.io/v2", "Project"}:
 			if project, ok := in.Projects[event.InvolvedObject.UID]; ok {
-				project.Children.Errors = append(project.Children.Errors, event)
+				project.Children.Events = append(project.Children.Events, event)
+				if event.Type == k8sTypesCoreV1.EventTypeWarning {
+					project.Children.Errors = append(project.Children.Errors, event)
+				}
 			}
 		case vk{"getambassador.io/v2", "ProjectRevision"}:
+			if event.Type != k8sTypesCoreV1.EventTypeWarning {
+				continue
+			}
 			if revision, ok := in.Revisions[event.InvolvedObject.UID]; ok {
 				revision.Children.Errors = append(revision.Children.Errors, event)
 			}
