@@ -6,6 +6,7 @@ import (
 	"crypto/rsa"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -40,6 +41,15 @@ const (
 	sessionExpiry = 365 * 24 * time.Hour
 )
 
+// OAuth2MultiDomainInfo is a place to save information for the multidomain redirection
+// part of OAuth2.
+type OAuth2MultiDomainInfo struct {
+	OriginalURL string
+	SessionID   string
+	Cookies     []*http.Cookie
+}
+
+// OAuth2Client implements the OAuth Client part of the Filter.
 // OAuth2Client implements the OAuth 2.0 "Client" part of the OAuth Filter.  An
 // OAuth2Client has two main entry points: 'Filter' and 'ServeHTTP'.  Both are called
 // by the upper-level machinery in oauth2handler/oauth2handler.go.
@@ -83,8 +93,6 @@ func (c *OAuth2Client) xsrfCookieName() string {
 // Filter is called with a request, and must return a response indicating what to
 // do with the request.
 func (c *OAuth2Client) Filter(ctx context.Context, logger dlog.Logger, httpClient *http.Client, discovered *discovery.Discovered, redisClient *redis.Client, request *filterapi.FilterRequest) filterapi.FilterResponse {
-	logger.Infof("\n\n======== AuthCode Filter firing for %s", request.GetRequest().GetHttp().GetPath())
-
 	// Our filter method (lowercase) does the heavy lifting here. Call it to get a response
 	// and/or some cookies.
 	resp, cookies := c.filter(ctx, logger, httpClient, discovered, redisClient, request)
@@ -131,9 +139,19 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger dlog.Logger, httpClien
 // out if this is a good request, or not, and tell the upper layers what to do, whatever
 // is up.
 func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClient *http.Client, discovered *discovery.Discovered, redisClient *redis.Client, request *filterapi.FilterRequest) (response filterapi.FilterResponse, cookies []*http.Cookie) {
-	// Start by setting up the OAuth client.  (Note that in "ClientPasswordHeader",
-	// "client" refers to the OAuth client, not the end user's User-Agent -- which is
-	// to say, this is Ambassador identifying itself to the IdP.)
+	// Parse out the URI for this request...
+	requestURL, err := filterutil.GetURL(request)
+
+	if err != nil {
+		return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+			errors.Wrapf(err, "could not parse request URI"), nil), nil
+	}
+
+	logger.Infof("\n\n======== AuthCode filter firing for %s", requestURL.String())
+
+    // Start by setting up the OAuth client.  (Note that in "ClientPasswordHeader",
+    // "client" refers to the OAuth client, not the end user's User-Agent -- which is
+    // to say, this is Ambassador identifying itself to the IdP.)
 	oauthClient, err := rfc6749client.NewAuthorizationCodeClient(
 		c.Spec.ClientID,
 		discovered.AuthorizationEndpoint,
@@ -218,16 +236,7 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 	// If we made it this far: We haven't encountered any errors, and we
 	// may-or-may-not have 'authorization' to inject in to the request.
 
-	u, err := url.ParseRequestURI(request.GetRequest().GetHttp().GetPath())
-
-	if err != nil {
-		return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-			errors.Wrapf(err, "could not parse URI: %q", request.GetRequest().GetHttp().GetPath()), nil), nil
-	}
-
-	logger.Infoln("session URI:", u.Path)
-
-	switch u.Path {
+	switch requestURL.Path {
 	case "/.ambassador/oauth2/redirection-endpoint":
 		// OK, this is a diversion from train-of-thought you should have when reading this
 		// method--because this doesn't belong in this method, and belongs in ServeHTTP();
@@ -249,7 +258,6 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 		}
 
 		// Since we have non-nil sessionData, we should have an original URL.
-
 		var originalURL *url.URL
 		originalURL, err = ReadState(sessionInfo.sessionData.Request.State)
 
@@ -261,6 +269,18 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 
 			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
 				errors.Wrapf(err, "invalid state"), nil), nil
+		}
+
+		// Finally, we should only ever arrive here on root 0. If we got here via some other root,
+		// bail -- this is almost certainly a bad configuration.
+
+		root0 := c.Spec.ProtectedRoots[0]
+
+		if (requestURL.Scheme != root0.Scheme) || (requestURL.Host != root0.Authority) {
+			badRootErr := errors.New(fmt.Sprintf("received redirection to %s://%s instead of %s://%s", requestURL.Scheme, requestURL.Host, root0.Scheme, root0.Authority))
+
+			return middleware.NewErrorResponse(ctx, http.StatusBadGateway,
+				badRootErr, nil), nil
 		}
 
 		// OK. Do we already have an authorization?
@@ -282,7 +302,7 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 		} else {
 			// First time back here after auth! Let's see if we have an access token.
 			logger.Infoln("No authorization code, trying to parse one")
-			authorizationCode, err := oauthClient.ParseAuthorizationResponse(sessionInfo.sessionData, u)
+			authorizationCode, err := oauthClient.ParseAuthorizationResponse(sessionInfo.sessionData, requestURL)
 
 			if err != nil {
 				if errors.As(err, new(rfc6749client.XSRFError)) {
@@ -301,13 +321,70 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 			}
 		}
 
-		// OK, all's well, let's redirect to the original URL.
-		logger.Infof("redirecting user-agent to: %s", originalURL)
+		// OK, assume that we'll redirect with StatusSeeOther to our original URL...
+		statusCode := http.StatusSeeOther
+		targetURL := originalURL
+
+		// Now, do we have multiple protected roots?
+		if len(c.Spec.ProtectedRoots) > 1 {
+			// Yup, so a couple of things need to happen here. First off, generate a new
+			// multidomain-session-ID...
+			mdSessionID, err := randomString(sessionBits)
+
+			if err != nil {
+				return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+					errors.Wrap(err, "failed to generate session for multidomain"), nil), nil
+			}
+
+			// Next up, go ahead and get the cookies that we'll need to set...
+			newCookies := c.getSessionCookies(filterutil.GetHeader(request), sessionInfo)
+
+			// ...and make sure to remember to set them on our way out.
+			cookies = append(cookies, newCookies...)
+
+			// OK -- build an Oauth2MultiDomainInfo...
+			mdInfo := OAuth2MultiDomainInfo{
+				OriginalURL: originalURL.String(),
+				SessionID:   sessionInfo.sessionID,
+				Cookies:     cookies,
+			}
+
+			// ...and get it saved in Redis.
+			mdInfoBytes, err := json.Marshal(mdInfo)
+			if err != nil {
+				return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+					errors.Wrap(err, "failed to serialize mdInfo"), nil), nil
+			}
+
+			logger.Infof("AuthCode save mdInfo: oauth2-mdinfo:%s, %#v", mdSessionID, mdInfo)
+
+			err = redisClient.Cmd("SET", "oauth2-mdinfo:"+mdSessionID, string(mdInfoBytes), "EX", int(sessionExpiry.Seconds())).Err
+			if err != nil {
+				return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+					errors.Wrap(err, "failed to save mdInfo to Redis"), nil), nil
+			}
+
+			// Finally! Redirect to our next protected root. This needs to be a StatusTemporaryRedirect...
+			statusCode = http.StatusTemporaryRedirect
+
+			// ...and we need to use root[1]'s scheme & authority...
+
+			targetURL = c.Spec.RedirectionURL(1)
+
+			// ...and we need to include a query parameter with the filter's qualified name and
+			// the mdSessionID.
+			q := targetURL.Query() // This should always be empty, of course...
+			q.Set("code", c.QName+":"+mdSessionID)
+			targetURL.RawQuery = q.Encode()
+		}
+
+		// OK, all's well, let's redirect to the target URL.
+		logger.Infof("redirecting user-agent with %d to %s", statusCode, targetURL.String())
 
 		return &filterapi.HTTPResponse{
-			StatusCode: http.StatusSeeOther,
+			StatusCode: statusCode,
 			Header: http.Header{
-				"Location": {originalURL.String()},
+				"Location": {targetURL.String()},
 			},
 			Body: "",
 		}, nil
@@ -315,7 +392,7 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 	default:
 		// This is the "any path other than the redirection-endpoint" case; back to the
 		// "proper" flow through this method.
-
+        //
 		// Do the right thing depending on whether we're authenticated or not.
 		if authorization != nil {
 			return sessionInfo.handleAuthenticatedProxyRequest(ctx, logger, httpClient, discovered, request, authorization), nil
@@ -328,6 +405,10 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 // ServeHTTP gets called to handle the special `/.ambassador/oauth2/**` endpoints.  Because of
 // overrides hard-coded in to ruleForURL(), no Filters have modified or intercepted these requests.
 func (c *OAuth2Client) ServeHTTP(w http.ResponseWriter, r *http.Request, ctx context.Context, discovered *discovery.Discovered, redisClient *redis.Client) {
+	logger := dlog.GetLogger(r.Context())
+
+	logger.Infof("\n\n======== AuthCode ServeHTTP firing for %s - %s", r.Host, r.URL.Path)
+
 	switch r.URL.Path {
 	case "/.ambassador/oauth2/logout":
 		// Hey look, it's the logout path! Clobber our session, but first make sure no
@@ -373,6 +454,104 @@ func (c *OAuth2Client) ServeHTTP(w http.ResponseWriter, r *http.Request, ctx con
 		}
 
 		http.Redirect(w, r, discovered.EndSessionEndpoint.String(), http.StatusSeeOther)
+
+	case "/.ambassador/oauth2/multicookie":
+		// Hey look, it's the multidomain cookie handler! Do we have a code?
+
+		params := r.URL.Query()
+		mdState := params.Get("code")
+
+		if mdState == "" {
+			middleware.ServeErrorResponse(w, ctx, http.StatusBadRequest,
+				errors.New("missing mdState"), nil)
+			return
+		}
+
+		parts := strings.SplitN(mdState, ":", 2)
+		if len(parts) != 2 {
+			middleware.ServeErrorResponse(w, ctx, http.StatusBadRequest,
+				errors.New("malformed mdState"), nil)
+			return
+		}
+
+		mdSessionID := parts[1]
+		logger.Infof("Auth MultiCookie: mdSessionID %s", mdSessionID)
+
+		// OK, we have a code -- try to find it in Redis.
+		mdInfoBytes, err := redisClient.Cmd("GET", "oauth2-mdinfo:"+mdSessionID).Bytes()
+		if err != nil {
+			middleware.ServeErrorResponse(w, ctx, http.StatusInternalServerError,
+				errors.Wrap(err, "could not load mdinfo"), nil)
+			return
+		}
+
+		// So far so good. Unmarshal the cookies...
+		mdInfo := new(OAuth2MultiDomainInfo)
+		err = json.Unmarshal(mdInfoBytes, mdInfo)
+		if err != nil {
+			middleware.ServeErrorResponse(w, ctx, http.StatusInternalServerError,
+				errors.Wrap(err, "could not parse mdinfo"), nil)
+			return
+		}
+
+		// Which root is this?
+		//
+		// XXX We can get the Host from r, but neither r nor r.URL have the scheme directly -- so
+		// we look for the Envoy X-Forwarded-Proto header instead. (This might be another instance
+		// of https://github.com/datawire/ambassador/issues/1581)
+
+		scheme := r.Header.Get("X-Forwarded-Proto")
+		authority := r.Host
+
+		found := false
+		nextRoot := 0
+
+		logger.Infof("Auth MultiCookie: looking for scheme %s, authority %s", scheme, authority)
+
+		for i, root := range c.Spec.ProtectedRoots {
+			if (root.Scheme == scheme) && (root.Authority == authority) {
+				found = true
+				nextRoot = i
+
+				logger.Infof("Auth MultiCookie: found root %d (%s)", i, root.ClientURL.String())
+			}
+		}
+
+		if !found {
+			// Bzzt.
+			middleware.ServeErrorResponse(w, ctx, http.StatusForbidden,
+				errors.New("unknown origin"), nil)
+			return
+		}
+
+		// OK, all's well. Set our cookies.
+		for _, cookie := range mdInfo.Cookies {
+			logger.Infof("Auth MultiCookie: set %s", cookie.String())
+			http.SetCookie(w, cookie)
+		}
+
+		// ...then, if we have more domains, redirect to the next.
+		if nextRoot >= len(c.Spec.ProtectedRoots) {
+			targetURL := c.Spec.RedirectionURL(nextRoot)
+
+			q := targetURL.Query() // This should always be empty, of course...
+			q.Set("code", mdSessionID)
+			targetURL.RawQuery = q.Encode()
+
+			logger.Infof("Auth MultiCookie: redirect to %s", targetURL.String())
+
+			http.Redirect(w, r, targetURL.String(), http.StatusTemporaryRedirect)
+		} else {
+			// We're done. Finally. Delete the mdInfo...
+			// logger.Infof("Auth MultiCookie: delete mdInfo: %s", mdSessionID)
+			// _ = redisClient.Cmd("DEL", "oauth2-mdinfo:"+mdSessionID)
+
+			// ...then redirect to the orginal URL.
+			logger.Infof("Auth MultiCookie: redirect to %s", mdInfo.OriginalURL)
+
+			http.Redirect(w, r, mdInfo.OriginalURL, http.StatusSeeOther)
+		}
+
 	default:
 		// Anything other than the logout URL is an error here.
 		http.NotFound(w, r)
@@ -476,6 +655,7 @@ func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Co
 			return ret
 		}
 	} else {
+		// Time for the initial redirection to OAuth.
 		return &filterapi.HTTPResponse{
 			// A 302 "Found" may or may not convert POST->GET.  We want
 			// the UA to GET the Authorization URI, so we shouldn't use
