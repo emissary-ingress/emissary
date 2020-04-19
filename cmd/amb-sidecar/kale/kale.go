@@ -967,16 +967,18 @@ func (k *kale) reconcileRevision(ctx context.Context, _revision *revisionAndChil
 		err = postStatus(ctx, fmt.Sprintf("https://api.github.com/repos/%s/statuses/%s", proj.Spec.GithubRepo, revision.Spec.Rev),
 			GitHubStatus{
 				State: map[RevisionPhase]string{
-					RevisionPhase_Received:  "pending",
-					RevisionPhase_Building:  "pending",
-					RevisionPhase_Deploying: "pending",
-					RevisionPhase_Deployed:  "success",
+					RevisionPhase_Received:    "pending",
+					RevisionPhase_BuildQueued: "pending",
+					RevisionPhase_Building:    "pending",
+					RevisionPhase_Deploying:   "pending",
+					RevisionPhase_Deployed:    "success",
 
 					RevisionPhase_BuildFailed:  "failure",
 					RevisionPhase_DeployFailed: "failure",
 				}[revisionPhase],
 				TargetUrl: map[RevisionPhase]string{
 					RevisionPhase_Received:     proj.BuildLogUrl(revision),
+					RevisionPhase_BuildQueued:  proj.BuildLogUrl(revision),
 					RevisionPhase_Building:     proj.BuildLogUrl(revision),
 					RevisionPhase_BuildFailed:  proj.BuildLogUrl(revision),
 					RevisionPhase_Deploying:    proj.ServerLogUrl(revision),
