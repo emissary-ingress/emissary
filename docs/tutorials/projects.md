@@ -1,90 +1,114 @@
-# Using a Project CRD to Publish a Service
+# Getting started with the Project CRD
 
-In this guide, we'll walk you through using Ambassador Edge Stack's
-Project CRD to:
+In this guide, we'll walk you through using Ambassador Edge Stack's [Project CRD](../../topics/using/projects/). At the end of this you will have launched your own microservice in less time than it takes to microwave popcorn. Not only that, but this service will meet the most important standards of **production-readiness**. It will be:
 
-1. Deploy a simple HTTP service on the internet.
-2. View build logs for your service.
-3. View the server logs for your service.
-4. Make updates to your service.
-5. Preview updates before pushing them live.
-
-See [The Project CRD section](../../topics/using/projects/) for a more in-depth introduction to the `Project` resource.
+* **Secure:** Protected with TLS, Authentication, and Rate Limiting
+* **Robust:** Complete with the usual -ilities: scalability, reliability, availability
+* **Agile:** Can be updated *quickly* and *frequently* without disrupting users!
 
 ## Before You Begin
 
 You will need:
 
-* A working installation of Ambassador Edge Stack...
+* A [Github](https://github.com) account.
+* A [working installation of Ambassador Edge Stack...](../getting-started/)
   * With TLS configured.
-  * And access to the AES admin console (https://$YOUR_HOST/edge_stack/admin/).
-* A Github account.
-* git
+  * And access to the AES admin console: https://$YOUR_HOST/edge_stack/admin/.
 
 ## Quick Start
 
-1. Go to https://$YOUR_HOST/edge_stack/admin/?projects#code=butterscotch
-2. Create a new repo from our quickstart template by going to https://github.com/datawire/project-template/generate.
-3. Click on Projects -> Add and follow the directions. (**Note:** Make sure your token can access the repo you just generated!)
-4. Click Save.
+1. First, let's enable the `ProjectController` for your AES installation. This will give you access to the `Projects` tab in the `Edge Policy Console`. If you already see the `Projects` tab then you can skip this step:
 
-You will see the Project resource automatically build and deploy the code in your repo. Building the first time will take a little while. Subsequent builds will be much faster due to caching. Click on the "build" link to see your build logs in realtime.
+```
+kubectl apply -f - <<EOF
+apiVersion: getambassador.io/v2
+kind: ProjectController
+metadata:
+  labels:
+    projects.getambassador.io/ambassador_id: default
+  name: projectcontroller
+  namespace: ambassador
+EOF
+```
 
-When your build and deploy succeeds, click the URL to see your HTTP service deployed and handling requests from the internet.
+2. Run `edgectl login $YOUR_HOST` and click on the `Projects` tab.
 
-## View build logs for your service.
+3. Create an HTTP service implementation in your own new Github repo with our [quick start project generator](https://github.com/datawire/project-template/generate).
 
-The Projects Tab provides a complete summary of all relevant resources related to any Projects. Lets use the Projects tab to view the build logs:
+4. Click on Projects -> Add, you will be directed to enter the name, namespace, host, and url path prefix for your project: ![Add Project](../../images/project-create.png)
 
-1. If you haven't already, click on the "build" link next to the master deployment of your project.
+5. You will also need to supply a github token: ![Github Token](../../images/project-create-github-token.png)
+   Make sure you select the repo scope for your token: ![Repo Scope](../../images/project-create-repo-scope.png)
 
-You will see the output from your build. These results will live stream for any build in progress.
 
-## View deploy logs for your service.
+6. As soon as you enter a valid access token, you will see the "github repo" field populate with all the github repos granted access by that token. Choose your newly created repo from step 3 and click Save: ![Github Repo](../../images/project-create-github-repo.png)
 
-Seeing log output from your server is essential for debugging. You can use the Projects Tab to access the server logs for any deployment:
+You will see the Project resource automatically build and deploy the code in your newly created repo. Building the first time will take a few minutes. Subsequent builds will be much faster due to caching of the docker image layers in the build. To follow the progress of building, you can click on the "build" link to see your build logs streamed in realtime:
 
-1. Click on the "log" link next to the master deployment of your project.
+![Project Build Logs](../../images/project-build-logs.png)
 
-You will see the log output from your deployed server.
+When your build and deploy succeeds, the project will show the master branch as "Deployed" and the "build", "logs", and "url" links will all be green:
 
-2. Try visiting the URL for your service in a separate window.
+![Project Deployed](../../images/project-deployed.png)
 
-You will see the log output live stream.
+Click the "url" link to visit your newly deployed microservice:
 
-## Making updates to your service.
+![Project URL](../../images/project-url.png)
 
-Keep the Projects Tab open and visible for the rest of this section.
+## Viewing Server Logs
 
-### Updating your service directly
+You can use the Projects Tab to access the server logs for your project. Click on the "log" link next to the master deployment of your project, and you will see realtime log output from your server:
 
-Any code changes on your master branch will be automatically built and deployed. Let's make a change to see how this works:
+![Project Server Logs](../../images/project-server-logs.png)
 
-1. Go to your git repo in your browser.
-2. Click on server.js -> Edit
-3. Change "Hello World!" to "Hello Master Branch!".
-4. Select the "Commit directly to the `master` branch" option.
-5. Click "Commit changes".
+## Making Updates
 
-Look at your Project in the Projects Tab. You should see a new build proceeding. When that build completes you will see your change published at the url for the master deployment.
+We are going to update our project by creating a pull-request on Github. The Project resource will automatically build and stage the PR'ed version of our service so that we can make sure it works the way we anticipated before updating our production deployment.
 
-### Updating your service with a PR
+1. Go to your git repo in your browser and click on server.js:
 
-If you want to test your change before putting it into producution, create a PR instead of pushing directly to master:
+![Server.js](../../images/project-server.js.png)
 
-1. Go to your git repo in your browser.
-2. Click on server.js -> Edit
-3. Change "Hello World!" to "Hello Pull Requests!".
-4. Select the "Create a new branch for this commit..." option.
-5. Click "Propose file change".
+2. Click on the edit icon:
 
-Look at your Project in the Projects Tab. You should see a new build proceeding for your PR. When that build completes, click on its url. You will see your requested changes.
+![Edit Server.js](../../images/project-server.js-edit.png)
 
-Every PR gets published at its own preview url, so you can have as many as you like and test them however you like before merging.
+3. Change "Hello World!" to "Hello Update!":
+
+![Hello Update](../../images/project-update.png)
+
+4. Select "Create a new branch for this commit..." and then click "Propose file change":
+
+![New Branch](../../images/project-update-pr.png)
+
+5. Create the Pull Request:
+
+![New Branch](../../images/project-update-pr-create.png)
+
+
+6. Now go to the Projects Tab, you will see the Pull Request you just made being built and staged. When the status reaches Deployed, you can click on the preview url link:
+
+![PR Build](../../images/project-update-url.png)
+
+7. You will see the updated version of your code running at a staging deployment. Note the preview URL. Every PR gets published at its own preview URL so you can have as many simultaneous PRs as you like and test them however you like before merging:
+
+![PR Preview](../../images/project-update-preview.png)
+
+8. Once we are satisfied with our change we can go back to github and merge our PR:
+
+![PR Merge](../../images/project-update-merge.png)
+
+9. After master finishes building and reaches the Deployed state, we can click on the URL:
+
+![Merged URL](../../images/project-update-merged-url.png)
+
+10. And we can see our updated service running in production!
+
+![Merged](../../images/project-update-merged.png)
 
 ## What’s Next?
 
-Read more about [using `Projects` here](../../topics/using/projects/).
+Read more about [using Projects](../../topics/using/projects/), including how to use Ambassador Edge Stack's powerful [Authentication](../../topics/using/filters/) and [Rate Limiting](../../topics/using/rate-limits/) features to secure your service.
 
 The Ambassador Edge Stack has a comprehensive range of [features](/features/) to support the requirements of any edge microservice.
 

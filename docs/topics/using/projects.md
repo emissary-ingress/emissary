@@ -42,10 +42,10 @@ For example, if the foo `Project` points to a repo with 3 open feature branches,
                 |                PR#3 ---> feature-3 -+ | | |
                 |                                     | | | | Commits
                \|/                                    | | | |
-+----------ProjectCommit_3 -----------> 3234abc... <--+ | | |
-| +--------ProjectCommit_2 -----------> 2234abc... <----+ | |
-| | +------ProjectCommit_1 -----------> 1234abc... <------+ |
-| | | +----ProjectCommit_0 -----------> 0234abc... <--------+
++----------ProjectRevision_3----------> 3234abc... <--+ | | |
+| +--------ProjectRevision_2----------> 2234abc... <----+ | |
+| | +------ProjectRevision_1----------> 1234abc... <------+ |
+| | | +----ProjectRevision_0----------> 0234abc... <--------+
 | | | |
 | | | |
 | | | +--> https://<host>/<prefix>/
@@ -54,12 +54,12 @@ For example, if the foo `Project` points to a repo with 3 open feature branches,
 +--------> https://<host>/.preview/<prefix>/3234abc.../
 ```
 
-## The `ProjectCommit` resource
+## The `ProjectRevision` resource
 
-The `Project` resource accomplishes its goals by delegating to the `ProjectCommit` resource which in turn manages other kubernetes resources. The `Project Controller` will create a `ProjectCommit` for every git commit that is to be staged or deployed:
+The `Project` resource accomplishes its goals by delegating to the `ProjectRevision` resource which in turn manages a number of other kubernetes resources. The `Project Controller` will create a `ProjectRevision` for every git commit that is to be staged or deployed:
 
 ```
-$ kubectl get projectcommits
+$ kubectl get projectrevisions
 NAME              PROJECT   REF                 REV         STATUS         AGE
 foo-07d04b...     foo       refs/heads/master   07d04b...   Deployed       2d
 foo-19f77a...     foo       refs/pull/8/head    19f77a...   Building       25s
@@ -67,12 +67,12 @@ foo-3d88e5...     foo       refs/pull/12/head   3d88e5...   Deployed       4h
 foo-5664e9...     foo       refs/pull/11/head   5664e9...   Deploying      65s
 ```
 
-Each `ProjectCommit` will create a `Job` to perform the build, and a `Deployment` + `Service` + [`Mapping`](#mapping) to publish the commit:
+Each `ProjectRevision` will create a `Job` to perform the build, and a `Deployment` + `Service` + [`Mapping`](#mapping) to publish the commit:
 
 ```
 Project
    | 
-   +---> ProjectCommit_1
+   +---> ProjectRevision_1
    |       |
    |       +-> Job (builds and pushes the image)
    |       |
@@ -87,10 +87,10 @@ Project
    |
    +...
    |
-   +---> ProjectCommit_N
+   +---> ProjectRevision_N
 ```
 
-A `ProjectCommit` progresses through different phases in its lifecycle as it attempts to build and run code. The `phase` of a `ProjectCommit` (stored in the status.phase field) tells us exactly what it is doing and what has happened:
+A `ProjectRevision` progresses through different phases in its lifecycle as it attempts to build and run your server. The `phase` of a `ProjectRevision` (stored in the status.phase field) tells us exactly what it is doing and what has happened:
 
 | Phase        | Description               |
 | :------------| :------------------------ |
@@ -103,10 +103,10 @@ A `ProjectCommit` progresses through different phases in its lifecycle as it att
 | Deployed     | The commit has been succesfully built and deployed. This is a terminal state.
 
 There are three terminal states: `BuildFailed`, `DeployFailed`, and
-Deployed. Every `ProjectCommit` will progress through its lifecycle
+Deployed. Every `ProjectRevision` will progress through its lifecycle
 until it reaches one of these stages.
 
-The resources managed by each project are prefixed by the project name and the commit sha so that you can easily drill down and examine e.g. the build or server logs using `kubectl`. The `Edge Policy Console` provides a live streaming in-browser terminal for viewing build and server logs as well as the full state of each `ProjectCommit` resource.
+The resources managed by each project are prefixed by the project name and the commit sha so that you can easily drill down and examine e.g. the build or server logs using `kubectl`. The `Edge Policy Console` provides a live streaming in-browser terminal for viewing build and server logs as well as the full state of each `ProjectRevision` resource.
 
 ## Adding Authentication to your `Project`
 
