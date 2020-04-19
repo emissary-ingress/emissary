@@ -808,7 +808,7 @@ func (k *kale) reconcileCluster(ctx context.Context, snapshot *Snapshot) {
 	// reconcile revisions
 	for _, proj := range snapshot.Projects {
 		ctx := CtxWithProject(ctx, proj.Project)
-		revisionManifests, err := k.calculateRevisions(proj.Project)
+		revisionManifests, err := k.calculateRevisions(proj)
 		if err != nil {
 			continue
 		}
