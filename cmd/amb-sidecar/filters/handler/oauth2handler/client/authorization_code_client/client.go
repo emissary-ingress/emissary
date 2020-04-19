@@ -165,6 +165,7 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 	// The "happy-path" is that we end up with a set of authorization headers to
 	// inject in to the request before allowing it through.
 	var authorization http.Header
+
 	switch {
 	case sessionErr != nil:
 		// No (valid) session data. This isn't that big a deal, but log it for
@@ -175,10 +176,12 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 		// Yikes!  Someone is trying to hack our users!
 		return middleware.NewErrorResponse(ctx, http.StatusForbidden,
 			errors.New("XSRF protection"), nil), nil
+
 	case sessionInfo.sessionData.CurrentAccessToken == nil:
 		// This is a non-authenticated session; we've previously redirected the
 		// user to the IdP, but they never completed the authorization flow.
 		logger.Debugln("session status:", "non-authenticated session")
+
 	default:
 		// This is a fully-authenticated session, so try to update the access token.
 		logger.Debugln("session status:", "authenticated session")
@@ -186,6 +189,7 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 		authorization, err = oauthClient.AuthorizationForResourceRequest(sessionInfo.sessionData, func() io.Reader {
 			return strings.NewReader(request.GetRequest().GetHttp().GetBody())
 		})
+
 		if err == nil {
 			// continue with (authorization != nil)
 		} else if err == rfc6749client.ErrNoAccessToken {
@@ -206,10 +210,12 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 	// may-or-may-not have 'authorization' to inject in to the request.
 
 	u, err := url.ParseRequestURI(request.GetRequest().GetHttp().GetPath())
+
 	if err != nil {
 		return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
 			errors.Wrapf(err, "could not parse URI: %q", request.GetRequest().GetHttp().GetPath()), nil), nil
 	}
+
 	switch u.Path {
 	case "/.ambassador/oauth2/redirection-endpoint":
 		// OK, this is a diversion from train-of-thought you should have when reading this
@@ -229,17 +235,27 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 			// Regard lack of a session as an XSRF error.
 			return sessionInfo.handleUnauthenticatedProxyRequest(ctx, logger, httpClient, oauthClient, discovered, request), nil
 		}
+
+		// Since we have non-nil sessionData, we should have an original URL.
+
 		var originalURL *url.URL
+        originalURL, err = ReadState(sessionInfo.sessionData.Request.State)
+
+        if err != nil {
+            // This should never happen--we read the state directly from what we
+			// stored in Redis, so either our Redis server got hacked or we _completely_
+			// botched the bookkeeping around the session and its authorization. Assuming
+			// that the error is more likely, that's an internal server error.
+
+            return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+                errors.Wrapf(err, "invalid state"), nil), nil
+        }
+
+		// OK. Do we already have an authorization?
 		if authorization != nil {
 			logger.Debugln("already logged in; redirecting to original log-in-time URL")
-			originalURL, err = ReadState(sessionInfo.sessionData.Request.State)
-			if err != nil {
-				// This should never happen--we read the state directly from what we
-				// stored in Redis.
-				return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-					errors.Wrapf(err, "invalid state"), nil), nil
-			}
-			if originalURL.Path == "/.ambassador/oauth2/redirection-endpoint" {
+
+            if originalURL.Path == "/.ambassador/oauth2/redirection-endpoint" {
 				// Avoid a redirect loop.  This "shouldn't" happen; we "shouldn't"
 				// have generated (in .handleUnauthenticatedProxyRequest) a
 				// sessionData.Request.State with this URL with this path.  However,
@@ -254,6 +270,7 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 		} else {
 			// First time back here after auth! Let's see if we have an access token.
 			authorizationCode, err := oauthClient.ParseAuthorizationResponse(sessionInfo.sessionData, u)
+
 			if err != nil {
 				if errors.As(err, new(rfc6749client.XSRFError)) {
 					return sessionInfo.handleUnauthenticatedProxyRequest(ctx, logger, httpClient, oauthClient, discovered, request), nil
@@ -262,18 +279,10 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 					err, nil), nil
 			}
 
-			originalURL, err = ReadState(sessionInfo.sessionData.Request.State)
-			if err != nil {
-				// This should never happen--the state matched what we stored in Redis
-				// (validated in .ParseAuthorizationResponse()).  For this to happen, either
-				// (1) our Redis server was cracked, or (2) we generated an invalid state
-				// when we submitted the authorization request.  Assuming that (2) is more
-				// likely, that's an internal server issue.
-				return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-					errors.Wrapf(err, "invalid state"), nil), nil
-			}
+			// Given the auth code, get an access token.
+			err = oauthClient.AccessToken(sessionInfo.sessionData, authorizationCode)
 
-			if err := oauthClient.AccessToken(sessionInfo.sessionData, authorizationCode); err != nil {
+			if err != nil {
 				return middleware.NewErrorResponse(ctx, http.StatusBadGateway,
 					err, nil), nil
 			}
@@ -281,6 +290,7 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 
 		// OK, all's well, let's redirect to the original URL.
 		logger.Debugf("redirecting user-agent to: %s", originalURL)
+
 		return &filterapi.HTTPResponse{
 			StatusCode: http.StatusSeeOther,
 			Header: http.Header{
@@ -307,7 +317,11 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 func (c *OAuth2Client) ServeHTTP(w http.ResponseWriter, r *http.Request, ctx context.Context, discovered *discovery.Discovered, redisClient *redis.Client) {
 	switch r.URL.Path {
 	case "/.ambassador/oauth2/logout":
-		sessionInfo, err := c.loadSession(redisClient, r.Header)
+		// Hey look, it's the logout path! Clobber our session, but first make sure no
+		// funny stuff is going on.
+
+        sessionInfo, err := c.loadSession(redisClient, r.Header)
+
 		if err != nil {
 			middleware.ServeErrorResponse(w, ctx, http.StatusForbidden, // XXX: error code?
 				errors.Wrap(err, "no session"), nil)
@@ -338,24 +352,26 @@ func (c *OAuth2Client) ServeHTTP(w http.ResponseWriter, r *http.Request, ctx con
 		//query.Set("state", "TODO") // TODO: only OPTIONAL; only does something if "post_logout_redirect_uri"
 
 		// TODO: Don't do the delete until the post_logout_redirect_uri is hit?
-		if err := c.deleteSession(redisClient, sessionInfo); err != nil {
-			middleware.ServeErrorResponse(w, ctx, http.StatusInternalServerError,
-				err, nil)
+		err = c.deleteSession(redisClient, sessionInfo)
+
+		if err != nil {
+			middleware.ServeErrorResponse(w, ctx, http.StatusInternalServerError, err, nil)
 			return
 		}
 
 		http.Redirect(w, r, discovered.EndSessionEndpoint.String(), http.StatusSeeOther)
 	default:
+		// Anything other than the logout URL is an error here.
 		http.NotFound(w, r)
 	}
 }
 
 // Why prithee isn't this up at the top of the file?
 type SessionInfo struct {
-	c           *OAuth2Client
-	sessionID   string
-	xsrfToken   string
-	sessionData *rfc6749client.AuthorizationCodeClientSessionData
+	c              *OAuth2Client
+	sessionID      string
+	xsrfToken      string
+	sessionData    *rfc6749client.AuthorizationCodeClientSessionData
 }
 
 // handleAuthenticatedProxyRequest is pretty "simple" in that we can just farm it out
@@ -368,6 +384,7 @@ func (sessionInfo *SessionInfo) handleAuthenticatedProxyRequest(ctx context.Cont
 func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Context, logger dlog.Logger, httpClient *http.Client, oauthClient *rfc6749client.AuthorizationCodeClient, discovered *discovery.Discovered, request *filterapi.FilterRequest) filterapi.FilterResponse {
 	// Start by grabbing the original URL.
 	originalURL, err := filterutil.GetURL(request)
+
 	if err != nil {
 		return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
 			errors.Wrap(err, "failed to construct URL"), nil)
@@ -425,6 +442,7 @@ func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Co
 		state,
 		sessionInfo.c.Spec.ExtraAuthorizationParameters,
 	)
+
 	if err != nil {
 		return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
 			err, nil)
@@ -552,7 +570,7 @@ func (c *OAuth2Client) saveSession(redisClient *redis.Client, sessionInfo *Sessi
 	for err != redis.ErrPipelineEmpty {
 		err = redisClient.PipeResp().Err
 		if err != nil && err != redis.ErrPipelineEmpty {
-			return nil, errors.Wrap(err, "redis")
+			return nil, errors.Wrap(err, "redis failed")
 		}
 	}
 
@@ -563,11 +581,14 @@ func (c *OAuth2Client) saveSession(redisClient *redis.Client, sessionInfo *Sessi
 	// at a particular time, irrespective of how long the browser has been open
 	// (uh... non-session cookies, I guess?). It's not about whether we use cookies
 	// at all -- we always set a cookie, the thing that changes is the expiry.
+
 	useSessionCookies := *c.Spec.UseSessionCookies.Value
 	if !c.Spec.UseSessionCookies.IfRequestHeader.Matches(requestHeader) {
 		useSessionCookies = !useSessionCookies
 	}
+
 	maxAge := int(sessionExpiry.Seconds())
+
 	if useSessionCookies {
 		maxAge = 0 // unset
 	}
@@ -629,7 +650,8 @@ func (c *OAuth2Client) saveSession(redisClient *redis.Client, sessionInfo *Sessi
 }
 
 func (c *OAuth2Client) deleteSession(redisClient *redis.Client, sessionInfo *SessionInfo) error {
-	return redisClient.Cmd("DEL",
+	return redisClient.Cmd(
+		"DEL",
 		"session:"+sessionInfo.sessionID,
 		"session-xsrf:"+sessionInfo.sessionID,
 	).Err
