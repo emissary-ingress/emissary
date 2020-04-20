@@ -244,7 +244,7 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 			// successful authentication, which of course requires a session.
 			//
 			// Regard lack of a session as an XSRF error.
-            logger.Infoln("no sessionData for session ID", sessionInfo.sessionID)
+			logger.Infoln("no sessionData for session ID", sessionInfo.sessionID)
 			return sessionInfo.handleUnauthenticatedProxyRequest(ctx, logger, httpClient, oauthClient, discovered, request), nil
 		}
 
@@ -381,10 +381,10 @@ func (c *OAuth2Client) ServeHTTP(w http.ResponseWriter, r *http.Request, ctx con
 
 // Why prithee isn't this up at the top of the file?
 type SessionInfo struct {
-	c              *OAuth2Client
-	sessionID      string
-	xsrfToken      string
-	sessionData    *rfc6749client.AuthorizationCodeClientSessionData
+	c           *OAuth2Client
+	sessionID   string
+	xsrfToken   string
+	sessionData *rfc6749client.AuthorizationCodeClientSessionData
 }
 
 // handleAuthenticatedProxyRequest is pretty "simple" in that we can just farm it out
@@ -559,25 +559,27 @@ func (c *OAuth2Client) saveSession(redisClient *redis.Client, sessionInfo *Sessi
 
 	// OK, we have some new stuff. Store it in Redis, delete the old data
 	// from Redis, and rev the cookies.
-
+    //
+	// Generate a new session ID...
 	newSessionID, err := randomString(sessionBits)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate session ID")
 	}
 
+	// ...and a new XSRF token...
 	newXsrfToken, err := randomString(xsrfBits)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate XSRF token")
 	}
 
+	// ...and then marshal the session data.
 	sessionDataBytes, err := json.Marshal(sessionInfo.sessionData)
 	if err != nil {
 		return nil, errors.New("failed to serialize session information")
 	}
 
-	logger.Infof("AuthCode saveSession: saving ID %s to cookie %s", saveToSessionID, c.sessionCookieName())
-
 	// Set up a pipeline of Redis updates...
+	logger.Infof("AuthCode saveSession: writing session & XSRF for ID %s", newSessionID)
 	redisClient.PipeAppend("SET", "session:"+newSessionID, string(sessionDataBytes), "EX", int(sessionExpiry.Seconds()))
 	redisClient.PipeAppend("SET", "session-xsrf:"+newSessionID, newXsrfToken, "EX", int(sessionExpiry.Seconds()))
 
@@ -595,6 +597,10 @@ func (c *OAuth2Client) saveSession(redisClient *redis.Client, sessionInfo *Sessi
 			return nil, errors.Wrap(err, "redis failed")
 		}
 	}
+
+	// Finally, update the sessionInfo with the new stuff.
+	sessionInfo.sessionID = newSessionID
+	sessionInfo.xsrfToken = newXsrfToken
 
 	// OK, build up some cookies.
 	//
@@ -618,7 +624,7 @@ func (c *OAuth2Client) saveSession(redisClient *redis.Client, sessionInfo *Sessi
 	cookies := []*http.Cookie{
 		&http.Cookie{
 			Name:  sessionInfo.c.sessionCookieName(),
-			Value: newSessionID,
+			Value: sessionInfo.sessionID,
 
 			// Expose the cookie to all paths on this host, not just directories of {{originalURL.Path}}.
 			// This is important, because `/.ambassador/oauth2/redirection-endpoint` is probably not a
@@ -643,7 +649,7 @@ func (c *OAuth2Client) saveSession(redisClient *redis.Client, sessionInfo *Sessi
 		},
 		&http.Cookie{
 			Name:  sessionInfo.c.xsrfCookieName(),
-			Value: newXsrfToken,
+			Value: sessionInfo.xsrfToken,
 
 			// Expose the cookie to all paths on this host, not just directories of {{originalURL.Path}}.
 			// This is important, because `/.ambassador/oauth2/redirection-endpoint` is probably not a
