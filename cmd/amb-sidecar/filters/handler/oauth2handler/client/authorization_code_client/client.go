@@ -443,7 +443,7 @@ func (c *OAuth2Client) ServeHTTP(w http.ResponseWriter, r *http.Request, ctx con
 		//query.Set("state", "TODO") // TODO: only OPTIONAL; only does something if "post_logout_redirect_uri"
 
 		// TODO: Don't do the delete until the post_logout_redirect_uri is hit?
-		if err := redisClient.Cmd("DEL", "session:"+sessionInfo.sessionID, "session-xsrf:"+sessionInfo.sessionID).Err; err != nil {
+		if err := c.deleteSession(redisClient, sessionInfo); err != nil {
 			middleware.ServeErrorResponse(w, ctx, http.StatusInternalServerError,
 				err, nil)
 			return
@@ -618,6 +618,13 @@ func (c *OAuth2Client) loadSession(redisClient *redis.Client, requestHeader http
 	}
 
 	return sessionInfo, nil
+}
+
+func (c *OAuth2Client) deleteSession(redisClient *redis.Client, sessionInfo *SessionInfo) error {
+	return redisClient.Cmd("DEL",
+		"session:"+sessionInfo.sessionID,
+		"session-xsrf:"+sessionInfo.sessionID,
+	).Err
 }
 
 func genState(originalURL *url.URL) (string, error) {
