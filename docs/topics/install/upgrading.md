@@ -1,27 +1,49 @@
 # Upgrading Ambassador Edge Stack
 
-Since Ambassador Edge Stack's configuration is entirely stored in Kubernetes resources, no special process is necessary to upgrade Ambassador Edge Stack. If you're using the YAML files supplied by Datawire, you'll be able to upgrade simply by repeating the following `kubectl apply` commands.
+Since Ambassador Edge Stack's configuration is entirely stored in Kubernetes resources, no special process
+is necessary to upgrade Ambassador Edge Stack.
 
-First, determine if Kubernetes has RBAC enabled:
+The steps to upgrade depend on the method that was used to install Ambassador Edge Stack, as indicated below.
 
-```shell
-kubectl cluster-info dump --namespace kube-system | grep authorization-mode
+* If you installed using the Operator, then you'll need to [use the Operator to perform the upgrade](../aes-operator/#updates-by-the-operator).
+To verify whether the Operator was used to install Ambassador Edge Stack, run the following command
+to see if it returns resources:
+```commandline
+$ kubectl get deployment -n ambassador -l 'app.kubernetes.io/name=ambassador,app.kubernetes.io/managed-by in (amb-oper,amb-oper-manifest,amb-oper-helm,amb-oper-azure)' 
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+ambassador         1/1     1            1           ...
 ```
 
-If you see something like `--authorization-mode=Node,RBAC` in the output, then RBAC is enabled.
+* If you installed using the Helm chart or `edgectl install`, then you should
+[upgrade with the help of Helm](../helm/#migrating-to-the-ambassador-edge-stack).
+To verify this, run the following command to see if it returns resources:
+```commandline
+$ kubectl get deployment -n ambassador -l 'app.kubernetes.io/name=ambassador'
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+ambassador         1/1     1            1           ...
+```
 
-If RBAC is enabled:
+* Finally, if you installed using manifests, simply run the commands in the following section. To verify whether
+manifests were used to install Ambassador Edge Stack, run the following command to see if it returns resources:
+```commandline
+$ kubectl get deployment -n ambassador -l 'product=aes'
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+ambassador         1/1     1            1           ...
+```
+
+If none of the commands above return resources, you probably have an old installation and you should follow
+the instructions for [upgrading to Ambassador Edge Stack](../upgrade-to-edge-stack/).
+
+## Upgrading an installation with manifests
+
+If you're using the YAML files supplied by Datawire, you'll be able to upgrade simply by repeating
+the following `kubectl apply` command:
 
 ```shell
 kubectl apply -f https://www.getambassador.io/yaml/aes-crds.yaml
 ```
 
-If RBAC is not enabled:
-
-```shell
-kubectl apply -f https://www.getambassador.io/yaml/aes.yaml
-```
-
 This will trigger a rolling upgrade of Ambassador Edge Stack.
 
-If you're using your own YAML, check the Datawire YAML to be sure of other changes, but at minimum, you'll need to change the pulled `image` for the Ambassador Edge Stack container and redeploy.
+If you're using your own YAML, check the Datawire YAML to be sure of other changes, but at minimum,
+you'll need to change the pulled `image` for the Ambassador Edge Stack container and redeploy.
