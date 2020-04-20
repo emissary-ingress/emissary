@@ -31,6 +31,7 @@ import (
 
 	"github.com/datawire/ambassador/pkg/helm"
 	"github.com/datawire/ambassador/pkg/k8s"
+	"github.com/datawire/ambassador/pkg/metriton"
 	"github.com/datawire/ambassador/pkg/supervisor"
 )
 
@@ -125,12 +126,14 @@ func aesInstall(cmd *cobra.Command, args []string) error {
 	i := NewInstaller(verbose)
 
 	// If Scout is disabled (environment variable set to non-null), inform the user.
-	if i.scout.Disabled() {
+	if metriton.IsDisabledByUser() {
 		i.ShowScoutDisabled()
 	}
 
 	// Both printed and logged when verbose (Installer.log is responsible for --verbose)
-	i.log.Printf(fmt.Sprintf("INFO: install_id = %v; trace_id = %v", i.scout.installID, i.scout.metadata["trace_id"]))
+	i.log.Printf("INFO: install_id = %v; trace_id = %v",
+		i.scout.reporter.InstallID(),
+		i.scout.reporter.BaseMetadata["trace_id"])
 
 	sup := supervisor.WithContext(i.ctx)
 	sup.Logger = i.log
@@ -777,9 +780,9 @@ func (i *Installer) Perform(kcontext string) Result {
 	regURL := "https://metriton.datawire.io/register-domain"
 	regData := &registration{Email: emailAddress}
 
-	if !i.scout.Disabled() {
+	if !metriton.IsDisabledByUser() {
 		regData.AESInstallId = i.clusterID
-		regData.EdgectlInstallId = i.scout.installID
+		regData.EdgectlInstallId = i.scout.reporter.InstallID()
 	}
 
 	if net.ParseIP(i.address) != nil {
