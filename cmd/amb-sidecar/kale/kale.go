@@ -663,7 +663,7 @@ func (k *kale) handleWebhook(r *http.Request, key string) httpResult {
 			unstructureProject(proj.Project), // InvolvedObject
 			k8sTypesCoreV1.EventTypeNormal,   // EventType
 			"Webhook",                        // Reason
-			githubEventType,                  // Message
+			fmt.Sprintf("%v %v", githubEventType, r.Header.Get("X-GitHub-Delivery")), // Message
 		)
 
 		telemetryOK(ctx, StepWebhookUpdate)
