@@ -852,8 +852,8 @@ ${this.modifiedStyles() ? this.modifiedStyles() : ""}
 
 ${this.state.renderErrors()}
 ${this.renderMergedYaml()}
-
     </div>
+
     <div class="col2">
       <a class="cta source ${typeof this.sourceURI() == 'string' ? "" : "off"}" @click=${(x)=>this.onSource(x)}>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18.83 10.83"><defs><style>.cls-2{fill:none;stroke:#000;stroke-linecap:square;stroke-miterlimit:10;stroke-width:2px;}</style></defs><title>source_2</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"><polyline class="cls-2" points="5.41 1.41 1.41 5.41 5.41 9.41"/><polyline class="cls-2" points="13.41 1.41 17.41 5.41 13.41 9.41"/></g></g></svg>
@@ -1239,6 +1239,13 @@ export class ResourceSet extends LitElement {
     this._states = {};
     this.addState = new UIState();
     this.addState.mode = "off";
+    this.subscribe()
+  }
+
+  /**
+   * Override to control how we subscribe to resources.
+   */
+  subscribe() {
     Snapshot.subscribe(this.onSnapshotChange.bind(this))
   }
 

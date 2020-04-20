@@ -63,7 +63,7 @@ not have a model for S, so it creates a new model instance.
                       +---------+     +---------+
 
 (5) The collection view listens to the collection model and receives that "new model created" message 
-(via `onModelNotification()`), so it creates a new view and (6) connects that view to the new model.
+(via `onModelChanged()`), so it creates a new view and (6) connects that view to the new model.
 
                        [models]         [views]
                       +---------+     +---------+
@@ -117,7 +117,7 @@ so it wants to delete model Q.
                       +---------+     +---------+
 
 (5) The collection view listens to the collection model and receives that "model Q deleted" message 
-(via `onModelNotification()`), so it delete the view for Q.
+(via `onModelChanged()`), so it delete the view for Q.
 
                        [models]         [views]
                       +---------+     +---------+
@@ -183,7 +183,7 @@ its data from the snapshot (updates to Q').
                       +---------+     +---------+
 
 (5) The view for Q listens to the Q model and receives that "model updated" message 
-(via `onModelNotification()`), so it updates itself and redisplays as necessary.
+(via `onModelChanged()`), so it updates itself and redisplays as necessary.
 
                        [models]         [views]
                       +---------+     +---------+

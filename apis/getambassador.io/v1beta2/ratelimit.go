@@ -5,7 +5,7 @@ import (
 )
 
 type RateLimit struct {
-	*metaV1.TypeMeta   `json:",inline"`
+	*metaV1.TypeMeta
 	*metaV1.ObjectMeta `json:"metadata"`
 	Spec               *RateLimitSpec `json:"spec"`
 }

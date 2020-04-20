@@ -21,6 +21,7 @@ var Version = "(unknown version)"
 var licenseClaims *licensekeys.LicenseClaimsLatest
 
 func init() {
+	metriton.Reporter.Version = Version
 	cmdContext := &licensekeys.LicenseContext{}
 	if err := cmdContext.AddFlagsTo(apictl); err != nil {
 		panic(err)
@@ -34,7 +35,7 @@ func init() {
 		var err error
 		licenseClaims, err = cmdContext.GetClaims()
 		if err == nil {
-			go metriton.PhoneHome(licenseClaims, nil, "apictl", Version)
+			go metriton.PhoneHome(licenseClaims, nil, "apictl")
 			return
 		}
 		fmt.Fprintln(os.Stderr, err)

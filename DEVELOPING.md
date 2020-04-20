@@ -22,7 +22,9 @@ How do I hack on the UI?
    ```
 
 2. Run the sidecar locally with the local backend forwarding all
-   snapshot requests to the backend in the cluster.
+   snapshot requests to the backend in the cluster:
+
+   The long and flexible way:
 
    ```sh
    DEV_WEBUI_SNAPSHOT_HOST=${MY_CLUSTER_HOST_OR_IP} \
@@ -33,7 +35,23 @@ How do I hack on the UI?
    go run ./cmd/ambassador amb-sidecar
    ```
 
-3. Visit http://localhost:9000 in your browser
+   The short and opinionated way:
+
+   ```sh
+   ./ui-dev.sh
+   ```
+
+3. Visit in your browser:
+
+   - http://localhost:9000 to see all endpoints
+   - http://localhost:9000/dev/tests to run the javascript tests
+   - http://localhost:9000/dev/docs/ to read documentation for our UI code
+
+   Or run `edgectl login --namespace=ambassador localhost:9000`, then
+   replace "https://" with "http://" when it opens your web browser.
+   Note that you won't be able to run log in if you don't also have a
+   copy of Ambassador running in the cluster for the local copy to
+   talk to.
 
 4. Hack away at the files in `${PWD}/cmd/amb-sidecar/webui/bindata/`. Refresh (or shift-refresh)
    your browser as necessary to get the updated files.
@@ -177,6 +195,48 @@ There are (primarily) two backend endpoints that the UI leverages:
 /edge_stack/api/snapshot --> Returns the raw watt snapshot.
 /edge_stack/api/apply --> Applies kubernetes yaml to the cluster.
 /edge_stack/api/delete --> Deletes a kubernetes resource from the cluster.
+
+How do I run tests for javascript code?
+---------------------------------------
+
+1. Run the sidecar locally as described in "How do I hack on the UI?".
+
+2. Visit localhost:${DEV_WEBUI_PORT}/dev/tests
+
+3. You should see test results displayed on the screen.
+
+4. Add ?grep=<foo> to the url to run just a subset of the tests.
+
+The endpoint uses mocha as a test runner and chai as an assertion
+library. Visit https://mochajs.org and https://chaijs.com for more
+details on either.
+
+Note that the mocha test endpoint will always run whenever
+DEV_WEBUI_PORT is set.
+
+How do I write tests for javascript code?
+-----------------------------------------
+
+1. Create a .js file for your tests and place it in or under a tests
+   directory within the web root. The web root is
+   ./cmd/amb-sidecar/webui/bindata
+
+2. Visit the tests endpoint at localhost:${DEV_WEBUI_PORT}/dev/tests
+
+3. If your javascript file has valid tests in it, you will see the
+results. If you do not see your tests, make sure you look at the
+browser console to see any syntax/loading errors.
+
+When hacking on a single test, it is handy to add ?grep=<foo> to the
+tests URL and run only a subset of the tests. It is also very handy to
+use the `describe.only` and the `it.only` features of mocha to limit
+to just a subset of tests. The way the `.only` feature works, you
+simply append `.only` to the `describe` and/or `it` function calls for
+the tests you are interested in, and mocha will run "only" those
+tests.
+
+You can read more about mocha and chai at https://mochajs.org and
+https://chaijs.com respectively.
 
 How do I hack on the AES metrics reporting to Metriton?
 -------------------------------------------------------
@@ -387,3 +447,103 @@ runs can be very useful.  Common modifications are
  - uncomment the `//await writeFile("/tmp/f.html", await
    browsertab.content());` line so you can inspect the DOM of the
    final page.
+
+How do I add new CRD types?
+---------------------------
+
+Well, you should probably start by writing a spec for the CRD.  Should you...
+ - ...do that in JSON Schema at
+   `ambassador.git/python/schemas/`?
+   + Used for: most of the OSS CRDs
+   + Pros:
+     * Might make teaching the api-server to validate our CRDs easier,
+       if we ever get around to implementing that
+   + Cons:
+     * Can't write comments
+     * Difficult to read
+     * Must describe old annotation-style format, instead of the new
+       resource-style format
+     * Can't define a `status` field (because old annotation-style
+       format)
+ - ...do that in Go structs at `apro.git/apis/`?
+   + Used for: the Pro CRDs: Filters, FilterPolicies, and Ratelimits
+   + Pros:
+     * Relatively easy and intuitive to read/write
+   + Cons:
+     * Enums are super clunky to write (because Go doesn't have enums)
+     * Easy to get procedural code mixed in with what should be
+       declarative definitions
+     * Hard to share with Python
+ - ...do that in Protobuf at `ambassador.git/api/`?
+   + Used for: Hosts
+   + Pros:
+     * Easy to share with both Go and Python
+     * A little more awkward to write than Go structs, but not
+       not much worse
+   + Cons:
+     * Crappy tooling means that we need to use hacks for certain
+       k8s.io types
+     * Means that you need to do things in 2 repos when adjusting the
+       spec for AES
+     * Impossible (very difficult? impossible without hacks, anyway)
+       to have flexibility like "ambassador_id may be a string or an
+       array of strings"; which is trivial in JSON Schema, and
+       easy-enough in Go structs
+ - ...just say "YOLO" and define it as a Go struct in the
+   package where you consume it?
+   + Used for: kale/route-to-code
+   + Pros/Cons similar to `apro.git/apis/`
+   + Pro: Things are defined close to where they are used, separate
+     parts of the codebase remain separate
+   + Con: Even easier than `apro.git/apis/` to get procedural code
+     mixed in with declarative definitions
+
+Who knows what you should do; we get conflicting answers whenever we
+try to settle on one.
+
+OK, so you somehow figured out how to get the code to understand and
+listen for the CRD.  Now you need to add it to the YAML:
+
+ 1. Define the CRD.
+    - for OSS CRDs, add it to each of the following files:
+      * `ambassador.git/docs/yaml/ambassador/ambassador-crds.yaml`
+      * `ambassador.git/docs/yaml/ambassador/ambassador-knative.yaml`
+      * `ambassador.git/docs/yaml/ambassador/ambassador-rbac-prometheus.yaml`
+    - for AES-only CRDs, add it to the following file:
+      * `apro.git/k8s-aes-src/00-aes-crds.yaml`
+ 2. Update the RBAC.
+    - If you need to adjust the OSS RBAC:
+      1. Edit the `ClusterRole` in the following files:
+         + `ambassador.git/docs/yaml/ambassador/ambassador-knative.yaml`
+         + `ambassador.git/docs/yaml/ambassador/ambassador-rbac-prometheus.yaml`
+         + `ambassador.git/docs/yaml/ambassador/ambassador-rbac.yaml`
+         + `ambassador.git/python/tests/manifests/rbac_cluster_scope.yaml`
+      2. Edit the `Role` in the following files:
+         + `ambassador.git/python/tests/manifests/rbac_namespace_scope.yaml`
+      3. Also edit the AES RBAC (below) correspondingly
+    - If you need to adjust the AES RBAC, edit:
+      + `apro.git/k8s-aes-src/01-aes.yaml` (edit the `ClusterRole`)
+      + `apro.git/tests/pytest/manifests/rbac_cluster_scope.yaml` (edit the `ClusterRole`)
+      + `apro.git/tests/pytest/manifests/rbac_namespace_scope.yaml`
+        * You should mostly just be changing the `Role` (not the
+          `ClusterRole`).  However, if you're not handling
+          `AMBASSADOR_SINGLE_NAMESPACE` in client-go (as you're probably
+          not if you're using `github.com/datawire/ambassador/pkg/k8s`
+          directly instead of using WATT), then you also need to add
+          get/list/watch for it to the `ClusterRole`.
+ 3. Update generated files.
+    1. If you made any changes in `ambassador.git`, update
+      `apro.git/ambassador.commit`.
+    2. In `apro.git`, run `make update-yaml-locally`.
+
+How do I update the builder image used by route-to-code?
+--------------------------------------------------------
+
+Push the desired changes to
+https://github.com/datawire/aes-project-builder .  Quay will
+automatically build a `quay.io/datawire/aes-project-builder` image
+from any branches or tags pushed.  Go to
+https://quay.io/repository/datawire/aes-project-builder?tab=tags and
+find the Docker tag that it made, click the download button on the
+right and select "Docker Pull (by digest)".  Copy the image name, and
+put it in `./cmd/amb-sidecar/kale/kale.go`.
