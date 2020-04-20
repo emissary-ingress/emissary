@@ -312,7 +312,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 		main := func(ctx context.Context, _snapshot UntypedSnapshot) {
 			ctx = CtxWithIteration(ctx, telemetryIteration)
 			telemetryIteration++
-			snapshot := _snapshot.TypedAndIndexed(ctx)
+			snapshot := _snapshot.TypedAndFilteredAndIndexed(ctx)
 			for _, proj := range snapshot.Projects {
 				telemetryOK(CtxWithProject(ctx, proj.Project), StepValidProject)
 			}
@@ -376,7 +376,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 				if !ok {
 					return nil
 				}
-				snapshot := _snapshot.TypedAndIndexed(softCtx)
+				snapshot := _snapshot.TypedAndFilteredAndIndexed(softCtx)
 				k.mu.Lock()
 				k.webSnapshot = snapshot
 				k.mu.Unlock()

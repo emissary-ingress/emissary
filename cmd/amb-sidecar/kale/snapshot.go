@@ -46,7 +46,7 @@ type Snapshot struct {
 	grouped *GroupedSnapshot `json:"-"`
 }
 
-func (in UntypedSnapshot) TypedAndIndexed(ctx context.Context) *Snapshot {
+func (in UntypedSnapshot) TypedAndFilteredAndIndexed(ctx context.Context) *Snapshot {
 	var out Snapshot
 
 	// For built-in resource types, it is appropriate to a panic
@@ -63,6 +63,9 @@ func (in UntypedSnapshot) TypedAndIndexed(ctx context.Context) *Snapshot {
 	}
 	out.Jobs = make(map[k8sTypes.UID]*jobAndChildren, len(outJobs))
 	for _, outJob := range outJobs {
+		if outJob.GetDeletionTimestamp() != nil {
+			continue
+		}
 		out.Jobs[outJob.GetUID()] = &jobAndChildren{Job: outJob}
 	}
 
@@ -73,6 +76,9 @@ func (in UntypedSnapshot) TypedAndIndexed(ctx context.Context) *Snapshot {
 	}
 	out.Deployments = make(map[k8sTypes.UID]*deploymentAndChildren, len(outDeployments))
 	for _, outDeployment := range outDeployments {
+		if outDeployment.GetDeletionTimestamp() != nil {
+			continue
+		}
 		out.Deployments[outDeployment.GetUID()] = &deploymentAndChildren{Deployment: outDeployment}
 	}
 
@@ -83,6 +89,9 @@ func (in UntypedSnapshot) TypedAndIndexed(ctx context.Context) *Snapshot {
 	}
 	out.Pods = make(map[k8sTypes.UID]*podAndChildren, len(outPods))
 	for _, outPod := range outPods {
+		if outPod.GetDeletionTimestamp() != nil {
+			continue
+		}
 		out.Pods[outPod.GetUID()] = &podAndChildren{Pod: outPod}
 	}
 
@@ -93,6 +102,9 @@ func (in UntypedSnapshot) TypedAndIndexed(ctx context.Context) *Snapshot {
 	}
 	out.Events = make(map[k8sTypes.UID]*k8sTypesCoreV1.Event, len(outEvents))
 	for _, outEvent := range outEvents {
+		if outEvent.GetDeletionTimestamp() != nil {
+			continue
+		}
 		out.Events[outEvent.GetUID()] = outEvent
 	}
 
@@ -111,6 +123,9 @@ func (in UntypedSnapshot) TypedAndIndexed(ctx context.Context) *Snapshot {
 				errors.Wrap(err, "Project"))
 			continue
 		}
+		if outProj.GetDeletionTimestamp() != nil {
+			continue
+		}
 		out.Projects[outProj.GetUID()] = &projectAndChildren{Project: outProj}
 	}
 
@@ -122,6 +137,9 @@ func (in UntypedSnapshot) TypedAndIndexed(ctx context.Context) *Snapshot {
 			reportThisIsABug(ctx, errors.Wrap(err, "ProjectRevision"))
 			continue
 		}
+		if outRevision.GetDeletionTimestamp() != nil {
+			continue
+		}
 		out.Revisions[outRevision.GetUID()] = &revisionAndChildren{ProjectRevision: outRevision}
 	}
 
@@ -131,6 +149,9 @@ func (in UntypedSnapshot) TypedAndIndexed(ctx context.Context) *Snapshot {
 		var outController *ProjectController
 		if err := mapstructure.Convert(inController, &outController); err != nil {
 			reportThisIsABug(ctx, errors.Wrap(err, "ProjectController"))
+			continue
+		}
+		if outController.GetDeletionTimestamp() != nil {
 			continue
 		}
 		out.Controllers[outController.GetUID()] = &controllerAndChildren{ProjectController: outController}
