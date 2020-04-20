@@ -602,6 +602,10 @@ func (c *OAuth2Client) saveSession(redisClient *redis.Client, sessionInfo *Sessi
 	sessionInfo.sessionID = newSessionID
 	sessionInfo.xsrfToken = newXsrfToken
 
+	return c.getSessionCookies(requestHeader, sessionInfo), nil
+}
+
+func (c *OAuth2Client) getSessionCookies(requestHeader http.Header, sessionInfo *SessionInfo) (cookies []*http.Cookie) {
 	// OK, build up some cookies.
 	//
 	// Note that "useSessionCookies" is about whether or not we use cookies that
@@ -674,7 +678,7 @@ func (c *OAuth2Client) saveSession(redisClient *redis.Client, sessionInfo *Sessi
 		},
 	}
 
-	return cookies, nil
+	return cookies
 }
 
 func (c *OAuth2Client) deleteSession(redisClient *redis.Client, sessionInfo *SessionInfo) error {
