@@ -537,7 +537,18 @@ func (k *kale) calculateRevisions(proj *projectAndChildren) ([]interface{}, erro
 			}
 		}
 		if !stillHasOldProd {
-			revisions = append(revisions, oldProd)
+			// Filter out all but a few of the "metadata" fields; notably NOT including
+			// ResourceVersion.
+			revisions = append(revisions, &ProjectRevision{
+				TypeMeta: oldProd.TypeMeta,
+				ObjectMeta: k8sTypesMetaV1.ObjectMeta{
+					Name:            oldProd.ObjectMeta.Name,
+					Namespace:       oldProd.ObjectMeta.Namespace,
+					OwnerReferences: oldProd.ObjectMeta.OwnerReferences,
+					Labels:          oldProd.ObjectMeta.Labels,
+				},
+				Spec: oldProd.Spec,
+			})
 		}
 	}
 
