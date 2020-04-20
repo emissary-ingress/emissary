@@ -148,119 +148,13 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 	// Whenever this method returns, we should update our session info in Redis, if
 	// need be.
 	defer func() {
-		// If we have no new session data, we can just bail here.
-		if sessionInfo.sessionData == nil || !sessionInfo.sessionData.IsDirty() {
-			return
-		}
+		newCookies, err := c.saveSession(redisClient, sessionInfo, filterutil.GetHeader(request))
 
-		// OK, we have some new stuff.  Store it in Redis, delete the old data
-		// from Redis, and rev the cookies.
-
-		newSessionID, err := randomString(sessionBits)
 		if err != nil {
-			response = middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-				errors.Wrap(err, "failed to generate session ID"), nil)
-			return
+			response = middleware.NewErrorResponse(ctx, http.StatusInternalServerError, err, nil)
+		} else {
+			cookies = append(cookies, newCookies...)
 		}
-
-		newXsrfToken, err := randomString(xsrfBits)
-		if err != nil {
-			response = middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-				errors.Wrap(err, "failed to generate XSRF token"), nil)
-			return
-		}
-
-		sessionDataBytes, err := json.Marshal(sessionInfo.sessionData)
-		if err != nil {
-			response = middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-				errors.New("failed to serialize session information"), nil)
-			return
-		}
-
-		redisClient.PipeAppend("SET", "session:"+newSessionID, string(sessionDataBytes), "EX", int(sessionExpiry.Seconds()))
-		redisClient.PipeAppend("SET", "session-xsrf:"+newSessionID, newXsrfToken, "EX", int(sessionExpiry.Seconds()))
-
-		if sessionInfo.sessionID != "" {
-			redisClient.PipeAppend("DEL", "session:"+sessionInfo.sessionID)
-			redisClient.PipeAppend("DEL", "session-xsrf:"+sessionInfo.sessionID)
-		}
-
-		// Empty the pipeline, and scream about anything that goes wrong in the middle.
-		for err != redis.ErrPipelineEmpty {
-			err = redisClient.PipeResp().Err
-			if err != nil && err != redis.ErrPipelineEmpty {
-				response = middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-					errors.Wrap(err, "redis"), nil)
-				return
-			}
-		}
-
-		// Note that "useSessionCookies" is about whether or not we use cookies that
-		// expire when the browser is closed (session cookies) or cookies that expire
-		// at a particular time, irrespective of how long the browser has been open
-		// (uh... non-session cookies, I guess?). It's not about whether we use cookies
-		// at all -- we always set a cookie, the thing that changes is the expiry.
-		useSessionCookies := *c.Spec.UseSessionCookies.Value
-		if !c.Spec.UseSessionCookies.IfRequestHeader.Matches(filterutil.GetHeader(request)) {
-			useSessionCookies = !useSessionCookies
-		}
-		maxAge := int(sessionExpiry.Seconds())
-		if useSessionCookies {
-			maxAge = 0 // unset
-		}
-
-		cookies = append(cookies,
-			&http.Cookie{
-				Name:  sessionInfo.c.sessionCookieName(),
-				Value: newSessionID,
-
-				// Expose the cookie to all paths on this host, not just directories of {{originalURL.Path}}.
-				// This is important, because `/.ambassador/oauth2/redirection-endpoint` is probably not a
-				// subdirectory of originalURL.Path.
-				Path: "/",
-
-				// Strictly match {{originalURL.Hostname}}.  Explicitly setting it to originalURL.Hostname()
-				// would instead also match "*.{{originalURL.Hostname}}".
-				Domain: "",
-
-				// How long should the User-Agent retain the cookie?  If unset, it will expire at the end of the
-				// "session" (when they close their browser).
-				Expires: time.Time{}, // as a time (low precedence)
-				MaxAge:  maxAge,      // as a duration (high precedence)
-
-				// Whether to send the cookie for non-TLS requests.
-				// TODO(lukeshu): consider using originalURL.Scheme
-				Secure: sessionInfo.c.Spec.TLS(),
-
-				// Do NOT expose the session cookie to JavaScript.
-				HttpOnly: true,
-			},
-			&http.Cookie{
-				Name:  sessionInfo.c.xsrfCookieName(),
-				Value: newXsrfToken,
-
-				// Expose the cookie to all paths on this host, not just directories of {{originalURL.Path}}.
-				// This is important, because `/.ambassador/oauth2/redirection-endpoint` is probably not a
-				// subdirectory of originalURL.Path.
-				Path: "/",
-
-				// Strictly match {{originalURL.Hostname}}.  Explicitly setting it to originalURL.Hostname()
-				// would instead also match "*.{{originalURL.Hostname}}".
-				Domain: "",
-
-				// How long should the User-Agent retain the cookie?  If unset, it will expire at the end of the
-				// "session" (when they close their browser).
-				Expires: time.Time{}, // as a time (low precedence)
-				MaxAge:  maxAge,      // as a duration (high precedence)
-
-				// Whether to send the cookie for non-TLS requests.
-				// TODO(lukeshu): consider using originalURL.Scheme
-				Secure: sessionInfo.c.Spec.TLS(),
-
-				// DO expose the XSRF cookie to JavaScript.
-				HttpOnly: false,
-			},
-		)
 	}()
 
 	// OK, back to processing the request.  (Remeber, the last thing we did was load
@@ -618,6 +512,116 @@ func (c *OAuth2Client) loadSession(redisClient *redis.Client, requestHeader http
 	}
 
 	return sessionInfo, nil
+}
+
+func (c *OAuth2Client) saveSession(redisClient *redis.Client, sessionInfo *SessionInfo, requestHeader http.Header) ([]*http.Cookie, error) {
+	// If we have no new session data, we can just bail here.
+	if sessionInfo.sessionData == nil || !sessionInfo.sessionData.IsDirty() {
+		return nil, nil
+	}
+
+	// OK, we have some new stuff. Store it in Redis, delete the old data
+	// from Redis, and rev the cookies.
+
+	newSessionID, err := randomString(sessionBits)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to generate session ID")
+	}
+
+	newXsrfToken, err := randomString(xsrfBits)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to generate XSRF token")
+	}
+
+	sessionDataBytes, err := json.Marshal(sessionInfo.sessionData)
+	if err != nil {
+		return nil, errors.New("failed to serialize session information")
+	}
+
+	redisClient.PipeAppend("SET", "session:"+newSessionID, string(sessionDataBytes), "EX", int(sessionExpiry.Seconds()))
+	redisClient.PipeAppend("SET", "session-xsrf:"+newSessionID, newXsrfToken, "EX", int(sessionExpiry.Seconds()))
+
+	if sessionInfo.sessionID != "" {
+		redisClient.PipeAppend("DEL", "session:"+sessionInfo.sessionID)
+		redisClient.PipeAppend("DEL", "session-xsrf:"+sessionInfo.sessionID)
+	}
+
+	// Empty the pipeline, and scream about anything that goes wrong in the middle.
+	for err != redis.ErrPipelineEmpty {
+		err = redisClient.PipeResp().Err
+		if err != nil && err != redis.ErrPipelineEmpty {
+			return nil, errors.Wrap(err, "redis")
+		}
+	}
+
+	// Note that "useSessionCookies" is about whether or not we use cookies that
+	// expire when the browser is closed (session cookies) or cookies that expire
+	// at a particular time, irrespective of how long the browser has been open
+	// (uh... non-session cookies, I guess?). It's not about whether we use cookies
+	// at all -- we always set a cookie, the thing that changes is the expiry.
+	useSessionCookies := *c.Spec.UseSessionCookies.Value
+	if !c.Spec.UseSessionCookies.IfRequestHeader.Matches(requestHeader) {
+		useSessionCookies = !useSessionCookies
+	}
+	maxAge := int(sessionExpiry.Seconds())
+	if useSessionCookies {
+		maxAge = 0 // unset
+	}
+
+	cookies := []*http.Cookie{
+		&http.Cookie{
+			Name:  sessionInfo.c.sessionCookieName(),
+			Value: newSessionID,
+
+			// Expose the cookie to all paths on this host, not just directories of {{originalURL.Path}}.
+			// This is important, because `/.ambassador/oauth2/redirection-endpoint` is probably not a
+			// subdirectory of originalURL.Path.
+			Path: "/",
+
+			// Strictly match {{originalURL.Hostname}}.  Explicitly setting it to originalURL.Hostname()
+			// would instead also match "*.{{originalURL.Hostname}}".
+			Domain: "",
+
+			// How long should the User-Agent retain the cookie?  If unset, it will expire at the end of the
+			// "session" (when they close their browser).
+			Expires: time.Time{}, // as a time (low precedence)
+			MaxAge:  maxAge,      // as a duration (high precedence)
+
+			// Whether to send the cookie for non-TLS requests.
+			// TODO(lukeshu): consider using originalURL.Scheme
+			Secure: sessionInfo.c.Spec.TLS(),
+
+			// Do NOT expose the session cookie to JavaScript.
+			HttpOnly: true,
+		},
+		&http.Cookie{
+			Name:  sessionInfo.c.xsrfCookieName(),
+			Value: newXsrfToken,
+
+			// Expose the cookie to all paths on this host, not just directories of {{originalURL.Path}}.
+			// This is important, because `/.ambassador/oauth2/redirection-endpoint` is probably not a
+			// subdirectory of originalURL.Path.
+			Path: "/",
+
+			// Strictly match {{originalURL.Hostname}}.  Explicitly setting it to originalURL.Hostname()
+			// would instead also match "*.{{originalURL.Hostname}}".
+			Domain: "",
+
+			// How long should the User-Agent retain the cookie?  If unset, it will expire at the end of the
+			// "session" (when they close their browser).
+			Expires: time.Time{}, // as a time (low precedence)
+			MaxAge:  maxAge,      // as a duration (high precedence)
+
+			// Whether to send the cookie for non-TLS requests.
+			// TODO(lukeshu): consider using originalURL.Scheme
+			Secure: sessionInfo.c.Spec.TLS(),
+
+			// DO expose the XSRF cookie to JavaScript.
+			HttpOnly: false,
+		},
+	}
+
+	return cookies, nil
 }
 
 func (c *OAuth2Client) deleteSession(redisClient *redis.Client, sessionInfo *SessionInfo) error {
