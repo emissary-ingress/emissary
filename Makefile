@@ -84,6 +84,8 @@ update-yaml-locally: sync
 	docker exec $(shell $(BUILDER)) python apro/fix-crds.py 1.11 ambassador/docs/yaml/ambassador/ambassador-crds.yaml apro/k8s-aes-src/00-aes-crds.yaml > k8s-aes/00-aes-crds-kube1.11.yaml
 	@printf '  $(CYN)k8s-aes/00-aes-crds-kube1.16.yaml$(END)\n'
 	docker exec $(shell $(BUILDER)) python apro/fix-crds.py 1.16 ambassador/docs/yaml/ambassador/ambassador-crds.yaml apro/k8s-aes-src/00-aes-crds.yaml > k8s-aes/00-aes-crds-kube1.16.yaml
+	@printf '  $(CYN)tests/pytest/manifests/crds.yaml$(END)\n'
+	docker exec $(shell $(BUILDER)) python apro/fix-crds.py 1.10 nokale ambassador/docs/yaml/ambassador/ambassador-crds.yaml apro/k8s-aes-src/00-aes-crds.yaml > tests/pytest/manifests/crds.yaml
 	@printf '  $(CYN)k8s-aes/01-aes.yaml$(END)\n'
 	docker exec $(shell $(BUILDER)) python apro/fix-yaml.py apro ambassador/docs/yaml/ambassador/ambassador-rbac.yaml apro/k8s-aes-src/01-aes.yaml > k8s-aes/01-aes.yaml
 	@printf "$(CYN)==> $(GRN)Checking whether those changes were no-op$(END)\n"
