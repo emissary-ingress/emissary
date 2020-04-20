@@ -165,6 +165,35 @@ func telemetryOK(ctx context.Context, traceStep string) {
 	})
 }
 
+func blockUntilAProjectControllerExists(ctx context.Context, cfg types.Config, client *k8s.Client) error {
+	found := make(chan struct{})
+
+	earlywatcher := client.Watcher()
+
+	query := k8s.Query{Kind: "projectcontrollers.getambassador.io", LabelSelector: GlobalLabelName + "=" + cfg.AmbassadorID}
+	err := earlywatcher.WatchQuery(query, func(w *k8s.Watcher) {
+		if len(w.List("projectcontrollers.getambassador.io")) > 0 {
+			_ = safeInvoke(func() { close(found) })
+		}
+	})
+	if err != nil {
+		return errors.Wrapf(err, "kale disabled: earlywatcher.WatchQuery(%#v, ...)", query)
+	}
+
+	if err := safeInvoke(earlywatcher.Start); err != nil {
+		return errors.Wrap(err, "kale disabled: earlywatcher.Start()")
+	}
+	go func() {
+		select {
+		case <-ctx.Done():
+		case <-found:
+		}
+		earlywatcher.Stop()
+	}()
+	earlywatcher.Wait()
+	return nil
+}
+
 func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8s.KubeInfo, dynamicClient k8sClientDynamic.Interface, pubkey *rsa.PublicKey, eventLogger *events.EventLogger) {
 	k := NewKale(dynamicClient, eventLogger)
 	globalKale = k
@@ -189,6 +218,17 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 			return nil
 		}
 
+		err = blockUntilAProjectControllerExists(softCtx, cfg, client)
+		if err != nil {
+			reportRuntimeError(softCtx, StepSetup, err)
+			return nil
+		}
+		if softCtx.Err() != nil {
+			return nil
+		}
+
+		webui.SetFeatureFlag("butterscotch")
+
 		w := client.Watcher()
 		var wg WatchGroup
 
@@ -201,11 +241,6 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 				Deployments: w.List("deployments.apps"),
 				Pods:        w.List("pods."),
 				Events:      w.List("events."),
-			}
-			if len(snapshot.Controllers) == 0 {
-				return
-			} else {
-				webui.SetFeatureFlag("butterscotch")
 			}
 			upstreamWorker <- snapshot
 			upstreamWebUI <- snapshot
