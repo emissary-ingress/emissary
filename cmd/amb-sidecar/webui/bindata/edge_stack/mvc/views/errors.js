@@ -89,7 +89,7 @@ class Errors extends View {
   bugUrl() {
     let start = "Steps to reproduce:\n  1.\n\n```\n"
     let end = "\n```"
-    let urlFor = (e)=>`https://github.com/rhs/futz/issues/new?body=${encodeURIComponent(start+e+end)}`
+    let urlFor = (e)=>`https://github.com/datawire/ambassador/issues/new?body=${encodeURIComponent(start+e+end)}`
 
     let max = 4096
     let encoded = JSON.stringify(this.errors)
