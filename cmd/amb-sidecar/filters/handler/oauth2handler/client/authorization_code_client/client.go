@@ -142,11 +142,8 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 	// access-token-type that we use!
 	oauthClient.RegisterProtocolExtensions(rfc6750client.OAuthProtocolExtension)
 
-	sessionInfo := &SessionInfo{c: c}
-	var sessionErr error
-
 	// Load our session from Redis.
-	sessionInfo.sessionID, sessionInfo.xsrfToken, sessionInfo.sessionData, sessionErr = c.loadSession(redisClient, filterutil.GetHeader(request))
+	sessionInfo, sessionErr := c.loadSession(redisClient, filterutil.GetHeader(request))
 
 	// Whenever this method returns, we should update our session info in Redis, if
 	// need be.
@@ -415,20 +412,20 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 func (c *OAuth2Client) ServeHTTP(w http.ResponseWriter, r *http.Request, ctx context.Context, discovered *discovery.Discovered, redisClient *redis.Client) {
 	switch r.URL.Path {
 	case "/.ambassador/oauth2/logout":
-		sessionID, xsrfToken, _, err := c.loadSession(redisClient, r.Header)
+		sessionInfo, err := c.loadSession(redisClient, r.Header)
 		if err != nil {
 			middleware.ServeErrorResponse(w, ctx, http.StatusForbidden, // XXX: error code?
 				errors.Wrap(err, "no session"), nil)
 			return
 		}
 
-		if c.readXSRFCookie(r.Header) != xsrfToken {
+		if c.readXSRFCookie(r.Header) != sessionInfo.xsrfToken {
 			middleware.ServeErrorResponse(w, ctx, http.StatusForbidden,
 				errors.New("XSRF protection"), nil)
 			return
 		}
 
-		if r.PostFormValue("_xsrf") != xsrfToken {
+		if r.PostFormValue("_xsrf") != sessionInfo.xsrfToken {
 			middleware.ServeErrorResponse(w, ctx, http.StatusForbidden,
 				errors.New("XSRF protection"), nil)
 			return
@@ -446,7 +443,7 @@ func (c *OAuth2Client) ServeHTTP(w http.ResponseWriter, r *http.Request, ctx con
 		//query.Set("state", "TODO") // TODO: only OPTIONAL; only does something if "post_logout_redirect_uri"
 
 		// TODO: Don't do the delete until the post_logout_redirect_uri is hit?
-		if err := redisClient.Cmd("DEL", "session:"+sessionID, "session-xsrf:"+sessionID).Err; err != nil {
+		if err := redisClient.Cmd("DEL", "session:"+sessionInfo.sessionID, "session-xsrf:"+sessionInfo.sessionID).Err; err != nil {
 			middleware.ServeErrorResponse(w, ctx, http.StatusInternalServerError,
 				err, nil)
 			return
@@ -589,7 +586,9 @@ func (c *OAuth2Client) readXSRFCookie(requestHeader http.Header) string {
 	return cookie.Value
 }
 
-func (c *OAuth2Client) loadSession(redisClient *redis.Client, requestHeader http.Header) (sessionID, xsrfToken string, sessionData *rfc6749client.AuthorizationCodeClientSessionData, err error) {
+func (c *OAuth2Client) loadSession(redisClient *redis.Client, requestHeader http.Header) (*SessionInfo, error) {
+	sessionInfo := &SessionInfo{c: c}
+
 	// BS to leverage net/http's cookie-parsing
 	r := &http.Request{
 		Header: requestHeader,
@@ -598,27 +597,27 @@ func (c *OAuth2Client) loadSession(redisClient *redis.Client, requestHeader http
 	// get the sessionID from the cookie
 	cookie, err := r.Cookie(c.sessionCookieName())
 	if cookie == nil {
-		return "", "", nil, err
+		return nil, err
 	}
-	sessionID = cookie.Value
+	sessionInfo.sessionID = cookie.Value
 
 	// get the xsrf token from Redis
-	xsrfToken, err = redisClient.Cmd("GET", "session-xsrf:"+sessionID).Str()
+	sessionInfo.xsrfToken, err = redisClient.Cmd("GET", "session-xsrf:"+sessionInfo.sessionID).Str()
 	if err != nil {
-		return "", "", nil, err
+		return nil, err
 	}
 
 	// get the sessionData from Redis
-	sessionDataBytes, err := redisClient.Cmd("GET", "session:"+sessionID).Bytes()
+	sessionDataBytes, err := redisClient.Cmd("GET", "session:"+sessionInfo.sessionID).Bytes()
 	if err != nil {
-		return "", "", nil, err
+		return nil, err
 	}
-	sessionData = new(rfc6749client.AuthorizationCodeClientSessionData)
-	if err := json.Unmarshal(sessionDataBytes, sessionData); err != nil {
-		return "", "", nil, err
+	sessionInfo.sessionData = new(rfc6749client.AuthorizationCodeClientSessionData)
+	if err := json.Unmarshal(sessionDataBytes, sessionInfo.sessionData); err != nil {
+		return nil, err
 	}
 
-	return sessionID, xsrfToken, sessionData, nil
+	return sessionInfo, nil
 }
 
 func genState(originalURL *url.URL) (string, error) {
