@@ -6,6 +6,7 @@ import copy
 import json
 import os
 import yaml
+from typing import List
 
 from packaging import version
 
@@ -80,20 +81,30 @@ def fix_crd(crd):
         categories.append('ambassador-crds')
     crd['spec']['names']['categories'] = categories
 
-def main():
+def main(arg_kubeversion: str, arg_nokale: bool, arg_inpaths: List[str]):
     global kubeversion
 
-    kubeversion = sys.argv[1]
+    kubeversion = arg_kubeversion
     crds = []
-    for in_path in sys.argv[2:]:
+    for in_path in arg_inpaths:
         crds += list(yaml.safe_load_all(open(in_path, "r")))
 
     for crd in crds:
         fix_crd(crd)
+
+    if arg_nokale:
+        crds = [ crd for crd in crds if not crd['metadata']['name'].startswith('project') ]
 
     print("# GENERATED FILE: edits made by hand will not be preserved.")
     print()
     print(yaml.safe_dump_all(crds))
 
 if __name__ == "__main__":
-    main()
+    arg_kubeversion = sys.argv[1]
+    if sys.argv[2] == "nokale":
+        arg_nokale = True
+        arg_inpaths = sys.argv[3:]
+    else:
+        arg_nokale = False
+        arg_inpaths = sys.argv[2:]
+    main(arg_kubeversion, arg_nokale, arg_inpaths)
