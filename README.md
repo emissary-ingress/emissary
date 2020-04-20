@@ -96,7 +96,7 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `env`                              | Any additional environment variables for ambassador pods                        | `{}`                              |
 | `image.pullPolicy`                 | Ambassador image pull policy                                                    | `IfNotPresent`                    |
 | `image.repository`                 | Ambassador image                                                                | `quay.io/datawire/aes`            |
-| `image.tag`                        | Ambassador image tag                                                            | `1.4.0`                           |
+| `image.tag`                        | Ambassador image tag                                                            | `1.4.1`                           |
 | `imagePullSecrets`                 | Image pull secrets                                                              | `[]`                              |
 | `namespace.name`                   | Set the `AMBASSADOR_NAMESPACE` environment variable                             | `metadata.namespace`              |
 | `scope.singleNamespace`            | Set the `AMBASSADOR_SINGLE_NAMESPACE` environment variable and create namespaced RBAC if `rbac.enabled: true` | `false`|
@@ -154,6 +154,9 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `prometheusExporter.repository`    | DEPRECATED: Prometheus exporter image                                           | `prom/statsd-exporter`            |
 | `prometheusExporter.tag`           | DEPRECATED: Prometheus exporter image                                           | `v0.8.1`                          |
 | `prometheusExporter.resources`     | DEPRECATED: CPU/memory resource requests/limits                                 | `{}`                              |
+| `metrics.serviceMonitor.enabled`   | Create ServiceMonitor object (`adminService.create` should be to `true`)        | `false`                           |
+| `metrics.serviceMonitor.interval`  | Interval at which metrics should be scraped                                     | `30s`                             |
+| `metrics.serviceMonitor.scrapeTimeout` | Timeout after which the scrape is ended                                     | `30s`                             |
 
 **NOTE:** Make sure the configured `service.http.targetPort` and `service.https.targetPort` ports match your [Ambassador Module's](https://www.getambassador.io/reference/modules/#the-ambassador-module) `service_port` and `redirect_cleartext_from` configurations.
 
@@ -187,7 +190,7 @@ If you intend to use `service.annotations`, remember to include the `getambassad
 
 ### Prometheus Metrics
 
-Using the Prometheus Exporter has been deprecated and is no longer recommended.
+Using the Prometheus Exporter has been deprecated and is no longer recommended. You can now use `metrics.serviceMonitor.enabled` to create a `ServiceMonitor` from the chart if the [Prometheus Operator](https://github.com/coreos/prometheus-operator) has been installed on your cluster.
 
 Please see Ambassador's [monitoring with Prometheus](https://www.getambassador.io/user-guide/monitoring/) docs for more information on using the `/metrics` endpoint for metrics collection.
 
