@@ -9,6 +9,9 @@ from abstract_tests import AmbassadorTest, HTTP, ServiceType
 from kat.utils import namespace_manifest
 
 
+def debugprint(thing):
+    print(thing)
+
 class IngressStatusTest1(AmbassadorTest):
     status_update = {
         "loadBalancer": {
@@ -45,11 +48,15 @@ spec:
         if sys.platform != 'darwin':
             text = json.dumps(self.status_update)
 
+            # phase 1
             update_cmd = ['kubestatus', 'Service', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
-            subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=5)
+            debugprint(subprocess.run(update_cmd, input=text.encode('utf-8'), capture_output=True))
+            # Asking the apiserver about it forces the apiserver to actually process it sooner?
+            debugprint(subprocess.run(['kubectl', 'get', '-o', 'json', f"service/{self.name.k8s}", f"ingress/{self.path.k8s}"], capture_output=True))
 
-            yield Query(self.url(self.name + "/"))
-            yield Query(self.url(f'need-normalization/../{self.name}/'))
+            # phase 2
+            yield Query(self.url(self.name + "/"), phase=2)
+            yield Query(self.url(f'need-normalization/../{self.name}/'), phase=2)
 
     def check(self):
         if sys.platform == 'darwin':
@@ -104,11 +111,15 @@ spec:
         if sys.platform != 'darwin':
             text = json.dumps(self.status_update)
 
+            # phase 1
             update_cmd = ['kubestatus', 'Service', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
-            subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=5)
+            debugprint(subprocess.run(update_cmd, input=text.encode('utf-8'), capture_output=True))
+            # Asking the apiserver about it forces the apiserver to actually process it sooner?
+            debugprint(subprocess.run(['kubectl', 'get', '-o', 'json', f"service/{self.name.k8s}", f"ingress/{self.path.k8s}"], capture_output=True))
 
-            yield Query(self.url(self.name + "/"))
-            yield Query(self.url(f'need-normalization/../{self.name}/'))
+            # phase 2
+            yield Query(self.url(self.name + "/"), phase=2)
+            yield Query(self.url(f'need-normalization/../{self.name}/'), phase=2)
 
     def check(self):
         if sys.platform == 'darwin':
@@ -164,11 +175,15 @@ spec:
         if sys.platform != 'darwin':
             text = json.dumps(self.status_update)
 
+            # phase 1
             update_cmd = ['kubestatus', 'Service', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
-            subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=5)
+            debugprint(subprocess.run(update_cmd, input=text.encode('utf-8'), capture_output=True))
+            # Asking the apiserver about it forces the apiserver to actually process it sooner?
+            debugprint(subprocess.run(['kubectl', 'get', '-o', 'json', f"service/{self.name.k8s}", f"ingress/{self.path.k8s}"], capture_output=True))
 
-            yield Query(self.url(self.name + "/"))
-            yield Query(self.url(f'need-normalization/../{self.name}/'))
+            # phase 2
+            yield Query(self.url(self.name + "/"), phase=2)
+            yield Query(self.url(f'need-normalization/../{self.name}/'), phase=2)
 
     def check(self):
         if sys.platform == 'darwin':
@@ -230,12 +245,16 @@ spec:
     def queries(self):
         text = json.dumps(self.status_update)
 
+        # phase 1
         update_cmd = ['kubestatus', 'Service', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
-        subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=5)
+        debugprint(subprocess.run(update_cmd, input=text.encode('utf-8'), capture_output=True))
+        # Asking the apiserver about it forces the apiserver to actually process it sooner?
+        debugprint(subprocess.run(['kubectl', 'get', '-o', 'json', f"service/{self.name.k8s}", f"ingress/{self.path.k8s}"], capture_output=True))
 
-        yield Query(self.url(self.name + "/"))
-        yield Query(self.url(self.name + "-nested/"))
-        yield Query(self.url(f'need-normalization/../{self.name}/'))
+        # phase 2
+        yield Query(self.url(self.name + "/"), phase=2)
+        yield Query(self.url(self.name + "-nested/"), phase=2)
+        yield Query(self.url(f'need-normalization/../{self.name}/'), phase=2)
 
     def check(self):
         # check for Ingress IP here
@@ -303,11 +322,15 @@ spec:
         if sys.platform != 'darwin':
             text = json.dumps(self.status_update)
 
+            # phase 1
             update_cmd = ['kubestatus', 'Service', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
-            subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=5)
+            debugprint(subprocess.run(update_cmd, input=text.encode('utf-8'), capture_output=True))
+            # Asking the apiserver about it forces the apiserver to actually process it sooner?
+            debugprint(subprocess.run(['kubectl', 'get', '-o', 'json', f"service/{self.name.k8s}", f"ingress/{self.path.k8s}"], capture_output=True))
 
-            yield Query(self.url(self.name + "-target1/"))
-            yield Query(self.url(self.name + "-target2/"))
+            # phase 2
+            yield Query(self.url(self.name + "-target1/"), phase=2)
+            yield Query(self.url(self.name + "-target2/"), phase=2)
 
     def check(self):
         if sys.platform == 'darwin':
