@@ -4,7 +4,11 @@ releases. Please keep it up to date.
 
 # Ambassador Edge Stack CHANGELOG
 
-## next (TBD)
+## Next (TBD)
+
+- Bugfix: Multiple authentication domains are supported.
+
+## 1.4.X ()
 
 - Bugfix: The "Filters" tab in the webui no longer renders the value of OAuth client secrets that are stored in Kubernetes secrets.
 - Bugfix: The ACME client of of one Ambassador install will no longer interfere with the ACME client of another Ambassador install in the same namespace with a different AMBASSADOR_ID.
