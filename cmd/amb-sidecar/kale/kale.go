@@ -310,6 +310,7 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 		}
 
 		main := func(ctx context.Context, _snapshot UntypedSnapshot) {
+			defer setTimeout(20 * time.Second)
 			ctx = CtxWithIteration(ctx, telemetryIteration)
 			telemetryIteration++
 			snapshot := _snapshot.TypedAndFilteredAndIndexed(ctx)
@@ -336,7 +337,6 @@ func Setup(group *group.Group, httpHandler lyftserver.DebugHTTPHandler, info *k8
 				reportThisIsABug(ctx, err)
 			}
 			k.flushIterationErrors()
-			setTimeout(20 * time.Second)
 		}
 
 		err := leaderelection.RunAsSingleton(softCtx, cfg, info, "kale", 15*time.Second, func(ctx context.Context) {
