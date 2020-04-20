@@ -241,7 +241,7 @@ export class ProjectView extends IResourceView {
 
     let byRef = new Map();
     for (let c of revisions) {
-      let ref = c.spec.ref
+      let ref = c.spec.isPreview ? c.spec.ref : c.spec.ref + ":" + c.status.phase
       if (byRef.has(ref)) {
         let orig = byRef.get(ref)
         // keep the newer one
