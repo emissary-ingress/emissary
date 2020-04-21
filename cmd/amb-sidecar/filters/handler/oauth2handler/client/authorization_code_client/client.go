@@ -45,6 +45,7 @@ const (
 // part of OAuth2.
 type OAuth2MultiDomainInfo struct {
 	OriginalURL string
+	StatusCode  int
 	Cookies     []*http.Cookie
 }
 
@@ -148,18 +149,115 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger dlog.Logger, httpClien
 		}
 	}
 
-	// If we have cookies, make sure they get set.
-	for i, cookie := range cookies {
-		// If len(cookies) > 0 and the response wasn't an HTTPResponse, then the
-		// above block has already converted it to be an HTTPResponse; so no need
-		// to check this type assertion.
+	if len(cookies) > 0 {
+		// If here, then if we used to have an HTTPRequestModification, we've turned it
+		// into a redirect... so we could be getting a direct response from the filter,
+		// or we could be getting a redirect to the IdP, or we could've converted an
+		// HTTPRequestModification into a redirect above.
+		//
+		// In any of these cases, it's important to understand here that we _won't_ have
+		// cookies to set unless something has changed -- and if something has changed,
+		// we'll need to change that something across all of our protected origins. So.
+		// Do we have more than one of those?
+		//
+		// XXX
+		// This is annoying code duplication with lowercase-f filter.
 
-		if i == 0 {
-			logger.Infof("AuthCode Filter: redirecting to %s", resp.(*filterapi.HTTPResponse).Header.Get("Location"))
+		if len(c.Spec.ProtectedOrigins) > 1 {
+			// Yup, so a couple of things need to happen here. First off, generate a new
+			// multidomain-session-ID...
+			mdSessionID, err := randomString(sessionBits)
+
+			if err != nil {
+				return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+					errors.Wrap(err, "failed to generate session for multidomain"), nil)
+			}
+
+			// ...and find the original URI for this request.
+			//
+			// XXX It annoys me to do this again when we had to do it in lowercase-filter
+			// already.
+			requestURL, err := filterutil.GetURL(request)
+
+			if err != nil {
+				return middleware.NewErrorResponse(ctx, http.StatusBadGateway,
+					errors.Wrapf(err, "could not parse request URI"), nil)
+			}
+
+			// OK -- assume that we're in the direct-response case, which means we'll
+			// have no Location header and we're going to issue a StatusTemporaryRedirect
+			// to make sure our cookies get set _and_ that we don't throw away form data
+			// by allowing the user-agent to downgrade from POST to GET.
+			statusCode := http.StatusTemporaryRedirect
+			originalURL := requestURL.String()
+
+			location := resp.(*filterapi.HTTPResponse).Header.Get("Location")
+
+			if location != "" {
+				// Whoops, this isn't the direct-response case at all! This is actually
+				// a redirect to the IdP or a converted HTTPRequestModification, so we
+				// should save the status & location from the resp, not the stuff above.
+				statusCode = resp.(*filterapi.HTTPResponse).StatusCode
+				originalURL = location
+			}
+
+			// OK -- build an Oauth2MultiDomainInfo...
+			mdInfo := OAuth2MultiDomainInfo{
+				OriginalURL: originalURL,
+				StatusCode:  statusCode,
+				Cookies:     cookies,
+			}
+
+			// ...and get it saved in Redis.
+			mdInfoBytes, err := json.Marshal(mdInfo)
+			if err != nil {
+				return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+					errors.Wrap(err, "failed to serialize mdInfo"), nil)
+			}
+
+			logger.Infof("AuthCode Filter save mdInfo: oauth2-mdinfo:%s, %#v", mdSessionID, mdInfo)
+
+			err = redisClient.Cmd("SET", "oauth2-mdinfo:"+mdSessionID, string(mdInfoBytes), "EX", int(sessionExpiry.Seconds())).Err
+			if err != nil {
+				return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+					errors.Wrap(err, "failed to save mdInfo to Redis"), nil)
+			}
+
+			// The target URL is the redirection URL for root 0...
+			targetURL := c.Spec.RedirectionURL(0)
+
+			// ...but we need to include a query parameter with the filter's qualified name and
+			// the mdSessionID.
+			q := targetURL.Query() // This should always be empty, of course...
+			q.Set("code", c.QName+":"+mdSessionID)
+			targetURL.RawQuery = q.Encode()
+
+			// Finally! Redirect to our first protected root for more.
+			resp = &filterapi.HTTPResponse{
+				// 307 "Temporary Redirect" (unlike other redirect codes)
+				// does not allow the user-agent to change from POST to GET
+				// when following the redirect--we don't want to discard any
+				// form data being submitted!
+				StatusCode: http.StatusTemporaryRedirect,
+				Header: http.Header{
+					"Location": {targetURL.String()},
+				},
+			}
 		}
 
-		logger.Infof("AuthCode Filter: setting cookie %s=%s", cookie.Name, cookie.Value)
-		resp.(*filterapi.HTTPResponse).Header.Add("Set-Cookie", cookie.String())
+		// And, of course, let's make sure the cookies actually get set.
+		for i, cookie := range cookies {
+			// If len(cookies) > 0 and the response wasn't an HTTPResponse, then the
+			// above block has already converted it to be an HTTPResponse; so no need
+			// to check this type assertion.
+
+			if i == 0 {
+				logger.Infof("AuthCode Filter: redirecting to %s", resp.(*filterapi.HTTPResponse).Header.Get("Location"))
+			}
+
+			logger.Infof("AuthCode Filter: setting cookie %s=%s", cookie.Name, cookie.Value)
+			resp.(*filterapi.HTTPResponse).Header.Add("Set-Cookie", cookie.String())
+		}
 	}
 
 	return resp
@@ -365,58 +463,6 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 		// OK, assume that we'll redirect with StatusSeeOther to our original URL...
 		statusCode := http.StatusSeeOther
 		targetURL := originalURL
-
-		// Now, do we have multiple protected roots?
-		if len(c.Spec.ProtectedOrigins) > 1 {
-			// Yup, so a couple of things need to happen here. First off, generate a new
-			// multidomain-session-ID...
-			mdSessionID, err := randomString(sessionBits)
-
-			if err != nil {
-				return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-					errors.Wrap(err, "failed to generate session for multidomain"), nil), nil
-			}
-
-			// Next up, go ahead and get the cookies that we'll need to set...
-			newCookies := c.getSessionCookies(filterutil.GetHeader(request), sessionInfo, rootIndex)
-
-			// ...and make sure to remember to set them on our way out.
-			cookies = append(cookies, newCookies...)
-
-			// OK -- build an Oauth2MultiDomainInfo...
-			mdInfo := OAuth2MultiDomainInfo{
-				OriginalURL: originalURL.String(),
-				Cookies:     cookies,
-			}
-
-			// ...and get it saved in Redis.
-			mdInfoBytes, err := json.Marshal(mdInfo)
-			if err != nil {
-				return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-					errors.Wrap(err, "failed to serialize mdInfo"), nil), nil
-			}
-
-			logger.Infof("AuthCode save mdInfo: oauth2-mdinfo:%s, %#v", mdSessionID, mdInfo)
-
-			err = redisClient.Cmd("SET", "oauth2-mdinfo:"+mdSessionID, string(mdInfoBytes), "EX", int(sessionExpiry.Seconds())).Err
-			if err != nil {
-				return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-					errors.Wrap(err, "failed to save mdInfo to Redis"), nil), nil
-			}
-
-			// Finally! Redirect to our next protected root. This needs to be a StatusTemporaryRedirect...
-			statusCode = http.StatusTemporaryRedirect
-
-			// ...and we need to use root[1]'s scheme & authority...
-
-			targetURL = c.Spec.RedirectionURL(1)
-
-			// ...and we need to include a query parameter with the filter's qualified name and
-			// the mdSessionID.
-			q := targetURL.Query() // This should always be empty, of course...
-			q.Set("code", c.QName+":"+mdSessionID)
-			targetURL.RawQuery = q.Encode()
-		}
 
 		// OK, all's well, let's redirect to the target URL.
 		logger.Infof("redirecting user-agent with %d to %s", statusCode, targetURL.String())
