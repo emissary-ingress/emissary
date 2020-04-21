@@ -519,7 +519,7 @@ func (c *OAuth2Client) ServeHTTP(w http.ResponseWriter, r *http.Request, ctx con
 
 		if !found {
 			// Bzzt.
-			middleware.ServeErrorResponse(w, ctx, http.StatusForbidden,
+			middleware.ServeErrorResponse(w, ctx, http.StatusBadRequest,
 				errors.New("unknown origin"), nil)
 			return
 		}
