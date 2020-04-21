@@ -271,7 +271,7 @@ func (m FilterOAuth2) CallbackURL() *url.URL {
 }
 
 func (m FilterOAuth2) RedirectionURL(root int) *url.URL {
-	u, _ := m.ProtectedRoots[root].ClientURL.Parse("/.ambassador/oauth2/multicookie")
+    u, _ := m.ProtectedOrigins[root].Origin.ClientURL.Parse("/.ambassador/oauth2/multicookie")
 
 	return u
 }
