@@ -170,7 +170,8 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 	oauthClient.RegisterProtocolExtensions(rfc6750client.OAuthProtocolExtension)
 
 	// Load our session from Redis.
-	sessionInfo, sessionErr := c.loadSession(redisClient, logger, filterutil.GetHeader(request))
+	sessionInfo := &SessionInfo{c: c}
+	sessionErr := c.loadSession(sessionInfo, redisClient, logger, filterutil.GetHeader(request))
 
 	// Whenever this method returns, we should update our session info in Redis, if
 	// need be.
@@ -414,7 +415,8 @@ func (c *OAuth2Client) ServeHTTP(w http.ResponseWriter, r *http.Request, ctx con
 		// Hey look, it's the logout path! Clobber our session, but first make sure no
 		// funny stuff is going on.
 
-		sessionInfo, err := c.loadSession(redisClient, dlog.GetLogger(r.Context()), r.Header)
+		sessionInfo := &SessionInfo{c: c}
+		err := c.loadSession(sessionInfo, redisClient, dlog.GetLogger(r.Context()), r.Header)
 
 		if err != nil {
 			middleware.ServeErrorResponse(w, ctx, http.StatusForbidden, // XXX: error code?
@@ -692,9 +694,7 @@ func (c *OAuth2Client) readXSRFCookie(requestHeader http.Header) string {
 	return cookie.Value
 }
 
-func (c *OAuth2Client) loadSession(redisClient *redis.Client, logger dlog.Logger, requestHeader http.Header) (*SessionInfo, error) {
-	sessionInfo := &SessionInfo{c: c}
-
+func (c *OAuth2Client) loadSession(sessionInfo *SessionInfo, redisClient *redis.Client, logger dlog.Logger, requestHeader http.Header) error {
 	// BS to leverage net/http's cookie-parsing
 	r := &http.Request{
 		Header: requestHeader,
@@ -704,7 +704,7 @@ func (c *OAuth2Client) loadSession(redisClient *redis.Client, logger dlog.Logger
 	cookie, err := r.Cookie(c.sessionCookieName())
 	if cookie == nil {
 		logger.Infof("AuthCode loadSession: no session cookie %s", c.sessionCookieName())
-		return nil, err
+		return err
 	}
 	sessionInfo.sessionID = cookie.Value
 
@@ -713,21 +713,21 @@ func (c *OAuth2Client) loadSession(redisClient *redis.Client, logger dlog.Logger
 	// get the xsrf token from Redis
 	sessionInfo.xsrfToken, err = redisClient.Cmd("GET", "session-xsrf:"+sessionInfo.sessionID).Str()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// get the sessionData from Redis
 	sessionDataBytes, err := redisClient.Cmd("GET", "session:"+sessionInfo.sessionID).Bytes()
 	if err != nil {
-		return nil, err
+		return err
 	}
 	sessionInfo.sessionData = new(rfc6749client.AuthorizationCodeClientSessionData)
 	err = json.Unmarshal(sessionDataBytes, sessionInfo.sessionData)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return sessionInfo, nil
+	return nil
 }
 
 func (c *OAuth2Client) saveSession(redisClient *redis.Client, sessionInfo *SessionInfo, logger dlog.Logger, requestHeader http.Header) ([]*http.Cookie, error) {
