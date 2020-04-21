@@ -22,9 +22,8 @@ Ambassador deploys the Envoy Proxy for L7 traffic management. Configuration of A
 Getting Started
 ===============
 
-You can get Ambassador up and running in less than a minute by running it locally with Docker. Follow the instructions here: https://www.getambassador.io#get-started.
+You can get Ambassador up and running in just three steps. Follow the instructions here: https://www.getambassador.io/docs/latest/tutorials/getting-started/.
 
-For production usage, Ambassador runs in Kubernetes. For a Kubernetes deployment, follow the instructions at https://www.getambassador.io/user-guide/getting-started.
 
 If you are looking for a Kubernetes ingress controller, Ambassador provides a superset of the functionality of a typical ingress controller. (It does the traditional routing, and layers on a raft of configuration options.) This blog post covers [Kubernetes ingress](https://blog.getambassador.io/kubernetes-ingress-nodeport-load-balancers-and-ingress-controllers-6e29f1c44f2d).
 
@@ -36,8 +35,8 @@ Community
 Ambassador is an open source project, and welcomes any and all contributors. To get started:
 
 * Join our [Slack channel](https://d6e.co/slack)
-* Read the [developer guide](DEVELOPING.md)
-* Check out the [Ambassador documentation](https://www.getambassador.io/about/why-ambassador)
+* Check out the [Ambassador documentation](https://www.getambassador.io/docs/latest)
+* Read the [Contributor's Guide](https://github.com/datawire/ambassador/blob/master/DEVELOPING.md). 
 
 If you're interested in contributing, here are some ways:
 
