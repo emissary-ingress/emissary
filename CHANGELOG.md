@@ -7,6 +7,8 @@ releases. Please keep it up to date.
 ## 1.4.2 (TBD)
 
 - Bugfix: The `OAuth2` Filter redirection-endpoint now handles various XSRF errors more consistently (the way we meant it to in 1.2.1)
+- Feature (alpha): Route-to-code
+- Bugfix: The ACME client now obeys `AMBASSADOR_ID`
 
 ## 1.4.1 (2020-04-15)
 
