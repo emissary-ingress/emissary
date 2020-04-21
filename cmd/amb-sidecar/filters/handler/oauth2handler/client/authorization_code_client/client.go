@@ -221,7 +221,7 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 	// Whenever this method returns, we should update our session info in Redis, if
 	// need be.
 	defer func() {
-		newCookies, err := c.saveSession(redisClient, sessionInfo, logger, filterutil.GetHeader(request))
+		newCookies, err := c.saveSession(redisClient, sessionInfo, logger, filterutil.GetHeader(request), rootIndex)
 
 		if err != nil {
 			// Change the response of all of 'filter'.
@@ -383,7 +383,7 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 			}
 
 			// Next up, go ahead and get the cookies that we'll need to set...
-			newCookies := c.getSessionCookies(filterutil.GetHeader(request), sessionInfo)
+			newCookies := c.getSessionCookies(filterutil.GetHeader(request), sessionInfo, rootIndex)
 
 			// ...and make sure to remember to set them on our way out.
 			cookies = append(cookies, newCookies...)
@@ -562,6 +562,14 @@ func (c *OAuth2Client) ServeHTTP(w http.ResponseWriter, r *http.Request, ctx con
 		// OK, all's well. Set our cookies.
 		for _, cookie := range mdInfo.Cookies {
 			logger.Infof("Auth MultiCookie: set %s", cookie.String())
+
+			// Make sure the domain matches the subdomain setting for this root.
+			if c.Spec.AllowSubdomains(rootIndex) {
+				cookie.Domain = c.Spec.GetOrigin(rootIndex)
+			} else {
+				cookie.Domain = ""
+			}
+
 			http.SetCookie(w, cookie)
 		}
 
@@ -601,6 +609,7 @@ type SessionInfo struct {
 	sessionID   string
 	xsrfToken   string
 	sessionData *rfc6749client.AuthorizationCodeClientSessionData
+	activeRoot  int
 }
 
 // handleAuthenticatedProxyRequest is pretty "simple" in that we can just farm it out
@@ -765,7 +774,7 @@ func (c *OAuth2Client) loadSession(sessionInfo *SessionInfo, redisClient *redis.
 	return nil
 }
 
-func (c *OAuth2Client) saveSession(redisClient *redis.Client, sessionInfo *SessionInfo, logger dlog.Logger, requestHeader http.Header) ([]*http.Cookie, error) {
+func (c *OAuth2Client) saveSession(redisClient *redis.Client, sessionInfo *SessionInfo, logger dlog.Logger, requestHeader http.Header, rootIndex int) ([]*http.Cookie, error) {
 	// If we have no new session data, we can just bail here.
 	if sessionInfo == nil || sessionInfo.sessionData == nil || !sessionInfo.sessionData.IsDirty() {
 		logger.Infof("AuthCode saveSession: nothing to save")
@@ -817,10 +826,10 @@ func (c *OAuth2Client) saveSession(redisClient *redis.Client, sessionInfo *Sessi
 	sessionInfo.sessionID = newSessionID
 	sessionInfo.xsrfToken = newXsrfToken
 
-	return c.getSessionCookies(requestHeader, sessionInfo), nil
+	return c.getSessionCookies(requestHeader, sessionInfo, rootIndex), nil
 }
 
-func (c *OAuth2Client) getSessionCookies(requestHeader http.Header, sessionInfo *SessionInfo) (cookies []*http.Cookie) {
+func (c *OAuth2Client) getSessionCookies(requestHeader http.Header, sessionInfo *SessionInfo, rootIndex int) (cookies []*http.Cookie) {
 	// OK, build up some cookies.
 	//
 	// Note that "useSessionCookies" is about whether or not we use cookies that
@@ -840,6 +849,13 @@ func (c *OAuth2Client) getSessionCookies(requestHeader http.Header, sessionInfo 
 		maxAge = 0 // unset
 	}
 
+	// Assume that we can do an exact domain match...
+	domain := ""
+
+	if c.Spec.AllowSubdomains(rootIndex) {
+		domain = c.Spec.GetOrigin(rootIndex)
+	}
+
 	cookies = []*http.Cookie{
 		&http.Cookie{
 			Name:  sessionInfo.c.sessionCookieName(),
@@ -852,7 +868,7 @@ func (c *OAuth2Client) getSessionCookies(requestHeader http.Header, sessionInfo 
 
 			// Strictly match {{originalURL.Hostname}}.  Explicitly setting it to originalURL.Hostname()
 			// would instead also match "*.{{originalURL.Hostname}}".
-			Domain: "",
+			Domain: domain,
 
 			// How long should the User-Agent retain the cookie?  If unset, it will expire at the end of the
 			// "session" (when they close their browser).
@@ -877,7 +893,7 @@ func (c *OAuth2Client) getSessionCookies(requestHeader http.Header, sessionInfo 
 
 			// Strictly match {{originalURL.Hostname}}.  Explicitly setting it to originalURL.Hostname()
 			// would instead also match "*.{{originalURL.Hostname}}".
-			Domain: "",
+			Domain: domain,
 
 			// How long should the User-Agent retain the cookie?  If unset, it will expire at the end of the
 			// "session" (when they close their browser).

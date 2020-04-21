@@ -276,6 +276,14 @@ func (m FilterOAuth2) RedirectionURL(root int) *url.URL {
 	return u
 }
 
+func (m FilterOAuth2) GetOrigin(root int) string {
+	return m.ProtectedOrigins[root].Origin.Host
+}
+
+func (m FilterOAuth2) AllowSubdomains(root int) bool {
+	return m.ProtectedOrigins[root].IncludeSubdomains
+}
+
 func (m FilterOAuth2) Domain() string {
 	return m.ProtectedOrigins[0].Origin.Host
 }
