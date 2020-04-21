@@ -625,6 +625,10 @@ func (c *OAuth2Client) ServeHTTP(w http.ResponseWriter, r *http.Request, ctx con
 
 			logger.Infof("Auth MultiCookie: redirect to %s", targetURL.String())
 
+			// 307 "Temporary Redirect" (unlike other redirect codes)
+			// does not allow the user-agent to change from POST to GET
+			// when following the redirect--we don't want to discard any
+			// form data being submitted!
 			http.Redirect(w, r, targetURL.String(), http.StatusTemporaryRedirect)
 		} else {
 			// We're done. Finally. Delete the mdInfo...
@@ -634,7 +638,7 @@ func (c *OAuth2Client) ServeHTTP(w http.ResponseWriter, r *http.Request, ctx con
 			// ...then redirect to the orginal URL.
 			logger.Infof("Auth MultiCookie: redirect to %s", mdInfo.OriginalURL)
 
-			http.Redirect(w, r, mdInfo.OriginalURL, http.StatusSeeOther)
+			http.Redirect(w, r, mdInfo.OriginalURL, mdInfo.StatusCode)
 		}
 
 	default:
