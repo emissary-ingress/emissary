@@ -64,3 +64,28 @@ regex_query_parameters:
 
     def check(self):
         assert self.results[0].backend.name == self.target.path.k8s, f"r0 wanted {self.target.path.k8s} got {self.results[0].backend.name}"
+
+class QueryParameterPresentRoutingTest(AmbassadorTest):
+    target: ServiceType
+
+    def init(self):
+        self.target = HTTP(name="target")
+
+    def config(self):
+        yield self.target, self.format("""
+---
+apiVersion: ambassador/v2
+kind:  Mapping
+name:  {self.name}-target
+prefix: /target/
+service: http://{self.target.path.fqdn}
+query_parameters:
+    test_param: true
+""")
+
+    def queries(self):
+        yield Query(self.url("target/?test_param=true"), expected=200)
+        yield Query(self.url("target/"), expected=404)
+
+    def check(self):
+        assert self.results[0].backend.name == self.target.path.k8s, f"r0 wanted {self.target.path.k8s} got {self.results[0].backend.name}"

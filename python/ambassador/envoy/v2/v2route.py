@@ -312,11 +312,17 @@ class V2Route(dict):
                     )
                 })
             else:
-                query_parameter.update({
-                    'string_match': {
-                        'exact': group_query_parameter.get('value')
-                    }
-                })
+                value = group_query_parameter.get('value', None)
+                if value is not None:
+                    query_parameter.update({
+                        'string_match': {
+                            'exact': group_query_parameter.get('value')
+                        }
+                    })
+                else:
+                    query_parameter.update({
+                        'present_match': True
+                    })
 
             query_parameters.append(query_parameter)
 
