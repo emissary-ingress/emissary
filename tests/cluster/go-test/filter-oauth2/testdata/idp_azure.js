@@ -4,6 +4,11 @@ module.exports.testcases = {
 		username: "testuser@aprotesting.onmicrosoft.com",
 		password: "6qak5GgDMgd/6iNFfuw5jA==",
 	},
+	"Azure AD (other domain)": {
+		resource: "https://foo.ambassador.svc.cluster.local/azure/httpbin/headers",
+		username: "testuser@aprotesting.onmicrosoft.com",
+		password: "6qak5GgDMgd/6iNFfuw5jA==",
+	},
 };
 
 module.exports.authenticate = async function(browsertab, username, password) {
