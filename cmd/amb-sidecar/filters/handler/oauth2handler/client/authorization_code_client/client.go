@@ -49,6 +49,35 @@ type OAuth2MultiDomainInfo struct {
 	Cookies     []*http.Cookie
 }
 
+// Figure out which root a given scheme and authority matches -- if any.
+//
+// This method is a little weird because we need to return the index, not just
+// the struct, so we return an int. If no root is found, we return -1.
+
+func findMatchingOrigin(spec crd.FilterOAuth2, logger dlog.Logger, scheme string, authority string) int {
+	idx := -1
+
+	logger.Infof("Auth: looking for scheme %s, authority %s", scheme, authority)
+
+	var root crd.Origin
+	var i int
+
+	for i, root = range spec.ProtectedOrigins {
+		if (root.Origin.Scheme == scheme) && (root.Origin.Host == authority) {
+			idx = i
+			break
+		}
+	}
+
+	if idx < 0 {
+		logger.Infof("Auth: %s://%s matches no origin", scheme, authority)
+	} else {
+		logger.Infof("Auth: %s://%s is origin %d (%s)", scheme, authority, i, root.Origin.String())
+	}
+
+	return idx
+}
+
 // OAuth2Client implements the OAuth Client part of the Filter.
 // OAuth2Client implements the OAuth 2.0 "Client" part of the OAuth Filter.  An
 // OAuth2Client has two main entry points: 'Filter' and 'ServeHTTP'.  Both are called
@@ -101,6 +130,12 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger dlog.Logger, httpClien
 	// through, or an HTTPResponse that denies the request?
 	_, allowThrough := resp.(*filterapi.HTTPRequestModification)
 
+	logger.Infof("AuthCode Filter: allowThrough %v, len(cookies) %d", allowThrough, len(cookies))
+
+	if allowThrough {
+		logger.Infof("AuthCode Filter: resp says %#v", resp.(*filterapi.HTTPRequestModification))
+	}
+
 	if allowThrough && len(cookies) > 0 {
 		// Unfortunately, we have no mechanism by which we can set cookies if
 		// we're allowing the request through.  So, instead we'll deny it,
@@ -143,11 +178,21 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 	requestURL, err := filterutil.GetURL(request)
 
 	if err != nil {
-		return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+		return middleware.NewErrorResponse(ctx, http.StatusBadGateway,
 			errors.Wrapf(err, "could not parse request URI"), nil), nil
 	}
 
-	logger.Infof("\n\n======== AuthCode filter firing for %s", requestURL.String())
+	logger.Infof("\n\n======== AuthCode %s filter firing for %s", c.QName, requestURL.String())
+
+	// Which root is this?
+	rootIndex := findMatchingOrigin(c.Spec, logger, requestURL.Scheme, requestURL.Host)
+
+	// If there's no matching root at all... uh... that's a problem.
+	if rootIndex < 0 {
+		return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+			errors.New(fmt.Sprintf("filter misconfiguration: %s://%s is not a valid origin for %s",
+				requestURL.Scheme, requestURL.Host, c.QName)), nil), nil
+	}
 
 	// Start by setting up the OAuth client.  (Note that in "ClientPasswordHeader",
 	// "client" refers to the OAuth client, not the end user's User-Agent -- which is
@@ -275,10 +320,10 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 		// Finally, we should only ever arrive here on root 0. If we got here via some other root,
 		// bail -- this is almost certainly a bad configuration.
 
-		root0 := c.Spec.ProtectedOrigins[0].Origin
+		if rootIndex != 0 {
+			root0 := c.Spec.ProtectedOrigins[0].Origin
 
-		if (requestURL.Scheme != root0.Scheme) || (requestURL.Host != root0.Host) {
-			badRootErr := errors.New(fmt.Sprintf("received redirection to %s://%s instead of %s://%s", requestURL.Scheme, requestURL.Host, root0.Scheme, root0.Host))
+			badRootErr := errors.New(fmt.Sprintf("received redirection to %s://%s instead of %s", requestURL.Scheme, requestURL.Host, root0.String()))
 
 			return middleware.NewErrorResponse(ctx, http.StatusBadGateway,
 				badRootErr, nil), nil
@@ -408,7 +453,7 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 func (c *OAuth2Client) ServeHTTP(w http.ResponseWriter, r *http.Request, ctx context.Context, discovered *discovery.Discovered, redisClient *redis.Client) {
 	logger := dlog.GetLogger(r.Context())
 
-	logger.Infof("\n\n======== AuthCode ServeHTTP firing for %s - %s", r.Host, r.URL.Path)
+	logger.Infof("\n\n======== AuthCode %s ServeHTTP firing for %s - %s", c.QName, r.Host, r.URL.Path)
 
 	switch r.URL.Path {
 	case "/.ambassador/oauth2/logout":
@@ -505,24 +550,12 @@ func (c *OAuth2Client) ServeHTTP(w http.ResponseWriter, r *http.Request, ctx con
 		scheme := r.Header.Get("X-Forwarded-Proto")
 		authority := r.Host
 
-		found := false
-		nextRoot := 0
+		rootIndex := findMatchingOrigin(c.Spec, logger, scheme, authority)
 
-		logger.Infof("Auth MultiCookie: looking for scheme %s, authority %s", scheme, authority)
-
-		for i, root := range c.Spec.ProtectedOrigins {
-			if (root.Origin.Scheme == scheme) && (root.Origin.Host == authority) {
-				found = true
-				nextRoot = i
-
-				logger.Infof("Auth MultiCookie: found root %d (%s)", i, root.Origin.String())
-			}
-		}
-
-		if !found {
-			// Bzzt.
+		if rootIndex < 0 {
 			middleware.ServeErrorResponse(w, ctx, http.StatusBadRequest,
-				errors.New("unknown origin"), nil)
+				errors.New(fmt.Sprintf("filter misconfiguration: %s://%s is not a valid origin for %s",
+					scheme, authority, c.QName)), nil)
 			return
 		}
 
@@ -533,7 +566,9 @@ func (c *OAuth2Client) ServeHTTP(w http.ResponseWriter, r *http.Request, ctx con
 		}
 
 		// ...then, if we have more domains, redirect to the next.
-		if nextRoot >= len(c.Spec.ProtectedOrigins) {
+		nextRoot := rootIndex + 1
+
+		if nextRoot < len(c.Spec.ProtectedOrigins) {
 			targetURL := c.Spec.RedirectionURL(nextRoot)
 
 			q := targetURL.Query() // This should always be empty, of course...
