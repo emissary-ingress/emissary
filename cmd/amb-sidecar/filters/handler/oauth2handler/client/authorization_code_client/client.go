@@ -149,9 +149,9 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 
 	logger.Infof("\n\n======== AuthCode filter firing for %s", requestURL.String())
 
-    // Start by setting up the OAuth client.  (Note that in "ClientPasswordHeader",
-    // "client" refers to the OAuth client, not the end user's User-Agent -- which is
-    // to say, this is Ambassador identifying itself to the IdP.)
+	// Start by setting up the OAuth client.  (Note that in "ClientPasswordHeader",
+	// "client" refers to the OAuth client, not the end user's User-Agent -- which is
+	// to say, this is Ambassador identifying itself to the IdP.)
 	oauthClient, err := rfc6749client.NewAuthorizationCodeClient(
 		c.Spec.ClientID,
 		discovered.AuthorizationEndpoint,
@@ -187,7 +187,7 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 
 	// OK, back to processing the request.  (Remeber, the last thing we did was load
 	// the session info from Redis.)
-    //
+	//
 	// The "happy-path" is that we end up with a set of authorization headers to
 	// inject in to the request before allowing it through.
 	var authorization http.Header
@@ -198,7 +198,7 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 		// debugging, then fall past the switch to treat this like an
 		// unauthenticated session.
 
-        logger.Infoln("session status:", errors.Wrap(sessionErr, "no session"))
+		logger.Infoln("session status:", errors.Wrap(sessionErr, "no session"))
 	case c.readXSRFCookie(filterutil.GetHeader(request)) != sessionInfo.xsrfToken:
 		// Yikes!  Someone is trying to hack our users!
 		return middleware.NewErrorResponse(ctx, http.StatusForbidden,
@@ -274,10 +274,10 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 		// Finally, we should only ever arrive here on root 0. If we got here via some other root,
 		// bail -- this is almost certainly a bad configuration.
 
-		root0 := c.Spec.ProtectedRoots[0]
+		root0 := c.Spec.ProtectedOrigins[0].Origin
 
-		if (requestURL.Scheme != root0.Scheme) || (requestURL.Host != root0.Authority) {
-			badRootErr := errors.New(fmt.Sprintf("received redirection to %s://%s instead of %s://%s", requestURL.Scheme, requestURL.Host, root0.Scheme, root0.Authority))
+		if (requestURL.Scheme != root0.Scheme) || (requestURL.Host != root0.Host) {
+			badRootErr := errors.New(fmt.Sprintf("received redirection to %s://%s instead of %s://%s", requestURL.Scheme, requestURL.Host, root0.Scheme, root0.Host))
 
 			return middleware.NewErrorResponse(ctx, http.StatusBadGateway,
 				badRootErr, nil), nil
@@ -326,7 +326,7 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 		targetURL := originalURL
 
 		// Now, do we have multiple protected roots?
-		if len(c.Spec.ProtectedRoots) > 1 {
+		if len(c.Spec.ProtectedOrigins) > 1 {
 			// Yup, so a couple of things need to happen here. First off, generate a new
 			// multidomain-session-ID...
 			mdSessionID, err := randomString(sessionBits)
@@ -392,7 +392,7 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 	default:
 		// This is the "any path other than the redirection-endpoint" case; back to the
 		// "proper" flow through this method.
-        //
+		//
 		// Do the right thing depending on whether we're authenticated or not.
 		if authorization != nil {
 			return sessionInfo.handleAuthenticatedProxyRequest(ctx, logger, httpClient, discovered, request, authorization), nil
@@ -414,7 +414,7 @@ func (c *OAuth2Client) ServeHTTP(w http.ResponseWriter, r *http.Request, ctx con
 		// Hey look, it's the logout path! Clobber our session, but first make sure no
 		// funny stuff is going on.
 
-        sessionInfo, err := c.loadSession(redisClient, dlog.GetLogger(r.Context()), r.Header)
+		sessionInfo, err := c.loadSession(redisClient, dlog.GetLogger(r.Context()), r.Header)
 
 		if err != nil {
 			middleware.ServeErrorResponse(w, ctx, http.StatusForbidden, // XXX: error code?
@@ -508,12 +508,12 @@ func (c *OAuth2Client) ServeHTTP(w http.ResponseWriter, r *http.Request, ctx con
 
 		logger.Infof("Auth MultiCookie: looking for scheme %s, authority %s", scheme, authority)
 
-		for i, root := range c.Spec.ProtectedRoots {
-			if (root.Scheme == scheme) && (root.Authority == authority) {
+		for i, root := range c.Spec.ProtectedOrigins {
+			if (root.Origin.Scheme == scheme) && (root.Origin.Host == authority) {
 				found = true
 				nextRoot = i
 
-				logger.Infof("Auth MultiCookie: found root %d (%s)", i, root.ClientURL.String())
+				logger.Infof("Auth MultiCookie: found root %d (%s)", i, root.Origin.String())
 			}
 		}
 
@@ -531,7 +531,7 @@ func (c *OAuth2Client) ServeHTTP(w http.ResponseWriter, r *http.Request, ctx con
 		}
 
 		// ...then, if we have more domains, redirect to the next.
-		if nextRoot >= len(c.Spec.ProtectedRoots) {
+		if nextRoot >= len(c.Spec.ProtectedOrigins) {
 			targetURL := c.Spec.RedirectionURL(nextRoot)
 
 			q := targetURL.Query() // This should always be empty, of course...
@@ -731,7 +731,7 @@ func (c *OAuth2Client) loadSession(redisClient *redis.Client, logger dlog.Logger
 }
 
 func (c *OAuth2Client) saveSession(redisClient *redis.Client, sessionInfo *SessionInfo, logger dlog.Logger, requestHeader http.Header) ([]*http.Cookie, error) {
-    // If we have no new session data, we can just bail here.
+	// If we have no new session data, we can just bail here.
 	if sessionInfo == nil || sessionInfo.sessionData == nil || !sessionInfo.sessionData.IsDirty() {
 		logger.Infof("AuthCode saveSession: nothing to save")
 		return nil, nil
@@ -739,7 +739,7 @@ func (c *OAuth2Client) saveSession(redisClient *redis.Client, sessionInfo *Sessi
 
 	// OK, we have some new stuff. Store it in Redis, delete the old data
 	// from Redis, and rev the cookies.
-    //
+	//
 	// Generate a new session ID...
 	newSessionID, err := randomString(sessionBits)
 	if err != nil {
@@ -805,7 +805,7 @@ func (c *OAuth2Client) getSessionCookies(requestHeader http.Header, sessionInfo 
 		maxAge = 0 // unset
 	}
 
-	cookies := []*http.Cookie{
+	cookies = []*http.Cookie{
 		&http.Cookie{
 			Name:  sessionInfo.c.sessionCookieName(),
 			Value: sessionInfo.sessionID,
