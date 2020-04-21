@@ -45,7 +45,6 @@ const (
 // part of OAuth2.
 type OAuth2MultiDomainInfo struct {
 	OriginalURL string
-	SessionID   string
 	Cookies     []*http.Cookie
 }
 
@@ -131,10 +130,6 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger dlog.Logger, httpClien
 	_, allowThrough := resp.(*filterapi.HTTPRequestModification)
 
 	logger.Infof("AuthCode Filter: allowThrough %v, len(cookies) %d", allowThrough, len(cookies))
-
-	if allowThrough {
-		logger.Infof("AuthCode Filter: resp says %#v", resp.(*filterapi.HTTPRequestModification))
-	}
 
 	if allowThrough && len(cookies) > 0 {
 		// Unfortunately, we have no mechanism by which we can set cookies if
@@ -391,7 +386,6 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 			// OK -- build an Oauth2MultiDomainInfo...
 			mdInfo := OAuth2MultiDomainInfo{
 				OriginalURL: originalURL.String(),
-				SessionID:   sessionInfo.sessionID,
 				Cookies:     cookies,
 			}
 
@@ -580,7 +574,7 @@ func (c *OAuth2Client) ServeHTTP(w http.ResponseWriter, r *http.Request, ctx con
 			targetURL := c.Spec.RedirectionURL(nextRoot)
 
 			q := targetURL.Query() // This should always be empty, of course...
-			q.Set("code", mdSessionID)
+			q.Set("code", c.QName+":"+mdSessionID)
 			targetURL.RawQuery = q.Encode()
 
 			logger.Infof("Auth MultiCookie: redirect to %s", targetURL.String())
