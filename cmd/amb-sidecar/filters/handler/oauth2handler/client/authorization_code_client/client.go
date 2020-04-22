@@ -57,7 +57,7 @@ type OAuth2MultiDomainInfo struct {
 func findMatchingOrigin(spec crd.FilterOAuth2, logger dlog.Logger, scheme string, authority string) int {
 	idx := -1
 
-	logger.Infof("Auth: looking for scheme %s, authority %s", scheme, authority)
+	logger.Debugf("AuthCode: looking for scheme %s, authority %s", scheme, authority)
 
 	var root crd.Origin
 	var i int
@@ -70,9 +70,9 @@ func findMatchingOrigin(spec crd.FilterOAuth2, logger dlog.Logger, scheme string
 	}
 
 	if idx < 0 {
-		logger.Infof("Auth: %s://%s matches no origin", scheme, authority)
+		logger.Debugf("AuthCode: %s://%s matches no origin", scheme, authority)
 	} else {
-		logger.Infof("Auth: %s://%s is origin %d (%s)", scheme, authority, i, root.Origin.String())
+		logger.Debugf("AuthCode: %s://%s is origin %d (%s)", scheme, authority, i, root.Origin.String())
 	}
 
 	return idx
@@ -130,7 +130,7 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger dlog.Logger, httpClien
 	// through, or an HTTPResponse that denies the request?
 	_, allowThrough := resp.(*filterapi.HTTPRequestModification)
 
-	logger.Infof("AuthCode Filter: allowThrough %v, len(cookies) %d", allowThrough, len(cookies))
+	logger.Debugf("AuthCode %s Filter: allowThrough %v, len(cookies) %d", c.QName, allowThrough, len(cookies))
 
 	if allowThrough && len(cookies) > 0 {
 		// Unfortunately, we have no mechanism by which we can set cookies if
@@ -215,7 +215,7 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger dlog.Logger, httpClien
 					errors.Wrap(err, "failed to serialize mdInfo"), nil)
 			}
 
-			logger.Infof("AuthCode Filter save mdInfo: oauth2-mdinfo:%s, %#v", mdSessionID, mdInfo)
+			logger.Debugf("AuthCode %s Filter save mdInfo: oauth2-mdinfo:%s, %#v", c.QName, mdSessionID, mdInfo)
 
 			err = redisClient.Cmd("SET", "oauth2-mdinfo:"+mdSessionID, string(mdInfoBytes), "EX", int(sessionExpiry.Seconds())).Err
 			if err != nil {
@@ -252,10 +252,10 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger dlog.Logger, httpClien
 			// to check this type assertion.
 
 			if i == 0 {
-				logger.Infof("AuthCode Filter: redirecting to %s", resp.(*filterapi.HTTPResponse).Header.Get("Location"))
+				logger.Debugf("AuthCode %s Filter: redirecting to %s", c.QName, resp.(*filterapi.HTTPResponse).Header.Get("Location"))
 			}
 
-			logger.Infof("AuthCode Filter: setting cookie %s=%s", cookie.Name, cookie.Value)
+			logger.Debugf("AuthCode %s Filter: setting cookie %s=%s", c.QName, cookie.Name, cookie.Value)
 			resp.(*filterapi.HTTPResponse).Header.Add("Set-Cookie", cookie.String())
 		}
 	}
@@ -275,7 +275,7 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 			errors.Wrapf(err, "could not parse request URI"), nil), nil
 	}
 
-	logger.Infof("\n\n======== AuthCode %s filter firing for %s", c.QName, requestURL.String())
+	logger.Debugf("AuthCode %s filter firing for %s", c.QName, requestURL.String())
 
 	// Which root is this?
 	rootIndex := findMatchingOrigin(c.Spec, logger, requestURL.Scheme, requestURL.Host)
@@ -337,7 +337,7 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 		// debugging, then fall past the switch to treat this like an
 		// unauthenticated session.
 
-		logger.Infoln("session status:", errors.Wrap(sessionErr, "no session"))
+		logger.Debugln("session status:", errors.Wrap(sessionErr, "no session"))
 	case c.readXSRFCookie(filterutil.GetHeader(request)) != sessionInfo.xsrfToken:
 		// Yikes!  Someone is trying to hack our users!
 		return middleware.NewErrorResponse(ctx, http.StatusForbidden,
@@ -346,11 +346,11 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 	case sessionInfo.sessionData.CurrentAccessToken == nil:
 		// This is a non-authenticated session; we've previously redirected the
 		// user to the IdP, but they never completed the authorization flow.
-		logger.Infoln("session status:", "non-authenticated session")
+		logger.Debugln("session status:", "non-authenticated session")
 
 	default:
 		// This is a fully-authenticated session, so try to update the access token.
-		logger.Infoln("session status:", "authenticated session")
+		logger.Debugln("session status:", "authenticated session")
 
 		authorization, err = oauthClient.AuthorizationForResourceRequest(sessionInfo.sessionData, func() io.Reader {
 			return strings.NewReader(request.GetRequest().GetHttp().GetBody())
@@ -362,7 +362,7 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 			// This indicates a programming error; we've already checked that there is an access token.
 			panic(err)
 		} else if err == rfc6749client.ErrExpiredAccessToken {
-			logger.Infoln("access token expired; continuing as if non-authenticated session")
+			logger.Debugln("access token expired; continuing as if non-authenticated session")
 			// continue with (authorization == nil); as if this `.CurrentAccessToken == nil`
 		} else if _, ok := err.(*rfc6749client.UnsupportedTokenTypeError); ok {
 			return middleware.NewErrorResponse(ctx, http.StatusBadGateway,
@@ -392,7 +392,7 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 			// successful authentication, which of course requires a session.
 			//
 			// Regard lack of a session as an XSRF error.
-			logger.Infoln("no sessionData for session ID", sessionInfo.sessionID)
+			logger.Debugln("no sessionData for session ID", sessionInfo.sessionID)
 			return sessionInfo.handleUnauthenticatedProxyRequest(ctx, logger, httpClient, oauthClient, discovered, request), nil
 		}
 
@@ -424,7 +424,7 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 
 		// OK. Do we already have an authorization?
 		if authorization != nil {
-			logger.Infoln("already logged in; original log-in-time URL %v", originalURL)
+			logger.Debugln("already logged in; original log-in-time URL %v", originalURL)
 
 			if originalURL.Path == "/.ambassador/oauth2/redirection-endpoint" {
 				// Avoid a redirect loop.  This "shouldn't" happen; we "shouldn't"
@@ -440,7 +440,7 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 			}
 		} else {
 			// First time back here after auth! Let's see if we have an access token.
-			logger.Infoln("No authorization code, trying to parse one")
+			logger.Debugln("No authorization code, trying to parse one")
 			authorizationCode, err := oauthClient.ParseAuthorizationResponse(sessionInfo.sessionData, requestURL)
 
 			if err != nil {
@@ -465,7 +465,7 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 		targetURL := originalURL
 
 		// OK, all's well, let's redirect to the target URL.
-		logger.Infof("redirecting user-agent with %d to %s", statusCode, targetURL.String())
+		logger.Debugf("redirecting user-agent with %d to %s", statusCode, targetURL.String())
 
 		return &filterapi.HTTPResponse{
 			StatusCode: statusCode,
@@ -493,7 +493,7 @@ func (c *OAuth2Client) filter(ctx context.Context, logger dlog.Logger, httpClien
 func (c *OAuth2Client) ServeHTTP(w http.ResponseWriter, r *http.Request, ctx context.Context, discovered *discovery.Discovered, redisClient *redis.Client) {
 	logger := dlog.GetLogger(r.Context())
 
-	logger.Infof("\n\n======== AuthCode %s ServeHTTP firing for %s - %s", c.QName, r.Host, r.URL.Path)
+	logger.Debugf("AuthCode %s ServeHTTP firing for %s - %s", c.QName, r.Host, r.URL.Path)
 
 	switch r.URL.Path {
 	case "/.ambassador/oauth2/logout":
@@ -562,7 +562,7 @@ func (c *OAuth2Client) ServeHTTP(w http.ResponseWriter, r *http.Request, ctx con
 		}
 
 		mdSessionID := parts[1]
-		logger.Infof("Auth MultiCookie: mdSessionID %s", mdSessionID)
+		logger.Debugf("Auth MultiCookie: mdSessionID %s", mdSessionID)
 
 		// OK, we have a code -- try to find it in Redis.
 		mdInfoBytes, err := redisClient.Cmd("GET", "oauth2-mdinfo:"+mdSessionID).Bytes()
@@ -601,7 +601,7 @@ func (c *OAuth2Client) ServeHTTP(w http.ResponseWriter, r *http.Request, ctx con
 
 		// OK, all's well. Set our cookies.
 		for _, cookie := range mdInfo.Cookies {
-			logger.Infof("Auth MultiCookie: set %s", cookie.String())
+			logger.Debugf("Auth MultiCookie: set %s", cookie.String())
 
 			// Make sure the domain matches the subdomain setting for this root.
 			if c.Spec.AllowSubdomains(rootIndex) {
@@ -623,7 +623,7 @@ func (c *OAuth2Client) ServeHTTP(w http.ResponseWriter, r *http.Request, ctx con
 			q.Set("code", c.QName+":"+mdSessionID)
 			targetURL.RawQuery = q.Encode()
 
-			logger.Infof("Auth MultiCookie: redirect to %s", targetURL.String())
+			logger.Debugf("Auth MultiCookie: redirect to %s", targetURL.String())
 
 			// 307 "Temporary Redirect" (unlike other redirect codes)
 			// does not allow the user-agent to change from POST to GET
@@ -632,11 +632,11 @@ func (c *OAuth2Client) ServeHTTP(w http.ResponseWriter, r *http.Request, ctx con
 			http.Redirect(w, r, targetURL.String(), http.StatusTemporaryRedirect)
 		} else {
 			// We're done. Finally. Delete the mdInfo...
-			// logger.Infof("Auth MultiCookie: delete mdInfo: %s", mdSessionID)
+			// logger.Debugf("Auth MultiCookie: delete mdInfo: %s", mdSessionID)
 			// _ = redisClient.Cmd("DEL", "oauth2-mdinfo:"+mdSessionID)
 
 			// ...then redirect to the orginal URL.
-			logger.Infof("Auth MultiCookie: redirect to %s", mdInfo.OriginalURL)
+			logger.Debugf("Auth MultiCookie: redirect to %s", mdInfo.OriginalURL)
 
 			http.Redirect(w, r, mdInfo.OriginalURL, mdInfo.StatusCode)
 		}
@@ -791,12 +791,12 @@ func (c *OAuth2Client) loadSession(sessionInfo *SessionInfo, redisClient *redis.
 	// get the sessionID from the cookie
 	cookie, err := r.Cookie(c.sessionCookieName())
 	if cookie == nil {
-		logger.Infof("AuthCode loadSession: no session cookie %s", c.sessionCookieName())
+		logger.Debugf("AuthCode loadSession: no session cookie %s", c.sessionCookieName())
 		return err
 	}
 	sessionInfo.sessionID = cookie.Value
 
-	logger.Infof("AuthCode loadSession: got ID %s from cookie %s", sessionInfo.sessionID, c.sessionCookieName())
+	logger.Debugf("AuthCode loadSession: got ID %s from cookie %s", sessionInfo.sessionID, c.sessionCookieName())
 
 	// get the xsrf token from Redis
 	sessionInfo.xsrfToken, err = redisClient.Cmd("GET", "session-xsrf:"+sessionInfo.sessionID).Str()
@@ -821,7 +821,7 @@ func (c *OAuth2Client) loadSession(sessionInfo *SessionInfo, redisClient *redis.
 func (c *OAuth2Client) saveSession(redisClient *redis.Client, sessionInfo *SessionInfo, logger dlog.Logger, requestHeader http.Header, rootIndex int) ([]*http.Cookie, error) {
 	// If we have no new session data, we can just bail here.
 	if sessionInfo == nil || sessionInfo.sessionData == nil || !sessionInfo.sessionData.IsDirty() {
-		logger.Infof("AuthCode saveSession: nothing to save")
+		logger.Debugf("AuthCode saveSession: nothing to save")
 		return nil, nil
 	}
 
@@ -847,12 +847,12 @@ func (c *OAuth2Client) saveSession(redisClient *redis.Client, sessionInfo *Sessi
 	}
 
 	// Set up a pipeline of Redis updates...
-	logger.Infof("AuthCode saveSession: writing session & XSRF for ID %s", newSessionID)
+	logger.Debugf("AuthCode saveSession: writing session & XSRF for ID %s", newSessionID)
 	redisClient.PipeAppend("SET", "session:"+newSessionID, string(sessionDataBytes), "EX", int(sessionExpiry.Seconds()))
 	redisClient.PipeAppend("SET", "session-xsrf:"+newSessionID, newXsrfToken, "EX", int(sessionExpiry.Seconds()))
 
 	if sessionInfo.sessionID != "" {
-		logger.Infof("AuthCode saveSession: deleting old ID %s", sessionInfo.sessionID)
+		logger.Debugf("AuthCode saveSession: deleting old ID %s", sessionInfo.sessionID)
 
 		redisClient.PipeAppend("DEL", "session:"+sessionInfo.sessionID)
 		redisClient.PipeAppend("DEL", "session-xsrf:"+sessionInfo.sessionID)
