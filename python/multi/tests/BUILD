@@ -5,6 +5,6 @@ py_test(
     name = "test_multi",
     srcs = ["test_multi.py"],
     deps = [
-        "//python/multi:__init__",
+        "//multi:__init__",
     ],
 )

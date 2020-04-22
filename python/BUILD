@@ -5,7 +5,7 @@ py_binary(
     name = "kubewatch",
     srcs = ["kubewatch.py"],
     deps = [
-        "//python/ambassador:VERSION",
+        "//ambassador:VERSION",
         requirement("click"),
         requirement("kubernetes"),
     ],
@@ -31,8 +31,20 @@ py_binary(
     name = "watch_hook",
     srcs = ["watch_hook.py"],
     deps = [
-        "//python/ambassador/config:resourcefetcher",
-        "//python/ambassador:__init__",
-        "//python/ambassador:utils",
+        "//ambassador/config:resourcefetcher",
+        "//ambassador:__init__",
+        "//ambassador:utils",
     ],
+)
+
+py_library(
+    name = "templates",
+    srcs = [],
+    data = glob(["templates/**"]),
+)
+
+py_library(
+    name = "schemas",
+    srcs = [],
+    data = glob(["schemas/**"]),
 )

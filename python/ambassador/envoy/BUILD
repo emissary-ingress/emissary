@@ -6,7 +6,7 @@ py_library(
     srcs = ["__init__.py"],
     deps = [
         ":common",
-        "//python/ambassador/envoy/v2:__init__",
+        "//ambassador/envoy/v2:__init__",
     ],
 )
 
@@ -14,7 +14,7 @@ py_library(
     name = "common",
     srcs = ["common.py"],
     deps = [
-        "//python/ambassador/ir:__init__",
-        "//python/ambassador/ir:irhttpmappinggroup",
+        "//ambassador/ir:__init__",
+        "//ambassador/ir:irhttpmappinggroup",
     ],
 )

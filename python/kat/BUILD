@@ -13,7 +13,7 @@ py_library(
     deps = [
         ":parser",
         ":utils",
-        "//python/multi:__init__",
+        "//multi:__init__",
         requirement("packaging"),
         requirement("pytest"),
         requirement("pyyaml"),

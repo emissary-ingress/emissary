@@ -15,10 +15,10 @@ py_library(
     srcs = ["diagnostics.py"],
     deps = [
         ":envoy_stats",
-        "//python/ambassador/envoy:__init__",
-        "//python/ambassador/ir:__init__",
-        "//python/ambassador/ir:irbasemappinggroup",
-        "//python/ambassador/ir:irhttpmappinggroup",
+        "//ambassador/envoy:__init__",
+        "//ambassador/ir:__init__",
+        "//ambassador/ir:irbasemappinggroup",
+        "//ambassador/ir:irhttpmappinggroup",
     ],
 )
 

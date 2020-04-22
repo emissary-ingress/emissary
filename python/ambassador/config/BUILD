@@ -33,7 +33,7 @@ py_library(
     name = "acresource",
     srcs = ["acresource.py"],
     deps = [
-        "//python/ambassador:resource",
+        "//ambassador:resource",
     ],
 )
 
@@ -43,9 +43,10 @@ py_library(
     deps = [
         ":acmapping",
         ":acresource",
-        "//python/ambassador:resource",
-        "//python/ambassador:utils",
-        "//python/multi:__init__",
+        "//:schemas",
+        "//ambassador:resource",
+        "//ambassador:utils",
+        "//multi:__init__",
         requirement("jsonschema"),
         requirement("protobuf"),
         requirement("setuptools"),
@@ -58,7 +59,7 @@ py_library(
     deps = [
         ":acresource",
         ":config",
-        "//python/ambassador:utils",
+        "//ambassador:utils",
         requirement("pyyaml"),
     ],
 )

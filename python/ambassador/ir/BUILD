@@ -30,10 +30,10 @@ py_library(
         ":irtls",
         ":irtlscontext",
         ":irtracing",
-        "//python/ambassador/config:__init__",
-        "//python/ambassador:VERSION",
-        "//python/ambassador:constants",
-        "//python/ambassador:utils",
+        "//ambassador/config:__init__",
+        "//ambassador:VERSION",
+        "//ambassador:constants",
+        "//ambassador:utils",
     ],
 )
 
@@ -42,7 +42,7 @@ py_library(
     srcs = ["iradmin.py"],
     deps = [
         ":irresource",
-        "//python/ambassador/config:__init__",
+        "//ambassador/config:__init__",
     ],
 )
 
@@ -59,8 +59,8 @@ py_library(
         ":irretrypolicy",
         ":irtls",
         ":irtlscontext",
-        "//python/ambassador/config:__init__",
-        "//python/ambassador:constants",
+        "//ambassador/config:__init__",
+        "//ambassador:constants",
     ],
 )
 
@@ -71,9 +71,9 @@ py_library(
         ":ircluster",
         ":irfilter",
         ":irretrypolicy",
-        "//python/ambassador/config:__init__",
-        "//python/ambassador:resource",
-        "//python/ambassador:utils",
+        "//ambassador/config:__init__",
+        "//ambassador:resource",
+        "//ambassador:utils",
     ],
 )
 
@@ -82,7 +82,7 @@ py_library(
     srcs = ["irbasemapping.py"],
     deps = [
         ":irresource",
-        "//python/ambassador/config:__init__",
+        "//ambassador/config:__init__",
     ],
 )
 
@@ -91,7 +91,7 @@ py_library(
     srcs = ["irbasemappinggroup.py"],
     deps = [
         ":irresource",
-        "//python/ambassador/config:__init__",
+        "//ambassador/config:__init__",
     ],
 )
 
@@ -101,9 +101,9 @@ py_library(
     deps = [
         ":ircluster",
         ":irfilter",
-        "//python/ambassador/config:__init__",
-        "//python/ambassador:resource",
-        "//python/ambassador:utils",
+        "//ambassador/config:__init__",
+        "//ambassador:resource",
+        "//ambassador:utils",
     ],
 )
 
@@ -113,8 +113,8 @@ py_library(
     deps = [
         ":irresource",
         ":irtlscontext",
-        "//python/ambassador/config:__init__",
-        "//python/ambassador:utils",
+        "//ambassador/config:__init__",
+        "//ambassador:utils",
     ],
 )
 
@@ -123,8 +123,8 @@ py_library(
     srcs = ["ircors.py"],
     deps = [
         ":irresource",
-        "//python/ambassador/config:__init__",
-        "//python/ambassador:utils",
+        "//ambassador/config:__init__",
+        "//ambassador:utils",
     ],
 )
 
@@ -133,7 +133,7 @@ py_library(
     srcs = ["irfilter.py"],
     deps = [
         ":irresource",
-        "//python/ambassador/config:__init__",
+        "//ambassador/config:__init__",
     ],
 )
 
@@ -143,9 +143,9 @@ py_library(
     deps = [
         ":ircluster",
         ":irfilter",
-        "//python/ambassador/config:__init__",
-        "//python/ambassador:resource",
-        "//python/ambassador:utils",
+        "//ambassador/config:__init__",
+        "//ambassador:resource",
+        "//ambassador:utils",
     ],
 )
 
@@ -155,8 +155,8 @@ py_library(
     deps = [
         ":irresource",
         ":irtlscontext",
-        "//python/ambassador/config:__init__",
-        "//python/ambassador:utils",
+        "//ambassador/config:__init__",
+        "//ambassador:utils",
     ],
 )
 
@@ -169,8 +169,8 @@ py_library(
         ":ircors",
         ":irhttpmappinggroup",
         ":irretrypolicy",
-        "//python/ambassador/config:__init__",
-        "//python/ambassador:utils",
+        "//ambassador/config:__init__",
+        "//ambassador:utils",
     ],
 )
 
@@ -182,8 +182,8 @@ py_library(
         ":irbasemappinggroup",
         ":ircluster",
         ":irresource",
-        "//python/ambassador/config:__init__",
-        "//python/ambassador:utils",
+        "//ambassador/config:__init__",
+        "//ambassador:utils",
     ],
 )
 
@@ -193,7 +193,7 @@ py_library(
     deps = [
         ":irresource",
         ":irtlscontext",
-        "//python/ambassador/config:__init__",
+        "//ambassador/config:__init__",
     ],
 )
 
@@ -203,8 +203,8 @@ py_library(
     deps = [
         ":ircluster",
         ":irresource",
-        "//python/ambassador/config:__init__",
-        "//python/ambassador:utils",
+        "//ambassador/config:__init__",
+        "//ambassador:utils",
     ],
 )
 
@@ -215,7 +215,7 @@ py_library(
         ":irbasemapping",
         ":irhttpmapping",
         ":irtcpmapping",
-        "//python/ambassador/config:__init__",
+        "//ambassador/config:__init__",
     ],
 )
 
@@ -225,8 +225,8 @@ py_library(
     deps = [
         ":ircluster",
         ":irfilter",
-        "//python/ambassador/config:__init__",
-        "//python/ambassador:utils",
+        "//ambassador/config:__init__",
+        "//ambassador:utils",
     ],
 )
 
@@ -234,9 +234,9 @@ py_library(
     name = "irresource",
     srcs = ["irresource.py"],
     deps = [
-        "//python/ambassador/config:__init__",
-        "//python/ambassador:resource",
-        "//python/ambassador:utils",
+        "//ambassador/config:__init__",
+        "//ambassador:resource",
+        "//ambassador:utils",
     ],
 )
 
@@ -245,8 +245,8 @@ py_library(
     srcs = ["irretrypolicy.py"],
     deps = [
         ":irresource",
-        "//python/ambassador/config:__init__",
-        "//python/ambassador:utils",
+        "//ambassador/config:__init__",
+        "//ambassador:utils",
     ],
 )
 
@@ -256,9 +256,9 @@ py_library(
     deps = [
         ":irresource",
         ":irtlscontext",
-        "//python/ambassador/config:__init__",
-        "//python/ambassador:utils",
-        "//python/multi:__init__",
+        "//ambassador/config:__init__",
+        "//ambassador:utils",
+        "//multi:__init__",
     ],
 )
 
@@ -269,8 +269,8 @@ py_library(
         ":irbasemapping",
         ":irbasemappinggroup",
         ":irtcpmappinggroup",
-        "//python/ambassador/config:__init__",
-        "//python/ambassador:utils",
+        "//ambassador/config:__init__",
+        "//ambassador:utils",
     ],
 )
 
@@ -282,8 +282,8 @@ py_library(
         ":irbasemappinggroup",
         ":ircluster",
         ":irresource",
-        "//python/ambassador/config:__init__",
-        "//python/ambassador:utils",
+        "//ambassador/config:__init__",
+        "//ambassador:utils",
     ],
 )
 
@@ -293,8 +293,8 @@ py_library(
     deps = [
         ":irresource",
         ":irtlscontext",
-        "//python/ambassador/config:__init__",
-        "//python/ambassador:utils",
+        "//ambassador/config:__init__",
+        "//ambassador:utils",
     ],
 )
 
@@ -303,8 +303,8 @@ py_library(
     srcs = ["irtlscontext.py"],
     deps = [
         ":irresource",
-        "//python/ambassador/config:__init__",
-        "//python/ambassador:utils",
+        "//ambassador/config:__init__",
+        "//ambassador:utils",
     ],
 )
 
@@ -314,7 +314,7 @@ py_library(
     deps = [
         ":ircluster",
         ":irresource",
-        "//python/ambassador/config:__init__",
-        "//python/ambassador:utils",
+        "//ambassador/config:__init__",
+        "//ambassador:utils",
     ],
 )

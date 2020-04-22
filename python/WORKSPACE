@@ -1,0 +1,29 @@
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+
+# Python #######################################################################
+
+git_repository(
+    name = "rules_python",
+    remote = "https://github.com/bazelbuild/rules_python.git",
+    commit = "38f86fb55b698c51e8510c807489c9f4e047480e",
+)
+
+load("@rules_python//python:repositories.bzl", "py_repositories")
+py_repositories()
+
+# Python: PIP ##################################################################
+
+git_repository(
+    name = "rules_python_external",
+    remote = "https://github.com/dillon-giacoppo/rules_python_external.git",
+    commit = "825ca18f003285cb09a32d64169eb465e0387fd1",
+)
+
+load("@rules_python_external//:repositories.bzl", "rules_python_external_dependencies")
+rules_python_external_dependencies()
+
+load("@rules_python_external//:defs.bzl", "pip_install")
+pip_install(
+    name = "ambassador_pip",
+    requirements = "//:requirements.txt",
+)

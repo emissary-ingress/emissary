@@ -5,8 +5,8 @@ py_library(
     name = "abstract_tests",
     srcs = ["abstract_tests.py"],
     deps = [
-        "//python/kat:harness",
-        "//python/kat:utils",
+        "//kat:harness",
+        "//kat:utils",
         requirement("pytest"),
         requirement("pyyaml"),
     ],
@@ -17,7 +17,7 @@ py_library(
     srcs = ["t_basics.py"],
     deps = [
         ":abstract_tests",
-        "//python/kat:harness",
+        "//kat:harness",
     ],
 )
 
@@ -26,7 +26,7 @@ py_library(
     srcs = ["t_circuitbreaker.py"],
     deps = [
         ":abstract_tests",
-        "//python/kat:harness",
+        "//kat:harness",
         requirement("pytest"),
     ],
 )
@@ -36,7 +36,7 @@ py_library(
     srcs = ["t_consul.py"],
     deps = [
         ":abstract_tests",
-        "//python/kat:harness",
+        "//kat:harness",
     ],
 )
 
@@ -45,7 +45,7 @@ py_library(
     srcs = ["t_cors.py"],
     deps = [
         ":abstract_tests",
-        "//python/kat:harness",
+        "//kat:harness",
     ],
 )
 
@@ -54,8 +54,8 @@ py_library(
     srcs = ["t_envoy_logs.py"],
     deps = [
         ":abstract_tests",
-        "//python/kat:harness",
-        "//python/kat:utils",
+        "//kat:harness",
+        "//kat:utils",
         requirement("pytest"),
     ],
 )
@@ -65,7 +65,7 @@ py_library(
     srcs = ["t_extauth.py"],
     deps = [
         ":abstract_tests",
-        "//python/kat:harness",
+        "//kat:harness",
     ],
 )
 
@@ -74,7 +74,7 @@ py_library(
     srcs = ["t_grpc.py"],
     deps = [
         ":abstract_tests",
-        "//python/kat:harness",
+        "//kat:harness",
     ],
 )
 
@@ -83,7 +83,7 @@ py_library(
     srcs = ["t_grpc_bridge.py"],
     deps = [
         ":abstract_tests",
-        "//python/kat:harness",
+        "//kat:harness",
     ],
 )
 
@@ -92,7 +92,7 @@ py_library(
     srcs = ["t_grpc_web.py"],
     deps = [
         ":abstract_tests",
-        "//python/kat:harness",
+        "//kat:harness",
     ],
 )
 
@@ -101,7 +101,7 @@ py_library(
     srcs = ["t_gzip.py"],
     deps = [
         ":abstract_tests",
-        "//python/kat:harness",
+        "//kat:harness",
     ],
 )
 
@@ -110,7 +110,7 @@ py_library(
     srcs = ["t_headerrouting.py"],
     deps = [
         ":abstract_tests",
-        "//python/kat:harness",
+        "//kat:harness",
     ],
 )
 
@@ -119,7 +119,7 @@ py_library(
     srcs = ["t_hosts.py"],
     deps = [
         ":abstract_tests",
-        "//python/kat:harness",
+        "//kat:harness",
     ],
 )
 
@@ -128,7 +128,7 @@ py_library(
     srcs = ["t_ingress.py"],
     deps = [
         ":abstract_tests",
-        "//python/kat:harness",
+        "//kat:harness",
         requirement("pytest"),
     ],
 )
@@ -138,7 +138,7 @@ py_library(
     srcs = ["t_listeneridletimeout.py"],
     deps = [
         ":abstract_tests",
-        "//python/kat:harness",
+        "//kat:harness",
     ],
 )
 
@@ -147,7 +147,7 @@ py_library(
     srcs = ["t_loadbalancer.py"],
     deps = [
         ":abstract_tests",
-        "//python/kat:harness",
+        "//kat:harness",
     ],
 )
 
@@ -156,7 +156,7 @@ py_library(
     srcs = ["t_logservice.py"],
     deps = [
         ":abstract_tests",
-        "//python/kat:harness",
+        "//kat:harness",
         requirement("pytest"),
     ],
 )
@@ -166,7 +166,7 @@ py_library(
     srcs = ["t_lua_scripts.py"],
     deps = [
         ":abstract_tests",
-        "//python/kat:harness",
+        "//kat:harness",
     ],
 )
 
@@ -175,7 +175,7 @@ py_library(
     srcs = ["t_mappingtests.py"],
     deps = [
         ":abstract_tests",
-        "//python/kat:harness",
+        "//kat:harness",
     ],
 )
 
@@ -184,7 +184,7 @@ py_library(
     srcs = ["t_optiontests.py"],
     deps = [
         ":abstract_tests",
-        "//python/kat:harness",
+        "//kat:harness",
         requirement("pytest"),
     ],
 )
@@ -194,7 +194,7 @@ py_library(
     srcs = ["t_plain.py"],
     deps = [
         ":abstract_tests",
-        "//python/kat:harness",
+        "//kat:harness",
     ],
 )
 
@@ -203,7 +203,7 @@ py_library(
     srcs = ["t_ratelimit.py"],
     deps = [
         ":abstract_tests",
-        "//python/kat:harness",
+        "//kat:harness",
     ],
 )
 
@@ -212,7 +212,7 @@ py_library(
     srcs = ["t_redirect.py"],
     deps = [
         ":abstract_tests",
-        "//python/kat:harness",
+        "//kat:harness",
     ],
 )
 
@@ -221,7 +221,7 @@ py_library(
     srcs = ["t_retrypolicy.py"],
     deps = [
         ":abstract_tests",
-        "//python/kat:harness",
+        "//kat:harness",
     ],
 )
 
@@ -230,7 +230,7 @@ py_library(
     srcs = ["t_shadow.py"],
     deps = [
         ":abstract_tests",
-        "//python/kat:harness",
+        "//kat:harness",
         requirement("pytest"),
     ],
 )
@@ -240,7 +240,7 @@ py_library(
     srcs = ["t_stats.py"],
     deps = [
         ":abstract_tests",
-        "//python/kat:harness",
+        "//kat:harness",
     ],
 )
 
@@ -249,7 +249,7 @@ py_library(
     srcs = ["t_tcpmapping.py"],
     deps = [
         ":abstract_tests",
-        "//python/kat:harness",
+        "//kat:harness",
     ],
 )
 
@@ -258,7 +258,7 @@ py_library(
     srcs = ["t_tls.py"],
     deps = [
         ":abstract_tests",
-        "//python/kat:harness",
+        "//kat:harness",
         requirement("pytest"),
     ],
 )
@@ -268,7 +268,7 @@ py_library(
     srcs = ["t_tracing.py"],
     deps = [
         ":abstract_tests",
-        "//python/kat:harness",
+        "//kat:harness",
         requirement("pytest"),
     ],
 )
@@ -303,7 +303,7 @@ py_test(
         ":t_tcpmapping",
         ":t_tls",
         ":t_tracing",
-        "//python/kat:harness",
+        "//kat:harness",
     ],
 )
 
@@ -320,11 +320,11 @@ py_test(
     name = "test_envvar_expansion",
     srcs = ["test_envvar_expansion.py"],
     deps = [
-        "//python/ambassador/config:__init__",
-        "//python/ambassador/ir:__init__",
-        "//python/ambassador/ir:irbuffer",
-        "//python/ambassador:__init__",
-        "//python/ambassador:utils",
+        "//ambassador/config:__init__",
+        "//ambassador/ir:__init__",
+        "//ambassador/ir:irbuffer",
+        "//ambassador:__init__",
+        "//ambassador:utils",
     ],
 )
 
@@ -333,7 +333,7 @@ py_test(
     srcs = ["test_knative.py"],
     deps = [
         ":utils",
-        "//python/kat:harness",
+        "//kat:harness",
         requirement("pytest"),
         requirement("retry"),
         requirement("urllib"),
@@ -344,11 +344,11 @@ py_test(
     name = "test_lookup",
     srcs = ["test_lookup.py"],
     deps = [
-        "//python/ambassador/config:__init__",
-        "//python/ambassador/ir:__init__",
-        "//python/ambassador/ir:irbuffer",
-        "//python/ambassador:__init__",
-        "//python/ambassador:utils",
+        "//ambassador/config:__init__",
+        "//ambassador/ir:__init__",
+        "//ambassador/ir:irbuffer",
+        "//ambassador:__init__",
+        "//ambassador:utils",
     ],
 )
 

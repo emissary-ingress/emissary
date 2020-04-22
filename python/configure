@@ -126,6 +126,8 @@ def import_to_distribname(item: ImportedItem) -> str:
         return 'setuptools'
     elif mod_startswith(item.module, 'google.protobuf'):
         return 'protobuf'
+    elif mod_startswith(item.module, 'semantic_version'):
+        return 'semantic-version'
     else:
         return item.module.split('.')[0]
 
@@ -217,4 +219,4 @@ load("@ambassador_pip//:requirements.bzl", "requirement")""",
                     buildfile.write("\n\n".join(build_rules)+"\n")
 
 if __name__ == "__main__":
-    main(".", ["python"])
+    main(".", ["."])

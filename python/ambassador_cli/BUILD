@@ -11,10 +11,10 @@ py_binary(
     name = "ambassador",
     srcs = ["ambassador.py"],
     deps = [
-        "//python/ambassador/config:resourcefetcher",
-        "//python/ambassador/envoy:__init__",
-        "//python/ambassador:__init__",
-        "//python/ambassador:utils",
+        "//ambassador/config:resourcefetcher",
+        "//ambassador/envoy:__init__",
+        "//ambassador:__init__",
+        "//ambassador:utils",
         requirement("clize"),
     ],
 )
@@ -40,11 +40,11 @@ py_binary(
     name = "mockery",
     srcs = ["mockery.py"],
     deps = [
-        "//python/ambassador/config:resourcefetcher",
-        "//python/ambassador:__init__",
-        "//python/ambassador:utils",
-        "//python/kat:utils",
-        "//python:watch_hook",
+        "//:watch_hook",
+        "//ambassador/config:resourcefetcher",
+        "//ambassador:__init__",
+        "//ambassador:utils",
+        "//kat:utils",
         requirement("click"),
     ],
 )

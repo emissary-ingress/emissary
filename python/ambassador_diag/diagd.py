@@ -13,6 +13,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License
+
+# This is ridiculous, but
+#  1. Because of how Bazel sets the PYTHONPATH, wheels can shadow the
+#     stdlib.
+#  2. The 'expiringdict' wheel has a dependency on the old 'typing'
+#     wheel, which has been replaced by the stdlib.
+# And those 2 things together mean that the stdlib 'typing' module is
+# masked, and that causes problems.
+#
+# So, adjust sys.path such that the stdlib doesn't get masked by
+# wheels.
+import sys
+import sysconfig
+sys.path.insert(1, sysconfig.get_paths()['stdlib'])
+
 import copy
 import subprocess
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union, TYPE_CHECKING

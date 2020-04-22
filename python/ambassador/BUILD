@@ -13,10 +13,10 @@ py_library(
     deps = [
         ":VERSION",
         ":ambscout",
-        "//python/ambassador/config:__init__",
-        "//python/ambassador/diagnostics:__init__",
-        "//python/ambassador/envoy:__init__",
-        "//python/ambassador/ir:__init__",
+        "//ambassador/config:__init__",
+        "//ambassador/diagnostics:__init__",
+        "//ambassador/envoy:__init__",
+        "//ambassador/ir:__init__",
     ],
 )
 
@@ -26,7 +26,7 @@ py_library(
     deps = [
         ":VERSION",
         requirement("scout.py"),
-        requirement("semantic_version"),
+        requirement("semantic-version"),
     ],
 )
 
