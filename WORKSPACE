@@ -55,5 +55,5 @@ rules_python_external_dependencies()
 load("@rules_python_external//:defs.bzl", "pip_install")
 pip_install(
     name = "ambassador_pip",
-    requirements = "//requirements.txt",
+    requirements = "//:requirements.txt",
 )

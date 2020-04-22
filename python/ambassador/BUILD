@@ -1,7 +1,7 @@
 package(default_visibility = ["//visibility:public"])
 load("@ambassador_pip//:requirements.bzl", "requirement")
 
-py_binary(
+py_library(
     name = "VERSION",
     srcs = ["VERSION.py"],
     deps = [],

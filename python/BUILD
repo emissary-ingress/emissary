@@ -11,7 +11,7 @@ py_binary(
     ],
 )
 
-py_library(
+py_binary(
     name = "post_update",
     srcs = ["post_update.py"],
     deps = [
@@ -19,7 +19,7 @@ py_library(
     ],
 )
 
-py_library(
+py_binary(
     name = "setup",
     srcs = ["setup.py"],
     deps = [

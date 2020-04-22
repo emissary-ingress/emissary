@@ -129,14 +129,9 @@ def import_to_distribname(item: ImportedItem) -> str:
     else:
         return item.module.split('.')[0]
 
-def has_entrypoints(scriptbody: str) -> bool:
-    main = re.findall('\nif\s*__name__\s*==\s*["\']__main__["\']\s*:', scriptbody)
-    unindented = re.findall('\n\S+\([\S+]?\)', scriptbody)
-    return len(main+unindented) > 0
-
 def rules_for_script(workspacedir: str, inputdir: str, filepath: str) -> List[str]:
     localpaths = [inputdir]
-    if os.path.basename(filepath).startswith('test_') or os.path.basename(filepath).startswith('t_'):
+    if not os.path.isfile(os.path.join(os.path.dirname(filepath), '__init__.py')):
         localpaths.append(os.path.dirname(filepath))
 
     with open(filepath, 'r') as filehandle:
@@ -170,7 +165,7 @@ def rules_for_script(workspacedir: str, inputdir: str, filepath: str) -> List[st
     srcs = [{quote(os.path.basename(filepath))}],
     deps = {depstr},
 )"""]
-    elif has_entrypoints(filecontent):
+    elif os.access(filepath, os.X_OK):
         return [f"""py_binary(
     name = {quote(os.path.basename(filepath)[:-len('.py')])},
     srcs = [{quote(os.path.basename(filepath))}],
