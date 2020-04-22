@@ -1,6 +1,7 @@
-# If you change this file, you must also change ../WORKSPACE
-
+workspace(name = "ambassador_python")
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+
+# If you change anything below this line, you must also change ../WORKSPACE
 
 # Python #######################################################################
 
@@ -27,5 +28,5 @@ rules_python_external_dependencies()
 load("@rules_python_external//:defs.bzl", "pip_install")
 pip_install(
     name = "ambassador_pip",
-    requirements = "//:requirements.txt",
+    requirements = "@ambassador_python//:requirements.txt",
 )

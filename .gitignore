@@ -1,7 +1,6 @@
 # Created by ./configure
 BUILD
 !/BUILD
-!/python/**/BUILD
 /vendor
 
 # local files
@@ -17,7 +16,7 @@ venv/
 vendor_bootstrap_hack.go
 
 # Bazel nonsense
-/bazel-*
+bazel-*
 
 # Python nonsense
 *.pyc
