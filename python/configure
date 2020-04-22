@@ -156,6 +156,11 @@ def rules_for_script(workspacedir: str, inputdir: str, filepath: str) -> List[st
         else:
             deps.add(f"requirement({quote(import_to_distribname(item))})")
 
+    if filepath == os.path.join(workspacedir, 'ambassador_diag', 'diagd.py'):  # hack
+        deps.add(quote("//:templates"))
+    if filepath == os.path.join(workspacedir, 'ambassador', 'config', 'config.py'):  # hack
+        deps.add(quote("//:schemas"))
+
     if len(deps) == 0:
         depstr = '[]'
     else:
@@ -206,6 +211,20 @@ def main(workspacedir: str, inputdirs: List[str]):
                     continue
                 elif filename.endswith('.py'):
                     build_rules += rules_for_script(workspacedir, inputdir, filepath)
+            if dirpath == workspacedir:  # hack
+                build_rules += [
+                    """py_library(
+    name = "templates",
+    srcs = [],
+    data = glob(["templates/**"]),
+)""",
+
+                    """py_library(
+    name = "schemas",
+    srcs = [],
+    data = glob(["schemas/**"]),
+)"""
+                ]
             if build_rules:
                 build_rules = [
 
