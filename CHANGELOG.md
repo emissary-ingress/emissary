@@ -66,7 +66,8 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
-## Next release
+## [1.4.2-rc.0] April 21, 2020
+[1.4.2-rc.0]: https://github.com/datawire/ambassador/compare/v1.4.1...v1.4.2-rc.0
 
 ### Ambassador Edge Stack Only
 
