@@ -76,19 +76,49 @@ spec:
             - containerPort: 3000
               protocol: TCP
           env:
-            - name: GF_SERVER_ROOT_URL
-              value: 'https://metriton.datawire.io/beta/grafana'
-            - name: GF_SERVER_SERVE_FROM_SUB_PATH
-              value: 'true'
-            - name: GF_AUTH_DISABLE_SIGNOUT_MENU
-              value: 'false'
-            - name: GF_AUTH_ANONYMOUS_ENABLED
-              value: 'false'
             - name: GF_LOG_LEVEL
               value: 'warn'
             - name: GF_LOG_MODE
               value: 'console'
-            - name: GF_SECURITY_ALLOW_SIGN_UP
+            - name: GF_SERVER_ROOT_URL
+              value: 'https://metriton.datawire.io/beta/grafana'
+            - name: GF_SERVER_SERVE_FROM_SUB_PATH
+              value: 'true'
+            - name: GF_AUTH_OAUTH_AUTO_LOGIN # Automatically use Google SSO
+              value: 'true'
+            - name: GF_AUTH_DISABLE_LOGIN_FORM # You may want to re-enable this if you want to use admin username/password form login
+              value: 'true'
+            - name: GF_AUTH_DISABLE_SIGNOUT_MENU
+              value: 'false'
+            - name: GF_AUTH_ANONYMOUS_ENABLED # No anonymous users!
+              value: 'false'
+            - name: GF_AUTH_GOOGLE_ENABLED
+              value: 'true'
+            - name: GF_AUTH_GOOGLE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  key: google-client-id
+                  name: grafana-secrets-beta # Secret `grafana-secrets-beta` is stored in keybase
+            - name: GF_AUTH_GOOGLE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  key: google-client-secret
+                  name: grafana-secrets-beta # Secret `grafana-secrets-beta` is stored in keybase
+            - name: GF_AUTH_GOOGLE_SCOPE
+              value: 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email'
+            - name: GF_AUTH_GOOGLE_AUTH_URL
+              value: 'https://accounts.google.com/o/oauth2/auth'
+            - name: GF_AUTH_GOOGLE_TOKEN_URL
+              value: 'https://accounts.google.com/o/oauth2/token'
+            - name: GF_AUTH_GOOGLE_ALLOWED_DOMAINS # Only allow users with a @datawire.io email
+              value: 'datawire.io'
+            - name: GF_AUTH_GOOGLE_ALLOW_SIGN_UP # Allow new @datawire.io users
+              value: 'true'
+            - name: GF_USERS_AUTO_ASSIGN_ORG_ROLE # Make everyone an admin
+              value: 'Admin'
+            - name: GF_USERS_ALLOW_SIGN_UP # Disable Grafana-form signup
+              value: 'false'
+            - name: GF_SECURITY_ALLOW_SIGN_UP # Disable Grafana-form signup
               value: 'false'
             - name: GF_SECURITY_ADMIN_USER
               valueFrom:
