@@ -1,3 +1,5 @@
+# If you change this file, you must also change ../WORKSPACE
+
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
 # Python #######################################################################

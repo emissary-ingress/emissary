@@ -30,6 +30,15 @@ http_archive(
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
 gazelle_dependencies()
 
+# The Python part of Ambassador ################################################
+
+local_repository(
+    name = "ambassador_python",
+    path = "./python",
+)
+
+# Everything that follows is copied from ./python/WORKSPACE ####################
+
 # Python #######################################################################
 
 git_repository(
@@ -55,5 +64,5 @@ rules_python_external_dependencies()
 load("@rules_python_external//:defs.bzl", "pip_install")
 pip_install(
     name = "ambassador_pip",
-    requirements = "//:requirements.txt",
+    requirements = "@ambassador_python//:requirements.txt",
 )
