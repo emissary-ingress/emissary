@@ -56,8 +56,14 @@ spec:
       namespace: "string"                      # optional; default is the same namespace as the Filter
       arguments: JWT-Filter-Arguments          # optional
 
-    # ClientURL is required when grantType=="AuthorizationCode", and not allowed otherwise.
-    clientURL:             "url-string"
+    # ProtectedOrigins is required when grantType=="AuthorizationCode", and not allowed otherwise.
+    # More than one is allowed, but the first must be what your IdP will redirect to on successful
+    # authentication.
+    protectedOrigins:
+    - origin:              "url-string"       # origin is required for each entry
+    - origin:              "url-string"
+      includeSubdomains:   bool               # includeSubdomains defaults to false
+    ...
 
     # ClientID is required for grantType "AuthorizationCode" and grantType "Password", and is
     # not allowed otherwise.
@@ -117,8 +123,9 @@ Settings that are only valid for `grantType: "AuthorizationCode"` or `grantType:
 
 Settings that are only valid when `grantType: "AuthorizationCode"`:
 
- - `clientURL`: (You determine this, and give it to your identity provider) Identifies a hostname that can appropriately set cookies for the application.  Only the scheme (`https://`) and authority (`example.com:1234`) parts are used; the path part of the URL is ignored.  You will also likely need to register `${clientURL}/callback` as an authorized callback endpoint with
+ - `protectedOrigins`: (You determine these, and must give the first one to your identity provider) Identifies hostnames that can appropriately set cookies for the application.  Only the scheme (`https://`) and authority (`example.com:1234`) parts are used; the path part of the URL is ignored.  You will also likely need to register `${clientURL}/callback` as an authorized callback endpoint with
    your identity provider.
+    * If you provide more than one `protectedOrigin`, all are assumed to share the same authentication system, so that logging into one origin logs you into all origins. To have multiple independent origins, use multiple `Filter`s.
 
 * By default, any cookies set by the Ambassador Edge Stack will be set to expire when the session expires naturally. Use the `useSessionCookies` setting to specify expiration on session cookies instead; the cookies will be deleted when the user closes their web browser.  
 		* However, this can prematurely delete cookies if the user closes their web browser. Conversely, it also means that cookies can persist for longer than normal if the user does not close their browser.

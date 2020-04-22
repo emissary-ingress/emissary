@@ -35,12 +35,13 @@ After configuring an OAuth application in Salesforce, configuring Ambassador Edg
       OAuth2:
         # Salesforce's generic OpenID configuration endpoint at https://login.salesforce.com/ will work but you can also use your custom Salesforce domain i.e.: http://datawire.my.salesforce.com
         authorizationURL: https://login.salesforce.com/
-        # The clientURL is the scheme and Host of your Ambassador endpoint
-        clientURL: https://{{AMBASSADOR_HOST}}
         # Consumer Key from above
         clientID: {{Consumer Key}}
         # Consumer Secret from above
         secret: {{Consumer Secret}}
+        # The protectedOrigin is the scheme and Host of your Ambassador endpoint
+        protectedOrigins:
+        - origin: https://{{AMBASSADOR_HOST}}
     ```
 
 2. Create a [FilterPolicy](../../../topics/using/filters/) to use the `Filter` created above

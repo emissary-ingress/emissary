@@ -30,12 +30,13 @@ After creating an OAuth client in Google, configuring Ambassador Edge Stack to m
       OAuth2:
         # Google openid-configuration endpoint can be found at https://accounts.google.com/.well-known/openid-configuration
         authorizationURL: https://accounts.google.com
-        # The clientURL is the scheme and Host of your Ambassador endpoint
-        clientURL: http(s)://{{AMBASSADOR_URL}}
         # Client ID from step 6 above
         clientID: CLIENT_ID
         # Secret created in step 6 above
         secret: CLIENT_SECRET
+        # The protectedOrigin is the scheme and Host of your Ambassador endpoint
+        protectedOrigins:
+        - origin: http(s)://{{AMBASSADOR_URL}}
     ```
 2. Create a [FilterPolicy](../../../topics/using/filters/) to use the `Filter` created above
 
