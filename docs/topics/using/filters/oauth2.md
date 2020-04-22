@@ -126,8 +126,8 @@ Settings that are only valid for `grantType: "AuthorizationCode"` or `grantType:
 
 Settings that are only valid when `grantType: "AuthorizationCode"`:
 
- - `protectedOrigins`: (You determine these, and must give the first one to your identity provider) Identifies hostnames that can appropriately set cookies for the application.  Only the scheme (`https://`) and authority (`example.com:1234`) parts are used; the path part of the URL is ignored.  You will also likely need to register `${clientURL}/callback` as an authorized callback endpoint with
-   your identity provider.
+ - `protectedOrigins`: (You determine these, and must register them with your identity provider) Identifies hostnames that can appropriately set cookies for the application.  Only the scheme (`https://`) and authority (`example.com:1234`) parts are used; the path part of the URL is ignored.  You will need to register each origin in `protectedOrigins` as an authorized callback endpoint with your identity provider. The URL will look like `{{ORIGIN}}/.ambassador/oauth2/redirection-endpoint`.
+
     * If you provide more than one `protectedOrigin`, all are assumed to share the same authentication system, so that logging into one origin logs you into all origins. To have multiple independent origins, use multiple `Filter`s.
 
   - `clientURL` (**DEPRECATED**): If present, setting `clientURL` is exactly the same as setting 
