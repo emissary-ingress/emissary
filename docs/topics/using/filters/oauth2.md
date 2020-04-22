@@ -65,6 +65,9 @@ spec:
       includeSubdomains:   bool               # includeSubdomains defaults to false
     ...
 
+    # ClientURL is deprecated: see the `protectedOrigins` documentation below instead.
+    clientURL:             "string"         # deprecated!
+
     # ClientID is required for grantType "AuthorizationCode" and grantType "Password", and is
     # not allowed otherwise.
     clientID:              "string"
@@ -126,6 +129,15 @@ Settings that are only valid when `grantType: "AuthorizationCode"`:
  - `protectedOrigins`: (You determine these, and must give the first one to your identity provider) Identifies hostnames that can appropriately set cookies for the application.  Only the scheme (`https://`) and authority (`example.com:1234`) parts are used; the path part of the URL is ignored.  You will also likely need to register `${clientURL}/callback` as an authorized callback endpoint with
    your identity provider.
     * If you provide more than one `protectedOrigin`, all are assumed to share the same authentication system, so that logging into one origin logs you into all origins. To have multiple independent origins, use multiple `Filter`s.
+
+  - `clientURL` (**DEPRECATED**): If present, setting `clientURL` is exactly the same as setting 
+     
+    ```
+    protectedOrigins:
+    - origin: clientURL-value
+    ```
+
+    `clientURL` will be removed in a future release; you should switch to using `protectedOrigins` instead.
 
 * By default, any cookies set by the Ambassador Edge Stack will be set to expire when the session expires naturally. Use the `useSessionCookies` setting to specify expiration on session cookies instead; the cookies will be deleted when the user closes their web browser.  
 		* However, this can prematurely delete cookies if the user closes their web browser. Conversely, it also means that cookies can persist for longer than normal if the user does not close their browser.
