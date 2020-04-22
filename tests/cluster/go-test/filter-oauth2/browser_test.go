@@ -383,19 +383,23 @@ func TestWorksWithMSOffice(t *testing.T) {
 		assert := &testutil.Assert{T: t}
 
 		client := &http.Client{
-			CheckRedirect: func(req *http.Request, via []*http.Request) error {
-				return http.ErrUseLastResponse
-			},
 			Transport: &http.Transport{
 				// #nosec G402
 				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 			},
 		}
 
-		resp, err := client.Get("https://ambassador.ambassador.svc.cluster.local/azure/httpbin/headers")
+		respForm, err := client.Get("https://ambassador.ambassador.svc.cluster.local/azure/httpbin/headers")
 		assert.NotError(err)
-		assert.HTTPResponseStatusEQ(resp, http.StatusSeeOther)
-		u, err := resp.Location()
+		assert.HTTPResponseStatusEQ(respForm, http.StatusOK)
+
+		assert.Bool(respForm.Request != nil)
+		assert.StrEQ("login.microsoftonline.com", respForm.Request.URL.Host)
+
+		assert.Bool(respForm.Request.Response != nil)
+		respRedir := respForm.Request.Response
+		assert.HTTPResponseStatusEQ(respRedir, http.StatusSeeOther)
+		u, err := respRedir.Location()
 		assert.NotError(err)
 
 		browserTest(t, usualTimeout, fmt.Sprintf(`tests.msofficeTest(browsertab, require("./idp_azure.js"), "Azure AD", "%s")`, u))
