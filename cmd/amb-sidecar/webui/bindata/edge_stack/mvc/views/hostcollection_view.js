@@ -6,6 +6,7 @@
 import { AllHosts } from "../models/host_collection.js"
 import { HostView } from "./host_view.js"
 import { IResourceCollectionView } from '../interfaces/iresourcecollection_view.js'
+import { html } from '../../vendor/lit-element.min.js'
 
 export class HostCollectionView extends IResourceCollectionView {
 
@@ -25,6 +26,11 @@ export class HostCollectionView extends IResourceCollectionView {
   }
 
   /* override */
+  renderResource(resource) {
+    return html`<dw-mvc-host .model=${resource}></dw-mvc-host>`
+  }
+
+  /* override */
   pageDescription() {
     return "Hosts are domains that are managed by Ambassador Edge Stack, e.g., example.org"
   }
@@ -39,10 +45,6 @@ export class HostCollectionView extends IResourceCollectionView {
     return "Hosts"
   }
 
-  /* override */
-  viewClass() {
-    return HostView;
-  }
 }
 
 /* Bind our custom elements to the HostCollectionView. */

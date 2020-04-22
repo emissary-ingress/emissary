@@ -20,7 +20,7 @@ spec:
   - name: proxied
     protocol: TCP
     port: 80
-    targetPort: 8080              # Traffic agent port
+    targetPort: 9900
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -42,19 +42,16 @@ spec:
       - name: echo
         image: jmalloc/echo-server
         ports:
-        - containerPort: 8000
-        env:
-        - name: PORT
-          value: "8000"
+        - containerPort: 8080
       - name: traffic-sidecar
         image: {{env "AES_IMAGE"}}
         ports:
-          - containerPort: 8080
+          - containerPort: 9900
         env:
         - name: AGENT_SERVICE
           value: echo
         - name: AGENT_PORT
-          value: "8000"
+          value: "8080"
         - name: AGENT_MANAGER_NAMESPACE
           value: ambassador
         - name: AMBASSADOR_NAMESPACE

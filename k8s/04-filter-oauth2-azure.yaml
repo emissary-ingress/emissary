@@ -21,7 +21,9 @@ metadata:
 spec:
   OAuth2:
     authorizationURL: https://login.microsoftonline.com/{{ $Azure_Tenant_ID }}/v2.0
-    clientURL: {{ $AmbassadorURL }}
+    protectedOrigins:
+    - origin: {{ $AmbassadorURL }}
+    - origin: "https://foo.ambassador.svc.cluster.local"
     clientID: {{ $Azure_Client_ID }}
     secret: {{ $Azure_Client_Secret }}
     extraAuthorizationParameters:
@@ -51,3 +53,23 @@ spec:
           arguments:
             scopes:
               - offline_access # request refresh tokens
+---
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: foo
+    namespace: ambassador
+    labels:
+      product: aes
+      app.kubernetes.io/component: foo-service
+  spec:
+    type: LoadBalancer
+    ports:
+    - name: http
+      port: 80
+      targetPort: http
+    - name: https
+      port: 443
+      targetPort: https
+    selector:
+      service: ambassador

@@ -174,6 +174,53 @@ func (c *FilterMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Spec:       filterSpec,
 		}
 		filterImpl.ServeHTTP(w, r)
+
+	case "/.ambassador/oauth2/multicookie":
+		// Look up the `code` query parameter...
+		mdState := r.URL.Query().Get("code")
+
+		if mdState == "" {
+			middleware.ServeErrorResponse(w, ctx, http.StatusBadRequest,
+				errors.New("missing mdState"), nil)
+			return
+		}
+
+		parts := strings.SplitN(mdState, ":", 2)
+		if len(parts) != 2 {
+			middleware.ServeErrorResponse(w, ctx, http.StatusBadRequest,
+				errors.New("malformed mdState"), nil)
+			return
+		}
+
+		filterQName := parts[0]
+
+		filter := findFilter(c.Controller, filterQName)
+		if filter == nil {
+			middleware.ServeErrorResponse(w, ctx, http.StatusBadRequest,
+				errors.Errorf("invalid mdState: %q", filterQName), nil)
+			return
+		}
+		filterSpec, filterSpecOK := filter.UnwrappedSpec.(crd.FilterOAuth2)
+		if !filterSpecOK {
+			middleware.ServeErrorResponse(w, ctx, http.StatusBadRequest,
+				errors.Errorf("invalid mdState: %q", filterQName), nil)
+			return
+		}
+		if filter.Status.State != crd.FilterState_OK {
+			middleware.ServeErrorResponse(w, ctx, http.StatusInternalServerError,
+				errors.Errorf("error in filter %q configuration: %s", filterQName, filter.Status.Reason), nil)
+			return
+		}
+
+		filterImpl := &oauth2handler.OAuth2Filter{
+			PrivateKey: c.PrivateKey,
+			PublicKey:  c.PublicKey,
+			RedisPool:  c.RedisPool,
+			QName:      filterQName,
+			Spec:       filterSpec,
+		}
+		filterImpl.ServeHTTP(w, r)
+
 	case "/.ambassador/oauth2/redirection-endpoint":
 		// For historical reasons, the redirection-endpoint actually is implemented in Filter()
 		// instead of ServeHTTP(); the only reason for it to stay that way is that it would be effort

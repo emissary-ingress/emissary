@@ -7,6 +7,7 @@ import (
 	"io"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -39,7 +40,9 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/health"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/secret"
+	"github.com/datawire/apro/cmd/amb-sidecar/group"
 	"github.com/datawire/apro/cmd/amb-sidecar/k8s/events"
+	"github.com/datawire/apro/cmd/amb-sidecar/kale"
 	"github.com/datawire/apro/cmd/amb-sidecar/limiter"
 	rls "github.com/datawire/apro/cmd/amb-sidecar/ratelimits"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
@@ -109,7 +112,9 @@ func Main(version string) {
 		FullTimestamp:   true,
 	}
 	logrusLogger.SetFormatter(logrusFormatter)
+	logrusLogger.SetReportCaller(true)
 	logrus.SetFormatter(logrusFormatter) // FIXME(lukeshu): Some Lyft code still uses the global logger
+	logrus.SetReportCaller(true)         // FIXME(lukeshu): Some Lyft code still uses the global logger
 
 	err := argparser.Execute()
 	if err != nil {
@@ -145,12 +150,12 @@ func runE(cmd *cobra.Command, args []string) error {
 			limit.SetUnregisteredLicenseHardLimits(false)
 		}
 		limit.SetClaims(claims)
-		go metriton.PhoneHome(claims, limit, application, cmd.Version)
+		go metriton.PhoneHome(claims, limit, application)
 		return claims
 	}
 	licenseClaims = keyCheck()
 
-	go metriton.PhoneHomeEveryday(licenseClaims, limit, application, cmd.Version)
+	go metriton.PhoneHomeEveryday(licenseClaims, limit, application)
 
 	if err := os.MkdirAll(filepath.Dir(cfg.RLSRuntimeDir), 0777); err != nil {
 		return err
@@ -207,9 +212,13 @@ func runE(cmd *cobra.Command, args []string) error {
 	limit.SetRedisPool(redisPool)
 
 	// Initialize the errgroup we'll use to orchestrate the goroutines.
-	group := NewGroup(context.Background(), cfg, func(name string) dlog.Logger {
+	group := group.NewGroup(context.Background(), cfg, func(name string) dlog.Logger {
 		return dlog.WrapLogrus(logrusLogger).WithField("MAIN", name)
 	})
+	// Initialize the httpHandler we use for all public facing endpoints.
+	httpHandler := lyftserver.NewDebugHTTPHandler()
+	// keys for jwt auth
+	privkey, pubKey, err := secret.GetKeyPair(cfg, coreClient)
 
 	// Launch all of the worker goroutines...
 	//
@@ -383,7 +392,6 @@ func runE(cmd *cobra.Command, args []string) error {
 
 		// Now attach services to these 2 handlers
 		grpcHandler := grpc.NewServer(grpc.UnaryInterceptor(nil))
-		httpHandler := lyftserver.NewDebugHTTPHandler()
 
 		// Liveness and Readiness probes
 		healthprobe := health.MultiProbe{
@@ -465,7 +473,6 @@ func runE(cmd *cobra.Command, args []string) error {
 		}
 
 		// web ui
-		privkey, pubKey, err := secret.GetKeyPair(cfg, coreClient)
 		if err != nil {
 			err = errors.Wrap(err, "GetKeyPair")
 			// this is non fatal (mostly just to facilitate local dev); don't `return err`
@@ -496,11 +503,22 @@ func runE(cmd *cobra.Command, args []string) error {
 						ctx = middleware.WithRequestID(ctx, "unknown")
 						r = r.WithContext(ctx)
 
-						if r.URL.Path == "/_internal/v0/watt" {
-							snapshotStore.ServeHTTP(w, r)
-						} else {
-							webuiHandler.ServeHTTP(w, r)
+						parts := strings.Split(r.URL.Path, "/")
+						prefix := ""
+						if len(parts) > 1 {
+							prefix = parts[1]
 						}
+
+						r2 := r
+						if prefix == "edge_stack" {
+							// prefix
+							r2 = new(http.Request)
+							*r2 = *r
+							r2.URL = new(url.URL)
+							*r2.URL = *r.URL
+							r2.URL.Path = fmt.Sprintf("/edge_stack_ui%s", r.URL.Path)
+						}
+						httpHandler.ServeHTTP(w, r2)
 					}),
 				})
 			})
@@ -533,6 +551,12 @@ func runE(cmd *cobra.Command, args []string) error {
 		}
 		return util.ListenAndServeHTTPWithContext(hardCtx, softCtx, server)
 	})
+
+	kale.Setup(group, httpHandler, kubeinfo, dynamicClient, pubKey, eventLogger)
+
+	if cfg.DevWebUIPort != "" {
+		DevSetup(cfg, httpHandler)
+	}
 
 	// And now we wait.
 	return group.Wait()

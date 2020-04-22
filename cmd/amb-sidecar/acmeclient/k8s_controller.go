@@ -442,14 +442,17 @@ func (c *Controller) rectifyPhase1(logger dlog.Logger) []*ambassadorTypesV2.Host
 
 	logger.Debugln("rectify: Phase 0→1 (Pre-ACME): NA(state=Initial)→DefaultsFilled")
 	for _, _host := range c.hosts {
+		logger := logger.WithField("host", _host.GetName()+"."+_host.GetNamespace())
 		host := deepCopyHost(_host)
-		logger := logger.WithField("host", host.GetName()+"."+host.GetNamespace())
-		logger.Debugln("rectify: processing Host...")
-
 		host.Spec = getEffectiveSpec(host)
+		if !strInArray(c.cfg.AmbassadorID, host.Spec.AmbassadorId) {
+			continue
+		}
 		if host.Status == nil {
 			host.Status = &ambassadorTypesV2.HostStatus{}
 		}
+		logger.Debugln("rectify: processing Host...")
+
 		switch {
 		case host.Spec.AcmeProvider.Authority != "none":
 			// TLS using via AES ACME integration
@@ -495,6 +498,11 @@ func (c *Controller) rectifyPhase1(logger dlog.Logger) []*ambassadorTypesV2.Host
 				c.recordHostReady(logger, host, "Host with externally-provisioned TLS certificate marked Ready")
 			}
 		case ambassadorTypesV2.HostTLSCertificateSource_ACME:
+			if host.Spec.AmbassadorId[0] != c.cfg.AmbassadorID {
+				logger.Warningf("rectify: Host: not performing ACME management, letting AMBASSADOR_ID=%q do that",
+					host.Spec.AmbassadorId[0])
+				continue
+			}
 			if !certmagic.HostQualifies(host.Spec.Hostname) {
 				c.recordHostError(logger, host,
 					ambassadorTypesV2.HostPhase_NA,
