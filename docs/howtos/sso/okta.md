@@ -34,10 +34,11 @@ Configure your OAuth `Filter` and `FilterPolicy` with the following:
    spec:
      OAuth2:
        authorizationURL: https://{OKTA_DOMAIN}.okta.com/oauth2/default
-       clientURL: https://datawire-ambassador.com
        audience: api://default
        clientID: CLIENT_ID
        secret: CLIENT_SECRET
+       protectedOrigins:
+       - origin: https://datawire-ambassador.com
    ```
 
    ```yaml

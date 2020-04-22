@@ -43,10 +43,11 @@ Update the Auth0 `Filter` and `FilterPolicy`. You can get the `ClientID` and `se
    spec:
      OAuth2:
        authorizationURL: https://datawire-ambassador.auth0.com
-       clientURL: https://datawire-ambassador.com
        audience: https://datawire-ambassador.auth0.com/api/v2/
        clientID: fCRAI7svzesD6p8Pv22wezyYXNg80Ho8
        secret: CLIENT_SECRET
+       protectedOrigins:
+       - origin: https://datawire-ambassador.com
    ```
 
    ```yaml
