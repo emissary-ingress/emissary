@@ -42,32 +42,6 @@ export class IResourceView extends ResourceView {
     return ResourceView.properties;
   }
 
-  /* constructor(model)
-   * Load view state from the model state. Don't call
-   *  readFromModel() yet, since that method updates the UI but
-   *  the UI components haven't been instantiated.
-   */
-  constructor(model) {
-    super(model);
-  }
-
-  /* readSelfFromModel()
-   * This method is called on the View when the View needs to match the current state of its Model.
-   * Generally this happens (a) during initialization and (b) during editing when the Cancel button
-   * is pressed and the View reverts to displaying the original Model's state.
-   */
-  readSelfFromModel() {
-    throw new Error("please implement ${this.constructor.name}.readSelfFromModel()")
-  }
-
-  /* writeSelfToModel()
-   * This method is called on the View when the View has new, validated state that should be written back
-   * to the Model.  This happens during a Save operation after the user has modified the View.
-   */
-  writeSelfToModel() {
-    throw new Error("please implement ${this.constructor.name}.writeSelfToModel()")
-  }
-
   /* validateSelf()
    * This method is invoked on a Save in order to validate input prior to proceeding with the save action.
    * Returns a Map of field names and error strings. If the dictionary is empty, there are no errors.

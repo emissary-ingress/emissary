@@ -11,7 +11,7 @@ import (
 )
 
 type Filter struct {
-	*metaV1.TypeMeta   `json:",inline"`
+	*metaV1.TypeMeta
 	*metaV1.ObjectMeta `json:"metadata"`
 	Spec               *FilterSpec   `json:"spec"`
 	Status             *FilterStatus `json:"status"`

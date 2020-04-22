@@ -93,20 +93,5 @@ There are a number of future features we expect to be adding to the fundamental 
 
 ### Other Bug Fixes and Improvements
 
-- Currently we cannot have multiple views of the same model that automatically stay synchronized because when a
-view writes back to its model, the model does not notify any other views of the changes. This will be easy to fix
-and is noted in the code with a TODO comment.
-
 - Proper email address and URL validation needs to be implemented.  Currently there is a simple regex for email
 and no URL validation at all.  This is noted in the code with TODO.
-
-- There is a potential race condition in `ResourceCollectionView` where the models in the collection are all created
-before the `ResourceCollectionView` itself, and thus is not notified to create the corresponding subviews.  This
-is fixed by calling the `ResourceCollection` from the `firstUpdated` callback and asking to be notified of all
-the models in the `ResourceCollection`, so that the views can be created.  This assumes that the `ResourceCollectionView`
-has not been notified of any additions before `firstUpdated` is called; although this has not been observed it is
-theoretically possible.  To fix this, the `ResourceCollectionView` should check in `onModelNotification` that the
-model being added doesn't yet have a corresponding view.  If it does, the notification should be ignored.  This
-is noted in the code with TODO.
-
-

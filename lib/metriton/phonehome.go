@@ -1,39 +1,47 @@
 package metriton
 
 import (
-	"bytes"
-	"encoding/json"
+	"context"
 	"fmt"
-	"net/http"
 	"os"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/jpillora/backoff"
 
+	"github.com/datawire/ambassador/pkg/metriton"
 	"github.com/datawire/apro/cmd/amb-sidecar/limiter"
 	"github.com/datawire/apro/lib/licensekeys"
 )
 
-type MetritonResponse struct {
-	IsHardLimit bool `json:"hard_limit"`
-}
-
 const phoneHomeEveryPeriod = 12 * time.Hour
 
-// THIS CAN'T BE AN ENVIRONMENT VARIABLE, OR METRITON MIGHT BE HIJACKED
-// Use "https://kubernaut.io/beta/scout" for testing purposes without polluting production data.
-const metritonEndpoint = "https://kubernaut.io/scout"
+var Reporter = &metriton.Reporter{
+	Application: "aes",
+	Version:     "(unknown version)", // set by cmd/ambassador.main()
+	GetInstallID: func(*metriton.Reporter) (string, error) {
+		return getenvDefault("AMBASSADOR_CLUSTER_ID",
+			getenvDefault("AMBASSADOR_SCOUT_ID",
+				"00000000-0000-0000-0000-000000000000")), nil
+	},
+	BaseMetadata: nil,
 
-func PhoneHomeEveryday(claims *licensekeys.LicenseClaimsLatest, limiter *limiter.LimiterImpl, application, version string) {
+	// This can't be an environment variable, or else the user will be
+	// able to spoof Metriton responses, bypassing the `hard_limit`
+	// response field.
+	//
+	// Use "https://kubernaut.io/beta/scout" for testing.
+	Endpoint: "https://kubernaut.io/scout",
+}
+
+func PhoneHomeEveryday(claims *licensekeys.LicenseClaimsLatest, limiter *limiter.LimiterImpl, application string) {
 	// Phone home every X period
 	phoneHomeTicker := time.NewTicker(phoneHomeEveryPeriod)
 	for range phoneHomeTicker.C {
-		go PhoneHome(claims, limiter, application, version)
+		go PhoneHome(claims, limiter, application)
 	}
 }
 
-func PhoneHome(claims *licensekeys.LicenseClaimsLatest, limiter *limiter.LimiterImpl, application, version string) {
+func PhoneHome(claims *licensekeys.LicenseClaimsLatest, limiter *limiter.LimiterImpl, application string) {
 	// We might be really excited to phone home, but let the limiters startup process attempt to initialize the Redis connection...
 	if limiter != nil {
 		time.Sleep(15 * time.Second)
@@ -47,7 +55,7 @@ func PhoneHome(claims *licensekeys.LicenseClaimsLatest, limiter *limiter.Limiter
 		Factor: 2,
 	}
 	for {
-		err := phoneHome(claims, limiter, application, version)
+		err := phoneHome(claims, limiter, application)
 		if err != nil {
 			d := b.Duration()
 			if b.Attempt() >= 8 {
@@ -64,10 +72,8 @@ func PhoneHome(claims *licensekeys.LicenseClaimsLatest, limiter *limiter.Limiter
 	}
 }
 
-func phoneHome(claims *licensekeys.LicenseClaimsLatest, limiter *limiter.LimiterImpl, component, version string) error {
-	data := prepareData(claims, limiter, component, version)
-
-	if os.Getenv("SCOUT_DISABLE") != "" {
+func phoneHome(claims *licensekeys.LicenseClaimsLatest, limiter *limiter.LimiterImpl, component string) error {
+	if metriton.IsDisabledByUser() {
 		fmt.Println("SCOUT_DISABLE, enforcing hard-limits")
 		if limiter != nil {
 			limiter.SetPhoneHomeHardLimits(true)
@@ -75,11 +81,7 @@ func phoneHome(claims *licensekeys.LicenseClaimsLatest, limiter *limiter.Limiter
 		return nil
 	}
 
-	body, err := json.MarshalIndent(data, "", "  ")
-	if err != nil {
-		panic(err)
-	}
-	resp, err := http.Post(metritonEndpoint, "application/json", bytes.NewBuffer(body))
+	resp, err := Reporter.Report(context.TODO(), prepareData(claims, limiter, component))
 	if err != nil {
 		if limiter != nil {
 			fmt.Println("Metriton call was not a success... allow soft-limit")
@@ -87,18 +89,7 @@ func phoneHome(claims *licensekeys.LicenseClaimsLatest, limiter *limiter.Limiter
 		}
 		return err
 	}
-	defer resp.Body.Close()
-
-	metritonResponse := MetritonResponse{}
-	err = json.NewDecoder(resp.Body).Decode(&metritonResponse)
-	if err != nil {
-		if limiter != nil {
-			fmt.Println("Metriton call was not a success... allow soft-limit")
-			limiter.SetPhoneHomeHardLimits(false)
-		}
-		return err
-	}
-	if limiter != nil && metritonResponse.IsHardLimit {
+	if limiter != nil && resp != nil && resp.HardLimit {
 		fmt.Println("Metriton is enforcing hard-limits")
 		limiter.SetPhoneHomeHardLimits(true)
 		return nil
@@ -106,7 +97,7 @@ func phoneHome(claims *licensekeys.LicenseClaimsLatest, limiter *limiter.Limiter
 	return nil
 }
 
-func prepareData(claims *licensekeys.LicenseClaimsLatest, limiter *limiter.LimiterImpl, component, version string) map[string]interface{} {
+func prepareData(claims *licensekeys.LicenseClaimsLatest, limiter *limiter.LimiterImpl, component string) map[string]interface{} {
 	activeClaims := claims
 	if limiter != nil && limiter.GetClaims() != nil {
 		activeClaims = limiter.GetClaims()
@@ -141,23 +132,11 @@ func prepareData(claims *licensekeys.LicenseClaimsLatest, limiter *limiter.Limit
 		customerContact = activeClaims.CustomerEmail
 	}
 
-	installID, err := uuid.Parse(
-		getenvDefault("AMBASSADOR_CLUSTER_ID",
-			getenvDefault("AMBASSADOR_SCOUT_ID", "00000000-0000-0000-0000-000000000000")))
-	if err != nil {
-		panic(err)
-	}
-
 	return map[string]interface{}{
-		"application": "aes",
-		"install_id":  installID,
-		"version":     version,
-		"metadata": map[string]interface{}{
-			"id":        customerID,
-			"contact":   customerContact,
-			"component": component,
-			"features":  featuresDataSet,
-		},
+		"id":        customerID,
+		"contact":   customerContact,
+		"component": component,
+		"features":  featuresDataSet,
 	}
 }
 

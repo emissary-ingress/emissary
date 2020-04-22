@@ -32,6 +32,10 @@
                 <dw-mvc-hosts></dw-mvc-hosts>
               </dw-tab>
 
+              <dw-tab slot="Projects" featureflag="butterscotch">
+                <dw-mvc-projects></dw-mvc-projects>
+              </dw-tab>
+
               <dw-tab slot="Mappings">
                   <dw-mappings></dw-mappings>
               </dw-tab>
@@ -106,6 +110,7 @@
 
   <!-- Later Page Scripts -->
   <script type="module" src="../mvc/views/hostcollection_view.js"></script>
+  <script type="module" src="../mvc/views/projectcollection_view.js"></script>
 
   <script type="module" src="../components/mappings.js"></script>
   <script type="module" src="../components/filters.js"></script>

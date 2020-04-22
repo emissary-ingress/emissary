@@ -185,6 +185,7 @@ commands:
           command: |
             export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
             export DEV_KUBE110=yes
+            export DEV_KUBE_NO_PVC=yes
             export KAT_REQ_LIMIT=600
             make pytest-only
       # We might want to run ingress-conformance tests in AES in the future
@@ -202,6 +203,7 @@ commands:
           command: |
             export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
             export DEV_KUBE110=yes
+            export DEV_KUBE_NO_PVC=yes
             make e2etest
       - run:
           command: ".circleci/kubernaut-unclaim.sh"

@@ -3,8 +3,11 @@
 /* ===================================================================================*/
 
 import { LitElement, html, css, svg } from '../vendor/lit-element.min.js';
+
 import { Snapshot } from './snapshot.js';
 import { License } from './license.js';
+import { HASH } from './hash.js';
+import { ApiFetch } from "./api-fetch.js";
 
 /**
  * This is a Promise-like object used to synchronize between google charts loaded callback and the
@@ -185,15 +188,15 @@ let CountsPanel = {
   draw: function(shadow_root) { /*text panel, no chart to draw*/ },
 
   onClickHosts: function() {
-    window.location.hash = "#hosts";
+    HASH.tab = "hosts";
   },
 
   onClickMappings: function() {
-    window.location.hash = "#mappings";
+    HASH.tab = "mappings";
   },
 
   onClickPlugins: function() {
-    window.location.hash = "#plugins";
+    HASH.tab = "plugins";
   }
 };
 
@@ -288,7 +291,7 @@ let StatusPanel = {
   draw: function(shadow_root) { /*text panel, no chart to draw*/ },
 
   onClick: function() {
-    window.location.hash = "#debugging";
+    HASH.tab = "debugging";
   }
 };
 
@@ -443,7 +446,7 @@ let SystemServicesPanel = {
   draw: function(shadow_root) { /*text panel, no chart to draw*/ },
 
   onClick: function() {
-    window.location.hash = "#debugging";
+    HASH.tab = "debugging";
   }
 };
 
@@ -480,7 +483,7 @@ let ResYAMLPanel = {
   draw: function(shadow_root) { /*text panel, no chart to draw*/ },
 
   onClickYAML: function() {
-    window.location.hash = "#yaml-download";
+    HASH.tab = "yaml-download";
   },
 
 };
@@ -593,6 +596,31 @@ export class Dashboard extends LitElement {
     /* Initialize the list of dashboard panels */
     this._panels = [ CountsPanel, StatusPanel, SystemServicesPanel, ResYAMLPanel, LicensePanel ];
 
+    /* Get the query string ?welcome and if true, show a modal window with content from
+     * aes-celebration (redirected from https://metriton.datawire.io/beta/aes-celebration in webui.go).
+     * This is done on first login after edgectl install.  this.modalHTML is the HTML to render if
+     * we are showing the modal window.  Initialized to null in case we don't have welcome.
+     */
+
+    this.modalHTML = null;
+
+    let urlParams = new URLSearchParams(window.location.search);
+    if( urlParams.has('welcome') ) {
+      if (urlParams.get('welcome') === "true") {
+        ApiFetch("/edge_stack/api/config/aes-celebration").then(
+          (response) => {
+            if (response.status === 200) {
+              response.text().then((s) => {
+                this.modalHTML = s;
+                this.update();
+              });
+            }
+          }).catch((error) => {
+            this.modalHTML = null;
+          })};
+    }
+
+    /* Subscribe to the snapshot data */
     Snapshot.subscribe(this.onSnapshotChange.bind(this));
   };
 
@@ -624,8 +652,16 @@ export class Dashboard extends LitElement {
     /*
      * Return the concatenated html renderings for each panel
      */
-    return( html `
+    if( this.modalHTML !== null ) {
+      return( html `
+      <div class="element" style="width:81.2%; padding:30px; position:relative;">
+      ${unsafeStringToHTML(this.modalHTML)}
+      </div>
 ${this._panels.reduce( (accum, each) => html`${accum} ${each.render()}`, html`` )}` );
+    } else {
+      return( html `
+${this._panels.reduce( (accum, each) => html`${accum} ${each.render()}`, html`` )}` );
+    }
   }
 
   /*
@@ -637,6 +673,10 @@ ${this._panels.reduce( (accum, each) => html`${accum} ${each.render()}`, html`` 
   chartsLoaded() {
     WhenChartsAreLoadedPromise.resolve();
   }
+}
+
+function unsafeStringToHTML(str) {
+  return document.createRange().createContextualFragment(`${str}`);
 }
 
 /* ===================================================================================*/
