@@ -154,7 +154,7 @@ var defInstallationMethodsInfo = []installationMethodInfo{
 	},
 	{
 		Method:   instOperator,
-		Label:    "app.kubernetes.io/managed-by=amb-oper",
+		Label:    "app.kubernetes.io/name=ambassador,app.kubernetes.io/managed-by in (amb-oper,amb-oper-manifest,amb-oper-helm,amb-oper-azure)",
 		Name:     "operator",
 		LongName: "the Ambassador Operator",
 		Image:    regexp.MustCompile("quay[.]io/datawire/aes:([[:^space:]]+)"),
