@@ -42,10 +42,11 @@ Update the Keycloak `Filter` and `FilterPolicy` with the following:
    spec:
      OAuth2:
        authorizationURL: https://{KEYCLOAK_URL}/auth/realms/{KEYCLOAK_REALM}
-       clientURL: https://datawire-ambassador.com
        audience: ambassador
        clientID: ambassador
        secret: CLIENT_SECRET
+       protectedOrigins:
+       - origin: https://datawire-ambassador.com
    ```
 
    ```yaml

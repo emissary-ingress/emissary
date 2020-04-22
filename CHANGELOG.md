@@ -66,6 +66,18 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [1.4.2] April 22, 2020
+[1.4.2]: https://github.com/datawire/ambassador/compare/v1.4.1...v1.4.2
+
+### Ambassador Edge Stack Only
+
+- Bugfix: The Traffic Agent binds to port 9900 by default. That port can be configured in the Agent's Pod spec.
+   - For more about using the Traffic Agent, see the [Service Preview documentation](https://www.getambassador.io/docs/latest/topics/using/edgectl/#configuring-service-preview).
+- Bugfix: The `OAuth2` Filter redirection-endpoint now handles various XSRF errors more consistently (the way we meant it to in 1.2.1)
+- Bugfix: The `OAuth2` Filter now supports multiple authentication domains that share the same credentials.   
+   - For more about using multiple domains, see the [OAuth2 `Filter` documentation](https://www.getambassador.io/docs/1.4/topics/using/filters/oauth2/).
+- Bugfix: The ACME client now obeys `AMBASSADOR_ID`
+
 ## [1.4.1] April 15, 2020
 [1.4.1]: https://github.com/datawire/ambassador/compare/v1.4.0...v1.4.1
 

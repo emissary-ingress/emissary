@@ -35,12 +35,13 @@ After configuring an OAuth application in Azure AD, configuring Ambassador Edge 
       OAuth2:
         # Azure AD openid-configuration endpoint can be found at https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration
         authorizationURL: https://login.microsoftonline.com/{{TENANT_ID}}/v2.0 
-        # The clientURL is the scheme and Host of your Ambassador endpoint
-        clientURL: https://{{AMBASSADOR_URL}}
         # Client ID from step 3 above
         clientID: CLIENT_ID
         # Secret created in step 5 above
         secret: CLIENT_SECRET
+        # The protectedOrigin is the scheme and Host of your Ambassador endpoint
+        protectedOrigins:
+        - origin: https://{{AMBASSADOR_URL}}
     ```
 
 2. Create a [FilterPolicy](../../../topics/using/filters/) to use the `Filter` created above
