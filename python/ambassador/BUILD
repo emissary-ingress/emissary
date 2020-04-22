@@ -4,6 +4,7 @@ load("@my_deps//:requirements.bzl", "requirement")
 py_binary(
     name = "VERSION",
     srcs = ["VERSION.py"],
+    deps = [],
 )
 
 py_library(
@@ -32,6 +33,7 @@ py_library(
 py_library(
     name = "constants",
     srcs = ["constants.py"],
+    deps = [],
 )
 
 py_library(
@@ -47,7 +49,7 @@ py_library(
     srcs = ["utils.py"],
     deps = [
         ":VERSION",
-        requirement("requests"),
         requirement("pyyaml"),
+        requirement("requests"),
     ],
 )

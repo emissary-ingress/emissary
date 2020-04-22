@@ -14,21 +14,25 @@ py_binary(
 py_library(
     name = "post_update",
     srcs = ["post_update.py"],
-    deps = [requirement("requests")],
+    deps = [
+        requirement("requests"),
+    ],
 )
 
 py_library(
     name = "setup",
     srcs = ["setup.py"],
-    deps = [requirement("setuptools")],
+    deps = [
+        requirement("setuptools"),
+    ],
 )
 
 py_binary(
     name = "watch_hook",
     srcs = ["watch_hook.py"],
     deps = [
-        "//ambassador:utils",
         "//ambassador/config:resourcefetcher",
         "//ambassador:__init__",
+        "//ambassador:utils",
     ],
 )

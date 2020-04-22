@@ -12,11 +12,13 @@ py_library(
 py_library(
     name = "v2_static_resources",
     srcs = ["v2_static_resources.py"],
+    deps = [],
 )
 
 py_library(
     name = "v2admin",
     srcs = ["v2admin.py"],
+    deps = [],
 )
 
 py_library(
@@ -41,8 +43,6 @@ py_library(
     name = "v2config",
     srcs = ["v2config.py"],
     deps = [
-        "//ambassador/envoy:common",
-        "//ambassador/ir:__init__",
         ":v2_static_resources",
         ":v2admin",
         ":v2bootstrap",
@@ -51,6 +51,8 @@ py_library(
         ":v2ratelimit",
         ":v2route",
         ":v2tracing",
+        "//ambassador/envoy:common",
+        "//ambassador/ir:__init__",
     ],
 )
 
@@ -59,10 +61,10 @@ py_library(
     srcs = ["v2listener.py"],
     deps = [
         "//ambassador/ir:__init__",
-        "//multi:__init__",
-        "//ambassador:utils",
         ":v2route",
         ":v2tls",
+        "//ambassador:utils",
+        "//multi:__init__",
     ],
 )
 
@@ -77,15 +79,16 @@ py_library(
 py_library(
     name = "v2ratelimitaction",
     srcs = ["v2ratelimitaction.py"],
+    deps = [],
 )
 
 py_library(
     name = "v2route",
     srcs = ["v2route.py"],
     deps = [
-        "//ambassador/envoy:common",
         "//ambassador/ir:__init__",
         ":v2ratelimitaction",
+        "//ambassador/envoy:common",
     ],
 )
 

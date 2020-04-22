@@ -4,6 +4,7 @@ load("@my_deps//:requirements.bzl", "requirement")
 py_library(
     name = "__init__",
     srcs = ["__init__.py"],
+    deps = [],
 )
 
 py_binary(
@@ -11,9 +12,9 @@ py_binary(
     main = "ambassador_x.py",
     srcs = ["ambassador_x.py"],
     deps = [
-        "//ambassador:utils",
         "//ambassador/config:resourcefetcher",
         "//ambassador:__init__",
+        "//ambassador:utils",
         requirement("clize"),
     ],
 )
@@ -30,7 +31,9 @@ py_binary(
 py_binary(
     name = "grab_snapshots",
     srcs = ["grab_snapshots.py"],
-    deps = [requirement("click")],
+    deps = [
+        requirement("click"),
+    ],
 )
 
 py_binary(
@@ -38,10 +41,10 @@ py_binary(
     srcs = ["mockery.py"],
     deps = [
         "//:watch_hook",
-        "//ambassador:utils",
         "//ambassador/config:resourcefetcher",
-        "//kat:utils",
         "//ambassador:__init__",
+        "//ambassador:utils",
+        "//kat:utils",
         requirement("click"),
     ],
 )

@@ -5,11 +5,11 @@ py_library(
     name = "__init__",
     srcs = ["__init__.py"],
     deps = [
-        "//ambassador/config:acmapping",
-        "//ambassador/config:acpragma",
-        "//ambassador/config:acresource",
-        "//ambassador/config:config",
-        "//ambassador/config:resourcefetcher",
+        ":acmapping",
+        ":acpragma",
+        ":acresource",
+        ":config",
+        ":resourcefetcher",
     ],
 )
 
@@ -17,7 +17,7 @@ py_library(
     name = "acmapping",
     srcs = ["acmapping.py"],
     deps = [
-        "//ambassador/config:acresource",
+        ":acresource",
     ],
 )
 
@@ -25,7 +25,7 @@ py_library(
     name = "acpragma",
     srcs = ["acpragma.py"],
     deps = [
-        "//ambassador/config:acresource",
+        ":acresource",
     ],
 )
 
@@ -41,13 +41,13 @@ py_library(
     name = "config",
     srcs = ["config.py"],
     deps = [
-        "//ambassador/config:acmapping",
-        "//ambassador/config:acresource",
-        "//ambassador:utils",
+        ":acmapping",
+        ":acresource",
         "//ambassador:resource",
+        "//ambassador:utils",
         "//multi:__init__",
-        requirement("protobuf"),
         requirement("jsonschema"),
+        requirement("protobuf"),
     ],
 )
 
@@ -55,8 +55,8 @@ py_library(
     name = "resourcefetcher",
     srcs = ["resourcefetcher.py"],
     deps = [
-        "//ambassador/config:acresource",
-        "//ambassador/config:config",
+        ":acresource",
+        ":config",
         "//ambassador:utils",
         requirement("pyyaml"),
     ],

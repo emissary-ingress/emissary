@@ -14,8 +14,8 @@ py_library(
     name = "diagnostics",
     srcs = ["diagnostics.py"],
     deps = [
-        "//ambassador/envoy:__init__",
         ":envoy_stats",
+        "//ambassador/envoy:__init__",
         "//ambassador/ir:__init__",
     ],
 )

@@ -320,9 +320,9 @@ py_binary(
     name = "test_envvar_expansion",
     srcs = ["test_envvar_expansion.py"],
     deps = [
-        "//ambassador:utils",
         "//ambassador/ir:irbuffer",
         "//ambassador:__init__",
+        "//ambassador:utils",
     ],
 )
 
@@ -342,16 +342,18 @@ py_binary(
     name = "test_lookup",
     srcs = ["test_lookup.py"],
     deps = [
-        "//ambassador:utils",
         "//ambassador/ir:irbuffer",
         "//ambassador:__init__",
+        "//ambassador:utils",
     ],
 )
 
 py_binary(
     name = "test_schemas",
     srcs = ["test_schemas.py"],
-    deps = [requirement("jsonschema")],
+    deps = [
+        requirement("jsonschema"),
+    ],
 )
 
 py_binary(
@@ -375,5 +377,7 @@ py_binary(
 py_library(
     name = "utils",
     srcs = ["utils.py"],
-    deps = [requirement("pyyaml")],
+    deps = [
+        requirement("pyyaml"),
+    ],
 )

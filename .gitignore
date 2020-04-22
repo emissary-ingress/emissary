@@ -21,10 +21,11 @@ vendor_bootstrap_hack.go
 
 # Python nonsense
 *.pyc
-__pycache__
+__pycache__/
 *.egg-info
-build
-dist
+build/
+dist/
+.mypy_cache/
 
 # Editor nonsense
 *~
