@@ -7,7 +7,7 @@
 # gazelle:exclude python
 
 load("@bazel_gazelle//:def.bzl", "gazelle")
-load("@io_bazel_rules_docker//container:container.bzl", "container_image")
+load("@io_bazel_rules_docker//container:container.bzl", "container_image", "container_push")
 load("@io_bazel_rules_docker//go:image.bzl", "go_image")
 #load("@io_bazel_rules_docker//python:image.bzl", "py_layer", "py_image")
 #load("@io_bazel_rules_docker//python3:image.bzl", "py3_image")
@@ -18,22 +18,31 @@ gazelle(name = "gazelle")
 # ambassador ###################################################################
 
 py_image(base="@alpine_glibc//image", name=".ambassador.stage0", binary="@ambassador_python//ambassador_cli:grab_snapshots")
-py_image(base=".ambassador.stage0", name=".ambassador.stage1", binary="@ambassador_python//ambassador_cli:ert")
-py_image(base=".ambassador.stage1", name=".ambassador.stage2", binary="@ambassador_python//ambassador_cli:mockery")
-py_image(base=".ambassador.stage2", name=".ambassador.stage3", binary="@ambassador_python//ambassador_cli:ambassador")
-py_image(base=".ambassador.stage3", name=".ambassador.stage4", binary="@ambassador_python//ambassador_diag:diagd")
-py_image(base=".ambassador.stage4", name=".ambassador.stage5", binary="@ambassador_python//:post_update")
-py_image(base=".ambassador.stage5", name=".ambassador.stage6", binary="@ambassador_python//:kubewatch")
-py_image(base=".ambassador.stage6", name=".ambassador.stage7", binary="@ambassador_python//:watch_hook")
-go_image(base=".ambassador.stage7", name=".ambassador.stage8", binary="//cmd/watt:watt")
-go_image(base=".ambassador.stage8", name=".ambassador.stage9", binary="//cmd/kubestatus:kubestatus")
+py_image(base=":.ambassador.stage0", name=".ambassador.stage1", binary="@ambassador_python//ambassador_cli:ert")
+py_image(base=":.ambassador.stage1", name=".ambassador.stage2", binary="@ambassador_python//ambassador_cli:mockery")
+py_image(base=":.ambassador.stage2", name=".ambassador.stage3", binary="@ambassador_python//ambassador_cli:ambassador")
+py_image(base=":.ambassador.stage3", name=".ambassador.stage4", binary="@ambassador_python//ambassador_diag:diagd")
+py_image(base=":.ambassador.stage4", name=".ambassador.stage5", binary="@ambassador_python//:post_update")
+py_image(base=":.ambassador.stage5", name=".ambassador.stage6", binary="@ambassador_python//:kubewatch")
+py_image(base=":.ambassador.stage6", name=".ambassador.stage7", binary="@ambassador_python//:watch_hook")
+go_image(base=":.ambassador.stage7", name=".ambassador.stage8", binary="//cmd/watt:watt")
+go_image(base=":.ambassador.stage8", name=".ambassador.stage9", binary="//cmd/kubestatus:kubestatus")
 
 container_image(
-    base = ".ambassador.stage9",
+    base = ":.ambassador.stage9",
     name = "ambassador",
     workdir = "/ambassador",
     entrypoint = None,
 )
+
+container_push(
+    name = "ambassador.push",
+    image = ":ambassador",
+    format = "Docker",
+    registry = "docker.io/lukeshu",
+    repository = "ambassador",
+    tag = "dev",
+    )
 
 # kat-client ###################################################################
 
@@ -45,7 +54,7 @@ go_image(
 
 container_image(
     name = "kat-client",
-    base = ".kat-client.stage0",
+    base = ":.kat-client.stage0",
     # symlinks to add
     symlinks = {
         "/usr/local/bin/kat-client": "/app/cmd/kat-client/kat-client",
@@ -60,6 +69,15 @@ container_image(
     ],
 )
 
+container_push(
+   name = "kat-client.push",
+   image = ":kat-client",
+   format = "Docker",
+   registry = "docker.io/lukeshu",
+   repository = "kat-client",
+   tag = "dev",
+)
+
 # kat-server ###################################################################
 
 go_image(
@@ -70,7 +88,7 @@ go_image(
 
 container_image(
     name = "kat-server",
-    base = ".kat-server.stage0",
+    base = ":.kat-server.stage0",
     # files to add
     directory = "/work",
     mode = "0o644",
@@ -86,4 +104,13 @@ container_image(
     workdir = "/work",
     entrypoint = None,
     cmd = ["kat-server"],
+)
+
+container_push(
+   name = "kat-server.push",
+   image = ":kat-server",
+   format = "Docker",
+   registry = "docker.io/lukeshu",
+   repository = "kat-server",
+   tag = "dev",
 )
