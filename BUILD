@@ -11,19 +11,17 @@ load("@io_bazel_rules_docker//go:image.bzl", "go_image")
 
 gazelle(name = "gazelle")
 
-# container_image(
-#     name = "ambassador",
-#     base = "@alpine_glibc//image",
-#     files = ["//java/com/example/app:Hello_deploy.jar"],
-#     cmd = ["Hello_deploy.jar"]
-# )
+# ambassador ###################################################################
 
-# container_image(
-#     name = "kat-client",
-#     base = "@alpine_glibc//image",
-#     files = ["//java/com/example/app:Hello_deploy.jar"],
-#     cmd = ["Hello_deploy.jar"]
-# )
+container_image(
+    name = "ambassador",
+    base = "@alpine_glibc//image",
+    files = [
+        "@ambassador_python//ambassador_diag:diagd",
+        "//cmd/watt:watt",
+        "//cmd/kubestatus:kubestatus",
+    ],
+)
 
 # kat-client ###################################################################
 
