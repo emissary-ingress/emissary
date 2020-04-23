@@ -59,7 +59,7 @@ class GettingStarted extends Component {
       <div className="QS-aside QS-aside1">
         <div id="QS-showMacAside1" data-os="mac" className="QS-asideText">
           1. Get Edgectl, the Ambassador installer.
-          <div className="styles-module--CodeBlock--1UB4s QS-codeBlockInstall1outer">
+          <div className="styles-module--CodeBlock--1UB4s">
             <div className="QS-codeblockInstall">
             <span className="QS-copyButton"><CopyButton content="sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl">Copy</CopyButton></span>
               <div className="token-line">
@@ -117,7 +117,7 @@ class GettingStarted extends Component {
       <div className="QS-aside QS-aside2">
         <div id="QS-showMacAside2" data-os="mac" className="QS-asideText">
           2. Install Ambassador.
-          <div className="styles-module--CodeBlock--1UB4s QS-codeBlockInstall1outer">
+          <div className="styles-module--CodeBlock--1UB4s">
             <div className="QS-codeblockInstall">
             <div className="QS-copyButton"><CopyButton content="edgectl install">Copy</CopyButton></div>
               <div className="token-line">
