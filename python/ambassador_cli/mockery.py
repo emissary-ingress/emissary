@@ -21,9 +21,28 @@
 # tool at Datawire.
 ########
 
-from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
-
 import sys
+
+# The Python interpreter unconditionally prepends the directory containing the
+# script script (following symlinks) to the import path.  This doesn't cause a
+# problem with the setuptools entrypoint stubs, but it does with the Bazel
+# entrypoint stubs; the Python interpreter confuses
+# `(gitroot)/python/ambassador_cli/ambassador.py` for
+# `(gitroot)/python/ambassador/__init__.py`.
+#
+# It seems that 'ambassador' is the only name for which this confusion can
+# happen:
+#
+#    comm -12 \
+#        <(find -name '__init__.py' -printf '%h\0' | xargs -0 basename --multiple -- | sort -u) \
+#        <(find -name '*.py' -executable -print0 | xargs -0 basename --multiple --suffix=.py -- | sort -u)
+#
+# See also: https://github.com/bazelbuild/bazel/issues/7091
+#
+# TODO: Remove this hack when Bazel gets their act together.
+del sys.path[0]
+
+from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 
 import difflib
 import errno

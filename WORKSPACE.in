@@ -53,11 +53,25 @@ container_pull(
   tag = "alpine-3.10" # TODO: consider using 'digest' instead of 'tag'
 )
 
+load("@io_bazel_rules_docker//container:container.bzl", "container_load")
+load("@io_bazel_rules_docker//contrib:dockerfile_build.bzl", "dockerfile_image")
+dockerfile_image(
+    name = "dockerfile_alpine_glibc_with_packages",
+    dockerfile = "//:Dockerfile.base",
+)
+container_load(
+    name = "alpine_glibc_with_packages",
+    file = "@dockerfile_alpine_glibc_with_packages//image:dockerfile_image.tar",
+)
+
 load("@io_bazel_rules_docker//repositories:deps.bzl", docker_deps = "deps")
 docker_deps()
 
 load("@io_bazel_rules_docker//python:image.bzl", docker_python_repos = "repositories")
 docker_python_repos()
+
+load("@io_bazel_rules_docker//python3:image.bzl", docker_python3_repos = "repositories")
+docker_python3_repos()
 
 load("@io_bazel_rules_docker//python3:image.bzl", docker_python3_repos = "repositories")
 docker_python3_repos()
