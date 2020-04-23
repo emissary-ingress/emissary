@@ -16,7 +16,7 @@ load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_to
 go_rules_dependencies()
 go_register_toolchains()
 
-# Go: Generate BUILD files######################################################
+# Go: Generate BUILD files #####################################################
 
 http_archive(
     name = "bazel_gazelle",
@@ -29,6 +29,29 @@ http_archive(
 
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
 gazelle_dependencies()
+
+# Docker #######################################################################
+
+http_archive(
+    name = "io_bazel_rules_docker",
+    sha256 = "dc97fccceacd4c6be14e800b2a00693d5e8d07f69ee187babfd04a80a9f8e250",
+    strip_prefix = "rules_docker-0.14.1",
+    urls = ["https://github.com/bazelbuild/rules_docker/releases/download/v0.14.1/rules_docker-v0.14.1.tar.gz"],
+)
+
+load("@io_bazel_rules_docker//repositories:repositories.bzl", docker_repositories = "repositories")
+docker_repositories()
+
+load("@io_bazel_rules_docker//repositories:deps.bzl", docker_deps = "deps")
+docker_deps()
+
+load("@io_bazel_rules_docker//container:container.bzl", "container_pull")
+container_pull(
+  name = "alpine_glibc",
+  registry = "docker.io",
+  repository = "frolvlad/alpine-glibc",
+  tag = "alpine-3.10" # TODO: consider using 'digest' instead of 'tag'
+)
 
 # The Python part of Ambassador ################################################
 
