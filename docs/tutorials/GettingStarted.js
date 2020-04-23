@@ -13,6 +13,8 @@ class GettingStarted extends Component {
       os = 'linux';
     }
 
+    os = 'linux';
+    
     function renderHeader() {
       switch (os) {
         case "mac":
