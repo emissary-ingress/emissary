@@ -56,7 +56,7 @@ class GettingStarted extends Component {
       </span>
     
 
-      <div className="QS-aside1">
+      <div className="QS-aside QS-aside1">
         <div id="QS-showMacAside1" data-os="mac" className="QS-asideText">
           1. Get Edgectl, the Ambassador installer.
           <div className="styles-module--CodeBlock--1UB4s QS-codeBlockInstall1outer">
@@ -114,7 +114,7 @@ class GettingStarted extends Component {
 
       </div>
 
-      <div className="QS-aside2">
+      <div className="QS-aside QS-aside2">
         <div id="QS-showMacAside2" data-os="mac" className="QS-asideText">
           2. Install Ambassador.
           <div className="styles-module--CodeBlock--1UB4s QS-codeBlockInstall1outer">
@@ -158,7 +158,7 @@ class GettingStarted extends Component {
       </div>
 
 
-      <div className="QS-aside3">
+      <div className="QS-aside QS-aside3">
         <div className="QS-asideText">
           3. Take it for a spin! 
           
