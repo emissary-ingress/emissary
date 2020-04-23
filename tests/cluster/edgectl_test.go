@@ -1,3 +1,5 @@
+// +build test
+
 // Package main_test (or at least this particular one) is a go test-compatible
 // end-to-end test script for the outbound and intercept features of Edge
 // Control.
