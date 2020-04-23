@@ -16,6 +16,9 @@ node_modules/
 venv/
 vendor_bootstrap_hack.go
 
+# Ambassador nonsense
+.ambassador_ignore_ingress_class
+
 # Bazel nonsense
 bazel-*
 
@@ -29,12 +32,13 @@ dist/
 
 # Editor nonsense
 *~
+*.swp
+#*#
+.#*
 .vscode
 .idea
 *.iml
 tags
-*.swp
-.ambassador_ignore_ingress_class
 
 # Misc nonsense
 *.log
