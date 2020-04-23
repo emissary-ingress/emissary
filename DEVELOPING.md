@@ -435,8 +435,24 @@ How do I share a preview of my documentation work with others?
 After running `ambassador/scripts/doc-setup`, run
 
 ```
-bash ambassador/scripts/doc-preview
+bash ambassador/scripts/doc-publish
 ```
 
-to push a preview to Netlify. Find the Netlify preview URL in the output
-and hand it off to others.
+to push a preview to the `getambassador-preview` Netlify site.
+Find the Netlify preview URL in the output and hand it off to others.
+
+How do I update the getambassador-preview site with my documentation for others to use?
+---------------------------------------------------------------------------------------
+
+*This will currently only work within Datawire.*
+
+After running `ambassador/scripts/doc-setup`, run
+
+```
+bash ambassador/scripts/doc-publish --prod
+```
+
+to update the live `getambassador-preview` Netlify site.
+
+
+
