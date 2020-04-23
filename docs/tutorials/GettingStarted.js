@@ -60,7 +60,7 @@ class GettingStarted extends Component {
         <div id="QS-showMacAside1" data-os="mac" className="QS-asideText">
           1. Get Edgectl, the Ambassador installer.
           <div className="styles-module--CodeBlock--1UB4s QS-codeBlockInstall1outer">
-            <div className="QS-codeblockInstall1">
+            <div className="QS-codeblockInstall">
             <span className="QS-copyButton"><CopyButton content="sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl">Copy</CopyButton></span>
               <div className="token-line">
                 <span className="QS-token-function">sudo</span>
@@ -82,7 +82,7 @@ class GettingStarted extends Component {
         QS-asideText">
           1. Get Edgectl, the Ambassador installer.
           <div className="styles-module--CodeBlock--1UB4s">
-            <div className="QS-codeblockInstall1">
+            <div className="QS-codeblockInstall">
               <span className="QS-copyButton"><CopyButton content="sudo curl -fL https://metriton.datawire.io/downloads/linux/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl">Copy</CopyButton></span>
               <div className="token-line">
                 <span className="QS-token-function">sudo</span>
@@ -103,7 +103,7 @@ class GettingStarted extends Component {
         <div id="QS-showWindowsAside1" data-os="windows" className="QS-asideText">
           1. Download installer <code><font size="+1">edgectl.exe</font></code>.
           <div className="styles-module--CodeBlock--1UB4s">
-              <div className="QS-codeblockInstall1">
+              <div className="QS-codeblockInstall">
                 <button><a className="windowsDownloadButton" href="https://metriton.datawire.io/downloads/windows/edgectl.exe" rel="nofollow noopener noreferrer">Download</a></button><span>&nbsp;</span>
                 <div className="token-line">
                   <span className="token function"></span>
@@ -118,7 +118,7 @@ class GettingStarted extends Component {
         <div id="QS-showMacAside2" data-os="mac" className="QS-asideText">
           2. Install Ambassador.
           <div className="styles-module--CodeBlock--1UB4s QS-codeBlockInstall1outer">
-            <div className="QS-codeblockInstall1">
+            <div className="QS-codeblockInstall">
             <div className="QS-copyButton"><CopyButton content="edgectl install">Copy</CopyButton></div>
               <div className="token-line">
                 <span className="QS-token-function">edgectl</span>
@@ -132,7 +132,7 @@ class GettingStarted extends Component {
         <div id="QS-showLinuxAside2" data-os="linux" className="QS-asideText">
           2. Install Ambassador.
           <div className="styles-module--CodeBlock--1UB4s">
-            <div className="QS-codeblockInstall1">
+            <div className="QS-codeblockInstall">
               <span className="QS-copyButton"><CopyButton content="edgectl install">Copy</CopyButton></span>
               <div className="token-line">
                 <span className="QS-token-function">edgectl</span>
@@ -145,7 +145,7 @@ class GettingStarted extends Component {
 
         <div id="QS-showWindowsAside2" data-os="windows" className="QS-asideText">2. Install Ambassador.
           <div className="styles-module--CodeBlock--1UB4s">
-              <div className="QS-codeblockInstall1">
+              <div className="QS-codeblockInstall">
                 <span className="QS-copyButton"><CopyButton content="edgectl install">Copy</CopyButton></span>
                 <div className="token-line">
                   <span className="QS-token-function">edgectl</span>
@@ -162,7 +162,7 @@ class GettingStarted extends Component {
         <div className="QS-asideText">
           3. Take it for a spin! 
           
-              <div className="QS-Aside3codeblockInstall">
+              <div className="QS-codeblockInstall QS-Aside3codeblockInstall">
                 <span className="QS-aside3prose">➞ <a href="../../tutorials/quickstart-demo/">See how Ambassador works with a service</a>.</span><br/>
                 <span className="QS-aside3prose">➞ <a href="../../topics/using/">Check out custom options and integrations</a>.</span>
               </div>
