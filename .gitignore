@@ -1,6 +1,6 @@
 # Created by ./configure
 /WORKSPACE
-#BUILD
+BUILD
 !/BUILD
 /vendor
 
