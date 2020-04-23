@@ -19,6 +19,12 @@ clean: $(CURDIR)/.clean
 	find $(@D) -mindepth 2 \( -name BUILD -o -name BUILD.bazel \) -type f -delete
 .PHONY: %/.clean
 
+%/WORKSPACE: %/WORKSPACE.in %/python/WORKSPACE
+	set -e; { \
+	  cat $*/WORKSPACE.in; \
+	  grep -v '^workspace(' $*/python/WORKSPACE; \
+	} > $@
+
 %/.generate-BUILDs: %/WORKSPACE %/BUILD %/vendor %/python/configure
 	find $(@D) -mindepth 2 \( -name BUILD -o -name BUILD.bazel \) -type f -delete
 	cd $(@D) && $(tools/gazelle)

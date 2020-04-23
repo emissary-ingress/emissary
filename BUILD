@@ -36,15 +36,18 @@ go_image(
 container_image(
     name = "kat-client",
     base = "_kat-client_stage0",
-
+    # symlinks to add
     symlinks = {
         "/usr/local/bin/kat-client": "/app/kat-client.binary",
         "/work/kat_client": "/app/kat-client.binary",
     },
-
+    # runtime info
     workdir = "/work",
     entrypoint = None,
-    cmd = [ "sleep", "3600" ],
+    cmd = [
+        "sleep",
+        "3600",
+    ],
 )
 
 # kat-server ###################################################################
@@ -58,23 +61,25 @@ go_image(
 container_image(
     name = "kat-server",
     base = "_kat-server_stage0",
-
+    # files to add
     directory = "/work",
     mode = "0o644",
-    files = [":server.crt", ":server.key"],
-
+    files = [
+        ":server.crt",
+        ":server.key",
+    ],
+    # symlinks to add
     symlinks = {
         "/usr/local/bin/kat-server": "/app/kat-server.binary",
     },
-
+    # runtime info
     workdir = "/work",
     entrypoint = None,
-    cmd = [ "kat-server" ],
+    cmd = ["kat-server"],
 )
 
 container_image(
     name = "kat-server-test",
     base = "@alpine_glibc//image",
-
     files = ["//cmd/kat-server:kat-server"],
 )
