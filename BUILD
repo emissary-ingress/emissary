@@ -76,9 +76,3 @@ container_image(
     entrypoint = None,
     cmd = ["kat-server"],
 )
-
-container_image(
-    name = "kat-server-test",
-    base = "@alpine_glibc//image",
-    files = ["//cmd/kat-server:kat-server"],
-)
