@@ -16,14 +16,24 @@
 
 set -o errexit
 
+if [ -z "$NETLIFY_SITE" ]; then
+    NETLIFY_SITE=28e95687-926a-4528-9a93-b579892f9586
+fi
+
+if [ -z "$NETLIFY_AUTH_TOKEN" ]; then
+    NETLIFY_AUTH_TOKEN=$(keybase fs read /keybase/team/datawireio/secrets/netlify.d6e-automaton.personal-access-token)
+fi
+
+if [ "$1" == "--prod" ]; then
+    echo "PROD MODE"
+    PROD="--prod"
+    shift
+fi
+
 source_dir=$(pwd)
 
 if [ \( $(basename $source_dir) != "ambassador" \) -a \( -d "$source_dir/ambassador/docs" \) ]; then
     source_dir="$source_dir/ambassador"
-fi
-
-if [ -z "$NETLIFY_AUTH_TOKEN" ]; then
-    NETLIFY_AUTH_TOKEN=$(keybase fs read /keybase/team/datawireio/secrets/netlify.lukeshu.personal-access-token)
 fi
 
 if [ -z "$WEBSITE_BRANCH" ]; then
@@ -52,14 +62,15 @@ if ! [[ -d /tmp/getambassador.io-${WEBSITE_BRANCH}/public ]]; then
 	exit 0
 fi
 
-npm install netlify-cli -g
+npm install netlify-cli
 
 netlify deploy \
 	--dir="/tmp/getambassador.io-${WEBSITE_BRANCH}/public" \
 	--message="ambassador.git preview $WEBSITE_BRANCH from $USER" \
-	--site=1d6f5395-6386-49af-8b47-e85aa28488f8 \
+	--site="${NETLIFY_SITE}" \
 	--auth="${NETLIFY_AUTH_TOKEN}" \
 	--json \
+    $PROD \
 	> /tmp/netlify-deploy.json
 
 cat /tmp/netlify-deploy.json
