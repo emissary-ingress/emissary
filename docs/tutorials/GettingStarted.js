@@ -13,10 +13,6 @@ class GettingStarted extends Component {
       os = 'linux';
     }
 
-  if (screen.width < 380) {
-    document.getElementById("viewport").setAttribute("content", "width=380");
-  }
-
     function renderHeader() {
       switch (os) {
         case "mac":
