@@ -64,6 +64,7 @@ Register services on the gRPC server as follows.
 
 ```go
 import (
+	"context"
 	"google.golang.org/grpc"
 	"net"
 
@@ -75,7 +76,7 @@ import (
 
 func main() {
 	snapshotCache := cache.NewSnapshotCache(false, cache.IDHash{}, nil)
-	server := xds.NewServer(snapshotCache, nil)
+	server := xds.NewServer(context.Background(), snapshotCache, nil)
 	grpcServer := grpc.NewServer()
 	lis, _ := net.Listen("tcp", ":8080")
 

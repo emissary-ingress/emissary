@@ -31,6 +31,7 @@ import (
 	"github.com/datawire/ambassador/pkg/envoy-control-plane/cache"
 	"github.com/datawire/ambassador/pkg/envoy-control-plane/server"
 	"github.com/datawire/ambassador/pkg/envoy-control-plane/test"
+
 	"github.com/datawire/ambassador/pkg/envoy-control-plane/test/resource"
 )
 
@@ -51,6 +52,7 @@ var (
 	clusters      int
 	httpListeners int
 	tcpListeners  int
+	runtimes      int
 	tls           bool
 
 	nodeID string
@@ -70,6 +72,7 @@ func init() {
 	flag.IntVar(&clusters, "clusters", 4, "Number of clusters")
 	flag.IntVar(&httpListeners, "http", 2, "Number of HTTP listeners (and RDS configs)")
 	flag.IntVar(&tcpListeners, "tcp", 2, "Number of TCP pass-through listeners")
+	flag.IntVar(&runtimes, "runtimes", 1, "Number of RTDS layers")
 	flag.StringVar(&nodeID, "nodeID", "test-id", "Node ID")
 	flag.BoolVar(&tls, "tls", false, "Enable TLS on all listeners and use SDS for secret delivery")
 }
@@ -86,7 +89,7 @@ func main() {
 	signal := make(chan struct{})
 	cb := &callbacks{signal: signal}
 	config := cache.NewSnapshotCache(mode == resource.Ads, cache.IDHash{}, logger{})
-	srv := server.NewServer(config, cb)
+	srv := server.NewServer(context.Background(), config, cb)
 	als := &test.AccessLogService{}
 
 	// create a test snapshot
@@ -98,6 +101,7 @@ func main() {
 		NumHTTPListeners: httpListeners,
 		NumTCPListeners:  tcpListeners,
 		TLS:              tls,
+		NumRuntimes:      runtimes,
 	}
 
 	// start the xDS server
@@ -216,11 +220,22 @@ func callEcho() (int, int) {
 
 type logger struct{}
 
+func (logger logger) Debugf(format string, args ...interface{}) {
+	if debug {
+		log.Printf(format+"\n", args...)
+	}
+}
+
 func (logger logger) Infof(format string, args ...interface{}) {
 	if debug {
 		log.Printf(format+"\n", args...)
 	}
 }
+
+func (logger logger) Warnf(format string, args ...interface{}) {
+	log.Printf(format+"\n", args...)
+}
+
 func (logger logger) Errorf(format string, args ...interface{}) {
 	log.Printf(format+"\n", args...)
 }

@@ -19,6 +19,8 @@ import (
 	"fmt"
 	"time"
 
+	pstruct "github.com/gogo/protobuf/types"
+
 	ptypes "github.com/gogo/protobuf/types"
 
 	v2 "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
@@ -31,6 +33,7 @@ import (
 	alf "github.com/datawire/ambassador/pkg/api/envoy/config/filter/accesslog/v2"
 	hcm "github.com/datawire/ambassador/pkg/api/envoy/config/filter/network/http_connection_manager/v2"
 	tcp "github.com/datawire/ambassador/pkg/api/envoy/config/filter/network/tcp_proxy/v2"
+	discovery "github.com/datawire/ambassador/pkg/api/envoy/service/discovery/v2"
 	"github.com/datawire/ambassador/pkg/envoy-control-plane/cache"
 	"github.com/datawire/ambassador/pkg/envoy-control-plane/wellknown"
 )
@@ -84,39 +87,7 @@ func MakeEndpoint(clusterName string, port uint32) *v2.ClusterLoadAssignment {
 
 // MakeCluster creates a cluster using either ADS or EDS.
 func MakeCluster(mode string, clusterName string) *v2.Cluster {
-	var edsSource *core.ConfigSource
-	switch mode {
-	case Ads:
-		edsSource = &core.ConfigSource{
-			ConfigSourceSpecifier: &core.ConfigSource_Ads{
-				Ads: &core.AggregatedConfigSource{},
-			},
-		}
-	case Xds:
-		edsSource = &core.ConfigSource{
-			ConfigSourceSpecifier: &core.ConfigSource_ApiConfigSource{
-				ApiConfigSource: &core.ApiConfigSource{
-					ApiType:                   core.ApiConfigSource_GRPC,
-					SetNodeOnFirstMessageOnly: true,
-					GrpcServices: []*core.GrpcService{{
-						TargetSpecifier: &core.GrpcService_EnvoyGrpc_{
-							EnvoyGrpc: &core.GrpcService_EnvoyGrpc{ClusterName: XdsCluster},
-						},
-					}},
-				},
-			},
-		}
-	case Rest:
-		edsSource = &core.ConfigSource{
-			ConfigSourceSpecifier: &core.ConfigSource_ApiConfigSource{
-				ApiConfigSource: &core.ApiConfigSource{
-					ApiType:      core.ApiConfigSource_REST,
-					ClusterNames: []string{XdsCluster},
-					RefreshDelay: ptypes.DurationProto(RefreshDelay),
-				},
-			},
-		}
-	}
+	edsSource := configSource(mode)
 
 	connectTimeout := 5 * time.Second
 	return &v2.Cluster{
@@ -294,6 +265,23 @@ func MakeTCPListener(listenerName string, port uint32, clusterName string) *v2.L
 	}
 }
 
+// MakeRuntime creates an RTDS layer with some fields.
+func MakeRuntime(runtimeName string) *discovery.Runtime {
+	return &discovery.Runtime{
+		Name: runtimeName,
+		Layer: &pstruct.Struct{
+			Fields: map[string]*pstruct.Value{
+				"field-0": &pstruct.Value{
+					Kind: &pstruct.Value_NumberValue{NumberValue: 100},
+				},
+				"field-1": &pstruct.Value{
+					Kind: &pstruct.Value_StringValue{StringValue: "foobar"},
+				},
+			},
+		},
+	}
+}
+
 // TestSnapshot holds parameters for a synthetic snapshot.
 type TestSnapshot struct {
 	// Xds indicates snapshot mode: ads, xds, or rest
@@ -311,6 +299,8 @@ type TestSnapshot struct {
 	// NumTCPListeners is the total number of TCP listeners to generate.
 	// Listeners are assigned clusters in a round-robin fashion.
 	NumTCPListeners int
+	// NumRuntimes is the total number of RTDS layers to generate.
+	NumRuntimes int
 	// TLS enables SDS-enabled TLS mode on all listeners
 	TLS bool
 }
@@ -367,15 +357,23 @@ func (ts TestSnapshot) Generate() cache.Snapshot {
 		listeners[i] = listener
 	}
 
-	out := cache.Snapshot{
-		Endpoints: cache.NewResources(ts.Version, endpoints),
-		Clusters:  cache.NewResources(ts.Version, clusters),
-		Routes:    cache.NewResources(ts.Version, routes),
-		Listeners: cache.NewResources(ts.Version, listeners),
+	runtimes := make([]cache.Resource, ts.NumRuntimes)
+	for i := 0; i < ts.NumRuntimes; i++ {
+		name := fmt.Sprintf("runtime-%d", i)
+		runtimes[i] = MakeRuntime(name)
 	}
 
+	out := cache.NewSnapshot(
+		ts.Version,
+		endpoints,
+		clusters,
+		routes,
+		listeners,
+		runtimes,
+	)
+
 	if ts.TLS {
-		out.Secrets = cache.NewResources(ts.Version, MakeSecrets(tlsName, rootName))
+		out.Resources[cache.Secret] = cache.NewResources(ts.Version, MakeSecrets(tlsName, rootName))
 	}
 
 	return out

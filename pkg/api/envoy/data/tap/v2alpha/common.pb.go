@@ -80,10 +80,10 @@ type isBody_BodyType interface {
 }
 
 type Body_AsBytes struct {
-	AsBytes []byte `protobuf:"bytes,1,opt,name=as_bytes,json=asBytes,proto3,oneof"`
+	AsBytes []byte `protobuf:"bytes,1,opt,name=as_bytes,json=asBytes,proto3,oneof" json:"as_bytes,omitempty"`
 }
 type Body_AsString struct {
-	AsString string `protobuf:"bytes,2,opt,name=as_string,json=asString,proto3,oneof"`
+	AsString string `protobuf:"bytes,2,opt,name=as_string,json=asString,proto3,oneof" json:"as_string,omitempty"`
 }
 
 func (*Body_AsBytes) isBody_BodyType()  {}
@@ -198,7 +198,8 @@ func (m *Body) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 }
 
 func (m *Body_AsBytes) MarshalTo(dAtA []byte) (int, error) {
-	return m.MarshalToSizedBuffer(dAtA[:m.Size()])
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
 func (m *Body_AsBytes) MarshalToSizedBuffer(dAtA []byte) (int, error) {
@@ -213,7 +214,8 @@ func (m *Body_AsBytes) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 func (m *Body_AsString) MarshalTo(dAtA []byte) (int, error) {
-	return m.MarshalToSizedBuffer(dAtA[:m.Size()])
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
 func (m *Body_AsString) MarshalToSizedBuffer(dAtA []byte) (int, error) {
@@ -425,6 +427,7 @@ func (m *Body) Unmarshal(dAtA []byte) error {
 func skipCommon(dAtA []byte) (n int, err error) {
 	l := len(dAtA)
 	iNdEx := 0
+	depth := 0
 	for iNdEx < l {
 		var wire uint64
 		for shift := uint(0); ; shift += 7 {
@@ -456,10 +459,8 @@ func skipCommon(dAtA []byte) (n int, err error) {
 					break
 				}
 			}
-			return iNdEx, nil
 		case 1:
 			iNdEx += 8
-			return iNdEx, nil
 		case 2:
 			var length int
 			for shift := uint(0); ; shift += 7 {
@@ -480,55 +481,30 @@ func skipCommon(dAtA []byte) (n int, err error) {
 				return 0, ErrInvalidLengthCommon
 			}
 			iNdEx += length
-			if iNdEx < 0 {
-				return 0, ErrInvalidLengthCommon
-			}
-			return iNdEx, nil
 		case 3:
-			for {
-				var innerWire uint64
-				var start int = iNdEx
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return 0, ErrIntOverflowCommon
-					}
-					if iNdEx >= l {
-						return 0, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					innerWire |= (uint64(b) & 0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				innerWireType := int(innerWire & 0x7)
-				if innerWireType == 4 {
-					break
-				}
-				next, err := skipCommon(dAtA[start:])
-				if err != nil {
-					return 0, err
-				}
-				iNdEx = start + next
-				if iNdEx < 0 {
-					return 0, ErrInvalidLengthCommon
-				}
-			}
-			return iNdEx, nil
+			depth++
 		case 4:
-			return iNdEx, nil
+			if depth == 0 {
+				return 0, ErrUnexpectedEndOfGroupCommon
+			}
+			depth--
 		case 5:
 			iNdEx += 4
-			return iNdEx, nil
 		default:
 			return 0, fmt.Errorf("proto: illegal wireType %d", wireType)
 		}
+		if iNdEx < 0 {
+			return 0, ErrInvalidLengthCommon
+		}
+		if depth == 0 {
+			return iNdEx, nil
+		}
 	}
-	panic("unreachable")
+	return 0, io.ErrUnexpectedEOF
 }
 
 var (
-	ErrInvalidLengthCommon = fmt.Errorf("proto: negative length found during unmarshaling")
-	ErrIntOverflowCommon   = fmt.Errorf("proto: integer overflow")
+	ErrInvalidLengthCommon        = fmt.Errorf("proto: negative length found during unmarshaling")
+	ErrIntOverflowCommon          = fmt.Errorf("proto: integer overflow")
+	ErrUnexpectedEndOfGroupCommon = fmt.Errorf("proto: unexpected end of group")
 )

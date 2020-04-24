@@ -277,10 +277,10 @@ type isSubjectAlternateName_Name interface {
 }
 
 type SubjectAlternateName_Dns struct {
-	Dns string `protobuf:"bytes,1,opt,name=dns,proto3,oneof"`
+	Dns string `protobuf:"bytes,1,opt,name=dns,proto3,oneof" json:"dns,omitempty"`
 }
 type SubjectAlternateName_Uri struct {
-	Uri string `protobuf:"bytes,2,opt,name=uri,proto3,oneof"`
+	Uri string `protobuf:"bytes,2,opt,name=uri,proto3,oneof" json:"uri,omitempty"`
 }
 
 func (*SubjectAlternateName_Dns) isSubjectAlternateName_Name() {}
@@ -573,7 +573,8 @@ func (m *SubjectAlternateName) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 }
 
 func (m *SubjectAlternateName_Dns) MarshalTo(dAtA []byte) (int, error) {
-	return m.MarshalToSizedBuffer(dAtA[:m.Size()])
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
 func (m *SubjectAlternateName_Dns) MarshalToSizedBuffer(dAtA []byte) (int, error) {
@@ -586,7 +587,8 @@ func (m *SubjectAlternateName_Dns) MarshalToSizedBuffer(dAtA []byte) (int, error
 	return len(dAtA) - i, nil
 }
 func (m *SubjectAlternateName_Uri) MarshalTo(dAtA []byte) (int, error) {
-	return m.MarshalToSizedBuffer(dAtA[:m.Size()])
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
 func (m *SubjectAlternateName_Uri) MarshalToSizedBuffer(dAtA []byte) (int, error) {
@@ -1304,6 +1306,7 @@ func (m *SubjectAlternateName) Unmarshal(dAtA []byte) error {
 func skipCerts(dAtA []byte) (n int, err error) {
 	l := len(dAtA)
 	iNdEx := 0
+	depth := 0
 	for iNdEx < l {
 		var wire uint64
 		for shift := uint(0); ; shift += 7 {
@@ -1335,10 +1338,8 @@ func skipCerts(dAtA []byte) (n int, err error) {
 					break
 				}
 			}
-			return iNdEx, nil
 		case 1:
 			iNdEx += 8
-			return iNdEx, nil
 		case 2:
 			var length int
 			for shift := uint(0); ; shift += 7 {
@@ -1359,55 +1360,30 @@ func skipCerts(dAtA []byte) (n int, err error) {
 				return 0, ErrInvalidLengthCerts
 			}
 			iNdEx += length
-			if iNdEx < 0 {
-				return 0, ErrInvalidLengthCerts
-			}
-			return iNdEx, nil
 		case 3:
-			for {
-				var innerWire uint64
-				var start int = iNdEx
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return 0, ErrIntOverflowCerts
-					}
-					if iNdEx >= l {
-						return 0, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					innerWire |= (uint64(b) & 0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				innerWireType := int(innerWire & 0x7)
-				if innerWireType == 4 {
-					break
-				}
-				next, err := skipCerts(dAtA[start:])
-				if err != nil {
-					return 0, err
-				}
-				iNdEx = start + next
-				if iNdEx < 0 {
-					return 0, ErrInvalidLengthCerts
-				}
-			}
-			return iNdEx, nil
+			depth++
 		case 4:
-			return iNdEx, nil
+			if depth == 0 {
+				return 0, ErrUnexpectedEndOfGroupCerts
+			}
+			depth--
 		case 5:
 			iNdEx += 4
-			return iNdEx, nil
 		default:
 			return 0, fmt.Errorf("proto: illegal wireType %d", wireType)
 		}
+		if iNdEx < 0 {
+			return 0, ErrInvalidLengthCerts
+		}
+		if depth == 0 {
+			return iNdEx, nil
+		}
 	}
-	panic("unreachable")
+	return 0, io.ErrUnexpectedEOF
 }
 
 var (
-	ErrInvalidLengthCerts = fmt.Errorf("proto: negative length found during unmarshaling")
-	ErrIntOverflowCerts   = fmt.Errorf("proto: integer overflow")
+	ErrInvalidLengthCerts        = fmt.Errorf("proto: negative length found during unmarshaling")
+	ErrIntOverflowCerts          = fmt.Errorf("proto: integer overflow")
+	ErrUnexpectedEndOfGroupCerts = fmt.Errorf("proto: unexpected end of group")
 )
