@@ -33,6 +33,9 @@ var (
 	_ = types.DynamicAny{}
 )
 
+// define the regex for a UUID once up-front
+var _dynamic_forward_proxy_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on FilterConfig with the rules defined in
 // the proto definition for this message. If any rules are violated, an error
 // is returned.
@@ -128,7 +131,15 @@ func (m *PerRouteConfig) Validate() error {
 		return nil
 	}
 
-	// no validation rules for HostRewrite
+	switch m.HostRewriteSpecifier.(type) {
+
+	case *PerRouteConfig_HostRewrite:
+		// no validation rules for HostRewrite
+
+	case *PerRouteConfig_AutoHostRewriteHeader:
+		// no validation rules for AutoHostRewriteHeader
+
+	}
 
 	return nil
 }
