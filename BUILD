@@ -4,6 +4,7 @@
 # gazelle:exclude cxx
 # gazelle:exclude build-aux
 # gazelle:exclude python
+# gazelle:map_kind go_binary go_binary @ambassador//build-aux-local:go.bzl
 
 load("@bazel_gazelle//:def.bzl", "gazelle")
 load("@io_bazel_rules_docker//container:container.bzl", "container_image", "container_push")
