@@ -745,7 +745,7 @@ Build and push the Docker images
 
 Run a command line program on the host:
  - `bazel run //cmd/kubeapply:kubeapply`
- - `bazel run @ambassador_python//ambassador_diag:diagd`
+ - `bazel run //python:diagd`
 
 Download all dependencies, in order to work offline:
  - `bazel sync`

@@ -1,5 +1,3 @@
-workspace(name = "ambassador")
-
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
@@ -75,11 +73,30 @@ docker_python3_repos()
 load("@io_bazel_rules_docker//python3:image.bzl", docker_python3_repos = "repositories")
 docker_python3_repos()
 
-# The Python part of Ambassador ################################################
+# Python #######################################################################
 
-local_repository(
-    name = "ambassador_python",
-    path = "./python",
+git_repository(
+    name = "rules_python",
+    remote = "https://github.com/bazelbuild/rules_python.git",
+    commit = "a0fbf98d4e3a232144df4d0d80b577c7a693b570",
 )
 
-# ./python/WORKSPACE is appended here
+load("@rules_python//python:repositories.bzl", "py_repositories")
+py_repositories()
+
+# Python: PIP ##################################################################
+
+git_repository(
+    name = "rules_python_external",
+    remote = "https://github.com/dillon-giacoppo/rules_python_external.git",
+    commit = "9c03622c102659a27c8538040678ae86ba3be0d2",
+)
+
+load("@rules_python_external//:repositories.bzl", "rules_python_external_dependencies")
+rules_python_external_dependencies()
+
+load("@rules_python_external//:defs.bzl", "pip_install")
+pip_install(
+    name = "ambassador_pip",
+    requirements = "//:requirements.txt",
+)

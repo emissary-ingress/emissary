@@ -1,8 +1,8 @@
 # Created by ./configure
-/WORKSPACE
 BUILD
 !/BUILD
 !/build-aux-local/BUILD
+!/python/BUILD
 /vendor/
 
 # local files

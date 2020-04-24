@@ -8,6 +8,8 @@ jinja2==2.10.1
 jsonschema==2.6.0
 jwt==0.5.4
 k8s-proto==0.0.2
+k8s
+urllib
 protobuf==3.10.0
 scout.py==0.5.0
 semantic-version==2.6.0
