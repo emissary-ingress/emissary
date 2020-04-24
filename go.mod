@@ -36,6 +36,7 @@ require (
 	github.com/sirupsen/logrus v1.4.3-0.20200306102446-7ea96a3284ed
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.5
+	github.com/stretchr/testify v1.4.0
 	github.com/tsenart/vegeta v12.2.1+incompatible
 	golang.org/x/crypto v0.0.0-20191028145041-f83a4685e152
 	golang.org/x/net v0.0.0-20191028085509-fe3aa8a45271
