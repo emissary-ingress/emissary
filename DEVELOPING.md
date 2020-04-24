@@ -728,13 +728,24 @@ or something, we do it by using a "label" to refer to a target
 
 # Common commands
 
+Build the Docker images (does NOT load them in to dockerd):
  - `bazel build :ambassador`
  - `bazel build :kat-client`
  - `bazel build :kat-server`
 
+Build the Docker images, and load them in to dockerd:
+ - `bazel run :ambassador` (dockerd knows the image as `bazel:ambassador`)
+ - `bazel run :kat-client` (dockerd knows the image as `bazel:kat-client`)
+ - `bazel run :kat-server` (dockerd knows the image as `bazel:kat-server`)
+
+Build and push the Docker images
  - `bazel run :ambassador.push`
  - `bazel run :kat-client.push`
  - `bazel run :kat-server.push`
 
+Run a command line program on the host:
  - `bazel run //cmd/kubeapply:kubeapply`
  - `bazel run @ambassador_python//ambassador_diag:diagd`
+
+Download all dependencies, in order to work offline:
+ - `bazel sync`

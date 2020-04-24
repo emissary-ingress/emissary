@@ -132,7 +132,7 @@ container_push(
 go_image(
     name = ".kat-server.stage0",
     base = "@alpine_glibc//image",
-    binary = "//cmd/kat-server:kat-server",
+    binary = "//cmd/kat-server:kat-server.for-container",
 )
 
 container_image(
