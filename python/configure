@@ -32,6 +32,24 @@ import sysconfig
 from typing import AbstractSet, List, NamedTuple, Optional, Set
 
 
+def parse_members(filepath: str) -> Set[str]:
+    with open(filepath, 'r') as filehandle:
+        filecontent = filehandle.read()
+
+    with open(filepath, 'r') as filehandle:
+        filecontent = filehandle.read()
+
+    members = set()
+    for node in ast.parse(filecontent).body:
+        # XXX: This doesn't recognize all the the statement types,
+        # just the ones that Ambassador currently uses in __init__.py
+        # files.
+        if isinstance(node, ast.Import) or  isinstance(node, ast.ImportFrom):
+            members.update(alias.asname or alias.name for alias in node.names)
+        elif isinstance(node, ast.FunctionDef):
+            members.update([node.name])
+    return members
+
 class ImportedItem(NamedTuple):
     """
     import mod             → ImportedItem(mod, None)
@@ -41,9 +59,12 @@ class ImportedItem(NamedTuple):
     module: str
     member: Optional[str]
 
-def parse_imports(scriptbody: str) -> List[ImportedItem]:
+def parse_imports(filepath: str) -> List[ImportedItem]:
+    with open(filepath, 'r') as filehandle:
+        filecontent = filehandle.read()
+
     imports = []
-    for node in ast.parse(scriptbody).body:
+    for node in ast.parse(filecontent).body:
         if isinstance(node, ast.Import):
             #     import {node.names}
             imports += [ImportedItem(alias.name, None) for alias in node.names]
@@ -88,7 +109,7 @@ def is_local(localpaths: List[str], item: ImportedItem) -> bool:
 
     return False
 
-def isfile(filepath: str) -> bool:
+def isfile_case(filepath: str) -> bool:
     """Like os.path.isfile, but requires the case of the basename to match
     (relevent on macOS case-insensitive filesystem).
     """
@@ -107,16 +128,15 @@ def import_to_filepath(localpaths: List[str], item: ImportedItem, fromfilepath: 
 
     for dirpath in localpaths:
         basefilepath = os.path.join(dirpath, *modname.split('.'))
-        if isfile(basefilepath+".py"):
+        if isfile_case(basefilepath+".py"):
             return basefilepath+".py"
-        if isfile(os.path.join(basefilepath, '__init__.py')):
+        if os.path.isfile(os.path.join(basefilepath, '__init__.py')):
             if item.member is None:
                 return os.path.join(basefilepath, '__init__.py')
-            if isfile(os.path.join(basefilepath, item.member+'.py')):
+            if item.member in parse_members(os.path.join(basefilepath, '__init__.py')):
+                return os.path.join(basefilepath, '__init__.py')
+            if isfile_case(os.path.join(basefilepath, item.member+'.py')):
                 return os.path.join(basefilepath, item.member+'.py')
-            # FIXME(lukeshu): Should validate that .member exists, given
-            # that this is used by is_local().
-            return os.path.join(basefilepath, '__init__.py')
 
     return None
 
@@ -139,12 +159,10 @@ def import_to_distribname(item: ImportedItem) -> str:
 
 def rules_for_script(workspacedir: str, inputdir: str, filepath: str) -> List[str]:
     localpaths = [inputdir]
-    if not isfile(os.path.join(os.path.dirname(filepath), '__init__.py')):
+    if not os.path.isfile(os.path.join(os.path.dirname(filepath), '__init__.py')):
         localpaths.append(os.path.dirname(filepath))
 
-    with open(filepath, 'r') as filehandle:
-        filecontent = filehandle.read()
-    imports = parse_imports(filecontent)
+    imports = parse_imports(filepath)
 
     deps: Set[str] = set()
     for item in imports:
