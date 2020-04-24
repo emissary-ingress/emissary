@@ -2,7 +2,8 @@
 /WORKSPACE
 BUILD
 !/BUILD
-/vendor
+!/build-aux-local/BUILD
+/vendor/
 
 # local files
 *.local

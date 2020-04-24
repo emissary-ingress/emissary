@@ -21,13 +21,20 @@ tools/docker  := $(call require-program,docker)
 .SECONDARY:
 
 build: $(CURDIR)/.generate-BUILDs
-clean: $(CURDIR)/.clean
+clean: $(CURDIR)/.clean-BUILDs $(CURDIR)/.clean-other
 .PHONY: build clean
 
-%/.clean:
+%/.clean-other:
 	rm -rf $(@D)/vendor
-	find $(@D) -mindepth 2 \( -name BUILD -o -name BUILD.bazel \) -type f -delete
-.PHONY: %/.clean
+	rm -f $(@D)/WORKSPACE
+.PHONY: %/.clean-other
+
+%/.clean-BUILDs:
+	find $(@D) \( -name BUILD -o -name BUILD.bazel \) -type f \
+	  -not -path $(@D)/BUILD \
+	  -not -path $(@D)/build-aux-local/BUILD \
+	  -delete
+.PHONY: %/.clean-BUILDs
 
 %/WORKSPACE: %/WORKSPACE.in %/python/WORKSPACE
 	set -e; { \
@@ -36,10 +43,9 @@ clean: $(CURDIR)/.clean
 	  grep -v '^workspace(' $*/python/WORKSPACE; \
 	} > $@
 
-%/.generate-BUILDs: %/WORKSPACE %/BUILD %/vendor %/.mangle-BUILD %/python/configure
-	find $(@D) -mindepth 2 \( -name BUILD -o -name BUILD.bazel \) -type f -delete
+%/.generate-BUILDs: %/.clean-BUILDs %/WORKSPACE %/BUILD %/vendor %/build-aux-local/mangle-BUILD %/python/configure
 	cd $(@D) && $(tools/gazelle) -external vendored
-	find $(@D) -mindepth 2 -name BUILD -type f -exec $*/.mangle-BUILD {} +
+	find $(@D) -mindepth 2 -name BUILD -type f -exec $*/build-aux-local/mangle-BUILD {} +
 	cd $(@D)/python && ./configure
 .PHONY: %/.generate-BUILDS
 

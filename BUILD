@@ -11,7 +11,7 @@ load("@io_bazel_rules_docker//go:image.bzl", "go_image")
 
 #load("@io_bazel_rules_docker//python:image.bzl", "py_layer", "py_image")
 #load("@io_bazel_rules_docker//python3:image.bzl", "py3_image")
-load(":util.bzl", "py_image")
+load("//build-aux-local:py.bzl", "py_image")
 
 gazelle(name = "gazelle")
 
@@ -68,13 +68,13 @@ py_image(
 go_image(
     base = ":.ambassador.stage7",
     name = ".ambassador.stage8",
-    binary = "//cmd/watt:watt",
+    binary = "//cmd/watt:watt.for-container",
 )
 
 go_image(
     base = ":.ambassador.stage8",
     name = ".ambassador.stage9",
-    binary = "//cmd/kubestatus:kubestatus",
+    binary = "//cmd/kubestatus:kubestatus.for-container",
 )
 
 container_image(
@@ -98,7 +98,7 @@ container_push(
 go_image(
     name = ".kat-client.stage0",
     base = "@alpine_glibc//image",
-    binary = "//cmd/kat-client:kat-client",
+    binary = "//cmd/kat-client:kat-client.for-container",
 )
 
 container_image(
@@ -106,7 +106,7 @@ container_image(
     base = ":.kat-client.stage0",
     # symlinks to add
     symlinks = {
-        "/usr/local/bin/kat-client": "/app/cmd/kat-client/kat-client",
+        "/usr/local/bin/kat-client": "/app/cmd/kat-client/kat-client.for-container",
         "/work/kat_client": "/usr/local/bin/kat-client",
     },
     # runtime info
@@ -147,7 +147,7 @@ container_image(
     ],
     # symlinks to add
     symlinks = {
-        "/usr/local/bin/kat-server": "/app/cmd/kat-server/kat-server",
+        "/usr/local/bin/kat-server": "/app/cmd/kat-server/kat-server.for-container",
     },
     # runtime info
     env = {
