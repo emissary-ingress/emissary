@@ -20,6 +20,11 @@ gazelle(name = "gazelle")
 
 # ambassador ###################################################################
 
+py_layer(
+    name = ".py-library",
+    deps = ["//python:library"],
+)
+
 py_image(
     base = "@alpine_glibc_with_packages//image",
     name = ".ambassador.stage0",

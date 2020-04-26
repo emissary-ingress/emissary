@@ -1,6 +1,12 @@
 load("@io_bazel_rules_docker//lang:image.bzl", "app_layer")
 
 def py_image(name, base, binary):
+    layers = [".py-library"]
+
+    for index, dep in enumerate(layers):
+        base = app_layer(name = "%s.%d" % (name, index), base = base, dep = dep)
+        base = app_layer(name = "%s.%d-symlinks" % (name, index), base = base, dep = dep, binary = binary)
+
     app_layer(
         name = name,
         base = base,
