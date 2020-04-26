@@ -71,20 +71,41 @@ py_image(
 go_image(
     base = ":.ambassador.stage7",
     name = ".ambassador.stage8",
-    binary = "//cmd/watt:watt.for-container",
-)
-
-go_image(
-    base = ":.ambassador.stage8",
-    name = ".ambassador.stage9",
-    binary = "//cmd/kubestatus:kubestatus.for-container",
+    binary = "//cmd/ambassador:ambassador.for-container",
 )
 
 container_image(
-    base = ":.ambassador.stage9",
+    base = ":.ambassador.stage8",
     name = "ambassador",
+    # files to add
+    directory = "/usr/local/bin",
+    mode = "0o755",
+    files = [
+        "//python:entrypoint.sh",
+    ],
+    # symlinks to add
+    symlinks = {
+        # Add sane names for the silly Bazel names
+        "/usr/local/bin/ambassador.py": "/app/python/ambassador.exe",
+        "/usr/local/bin/ert": "/app/python/ert.exe",
+        "/usr/local/bin/kubewatch.py": "/app/python/kubewatch.exe",
+        "/usr/local/bin/post_update.py": "/app/python/post_update.exe",
+        "/usr/local/bin/diagd": "/app/python/diagd.exe",
+        "/usr/local/bin/grab-snapshots": "/app/python/grab-snapshots.exe",
+        "/usr/local/bin/mockery": "/app/python/mockery.exe",
+        "/usr/local/bin/watch_hook.py": "/app/python/watch_hook.exe",
+        "/usr/local/bin/ambassador": "/app/cmd/ambassador/ambassador.for-container",
+        # Multi-call binary
+        "/usr/local/bin/ambex": "/usr/local/bin/ambassador",
+        "/usr/local/bin/kubestatus": "/usr/local/bin/ambassador",
+        "/usr/local/bin/watt": "/usr/local/bin/ambassador",
+        # Bazel's launcher scripts use 'python'
+        "/usr/bin/python": "python3",
+    },
+    # runtime info
     workdir = "/ambassador",
     entrypoint = None,
+    cmd = ["entrypoint.sh"],
 )
 
 container_push(

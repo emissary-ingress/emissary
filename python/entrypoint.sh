@@ -90,8 +90,6 @@ export ENVOY_DIR="${AMBASSADOR_CONFIG_BASE_DIR}/envoy"
 export ENVOY_BOOTSTRAP_FILE="${AMBASSADOR_CONFIG_BASE_DIR}/bootstrap-ads.json"
 export ENVOY_BASE_ID="${AMBASSADOR_ENVOY_BASE_ID:-0}"
 
-export APPDIR="${APPDIR:-$ambassador_root}"
-
 # If we don't set PYTHON_EGG_CACHE explicitly, /.cache is set by
 # default, which fails when running as a non-privileged user
 export PYTHON_EGG_CACHE="${PYTHON_EGG_CACHE:-$AMBASSADOR_CONFIG_BASE_DIR}/.cache"
@@ -193,7 +191,7 @@ fi
 # set before, kubewatch sync will use it, and also because kubewatch.py
 # will DTRT if Kubernetes is not available.
 
-if ! AMBASSADOR_CLUSTER_ID=$(/usr/bin/python3 "$APPDIR/kubewatch.py" --debug); then
+if ! AMBASSADOR_CLUSTER_ID=$(kubewatch.py --debug); then
     log "could not determine cluster-id; exiting"
     exit 1
 fi
@@ -448,8 +446,8 @@ if [[ -z "${AMBASSADOR_NO_KUBEWATCH}" ]]; then
 
     launch "watt" watt \
            --listen-address="127.0.0.1:8002" \
-           --notify 'python /ambassador/post_update.py --watt ' \
-           --watch "python /ambassador/watch_hook.py" \
+           --notify 'post_update.py --watt ' \
+           --watch 'watch_hook.py' \
            "${watt_query_flags[@]}"
 fi
 

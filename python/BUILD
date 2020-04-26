@@ -87,3 +87,7 @@ py_binary(
     python_version = "PY3",
     deps = [":library"],
 )
+
+exports_files([
+    "entrypoint.sh",
+])
