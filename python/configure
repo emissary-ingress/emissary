@@ -1,0 +1,215 @@
+#!/usr/bin/env python3
+
+# Automatically generate Bazel 'BUILD' files for Python3 sources.
+#
+# This is more-or-less a clone of <https://github.com/tuomasr/pazel>.
+# Why we wrote this, instead of just using Pazel:
+
+#  1. Pazel doesn't actually work; with Python 3.8 on GNU/Linux, the
+#     _is_in_stdlib function raises an exception
+#  2. Pazel doesn't understand relative imports.
+#  3. Pazel is too configurable; the configuration is complex enough
+#     that it's simpler/easier/faster to just have a purpose-built
+#     script that you can modify.
+
+# A quick refresher on PEP 561 terminology:
+#
+# - "distribution": a bundle that gets shared around (eggs and
+#   wheels are implementations of "distribution")
+#
+# - "module": a thing you can `import` (could be implemented either as
+#   `MOD.py` or as `MOD/__init__.py`)
+#
+# - "package": a module that contains more modules within it (a
+#   `MOD/__init__.py`)
+
+import ast
+import importlib
+import os
+import re
+import sys
+import sysconfig
+from typing import AbstractSet, List, NamedTuple, Optional, Set
+
+
+def parse_members(filepath: str) -> Set[str]:
+    with open(filepath, 'r') as filehandle:
+        filecontent = filehandle.read()
+
+    with open(filepath, 'r') as filehandle:
+        filecontent = filehandle.read()
+
+    members = set()
+    for node in ast.parse(filecontent).body:
+        # XXX: This doesn't recognize all the the statement types,
+        # just the ones that Ambassador currently uses in __init__.py
+        # files.
+        if isinstance(node, ast.Import) or  isinstance(node, ast.ImportFrom):
+            members.update(alias.asname or alias.name for alias in node.names)
+        elif isinstance(node, ast.FunctionDef):
+            members.update([node.name])
+    return members
+
+class ImportedItem(NamedTuple):
+    """
+    import mod             → ImportedItem(mod, None)
+    from pkg import mod    → ImportedItem(pkg, mod)
+    from mod import member → ImportedItem(mod, member)
+    """
+    module: str
+    member: Optional[str]
+
+def parse_imports(filepath: str) -> List[ImportedItem]:
+    with open(filepath, 'r') as filehandle:
+        filecontent = filehandle.read()
+
+    imports = []
+    for node in ast.parse(filecontent).body:
+        if isinstance(node, ast.Import):
+            #     import {node.names}
+            imports += [ImportedItem(alias.name, None) for alias in node.names]
+        elif isinstance(node, ast.ImportFrom):
+            #     from {'.'*node.level}{node.module} import {node.names}
+            modname = ('.'*(node.level or 0)) + (node.module or '')
+            imports += [ImportedItem(modname, alias.name) for alias in node.names]
+    return imports
+
+def is_in_stdlib(item: ImportedItem) -> bool:
+    if item.module.startswith('.'):
+        return False
+
+    original_sys_path = sys.path
+    # Where isort does a similar thing, they have a comment saying the
+    # call to 'os.path.normcase' is important on Windows.  Not that we
+    # expect this to work on Windows without more modification.
+    stdlib_prefix = os.path.normcase(sysconfig.get_paths()['stdlib'])
+    sys.path = [d for d in sys.path if (
+        os.path.normcase(d).startswith(stdlib_prefix) and
+        ('site-packages' not in d) and
+        ('dist-packages' not in d))]
+
+    in_stdlib = False
+
+    # item.member is not a module
+    try:
+        module = importlib.import_module(item.module)
+        if item.member:
+            getattr(module, item.member)
+        in_stdlib = True
+    except (ImportError, AttributeError):
+        pass
+
+    # item.member is a module
+    if item.member and not in_stdlib:
+        try:
+            module = importlib.import_module(item.module+'.'+item.member)
+            in_stdlib = True
+        except (ImportError):
+            pass
+
+    sys.path = original_sys_path
+    return in_stdlib
+
+def is_local(localpaths: List[str], item: ImportedItem) -> bool:
+    if item.module.startswith('.'):
+        return True
+
+    if import_to_filepath(localpaths, item) is not None:
+        return True
+
+    return False
+
+def isfile_case(filepath: str) -> bool:
+    """Like os.path.isfile, but requires the case of the basename to match
+    (relevent on macOS case-insensitive filesystem).
+    """
+    return os.path.isfile(filepath) and (os.path.basename(filepath) in os.listdir(os.path.dirname(filepath)))
+
+def import_to_filepath(localpaths: List[str], item: ImportedItem, fromfilepath: Optional[str]=None) -> Optional[str]:
+    modname = item.module
+    if modname.startswith('.'):
+        if not fromfilepath:
+            raise Exception("this should not happen")
+        fromdir = fromfilepath
+        while modname.startswith('.'):
+            fromdir = os.path.dirname(fromdir)
+            modname = modname[1:]
+        localpaths = [fromdir]
+
+    for dirpath in localpaths:
+        basefilepath = os.path.join(dirpath, *modname.split('.'))
+        if isfile_case(basefilepath+".py"):
+            return basefilepath+".py"
+        if os.path.isfile(os.path.join(basefilepath, '__init__.py')):
+            if item.member is None:
+                return os.path.join(basefilepath, '__init__.py')
+            if item.member in parse_members(os.path.join(basefilepath, '__init__.py')):
+                return os.path.join(basefilepath, '__init__.py')
+            if isfile_case(os.path.join(basefilepath, item.member+'.py')):
+                return os.path.join(basefilepath, item.member+'.py')
+
+    return None
+
+def mod_startswith(modname: str, prefix: str) -> bool:
+    return (modname == prefix) or modname.startswith(prefix+'.')
+
+def import_to_distribname(item: ImportedItem) -> str:
+    if mod_startswith(item.module, 'scout'):
+        return 'scout.py'
+    elif mod_startswith(item.module, 'yaml'):
+        return 'pyyaml'
+    elif mod_startswith(item.module, 'pkg_resources'):
+        return 'setuptools'
+    elif mod_startswith(item.module, 'google.protobuf'):
+        return 'protobuf'
+    elif mod_startswith(item.module, 'requests'):
+        # So scout.py=0.5.0 depends on requests==2.20.1, and k8s=0.14.0 depends on requests==2.22.0, and pip-compile balks at that "There
+        # are incompatible versions in resolved dependenies".  We can resolve that manually to 2.22.0, and inform pip-compile of this by
+        # giving the full URL.  This is a dirty kludge.
+        return 'https://files.pythonhosted.org/packages/51/bd/23c926cd341ea6b7dd0b2a00aba99ae0f828be89d72b2190f27c11d4b7fb/requests-2.22.0-py2.py3-none-any.whl'
+    else:
+        return item.module.split('.')[0]
+
+def process_file(workspacedir: str, inputdir: str, filepath: str) -> Set[str]:
+    localpaths = [inputdir]
+    if not os.path.isfile(os.path.join(os.path.dirname(filepath), '__init__.py')):
+        localpaths.append(os.path.dirname(filepath))
+
+    imports = parse_imports(filepath)
+
+    deps: Set[str] = set()
+    for item in imports:
+        if is_in_stdlib(item):
+            continue
+        elif not is_local(localpaths, item):
+            deps.add(import_to_distribname(item))
+
+    return deps
+
+def main(workspacedir: str, inputdirs: List[str]):
+    pip_deps: Set[str] = set()
+    for inputdir in inputdirs:
+        for dirpath, _, filenames in os.walk(inputdir):
+            for filename in sorted(filenames):
+                filepath = os.path.join(dirpath, filename)
+                if filename.endswith('.py'):
+                    pip_deps.update(process_file(workspacedir, inputdir, filepath))
+    with open('requirements.bzl', 'w') as outfile:
+        lines = "\n".join(sorted(f'    pip_requireement("{dep}"),' for dep in pip_deps))
+        outfile.write(f"""# File generated by ./configure; DO NOT EDIT.
+
+load("@ambassador_pip//:requirements.bzl", pip_requirement = "requirement")
+
+all_pip_requirements = [
+{lines}
+]
+""")
+    with open('requirements.in', 'w') as outfile:
+        lines = "\n".join(sorted(pip_deps))
+        outfile.write(f"""# File generated by ./configure; DO NOT EDIT.
+
+{lines}
+""")
+
+if __name__ == "__main__":
+    main(".", ["."])
