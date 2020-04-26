@@ -23,49 +23,49 @@ gazelle(name = "gazelle")
 py_image(
     base = "@alpine_glibc_with_packages//image",
     name = ".ambassador.stage0",
-    binary = "//python:grab-snapshots",
+    binary = "//python:grab-snapshots.exe",
 )
 
 py_image(
     base = ":.ambassador.stage0",
     name = ".ambassador.stage1",
-    binary = "//python:ert",
+    binary = "//python:ert.exe",
 )
 
 py_image(
     base = ":.ambassador.stage1",
     name = ".ambassador.stage2",
-    binary = "//python:mockery",
+    binary = "//python:mockery.exe",
 )
 
 py_image(
     base = ":.ambassador.stage2",
     name = ".ambassador.stage3",
-    binary = "//python:ambassador",
+    binary = "//python:ambassador.exe",
 )
 
 py_image(
     base = ":.ambassador.stage3",
     name = ".ambassador.stage4",
-    binary = "//python:diagd",
+    binary = "//python:diagd.exe",
 )
 
 py_image(
     base = ":.ambassador.stage4",
     name = ".ambassador.stage5",
-    binary = "//python:post_update.py",
+    binary = "//python:post_update.exe",
 )
 
 py_image(
     base = ":.ambassador.stage5",
     name = ".ambassador.stage6",
-    binary = "//python:kubewatch.py",
+    binary = "//python:kubewatch.exe",
 )
 
 py_image(
     base = ":.ambassador.stage6",
     name = ".ambassador.stage7",
-    binary = "//python:watch_hook.py",
+    binary = "//python:watch_hook.exe",
 )
 
 go_image(

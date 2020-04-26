@@ -20,26 +20,26 @@ tools/docker  := $(call require-program,docker)
 .DELETE_ON_ERROR:
 .SECONDARY:
 
-build: $(CURDIR)/.generate-BUILDs
-clean: $(CURDIR)/.clean-BUILDs $(CURDIR)/.clean-other
+build: $(CURDIR)/.generate
+clean: $(CURDIR)/.clean
 .PHONY: build clean
 
-%/.clean-other:
+find-gazelle = find $(@D) \( -name BUILD -o -name BUILD.bazel \) -type f \
+  -not -path $(@D)/BUILD \
+  -not -path $(@D)/build-aux-local/BUILD \
+  -not -path $(@D)/python/BUILD
+
+%/.clean:
+	$(find-gazelle) -delete
 	rm -rf $(@D)/vendor
 .PHONY: %/.clean-other
 
-%/.clean-BUILDs:
-	find $(@D) \( -name BUILD -o -name BUILD.bazel \) -type f \
-	  -not -path $(@D)/BUILD \
-	  -not -path $(@D)/build-aux-local/BUILD \
-	  -not -path $(@D)/python/BUILD \
-	  -delete
-.PHONY: %/.clean-BUILDs
-
-%/.generate-BUILDs: %/.clean-BUILDs %/WORKSPACE %/BUILD %/vendor %/build-aux-local/mangle-BUILD
+%/.generate: %/WORKSPACE %/BUILD %/vendor %/build-aux-local/mangle-BUILD %/python/configure
+	$(find-gazelle) -delete
 	cd $(@D) && $(tools/gazelle) -external vendored
-	find $(@D) -mindepth 2 -name BUILD -type f -exec $*/build-aux-local/mangle-BUILD {} +
-.PHONY: %/.generate-BUILDS
+	$(find-gazelle) -exec $*/build-aux-local/mangle-BUILD {} +
+	cd $(@D)/python && ./configure
+.PHONY: %/.generate
 
 %/vendor: %/go.mod
 	rm -rf $@
