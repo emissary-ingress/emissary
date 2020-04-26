@@ -1,0 +1,26 @@
+FROM frolvlad/alpine-glibc:alpine-3.10
+RUN apk --no-cache add \
+	bash \
+	python3
+
+# RUN apk --no-cache add \
+# 	bash \
+# 	build-base \
+# 	curl \
+# 	cython \
+# 	docker \
+# 	git \
+# 	iptables \
+# 	jq \
+# 	libcap \
+# 	libcap-dev \
+# 	libffi-dev \
+# 	ncurses \
+# 	nodejs \
+# 	npm \
+# 	openssh-client \
+# 	openssl-dev \
+# 	python3 \
+# 	python3-dev \
+# 	rsync \
+# 	yaml-dev \

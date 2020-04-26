@@ -1,0 +1,46 @@
+#!/usr/bin/make -f
+
+require-program = $(or $(shell which $1),$(error ./configure requires the '$1' program in order to run))
+
+tools/bazel   := $(call require-program,bazel)
+tools/go      := $(call require-program,go)
+tools/jq      := $(call require-program,jq)
+tools/python3 := $(call require-program,python3)
+tools/gazelle := $(tools/bazel) run //:gazelle --
+
+# We'll need `docker` eventually during the build; for the auth-helper
+# when pushing to a registry, for running `apk add`, for humans to
+# test out the images.  And the `docker` command isn't there when we
+# first run Bazel, then `rules_docker` remembers that, and it will
+# never think it's their (and I don't know how to nuke that cached
+# decision without just nuking the whole cache).  So check for it
+# eagerly.
+tools/docker  := $(call require-program,docker)
+
+.DELETE_ON_ERROR:
+.SECONDARY:
+
+build: $(CURDIR)/.generate-BUILDs
+clean: $(CURDIR)/.clean-BUILDs $(CURDIR)/.clean-other
+.PHONY: build clean
+
+%/.clean-other:
+	rm -rf $(@D)/vendor
+.PHONY: %/.clean-other
+
+%/.clean-BUILDs:
+	find $(@D) \( -name BUILD -o -name BUILD.bazel \) -type f \
+	  -not -path $(@D)/BUILD \
+	  -not -path $(@D)/build-aux-local/BUILD \
+	  -not -path $(@D)/python/BUILD \
+	  -delete
+.PHONY: %/.clean-BUILDs
+
+%/.generate-BUILDs: %/.clean-BUILDs %/WORKSPACE %/BUILD %/vendor %/build-aux-local/mangle-BUILD
+	cd $(@D) && $(tools/gazelle) -external vendored
+	find $(@D) -mindepth 2 -name BUILD -type f -exec $*/build-aux-local/mangle-BUILD {} +
+.PHONY: %/.generate-BUILDS
+
+%/vendor: %/go.mod
+	rm -rf $@
+	cd $(@D) && $(tools/go) mod vendor

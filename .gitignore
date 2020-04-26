@@ -1,126 +1,50 @@
-*.pyc
-*~
-.cache
-.coverage
-.dmypy
-.dmypy.json
-.python-version
-.DS_Store
-.skip_test_warning
-venv
-__pycache__
-.pytest_cache
-.mypy_cache
+# Created by ./configure
+BUILD
+!/BUILD
+!/build-aux-local/BUILD
+!/python/BUILD
+/vendor/
 
 # local files
 *.local
 *.local.sh
 
-# binaries
-/bin_*/
-
-vendor_bootstrap_hack.go
-
+# "main"
 /tools/sandbox/grpc_auth/docker-compose.yml
 /tools/sandbox/grpc_web/docker-compose.yaml
 /tools/sandbox/http_auth/docker-compose.yml
+node_modules/
+venv/
+vendor_bootstrap_hack.go
 
-/docker/container.txt
-/docker/container.txt.stamp
-*.docker
-*.docker.stamp
-*.docker.tag.*
-*.docker.push.*
+# Ambassador nonsense
+.ambassador_ignore_ingress_class
 
+# Bazel nonsense
+bazel-*
+
+# Python nonsense
+*.pyc
+__pycache__/
 *.egg-info
-build
-dist
-
-*.out
-*.log
-*.tmp
-*.bak
-log.txt
-
-# From `make update-aws`
-/stable.txt
-/app.json
-
-docs/_book
-docs/_site
-docs/Gemfile.lock
-docs/node_modules
-package-lock.json
-.netlify
-node_modules
-unused-e2e
-
-/vendor/
-
-.forge
-forge.yaml
+build/
+dist/
+.mypy_cache/
+.pytest_cache/
 
 # Editor nonsense
+*~
+*.swp
+#*#
+.#*
 .vscode
 .idea
 *.iml
 tags
+.DS_Store
 
-# Test outputs
-no-such-file
-envoy.json
-intermediate.json
-gold.no_yaml.json
-v1.json
-check-*.json
-stats.json
-ambassador-deployment-*.yaml
-ambassador-secrets-deployment.yaml
-*failures.txt
-*.swp
-.ambassador_ignore_ingress_class
-
-# --- Files ignored by older versions ---
-# Remove the tail of this list when the commit making the change gets
-# far enough in to the past.
-
-# 2020-08-20
-/cxx/envoy/
-/cxx/envoy-static
-/cxx/envoy-build-image.txt
-/cxx/envoy-build-container.txt
-/cxx/go-control-plane/
-# 2019-10-13
-/build/kat/client/kat_client
-/build/kat/client/teleproxy
-/build/kat/server/kat-server
-# 2019-10-13
-/.docker_port_forward
-# 2019-10-13
-/cluster.yaml
-/kubernaut-claim.txt
-# 2019-10-13
-/ambex
-/kubestatus
-/watt
-/cmd/ambex/ambex
-# 2019-10-11
-/envoy-src/
-/envoy-bin/
-/envoy-build-image.txt
-/envoy-build-container.txt
-# 2019-10-08
-/kat-sandbox/grpc_auth/docker-compose.yml
-/kat-sandbox/grpc_web/*_pb.js
-/kat-sandbox/grpc_web/docker-compose.yaml
-/kat-sandbox/http_auth/docker-compose.yml
-/kat-server-docker-image/kat-server
-/kat/docs/**/_build
-/unused-e2e/**/ambassador-deployment-mounts.yaml
-/unused-e2e/**/ambassador-deployment.yaml
-/unused-e2e/**/kubernaut
-/unused-e2e/*/k8s/ambassador-deployment*.yaml
-# 2019-06-14
-/envoy/
-# 2019-04-05 0388efe75c16540c71223320596accbbe3fe6ac2
-/kat/kat/client
+# Misc nonsense
+*.log
+*.tmp
+.tmp*
+*.bak
