@@ -167,8 +167,16 @@ sync() {
     real=$(cd ${sourcedir}; pwd)
 
     dexec mkdir -p /buildroot/${name}
+    if [[ $name == apro ]]; then
+        # Don't let 'deleting ambassador' cause the sync to be marked dirty
+        dexec sh -c 'rm -rf apro/ambassador'
+    fi
     dsync --exclude-from=${DIR}/sync-excludes.txt --delete ${real}/ ${container}:/buildroot/${name}
     summarize-sync $name "${dsynced[@]}"
+    if [[ $name == apro ]]; then
+        # BusyBox `ln` 1.30.1's `-T` flag is broken, and doesn't have a `-t` flag.
+        dexec sh -c 'if ! test -L apro/ambassador; then rm -rf apro/ambassador && ln -s ../ambassador apro; fi'
+    fi
     (cd ${sourcedir} && module_version ${name} ) | dexec sh -c "cat > /buildroot/${name}.version && cp ${name}.version ambassador/python/"
 }
 
