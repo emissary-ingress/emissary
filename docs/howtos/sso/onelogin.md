@@ -56,10 +56,11 @@ Here is an example YAML:
     OAuth2:
         # onelogin openid-configuration endpoint can be found at https://{{subdomain}}.onelogin.com/oidc/.well-known/openid-configuration
         authorizationURL: https://{{subdomain}}.onelogin.com/oidc
-        # The clientURL is the scheme and Host of your Ambassador endpoint
-        clientURL: httpi(s)://{{AMBASSADOR_URL}}
         clientID: {{Client ID}}
         secret: {{Client Secret}}
+        # The protectedOrigin is the scheme and Host of your Ambassador endpoint
+        protectedOrigins:
+        - origin: httpi(s)://{{AMBASSADOR_URL}}
 ```
 
 2. Next, create a [FilterPolicy](../../../topics/using/filters/) to use the `Filter` you just created.

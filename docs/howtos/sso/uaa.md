@@ -40,10 +40,11 @@ Configure your OAuth `Filter` and `FilterPolicy` with the following:
    spec:
      OAuth2:
        authorizationURL: {UAA_DOMAIN}
-       clientURL: https://datawire-ambassador.com
        audience: {UAA_DOMAIN}
        clientID: ambassador
        secret: CLIENT_SECRET
+       protectedOrigins:
+       - origin: https://datawire-ambassador.com
    ```
   
    **Note:** The `authorizationURL` and `audience` are the same for UAA configuration.

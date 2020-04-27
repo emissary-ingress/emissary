@@ -16,10 +16,26 @@ metadata:
 spec:
   OAuth2:
     authorizationURL: PROVIDER_URL ## URL where Ambassador Edge Stack can find OAuth2 descriptor
-    clientURL: AMBASSADOR_URL ## URL your IdP will redirect back to. Typically the same as the requests host.
     audience: AUDIENCE ## OIDC Audience
     clientID: CLIENT_ID ## OAuth2 client from your IdP
     secret: CLIENT_SECRET ## Secret used to access OAuth2 client
+    protectedOrigins:
+    - origin: AMBASSADOR_URL ## URL your IdP will redirect back to. Typically the same as the requests host.
+```
+
+If you have multiple domains that should all share the same single-sign-on authentication,
+you can list more than one `protectedOrigin` -- just make sure that the first one listed
+is the one your IdP is configured to redirect back to.
+
+You can also tell Ambassador that subdomains of an origin are OK too. For example, to have
+`domain1.example.com` shares authentication information with `domain2.example.com`, with
+all subdomains of `domain2` included:
+
+```yaml
+    protectedOrigins:
+    - origin: https://domain1.example.com
+    - origin: https://domain2.example.com
+      includeSubdomains: true
 ```
 
 Save the configuration to a file and apply it to the cluster: `kubectl apply -f oauth-filter.yaml`.
@@ -79,10 +95,11 @@ metadata:
 spec:
   OAuth2:
     - authorizationURL: https://example.auth0.com
-      clientURL: http://domain1.example.com
       audience: https://example.auth0.com/api/v2/
       clientId: <APP1_CLIENT_ID>
       secret: <APP1_CLIENT_SECRET>
+      protectedOrigins:
+      - origin: http://domain1.example.com
 ---
 apiVersion: getambassador.io/v2
 kind: Filter
@@ -91,10 +108,11 @@ metadata:
 spec:
   OAuth2:
     - authorizationURL: https://example.auth0.com
-      clientURL: http://domain2.example.com
       audience: https://example.auth0.com/api/v2/
       clientId: <APP2_CLIENT_ID>
       secret: <APP2_CLIENT_SECRET>
+      protectedOrigins:
+      - origin: http://domain2.example.com
 ```
 
 Create a separate `FilterPolicy` that specifies which specific filters are applied to particular hosts or URLs.
