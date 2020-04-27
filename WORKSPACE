@@ -44,10 +44,27 @@ docker_deps()
 
 load("@io_bazel_rules_docker//container:container.bzl", "container_pull")
 container_pull(
-  name = "alpine_glibc",
-  registry = "docker.io",
-  repository = "frolvlad/alpine-glibc",
-  tag = "alpine-3.10" # TODO: consider using 'digest' instead of 'tag'
+    name = "alpine_glibc",
+    registry = "docker.io",
+    repository = "frolvlad/alpine-glibc",
+    tag = "alpine-3.10" # TODO: consider using 'digest' instead of 'tag'
+)
+load("@io_bazel_rules_docker//container:container.bzl", "container_pull")
+container_pull(
+    name = "built_ambassador",
+    registry = "quay.io",
+    repository = "datawire/ambassador",
+    tag = "1.4.2",
+)
+container_pull(
+    name = "base_envoy",
+    registry = "quay.io",
+    repository = "datawire/ambassador-base",
+    tag = "envoy-{relver}.{commit}.{compilation_mode}".format(
+        commit = 'e24f8ed76240c049068160fa1ad3efdb324e00e4',
+        compilation_mode = 'opt',
+        relver = '2',
+    ),
 )
 
 load("@io_bazel_rules_docker//container:container.bzl", "container_load")

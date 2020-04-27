@@ -9,16 +9,51 @@
 load("@bazel_gazelle//:def.bzl", "gazelle")
 load("@io_bazel_rules_docker//container:container.bzl", "container_image", "container_push")
 load("@io_bazel_rules_docker//go:image.bzl", "go_image")
+load("@io_bazel_rules_docker//docker/util:run.bzl", "container_run_and_extract")
 
 #load("@io_bazel_rules_docker//python:image.bzl", "py_layer", "py_image")
 load("@io_bazel_rules_docker//python:image.bzl", "py_layer")
 
 #load("@io_bazel_rules_docker//python3:image.bzl", "py3_image")
 load("//build-aux-local:py.bzl", "py_image")
+#load("//build-aux-local:misc.bzl", "my_image", "piece_binary")
 
 gazelle(name = "gazelle")
 
+# my_image(
+#     name = "test-image",
+#     base = "@alpine_glibc_with_packages//image",
+#     pieces = [
+#         piece_binary(name = "kat-server", binary = "//cmd/kat-server:kat-server.for-container"),
+#         piece_binary(name = "kat-client", binary = "//cmd/kat-server:kat-client.for-container"),
+#     ],
+# )
+
 # ambassador ###################################################################
+
+# Surely there's a better way to get the file out of the image...
+container_run_and_extract(
+    name = "envoy.exe",
+    commands = ["true"],
+    extract_file = "/usr/local/bin/envoy-static-stripped",
+    image = "@base_envoy//image",
+)
+
+# polyglot_image(
+#     name = "ambassador",
+#     pieces = [
+#         py_distribution(
+#             lib = "//python:library",
+#             #'ambassador=ambassador_cli.ambassador:main',
+#             #'diagd=ambassador_diag.diagd:main',
+#             #'mockery=ambassador_cli.mockery:main',
+#             #'grab-snapshots=ambassador_cli.grab_snapshots:main',
+#             #'ert=ambassador_cli.ert:main'
+#         ),
+#         go_binary("//cmd/ambassador:ambassador.for-container"),
+#     ],
+# )
+# py_library()
 
 py_layer(
     name = ".py-library",
