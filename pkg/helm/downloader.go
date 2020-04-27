@@ -20,7 +20,6 @@ import (
 	"k8s.io/helm/pkg/helm/helmpath"
 	"k8s.io/helm/pkg/proto/hapi/chart"
 	"k8s.io/helm/pkg/repo"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
 
 	"github.com/datawire/ambassador/pkg/k8s"
 )
@@ -87,12 +86,12 @@ type HelmDownloader struct {
 	// The chart downloaded (the Chart.yaml file as well as the metadata)
 	downChartFile string
 	downChart     *chart.Metadata
+	DownChartDir  string
 
 	// Directory where the chart will be / has been downloaded (the chart will be in a subdirectory inside)
 	downDir        string
 	downDirCleanup bool
 
-	mgr manager.Manager
 	log *log.Logger
 }
 
@@ -102,7 +101,6 @@ type HelmDownloaderOptions struct {
 	KubeInfo *k8s.KubeInfo
 	Version  ChartVersionRule
 	Logger   *log.Logger
-	Manager  manager.Manager
 }
 
 // NewHelmDownloader creates a new charts manager
@@ -123,7 +121,6 @@ func NewHelmDownloader(options HelmDownloaderOptions) (HelmDownloader, error) {
 	}
 
 	return HelmDownloader{
-		mgr:      options.Manager,
 		URL:      pu,
 		KubeInfo: options.KubeInfo,
 		Version:  options.Version,
@@ -202,6 +199,7 @@ func (lc *HelmDownloader) Cleanup() error {
 	}
 	lc.downDir = ""
 	lc.downChartFile = ""
+	lc.DownChartDir = ""
 	lc.downChart = nil
 	return nil
 }
@@ -382,6 +380,7 @@ func (lc *HelmDownloader) lookupChart() error {
 	}
 
 	lc.downChart = chart
+	lc.DownChartDir = res
 	lc.downChartFile = chartFile
 	return nil
 }
