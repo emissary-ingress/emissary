@@ -130,7 +130,7 @@ RUN setcap cap_net_bind_service=ei /usr/local/bin/envoy
 # Our Go binaries. See envoy section for setcap info.
 COPY --from=artifacts /opt/ambassador /opt/ambassador
 RUN ln -s /opt/ambassador/bin/* /usr/local/bin/
-RUN setcap cap_net_bind_service=p /usr/local/bin/wrapper
+RUN setcap cap_net_bind_service=p /opt/ambassador/bin/wrapper
 
 # Our Python code
 COPY --from=artifacts /buildroot/ambassador/python /buildroot/ambassador/python
