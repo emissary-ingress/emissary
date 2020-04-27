@@ -4,6 +4,7 @@ include $(OSS_HOME)/build-aux/prelude.mk
 
 YES_I_AM_OK_WITH_COMPILING_ENVOY ?=
 YES_I_AM_UPDATING_THE_BASE_IMAGES ?=
+ENVOY_TEST_LABEL ?= //test/...
 
 _git_remote_urls := $(shell git remote | xargs -n1 git remote get-url --all)
 IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
@@ -137,9 +138,10 @@ $(OSS_HOME)/docker/base-envoy/envoy-static: $(ENVOY_BASH.deps) FORCE
 
 check-envoy: ## Run the Envoy test suite
 check-envoy: $(ENVOY_BASH.deps)
-	$(call ENVOY_BASH.cmd, \
-	    docker exec --workdir=/root/envoy $$(cat $(srcdir)/envoy-build-container.txt) /bin/bash -c 'export CC=/opt/llvm/bin/clang && export CXX=/opt/llvm/bin/clang++ && bazel test --config=clang --test_output=errors --verbose_failures -c dbg --test_env=ENVOY_IP_TEST_VERSIONS=v4only //test/...;' \
-	)
+	  @echo 'Testing envoy with Bazel label: "$(ENVOY_TEST_LABEL)"'; \
+	  $(call ENVOY_BASH.cmd, \
+	     docker exec --workdir=/root/envoy $$(cat $(srcdir)/envoy-build-container.txt) /bin/bash -c 'export CC=/opt/llvm/bin/clang && export CXX=/opt/llvm/bin/clang++ && bazel test --config=clang --test_output=errors --verbose_failures -c dbg --test_env=ENVOY_IP_TEST_VERSIONS=v4only $(ENVOY_TEST_LABEL);' \
+	 )
 .PHONY: check-envoy
 
 envoy-shell: ## Run a shell in the Envoy build container
