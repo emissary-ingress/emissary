@@ -43,7 +43,9 @@
           link: /docs/latest/topics/concepts/architecture
     - title: Using Ambassador
       link: /docs/latest/topics/using/
-      items: 
+      items:
+        - title: The Project CRD
+          link: /docs/latest/topics/using/projects
         - title: The Mapping Object
           link: /docs/latest/topics/using/intro-mappings
         - title: Mapping Configuration

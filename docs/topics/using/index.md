@@ -2,6 +2,8 @@
 
 Application development teams use Ambassador to manage edge policies associated with a specific service. This section of the documentation covers core Ambassador elements that are typically used by the application development team.
 
+* [Introduction to Projects](projects) The `Project` resource is the easiest way to develop a cloud-native service.
+  * Configuring Authentication for your Project
 * [Introduction to Mappings](intro-mappings) The `Mapping` resource is the core resource used by every application development team.
 * Mapping Configuration:
   * [Automatic Retries](retries)
