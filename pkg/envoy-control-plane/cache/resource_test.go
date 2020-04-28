@@ -28,6 +28,7 @@ const (
 	clusterName  = "cluster0"
 	routeName    = "route0"
 	listenerName = "listener0"
+	runtimeName  = "runtime0"
 )
 
 var (
@@ -35,6 +36,7 @@ var (
 	cluster  = resource.MakeCluster(resource.Ads, clusterName)
 	route    = resource.MakeRoute(routeName, clusterName)
 	listener = resource.MakeHTTPListener(resource.Ads, listenerName, 80, routeName)
+	runtime  = resource.MakeRuntime(runtimeName)
 )
 
 func TestValidate(t *testing.T) {
@@ -48,6 +50,9 @@ func TestValidate(t *testing.T) {
 		t.Error(err)
 	}
 	if err := listener.Validate(); err != nil {
+		t.Error(err)
+	}
+	if err := runtime.Validate(); err != nil {
 		t.Error(err)
 	}
 
@@ -79,6 +84,9 @@ func TestGetResourceName(t *testing.T) {
 	}
 	if name := cache.GetResourceName(listener); name != listenerName {
 		t.Errorf("GetResourceName(%v) => got %q, want %q", listener, name, listenerName)
+	}
+	if name := cache.GetResourceName(runtime); name != runtimeName {
+		t.Errorf("GetResourceName(%v) => got %q, want %q", runtime, name, runtimeName)
 	}
 	if name := cache.GetResourceName(nil); name != "" {
 		t.Errorf("GetResourceName(nil) => got %q, want none", name)
@@ -117,6 +125,10 @@ func TestGetResourceReferences(t *testing.T) {
 		},
 		{
 			in:  endpoint,
+			out: map[string]bool{},
+		},
+		{
+			in:  runtime,
 			out: map[string]bool{},
 		},
 	}

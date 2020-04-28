@@ -138,13 +138,13 @@ type isSocketEvent_EventSelector interface {
 }
 
 type SocketEvent_Read_ struct {
-	Read *SocketEvent_Read `protobuf:"bytes,2,opt,name=read,proto3,oneof"`
+	Read *SocketEvent_Read `protobuf:"bytes,2,opt,name=read,proto3,oneof" json:"read,omitempty"`
 }
 type SocketEvent_Write_ struct {
-	Write *SocketEvent_Write `protobuf:"bytes,3,opt,name=write,proto3,oneof"`
+	Write *SocketEvent_Write `protobuf:"bytes,3,opt,name=write,proto3,oneof" json:"write,omitempty"`
 }
 type SocketEvent_Closed_ struct {
-	Closed *SocketEvent_Closed `protobuf:"bytes,4,opt,name=closed,proto3,oneof"`
+	Closed *SocketEvent_Closed `protobuf:"bytes,4,opt,name=closed,proto3,oneof" json:"closed,omitempty"`
 }
 
 func (*SocketEvent_Read_) isSocketEvent_EventSelector()   {}
@@ -485,10 +485,10 @@ type isSocketStreamedTraceSegment_MessagePiece interface {
 }
 
 type SocketStreamedTraceSegment_Connection struct {
-	Connection *Connection `protobuf:"bytes,2,opt,name=connection,proto3,oneof"`
+	Connection *Connection `protobuf:"bytes,2,opt,name=connection,proto3,oneof" json:"connection,omitempty"`
 }
 type SocketStreamedTraceSegment_Event struct {
-	Event *SocketEvent `protobuf:"bytes,3,opt,name=event,proto3,oneof"`
+	Event *SocketEvent `protobuf:"bytes,3,opt,name=event,proto3,oneof" json:"event,omitempty"`
 }
 
 func (*SocketStreamedTraceSegment_Connection) isSocketStreamedTraceSegment_MessagePiece() {}
@@ -685,7 +685,8 @@ func (m *SocketEvent) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 }
 
 func (m *SocketEvent_Read_) MarshalTo(dAtA []byte) (int, error) {
-	return m.MarshalToSizedBuffer(dAtA[:m.Size()])
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
 func (m *SocketEvent_Read_) MarshalToSizedBuffer(dAtA []byte) (int, error) {
@@ -705,7 +706,8 @@ func (m *SocketEvent_Read_) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 func (m *SocketEvent_Write_) MarshalTo(dAtA []byte) (int, error) {
-	return m.MarshalToSizedBuffer(dAtA[:m.Size()])
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
 func (m *SocketEvent_Write_) MarshalToSizedBuffer(dAtA []byte) (int, error) {
@@ -725,7 +727,8 @@ func (m *SocketEvent_Write_) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 func (m *SocketEvent_Closed_) MarshalTo(dAtA []byte) (int, error) {
-	return m.MarshalToSizedBuffer(dAtA[:m.Size()])
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
 func (m *SocketEvent_Closed_) MarshalToSizedBuffer(dAtA []byte) (int, error) {
@@ -979,7 +982,8 @@ func (m *SocketStreamedTraceSegment) MarshalToSizedBuffer(dAtA []byte) (int, err
 }
 
 func (m *SocketStreamedTraceSegment_Connection) MarshalTo(dAtA []byte) (int, error) {
-	return m.MarshalToSizedBuffer(dAtA[:m.Size()])
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
 func (m *SocketStreamedTraceSegment_Connection) MarshalToSizedBuffer(dAtA []byte) (int, error) {
@@ -999,7 +1003,8 @@ func (m *SocketStreamedTraceSegment_Connection) MarshalToSizedBuffer(dAtA []byte
 	return len(dAtA) - i, nil
 }
 func (m *SocketStreamedTraceSegment_Event) MarshalTo(dAtA []byte) (int, error) {
-	return m.MarshalToSizedBuffer(dAtA[:m.Size()])
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
 func (m *SocketStreamedTraceSegment_Event) MarshalToSizedBuffer(dAtA []byte) (int, error) {
@@ -2135,6 +2140,7 @@ func (m *SocketStreamedTraceSegment) Unmarshal(dAtA []byte) error {
 func skipTransport(dAtA []byte) (n int, err error) {
 	l := len(dAtA)
 	iNdEx := 0
+	depth := 0
 	for iNdEx < l {
 		var wire uint64
 		for shift := uint(0); ; shift += 7 {
@@ -2166,10 +2172,8 @@ func skipTransport(dAtA []byte) (n int, err error) {
 					break
 				}
 			}
-			return iNdEx, nil
 		case 1:
 			iNdEx += 8
-			return iNdEx, nil
 		case 2:
 			var length int
 			for shift := uint(0); ; shift += 7 {
@@ -2190,55 +2194,30 @@ func skipTransport(dAtA []byte) (n int, err error) {
 				return 0, ErrInvalidLengthTransport
 			}
 			iNdEx += length
-			if iNdEx < 0 {
-				return 0, ErrInvalidLengthTransport
-			}
-			return iNdEx, nil
 		case 3:
-			for {
-				var innerWire uint64
-				var start int = iNdEx
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return 0, ErrIntOverflowTransport
-					}
-					if iNdEx >= l {
-						return 0, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					innerWire |= (uint64(b) & 0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				innerWireType := int(innerWire & 0x7)
-				if innerWireType == 4 {
-					break
-				}
-				next, err := skipTransport(dAtA[start:])
-				if err != nil {
-					return 0, err
-				}
-				iNdEx = start + next
-				if iNdEx < 0 {
-					return 0, ErrInvalidLengthTransport
-				}
-			}
-			return iNdEx, nil
+			depth++
 		case 4:
-			return iNdEx, nil
+			if depth == 0 {
+				return 0, ErrUnexpectedEndOfGroupTransport
+			}
+			depth--
 		case 5:
 			iNdEx += 4
-			return iNdEx, nil
 		default:
 			return 0, fmt.Errorf("proto: illegal wireType %d", wireType)
 		}
+		if iNdEx < 0 {
+			return 0, ErrInvalidLengthTransport
+		}
+		if depth == 0 {
+			return iNdEx, nil
+		}
 	}
-	panic("unreachable")
+	return 0, io.ErrUnexpectedEOF
 }
 
 var (
-	ErrInvalidLengthTransport = fmt.Errorf("proto: negative length found during unmarshaling")
-	ErrIntOverflowTransport   = fmt.Errorf("proto: integer overflow")
+	ErrInvalidLengthTransport        = fmt.Errorf("proto: negative length found during unmarshaling")
+	ErrIntOverflowTransport          = fmt.Errorf("proto: integer overflow")
+	ErrUnexpectedEndOfGroupTransport = fmt.Errorf("proto: unexpected end of group")
 )

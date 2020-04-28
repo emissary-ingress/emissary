@@ -33,6 +33,9 @@ var (
 	_ = types.DynamicAny{}
 )
 
+// define the regex for a UUID once up-front
+var _trace_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on Tracing with the rules defined in the
 // proto definition for this message. If any rules are violated, an error is returned.
 func (m *Tracing) Validate() error {
@@ -550,94 +553,6 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = OpenCensusConfigValidationError{}
-
-// Validate checks the field values on XRayConfig with the rules defined in the
-// proto definition for this message. If any rules are violated, an error is returned.
-func (m *XRayConfig) Validate() error {
-	if m == nil {
-		return nil
-	}
-
-	if len(m.GetDaemonEndpoint()) < 1 {
-		return XRayConfigValidationError{
-			field:  "DaemonEndpoint",
-			reason: "value length must be at least 1 bytes",
-		}
-	}
-
-	// no validation rules for SegmentName
-
-	{
-		tmp := m.GetSamplingRuleManifest()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return XRayConfigValidationError{
-					field:  "SamplingRuleManifest",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-	}
-
-	return nil
-}
-
-// XRayConfigValidationError is the validation error returned by
-// XRayConfig.Validate if the designated constraints aren't met.
-type XRayConfigValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e XRayConfigValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e XRayConfigValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e XRayConfigValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e XRayConfigValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e XRayConfigValidationError) ErrorName() string { return "XRayConfigValidationError" }
-
-// Error satisfies the builtin error interface
-func (e XRayConfigValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sXRayConfig.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = XRayConfigValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = XRayConfigValidationError{}
 
 // Validate checks the field values on TraceServiceConfig with the rules
 // defined in the proto definition for this message. If any rules are
