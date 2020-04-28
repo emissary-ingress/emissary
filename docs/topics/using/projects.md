@@ -16,12 +16,35 @@ A `Project` resource requires the following configuration:
 
 **Note:** The `Edge Policy Console` provides a streamlined self-service workflow for creating a `Project` resource.
 
+## `Project` Repositories
+
+The `Project` Controller expects `Project` repositories to have a `Dockerfile` in the root of the referenced github repo:
+
+```
+<root>
+  |
+  +-- Dockerfile
+  |
+  +-- ...
+```
+
+This `Dockerfile` will be used to build and deploy the `Project`. The `Dockerfile` MUST include an `EXPOSE 8080` instruction, and the server's code MUST be written to bind to port 8080:
+
+```
+FROM <your-base-image>
+...
+RUN <your-build-instructions>
+...
+EXPOSE 8080 # PLEASE NOTE: Your code must bind to port 8080 also!!
+CMD <your-server>
+```
+
 ## How it Works
 
 The `Project Controller` publishes each `Project` by:
 
 1. Building and deploying the default (usually master) branch of the git repo.
-2. Building and staging each open PR at a preview URL.
+2. Building and staging each open PR at a preview URL. Note that for security reasons, the `Project Controller` will only build PRs whose base branch is in the repo itself. This prevents third party PRs from being used for nefarious purposes.
 
 The `Project Controller` automatically registers a webhook so that it is notified whenever PRs are opened or closed or code changes are pushed. This allows the `Project Controller` to automatically and continuously reconcile the cluster state with the git repo and rebuild/restage each PR as well as rebuild/redeploy the default branch as needed.
 

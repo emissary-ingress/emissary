@@ -12,7 +12,7 @@ You will need:
 
 * A [Github](https://github.com) account.
 * A [working installation of Ambassador Edge Stack...](../getting-started/)
-  * With TLS configured.
+  * With TLS configured. (Needed for the github webhook used to sync source changes to your cluster.)
   * And access to the AES admin console: https://$YOUR_HOST/edge_stack/admin/.
 
 ## Quick Start
