@@ -150,6 +150,7 @@
                                         },
                                         {
                                             "config": {
+                                                "clear_route_cache": true,
                                                 "http_service": {
                                                     "authorization_request": {
                                                         "allowed_headers": {
