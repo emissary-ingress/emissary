@@ -6,18 +6,35 @@ import './index.less'
 <div class="index-dropdown">
   <button class="index-dropBtn">Jump to Installation Type</button>
   <div class="index-dropdownContent">
+    <a href="#index-installKubernetesYaml">Kubernetes YAML</a>
+    <a href="#index-installHelm">Helm</a>
     <a href="#index-installMac">Mac</a>
     <a href="#index-installLinux">Linux</a>
     <a href="#index-installWindows">Windows</a>
-    <a href="#index-installKubernetesYaml">Kubernetes YAML</a> 
     <a href="#index-installAmbassadorOperator">Ambassador Operator</a>
-    <a href="#index-installHelm">Helm</a>
     <a href="#index-installDocker">Docker</a>
     <a href="#index-installBareMetal">Bare Metal</a>
     <a href="#index-installUpgrade">Upgrade</a>
   </div>
 </div>
 </div>
+
+<p id="index-installKubernetesYaml"></p><br/>
+
+## Install via Kubernetes YAML
+
+Kubernetes via YAML is the most common approach to install Ambassador Edge Stack,
+especially in production environments, with our default, customizable manifest.
+So if you want complete configuration control over specific parameters of your
+installation, use the [manual YAML installation method](yaml-install).
+<p id="index-installHelm"></p><br/>
+
+## Install via Helm
+[![Helm](../../images/helm.png)](helm/)
+
+Helm, the package manager for Kubernetes, is another popular way to install
+Ambassador Edge Stack through the pre-packaged Helm chart. Full details, including
+the differences for Helm 2 and Helm3, are in the [Helm instructions.](helm/)
 
 <span id="index-installMac"></span><br/>
 
@@ -67,14 +84,6 @@ for a domain name, so you can get started right away.
 and provide you with an `edgestack.me` subdomain. The `edgestack.me` subdomain 
 allows the Ambassador Edge Stack to automatically provision TLS and HTTPS
 for a domain name, so you can get started right away.
-<p id="index-installKubernetesYaml"></p><br/>
-
-## Install via Kubernetes YAML
-
-Kubernetes via YAML is the most common approach to install Ambassador Edge Stack,
-especially in production environments, with our default, customizable manifest.
-So if you want complete configuration control over specific parameters of your
-installation, use the [manual YAML installation method](yaml-install).
 <p id="index-installAmbassadorOperator"></p><br/>
 
 ## Install via the Ambassador Operator
@@ -82,14 +91,6 @@ installation, use the [manual YAML installation method](yaml-install).
 The Ambassador Edge Stack Operator automates installs (day 1 operations) and
 updates (day 2 operations), among other actions. To use the powerful Ambassador
 Operator, [follow the Ambassador Edge Stack Operator instructions](aes-operator).
-<p id="index-installHelm"></p><br/>
-
-## Install via Helm
-[![Helm](../../images/helm.png)](helm/)
-
-Helm, the package manager for Kubernetes, is another popular way to install
-Ambassador Edge Stack through the pre-packaged Helm chart. Full details, including
-the differences for Helm 2 and Helm3, are in the [Helm instructions.](helm/)
 <p id="index-installDocker"></p><br/>
 
 ## Install Locally on Docker
