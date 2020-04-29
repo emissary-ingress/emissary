@@ -33,6 +33,9 @@ var (
 	_ = types.DynamicAny{}
 )
 
+// define the regex for a UUID once up-front
+var _config_dump_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on ConfigDump with the rules defined in the
 // proto definition for this message. If any rules are violated, an error is returned.
 func (m *ConfigDump) Validate() error {
@@ -116,6 +119,105 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ConfigDumpValidationError{}
+
+// Validate checks the field values on UpdateFailureState with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *UpdateFailureState) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	{
+		tmp := m.GetFailedConfiguration()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return UpdateFailureStateValidationError{
+					field:  "FailedConfiguration",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
+	{
+		tmp := m.GetLastUpdateAttempt()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return UpdateFailureStateValidationError{
+					field:  "LastUpdateAttempt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
+	// no validation rules for Details
+
+	return nil
+}
+
+// UpdateFailureStateValidationError is the validation error returned by
+// UpdateFailureState.Validate if the designated constraints aren't met.
+type UpdateFailureStateValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateFailureStateValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateFailureStateValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateFailureStateValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateFailureStateValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateFailureStateValidationError) ErrorName() string {
+	return "UpdateFailureStateValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateFailureStateValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateFailureState.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateFailureStateValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateFailureStateValidationError{}
 
 // Validate checks the field values on BootstrapConfigDump with the rules
 // defined in the proto definition for this message. If any rules are
@@ -244,7 +346,7 @@ func (m *ListenersConfigDump) Validate() error {
 
 	}
 
-	for idx, item := range m.GetDynamicActiveListeners() {
+	for idx, item := range m.GetDynamicListeners() {
 		_, _ = idx, item
 
 		{
@@ -254,47 +356,7 @@ func (m *ListenersConfigDump) Validate() error {
 
 				if err := v.Validate(); err != nil {
 					return ListenersConfigDumpValidationError{
-						field:  fmt.Sprintf("DynamicActiveListeners[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
-				}
-			}
-		}
-
-	}
-
-	for idx, item := range m.GetDynamicWarmingListeners() {
-		_, _ = idx, item
-
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return ListenersConfigDumpValidationError{
-						field:  fmt.Sprintf("DynamicWarmingListeners[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
-				}
-			}
-		}
-
-	}
-
-	for idx, item := range m.GetDynamicDrainingListeners() {
-		_, _ = idx, item
-
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return ListenersConfigDumpValidationError{
-						field:  fmt.Sprintf("DynamicDrainingListeners[%v]", idx),
+						field:  fmt.Sprintf("DynamicListeners[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					}
@@ -929,10 +991,10 @@ var _ interface {
 	ErrorName() string
 } = ListenersConfigDump_StaticListenerValidationError{}
 
-// Validate checks the field values on ListenersConfigDump_DynamicListener with
-// the rules defined in the proto definition for this message. If any rules
-// are violated, an error is returned.
-func (m *ListenersConfigDump_DynamicListener) Validate() error {
+// Validate checks the field values on ListenersConfigDump_DynamicListenerState
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, an error is returned.
+func (m *ListenersConfigDump_DynamicListenerState) Validate() error {
 	if m == nil {
 		return nil
 	}
@@ -945,7 +1007,7 @@ func (m *ListenersConfigDump_DynamicListener) Validate() error {
 		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
 
 			if err := v.Validate(); err != nil {
-				return ListenersConfigDump_DynamicListenerValidationError{
+				return ListenersConfigDump_DynamicListenerStateValidationError{
 					field:  "Listener",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -960,8 +1022,138 @@ func (m *ListenersConfigDump_DynamicListener) Validate() error {
 		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
 
 			if err := v.Validate(); err != nil {
-				return ListenersConfigDump_DynamicListenerValidationError{
+				return ListenersConfigDump_DynamicListenerStateValidationError{
 					field:  "LastUpdated",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+// ListenersConfigDump_DynamicListenerStateValidationError is the validation
+// error returned by ListenersConfigDump_DynamicListenerState.Validate if the
+// designated constraints aren't met.
+type ListenersConfigDump_DynamicListenerStateValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListenersConfigDump_DynamicListenerStateValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListenersConfigDump_DynamicListenerStateValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListenersConfigDump_DynamicListenerStateValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListenersConfigDump_DynamicListenerStateValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListenersConfigDump_DynamicListenerStateValidationError) ErrorName() string {
+	return "ListenersConfigDump_DynamicListenerStateValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListenersConfigDump_DynamicListenerStateValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListenersConfigDump_DynamicListenerState.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListenersConfigDump_DynamicListenerStateValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListenersConfigDump_DynamicListenerStateValidationError{}
+
+// Validate checks the field values on ListenersConfigDump_DynamicListener with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, an error is returned.
+func (m *ListenersConfigDump_DynamicListener) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	// no validation rules for Name
+
+	{
+		tmp := m.GetActiveState()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return ListenersConfigDump_DynamicListenerValidationError{
+					field:  "ActiveState",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
+	{
+		tmp := m.GetWarmingState()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return ListenersConfigDump_DynamicListenerValidationError{
+					field:  "WarmingState",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
+	{
+		tmp := m.GetDrainingState()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return ListenersConfigDump_DynamicListenerValidationError{
+					field:  "DrainingState",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
+	{
+		tmp := m.GetErrorState()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return ListenersConfigDump_DynamicListenerValidationError{
+					field:  "ErrorState",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -1486,7 +1678,9 @@ type ScopedRoutesConfigDump_InlineScopedRouteConfigsValidationError struct {
 }
 
 // Field function returns field value.
-func (e ScopedRoutesConfigDump_InlineScopedRouteConfigsValidationError) Field() string { return e.field }
+func (e ScopedRoutesConfigDump_InlineScopedRouteConfigsValidationError) Field() string {
+	return e.field
+}
 
 // Reason function returns reason value.
 func (e ScopedRoutesConfigDump_InlineScopedRouteConfigsValidationError) Reason() string {
@@ -1607,7 +1801,9 @@ func (e ScopedRoutesConfigDump_DynamicScopedRouteConfigsValidationError) Reason(
 }
 
 // Cause function returns cause value.
-func (e ScopedRoutesConfigDump_DynamicScopedRouteConfigsValidationError) Cause() error { return e.cause }
+func (e ScopedRoutesConfigDump_DynamicScopedRouteConfigsValidationError) Cause() error {
+	return e.cause
+}
 
 // Key function returns key value.
 func (e ScopedRoutesConfigDump_DynamicScopedRouteConfigsValidationError) Key() bool { return e.key }

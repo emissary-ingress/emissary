@@ -33,6 +33,9 @@ var (
 	_ = types.DynamicAny{}
 )
 
+// define the regex for a UUID once up-front
+var _config_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on JwtProvider with the rules defined in
 // the proto definition for this message. If any rules are violated, an error
 // is returned.
@@ -492,6 +495,23 @@ func (m *JwtRequirement) Validate() error {
 			}
 		}
 
+	case *JwtRequirement_AllowMissing:
+
+		{
+			tmp := m.GetAllowMissing()
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return JwtRequirementValidationError{
+						field:  "AllowMissing",
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
 	}
 
 	return nil
@@ -856,7 +876,27 @@ func (m *FilterStateRule) Validate() error {
 		}
 	}
 
-	// no validation rules for Requires
+	for key, val := range m.GetRequires() {
+		_ = val
+
+		// no validation rules for Requires[key]
+
+		{
+			tmp := val
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return FilterStateRuleValidationError{
+						field:  fmt.Sprintf("Requires[%v]", key),
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
+	}
 
 	return nil
 }
@@ -923,7 +963,27 @@ func (m *JwtAuthentication) Validate() error {
 		return nil
 	}
 
-	// no validation rules for Providers
+	for key, val := range m.GetProviders() {
+		_ = val
+
+		// no validation rules for Providers[key]
+
+		{
+			tmp := val
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return JwtAuthenticationValidationError{
+						field:  fmt.Sprintf("Providers[%v]", key),
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
+	}
 
 	for idx, item := range m.GetRules() {
 		_, _ = idx, item
@@ -959,6 +1019,8 @@ func (m *JwtAuthentication) Validate() error {
 			}
 		}
 	}
+
+	// no validation rules for BypassCorsPreflight
 
 	return nil
 }
