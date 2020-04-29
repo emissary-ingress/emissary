@@ -33,6 +33,9 @@ var (
 	_ = types.DynamicAny{}
 )
 
+// define the regex for a UUID once up-front
+var _rbac_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on RBAC with the rules defined in the proto
 // definition for this message. If any rules are violated, an error is returned.
 func (m *RBAC) Validate() error {
@@ -42,7 +45,27 @@ func (m *RBAC) Validate() error {
 
 	// no validation rules for Action
 
-	// no validation rules for Policies
+	for key, val := range m.GetPolicies() {
+		_ = val
+
+		// no validation rules for Policies[key]
+
+		{
+			tmp := val
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return RBACValidationError{
+						field:  fmt.Sprintf("Policies[%v]", key),
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
+	}
 
 	return nil
 }

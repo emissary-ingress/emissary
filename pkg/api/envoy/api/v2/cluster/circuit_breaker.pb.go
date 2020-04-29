@@ -5,7 +5,9 @@ package envoy_api_v2_cluster
 
 import (
 	fmt "fmt"
+	_ "github.com/cncf/udpa/go/udpa/annotations"
 	core "github.com/datawire/ambassador/pkg/api/envoy/api/v2/core"
+	_type "github.com/datawire/ambassador/pkg/api/envoy/type"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	proto "github.com/gogo/protobuf/proto"
 	types "github.com/gogo/protobuf/types"
@@ -81,7 +83,7 @@ func (m *CircuitBreakers) GetThresholds() []*CircuitBreakers_Thresholds {
 
 // A Thresholds defines CircuitBreaker settings for a
 // :ref:`RoutingPriority<envoy_api_enum_core.RoutingPriority>`.
-// [#next-free-field: 8]
+// [#next-free-field: 9]
 type CircuitBreakers_Thresholds struct {
 	// The :ref:`RoutingPriority<envoy_api_enum_core.RoutingPriority>`
 	// the specified CircuitBreaker settings apply to.
@@ -98,9 +100,22 @@ type CircuitBreakers_Thresholds struct {
 	// The maximum number of parallel retries that Envoy will allow to the
 	// upstream cluster. If not specified, the default is 3.
 	MaxRetries *types.UInt32Value `protobuf:"bytes,5,opt,name=max_retries,json=maxRetries,proto3" json:"max_retries,omitempty"`
+	// Specifies a limit on concurrent retries in relation to the number of active requests. This
+	// parameter is optional.
+	//
+	// .. note::
+	//
+	//    If this field is set, the retry budget will override any configured retry circuit
+	//    breaker.
+	RetryBudget *CircuitBreakers_Thresholds_RetryBudget `protobuf:"bytes,8,opt,name=retry_budget,json=retryBudget,proto3" json:"retry_budget,omitempty"`
 	// If track_remaining is true, then stats will be published that expose
 	// the number of resources remaining until the circuit breakers open. If
 	// not specified, the default is false.
+	//
+	// .. note::
+	//
+	//    If a retry budget is used in lieu of the max_retries circuit breaker,
+	//    the remaining retry resources remaining will not be tracked.
 	TrackRemaining bool `protobuf:"varint,6,opt,name=track_remaining,json=trackRemaining,proto3" json:"track_remaining,omitempty"`
 	// The maximum number of connection pools per cluster that Envoy will concurrently support at
 	// once. If not specified, the default is unlimited. Set this for clusters which create a
@@ -181,6 +196,13 @@ func (m *CircuitBreakers_Thresholds) GetMaxRetries() *types.UInt32Value {
 	return nil
 }
 
+func (m *CircuitBreakers_Thresholds) GetRetryBudget() *CircuitBreakers_Thresholds_RetryBudget {
+	if m != nil {
+		return m.RetryBudget
+	}
+	return nil
+}
+
 func (m *CircuitBreakers_Thresholds) GetTrackRemaining() bool {
 	if m != nil {
 		return m.TrackRemaining
@@ -195,9 +217,76 @@ func (m *CircuitBreakers_Thresholds) GetMaxConnectionPools() *types.UInt32Value 
 	return nil
 }
 
+type CircuitBreakers_Thresholds_RetryBudget struct {
+	// Specifies the limit on concurrent retries as a percentage of the sum of active requests and
+	// active pending requests. For example, if there are 100 active requests and the
+	// budget_percent is set to 25, there may be 25 active retries.
+	//
+	// This parameter is optional. Defaults to 20%.
+	BudgetPercent *_type.Percent `protobuf:"bytes,1,opt,name=budget_percent,json=budgetPercent,proto3" json:"budget_percent,omitempty"`
+	// Specifies the minimum retry concurrency allowed for the retry budget. The limit on the
+	// number of active retries may never go below this number.
+	//
+	// This parameter is optional. Defaults to 3.
+	MinRetryConcurrency  *types.UInt32Value `protobuf:"bytes,2,opt,name=min_retry_concurrency,json=minRetryConcurrency,proto3" json:"min_retry_concurrency,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}           `json:"-"`
+	XXX_unrecognized     []byte             `json:"-"`
+	XXX_sizecache        int32              `json:"-"`
+}
+
+func (m *CircuitBreakers_Thresholds_RetryBudget) Reset() {
+	*m = CircuitBreakers_Thresholds_RetryBudget{}
+}
+func (m *CircuitBreakers_Thresholds_RetryBudget) String() string { return proto.CompactTextString(m) }
+func (*CircuitBreakers_Thresholds_RetryBudget) ProtoMessage()    {}
+func (*CircuitBreakers_Thresholds_RetryBudget) Descriptor() ([]byte, []int) {
+	return fileDescriptor_89bc8d4e21efdd79, []int{0, 0, 0}
+}
+func (m *CircuitBreakers_Thresholds_RetryBudget) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *CircuitBreakers_Thresholds_RetryBudget) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_CircuitBreakers_Thresholds_RetryBudget.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *CircuitBreakers_Thresholds_RetryBudget) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CircuitBreakers_Thresholds_RetryBudget.Merge(m, src)
+}
+func (m *CircuitBreakers_Thresholds_RetryBudget) XXX_Size() int {
+	return m.Size()
+}
+func (m *CircuitBreakers_Thresholds_RetryBudget) XXX_DiscardUnknown() {
+	xxx_messageInfo_CircuitBreakers_Thresholds_RetryBudget.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CircuitBreakers_Thresholds_RetryBudget proto.InternalMessageInfo
+
+func (m *CircuitBreakers_Thresholds_RetryBudget) GetBudgetPercent() *_type.Percent {
+	if m != nil {
+		return m.BudgetPercent
+	}
+	return nil
+}
+
+func (m *CircuitBreakers_Thresholds_RetryBudget) GetMinRetryConcurrency() *types.UInt32Value {
+	if m != nil {
+		return m.MinRetryConcurrency
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*CircuitBreakers)(nil), "envoy.api.v2.cluster.CircuitBreakers")
 	proto.RegisterType((*CircuitBreakers_Thresholds)(nil), "envoy.api.v2.cluster.CircuitBreakers.Thresholds")
+	proto.RegisterType((*CircuitBreakers_Thresholds_RetryBudget)(nil), "envoy.api.v2.cluster.CircuitBreakers.Thresholds.RetryBudget")
 }
 
 func init() {
@@ -205,36 +294,45 @@ func init() {
 }
 
 var fileDescriptor_89bc8d4e21efdd79 = []byte{
-	// 459 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x92, 0xcf, 0x6e, 0xd3, 0x40,
-	0x10, 0x87, 0xb5, 0x49, 0x5b, 0xaa, 0x0d, 0x4a, 0x90, 0xa9, 0xc0, 0x8a, 0xaa, 0x28, 0xca, 0x85,
-	0x88, 0xc3, 0x1a, 0xb9, 0x67, 0x84, 0x48, 0xd4, 0x03, 0x1c, 0x2a, 0xcb, 0x40, 0xaf, 0xd6, 0xc6,
-	0x19, 0xdc, 0x55, 0xed, 0xdd, 0x65, 0x76, 0x1d, 0x9c, 0x2b, 0x8f, 0xc3, 0x23, 0x70, 0xe2, 0xc8,
-	0x09, 0xf1, 0x08, 0x28, 0x27, 0xe0, 0x29, 0x50, 0xbc, 0xf9, 0x43, 0xab, 0x22, 0xf9, 0x66, 0xef,
-	0xfc, 0xbe, 0xcf, 0xb3, 0xe3, 0xa1, 0x4f, 0x41, 0x2e, 0xd4, 0x32, 0xe0, 0x5a, 0x04, 0x8b, 0x30,
-	0x48, 0xf3, 0xd2, 0x58, 0xc0, 0x20, 0x15, 0x98, 0x96, 0xc2, 0x26, 0x33, 0x04, 0x7e, 0x0d, 0xc8,
-	0x34, 0x2a, 0xab, 0xbc, 0x93, 0x3a, 0xcb, 0xb8, 0x16, 0x6c, 0x11, 0xb2, 0x4d, 0xb6, 0x7f, 0x7a,
-	0xd3, 0xa0, 0x10, 0x82, 0x19, 0x37, 0xe0, 0x98, 0xfe, 0x20, 0x53, 0x2a, 0xcb, 0x21, 0xa8, 0xdf,
-	0x66, 0xe5, 0xfb, 0xe0, 0x23, 0x72, 0xad, 0x01, 0xcd, 0xa6, 0xfe, 0x78, 0xc1, 0x73, 0x31, 0xe7,
-	0x16, 0x82, 0xed, 0x83, 0x2b, 0x8c, 0xbe, 0x1f, 0xd0, 0xde, 0xd4, 0xb5, 0x31, 0x71, 0x5d, 0x18,
-	0x2f, 0xa2, 0xd4, 0x5e, 0x21, 0x98, 0x2b, 0x95, 0xcf, 0x8d, 0x4f, 0x86, 0xed, 0x71, 0x27, 0x7c,
-	0xc6, 0xee, 0xea, 0x8a, 0xdd, 0x42, 0xd9, 0xdb, 0x1d, 0x17, 0xff, 0xe3, 0xe8, 0xff, 0x6a, 0x53,
-	0xba, 0x2f, 0x79, 0xaf, 0xe9, 0xb1, 0x46, 0xa1, 0x50, 0xd8, 0xa5, 0x4f, 0x86, 0x64, 0xdc, 0x0d,
-	0x47, 0xb7, 0xf4, 0x0a, 0x81, 0xc5, 0xaa, 0xb4, 0x42, 0x66, 0xd1, 0x26, 0x39, 0xa1, 0x5f, 0x7e,
-	0x7f, 0x6d, 0x1f, 0x7e, 0x22, 0xad, 0x07, 0x24, 0xde, 0xf1, 0xde, 0x39, 0xed, 0x15, 0xbc, 0x4a,
-	0x52, 0x25, 0x25, 0xa4, 0x56, 0x28, 0x69, 0xfc, 0xd6, 0x90, 0x8c, 0x3b, 0xe1, 0x29, 0x73, 0x33,
-	0x61, 0xdb, 0x99, 0xb0, 0x77, 0xaf, 0xa4, 0x3d, 0x0b, 0x2f, 0x79, 0x5e, 0x42, 0xdc, 0x2d, 0x78,
-	0x35, 0xdd, 0x33, 0xde, 0x05, 0x3d, 0x59, 0x6b, 0x34, 0xc8, 0xb9, 0x90, 0x59, 0x82, 0xf0, 0xa1,
-	0x04, 0x63, 0x8d, 0xdf, 0x6e, 0xe0, 0xf2, 0x0a, 0x5e, 0x45, 0x0e, 0x8c, 0x37, 0x9c, 0xf7, 0x82,
-	0xde, 0x5f, 0xfb, 0x76, 0x9e, 0x83, 0x06, 0x9e, 0x4e, 0xc1, 0xab, 0x9d, 0xe0, 0x39, 0xed, 0x38,
-	0x81, 0x45, 0x01, 0xc6, 0x3f, 0x6c, 0xc0, 0xd3, 0x9a, 0xaf, 0xf3, 0xde, 0x13, 0xda, 0xb3, 0xc8,
-	0xd3, 0xeb, 0x04, 0xa1, 0xe0, 0x42, 0x0a, 0x99, 0xf9, 0x47, 0x43, 0x32, 0x3e, 0x8e, 0xbb, 0xf5,
-	0x71, 0xbc, 0x3d, 0xdd, 0x5e, 0x7c, 0x3f, 0xbf, 0x44, 0x2b, 0x95, 0x1b, 0xff, 0x5e, 0xc3, 0x8b,
-	0xef, 0x87, 0x18, 0xad, 0xb9, 0xc9, 0xf2, 0xdb, 0x6a, 0x40, 0x7e, 0xac, 0x06, 0xe4, 0xe7, 0x6a,
-	0x40, 0xe8, 0x48, 0x28, 0xf7, 0x67, 0x35, 0xaa, 0x6a, 0x79, 0xe7, 0x0e, 0x4d, 0x1e, 0xde, 0x5c,
-	0xa2, 0x68, 0xfd, 0xa5, 0x88, 0x7c, 0x6e, 0x3d, 0x3a, 0xaf, 0xd3, 0x2f, 0xb5, 0x60, 0x97, 0x21,
-	0x9b, 0xba, 0xf4, 0xc5, 0x9b, 0x3f, 0xff, 0x2b, 0xcc, 0x8e, 0xea, 0x26, 0xcf, 0xfe, 0x06, 0x00,
-	0x00, 0xff, 0xff, 0x62, 0x2f, 0xd6, 0x1a, 0x6d, 0x03, 0x00, 0x00,
+	// 596 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x93, 0xcf, 0x6a, 0xd4, 0x40,
+	0x1c, 0xc7, 0x99, 0xd6, 0xad, 0xcb, 0xa4, 0x6e, 0x65, 0x5a, 0x6d, 0x5c, 0xca, 0xb2, 0xf4, 0xe2,
+	0xe2, 0x61, 0x22, 0xe9, 0x4d, 0x14, 0x71, 0x97, 0x82, 0x5e, 0x4a, 0x88, 0xda, 0x6b, 0x98, 0xcd,
+	0x4e, 0xd3, 0xa1, 0xc9, 0xcc, 0x38, 0x99, 0xac, 0x9b, 0xab, 0x2f, 0xe0, 0xb5, 0xe0, 0x1b, 0xf8,
+	0x24, 0x82, 0x17, 0x1f, 0x41, 0x0a, 0x5e, 0x3c, 0x7a, 0xf4, 0x20, 0x92, 0x99, 0x64, 0xd3, 0x96,
+	0x0a, 0xeb, 0x2d, 0x93, 0xef, 0xf7, 0xfb, 0xe1, 0xf7, 0x67, 0x06, 0x3e, 0xa2, 0x7c, 0x2e, 0x4a,
+	0x8f, 0x48, 0xe6, 0xcd, 0x7d, 0x2f, 0x4e, 0x8b, 0x5c, 0x53, 0xe5, 0xc5, 0x4c, 0xc5, 0x05, 0xd3,
+	0xd1, 0x54, 0x51, 0x72, 0x46, 0x15, 0x96, 0x4a, 0x68, 0x81, 0x76, 0x8c, 0x17, 0x13, 0xc9, 0xf0,
+	0xdc, 0xc7, 0xb5, 0xb7, 0xbf, 0x77, 0x95, 0x20, 0x14, 0xf5, 0xa6, 0x24, 0xa7, 0x36, 0xd3, 0x77,
+	0xad, 0xaa, 0x4b, 0x49, 0x3d, 0x49, 0x55, 0x4c, 0xb9, 0xae, 0x95, 0x41, 0x22, 0x44, 0x92, 0x52,
+	0xcf, 0x9c, 0xa6, 0xc5, 0x89, 0xf7, 0x5e, 0x11, 0x29, 0xa9, 0xca, 0x1b, 0xbd, 0x98, 0x49, 0xe2,
+	0x11, 0xce, 0x85, 0x26, 0x9a, 0x09, 0x9e, 0x7b, 0x19, 0x4b, 0x14, 0xd1, 0x0d, 0x79, 0x77, 0x4e,
+	0x52, 0x36, 0x23, 0x9a, 0x7a, 0xcd, 0x87, 0x15, 0xf6, 0xbf, 0x6e, 0xc0, 0xad, 0x89, 0x6d, 0x60,
+	0x6c, 0xeb, 0xcf, 0x51, 0x00, 0xa1, 0x3e, 0x55, 0x34, 0x3f, 0x15, 0xe9, 0x2c, 0x77, 0xc1, 0x70,
+	0x7d, 0xe4, 0xf8, 0x8f, 0xf1, 0x4d, 0xfd, 0xe0, 0x6b, 0x51, 0xfc, 0x66, 0x99, 0x0b, 0x2f, 0x31,
+	0xfa, 0x3f, 0x3a, 0x10, 0xb6, 0x12, 0x7a, 0x09, 0xbb, 0x52, 0x31, 0xa1, 0x98, 0x2e, 0x5d, 0x30,
+	0x04, 0xa3, 0x9e, 0xbf, 0x7f, 0x0d, 0x2f, 0x14, 0xc5, 0xa1, 0x28, 0x34, 0xe3, 0x49, 0x50, 0x3b,
+	0xc7, 0xdd, 0xdf, 0xe3, 0xce, 0x07, 0xb0, 0x76, 0x17, 0x84, 0xcb, 0x34, 0x3a, 0x84, 0x5b, 0x19,
+	0x59, 0x44, 0xb1, 0xe0, 0x9c, 0xc6, 0xa6, 0x71, 0x77, 0x6d, 0x08, 0x46, 0x8e, 0xbf, 0x87, 0xed,
+	0xc4, 0x70, 0x33, 0x31, 0xfc, 0xf6, 0x15, 0xd7, 0x07, 0xfe, 0x31, 0x49, 0x0b, 0x1a, 0xf6, 0x32,
+	0xb2, 0x98, 0xb4, 0x19, 0x74, 0x04, 0x77, 0x2a, 0x8c, 0xa4, 0x7c, 0xc6, 0x78, 0x12, 0x29, 0xfa,
+	0xae, 0xa0, 0xb9, 0xce, 0xdd, 0xf5, 0x15, 0x58, 0x28, 0x23, 0x8b, 0xc0, 0x06, 0xc3, 0x3a, 0x87,
+	0x9e, 0xc3, 0xcd, 0x8a, 0xb7, 0xe4, 0xdc, 0x5a, 0x81, 0xe3, 0x64, 0x64, 0xb1, 0x04, 0x3c, 0x83,
+	0x8e, 0x05, 0x68, 0xc5, 0x68, 0xee, 0x76, 0x56, 0xc8, 0x43, 0x93, 0x37, 0x7e, 0x14, 0xc1, 0xcd,
+	0x2a, 0x5a, 0x46, 0xd3, 0x62, 0x96, 0x50, 0xed, 0x76, 0x4d, 0xfe, 0xe9, 0xff, 0xee, 0x10, 0x57,
+	0xbc, 0x72, 0x6c, 0x18, 0xa1, 0xa3, 0xda, 0x03, 0x7a, 0x08, 0xb7, 0xb4, 0x22, 0xf1, 0x59, 0xa4,
+	0x68, 0x46, 0x18, 0x67, 0x3c, 0x71, 0x37, 0x86, 0x60, 0xd4, 0x0d, 0x7b, 0xe6, 0x77, 0xd8, 0xfc,
+	0x6d, 0x26, 0xdb, 0x2e, 0x28, 0x92, 0x42, 0xa4, 0xb9, 0x7b, 0x7b, 0xc5, 0xc9, 0xb6, 0x5b, 0x0a,
+	0xaa, 0x5c, 0xff, 0x13, 0x80, 0xce, 0xa5, 0xaa, 0xd0, 0x13, 0xd8, 0xb3, 0x3d, 0x46, 0xf5, 0x83,
+	0x31, 0x17, 0xca, 0xf1, 0xb7, 0xeb, 0x5e, 0xab, 0xb7, 0x84, 0x03, 0x2b, 0x85, 0x77, 0xac, 0xb5,
+	0x3e, 0xa2, 0x00, 0xde, 0xcb, 0x18, 0x8f, 0xec, 0xa4, 0x62, 0xc1, 0xe3, 0x42, 0x29, 0xca, 0xe3,
+	0x72, 0xa5, 0x2b, 0xb4, 0x9d, 0x31, 0x6e, 0x0a, 0x99, 0xb4, 0xc1, 0xf1, 0x39, 0xf8, 0x72, 0x31,
+	0x00, 0xdf, 0x2e, 0x06, 0xe0, 0xfb, 0xc5, 0x00, 0xfc, 0x3a, 0xff, 0xf3, 0xb1, 0xf3, 0x00, 0xed,
+	0xda, 0x4a, 0x62, 0xc1, 0x4f, 0x58, 0xb2, 0x9c, 0xfa, 0xfc, 0x00, 0xee, 0x33, 0x61, 0xab, 0x94,
+	0x4a, 0x2c, 0xca, 0x1b, 0x97, 0x33, 0xde, 0xbe, 0xba, 0x9d, 0xa0, 0x2a, 0x25, 0x00, 0x9f, 0xd7,
+	0xee, 0x1f, 0x1a, 0xf7, 0x0b, 0xc9, 0xf0, 0xb1, 0x8f, 0x27, 0xd6, 0x7d, 0xf4, 0xfa, 0xe7, 0xbf,
+	0x84, 0xe9, 0x86, 0xe9, 0xe2, 0xe0, 0x6f, 0x00, 0x00, 0x00, 0xff, 0xff, 0xba, 0xce, 0xc0, 0xab,
+	0xc4, 0x04, 0x00, 0x00,
 }
 
 func (m *CircuitBreakers) Marshal() (dAtA []byte, err error) {
@@ -301,6 +399,18 @@ func (m *CircuitBreakers_Thresholds) MarshalToSizedBuffer(dAtA []byte) (int, err
 	if m.XXX_unrecognized != nil {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.RetryBudget != nil {
+		{
+			size, err := m.RetryBudget.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintCircuitBreaker(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x42
 	}
 	if m.MaxConnectionPools != nil {
 		{
@@ -380,6 +490,57 @@ func (m *CircuitBreakers_Thresholds) MarshalToSizedBuffer(dAtA []byte) (int, err
 	return len(dAtA) - i, nil
 }
 
+func (m *CircuitBreakers_Thresholds_RetryBudget) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *CircuitBreakers_Thresholds_RetryBudget) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *CircuitBreakers_Thresholds_RetryBudget) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.MinRetryConcurrency != nil {
+		{
+			size, err := m.MinRetryConcurrency.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintCircuitBreaker(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.BudgetPercent != nil {
+		{
+			size, err := m.BudgetPercent.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintCircuitBreaker(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintCircuitBreaker(dAtA []byte, offset int, v uint64) int {
 	offset -= sovCircuitBreaker(v)
 	base := offset
@@ -439,6 +600,30 @@ func (m *CircuitBreakers_Thresholds) Size() (n int) {
 	}
 	if m.MaxConnectionPools != nil {
 		l = m.MaxConnectionPools.Size()
+		n += 1 + l + sovCircuitBreaker(uint64(l))
+	}
+	if m.RetryBudget != nil {
+		l = m.RetryBudget.Size()
+		n += 1 + l + sovCircuitBreaker(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *CircuitBreakers_Thresholds_RetryBudget) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.BudgetPercent != nil {
+		l = m.BudgetPercent.Size()
+		n += 1 + l + sovCircuitBreaker(uint64(l))
+	}
+	if m.MinRetryConcurrency != nil {
+		l = m.MinRetryConcurrency.Size()
 		n += 1 + l + sovCircuitBreaker(uint64(l))
 	}
 	if m.XXX_unrecognized != nil {
@@ -789,6 +974,168 @@ func (m *CircuitBreakers_Thresholds) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RetryBudget", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCircuitBreaker
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCircuitBreaker
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCircuitBreaker
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.RetryBudget == nil {
+				m.RetryBudget = &CircuitBreakers_Thresholds_RetryBudget{}
+			}
+			if err := m.RetryBudget.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCircuitBreaker(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthCircuitBreaker
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthCircuitBreaker
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *CircuitBreakers_Thresholds_RetryBudget) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCircuitBreaker
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: RetryBudget: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: RetryBudget: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BudgetPercent", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCircuitBreaker
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCircuitBreaker
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCircuitBreaker
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.BudgetPercent == nil {
+				m.BudgetPercent = &_type.Percent{}
+			}
+			if err := m.BudgetPercent.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MinRetryConcurrency", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCircuitBreaker
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCircuitBreaker
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCircuitBreaker
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.MinRetryConcurrency == nil {
+				m.MinRetryConcurrency = &types.UInt32Value{}
+			}
+			if err := m.MinRetryConcurrency.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipCircuitBreaker(dAtA[iNdEx:])
@@ -817,6 +1164,7 @@ func (m *CircuitBreakers_Thresholds) Unmarshal(dAtA []byte) error {
 func skipCircuitBreaker(dAtA []byte) (n int, err error) {
 	l := len(dAtA)
 	iNdEx := 0
+	depth := 0
 	for iNdEx < l {
 		var wire uint64
 		for shift := uint(0); ; shift += 7 {
@@ -848,10 +1196,8 @@ func skipCircuitBreaker(dAtA []byte) (n int, err error) {
 					break
 				}
 			}
-			return iNdEx, nil
 		case 1:
 			iNdEx += 8
-			return iNdEx, nil
 		case 2:
 			var length int
 			for shift := uint(0); ; shift += 7 {
@@ -872,55 +1218,30 @@ func skipCircuitBreaker(dAtA []byte) (n int, err error) {
 				return 0, ErrInvalidLengthCircuitBreaker
 			}
 			iNdEx += length
-			if iNdEx < 0 {
-				return 0, ErrInvalidLengthCircuitBreaker
-			}
-			return iNdEx, nil
 		case 3:
-			for {
-				var innerWire uint64
-				var start int = iNdEx
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return 0, ErrIntOverflowCircuitBreaker
-					}
-					if iNdEx >= l {
-						return 0, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					innerWire |= (uint64(b) & 0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				innerWireType := int(innerWire & 0x7)
-				if innerWireType == 4 {
-					break
-				}
-				next, err := skipCircuitBreaker(dAtA[start:])
-				if err != nil {
-					return 0, err
-				}
-				iNdEx = start + next
-				if iNdEx < 0 {
-					return 0, ErrInvalidLengthCircuitBreaker
-				}
-			}
-			return iNdEx, nil
+			depth++
 		case 4:
-			return iNdEx, nil
+			if depth == 0 {
+				return 0, ErrUnexpectedEndOfGroupCircuitBreaker
+			}
+			depth--
 		case 5:
 			iNdEx += 4
-			return iNdEx, nil
 		default:
 			return 0, fmt.Errorf("proto: illegal wireType %d", wireType)
 		}
+		if iNdEx < 0 {
+			return 0, ErrInvalidLengthCircuitBreaker
+		}
+		if depth == 0 {
+			return iNdEx, nil
+		}
 	}
-	panic("unreachable")
+	return 0, io.ErrUnexpectedEOF
 }
 
 var (
-	ErrInvalidLengthCircuitBreaker = fmt.Errorf("proto: negative length found during unmarshaling")
-	ErrIntOverflowCircuitBreaker   = fmt.Errorf("proto: integer overflow")
+	ErrInvalidLengthCircuitBreaker        = fmt.Errorf("proto: negative length found during unmarshaling")
+	ErrIntOverflowCircuitBreaker          = fmt.Errorf("proto: integer overflow")
+	ErrUnexpectedEndOfGroupCircuitBreaker = fmt.Errorf("proto: unexpected end of group")
 )

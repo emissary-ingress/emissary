@@ -378,6 +378,8 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
         }
 
     if auth_info:
+        auth_info['config']['clear_route_cache'] = True
+
         if body_info:
             auth_info['config']['with_request_body'] = body_info
 
