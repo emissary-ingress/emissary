@@ -127,6 +127,7 @@
                                     "http_filters": [
                                         {
                                             "config": {
+                                                "clear_route_cache": true,
                                                 "grpc_service": {
                                                     "envoy_grpc": {
                                                         "cluster_name": "cluster_extauth_authenticationgrpctest_agrpc_auth_default"

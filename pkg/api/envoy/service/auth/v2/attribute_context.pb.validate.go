@@ -33,6 +33,9 @@ var (
 	_ = types.DynamicAny{}
 )
 
+// define the regex for a UUID once up-front
+var _attribute_context_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on AttributeContext with the rules defined
 // in the proto definition for this message. If any rules are violated, an
 // error is returned.
@@ -188,6 +191,8 @@ func (m *AttributeContext_Peer) Validate() error {
 	// no validation rules for Labels
 
 	// no validation rules for Principal
+
+	// no validation rules for Certificate
 
 	return nil
 }

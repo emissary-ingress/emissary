@@ -33,6 +33,9 @@ var (
 	_ = types.DynamicAny{}
 )
 
+// define the regex for a UUID once up-front
+var _health_check_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on HealthCheck with the rules defined in
 // the proto definition for this message. If any rules are violated, an error
 // is returned.
@@ -78,7 +81,27 @@ func (m *HealthCheck) Validate() error {
 		}
 	}
 
-	// no validation rules for ClusterMinHealthyPercentages
+	for key, val := range m.GetClusterMinHealthyPercentages() {
+		_ = val
+
+		// no validation rules for ClusterMinHealthyPercentages[key]
+
+		{
+			tmp := val
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return HealthCheckValidationError{
+						field:  fmt.Sprintf("ClusterMinHealthyPercentages[%v]", key),
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
+	}
 
 	for idx, item := range m.GetHeaders() {
 		_, _ = idx, item
