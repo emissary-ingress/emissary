@@ -21,6 +21,7 @@ import (
 	v2 "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
 	auth "github.com/datawire/ambassador/pkg/api/envoy/api/v2/auth"
 	hcm "github.com/datawire/ambassador/pkg/api/envoy/config/filter/network/http_connection_manager/v2"
+	discovery "github.com/datawire/ambassador/pkg/api/envoy/service/discovery/v2"
 	"github.com/datawire/ambassador/pkg/envoy-control-plane/conversion"
 	"github.com/datawire/ambassador/pkg/envoy-control-plane/wellknown"
 )
@@ -32,27 +33,50 @@ type Resource interface {
 
 // Resource types in xDS v2.
 const (
-	typePrefix   = "type.googleapis.com/envoy.api.v2."
-	EndpointType = typePrefix + "ClusterLoadAssignment"
-	ClusterType  = typePrefix + "Cluster"
-	RouteType    = typePrefix + "RouteConfiguration"
-	ListenerType = typePrefix + "Listener"
-	SecretType   = typePrefix + "auth.Secret"
+	apiTypePrefix       = "type.googleapis.com/envoy.api.v2."
+	discoveryTypePrefix = "type.googleapis.com/envoy.service.discovery.v2."
+	EndpointType        = apiTypePrefix + "ClusterLoadAssignment"
+	ClusterType         = apiTypePrefix + "Cluster"
+	RouteType           = apiTypePrefix + "RouteConfiguration"
+	ListenerType        = apiTypePrefix + "Listener"
+	SecretType          = apiTypePrefix + "auth.Secret"
+	RuntimeType         = discoveryTypePrefix + "Runtime"
 
 	// AnyType is used only by ADS
 	AnyType = ""
 )
 
-var (
-	// ResponseTypes are supported response types.
-	ResponseTypes = []string{
-		EndpointType,
-		ClusterType,
-		RouteType,
-		ListenerType,
-		SecretType,
-	}
+// ResponseType enumeration of supported response types
+type ResponseType int
+
+const (
+	Endpoint ResponseType = iota
+	Cluster
+	Route
+	Listener
+	Secret
+	Runtime
+	UnknownType // token to count the total number of supported types
 )
+
+// GetResponseType returns the enumeration for a valid xDS type URL
+func GetResponseType(typeURL string) ResponseType {
+	switch typeURL {
+	case EndpointType:
+		return Endpoint
+	case ClusterType:
+		return Cluster
+	case RouteType:
+		return Route
+	case ListenerType:
+		return Listener
+	case SecretType:
+		return Secret
+	case RuntimeType:
+		return Runtime
+	}
+	return UnknownType
+}
 
 // GetResourceName returns the resource name for a valid xDS response type.
 func GetResourceName(res Resource) string {
@@ -67,9 +91,22 @@ func GetResourceName(res Resource) string {
 		return v.GetName()
 	case *auth.Secret:
 		return v.GetName()
+	case *discovery.Runtime:
+		return v.GetName()
 	default:
 		return ""
 	}
+}
+
+// MarshalResource converts the Resource to MarshaledResource
+func MarshalResource(resource Resource) (MarshaledResource, error) {
+	b := proto.NewBuffer(nil)
+	err := b.Marshal(resource)
+	if err != nil {
+		return nil, err
+	}
+
+	return b.Bytes(), nil
 }
 
 // GetResourceReferences returns the names for dependent resources (EDS cluster
@@ -125,6 +162,8 @@ func GetResourceReferences(resources map[string]Resource) map[string]bool {
 					}
 				}
 			}
+		case *discovery.Runtime:
+			// no dependencies
 		}
 	}
 	return out

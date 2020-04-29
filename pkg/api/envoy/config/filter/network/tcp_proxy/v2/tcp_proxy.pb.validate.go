@@ -33,6 +33,9 @@ var (
 	_ = types.DynamicAny{}
 )
 
+// define the regex for a UUID once up-front
+var _tcp_proxy_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on TcpProxy with the rules defined in the
 // proto definition for this message. If any rules are violated, an error is returned.
 func (m *TcpProxy) Validate() error {
@@ -148,6 +151,33 @@ func (m *TcpProxy) Validate() error {
 			return TcpProxyValidationError{
 				field:  "MaxConnectAttempts",
 				reason: "value must be greater than or equal to 1",
+			}
+		}
+
+	}
+
+	if len(m.GetHashPolicy()) > 1 {
+		return TcpProxyValidationError{
+			field:  "HashPolicy",
+			reason: "value must contain no more than 1 item(s)",
+		}
+	}
+
+	for idx, item := range m.GetHashPolicy() {
+		_, _ = idx, item
+
+		{
+			tmp := item
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return TcpProxyValidationError{
+						field:  fmt.Sprintf("HashPolicy[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
 			}
 		}
 
@@ -566,6 +596,21 @@ func (m *TcpProxy_WeightedCluster_ClusterWeight) Validate() error {
 		return TcpProxy_WeightedCluster_ClusterWeightValidationError{
 			field:  "Weight",
 			reason: "value must be greater than or equal to 1",
+		}
+	}
+
+	{
+		tmp := m.GetMetadataMatch()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return TcpProxy_WeightedCluster_ClusterWeightValidationError{
+					field:  "MetadataMatch",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
 		}
 	}
 

@@ -52,7 +52,7 @@ import (
 	"syscall"
 
 	"github.com/fsnotify/fsnotify"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 
 	// protobuf library
@@ -110,16 +110,13 @@ func (h Hasher) ID(node *core.Node) string {
 // end Hasher stuff
 
 // This feels kinda dumb.
-type logger struct{}
-
-func (logger logger) Infof(format string, args ...interface{}) {
-	log.Debugf(format, args...)
-}
-func (logger logger) Errorf(format string, args ...interface{}) {
-	log.Errorf(format, args...)
+type logger struct {
+	*logrus.Logger
 }
 
-// end logger stuff
+var log = &logger{
+	Logger: logrus.StandardLogger(),
+}
 
 // run stuff
 // RunManagementServer starts an xDS server at the given port.
@@ -138,13 +135,13 @@ func runManagementServer(ctx context.Context, server server.Server, port uint) {
 	v2.RegisterRouteDiscoveryServiceServer(grpcServer, server)
 	v2.RegisterListenerDiscoveryServiceServer(grpcServer, server)
 
-	log.WithFields(log.Fields{"port": port}).Info("Listening")
+	log.WithFields(logrus.Fields{"port": port}).Info("Listening")
 	go func() {
 		go func() {
 			err := grpcServer.Serve(lis)
 
 			if err != nil {
-				log.WithFields(log.Fields{"error": err}).Error("Management server exited")
+				log.WithFields(logrus.Fields{"error": err}).Error("Management server exited")
 			}
 		}()
 
@@ -233,6 +230,7 @@ func update(config cache.SnapshotCache, generation *int, dirs []string) {
 	endpoints := []cache.Resource{} // v2.ClusterLoadAssignment
 	routes := []cache.Resource{}    // v2.RouteConfiguration
 	listeners := []cache.Resource{} // v2.Listener
+	runtimes := []cache.Resource{}  // discovery.Runtime
 
 	var filenames []string
 
@@ -266,6 +264,8 @@ func update(config cache.SnapshotCache, generation *int, dirs []string) {
 			dst = &routes
 		case *v2.Listener:
 			dst = &listeners
+		case *discovery.Runtime:
+			dst = &runtimes
 		case *bootstrap.Bootstrap:
 			bs := m.(*bootstrap.Bootstrap)
 			sr := bs.StaticResources
@@ -285,7 +285,13 @@ func update(config cache.SnapshotCache, generation *int, dirs []string) {
 
 	version := fmt.Sprintf("v%d", *generation)
 	*generation++
-	snapshot := cache.NewSnapshot(version, endpoints, clusters, routes, listeners)
+	snapshot := cache.NewSnapshot(
+		version,
+		endpoints,
+		clusters,
+		routes,
+		listeners,
+		runtimes)
 
 	err := snapshot.Consistent()
 
@@ -349,7 +355,9 @@ func Main() {
 	flag.Parse()
 
 	if debug {
-		log.SetLevel(log.DebugLevel)
+		log.SetLevel(logrus.DebugLevel)
+	} else {
+		log.SetLevel(logrus.WarnLevel)
 	}
 
 	log.Infof("Ambex %s starting...", Version)
@@ -378,15 +386,15 @@ func Main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	config := cache.NewSnapshotCache(true, Hasher{}, logger{})
-	srv := server.NewServer(config, logger{})
+	config := cache.NewSnapshotCache(true, Hasher{}, log)
+	srv := server.NewServer(ctx, config, log)
 
 	runManagementServer(ctx, srv, adsPort)
 
 	pid := os.Getpid()
 	file := "ambex.pid"
 	if !warn(ioutil.WriteFile(file, []byte(fmt.Sprintf("%v", pid)), 0644)) {
-		log.WithFields(log.Fields{"pid": pid, "file": file}).Info("Wrote PID")
+		log.WithFields(logrus.Fields{"pid": pid, "file": file}).Info("Wrote PID")
 	}
 
 	generation := 0
