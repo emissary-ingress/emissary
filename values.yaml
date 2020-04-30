@@ -345,9 +345,9 @@ metrics:
     # scrapeTimeout: 30s
 
 # Configures Service Preview that ships with the Ambassador Edge Stack and edgectl.
-# Setting servicePreview.enabled: false will not install the Traffic Agent, Traffic Manager, and ambassador-injector
+# Setting servicePreview.enabled: true will install the Traffic Agent, Traffic Manager, and ambassador-injector
 servicePreview:
-  enabled: true
+  enabled: false
   trafficAgent:
     serviceAccountName: "traffic-agent"
     port: 9900
