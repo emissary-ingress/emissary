@@ -70,8 +70,21 @@ netlify deploy \
 
 cat /tmp/netlify-deploy.json
 
-# If you look in publish-website-preview, you'll see it post status to GitHub. Skip that
-# since we're not running inside Travis.
+cat >/tmp/github-status.json <<EOF
+{
+  "context": "website-preview",
+  "state": "success",
+  "target_url": $(jq .deploy_url </tmp/netlify-deploy.json),
+  "description": "Website ${website_branch} preview"
+}
+EOF
+
+curl --fail \
+	-H "Accept: application/json" \
+	-H "Content-Type: application/json" \
+	-X POST \
+	--data '@/tmp/github-status.json' \
+	"https://${GH_TOKEN}@api.github.com/repos/datawire/apro/statuses/${CIRCLE_SHA1}"
 
 # Install the broken link checker...
 
