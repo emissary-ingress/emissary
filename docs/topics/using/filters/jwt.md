@@ -57,6 +57,24 @@ spec:
     * `.token.Signature` → `string` the token signature
     * `.httpRequestHeader` → [`http.Header`][] a copy of the header of the incoming HTTP request.  Any changes to `.httpRequestHeader` (such as by using using `.httpRequestHeader.Set`) have no effect.  It is recommended to use `.httpRequestHeader.Get` instead of treating it as a map, in order to handle capitalization correctly.
 
+   Also availabe to the template are the [standard functions available
+   to Go `text/template`s][Go `text/template` functions], as well as:
+
+    * a `hasKey` function that takes the a string-indexed map as arg1,
+      and returns whether it contains the key arg2.  (This is the same
+      as the [Sprig function of the same name][Sprig `hasKey`].)
+
+    * a `doNotSet` function that causes the result of the template to
+      be discarded, and the header field to not be adjusted.  This is
+      useful for only conditionally setting a header field; rather
+      than setting it to an empty string or `"<no value>"`.  Note that
+      this does _not_ unset an existing header field of the same name;
+      in order to prevent the untrusted client from being able to
+      spoof these headers, use a [Lua script][Lua Scripts] to remove
+      the client-supplied value before the Filter runs.  See below for
+      an example.  Not sanitizing the headers first is a potential
+      security vulnerability.
+
    Any headers listed will override (not append to) the original request header with that name.
  - `errorResponse` allows templating the error response, overriding the default json error format.  Make sure you validate and test your template, not to generate server-side errors on top of client errors.
     * `contentType` is deprecated, and is equivalent to including a
@@ -88,6 +106,8 @@ spec:
 [Go `text/template` functions]: https://golang.org/pkg/text/template/#hdr-Functions
 [`http.Header`]: https://golang.org/pkg/net/http/#Header
 [`jwt.ValidationError`]: https://godoc.org/github.com/dgrijalva/jwt-go#ValidationError
+[Lua Scripts]: /docs/latest/topics/running/ambassador/#lua-scripts-lua_scripts
+[Sprig `hasKey`]: https://masterminds.github.io/sprig/dicts.html#haskey
 
 ## `JWT` Path-Specific Arguments
 
@@ -168,6 +188,20 @@ spec:
       - name: "X-Token-C-Name"
         value: "{{ .token.Claims.name }}"
         # result will be "John Doe"
+      - name: "X-Token-C-Optional-Empty"
+        value: "{{ .token.Claims.optional }}"
+        # result will be "<no value>"; the header field will be set
+        # even if the "optional" claim is not set in the JWT.
+      - name: "X-Token-C-Optional-Unset"
+        value: "{{ if hasKey .token.Claims \"optional\" | not }}{{ doNotSet }}{{ end }}{{ .token.Claims.optional }}"
+        # Similar to "X-Token-C-Optional-Empty" above, but if the
+        # "optional" claim is not set in the JWT, then the header
+        # field won't be set either.
+        #
+        # Note that this does NOT remove/overwrite a client-supplied
+        # header of the same name.  In order to distrust
+        # client-supplied headers, you MUST use a Lua script to
+        # remove the field before the Filter runs (see below).
       - name: "X-Token-C-Iat"
         value: "{{ .token.Claims.iat }}"
         # result will be "1.516239022e+09" (don't expect JSON numbers
@@ -206,4 +240,15 @@ spec:
             "httpStatus": "{{ .status_code }}",
             "requestId": {{ .request_id | json "    " }}
         }
+---
+apiVersion: getambassador.io/v2
+kind: Module
+metadata:
+  name: ambassador
+spec:
+  config:
+    lua_scripts: |
+      function envoy_on_request(request_handle)
+        request_handle:headers():remove("x-token-c-optional-unset")
+      end
 ```
