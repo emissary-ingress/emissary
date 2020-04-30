@@ -1,4 +1,4 @@
-{{- if and .Values.enableAES .Values.servicePreview.enabled }}
+{{- if and .Values.enableAES .Values.servicePreview.enabled .Values.injector.enabled }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -34,8 +34,14 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: [ "aes-injector" ]
         env:
+        - name: AGENT_MANAGER_NAMESPACE
+          value: "{{ .Release.Namespace }}"
         - name: TRAFFIC_AGENT_IMAGE
           value: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        - name: TRAFFIC_AGENT_AGENT_LISTEN_PORT
+          value: "{{ .Values.servicePreview.trafficAgent.serviceAccountName }}"
+        - name: TRAFFIC_AGENT_SERVICE_ACCOUNT_NAME
+          value: "{{ .Values.servicePreview.trafficAgent.port }}"
         ports:
         - containerPort: 8443
           name: https
