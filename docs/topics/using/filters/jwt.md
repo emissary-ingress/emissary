@@ -49,7 +49,7 @@ spec:
 
  - `insecureTLS` disables TLS verification for the cases when `jwksURI` begins with `https://`.  This is discouraged in favor of either using plain `http://` or [installing a self-signed certificate](#installing-self-signed-certificates).
  - `renegotiateTLS` allows a remote server to request TLS renegotiation. Accepted values are "never", "onceAsClient", and "freelyAsClient".
- - `injectRequestHeaders` injects HTTP header fields in to the request before sending it to the upstream service; where the header value can be set based on the JWT value.  The value is specified as a [Go`text/template`][] string, with the following data made available to it:
+ - `injectRequestHeaders` injects HTTP header fields in to the request before sending it to the upstream service; where the header value can be set based on the JWT value.  The value is specified as a [Go `text/template`][] string, with the following data made available to it:
 
     * `.token.Raw` → `string` the raw JWT
     * `.token.Header` → `map[string]interface{}` the JWT header, as parsed JSON
@@ -63,7 +63,7 @@ spec:
       `name: "Content-Type"` item in `headers`.
     * `realm` allows specifying the realm to report in the `WWW-Authenticate` response header.
     * `headers` sets extra HTTP header fields in the error response. The value is specified as a [Go `text/template`][] string, with the same data made available to it as `bodyTemplate` (below). It does not have access to the `json` function.
-    * `bodyTemplate` specifies body of the error; specified as a [Go`text/template`][] string, with the following data made available to it:
+    * `bodyTemplate` specifies body of the error; specified as a [Go `text/template`][] string, with the following data made available to it:
 
        * `.status_code` → `integer` the HTTP status code to be returned
        * `.httpStatus` → `integer` an alias for `.status_code` (hidden from `{{ . | json "" }}`)
@@ -73,7 +73,14 @@ spec:
        * `.request_id` → `string` the Envoy request ID, for correlation (hidden from `{{ . | json "" }}` unless `.status_code` is in the 5XX range)
        * `.requestId` → `string` an alias for `.request_id` (hidden from `{{ . | json "" }}`)
 
-      In addition to the [standard functions available to Go `text/template`s][Go `text/template` functions], there is a `json` function that arg2 as JSON, using the arg1 string as the starting indent level.
+      Also availabe to the template are the [standard functions
+      available to Go `text/template`s][Go `text/template` functions],
+      as well as:
+
+       * a `json` function that formats arg2 as JSON, using the arg1
+         string as the starting indentation.  For example, the
+         template `{{ json "indent>" "value" }}` would yield the
+         string `indent>"value"`.
 
 **Note**: If you are using a templating system for your YAML that also makes use of Go templating, then you will need to escape the template strings meant to be interpreted by the Ambassador Edge Stack.
 
