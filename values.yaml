@@ -343,3 +343,12 @@ metrics:
     enabled: false
     # interval: 30s
     # scrapeTimeout: 30s
+
+# TODO: Documentation
+servicePreview:
+  enabled: true
+
+injector:
+  # TODO: Allow configuring other environment variables?
+  crtPEM: ""
+  keyPEM: ""
