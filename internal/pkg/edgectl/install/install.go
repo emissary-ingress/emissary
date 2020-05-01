@@ -1,7 +1,6 @@
-package main
+package edgectl
 
 import (
-	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -12,10 +11,8 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"os/exec"
 	"os/signal"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"syscall"
 	"time"
@@ -25,10 +22,11 @@ import (
 	"github.com/spf13/cobra"
 	"helm.sh/helm/v3/pkg/strvals"
 	k8sTypesMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	k8sVersion "k8s.io/apimachinery/pkg/version"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	k8sClientCoreV1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 
+	"github.com/datawire/ambassador/internal/pkg/edgectl"
 	"github.com/datawire/ambassador/pkg/helm"
 	"github.com/datawire/ambassador/pkg/k8s"
 	"github.com/datawire/ambassador/pkg/metriton"
@@ -59,8 +57,6 @@ const (
 	defEnvVarImageTag = "AES_IMAGE_TAG"
 )
 
-var validEmailAddress = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
-
 var (
 	// defChartValues defines some default values for the Helm chart
 	// see https://github.com/datawire/ambassador-chart#configuration
@@ -70,56 +66,7 @@ var (
 	}
 )
 
-func aesInstallCmd() *cobra.Command {
-	res := &cobra.Command{
-		Use:   "install",
-		Short: "Install the Ambassador Edge Stack in your cluster",
-		Args:  cobra.ExactArgs(0),
-		RunE:  aesInstall,
-	}
-	_ = res.Flags().StringP(
-		"context", "c", "",
-		"The Kubernetes context to use. Defaults to the current kubectl context.",
-	)
-	_ = res.Flags().BoolP(
-		"verbose", "v", false,
-		"Show all output. Defaults to sending most output to the logfile.",
-	)
-	return res
-}
-
-func getEmailAddress(defaultEmail string, log *log.Logger) string {
-	prompt := fmt.Sprintf("Email address [%s]: ", defaultEmail)
-	errorFallback := defaultEmail
-	if defaultEmail == "" {
-		prompt = "Email address: "
-		errorFallback = "email_query_failure@datawire.io"
-	}
-
-	for {
-		fmt.Print(prompt)
-		scanner := bufio.NewScanner(os.Stdin)
-		scanner.Scan()
-		text := scanner.Text()
-		if err := scanner.Err(); err != nil {
-			log.Printf("Email query failed: %+v", err)
-			return errorFallback
-		}
-
-		text = strings.TrimSpace(text)
-		if defaultEmail != "" && text == "" {
-			return defaultEmail
-		}
-
-		if validEmailAddress.MatchString(text) {
-			return text
-		}
-
-		fmt.Printf("Sorry, %q does not appear to be a valid email address.  Please check it and try again.\n", text)
-	}
-}
-
-func aesInstall(cmd *cobra.Command, args []string) error {
+func AESInstall(cmd *cobra.Command, args []string) error {
 	skipReport, _ := cmd.Flags().GetBool("no-report")
 	verbose, _ := cmd.Flags().GetBool("verbose")
 	kcontext, _ := cmd.Flags().GetString("context")
@@ -132,8 +79,8 @@ func aesInstall(cmd *cobra.Command, args []string) error {
 
 	// Both printed and logged when verbose (Installer.log is responsible for --verbose)
 	i.log.Printf("INFO: install_id = %v; trace_id = %v",
-		i.scout.reporter.InstallID(),
-		i.scout.reporter.BaseMetadata["trace_id"])
+		i.scout.Reporter.InstallID(),
+		i.scout.Reporter.BaseMetadata["trace_id"])
 
 	sup := supervisor.WithContext(i.ctx)
 	sup.Logger = i.log
@@ -146,7 +93,7 @@ func aesInstall(cmd *cobra.Command, args []string) error {
 			p.Ready()
 			select {
 			case sig := <-sigs:
-				i.Report("user_interrupted", ScoutMeta{"signal", fmt.Sprintf("%+v", sig)})
+				i.Report("user_interrupted", edgectl.ScoutMeta{"signal", fmt.Sprintf("%+v", sig)})
 				i.Quit()
 			case <-p.Shutdown():
 			}
@@ -183,62 +130,6 @@ func aesInstall(cmd *cobra.Command, args []string) error {
 		return runErrors[0]
 	}
 	return nil
-}
-
-// LoopFailedError is a fatal error for loopUntil(...)
-type LoopFailedError string
-
-// Error implements error
-func (s LoopFailedError) Error() string {
-	return string(s)
-}
-
-type loopConfig struct {
-	sleepTime    time.Duration // How long to sleep between calls
-	progressTime time.Duration // How long until we explain why we're waiting
-	timeout      time.Duration // How long until we give up
-}
-
-var lc2 = &loopConfig{
-	sleepTime:    500 * time.Millisecond,
-	progressTime: 15 * time.Second,
-	timeout:      120 * time.Second,
-}
-
-var lc5 = &loopConfig{
-	sleepTime:    3 * time.Second,
-	progressTime: 30 * time.Second,
-	timeout:      5 * time.Minute,
-}
-
-// loopUntil repeatedly calls a function until it succeeds, using a
-// (presently-fixed) loop period and timeout.
-func (i *Installer) loopUntil(what string, how func() error, lc *loopConfig) error {
-	ctx, cancel := context.WithTimeout(i.ctx, lc.timeout)
-	defer cancel()
-	start := time.Now()
-	i.log.Printf("Waiting for %s", what)
-	defer func() { i.log.Printf("Wait for %s took %.1f seconds", what, time.Since(start).Seconds()) }()
-	progTimer := time.NewTimer(lc.progressTime)
-	defer progTimer.Stop()
-	for {
-		err := how()
-		if err == nil {
-			return nil // Success
-		} else if _, ok := err.(LoopFailedError); ok {
-			return err // Immediate failure
-		}
-		// Wait and try again
-		select {
-		case <-progTimer.C:
-			i.ShowWaiting(what)
-		case <-time.After(lc.sleepTime):
-			// Try again
-		case <-ctx.Done():
-			i.ShowTimedOut(what)
-			return errors.Errorf("timed out waiting for %s (or interrupted)", what)
-		}
-	}
 }
 
 // GrabAESInstallID uses "kubectl exec" to ask the AES pod for the cluster's ID,
@@ -288,10 +179,11 @@ PodsLoop:
 	}
 
 	// Retrieve the cluster ID
-	clusterID, err := i.CaptureKubectl("get cluster ID", "", "-n", "ambassador", "exec", podName, "-c", containerName, "python3", "kubewatch.py")
+	clusterID, err := i.kubectl.Exec(podName, containerName, "ambassador", "python3", "kubewatch.py")
 	if err != nil {
 		return err
 	}
+
 	i.clusterID = clusterID
 	i.SetMetadatum("Cluster ID", "aes_install_id", clusterID)
 	return nil
@@ -460,12 +352,17 @@ func (i *Installer) HostnameMatchesLBAddress(hostname string) bool {
 
 // CheckACMEIsDone queries the Host object and succeeds if its state is Ready.
 func (i *Installer) CheckACMEIsDone() error {
-	state, err := i.CaptureKubectl("get Host state", "", "get", "host", i.hostname, "-o", "go-template={{.status.state}}")
+
+	host, err := i.kubectl.Get("host", i.hostname, "")
+	if err != nil {
+		return LoopFailedError(err.Error())
+	}
+	state, _, err := unstructured.NestedString(host.Object, "status", "state")
 	if err != nil {
 		return LoopFailedError(err.Error())
 	}
 	if state == "Error" {
-		reason, err := i.CaptureKubectl("get Host error", "", "get", "host", i.hostname, "-o", "go-template={{.status.errorReason}}")
+		reason, _, err := unstructured.NestedString(host.Object, "status", "errorReason")
 		if err != nil {
 			return LoopFailedError(err.Error())
 		}
@@ -494,7 +391,7 @@ func (i *Installer) CheckACMEIsDone() error {
 
 // CreateNamespace creates the namespace for installing AES
 func (i *Installer) CreateNamespace() error {
-	i.CaptureKubectl("create namespace", "", "create", "namespace", defInstallNamespace)
+	_ = i.kubectl.Create("namespace", defInstallNamespace, "")
 	// ignore errors: it will fail if the namespace already exists
 	// TODO: check that the error message contains "already exists"
 	return nil
@@ -539,7 +436,7 @@ func (i *Installer) Perform(kcontext string) Result {
 	case emailAddress = <-gotEmail:
 		// Continue
 	case <-i.ctx.Done():
-		return i.EmailRequestError(errors.New("Interrupted"))
+		return i.resEmailRequestError(errors.New("Interrupted"))
 	}
 
 	i.log.Printf("Using email address %q", emailAddress)
@@ -548,50 +445,43 @@ func (i *Installer) Perform(kcontext string) Result {
 	i.ShowBeginAESInstallation()
 
 	// Attempt to use kubectl
-	if _, err = i.GetKubectlPath(); err != nil {
-		return i.NoKubectlError(err)
+	if _, err = getKubectlPath(); err != nil {
+		return i.resNoKubectlError(err)
 	}
 
 	// Attempt to talk to the specified cluster
 	i.kubeinfo = k8s.NewKubeInfo("", kcontext, "")
-	if err := i.ShowKubectl("cluster-info", "", "cluster-info"); err != nil {
-		return i.NoClusterError(err)
+	i.kubectl, err = i.NewSimpleKubectl()
+	if err != nil {
 	}
+
+	if _, err := i.kubectl.ClusterInfo(); err != nil {
+		return i.resNoClusterError(err)
+	}
+
 	i.restConfig, err = i.kubeinfo.GetRestConfig()
 
 	if err != nil {
-		return i.GetRestConfigError(err)
+		return i.resGetRestConfigError(err)
 	}
 
 	i.coreClient, err = k8sClientCoreV1.NewForConfig(i.restConfig)
 	if err != nil {
-		return i.NewForConfigError(err)
+		return i.resNewForConfigError(err)
 	}
 
-	versions, err := i.CaptureKubectl("get versions", "", "version", "-o", "json")
+	i.k8sVersion, err = i.kubectl.WithStdout(ioutil.Discard).Version()
 	if err != nil {
-		return i.GetVersionsError(err)
+		return i.resGetVersionsError(err)
 	}
 
-	kubernetesVersion := &kubernetesVersion{}
-	err = json.Unmarshal([]byte(versions), kubernetesVersion)
-	if err != nil {
-		// We tried to extract Kubernetes client and server versions but failed.
-		// This should not happen since we already validated the cluster-info, but still...
-		// It's not critical if this information is missing, other than for debugging purposes.
-		i.log.Printf("failed to read Kubernetes client and server versions: %v", err.Error())
-	}
-
-	i.k8sVersion = *kubernetesVersion
 	// Metriton tries to parse fields with `version` in their keys and discards them if it can't.
 	// Using _v to keep the version value as string since Kubernetes versions vary in formats.
 	i.SetMetadatum("kubectl Version", "kubectl_v", i.k8sVersion.Client.GitVersion)
 	i.SetMetadatum("K8s Version", "k8s_v", i.k8sVersion.Server.GitVersion)
 
 	// Try to grab some cluster info
-	if err := i.UpdateClusterInfo(); err != nil {
-		return i.NoClusterError(err)
-	}
+	i.clusterinfo = NewClusterInfo(i.kubectl)
 	i.SetMetadatum("Cluster Info", "cluster_info", i.clusterinfo.name)
 
 	// New Helm-based install
@@ -599,14 +489,7 @@ func (i *Installer) Perform(kcontext string) Result {
 
 	// Try to verify the existence of an Ambassador deployment in the Ambassador
 	// namespace.
-	getDeployForLabel := func(label string) (res string, err error) {
-		return i.CaptureKubectl("get AES deployment", "",
-			"-n", defInstallNamespace,
-			"get", "deploy",
-			"-l", label,
-			"-o", "go-template='{{range .items}}{{range .spec.template.spec.containers}}{{.image}}\n{{end}}{{end}}'")
-	}
-	installedVersion, installedInfo, err := getExistingInstallation(getDeployForLabel)
+	installedVersion, installedInfo, err := getExistingInstallation(i.kubectl)
 
 	if err != nil {
 		i.ShowFailedWhenLookingForExistingVersion()
@@ -616,11 +499,11 @@ func (i *Installer) Perform(kcontext string) Result {
 	if installedVersion != "" {
 		i.SetMetadatum("Cluster Info", "managed", installedInfo.Name)
 		i.ShowAESExistingVersion(installedVersion, installedInfo.LongName)
-		i.Report("deploy", ScoutMeta{"already_installed", true})
+		i.Report("deploy", edgectl.ScoutMeta{"already_installed", true})
 
 		switch installedInfo.Method {
 		case instOSS, instAES, instOperator:
-			return i.CantReplaceExistingInstallationError(installedVersion)
+			return i.resCantReplaceExistingInstallationError(installedVersion)
 		case instEdgectl, instHelm:
 			// if a previous Helm/Edgectl installation has been found MAYBE we can continue with
 			// the setup: it depends on the version: continue with the setup and check the version later on
@@ -656,7 +539,7 @@ func (i *Installer) Perform(kcontext string) Result {
 	chartVersion, err := helm.NewChartVersionRule(version_rule)
 	if err != nil {
 		// this should never happen: it currently breaks only if the version rule ("*") is wrong
-		return i.InternalError(err)
+		return i.resInternalError(err)
 	}
 
 	helmDownloaderOptions := helm.HelmDownloaderOptions{
@@ -673,11 +556,11 @@ func (i *Installer) Perform(kcontext string) Result {
 	chartDown, err := helm.NewHelmDownloader(helmDownloaderOptions)
 	if err != nil {
 		// this should never happen: it currently breaks only if the Helm repo URL cannot be parsed
-		return i.InternalError(err)
+		return i.resInternalError(err)
 	}
 
 	if err := chartDown.Download(); err != nil {
-		return i.DownloadError(err)
+		return i.resDownloadError(err)
 	}
 	defer func() { _ = chartDown.Cleanup() }()
 
@@ -690,7 +573,7 @@ func (i *Installer) Perform(kcontext string) Result {
 		// if a previous installation was found, check that the installed version matches
 		// the downloaded chart version, because we do not support upgrades
 		if installedVersion != i.version {
-			return i.CantReplaceExistingInstallationError(installedVersion)
+			return i.resCantReplaceExistingInstallationError(installedVersion)
 		}
 	} else if installedInfo.Method == instNone {
 		// nothing was installed: install the Chart
@@ -698,7 +581,7 @@ func (i *Installer) Perform(kcontext string) Result {
 
 		err = i.CreateNamespace()
 		if err != nil {
-			return i.NamespaceCreationFailed(err)
+			return i.resNamespaceCreationError(err)
 		}
 
 		i.clusterinfo.CopyChartValuesTo(chartValues)
@@ -716,7 +599,7 @@ func (i *Installer) Perform(kcontext string) Result {
 			}
 
 			// Helm downloader failed
-			return i.FailedToInstallChart(err, version, notes)
+			return i.resFailedToInstallChartError(err, version, notes)
 		}
 
 		// record that this cluster is managed with edgectl
@@ -727,7 +610,7 @@ func (i *Installer) Perform(kcontext string) Result {
 	i.ShowCheckingAESPodDeployment()
 
 	if err := i.loopUntil("AES pod startup", i.GrabAESInstallID, lc2); err != nil {
-		return i.AESPodStartupError(err)
+		return i.resAESPodStartupError(err)
 	}
 	i.Report("deploy")
 
@@ -738,14 +621,14 @@ func (i *Installer) Perform(kcontext string) Result {
 	if i.clusterinfo.isLocal {
 		i.ShowLocalClusterDetected()
 		i.ShowAESInstallationPartiallyComplete()
-		return i.KnownLocalClusterResult(i.clusterinfo)
+		return i.resKnownLocalClusterResult(i.clusterinfo)
 	}
 
 	// Grab load balancer address
 	i.ShowProvisioningLoadBalancer()
 
 	if err := i.loopUntil("Load Balancer", i.GrabLoadBalancerAddress, lc5); err != nil {
-		return i.LoadBalancerError(err)
+		return i.resLoadBalancerError(err)
 	}
 
 	i.Report("cluster_accessible")
@@ -755,7 +638,7 @@ func (i *Installer) Perform(kcontext string) Result {
 	i.ShowAESRespondingToACME()
 
 	if err := i.loopUntil("AES to serve ACME", i.CheckAESServesACME, lc2); err != nil {
-		return i.AESACMEChallengeError(err)
+		return i.resAESACMEChallengeError(err)
 	}
 	i.Report("aes_listening")
 
@@ -770,7 +653,7 @@ func (i *Installer) Perform(kcontext string) Result {
 			i.hostname = hostResource.Spec().GetString("hostname")
 			i.ShowExistingHostFound(hostResource.Name(), hostResource.Namespace())
 			i.ShowAESAlreadyInstalled()
-			return i.AESAlreadyInstalledResult()
+			return i.resAESAlreadyInstalledResult()
 		}
 	}
 
@@ -782,7 +665,7 @@ func (i *Installer) Perform(kcontext string) Result {
 
 	if !metriton.IsDisabledByUser() {
 		regData.AESInstallId = i.clusterID
-		regData.EdgectlInstallId = i.scout.reporter.InstallID()
+		regData.EdgectlInstallId = i.scout.Reporter.InstallID()
 	}
 
 	if net.ParseIP(i.address) != nil {
@@ -796,14 +679,14 @@ func (i *Installer) Perform(kcontext string) Result {
 	resp, err := http.Post(regURL, "application/json", buf)
 
 	if err != nil {
-		return i.DNSNamePostError(err)
+		return i.resDNSNamePostError(err)
 	}
 
 	content, err := ioutil.ReadAll(resp.Body)
 	resp.Body.Close()
 
 	if err != nil {
-		return i.DNSNameBodyError(err)
+		return i.resDNSNameBodyError(err)
 	}
 
 	// With and without DNS.  In case of no DNS, different error messages and result handling.
@@ -822,28 +705,28 @@ func (i *Installer) Perform(kcontext string) Result {
 		// name appearing for LetsEncrypt.
 
 		if err := i.loopUntil("DNS propagation to this host", i.CheckHostnameFound, lc2); err != nil {
-			return i.DNSPropagationError(err)
+			return i.resDNSPropagationError(err)
 		}
 
 		i.Report("dns_name_propagated")
 
 		// Create a Host resource
 		hostResource := fmt.Sprintf(hostManifest, i.hostname, i.hostname, emailAddress)
-		if err := i.ShowKubectl("install Host resource", hostResource, "apply", "-f", "-"); err != nil {
-			return i.HostResourceCreationError(err)
+		if err := i.kubectl.Apply(hostResource, ""); err != nil {
+			return i.resHostResourceCreationError(err)
 		}
 
 		i.ShowObtainingTLSCertificate()
 
 		if err := i.loopUntil("TLS certificate acquisition", i.CheckACMEIsDone, lc5); err != nil {
-			return i.CertificateProvisionError(err)
+			return i.resCertificateProvisionError(err)
 		}
 
 		i.Report("cert_provisioned")
 		i.ShowTLSConfiguredSuccessfully()
 
-		if err := i.ShowKubectl("show Host", "", "get", "host", i.hostname); err != nil {
-			return i.HostRetrievalError(err)
+		if _, err := i.kubectl.Get("host", i.hostname, ""); err != nil {
+			return i.resHostRetrievalError(err)
 		}
 
 		// Made it through with DNS and TLS.  Set hostName to the DNS name that was given.
@@ -865,13 +748,13 @@ func (i *Installer) Perform(kcontext string) Result {
 	}
 
 	// Open a browser window to the Edge Policy Console, with a welcome section or modal dialog.
-	if err := do_login(i.kubeinfo, kcontext, "ambassador", hostName, true, true, false, true); err != nil {
-		return i.AESLoginError(err)
+	if err := edgectl.DoLogin(i.kubeinfo, kcontext, "ambassador", hostName, true, true, false, true); err != nil {
+		return i.resAESLoginError(err)
 	}
 
 	// Check to see if AES is ready
 	if err := i.CheckAESHealth(); err != nil {
-		i.Report("aes_health_bad", ScoutMeta{"err", err.Error()})
+		i.Report("aes_health_bad", edgectl.ScoutMeta{"err", err.Error()})
 	} else {
 		i.Report("aes_health_good")
 	}
@@ -879,10 +762,10 @@ func (i *Installer) Perform(kcontext string) Result {
 	// Normal result (with DNS success) or result without DNS.
 	if dnsSuccess {
 		// Show how to use edgectl login in the future
-		return i.AESInstalledResult(i.hostname)
+		return i.resAESInstalledResult(i.hostname)
 	} else {
 		// Show how to login without DNS.
-		return i.AESInstalledNoDNSResult(resp.StatusCode, dnsMessage, i.address)
+		return i.resAESInstalledNoDNSResult(resp.StatusCode, dnsMessage, i.address)
 	}
 }
 
@@ -891,13 +774,14 @@ type Installer struct {
 	// Cluster
 
 	kubeinfo    *k8s.KubeInfo
+	kubectl     Kubectl
 	restConfig  *rest.Config
 	coreClient  *k8sClientCoreV1.CoreV1Client
 	clusterinfo clusterInfo
 
 	// Reporting
 
-	scout *Scout
+	scout *edgectl.Scout
 
 	// Logging and management
 
@@ -911,7 +795,7 @@ type Installer struct {
 
 	// Install results
 
-	k8sVersion kubernetesVersion // cluster version information
+	k8sVersion KubernetesVersion // cluster version information
 	imageRepo  string            // from which docker repo is AES being installed
 	version    string            // which AES version is being installed
 	address    string            // load balancer address
@@ -930,18 +814,20 @@ func NewInstaller(verbose bool) *Installer {
 		logfile = os.Stderr
 		fmt.Fprintf(logfile, "WARNING: Failed to open logfile %q: %+v\n", logfileName, err)
 	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 	i := &Installer{
-		scout:   NewScout("install"),
+		scout:   edgectl.NewScout("install"),
 		ctx:     ctx,
 		cancel:  cancel,
 		show:    log.New(io.MultiWriter(os.Stdout, logfile), "", 0),
 		logName: logfileName,
 	}
+
 	if verbose {
-		i.log = log.New(io.MultiWriter(logfile, NewLoggingWriter(log.New(os.Stderr, "== ", 0))), "", log.Ltime)
-		i.cmdOut = log.New(io.MultiWriter(logfile, NewLoggingWriter(log.New(os.Stderr, "=- ", 0))), "", 0)
-		i.cmdErr = log.New(io.MultiWriter(logfile, NewLoggingWriter(log.New(os.Stderr, "=x ", 0))), "", 0)
+		i.log = log.New(io.MultiWriter(logfile, edgectl.NewLoggingWriter(log.New(os.Stderr, "== ", 0))), "", log.Ltime)
+		i.cmdOut = log.New(io.MultiWriter(logfile, edgectl.NewLoggingWriter(log.New(os.Stderr, "=- ", 0))), "", 0)
+		i.cmdErr = log.New(io.MultiWriter(logfile, edgectl.NewLoggingWriter(log.New(os.Stderr, "=x ", 0))), "", 0)
 	} else {
 		i.log = log.New(logfile, "", log.Ltime)
 		i.cmdOut = log.New(logfile, "", 0)
@@ -955,117 +841,6 @@ func (i *Installer) Quit() {
 	i.cancel()
 }
 
-// ShowWrapped displays to the user (via the show logger) the text items passed
-// in with word wrapping applied. Leading and trailing newlines are dropped in
-// each text item (to make it easier to use multiline constants), but newlines
-// within each item are preserved. Use an empty string item to include a blank
-// line in the output between other items.
-func (i *Installer) ShowWrapped(texts ...string) {
-	for _, text := range texts {
-		text = strings.Trim(text, "\n")                  // Drop leading and trailing newlines
-		for _, para := range strings.Split(text, "\n") { // Preserve newlines in the text
-			for _, line := range doWordWrap(para, "", 79) { // But wrap text too
-				i.show.Println(line)
-			}
-		}
-	}
-}
-
-// Kubernetes Cluster
-
-// ShowKubectl calls kubectl and dumps the output to the logger. Use this for
-// side effects.
-func (i *Installer) ShowKubectl(name string, input string, args ...string) error {
-	kargs, err := i.kubeinfo.GetKubectlArray(args...)
-	if err != nil {
-		return errors.Wrapf(err, "cluster access for %s", name)
-	}
-	kubectl, err := i.GetKubectlPath()
-	if err != nil {
-		return errors.Wrapf(err, "kubectl not found %s", name)
-	}
-	i.log.Printf("$ %v %s", kubectl, strings.Join(kargs, " "))
-	cmd := exec.Command(kubectl, kargs...)
-	cmd.Stdin = strings.NewReader(input)
-	cmd.Stdout = NewLoggingWriter(i.cmdOut)
-	cmd.Stderr = NewLoggingWriter(i.cmdErr)
-	if err := cmd.Run(); err != nil {
-		return errors.Wrap(err, name)
-	}
-	return nil
-}
-
-// CaptureKubectl calls kubectl and returns its stdout, dumping all the output
-// to the logger.
-func (i *Installer) CaptureKubectl(name, input string, args ...string) (res string, err error) {
-	res = ""
-	kargs, err := i.kubeinfo.GetKubectlArray(args...)
-	if err != nil {
-		err = errors.Wrapf(err, "cluster access for %s", name)
-		return
-	}
-	kubectl, err := i.GetKubectlPath()
-	if err != nil {
-		err = errors.Wrapf(err, "kubectl not found %s", name)
-		return
-	}
-	kargs = append([]string{kubectl}, kargs...)
-	return i.Capture(name, true, input, kargs...)
-}
-
-// SilentCaptureKubectl calls kubectl and returns its stdout
-// without dumping all the output to the logger.
-func (i *Installer) SilentCaptureKubectl(name, input string, args ...string) (res string, err error) {
-	res = ""
-	kargs, err := i.kubeinfo.GetKubectlArray(args...)
-	if err != nil {
-		err = errors.Wrapf(err, "cluster access for %s", name)
-		return
-	}
-	kubectl, err := i.GetKubectlPath()
-	if err != nil {
-		err = errors.Wrapf(err, "kubectl not found %s", name)
-		return
-	}
-	kargs = append([]string{kubectl}, kargs...)
-	return i.Capture(name, false, input, kargs...)
-}
-
-// GetCLusterInfo returns the cluster information
-func (i *Installer) UpdateClusterInfo() error {
-	// Try to determine cluster type from node labels
-	if clusterNodeLabels, err := i.CaptureKubectl("get node labels", "", "get", "no", "-Lkubernetes.io/hostname"); err == nil {
-		i.clusterinfo = newClusterInfoFromNodeLabels(clusterNodeLabels)
-	}
-	return nil
-}
-
-// GetKubectlPath returns the full path to the kubectl executable, or an error if not found
-func (i *Installer) GetKubectlPath() (string, error) {
-	return exec.LookPath("kubectl")
-}
-
-// Capture calls a command and returns its stdout
-func (i *Installer) Capture(name string, logToStdout bool, input string, args ...string) (res string, err error) {
-	res = ""
-	resAsBytes := &bytes.Buffer{}
-	i.log.Printf("$ %s", strings.Join(args, " "))
-	cmd := exec.Command(args[0], args[1:]...)
-	cmd.Stdin = strings.NewReader(input)
-	if logToStdout {
-		cmd.Stdout = io.MultiWriter(NewLoggingWriter(i.cmdOut), resAsBytes)
-	} else {
-		cmd.Stdout = resAsBytes
-	}
-	cmd.Stderr = NewLoggingWriter(i.cmdErr)
-	err = cmd.Run()
-	if err != nil {
-		err = errors.Wrap(err, name)
-	}
-	res = resAsBytes.String()
-	return
-}
-
 // Metrics
 
 // SetMetadatum adds a key-value pair to the metrics extra traits field. All
@@ -1076,37 +851,11 @@ func (i *Installer) SetMetadatum(name, key string, value interface{}) {
 }
 
 // Report sends an event to Metriton
-func (i *Installer) Report(eventName string, meta ...ScoutMeta) {
+func (i *Installer) Report(eventName string, meta ...edgectl.ScoutMeta) {
 	i.log.Println("[Metrics]", eventName)
 	if err := i.scout.Report(eventName, meta...); err != nil {
 		i.log.Println("[Metrics]", eventName, err)
 	}
-}
-
-func doWordWrap(text string, prefix string, lineWidth int) []string {
-	words := strings.Fields(strings.TrimSpace(text))
-	if len(words) == 0 {
-		return []string{""}
-	}
-	lines := make([]string, 0)
-	wrapped := prefix + words[0]
-	for _, word := range words[1:] {
-		if len(word)+1 > lineWidth-len(wrapped) {
-			lines = append(lines, wrapped)
-			wrapped = prefix + word
-		} else {
-			wrapped += " " + word
-		}
-	}
-	if len(wrapped) > 0 {
-		lines = append(lines, wrapped)
-	}
-	return lines
-}
-
-type kubernetesVersion struct {
-	Client k8sVersion.Info `json:"clientVersion"`
-	Server k8sVersion.Info `json:"serverVersion"`
 }
 
 // registration is used to register edgestack.me domains
