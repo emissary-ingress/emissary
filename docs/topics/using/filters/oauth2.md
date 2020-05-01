@@ -45,7 +45,7 @@ metadata:
   namespace: "example-namespace"
 spec:
   OAuth2:
-    authorizationURL:      "url-string"      # required
+    authorizationURL:      "url"      # required
 
     ############################################################################
     # OAuth Client settings                                                    #
@@ -53,33 +53,33 @@ spec:
 
     # Which settings exist depends on the grantType; supported grantTypes
     # are "AuthorizationCode", "Password", and "ClientCredentials".
-    grantType:             "enum-string"     # optional; default is "AuthorizationCode"
+    grantType:             "enum"     # optional; default is "AuthorizationCode"
 
     ## OAuth Client settings: grantType=="AuthorizationCode" ###################
-    clientURL:             "string"          # deprecated; us 'protectedOrigins' instead
-    protectedOrigins:                        # required; must have at least 1 item
-    - origin: "url-string"                     # required
-      includeSubdomains: bool                  # optional; default is false
-    useSessionCookies:                       # optional; default is { value: false }
-      value: bool                              # optional: default is true
-      ifRequestHeader:                         # optional; default to apply "useSessionCookies.value" to all requests
-        name: "string"                           # required
-        negate: bool                             # optional; default is false
+    clientURL:             "string"   # deprecated; us 'protectedOrigins' instead
+    protectedOrigins:                 # required; must have at least 1 item
+    - origin: "url"                     # required
+      includeSubdomains: bool           # optional; default is false
+    useSessionCookies:                # optional; default is { value: false }
+      value: bool                       # optional: default is true
+      ifRequestHeader:                  # optional; default to apply "useSessionCookies.value" to all requests
+        name: "string"                    # required
+        negate: bool                      # optional; default is false
         # It is invalid to specify both "value" and "valueRegex".
-        value: "string"                          # optional; default is any non-empty string
-        valueRegex: "regex-string"               # optional; default is any non-empty string
-    extraAuthorizationParameters:            # optional; default is {}
+        value: "string"                   # optional; default is any non-empty string
+        valueRegex: "regex"               # optional; default is any non-empty string
+    extraAuthorizationParameters:     # optional; default is {}
       "string": "string"
 
     ## OAuth Client settings: grantType=="AuthorizationCode" or "Password" #####
-    clientID:              "string"          # required
+    clientID:              "string"   # required
     # The client secret can be specified by including the raw secret as a
     # string in "secret", or by referencing Kubernetes secret with
     # "secretName" (and "secretNamespace").  It is invalid to specify both
     # "secret" and "secretName".
-    secret:                "string"          # required (unless secretName is set)
-    secretName:            "string"          # required (unless secret is set)
-    secretNamespace:       "string"          # optional; default is the same namespace as the Filter
+    secret:                "string"   # required (unless secretName is set)
+    secretName:            "string"   # required (unless secret is set)
+    secretNamespace:       "string"   # optional; default is the same namespace as the Filter
 
     ## OAuth Client settings (grantType=="ClientCredentials") ##################
     #
@@ -90,19 +90,19 @@ spec:
     # OAuth Resource Server settings                                           #
     ############################################################################
 
-    accessTokenValidation: "enum-string"     # optional; default is "auto"
-    accessTokenJWTFilter:                    # optional; default is null
-      name: "string"                           # required
-      namespace: "string"                      # optional; default is the same namespace as the Filter
-      arguments: JWT-Filter-Arguments          # optional
+    accessTokenValidation: "enum"     # optional; default is "auto"
+    accessTokenJWTFilter:             # optional; default is null
+      name: "string"                    # required
+      namespace: "string"               # optional; default is the same namespace as the Filter
+      arguments: JWT-Filter-Arguments   # optional
 
     ############################################################################
     # HTTP client settings for talking with the identity provider              #
     ############################################################################
 
-    insecureTLS:           bool              # optional; default is false
-    renegotiateTLS:        "enum-string"     # optional; default is "never"
-    maxStale:              "duration-string" # optional; default is "0"
+    insecureTLS:           bool       # optional; default is false
+    renegotiateTLS:        "enum"     # optional; default is "never"
+    maxStale:              "duration" # optional; default is "0"
 ```
 
 ### General settings
@@ -231,7 +231,7 @@ provider:
  - `insecureTLS` disables TLS verification when speaking to an identity provider with an `https://` `authorizationURL`.  This is discouraged in favor of either using plain `http://` or [installing a self-signed certificate](#installing-self-signed-certificates).
  - `renegotiateTLS` allows a remote server to request TLS renegotiation.  Accepted values are "never", "onceAsClient", and "freelyAsClient".
 
-`"duration-string"` strings are parsed as a sequence of decimal numbers, each with optional fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m". Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".  See [Go `time.ParseDuration`](https://golang.org/pkg/time/#ParseDuration).
+`"duration"` strings are parsed as a sequence of decimal numbers, each with optional fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m". Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".  See [Go `time.ParseDuration`](https://golang.org/pkg/time/#ParseDuration).
 
 ## `OAuth2` Path-Specific Arguments
 
@@ -258,7 +258,7 @@ spec:
             negate: bool                # optional; default is false
             # It is invalid to specify both "value" and "valueRegex".
             value: "string"             # optional; default is any non-empty string
-            valueRegex: "regex-string"  # optional; default is any non-empty string
+            valueRegex: "regex"  # optional; default is any non-empty string
           # option 1:
           httpStatusCode: integer     # optional; default is 403 (unless `filters` is set)
           # option 2:
@@ -270,9 +270,9 @@ spec:
               negate: bool                # optional; default is false
               # It is invalid to specify both "value" and "valueRegex".
               value: "string"             # optional; default is any non-empty string
-              valueRegex: "regex-string"  # optional; default is any non-empty string
-            onDeny: "enum-string"       # optional; default is "break"
-            onAllow: "enum-string"      # optional; default is "continue"
+              valueRegex: "regex"         # optional; default is any non-empty string
+            onDeny: "enum"              # optional; default is "break"
+            onAllow: "enum"             # optional; default is "continue"
             arguments: DEPENDS          # optional
 ```
 
