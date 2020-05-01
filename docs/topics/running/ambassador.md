@@ -30,7 +30,7 @@ spec:
 | `enable_http10` | Should we enable http/1.0 protocol? | `enable_http10: false` |
 | `enable_ipv4`| Should we do IPv4 DNS lookups when contacting services? Defaults to true, but can be overridden in a [`Mapping`](../../using/mappings). | `enable_ipv4: true` |
 | `enable_ipv6` | Should we do IPv6 DNS lookups when contacting services? Defaults to false, but can be overridden in a [`Mapping`](../../using/mappings). | `enable_ipv6: false` |
-| `envoy_log_format` | Defines the envoy log line format. See [this page](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log) for a complete list of operators | See [this page](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log#default-format-string) for the standard log format. |
+| `envoy_log_format` | Defines the envoy log line format. See [this page](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log/access_log) for a complete list of operators | See [this page](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log/usage#default-format-string) for the standard log format. |
 | `envoy_log_path` | Defines the path of log envoy will use. By default this is standard output | `envoy_log_path: /dev/fd/1` |
 | `envoy_log_type` | Defines the type of log envoy will use, currently only support json or text | `envoy_log_type: text` |
 | `listener_idle_timeout_ms` | Controls how Envoy configures the tcp idle timeout on the http listener. Default is no timeout (TCP connection may remain idle indefinitely). | `listener_idle_timeout_ms: 30000` |
