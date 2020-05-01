@@ -334,10 +334,9 @@ class GettingStarted extends Component {
 
         <div id="QS-showWindowsAside3" data-os="windows" className="QS-asideText">
           <li>New user? Get Edgectl, the Ambassador CLI.</li>
-          <code><font size="+1">edgectl.exe</font></code>.
           <div className="styles-module--CodeBlock--1UB4s">
               <div className="QS-codeblockInstall">
-                <button><a className="windowsDownloadButton" href="https://metriton.datawire.io/downloads/windows/edgectl.exe" rel="nofollow noopener noreferrer">Download</a></button><span>&nbsp;</span>
+                <button><a className="windowsDownloadButton" href="https://metriton.datawire.io/downloads/windows/edgectl.exe" rel="nofollow noopener noreferrer">Download edgectl.exe</a></button><span>&nbsp;</span>
                 <div className="token-line">
                   <span className="token function"></span>
                 </div>
