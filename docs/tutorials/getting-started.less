@@ -2,7 +2,7 @@
   display: grid;
   grid-template-columns: minmax(0, 755px) 0px;
   grid-template-areas:
-  "wrapper"
+  "k8"
   "sidebar1"
   "helm"
   "sidebar2"
@@ -16,21 +16,6 @@
   cursor: default;
   overflow: hidden;
 }
-.QS-wrapper {
-  display: flex;
-}
-.QS-moreInstallOptions {
-  grid-area: wrapper;
-  font-size: 1.2em;
-  font-weight: 600;
-  width: auto;
-  position: relative;
-  z-index: 2;
-  cursor: pointer;
-  top: 0.2em;
-  display: flex;
-  margin-bottom: 0px;
-}
 a#QS-moreInstallOptions {
   color: darkgrey;
   text-decoration: underline;
@@ -39,15 +24,14 @@ a#QS-moreInstallOptions:hover {
   text-decoration: none;
 }
 .QS-k8 {
-  grid-area: wrapper;
+  grid-area: k8;
   font-size: 1.2em;
   font-weight: 600;
   width: auto;
   font-style: italic;
   position: relative;
   margin-left: 5px;
-  margin-right: 8px;
-  margin-bottom: 22px;
+  margin-bottom: -5px;
   z-index: 2;
   display: flex;
 }
@@ -68,6 +52,9 @@ a#QS-moreInstallOptions:hover {
 }
 p.bulletText {
   font-size: 1.2em;
+}
+#QS-showMac, #QS-showLinux, #QS-showWindows {
+  display: none;
 }
 #QS-showMacAside3, #QS-showLinuxAside3, #QS-showWindowsAside3 {
   display: none;
