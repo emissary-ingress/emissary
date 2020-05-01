@@ -62,6 +62,18 @@ func (m *VirtualHost) Validate() error {
 		}
 	}
 
+	for idx, item := range m.GetDomains() {
+		_, _ = idx, item
+
+		if !_VirtualHost_Domains_Pattern.MatchString(item) {
+			return VirtualHostValidationError{
+				field:  fmt.Sprintf("Domains[%v]", idx),
+				reason: "value does not match regex pattern \"^[^\\x00\\n\\r]*$\"",
+			}
+		}
+
+	}
+
 	for idx, item := range m.GetRoutes() {
 		_, _ = idx, item
 
@@ -222,6 +234,8 @@ func (m *VirtualHost) Validate() error {
 
 	// no validation rules for IncludeRequestAttemptCount
 
+	// no validation rules for IncludeAttemptCountInResponse
+
 	{
 		tmp := m.GetRetryPolicy()
 
@@ -230,6 +244,21 @@ func (m *VirtualHost) Validate() error {
 			if err := v.Validate(); err != nil {
 				return VirtualHostValidationError{
 					field:  "RetryPolicy",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
+	{
+		tmp := m.GetRetryPolicyTypedConfig()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return VirtualHostValidationError{
+					field:  "RetryPolicyTypedConfig",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -323,6 +352,8 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = VirtualHostValidationError{}
+
+var _VirtualHost_Domains_Pattern = regexp.MustCompile("^[^\x00\n\r]*$")
 
 // Validate checks the field values on FilterAction with the rules defined in
 // the proto definition for this message. If any rules are violated, an error
@@ -1188,7 +1219,27 @@ func (m *RouteAction) Validate() error {
 		}
 	}
 
-	// no validation rules for PrefixRewrite
+	if !_RouteAction_PrefixRewrite_Pattern.MatchString(m.GetPrefixRewrite()) {
+		return RouteActionValidationError{
+			field:  "PrefixRewrite",
+			reason: "value does not match regex pattern \"^[^\\x00\\n\\r]*$\"",
+		}
+	}
+
+	{
+		tmp := m.GetRegexRewrite()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return RouteActionValidationError{
+					field:  "RegexRewrite",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
 
 	{
 		tmp := m.GetTimeout()
@@ -1228,6 +1279,21 @@ func (m *RouteAction) Validate() error {
 			if err := v.Validate(); err != nil {
 				return RouteActionValidationError{
 					field:  "RetryPolicy",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
+	{
+		tmp := m.GetRetryPolicyTypedConfig()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return RouteActionValidationError{
+					field:  "RetryPolicyTypedConfig",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -1434,6 +1500,13 @@ func (m *RouteAction) Validate() error {
 			}
 		}
 
+		if !_RouteAction_ClusterHeader_Pattern.MatchString(m.GetClusterHeader()) {
+			return RouteActionValidationError{
+				field:  "ClusterHeader",
+				reason: "value does not match regex pattern \"^[^\\x00\\n\\r]*$\"",
+			}
+		}
+
 	case *RouteAction_WeightedClusters:
 
 		{
@@ -1462,7 +1535,13 @@ func (m *RouteAction) Validate() error {
 	switch m.HostRewriteSpecifier.(type) {
 
 	case *RouteAction_HostRewriteLiteral:
-		// no validation rules for HostRewriteLiteral
+
+		if !_RouteAction_HostRewriteLiteral_Pattern.MatchString(m.GetHostRewriteLiteral()) {
+			return RouteActionValidationError{
+				field:  "HostRewriteLiteral",
+				reason: "value does not match regex pattern \"^[^\\x00\\n\\r]*$\"",
+			}
+		}
 
 	case *RouteAction_AutoHostRewrite:
 
@@ -1482,7 +1561,13 @@ func (m *RouteAction) Validate() error {
 		}
 
 	case *RouteAction_HostRewriteHeader:
-		// no validation rules for HostRewriteHeader
+
+		if !_RouteAction_HostRewriteHeader_Pattern.MatchString(m.GetHostRewriteHeader()) {
+			return RouteActionValidationError{
+				field:  "HostRewriteHeader",
+				reason: "value does not match regex pattern \"^[^\\x00\\n\\r]*$\"",
+			}
+		}
 
 	}
 
@@ -1542,6 +1627,14 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = RouteActionValidationError{}
+
+var _RouteAction_ClusterHeader_Pattern = regexp.MustCompile("^[^\x00\n\r]*$")
+
+var _RouteAction_PrefixRewrite_Pattern = regexp.MustCompile("^[^\x00\n\r]*$")
+
+var _RouteAction_HostRewriteLiteral_Pattern = regexp.MustCompile("^[^\x00\n\r]*$")
+
+var _RouteAction_HostRewriteHeader_Pattern = regexp.MustCompile("^[^\x00\n\r]*$")
 
 // Validate checks the field values on RetryPolicy with the rules defined in
 // the proto definition for this message. If any rules are violated, an error
@@ -1833,7 +1926,12 @@ func (m *RedirectAction) Validate() error {
 		return nil
 	}
 
-	// no validation rules for HostRedirect
+	if !_RedirectAction_HostRedirect_Pattern.MatchString(m.GetHostRedirect()) {
+		return RedirectActionValidationError{
+			field:  "HostRedirect",
+			reason: "value does not match regex pattern \"^[^\\x00\\n\\r]*$\"",
+		}
+	}
 
 	// no validation rules for PortRedirect
 
@@ -1859,10 +1957,22 @@ func (m *RedirectAction) Validate() error {
 	switch m.PathRewriteSpecifier.(type) {
 
 	case *RedirectAction_PathRedirect:
-		// no validation rules for PathRedirect
+
+		if !_RedirectAction_PathRedirect_Pattern.MatchString(m.GetPathRedirect()) {
+			return RedirectActionValidationError{
+				field:  "PathRedirect",
+				reason: "value does not match regex pattern \"^[^\\x00\\n\\r]*$\"",
+			}
+		}
 
 	case *RedirectAction_PrefixRewrite:
-		// no validation rules for PrefixRewrite
+
+		if !_RedirectAction_PrefixRewrite_Pattern.MatchString(m.GetPrefixRewrite()) {
+			return RedirectActionValidationError{
+				field:  "PrefixRewrite",
+				reason: "value does not match regex pattern \"^[^\\x00\\n\\r]*$\"",
+			}
+		}
 
 	}
 
@@ -1922,6 +2032,12 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = RedirectActionValidationError{}
+
+var _RedirectAction_HostRedirect_Pattern = regexp.MustCompile("^[^\x00\n\r]*$")
+
+var _RedirectAction_PathRedirect_Pattern = regexp.MustCompile("^[^\x00\n\r]*$")
+
+var _RedirectAction_PrefixRewrite_Pattern = regexp.MustCompile("^[^\x00\n\r]*$")
 
 // Validate checks the field values on DirectResponseAction with the rules
 // defined in the proto definition for this message. If any rules are
@@ -2023,6 +2139,21 @@ func (m *Decorator) Validate() error {
 		return DecoratorValidationError{
 			field:  "Operation",
 			reason: "value length must be at least 1 bytes",
+		}
+	}
+
+	{
+		tmp := m.GetPropagate()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return DecoratorValidationError{
+					field:  "Propagate",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
 		}
 	}
 
@@ -2423,6 +2554,13 @@ func (m *HeaderMatcher) Validate() error {
 		}
 	}
 
+	if !_HeaderMatcher_Name_Pattern.MatchString(m.GetName()) {
+		return HeaderMatcherValidationError{
+			field:  "Name",
+			reason: "value does not match regex pattern \"^[^\\x00\\n\\r]*$\"",
+		}
+	}
+
 	// no validation rules for InvertMatch
 
 	switch m.HeaderMatchSpecifier.(type) {
@@ -2543,6 +2681,8 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = HeaderMatcherValidationError{}
+
+var _HeaderMatcher_Name_Pattern = regexp.MustCompile("^[^\x00\n\r]*$")
 
 // Validate checks the field values on QueryParameterMatcher with the rules
 // defined in the proto definition for this message. If any rules are
@@ -2921,6 +3061,21 @@ func (m *RouteMatch_TlsContextMatchOptions) Validate() error {
 		}
 	}
 
+	{
+		tmp := m.GetValidated()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return RouteMatch_TlsContextMatchOptionsValidationError{
+					field:  "Validated",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -3004,6 +3159,21 @@ func (m *RouteAction_RequestMirrorPolicy) Validate() error {
 			if err := v.Validate(); err != nil {
 				return RouteAction_RequestMirrorPolicyValidationError{
 					field:  "RuntimeFraction",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
+	{
+		tmp := m.GetTraceSampled()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return RouteAction_RequestMirrorPolicyValidationError{
+					field:  "TraceSampled",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -3151,6 +3321,23 @@ func (m *RouteAction_HashPolicy) Validate() error {
 			}
 		}
 
+	case *RouteAction_HashPolicy_FilterState_:
+
+		{
+			tmp := m.GetFilterState()
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return RouteAction_HashPolicyValidationError{
+						field:  "FilterState",
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
 	default:
 		return RouteAction_HashPolicyValidationError{
 			field:  "PolicySpecifier",
@@ -3226,7 +3413,12 @@ func (m *RouteAction_UpgradeConfig) Validate() error {
 		return nil
 	}
 
-	// no validation rules for UpgradeType
+	if !_RouteAction_UpgradeConfig_UpgradeType_Pattern.MatchString(m.GetUpgradeType()) {
+		return RouteAction_UpgradeConfigValidationError{
+			field:  "UpgradeType",
+			reason: "value does not match regex pattern \"^[^\\x00\\n\\r]*$\"",
+		}
+	}
 
 	{
 		tmp := m.GetEnabled()
@@ -3302,6 +3494,8 @@ var _ interface {
 	ErrorName() string
 } = RouteAction_UpgradeConfigValidationError{}
 
+var _RouteAction_UpgradeConfig_UpgradeType_Pattern = regexp.MustCompile("^[^\x00\n\r]*$")
+
 // Validate checks the field values on RouteAction_HashPolicy_Header with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, an error is returned.
@@ -3314,6 +3508,13 @@ func (m *RouteAction_HashPolicy_Header) Validate() error {
 		return RouteAction_HashPolicy_HeaderValidationError{
 			field:  "HeaderName",
 			reason: "value length must be at least 1 bytes",
+		}
+	}
+
+	if !_RouteAction_HashPolicy_Header_HeaderName_Pattern.MatchString(m.GetHeaderName()) {
+		return RouteAction_HashPolicy_HeaderValidationError{
+			field:  "HeaderName",
+			reason: "value does not match regex pattern \"^[^\\x00\\n\\r]*$\"",
 		}
 	}
 
@@ -3376,6 +3577,8 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = RouteAction_HashPolicy_HeaderValidationError{}
+
+var _RouteAction_HashPolicy_Header_HeaderName_Pattern = regexp.MustCompile("^[^\x00\n\r]*$")
 
 // Validate checks the field values on RouteAction_HashPolicy_Cookie with the
 // rules defined in the proto definition for this message. If any rules are
@@ -3613,6 +3816,81 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = RouteAction_HashPolicy_QueryParameterValidationError{}
+
+// Validate checks the field values on RouteAction_HashPolicy_FilterState with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, an error is returned.
+func (m *RouteAction_HashPolicy_FilterState) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if len(m.GetKey()) < 1 {
+		return RouteAction_HashPolicy_FilterStateValidationError{
+			field:  "Key",
+			reason: "value length must be at least 1 bytes",
+		}
+	}
+
+	return nil
+}
+
+// RouteAction_HashPolicy_FilterStateValidationError is the validation error
+// returned by RouteAction_HashPolicy_FilterState.Validate if the designated
+// constraints aren't met.
+type RouteAction_HashPolicy_FilterStateValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RouteAction_HashPolicy_FilterStateValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RouteAction_HashPolicy_FilterStateValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RouteAction_HashPolicy_FilterStateValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RouteAction_HashPolicy_FilterStateValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RouteAction_HashPolicy_FilterStateValidationError) ErrorName() string {
+	return "RouteAction_HashPolicy_FilterStateValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RouteAction_HashPolicy_FilterStateValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRouteAction_HashPolicy_FilterState.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RouteAction_HashPolicy_FilterStateValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RouteAction_HashPolicy_FilterStateValidationError{}
 
 // Validate checks the field values on RetryPolicy_RetryPriority with the rules
 // defined in the proto definition for this message. If any rules are
@@ -4249,6 +4527,13 @@ func (m *RateLimit_Action_RequestHeaders) Validate() error {
 		}
 	}
 
+	if !_RateLimit_Action_RequestHeaders_HeaderName_Pattern.MatchString(m.GetHeaderName()) {
+		return RateLimit_Action_RequestHeadersValidationError{
+			field:  "HeaderName",
+			reason: "value does not match regex pattern \"^[^\\x00\\n\\r]*$\"",
+		}
+	}
+
 	if len(m.GetDescriptorKey()) < 1 {
 		return RateLimit_Action_RequestHeadersValidationError{
 			field:  "DescriptorKey",
@@ -4315,6 +4600,8 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = RateLimit_Action_RequestHeadersValidationError{}
+
+var _RateLimit_Action_RequestHeaders_HeaderName_Pattern = regexp.MustCompile("^[^\x00\n\r]*$")
 
 // Validate checks the field values on RateLimit_Action_RemoteAddress with the
 // rules defined in the proto definition for this message. If any rules are

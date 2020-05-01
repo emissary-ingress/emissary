@@ -46,6 +46,44 @@ func (m *FilterConfig) Validate() error {
 
 	// no validation rules for EmitFilterState
 
+	switch m.PerMethodStatSpecifier.(type) {
+
+	case *FilterConfig_IndividualMethodStatsAllowlist:
+
+		{
+			tmp := m.GetIndividualMethodStatsAllowlist()
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return FilterConfigValidationError{
+						field:  "IndividualMethodStatsAllowlist",
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
+	case *FilterConfig_StatsForAllMethods:
+
+		{
+			tmp := m.GetStatsForAllMethods()
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return FilterConfigValidationError{
+						field:  "StatsForAllMethods",
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
+	}
+
 	return nil
 }
 

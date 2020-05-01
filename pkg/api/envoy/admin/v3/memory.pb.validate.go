@@ -53,6 +53,8 @@ func (m *Memory) Validate() error {
 
 	// no validation rules for TotalThreadCache
 
+	// no validation rules for TotalPhysicalBytes
+
 	return nil
 }
 
