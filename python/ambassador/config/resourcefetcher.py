@@ -9,7 +9,7 @@ import re
 from .config import Config
 from .acresource import ACResource
 from .resourceprocessor import (
-    ResourceEmission,
+    NormalizedResource,
     ResourceManager,
     KubernetesObject,
     KubernetesGVK,
@@ -396,7 +396,7 @@ class ResourceFetcher:
                 # if not obj:
                 #     self.logger.debug("%s: empty object from %s" % (self.location, serialization))
 
-                self.manager.emit(ResourceEmission(obj, rkey=rkey))
+                self.manager.emit(NormalizedResource(obj, rkey=rkey))
 
         self.manager.locations.pop()
 

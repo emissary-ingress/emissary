@@ -126,21 +126,21 @@ class TestKubernetesObject:
             k8s_object_from_yaml('apiVersion: v1')
 
 
-class TestResourceEmission:
+class TestNormalizedResource:
 
     def test_kubernetes_object_conversion(self):
-        emission = valid_mapping.as_resource_emission()
+        resource = valid_mapping.as_normalized_resource()
 
-        assert emission.rkey == f'{valid_mapping.name}.{valid_mapping.namespace}'
-        assert emission.object['apiVersion'] == valid_mapping.gvk.api_version
-        assert emission.object['kind'] == valid_mapping.gvk.kind
-        assert emission.object['name'] == valid_mapping.name
-        assert emission.object['namespace'] == valid_mapping.namespace
-        assert emission.object['generation'] == valid_mapping.generation
-        assert len(emission.object['labels']) == 1
-        assert emission.object['labels']['ambassador_crd'] == emission.rkey
-        assert emission.object['prefix'] == valid_mapping.spec['prefix']
-        assert emission.object['service'] == valid_mapping.spec['service']
+        assert resource.rkey == f'{valid_mapping.name}.{valid_mapping.namespace}'
+        assert resource.object['apiVersion'] == valid_mapping.gvk.api_version
+        assert resource.object['kind'] == valid_mapping.gvk.kind
+        assert resource.object['name'] == valid_mapping.name
+        assert resource.object['namespace'] == valid_mapping.namespace
+        assert resource.object['generation'] == valid_mapping.generation
+        assert len(resource.object['labels']) == 1
+        assert resource.object['labels']['ambassador_crd'] == resource.rkey
+        assert resource.object['prefix'] == valid_mapping.spec['prefix']
+        assert resource.object['service'] == valid_mapping.spec['service']
 
 
 class TestLocationManager:

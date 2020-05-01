@@ -80,7 +80,7 @@ class LocationManager:
 
 
 @dataclasses.dataclass
-class ResourceEmission:
+class NormalizedResource:
     """
     Represents an Ambassador resource emitted after processing fetched data.
     """
@@ -90,7 +90,7 @@ class ResourceEmission:
 
     @classmethod
     def from_data(cls, kind: str, name: str, namespace: str = 'default', generation: int = 1,
-                  version: str = 'v2', labels: Dict[str, Any] = None, spec: Dict[str, Any] = None) -> ResourceEmission:
+                  version: str = 'v2', labels: Dict[str, Any] = None, spec: Dict[str, Any] = None) -> NormalizedResource:
         rkey = f'{name}.{namespace}'
 
         ir_obj = {}
@@ -230,7 +230,7 @@ class KubernetesObject(collections.abc.Mapping):
     def status(self) -> Dict[str, Any]:
         return self.get('status', {})
 
-    def as_resource_emission(self) -> ResourceEmission:
+    def as_normalized_resource(self) -> NormalizedResource:
         if self.gvk.api_group != 'getambassador.io':
             raise ValueError(f'Cannot construct resource from non-Ambassador Kubernetes object with API version {self.gvk.api_version}')
         if self.namespace is None:
@@ -239,7 +239,7 @@ class KubernetesObject(collections.abc.Mapping):
         labels = dict(self.labels)
         labels['ambassador_crd'] = f"{self.name}.{self.namespace}"
 
-        return ResourceEmission.from_data(
+        return NormalizedResource.from_data(
             self.gvk.kind,
             self.name,
             namespace=self.namespace,
@@ -274,9 +274,9 @@ class ResourceManager:
     def location(self) -> str:
         return str(self.locations.current)
 
-    def _emit(self, emission: ResourceEmission) -> bool:
-        obj = emission.object
-        rkey = emission.rkey
+    def _emit(self, resource: NormalizedResource) -> bool:
+        obj = resource.object
+        rkey = resource.rkey
 
         if not isinstance(obj, dict):
             # Bug!!
@@ -342,8 +342,8 @@ class ResourceManager:
 
         return True
 
-    def emit(self, emission: ResourceEmission):
-        if self._emit(emission):
+    def emit(self, resource: NormalizedResource):
+        if self._emit(resource):
             self.locations.current.ocount += 1
 
 
@@ -420,7 +420,7 @@ class AmbassadorProcessor (ManagedKubernetesProcessor):
         return frozenset([KubernetesGVK.for_ambassador(kind) for kind in kinds])
 
     def _process(self, obj: KubernetesObject) -> None:
-        self.manager.emit(obj.as_resource_emission())
+        self.manager.emit(obj.as_normalized_resource())
 
 
 class KnativeIngressProcessor (ManagedKubernetesProcessor):
@@ -497,7 +497,7 @@ class KnativeIngressProcessor (ManagedKubernetesProcessor):
             }
             spec.update(split_mapping_spec)
 
-            mapping = ResourceEmission.from_data(
+            mapping = NormalizedResource.from_data(
                 'Mapping',
                 mapping_identifier,
                 namespace=obj.namespace or 'default',
