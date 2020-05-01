@@ -137,8 +137,8 @@ class KubernetesGVK:
             return self.kind.lower()
 
     @classmethod
-    def for_ambassador(cls, kind: str) -> KubernetesGVK:
-        return cls('getambassador.io/v2', kind)
+    def for_ambassador(cls, kind: str, version: str = 'v2') -> KubernetesGVK:
+        return cls(f'getambassador.io/{version}', kind)
 
     @classmethod
     def for_knative_networking(cls, kind: str) -> KubernetesGVK:
@@ -417,7 +417,9 @@ class AmbassadorProcessor (ManagedKubernetesProcessor):
             'TracingService',
         ]
 
-        return frozenset([KubernetesGVK.for_ambassador(kind) for kind in kinds])
+        return frozenset([
+            KubernetesGVK.for_ambassador(kind, version=version) for (kind, version) in itertools.product(kinds, ['v1', 'v2'])
+        ])
 
     def _process(self, obj: KubernetesObject) -> None:
         self.manager.emit(obj.as_normalized_resource())
