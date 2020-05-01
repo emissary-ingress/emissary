@@ -104,6 +104,74 @@ var _ interface {
 	ErrorName() string
 } = Int64RangeValidationError{}
 
+// Validate checks the field values on Int32Range with the rules defined in the
+// proto definition for this message. If any rules are violated, an error is returned.
+func (m *Int32Range) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	// no validation rules for Start
+
+	// no validation rules for End
+
+	return nil
+}
+
+// Int32RangeValidationError is the validation error returned by
+// Int32Range.Validate if the designated constraints aren't met.
+type Int32RangeValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e Int32RangeValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e Int32RangeValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e Int32RangeValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e Int32RangeValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e Int32RangeValidationError) ErrorName() string { return "Int32RangeValidationError" }
+
+// Error satisfies the builtin error interface
+func (e Int32RangeValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sInt32Range.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = Int32RangeValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = Int32RangeValidationError{}
+
 // Validate checks the field values on DoubleRange with the rules defined in
 // the proto definition for this message. If any rules are violated, an error
 // is returned.
