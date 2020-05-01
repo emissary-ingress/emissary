@@ -40,7 +40,7 @@ class GettingStarted extends Component {
     <div className="QS-grid">
 
       <div className="QS-wrapper">
-        <span className="QS-k8"><img className="QS-osLogo" src="../../images/kubernetes.png"/></span>
+        <span className="QS-k8"><img className="QS-k8Logo" src="../../images/kubernetes.png"/></span>
       </div>
 
       <div className="QS-aside QS-aside1">
