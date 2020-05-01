@@ -277,11 +277,11 @@ class GettingStarted extends Component {
       </div>
 
         <div className="QS-os">
-          <span id="QS-showMac" data-os="mac" className="QS-header1">Mac<img className="QS-osLogo" src="../../images/apple.png" /></span>
+          <span id="QS-showMac" data-os="mac" className="QS-OStype">Mac<img className="QS-osLogo" src="../../images/apple.png" /></span>
 
-          <span id="QS-showLinux" data-os="linux" className="QS-header1">Linux<img className="QS-osLogo" src="../../images/linux.png" /></span>
+          <span id="QS-showLinux" data-os="linux" className="QS-OStype">Linux<img className="QS-osLogo" src="../../images/linux.png" /></span>
 
-          <span id="QS-showWindows" data-os="windows" className="QS-header1">Windows<img className="QS-osLogo" src="../../images/windows.png" /></span>
+          <span id="QS-showWindows" data-os="windows" className="QS-OStype">Windows<img className="QS-osLogo" src="../../images/windows.png" /></span>
         </div>
 
       <div className="QS-aside QS-aside3">
