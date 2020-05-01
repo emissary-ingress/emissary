@@ -1,10 +1,12 @@
 .QS-grid {
   display: grid;
   grid-template-columns: minmax(0, 755px) 0px;
-  grid-template-areas: 
+  grid-template-areas:
   "wrapper"
   "sidebar1"
+  "helm"
   "sidebar2"
+  "os"
   "sidebar3"
   "manual"
   "main";
@@ -14,47 +16,11 @@
   cursor: default;
   overflow: hidden;
 }
-@media (max-width: 800px) {
-  .QS-aside1, .QS-aside2, .QS-aside3 {
-    font-size: .8em;
-   }
-   .QS-Aside3codeblockInstall {
-     max-width: 80%;
-  }
-}
-@media (max-width: 320px) {
-  .QS-codeblockInstall1 {
-    max-width: 25%;
-  }
-  .QS-aside1, .QS-aside2, .QS-aside3 {
-   font-size: .8em;
-  }
-  .QS-Aside3codeblockInstall {
-    max-width: 85%;
-  }
-}
-.QS-rightTopWrapper {
+.QS-wrapper {
   display: flex;
-  grid-area: wrapper;
-  margin-bottom: 13px;
-}
-.QS-header1 {
-  //color: #5F3EFF;
-  font-size: 1.5em;
-  font-weight: 600;
-  font-style: italic;
-  width: auto;
-  position: relative;
-  margin-left: 5px;
-  margin-right: 10px;
-  z-index: 2;
-  display: none;
-}
-#QS-displayMac, #QS-displayLinux, #QS-displayWindows {
-  display: none;
-  margin-top: 25px;
 }
 .QS-moreInstallOptions {
+  grid-area: wrapper;
   font-size: 1.2em;
   font-weight: 600;
   width: auto;
@@ -62,6 +28,8 @@
   z-index: 2;
   cursor: pointer;
   top: 0.2em;
+  display: flex;
+  margin-bottom: 0px;
 }
 a#QS-moreInstallOptions {
   color: darkgrey;
@@ -70,38 +38,30 @@ a#QS-moreInstallOptions {
 a#QS-moreInstallOptions:hover {
   text-decoration: none;
 }
+.QS-k8 {
+  grid-area: wrapper;
+  font-size: 1.2em;
+  font-weight: 600;
+  width: auto;
+  font-style: italic;
+  position: relative;
+  margin-left: 5px;
+  margin-right: 8px;
+  margin-bottom: 22px;
+  z-index: 2;
+  display: flex;
+}
 .QS-main {
-  //background-image: linear-gradient(#EEEEFF, white);
-  //border: 0.1875em solid black;
-  //border-radius: 20px;
-  //box-shadow: 0.375em 0.375em 0 0 rgba(15, 28, 63, 0.125);
   grid-area: main;
   padding: 5px;
-  //margin-top: 20px;
-  //height: 550px;
   position: relative;
   z-index: 2;
   cursor: default;
 }
-#QS-mainText1 {
-  //color: darkgrey;
-  font-weight: bold;
-  font-size: 2rem;
-  //display: inline-block;
-  //position: relative;
-  //text-align: center;
-  z-index: 2;
-  //padding: 10px 20px 10px 20px;
-  //margin-top: 2.1rem;
-  margin-bottom: 1.05rem;
-  letter-spacing: -0.0075em;
-}
 #QS-mainTextSmall {
   color:black;
-  //font-style: default;
   font-size: 1.2em;
   line-height: 1.1em;
-  //padding: 20px 20px 0px 20px;
 }
 #QS-mainTextSmall li {
   margin-bottom: 0.3em;
@@ -109,72 +69,95 @@ a#QS-moreInstallOptions:hover {
 p.bulletText {
   font-size: 1.2em;
 }
-#QS-showMacAside1, #QS-showLinuxAside1, #QS-showWindowsAside1 {
+#QS-showMacAside3, #QS-showLinuxAside3, #QS-showWindowsAside3 {
   display: none;
 }
-#QS-showMacAside2, #QS-showLinuxAside2, #QS-showWindowsAside2 {
-  display: none;
-}
-.QS-aside1 {
+.QS-aside {
   border: 0.1em solid #8e77ff;
   background: rgba(95,62,255,.05);
   border-radius: 7px;
-  //box-shadow: 0.375em 0.375em 0 0 rgba(15, 28, 63, 0.125);
-  grid-area: sidebar1;
-  height: 160px;
+  height: auto;
   position: relative;
-  margin-top: -21px;
   padding-top: 15px;
   padding-left: 30px;
   padding-right: 30px;
-  display: flex;
+  display: block;
   z-index: 2;
+}
+#QS-asideBullets {
+  list-style-type: square;
+  display: visible;
+}
+li#helm3 {
+  display: open;
+}
+.QS-aside1 {
+  grid-area: sidebar1;
+  height: 150px;
+  padding-bottom: 10px;
   overflow: hidden;
 }
-.QS-aside2 {
-  border: 0.1em solid #7d62ff;
-  background: rgba(95,62,255,.05);
-  border-radius: 7px;
-  //box-shadow: 0.375em 0.375em 0 0 rgba(15, 28, 63, 0.125);
-  grid-area: sidebar2;
-  height: 160px;
-  position: relative;
-  padding-top: 15px;
-  padding-left: 30px;
-  padding-right: 30px;
-  display: flex;
-  z-index: 2;
+.QS-aside1:hover {
+  height: auto;
 }
-.QS-aside2 .QS-codeblockInstall1 {
+.QS-helm {
+  grid-area: helm;
+  margin-left: 5px;
+  margin-bottom: -5px;
+}
+
+.QS-aside2 {
+  grid-area: sidebar2;
+  height: 150px;
+  overflow: hidden;
+}
+.QS-aside2:hover {
+  height: auto;
+}
+.QS-aside2 .QS-codeblockInstall {
   margin-top: 1em;
 }
-.QS-aside3 {
-  border: 0.1em solid #4823ff;
-  background: rgba(95,62,255,.05);
-  border-radius: 7px;
-  //box-shadow: 0.375em 0.375em 0 0 rgba(15, 28, 63, 0.125);
-  grid-area: sidebar3;
-  height: 160px;
+summary::-webkit-details-marker {display: none; }
+details summary::before { content:"►"; font-size: .5em;}
+details[open] summary::before { content:"▼" }
+
+summary#helmVersions {
+  font-size: .7em;
+}
+.QS-os {
+  grid-area: os;
+  font-size: .9em;
+  font-weight: 600;
+  width: auto;
+  font-style: italic;
   position: relative;
-  padding-top: 15px;
-  padding-left: 30px;
-  display: flex;
+  margin-left: 5px;
+  margin-right: 10px;
+  margin-bottom: -10px;
   z-index: 2;
+  display: flex;
+}
+.QS-osLogo {
+  width: 30px;
+  margin: 0 0 -4px 4px;
+}
+.QS-aside3 {
+  grid-area: sidebar3;
+  height: 150px;
+  overflow: hidden;
+}
+.QS-aside3:hover {
+  height: auto;
 }
 .QS-blackbird-image {
   position: relative;
-  float: right;
   display: inline-block;
   top: -130px;
   margin-right: 5px;
   height: 150px;
   width: 100px;
 }
-.QS-codeBlockInstall1outer {
-  //width: 70%;
-  //position: relative;
-}
-.QS-codeblockInstall1 {
+.QS-codeblockInstall {
   font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
   font-size: 16px;
   padding: 5px 5px;
@@ -185,39 +168,13 @@ p.bulletText {
   word-spacing: normal;
   word-break: normal;
   word-wrap: normal;
-  //line-height: 55px;
   letter-spacing: 0.2px;
   margin-bottom: 1.05rem;
-  //position: relative;
-  //width: 70%;
   overflow: hidden;
   display: flex;
 }
-.QS-Aside3codeblockInstall span.QS-aside3prose {
-  color: black;
-}
-.QS-Aside3codeblockInstall a {
-  color: black;
-  text-decoration: underline;
-}
-.QS-Aside3codeblockInstall a:hover {
-  text-decoration: none;
-}
-.QS-Aside3codeblockInstall {
-  font-size: 18px;
-  padding: 5px 15px 0 5px;
-  margin: 0.2em 0 1.05rem 0;
-  overflow: hidden;
-  //background-color: white;
-  text-align: left;
-  white-space: pre;
-  word-spacing: normal;
-  word-break: normal;
-  word-wrap: normal;
-  line-height: 30px;
-  letter-spacing: 0.2px;
-  //margin-bottom: 1.05rem;
-  //width: 470px;
+.QSAside1-codeblockInstall {
+  height: 20px;
 }
 .QS-asideText {
   font-weight: 600;
@@ -225,23 +182,14 @@ p.bulletText {
   width: 100%;
 }
 .QS-copyButton {
-  //position: absolute;
-  //left: 4em;
-  //top: 0em;
-  //position: relative;
-  //top: -5px;
-  //left: 400px;
   display: contents;
-  //background-color: red;
 }
 .QS-copyButton .styles-module--CopyButton--3-6vF {
   background: white;
   border-radius: 5px;
   border: thin solid gray;
   font-size: 90%;
-  //margin-right: 5px;
 }
-
 .QS-token-function {
   color: #FF4329;
 }
@@ -260,4 +208,15 @@ p.bulletText {
 }
 #QS-fullManual:hover a {
   text-decoration: none;
+}
+@media screen and (max-width: 380px) {
+  .QS-asideText {
+    font-size: 20px;
+  }
+  .QS-blackbird-image {
+    display: none;
+  }
+  .QS-moreInstallOptions {
+    font-size: 1em;
+  }
 }
