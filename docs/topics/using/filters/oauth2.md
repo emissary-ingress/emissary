@@ -45,41 +45,43 @@ metadata:
   namespace: "example-namespace"
 spec:
   OAuth2:
-    authorizationURL:      "url"      # required
+    authorizationURL:       "url"      # required
 
     ############################################################################
     # OAuth Client settings                                                    #
     ############################################################################
 
+    expirationSafteyMargin: "duration" # optional; default is "0"
+
     # Which settings exist depends on the grantType; supported grantTypes
     # are "AuthorizationCode", "Password", and "ClientCredentials".
-    grantType:             "enum"     # optional; default is "AuthorizationCode"
+    grantType:              "enum"     # optional; default is "AuthorizationCode"
 
     ## OAuth Client settings: grantType=="AuthorizationCode" ###################
-    clientURL:             "string"   # deprecated; us 'protectedOrigins' instead
-    protectedOrigins:                 # required; must have at least 1 item
-    - origin: "url"                     # required
-      includeSubdomains: bool           # optional; default is false
-    useSessionCookies:                # optional; default is { value: false }
-      value: bool                       # optional: default is true
-      ifRequestHeader:                  # optional; default to apply "useSessionCookies.value" to all requests
-        name: "string"                    # required
-        negate: bool                      # optional; default is false
+    clientURL:              "string"   # deprecated; us 'protectedOrigins' instead
+    protectedOrigins:                  # required; must have at least 1 item
+    - origin: "url"                      # required
+      includeSubdomains: bool            # optional; default is false
+    useSessionCookies:                 # optional; default is { value: false }
+      value: bool                        # optional: default is true
+      ifRequestHeader:                   # optional; default to apply "useSessionCookies.value" to all requests
+        name: "string"                     # required
+        negate: bool                       # optional; default is false
         # It is invalid to specify both "value" and "valueRegex".
-        value: "string"                   # optional; default is any non-empty string
-        valueRegex: "regex"               # optional; default is any non-empty string
-    extraAuthorizationParameters:     # optional; default is {}
+        value: "string"                    # optional; default is any non-empty string
+        valueRegex: "regex"                # optional; default is any non-empty string
+    extraAuthorizationParameters:      # optional; default is {}
       "string": "string"
 
     ## OAuth Client settings: grantType=="AuthorizationCode" or "Password" #####
-    clientID:              "string"   # required
+    clientID:               "string"   # required
     # The client secret can be specified by including the raw secret as a
     # string in "secret", or by referencing Kubernetes secret with
     # "secretName" (and "secretNamespace").  It is invalid to specify both
     # "secret" and "secretName".
-    secret:                "string"   # required (unless secretName is set)
-    secretName:            "string"   # required (unless secret is set)
-    secretNamespace:       "string"   # optional; default is the same namespace as the Filter
+    secret:                 "string"   # required (unless secretName is set)
+    secretName:             "string"   # required (unless secret is set)
+    secretNamespace:        "string"   # optional; default is the same namespace as the Filter
 
     ## OAuth Client settings (grantType=="ClientCredentials") ##################
     #
@@ -90,11 +92,11 @@ spec:
     # OAuth Resource Server settings                                           #
     ############################################################################
 
-    accessTokenValidation: "enum"     # optional; default is "auto"
-    accessTokenJWTFilter:             # optional; default is null
-      name: "string"                    # required
-      namespace: "string"               # optional; default is the same namespace as the Filter
-      arguments: JWT-Filter-Arguments   # optional
+    accessTokenValidation:  "enum"     # optional; default is "auto"
+    accessTokenJWTFilter:              # optional; default is null
+      name: "string"                     # required
+      namespace: "string"                # optional; default is the same namespace as the Filter
+      arguments: JWT-Filter-Arguments    # optional
 
     ############################################################################
     # HTTP client settings for talking with the identity provider              #
@@ -119,6 +121,12 @@ These settings configure the OAuth Client part of the filter.
    * `"Password"`: Authenticate by requiring `X-Ambassador-Username` and `X-Ambassador-Password` on all
      incoming requests, and use them to authenticate with the identity provider using the OAuth2
      `Resource Owner Password Credentials` grant type.
+ - `expirationSafetyMargin`: Check that access tokens not expire for
+   at least this much longer; otherwise consider them to be already
+   expired.  This provides a safety margin of time for your
+   application to send it to an upstream Resource Server that grants
+   insufficient leeway to account for clock skew and
+   network/application latency.
 
 Depending on which `grantType` is used, different settings exist.
 
