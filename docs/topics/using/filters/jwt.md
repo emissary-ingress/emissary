@@ -15,40 +15,54 @@ metadata:
   namespace: "example-namespace"
 spec:
   JWT:
-    jwksURI:          "url-string"  # required, unless the only validAlgorithm is "none"
-    insecureTLS:      bool          # optional; default is false
-    renegotiateTLS:   "enum-string" # optional; default is "never"
-    validAlgorithms:                # optional; default is "all supported algos except for 'none'"
+    jwksURI:            "url-string"  # required, unless the only validAlgorithm is "none"
+    insecureTLS:        bool          # optional; default is false
+    renegotiateTLS:     "enum-string" # optional; default is "never"
+    validAlgorithms:                  # optional; default is "all supported algos except for 'none'"
     - "RS256"
     - "RS384"
     - "RS512"
     - "none"
 
-    audience:         "string"      # optional, unless `requireAudience: true`
-    requireAudience:  bool          # optional; default is false
+    audience:           "string"      # optional, unless `requireAudience: true`
+    requireAudience:    bool          # optional; default is false
 
-    issuer:           "url-string"  # optional, unless `requireIssuer: true`
-    requireIssuer:    bool          # optional; default is false
+    issuer:             "url-string"  # optional, unless `requireIssuer: true`
+    requireIssuer:      bool          # optional; default is false
 
-    requireIssuedAt:  bool          # optional; default is false
-    requireExpiresAt: bool          # optional; default is false
-    requireNotBefore: bool          # optional; default is false
+    requireExpiresAt:   bool          # optional; default is false
+    leewayForExpiresAt: "duration"    # optional; default is "0"
 
-    injectRequestHeaders:           # optional; default is []
-    - name:   "header-name-string"    # required
-      value:  "go-template-string"    # required
+    requireNotBefore:   bool          # optional; default is false
+    leewayForNotBefore: "duration"    # optional; default is "0"
+
+    requireIssuedAt:    bool          # optional; default is false
+    leewayForIssuedAt:  "duration"    # optional; default is "0"
+
+    injectRequestHeaders:             # optional; default is []
+    - name:   "header-name-string"      # required
+      value:  "go-template-string"      # required
        
-    errorResponse:                  # optional
-      contentType: "string"         # deprecated; use 'headers' instead
-      realm: "string"               # optional; default is "{{.metadata.name}}.{{.metadata.namespace}}"
-      headers:                      # optional; default is [{name: "Content-Type", value: "application/json"}]
-      - name: "header-name-string"  # required
-        value: "go-template-string" # required
-      bodyTemplate: "string"        # optional; default is `{{ . | json "" }}`
+    errorResponse:                    # optional
+      contentType: "string"             # deprecated; use 'headers' instead
+      realm: "string"                   # optional; default is "{{.metadata.name}}.{{.metadata.namespace}}"
+      headers:                          # optional; default is [{name: "Content-Type", value: "application/json"}]
+      - name: "header-name-string"        # required
+        value: "go-template-string"       # required
+      bodyTemplate: "string"            # optional; default is `{{ . | json "" }}`
 ```
 
  - `insecureTLS` disables TLS verification for the cases when `jwksURI` begins with `https://`.  This is discouraged in favor of either using plain `http://` or [installing a self-signed certificate](#installing-self-signed-certificates).
  - `renegotiateTLS` allows a remote server to request TLS renegotiation. Accepted values are "never", "onceAsClient", and "freelyAsClient".
+ - `leewayForExpiresAt` allows tokens expired by this much to be used;
+   to account for clock skew and network latency between the HTTP
+   client and the Ambassador Edge Stack.
+ - `leewayForNotBefore` allows tokens that shouldn't be used until
+   this much in the future to be used; to account for clock skew
+   between the HTTP client and the Ambassador Edge Stack.
+ - `leewayForIssuedAt` allows tokens issued this much in the future to
+   be used; to account for clock skew between the HTTP client and
+   the Ambassador Edge Stack.
  - `injectRequestHeaders` injects HTTP header fields in to the request before sending it to the upstream service; where the header value can be set based on the JWT value.  The value is specified as a [Go `text/template`][] string, with the following data made available to it:
 
     * `.token.Raw` → `string` the raw JWT
@@ -100,8 +114,14 @@ spec:
          template `{{ json "indent>" "value" }}` would yield the
          string `indent>"value"`.
 
+`"duration"` strings are parsed as a sequence of decimal numbers, each
+with optional fraction and a unit suffix, such as "300ms", "-1.5h" or
+"2h45m". Valid time units are "ns", "us" (or "µs"), "ms", "s", "m",
+"h".  See [Go `time.ParseDuration`][].
+
 **Note**: If you are using a templating system for your YAML that also makes use of Go templating, then you will need to escape the template strings meant to be interpreted by the Ambassador Edge Stack.
 
+[Go `time.ParseDuration`]: https://golang.org/pkg/time/#ParseDuration
 [Go `text/template`]: https://golang.org/pkg/text/template/
 [Go `text/template` functions]: https://golang.org/pkg/text/template/#hdr-Functions
 [`http.Header`]: https://golang.org/pkg/net/http/#Header
