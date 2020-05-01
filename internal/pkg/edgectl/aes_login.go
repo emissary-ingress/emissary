@@ -1,4 +1,4 @@
-package main
+package edgectl
 
 import (
 	"crypto/rsa"
@@ -7,7 +7,6 @@ import (
 
 	"github.com/pkg/browser"
 
-	"github.com/datawire/ambassador/pkg/k8s"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gookit/color"
 	"github.com/pkg/errors"
@@ -15,6 +14,8 @@ import (
 	k8sTypesMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sClientCoreV1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
+
+	"github.com/datawire/ambassador/pkg/k8s"
 )
 
 const SecretName = "ambassador-internal"
@@ -24,7 +25,7 @@ type LoginClaimsV1 struct {
 	jwt.StandardClaims
 }
 
-func aesLogin(cmd *cobra.Command, args []string) error {
+func AESLogin(cmd *cobra.Command, args []string) error {
 	fmt.Println(color.Info.Sprintf("Connecting to the Ambassador Edge Policy Console in this cluster..."))
 
 	// Grab options
@@ -39,10 +40,10 @@ func aesLogin(cmd *cobra.Command, args []string) error {
 	// Prepare to talk to the cluster
 	kubeinfo := k8s.NewKubeInfo("", context, namespace) // Default namespace is "ambassador"
 
-	return do_login(kubeinfo, context, namespace, hostname, !justShowURL, justShowURL, showToken, false)
+	return DoLogin(kubeinfo, context, namespace, hostname, !justShowURL, justShowURL, showToken, false)
 }
 
-func do_login(kubeinfo *k8s.KubeInfo, context, namespace, hostname string, openInBrowser, showURL, showToken, showWelcome bool) error {
+func DoLogin(kubeinfo *k8s.KubeInfo, context, namespace, hostname string, openInBrowser, showURL, showToken, showWelcome bool) error {
 	restconfig, err := kubeinfo.GetRestConfig()
 	if err != nil {
 		return errors.Wrap(err, "Failed to connect to cluster (rest)")
