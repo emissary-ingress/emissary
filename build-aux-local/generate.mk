@@ -117,7 +117,7 @@ $(tools/protoc-gen-go-json): $(OSS_HOME)/go.mod
 # golang/protobuf because protoc-gen-gogofast always generates a `Marshal` method, meaning that it
 # is 100% impossible to use SetDeterministic with gogofast.
 
-ENVOY_GO_CONTROL_PLANE_COMMIT = d4f1de1f158de7c5c2f4726c11c54a3fb28220f5
+ENVOY_GO_CONTROL_PLANE_COMMIT = 3a8210324ccf55ef9fd7eeeed6fd24d59d6aefd9
 $(OSS_HOME)/pkg/envoy-control-plane: FORCE
 	rm -rf $@
 	@PS4=; set -ex; { \
@@ -228,6 +228,7 @@ _proto_options/gogofast += Mopencensus/proto/trace/v1/trace_config.proto=istio.i
 _proto_options/gogofast += Mvalidate/validate.proto=github.com/envoyproxy/protoc-gen-validate/validate
 _proto_options/gogofast += Mudpa/annotations/migrate.proto=github.com/cncf/udpa/go/udpa/annotations
 _proto_options/gogofast += Mudpa/annotations/sensitive.proto=github.com/cncf/udpa/go/udpa/annotations
+_proto_options/gogofast += Mudpa/annotations/status.proto=github.com/cncf/udpa/go/udpa/annotations
 _proto_options/gogofast += Mudpa/annotations/versioning.proto=github.com/cncf/udpa/go/udpa/annotations
 _proto_options/gogofast += $(shell find $(OSS_HOME)/api/envoy -type f -name '*.proto' | sed -E 's,^$(OSS_HOME)/api/((.*)/[^/]*),M\1=github.com/datawire/ambassador/pkg/api/\2,')
 proto_options/gogofast = $(call lazyonce,proto_options/gogofast,$(_proto_options/gogofast))
