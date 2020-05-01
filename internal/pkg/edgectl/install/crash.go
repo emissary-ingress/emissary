@@ -1,4 +1,4 @@
-package main
+package edgectl
 
 import (
 	"bytes"
@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/datawire/ambassador/internal/pkg/edgectl"
 )
 
 func (i *Installer) generateCrashReport(sourceError error) {
@@ -14,16 +16,16 @@ func (i *Installer) generateCrashReport(sourceError error) {
 	report := &crashReportCreationRequest{
 		Product:         "edgectl",
 		Command:         "install",
-		ProductVersion:  displayVersion,
+		ProductVersion:  edgectl.DisplayVersion(),
 		Error:           sourceError.Error(),
 		AESVersion:      i.version,
 		Address:         i.address,
 		Hostname:        i.hostname,
 		ClusterID:       i.clusterID,
-		InstallID:       i.scout.reporter.InstallID(),
-		TraceID:         fmt.Sprintf("%v", i.scout.reporter.BaseMetadata["trace_id"]),
-		ClusterInfo:     fmt.Sprintf("%v", i.scout.reporter.BaseMetadata["cluster_info"]),
-		Managed:         fmt.Sprintf("%v", i.scout.reporter.BaseMetadata["managed"]),
+		InstallID:       i.scout.Reporter.InstallID(),
+		TraceID:         fmt.Sprintf("%v", i.scout.Reporter.BaseMetadata["trace_id"]),
+		ClusterInfo:     fmt.Sprintf("%v", i.scout.Reporter.BaseMetadata["cluster_info"]),
+		Managed:         fmt.Sprintf("%v", i.scout.Reporter.BaseMetadata["managed"]),
 		KubectlVersion:  i.k8sVersion.Client.GitVersion,
 		KubectlPlatform: i.k8sVersion.Client.Platform,
 		K8sVersion:      i.k8sVersion.Server.GitVersion,
@@ -50,7 +52,7 @@ func (i *Installer) generateCrashReport(sourceError error) {
 		return
 	}
 	i.log.Printf("uploading anonymous crash report and logs under report ID: %v", crashReport.ReportId)
-	i.Report("crash_report", ScoutMeta{"crash_report_id", crashReport.ReportId})
+	i.Report("crash_report", edgectl.ScoutMeta{"crash_report_id", crashReport.ReportId})
 	i.uploadCrashReportData(crashReport, i.gatherCrashReportData())
 }
 
@@ -70,14 +72,13 @@ func (i *Installer) gatherCrashReportData() []byte {
 	}
 
 	buffer.WriteString("\n========== kubectl describe ==========\n")
-	describe, err := i.SilentCaptureKubectl("describe ambassador namespace", "", "-n", "ambassador", "describe", "all")
-	if err != nil {
+	if _, err := i.kubectl.WithStdout(buffer).Describe("all", defInstallNamespace); err != nil {
 		i.log.Printf("failed to describe ambassador resources: %v", err.Error())
 	}
-	buffer.WriteString(describe)
 
 	buffer.WriteString("\n========== kubectl logs ==========\n")
-	ambassadorLogs, err := i.SilentCaptureKubectl("read ambassador logs", "", "-n", "ambassador", "logs", "deployments/ambassador", "--tail=1000")
+	// i.silentCaptureKubectl("read ambassador logs", "", "-n", "ambassador", "logs", "deployments/ambassador", "--tail=1000"
+	ambassadorLogs, err := i.kubectl.WithStdout(buffer).Logs("deployments/ambassador", defInstallNamespace)
 	if err != nil {
 		i.log.Printf("failed to read ambassador logs: %v", err.Error())
 	}
