@@ -83,6 +83,17 @@ spec:
   service: test.default
 ''', default_namespace='default')
 
+valid_mapping_v1 = k8s_object_from_yaml('''
+---
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: test
+spec:
+  prefix: /test/
+  service: test.default
+''', default_namespace='default')
+
 
 class TestKubernetesGVK:
 
@@ -197,10 +208,31 @@ class TestAmbassadorProcessor:
         assert len(mappings) == 1
 
         mapping = next(iter(mappings.values()))
+        assert mapping.apiVersion == valid_mapping.gvk.api_version
         assert mapping.name == valid_mapping.name
         assert mapping.namespace == valid_mapping.namespace
         assert mapping.prefix == valid_mapping.spec['prefix']
         assert mapping.service == valid_mapping.spec['service']
+
+    def test_mapping_v1(self):
+        aconf = Config()
+        mgr = ResourceManager(logger, aconf)
+
+        assert AmbassadorProcessor(mgr).try_process(valid_mapping_v1)
+        assert len(mgr.elements) == 1
+
+        aconf.load_all(mgr.elements)
+        assert len(aconf.errors) == 0
+
+        mappings = aconf.get_config('mappings')
+        assert len(mappings) == 1
+
+        mapping = next(iter(mappings.values()))
+        assert mapping.apiVersion == valid_mapping_v1.gvk.api_version
+        assert mapping.name == valid_mapping_v1.name
+        assert mapping.namespace == valid_mapping_v1.namespace
+        assert mapping.prefix == valid_mapping_v1.spec['prefix']
+        assert mapping.service == valid_mapping_v1.spec['service']
 
 
 class TestAggregateKubernetesProcessor:
