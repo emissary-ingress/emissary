@@ -41,7 +41,11 @@ spec:
         - name: TRAFFIC_AGENT_AGENT_LISTEN_PORT
           value: "{{ .Values.servicePreview.trafficAgent.port }}"
         - name: TRAFFIC_AGENT_SERVICE_ACCOUNT_NAME
+          {{- if .Values.scope.singleNamespace }}
           value: "{{ .Values.servicePreview.trafficAgent.serviceAccountName }}"
+          {{- else }}
+          value: default
+          {{- end }}
         ports:
         - containerPort: 8443
           name: https
@@ -73,7 +77,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
     {{- else }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
-  {{- end }}
+    {{- end }}
 spec:
   type: ClusterIP
   selector:
