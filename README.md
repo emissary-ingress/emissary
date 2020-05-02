@@ -157,6 +157,7 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `metrics.serviceMonitor.enabled`   | Create ServiceMonitor object (`adminService.create` should be to `true`)        | `false`                           |
 | `metrics.serviceMonitor.interval`  | Interval at which metrics should be scraped                                     | `30s`                             |
 | `metrics.serviceMonitor.scrapeTimeout` | Timeout after which the scrape is ended                                     | `30s`                             |
+| `metrics.serviceMonitor.selector`  | Label Selector for Prometheus to find ServiceMonitors                           | `{ prometheus: kube-prometheus }` |
 
 **NOTE:** Make sure the configured `service.http.targetPort` and `service.https.targetPort` ports match your [Ambassador Module's](https://www.getambassador.io/reference/modules/#the-ambassador-module) `service_port` and `redirect_cleartext_from` configurations.
 
