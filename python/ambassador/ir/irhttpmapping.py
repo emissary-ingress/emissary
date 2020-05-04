@@ -18,8 +18,8 @@ if TYPE_CHECKING:
     from .ir import IR
 
 
-# Kind of cheating here so that it's easy to json-serialize Headers.
-class Header (dict):
+# Kind of cheating here so that it's easy to json-serialize key-value pairs (including with regex)
+class KeyValueDecorator (dict):
     def __init__(self, name: str, value: Optional[str]=None, regex: Optional[bool]=False) -> None:
         super().__init__()
         self.name = name
@@ -44,7 +44,7 @@ class Header (dict):
 
 class IRHTTPMapping (IRBaseMapping):
     prefix: str
-    headers: List[Header]
+    headers: List[KeyValueDecorator]
     add_request_headers: Dict[str, str]
     method: Optional[str]
     service: str
@@ -53,6 +53,7 @@ class IRHTTPMapping (IRBaseMapping):
     cors: IRCORS
     retry_policy: IRRetryPolicy
     sni: bool
+    query_parameters: List[KeyValueDecorator]
 
     AllowedKeys: ClassVar[Dict[str, bool]] = {
         # Do not include add_request_headers
@@ -124,23 +125,24 @@ class IRHTTPMapping (IRBaseMapping):
 
         new_args = {x: kwargs[x] for x in kwargs.keys() if x in IRHTTPMapping.AllowedKeys}
 
-        # ...then set up the headers (since we need them to compute our group ID).
+        # ...then set up the headers and query parameters (since we need them to compute our group ID).
         hdrs = []
+        query_parameters = []
         add_request_hdrs = kwargs.get('add_request_headers', {})
 
         if 'headers' in kwargs:
             for name, value in kwargs.get('headers', {}).items():
                 if value is True:
-                    hdrs.append(Header(name))
+                    hdrs.append(KeyValueDecorator(name))
                 else:
-                    hdrs.append(Header(name, value))
+                    hdrs.append(KeyValueDecorator(name, value))
 
         if 'regex_headers' in kwargs:
             for name, value in kwargs.get('regex_headers', {}).items():
-                hdrs.append(Header(name, value, regex=True))
+                hdrs.append(KeyValueDecorator(name, value, regex=True))
 
         if 'host' in kwargs:
-            hdrs.append(Header(":authority", kwargs['host'], kwargs.get('host_regex', False)))
+            hdrs.append(KeyValueDecorator(":authority", kwargs['host'], kwargs.get('host_regex', False)))
             self.tls_context = self.match_tls_context(kwargs['host'], ir)
 
         if 'service' in kwargs:
@@ -154,7 +156,7 @@ class IRHTTPMapping (IRBaseMapping):
                     add_request_hdrs['l5d-dst-override'] = svc.hostname_port
 
         if 'method' in kwargs:
-            hdrs.append(Header(":method", kwargs['method'], kwargs.get('method_regex', False)))
+            hdrs.append(KeyValueDecorator(":method", kwargs['method'], kwargs.get('method_regex', False)))
 
         # XXX BRUTAL HACK HERE:
         # If we _don't_ have an origination context, but our IR has an agent_origination_ctx,
@@ -163,12 +165,24 @@ class IRHTTPMapping (IRBaseMapping):
             ir.logger.info(f"Mapping {name}: Agent forcing origination TLS context to {ir.agent_origination_ctx.name}")
             new_args['tls'] = ir.agent_origination_ctx.name
 
+        if 'query_parameters' in kwargs:
+            for name, value in kwargs.get('query_parameters', {}).items():
+                if value is True:
+                    query_parameters.append(KeyValueDecorator(name))
+                else:
+                    query_parameters.append(KeyValueDecorator(name, value))
+
+        if 'regex_query_parameters' in kwargs:
+            for name, value in kwargs.get('regex_query_parameters', {}).items():
+                query_parameters.append(KeyValueDecorator(name, value, regex=True))
+
         # ...and then init the superclass.
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, location=location,
             kind=kind, name=name, namespace=namespace, metadata_labels=metadata_labels,
             apiVersion=apiVersion, headers=hdrs, add_request_headers=add_request_hdrs,
             precedence=precedence, rewrite=rewrite, cluster_tag=cluster_tag,
+            query_parameters=query_parameters,
             **new_args
         )
 
@@ -352,6 +366,12 @@ class IRHTTPMapping (IRBaseMapping):
             if hdr.value is not None:
                 h.update(hdr.value.encode('utf-8'))
 
+        for query_parameter in self.query_parameters:
+            h.update(query_parameter.name.encode('utf-8'))
+
+            if query_parameter.value is not None:
+                h.update(query_parameter.value.encode('utf-8'))
+
         if self.precedence != 0:
             h.update(str(self.precedence).encode('utf-8'))
 
@@ -359,14 +379,19 @@ class IRHTTPMapping (IRBaseMapping):
 
     def _route_weight(self) -> List[Union[str, int]]:
         len_headers = 0
+        len_query_parameters = 0
 
         for hdr in self.headers:
             len_headers += hdr.length()
 
+        for query_parameter in self.query_parameters:
+            len_query_parameters += query_parameter.length()
+
         # For calculating the route weight, 'method' defaults to '*' (for historical reasons).
 
-        weight = [ self.precedence, len(self.prefix), len_headers, self.prefix, self.get('method', 'GET') ]
+        weight = [ self.precedence, len(self.prefix), len_headers, len_query_parameters, self.prefix, self.get('method', 'GET') ]
         weight += [ hdr.key() for hdr in self.headers ]
+        weight += [ query_parameter.key() for query_parameter in self.query_parameters]
 
         return weight
 
