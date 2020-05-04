@@ -176,8 +176,40 @@ summary#helmVersions {
 #QS-fullManual:hover a {
   text-decoration: none;
 }
+@media screen and (max-width: 1200px) {
+  .QS-osLogo {
+    display: none;
+  }
+}
+@media screen and (max-width: 995px) {
+  .QS-osLogo {
+    display: inline;
+  }
+  .QS-grid {
+    margin-left: 10px;
+  }
+}
+@media screen and (max-width: 900px) {
+  .QS-grid {
+    width: 100%;
+    margin-left: -20px;
+  }
+}
 @media screen and (max-width: 380px) {
   .QS-asideText {
-    font-size: 20px;
+    font-size: 90%;
+  }
+  .QS-osLogo, .QS-helm, .QS-k8 {
+    width: 70%;
+  }
+  .QS-codeblockInstall {
+    font-size: 50%;
+  }
+  #k8Code {
+    font-size: 90%;
+  }
+  .QS-aside {
+    margin-left: -10px;
+    padding: 5px 10px 0px;
   }
 }
