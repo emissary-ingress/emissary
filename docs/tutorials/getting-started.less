@@ -1,17 +1,14 @@
 .QS-grid {
   display: grid;
-  grid-template-columns: minmax(0, 755px) 0px;
+  grid-template-columns: 50px auto;
   grid-template-areas:
-  "k8"
-  "sidebar1"
-  "helm"
-  "sidebar2"
-  "os"
-  "sidebar3"
-  "manual"
-  "main";
-  grid-gap: 10px;
-  margin-top: -40px;
+  "os sidebar3"
+  "k8 sidebar1"
+  "helm sidebar2"
+  "manual manual"
+  "main main";
+  padding-top: 15px;
+  margin-left: -125px;
   align-items: start;
   cursor: default;
   overflow: hidden;
@@ -23,21 +20,11 @@ a#QS-moreInstallOptions {
 a#QS-moreInstallOptions:hover {
   text-decoration: none;
 }
-.QS-k8 {
-  grid-area: k8;
-  font-size: 1.2em;
-  font-weight: 600;
-  width: auto;
-  font-style: italic;
-  position: relative;
-  margin-left: 5px;
-  margin-bottom: -5px;
-  z-index: 2;
-  display: flex;
-}
+
 .QS-main {
   grid-area: main;
   padding: 5px;
+  margin-left: 60px;
   position: relative;
   z-index: 2;
   cursor: default;
@@ -65,20 +52,23 @@ p.bulletText {
   border-radius: 7px;
   height: auto;
   position: relative;
-  padding-top: 15px;
   padding-left: 30px;
   padding-right: 30px;
+  padding-top: 5px;
   display: block;
   z-index: 2;
 }
 #QS-asideBullets {
   list-style-type: square;
   display: visible;
+  margin-bottom: 5px;
+}
+.QS-k8 {
+  grid-area: k8;
 }
 .QS-aside1 {
   grid-area: sidebar1;
-  height: 150px;
-  padding-bottom: 10px;
+  padding-bottom: 5px;
   overflow: hidden;
 }
 .QS-aside1:hover {
@@ -86,19 +76,13 @@ p.bulletText {
 }
 .QS-helm {
   grid-area: helm;
-  margin-left: 5px;
-  margin-bottom: -5px;
 }
 .QS-aside2 {
   grid-area: sidebar2;
-  height: 150px;
   overflow: hidden;
 }
 .QS-aside2:hover {
   height: auto;
-}
-.QS-aside2 .QS-codeblockInstall {
-  margin-top: 1em;
 }
 details summary { list-style-type: none; }
 summary::-webkit-details-marker {display: none; }
@@ -135,15 +119,9 @@ summary#helmVersions {
   width: 30px;
   margin: 0 0 -4px 4px;
 }
-.QS-k8Logo {
-  width: 30px;
-  height: 30px;
-  margin: 0 0 -4px 4px;
-  margin-bottom: 2px;
-}
 .QS-aside3 {
   grid-area: sidebar3;
-  height: 150px;
+  margin-bottom: 20px;
   overflow: hidden;
 }
 .QS-aside3:hover {
@@ -152,8 +130,10 @@ summary#helmVersions {
 .QS-codeblockInstall {
   font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
   font-size: 13px;
+  font-weight: 300;
   padding: 5px 5px;
   margin: 0.5em 0.5em;
+  margin-top: 5px;
   background-color: white;
   text-align: left;
   white-space: pre;
@@ -161,7 +141,6 @@ summary#helmVersions {
   word-break: normal;
   word-wrap: normal;
   letter-spacing: 0.2px;
-  margin-bottom: 1.05rem;
   overflow: hidden;
   display: flex;
 }
@@ -193,6 +172,7 @@ summary#helmVersions {
   display: flex;
   font-size: 1.2em;
   font-weight: 600;
+  margin-left: 60px;
 }
 #QS-fullManual a{
   color: darkgrey;

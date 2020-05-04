@@ -39,14 +39,99 @@ class GettingStarted extends Component {
     return (
     <div className="QS-grid">
 
-      <div className="QS-wrapper">
-        <span className="QS-k8"><img className="QS-k8Logo" src="../../images/kubernetes.png"/></span>
+      <div className="QS-os">
+          <span id="QS-showMac" data-os="mac"><img className="QS-osLogo" src="../../images/apple.png" /></span>
+
+          <span id="QS-showLinux" data-os="linux">Linux<img className="QS-osLogo" src="../../images/linux.png" /></span>
+
+          <span id="QS-showWindows" data-os="windows">Windows<img className="QS-osLogo" src="../../images/windows.png" /></span>
+        </div>
+
+      <div className="QS-aside QS-aside3">
+        <ul id="QS-asideBullets">
+          <div id="QS-showMacAside3" data-os="mac" className="QS-asideText">
+        
+          <li>New user? Get Edgectl, the Ambassador CLI.</li>
+          <div className="styles-module--CodeBlock--1UB4s">
+            <div className="QS-codeblockInstall">
+            <span className="QS-copyButton"><CopyButton content="sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl">Copy</CopyButton></span>
+              <div className="token-line">
+                <span className="QS-token-function">sudo</span>
+                <span className="token plain"> </span>
+                <span className="QS-token-function">curl</span>
+                <span className="token plain"> -fL https://metriton.datawire.io/downloads/darwin/edgectl <br/>   -o /usr/local/bin/edgectl </span>
+                <span className="token operator">&&</span><br/>
+                <span className="token plain">  </span>
+                <span className="QS-token-function">sudo</span>
+                <span className="token plain"> </span>
+                <span className="QS-token-function">chmod</span>
+                <span className="token plain"> a+x /usr/local/bin/edgectl</span>
+              </div>
+            </div>
+          </div>
+        </div>
+       
+
+        <div id="QS-showLinuxAside3" data-os="linux" className="
+        QS-asideText">
+          <li>New user? Get Edgectl, the Ambassador CLI.</li>
+          <div className="styles-module--CodeBlock--1UB4s">
+            <div className="QS-codeblockInstall">
+              <span className="QS-copyButton"><CopyButton content="sudo curl -fL https://metriton.datawire.io/downloads/linux/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl">Copy</CopyButton></span>
+              <div className="token-line">
+                <span className="QS-token-function">sudo</span>
+                <span className="token plain"> </span>
+                <span className="QS-token-function">curl</span>
+                <span className="token plain"> -fL https://metriton.datawire.io/downloads/linux/edgectl <br/>   -o /usr/local/bin/edgectl </span>
+                <span className="token operator">&&</span><br/>
+                <span className="token plain">  </span>
+                <span className="QS-token-function">sudo</span>
+                <span className="token plain"> </span>
+                <span className="QS-token-function">chmod</span>
+                <span className="token plain"> a+x /usr/local/bin/edgectl</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="QS-showWindowsAside3" data-os="windows" className="QS-asideText">
+          <li>New user? Get Edgectl, the Ambassador CLI.</li>
+          <div className="styles-module--CodeBlock--1UB4s">
+              <div className="QS-codeblockInstall">
+                <button><a className="windowsDownloadButton" href="https://metriton.datawire.io/downloads/windows/edgectl.exe" rel="nofollow noopener noreferrer">Download edgectl.exe</a></button><span>&nbsp;</span>
+                <div className="token-line">
+                  <span className="token function"></span>
+                </div>
+              </div>
+          </div>
+        </div>
+
+
+        <div className="QS-asideText">
+          <li>Install Ambassador Edge Stack.</li>
+            <div className="styles-module--CodeBlock--1UB4s">
+              <div className="QS-codeblockInstall">
+              <div className="QS-copyButton"><CopyButton content="edgectl install">Copy</CopyButton></div>
+                <div className="token-line">
+                  <span className="QS-token-function">edgectl</span>
+                  <span className="token plain"> </span>
+                  <span className="QS-token-function">install</span>
+                </div>
+              </div>
+            </div>
+        </div>
+        </ul>
       </div>
+
+
+
+
+        <span className="QS-k8"><img className="QS-osLogo" src="../../images/kubernetes.png"/></span>
 
       <div className="QS-aside QS-aside1">
         <div className="QS-asideText">
           <ul id="QS-asideBullets">
-            <li>Have Kubernetes? Deploy Ambassador Edge Stack with yaml:</li>
+            <li>Have Kubernetes? Deploy with yaml:</li>
               <div className="styles-module--CodeBlock--1UB4s">
                 <div className="QS-codeblockInstall QS-Aside1-codeblockInstall">
                 <span className="QS-copyButton"><CopyButton content="
@@ -275,90 +360,6 @@ class GettingStarted extends Component {
                 </div>
             </ul>
         </div>
-      </div>
-
-        <div className="QS-os">
-          <span id="QS-showMac" data-os="mac" className="QS-OStype">Mac<img className="QS-osLogo" src="../../images/apple.png" /></span>
-
-          <span id="QS-showLinux" data-os="linux" className="QS-OStype">Linux<img className="QS-osLogo" src="../../images/linux.png" /></span>
-
-          <span id="QS-showWindows" data-os="windows" className="QS-OStype">Windows<img className="QS-osLogo" src="../../images/windows.png" /></span>
-        </div>
-
-      <div className="QS-aside QS-aside3">
-        <ul id="QS-asideBullets">
-          <div id="QS-showMacAside3" data-os="mac" className="QS-asideText">
-        
-          <li>New user? Get Edgectl, the Ambassador CLI.</li>
-          <div className="styles-module--CodeBlock--1UB4s">
-            <div className="QS-codeblockInstall">
-            <span className="QS-copyButton"><CopyButton content="sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl">Copy</CopyButton></span>
-              <div className="token-line">
-                <span className="QS-token-function">sudo</span>
-                <span className="token plain"> </span>
-                <span className="QS-token-function">curl</span>
-                <span className="token plain"> -fL https://metriton.datawire.io/downloads/darwin/edgectl <br/>   -o /usr/local/bin/edgectl </span>
-                <span className="token operator">&&</span><br/>
-                <span className="token plain">  </span>
-                <span className="QS-token-function">sudo</span>
-                <span className="token plain"> </span>
-                <span className="QS-token-function">chmod</span>
-                <span className="token plain"> a+x /usr/local/bin/edgectl</span>
-              </div>
-            </div>
-          </div>
-        </div>
-       
-
-        <div id="QS-showLinuxAside3" data-os="linux" className="
-        QS-asideText">
-          <li>New user? Get Edgectl, the Ambassador CLI.</li>
-          <div className="styles-module--CodeBlock--1UB4s">
-            <div className="QS-codeblockInstall">
-              <span className="QS-copyButton"><CopyButton content="sudo curl -fL https://metriton.datawire.io/downloads/linux/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl">Copy</CopyButton></span>
-              <div className="token-line">
-                <span className="QS-token-function">sudo</span>
-                <span className="token plain"> </span>
-                <span className="QS-token-function">curl</span>
-                <span className="token plain"> -fL https://metriton.datawire.io/downloads/linux/edgectl <br/>   -o /usr/local/bin/edgectl </span>
-                <span className="token operator">&&</span><br/>
-                <span className="token plain">  </span>
-                <span className="QS-token-function">sudo</span>
-                <span className="token plain"> </span>
-                <span className="QS-token-function">chmod</span>
-                <span className="token plain"> a+x /usr/local/bin/edgectl</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div id="QS-showWindowsAside3" data-os="windows" className="QS-asideText">
-          <li>New user? Get Edgectl, the Ambassador CLI.</li>
-          <div className="styles-module--CodeBlock--1UB4s">
-              <div className="QS-codeblockInstall">
-                <button><a className="windowsDownloadButton" href="https://metriton.datawire.io/downloads/windows/edgectl.exe" rel="nofollow noopener noreferrer">Download edgectl.exe</a></button><span>&nbsp;</span>
-                <div className="token-line">
-                  <span className="token function"></span>
-                </div>
-              </div>
-          </div>
-        </div>
-
-
-        <div className="QS-asideText">
-          <li>Install Ambassador Edge Stack.</li>
-            <div className="styles-module--CodeBlock--1UB4s">
-              <div className="QS-codeblockInstall">
-              <div className="QS-copyButton"><CopyButton content="edgectl install">Copy</CopyButton></div>
-                <div className="token-line">
-                  <span className="QS-token-function">edgectl</span>
-                  <span className="token plain"> </span>
-                  <span className="QS-token-function">install</span>
-                </div>
-              </div>
-            </div>
-        </div>
-        </ul>
       </div>
 
       <div id="QS-fullManual">
