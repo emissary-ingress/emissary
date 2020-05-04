@@ -25,5 +25,6 @@ git clone --single-branch --branch="$website_branch" https://d6e-automaton:${GH_
 cd "/tmp/getambassador.io-$website_branch"
 git submodule update --init --reference="$TRAVIS_BUILD_DIR"
 git -C submodules/latest checkout "$TRAVIS_COMMIT"
+git -C submodules/1.4 checkout "$TRAVIS_COMMIT"
 npm install
 npm run build

@@ -1,8 +1,10 @@
 package helm
 
 import (
+	"fmt"
 	"log"
 	"path/filepath"
+	"strings"
 
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart/loader"
@@ -46,8 +48,27 @@ func (lc *HelmDownloader) Install(namespace string, values map[string]interface{
 	oldOutput := log.Writer() // save the old output and set lc.log as the logs writer
 	log.SetOutput(lc.log.Writer())
 
-	release, err := client.Run(chartRequested, values)
+	notFoundErr := func(err error) bool {
+		return err != nil && strings.Contains(err.Error(), "not found")
+	}
 
+	release, err := client.Run(chartRequested, values)
+	if err != nil {
+		uninstall := action.NewUninstall(actionConfig)
+		_, uninstallErr := uninstall.Run("ambassador")
+
+		// In certain cases, InstallRelease will return a partial release in
+		// the response even when it doesn't record the release in its release
+		// store (e.g. when there is an error rendering the release manifest).
+		// In that case the rollback will fail with a not found error because
+		// there was nothing to rollback.
+		//
+		// Only log a message about a rollback failure if the failure was caused
+		// by something other than the release not being found.
+		if uninstallErr != nil && !notFoundErr(uninstallErr) {
+			return nil, fmt.Errorf("failed installation (%s) and failed rollback: %w", err, uninstallErr)
+		}
+	}
 	log.SetOutput(oldOutput) // restore the old output
 
 	return release, err

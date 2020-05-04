@@ -48,7 +48,7 @@ go 1.13
 
 require (
 	git.lukeshu.com/go/libsystemd v0.5.3
-	github.com/Masterminds/semver v1.5.0
+	github.com/Masterminds/semver v1.4.2
 	github.com/Masterminds/sprig v2.17.1+incompatible
 	github.com/aokoli/goutils v1.1.0 // indirect
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869
@@ -60,19 +60,18 @@ require (
 	github.com/fsnotify/fsnotify v1.4.7
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/protobuf v1.3.2
-	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
+	github.com/google/shlex v0.0.0-20181106134648-c34317bd91bf
 	github.com/google/uuid v1.1.1
 	github.com/gookit/color v1.2.3
 	github.com/gorilla/websocket v1.4.0
 	github.com/hashicorp/consul/api v1.1.0
-	github.com/iancoleman/strcase v0.0.0-20190422225806-e506e3ef7365
+	github.com/iancoleman/strcase v0.0.0-20180726023541-3605ed457bf7
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/lyft/protoc-gen-star v0.4.4
 	github.com/mholt/archiver/v3 v3.3.0
 	github.com/miekg/dns v1.1.6
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/mitchellh/protoc-gen-go-json v0.0.0-20190813154521-ece073100ced
-	github.com/operator-framework/operator-sdk v0.16.0
 	github.com/pkg/browser v0.0.0-20180916011732-0a3d74bf9ce4
 	github.com/pkg/errors v0.8.1
 	github.com/sirupsen/logrus v1.4.2
@@ -84,15 +83,14 @@ require (
 	golang.org/x/sys v0.0.0-20191028164358-195ce5e7f934
 	google.golang.org/grpc v1.24.0
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
-	gopkg.in/yaml.v2 v2.2.7
+	gopkg.in/yaml.v2 v2.2.4
 	helm.sh/helm/v3 v3.0.2
 	istio.io/gogo-genproto v0.0.0-20190904133402-ee07f2785480
-	k8s.io/api v0.17.2
-	k8s.io/apimachinery v0.17.2
-	k8s.io/cli-runtime v0.0.0
-	k8s.io/client-go v12.0.0+incompatible
+	k8s.io/api v0.0.0-20191016110408-35e52d86657a
+	k8s.io/apimachinery v0.0.0-20191004115801-a2eda9f80ab8
+	k8s.io/cli-runtime v0.0.0-20191016114015-74ad18325ed5
+	k8s.io/client-go v0.0.0-20191016111102-bec269661e48
 	k8s.io/helm v2.16.5+incompatible
-	sigs.k8s.io/controller-runtime v0.5.2
 	sigs.k8s.io/yaml v1.1.0
 )
 
@@ -102,48 +100,16 @@ replace (
 	github.com/docker/docker v1.4.2-0.20181221150755-2cb26cfe9cbf => github.com/moby/moby v0.7.3-0.20190826074503-38ab9da00309
 )
 
-// We need inherit these from github.com/operator-framework/operator-sdk@v0.16.0
+// The issue doesn't trigger with the current versions of our
+// dependencies, but if you ever get an error message like:
 //
-// This is terrible.  We're bypassing Go's ability to actually reason
-// about k8s.io/ versions.  But we're forced in to it because of the
-// operator-sdk people putting `replaces` in something meant to be
-// consumed as a library (the jerks).  Make sure anything that
-// overlaps with libk8s with the libk8s `cmd/fix-go.mod/versions.go`
-// matches the libk8s version.
+//     /path/to/whatever.go.go:7:2: ambiguous import: found package github.com/Azure/go-autorest/autorest in multiple modules:
+//            github.com/Azure/go-autorest v10.8.1+incompatible (/home/lukeshu/go/pkg/mod/github.com/!azure/go-autorest@v10.8.1+incompatible/autorest)
+//            github.com/Azure/go-autorest/autorest v0.9.0 (/home/lukeshu/go/pkg/mod/github.com/!azure/go-autorest/autorest@v0.9.0)
 //
-// v0.0.0 bogus versions
-replace (
-	k8s.io/api v0.0.0 => k8s.io/api v0.0.0-20191004120104-195af9ec3521
-	k8s.io/apiextensions-apiserver v0.0.0 => k8s.io/apiextensions-apiserver v0.0.0-20191016113550-5357c4baaf65
-	k8s.io/apimachinery v0.0.0 => k8s.io/apimachinery v0.0.0-20191004115801-a2eda9f80ab8
-	k8s.io/apiserver v0.0.0 => k8s.io/apiserver v0.0.0-20191016112112-5190913f932d
-	k8s.io/cli-runtime v0.0.0 => k8s.io/cli-runtime v0.0.0-20191004123735-6bff60de4370
-	k8s.io/client-go v0.0.0 => k8s.io/client-go v0.0.0-20191004120905-f06fe3961ca9
-	k8s.io/cloud-provider v0.0.0 => k8s.io/cloud-provider v0.0.0-20191016115326-20453efc2458
-	k8s.io/cluster-bootstrap v0.0.0 => k8s.io/cluster-bootstrap v0.0.0-20191016115129-c07a134afb42
-	k8s.io/code-generator v0.0.0 => k8s.io/code-generator v0.0.0-20191004115455-8e001e5d1894
-	k8s.io/component-base v0.0.0 => k8s.io/component-base v0.0.0-20191016111319-039242c015a9
-	k8s.io/cri-api v0.0.0 => k8s.io/cri-api v0.0.0-20190828162817-608eb1dad4ac
-	k8s.io/csi-translation-lib v0.0.0 => k8s.io/csi-translation-lib v0.0.0-20191016115521-756ffa5af0bd
-	k8s.io/kube-aggregator v0.0.0 => k8s.io/kube-aggregator v0.0.0-20191016112429-9587704a8ad4
-	k8s.io/kube-controller-manager v0.0.0 => k8s.io/kube-controller-manager v0.0.0-20191016114939-2b2b218dc1df
-	k8s.io/kube-proxy v0.0.0 => k8s.io/kube-proxy v0.0.0-20191016114407-2e83b6f20229
-	k8s.io/kube-scheduler v0.0.0 => k8s.io/kube-scheduler v0.0.0-20191016114748-65049c67a58b
-	k8s.io/kubectl v0.0.0 => k8s.io/kubectl v0.0.0-20191016120415-2ed914427d51
-	k8s.io/kubelet v0.0.0 => k8s.io/kubelet v0.0.0-20191016114556-7841ed97f1b2
-	k8s.io/legacy-cloud-providers v0.0.0 => k8s.io/legacy-cloud-providers v0.0.0-20191016115753-cf0698c3a16b
-	k8s.io/metrics v0.0.0 => k8s.io/metrics v0.0.0-20191016113814-3b1a734dba6e
-	k8s.io/sample-apiserver v0.0.0 => k8s.io/sample-apiserver v0.0.0-20191016112829-06bb3c9d77c9
-)
-
-// downgrades
-replace (
-	k8s.io/api v0.17.2 => k8s.io/api v0.0.0-20191004120104-195af9ec3521
-	k8s.io/apiextensions-apiserver v0.17.2 => k8s.io/apiextensions-apiserver v0.0.0-20191016113550-5357c4baaf65
-	k8s.io/apimachinery v0.17.2 => k8s.io/apimachinery v0.0.0-20191004115801-a2eda9f80ab8
-	k8s.io/client-go v12.0.0+incompatible => k8s.io/client-go v0.0.0-20191004120905-f06fe3961ca9
-)
-
+// then uncomment the `replace` line below, adjusting the version
+// number to the left of the "=>" to match the error message.
+//
 // The go-autorest one is a little funny; we don't actually use that
 // module; we use the nested "github.com/Azure/go-autorest/autorest"
 // module, which split off from it some time between v11 and v13; and
@@ -158,4 +124,5 @@ replace (
 // inhibit `go mod tidy` from removing it by importing a package from
 // it in `./pkg/ignore/pin.go`, but there are actually no packages in
 // it to import; it's entirely nested modules.
-replace github.com/Azure/go-autorest v11.1.2+incompatible => github.com/Azure/go-autorest v13.3.2+incompatible
+//
+//replace github.com/Azure/go-autorest v11.1.2+incompatible => github.com/Azure/go-autorest v13.3.2+incompatible

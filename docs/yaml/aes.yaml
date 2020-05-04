@@ -14,6 +14,14 @@ metadata:
 # RBAC
 # NB: ClusterRoles and ClusterRoleBindings are not namespaced
 ---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ambassador
+  namespace: ambassador
+  labels:
+    product: aes
+---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
@@ -29,6 +37,9 @@ rules:
 #  3. It needs permission to "create" events.
 #  4. It needs permission to "get"/"create"/"update" Leases (or
 #     Endpoints, if on Kubernetes <1.12).
+#
+# Note: If you edit this, be sure to also edit the pytest
+# `manifests/rbac_*_scope.yaml` files.
 - apiGroups: [""]
   resources: [ "namespaces", "services", "pods" ]
   verbs: ["get", "list", "watch"]
@@ -62,14 +73,6 @@ rules:
 - apiGroups: [""]
   resources: [ "endpoints" ]
   verbs: ["get", "list", "watch", "create", "update"]
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: ambassador
-  namespace: ambassador
-  labels:
-    product: aes
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding

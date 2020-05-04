@@ -31,6 +31,7 @@ import (
 
 	"github.com/datawire/ambassador/pkg/helm"
 	"github.com/datawire/ambassador/pkg/k8s"
+	"github.com/datawire/ambassador/pkg/metriton"
 	"github.com/datawire/ambassador/pkg/supervisor"
 )
 
@@ -125,12 +126,14 @@ func aesInstall(cmd *cobra.Command, args []string) error {
 	i := NewInstaller(verbose)
 
 	// If Scout is disabled (environment variable set to non-null), inform the user.
-	if i.scout.Disabled() {
+	if metriton.IsDisabledByUser() {
 		i.ShowScoutDisabled()
 	}
 
 	// Both printed and logged when verbose (Installer.log is responsible for --verbose)
-	i.log.Printf(fmt.Sprintf("INFO: install_id = %v; trace_id = %v", i.scout.installID, i.scout.metadata["trace_id"]))
+	i.log.Printf("INFO: install_id = %v; trace_id = %v",
+		i.scout.reporter.InstallID(),
+		i.scout.reporter.BaseMetadata["trace_id"])
 
 	sup := supervisor.WithContext(i.ctx)
 	sup.Logger = i.log
@@ -243,7 +246,7 @@ func (i *Installer) loopUntil(what string, how func() error, lc *loopConfig) err
 // the Pod is Running (though not necessarily Ready). This should be good enough
 // to report the "deploy" status to metrics.
 func (i *Installer) GrabAESInstallID() error {
-	aesImage := "quay.io/datawire/aes:" + i.version
+	aesImage := i.imageRepo + ":" + i.version
 	i.log.Printf("> aesImage = %s", aesImage)
 	podName := ""
 	containerName := ""
@@ -375,6 +378,84 @@ func (i *Installer) CheckHostnameFound() error {
 		conn.Close()
 	}
 	return err
+}
+
+// FindMatchingHostResource returns a Host resource from the cluster that
+// matches the load balancer's address. The Host resource must refer to a
+// *.edgestack.me domain and be in the Ready state.
+func (i *Installer) FindMatchingHostResource() (*k8s.Resource, error) {
+	client, err := k8s.NewClient(i.kubeinfo)
+	if err != nil {
+		return nil, err
+	}
+
+	resources, err := client.List("Host")
+	if err != nil {
+		return nil, err
+	}
+
+	for _, resource := range resources {
+		i.log.Printf("Considering Host %q in ns %q", resource.Name(), resource.Namespace())
+
+		hostname := resource.Spec().GetString("hostname")
+		if !strings.HasSuffix(strings.ToLower(hostname), ".edgestack.me") {
+			i.log.Printf("--> hostname %q is not a *.edgestack.me address", hostname)
+			continue
+		}
+
+		state := resource.Status().GetString("state")
+		if state != "Ready" {
+			i.log.Printf("--> state %q is not Ready", state)
+			continue
+		}
+
+		if !i.HostnameMatchesLBAddress(hostname) {
+			i.log.Printf("--> name does not match load balancer address")
+			continue
+		}
+
+		i.log.Printf("--> success (hostname is %q)", hostname)
+		return &resource, nil
+	}
+
+	return nil, nil
+}
+
+// HostnameMatchesLBAddress returns whether a *.edgestack.me hostname matches a
+// load balancer address, which may be a name or an IP.
+func (i *Installer) HostnameMatchesLBAddress(hostname string) bool {
+	i.log.Printf("--> Matching hostname %q with LB address %q", hostname, i.address)
+	if ip := net.ParseIP(i.address); ip != nil {
+		// Address is an IP address, so hostname should have a DNS A (Address)
+		// record that points to this IP address
+		hostnameIPs, err := net.LookupIP(hostname)
+		if err != nil {
+			i.log.Printf("    --> hostname IP lookup failed: %+v", err)
+			return false
+		}
+		if len(hostnameIPs) != 1 {
+			i.log.Printf("    --> Got %d results instead of 1: %q", len(hostnameIPs), hostnameIPs)
+			return false
+		}
+		if !ip.Equal(hostnameIPs[0]) {
+			i.log.Printf("    --> hostname IP %q did not match address IP %q", hostnameIPs[0], ip)
+			return false
+		}
+	} else {
+		// Address is a DNS name, so hostname should have a DNS CNAME (Canonical
+		// Name) record that points to this DNS name
+		cname, err := net.LookupCNAME(hostname)
+		if err != nil {
+			i.log.Printf("    --> hostname CNAME lookup failed: %+v", err)
+			return false
+		}
+		if !strings.EqualFold(cname, i.address) {
+			i.log.Printf("    --> hostname CNAME %q did not match address %q", cname, i.address)
+			return false
+		}
+	}
+	i.log.Printf("    --> matched")
+	return true
 }
 
 // CheckACMEIsDone queries the Host object and succeeds if its state is Ready.
@@ -512,7 +593,7 @@ func (i *Installer) Perform(kcontext string) Result {
 		return i.NoClusterError(err)
 	}
 	i.SetMetadatum("Cluster Info", "cluster_info", i.clusterinfo.name)
-	
+
 	// New Helm-based install
 	i.FindingRepositoriesAndVersions()
 
@@ -559,6 +640,9 @@ func (i *Installer) Perform(kcontext string) Result {
 		if ir := os.Getenv(defEnvVarImageRepo); ir != "" {
 			i.ShowOverridingImageRepo(defEnvVarImageRepo, ir)
 			strvals.ParseInto(fmt.Sprintf("image.repository=%s", ir), chartValues)
+			i.imageRepo = ir
+		} else {
+			i.imageRepo = "quay.io/datawire/aes"
 		}
 
 		if it := os.Getenv(defEnvVarImageTag); it != "" {
@@ -602,7 +686,7 @@ func (i *Installer) Perform(kcontext string) Result {
 		i.version = strings.Trim(chartDown.GetChart().AppVersion, "\n")
 	}
 
-	if installedInfo.Method == instHelm ||  installedInfo.Method == instEdgectl {
+	if installedInfo.Method == instHelm || installedInfo.Method == instEdgectl {
 		// if a previous installation was found, check that the installed version matches
 		// the downloaded chart version, because we do not support upgrades
 		if installedVersion != i.version {
@@ -674,15 +758,31 @@ func (i *Installer) Perform(kcontext string) Result {
 		return i.AESACMEChallengeError(err)
 	}
 	i.Report("aes_listening")
+
+	if installedVersion != "" {
+		i.ShowLookingForExistingHost()
+		hostResource, err := i.FindMatchingHostResource()
+		if err != nil {
+			i.log.Printf("Failed to look for Hosts: %+v", err)
+			hostResource = nil
+		}
+		if hostResource != nil {
+			i.hostname = hostResource.Spec().GetString("hostname")
+			i.ShowExistingHostFound(hostResource.Name(), hostResource.Namespace())
+			i.ShowAESAlreadyInstalled()
+			return i.AESAlreadyInstalledResult()
+		}
+	}
+
 	i.ShowAESConfiguringTLS()
 
 	// Send a request to acquire a DNS name for this cluster's load balancer
 	regURL := "https://metriton.datawire.io/register-domain"
 	regData := &registration{Email: emailAddress}
 
-	if !i.scout.Disabled() {
+	if !metriton.IsDisabledByUser() {
 		regData.AESInstallId = i.clusterID
-		regData.EdgectlInstallId = i.scout.installID
+		regData.EdgectlInstallId = i.scout.reporter.InstallID()
 	}
 
 	if net.ParseIP(i.address) != nil {
@@ -706,63 +806,84 @@ func (i *Installer) Perform(kcontext string) Result {
 		return i.DNSNameBodyError(err)
 	}
 
-	if resp.StatusCode != 200 {
-		message := strings.TrimSpace(string(content))
-		i.ShowFailedToCreateDNSName(message)
-		i.ShowAESInstallationPartiallyComplete()
-		return i.AESInstalledNoDNSResult(resp.StatusCode, message)
-	}
+	// With and without DNS.  In case of no DNS, different error messages and result handling.
+	dnsSuccess := true // Assume success with DNS
+	dnsMessage := ""   // Message for error reporting in case of no DNS
+	hostName := ""     // Login to this (hostname or IP address)
 
-	i.hostname = string(content)
-	i.ShowAcquiringDNSName(i.hostname)
+	// Was there a DNS name post response?
+	if resp.StatusCode == 200 {
+		// Have DNS name--now wait for it to propagate.
+		i.hostname = string(content)
+		i.ShowAcquiringDNSName(i.hostname)
 
-	// Wait for DNS to propagate. This tries to avoid waiting for a ten
-	// minute error backoff if the ACME registration races ahead of the DNS
-	// name appearing for LetsEncrypt.
+		// Wait for DNS to propagate. This tries to avoid waiting for a ten
+		// minute error backoff if the ACME registration races ahead of the DNS
+		// name appearing for LetsEncrypt.
 
-	if err := i.loopUntil("DNS propagation to this host", i.CheckHostnameFound, lc2); err != nil {
-		return i.DNSPropagationError(err)
-	}
+		if err := i.loopUntil("DNS propagation to this host", i.CheckHostnameFound, lc2); err != nil {
+			return i.DNSPropagationError(err)
+		}
 
-	i.Report("dns_name_propagated")
+		i.Report("dns_name_propagated")
 
-	// Create a Host resource
-	hostResource := fmt.Sprintf(hostManifest, i.hostname, i.hostname, emailAddress)
-	if err := i.ShowKubectl("install Host resource", hostResource, "apply", "-f", "-"); err != nil {
-		return i.HostResourceCreationError(err)
-	}
+		// Create a Host resource
+		hostResource := fmt.Sprintf(hostManifest, i.hostname, i.hostname, emailAddress)
+		if err := i.ShowKubectl("install Host resource", hostResource, "apply", "-f", "-"); err != nil {
+			return i.HostResourceCreationError(err)
+		}
 
-	i.ShowObtainingTLSCertificate()
+		i.ShowObtainingTLSCertificate()
 
-	if err := i.loopUntil("TLS certificate acquisition", i.CheckACMEIsDone, lc5); err != nil {
-		return i.CertificateProvisionError(err)
-	}
+		if err := i.loopUntil("TLS certificate acquisition", i.CheckACMEIsDone, lc5); err != nil {
+			return i.CertificateProvisionError(err)
+		}
 
-	i.Report("cert_provisioned")
-	i.ShowTLSConfiguredSuccessfully()
+		i.Report("cert_provisioned")
+		i.ShowTLSConfiguredSuccessfully()
 
-	if err := i.ShowKubectl("show Host", "", "get", "host", i.hostname); err != nil {
-		return i.HostRetrievalError(err)
+		if err := i.ShowKubectl("show Host", "", "get", "host", i.hostname); err != nil {
+			return i.HostRetrievalError(err)
+		}
+
+		// Made it through with DNS and TLS.  Set hostName to the DNS name that was given.
+		hostName = i.hostname
+		dnsSuccess = true
+	} else {
+		// Failure case: couldn't create DNS name.  Set hostName the IP address of the host.
+		hostName = i.address
+		dnsMessage = strings.TrimSpace(string(content))
+		i.ShowFailedToCreateDNSName(dnsMessage)
+		dnsSuccess = false
 	}
 
 	// All done!
-	i.ShowAESInstallationComplete()
+	if dnsSuccess {
+		i.ShowAESInstallationComplete()
+	} else {
+		i.ShowAESInstallationCompleteNoDNS()
+	}
 
-	// Open a browser window to the Edge Policy Console
-	if err := do_login(i.kubeinfo, kcontext, "ambassador", i.hostname, true, true, false); err != nil {
+	// Open a browser window to the Edge Policy Console, with a welcome section or modal dialog.
+	if err := do_login(i.kubeinfo, kcontext, "ambassador", hostName, true, true, false, true); err != nil {
 		return i.AESLoginError(err)
 	}
 
-	// Show how to use edgectl login in the future
-	i.ShowFutureLogin(i.hostname)
-
+	// Check to see if AES is ready
 	if err := i.CheckAESHealth(); err != nil {
 		i.Report("aes_health_bad", ScoutMeta{"err", err.Error()})
 	} else {
 		i.Report("aes_health_good")
 	}
 
-	return i.AESLoginSuccessResult()
+	// Normal result (with DNS success) or result without DNS.
+	if dnsSuccess {
+		// Show how to use edgectl login in the future
+		return i.AESInstalledResult(i.hostname)
+	} else {
+		// Show how to login without DNS.
+		return i.AESInstalledNoDNSResult(resp.StatusCode, dnsMessage, i.address)
+	}
 }
 
 // Installer represents the state of the installation process
@@ -791,7 +912,8 @@ type Installer struct {
 	// Install results
 
 	k8sVersion kubernetesVersion // cluster version information
-	version    string            // which AES is being installed
+	imageRepo  string            // from which docker repo is AES being installed
+	version    string            // which AES version is being installed
 	address    string            // load balancer address
 	hostname   string            // of the Host resource
 	clusterID  string            // the Ambassador unique clusterID
