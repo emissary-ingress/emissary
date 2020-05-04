@@ -54,7 +54,7 @@ will send requests that contain the `quote-mode` query parameter to the `quote-m
 
 ## `regex_query_parameters`
 
-The following mapping will route mobile requests from Android and iPhones to a mobile service:
+The following mapping will route requests with the `quote-mode` header that contain values that match the regex:
 
 ```yaml
 ---
@@ -64,7 +64,7 @@ metadata:
   name:  quote-backend
 spec:
   regex_query_parameters:
-    user-agent: "^(?=.*\\bAndroid\\b)(?=.*\\b(m|M)obile\\b).*|(?=.*\\biPhone\\b)(?=.*\\b(m|M)obile\\b).*$"
+    quote-mode: "^[a-z].*"
   prefix: /backend/
   service: quote
 ```
