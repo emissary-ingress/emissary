@@ -2,8 +2,10 @@ from typing import Any, Dict, List, Optional
 
 import os
 import time
+import sys
 
 import pexpect
+import pytest
 import requests
 
 DockerImage = os.environ.get("AMBASSADOR_DOCKER_IMAGE", None)
@@ -216,5 +218,4 @@ def test_scout():
     assert test_status, 'test failed'
 
 if __name__ == '__main__':
-    test_scout()
-
+    pytest.main(sys.argv)
