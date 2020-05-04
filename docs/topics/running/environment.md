@@ -9,6 +9,7 @@ Use the following variables for the environment of your Ambassador container:
 | Ambassador                              | `AMBASSADOR_ID`                  | `default`                                         | Plain string                                                                  |
 | Ambassador                              | `AMBASSADOR_NAMESPACE`           | `default` ([^1])                                  | Kubernetes namespace                                                          |
 | Ambassador                              | `AMBASSADOR_SINGLE_NAMESPACE`    | Empty                                             | Boolean; non-empty=true, empty=false                                          |
+| Ambassador                              | `AMBASSADOR_ENVOY_BASE_ID`       | `0`                                               | Integer                                                                       |
 | Ambassador Edge Stack                   | `AES_LOG_LEVEL`                  | `info`                                            | Log level                                                                     |
 | Ambassador Edge Stack                   | `REDIS_POOL_SIZE`                | `10`                                              | Integer                                                                       |
 | Ambassador Edge Stack                   | `REDIS_SOCKET_TYPE`              | None, must be set manually                        | Go network such as `tcp` or `unix`; see [Go `net.Dial`][]                     |
