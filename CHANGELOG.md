@@ -3,7 +3,7 @@
 This file documents all notable changes to Ambassador Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
-## v6.3.1
+## v6.3.3
 
 - Add extra labels to ServiceMonitor: [CHANGELOG}](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
 
