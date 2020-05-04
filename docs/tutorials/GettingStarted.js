@@ -108,7 +108,7 @@ class GettingStarted extends Component {
 
 
         <div className="QS-asideText">
-          <li>Install Ambassador Edge Stack.</li>
+          <li className="QS-asideNoBullets">Install Ambassador Edge Stack.</li>
             <div className="styles-module--CodeBlock--1UB4s">
               <div className="QS-codeblockInstall">
               <div className="QS-copyButton"><CopyButton content="edgectl install">Copy</CopyButton></div>
@@ -202,7 +202,7 @@ class GettingStarted extends Component {
                   </div>
                 </div>
               </div>
-            <li>Get your cluster's IP address:</li>
+            <li className="QS-asideNoBullets">Get your cluster's IP address:</li>
               <div className="styles-module--CodeBlock--1UB4s">
                 <div className="QS-codeblockInstall">
                 <span className="QS-copyButton"><CopyButton content='
@@ -251,7 +251,7 @@ class GettingStarted extends Component {
                   </div>
                 </div>
               </div>
-            <li>Visit <code>http://your-IP-address</code> to login to the console.</li>
+            <li className="QS-asideNoBullets">Visit <code>http://your-IP-address</code> to login to the console.</li>
             </ul>
           </div>
         </div>
@@ -279,7 +279,7 @@ class GettingStarted extends Component {
                     </div>
                   </div>
                 </div>
-              <li>Create the ambassador namespace:</li>
+              <li className="QS-asideNoBullets">Create the ambassador namespace:</li>
                 <div className="styles-module--CodeBlock--1UB4s">
                   <div className="QS-codeblockInstall">
                   <span className="QS-copyButton"><CopyButton content="
@@ -296,7 +296,7 @@ class GettingStarted extends Component {
                   </div>
                 </div>
 
-              <li>Install the Ambassador Edge Stack Chart:</li>
+              <li className="QS-asideNoBullets">Install the Ambassador Edge Stack Chart:</li>
               <details open>
                 <summary id="helmVersions">&nbsp;Helm3 Users
                 </summary>
@@ -347,7 +347,7 @@ class GettingStarted extends Component {
                 </div>
               </details>
             
-              <li>Install Ambassador Edge Stack:</li>
+              <li className="QS-asideNoBullets">Install Ambassador Edge Stack:</li>
                 <div className="styles-module--CodeBlock--1UB4s">
                     <div className="QS-codeblockInstall">
                     <div className="QS-copyButton"><CopyButton content="edgectl install">Copy</CopyButton></div>
