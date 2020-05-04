@@ -251,7 +251,7 @@ class GettingStarted extends Component {
                   </div>
                 </div>
               </div>
-            <li className="QS-asideNoBullets">Visit <code>http://your-IP-address</code> to login to the console.</li>
+            <li className="QS-asideNoBullets">Visit <code id="k8Code">http://your-IP-address</code> to login to the console.</li>
             </ul>
           </div>
         </div>
