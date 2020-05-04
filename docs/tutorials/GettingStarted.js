@@ -17,19 +17,19 @@ class GettingStarted extends Component {
       switch (os) {
         case "mac":
           document.getElementById("QS-showMac").style.display = "inline-block";
-          document.getElementById("QS-showMacAside3").style.display = "inline-block";
+          document.getElementById("QS-showMacAside1").style.display = "inline-block";
           break;
         case "linux":
           document.getElementById("QS-showLinux").style.display = "inline-block";
-          document.getElementById("QS-showLinuxAside3").style.display = "inline-block";
+          document.getElementById("QS-showLinuxAside1").style.display = "inline-block";
           break;
         case "windows":
           document.getElementById("QS-showWindows").style.display = "inline-block";
-          document.getElementById("QS-showWindowsAside3").style.display = "inline-block";
+          document.getElementById("QS-showWindowsAside1").style.display = "inline-block";
           break;        
         case "other":
           document.getElementById("QS-showLinux").style.display = "inline-block";
-          document.getElementById("QS-showLinuxAside3").style.display = "inline-block";
+          document.getElementById("QS-showLinuxAside1").style.display = "inline-block";
       }
     };
     renderHeader(os);
@@ -47,9 +47,9 @@ class GettingStarted extends Component {
           <span id="QS-showWindows" data-os="windows">Windows<img className="QS-osLogo" src="../../images/windows.png" /></span>
         </div>
 
-      <div className="QS-aside QS-aside3">
+      <div className="QS-aside QS-aside1">
         <ul id="QS-asideBullets">
-          <div id="QS-showMacAside3" data-os="mac" className="QS-asideText">
+          <div id="QS-showMacAside1" data-os="mac" className="QS-asideText">
         
           <li>New user? Get Edgectl, the Ambassador CLI.</li>
           <div className="styles-module--CodeBlock--1UB4s">
@@ -72,7 +72,7 @@ class GettingStarted extends Component {
         </div>
        
 
-        <div id="QS-showLinuxAside3" data-os="linux" className="
+        <div id="QS-showLinuxAside1" data-os="linux" className="
         QS-asideText">
           <li>New user? Get Edgectl, the Ambassador CLI.</li>
           <div className="styles-module--CodeBlock--1UB4s">
@@ -94,7 +94,7 @@ class GettingStarted extends Component {
           </div>
         </div>
 
-        <div id="QS-showWindowsAside3" data-os="windows" className="QS-asideText">
+        <div id="QS-showWindowsAside1" data-os="windows" className="QS-asideText">
           <li>New user? Get Edgectl, the Ambassador CLI.</li>
           <div className="styles-module--CodeBlock--1UB4s">
               <div className="QS-codeblockInstall">
@@ -128,12 +128,12 @@ class GettingStarted extends Component {
 
         <span className="QS-k8"><img className="QS-osLogo" src="../../images/kubernetes.png"/></span>
 
-      <div className="QS-aside QS-aside1">
+      <div className="QS-aside QS-aside2">
         <div className="QS-asideText">
           <ul id="QS-asideBullets">
             <li>Have Kubernetes? Deploy with yaml:</li>
               <div className="styles-module--CodeBlock--1UB4s">
-                <div className="QS-codeblockInstall QS-Aside1-codeblockInstall">
+                <div className="QS-codeblockInstall QS-Aside2-codeblockInstall">
                 <span className="QS-copyButton"><CopyButton content="
                 kubectl apply -f https://www.getambassador.io/yaml/aes-crds.yaml && \kubectl wait --for condition=established --timeout=90s crd -lproduct=aes && \kubectl apply -f https://www.getambassador.io/yaml/aes.yaml && \kubectl -n ambassador wait --for condition=available --timeout=90s deploy -lproduct=aes">Copy</CopyButton></span>
                   <div className="token-line">
@@ -258,7 +258,7 @@ class GettingStarted extends Component {
 
         <span className="QS-helm"><img className="QS-osLogo" src="../../images/helm-navy.png"/></span>
 
-        <div className="QS-aside QS-aside2">
+        <div className="QS-aside QS-aside3">
           <div className="QS-asideText">
             <ul id="QS-asideBullets">
               <li>Prefer Helm?  Add this repo to your helm client:</li>

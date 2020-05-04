@@ -2,9 +2,9 @@
   display: grid;
   grid-template-columns: 50px auto;
   grid-template-areas:
-  "os sidebar3"
-  "k8 sidebar1"
-  "helm sidebar2"
+  "os sidebar1"
+  "k8 sidebar2"
+  "helm sidebar3"
   "manual manual"
   "main main";
   padding-top: 15px;
@@ -43,7 +43,7 @@ p.bulletText {
 #QS-showMac, #QS-showLinux, #QS-showWindows {
   display: none;
 }
-#QS-showMacAside3, #QS-showLinuxAside3, #QS-showWindowsAside3 {
+#QS-showMacAside1, #QS-showLinuxAside1, #QS-showWindowsAside1 {
   display: none;
 }
 .QS-aside {
@@ -62,35 +62,6 @@ p.bulletText {
   list-style-type: square;
   display: visible;
   margin-bottom: 5px;
-}
-.QS-k8 {
-  grid-area: k8;
-}
-.QS-aside1 {
-  grid-area: sidebar1;
-  padding-bottom: 5px;
-  overflow: hidden;
-}
-.QS-aside1:hover {
-  height: auto;
-}
-.QS-helm {
-  grid-area: helm;
-}
-.QS-aside2 {
-  grid-area: sidebar2;
-  overflow: hidden;
-}
-.QS-aside2:hover {
-  height: auto;
-}
-details summary { list-style-type: none; }
-summary::-webkit-details-marker {display: none; }
-details summary::before { content:"►"; font-size: .5em;}
-details[open] summary::before { content:"▼" }
-
-summary#helmVersions {
-  font-size: .7em;
 }
 .QS-os {
   grid-area: os;
@@ -119,13 +90,33 @@ summary#helmVersions {
   width: 30px;
   margin: 0 0 -4px 4px;
 }
+.QS-aside1 {
+  grid-area: sidebar1;
+  padding-bottom: 5px;
+  overflow: hidden;
+}
+.QS-k8 {
+  grid-area: k8;
+}
+.QS-aside2 {
+  grid-area: sidebar2;
+  overflow: hidden;
+}
+.QS-helm {
+  grid-area: helm;
+}
 .QS-aside3 {
   grid-area: sidebar3;
   margin-bottom: 20px;
   overflow: hidden;
 }
-.QS-aside3:hover {
-  height: auto;
+details summary { list-style-type: none; }
+summary::-webkit-details-marker {display: none; }
+details summary::before { content:"►"; font-size: .5em;}
+details[open] summary::before { content:"▼" }
+
+summary#helmVersions {
+  font-size: .7em;
 }
 .QS-codeblockInstall {
   font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
