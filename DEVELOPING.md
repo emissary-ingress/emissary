@@ -34,7 +34,7 @@ ever find anything missing from this list.
  - bash
  - rsync (with the --info option)
  - golang 1.13
- - python 3.6+
+ - python 3.7+
  - kubectl
  - a kubernetes cluster
  - a docker registry
