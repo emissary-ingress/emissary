@@ -148,8 +148,8 @@ class TestNormalizedResource:
         assert resource.object['name'] == valid_mapping.name
         assert resource.object['namespace'] == valid_mapping.namespace
         assert resource.object['generation'] == valid_mapping.generation
-        assert len(resource.object['labels']) == 1
-        assert resource.object['labels']['ambassador_crd'] == resource.rkey
+        assert len(resource.object['metadata_labels']) == 1
+        assert resource.object['metadata_labels']['ambassador_crd'] == resource.rkey
         assert resource.object['prefix'] == valid_mapping.spec['prefix']
         assert resource.object['service'] == valid_mapping.spec['service']
 

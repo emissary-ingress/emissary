@@ -17,6 +17,7 @@ from .resourceprocessor import (
     AggregateKubernetesProcessor,
     DeduplicatingKubernetesProcessor,
     CountingKubernetesProcessor,
+    AmbassadorProcessor,
     KnativeIngressProcessor,
 )
 
@@ -50,14 +51,6 @@ HandlerResult = Optional[Tuple[str, List[AnyDict]]]
 # - Endpoint resources probably have just a name, a service name, and an endpoint
 #   address.
 
-CRDTypes = frozenset([
-    'AuthService', 'ConsulResolver', 'Host',
-    'KubernetesEndpointResolver', 'KubernetesServiceResolver',
-    'LogService', 'Mapping', 'Module', 'RateLimitService',
-    'TCPMapping', 'TLSContext', 'TracingService',
-    'clusteringresses.networking.internal.knative.dev',
-    'ingresses.networking.internal.knative.dev'
-])
 k8sLabelMatcher = re.compile(r'([\w\-_./]+)=\"(.+)\"')
 
 class ResourceFetcher:
@@ -74,6 +67,7 @@ class ResourceFetcher:
         self.k8s_processor = DeduplicatingKubernetesProcessor(AggregateKubernetesProcessor([
             CountingKubernetesProcessor(self.aconf, KubernetesGVK.for_knative_networking('Ingress'), 'knative_ingress'),
             CountingKubernetesProcessor(self.aconf, KubernetesGVK.for_knative_networking('ClusterIngress'), 'knative_cluster_ingress'),
+            AmbassadorProcessor(self.manager),
             KnativeIngressProcessor(self.manager),
         ]))
         self.k8s_endpoints: Dict[str, AnyDict] = {}
@@ -233,16 +227,16 @@ class ResourceFetcher:
 
             watt_k8s = watt_dict.get('Kubernetes', {})
 
-            # Handle normal Kube objects... the order is important here as ingresses depend on ingressclasses
-            for key in [ 'service', 'endpoints', 'secret', 'ingressclasses', 'ingresses' ]:
+            # These objects have to be processed first, in order, as they depend
+            # on each other.
+            watt_k8s_keys = ['service', 'endpoints', 'secret', 'ingressclasses', 'ingresses']
+
+            # Then we add everything else to be processed.
+            watt_k8s_keys += watt_k8s.keys()
+
+            for key in dict.fromkeys(watt_k8s_keys):
                 for obj in watt_k8s.get(key) or []:
                     # self.logger.debug(f"Handling Kubernetes {key}...")
-                    self.handle_k8s(obj)
-
-            # ...then handle Ambassador CRDs.
-            for key in CRDTypes:
-                for obj in watt_k8s.get(key) or []:
-                    # self.logger.debug(f"Handling CRD {key}...")
                     self.handle_k8s(obj)
 
             watt_consul = watt_dict.get('Consul', {})
@@ -308,25 +302,16 @@ class ResourceFetcher:
                 # Nothing else to do.
                 return
 
-        handler = None
-        check_dup = True
-
-        if obj.gvk.kind in CRDTypes:
-            handler = self.handle_k8s_crd
-            # self.handle_k8s_crd will do its own dup checking.
-            check_dup = False
-        else:
-            handler_name = f'handle_k8s_{obj.gvk.kind.lower()}'
-            # self.logger.debug(f"looking for handler {handler_name} for K8s {kind} {name}")
-            handler = getattr(self, handler_name, None)
+        handler_name = f'handle_k8s_{obj.gvk.kind.lower()}'
+        # self.logger.debug(f"looking for handler {handler_name} for K8s {kind} {name}")
+        handler = getattr(self, handler_name, None)
 
         if not handler:
             self.logger.debug(f"{self.location}: skipping K8s {obj.gvk}")
             return
 
-        if check_dup:
-            if not self.check_k8s_dup(obj.gvk.kind, obj.namespace, obj.name):
-                return
+        if not self.check_k8s_dup(obj.gvk.kind, obj.namespace, obj.name):
+            return
 
         result = handler(raw_obj)
 
@@ -334,50 +319,6 @@ class ResourceFetcher:
             rkey, parsed_objects = result
 
             self.parse_object(parsed_objects, k8s=False, rkey=rkey)
-
-    def handle_k8s_crd(self, obj: dict) -> None:
-        # CRDs are _not_ allowed to have embedded objects in annotations, because ew.
-        # self.logger.debug(f"Handling K8s CRD: {obj}")
-
-        kind = cast(str, obj.get('kind'))
-        apiVersion = obj.get('apiVersion', '')
-        metadata = obj.get('metadata') or {}
-        name = cast(str, metadata.get('name'))
-        namespace = metadata.get('namespace') or 'default'
-        metadata_labels: Optional[Dict[str, str]] = metadata.get('labels')
-        generation = metadata.get('generation', 1)
-
-        if not self.check_k8s_dup(kind, namespace, name):
-            return
-
-        spec = obj.get('spec') or {}
-
-        # Replace a sentinel value with the namespace of this ambassador pod.
-        # This allows hard-coded initialization resources to have a useful namespace.
-        if namespace == "_automatic_":
-            namespace = Config.ambassador_namespace
-
-        # We use this resource identifier as a key into self.k8s_services, and of course for logging .
-        resource_identifier = f'{name}.{namespace}'
-
-        # OK. Shallow copy 'spec'...
-        amb_object = dict(spec)
-
-        # ...and then stuff in a couple of other things.
-        amb_object['apiVersion'] = apiVersion
-        amb_object['name'] = name
-        amb_object['namespace'] = namespace
-        amb_object['kind'] = kind
-        amb_object['generation'] = generation
-        amb_object['metadata_labels'] = {}
-
-        if metadata_labels:
-            amb_object['metadata_labels'] = metadata_labels
-
-        amb_object['metadata_labels']['ambassador_crd'] = resource_identifier
-
-        # Done. Parse it.
-        self.parse_object([ amb_object ], k8s=False, rkey=resource_identifier)
 
     def parse_object(self, objects, k8s=False, rkey: Optional[str] = None, filename: Optional[str] = None):
         if not filename:

@@ -102,7 +102,7 @@ class NormalizedResource:
         ir_obj['namespace'] = namespace
         ir_obj['kind'] = kind
         ir_obj['generation'] = generation
-        ir_obj['labels'] = labels or {}
+        ir_obj['metadata_labels'] = labels or {}
 
         return cls(ir_obj, rkey)
 
