@@ -255,7 +255,7 @@ spec:
               protocol: TCP
           env:
             - name: GF_SERVER_ROOT_URL
-              value: https://{{AMBASSADOR_IP}}/grafana
+              value: {{ SCHEME }}://{{ AMBASSADOR_HOST }}/grafana
             - name: GRAFANA_PORT
               value: '3000'
             - name: GF_AUTH_BASIC_ENABLED
