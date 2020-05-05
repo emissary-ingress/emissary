@@ -5,25 +5,25 @@
                 "error": "Ambassador could not find core CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...",
                 "hostname": "plain",
                 "ok": false,
-                "version": "1.2.0-4-g8f507fdcf-dirty"
+                "version": "1.4.2-10249-g4e8c7ff4c"
             },
             {
                 "error": "Ambassador could not find Resolver type CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...",
                 "hostname": "plain",
                 "ok": false,
-                "version": "1.2.0-4-g8f507fdcf-dirty"
+                "version": "1.4.2-10249-g4e8c7ff4c"
             },
             {
                 "error": "Ambassador could not find the Host CRD definition. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...",
                 "hostname": "plain",
                 "ok": false,
-                "version": "1.2.0-4-g8f507fdcf-dirty"
+                "version": "1.4.2-10249-g4e8c7ff4c"
             },
             {
                 "error": "Ambassador could not find the LogService CRD definition. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...",
                 "hostname": "plain",
                 "ok": false,
-                "version": "1.2.0-4-g8f507fdcf-dirty"
+                "version": "1.4.2-10249-g4e8c7ff4c"
             }
         ]
     },
@@ -201,9 +201,11 @@
             },
             "name": "hostheadermappingingress-grpc-0-0",
             "namespace": "plain-namespace",
+            "precedence": 0,
             "prefix": "/HostHeaderMappingIngress-GRPC/",
+            "prefix_exact": false,
             "rkey": "hostheadermappingingress-grpc-0-0.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nhost: inspector.external\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: hostheadermappingingress-grpc-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: hostheadermappingingress-grpc-0-0\nnamespace: plain-namespace\nprefix: /HostHeaderMappingIngress-GRPC/\nservice: plain-hostheadermappingingress-grpc-grpc.plain-namespace:80\n",
+            "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nhost: inspector.external\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: hostheadermappingingress-grpc-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: hostheadermappingingress-grpc-0-0\nnamespace: plain-namespace\nprecedence: 0\nprefix: /HostHeaderMappingIngress-GRPC/\nprefix_exact: false\nservice: plain-hostheadermappingingress-grpc-grpc.plain-namespace:80\n",
             "service": "plain-hostheadermappingingress-grpc-grpc.plain-namespace:80"
         },
         "hostheadermappingingress-http-0-0.plain-namespace.1": {
@@ -221,9 +223,11 @@
             },
             "name": "hostheadermappingingress-http-0-0",
             "namespace": "plain-namespace",
+            "precedence": 0,
             "prefix": "/HostHeaderMappingIngress-HTTP/",
+            "prefix_exact": false,
             "rkey": "hostheadermappingingress-http-0-0.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nhost: inspector.external\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: hostheadermappingingress-http-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: hostheadermappingingress-http-0-0\nnamespace: plain-namespace\nprefix: /HostHeaderMappingIngress-HTTP/\nservice: plain-hostheadermappingingress-http-http.plain-namespace:80\n",
+            "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nhost: inspector.external\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: hostheadermappingingress-http-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: hostheadermappingingress-http-0-0\nnamespace: plain-namespace\nprecedence: 0\nprefix: /HostHeaderMappingIngress-HTTP/\nprefix_exact: false\nservice: plain-hostheadermappingingress-http-http.plain-namespace:80\n",
             "service": "plain-hostheadermappingingress-http-http.plain-namespace:80"
         },
         "k8s-plain-addreqheadersmapping-grpc-grpc-plain-namespace": {
@@ -3641,9 +3645,11 @@
             },
             "name": "simpleingresswithannotations-grpc-0-0",
             "namespace": "plain-namespace",
+            "precedence": 0,
             "prefix": "/SimpleIngressWithAnnotations-GRPC/",
+            "prefix_exact": false,
             "rkey": "simpleingresswithannotations-grpc-0-0.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simpleingresswithannotations-grpc-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: simpleingresswithannotations-grpc-0-0\nnamespace: plain-namespace\nprefix: /SimpleIngressWithAnnotations-GRPC/\nservice: plain-simpleingresswithannotations-grpc-grpc.plain-namespace:80\n",
+            "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simpleingresswithannotations-grpc-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: simpleingresswithannotations-grpc-0-0\nnamespace: plain-namespace\nprecedence: 0\nprefix: /SimpleIngressWithAnnotations-GRPC/\nprefix_exact: false\nservice: plain-simpleingresswithannotations-grpc-grpc.plain-namespace:80\n",
             "service": "plain-simpleingresswithannotations-grpc-grpc.plain-namespace:80"
         },
         "simpleingresswithannotations-grpc.plain-namespace.1": {
@@ -3678,9 +3684,11 @@
             },
             "name": "simpleingresswithannotations-http-0-0",
             "namespace": "plain-namespace",
+            "precedence": 0,
             "prefix": "/SimpleIngressWithAnnotations-HTTP/",
+            "prefix_exact": false,
             "rkey": "simpleingresswithannotations-http-0-0.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simpleingresswithannotations-http-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: simpleingresswithannotations-http-0-0\nnamespace: plain-namespace\nprefix: /SimpleIngressWithAnnotations-HTTP/\nservice: plain-simpleingresswithannotations-http-http.plain-namespace:80\n",
+            "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simpleingresswithannotations-http-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: simpleingresswithannotations-http-0-0\nnamespace: plain-namespace\nprecedence: 0\nprefix: /SimpleIngressWithAnnotations-HTTP/\nprefix_exact: false\nservice: plain-simpleingresswithannotations-http-http.plain-namespace:80\n",
             "service": "plain-simpleingresswithannotations-http-http.plain-namespace:80"
         },
         "simpleingresswithannotations-http.plain-namespace.1": {
@@ -3715,9 +3723,11 @@
             },
             "name": "simplemappingingress-grpc-0-0",
             "namespace": "plain-namespace",
+            "precedence": 0,
             "prefix": "/SimpleMappingIngress-GRPC/",
+            "prefix_exact": false,
             "rkey": "simplemappingingress-grpc-0-0.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simplemappingingress-grpc-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: simplemappingingress-grpc-0-0\nnamespace: plain-namespace\nprefix: /SimpleMappingIngress-GRPC/\nservice: plain-simplemappingingress-grpc-grpc.plain-namespace:80\n",
+            "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simplemappingingress-grpc-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: simplemappingingress-grpc-0-0\nnamespace: plain-namespace\nprecedence: 0\nprefix: /SimpleMappingIngress-GRPC/\nprefix_exact: false\nservice: plain-simplemappingingress-grpc-grpc.plain-namespace:80\n",
             "service": "plain-simplemappingingress-grpc-grpc.plain-namespace:80"
         },
         "simplemappingingress-http-0-0.plain-namespace.1": {
@@ -3734,9 +3744,11 @@
             },
             "name": "simplemappingingress-http-0-0",
             "namespace": "plain-namespace",
+            "precedence": 0,
             "prefix": "/SimpleMappingIngress-HTTP/",
+            "prefix_exact": false,
             "rkey": "simplemappingingress-http-0-0.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simplemappingingress-http-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: simplemappingingress-http-0-0\nnamespace: plain-namespace\nprefix: /SimpleMappingIngress-HTTP/\nservice: plain-simplemappingingress-http-http.plain-namespace:80\n",
+            "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simplemappingingress-http-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: simplemappingingress-http-0-0\nnamespace: plain-namespace\nprecedence: 0\nprefix: /SimpleMappingIngress-HTTP/\nprefix_exact: false\nservice: plain-simplemappingingress-http-http.plain-namespace:80\n",
             "service": "plain-simplemappingingress-http-http.plain-namespace:80"
         }
     },
@@ -5229,7 +5241,9 @@
             },
             "name": "hostheadermappingingress-grpc-0-0",
             "namespace": "plain-namespace",
+            "precedence": 0,
             "prefix": "/HostHeaderMappingIngress-GRPC/",
+            "prefix_exact": false,
             "service": "plain-hostheadermappingingress-grpc-grpc.plain-namespace:80"
         },
         "hostheadermappingingress-http-0-0": {
@@ -5245,7 +5259,9 @@
             },
             "name": "hostheadermappingingress-http-0-0",
             "namespace": "plain-namespace",
+            "precedence": 0,
             "prefix": "/HostHeaderMappingIngress-HTTP/",
+            "prefix_exact": false,
             "service": "plain-hostheadermappingingress-http-http.plain-namespace:80"
         },
         "simpleingresswithannotations-grpc-0-0": {
@@ -5260,7 +5276,9 @@
             },
             "name": "simpleingresswithannotations-grpc-0-0",
             "namespace": "plain-namespace",
+            "precedence": 0,
             "prefix": "/SimpleIngressWithAnnotations-GRPC/",
+            "prefix_exact": false,
             "service": "plain-simpleingresswithannotations-grpc-grpc.plain-namespace:80"
         },
         "simpleingresswithannotations-http-0-0": {
@@ -5275,7 +5293,9 @@
             },
             "name": "simpleingresswithannotations-http-0-0",
             "namespace": "plain-namespace",
+            "precedence": 0,
             "prefix": "/SimpleIngressWithAnnotations-HTTP/",
+            "prefix_exact": false,
             "service": "plain-simpleingresswithannotations-http-http.plain-namespace:80"
         },
         "simplemappingingress-grpc-0-0": {
@@ -5290,7 +5310,9 @@
             },
             "name": "simplemappingingress-grpc-0-0",
             "namespace": "plain-namespace",
+            "precedence": 0,
             "prefix": "/SimpleMappingIngress-GRPC/",
+            "prefix_exact": false,
             "service": "plain-simplemappingingress-grpc-grpc.plain-namespace:80"
         },
         "simplemappingingress-http-0-0": {
@@ -5305,7 +5327,9 @@
             },
             "name": "simplemappingingress-http-0-0",
             "namespace": "plain-namespace",
+            "precedence": 0,
             "prefix": "/SimpleMappingIngress-HTTP/",
+            "prefix_exact": false,
             "service": "plain-simplemappingingress-http-http.plain-namespace:80"
         }
     },

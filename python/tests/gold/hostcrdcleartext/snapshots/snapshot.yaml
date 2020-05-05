@@ -12,7 +12,7 @@
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Host\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"hostcrdcleartext\",\"scope\":\"AmbassadorTest\"},\"name\":\"cleartext-host\",\"namespace\":\"default\"},\"spec\":{\"acmeProvider\":{\"authority\":\"none\"},\"ambassador_id\":[\"hostcrdcleartext\"],\"hostname\":\"hostcrdcleartext\",\"requestPolicy\":{\"insecure\":{\"action\":\"Route\"}},\"selector\":{\"matchLabels\":{\"hostname\":\"host-cleartext\"}}}}\n"
                     },
                     "clusterName": "",
-                    "creationTimestamp": "2020-02-26T15:51:51Z",
+                    "creationTimestamp": "2020-05-06T02:23:49Z",
                     "generation": 1,
                     "labels": {
                         "kat-ambassador-id": "hostcrdcleartext",
@@ -20,9 +20,9 @@
                     },
                     "name": "cleartext-host",
                     "namespace": "default",
-                    "resourceVersion": "66463",
+                    "resourceVersion": "38319",
                     "selfLink": "/apis/getambassador.io/v2/namespaces/default/hosts/cleartext-host",
-                    "uid": "e73f94fc-58af-11ea-86d6-0e674b3ff44f"
+                    "uid": "9f1c515a-8f40-11ea-9536-0682a20b9723"
                 },
                 "spec": {
                     "acmeProvider": {
@@ -57,7 +57,7 @@
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"labels\":{\"hostname\":\"host-cleartext\",\"kat-ambassador-id\":\"hostcrdcleartext\",\"scope\":\"AmbassadorTest\"},\"name\":\"cleartext-target-mapping\",\"namespace\":\"default\"},\"spec\":{\"ambassador_id\":[\"hostcrdcleartext\"],\"prefix\":\"/target/\",\"service\":\"hostcrdcleartext-http\"}}\n"
                     },
                     "clusterName": "",
-                    "creationTimestamp": "2020-02-26T15:51:51Z",
+                    "creationTimestamp": "2020-05-06T02:23:49Z",
                     "generation": 1,
                     "labels": {
                         "hostname": "host-cleartext",
@@ -66,9 +66,9 @@
                     },
                     "name": "cleartext-target-mapping",
                     "namespace": "default",
-                    "resourceVersion": "66465",
+                    "resourceVersion": "38321",
                     "selfLink": "/apis/getambassador.io/v2/namespaces/default/mappings/cleartext-target-mapping",
-                    "uid": "e747da48-58af-11ea-86d6-0e674b3ff44f"
+                    "uid": "9f259b9d-8f40-11ea-9536-0682a20b9723"
                 },
                 "spec": {
                     "ambassador_id": [
@@ -94,7 +94,7 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"hostcrdcleartext\",\"scope\":\"AmbassadorTest\"},\"name\":\"hostcrdcleartext\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"hostcrdcleartext\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-02-26T15:51:51Z",
+                    "creationTimestamp": "2020-05-06T02:23:50Z",
                     "labels": {
                         "app.kubernetes.io/component": "ambassador-service",
                         "kat-ambassador-id": "hostcrdcleartext",
@@ -102,24 +102,24 @@
                     },
                     "name": "hostcrdcleartext",
                     "namespace": "default",
-                    "resourceVersion": "66478",
+                    "resourceVersion": "38332",
                     "selfLink": "/api/v1/namespaces/default/services/hostcrdcleartext",
-                    "uid": "e76b7208-58af-11ea-86d6-0e674b3ff44f"
+                    "uid": "9f4e6f22-8f40-11ea-9536-0682a20b9723"
                 },
                 "spec": {
-                    "clusterIP": "10.98.172.23",
+                    "clusterIP": "10.102.121.83",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "http",
-                            "nodePort": 32596,
+                            "nodePort": 32308,
                             "port": 80,
                             "protocol": "TCP",
                             "targetPort": 8080
                         },
                         {
                             "name": "https",
-                            "nodePort": 31819,
+                            "nodePort": 32589,
                             "port": 443,
                             "protocol": "TCP",
                             "targetPort": 8443
@@ -142,7 +142,7 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"hostcrdcleartext\",\"scope\":\"AmbassadorTest\",\"service\":\"hostcrdcleartext-admin\"},\"name\":\"hostcrdcleartext-admin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"hostcrdcleartext-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"hostcrdcleartext\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-02-26T15:51:51Z",
+                    "creationTimestamp": "2020-05-06T02:23:50Z",
                     "labels": {
                         "kat-ambassador-id": "hostcrdcleartext",
                         "scope": "AmbassadorTest",
@@ -150,17 +150,17 @@
                     },
                     "name": "hostcrdcleartext-admin",
                     "namespace": "default",
-                    "resourceVersion": "66482",
+                    "resourceVersion": "38337",
                     "selfLink": "/api/v1/namespaces/default/services/hostcrdcleartext-admin",
-                    "uid": "e77517f4-58af-11ea-86d6-0e674b3ff44f"
+                    "uid": "9f5cbeea-8f40-11ea-9536-0682a20b9723"
                 },
                 "spec": {
-                    "clusterIP": "10.102.71.187",
+                    "clusterIP": "10.98.77.116",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "hostcrdcleartext-admin",
-                            "nodePort": 31735,
+                            "nodePort": 30335,
                             "port": 8877,
                             "protocol": "TCP",
                             "targetPort": 8877
@@ -183,19 +183,19 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"hostcrdcleartext\",\"scope\":\"AmbassadorTest\"},\"name\":\"hostcrdcleartext-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8103},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8466}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
                     },
-                    "creationTimestamp": "2020-02-26T15:51:51Z",
+                    "creationTimestamp": "2020-05-06T02:23:50Z",
                     "labels": {
                         "kat-ambassador-id": "hostcrdcleartext",
                         "scope": "AmbassadorTest"
                     },
                     "name": "hostcrdcleartext-http",
                     "namespace": "default",
-                    "resourceVersion": "66489",
+                    "resourceVersion": "38345",
                     "selfLink": "/api/v1/namespaces/default/services/hostcrdcleartext-http",
-                    "uid": "e78ab7f0-58af-11ea-86d6-0e674b3ff44f"
+                    "uid": "9f72a963-8f40-11ea-9536-0682a20b9723"
                 },
                 "spec": {
-                    "clusterIP": "10.106.29.55",
+                    "clusterIP": "10.111.169.251",
                     "ports": [
                         {
                             "name": "http",
