@@ -133,7 +133,7 @@ class GettingStarted extends Component {
           <ul id="QS-asideBullets">
             <li>Have Kubernetes? Deploy with yaml:</li>
               <div className="styles-module--CodeBlock--1UB4s">
-                <div className="QS-codeblockInstall QS-Aside2-codeblockInstall">
+                <div className="QS-codeblockInstall">
                 <span className="QS-copyButton"><CopyButton content="
                 kubectl apply -f https://www.getambassador.io/yaml/aes-crds.yaml && \kubectl wait --for condition=established --timeout=90s crd -lproduct=aes && \kubectl apply -f https://www.getambassador.io/yaml/aes.yaml && \kubectl -n ambassador wait --for condition=available --timeout=90s deploy -lproduct=aes">Copy</CopyButton></span>
                   <div className="token-line">
