@@ -13,10 +13,16 @@ Use the following variables for the environment of your Ambassador container:
 | Primary Redis              | `REDIS_POOL_SIZE`                | `10`                                                | Integer                                                                       |
 | Primary Redis              | `REDIS_SOCKET_TYPE`              | None, must be set explicitly                        | Go network such as `tcp` or `unix`; see [Go `net.Dial`][]                     |
 | Primary Redis              | `REDIS_URL`                      | None, must be set explicitly                        | Go network address; for TCP this is a `host:port` pair; see [Go `net.Dial`][] |
+| Primary Redis              | `REDIS_PASSWORD`                 | Empty                                               | Plain string                                                                        |
+| Primary Redis              | `REDIS_TLS_ENABLED`              | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
+| Primary Redis              | `REDIS_TLS_INSECURE`             | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
 | Per-Second RateLimit Redis | `REDIS_PERSECOND`                | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
 | Per-Second RateLimit Redis | `REDIS_PERSECOND_POOL_SIZE`      | `10`                                                | Integer                                                                       |
 | Per-Second RateLimit Redis | `REDIS_PERSECOND_SOCKET_TYPE`    | None, must be set explicitly (if `REDIS_PERSECOND`) | Go network such as `tcp` or `unix`; see [Go `net.Dial`][]                     |
 | Per-Second RateLimit Redis | `REDIS_PERSECOND_URL`            | None, must be set explicitly (if `REDIS_PERSECOND`) | Go network address; for TCP this is a `host:port` pair; see [Go `net.Dial`][] |
+| Per-Second RateLimit Redis | `REDIS_PERSECOND_PASSWORD`       | Empty                                               | Plain string                                                                        |
+| Per-Second RateLimit Redis | `REDIS_PERSECOND_TLS_ENABLED`    | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
+| Per-Second RateLimit Redis | `REDIS_PERSECOND_TLS_INSECURE`   | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
 | RateLimit                  | `EXPIRATION_JITTER_MAX_SECONDS`  | `300`                                               | Integer                                                                       |
 | RateLimit                  | `USE_STATSD`                     | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
 | RateLimit                  | `STATSD_HOST`                    | `localhost`                                         | Hostname                                                                      |
@@ -42,6 +48,18 @@ connection pool is created (to a potentially different Redis instance)
 that is only used for per-second RateLimits; this second connection
 pool is configured by the `REDIS_PERSECOND_*` variables rather than
 the usual `REDIS_*` variables.
+
+If `REDIS_PASSWORD` (or `REDIS_PERSECOND_PASSWORD`) is non-empty, then
+it is used to `AUTH` to Redis immediately after the connection is
+established.
+
+If `REDIS_TLS_ENABLED` (or `REDIS_PERSECOND_TLS_ENABLED`) is true,
+then TLS is used when communicating with Redis.  Setting
+`REDIS_TLS_INSECURE` (or `REDIS_PERSECOND_TLS_INSECURE`) to true
+disables TLS verification when doing so; alternatively, consider
+[installing Redis' self-signed certificate in to the Ambassador Edge
+Stack
+container](../../using/filters/#installing-self-signed-certificates).
 
 Note that when using a port name instead of a port number in a Go
 network address (as as in `REDIS_URL` or `REDIS_PERSECOND_URL`), the
