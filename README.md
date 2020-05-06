@@ -145,8 +145,8 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `authService.optional_configurations` | Config options for the `AuthService` CRD                                     | `""`                              |
 | `rateLimit.create`                 | Create the `RateLimit` CRD for Ambassador Edge Stack                            | `true`                            |
 | `autoscaling.enabled`              | If true, creates Horizontal Pod Autoscaler                                      | `false`                           |
-| `autoscaling.minReplica`           | If autoscaling enabled, this field sets minimum replica count                   | `2`                               |
-| `autoscaling.maxReplica`           | If autoscaling enabled, this field sets maximum replica count                   | `5`                               |
+| `autoscaling.minReplicas`           | If autoscaling enabled, this field sets minimum replica count                   | `2`                               |
+| `autoscaling.maxReplicas`           | If autoscaling enabled, this field sets maximum replica count                   | `5`                               |
 | `autoscaling.metrics`              | If autoscaling enabled, configure hpa metrics                                   |                                   |
 | `podDisruptionBudget`              | Pod disruption budget rules                                                     | `{}`                              |
 | `prometheusExporter.enabled`       | DEPRECATED: Prometheus exporter side-car enabled                                | `false`                           |
