@@ -66,6 +66,13 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [Next]
+[Next]: https://github.com/datawire/ambassador/compare/v1.4.2...master
+
+### Ambassador API Gateway + Ambassador Edge Stack
+
+- Feature: Allow defaults for `add_request_header`, `remove_request_header`, `add_response_header`, and `remove_response_header`
+
 ## [1.4.2] April 22, 2020
 [1.4.2]: https://github.com/datawire/ambassador/compare/v1.4.1...v1.4.2
 
