@@ -144,7 +144,7 @@ class TestNormalizedResource:
 
         assert resource.rkey == f'{valid_mapping.name}.{valid_mapping.namespace}'
         assert resource.object['apiVersion'] == valid_mapping.gvk.api_version
-        assert resource.object['kind'] == valid_mapping.gvk.kind
+        assert resource.object['kind'] == valid_mapping.kind
         assert resource.object['name'] == valid_mapping.name
         assert resource.object['namespace'] == valid_mapping.namespace
         assert resource.object['generation'] == valid_mapping.generation

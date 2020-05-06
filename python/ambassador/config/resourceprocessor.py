@@ -187,6 +187,10 @@ class KubernetesObject(collections.abc.Mapping):
         return KubernetesGVK(self['apiVersion'], self['kind'])
 
     @property
+    def kind(self) -> str:
+        return self.gvk.kind
+
+    @property
     def metadata(self) -> Dict[str, Any]:
         return self['metadata']
 
@@ -240,7 +244,7 @@ class KubernetesObject(collections.abc.Mapping):
         labels['ambassador_crd'] = f"{self.name}.{self.namespace}"
 
         return NormalizedResource.from_data(
-            self.gvk.kind,
+            self.kind,
             self.name,
             namespace=self.namespace,
             generation=self.generation,
@@ -449,13 +453,13 @@ class KnativeIngressProcessor (ManagedKubernetesProcessor):
         # classes.
         ingress_class = annotations.get('networking.knative.dev/ingress.class', self.INGRESS_CLASS)
         if ingress_class.lower() != self.INGRESS_CLASS:
-            self.logger.debug(f'Ignoring Knative {obj.gvk.kind} {obj.name}; set networking.knative.dev/ingress.class '
+            self.logger.debug(f'Ignoring Knative {obj.kind} {obj.name}; set networking.knative.dev/ingress.class '
                               f'annotation to {self.INGRESS_CLASS} for ambassador to parse it.')
             return False
 
         # We don't want to deal with non-matching Ambassador IDs
         if obj.ambassador_id != Config.ambassador_id:
-            self.logger.info(f"Knative {obj.gvk.kind} {obj.name} does not have Ambassador ID {Config.ambassador_id}, ignoring...")
+            self.logger.info(f"Knative {obj.kind} {obj.name} does not have Ambassador ID {Config.ambassador_id}, ignoring...")
             return False
 
         return True
@@ -508,7 +512,7 @@ class KnativeIngressProcessor (ManagedKubernetesProcessor):
                 spec=spec,
             )
 
-            self.logger.debug(f"Generated mapping from Knative {obj.gvk.kind}: {mapping}")
+            self.logger.debug(f"Generated mapping from Knative {obj.kind}: {mapping}")
             self.manager.emit(mapping)
 
     def _make_status(self, generation: int = 1, lb_domain: Optional[str] = None) -> Dict[str, Any]:
@@ -560,7 +564,7 @@ class KnativeIngressProcessor (ManagedKubernetesProcessor):
         current_lb_domain = None
 
         if not self.manager.ambassador_service or not self.manager.ambassador_service.name:
-            self.logger.warning(f"Unable to set Knative {obj.gvk.kind} {obj.name}'s load balancer, could not find Ambassador service")
+            self.logger.warning(f"Unable to set Knative {obj.kind} {obj.name}'s load balancer, could not find Ambassador service")
         else:
             # TODO: It is technically possible to use a domain other than
             # cluster.local (common-ish on bare metal clusters). We can resolve
@@ -578,10 +582,10 @@ class KnativeIngressProcessor (ManagedKubernetesProcessor):
             status = self._make_status(generation=current_generation, lb_domain=current_lb_domain)
             status_update = (obj.gvk.domain, obj.namespace, status)
 
-            self.logger.info(f"Updating Knative {obj.gvk.kind} {obj.name} status to {status_update}")
+            self.logger.info(f"Updating Knative {obj.kind} {obj.name} status to {status_update}")
             self.aconf.k8s_status_updates[f"{obj.name}.{obj.namespace}"] = status_update
         else:
-            self.logger.debug(f"Not reconciling Knative {obj.gvk.kind} {obj.name}: observed and current generations are in sync")
+            self.logger.debug(f"Not reconciling Knative {obj.kind} {obj.name}: observed and current generations are in sync")
 
     def _process(self, obj: KubernetesObject) -> None:
         if not self._has_required_annotations(obj):

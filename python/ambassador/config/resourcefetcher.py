@@ -302,7 +302,7 @@ class ResourceFetcher:
                 # Nothing else to do.
                 return
 
-        handler_name = f'handle_k8s_{obj.gvk.kind.lower()}'
+        handler_name = f'handle_k8s_{obj.kind.lower()}'
         # self.logger.debug(f"looking for handler {handler_name} for K8s {kind} {name}")
         handler = getattr(self, handler_name, None)
 
@@ -310,7 +310,7 @@ class ResourceFetcher:
             self.logger.debug(f"{self.location}: skipping K8s {obj.gvk}")
             return
 
-        if not self.check_k8s_dup(obj.gvk.kind, obj.namespace, obj.name):
+        if not self.check_k8s_dup(obj.kind, obj.namespace, obj.name):
             return
 
         result = handler(raw_obj)
