@@ -55,52 +55,50 @@ class IRHTTPMapping (IRBaseMapping):
     sni: bool
 
     AllowedKeys: ClassVar[Dict[str, bool]] = {
+        "add_linkerd_headers": True,
         # Do not include add_request_headers
         "add_response_headers": True,
         "auto_host_rewrite": True,
+        "bypass_auth": True,
         "case_sensitive": True,
         "circuit_breakers": True,
-        "add_linkerd_headers": True,
+        "cluster_idle_timeout_ms": True,
+        # Do not include cluster_tag
+        "connect_timeout_ms": True,
         "cors": True,
-        "retry_policy": True,
         "enable_ipv4": True,
         "enable_ipv6": True,
-        "envoy_override": True,
         "grpc": True,
-        # Do not include headers.
-        "host": True,
+        # Do not include headers
+        "host": True,          # See notes above
         "host_redirect": True,
         "host_regex": True,
         "host_rewrite": True,
-        "labels": True,       # Only supported in v1, handled in setup
-        "load_balancer": True,
+        "idle_timeout_ms": True,
         "keepalive": True,
-        "method": True,
+        "labels": True,        # Only supported in v1, handled in setup
+        "load_balancer": True,
+        # Do not include method
         "method_regex": True,
-        "modules": True,
-        # "outlier_detection": True,
         "path_redirect": True,
-        # Do not include precedence.
+        # Do not include precedence
         "prefix": True,
-        "prefix_regex": True,
         "prefix_exact": True,
+        "prefix_regex": True,
         "priority": True,
         "rate_limits": True,   # Only supported in v0, handled in setup
-        "remove_response_headers": True,
+        # Do not include regex_headers
         "remove_request_headers": True,
+        "remove_response_headers": True,
         "resolver": True,
-        # Do not include regex_headers.
-        # Do not include rewrite.
-        "service": True,
+        "retry_policy": True,
+        # Do not include rewrite
+        "service": True,       # See notes above
         "shadow": True,
-        "connect_timeout_ms": True,
-        "cluster_idle_timeout_ms": True,
         "timeout_ms": True,
-        "idle_timeout_ms": True,
         "tls": True,
         "use_websocket": True,
         "weight": True,
-        "bypass_auth": True,
 
         # Include the serialization, too.
         "serialization": True,
