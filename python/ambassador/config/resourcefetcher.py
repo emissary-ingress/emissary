@@ -234,6 +234,9 @@ class ResourceFetcher:
             # Then we add everything else to be processed.
             watt_k8s_keys += watt_k8s.keys()
 
+            # `dict.fromkeys(iterable)` is a convenient way to work around the
+            # lack of an ordered set collection type in Python. As Python 3.7,
+            # dicts are guaranteed to be insertion-ordered.
             for key in dict.fromkeys(watt_k8s_keys):
                 for obj in watt_k8s.get(key) or []:
                     # self.logger.debug(f"Handling Kubernetes {key}...")
