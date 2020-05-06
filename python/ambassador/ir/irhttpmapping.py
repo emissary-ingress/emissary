@@ -54,54 +54,68 @@ class IRHTTPMapping (IRBaseMapping):
     retry_policy: IRRetryPolicy
     sni: bool
 
+    # Keys that are present in AllowedKeys are allowed to be set from kwargs.
+    # If the value is True, we'll look for a default in the Ambassador module
+    # if the key is missing. If the value is False, a missing key will simply 
+    # be unset.
+    #
+    # Do not include any named parameters (like 'precedence' or 'rewrite').
+    #  
+    # Any key here will be copied into the mapping. Keys where the only
+    # processing is to set something else (like 'host' and 'method', whose
+    # which only need to set the ':authority' and ':method' headers) must
+    # _not_ be included here. Keys that need to be copied _and_ have special
+    # processing (like 'service', which must be copied and used to wrangle
+    # Linkerd headers) _do_ need to be included.
+
     AllowedKeys: ClassVar[Dict[str, bool]] = {
-        "add_linkerd_headers": True,
+        "add_linkerd_headers": False,
         # Do not include add_request_headers
         "add_response_headers": True,
-        "auto_host_rewrite": True,
-        "bypass_auth": True,
-        "case_sensitive": True,
-        "circuit_breakers": True,
-        "cluster_idle_timeout_ms": True,
+        "auto_host_rewrite": False,
+        "bypass_auth": False,
+        "case_sensitive": False,
+        "circuit_breakers": False,
+        "cluster_idle_timeout_ms": False,
         # Do not include cluster_tag
-        "connect_timeout_ms": True,
-        "cors": True,
-        "enable_ipv4": True,
-        "enable_ipv6": True,
-        "grpc": True,
+        "connect_timeout_ms": False,
+        "cors": False,
+        "enable_ipv4": False,
+        "enable_ipv6": False,
+        "grpc": False,
         # Do not include headers
-        "host": True,          # See notes above
-        "host_redirect": True,
-        "host_regex": True,
-        "host_rewrite": True,
-        "idle_timeout_ms": True,
-        "keepalive": True,
-        "labels": True,        # Only supported in v1, handled in setup
-        "load_balancer": True,
+        "host": False,          # See notes above
+        "host_redirect": False,
+        "host_regex": False,
+        "host_rewrite": False,
+        "idle_timeout_ms": False,
+        "keepalive": False,
+        "labels": False,        # Only supported in v1, handled in setup
+        "load_balancer": False,
         # Do not include method
-        "method_regex": True,
-        "path_redirect": True,
+        "method_regex": False,
+        "path_redirect": False,
         # Do not include precedence
-        "prefix": True,
-        "prefix_exact": True,
-        "prefix_regex": True,
-        "priority": True,
-        "rate_limits": True,   # Only supported in v0, handled in setup
+        "prefix": False,
+        "prefix_exact": False,
+        "prefix_regex": False,
+        "priority": False,
+        "rate_limits": False,   # Only supported in v0, handled in setup
         # Do not include regex_headers
         "remove_request_headers": True,
         "remove_response_headers": True,
-        "resolver": True,
-        "retry_policy": True,
+        "resolver": False,
+        "retry_policy": False,
         # Do not include rewrite
-        "service": True,       # See notes above
-        "shadow": True,
-        "timeout_ms": True,
-        "tls": True,
-        "use_websocket": True,
-        "weight": True,
+        "service": False,       # See notes above
+        "shadow": False,
+        "timeout_ms": False,
+        "tls": False,
+        "use_websocket": False,
+        "weight": False,
 
         # Include the serialization, too.
-        "serialization": True,
+        "serialization": False,
     }
 
     def __init__(self, ir: 'IR', aconf: Config,
@@ -117,14 +131,48 @@ class IRHTTPMapping (IRBaseMapping):
                  cluster_tag: Optional[str]=None,
                  **kwargs) -> None:
         # OK, this is a bit of a pain. We want to preserve the name and rkey and
-        # such here, unlike most kinds of IRResource. So. Shallow copy the keys
-        # we're going to allow from the incoming kwargs...
+        # such here, unlike most kinds of IRResource, so we shallow copy the keys
+        # we're going to allow from the incoming kwargs.
+        #
+        # NOTE WELL: things that we explicitly process below should _not_ be listed in
+        # AllowedKeys. The point of AllowedKeys is this loop below.
 
-        new_args = {x: kwargs[x] for x in kwargs.keys() if x in IRHTTPMapping.AllowedKeys}
+        new_args = {}
+        
+        # When we look up defaults, use lookup class "httpmapping"... and yeah, we need the
+        # IR, too.
+        self.default_class = "httpmapping"
+        self.ir = ir
 
-        # ...then set up the headers (since we need them to compute our group ID).
+        for key, check_defaults in IRHTTPMapping.AllowedKeys.items():
+            # Do we have a keyword arg for this key?
+            if key in kwargs:
+                # Yes, it wins.
+                value = kwargs[key]
+                self.ir.logger.info(f"IRHTTPMapping: accept {key}={value} from kwargs")
+                new_args[key] = value
+            elif check_defaults:
+                # No value in kwargs, but we're allowed to check defaults for it. 
+                value = self.lookup_default(key)
+
+                if value is not None:
+                    self.ir.logger.info(f"IRHTTPMapping: accept {key}={value} from defaults")
+                    new_args[key] = value
+
+        # add_linkerd_headers is special, because we support setting it as a default
+        # in the bare Ambassador module. We should really toss this and use the defaults
+        # mechanism, but not for 1.4.3.
+
+        if "add_linkerd_headers" not in new_args:
+            # They didn't set it explicitly, so check for the older way.
+            add_linkerd_headers = self.ir.ambassador_module.get('add_linkerd_headers', None)
+
+            if add_linkerd_headers != None:
+                new_args["add_linkerd_headers"] = add_linkerd_headers
+
+        # OK. On to set up the headers (since we need them to compute our group ID).
         hdrs = []
-        add_request_hdrs = kwargs.get('add_request_headers', {})
+        query_parameters = []
 
         if 'headers' in kwargs:
             for name, value in kwargs.get('headers', {}).items():
@@ -141,18 +189,24 @@ class IRHTTPMapping (IRBaseMapping):
             hdrs.append(Header(":authority", kwargs['host'], kwargs.get('host_regex', False)))
             self.tls_context = self.match_tls_context(kwargs['host'], ir)
 
-        if 'service' in kwargs:
-            svc = Service(ir.logger, kwargs['service'])
-
-            if 'add_linkerd_headers' in kwargs:
-                if kwargs['add_linkerd_headers'] is True:
-                    add_request_hdrs['l5d-dst-override'] = svc.hostname_port
-            else:
-                if 'add_linkerd_headers' in ir.ambassador_module and ir.ambassador_module.add_linkerd_headers is True:
-                    add_request_hdrs['l5d-dst-override'] = svc.hostname_port
-
         if 'method' in kwargs:
             hdrs.append(Header(":method", kwargs['method'], kwargs.get('method_regex', False)))
+
+        # Next up: figure out what headers we need to add to each request...
+        add_request_hdrs = self.lookup_default('add_request_headers', kwargs.get('add_request_headers', {}))
+
+        # ...which may include the Linkerd headers. Does it?
+        add_linkerd_headers = new_args.get('add_linkerd_headers', False)
+
+        if add_linkerd_headers:
+            # Yup. We need the service info for this...
+
+            if 'service' in kwargs:
+                svc = Service(ir.logger, kwargs['service'])
+                add_request_hdrs['l5d-dst-override'] = svc.hostname_port
+            else: 
+                # Uh. This is pretty much impossible.
+                self.post_error("Service is required for HTTP Mappings")
 
         # XXX BRUTAL HACK HERE:
         # If we _don't_ have an origination context, but our IR has an agent_origination_ctx,
