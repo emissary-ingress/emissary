@@ -69,6 +69,23 @@ func (m *FaultAbort) Validate() error {
 			}
 		}
 
+	case *FaultAbort_HeaderAbort_:
+
+		{
+			tmp := m.GetHeaderAbort()
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return FaultAbortValidationError{
+						field:  "HeaderAbort",
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
 	default:
 		return FaultAbortValidationError{
 			field:  "ErrorType",
@@ -291,3 +308,70 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = HTTPFaultValidationError{}
+
+// Validate checks the field values on FaultAbort_HeaderAbort with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *FaultAbort_HeaderAbort) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	return nil
+}
+
+// FaultAbort_HeaderAbortValidationError is the validation error returned by
+// FaultAbort_HeaderAbort.Validate if the designated constraints aren't met.
+type FaultAbort_HeaderAbortValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e FaultAbort_HeaderAbortValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e FaultAbort_HeaderAbortValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e FaultAbort_HeaderAbortValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e FaultAbort_HeaderAbortValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e FaultAbort_HeaderAbortValidationError) ErrorName() string {
+	return "FaultAbort_HeaderAbortValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e FaultAbort_HeaderAbortValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sFaultAbort_HeaderAbort.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = FaultAbort_HeaderAbortValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = FaultAbort_HeaderAbortValidationError{}

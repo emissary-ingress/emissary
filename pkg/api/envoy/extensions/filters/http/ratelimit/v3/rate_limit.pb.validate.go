@@ -57,7 +57,12 @@ func (m *RateLimit) Validate() error {
 		}
 	}
 
-	// no validation rules for RequestType
+	if _, ok := _RateLimit_RequestType_InLookup[m.GetRequestType()]; !ok {
+		return RateLimitValidationError{
+			field:  "RequestType",
+			reason: "value must be in list [internal external both ]",
+		}
+	}
 
 	{
 		tmp := m.GetTimeout()
@@ -156,3 +161,10 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = RateLimitValidationError{}
+
+var _RateLimit_RequestType_InLookup = map[string]struct{}{
+	"internal": {},
+	"external": {},
+	"both":     {},
+	"":         {},
+}

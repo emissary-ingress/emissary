@@ -30,7 +30,7 @@
         "location": "--internal--",
         "name": "ir.ambassador",
         "namespace": "plain-namespace",
-        "proper_case": false,  
+        "proper_case": false,
         "readiness_probe": {
             "enabled": true,
             "prefix": "/ambassador/v0/check_ready",
@@ -6413,6 +6413,7 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleIngressWithAnnotations-HTTP/",
+                    "prefix_exact": false,
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -6422,7 +6423,7 @@
                         "/SimpleIngressWithAnnotations-HTTP/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simpleingresswithannotations-http-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: simpleingresswithannotations-http-0-0\nnamespace: plain-namespace\nprefix: /SimpleIngressWithAnnotations-HTTP/\nservice: plain-simpleingresswithannotations-http-http.plain-namespace:80\n",
+                    "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simpleingresswithannotations-http-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: simpleingresswithannotations-http-0-0\nnamespace: plain-namespace\nprecedence: 0\nprefix: /SimpleIngressWithAnnotations-HTTP/\nprefix_exact: false\nservice: plain-simpleingresswithannotations-http-http.plain-namespace:80\n",
                     "service": "plain-simpleingresswithannotations-http-http.plain-namespace:80",
                     "weight": 100
                 }
@@ -6436,8 +6437,9 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleIngressWithAnnotations-HTTP/",
+            "prefix_exact": false,
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simpleingresswithannotations-http-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: simpleingresswithannotations-http-0-0\nnamespace: plain-namespace\nprefix: /SimpleIngressWithAnnotations-HTTP/\nservice: plain-simpleingresswithannotations-http-http.plain-namespace:80\n"
+            "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simpleingresswithannotations-http-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: simpleingresswithannotations-http-0-0\nnamespace: plain-namespace\nprecedence: 0\nprefix: /SimpleIngressWithAnnotations-HTTP/\nprefix_exact: false\nservice: plain-simpleingresswithannotations-http-http.plain-namespace:80\n"
         },
         {
             "_active": true,
@@ -6511,6 +6513,7 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleIngressWithAnnotations-GRPC/",
+                    "prefix_exact": false,
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -6520,7 +6523,7 @@
                         "/SimpleIngressWithAnnotations-GRPC/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simpleingresswithannotations-grpc-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: simpleingresswithannotations-grpc-0-0\nnamespace: plain-namespace\nprefix: /SimpleIngressWithAnnotations-GRPC/\nservice: plain-simpleingresswithannotations-grpc-grpc.plain-namespace:80\n",
+                    "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simpleingresswithannotations-grpc-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: simpleingresswithannotations-grpc-0-0\nnamespace: plain-namespace\nprecedence: 0\nprefix: /SimpleIngressWithAnnotations-GRPC/\nprefix_exact: false\nservice: plain-simpleingresswithannotations-grpc-grpc.plain-namespace:80\n",
                     "service": "plain-simpleingresswithannotations-grpc-grpc.plain-namespace:80",
                     "weight": 100
                 }
@@ -6534,8 +6537,9 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleIngressWithAnnotations-GRPC/",
+            "prefix_exact": false,
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simpleingresswithannotations-grpc-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: simpleingresswithannotations-grpc-0-0\nnamespace: plain-namespace\nprefix: /SimpleIngressWithAnnotations-GRPC/\nservice: plain-simpleingresswithannotations-grpc-grpc.plain-namespace:80\n"
+            "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simpleingresswithannotations-grpc-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: simpleingresswithannotations-grpc-0-0\nnamespace: plain-namespace\nprecedence: 0\nprefix: /SimpleIngressWithAnnotations-GRPC/\nprefix_exact: false\nservice: plain-simpleingresswithannotations-grpc-grpc.plain-namespace:80\n"
         },
         {
             "_active": true,
@@ -7207,6 +7211,7 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/HostHeaderMappingIngress-HTTP/",
+                    "prefix_exact": false,
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -7217,7 +7222,7 @@
                         "GET",
                         ":authority-inspector.external"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nhost: inspector.external\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: hostheadermappingingress-http-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: hostheadermappingingress-http-0-0\nnamespace: plain-namespace\nprefix: /HostHeaderMappingIngress-HTTP/\nservice: plain-hostheadermappingingress-http-http.plain-namespace:80\n",
+                    "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nhost: inspector.external\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: hostheadermappingingress-http-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: hostheadermappingingress-http-0-0\nnamespace: plain-namespace\nprecedence: 0\nprefix: /HostHeaderMappingIngress-HTTP/\nprefix_exact: false\nservice: plain-hostheadermappingingress-http-http.plain-namespace:80\n",
                     "service": "plain-hostheadermappingingress-http-http.plain-namespace:80",
                     "weight": 100
                 }
@@ -7231,8 +7236,9 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/HostHeaderMappingIngress-HTTP/",
+            "prefix_exact": false,
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nhost: inspector.external\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: hostheadermappingingress-http-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: hostheadermappingingress-http-0-0\nnamespace: plain-namespace\nprefix: /HostHeaderMappingIngress-HTTP/\nservice: plain-hostheadermappingingress-http-http.plain-namespace:80\n"
+            "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nhost: inspector.external\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: hostheadermappingingress-http-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: hostheadermappingingress-http-0-0\nnamespace: plain-namespace\nprecedence: 0\nprefix: /HostHeaderMappingIngress-HTTP/\nprefix_exact: false\nservice: plain-hostheadermappingingress-http-http.plain-namespace:80\n"
         },
         {
             "_active": true,
@@ -7320,6 +7326,7 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/HostHeaderMappingIngress-GRPC/",
+                    "prefix_exact": false,
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -7330,7 +7337,7 @@
                         "GET",
                         ":authority-inspector.external"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nhost: inspector.external\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: hostheadermappingingress-grpc-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: hostheadermappingingress-grpc-0-0\nnamespace: plain-namespace\nprefix: /HostHeaderMappingIngress-GRPC/\nservice: plain-hostheadermappingingress-grpc-grpc.plain-namespace:80\n",
+                    "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nhost: inspector.external\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: hostheadermappingingress-grpc-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: hostheadermappingingress-grpc-0-0\nnamespace: plain-namespace\nprecedence: 0\nprefix: /HostHeaderMappingIngress-GRPC/\nprefix_exact: false\nservice: plain-hostheadermappingingress-grpc-grpc.plain-namespace:80\n",
                     "service": "plain-hostheadermappingingress-grpc-grpc.plain-namespace:80",
                     "weight": 100
                 }
@@ -7344,8 +7351,9 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/HostHeaderMappingIngress-GRPC/",
+            "prefix_exact": false,
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nhost: inspector.external\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: hostheadermappingingress-grpc-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: hostheadermappingingress-grpc-0-0\nnamespace: plain-namespace\nprefix: /HostHeaderMappingIngress-GRPC/\nservice: plain-hostheadermappingingress-grpc-grpc.plain-namespace:80\n"
+            "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nhost: inspector.external\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: hostheadermappingingress-grpc-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: hostheadermappingingress-grpc-0-0\nnamespace: plain-namespace\nprecedence: 0\nprefix: /HostHeaderMappingIngress-GRPC/\nprefix_exact: false\nservice: plain-hostheadermappingingress-grpc-grpc.plain-namespace:80\n"
         },
         {
             "_active": true,
@@ -8673,6 +8681,7 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMappingIngress-HTTP/",
+                    "prefix_exact": false,
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -8682,7 +8691,7 @@
                         "/SimpleMappingIngress-HTTP/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simplemappingingress-http-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: simplemappingingress-http-0-0\nnamespace: plain-namespace\nprefix: /SimpleMappingIngress-HTTP/\nservice: plain-simplemappingingress-http-http.plain-namespace:80\n",
+                    "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simplemappingingress-http-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: simplemappingingress-http-0-0\nnamespace: plain-namespace\nprecedence: 0\nprefix: /SimpleMappingIngress-HTTP/\nprefix_exact: false\nservice: plain-simplemappingingress-http-http.plain-namespace:80\n",
                     "service": "plain-simplemappingingress-http-http.plain-namespace:80",
                     "weight": 100
                 }
@@ -8696,8 +8705,9 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMappingIngress-HTTP/",
+            "prefix_exact": false,
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simplemappingingress-http-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: simplemappingingress-http-0-0\nnamespace: plain-namespace\nprefix: /SimpleMappingIngress-HTTP/\nservice: plain-simplemappingingress-http-http.plain-namespace:80\n"
+            "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simplemappingingress-http-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: simplemappingingress-http-0-0\nnamespace: plain-namespace\nprecedence: 0\nprefix: /SimpleMappingIngress-HTTP/\nprefix_exact: false\nservice: plain-simplemappingingress-http-http.plain-namespace:80\n"
         },
         {
             "_active": true,
@@ -8771,6 +8781,7 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMappingIngress-GRPC/",
+                    "prefix_exact": false,
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -8780,7 +8791,7 @@
                         "/SimpleMappingIngress-GRPC/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simplemappingingress-grpc-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: simplemappingingress-grpc-0-0\nnamespace: plain-namespace\nprefix: /SimpleMappingIngress-GRPC/\nservice: plain-simplemappingingress-grpc-grpc.plain-namespace:80\n",
+                    "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simplemappingingress-grpc-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: simplemappingingress-grpc-0-0\nnamespace: plain-namespace\nprecedence: 0\nprefix: /SimpleMappingIngress-GRPC/\nprefix_exact: false\nservice: plain-simplemappingingress-grpc-grpc.plain-namespace:80\n",
                     "service": "plain-simplemappingingress-grpc-grpc.plain-namespace:80",
                     "weight": 100
                 }
@@ -8794,8 +8805,9 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMappingIngress-GRPC/",
+            "prefix_exact": false,
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simplemappingingress-grpc-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: simplemappingingress-grpc-0-0\nnamespace: plain-namespace\nprefix: /SimpleMappingIngress-GRPC/\nservice: plain-simplemappingingress-grpc-grpc.plain-namespace:80\n"
+            "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simplemappingingress-grpc-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: simplemappingingress-grpc-0-0\nnamespace: plain-namespace\nprecedence: 0\nprefix: /SimpleMappingIngress-GRPC/\nprefix_exact: false\nservice: plain-simplemappingingress-grpc-grpc.plain-namespace:80\n"
         },
         {
             "_active": true,

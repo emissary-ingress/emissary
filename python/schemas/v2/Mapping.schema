@@ -164,7 +164,9 @@
             },
             "required": ["policy"],
             "additionalProperties": false
-        }
+        },
+        "query_parameters": { "$ref": "#/definitions/mapStrStr" },
+        "regex_query_parameters": { "$ref": "#/definitions/mapStrStr" }
     },
     "definitions": {
         "mapStrStr": {

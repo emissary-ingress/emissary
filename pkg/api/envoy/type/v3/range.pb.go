@@ -83,6 +83,65 @@ func (m *Int64Range) GetEnd() int64 {
 	return 0
 }
 
+// Specifies the int32 start and end of the range using half-open interval semantics [start,
+// end).
+type Int32Range struct {
+	// start of the range (inclusive)
+	Start int32 `protobuf:"varint,1,opt,name=start,proto3" json:"start,omitempty"`
+	// end of the range (exclusive)
+	End                  int32    `protobuf:"varint,2,opt,name=end,proto3" json:"end,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *Int32Range) Reset()         { *m = Int32Range{} }
+func (m *Int32Range) String() string { return proto.CompactTextString(m) }
+func (*Int32Range) ProtoMessage()    {}
+func (*Int32Range) Descriptor() ([]byte, []int) {
+	return fileDescriptor_f7428ebfa7846465, []int{1}
+}
+func (m *Int32Range) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *Int32Range) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_Int32Range.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *Int32Range) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Int32Range.Merge(m, src)
+}
+func (m *Int32Range) XXX_Size() int {
+	return m.Size()
+}
+func (m *Int32Range) XXX_DiscardUnknown() {
+	xxx_messageInfo_Int32Range.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Int32Range proto.InternalMessageInfo
+
+func (m *Int32Range) GetStart() int32 {
+	if m != nil {
+		return m.Start
+	}
+	return 0
+}
+
+func (m *Int32Range) GetEnd() int32 {
+	if m != nil {
+		return m.End
+	}
+	return 0
+}
+
 // Specifies the double start and end of the range using half-open interval semantics [start,
 // end).
 type DoubleRange struct {
@@ -99,7 +158,7 @@ func (m *DoubleRange) Reset()         { *m = DoubleRange{} }
 func (m *DoubleRange) String() string { return proto.CompactTextString(m) }
 func (*DoubleRange) ProtoMessage()    {}
 func (*DoubleRange) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f7428ebfa7846465, []int{1}
+	return fileDescriptor_f7428ebfa7846465, []int{2}
 }
 func (m *DoubleRange) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -144,27 +203,31 @@ func (m *DoubleRange) GetEnd() float64 {
 
 func init() {
 	proto.RegisterType((*Int64Range)(nil), "envoy.type.v3.Int64Range")
+	proto.RegisterType((*Int32Range)(nil), "envoy.type.v3.Int32Range")
 	proto.RegisterType((*DoubleRange)(nil), "envoy.type.v3.DoubleRange")
 }
 
 func init() { proto.RegisterFile("envoy/type/v3/range.proto", fileDescriptor_f7428ebfa7846465) }
 
 var fileDescriptor_f7428ebfa7846465 = []byte{
-	// 222 bytes of a gzipped FileDescriptorProto
+	// 258 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x92, 0x4c, 0xcd, 0x2b, 0xcb,
 	0xaf, 0xd4, 0x2f, 0xa9, 0x2c, 0x48, 0xd5, 0x2f, 0x33, 0xd6, 0x2f, 0x4a, 0xcc, 0x4b, 0x4f, 0xd5,
 	0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0xe2, 0x05, 0x4b, 0xe9, 0x81, 0xa4, 0xf4, 0xca, 0x8c, 0xa5,
-	0x14, 0x4b, 0x53, 0x0a, 0x12, 0xf5, 0x13, 0xf3, 0xf2, 0xf2, 0x4b, 0x12, 0x4b, 0x32, 0xf3, 0xf3,
-	0x8a, 0xf5, 0xcb, 0x52, 0x8b, 0x8a, 0x33, 0xf3, 0xf3, 0x32, 0xf3, 0xd2, 0x21, 0x3a, 0x94, 0x82,
-	0xb8, 0xb8, 0x3c, 0xf3, 0x4a, 0xcc, 0x4c, 0x82, 0x40, 0xa6, 0x08, 0x89, 0x70, 0xb1, 0x16, 0x97,
-	0x24, 0x16, 0x95, 0x48, 0x30, 0x2a, 0x30, 0x6a, 0x30, 0x07, 0x41, 0x38, 0x42, 0x02, 0x5c, 0xcc,
-	0xa9, 0x79, 0x29, 0x12, 0x4c, 0x60, 0x31, 0x10, 0xd3, 0x4a, 0x66, 0xd6, 0xd1, 0x0e, 0x39, 0x71,
-	0x2e, 0x51, 0x24, 0xeb, 0x10, 0xa6, 0x28, 0x85, 0x70, 0x71, 0xbb, 0xe4, 0x97, 0x26, 0xe5, 0xa4,
-	0x62, 0x31, 0x94, 0x11, 0x8b, 0xa1, 0x8c, 0x10, 0x43, 0x65, 0x41, 0x86, 0x4a, 0x70, 0x89, 0x21,
-	0x19, 0x8a, 0x64, 0x8c, 0x93, 0xf9, 0x89, 0x47, 0x72, 0x8c, 0x17, 0x1e, 0xc9, 0x31, 0x3e, 0x78,
-	0x24, 0xc7, 0xc8, 0x25, 0x9d, 0x99, 0xaf, 0x07, 0x56, 0x58, 0x50, 0x94, 0x5f, 0x51, 0xa9, 0x87,
-	0xe2, 0x6f, 0x27, 0x2e, 0xb0, 0x8e, 0x00, 0x90, 0x07, 0x03, 0x18, 0x93, 0xd8, 0xc0, 0x3e, 0x35,
-	0x06, 0x04, 0x00, 0x00, 0xff, 0xff, 0x5c, 0xf6, 0x4e, 0x5d, 0x38, 0x01, 0x00, 0x00,
+	0x64, 0x4b, 0x53, 0x0a, 0x12, 0xf5, 0x13, 0xf3, 0xf2, 0xf2, 0x4b, 0x12, 0x4b, 0x32, 0xf3, 0xf3,
+	0x8a, 0xf5, 0x8b, 0x4b, 0x12, 0x4b, 0x4a, 0x8b, 0x21, 0xaa, 0xa5, 0x14, 0x31, 0xa4, 0xcb, 0x52,
+	0x8b, 0x8a, 0x33, 0xf3, 0xf3, 0x32, 0xf3, 0xd2, 0x21, 0x4a, 0x94, 0x82, 0xb8, 0xb8, 0x3c, 0xf3,
+	0x4a, 0xcc, 0x4c, 0x82, 0x40, 0x96, 0x08, 0x89, 0x70, 0xb1, 0x16, 0x97, 0x24, 0x16, 0x95, 0x48,
+	0x30, 0x2a, 0x30, 0x6a, 0x30, 0x07, 0x41, 0x38, 0x42, 0x02, 0x5c, 0xcc, 0xa9, 0x79, 0x29, 0x12,
+	0x4c, 0x60, 0x31, 0x10, 0xd3, 0x4a, 0x66, 0xd6, 0xd1, 0x0e, 0x39, 0x71, 0x2e, 0x51, 0x24, 0xd7,
+	0x20, 0x4c, 0x81, 0x9a, 0x69, 0x6c, 0x84, 0xc5, 0x4c, 0x56, 0x2c, 0x66, 0xb2, 0xe2, 0x33, 0x13,
+	0x6a, 0x8a, 0x52, 0x08, 0x17, 0xb7, 0x4b, 0x7e, 0x69, 0x52, 0x4e, 0x2a, 0x16, 0x43, 0x19, 0xb1,
+	0x18, 0xca, 0x08, 0x31, 0x54, 0x16, 0x64, 0xa8, 0x04, 0x97, 0x18, 0x92, 0xa1, 0x48, 0xc6, 0x38,
+	0xd9, 0x9f, 0x78, 0x24, 0xc7, 0x78, 0xe1, 0x91, 0x1c, 0xe3, 0x83, 0x47, 0x72, 0x8c, 0xbb, 0x1a,
+	0x4e, 0x5c, 0x64, 0x63, 0x12, 0x60, 0xe4, 0x92, 0xce, 0xcc, 0xd7, 0x03, 0x6b, 0x28, 0x28, 0xca,
+	0xaf, 0xa8, 0xd4, 0x43, 0x09, 0x72, 0x27, 0x2e, 0xb0, 0xce, 0x00, 0x50, 0xe0, 0x05, 0x30, 0x26,
+	0xb1, 0x81, 0x43, 0xd1, 0x18, 0x10, 0x00, 0x00, 0xff, 0xff, 0x90, 0xdb, 0xf6, 0xe5, 0xb3, 0x01,
+	0x00, 0x00,
 }
 
 func (m *Int64Range) Marshal() (dAtA []byte, err error) {
@@ -183,6 +246,43 @@ func (m *Int64Range) MarshalTo(dAtA []byte) (int, error) {
 }
 
 func (m *Int64Range) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.End != 0 {
+		i = encodeVarintRange(dAtA, i, uint64(m.End))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.Start != 0 {
+		i = encodeVarintRange(dAtA, i, uint64(m.Start))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Int32Range) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Int32Range) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *Int32Range) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -255,6 +355,24 @@ func encodeVarintRange(dAtA []byte, offset int, v uint64) int {
 	return base
 }
 func (m *Int64Range) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Start != 0 {
+		n += 1 + sovRange(uint64(m.Start))
+	}
+	if m.End != 0 {
+		n += 1 + sovRange(uint64(m.End))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *Int32Range) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -359,6 +477,98 @@ func (m *Int64Range) Unmarshal(dAtA []byte) error {
 				b := dAtA[iNdEx]
 				iNdEx++
 				m.End |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipRange(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthRange
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthRange
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *Int32Range) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowRange
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Int32Range: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Int32Range: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Start", wireType)
+			}
+			m.Start = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowRange
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Start |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field End", wireType)
+			}
+			m.End = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowRange
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.End |= int32(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
