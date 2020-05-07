@@ -34,6 +34,10 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: [ "traffic-manager" ]
         env:
+        {{- if .Values.scope.singleNamespace }}
+        - name: AMBASSADOR_SINGLE_NAMESPACE
+          value: "YES"
+        {{- end }}
         - name: AMBASSADOR_NAMESPACE
           {{- if .Values.namespace }}
           value: {{ .Values.namespace.name | quote }}
