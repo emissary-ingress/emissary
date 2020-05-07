@@ -183,6 +183,21 @@ func (m *TcpProxy) Validate() error {
 
 	}
 
+	{
+		tmp := m.GetTunnelingConfig()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return TcpProxyValidationError{
+					field:  "TunnelingConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
 	switch m.ClusterSpecifier.(type) {
 
 	case *TcpProxy_Cluster:
@@ -457,6 +472,80 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = TcpProxy_WeightedClusterValidationError{}
+
+// Validate checks the field values on TcpProxy_TunnelingConfig with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *TcpProxy_TunnelingConfig) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if len(m.GetHostname()) < 1 {
+		return TcpProxy_TunnelingConfigValidationError{
+			field:  "Hostname",
+			reason: "value length must be at least 1 bytes",
+		}
+	}
+
+	return nil
+}
+
+// TcpProxy_TunnelingConfigValidationError is the validation error returned by
+// TcpProxy_TunnelingConfig.Validate if the designated constraints aren't met.
+type TcpProxy_TunnelingConfigValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e TcpProxy_TunnelingConfigValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e TcpProxy_TunnelingConfigValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e TcpProxy_TunnelingConfigValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e TcpProxy_TunnelingConfigValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e TcpProxy_TunnelingConfigValidationError) ErrorName() string {
+	return "TcpProxy_TunnelingConfigValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e TcpProxy_TunnelingConfigValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sTcpProxy_TunnelingConfig.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = TcpProxy_TunnelingConfigValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = TcpProxy_TunnelingConfigValidationError{}
 
 // Validate checks the field values on TcpProxy_DeprecatedV1_TCPRoute with the
 // rules defined in the proto definition for this message. If any rules are

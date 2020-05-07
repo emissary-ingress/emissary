@@ -181,6 +181,18 @@ The list syntax (shown in `mapping-used-2` above) permits including a given obje
 
 If no `AMBASSADOR_ID` is assigned to an Ambassador Edge Stack, it will use the ID `default`. If no `ambassador_id` is present in a YAML object, it will also use the ID `default`.
 
+## `AMBASSADOR_ENVOY_BASE_ID`
+
+Ambassador supports running side-by-side with other envoy-based projects in a single pod. An example of this is running with an `istio` sidecar. This is done with the `AMBASSADOR_ENVOY_BASE_ID` environment variable as part of your deployment:
+
+```yaml
+env:
+- name: AMBASSADOR_ENVOY_BASE_ID
+  value: 1
+```
+
+If no `AMBASSADOR_ENVOY_BASE_ID` is provided then it will use the ID `0`. For more information on the Envoy base-id option please see the [Envoy command line documentation](https://www.envoyproxy.io/docs/envoy/latest/operations/cli.html?highlight=base%20id#cmdoption-base-id).
+
 ## `AMBASSADOR_VERIFY_SSL_FALSE`
 
 By default, the Ambassador Edge Stack will verify the TLS certificates provided by the Kubernetes API. In some situations, the cluster may be deployed with self-signed certificates. In this case, set `AMBASSADOR_VERIFY_SSL_FALSE` to `true` to disable verifying the TLS certificates.

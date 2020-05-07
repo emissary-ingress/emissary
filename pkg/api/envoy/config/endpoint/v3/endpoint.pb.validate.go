@@ -227,8 +227,6 @@ func (m *ClusterLoadAssignment_Policy) Validate() error {
 
 	}
 
-	// no validation rules for DisableOverprovisioning
-
 	return nil
 }
 

@@ -429,6 +429,161 @@ var _ interface {
 	ErrorName() string
 } = FilterChainValidationError{}
 
+// Validate checks the field values on ListenerFilterChainMatchPredicate with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, an error is returned.
+func (m *ListenerFilterChainMatchPredicate) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	switch m.Rule.(type) {
+
+	case *ListenerFilterChainMatchPredicate_OrMatch:
+
+		{
+			tmp := m.GetOrMatch()
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return ListenerFilterChainMatchPredicateValidationError{
+						field:  "OrMatch",
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
+	case *ListenerFilterChainMatchPredicate_AndMatch:
+
+		{
+			tmp := m.GetAndMatch()
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return ListenerFilterChainMatchPredicateValidationError{
+						field:  "AndMatch",
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
+	case *ListenerFilterChainMatchPredicate_NotMatch:
+
+		{
+			tmp := m.GetNotMatch()
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return ListenerFilterChainMatchPredicateValidationError{
+						field:  "NotMatch",
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
+	case *ListenerFilterChainMatchPredicate_AnyMatch:
+
+		if m.GetAnyMatch() != true {
+			return ListenerFilterChainMatchPredicateValidationError{
+				field:  "AnyMatch",
+				reason: "value must equal true",
+			}
+		}
+
+	case *ListenerFilterChainMatchPredicate_DestinationPortRange:
+
+		{
+			tmp := m.GetDestinationPortRange()
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return ListenerFilterChainMatchPredicateValidationError{
+						field:  "DestinationPortRange",
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
+	default:
+		return ListenerFilterChainMatchPredicateValidationError{
+			field:  "Rule",
+			reason: "value is required",
+		}
+
+	}
+
+	return nil
+}
+
+// ListenerFilterChainMatchPredicateValidationError is the validation error
+// returned by ListenerFilterChainMatchPredicate.Validate if the designated
+// constraints aren't met.
+type ListenerFilterChainMatchPredicateValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListenerFilterChainMatchPredicateValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListenerFilterChainMatchPredicateValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListenerFilterChainMatchPredicateValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListenerFilterChainMatchPredicateValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListenerFilterChainMatchPredicateValidationError) ErrorName() string {
+	return "ListenerFilterChainMatchPredicateValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListenerFilterChainMatchPredicateValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListenerFilterChainMatchPredicate.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListenerFilterChainMatchPredicateValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListenerFilterChainMatchPredicateValidationError{}
+
 // Validate checks the field values on ListenerFilter with the rules defined in
 // the proto definition for this message. If any rules are violated, an error
 // is returned.
@@ -441,6 +596,21 @@ func (m *ListenerFilter) Validate() error {
 		return ListenerFilterValidationError{
 			field:  "Name",
 			reason: "value length must be at least 1 bytes",
+		}
+	}
+
+	{
+		tmp := m.GetFilterDisabled()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return ListenerFilterValidationError{
+					field:  "FilterDisabled",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
 		}
 	}
 
@@ -521,3 +691,98 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ListenerFilterValidationError{}
+
+// Validate checks the field values on
+// ListenerFilterChainMatchPredicate_MatchSet with the rules defined in the
+// proto definition for this message. If any rules are violated, an error is returned.
+func (m *ListenerFilterChainMatchPredicate_MatchSet) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if len(m.GetRules()) < 2 {
+		return ListenerFilterChainMatchPredicate_MatchSetValidationError{
+			field:  "Rules",
+			reason: "value must contain at least 2 item(s)",
+		}
+	}
+
+	for idx, item := range m.GetRules() {
+		_, _ = idx, item
+
+		{
+			tmp := item
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return ListenerFilterChainMatchPredicate_MatchSetValidationError{
+						field:  fmt.Sprintf("Rules[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
+	}
+
+	return nil
+}
+
+// ListenerFilterChainMatchPredicate_MatchSetValidationError is the validation
+// error returned by ListenerFilterChainMatchPredicate_MatchSet.Validate if
+// the designated constraints aren't met.
+type ListenerFilterChainMatchPredicate_MatchSetValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListenerFilterChainMatchPredicate_MatchSetValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListenerFilterChainMatchPredicate_MatchSetValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListenerFilterChainMatchPredicate_MatchSetValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListenerFilterChainMatchPredicate_MatchSetValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListenerFilterChainMatchPredicate_MatchSetValidationError) ErrorName() string {
+	return "ListenerFilterChainMatchPredicate_MatchSetValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListenerFilterChainMatchPredicate_MatchSetValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListenerFilterChainMatchPredicate_MatchSet.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListenerFilterChainMatchPredicate_MatchSetValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListenerFilterChainMatchPredicate_MatchSetValidationError{}
