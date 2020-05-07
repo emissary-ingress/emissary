@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
+import copy
 import logging
+import threading
 import time
 
 import requests
@@ -25,20 +27,10 @@ def percentage(x, y):
         return int(((x * 100) / y) + 0.5)
 
 class EnvoyStats (object):
-    def __init__(self, max_live_age=20, max_ready_age=20):
-        self.update_errors = 0
+    def __init__(self, stats, max_live_age=20, max_ready_age=20):
+        self.stats = stats
         self.max_live_age = max_live_age
         self.max_ready_age = max_ready_age
-        self.loginfo = None
-
-        self.stats = {
-            "created": time.time(),
-            "last_update": 0,
-            "last_attempt": 0,
-            "update_errors": 0,
-            "services": {},
-            "envoy": {}
-        }
 
     def is_alive(self):
         """
@@ -141,6 +133,26 @@ class EnvoyStats (object):
 
         return cstat
 
+class EnvoyStatsManager (object):
+    def __init__(self, max_live_age=20, max_ready_age=20):
+        self.max_live_age = max_live_age
+        self.max_ready_age = max_ready_age
+        self.loginfo = None
+        self.lock = threading.Lock()
+
+        self.stats = {
+            "created": time.time(),
+            "last_update": 0,
+            "last_attempt": 0,
+            "update_errors": 0,
+            "services": {},
+            "envoy": {}
+        }
+
+    def get_stats(self):
+        with self.lock:
+            return copy.deepcopy(self.stats)
+
     def update_log_levels(self, last_attempt, level=None):
         # logging.info("updating levels")
 
@@ -197,7 +209,7 @@ class EnvoyStats (object):
         else:
             return Response(r.text, r.status_code, dict(r.headers))
         
-    def update_envoy_stats(self, last_attempt):
+    def _update_envoy_stats(self, last_attempt):
         # logging.info("updating stats")
 
         try:
@@ -328,13 +340,14 @@ class EnvoyStats (object):
         # OK, we're now officially finished with all the hard stuff.
         last_update = time.time()
 
-        self.stats.update({
-            "last_update": last_update,
-            "last_attempt": last_attempt,
-            "requests": requests_info,
-            "clusters": active_clusters,
-            "envoy": envoy_stats
-        })
+        with self.lock:
+            self.stats.update({
+                "last_update": last_update,
+                "last_attempt": last_attempt,
+                "requests": requests_info,
+                "clusters": active_clusters,
+                "envoy": envoy_stats
+            })
 
         # logging.info("stats updated")
 
@@ -345,6 +358,6 @@ class EnvoyStats (object):
             last_attempt = time.time()
 
             self.update_log_levels(last_attempt)
-            self.update_envoy_stats(last_attempt)
+            self._update_envoy_stats(last_attempt)
         except Exception as e:
             logging.error("could not update Envoy stats: %s" % e)
