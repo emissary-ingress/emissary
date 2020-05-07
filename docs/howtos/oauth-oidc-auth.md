@@ -16,7 +16,8 @@ metadata:
 spec:
   OAuth2:
     authorizationURL: PROVIDER_URL ## URL where Ambassador Edge Stack can find OAuth2 descriptor
-    audience: AUDIENCE ## OIDC Audience
+    extraAuthorizationParameters:
+      audience: AUDIENCE ## OIDC Audience
     clientID: CLIENT_ID ## OAuth2 client from your IdP
     secret: CLIENT_SECRET ## Secret used to access OAuth2 client
     protectedOrigins:
@@ -95,7 +96,8 @@ metadata:
 spec:
   OAuth2:
     - authorizationURL: https://example.auth0.com
-      audience: https://example.auth0.com/api/v2/
+      extraAuthorizationParameters:
+        audience: https://example.auth0.com/api/v2/
       clientId: <APP1_CLIENT_ID>
       secret: <APP1_CLIENT_SECRET>
       protectedOrigins:
@@ -108,7 +110,8 @@ metadata:
 spec:
   OAuth2:
     - authorizationURL: https://example.auth0.com
-      audience: https://example.auth0.com/api/v2/
+      extraAuthorizationParameters:
+        audience: https://example.auth0.com/api/v2/
       clientId: <APP2_CLIENT_ID>
       secret: <APP2_CLIENT_SECRET>
       protectedOrigins:
