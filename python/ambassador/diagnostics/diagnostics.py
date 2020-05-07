@@ -337,7 +337,6 @@ class Diagnostics:
 
     ir: IR
     econf: EnvoyConfig
-    estats: Optional[EnvoyStats]
 
     source_map: Dict[str, Dict[str, bool]]
 
@@ -354,7 +353,6 @@ class Diagnostics:
 
         self.ir = ir
         self.econf = econf
-        self.estats = None
 
         # A fully-qualified key is e.g. "ambassador.yaml.1" -- source location plus
         # object index. An unqualified key is something like "ambassador.yaml" -- no
