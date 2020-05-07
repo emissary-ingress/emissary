@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
+	"github.com/datawire/ambassador/pkg/metriton"
 	"github.com/datawire/ambassador/pkg/supervisor"
 )
 
@@ -31,6 +32,13 @@ func (d *Daemon) handleCommand(p *supervisor.Process, conn net.Conn, data *Clien
 }
 
 func (d *Daemon) GetRootCommand(p *supervisor.Process, out *Emitter, data *ClientMessage) *cobra.Command {
+	reporter := &metriton.Reporter{
+		Application:  "edgectl",
+		Version:      Version,
+		GetInstallID: func(_ *metriton.Reporter) (string, error) { return data.InstallID, nil },
+		BaseMetadata: map[string]interface{}{"mode": "daemon"},
+	}
+
 	rootCmd := &cobra.Command{
 		Use:          "edgectl",
 		Short:        "Edge Control",
@@ -123,10 +131,18 @@ func (d *Daemon) GetRootCommand(p *supervisor.Process, out *Emitter, data *Clien
 		Use:   "connect [flags] [-- additional kubectl arguments...]",
 		Short: "Connect to a cluster",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if _, err := reporter.Report(p.Context(), map[string]interface{}{"action": "connect"}); err != nil {
+				p.Logf("report failed: %+v", err)
+			}
 			context, _ := cmd.Flags().GetString("context")
 			namespace, _ := cmd.Flags().GetString("namespace")
 			managerNs, _ := cmd.Flags().GetString("manager-namespace")
-			if err := d.Connect(p, out, data.RAI, context, namespace, managerNs, args); err != nil {
+			isCI, _ := cmd.Flags().GetBool("ci")
+			if err := d.Connect(
+				p, out, data.RAI,
+				context, namespace, managerNs, args,
+				data.InstallID, isCI,
+			); err != nil {
 				return err
 			}
 			return out.Err()
@@ -144,6 +160,7 @@ func (d *Daemon) GetRootCommand(p *supervisor.Process, out *Emitter, data *Clien
 		"manager-namespace", "m", "ambassador",
 		"The Kubernetes namespace in which the Traffic Manager is running.",
 	)
+	_ = connectCmd.Flags().Bool("ci", false, "This session is a CI run.")
 	rootCmd.AddCommand(connectCmd)
 	rootCmd.AddCommand(&cobra.Command{
 		Use:   "disconnect",
