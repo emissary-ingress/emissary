@@ -34,10 +34,10 @@ func Main() {
 	var flags wattFlags
 
 	rootCmd := &cobra.Command{
-		Use:              "watt",
-		Short:            "watt",
-		Long:             "watt - watch all the things",
-		PersistentPreRun: func(cmd *cobra.Command, args []string) {},
+		Use:           "watt",
+		Short:         "watt - watch all the things",
+		SilenceErrors: true, // we'll handle it after .Execute() returns
+		SilenceUsage:  true, // our FlagErrorFunc will handle it
 	}
 
 	rootCmd.Flags().StringVarP(&flags.kubernetesNamespace, "namespace", "n", "", "namespace to watch (default: all)")
@@ -55,6 +55,15 @@ func Main() {
 	rootCmd.Run = func(cmd *cobra.Command, args []string) {
 		os.Exit(runWatt(flags, args))
 	}
+
+	rootCmd.SetFlagErrorFunc(func(cmd *cobra.Command, err error) error {
+		if err == nil {
+			return nil
+		}
+		fmt.Fprintf(os.Stderr, "%s\nSee '%s --help'.\n", err, cmd.CommandPath())
+		os.Exit(2)
+		return nil
+	})
 
 	if err := rootCmd.Execute(); err != nil {
 		log.Println(err)
