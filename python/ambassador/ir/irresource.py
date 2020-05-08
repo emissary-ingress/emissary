@@ -1,5 +1,7 @@
 from typing import Any, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
 
+import copy
+
 from ..config import Config
 from ..resource import Resource
 from ..utils import RichStatus
@@ -86,6 +88,8 @@ class IRResource (Resource):
         (A lookup class of "/" skips step 1.)
 
         If we don't find the key in either place, return the given default_value.
+        If we _do_ find the key, _return a copy of the data!_ If we return the data itself
+        and the caller later modifies it... that's a problem.
 
         :param key: the key to look up
         :param default_value: the value to return if nothing is found in defaults.
@@ -105,11 +109,11 @@ class IRResource (Resource):
             classdict = defaults.get(lclass, None)
 
             if classdict and (key in classdict):
-                return classdict[key]
+                return copy.deepcopy(classdict[key])
 
         # We didn't find anything in case 1. Try case 2.
         if defaults and (key in defaults):
-            return defaults[key]
+            return copy.deepcopy(defaults[key])
 
         # We didn't find anything in either case. Return the default value.
         return default_value
