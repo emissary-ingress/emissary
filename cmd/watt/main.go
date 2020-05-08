@@ -2,14 +2,15 @@ package watt
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
 
+	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/datawire/ambassador/pkg/k8s"
 	"github.com/datawire/ambassador/pkg/limiter"
 	"github.com/datawire/ambassador/pkg/supervisor"
@@ -52,8 +53,10 @@ func Main() {
 		"configure the rate limit interval")
 	rootCmd.Flags().BoolVarP(&flags.showVersion, "version", "", false, "display version information")
 
-	rootCmd.Run = func(cmd *cobra.Command, args []string) {
-		os.Exit(runWatt(flags, args))
+	ctx := context.Background()
+
+	rootCmd.RunE = func(cmd *cobra.Command, args []string) error {
+		return runWatt(ctx, flags, args)
 	}
 
 	rootCmd.SetFlagErrorFunc(func(cmd *cobra.Command, err error) error {
@@ -66,34 +69,32 @@ func Main() {
 	})
 
 	if err := rootCmd.Execute(); err != nil {
-		log.Println(err)
+		dlog.GetLogger(ctx).Errorln(err)
 		os.Exit(1)
 	}
 }
 
-func runWatt(flags wattFlags, args []string) int {
+func runWatt(ctx context.Context, flags wattFlags, args []string) error {
 	if flags.showVersion {
 		fmt.Println("watt", Version)
-		return 0
+		return nil
 	}
 
 	if len(flags.initialSources) == 0 {
-		log.Println("no initial sources configured")
-		return 1
+		return errors.New("no initial sources configured")
 	}
 
 	// XXX: we don't need to create this here anymore
 	client, err := k8s.NewClient(nil)
 	if err != nil {
-		log.Println(err)
-		return 1
+		return err
 	}
 	kubeAPIWatcher := client.Watcher()
 	/*for idx := range initialSources {
 		initialSources[idx] = kubeAPIWatcher.Canonical(initialSources[idx])
 	}*/
 
-	log.Printf("starting watt...")
+	dlog.GetLogger(ctx).Printf("starting watt...")
 
 	// The aggregator sends the current consul resolver set to the
 	// consul watch manager.
@@ -133,7 +134,6 @@ func runWatt(flags wattFlags, args []string) int {
 		invoker: invoker,
 	}
 
-	ctx := context.Background()
 	s := supervisor.WithContext(ctx)
 
 	s.Supervise(&supervisor.Worker{
@@ -171,9 +171,8 @@ func runWatt(flags wattFlags, args []string) int {
 		for _, err := range errs {
 			msgs = append(msgs, err.Error())
 		}
-		log.Printf("ERROR(s): %s", strings.Join(msgs, "\n    "))
-		return 1
+		return fmt.Errorf("ERROR(s): %s", strings.Join(msgs, "\n    "))
 	}
 
-	return 0
+	return nil
 }

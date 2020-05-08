@@ -2,12 +2,11 @@ package watt
 
 import (
 	"fmt"
-	"log"
-	"os"
 
 	consulapi "github.com/hashicorp/consul/api"
 
 	"github.com/datawire/ambassador/pkg/consulwatch"
+	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/datawire/ambassador/pkg/supervisor"
 )
 
@@ -42,7 +41,9 @@ func (m *ConsulWatchMaker) MakeConsulWatch(spec ConsulWatchSpec) (*supervisor.Wo
 	worker := &supervisor.Worker{
 		Name: fmt.Sprintf("consul:%s", spec.WatchId()),
 		Work: func(p *supervisor.Process) error {
-			w, err := consulwatch.New(consul, log.New(os.Stdout, "", log.LstdFlags), spec.Datacenter, spec.ServiceName, true)
+			logger := dlog.GetLogger(p.Context()).
+				StdLogger(dlog.LogLevelInfo)
+			w, err := consulwatch.New(consul, logger, spec.Datacenter, spec.ServiceName, true)
 			if err != nil {
 				p.Logf("failed to setup new consul watch %v", err)
 				return err
