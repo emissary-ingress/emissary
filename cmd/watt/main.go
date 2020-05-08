@@ -18,49 +18,57 @@ import (
 // Version holds the version of the code. This is intended to be overridden at build time.
 var Version = "(unknown version)"
 
-var kubernetesNamespace string
-var initialSources = make([]string, 0)
-var initialFieldSelector string
-var initialLabelSelector string
-var watchHooks = make([]string, 0)
-var notifyReceivers = make([]string, 0)
-var port int
-var interval time.Duration
-var showVersion bool
-
-var rootCmd = &cobra.Command{
-	Use:              "watt",
-	Short:            "watt",
-	Long:             "watt - watch all the things",
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {},
-	Run:              runWatt,
+type wattFlags struct {
+	kubernetesNamespace  string
+	initialSources       []string
+	initialFieldSelector string
+	initialLabelSelector string
+	watchHooks           []string
+	notifyReceivers      []string
+	port                 int
+	interval             time.Duration
+	showVersion          bool
 }
 
-func init() {
-	rootCmd.Flags().StringVarP(&kubernetesNamespace, "namespace", "n", "", "namespace to watch (default: all)")
-	rootCmd.Flags().StringSliceVarP(&initialSources, "source", "s", []string{}, "configure an initial static source")
-	rootCmd.Flags().StringVar(&initialFieldSelector, "fields", "", "configure an initial field selector string")
-	rootCmd.Flags().StringVar(&initialLabelSelector, "labels", "", "configure an initial label selector string")
-	rootCmd.Flags().StringSliceVarP(&watchHooks, "watch", "w", []string{}, "configure watch hook(s)")
-	rootCmd.Flags().StringSliceVar(&notifyReceivers, "notify", []string{},
+func Main() {
+	var flags wattFlags
+
+	rootCmd := &cobra.Command{
+		Use:              "watt",
+		Short:            "watt",
+		Long:             "watt - watch all the things",
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {},
+	}
+
+	rootCmd.Flags().StringVarP(&flags.kubernetesNamespace, "namespace", "n", "", "namespace to watch (default: all)")
+	rootCmd.Flags().StringSliceVarP(&flags.initialSources, "source", "s", []string{}, "configure an initial static source")
+	rootCmd.Flags().StringVar(&flags.initialFieldSelector, "fields", "", "configure an initial field selector string")
+	rootCmd.Flags().StringVar(&flags.initialLabelSelector, "labels", "", "configure an initial label selector string")
+	rootCmd.Flags().StringSliceVarP(&flags.watchHooks, "watch", "w", []string{}, "configure watch hook(s)")
+	rootCmd.Flags().StringSliceVar(&flags.notifyReceivers, "notify", []string{},
 		"invoke the program with the given arguments as a receiver")
-	rootCmd.Flags().IntVarP(&port, "port", "p", 7000, "configure the snapshot server port")
-	rootCmd.Flags().DurationVarP(&interval, "interval", "i", 250*time.Millisecond,
+	rootCmd.Flags().IntVarP(&flags.port, "port", "p", 7000, "configure the snapshot server port")
+	rootCmd.Flags().DurationVarP(&flags.interval, "interval", "i", 250*time.Millisecond,
 		"configure the rate limit interval")
-	rootCmd.Flags().BoolVarP(&showVersion, "version", "", false, "display version information")
+	rootCmd.Flags().BoolVarP(&flags.showVersion, "version", "", false, "display version information")
+
+	rootCmd.Run = func(cmd *cobra.Command, args []string) {
+		os.Exit(runWatt(flags, args))
+	}
+
+	if err := rootCmd.Execute(); err != nil {
+		log.Println(err)
+		os.Exit(1)
+	}
 }
 
-func runWatt(cmd *cobra.Command, args []string) {
-	os.Exit(_runWatt(cmd, args))
-}
-
-func _runWatt(cmd *cobra.Command, args []string) int {
-	if showVersion {
+func runWatt(flags wattFlags, args []string) int {
+	if flags.showVersion {
 		fmt.Println("watt", Version)
 		return 0
 	}
 
-	if len(initialSources) == 0 {
+	if len(flags.initialSources) == 0 {
 		log.Println("no initial sources configured")
 		return 1
 	}
@@ -86,16 +94,16 @@ func _runWatt(cmd *cobra.Command, args []string) int {
 	// kubernetes watch manager.
 	aggregatorToKubewatchmanCh := make(chan []KubernetesWatchSpec, 100)
 
-	invoker := NewInvoker(port, notifyReceivers)
-	limiter := limiter.NewComposite(limiter.NewUnlimited(), limiter.NewInterval(interval), interval)
+	invoker := NewInvoker(flags.port, flags.notifyReceivers)
+	limiter := limiter.NewComposite(limiter.NewUnlimited(), limiter.NewInterval(flags.interval), flags.interval)
 	aggregator := NewAggregator(invoker.Snapshots, aggregatorToKubewatchmanCh, aggregatorToConsulwatchmanCh,
-		initialSources, ExecWatchHook(watchHooks), limiter)
+		flags.initialSources, ExecWatchHook(flags.watchHooks), limiter)
 
 	kubebootstrap := kubebootstrap{
-		namespace:      kubernetesNamespace,
-		kinds:          initialSources,
-		fieldSelector:  initialFieldSelector,
-		labelSelector:  initialLabelSelector,
+		namespace:      flags.kubernetesNamespace,
+		kinds:          flags.initialSources,
+		fieldSelector:  flags.initialFieldSelector,
+		labelSelector:  flags.initialLabelSelector,
 		kubeAPIWatcher: kubeAPIWatcher,
 		notify:         []chan<- k8sEvent{aggregator.KubernetesEvents},
 	}
@@ -112,7 +120,7 @@ func _runWatt(cmd *cobra.Command, args []string) int {
 	}
 
 	apiServer := &apiServer{
-		port:    port,
+		port:    flags.port,
 		invoker: invoker,
 	}
 
@@ -159,11 +167,4 @@ func _runWatt(cmd *cobra.Command, args []string) int {
 	}
 
 	return 0
-}
-
-func Main() {
-	if err := rootCmd.Execute(); err != nil {
-		log.Println(err)
-		os.Exit(1)
-	}
 }
