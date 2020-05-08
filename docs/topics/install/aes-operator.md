@@ -120,11 +120,9 @@ helmValues:
     type: NodePort
 ```
 
-* Note that, `spec.helmValues.enableAES` should not conflict with the `spec.installOSS` field or else your
-  installation will error out.
-  To install OSS, only `installOSS: true` needs to be set. To migrate from OSS to AES, change `installOSS: true` to `installOSS: false`.
-  `helmValues.enableAES` does not need to be changed in any scenario.
-  However, if you end up with a configuration where both `installOSS` and `enableAES` are set and they conflict with each other (`installOSS: true` + `enableAES: true` or `installOSS: false` or `enableAES: false`), then AmbassadorInstallation and Ambassador Operator logs will throw related errors.
+* Note that the `spec.installOSS` parameter should be used instead of `spec.helmValues.enableAES` to control whether 
+  OSS or AES is installed. A configuration where both `installOSS` and `enableAES` are set to the same value will 
+  introduce a conclict and result in an error.
 
 ## Install via Helm Chart
 
