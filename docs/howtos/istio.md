@@ -122,6 +122,46 @@ kubectl apply -f <(istioctl kube-inject -f samples/bookinfo/platform/kube/bookin
 
 4. Test the Ambassador Edge Stack by going to the IP of the Ambassador LoadBalancer you configured above e.g. `35.192.109.XX/productpage/`. You can see the actual IP address again for the Ambassador Edge Stack by typing `kubectl get services ambassador`.
 
+## Istio mTLS
+
+Istio versions prior to 1.5 store its TLS certificates as Kubernetes secrets by default, so accessing them is a matter of YAML configuration changes. Istio 1.5 changes how secrets are handled; please contact us on [Slack](https://d6e.co/slack) for more details.
+
+1. Load Istio's TLS certificates
+
+Istio creates and stores its TLS certificates in Kubernetes secrets. In order to use those secrets you can set up a `TLSContext` to read directly from Kubernetes:
+
+   ```yaml
+   ---
+   apiVersion: getambassador.io/v2
+   kind: TLSContext
+   metadata:
+     name: istio-upstream
+   spec:
+     secret: istio.default
+     secret_namespacing: False
+   ```
+
+Please note that if you are using RBAC you may need to reference the `istio` secret for your service account, e.g. if your service account is `ambassador` then your target secret should be `istio.ambassador`. See the [Ambassador Edge Stack with Istio](../../../user-guide/with-istio#istio-mutual-tls) documentation for an example with more information.
+
+2. Configure Ambassador Edge Stack to use this `TLSContext` when making connections to upstream services
+
+   The `tls` attribute in a `Mapping` configuration tells Ambassador Edge Stack to use the `TLSContext` we created above when making connections to upstream services:
+
+   ```yaml
+   ---
+   apiVersion: getambassador.io/v2
+   kind: Mapping
+   metadata:
+     name: productpage
+   spec:
+     prefix: /productpage/
+     rewrite: /productpage
+     service: https://productpage:9080
+     tls: istio-upstream
+   ```
+
+Ambassador Edge Stack will now use the certificate stored in the secret to originate TLS to Istio-powered services.
+
 ## Automatic Sidecar Injection
 
 Newer versions of Istio support Kubernetes initializers to [automatically inject the Istio sidecar](https://istio.io/docs/setup/kubernetes/additional-setup/sidecar-injection/#automatic-sidecar-injection). You don't need to inject the Istio sidecar into the pods of the Ambassador Edge Stack -- Ambassador's Envoy instance will automatically route to the appropriate service(s). Ambassador Edge Stack's pods are configured to skip sidecar injection, using an annotation as [explained in the documentation](https://istio.io/docs/setup/kubernetes/additional-setup/sidecar-injection/#policy).
