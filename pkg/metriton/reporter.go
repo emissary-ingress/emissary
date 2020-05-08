@@ -104,10 +104,6 @@ func (r *Reporter) ensureInitialized() error {
 	}
 
 	r.disabled = IsDisabledByUser()
-	if r.disabled {
-		r.initialized = true
-		return nil
-	}
 
 	installID, err := r.GetInstallID(r)
 	if err != nil {
