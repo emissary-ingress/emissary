@@ -172,7 +172,6 @@ class IRHTTPMapping (IRBaseMapping):
 
         # OK. On to set up the headers (since we need them to compute our group ID).
         hdrs = []
-        query_parameters = []
 
         if 'headers' in kwargs:
             for name, value in kwargs.get('headers', {}).items():
