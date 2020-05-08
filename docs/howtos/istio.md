@@ -122,7 +122,11 @@ kubectl apply -f <(istioctl kube-inject -f samples/bookinfo/platform/kube/bookin
 
 4. Test the Ambassador Edge Stack by going to the IP of the Ambassador LoadBalancer you configured above e.g. `35.192.109.XX/productpage/`. You can see the actual IP address again for the Ambassador Edge Stack by typing `kubectl get services ambassador`.
 
-## Istio mTLS
+## Automatic Sidecar Injection
+
+Newer versions of Istio support Kubernetes initializers to [automatically inject the Istio sidecar](https://istio.io/docs/setup/kubernetes/additional-setup/sidecar-injection/#automatic-sidecar-injection). You don't need to inject the Istio sidecar into the pods of the Ambassador Edge Stack -- Ambassador's Envoy instance will automatically route to the appropriate service(s). Ambassador Edge Stack's pods are configured to skip sidecar injection, using an annotation as [explained in the documentation](https://istio.io/docs/setup/kubernetes/additional-setup/sidecar-injection/#policy).
+
+## Istio Mutual TLS
 
 Istio versions prior to 1.5 store its TLS certificates as Kubernetes secrets by default, so accessing them is a matter of YAML configuration changes. Istio 1.5 changes how secrets are handled; please contact us on [Slack](https://d6e.co/slack) for more details.
 
@@ -159,131 +163,9 @@ Please note that if you are using RBAC you may need to reference the `istio` sec
      service: https://productpage:9080
      tls: istio-upstream
    ```
+Note the `tls: istio-upstream`, which lets the Ambassador Edge Stack know which certificate to use when communicating with that service.
 
 Ambassador Edge Stack will now use the certificate stored in the secret to originate TLS to Istio-powered services.
-
-## Automatic Sidecar Injection
-
-Newer versions of Istio support Kubernetes initializers to [automatically inject the Istio sidecar](https://istio.io/docs/setup/kubernetes/additional-setup/sidecar-injection/#automatic-sidecar-injection). You don't need to inject the Istio sidecar into the pods of the Ambassador Edge Stack -- Ambassador's Envoy instance will automatically route to the appropriate service(s). Ambassador Edge Stack's pods are configured to skip sidecar injection, using an annotation as [explained in the documentation](https://istio.io/docs/setup/kubernetes/additional-setup/sidecar-injection/#policy).
-
-## Istio Mutual TLS
-
-In case Istio mutual TLS is enabled on the cluster, the mapping outlined above will not function correctly as the Istio sidecar will intercept the connections and the service will only be reachable via `https` using the Istio managed certificates, which are available in each namespace via the `istio.default` secret. To get the proxy working we need to tell the Ambassador Edge Stack to use those certificates when communicating with Istio enabled service. To do this we need to modify the Ambassador Edge Stack deployment installed above.
-
-In case of RBAC:
-
-``` yaml
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: ambassador
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      service: ambassador
-  template:
-    metadata:
-      annotations:
-        sidecar.istio.io/inject: "false"
-      labels:
-        service: ambassador
-    spec:
-      serviceAccountName: ambassador
-      containers:
-      - name: ambassador
-        image: quay.io/datawire/aes:$version$
-        resources:
-          limits:
-            cpu: 1
-            memory: 400Mi
-          requests:
-            cpu: 200m
-            memory: 100Mi
-        env:
-        - name: AMBASSADOR_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
-        livenessProbe:
-          httpGet:
-            path: /ambassador/v0/check_alive
-            port: 8877
-          initialDelaySeconds: 30
-          periodSeconds: 3
-        readinessProbe:
-          httpGet:
-            path: /ambassador/v0/check_ready
-            port: 8877
-          initialDelaySeconds: 30
-          periodSeconds: 3
-        volumeMounts:
-          - mountPath: /etc/istiocerts/
-            name: istio-certs
-            readOnly: true
-      restartPolicy: Always
-      volumes:
-      - name: istio-certs
-        secret:
-          optional: true
-          secretName: istio.default
-```
-
-Specifically note the mounting of the Istio secrets. For non RBAC cluster modify accordingly. Next we need to modify the Ambassador Edge Stack configuration to tell it use the new certificates for Istio enabled services:
-
-```yaml
----
-apiVersion: getambassador.io/v2
-kind: Module
-metadata:
-  name: tls
-spec:
-  config:
-    server:
-      enabled: True
-      redirect_cleartext_from: 8080
----
-apiVersion: getambassador.io/v2
-kind: TLSContext
-metadata:
-  name: istio-upstream
-spec:
-  cert_chain_file: /etc/istiocerts/cert-chain.pem
-  private_key_file: /etc/istiocerts/key.pem
-  cacert_chain_file: /etc/istiocerts/root-cert.pem
-
-```
-
-This will define an `upstream` that uses the Istio certificates. We can now reuse the `istio-upstream` in all Ambassador Edge Stack mappings to enable communication with Istio pods.
-
-``` yaml
----
-apiVersion: getambassador.io/v2
-kind: Mapping
-metadata: 
-  name: productpage
-spec:     
-  prefix: /productpage/
-  rewrite: /productpage
-  service: https://productpage:9080
-  tls: istio-upstream
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: productpage
-  labels:
-    app: productpage
-spec:
-  ports:
-  - port: 9080
-    name: http
-    protocol: TCP
-  selector:
-    app: productpage
-```
-Note the `tls: istio-upstream`, which lets the Ambassador Edge Stack know which certificate to use when communicating with that service.
 
 In the definition above we also have TLS termination enabled; please see [the TLS termination tutorial](../../howtos/tls-termination) or the [Host CRD](../../topics/running/host-crd) for more details.
 
@@ -300,9 +182,8 @@ kind: TLSContext
 metadata:
   name: istio-upstream
 spec:
-  cert_chain_file: /etc/istiocerts/cert-chain.pem
-  private_key_file: /etc/istiocerts/key.pem
-  cacert_chain_file: /etc/istiocerts/root-cert.pem
+  secret: istio.default
+  secret_namespacing: False
   alpn_protocols: "istio"
 ```
 
