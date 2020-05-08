@@ -145,7 +145,7 @@ Istio creates and stores its TLS certificates in Kubernetes secrets. In order to
      secret_namespacing: False
    ```
 
-Please note that if you are using RBAC you may need to reference the `istio` secret for your service account, e.g. if your service account is `ambassador` then your target secret should be `istio.ambassador`. See the [Ambassador Edge Stack with Istio](../../../user-guide/with-istio#istio-mutual-tls) documentation for an example with more information.
+Please note that if you are using RBAC you may need to reference the `istio` secret for your service account, e.g. if your service account is `ambassador` then your target secret should be `istio.ambassador`.
 
 2. Configure Ambassador Edge Stack to use this `TLSContext` when making connections to upstream services
 
