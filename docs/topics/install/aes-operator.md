@@ -122,7 +122,7 @@ helmValues:
 
 * Note that the `spec.installOSS` parameter should be used instead of `spec.helmValues.enableAES` to control whether 
   OSS or AES is installed. A configuration where both `installOSS` and `enableAES` are set to the same value will 
-  introduce a conclict and result in an error.
+  introduce a conflict and result in an error.
 
 ## Install via Helm Chart
 
