@@ -357,7 +357,7 @@ class IR:
         # Have they asked us to do TLS?
         agent_termination_secret = os.environ.get("AGENT_TLS_TERM_SECRET", None)
 
-        if agent_termination_secret is not None:
+        if agent_termination_secret:
             # Yup.
             host_args["tlsSecret"] = { "name": agent_termination_secret }
         else:
@@ -381,7 +381,7 @@ class IR:
         # How about originating TLS?
         agent_origination_secret = os.environ.get("AGENT_TLS_ORIG_SECRET", None)
 
-        if agent_origination_secret is not None:
+        if agent_origination_secret:
             # Uhhhh. Synthesize a TLSContext for this, I guess.
             #
             # XXX What if they already have a context with this name?
