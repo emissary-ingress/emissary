@@ -344,7 +344,7 @@ def system_info(app):
 
     if env_status:
         status_dict = env_status.to_dict()
-        print(f"status_dict {status_dict}")
+        app.logger.debug(f"status_dict {status_dict}")
 
     return {
         "version": __version__,
