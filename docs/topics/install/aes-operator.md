@@ -94,60 +94,37 @@ examples of `updateWindow` are:
 The Operator cannot guarantee minute time granularity, so specifying a minute in the crontab
 expression can lead to some updates happening sooner/later than expected.
 
+`installOSS` in an optional field which, if set to `true`, installs Ambassador API Gateway instead of
+Ambassador Edge Stack.
+Default: `false`.
+
 ## Customizing the installation with some Helm values
 
 `helmValues` is an optional map of configurable parameters of the Ambassador chart
 with some overriden values. Take a look at the [current list of values](https://github.com/helm/charts/tree/master/stable/ambassador#configuration)
 and their default values.
 
-You must take into account some rules when settings these values in the `AmbassadorInstallation`:
+Example:
 
-  * All the values must be encoded as strings. This is specially important for integers (ie, use `"80"`
-    instead of just `80`).
-  * You must use a backslash to escape the `,` characters:
-    ```yaml
-    helmValues:
-      name: "value1\,value2"
-    ```
-    You must escape _dot_ sequences as well, which may come in handy when charts use the `toYaml`
-    function to parse annotations, labels and node selectors. So you must use:
-    ```yaml
-    # this is valid
-    helmValues:
-      nodeSelector.kubernetes\.io/role: master
-    ```
-    instead of:
-    ```yaml
-    # this is NOT valid
-    helmValues:
-      nodeSelector:
-        kubernetes.io/role: master
-    ```
-  * Complex data structures must be _collapsed_, using dots for separating all the elements in a tree
-    and `[]` for creating lists. For example, you should use:
-    ```yaml
-    # this is valid
-    helmValues:
-      service.ports[0].name: "http"
-      service.ports[0].port: "80"
-      service.ports[0].targetPort: "8080"
-      service.ports[1].name: "https"
-      service.ports[1].port: "443"
-      service.ports[1].targetPort: "8443"
-    ```
-    instead of:
-    ```yaml
-    # this is NOT valid
-    helmValues:
-      service:
-        ports:
-        - name: http
-          port: 80
-          targetPort: 8080
-        - name: https
-          port: 443
-          targetPort: 8443
-    ```
+```yaml
+helmValues:
+  image:
+    pullPolicy: Always
+  namespace:
+    name: ambassador
+  service:
+    ports:
+      - name: http
+        port: 80
+        targetPort: 8080
+    type: NodePort
+```
+
+* Note that, `spec.helmValues.enableAES` should not conflict with the `spec.installOSS` field or else your
+  installation will error out.
+  To install OSS, only `installOSS: true` needs to be set. To migrate from OSS to AES, change `installOSS: true` to `installOSS: false`.
+  `helmValues.enableAES` does not need to be changed in any scenario.
+  However, if you end up with a configuration where both `installOSS` and `enableAES` are set and they conflict with each other (`installOSS: true` + `enableAES: true` or `installOSS: false` or `enableAES: false`), then AmbassadorInstallation and Ambassador Operator logs will throw related errors.
 
 ## Install via Helm Chart
 
