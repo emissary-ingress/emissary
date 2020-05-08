@@ -191,10 +191,18 @@ class IRHTTPMapping (IRBaseMapping):
         if 'method' in kwargs:
             hdrs.append(Header(":method", kwargs['method'], kwargs.get('method_regex', False)))
 
-        # Next up: figure out what headers we need to add to each request...
-        add_request_hdrs = self.lookup_default('add_request_headers', kwargs.get('add_request_headers', {}))
+        # Next up: figure out what headers we need to add to each request. Again, if the key
+        # is present in kwargs, the kwargs value wins -- this is important to allow explicitly
+        # setting a value of `{}` to override a default!
 
-        # ...which may include the Linkerd headers. Does it?
+        add_request_hdrs: dict
+
+        if 'add_request_headers' in kwargs:
+            add_request_hdrs = kwargs['add_request_headers']
+        else:
+            add_request_hdrs = self.lookup_default('add_request_headers', {})
+
+        # Remember that we may need to add the Linkerd headers, too.
         add_linkerd_headers = new_args.get('add_linkerd_headers', False)
 
         if add_linkerd_headers:
