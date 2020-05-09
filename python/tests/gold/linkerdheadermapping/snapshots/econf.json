@@ -252,12 +252,22 @@
                                                         },
                                                         "request_headers_to_add": [
                                                             {
+                                                                "append": false,
+                                                                "header": {
+                                                                    "key": "fruit",
+                                                                    "value": "orange"
+                                                                }
+                                                            },
+                                                            {
                                                                 "append": true,
                                                                 "header": {
                                                                     "key": "l5d-dst-override",
                                                                     "value": "127.0.0.1:8877"
                                                                 }
                                                             }
+                                                        ],
+                                                        "request_headers_to_remove": [
+                                                            "x-evil-header"
                                                         ],
                                                         "route": {
                                                             "cluster": "cluster_127_0_0_1_8877_default",
@@ -280,12 +290,22 @@
                                                         },
                                                         "request_headers_to_add": [
                                                             {
+                                                                "append": false,
+                                                                "header": {
+                                                                    "key": "fruit",
+                                                                    "value": "orange"
+                                                                }
+                                                            },
+                                                            {
                                                                 "append": true,
                                                                 "header": {
                                                                     "key": "l5d-dst-override",
                                                                     "value": "127.0.0.1:8877"
                                                                 }
                                                             }
+                                                        ],
+                                                        "request_headers_to_remove": [
+                                                            "x-evil-header"
                                                         ],
                                                         "route": {
                                                             "cluster": "cluster_127_0_0_1_8877_default",
@@ -314,12 +334,22 @@
                                                         },
                                                         "request_headers_to_add": [
                                                             {
+                                                                "append": false,
+                                                                "header": {
+                                                                    "key": "fruit",
+                                                                    "value": "orange"
+                                                                }
+                                                            },
+                                                            {
                                                                 "append": true,
                                                                 "header": {
                                                                     "key": "l5d-dst-override",
                                                                     "value": "127.0.0.1:8877"
                                                                 }
                                                             }
+                                                        ],
+                                                        "request_headers_to_remove": [
+                                                            "x-evil-header"
                                                         ],
                                                         "route": {
                                                             "cluster": "cluster_127_0_0_1_8877_default",
@@ -342,12 +372,22 @@
                                                         },
                                                         "request_headers_to_add": [
                                                             {
+                                                                "append": false,
+                                                                "header": {
+                                                                    "key": "fruit",
+                                                                    "value": "orange"
+                                                                }
+                                                            },
+                                                            {
                                                                 "append": true,
                                                                 "header": {
                                                                     "key": "l5d-dst-override",
                                                                     "value": "127.0.0.1:8877"
                                                                 }
                                                             }
+                                                        ],
+                                                        "request_headers_to_remove": [
+                                                            "x-evil-header"
                                                         ],
                                                         "route": {
                                                             "cluster": "cluster_127_0_0_1_8877_default",
@@ -383,6 +423,9 @@
                                                                 }
                                                             }
                                                         ],
+                                                        "request_headers_to_remove": [
+                                                            "x-evil-header"
+                                                        ],
                                                         "route": {
                                                             "cluster": "cluster_linkerdheadermapping_http_noheader_default",
                                                             "prefix_rewrite": "/",
@@ -411,6 +454,9 @@
                                                                 }
                                                             }
                                                         ],
+                                                        "request_headers_to_remove": [
+                                                            "x-evil-header"
+                                                        ],
                                                         "route": {
                                                             "cluster": "cluster_linkerdheadermapping_http_noheader_default",
                                                             "prefix_rewrite": "/",
@@ -438,12 +484,22 @@
                                                         },
                                                         "request_headers_to_add": [
                                                             {
+                                                                "append": false,
+                                                                "header": {
+                                                                    "key": "fruit",
+                                                                    "value": "orange"
+                                                                }
+                                                            },
+                                                            {
                                                                 "append": true,
                                                                 "header": {
                                                                     "key": "l5d-dst-override",
                                                                     "value": "127.0.0.1:8877"
                                                                 }
                                                             }
+                                                        ],
+                                                        "request_headers_to_remove": [
+                                                            "x-evil-header"
                                                         ],
                                                         "route": {
                                                             "cluster": "cluster_127_0_0_1_8877_default",
@@ -466,12 +522,22 @@
                                                         },
                                                         "request_headers_to_add": [
                                                             {
+                                                                "append": false,
+                                                                "header": {
+                                                                    "key": "fruit",
+                                                                    "value": "orange"
+                                                                }
+                                                            },
+                                                            {
                                                                 "append": true,
                                                                 "header": {
                                                                     "key": "l5d-dst-override",
                                                                     "value": "127.0.0.1:8877"
                                                                 }
                                                             }
+                                                        ],
+                                                        "request_headers_to_remove": [
+                                                            "x-evil-header"
                                                         ],
                                                         "route": {
                                                             "cluster": "cluster_127_0_0_1_8877_default",
@@ -513,6 +579,9 @@
                                                                     "value": "linkerdheadermapping-http:80"
                                                                 }
                                                             }
+                                                        ],
+                                                        "request_headers_to_remove": [
+                                                            "x-evilness"
                                                         ],
                                                         "route": {
                                                             "cluster": "cluster_linkerdheadermapping_http_default",
@@ -548,6 +617,9 @@
                                                                     "value": "linkerdheadermapping-http:80"
                                                                 }
                                                             }
+                                                        ],
+                                                        "request_headers_to_remove": [
+                                                            "x-evilness"
                                                         ],
                                                         "route": {
                                                             "cluster": "cluster_linkerdheadermapping_http_default",
