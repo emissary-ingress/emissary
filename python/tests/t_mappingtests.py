@@ -668,12 +668,22 @@ kind:  Module
 name:  ambassador
 config:
   add_linkerd_headers: true
+  defaults:
+    httpmapping:
+        add_request_headers:
+            fruit:
+                append: False
+                value: orange
+        remove_request_headers:
+        - x-evil-header
 ---
 apiVersion: ambassador/v1
 kind: Mapping
 name: {self.target_add_linkerd_header_only.path.k8s}
 prefix: /target_add_linkerd_header_only/
 service: {self.target_add_linkerd_header_only.path.fqdn}
+add_request_headers: {{}}
+remove_request_headers: []
 ---
 apiVersion: ambassador/v1
 kind: Mapping
@@ -681,10 +691,6 @@ name: {self.target_no_header.path.k8s}
 prefix: /target_no_header/
 service: {self.target_no_header.path.fqdn}
 add_linkerd_headers: false
-add_request_headers:
-    fruit:
-        append: False
-        value: orange
 ---
 apiVersion: ambassador/v1
 kind: Mapping
@@ -695,17 +701,19 @@ add_request_headers:
     fruit:
         append: False
         value: banana
+remove_request_headers:
+- x-evilness
 """)
 
     def queries(self):
         # [0] expect Linkerd headers set through mapping
-        yield Query(self.url("target/"), expected=200)
+        yield Query(self.url("target/"), headers={ "x-evil-header": "evilness", "x-evilness": "more evilness" }, expected=200)
 
         # [1] expect no Linkerd headers
-        yield Query(self.url("target_no_header/"), expected=200)
+        yield Query(self.url("target_no_header/"), headers={ "x-evil-header": "evilness", "x-evilness": "more evilness" }, expected=200)
 
         # [2] expect Linkerd headers only
-        yield Query(self.url("target_add_linkerd_header_only/"), expected=200)
+        yield Query(self.url("target_add_linkerd_header_only/"), headers={ "x-evil-header": "evilness", "x-evilness": "more evilness" }, expected=200)
         
     def check(self):
         # [0]
@@ -713,15 +721,25 @@ add_request_headers:
         assert self.results[0].backend.request.headers['l5d-dst-override'] == ["{}:80".format(self.target.path.fqdn)]
         assert len(self.results[0].backend.request.headers['fruit']) > 0
         assert self.results[0].backend.request.headers['fruit'] == [ 'banana']
+        assert len(self.results[0].backend.request.headers['x-evil-header']) > 0
+        assert self.results[0].backend.request.headers['x-evil-header'] == [ 'evilness' ]
+        assert 'x-evilness' not in self.results[0].backend.request.headers
 
         # [1]
         assert 'l5d-dst-override' not in self.results[1].backend.request.headers
         assert len(self.results[1].backend.request.headers['fruit']) > 0
         assert self.results[1].backend.request.headers['fruit'] == [ 'orange']
+        assert 'x-evil-header' not in self.results[1].backend.request.headers
+        assert len(self.results[1].backend.request.headers['x-evilness']) > 0
+        assert self.results[1].backend.request.headers['x-evilness'] == [ 'more evilness' ]
 
         # [2]
         assert len(self.results[2].backend.request.headers['l5d-dst-override']) > 0
         assert self.results[2].backend.request.headers['l5d-dst-override'] == ["{}:80".format(self.target_add_linkerd_header_only.path.fqdn)]
+        assert len(self.results[2].backend.request.headers['x-evil-header']) > 0
+        assert self.results[2].backend.request.headers['x-evil-header'] == [ 'evilness' ]
+        assert len(self.results[2].backend.request.headers['x-evilness']) > 0
+        assert self.results[2].backend.request.headers['x-evilness'] == [ 'more evilness' ]
 
 
 class SameMappingDifferentNamespaces(AmbassadorTest):
