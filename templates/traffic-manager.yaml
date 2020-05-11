@@ -34,17 +34,32 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: [ "traffic-manager" ]
         env:
-        - name: AMBASSADOR_LICENSE_FILE
-          value: /.config/ambassador/license-key
+        {{- if .Values.scope.singleNamespace }}
+        - name: AMBASSADOR_SINGLE_NAMESPACE
+          value: "YES"
+        {{- end }}
+        - name: AMBASSADOR_NAMESPACE
+          {{- if .Values.namespace }}
+          value: {{ .Values.namespace.name | quote }}
+          {{ else }}
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+          {{- end -}}
+        {{- if or .Values.redis.create .Values.redisURL }}
+        - name: REDIS_URL
+          {{- if .Values.redisURL }}
+          value: {{ .Values.redisURL }}
+          {{- else }}
+          value: {{ include "ambassador.fullname" . }}-redis:6379
+          {{- end }}
+        {{- end }}
         ports:
         - name: sshd
           containerPort: 8022
         volumeMounts:
         - mountPath: /tmp/ambassador-pod-info
           name: pod-info
-        - mountPath: /.config/ambassador
-          name: ambassador-edge-stack-secrets
-          readOnly: true
       restartPolicy: Always
       terminationGracePeriodSeconds: 0
       volumes:
@@ -54,9 +69,6 @@ spec:
               fieldPath: metadata.labels
             path: labels
         name: pod-info
-      - name: ambassador-edge-stack-secrets
-        secret:
-          secretName: {{ include "ambassador.fullname" . }}-edge-stack
 ---
 apiVersion: v1
 kind: Service
