@@ -73,6 +73,44 @@ spec:
 
 For more information on the Mapping resource, see [Advanced Mapping Configuration](../../topics/using/mappings).
 
+### How do I disable the default Admin mappings?
+
+In a production environment, public access to the console and admin endpoints is not an 
+ideal situation.  To solve this, we will be using an Ambassador Module to remove the default 
+mappings and create a new, host-based mapping to expose the Admin endpoint more securely.  The 
+Ambassador module applies system-wide configuration settings for Ambassador to follow.
+
+```yaml
+apiVersion: getambassador.io/v2
+kind: Module
+metadata:
+    name: ambassador
+spec:
+    config:
+        diagnostics:
+            enabled: false
+```
+
+After applying this module, the admin endpoint is no longer accessible from the outside world.  
+We cannot, however, exclude actual administrators from this endpoint, so to create a more managed 
+endpoint for them to use, create a mapping to expose the endpoint.
+
+```yaml
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+    name: admin-mapping
+spec:
+    host: admin.example.com
+    prefix: /edge_stack/
+    rewrite: /edge_stack_ui/edge_stack/
+    service: localhost:8500
+```
+
+Now, administrators can connect to the admin console via hostname.  Additional [Mapping](../../topics/using/intro-mappings) and 
+[Filter](../../topics/using/filters/index) settings can be appropriately configured to better control access to admin services.  To 
+learn more about Ambassador Module configurations, see [Ambassador Module](../../topics/running/ambassador)
+
 ## Troubleshooting
 
 ### How do I get help for Edge Stack?
