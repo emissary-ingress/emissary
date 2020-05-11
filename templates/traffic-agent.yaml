@@ -18,6 +18,15 @@ metadata:
     {{- end }}
     product: aes
 ---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Values.servicePreview.trafficAgent.serviceAccountName }}
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    kubernetes.io/service-account.name: traffic-agent
+type: kubernetes.io/service-account-token
+---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: RoleBinding
 metadata:
