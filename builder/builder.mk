@@ -235,7 +235,7 @@ ingresstest:
 
 	@printf "$(CYN)==> $(GRN)Loading Ambassador (from the Ingress conformance tests) with image=$(AMB_IMAGE)$(END)\n"
 	@for f in $(INGRESS_TEST_MANIFS) ; do \
-  		printf "$(CYN)==> $(GRN)... $$f $(END)\n" ; \
+		printf "$(CYN)==> $(GRN)... $$f $(END)\n" ; \
 		cat $(INGRESS_TEST_MANIF_DIR)/$$f | sed -e "s|image:.*ambassador\:.*|image: $(AMB_IMAGE)|g" | tee /dev/tty | kubectl apply -f - ; \
 	done
 
