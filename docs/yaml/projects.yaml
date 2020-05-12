@@ -138,17 +138,82 @@ subjects:
 ######################################################################
 # In-cluster Registry for Kale
 
-# A NodePort mapping for the registry. This allows the kubelets
-# running on the worker nodes to access the registry at
-# 127.0.0.1:31000. In theory this should work on multiple kinds of
-# clusters, but this may be brittle and requires testing. This works
-# for GKE clusters after working around the following issues:
-# - GKE nodes are configured in such a way that you have to use
-#   127.0.0.1 instead of localhost since localhost seems to resolve to
-#   an IPV6 address.
-# - GKE nodes cannot reach the ip addresses of load balancer services
-#   running on their own cluster, even though the rest of the world
-#   can reach those ip address.
+# This mapping will make every host function as a docker
+# registry. It's not ideal to take over the "v2" mapping, but there
+# are a number of constraints that make this the least worst option
+# explored so far. These constraints are:
+#
+# - We need a registry where docker push/pull and similar (e.g. crictl
+#   push/pull) can work with no special client configuration since we
+#   don't control the clients and we can't expect our users to
+#   reconfigure their clusters to use a special push/pull
+#   configuration.
+#
+# - GKE's push/pull implementation (I think it's docker) and crictl
+#   push/pull (used by default in k3s clusters) have different default
+#   behaviors with respect to localhost registries. The docker
+#   implementation is very permissive, it will try both cleartext and
+#   TLS and it does not verify the TLS connection, so self-signed
+#   registries work fine. The crictl implementation is moving in this
+#   direction, but the version used in k3s (based on rancher's fork of
+#   containerd at v1.3.3) is not there yet. It only tries cleartext by
+#   default.
+#
+# - We want to minimize the requirements for users to have the
+#   access/understanding to create special DNS configurations
+#   (e.g. wildcard or a separate dns name for the registry).
+#
+# - You can configure the docker registry to have a prefix,
+#   e.g. <host>/<special-prefix>/v2/..., however without special
+#   configuration to override the defaults, clients cant push/pull
+#   from a registry served at a prefix. If your image is named
+#   <foo>/<bar>, the client will look for <foo>/v2/... endpoints.
+#
+# Given all the prior constraints we are left with creating this
+# mapping for all hosts. If this is a problem there are a few
+# alternatives we could consider. We can provide a way to limit this
+# mapping to only one host so they can have distinct hosts for their
+# site and their registry. We could also look into creating a
+# daemonset that binds to localhost and proxies cleartext to
+# TLS. Based on what I know of GKE and k3s its a good guess that this
+# would accommodate both of them, but possibly not other clusters with
+# different configurations.
+#
+# Another reason to lean towards an externally accessible registry is
+# that there are likely some people that would want this as a feature
+# so they can docker push/pull images from other systems into/out of
+# the builtin registry. While it's true that security minded people
+# might not like having this registry externally accessible, it's also
+# quite likely those people would want to run their own fancy registry
+# that scans/audits images, etc. The focus for RtC is really a smooth
+# out of the box experience that functions end-to-end without
+# requiring you to build your own platform. For more security minded
+# people we should expect to eventually be able to configure an
+# external registry and/or turn off the builtin one.
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  labels:
+    product: aes
+  name: ambassador-registry
+  namespace: ambassador
+spec:
+  prefix: /v2/
+  rewrite: /v2/
+  service: https://registry
+  timeout_ms: 300000
+---
+apiVersion: getambassador.io/v2
+kind: Filter
+metadata:
+  name: ambassador-registry-filter
+  namespace: ambassador
+spec:
+  External:
+    auth_service: 127.0.0.1:8500
+    tls: true
+    path_prefix: "/edge_stack_ui/kale/blah???"
 ---
 apiVersion: v1
 kind: Service
@@ -158,14 +223,12 @@ metadata:
   labels:
     product: aes
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
     app: registry
   ports:
     - port: 443
-      nodePort: 31000
       targetPort: 5000
-
 
 # The registry deployment. The deployment includes a persistent volume
 # mount for storing images, a config-map mount for customizing the
