@@ -16,6 +16,53 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     {{- end }}
     product: aes
+{{- if .Values.scope.singleNamespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: Role
+metadata:
+  name: {{ .Values.servicePreview.trafficManager.serviceAccountName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.servicePreview.trafficManager.serviceAccountName }}
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.deploymentTool }}
+    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+    {{- else }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
+    product: aes
+rules:
+  - apiGroups: [""]
+    resources: ["services", "pods", "secrets"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: RoleBinding
+metadata:
+  name: {{ .Values.servicePreview.trafficManager.serviceAccountName }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.servicePreview.trafficManager.serviceAccountName }}
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.deploymentTool }}
+    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+    {{- else }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
+    product: aes
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ .Values.servicePreview.trafficManager.serviceAccountName }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.servicePreview.trafficManager.serviceAccountName }}
+    namespace: {{ .Release.Namespace }}
+{{- else }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
@@ -60,6 +107,7 @@ subjects:
   - kind: ServiceAccount
     name: {{ .Values.servicePreview.trafficManager.serviceAccountName }}
     namespace: {{ .Release.Namespace }}
+{{- end }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -97,7 +145,7 @@ spec:
         env:
         {{- if .Values.scope.singleNamespace }}
         - name: AMBASSADOR_SINGLE_NAMESPACE
-          value: "YES"
+          value: "true"
         {{- end }}
         - name: AMBASSADOR_NAMESPACE
           {{- if .Values.namespace }}
