@@ -245,6 +245,7 @@
                 0,
                 32,
                 0,
+                0,
                 "/target_add_linkerd_header_only/",
                 "GET"
             ],
@@ -309,12 +310,14 @@
                     "namespace": "default",
                     "precedence": 0,
                     "prefix": "/target_add_linkerd_header_only/",
+                    "query_parameters": [],
                     "remove_request_headers": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         32,
+                        0,
                         0,
                         "/target_add_linkerd_header_only/",
                         "GET"
@@ -333,6 +336,7 @@
             "namespace": "default",
             "precedence": 0,
             "prefix": "/target_add_linkerd_header_only/",
+            "query_parameters": [],
             "remove_request_headers": [],
             "rewrite": "/",
             "serialization": "add_request_headers: {}\nambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http-addlinkerdonly\nnamespace: default\nprefix: /target_add_linkerd_header_only/\nremove_request_headers: []\nservice: linkerdheadermapping-http-addlinkerdonly\n"
@@ -357,6 +361,7 @@
             "group_weight": [
                 0,
                 26,
+                0,
                 0,
                 "/ambassador/v0/check_ready",
                 "GET"
@@ -424,6 +429,7 @@
                     "namespace": "default",
                     "precedence": 0,
                     "prefix": "/ambassador/v0/check_ready",
+                    "query_parameters": [],
                     "remove_request_headers": [
                         "x-evil-header"
                     ],
@@ -432,6 +438,7 @@
                     "route_weight": [
                         0,
                         26,
+                        0,
                         0,
                         "/ambassador/v0/check_ready",
                         "GET"
@@ -445,6 +452,7 @@
             "namespace": "default",
             "precedence": 0,
             "prefix": "/ambassador/v0/check_ready",
+            "query_parameters": [],
             "remove_request_headers": [
                 "x-evil-header"
             ],
@@ -471,6 +479,7 @@
             "group_weight": [
                 0,
                 26,
+                0,
                 0,
                 "/ambassador/v0/check_alive",
                 "GET"
@@ -538,6 +547,7 @@
                     "namespace": "default",
                     "precedence": 0,
                     "prefix": "/ambassador/v0/check_alive",
+                    "query_parameters": [],
                     "remove_request_headers": [
                         "x-evil-header"
                     ],
@@ -546,6 +556,7 @@
                     "route_weight": [
                         0,
                         26,
+                        0,
                         0,
                         "/ambassador/v0/check_alive",
                         "GET"
@@ -559,6 +570,7 @@
             "namespace": "default",
             "precedence": 0,
             "prefix": "/ambassador/v0/check_alive",
+            "query_parameters": [],
             "remove_request_headers": [
                 "x-evil-header"
             ],
@@ -584,6 +596,7 @@
             "group_weight": [
                 0,
                 18,
+                0,
                 0,
                 "/target_no_header/",
                 "GET"
@@ -652,6 +665,7 @@
                     "namespace": "default",
                     "precedence": 0,
                     "prefix": "/target_no_header/",
+                    "query_parameters": [],
                     "remove_request_headers": [
                         "x-evil-header"
                     ],
@@ -660,6 +674,7 @@
                     "route_weight": [
                         0,
                         18,
+                        0,
                         0,
                         "/target_no_header/",
                         "GET"
@@ -678,6 +693,7 @@
             "namespace": "default",
             "precedence": 0,
             "prefix": "/target_no_header/",
+            "query_parameters": [],
             "remove_request_headers": [
                 "x-evil-header"
             ],
@@ -704,6 +720,7 @@
             "group_weight": [
                 0,
                 15,
+                0,
                 0,
                 "/ambassador/v0/",
                 "GET"
@@ -771,6 +788,7 @@
                     "namespace": "default",
                     "precedence": 0,
                     "prefix": "/ambassador/v0/",
+                    "query_parameters": [],
                     "remove_request_headers": [
                         "x-evil-header"
                     ],
@@ -779,6 +797,7 @@
                     "route_weight": [
                         0,
                         15,
+                        0,
                         0,
                         "/ambassador/v0/",
                         "GET"
@@ -792,6 +811,7 @@
             "namespace": "default",
             "precedence": 0,
             "prefix": "/ambassador/v0/",
+            "query_parameters": [],
             "remove_request_headers": [
                 "x-evil-header"
             ],
@@ -818,6 +838,7 @@
             "group_weight": [
                 0,
                 8,
+                0,
                 0,
                 "/target/",
                 "GET"
@@ -887,6 +908,7 @@
                     "namespace": "default",
                     "precedence": 0,
                     "prefix": "/target/",
+                    "query_parameters": [],
                     "remove_request_headers": [
                         "x-evilness"
                     ],
@@ -895,6 +917,7 @@
                     "route_weight": [
                         0,
                         8,
+                        0,
                         0,
                         "/target/",
                         "GET"
@@ -913,6 +936,7 @@
             "namespace": "default",
             "precedence": 0,
             "prefix": "/target/",
+            "query_parameters": [],
             "remove_request_headers": [
                 "x-evilness"
             ],

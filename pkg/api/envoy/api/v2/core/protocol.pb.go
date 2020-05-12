@@ -5,6 +5,7 @@ package envoy_api_v2_core
 
 import (
 	fmt "fmt"
+	_ "github.com/cncf/udpa/go/udpa/annotations"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	proto "github.com/gogo/protobuf/proto"
 	types "github.com/gogo/protobuf/types"
@@ -23,6 +24,46 @@ var _ = math.Inf
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
+
+// Action to take when Envoy receives client request with header names containing underscore
+// characters.
+// Underscore character is allowed in header names by the RFC-7230 and this behavior is implemented
+// as a security measure due to systems that treat '_' and '-' as interchangeable. Envoy by default allows client request headers with underscore
+// characters.
+type HttpProtocolOptions_HeadersWithUnderscoresAction int32
+
+const (
+	// Allow headers with underscores. This is the default behavior.
+	HttpProtocolOptions_ALLOW HttpProtocolOptions_HeadersWithUnderscoresAction = 0
+	// Reject client request. HTTP/1 requests are rejected with the 400 status. HTTP/2 requests
+	// end with the stream reset. The "httpN.requests_rejected_with_underscores_in_headers" counter
+	// is incremented for each rejected request.
+	HttpProtocolOptions_REJECT_REQUEST HttpProtocolOptions_HeadersWithUnderscoresAction = 1
+	// Drop the header with name containing underscores. The header is dropped before the filter chain is
+	// invoked and as such filters will not see dropped headers. The
+	// "httpN.dropped_headers_with_underscores" is incremented for each dropped header.
+	HttpProtocolOptions_DROP_HEADER HttpProtocolOptions_HeadersWithUnderscoresAction = 2
+)
+
+var HttpProtocolOptions_HeadersWithUnderscoresAction_name = map[int32]string{
+	0: "ALLOW",
+	1: "REJECT_REQUEST",
+	2: "DROP_HEADER",
+}
+
+var HttpProtocolOptions_HeadersWithUnderscoresAction_value = map[string]int32{
+	"ALLOW":          0,
+	"REJECT_REQUEST": 1,
+	"DROP_HEADER":    2,
+}
+
+func (x HttpProtocolOptions_HeadersWithUnderscoresAction) String() string {
+	return proto.EnumName(HttpProtocolOptions_HeadersWithUnderscoresAction_name, int32(x))
+}
+
+func (HttpProtocolOptions_HeadersWithUnderscoresAction) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_d86476e078060b60, []int{2, 0}
+}
 
 // [#not-implemented-hide:]
 type TcpProtocolOptions struct {
@@ -64,9 +105,72 @@ func (m *TcpProtocolOptions) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_TcpProtocolOptions proto.InternalMessageInfo
 
+type UpstreamHttpProtocolOptions struct {
+	// Set transport socket `SNI <https://en.wikipedia.org/wiki/Server_Name_Indication>`_ for new
+	// upstream connections based on the downstream HTTP host/authority header, as seen by the
+	// :ref:`router filter <config_http_filters_router>`.
+	AutoSni bool `protobuf:"varint,1,opt,name=auto_sni,json=autoSni,proto3" json:"auto_sni,omitempty"`
+	// Automatic validate upstream presented certificate for new upstream connections based on the
+	// downstream HTTP host/authority header, as seen by the
+	// :ref:`router filter <config_http_filters_router>`.
+	// This field is intended to set with `auto_sni` field.
+	AutoSanValidation    bool     `protobuf:"varint,2,opt,name=auto_san_validation,json=autoSanValidation,proto3" json:"auto_san_validation,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UpstreamHttpProtocolOptions) Reset()         { *m = UpstreamHttpProtocolOptions{} }
+func (m *UpstreamHttpProtocolOptions) String() string { return proto.CompactTextString(m) }
+func (*UpstreamHttpProtocolOptions) ProtoMessage()    {}
+func (*UpstreamHttpProtocolOptions) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d86476e078060b60, []int{1}
+}
+func (m *UpstreamHttpProtocolOptions) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *UpstreamHttpProtocolOptions) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_UpstreamHttpProtocolOptions.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *UpstreamHttpProtocolOptions) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpstreamHttpProtocolOptions.Merge(m, src)
+}
+func (m *UpstreamHttpProtocolOptions) XXX_Size() int {
+	return m.Size()
+}
+func (m *UpstreamHttpProtocolOptions) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpstreamHttpProtocolOptions.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpstreamHttpProtocolOptions proto.InternalMessageInfo
+
+func (m *UpstreamHttpProtocolOptions) GetAutoSni() bool {
+	if m != nil {
+		return m.AutoSni
+	}
+	return false
+}
+
+func (m *UpstreamHttpProtocolOptions) GetAutoSanValidation() bool {
+	if m != nil {
+		return m.AutoSanValidation
+	}
+	return false
+}
+
+// [#next-free-field: 6]
 type HttpProtocolOptions struct {
 	// The idle timeout for connections. The idle timeout is defined as the
-	// period in which there are no active requests. If not set, there is no idle timeout. When the
+	// period in which there are no active requests. When the
 	// idle timeout is reached the connection will be closed. If the connection is an HTTP/2
 	// downstream connection a drain sequence will occur prior to closing the connection, see
 	// :ref:`drain_timeout
@@ -88,17 +192,26 @@ type HttpProtocolOptions struct {
 	// The maximum number of headers. If unconfigured, the default
 	// maximum number of request headers allowed is 100. Requests that exceed this limit will receive
 	// a 431 response for HTTP/1.x and cause a stream reset for HTTP/2.
-	MaxHeadersCount      *types.UInt32Value `protobuf:"bytes,2,opt,name=max_headers_count,json=maxHeadersCount,proto3" json:"max_headers_count,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}           `json:"-"`
-	XXX_unrecognized     []byte             `json:"-"`
-	XXX_sizecache        int32              `json:"-"`
+	MaxHeadersCount *types.UInt32Value `protobuf:"bytes,2,opt,name=max_headers_count,json=maxHeadersCount,proto3" json:"max_headers_count,omitempty"`
+	// Total duration to keep alive an HTTP request/response stream. If the time limit is reached the stream will be
+	// reset independent of any other timeouts. If not specified, this value is not set.
+	// The current implementation implements this timeout on downstream connections only.
+	// [#comment:TODO(shikugawa): add this functionality to upstream.]
+	MaxStreamDuration *types.Duration `protobuf:"bytes,4,opt,name=max_stream_duration,json=maxStreamDuration,proto3" json:"max_stream_duration,omitempty"`
+	// Action to take when a client request with a header name containing underscore characters is received.
+	// If this setting is not specified, the value defaults to ALLOW.
+	// Note: upstream responses are not affected by this setting.
+	HeadersWithUnderscoresAction HttpProtocolOptions_HeadersWithUnderscoresAction `protobuf:"varint,5,opt,name=headers_with_underscores_action,json=headersWithUnderscoresAction,proto3,enum=envoy.api.v2.core.HttpProtocolOptions_HeadersWithUnderscoresAction" json:"headers_with_underscores_action,omitempty"`
+	XXX_NoUnkeyedLiteral         struct{}                                         `json:"-"`
+	XXX_unrecognized             []byte                                           `json:"-"`
+	XXX_sizecache                int32                                            `json:"-"`
 }
 
 func (m *HttpProtocolOptions) Reset()         { *m = HttpProtocolOptions{} }
 func (m *HttpProtocolOptions) String() string { return proto.CompactTextString(m) }
 func (*HttpProtocolOptions) ProtoMessage()    {}
 func (*HttpProtocolOptions) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d86476e078060b60, []int{1}
+	return fileDescriptor_d86476e078060b60, []int{2}
 }
 func (m *HttpProtocolOptions) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -148,6 +261,21 @@ func (m *HttpProtocolOptions) GetMaxHeadersCount() *types.UInt32Value {
 	return nil
 }
 
+func (m *HttpProtocolOptions) GetMaxStreamDuration() *types.Duration {
+	if m != nil {
+		return m.MaxStreamDuration
+	}
+	return nil
+}
+
+func (m *HttpProtocolOptions) GetHeadersWithUnderscoresAction() HttpProtocolOptions_HeadersWithUnderscoresAction {
+	if m != nil {
+		return m.HeadersWithUnderscoresAction
+	}
+	return HttpProtocolOptions_ALLOW
+}
+
+// [#next-free-field: 6]
 type Http1ProtocolOptions struct {
 	// Handle HTTP requests with absolute URLs in the requests. These requests
 	// are generally sent by clients to forward/explicit proxies. This allows clients to configure
@@ -165,17 +293,27 @@ type Http1ProtocolOptions struct {
 	DefaultHostForHttp_10 string `protobuf:"bytes,3,opt,name=default_host_for_http_10,json=defaultHostForHttp10,proto3" json:"default_host_for_http_10,omitempty"`
 	// Describes how the keys for response headers should be formatted. By default, all header keys
 	// are lower cased.
-	HeaderKeyFormat      *Http1ProtocolOptions_HeaderKeyFormat `protobuf:"bytes,4,opt,name=header_key_format,json=headerKeyFormat,proto3" json:"header_key_format,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                              `json:"-"`
-	XXX_unrecognized     []byte                                `json:"-"`
-	XXX_sizecache        int32                                 `json:"-"`
+	HeaderKeyFormat *Http1ProtocolOptions_HeaderKeyFormat `protobuf:"bytes,4,opt,name=header_key_format,json=headerKeyFormat,proto3" json:"header_key_format,omitempty"`
+	// Enables trailers for HTTP/1. By default the HTTP/1 codec drops proxied trailers.
+	//
+	// .. attention::
+	//
+	//   Note that this only happens when Envoy is chunk encoding which occurs when:
+	//   - The request is HTTP/1.1.
+	//   - Is neither a HEAD only request nor a HTTP Upgrade.
+	//   - Not a response to a HEAD request.
+	//   - The content length header is not present.
+	EnableTrailers       bool     `protobuf:"varint,5,opt,name=enable_trailers,json=enableTrailers,proto3" json:"enable_trailers,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
 func (m *Http1ProtocolOptions) Reset()         { *m = Http1ProtocolOptions{} }
 func (m *Http1ProtocolOptions) String() string { return proto.CompactTextString(m) }
 func (*Http1ProtocolOptions) ProtoMessage()    {}
 func (*Http1ProtocolOptions) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d86476e078060b60, []int{2}
+	return fileDescriptor_d86476e078060b60, []int{3}
 }
 func (m *Http1ProtocolOptions) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -232,6 +370,13 @@ func (m *Http1ProtocolOptions) GetHeaderKeyFormat() *Http1ProtocolOptions_Header
 	return nil
 }
 
+func (m *Http1ProtocolOptions) GetEnableTrailers() bool {
+	if m != nil {
+		return m.EnableTrailers
+	}
+	return false
+}
+
 type Http1ProtocolOptions_HeaderKeyFormat struct {
 	// Types that are valid to be assigned to HeaderFormat:
 	//	*Http1ProtocolOptions_HeaderKeyFormat_ProperCaseWords_
@@ -245,7 +390,7 @@ func (m *Http1ProtocolOptions_HeaderKeyFormat) Reset()         { *m = Http1Proto
 func (m *Http1ProtocolOptions_HeaderKeyFormat) String() string { return proto.CompactTextString(m) }
 func (*Http1ProtocolOptions_HeaderKeyFormat) ProtoMessage()    {}
 func (*Http1ProtocolOptions_HeaderKeyFormat) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d86476e078060b60, []int{2, 0}
+	return fileDescriptor_d86476e078060b60, []int{3, 0}
 }
 func (m *Http1ProtocolOptions_HeaderKeyFormat) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -281,7 +426,7 @@ type isHttp1ProtocolOptions_HeaderKeyFormat_HeaderFormat interface {
 }
 
 type Http1ProtocolOptions_HeaderKeyFormat_ProperCaseWords_ struct {
-	ProperCaseWords *Http1ProtocolOptions_HeaderKeyFormat_ProperCaseWords `protobuf:"bytes,1,opt,name=proper_case_words,json=properCaseWords,proto3,oneof"`
+	ProperCaseWords *Http1ProtocolOptions_HeaderKeyFormat_ProperCaseWords `protobuf:"bytes,1,opt,name=proper_case_words,json=properCaseWords,proto3,oneof" json:"proper_case_words,omitempty"`
 }
 
 func (*Http1ProtocolOptions_HeaderKeyFormat_ProperCaseWords_) isHttp1ProtocolOptions_HeaderKeyFormat_HeaderFormat() {
@@ -322,7 +467,7 @@ func (m *Http1ProtocolOptions_HeaderKeyFormat_ProperCaseWords) String() string {
 }
 func (*Http1ProtocolOptions_HeaderKeyFormat_ProperCaseWords) ProtoMessage() {}
 func (*Http1ProtocolOptions_HeaderKeyFormat_ProperCaseWords) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d86476e078060b60, []int{2, 0, 0}
+	return fileDescriptor_d86476e078060b60, []int{3, 0, 0}
 }
 func (m *Http1ProtocolOptions_HeaderKeyFormat_ProperCaseWords) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -351,7 +496,7 @@ func (m *Http1ProtocolOptions_HeaderKeyFormat_ProperCaseWords) XXX_DiscardUnknow
 
 var xxx_messageInfo_Http1ProtocolOptions_HeaderKeyFormat_ProperCaseWords proto.InternalMessageInfo
 
-// [#next-free-field: 13]
+// [#next-free-field: 14]
 type Http2ProtocolOptions struct {
 	// `Maximum table size <https://httpwg.org/specs/rfc7541.html#rfc.section.4.2>`_
 	// (in octets) that the encoder is permitted to use for the dynamic HPACK table. Valid values
@@ -361,6 +506,10 @@ type Http2ProtocolOptions struct {
 	// `Maximum concurrent streams <https://httpwg.org/specs/rfc7540.html#rfc.section.5.1.2>`_
 	// allowed for peer on one HTTP/2 connection. Valid values range from 1 to 2147483647 (2^31 - 1)
 	// and defaults to 2147483647.
+	//
+	// For upstream connections, this also limits how many streams Envoy will initiate concurrently
+	// on a single connection. If the limit is reached, Envoy may queue requests or establish
+	// additional connections (as allowed per circuit breaker limits).
 	MaxConcurrentStreams *types.UInt32Value `protobuf:"bytes,2,opt,name=max_concurrent_streams,json=maxConcurrentStreams,proto3" json:"max_concurrent_streams,omitempty"`
 	// `Initial stream-level flow-control window
 	// <https://httpwg.org/specs/rfc7540.html#rfc.section.6.9.2>`_ size. Valid values range from 65535
@@ -435,17 +584,44 @@ type Http2ProtocolOptions struct {
 	// when this option is enabled, only the offending stream is terminated.
 	//
 	// See `RFC7540, sec. 8.1 <https://tools.ietf.org/html/rfc7540#section-8.1>`_ for details.
-	StreamErrorOnInvalidHttpMessaging bool     `protobuf:"varint,12,opt,name=stream_error_on_invalid_http_messaging,json=streamErrorOnInvalidHttpMessaging,proto3" json:"stream_error_on_invalid_http_messaging,omitempty"`
-	XXX_NoUnkeyedLiteral              struct{} `json:"-"`
-	XXX_unrecognized                  []byte   `json:"-"`
-	XXX_sizecache                     int32    `json:"-"`
+	StreamErrorOnInvalidHttpMessaging bool `protobuf:"varint,12,opt,name=stream_error_on_invalid_http_messaging,json=streamErrorOnInvalidHttpMessaging,proto3" json:"stream_error_on_invalid_http_messaging,omitempty"`
+	// [#not-implemented-hide:]
+	// Specifies SETTINGS frame parameters to be sent to the peer, with two exceptions:
+	//
+	// 1. SETTINGS_ENABLE_PUSH (0x2) is not configurable as HTTP/2 server push is not supported by
+	// Envoy.
+	//
+	// 2. SETTINGS_ENABLE_CONNECT_PROTOCOL (0x8) is only configurable through the named field
+	// 'allow_connect'.
+	//
+	// Note that custom parameters specified through this field can not also be set in the
+	// corresponding named parameters:
+	//
+	// .. code-block:: text
+	//
+	//   ID    Field Name
+	//   ----------------
+	//   0x1   hpack_table_size
+	//   0x3   max_concurrent_streams
+	//   0x4   initial_stream_window_size
+	//
+	// Collisions will trigger config validation failure on load/update. Likewise, inconsistencies
+	// between custom parameters with the same identifier will trigger a failure.
+	//
+	// See `IANA HTTP/2 Settings
+	// <https://www.iana.org/assignments/http2-parameters/http2-parameters.xhtml#settings>`_ for
+	// standardized identifiers.
+	CustomSettingsParameters []*Http2ProtocolOptions_SettingsParameter `protobuf:"bytes,13,rep,name=custom_settings_parameters,json=customSettingsParameters,proto3" json:"custom_settings_parameters,omitempty"`
+	XXX_NoUnkeyedLiteral     struct{}                                  `json:"-"`
+	XXX_unrecognized         []byte                                    `json:"-"`
+	XXX_sizecache            int32                                     `json:"-"`
 }
 
 func (m *Http2ProtocolOptions) Reset()         { *m = Http2ProtocolOptions{} }
 func (m *Http2ProtocolOptions) String() string { return proto.CompactTextString(m) }
 func (*Http2ProtocolOptions) ProtoMessage()    {}
 func (*Http2ProtocolOptions) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d86476e078060b60, []int{3}
+	return fileDescriptor_d86476e078060b60, []int{4}
 }
 func (m *Http2ProtocolOptions) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -558,6 +734,74 @@ func (m *Http2ProtocolOptions) GetStreamErrorOnInvalidHttpMessaging() bool {
 	return false
 }
 
+func (m *Http2ProtocolOptions) GetCustomSettingsParameters() []*Http2ProtocolOptions_SettingsParameter {
+	if m != nil {
+		return m.CustomSettingsParameters
+	}
+	return nil
+}
+
+// Defines a parameter to be sent in the SETTINGS frame.
+// See `RFC7540, sec. 6.5.1 <https://tools.ietf.org/html/rfc7540#section-6.5.1>`_ for details.
+type Http2ProtocolOptions_SettingsParameter struct {
+	// The 16 bit parameter identifier.
+	Identifier *types.UInt32Value `protobuf:"bytes,1,opt,name=identifier,proto3" json:"identifier,omitempty"`
+	// The 32 bit parameter value.
+	Value                *types.UInt32Value `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}           `json:"-"`
+	XXX_unrecognized     []byte             `json:"-"`
+	XXX_sizecache        int32              `json:"-"`
+}
+
+func (m *Http2ProtocolOptions_SettingsParameter) Reset() {
+	*m = Http2ProtocolOptions_SettingsParameter{}
+}
+func (m *Http2ProtocolOptions_SettingsParameter) String() string { return proto.CompactTextString(m) }
+func (*Http2ProtocolOptions_SettingsParameter) ProtoMessage()    {}
+func (*Http2ProtocolOptions_SettingsParameter) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d86476e078060b60, []int{4, 0}
+}
+func (m *Http2ProtocolOptions_SettingsParameter) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *Http2ProtocolOptions_SettingsParameter) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_Http2ProtocolOptions_SettingsParameter.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *Http2ProtocolOptions_SettingsParameter) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Http2ProtocolOptions_SettingsParameter.Merge(m, src)
+}
+func (m *Http2ProtocolOptions_SettingsParameter) XXX_Size() int {
+	return m.Size()
+}
+func (m *Http2ProtocolOptions_SettingsParameter) XXX_DiscardUnknown() {
+	xxx_messageInfo_Http2ProtocolOptions_SettingsParameter.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Http2ProtocolOptions_SettingsParameter proto.InternalMessageInfo
+
+func (m *Http2ProtocolOptions_SettingsParameter) GetIdentifier() *types.UInt32Value {
+	if m != nil {
+		return m.Identifier
+	}
+	return nil
+}
+
+func (m *Http2ProtocolOptions_SettingsParameter) GetValue() *types.UInt32Value {
+	if m != nil {
+		return m.Value
+	}
+	return nil
+}
+
 // [#not-implemented-hide:]
 type GrpcProtocolOptions struct {
 	Http2ProtocolOptions *Http2ProtocolOptions `protobuf:"bytes,1,opt,name=http2_protocol_options,json=http2ProtocolOptions,proto3" json:"http2_protocol_options,omitempty"`
@@ -570,7 +814,7 @@ func (m *GrpcProtocolOptions) Reset()         { *m = GrpcProtocolOptions{} }
 func (m *GrpcProtocolOptions) String() string { return proto.CompactTextString(m) }
 func (*GrpcProtocolOptions) ProtoMessage()    {}
 func (*GrpcProtocolOptions) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d86476e078060b60, []int{4}
+	return fileDescriptor_d86476e078060b60, []int{5}
 }
 func (m *GrpcProtocolOptions) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -607,80 +851,103 @@ func (m *GrpcProtocolOptions) GetHttp2ProtocolOptions() *Http2ProtocolOptions {
 }
 
 func init() {
+	proto.RegisterEnum("envoy.api.v2.core.HttpProtocolOptions_HeadersWithUnderscoresAction", HttpProtocolOptions_HeadersWithUnderscoresAction_name, HttpProtocolOptions_HeadersWithUnderscoresAction_value)
 	proto.RegisterType((*TcpProtocolOptions)(nil), "envoy.api.v2.core.TcpProtocolOptions")
+	proto.RegisterType((*UpstreamHttpProtocolOptions)(nil), "envoy.api.v2.core.UpstreamHttpProtocolOptions")
 	proto.RegisterType((*HttpProtocolOptions)(nil), "envoy.api.v2.core.HttpProtocolOptions")
 	proto.RegisterType((*Http1ProtocolOptions)(nil), "envoy.api.v2.core.Http1ProtocolOptions")
 	proto.RegisterType((*Http1ProtocolOptions_HeaderKeyFormat)(nil), "envoy.api.v2.core.Http1ProtocolOptions.HeaderKeyFormat")
 	proto.RegisterType((*Http1ProtocolOptions_HeaderKeyFormat_ProperCaseWords)(nil), "envoy.api.v2.core.Http1ProtocolOptions.HeaderKeyFormat.ProperCaseWords")
 	proto.RegisterType((*Http2ProtocolOptions)(nil), "envoy.api.v2.core.Http2ProtocolOptions")
+	proto.RegisterType((*Http2ProtocolOptions_SettingsParameter)(nil), "envoy.api.v2.core.Http2ProtocolOptions.SettingsParameter")
 	proto.RegisterType((*GrpcProtocolOptions)(nil), "envoy.api.v2.core.GrpcProtocolOptions")
 }
 
 func init() { proto.RegisterFile("envoy/api/v2/core/protocol.proto", fileDescriptor_d86476e078060b60) }
 
 var fileDescriptor_d86476e078060b60 = []byte{
-	// 963 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x56, 0x4d, 0x6f, 0x1b, 0x45,
-	0x18, 0x66, 0xeb, 0xb4, 0x4d, 0x26, 0x1f, 0xae, 0x37, 0x21, 0x59, 0x5c, 0x64, 0x5a, 0x03, 0x25,
-	0x0a, 0x68, 0xdd, 0xb8, 0x08, 0x2e, 0x08, 0x09, 0xa7, 0x4d, 0x1d, 0xa1, 0x2a, 0x66, 0x93, 0x90,
-	0x13, 0x1a, 0x8d, 0x77, 0xc7, 0xf1, 0xa8, 0xbb, 0x33, 0xa3, 0x99, 0x59, 0x7f, 0xf4, 0xcc, 0x3f,
-	0x40, 0xfc, 0x12, 0x2e, 0x88, 0x53, 0x8f, 0x1c, 0xb9, 0x72, 0x43, 0xb9, 0xf5, 0x37, 0x70, 0x30,
-	0x9a, 0x8f, 0x4d, 0x1d, 0xbb, 0x40, 0xd2, 0x93, 0x77, 0xdf, 0x79, 0xde, 0xe7, 0x79, 0xdf, 0x99,
-	0x67, 0xde, 0x35, 0xb8, 0x87, 0xe9, 0x80, 0x8d, 0x1b, 0x88, 0x93, 0xc6, 0xa0, 0xd9, 0x88, 0x99,
-	0xc0, 0x0d, 0x2e, 0x98, 0x62, 0x31, 0x4b, 0x43, 0xf3, 0xe0, 0x57, 0x0c, 0x22, 0x44, 0x9c, 0x84,
-	0x83, 0x66, 0xa8, 0x11, 0xd5, 0xda, 0x19, 0x63, 0x67, 0xa9, 0x43, 0x76, 0xf3, 0x5e, 0x23, 0xc9,
-	0x05, 0x52, 0x84, 0x51, 0x9b, 0x32, 0xbf, 0x3e, 0x14, 0x88, 0x73, 0x2c, 0xa4, 0x5b, 0xdf, 0x1a,
-	0xa0, 0x94, 0x24, 0x48, 0xe1, 0x46, 0xf1, 0x60, 0x17, 0xea, 0x1b, 0xc0, 0x3f, 0x8e, 0x79, 0xc7,
-	0x15, 0x70, 0xc8, 0x35, 0xa7, 0xac, 0xff, 0xed, 0x81, 0xf5, 0xb6, 0x52, 0xb3, 0x71, 0xff, 0x2b,
-	0xb0, 0x42, 0x92, 0x14, 0x43, 0x45, 0x32, 0xcc, 0x72, 0x15, 0x78, 0xf7, 0xbc, 0xed, 0xe5, 0xe6,
-	0x7b, 0xa1, 0x55, 0x0f, 0x0b, 0xf5, 0xf0, 0xb1, 0xab, 0x2e, 0x5a, 0xd6, 0xf0, 0x63, 0x8b, 0xf6,
-	0xbf, 0x03, 0x5b, 0x19, 0x1a, 0xc1, 0x98, 0x51, 0x8a, 0x63, 0xbd, 0x0c, 0x8b, 0x2e, 0x82, 0xd2,
-	0xff, 0x11, 0xbd, 0x9b, 0xa1, 0xd1, 0xde, 0x45, 0x62, 0x11, 0xf6, 0x8f, 0x40, 0x45, 0x53, 0xf6,
-	0x31, 0x4a, 0xb0, 0x90, 0x30, 0x66, 0x39, 0x55, 0xc1, 0x0d, 0x43, 0xf6, 0xfe, 0x1c, 0xd9, 0xc9,
-	0x01, 0x55, 0x8f, 0x9a, 0xdf, 0xa3, 0x34, 0xc7, 0xad, 0xa5, 0xdf, 0x5e, 0xbd, 0x2c, 0x2d, 0xec,
-	0xdc, 0xd8, 0xf6, 0xa2, 0x72, 0x86, 0x46, 0x6d, 0x4b, 0xb0, 0xa7, 0xf3, 0xeb, 0x7f, 0x96, 0xc0,
-	0x86, 0xee, 0x7e, 0x77, 0xb6, 0xfd, 0x36, 0xf0, 0x51, 0x9a, 0xb2, 0x21, 0x44, 0x5d, 0xc9, 0xd2,
-	0x5c, 0x61, 0x98, 0x8b, 0xd4, 0x6d, 0x42, 0x75, 0x4e, 0xae, 0xc5, 0x58, 0x6a, 0xc4, 0xa2, 0x3b,
-	0x26, 0xeb, 0x1b, 0x97, 0x74, 0x22, 0x52, 0xff, 0x23, 0xb0, 0x86, 0xe2, 0x18, 0x73, 0x05, 0xfb,
-	0x4a, 0x71, 0xb8, 0xfb, 0xd0, 0x14, 0xbd, 0x18, 0xad, 0xd8, 0xa8, 0x51, 0x7f, 0xe8, 0x7f, 0x01,
-	0x82, 0x04, 0xf7, 0x50, 0x9e, 0x2a, 0xd8, 0x67, 0x52, 0xc1, 0x1e, 0x13, 0x17, 0x78, 0xbd, 0x63,
-	0x4b, 0xd1, 0x86, 0x5b, 0x6f, 0x33, 0xa9, 0xf6, 0x99, 0x70, 0x79, 0x31, 0xa8, 0xd8, 0x1d, 0x81,
-	0xcf, 0xf1, 0x58, 0x67, 0x65, 0x48, 0x05, 0x0b, 0xa6, 0xcc, 0x2f, 0xc3, 0x39, 0x73, 0x85, 0x6f,
-	0xea, 0x35, 0xb4, 0x3b, 0xf2, 0x2d, 0x1e, 0xef, 0x9b, 0xf4, 0xa8, 0xdc, 0xbf, 0x1c, 0xa8, 0xfe,
-	0xe2, 0x81, 0xf2, 0x0c, 0xc8, 0xcf, 0x41, 0x85, 0x0b, 0xc6, 0xb1, 0x80, 0x31, 0x92, 0x18, 0x0e,
-	0x99, 0x48, 0xa4, 0xdb, 0x9f, 0xa7, 0x6f, 0x29, 0x1c, 0x76, 0x0c, 0xe1, 0x1e, 0x92, 0xf8, 0x54,
-	0xd3, 0xb5, 0xdf, 0x89, 0xca, 0xfc, 0x72, 0xa8, 0x5a, 0x01, 0xe5, 0x19, 0x54, 0x6b, 0x13, 0xac,
-	0xba, 0x2d, 0xb0, 0xed, 0xfb, 0x37, 0x7f, 0x7d, 0xf5, 0xb2, 0xe4, 0xd5, 0x7f, 0x5e, 0xb2, 0x67,
-	0xdb, 0x9c, 0x3d, 0xdb, 0x7d, 0x70, 0xa7, 0xcf, 0x51, 0xfc, 0x1c, 0x2a, 0xd4, 0x4d, 0x31, 0x94,
-	0xe4, 0x05, 0x76, 0x95, 0xff, 0xa7, 0x91, 0xa2, 0x35, 0x93, 0x75, 0xac, 0x93, 0x8e, 0xc8, 0x0b,
-	0xec, 0xc7, 0x60, 0xd3, 0x99, 0x3c, 0xce, 0x85, 0xc0, 0x54, 0x41, 0xa9, 0x04, 0x46, 0x99, 0xbc,
-	0x92, 0x2d, 0xcb, 0xda, 0x96, 0x60, 0x67, 0x31, 0x98, 0x4c, 0x26, 0x93, 0xdb, 0xdb, 0x5e, 0xb4,
-	0x61, 0x7d, 0xef, 0xb8, 0x8e, 0x2c, 0x95, 0x9f, 0x82, 0x2a, 0xa1, 0x44, 0x11, 0x94, 0x3a, 0x76,
-	0x38, 0x24, 0x34, 0x61, 0x43, 0x5b, 0x76, 0xe9, 0x0a, 0x42, 0x15, 0x2d, 0xb4, 0xb2, 0x03, 0x9c,
-	0xd0, 0x64, 0x52, 0x8a, 0xb6, 0x1c, 0xa5, 0x15, 0x39, 0x35, 0x84, 0xa6, 0x25, 0x05, 0x6a, 0x85,
-	0xda, 0xd4, 0xdd, 0x9d, 0x56, 0x5c, 0x78, 0x3b, 0xc5, 0xbb, 0x8e, 0xf6, 0xf5, 0xc5, 0x9e, 0x52,
-	0xfd, 0x10, 0xac, 0xda, 0xcb, 0xe6, 0x34, 0x83, 0x9b, 0xee, 0x86, 0xe8, 0xa0, 0xcb, 0xf0, 0x3f,
-	0x06, 0x6b, 0x16, 0x94, 0x61, 0x85, 0x12, 0xa4, 0x50, 0x70, 0xcb, 0xa0, 0x6c, 0xea, 0x33, 0x17,
-	0xf4, 0x4f, 0xc1, 0xba, 0x3e, 0x14, 0x96, 0xab, 0x2e, 0xcb, 0x69, 0x02, 0x7b, 0x02, 0x65, 0x58,
-	0x06, 0xb7, 0xaf, 0x37, 0x28, 0xf4, 0xa8, 0x39, 0x74, 0x14, 0xfb, 0x86, 0xc1, 0xef, 0x81, 0xbb,
-	0x97, 0x88, 0x63, 0x46, 0x95, 0x60, 0x69, 0x21, 0xb0, 0x78, 0x3d, 0x81, 0x60, 0x4a, 0x60, 0xcf,
-	0x32, 0x39, 0x9d, 0x1f, 0x3d, 0xb0, 0xeb, 0x6c, 0x25, 0x71, 0x9c, 0x2b, 0x32, 0xc0, 0x90, 0xd0,
-	0xe9, 0x66, 0xe0, 0x90, 0xa8, 0x3e, 0xc4, 0x19, 0x57, 0x63, 0xc8, 0xd1, 0x38, 0x65, 0x28, 0x09,
-	0x96, 0xae, 0xe0, 0xdf, 0x4f, 0xad, 0xc1, 0x0a, 0xd6, 0x03, 0x3a, 0xd5, 0xde, 0x29, 0x51, 0xfd,
-	0x27, 0x9a, 0xb1, 0x63, 0x09, 0x7d, 0x06, 0x1e, 0xe8, 0x2a, 0x0a, 0x65, 0x2e, 0x08, 0x13, 0x44,
-	0x8d, 0x8b, 0x12, 0xf4, 0xc5, 0xb7, 0x7e, 0x0c, 0xc0, 0x15, 0xa4, 0xef, 0x67, 0x68, 0xe4, 0xf4,
-	0x3a, 0x8e, 0xc9, 0xea, 0x76, 0xb0, 0xb0, 0x26, 0xf4, 0x7f, 0xf2, 0xc0, 0xe7, 0xd3, 0x8a, 0xce,
-	0x74, 0x39, 0xd7, 0x9f, 0xb0, 0x69, 0x59, 0x7d, 0xcc, 0xf6, 0x1d, 0x4a, 0x4c, 0x55, 0xb0, 0x7c,
-	0xbd, 0x9d, 0xff, 0xec, 0x75, 0x29, 0xd6, 0x82, 0x27, 0x46, 0xe1, 0xa2, 0x9c, 0xc7, 0x48, 0x21,
-	0xf3, 0x72, 0x84, 0xa9, 0xfe, 0x90, 0x3d, 0x70, 0xd7, 0x0e, 0x0b, 0xc1, 0x04, 0x64, 0x14, 0x12,
-	0x6a, 0x3e, 0xac, 0x76, 0x3c, 0x67, 0x58, 0x4a, 0x74, 0x46, 0xe8, 0x59, 0xb0, 0x62, 0xdc, 0x78,
-	0xdf, 0xa2, 0x9f, 0x68, 0xf0, 0x21, 0x3d, 0xb0, 0x50, 0x3d, 0x85, 0x9e, 0x15, 0xc0, 0xba, 0x02,
-	0xeb, 0x4f, 0x05, 0x8f, 0x67, 0xa7, 0xd2, 0x0f, 0x60, 0x53, 0x33, 0x36, 0x61, 0xf1, 0x17, 0x01,
-	0x32, 0xbb, 0xe2, 0x66, 0xd3, 0x27, 0xff, 0x32, 0x55, 0x67, 0xc7, 0x5b, 0xb4, 0xd1, 0x7f, 0x43,
-	0xb4, 0xf5, 0xf5, 0xef, 0xe7, 0x35, 0xef, 0x8f, 0xf3, 0x9a, 0xf7, 0xd7, 0x79, 0xcd, 0x03, 0x1f,
-	0x10, 0x66, 0xe9, 0xb8, 0x60, 0xa3, 0xf1, 0x3c, 0x73, 0x6b, 0xb5, 0xc8, 0x37, 0xbf, 0x1d, 0xaf,
-	0x7b, 0xcb, 0x94, 0xf5, 0xe8, 0x9f, 0x00, 0x00, 0x00, 0xff, 0xff, 0x34, 0xf0, 0xff, 0x02, 0xd4,
-	0x08, 0x00, 0x00,
+	// 1292 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x56, 0x3d, 0x6f, 0x1b, 0x47,
+	0x13, 0xf6, 0xe9, 0xdb, 0x4b, 0x49, 0x24, 0x57, 0x7c, 0xed, 0x33, 0xed, 0x57, 0x96, 0xf9, 0xbe,
+	0xb1, 0x05, 0x25, 0x20, 0x2d, 0x3a, 0x48, 0x10, 0xc0, 0x8d, 0x28, 0x51, 0x96, 0x12, 0x3b, 0xa2,
+	0x4e, 0xa2, 0x55, 0x05, 0x8b, 0xd5, 0x71, 0x45, 0x6e, 0x7c, 0xdc, 0x3d, 0xec, 0xed, 0x91, 0xa2,
+	0x2b, 0x15, 0xa9, 0xdc, 0x04, 0xe9, 0xd2, 0x06, 0x48, 0x93, 0x32, 0x6d, 0x7e, 0x81, 0xcb, 0xe4,
+	0x1f, 0x04, 0xfe, 0x09, 0xa9, 0x02, 0x15, 0x51, 0xb0, 0x1f, 0x27, 0xd1, 0xa4, 0x6c, 0xd3, 0xae,
+	0xc8, 0x9b, 0x99, 0xe7, 0x79, 0x66, 0x67, 0x67, 0x06, 0x0b, 0x96, 0x08, 0xeb, 0xf0, 0x5e, 0x09,
+	0x87, 0xb4, 0xd4, 0x29, 0x97, 0x7c, 0x2e, 0x48, 0x29, 0x14, 0x5c, 0x72, 0x9f, 0x07, 0x45, 0xfd,
+	0x07, 0x66, 0x75, 0x44, 0x11, 0x87, 0xb4, 0xd8, 0x29, 0x17, 0x55, 0x44, 0x7e, 0xb1, 0xc9, 0x79,
+	0x33, 0xb0, 0x91, 0x87, 0xf1, 0x51, 0xa9, 0x11, 0x0b, 0x2c, 0x29, 0x67, 0x06, 0x32, 0xec, 0xef,
+	0x0a, 0x1c, 0x86, 0x44, 0x44, 0x89, 0x3f, 0x6e, 0x84, 0xb8, 0x84, 0x19, 0xe3, 0x52, 0xc3, 0xa2,
+	0x52, 0x9b, 0x36, 0x05, 0x96, 0xc4, 0xfa, 0xff, 0x3b, 0xe4, 0x8f, 0x24, 0x96, 0x71, 0x02, 0xbf,
+	0xde, 0xc1, 0x01, 0x6d, 0x60, 0x49, 0x4a, 0xc9, 0x1f, 0xe3, 0x28, 0xe4, 0x00, 0xdc, 0xf7, 0xc3,
+	0x9a, 0xcd, 0x7f, 0x27, 0xd4, 0xd8, 0x42, 0x0b, 0xdc, 0xac, 0x87, 0x91, 0x14, 0x04, 0xb7, 0xb7,
+	0xa4, 0x1c, 0x74, 0xc3, 0x1b, 0x60, 0x06, 0xc7, 0x92, 0xa3, 0x88, 0x51, 0xd7, 0x59, 0x72, 0x96,
+	0x67, 0xbc, 0x69, 0xf5, 0xbd, 0xc7, 0x28, 0x2c, 0x82, 0x05, 0xe3, 0xc2, 0x0c, 0x59, 0x29, 0xca,
+	0x99, 0x3b, 0xa6, 0xa3, 0xb2, 0x3a, 0x0a, 0xb3, 0xa7, 0xe7, 0x8e, 0xc2, 0x4f, 0x13, 0x60, 0xe1,
+	0x32, 0x89, 0x87, 0x60, 0x96, 0x36, 0x02, 0x82, 0x24, 0x6d, 0x13, 0x1e, 0x4b, 0x2d, 0x93, 0x2a,
+	0xdf, 0x28, 0x9a, 0x32, 0x15, 0x93, 0x32, 0x15, 0x37, 0x6c, 0x19, 0xbd, 0x94, 0x0a, 0xdf, 0x37,
+	0xd1, 0x70, 0x17, 0x5c, 0x6f, 0xe3, 0x63, 0xe4, 0x73, 0xc6, 0x88, 0xaf, 0xdc, 0x28, 0x29, 0xb7,
+	0x3b, 0xfe, 0x2e, 0xa2, 0xff, 0xb4, 0xf1, 0xf1, 0xfa, 0x39, 0x30, 0x31, 0xc3, 0x5d, 0x90, 0x55,
+	0x94, 0x2d, 0x82, 0x1b, 0x44, 0x44, 0xc8, 0xe7, 0x31, 0x93, 0xfa, 0x58, 0xa9, 0xf2, 0xad, 0x21,
+	0xb2, 0xfa, 0x36, 0x93, 0x0f, 0xca, 0x4f, 0x71, 0x10, 0x93, 0xca, 0xf4, 0x69, 0x65, 0x62, 0x65,
+	0x6c, 0xd9, 0xf1, 0xd2, 0x6d, 0x7c, 0xbc, 0x65, 0xe0, 0xeb, 0x0a, 0x0d, 0xb7, 0xc1, 0x82, 0xa2,
+	0x34, 0x75, 0xbe, 0xc8, 0x70, 0xe2, 0x5d, 0x19, 0xaa, 0x44, 0xf6, 0x34, 0xe8, 0x3c, 0xbb, 0x17,
+	0x0e, 0xb8, 0x9d, 0xa4, 0xd6, 0xa5, 0xb2, 0x85, 0x62, 0xa6, 0xfe, 0xab, 0xd6, 0x8b, 0x10, 0xd6,
+	0x27, 0x71, 0x27, 0x97, 0x9c, 0xe5, 0xf9, 0xf2, 0x7a, 0x71, 0xa8, 0x39, 0x8b, 0x97, 0x5c, 0x40,
+	0xd1, 0x66, 0x7a, 0x40, 0x65, 0xab, 0x7e, 0xc1, 0xb5, 0xa6, 0xa9, 0xbc, 0x5b, 0xad, 0xb7, 0x78,
+	0x0b, 0x5f, 0x83, 0x5b, 0x6f, 0x43, 0xc3, 0xab, 0x60, 0x72, 0xed, 0xf1, 0xe3, 0x9d, 0x83, 0xcc,
+	0x15, 0x08, 0xc1, 0xbc, 0x57, 0xfd, 0xb2, 0xba, 0xbe, 0x8f, 0xbc, 0xea, 0x6e, 0xbd, 0xba, 0xb7,
+	0x9f, 0x71, 0x60, 0x1a, 0xa4, 0x36, 0xbc, 0x9d, 0x1a, 0xda, 0xaa, 0xae, 0x6d, 0x54, 0xbd, 0xcc,
+	0x58, 0xe1, 0x64, 0x02, 0xe4, 0x54, 0x8a, 0xab, 0x83, 0x4d, 0xb2, 0x05, 0x20, 0x0e, 0x02, 0xde,
+	0x45, 0xf8, 0x30, 0xe2, 0x41, 0x2c, 0x09, 0x8a, 0x45, 0x60, 0x5b, 0x25, 0x3f, 0x54, 0xbf, 0x0a,
+	0xe7, 0x81, 0xbe, 0x12, 0x2f, 0xa3, 0x51, 0x6b, 0x16, 0x54, 0x17, 0x01, 0xfc, 0x3f, 0x98, 0xc7,
+	0xbe, 0x4f, 0x42, 0x89, 0x5a, 0x52, 0x86, 0x68, 0xf5, 0xbe, 0xed, 0xd8, 0x59, 0x63, 0xd5, 0xea,
+	0xf7, 0xe1, 0x67, 0xc0, 0x6d, 0x90, 0x23, 0x1c, 0x07, 0x12, 0xb5, 0x78, 0x24, 0xd1, 0x11, 0x17,
+	0xe7, 0xf1, 0xaa, 0xaf, 0xae, 0x7a, 0x39, 0xeb, 0xdf, 0xe2, 0x91, 0xdc, 0xe4, 0xc2, 0xe2, 0x7c,
+	0x90, 0x35, 0x05, 0x43, 0xcf, 0x48, 0x4f, 0xa1, 0xda, 0x58, 0xda, 0x6b, 0xfe, 0xfc, 0x0d, 0xd7,
+	0xb1, 0x7a, 0xf9, 0x7d, 0x7c, 0x45, 0x7a, 0x9b, 0x1a, 0xee, 0xa5, 0x5b, 0xaf, 0x1b, 0xe0, 0x3d,
+	0x90, 0x26, 0x0c, 0x1f, 0xaa, 0x99, 0x11, 0x98, 0x06, 0x44, 0x44, 0xfa, 0xc6, 0x67, 0xbc, 0x79,
+	0x63, 0xde, 0xb7, 0xd6, 0xfc, 0xaf, 0x0e, 0x48, 0x0f, 0xb0, 0xc1, 0x18, 0x64, 0x43, 0xc1, 0x43,
+	0x22, 0x90, 0x8f, 0x23, 0x82, 0xba, 0x5c, 0x34, 0x22, 0x5b, 0xc8, 0x47, 0x1f, 0x98, 0x61, 0xb1,
+	0xa6, 0x09, 0xd7, 0x71, 0x44, 0x0e, 0x14, 0xdd, 0xd6, 0x15, 0x2f, 0x1d, 0xbe, 0x6e, 0xca, 0x67,
+	0x41, 0x7a, 0x20, 0xaa, 0x92, 0x03, 0x73, 0xb6, 0x56, 0xa6, 0x4e, 0x70, 0xfc, 0xef, 0x8a, 0x53,
+	0xf8, 0x25, 0x65, 0x5a, 0xa0, 0x3c, 0xd8, 0x02, 0x9b, 0x20, 0xd3, 0x0a, 0xb1, 0xff, 0x0c, 0x49,
+	0x7d, 0xf4, 0x88, 0x3e, 0x27, 0x36, 0xef, 0xb7, 0x4e, 0xa5, 0x37, 0xaf, 0x51, 0xfb, 0x0a, 0xb4,
+	0x47, 0x9f, 0x13, 0x88, 0xc1, 0x35, 0xbb, 0x31, 0xfc, 0x58, 0x08, 0xc2, 0xa4, 0x1d, 0xcb, 0x68,
+	0xa4, 0x19, 0x9f, 0x3b, 0xad, 0x80, 0x95, 0x19, 0xf7, 0xec, 0xec, 0xec, 0x6c, 0x7a, 0xd9, 0xf1,
+	0x72, 0x66, 0x85, 0x58, 0x26, 0x33, 0xaa, 0x11, 0xfc, 0x16, 0xe4, 0x29, 0xa3, 0x92, 0xe2, 0x20,
+	0x19, 0xf9, 0x2e, 0x65, 0x0d, 0xde, 0x35, 0x49, 0x8f, 0x8f, 0x20, 0x93, 0x3e, 0xad, 0xcc, 0xae,
+	0x00, 0x2b, 0x73, 0x76, 0x36, 0xee, 0x5d, 0xb7, 0x84, 0x46, 0xe2, 0x40, 0xd3, 0xe9, 0xe3, 0x08,
+	0xb0, 0x98, 0x68, 0xf5, 0x2d, 0xc1, 0x7e, 0xbd, 0x89, 0x0f, 0xd1, 0xbb, 0x69, 0x49, 0x2f, 0xf6,
+	0x63, 0x9f, 0xe6, 0xff, 0xc0, 0x9c, 0x99, 0x46, 0xab, 0x68, 0xdb, 0x6f, 0x56, 0x1b, 0x2d, 0x02,
+	0x7e, 0x04, 0xe6, 0x4d, 0x50, 0x9b, 0x48, 0xdc, 0xc0, 0x12, 0xbb, 0x53, 0x3a, 0xca, 0x40, 0x9f,
+	0x58, 0x23, 0xac, 0x9b, 0xd5, 0xc8, 0x63, 0x79, 0xc8, 0x63, 0xd6, 0x40, 0x47, 0x02, 0xb7, 0x49,
+	0xe4, 0x4e, 0xbf, 0xcf, 0xbe, 0x55, 0x6b, 0x72, 0xc7, 0x12, 0x6c, 0x6a, 0x3c, 0x6c, 0x80, 0x9b,
+	0xaf, 0xd1, 0xfa, 0x9c, 0x49, 0xc1, 0x83, 0x84, 0x7e, 0xe6, 0x7d, 0xe8, 0xdd, 0x3e, 0xfa, 0x75,
+	0xc3, 0x63, 0x55, 0xbe, 0x73, 0xc0, 0xaa, 0x6d, 0xa6, 0x88, 0xf8, 0xb1, 0xa4, 0x1d, 0x82, 0x28,
+	0xeb, 0x3f, 0x88, 0xd9, 0xd1, 0xa4, 0x1d, 0xca, 0x1e, 0x0a, 0x71, 0x2f, 0xe0, 0xb8, 0xe1, 0x5e,
+	0x1d, 0xa1, 0x6b, 0x3f, 0x36, 0x8d, 0x95, 0xb0, 0x6e, 0xb3, 0xbe, 0xc3, 0xa9, 0x5d, 0x5b, 0x55,
+	0x8c, 0x35, 0x43, 0x08, 0x39, 0xb8, 0xab, 0xb2, 0x48, 0x94, 0x43, 0x41, 0xb9, 0xa0, 0xb2, 0x97,
+	0xa4, 0xa0, 0x86, 0xdd, 0xf4, 0xa1, 0x0b, 0x46, 0x90, 0xbe, 0xd3, 0xc6, 0xc7, 0x56, 0xaf, 0x66,
+	0x99, 0x8c, 0x6e, 0x8d, 0x08, 0xd3, 0x7e, 0xf0, 0x07, 0x07, 0x7c, 0xda, 0xaf, 0x68, 0xdb, 0x2d,
+	0x0e, 0xd5, 0x7b, 0xa3, 0x5f, 0x56, 0x5d, 0xb1, 0xf9, 0x46, 0x11, 0x61, 0xd2, 0x4d, 0xbd, 0x4f,
+	0xdd, 0x3f, 0xb9, 0x48, 0xc4, 0x34, 0x5f, 0x5d, 0xf3, 0x9f, 0x27, 0xb3, 0x81, 0x25, 0xd6, 0x1f,
+	0x7b, 0x84, 0xa9, 0x97, 0xc0, 0x5d, 0x3b, 0x6c, 0x44, 0x08, 0x2e, 0x10, 0x67, 0x88, 0x32, 0xfd,
+	0x30, 0x31, 0x9b, 0xbb, 0x4d, 0xa2, 0x08, 0x37, 0x29, 0x6b, 0xba, 0xb3, 0xba, 0x0f, 0xef, 0x98,
+	0xe8, 0xaa, 0x0a, 0xde, 0x61, 0xdb, 0x26, 0x54, 0x6d, 0x9e, 0x27, 0x49, 0x20, 0xec, 0x82, 0xbc,
+	0x1f, 0x47, 0x92, 0xb7, 0x51, 0x44, 0xa4, 0xa4, 0xac, 0x19, 0xa1, 0x10, 0x2b, 0x41, 0xa9, 0x76,
+	0xee, 0xdc, 0xd2, 0xf8, 0x72, 0xaa, 0xfc, 0xc5, 0x1b, 0x96, 0xe6, 0xe0, 0xfe, 0x2a, 0xee, 0x59,
+	0x8a, 0x5a, 0xc2, 0xe0, 0xb9, 0x86, 0x7c, 0xc8, 0x11, 0xe5, 0x7f, 0x76, 0x40, 0x76, 0xc8, 0x0c,
+	0x77, 0x01, 0xa0, 0x0d, 0xc2, 0x24, 0x3d, 0xa2, 0x44, 0x8c, 0xb2, 0xfb, 0x2a, 0x0b, 0xa7, 0x95,
+	0x99, 0x95, 0x29, 0xf7, 0xe4, 0x64, 0x62, 0xd9, 0x39, 0xad, 0x4c, 0xbe, 0x70, 0xc6, 0x32, 0x8e,
+	0xd7, 0x47, 0x02, 0x1f, 0x82, 0xc9, 0x8e, 0x8a, 0x1c, 0x69, 0xf7, 0xcd, 0x9c, 0x53, 0x18, 0x50,
+	0x41, 0x82, 0x85, 0x47, 0x22, 0xf4, 0x07, 0x37, 0xf5, 0x37, 0xe0, 0x9a, 0xaa, 0x78, 0x19, 0x25,
+	0x8f, 0x65, 0xc4, 0x8d, 0xc7, 0xe6, 0x7c, 0x6f, 0xc4, 0x92, 0x79, 0xb9, 0xd6, 0x25, 0xd6, 0xca,
+	0xe1, 0xcb, 0x57, 0x8b, 0xce, 0xef, 0xaf, 0x16, 0x9d, 0x3f, 0x5f, 0x2d, 0x3a, 0x7f, 0xfd, 0xf8,
+	0xcf, 0xf7, 0x93, 0xd7, 0x60, 0xce, 0x30, 0xfa, 0x9c, 0x1d, 0xd1, 0xa6, 0x61, 0xec, 0x3c, 0xf8,
+	0xed, 0xe4, 0xe5, 0x1f, 0x53, 0x63, 0x99, 0x2b, 0xe0, 0x36, 0xe5, 0x46, 0x32, 0x14, 0xfc, 0xb8,
+	0x37, 0xac, 0x5e, 0x99, 0x4b, 0x34, 0xf4, 0x6f, 0xcd, 0x39, 0x9c, 0xd2, 0xa9, 0x3f, 0xf8, 0x37,
+	0x00, 0x00, 0xff, 0xff, 0x07, 0xcd, 0x82, 0xeb, 0x02, 0x0c, 0x00, 0x00,
 }
 
 func (m *TcpProtocolOptions) Marshal() (dAtA []byte, err error) {
@@ -710,6 +977,53 @@ func (m *TcpProtocolOptions) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *UpstreamHttpProtocolOptions) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *UpstreamHttpProtocolOptions) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *UpstreamHttpProtocolOptions) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.AutoSanValidation {
+		i--
+		if m.AutoSanValidation {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.AutoSni {
+		i--
+		if m.AutoSni {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *HttpProtocolOptions) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -733,6 +1047,23 @@ func (m *HttpProtocolOptions) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	if m.XXX_unrecognized != nil {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.HeadersWithUnderscoresAction != 0 {
+		i = encodeVarintProtocol(dAtA, i, uint64(m.HeadersWithUnderscoresAction))
+		i--
+		dAtA[i] = 0x28
+	}
+	if m.MaxStreamDuration != nil {
+		{
+			size, err := m.MaxStreamDuration.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintProtocol(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x22
 	}
 	if m.MaxConnectionDuration != nil {
 		{
@@ -796,6 +1127,16 @@ func (m *Http1ProtocolOptions) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	if m.XXX_unrecognized != nil {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.EnableTrailers {
+		i--
+		if m.EnableTrailers {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x28
 	}
 	if m.HeaderKeyFormat != nil {
 		{
@@ -878,7 +1219,8 @@ func (m *Http1ProtocolOptions_HeaderKeyFormat) MarshalToSizedBuffer(dAtA []byte)
 }
 
 func (m *Http1ProtocolOptions_HeaderKeyFormat_ProperCaseWords_) MarshalTo(dAtA []byte) (int, error) {
-	return m.MarshalToSizedBuffer(dAtA[:m.Size()])
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
 func (m *Http1ProtocolOptions_HeaderKeyFormat_ProperCaseWords_) MarshalToSizedBuffer(dAtA []byte) (int, error) {
@@ -947,6 +1289,20 @@ func (m *Http2ProtocolOptions) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	if m.XXX_unrecognized != nil {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.CustomSettingsParameters) > 0 {
+		for iNdEx := len(m.CustomSettingsParameters) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.CustomSettingsParameters[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintProtocol(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x6a
+		}
 	}
 	if m.StreamErrorOnInvalidHttpMessaging {
 		i--
@@ -1089,6 +1445,57 @@ func (m *Http2ProtocolOptions) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *Http2ProtocolOptions_SettingsParameter) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Http2ProtocolOptions_SettingsParameter) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *Http2ProtocolOptions_SettingsParameter) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.Value != nil {
+		{
+			size, err := m.Value.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintProtocol(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Identifier != nil {
+		{
+			size, err := m.Identifier.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintProtocol(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *GrpcProtocolOptions) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -1151,6 +1558,24 @@ func (m *TcpProtocolOptions) Size() (n int) {
 	return n
 }
 
+func (m *UpstreamHttpProtocolOptions) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.AutoSni {
+		n += 2
+	}
+	if m.AutoSanValidation {
+		n += 2
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
 func (m *HttpProtocolOptions) Size() (n int) {
 	if m == nil {
 		return 0
@@ -1168,6 +1593,13 @@ func (m *HttpProtocolOptions) Size() (n int) {
 	if m.MaxConnectionDuration != nil {
 		l = m.MaxConnectionDuration.Size()
 		n += 1 + l + sovProtocol(uint64(l))
+	}
+	if m.MaxStreamDuration != nil {
+		l = m.MaxStreamDuration.Size()
+		n += 1 + l + sovProtocol(uint64(l))
+	}
+	if m.HeadersWithUnderscoresAction != 0 {
+		n += 1 + sovProtocol(uint64(m.HeadersWithUnderscoresAction))
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -1195,6 +1627,9 @@ func (m *Http1ProtocolOptions) Size() (n int) {
 	if m.HeaderKeyFormat != nil {
 		l = m.HeaderKeyFormat.Size()
 		n += 1 + l + sovProtocol(uint64(l))
+	}
+	if m.EnableTrailers {
+		n += 2
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -1292,6 +1727,32 @@ func (m *Http2ProtocolOptions) Size() (n int) {
 	if m.StreamErrorOnInvalidHttpMessaging {
 		n += 2
 	}
+	if len(m.CustomSettingsParameters) > 0 {
+		for _, e := range m.CustomSettingsParameters {
+			l = e.Size()
+			n += 1 + l + sovProtocol(uint64(l))
+		}
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *Http2ProtocolOptions_SettingsParameter) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Identifier != nil {
+		l = m.Identifier.Size()
+		n += 1 + l + sovProtocol(uint64(l))
+	}
+	if m.Value != nil {
+		l = m.Value.Size()
+		n += 1 + l + sovProtocol(uint64(l))
+	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
 	}
@@ -1349,6 +1810,100 @@ func (m *TcpProtocolOptions) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: TcpProtocolOptions: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipProtocol(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthProtocol
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthProtocol
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *UpstreamHttpProtocolOptions) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowProtocol
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: UpstreamHttpProtocolOptions: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: UpstreamHttpProtocolOptions: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AutoSni", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowProtocol
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.AutoSni = bool(v != 0)
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AutoSanValidation", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowProtocol
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.AutoSanValidation = bool(v != 0)
 		default:
 			iNdEx = preIndex
 			skippy, err := skipProtocol(dAtA[iNdEx:])
@@ -1511,6 +2066,61 @@ func (m *HttpProtocolOptions) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MaxStreamDuration", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowProtocol
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthProtocol
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthProtocol
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.MaxStreamDuration == nil {
+				m.MaxStreamDuration = &types.Duration{}
+			}
+			if err := m.MaxStreamDuration.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field HeadersWithUnderscoresAction", wireType)
+			}
+			m.HeadersWithUnderscoresAction = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowProtocol
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.HeadersWithUnderscoresAction |= HttpProtocolOptions_HeadersWithUnderscoresAction(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipProtocol(dAtA[iNdEx:])
@@ -1689,6 +2299,26 @@ func (m *Http1ProtocolOptions) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field EnableTrailers", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowProtocol
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.EnableTrailers = bool(v != 0)
 		default:
 			iNdEx = preIndex
 			skippy, err := skipProtocol(dAtA[iNdEx:])
@@ -2270,6 +2900,166 @@ func (m *Http2ProtocolOptions) Unmarshal(dAtA []byte) error {
 				}
 			}
 			m.StreamErrorOnInvalidHttpMessaging = bool(v != 0)
+		case 13:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CustomSettingsParameters", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowProtocol
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthProtocol
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthProtocol
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.CustomSettingsParameters = append(m.CustomSettingsParameters, &Http2ProtocolOptions_SettingsParameter{})
+			if err := m.CustomSettingsParameters[len(m.CustomSettingsParameters)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipProtocol(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthProtocol
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthProtocol
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *Http2ProtocolOptions_SettingsParameter) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowProtocol
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SettingsParameter: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SettingsParameter: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Identifier", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowProtocol
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthProtocol
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthProtocol
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Identifier == nil {
+				m.Identifier = &types.UInt32Value{}
+			}
+			if err := m.Identifier.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Value", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowProtocol
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthProtocol
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthProtocol
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Value == nil {
+				m.Value = &types.UInt32Value{}
+			}
+			if err := m.Value.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipProtocol(dAtA[iNdEx:])
@@ -2388,6 +3178,7 @@ func (m *GrpcProtocolOptions) Unmarshal(dAtA []byte) error {
 func skipProtocol(dAtA []byte) (n int, err error) {
 	l := len(dAtA)
 	iNdEx := 0
+	depth := 0
 	for iNdEx < l {
 		var wire uint64
 		for shift := uint(0); ; shift += 7 {
@@ -2419,10 +3210,8 @@ func skipProtocol(dAtA []byte) (n int, err error) {
 					break
 				}
 			}
-			return iNdEx, nil
 		case 1:
 			iNdEx += 8
-			return iNdEx, nil
 		case 2:
 			var length int
 			for shift := uint(0); ; shift += 7 {
@@ -2443,55 +3232,30 @@ func skipProtocol(dAtA []byte) (n int, err error) {
 				return 0, ErrInvalidLengthProtocol
 			}
 			iNdEx += length
-			if iNdEx < 0 {
-				return 0, ErrInvalidLengthProtocol
-			}
-			return iNdEx, nil
 		case 3:
-			for {
-				var innerWire uint64
-				var start int = iNdEx
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return 0, ErrIntOverflowProtocol
-					}
-					if iNdEx >= l {
-						return 0, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					innerWire |= (uint64(b) & 0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				innerWireType := int(innerWire & 0x7)
-				if innerWireType == 4 {
-					break
-				}
-				next, err := skipProtocol(dAtA[start:])
-				if err != nil {
-					return 0, err
-				}
-				iNdEx = start + next
-				if iNdEx < 0 {
-					return 0, ErrInvalidLengthProtocol
-				}
-			}
-			return iNdEx, nil
+			depth++
 		case 4:
-			return iNdEx, nil
+			if depth == 0 {
+				return 0, ErrUnexpectedEndOfGroupProtocol
+			}
+			depth--
 		case 5:
 			iNdEx += 4
-			return iNdEx, nil
 		default:
 			return 0, fmt.Errorf("proto: illegal wireType %d", wireType)
 		}
+		if iNdEx < 0 {
+			return 0, ErrInvalidLengthProtocol
+		}
+		if depth == 0 {
+			return iNdEx, nil
+		}
 	}
-	panic("unreachable")
+	return 0, io.ErrUnexpectedEOF
 }
 
 var (
-	ErrInvalidLengthProtocol = fmt.Errorf("proto: negative length found during unmarshaling")
-	ErrIntOverflowProtocol   = fmt.Errorf("proto: integer overflow")
+	ErrInvalidLengthProtocol        = fmt.Errorf("proto: negative length found during unmarshaling")
+	ErrIntOverflowProtocol          = fmt.Errorf("proto: integer overflow")
+	ErrUnexpectedEndOfGroupProtocol = fmt.Errorf("proto: unexpected end of group")
 )

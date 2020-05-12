@@ -2,11 +2,6 @@ syntax = "proto3";
 
 package envoy.config.trace.v2;
 
-option java_outer_classname = "TraceProto";
-option java_multiple_files = true;
-option java_package = "io.envoyproxy.envoy.config.trace.v2";
-
-import "envoy/api/v2/core/base.proto";
 import "envoy/api/v2/core/grpc_service.proto";
 
 import "google/protobuf/any.proto";
@@ -15,7 +10,14 @@ import "google/protobuf/wrappers.proto";
 
 import "opencensus/proto/trace/v1/trace_config.proto";
 
+import "envoy/annotations/deprecation.proto";
+import "udpa/annotations/status.proto";
 import "validate/validate.proto";
+
+option java_package = "io.envoyproxy.envoy.config.trace.v2";
+option java_outer_classname = "TraceProto";
+option java_multiple_files = true;
+option (udpa.annotations.file_status).package_version_status = FROZEN;
 
 // [#protodoc-title: Tracing]
 // Tracing :ref:`architecture overview <arch_overview_tracing>`.
@@ -30,9 +32,9 @@ message Tracing {
     // The name of the HTTP trace driver to instantiate. The name must match a
     // supported HTTP trace driver. Built-in trace drivers:
     //
-    // - *envoy.lightstep*
-    // - *envoy.zipkin*
-    // - *envoy.dynamic.ot*
+    // - *envoy.tracers.lightstep*
+    // - *envoy.tracers.zipkin*
+    // - *envoy.tracers.dynamic_ot*
     // - *envoy.tracers.datadog*
     // - *envoy.tracers.opencensus*
     // - *envoy.tracers.xray*
@@ -46,8 +48,7 @@ message Tracing {
     // - :ref:`DynamicOtConfig <envoy_api_msg_config.trace.v2.DynamicOtConfig>`
     // - :ref:`DatadogConfig <envoy_api_msg_config.trace.v2.DatadogConfig>`
     // - :ref:`OpenCensusConfig <envoy_api_msg_config.trace.v2.OpenCensusConfig>`
-    // [#comment: TODO(marco) when XRay is implemented, uncomment the following; - :ref:`XRayConfig
-    // <envoy_api_msg_config.trace.v2.XRayConfig>`]
+    // - :ref:`AWS X-Ray <envoy_api_msg_config.trace.v2alpha.XRayConfig>`
     oneof config_type {
       google.protobuf.Struct config = 2 [deprecated = true];
 
@@ -60,16 +61,37 @@ message Tracing {
 }
 
 // Configuration for the LightStep tracer.
+// [#extension: envoy.tracers.lightstep]
 message LightstepConfig {
+  // Available propagation modes
+  enum PropagationMode {
+    // Propagate trace context in the single header x-ot-span-context.
+    ENVOY = 0;
+
+    // Propagate trace context using LightStep's native format.
+    LIGHTSTEP = 1;
+
+    // Propagate trace context using the b3 format.
+    B3 = 2;
+
+    // Propagation trace context using the w3 trace-context standard.
+    TRACE_CONTEXT = 3;
+  }
+
   // The cluster manager cluster that hosts the LightStep collectors.
   string collector_cluster = 1 [(validate.rules).string = {min_bytes: 1}];
 
   // File containing the access token to the `LightStep
   // <https://lightstep.com/>`_ API.
   string access_token_file = 2 [(validate.rules).string = {min_bytes: 1}];
+
+  // Propagation modes to use by LightStep's tracer.
+  repeated PropagationMode propagation_modes = 3
+      [(validate.rules).repeated = {items {enum {defined_only: true}}}];
 }
 
 // Configuration for the Zipkin tracer.
+// [#extension: envoy.tracers.zipkin]
 // [#next-free-field: 6]
 message ZipkinConfig {
   // Available Zipkin collector endpoint versions.
@@ -81,7 +103,7 @@ message ZipkinConfig {
     // Hence the motivation of adding HTTP_JSON_V1 as the default is to avoid a breaking change when
     // user upgrading Envoy with this change. Furthermore, we also immediately deprecate this field,
     // since in Zipkin realm this v1 version is considered to be not preferable anymore.]
-    HTTP_JSON_V1 = 0 [deprecated = true];
+    HTTP_JSON_V1 = 0 [deprecated = true, (envoy.annotations.disallowed_by_default_enum) = true];
 
     // Zipkin API v2, JSON over HTTP.
     HTTP_JSON = 1;
@@ -119,6 +141,7 @@ message ZipkinConfig {
 // DynamicOtConfig is used to dynamically load a tracer from a shared library
 // that implements the `OpenTracing dynamic loading API
 // <https://github.com/opentracing/opentracing-cpp>`_.
+// [#extension: envoy.tracers.dynamic_ot]
 message DynamicOtConfig {
   // Dynamic library implementing the `OpenTracing API
   // <https://github.com/opentracing/opentracing-cpp>`_.
@@ -130,6 +153,7 @@ message DynamicOtConfig {
 }
 
 // Configuration for the Datadog tracer.
+// [#extension: envoy.tracers.datadog]
 message DatadogConfig {
   // The cluster to use for submitting traces to the Datadog agent.
   string collector_cluster = 1 [(validate.rules).string = {min_bytes: 1}];
@@ -139,7 +163,8 @@ message DatadogConfig {
 }
 
 // Configuration for the OpenCensus tracer.
-// [#next-free-field: 13]
+// [#next-free-field: 15]
+// [#extension: envoy.tracers.opencensus]
 message OpenCensusConfig {
   enum TraceContext {
     // No-op default, no trace context is utilized.
@@ -180,6 +205,11 @@ message OpenCensusConfig {
   // https://github.com/grpc/grpc/blob/master/doc/naming.md
   string stackdriver_address = 10;
 
+  // (optional) The gRPC server that hosts Stackdriver tracing service. Only
+  // Google gRPC is supported. If :ref:`target_uri <envoy_v3_api_field_config.core.v3.GrpcService.GoogleGrpc.target_uri>`
+  // is not provided, the default production Stackdriver address will be used.
+  api.v2.core.GrpcService stackdriver_grpc_service = 13;
+
   // Enables the Zipkin exporter if set to true. The url and service name must
   // also be set.
   bool zipkin_exporter_enabled = 5;
@@ -187,13 +217,18 @@ message OpenCensusConfig {
   // The URL to Zipkin, e.g. "http://127.0.0.1:9411/api/v2/spans"
   string zipkin_url = 6;
 
-  // Enables the OpenCensus Agent exporter if set to true. The address must also
-  // be set.
+  // Enables the OpenCensus Agent exporter if set to true. The ocagent_address or
+  // ocagent_grpc_service must also be set.
   bool ocagent_exporter_enabled = 11;
 
   // The address of the OpenCensus Agent, if its exporter is enabled, in gRPC
   // format: https://github.com/grpc/grpc/blob/master/doc/naming.md
+  // [#comment:TODO: deprecate this field]
   string ocagent_address = 12;
+
+  // (optional) The gRPC server hosted by the OpenCensus Agent. Only Google gRPC is supported.
+  // This is only used if the ocagent_address is left empty.
+  api.v2.core.GrpcService ocagent_grpc_service = 14;
 
   // List of incoming trace context headers we will accept. First one found
   // wins.
@@ -201,20 +236,6 @@ message OpenCensusConfig {
 
   // List of outgoing trace context headers we will produce.
   repeated TraceContext outgoing_trace_context = 9;
-}
-
-// [#not-implemented-hide:]
-// Configuration for AWS X-Ray tracer.
-message XRayConfig {
-  // The endpoint of the X-Ray Daemon where the spans will be sent. Since by default daemon
-  // listens to localhost:2000, so the default value is 127.0.0.1:2000.
-  string daemon_endpoint = 1 [(validate.rules).string = {min_bytes: 1}];
-
-  // The custom name to name a X-Ray segment. By default will use cluster name.
-  string segment_name = 2;
-
-  // The location of custom sampling rule json file.
-  api.v2.core.DataSource sampling_rule_manifest = 3;
 }
 
 // Configuration structure.

@@ -35,7 +35,7 @@ eventually converges to use the latest pushed configuration) for each run.
 
 ## Customizing the test driver
 
-The test driver has the following options: 
+The test driver has the following options:
 
 ```
 Usage of bin/test:
@@ -61,6 +61,8 @@ Usage of bin/test:
     	Number of requests between snapshot updates (default 5)
   -tcp int
     	Number of TCP pass-through listeners (default 1)
+  -runtimes int
+        Number of RTDS layers (default 1)
   -u int
     	Number of snapshot updates (default 3)
   -upstream uint

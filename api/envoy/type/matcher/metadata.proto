@@ -2,15 +2,17 @@ syntax = "proto3";
 
 package envoy.type.matcher;
 
-option java_outer_classname = "MetadataProto";
-option java_multiple_files = true;
-option java_package = "io.envoyproxy.envoy.type.matcher";
-
 import "envoy/type/matcher/value.proto";
 
+import "udpa/annotations/status.proto";
 import "validate/validate.proto";
 
-// [#protodoc-title: MetadataMatcher]
+option java_package = "io.envoyproxy.envoy.type.matcher";
+option java_outer_classname = "MetadataProto";
+option java_multiple_files = true;
+option (udpa.annotations.file_status).package_version_status = FROZEN;
+
+// [#protodoc-title: Metadata matcher]
 
 // MetadataMatcher provides a general interface to check if a given value is matched in
 // :ref:`Metadata <envoy_api_msg_core.Metadata>`. It uses `filter` and `path` to retrieve the value
@@ -70,6 +72,8 @@ import "validate/validate.proto";
 // enforce access control based on dynamic metadata in a request. See :ref:`Permission
 // <envoy_api_msg_config.rbac.v2.Permission>` and :ref:`Principal
 // <envoy_api_msg_config.rbac.v2.Principal>`.
+
+// [#next-major-version: MetadataMatcher should use StructMatcher]
 message MetadataMatcher {
   // Specifies the segment in a path to retrieve value from Metadata.
   // Note: Currently it's not supported to retrieve a value from a list in Metadata. This means that

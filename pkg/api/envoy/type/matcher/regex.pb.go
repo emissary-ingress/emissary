@@ -5,6 +5,7 @@ package envoy_type_matcher
 
 import (
 	fmt "fmt"
+	_ "github.com/cncf/udpa/go/udpa/annotations"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	proto "github.com/gogo/protobuf/proto"
 	types "github.com/gogo/protobuf/types"
@@ -76,7 +77,7 @@ type isRegexMatcher_EngineType interface {
 }
 
 type RegexMatcher_GoogleRe2 struct {
-	GoogleRe2 *RegexMatcher_GoogleRE2 `protobuf:"bytes,1,opt,name=google_re2,json=googleRe2,proto3,oneof"`
+	GoogleRe2 *RegexMatcher_GoogleRE2 `protobuf:"bytes,1,opt,name=google_re2,json=googleRe2,proto3,oneof" json:"google_re2,omitempty"`
 }
 
 func (*RegexMatcher_GoogleRe2) isRegexMatcher_EngineType() {}
@@ -163,35 +164,115 @@ func (m *RegexMatcher_GoogleRE2) GetMaxProgramSize() *types.UInt32Value {
 	return nil
 }
 
+// Describes how to match a string and then produce a new string using a regular
+// expression and a substitution string.
+type RegexMatchAndSubstitute struct {
+	// The regular expression used to find portions of a string (hereafter called
+	// the "subject string") that should be replaced. When a new string is
+	// produced during the substitution operation, the new string is initially
+	// the same as the subject string, but then all matches in the subject string
+	// are replaced by the substitution string. If replacing all matches isn't
+	// desired, regular expression anchors can be used to ensure a single match,
+	// so as to replace just one occurrence of a pattern. Capture groups can be
+	// used in the pattern to extract portions of the subject string, and then
+	// referenced in the substitution string.
+	Pattern *RegexMatcher `protobuf:"bytes,1,opt,name=pattern,proto3" json:"pattern,omitempty"`
+	// The string that should be substituted into matching portions of the
+	// subject string during a substitution operation to produce a new string.
+	// Capture groups in the pattern can be referenced in the substitution
+	// string. Note, however, that the syntax for referring to capture groups is
+	// defined by the chosen regular expression engine. Google's `RE2
+	// <https://github.com/google/re2>`_ regular expression engine uses a
+	// backslash followed by the capture group number to denote a numbered
+	// capture group. E.g., ``\1`` refers to capture group 1, and ``\2`` refers
+	// to capture group 2.
+	Substitution         string   `protobuf:"bytes,2,opt,name=substitution,proto3" json:"substitution,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *RegexMatchAndSubstitute) Reset()         { *m = RegexMatchAndSubstitute{} }
+func (m *RegexMatchAndSubstitute) String() string { return proto.CompactTextString(m) }
+func (*RegexMatchAndSubstitute) ProtoMessage()    {}
+func (*RegexMatchAndSubstitute) Descriptor() ([]byte, []int) {
+	return fileDescriptor_0ba289439e2572f3, []int{1}
+}
+func (m *RegexMatchAndSubstitute) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *RegexMatchAndSubstitute) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_RegexMatchAndSubstitute.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *RegexMatchAndSubstitute) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RegexMatchAndSubstitute.Merge(m, src)
+}
+func (m *RegexMatchAndSubstitute) XXX_Size() int {
+	return m.Size()
+}
+func (m *RegexMatchAndSubstitute) XXX_DiscardUnknown() {
+	xxx_messageInfo_RegexMatchAndSubstitute.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RegexMatchAndSubstitute proto.InternalMessageInfo
+
+func (m *RegexMatchAndSubstitute) GetPattern() *RegexMatcher {
+	if m != nil {
+		return m.Pattern
+	}
+	return nil
+}
+
+func (m *RegexMatchAndSubstitute) GetSubstitution() string {
+	if m != nil {
+		return m.Substitution
+	}
+	return ""
+}
+
 func init() {
 	proto.RegisterType((*RegexMatcher)(nil), "envoy.type.matcher.RegexMatcher")
 	proto.RegisterType((*RegexMatcher_GoogleRE2)(nil), "envoy.type.matcher.RegexMatcher.GoogleRE2")
+	proto.RegisterType((*RegexMatchAndSubstitute)(nil), "envoy.type.matcher.RegexMatchAndSubstitute")
 }
 
 func init() { proto.RegisterFile("envoy/type/matcher/regex.proto", fileDescriptor_0ba289439e2572f3) }
 
 var fileDescriptor_0ba289439e2572f3 = []byte{
-	// 313 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x6c, 0x8f, 0xcf, 0x4a, 0xc3, 0x40,
-	0x10, 0xc6, 0x9d, 0xd6, 0x0a, 0xd9, 0x8a, 0x94, 0x45, 0xb0, 0x14, 0x89, 0xc1, 0x53, 0xf1, 0xb0,
-	0x0b, 0xe9, 0xd5, 0x53, 0xc0, 0x7f, 0x07, 0xa1, 0x6c, 0x51, 0x8f, 0x61, 0xab, 0x63, 0x0c, 0x34,
-	0xd9, 0x65, 0x9b, 0xd6, 0xb4, 0x8f, 0xe0, 0x13, 0x89, 0xa7, 0x1e, 0x3d, 0xfa, 0x08, 0xd2, 0x5b,
-	0xcf, 0xbe, 0x80, 0x64, 0xb7, 0x15, 0x41, 0x6f, 0xcb, 0x7e, 0xf3, 0xfd, 0x66, 0x7e, 0xc4, 0xc7,
-	0x7c, 0xaa, 0x66, 0xbc, 0x98, 0x69, 0xe4, 0x99, 0x2c, 0xee, 0x9f, 0xd0, 0x70, 0x83, 0x09, 0x96,
-	0x4c, 0x1b, 0x55, 0x28, 0x4a, 0x6d, 0xce, 0xaa, 0x9c, 0xad, 0xf3, 0x8e, 0x9f, 0x28, 0x95, 0x8c,
-	0x90, 0xdb, 0x89, 0xe1, 0xe4, 0x91, 0x3f, 0x1b, 0xa9, 0x35, 0x9a, 0xb1, 0xeb, 0x74, 0x0e, 0xa6,
-	0x72, 0x94, 0x3e, 0xc8, 0x02, 0xf9, 0xe6, 0xe1, 0x82, 0xe3, 0x2f, 0x20, 0xbb, 0xa2, 0x82, 0x5f,
-	0x3b, 0x12, 0xbd, 0x23, 0xc4, 0xb1, 0x62, 0x83, 0x61, 0x1b, 0x02, 0xe8, 0x36, 0xc3, 0x13, 0xf6,
-	0x77, 0x25, 0xfb, 0xdd, 0x62, 0x17, 0xb6, 0x22, 0xce, 0xc2, 0x88, 0xbc, 0xad, 0x16, 0xf5, 0xc6,
-	0x0b, 0xd4, 0x5a, 0x70, 0xb9, 0x25, 0x3c, 0xc7, 0x12, 0x18, 0xd2, 0x23, 0xd2, 0xb0, 0x16, 0xed,
-	0x5a, 0x00, 0x5d, 0x2f, 0xf2, 0xaa, 0xb9, 0x6d, 0x53, 0x0b, 0x40, 0xb8, 0xff, 0xce, 0x80, 0x78,
-	0x3f, 0x18, 0x7a, 0x4e, 0x5a, 0x99, 0x2c, 0x63, 0x6d, 0x54, 0x62, 0x64, 0x16, 0x8f, 0xd3, 0x39,
-	0xae, 0x8f, 0x39, 0x64, 0x8e, 0xc9, 0x36, 0xae, 0xec, 0xe6, 0x2a, 0x2f, 0x7a, 0xe1, 0xad, 0x1c,
-	0x4d, 0x50, 0xec, 0x65, 0xb2, 0xec, 0xbb, 0xd2, 0x20, 0x9d, 0x63, 0xb4, 0x4f, 0x9a, 0x98, 0x27,
-	0x69, 0x8e, 0x71, 0x75, 0x3c, 0x6d, 0xbc, 0xae, 0x16, 0x75, 0x88, 0x4e, 0xdf, 0x97, 0x3e, 0x7c,
-	0x2c, 0x7d, 0xf8, 0x5c, 0xfa, 0x40, 0x82, 0x54, 0x39, 0x41, 0x6d, 0x54, 0x39, 0xfb, 0xc7, 0x35,
-	0x22, 0x56, 0xb6, 0x5f, 0x2d, 0xec, 0xc3, 0x70, 0xc7, 0x6e, 0xee, 0x7d, 0x07, 0x00, 0x00, 0xff,
-	0xff, 0xfe, 0xdf, 0x4f, 0x5d, 0xa9, 0x01, 0x00, 0x00,
+	// 382 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x90, 0xbf, 0x8f, 0xd3, 0x30,
+	0x1c, 0xc5, 0xcf, 0x81, 0xbb, 0xa3, 0xbe, 0x13, 0xaa, 0xbc, 0xdc, 0xa9, 0xa2, 0x51, 0xd4, 0xa9,
+	0x62, 0xb0, 0xa5, 0x74, 0x63, 0xc3, 0xe2, 0xe7, 0x80, 0x54, 0xb9, 0x2a, 0x6b, 0xe4, 0xd2, 0x2f,
+	0xc1, 0x52, 0x63, 0x5b, 0x8e, 0x53, 0x92, 0x4e, 0xcc, 0xfc, 0x49, 0xfc, 0x05, 0x1d, 0xe1, 0x3f,
+	0x40, 0xdd, 0xd9, 0x51, 0x27, 0x94, 0xb8, 0xe1, 0x87, 0x40, 0x62, 0x8b, 0xbe, 0x2f, 0xef, 0x7d,
+	0xde, 0x33, 0x8e, 0x41, 0x6f, 0x4d, 0xc3, 0x7c, 0x63, 0x81, 0x15, 0xd2, 0xbf, 0x79, 0x07, 0x8e,
+	0x39, 0xc8, 0xa1, 0xa6, 0xd6, 0x19, 0x6f, 0x08, 0xe9, 0x74, 0xda, 0xea, 0xf4, 0xa4, 0x8f, 0xe2,
+	0xdc, 0x98, 0x7c, 0x03, 0xac, 0xfb, 0x63, 0x55, 0xbd, 0x65, 0xef, 0x9d, 0xb4, 0x16, 0x5c, 0x19,
+	0x3c, 0xa3, 0x71, 0xb5, 0xb6, 0x92, 0x49, 0xad, 0x8d, 0x97, 0x5e, 0x19, 0x5d, 0xb2, 0xd2, 0x4b,
+	0x5f, 0xf5, 0xf2, 0xcd, 0x56, 0x6e, 0xd4, 0x5a, 0x7a, 0x60, 0xfd, 0x47, 0x10, 0x26, 0xdf, 0x10,
+	0xbe, 0x16, 0x2d, 0xfb, 0x55, 0x00, 0x91, 0x25, 0xc6, 0x01, 0x95, 0x39, 0x48, 0x6f, 0x51, 0x82,
+	0xa6, 0x57, 0xe9, 0x43, 0xfa, 0x77, 0x23, 0xfa, 0xbb, 0x8b, 0x3e, 0xef, 0x2c, 0xe2, 0x69, 0xca,
+	0xef, 0x1d, 0xf9, 0xf9, 0x47, 0x14, 0x0d, 0xd1, 0x8b, 0x33, 0x31, 0x08, 0x49, 0x02, 0x52, 0x32,
+	0xc6, 0xe7, 0xdd, 0xc4, 0xdb, 0x28, 0x41, 0xd3, 0x01, 0xbf, 0x3c, 0xf2, 0xbb, 0x2e, 0x4a, 0x90,
+	0x08, 0xd7, 0xd1, 0x02, 0x0f, 0x7e, 0x46, 0x90, 0x67, 0x78, 0x58, 0xc8, 0x3a, 0xb3, 0xce, 0xe4,
+	0x4e, 0x16, 0x59, 0xa9, 0x76, 0x70, 0x2a, 0xf2, 0x80, 0x86, 0x44, 0xda, 0x3f, 0x03, 0x5d, 0xbe,
+	0xd4, 0x7e, 0x96, 0xbe, 0x96, 0x9b, 0x0a, 0xc4, 0xfd, 0x42, 0xd6, 0xf3, 0x60, 0x5a, 0xa8, 0x1d,
+	0x70, 0x82, 0xaf, 0x40, 0xe7, 0x4a, 0x43, 0xd6, 0x16, 0x27, 0x77, 0xbe, 0x73, 0x34, 0x69, 0xf0,
+	0xcd, 0xaf, 0xe2, 0x8f, 0xf5, 0x7a, 0x51, 0xad, 0x4a, 0xaf, 0x7c, 0xe5, 0x81, 0x3c, 0xc2, 0x97,
+	0x56, 0x7a, 0x0f, 0x4e, 0x9f, 0x68, 0xc9, 0xff, 0x66, 0x8b, 0xde, 0x40, 0x26, 0xf8, 0xba, 0xec,
+	0x93, 0x94, 0xd1, 0x61, 0xa5, 0xf8, 0xe3, 0xc6, 0x9f, 0xec, 0x0f, 0x31, 0xfa, 0x7c, 0x88, 0xd1,
+	0xd7, 0x43, 0x8c, 0x3e, 0x7d, 0xd8, 0x7f, 0xb9, 0x88, 0x86, 0x67, 0x38, 0x51, 0x26, 0x60, 0xac,
+	0x33, 0x75, 0xf3, 0x0f, 0x22, 0xc7, 0x1d, 0x72, 0xde, 0x2e, 0x9e, 0xa3, 0xd5, 0x45, 0x37, 0x7d,
+	0xf6, 0x23, 0x00, 0x00, 0xff, 0xff, 0x2d, 0xaf, 0x1b, 0x97, 0x45, 0x02, 0x00, 0x00,
 }
 
 func (m *RegexMatcher) Marshal() (dAtA []byte, err error) {
@@ -238,7 +319,8 @@ func (m *RegexMatcher) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 }
 
 func (m *RegexMatcher_GoogleRe2) MarshalTo(dAtA []byte) (int, error) {
-	return m.MarshalToSizedBuffer(dAtA[:m.Size()])
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
 func (m *RegexMatcher_GoogleRe2) MarshalToSizedBuffer(dAtA []byte) (int, error) {
@@ -284,6 +366,52 @@ func (m *RegexMatcher_GoogleRE2) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 	if m.MaxProgramSize != nil {
 		{
 			size, err := m.MaxProgramSize.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintRegex(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *RegexMatchAndSubstitute) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *RegexMatchAndSubstitute) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *RegexMatchAndSubstitute) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.Substitution) > 0 {
+		i -= len(m.Substitution)
+		copy(dAtA[i:], m.Substitution)
+		i = encodeVarintRegex(dAtA, i, uint64(len(m.Substitution)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Pattern != nil {
+		{
+			size, err := m.Pattern.MarshalToSizedBuffer(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
@@ -346,6 +474,26 @@ func (m *RegexMatcher_GoogleRE2) Size() (n int) {
 	_ = l
 	if m.MaxProgramSize != nil {
 		l = m.MaxProgramSize.Size()
+		n += 1 + l + sovRegex(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *RegexMatchAndSubstitute) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Pattern != nil {
+		l = m.Pattern.Size()
+		n += 1 + l + sovRegex(uint64(l))
+	}
+	l = len(m.Substitution)
+	if l > 0 {
 		n += 1 + l + sovRegex(uint64(l))
 	}
 	if m.XXX_unrecognized != nil {
@@ -571,9 +719,132 @@ func (m *RegexMatcher_GoogleRE2) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+func (m *RegexMatchAndSubstitute) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowRegex
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: RegexMatchAndSubstitute: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: RegexMatchAndSubstitute: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pattern", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowRegex
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthRegex
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthRegex
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pattern == nil {
+				m.Pattern = &RegexMatcher{}
+			}
+			if err := m.Pattern.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Substitution", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowRegex
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthRegex
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthRegex
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Substitution = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipRegex(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthRegex
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthRegex
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
 func skipRegex(dAtA []byte) (n int, err error) {
 	l := len(dAtA)
 	iNdEx := 0
+	depth := 0
 	for iNdEx < l {
 		var wire uint64
 		for shift := uint(0); ; shift += 7 {
@@ -605,10 +876,8 @@ func skipRegex(dAtA []byte) (n int, err error) {
 					break
 				}
 			}
-			return iNdEx, nil
 		case 1:
 			iNdEx += 8
-			return iNdEx, nil
 		case 2:
 			var length int
 			for shift := uint(0); ; shift += 7 {
@@ -629,55 +898,30 @@ func skipRegex(dAtA []byte) (n int, err error) {
 				return 0, ErrInvalidLengthRegex
 			}
 			iNdEx += length
-			if iNdEx < 0 {
-				return 0, ErrInvalidLengthRegex
-			}
-			return iNdEx, nil
 		case 3:
-			for {
-				var innerWire uint64
-				var start int = iNdEx
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return 0, ErrIntOverflowRegex
-					}
-					if iNdEx >= l {
-						return 0, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					innerWire |= (uint64(b) & 0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				innerWireType := int(innerWire & 0x7)
-				if innerWireType == 4 {
-					break
-				}
-				next, err := skipRegex(dAtA[start:])
-				if err != nil {
-					return 0, err
-				}
-				iNdEx = start + next
-				if iNdEx < 0 {
-					return 0, ErrInvalidLengthRegex
-				}
-			}
-			return iNdEx, nil
+			depth++
 		case 4:
-			return iNdEx, nil
+			if depth == 0 {
+				return 0, ErrUnexpectedEndOfGroupRegex
+			}
+			depth--
 		case 5:
 			iNdEx += 4
-			return iNdEx, nil
 		default:
 			return 0, fmt.Errorf("proto: illegal wireType %d", wireType)
 		}
+		if iNdEx < 0 {
+			return 0, ErrInvalidLengthRegex
+		}
+		if depth == 0 {
+			return iNdEx, nil
+		}
 	}
-	panic("unreachable")
+	return 0, io.ErrUnexpectedEOF
 }
 
 var (
-	ErrInvalidLengthRegex = fmt.Errorf("proto: negative length found during unmarshaling")
-	ErrIntOverflowRegex   = fmt.Errorf("proto: integer overflow")
+	ErrInvalidLengthRegex        = fmt.Errorf("proto: negative length found during unmarshaling")
+	ErrIntOverflowRegex          = fmt.Errorf("proto: integer overflow")
+	ErrUnexpectedEndOfGroupRegex = fmt.Errorf("proto: unexpected end of group")
 )

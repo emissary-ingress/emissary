@@ -33,6 +33,9 @@ var (
 	_ = types.DynamicAny{}
 )
 
+// define the regex for a UUID once up-front
+var _route_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on RouteConfiguration with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, an error is returned.
@@ -453,7 +456,27 @@ func (m *MethodMatch) Validate() error {
 		}
 	}
 
-	// no validation rules for ParamsMatch
+	for key, val := range m.GetParamsMatch() {
+		_ = val
+
+		// no validation rules for ParamsMatch[key]
+
+		{
+			tmp := val
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return MethodMatchValidationError{
+						field:  fmt.Sprintf("ParamsMatch[%v]", key),
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
+	}
 
 	return nil
 }

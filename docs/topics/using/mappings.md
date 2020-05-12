@@ -12,7 +12,7 @@ the `httpmapping` default class.
 
 ## Mapping Evaluation Order
 
-Ambassador Edge Stack sorts mappings such that those that are more highly constrained are evaluated before those less highly constrained. The prefix length, the request method, and the constraint headers are all taken into account.
+Ambassador Edge Stack sorts mappings such that those that are more highly constrained are evaluated before those less highly constrained. The prefix length, the request method, constraint headers, and query parameters are all taken into account.
 
 If absolutely necessary, you can manually set a `precedence` on the mapping (see below). In general, you should not need to use this feature unless you're using the `regex_headers` or `host_regex` matching features. If there's any question about how Ambassador Edge Stack is ordering rules, the diagnostic service is a good first place to look: the order in which mappings appear in the diagnostic service is the order in which they are evaluated.
 

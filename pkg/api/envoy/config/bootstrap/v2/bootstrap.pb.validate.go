@@ -33,6 +33,9 @@ var (
 	_ = types.DynamicAny{}
 )
 
+// define the regex for a UUID once up-front
+var _bootstrap_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on Bootstrap with the rules defined in the
 // proto definition for this message. If any rules are violated, an error is returned.
 func (m *Bootstrap) Validate() error {
@@ -282,6 +285,8 @@ func (m *Bootstrap) Validate() error {
 			}
 		}
 	}
+
+	// no validation rules for UseTcpForDnsLookups
 
 	return nil
 }
@@ -1247,6 +1252,21 @@ func (m *ClusterManager_OutlierDetection) Validate() error {
 	}
 
 	// no validation rules for EventLogPath
+
+	{
+		tmp := m.GetEventService()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return ClusterManager_OutlierDetectionValidationError{
+					field:  "EventService",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
 
 	return nil
 }
