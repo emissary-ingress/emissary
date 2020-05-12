@@ -54,6 +54,7 @@ class IRHTTPMapping (IRBaseMapping):
     retry_policy: IRRetryPolicy
     sni: bool
     query_parameters: List[KeyValueDecorator]
+    regex_rewrite: Dict[str,str]
 
     # Keys that are present in AllowedKeys are allowed to be set from kwargs.
     # If the value is True, we'll look for a default in the Ambassador module
@@ -174,6 +175,7 @@ class IRHTTPMapping (IRBaseMapping):
         # OK. On to set up the headers (since we need them to compute our group ID).
         hdrs = []
         query_parameters = []
+        regex_rewrite = kwargs.get('regex_rewrite', {})
 
         if 'headers' in kwargs:
             for name, value in kwargs.get('headers', {}).items():
@@ -235,6 +237,14 @@ class IRHTTPMapping (IRBaseMapping):
             for name, value in kwargs.get('regex_query_parameters', {}).items():
                 query_parameters.append(KeyValueDecorator(name, value, regex=True))
 
+        if 'regex_rewrite' in kwargs:
+            if rewrite:
+                self.ir.aconf.post_notice("Cannot specify both rewrite and regex_rewrite: using regex_rewrite and ignoring rewrite")
+                rewrite = ""
+            rewrite_items = kwargs.get('regex_rewrite', {})
+            regex_rewrite = {'pattern' : rewrite_items.get('pattern',''),
+                             'substitution' : rewrite_items.get('substitution','') }
+
         # ...and then init the superclass.
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, location=location,
@@ -242,6 +252,7 @@ class IRHTTPMapping (IRBaseMapping):
             apiVersion=apiVersion, headers=hdrs, add_request_headers=add_request_hdrs,
             precedence=precedence, rewrite=rewrite, cluster_tag=cluster_tag,
             query_parameters=query_parameters,
+            regex_rewrite=regex_rewrite,
             **new_args
         )
 

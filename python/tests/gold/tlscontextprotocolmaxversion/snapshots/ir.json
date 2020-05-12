@@ -221,6 +221,7 @@
                     "precedence": 0,
                     "prefix": "/ambassador/v0/check_ready",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/ambassador/v0/check_ready",
                     "route_weight": [
@@ -241,6 +242,7 @@
             "precedence": 0,
             "prefix": "/ambassador/v0/check_ready",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/ambassador/v0/check_ready",
             "timeout_ms": 10000
         },
@@ -318,6 +320,7 @@
                     "precedence": 0,
                     "prefix": "/ambassador/v0/check_alive",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/ambassador/v0/check_alive",
                     "route_weight": [
@@ -338,6 +341,7 @@
             "precedence": 0,
             "prefix": "/ambassador/v0/check_alive",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/ambassador/v0/check_alive",
             "timeout_ms": 10000
         },
@@ -431,6 +435,7 @@
                     "precedence": 0,
                     "prefix": "/tls-context-same/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -486,6 +491,7 @@
             "precedence": 0,
             "prefix": "/tls-context-same/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: tlscontextprotocolmaxversion\napiVersion: ambassador/v0\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextprotocolmaxversion\n  scope: AmbassadorTest\nname: TLSContextProtocolMaxVersion-same-prefix-1\nnamespace: default\nprefix: /tls-context-same/\nservice: http://tlscontextprotocolmaxversion-http\n",
             "sni": true,
@@ -592,6 +598,7 @@
                     "precedence": 0,
                     "prefix": "/ambassador/v0/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/ambassador/v0/",
                     "route_weight": [
@@ -612,6 +619,7 @@
             "precedence": 0,
             "prefix": "/ambassador/v0/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/ambassador/v0/",
             "timeout_ms": 10000
         }
