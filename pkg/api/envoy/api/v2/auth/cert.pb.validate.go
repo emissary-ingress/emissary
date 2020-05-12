@@ -33,6 +33,9 @@ var (
 	_ = types.DynamicAny{}
 )
 
+// define the regex for a UUID once up-front
+var _cert_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on TlsParameters with the rules defined in
 // the proto definition for this message. If any rules are violated, an error
 // is returned.
@@ -525,6 +528,26 @@ func (m *CertificateValidationContext) Validate() error {
 
 	}
 
+	for idx, item := range m.GetMatchSubjectAltNames() {
+		_, _ = idx, item
+
+		{
+			tmp := item
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return CertificateValidationContextValidationError{
+						field:  fmt.Sprintf("MatchSubjectAltNames[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
+	}
+
 	{
 		tmp := m.GetRequireOcspStaple()
 
@@ -571,6 +594,13 @@ func (m *CertificateValidationContext) Validate() error {
 	}
 
 	// no validation rules for AllowExpiredCertificate
+
+	if _, ok := CertificateValidationContext_TrustChainVerification_name[int32(m.GetTrustChainVerification())]; !ok {
+		return CertificateValidationContextValidationError{
+			field:  "TrustChainVerification",
+			reason: "value must be one of the defined enum values",
+		}
+	}
 
 	return nil
 }
@@ -973,6 +1003,28 @@ func (m *DownstreamTlsContext) Validate() error {
 		}
 	}
 
+	if d := m.GetSessionTimeout(); d != nil {
+		dur, err := types.DurationFromProto(d)
+		if err != nil {
+			return DownstreamTlsContextValidationError{
+				field:  "SessionTimeout",
+				reason: "value is not a valid duration",
+				cause:  err,
+			}
+		}
+
+		lt := time.Duration(4294967296*time.Second + 0*time.Nanosecond)
+		gte := time.Duration(0*time.Second + 0*time.Nanosecond)
+
+		if dur < gte || dur >= lt {
+			return DownstreamTlsContextValidationError{
+				field:  "SessionTimeout",
+				reason: "value must be inside range [0s, 1193046h28m16s)",
+			}
+		}
+
+	}
+
 	switch m.SessionTicketKeysType.(type) {
 
 	case *DownstreamTlsContext_SessionTicketKeys:
@@ -1008,6 +1060,9 @@ func (m *DownstreamTlsContext) Validate() error {
 				}
 			}
 		}
+
+	case *DownstreamTlsContext_DisableStatelessSessionResumption:
+		// no validation rules for DisableStatelessSessionResumption
 
 	}
 
@@ -1069,6 +1124,86 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = DownstreamTlsContextValidationError{}
+
+// Validate checks the field values on GenericSecret with the rules defined in
+// the proto definition for this message. If any rules are violated, an error
+// is returned.
+func (m *GenericSecret) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	{
+		tmp := m.GetSecret()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return GenericSecretValidationError{
+					field:  "Secret",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+// GenericSecretValidationError is the validation error returned by
+// GenericSecret.Validate if the designated constraints aren't met.
+type GenericSecretValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GenericSecretValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GenericSecretValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GenericSecretValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GenericSecretValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GenericSecretValidationError) ErrorName() string { return "GenericSecretValidationError" }
+
+// Error satisfies the builtin error interface
+func (e GenericSecretValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGenericSecret.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GenericSecretValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GenericSecretValidationError{}
 
 // Validate checks the field values on SdsSecretConfig with the rules defined
 // in the proto definition for this message. If any rules are violated, an
@@ -1207,6 +1342,23 @@ func (m *Secret) Validate() error {
 				if err := v.Validate(); err != nil {
 					return SecretValidationError{
 						field:  "ValidationContext",
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
+	case *Secret_GenericSecret:
+
+		{
+			tmp := m.GetGenericSecret()
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return SecretValidationError{
+						field:  "GenericSecret",
 						reason: "embedded message failed validation",
 						cause:  err,
 					}
@@ -1356,7 +1508,9 @@ func (e CommonTlsContext_CombinedCertificateValidationContextValidationError) Ca
 }
 
 // Key function returns key value.
-func (e CommonTlsContext_CombinedCertificateValidationContextValidationError) Key() bool { return e.key }
+func (e CommonTlsContext_CombinedCertificateValidationContextValidationError) Key() bool {
+	return e.key
+}
 
 // ErrorName returns error name.
 func (e CommonTlsContext_CombinedCertificateValidationContextValidationError) ErrorName() string {

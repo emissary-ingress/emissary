@@ -33,6 +33,9 @@ var (
 	_ = types.DynamicAny{}
 )
 
+// define the regex for a UUID once up-front
+var _route_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on RouteConfiguration with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, an error is returned.
@@ -402,6 +405,15 @@ func (m *RouteAction) Validate() error {
 						cause:  err,
 					}
 				}
+			}
+		}
+
+	case *RouteAction_ClusterHeader:
+
+		if len(m.GetClusterHeader()) < 1 {
+			return RouteActionValidationError{
+				field:  "ClusterHeader",
+				reason: "value length must be at least 1 bytes",
 			}
 		}
 

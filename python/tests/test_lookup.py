@@ -1,6 +1,9 @@
 from typing import Optional
 
 import logging
+import sys
+
+import pytest
 
 logging.basicConfig(
     level=logging.INFO,
@@ -119,5 +122,4 @@ def test_lookup():
     assert t2.lookup('funk', 77, default_class='test_resource2') == 77
 
 if __name__ == '__main__':
-    test_lookup()
-
+    pytest.main(sys.argv)

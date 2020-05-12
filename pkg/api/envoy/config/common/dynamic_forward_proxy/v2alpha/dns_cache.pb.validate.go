@@ -37,6 +37,9 @@ var (
 	_ = envoy_api_v2.Cluster_DnsLookupFamily(0)
 )
 
+// define the regex for a UUID once up-front
+var _dns_cache_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on DnsCacheConfig with the rules defined in
 // the proto definition for this message. If any rules are violated, an error
 // is returned.
@@ -69,12 +72,12 @@ func (m *DnsCacheConfig) Validate() error {
 			}
 		}
 
-		gt := time.Duration(0*time.Second + 0*time.Nanosecond)
+		gte := time.Duration(0*time.Second + 1000000*time.Nanosecond)
 
-		if dur <= gt {
+		if dur < gte {
 			return DnsCacheConfigValidationError{
 				field:  "DnsRefreshRate",
-				reason: "value must be greater than 0s",
+				reason: "value must be greater than or equal to 1ms",
 			}
 		}
 
@@ -110,6 +113,21 @@ func (m *DnsCacheConfig) Validate() error {
 			}
 		}
 
+	}
+
+	{
+		tmp := m.GetDnsFailureRefreshRate()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return DnsCacheConfigValidationError{
+					field:  "DnsFailureRefreshRate",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
 	}
 
 	return nil

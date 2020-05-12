@@ -2,6 +2,9 @@ from typing import Optional
 
 import logging
 import os
+import sys
+
+import pytest
 
 logging.basicConfig(
     level=logging.INFO,
@@ -44,4 +47,4 @@ def test_envvar_expansion():
 
 
 if __name__ == '__main__':
-    test_envvar_expansion()
+    pytest.main(sys.argv)

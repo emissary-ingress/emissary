@@ -33,6 +33,9 @@ var (
 	_ = types.DynamicAny{}
 )
 
+// define the regex for a UUID once up-front
+var _regex_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on RegexMatcher with the rules defined in
 // the proto definition for this message. If any rules are violated, an error
 // is returned.
@@ -138,6 +141,90 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = RegexMatcherValidationError{}
+
+// Validate checks the field values on RegexMatchAndSubstitute with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *RegexMatchAndSubstitute) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	{
+		tmp := m.GetPattern()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return RegexMatchAndSubstituteValidationError{
+					field:  "Pattern",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
+	// no validation rules for Substitution
+
+	return nil
+}
+
+// RegexMatchAndSubstituteValidationError is the validation error returned by
+// RegexMatchAndSubstitute.Validate if the designated constraints aren't met.
+type RegexMatchAndSubstituteValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RegexMatchAndSubstituteValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RegexMatchAndSubstituteValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RegexMatchAndSubstituteValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RegexMatchAndSubstituteValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RegexMatchAndSubstituteValidationError) ErrorName() string {
+	return "RegexMatchAndSubstituteValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RegexMatchAndSubstituteValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRegexMatchAndSubstitute.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RegexMatchAndSubstituteValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RegexMatchAndSubstituteValidationError{}
 
 // Validate checks the field values on RegexMatcher_GoogleRE2 with the rules
 // defined in the proto definition for this message. If any rules are

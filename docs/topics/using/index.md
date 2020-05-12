@@ -15,6 +15,7 @@ Application development teams use Ambassador to manage edge policies associated 
     * [Adding Response Headers](headers/add_response_headers)
     * [Removing Request Headers](headers/remove_request_headers)
     * [Remove Response Headers](headers/remove_response_headers)
+  * [Query Parameter Based Routing](query_parameters)
   * [Keepalive](keepalive)
   * Protocols
     * [TCP](tcpmappings)

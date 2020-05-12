@@ -59,7 +59,7 @@ yaml_logged_loader = False
 yaml_logged_dumper = False
 
 
-def parse_yaml(serialization: str, **kwargs) -> Any:
+def parse_yaml(serialization: str) -> Any:
     global yaml_logged_loader
 
     if not yaml_logged_loader:

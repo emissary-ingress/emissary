@@ -110,14 +110,14 @@ $(tools/protoc-gen-go-json): $(OSS_HOME)/go.mod
 # very difficult.  To the point that using the golang/protobuf version and editing it to work with
 # gogo/protobuf is easier than getting the gogo/protobuf version to work with the newer proto files.
 #
-# Also, note that we disable the call to SetDeterministic since it's totally broken in gogo/protobuf
+# Also, note that we disable all calls to SetDeterministic since it's totally broken in gogo/protobuf
 # 1.3.0 and 1.3.1 (the latest version at the time of this writing), because gogo cherry-picked
 # https://github.com/golang/protobuf/pull/650 and https://github.com/golang/protobuf/pull/656 but
 # not https://github.com/golang/protobuf/pull/658 ; and is even more broken than it was in pre-#658
 # golang/protobuf because protoc-gen-gogofast always generates a `Marshal` method, meaning that it
 # is 100% impossible to use SetDeterministic with gogofast.
 
-ENVOY_GO_CONTROL_PLANE_COMMIT = v0.9.0
+ENVOY_GO_CONTROL_PLANE_COMMIT = 3a8210324ccf55ef9fd7eeeed6fd24d59d6aefd9
 $(OSS_HOME)/pkg/envoy-control-plane: FORCE
 	rm -rf $@
 	@PS4=; set -ex; { \
@@ -139,8 +139,8 @@ $(OSS_HOME)/pkg/envoy-control-plane: FORCE
 	    -e 's,^[[:space:]]*"github\.com/golang/protobuf/ptypes/struct",struct "github.com/gogo/protobuf/types",g' \
 	    -e 's,"github\.com/golang/protobuf/ptypes(/any|/struct)?","github.com/gogo/protobuf/types",g' \
 	    -e 's,github\.com/golang/protobuf/,github.com/gogo/protobuf/,g' \
+	    -e '/SetDeterministic/d' \
 	    -- {} +; \
-	  sed -i.bak /SetDeterministic/d pkg/server/server.go; \
 	  find pkg -name '*.bak' -delete; \
 	  mv $$(git ls-files ':[A-Z]*' ':!Dockerfile*' ':!Makefile') pkg; \
 	  mv pkg $(abspath $@); \
@@ -174,6 +174,10 @@ $(OSS_HOME)/pkg/envoy-control-plane: FORCE
 #    trick only works if the `.proto` and the `.go` live in the same directory together.  This is no
 #    longer true of istio.io/gogo-genproto, and because (2) the vendor trick assumes that everything
 #    we need vendored is mentioned in non-generates sources, which doesn't seem to be true for us.
+#
+# ... except now all that info lives in various Bazel BUILD files in envoy.git.  IDK what to tell
+# you; if `make generate && go build ./pkg/api/...` breaks, blindly grub about in envoy.git/api/ and
+# hope you figure out something that seems reasonable.
 _proto_path += $(OSS_HOME)/api
 _proto_path += $(OSS_HOME)/vendor
 _proto_path += $(call gomoddir,github.com/envoyproxy/protoc-gen-validate)
@@ -181,6 +185,7 @@ _proto_path += $(call gomoddir,github.com/gogo/protobuf)/protobuf
 _proto_path += $(call gomoddir,istio.io/gogo-genproto)/common-protos
 _proto_path += $(call gomoddir,istio.io/gogo-genproto)/common-protos/github.com/prometheus/client_model
 _proto_path += $(call gomoddir,istio.io/gogo-genproto)/common-protos/github.com/census-instrumentation/opencensus-proto/src
+_proto_path += $(call gomoddir,github.com/cncf/udpa)
 proto_path = $(call lazyonce,proto_path,$(_proto_path))
 
 # Usage: $(call protoc,output_module,output_basedir[,plugin_files])
@@ -198,12 +203,17 @@ protoc = @echo PROTOC --$1_out=$2 $<; mkdir -p $2 && $(tools/protoc) \
 # However, we make the following edits:
 #  - Add an entry for "google/api/expr/v1alpha1/syntax.proto", which didn't exist yet in the version
 #    that go-control-plane uses (see the comment around "proto_path" above).
+#
+# ... except now all that info lives in various Bazel BUILD files in envoy.git.  IDK what to tell
+# you; if `make generate && go build ./pkg/api/...` breaks, blindly grub about in envoy.git/api/ and
+# hope you figure out something that seems reasonable.
 _proto_options/gogofast += plugins=grpc
 _proto_options/gogofast += Mgogoproto/gogo.proto=github.com/gogo/protobuf/gogoproto
 _proto_options/gogofast += Mgoogle/api/annotations.proto=istio.io/gogo-genproto/googleapis/google/api
 _proto_options/gogofast += Mgoogle/api/expr/v1alpha1/syntax.proto=istio.io/gogo-genproto/googleapis/google/api/expr/v1alpha1
 _proto_options/gogofast += Mgoogle/api/http.proto=istio.io/gogo-genproto/googleapis/google/api
 _proto_options/gogofast += Mgoogle/protobuf/any.proto=github.com/gogo/protobuf/types
+_proto_options/gogofast += Mgoogle/protobuf/descriptor.proto=github.com/gogo/protobuf/protoc-gen-gogo/descriptor
 _proto_options/gogofast += Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types
 _proto_options/gogofast += Mgoogle/protobuf/empty.proto=github.com/gogo/protobuf/types
 _proto_options/gogofast += Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types
@@ -216,6 +226,10 @@ _proto_options/gogofast += Mmetrics.proto=istio.io/gogo-genproto/prometheus
 _proto_options/gogofast += Mopencensus/proto/trace/v1/trace.proto=istio.io/gogo-genproto/opencensus/proto/trace/v1
 _proto_options/gogofast += Mopencensus/proto/trace/v1/trace_config.proto=istio.io/gogo-genproto/opencensus/proto/trace/v1
 _proto_options/gogofast += Mvalidate/validate.proto=github.com/envoyproxy/protoc-gen-validate/validate
+_proto_options/gogofast += Mudpa/annotations/migrate.proto=github.com/cncf/udpa/go/udpa/annotations
+_proto_options/gogofast += Mudpa/annotations/sensitive.proto=github.com/cncf/udpa/go/udpa/annotations
+_proto_options/gogofast += Mudpa/annotations/status.proto=github.com/cncf/udpa/go/udpa/annotations
+_proto_options/gogofast += Mudpa/annotations/versioning.proto=github.com/cncf/udpa/go/udpa/annotations
 _proto_options/gogofast += $(shell find $(OSS_HOME)/api/envoy -type f -name '*.proto' | sed -E 's,^$(OSS_HOME)/api/((.*)/[^/]*),M\1=github.com/datawire/ambassador/pkg/api/\2,')
 proto_options/gogofast = $(call lazyonce,proto_options/gogofast,$(_proto_options/gogofast))
 $(OSS_HOME)/pkg/api/%.pb.go: $(OSS_HOME)/api/%.proto $(tools/protoc) $(tools/protoc-gen-gogofast) | $(OSS_HOME)/vendor
