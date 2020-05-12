@@ -33,6 +33,7 @@ class XRequestIdHeaderDefaultTest(AmbassadorTest):
     target: ServiceType
 
     def init(self):
+        self.xfail = "Need to figure out passing header through external connections from KAT"
         self.target = HTTP(name="target")
 
     def config(self):
@@ -54,5 +55,4 @@ service: http://{self.target.path.fqdn}
         yield Query(self.url("target/"), headers={"X-Request-Id": "hello"})
 
     def check(self):
-        print(self.results[0].backend.request.headers['x-request-id'])
         assert self.results[0].backend.request.headers['x-request-id'] != ['hello']
