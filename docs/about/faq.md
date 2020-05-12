@@ -64,11 +64,11 @@ To use a custom 404 landing page, simply insert your service and remove the rewr
 apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
-    name: "404 fallback"
+  name: "404 fallback"
 spec:
-    prefix: "/"
-    rewrite: "/404/" # This must not map to any existing prefix!
-    service: localhost:8500
+  prefix: "/"
+  rewrite: "/404/" # This must not map to any existing prefix!
+  service: localhost:8500
 ```
 
 For more information on the Mapping resource, see [Advanced Mapping Configuration](../../topics/using/mappings).
@@ -84,11 +84,11 @@ Ambassador module applies system-wide configuration settings for Ambassador to f
 apiVersion: getambassador.io/v2
 kind: Module
 metadata:
-    name: ambassador
+  name: ambassador
 spec:
-    config:
-        diagnostics:
-            enabled: false
+  config:
+    diagnostics:
+      enabled: false
 ```
 
 After applying this module, the admin endpoint is no longer accessible from the outside world.  
@@ -99,12 +99,12 @@ endpoint for them to use, create a mapping to expose the endpoint.
 apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
-    name: admin-mapping
+  name: admin-mapping
 spec:
-    host: admin.example.com
-    prefix: /edge_stack/
-    rewrite: /edge_stack_ui/edge_stack/
-    service: localhost:8500
+  host: admin.example.com
+  prefix: /edge_stack/
+  rewrite: /edge_stack_ui/edge_stack/
+  service: localhost:8500
 ```
 
 Now, administrators can connect to the admin console via hostname.  Additional [Mapping](../../topics/using/intro-mappings) and 
