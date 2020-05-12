@@ -15,6 +15,14 @@
 # limitations under the License
 
 set -o errexit
+
+# Don't bother trying to build the website if GH_TOKEN is unset (as it will
+# be for a community PR).
+if [ -z "$GH_TOKEN" ]; then
+	echo '[pr-build-website-preview] skipping: GH_TOKEN is not set'
+	exit 0
+fi
+
 set -o nounset
 set -o xtrace
 
@@ -24,6 +32,6 @@ rm -rf "/tmp/getambassador.io-$website_branch"
 git clone --single-branch --branch="$website_branch" https://d6e-automaton:${GH_TOKEN}@github.com/datawire/getambassador.io.git "/tmp/getambassador.io-$website_branch"
 cd "/tmp/getambassador.io-$website_branch"
 git submodule update --init --reference="$TRAVIS_BUILD_DIR"
-git -C ambassador checkout "$TRAVIS_COMMIT"
+git -C submodules/latest checkout "$TRAVIS_COMMIT"
 npm install
 npm run build

@@ -1,6 +1,8 @@
 import os
+import sys
 
 import pexpect
+import pytest
 import requests
 import time
 
@@ -12,9 +14,10 @@ def docker_start(logfile) -> bool:
     # Use a global here so that the child process doesn't get killed
     global child
 
-    print(os.environ["DOCKER_NETWORK"])
+    logfile.write(f'DOCKER_NETWORK = {os.environ["DOCKER_NETWORK"]}\n')
 
     cmd = f'docker run --rm --name test_docker_ambassador --network {os.environ["DOCKER_NETWORK"]} --network-alias docker-ambassador -u8888:0 {os.environ["AMBASSADOR_DOCKER_IMAGE"]} --demo'
+    logfile.write(f"Running: {cmd}\n")
 
     child = pexpect.spawn(cmd, encoding='utf-8')
     child.logfile = logfile
@@ -22,12 +25,13 @@ def docker_start(logfile) -> bool:
     i = child.expect([ pexpect.EOF, pexpect.TIMEOUT, 'AMBASSADOR DEMO RUNNING' ])
 
     if i == 0:
-        print('ambassador died?')
+        logfile.write('ambassador died?\n')
         return False
     elif i == 1:
-        print('ambassador timed out?')
+        logfile.write('ambassador timed out?\n')
         return False
     else:
+        logfile.write('ambassador running\n')
         return True
 
 def docker_kill(logfile):
@@ -107,4 +111,4 @@ def test_docker():
     assert test_status, 'test failed'
 
 if __name__ == '__main__':
-    test_docker()
+    pytest.main(sys.argv)

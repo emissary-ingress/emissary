@@ -4,17 +4,18 @@ include $(OSS_HOME)/build-aux/prelude.mk
 
 YES_I_AM_OK_WITH_COMPILING_ENVOY ?=
 YES_I_AM_UPDATING_THE_BASE_IMAGES ?=
+ENVOY_TEST_LABEL ?= //test/...
 
 _git_remote_urls := $(shell git remote | xargs -n1 git remote get-url --all)
 IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make update-base`.
   ENVOY_REPO ?= $(if $(IS_PRIVATE),git@github.com:datawire/envoy-private.git,git://github.com/datawire/envoy.git)
-  ENVOY_COMMIT ?= e24f8ed76240c049068160fa1ad3efdb324e00e4
+  ENVOY_COMMIT ?= 33ff697fc665b25463c7d64916ee6736782e2e76
   ENVOY_COMPILATION_MODE ?= opt
   # Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes.
   # You may reset BASE_ENVOY_RELVER when adjusting ENVOY_COMMIT.
-  BASE_ENVOY_RELVER ?= 2
+  BASE_ENVOY_RELVER ?= 1
 
   ENVOY_DOCKER_REPO ?= quay.io/datawire$(if $(IS_PRIVATE),-private)/ambassador-base
   ENVOY_DOCKER_VERSION ?= $(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE)
@@ -107,7 +108,7 @@ ENVOY_BASH.deps = $(srcdir)/envoy-build-container.txt
 $(OSS_HOME)/docker/base-envoy/envoy-static: $(ENVOY_BASH.deps) FORCE
 	mkdir -p $(@D)
 	@PS4=; set -ex; { \
-	    if docker run --rm --entrypoint=true $(ENVOY_DOCKER_TAG); then \
+	    if [ '$(ENVOY_COMMIT)' != '-' ] && docker run --rm --entrypoint=true $(ENVOY_DOCKER_TAG); then \
 	        rsync -Pav --blocking-io -e 'docker run --rm -i' $$(docker image inspect $(ENVOY_DOCKER_TAG) --format='{{.Id}}' | sed 's/^sha256://'):/usr/local/bin/envoy-static $@; \
 	    else \
 	        if [ -z '$(YES_I_AM_UPDATING_THE_BASE_IMAGES)' ]; then \
@@ -137,9 +138,10 @@ $(OSS_HOME)/docker/base-envoy/envoy-static: $(ENVOY_BASH.deps) FORCE
 
 check-envoy: ## Run the Envoy test suite
 check-envoy: $(ENVOY_BASH.deps)
-	$(call ENVOY_BASH.cmd, \
-	    docker exec --workdir=/root/envoy $$(cat $(srcdir)/envoy-build-container.txt) /bin/bash -c 'export CC=/opt/llvm/bin/clang && export CXX=/opt/llvm/bin/clang++ && bazel test --config=clang --test_output=errors --verbose_failures -c dbg --test_env=ENVOY_IP_TEST_VERSIONS=v4only //test/...;' \
-	)
+	  @echo 'Testing envoy with Bazel label: "$(ENVOY_TEST_LABEL)"'; \
+	  $(call ENVOY_BASH.cmd, \
+	     docker exec --workdir=/root/envoy $$(cat $(srcdir)/envoy-build-container.txt) /bin/bash -c 'export CC=/opt/llvm/bin/clang && export CXX=/opt/llvm/bin/clang++ && bazel test --config=clang --test_output=errors --verbose_failures -c dbg --test_env=ENVOY_IP_TEST_VERSIONS=v4only $(ENVOY_TEST_LABEL);' \
+	 )
 .PHONY: check-envoy
 
 envoy-shell: ## Run a shell in the Envoy build container
@@ -158,7 +160,7 @@ $(OSS_HOME)/api/envoy: $(srcdir)/envoy
 update-base: $(srcdir)/envoy-build-image.txt $(OSS_HOME)/docker/base-envoy/envoy-static $(OSS_HOME)/docker/base-envoy/envoy-static-stripped
 	docker build --build-arg=base=$$(cat $(srcdir)/envoy-build-image.txt) -t $(ENVOY_DOCKER_TAG) $(OSS_HOME)/docker/base-envoy
 	$(MAKE) generate
-	docker push $(ENVOY_DOCKER_TAG)
+	if [ '$(ENVOY_COMMIT)' != '-' ]; then docker push $(ENVOY_DOCKER_TAG); fi
 .PHONY: update-base
 
 #

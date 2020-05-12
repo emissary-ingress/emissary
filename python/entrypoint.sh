@@ -84,6 +84,7 @@ export AMBASSADOR_NAMESPACE="${AMBASSADOR_NAMESPACE:-default}"
 export AMBASSADOR_CONFIG_BASE_DIR="${AMBASSADOR_CONFIG_BASE_DIR:-$ambassador_root}"
 export ENVOY_DIR="${AMBASSADOR_CONFIG_BASE_DIR}/envoy"
 export ENVOY_BOOTSTRAP_FILE="${AMBASSADOR_CONFIG_BASE_DIR}/bootstrap-ads.json"
+export ENVOY_BASE_ID="${AMBASSADOR_ENVOY_BASE_ID:-0}"
 
 export APPDIR="${APPDIR:-$ambassador_root}"
 
@@ -113,7 +114,7 @@ fi
 # Note that the envoy_config_file really is in ENVOY_DIR, rather than
 # being in AMBASSADOR_CONFIG_BASE_DIR.
 envoy_config_file="${ENVOY_DIR}/envoy.json"         # not a typo, see above
-envoy_flags=('-c' "${ENVOY_BOOTSTRAP_FILE}" "--drain-time-s" "1")
+envoy_flags=('-c' "${ENVOY_BOOTSTRAP_FILE}" "--drain-time-s" "1" "--base-id" "${ENVOY_BASE_ID}")
 
 # AMBASSADOR_DEBUG is a list of things to enable debugging for,
 # separated by spaces; parse that in to an array.
@@ -386,6 +387,10 @@ wait_for_url "diagd" "http://localhost:8877/_internal/v0/ping"
 ################################################################################
 if [[ -z "${AMBASSADOR_NO_KUBEWATCH}" ]]; then
     KUBEWATCH_SYNC_KINDS="-s service"
+
+    if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_ingress_class" ]; then
+        KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s ingressclasses"
+    fi
 
     if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_ingress" ]; then
         KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s ingresses"

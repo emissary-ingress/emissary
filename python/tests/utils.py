@@ -1,10 +1,12 @@
 import os
 import subprocess
 import tempfile
+from collections import namedtuple
 
 import yaml
 
 from kat.utils import namespace_manifest
+from kat.harness import load_manifest, CLEARTEXT_HOST_YAML
 
 qotm_manifests = """
 ---
@@ -105,58 +107,48 @@ def install_ambassador(namespace, envs=None):
     create_namespace(namespace)
 
     # Create Ambassador CRDs
-    ambassador_crds_path = "/buildroot/ambassador/docs/yaml/ambassador/ambassador-crds.yaml"
-    install_ambassador_crds_cmd = ['kubectl', 'apply', '-n', namespace, '-f', ambassador_crds_path]
-    run_and_assert(install_ambassador_crds_cmd)
+    apply_kube_artifacts(namespace=namespace, artifacts=load_manifest('crds'))
 
     # Proceed to install Ambassador now
     final_yaml = []
-    ambassador_yaml_path = "/buildroot/ambassador/docs/yaml/ambassador/ambassador-rbac.yaml"
-    with open(ambassador_yaml_path, 'r') as f:
-        ambassador_yaml = list(yaml.safe_load_all(f))
 
-        for manifest in ambassador_yaml:
-            if manifest.get('kind', '') == 'Deployment' and manifest.get('metadata', {}).get('name', '') == 'ambassador':
-                # we want only one replica of Ambassador to run
-                manifest['spec']['replicas'] = 1
-
-                # let's fix the image
-                manifest['spec']['template']['spec']['containers'][0]['image'] = os.environ['AMBASSADOR_DOCKER_IMAGE']
-
-                # we don't want to do everything in /ambassador/
-                manifest['spec']['template']['spec']['containers'][0]['env'].append({
-                    'name': 'AMBASSADOR_CONFIG_BASE_DIR',
-                    'value': '/tmp/ambassador'
-                })
-
-                # add new envs, if any
-                manifest['spec']['template']['spec']['containers'][0]['env'].extend(envs)
-
-            final_yaml.append(manifest)
-
-    apply_kube_artifacts(namespace=namespace, artifacts=yaml.safe_dump_all(final_yaml))
-
-    namespace_crb = f"""
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRoleBinding
-metadata:
-  name: ambassador
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: ambassador
-subjects:
-- kind: ServiceAccount
-  name: ambassador
-  namespace: {namespace}
+    serviceAccountExtra = ''
+    if os.environ.get("DEV_USE_IMAGEPULLSECRET", False):
+        serviceAccountExtra = """
+imagePullSecrets:
+- name: dev-image-pull-secret
 """
 
-    apply_kube_artifacts(namespace=namespace, artifacts=namespace_crb)
+    ambassador_yaml = list(yaml.safe_load_all((
+        load_manifest('rbac_cluster_scope')+
+        load_manifest('ambassador')+
+        (CLEARTEXT_HOST_YAML % namespace)
+    ).format(
+        capabilities_block="",
+        envs="",
+        extra_ports="",
+        serviceAccountExtra=serviceAccountExtra,
+        image=os.environ["AMBASSADOR_DOCKER_IMAGE"],
+        self=namedtuple('self', 'namespace path ambassador_id')(
+            namespace,
+            namedtuple('path', 'k8s')(
+                'ambassador'),
+            'default',
+        ),
+    )))
 
-    ambassador_service_path = "/buildroot/ambassador/docs/yaml/ambassador/ambassador-service.yaml"
-    install_ambassador_service_cmd = ['kubectl', 'apply', '-n', namespace, '-f', ambassador_service_path]
-    run_and_assert(install_ambassador_service_cmd)
+    for manifest in ambassador_yaml:
+        if manifest.get('kind', '') == 'Pod' and manifest.get('metadata', {}).get('name', '') == 'ambassador':
+
+            # Don't set AMBASSADOR_ID={self.k8s.path}
+            for envvar in manifest['spec']['containers'][0]['env']:
+                if envvar.get('name', '') == 'AMBASSADOR_ID':
+                    envvar['value'] = 'default'
+
+            # add new envs, if any
+            manifest['spec']['containers'][0]['env'].extend(envs)
+
+    apply_kube_artifacts(namespace=namespace, artifacts=yaml.safe_dump_all(ambassador_yaml))
 
 
 def create_namespace(namespace):

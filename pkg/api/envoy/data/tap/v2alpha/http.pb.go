@@ -207,22 +207,22 @@ type isHttpStreamedTraceSegment_MessagePiece interface {
 }
 
 type HttpStreamedTraceSegment_RequestHeaders struct {
-	RequestHeaders *core.HeaderMap `protobuf:"bytes,2,opt,name=request_headers,json=requestHeaders,proto3,oneof"`
+	RequestHeaders *core.HeaderMap `protobuf:"bytes,2,opt,name=request_headers,json=requestHeaders,proto3,oneof" json:"request_headers,omitempty"`
 }
 type HttpStreamedTraceSegment_RequestBodyChunk struct {
-	RequestBodyChunk *Body `protobuf:"bytes,3,opt,name=request_body_chunk,json=requestBodyChunk,proto3,oneof"`
+	RequestBodyChunk *Body `protobuf:"bytes,3,opt,name=request_body_chunk,json=requestBodyChunk,proto3,oneof" json:"request_body_chunk,omitempty"`
 }
 type HttpStreamedTraceSegment_RequestTrailers struct {
-	RequestTrailers *core.HeaderMap `protobuf:"bytes,4,opt,name=request_trailers,json=requestTrailers,proto3,oneof"`
+	RequestTrailers *core.HeaderMap `protobuf:"bytes,4,opt,name=request_trailers,json=requestTrailers,proto3,oneof" json:"request_trailers,omitempty"`
 }
 type HttpStreamedTraceSegment_ResponseHeaders struct {
-	ResponseHeaders *core.HeaderMap `protobuf:"bytes,5,opt,name=response_headers,json=responseHeaders,proto3,oneof"`
+	ResponseHeaders *core.HeaderMap `protobuf:"bytes,5,opt,name=response_headers,json=responseHeaders,proto3,oneof" json:"response_headers,omitempty"`
 }
 type HttpStreamedTraceSegment_ResponseBodyChunk struct {
-	ResponseBodyChunk *Body `protobuf:"bytes,6,opt,name=response_body_chunk,json=responseBodyChunk,proto3,oneof"`
+	ResponseBodyChunk *Body `protobuf:"bytes,6,opt,name=response_body_chunk,json=responseBodyChunk,proto3,oneof" json:"response_body_chunk,omitempty"`
 }
 type HttpStreamedTraceSegment_ResponseTrailers struct {
-	ResponseTrailers *core.HeaderMap `protobuf:"bytes,7,opt,name=response_trailers,json=responseTrailers,proto3,oneof"`
+	ResponseTrailers *core.HeaderMap `protobuf:"bytes,7,opt,name=response_trailers,json=responseTrailers,proto3,oneof" json:"response_trailers,omitempty"`
 }
 
 func (*HttpStreamedTraceSegment_RequestHeaders) isHttpStreamedTraceSegment_MessagePiece()    {}
@@ -501,7 +501,8 @@ func (m *HttpStreamedTraceSegment) MarshalToSizedBuffer(dAtA []byte) (int, error
 }
 
 func (m *HttpStreamedTraceSegment_RequestHeaders) MarshalTo(dAtA []byte) (int, error) {
-	return m.MarshalToSizedBuffer(dAtA[:m.Size()])
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
 func (m *HttpStreamedTraceSegment_RequestHeaders) MarshalToSizedBuffer(dAtA []byte) (int, error) {
@@ -521,7 +522,8 @@ func (m *HttpStreamedTraceSegment_RequestHeaders) MarshalToSizedBuffer(dAtA []by
 	return len(dAtA) - i, nil
 }
 func (m *HttpStreamedTraceSegment_RequestBodyChunk) MarshalTo(dAtA []byte) (int, error) {
-	return m.MarshalToSizedBuffer(dAtA[:m.Size()])
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
 func (m *HttpStreamedTraceSegment_RequestBodyChunk) MarshalToSizedBuffer(dAtA []byte) (int, error) {
@@ -541,7 +543,8 @@ func (m *HttpStreamedTraceSegment_RequestBodyChunk) MarshalToSizedBuffer(dAtA []
 	return len(dAtA) - i, nil
 }
 func (m *HttpStreamedTraceSegment_RequestTrailers) MarshalTo(dAtA []byte) (int, error) {
-	return m.MarshalToSizedBuffer(dAtA[:m.Size()])
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
 func (m *HttpStreamedTraceSegment_RequestTrailers) MarshalToSizedBuffer(dAtA []byte) (int, error) {
@@ -561,7 +564,8 @@ func (m *HttpStreamedTraceSegment_RequestTrailers) MarshalToSizedBuffer(dAtA []b
 	return len(dAtA) - i, nil
 }
 func (m *HttpStreamedTraceSegment_ResponseHeaders) MarshalTo(dAtA []byte) (int, error) {
-	return m.MarshalToSizedBuffer(dAtA[:m.Size()])
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
 func (m *HttpStreamedTraceSegment_ResponseHeaders) MarshalToSizedBuffer(dAtA []byte) (int, error) {
@@ -581,7 +585,8 @@ func (m *HttpStreamedTraceSegment_ResponseHeaders) MarshalToSizedBuffer(dAtA []b
 	return len(dAtA) - i, nil
 }
 func (m *HttpStreamedTraceSegment_ResponseBodyChunk) MarshalTo(dAtA []byte) (int, error) {
-	return m.MarshalToSizedBuffer(dAtA[:m.Size()])
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
 func (m *HttpStreamedTraceSegment_ResponseBodyChunk) MarshalToSizedBuffer(dAtA []byte) (int, error) {
@@ -601,7 +606,8 @@ func (m *HttpStreamedTraceSegment_ResponseBodyChunk) MarshalToSizedBuffer(dAtA [
 	return len(dAtA) - i, nil
 }
 func (m *HttpStreamedTraceSegment_ResponseTrailers) MarshalTo(dAtA []byte) (int, error) {
-	return m.MarshalToSizedBuffer(dAtA[:m.Size()])
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
 func (m *HttpStreamedTraceSegment_ResponseTrailers) MarshalToSizedBuffer(dAtA []byte) (int, error) {
@@ -1346,6 +1352,7 @@ func (m *HttpStreamedTraceSegment) Unmarshal(dAtA []byte) error {
 func skipHttp(dAtA []byte) (n int, err error) {
 	l := len(dAtA)
 	iNdEx := 0
+	depth := 0
 	for iNdEx < l {
 		var wire uint64
 		for shift := uint(0); ; shift += 7 {
@@ -1377,10 +1384,8 @@ func skipHttp(dAtA []byte) (n int, err error) {
 					break
 				}
 			}
-			return iNdEx, nil
 		case 1:
 			iNdEx += 8
-			return iNdEx, nil
 		case 2:
 			var length int
 			for shift := uint(0); ; shift += 7 {
@@ -1401,55 +1406,30 @@ func skipHttp(dAtA []byte) (n int, err error) {
 				return 0, ErrInvalidLengthHttp
 			}
 			iNdEx += length
-			if iNdEx < 0 {
-				return 0, ErrInvalidLengthHttp
-			}
-			return iNdEx, nil
 		case 3:
-			for {
-				var innerWire uint64
-				var start int = iNdEx
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return 0, ErrIntOverflowHttp
-					}
-					if iNdEx >= l {
-						return 0, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					innerWire |= (uint64(b) & 0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				innerWireType := int(innerWire & 0x7)
-				if innerWireType == 4 {
-					break
-				}
-				next, err := skipHttp(dAtA[start:])
-				if err != nil {
-					return 0, err
-				}
-				iNdEx = start + next
-				if iNdEx < 0 {
-					return 0, ErrInvalidLengthHttp
-				}
-			}
-			return iNdEx, nil
+			depth++
 		case 4:
-			return iNdEx, nil
+			if depth == 0 {
+				return 0, ErrUnexpectedEndOfGroupHttp
+			}
+			depth--
 		case 5:
 			iNdEx += 4
-			return iNdEx, nil
 		default:
 			return 0, fmt.Errorf("proto: illegal wireType %d", wireType)
 		}
+		if iNdEx < 0 {
+			return 0, ErrInvalidLengthHttp
+		}
+		if depth == 0 {
+			return iNdEx, nil
+		}
 	}
-	panic("unreachable")
+	return 0, io.ErrUnexpectedEOF
 }
 
 var (
-	ErrInvalidLengthHttp = fmt.Errorf("proto: negative length found during unmarshaling")
-	ErrIntOverflowHttp   = fmt.Errorf("proto: integer overflow")
+	ErrInvalidLengthHttp        = fmt.Errorf("proto: negative length found during unmarshaling")
+	ErrIntOverflowHttp          = fmt.Errorf("proto: integer overflow")
+	ErrUnexpectedEndOfGroupHttp = fmt.Errorf("proto: unexpected end of group")
 )

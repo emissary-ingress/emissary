@@ -1,105 +1,57 @@
 package main
 
 import (
-	"crypto/tls"
 	"fmt"
-	"net"
-	"net/http"
 	"os"
-	"time"
 
 	"github.com/spf13/cobra"
+
+	"github.com/datawire/ambassador/internal/pkg/edgectl"
+	install "github.com/datawire/ambassador/internal/pkg/edgectl/install"
 )
 
 // Version is inserted at build using --ldflags -X
 var Version = "(unknown version)"
 
-const (
-	socketName = "/var/run/edgectl.socket"
-	logfile    = "/tmp/edgectl.log"
-	apiVersion = 1
-)
-
-var displayVersion = fmt.Sprintf("v%s (api v%d)", Version, apiVersion)
-
-const failedToConnect = "Unable to connect to the daemon (See \"edgectl help daemon\")"
-
-var daemonHelp = `The Edge Control Daemon is a long-lived background component that manages
-connections and network state.
-
-Launch the Edge Control Daemon:
-    sudo edgectl daemon
-
-Examine the Daemon's log output in
-    ` + logfile + `
-to troubleshoot problems.
-`
-
-// edgectl is the full path to the Edge Control binary
-var edgectl string
-
-var simpleTransport = &http.Transport{
-	// #nosec G402
-	TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	Proxy:           nil,
-	DialContext: (&net.Dialer{
-		Timeout:   10 * time.Second,
-		KeepAlive: 1 * time.Second,
-		DualStack: true,
-	}).DialContext,
-	DisableKeepAlives: true,
-}
-
-var hClient = &http.Client{
-	Transport: simpleTransport,
-	Timeout:   15 * time.Second,
-}
-
 func main() {
-	// Figure out our executable and save it
-	if executable, err := os.Executable(); err != nil {
-		fmt.Fprintf(os.Stderr, "Internal error: %v", err)
-		os.Exit(1)
-	} else {
-		edgectl = executable
-	}
+	edgectl.SetVersion(Version)
 
 	rootCmd := getRootCommand()
 
-	var cg []CmdGroup
-	if DaemonWorks() {
-		cg = []CmdGroup{
-			CmdGroup{
+	var cg []edgectl.CmdGroup
+	if edgectl.DaemonWorks() {
+		cg = []edgectl.CmdGroup{
+			{
 				GroupName: "Management Commands",
 				CmdNames:  []string{"install", "login", "license"},
 			},
-			CmdGroup{
+			{
 				GroupName: "Development Commands",
 				CmdNames:  []string{"status", "connect", "disconnect", "intercept"},
 			},
-			CmdGroup{
+			{
 				GroupName: "Advanced Commands",
 				CmdNames:  []string{"daemon", "pause", "resume", "quit"},
 			},
-			CmdGroup{
+			{
 				GroupName: "Other Commands",
 				CmdNames:  []string{"version", "help"},
 			},
 		}
 	} else {
-		cg = []CmdGroup{
-			CmdGroup{
+		cg = []edgectl.CmdGroup{
+			{
 				GroupName: "Management Commands",
 				CmdNames:  []string{"install", "login", "license"},
 			},
-			CmdGroup{
+			{
 				GroupName: "Other Commands",
 				CmdNames:  []string{"version", "help"},
 			},
 		}
 	}
 
-	usageFunc := NewCmdUsage(rootCmd, cg)
+	usageFunc := edgectl.NewCmdUsage(rootCmd, cg)
 	rootCmd.SetUsageFunc(usageFunc)
 	err := rootCmd.Execute()
 	if err != nil {
@@ -109,20 +61,23 @@ func main() {
 
 func getRootCommand() *cobra.Command {
 	myName := "Edge Control"
-	if !isServerRunning() {
+	if !edgectl.IsServerRunning() {
 		myName = "Edge Control (daemon unavailable)"
 	}
 
 	myHelp := myName + `
-  https://www.getambassador.io/user-guide/install/
+  https://www.getambassador.io/docs/latest/topics/install/
 `
 
 	rootCmd := &cobra.Command{
-		Use:          "edgectl",
+		Use:          "edgectlExe",
 		Short:        myName,
 		Long:         myHelp,
 		SilenceUsage: true, // https://github.com/spf13/cobra/issues/340
 	}
+	_ = rootCmd.PersistentFlags().Bool(
+		"no-report", false, "turn off anonymous crash reports and log submission on failure",
+	)
 
 	// Hidden/internal commands. These are called by Edge Control itself from
 	// the correct context and execute in-place immediately.
@@ -133,7 +88,7 @@ func getRootCommand() *cobra.Command {
 		Args:   cobra.ExactArgs(2),
 		Hidden: true,
 		RunE: func(_ *cobra.Command, args []string) error {
-			return RunAsDaemon(args[0], args[1])
+			return edgectl.RunAsDaemon(args[0], args[1])
 		},
 	})
 	teleproxyCmd := &cobra.Command{
@@ -147,7 +102,7 @@ func getRootCommand() *cobra.Command {
 		Args:   cobra.ExactArgs(2),
 		Hidden: true,
 		RunE: func(_ *cobra.Command, args []string) error {
-			return RunAsTeleproxyIntercept(args[0], args[1])
+			return edgectl.RunAsTeleproxyIntercept(args[0], args[1])
 		},
 	})
 	teleproxyCmd.AddCommand(&cobra.Command{
@@ -156,20 +111,20 @@ func getRootCommand() *cobra.Command {
 		Args:   cobra.ExactArgs(2),
 		Hidden: true,
 		RunE: func(_ *cobra.Command, args []string) error {
-			return RunAsTeleproxyBridge(args[0], args[1])
+			return edgectl.RunAsTeleproxyBridge(args[0], args[1])
 		},
 	})
 	rootCmd.AddCommand(teleproxyCmd)
 
 	// Client commands. These are never sent to the daemon.
 
-	if DaemonWorks() {
+	if edgectl.DaemonWorks() {
 		daemonCmd := &cobra.Command{
 			Use:   "daemon",
 			Short: "Launch Edge Control Daemon in the background (sudo)",
-			Long:  daemonHelp,
+			Long:  edgectl.DaemonHelp,
 			Args:  cobra.ExactArgs(0),
-			RunE:  launchDaemon,
+			RunE:  edgectl.LaunchDaemon,
 		}
 		_ = daemonCmd.Flags().String(
 			"dns", "",
@@ -183,9 +138,9 @@ func getRootCommand() *cobra.Command {
 	}
 	loginCmd := &cobra.Command{
 		Use:   "login [flags] HOSTNAME",
-		Short: "Access the Ambassador Edge Policy Console",
+		Short: "Log in to the Ambassador Edge Policy Console",
 		Args:  cobra.ExactArgs(1),
-		RunE:  aesLogin,
+		RunE:  edgectl.AESLogin,
 	}
 	_ = loginCmd.Flags().StringP(
 		"context", "c", "",
@@ -202,7 +157,7 @@ func getRootCommand() *cobra.Command {
 		Use:   "license [flags] LICENSE_KEY",
 		Short: "Set or update the Ambassador Edge Stack license key",
 		Args:  cobra.ExactArgs(1),
-		RunE:  aesLicense,
+		RunE:  edgectl.AESLicense,
 	}
 	_ = licenseCmd.Flags().StringP(
 		"context", "c", "",
@@ -213,13 +168,28 @@ func getRootCommand() *cobra.Command {
 		"The Kubernetes namespace to use. Defaults to ambassador.",
 	)
 	rootCmd.AddCommand(licenseCmd)
-	rootCmd.AddCommand(aesInstallCmd())
+
+	installCmd := &cobra.Command{
+		Use:   "install",
+		Short: "Install the Ambassador Edge Stack in your cluster",
+		Args:  cobra.ExactArgs(0),
+		RunE:  install.AESInstall,
+	}
+	_ = installCmd.Flags().StringP(
+		"context", "c", "",
+		"The Kubernetes context to use. Defaults to the current kubectl context.",
+	)
+	_ = installCmd.Flags().BoolP(
+		"verbose", "v", false,
+		"Show all output. Defaults to sending most output to the logfile.",
+	)
+	rootCmd.AddCommand(installCmd)
 
 	// Daemon commands. These should be forwarded to the daemon.
 
-	if DaemonWorks() {
-		nilDaemon := &Daemon{}
-		daemonCmd := nilDaemon.getRootCommand(nil, nil, nil)
+	if edgectl.DaemonWorks() {
+		nilDaemon := &edgectl.Daemon{}
+		daemonCmd := nilDaemon.GetRootCommand(nil, nil, nil)
 		walkSubcommands(daemonCmd)
 		rootCmd.AddCommand(daemonCmd.Commands()...)
 		rootCmd.PersistentFlags().AddFlagSet(daemonCmd.PersistentFlags())
@@ -229,7 +199,7 @@ func getRootCommand() *cobra.Command {
 			Short: "Show program's version number and exit",
 			Args:  cobra.ExactArgs(0),
 			RunE: func(_ *cobra.Command, _ []string) error {
-				fmt.Println("Client", displayVersion)
+				fmt.Println("Client", edgectl.DisplayVersion())
 				fmt.Println("Daemon unavailable on this platform")
 				return nil
 			},
@@ -251,14 +221,14 @@ func walkSubcommands(cmd *cobra.Command) {
 }
 
 func forwardToDaemon(cmd *cobra.Command, _ []string) error {
-	err := mainViaDaemon()
+	err := edgectl.MainViaDaemon()
 	if err != nil {
 		// The version command is special because it must emit the client
 		// version if the daemon is unavailable.
 		if cmd.Use == "version" {
-			fmt.Println("Client", displayVersion)
+			fmt.Println("Client", edgectl.DisplayVersion())
 		}
-		fmt.Println(failedToConnect)
+		fmt.Println("Unable to connect to the daemon (See \"edgectl help daemon\")")
 	}
 	return err
 }
