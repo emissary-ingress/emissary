@@ -220,6 +220,7 @@
                     "precedence": 0,
                     "prefix": "/ambassador/v0/check_ready",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/ambassador/v0/check_ready",
                     "route_weight": [
@@ -240,6 +241,7 @@
             "precedence": 0,
             "prefix": "/ambassador/v0/check_ready",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/ambassador/v0/check_ready",
             "timeout_ms": 10000
         },
@@ -317,6 +319,7 @@
                     "precedence": 0,
                     "prefix": "/ambassador/v0/check_alive",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/ambassador/v0/check_alive",
                     "route_weight": [
@@ -337,6 +340,7 @@
             "precedence": 0,
             "prefix": "/ambassador/v0/check_alive",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/ambassador/v0/check_alive",
             "timeout_ms": 10000
         },
@@ -417,6 +421,7 @@
                     "precedence": 0,
                     "prefix": "/findme-array2/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -441,6 +446,7 @@
             "precedence": 0,
             "prefix": "/findme-array2/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id:\n- missme\n- ambassadoridtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: ambassadoridtest\n  scope: AmbassadorTest\nname: ambassadoridtest-findme-array2\nnamespace: default\nprefix: /findme-array2/\nservice: ambassadoridtest-http\n"
         },
@@ -518,6 +524,7 @@
                     "precedence": 0,
                     "prefix": "/ambassador/v0/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/ambassador/v0/",
                     "route_weight": [
@@ -538,6 +545,7 @@
             "precedence": 0,
             "prefix": "/ambassador/v0/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/ambassador/v0/",
             "timeout_ms": 10000
         },
@@ -618,6 +626,7 @@
                     "precedence": 0,
                     "prefix": "/findme-array/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -642,6 +651,7 @@
             "precedence": 0,
             "prefix": "/findme-array/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id:\n- ambassadoridtest\n- missme\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: ambassadoridtest\n  scope: AmbassadorTest\nname: ambassadoridtest-findme-array\nnamespace: default\nprefix: /findme-array/\nservice: ambassadoridtest-http\n"
         },
@@ -722,6 +732,7 @@
                     "precedence": 0,
                     "prefix": "/findme/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -746,6 +757,7 @@
             "precedence": 0,
             "prefix": "/findme/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: ambassadoridtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: ambassadoridtest\n  scope: AmbassadorTest\nname: ambassadoridtest-findme\nnamespace: default\nprefix: /findme/\nservice: ambassadoridtest-http\n"
         }
