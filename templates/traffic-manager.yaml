@@ -50,6 +50,7 @@ kind: ClusterRoleBinding
 {{- end }}
 metadata:
   name: {{ .Values.servicePreview.trafficManager.serviceAccountName }}
+  namespace: {{ .Release.Namespace }}
   labels:
     app.kubernetes.io/name: {{ .Values.servicePreview.trafficManager.serviceAccountName }}
     app.kubernetes.io/part-of: {{ .Release.Name }}
