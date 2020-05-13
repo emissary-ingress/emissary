@@ -10,12 +10,21 @@ import { getCookie } from '../../components/cookies.js';
 import { ApiFetch } from "../../components/api-fetch.js";
 import { deepEqual } from '../framework/cow.js';
 
+const Second = 1000;
+
 class ProjectStore extends ResourceStore {
 
   subscribe(collection) {
+    this.delay = 1*Second
     let looper = ()=>{
       this._poll(collection);
-      setTimeout(looper, 1000);
+      // This makes sure we give up if we get logged out. Out of an
+      // abundance of caution we retry a few times before giving up
+      // just in case this code runs super early in the login process
+      // before the edge_stack_auth cookie is actually set.
+      if (this.delay < 4*Second) {
+        setTimeout(looper, this.delay);
+      }
     }
     looper();
   }
@@ -25,8 +34,16 @@ class ProjectStore extends ResourceStore {
       headers: {
         'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
       }
-    }).then(res => res.json())
-      .then((snapshot)=>{
+    }).then(res => {
+      if (res.status === 400 || res.status === 401 || res.status === 403) {
+        this.delay = 2*this.delay
+        return new Promise(function(resolve, reject) {
+          resolve({})
+        })
+      } else {
+        return res.json()
+      }
+    }).then((snapshot)=>{
         let updatedErrors = snapshot.errors || []
         if (!deepEqual(updatedErrors, collection.errors)) {
           collection.errors = updatedErrors
