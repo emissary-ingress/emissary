@@ -13,6 +13,7 @@ Use the following variables for the environment of your Ambassador container:
 | Primary Redis              | `REDIS_POOL_SIZE`                | `10`                                                | Integer                                                                       |
 | Primary Redis              | `REDIS_SOCKET_TYPE`              | None, must be set explicitly                        | Go network such as `tcp` or `unix`; see [Go `net.Dial`][]                     |
 | Primary Redis              | `REDIS_URL`                      | None, must be set explicitly                        | Go network address; for TCP this is a `host:port` pair; see [Go `net.Dial`][] |
+| Primary Redis              | `REDIS_USERNAME`                 | Empty                                               | Plain string                                                                        |
 | Primary Redis              | `REDIS_PASSWORD`                 | Empty                                               | Plain string                                                                        |
 | Primary Redis              | `REDIS_TLS_ENABLED`              | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
 | Primary Redis              | `REDIS_TLS_INSECURE`             | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
@@ -20,6 +21,7 @@ Use the following variables for the environment of your Ambassador container:
 | Per-Second RateLimit Redis | `REDIS_PERSECOND_POOL_SIZE`      | `10`                                                | Integer                                                                       |
 | Per-Second RateLimit Redis | `REDIS_PERSECOND_SOCKET_TYPE`    | None, must be set explicitly (if `REDIS_PERSECOND`) | Go network such as `tcp` or `unix`; see [Go `net.Dial`][]                     |
 | Per-Second RateLimit Redis | `REDIS_PERSECOND_URL`            | None, must be set explicitly (if `REDIS_PERSECOND`) | Go network address; for TCP this is a `host:port` pair; see [Go `net.Dial`][] |
+| Per-Second RateLimit Redis | `REDIS_PERSECOND_USERNAME`       | Empty                                               | Plain string                                                                        |
 | Per-Second RateLimit Redis | `REDIS_PERSECOND_PASSWORD`       | Empty                                               | Plain string                                                                        |
 | Per-Second RateLimit Redis | `REDIS_PERSECOND_TLS_ENABLED`    | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
 | Per-Second RateLimit Redis | `REDIS_PERSECOND_TLS_INSECURE`   | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
@@ -51,7 +53,10 @@ the usual `REDIS_*` variables.
 
 If `REDIS_PASSWORD` (or `REDIS_PERSECOND_PASSWORD`) is non-empty, then
 it is used to `AUTH` to Redis immediately after the connection is
-established.
+established.  If `REDIS_USERNAME` (or `REDIS_PERSECOND_USERNAME`) is
+set, then that username is used with to log in as that user in the
+[Redis 6 ACL].  It is invalid to set a username without setting a
+password.  It is invalid to set a username with Redis 5 or lower.
 
 If `REDIS_TLS_ENABLED` (or `REDIS_PERSECOND_TLS_ENABLED`) is true,
 then TLS is used when communicating with Redis.  Setting
@@ -84,3 +89,4 @@ The Ambassador Edge Stack uses the following ports to listen for HTTP/HTTPS traf
 
 [Go `net.Dial`]: https://golang.org/pkg/net/#Dial
 [Go `strconv.ParseBool`]: https://golang.org/pkg/strconv/#ParseBool
+[Redis 6 ACL]: https://redis.io/topics/acl
