@@ -276,7 +276,7 @@ spec:
         - name: REDIS_URL
           value: ambassador-redis:6379
         - name: AMBASSADOR_URL
-          value: https://ambassador.default.svc.cluster.local
+          value: https://ambassador.ambassador.svc.cluster.local
         - name: POLL_EVERY_SECS
           value: '60'
         - name: AMBASSADOR_INTERNAL_URL
