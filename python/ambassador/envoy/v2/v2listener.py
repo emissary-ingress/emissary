@@ -802,6 +802,10 @@ class V2Listener(dict):
         if 'enable_http10' in self.config.ir.ambassador_module:
             self.base_http_config["http_protocol_options"] = { 'accept_http_10': self.config.ir.ambassador_module.enable_http10 }
 
+        if 'preserve_external_request_id' in self.config.ir.ambassador_module:
+            self.base_http_config["preserve_external_request_id"] = self.config.ir.ambassador_module.preserve_external_request_id
+
+
         if self.config.ir.tracing:
             self.base_http_config["generate_request_id"] = True
 

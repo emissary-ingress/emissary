@@ -10,7 +10,7 @@ With Auth0 as your IdP, you will need to create an `Application` to handle authe
 
   ![](../../../images/machine-machine.png)
 
-3. Select the Auth0 Management API. Grant any scopes you may require. (You may grant none.) 
+3. Select the Auth0 Management API. Grant any scopes you may require. (You may grant none.) The API is required so that an `audience` can be specified which will result in a JWT being returned rather than opaque token. A custom API can also be used.
 
   ![](../../../images/scopes.png)
   
@@ -43,7 +43,8 @@ Update the Auth0 `Filter` and `FilterPolicy`. You can get the `ClientID` and `se
    spec:
      OAuth2:
        authorizationURL: https://datawire-ambassador.auth0.com
-       audience: https://datawire-ambassador.auth0.com/api/v2/
+       extraAuthorizationParameters:
+         audience: https://datawire-ambassador.auth0.com/api/v2/
        clientID: fCRAI7svzesD6p8Pv22wezyYXNg80Ho8
        secret: CLIENT_SECRET
        protectedOrigins:
