@@ -30,7 +30,7 @@
         "location": "--internal--",
         "name": "ir.ambassador",
         "namespace": "default",
-        "proper_case": false,  
+        "proper_case": false,
         "readiness_probe": {
             "enabled": true,
             "prefix": "/ambassador/v0/check_ready",
@@ -220,10 +220,12 @@
                 "tlsoriginationsecret.default.3"
             ],
             "_rkey": "tlsoriginationsecret.default.3",
+            "default_class": "httpmapping",
             "group_id": "82883f62a7165f748d5dfc44e619cd4a15c1f57b",
             "group_weight": [
                 0,
                 28,
+                0,
                 0,
                 "/TLSOriginationSecret-files/",
                 "GET"
@@ -290,6 +292,7 @@
                             "tcp://tlsoriginationsecret-http:443"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "82883f62a7165f748d5dfc44e619cd4a15c1f57b",
                     "headers": [],
                     "kind": "Mapping",
@@ -303,11 +306,13 @@
                     "namespace": "default",
                     "precedence": 0,
                     "prefix": "/TLSOriginationSecret-files/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         28,
+                        0,
                         0,
                         "/TLSOriginationSecret-files/",
                         "GET"
@@ -327,6 +332,7 @@
             "namespace": "default",
             "precedence": 0,
             "prefix": "/TLSOriginationSecret-files/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: tlsoriginationsecret\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlsoriginationsecret\n  scope: AmbassadorTest\nname: tlsoriginationsecret-http-files\nnamespace: default\nprefix: /TLSOriginationSecret-files/\nservice: tlsoriginationsecret-http\ntls: upstream-files\n",
             "tls": "upstream-files"
@@ -338,10 +344,12 @@
                 "--internal--"
             ],
             "_rkey": "ir.ambassador",
+            "default_class": "httpmapping",
             "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
             "group_weight": [
                 0,
                 26,
+                0,
                 0,
                 "/ambassador/v0/check_ready",
                 "GET"
@@ -393,6 +401,7 @@
                             "tcp://127.0.0.1:8877"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
                     "headers": [],
                     "kind": "IRHTTPMapping",
@@ -401,11 +410,13 @@
                     "namespace": "default",
                     "precedence": 0,
                     "prefix": "/ambassador/v0/check_ready",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/ambassador/v0/check_ready",
                     "route_weight": [
                         0,
                         26,
+                        0,
                         0,
                         "/ambassador/v0/check_ready",
                         "GET"
@@ -419,6 +430,7 @@
             "namespace": "default",
             "precedence": 0,
             "prefix": "/ambassador/v0/check_ready",
+            "query_parameters": [],
             "rewrite": "/ambassador/v0/check_ready",
             "timeout_ms": 10000
         },
@@ -429,10 +441,12 @@
                 "--internal--"
             ],
             "_rkey": "ir.ambassador",
+            "default_class": "httpmapping",
             "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
             "group_weight": [
                 0,
                 26,
+                0,
                 0,
                 "/ambassador/v0/check_alive",
                 "GET"
@@ -484,6 +498,7 @@
                             "tcp://127.0.0.1:8877"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
                     "headers": [],
                     "kind": "IRHTTPMapping",
@@ -492,11 +507,13 @@
                     "namespace": "default",
                     "precedence": 0,
                     "prefix": "/ambassador/v0/check_alive",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/ambassador/v0/check_alive",
                     "route_weight": [
                         0,
                         26,
+                        0,
                         0,
                         "/ambassador/v0/check_alive",
                         "GET"
@@ -510,6 +527,7 @@
             "namespace": "default",
             "precedence": 0,
             "prefix": "/ambassador/v0/check_alive",
+            "query_parameters": [],
             "rewrite": "/ambassador/v0/check_alive",
             "timeout_ms": 10000
         },
@@ -520,10 +538,12 @@
                 "tlsoriginationsecret.default.2"
             ],
             "_rkey": "tlsoriginationsecret.default.2",
+            "default_class": "httpmapping",
             "group_id": "e5db868743cde8ce1acd2bf9caa7082d189fe8cf",
             "group_weight": [
                 0,
                 22,
+                0,
                 0,
                 "/TLSOriginationSecret/",
                 "GET"
@@ -591,6 +611,7 @@
                             "tcp://tlsoriginationsecret-http:443"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "e5db868743cde8ce1acd2bf9caa7082d189fe8cf",
                     "headers": [],
                     "kind": "Mapping",
@@ -604,11 +625,13 @@
                     "namespace": "default",
                     "precedence": 0,
                     "prefix": "/TLSOriginationSecret/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         22,
+                        0,
                         0,
                         "/TLSOriginationSecret/",
                         "GET"
@@ -628,6 +651,7 @@
             "namespace": "default",
             "precedence": 0,
             "prefix": "/TLSOriginationSecret/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: tlsoriginationsecret\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlsoriginationsecret\n  scope: AmbassadorTest\nname: tlsoriginationsecret-http\nnamespace: default\nprefix: /TLSOriginationSecret/\nservice: tlsoriginationsecret-http\ntls: upstream\n",
             "tls": "upstream"
@@ -639,10 +663,12 @@
                 "--internal--"
             ],
             "_rkey": "ir.ambassador",
+            "default_class": "httpmapping",
             "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
             "group_weight": [
                 0,
                 15,
+                0,
                 0,
                 "/ambassador/v0/",
                 "GET"
@@ -694,6 +720,7 @@
                             "tcp://127.0.0.1:8877"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
                     "headers": [],
                     "kind": "IRHTTPMapping",
@@ -702,11 +729,13 @@
                     "namespace": "default",
                     "precedence": 0,
                     "prefix": "/ambassador/v0/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/ambassador/v0/",
                     "route_weight": [
                         0,
                         15,
+                        0,
                         0,
                         "/ambassador/v0/",
                         "GET"
@@ -720,6 +749,7 @@
             "namespace": "default",
             "precedence": 0,
             "prefix": "/ambassador/v0/",
+            "query_parameters": [],
             "rewrite": "/ambassador/v0/",
             "timeout_ms": 10000
         }

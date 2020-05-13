@@ -33,6 +33,9 @@ var (
 	_ = types.DynamicAny{}
 )
 
+// define the regex for a UUID once up-front
+var _header_to_metadata_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on Config with the rules defined in the
 // proto definition for this message. If any rules are violated, an error is returned.
 func (m *Config) Validate() error {
@@ -234,6 +237,13 @@ func (m *Config_Rule) Validate() error {
 		}
 	}
 
+	if !_Config_Rule_Header_Pattern.MatchString(m.GetHeader()) {
+		return Config_RuleValidationError{
+			field:  "Header",
+			reason: "value does not match regex pattern \"^[^\\x00\\n\\r]*$\"",
+		}
+	}
+
 	{
 		tmp := m.GetOnHeaderPresent()
 
@@ -322,3 +332,5 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = Config_RuleValidationError{}
+
+var _Config_Rule_Header_Pattern = regexp.MustCompile("^[^\x00\n\r]*$")

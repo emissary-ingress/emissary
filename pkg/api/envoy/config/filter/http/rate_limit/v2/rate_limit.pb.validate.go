@@ -33,6 +33,9 @@ var (
 	_ = types.DynamicAny{}
 )
 
+// define the regex for a UUID once up-front
+var _rate_limit_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on RateLimit with the rules defined in the
 // proto definition for this message. If any rules are violated, an error is returned.
 func (m *RateLimit) Validate() error {
@@ -54,7 +57,12 @@ func (m *RateLimit) Validate() error {
 		}
 	}
 
-	// no validation rules for RequestType
+	if _, ok := _RateLimit_RequestType_InLookup[m.GetRequestType()]; !ok {
+		return RateLimitValidationError{
+			field:  "RequestType",
+			reason: "value must be in list [internal external both ]",
+		}
+	}
 
 	{
 		tmp := m.GetTimeout()
@@ -153,3 +161,10 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = RateLimitValidationError{}
+
+var _RateLimit_RequestType_InLookup = map[string]struct{}{
+	"internal": {},
+	"external": {},
+	"both":     {},
+	"":         {},
+}

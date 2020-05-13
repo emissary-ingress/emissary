@@ -1,6 +1,8 @@
 import os
+import sys
 
 import pexpect
+import pytest
 import requests
 import time
 
@@ -109,4 +111,4 @@ def test_docker():
     assert test_status, 'test failed'
 
 if __name__ == '__main__':
-    test_docker()
+    pytest.main(sys.argv)

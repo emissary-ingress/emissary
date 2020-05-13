@@ -44,7 +44,7 @@
         "location": "gzipminimumconfigtest.default.1",
         "name": "ir.ambassador",
         "namespace": "default",
-        "proper_case": false,  
+        "proper_case": false,
         "readiness_probe": {
             "enabled": true,
             "prefix": "/ambassador/v0/check_ready",
@@ -173,10 +173,12 @@
                 "gzipminimumconfigtest.default.1"
             ],
             "_rkey": "gzipminimumconfigtest.default.1",
+            "default_class": "httpmapping",
             "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
             "group_weight": [
                 0,
                 26,
+                0,
                 0,
                 "/ambassador/v0/check_ready",
                 "GET"
@@ -228,6 +230,7 @@
                             "tcp://127.0.0.1:8877"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
                     "headers": [],
                     "kind": "IRHTTPMapping",
@@ -236,11 +239,13 @@
                     "namespace": "default",
                     "precedence": 0,
                     "prefix": "/ambassador/v0/check_ready",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/ambassador/v0/check_ready",
                     "route_weight": [
                         0,
                         26,
+                        0,
                         0,
                         "/ambassador/v0/check_ready",
                         "GET"
@@ -254,6 +259,7 @@
             "namespace": "default",
             "precedence": 0,
             "prefix": "/ambassador/v0/check_ready",
+            "query_parameters": [],
             "rewrite": "/ambassador/v0/check_ready",
             "timeout_ms": 10000
         },
@@ -264,10 +270,12 @@
                 "gzipminimumconfigtest.default.1"
             ],
             "_rkey": "gzipminimumconfigtest.default.1",
+            "default_class": "httpmapping",
             "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
             "group_weight": [
                 0,
                 26,
+                0,
                 0,
                 "/ambassador/v0/check_alive",
                 "GET"
@@ -319,6 +327,7 @@
                             "tcp://127.0.0.1:8877"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
                     "headers": [],
                     "kind": "IRHTTPMapping",
@@ -327,11 +336,13 @@
                     "namespace": "default",
                     "precedence": 0,
                     "prefix": "/ambassador/v0/check_alive",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/ambassador/v0/check_alive",
                     "route_weight": [
                         0,
                         26,
+                        0,
                         0,
                         "/ambassador/v0/check_alive",
                         "GET"
@@ -345,6 +356,7 @@
             "namespace": "default",
             "precedence": 0,
             "prefix": "/ambassador/v0/check_alive",
+            "query_parameters": [],
             "rewrite": "/ambassador/v0/check_alive",
             "timeout_ms": 10000
         },
@@ -355,10 +367,12 @@
                 "gzipminimumconfigtest.default.1"
             ],
             "_rkey": "gzipminimumconfigtest.default.1",
+            "default_class": "httpmapping",
             "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
             "group_weight": [
                 0,
                 15,
+                0,
                 0,
                 "/ambassador/v0/",
                 "GET"
@@ -410,6 +424,7 @@
                             "tcp://127.0.0.1:8877"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
                     "headers": [],
                     "kind": "IRHTTPMapping",
@@ -418,11 +433,13 @@
                     "namespace": "default",
                     "precedence": 0,
                     "prefix": "/ambassador/v0/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/ambassador/v0/",
                     "route_weight": [
                         0,
                         15,
+                        0,
                         0,
                         "/ambassador/v0/",
                         "GET"
@@ -436,6 +453,7 @@
             "namespace": "default",
             "precedence": 0,
             "prefix": "/ambassador/v0/",
+            "query_parameters": [],
             "rewrite": "/ambassador/v0/",
             "timeout_ms": 10000
         },
@@ -446,10 +464,12 @@
                 "gzipminimumconfigtest.default.2"
             ],
             "_rkey": "gzipminimumconfigtest.default.2",
+            "default_class": "httpmapping",
             "group_id": "ef2f76a27cdb850e84f8f5c00ce17c4798f7e065",
             "group_weight": [
                 0,
                 8,
+                0,
                 0,
                 "/target/",
                 "GET"
@@ -498,6 +518,7 @@
                             "tcp://gzipminimumconfigtest-http:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "ef2f76a27cdb850e84f8f5c00ce17c4798f7e065",
                     "headers": [],
                     "kind": "Mapping",
@@ -511,11 +532,13 @@
                     "namespace": "default",
                     "precedence": 0,
                     "prefix": "/target/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         8,
+                        0,
                         0,
                         "/target/",
                         "GET"
@@ -534,6 +557,7 @@
             "namespace": "default",
             "precedence": 0,
             "prefix": "/target/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: gzipminimumconfigtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gzipminimumconfigtest\n  scope: AmbassadorTest\nname: gzipminimumconfigtest-http\nnamespace: default\nprefix: /target/\nservice: gzipminimumconfigtest-http\n"
         }
