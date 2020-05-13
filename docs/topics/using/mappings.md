@@ -4,6 +4,12 @@ Ambassador Edge Stack is designed so that the author of a given Kubernetes servi
 
 Ambassador Edge Stack _must_ have one or more mappings defined to provide access to any services at all. The name of the mapping must be unique.
 
+## System-Wide Defaults for Mappings
+
+Certain aspects of mappings can be set system-wide using the `defaults` element of the `ambassador Module`:
+see [using defaults](../../using/defaults) for more information. The `Mapping` element will look first in
+the `httpmapping` default class.
+
 ## Mapping Evaluation Order
 
 Ambassador Edge Stack sorts mappings such that those that are more highly constrained are evaluated before those less highly constrained. The prefix length, the request method, constraint headers, and query parameters are all taken into account.

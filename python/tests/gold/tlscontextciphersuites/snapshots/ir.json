@@ -160,10 +160,12 @@
                 "--internal--"
             ],
             "_rkey": "ir.ambassador",
+            "default_class": "httpmapping",
             "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
             "group_weight": [
                 0,
                 26,
+                0,
                 0,
                 "/ambassador/v0/check_ready",
                 "GET"
@@ -215,6 +217,7 @@
                             "tcp://127.0.0.1:8877"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
                     "headers": [],
                     "kind": "IRHTTPMapping",
@@ -223,11 +226,13 @@
                     "namespace": "default",
                     "precedence": 0,
                     "prefix": "/ambassador/v0/check_ready",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/ambassador/v0/check_ready",
                     "route_weight": [
                         0,
                         26,
+                        0,
                         0,
                         "/ambassador/v0/check_ready",
                         "GET"
@@ -241,6 +246,7 @@
             "namespace": "default",
             "precedence": 0,
             "prefix": "/ambassador/v0/check_ready",
+            "query_parameters": [],
             "rewrite": "/ambassador/v0/check_ready",
             "timeout_ms": 10000
         },
@@ -251,10 +257,12 @@
                 "--internal--"
             ],
             "_rkey": "ir.ambassador",
+            "default_class": "httpmapping",
             "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
             "group_weight": [
                 0,
                 26,
+                0,
                 0,
                 "/ambassador/v0/check_alive",
                 "GET"
@@ -306,6 +314,7 @@
                             "tcp://127.0.0.1:8877"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
                     "headers": [],
                     "kind": "IRHTTPMapping",
@@ -314,11 +323,13 @@
                     "namespace": "default",
                     "precedence": 0,
                     "prefix": "/ambassador/v0/check_alive",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/ambassador/v0/check_alive",
                     "route_weight": [
                         0,
                         26,
+                        0,
                         0,
                         "/ambassador/v0/check_alive",
                         "GET"
@@ -332,6 +343,7 @@
             "namespace": "default",
             "precedence": 0,
             "prefix": "/ambassador/v0/check_alive",
+            "query_parameters": [],
             "rewrite": "/ambassador/v0/check_alive",
             "timeout_ms": 10000
         },
@@ -342,11 +354,13 @@
                 "tlscontextciphersuites.default.1"
             ],
             "_rkey": "tlscontextciphersuites.default.1",
+            "default_class": "httpmapping",
             "group_id": "7f496a7858f3afc5a195897acae9b4f191b4cbee",
             "group_weight": [
                 0,
                 18,
                 28,
+                0,
                 "/tls-context-same/",
                 "GET",
                 ":authority-tls-context-host-1"
@@ -413,6 +427,7 @@
                             "tcp://tlscontextciphersuites-http:443"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "7f496a7858f3afc5a195897acae9b4f191b4cbee",
                     "headers": [
                         {
@@ -433,12 +448,14 @@
                     "namespace": "default",
                     "precedence": 0,
                     "prefix": "/tls-context-same/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         18,
                         28,
+                        0,
                         "/tls-context-same/",
                         "GET",
                         ":authority-tls-context-host-1"
@@ -492,6 +509,7 @@
             "namespace": "default",
             "precedence": 0,
             "prefix": "/tls-context-same/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: tlscontextciphersuites\napiVersion: ambassador/v0\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextciphersuites\n  scope: AmbassadorTest\nname: TLSContextCipherSuites-same-prefix-1\nnamespace: default\nprefix: /tls-context-same/\nservice: https://tlscontextciphersuites-http\n",
             "sni": true,
@@ -537,10 +555,12 @@
                 "--internal--"
             ],
             "_rkey": "ir.ambassador",
+            "default_class": "httpmapping",
             "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
             "group_weight": [
                 0,
                 15,
+                0,
                 0,
                 "/ambassador/v0/",
                 "GET"
@@ -592,6 +612,7 @@
                             "tcp://127.0.0.1:8877"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
                     "headers": [],
                     "kind": "IRHTTPMapping",
@@ -600,11 +621,13 @@
                     "namespace": "default",
                     "precedence": 0,
                     "prefix": "/ambassador/v0/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/ambassador/v0/",
                     "route_weight": [
                         0,
                         15,
+                        0,
                         0,
                         "/ambassador/v0/",
                         "GET"
@@ -618,6 +641,7 @@
             "namespace": "default",
             "precedence": 0,
             "prefix": "/ambassador/v0/",
+            "query_parameters": [],
             "rewrite": "/ambassador/v0/",
             "timeout_ms": 10000
         }
