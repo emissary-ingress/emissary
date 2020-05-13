@@ -16,7 +16,8 @@ metadata:
 spec:
   OAuth2:
     authorizationURL: PROVIDER_URL ## URL where Ambassador Edge Stack can find OAuth2 descriptor
-    audience: AUDIENCE ## OIDC Audience
+    extraAuthorizationParameters:
+      audience: AUDIENCE ## OIDC Audience
     clientID: CLIENT_ID ## OAuth2 client from your IdP
     secret: CLIENT_SECRET ## Secret used to access OAuth2 client
     protectedOrigins:
@@ -94,12 +95,13 @@ metadata:
   name: domain1-tenant
 spec:
   OAuth2:
-    - authorizationURL: https://example.auth0.com
+    authorizationURL: https://example.auth0.com
+    extraAuthorizationParameters:
       audience: https://example.auth0.com/api/v2/
-      clientId: <APP1_CLIENT_ID>
-      secret: <APP1_CLIENT_SECRET>
-      protectedOrigins:
-      - origin: http://domain1.example.com
+    clientId: <APP1_CLIENT_ID>
+    secret: <APP1_CLIENT_SECRET>
+    protectedOrigins:
+    - origin: http://domain1.example.com
 ---
 apiVersion: getambassador.io/v2
 kind: Filter
@@ -107,12 +109,13 @@ metadata:
   name: domain2-tenant
 spec:
   OAuth2:
-    - authorizationURL: https://example.auth0.com
+    authorizationURL: https://example.auth0.com
+    extraAuthorizationParameters:
       audience: https://example.auth0.com/api/v2/
-      clientId: <APP2_CLIENT_ID>
-      secret: <APP2_CLIENT_SECRET>
-      protectedOrigins:
-      - origin: http://domain2.example.com
+    clientId: <APP2_CLIENT_ID>
+    secret: <APP2_CLIENT_SECRET>
+    protectedOrigins:
+    - origin: http://domain2.example.com
 ```
 
 Create a separate `FilterPolicy` that specifies which specific filters are applied to particular hosts or URLs.
