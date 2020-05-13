@@ -20,7 +20,7 @@ func fetch(w *k8s.Watcher, resource, qname string) (result k8s.Resource) {
 		w.Stop()
 	}()
 
-	err := w.WatchQuery(k8s.Query{Kind: resource}, func(w *k8s.Watcher) {
+	err := w.WatchQuery(k8s.Query{Kind: resource, Namespace: k8s.NamespaceAll}, func(w *k8s.Watcher) {
 		for _, r := range w.List(resource) {
 			if r.QName() == qname {
 				result = r
@@ -103,6 +103,7 @@ func TestWatchQuery(t *testing.T) {
 	services := []string{}
 	err := w.WatchQuery(k8s.Query{
 		Kind:          "services",
+		Namespace:     k8s.NamespaceAll,
 		FieldSelector: "metadata.name=kubernetes",
 	}, func(w *k8s.Watcher) {
 		for _, r := range w.List("services") {
