@@ -18,6 +18,8 @@ metadata:
     {{- end }}
     product: aes
 ---
+## Create a service-account-token for traffic-agent with a matching name.
+## Since the ambassador-injector will use this token name, it must be deterministic and not auto-generated.
 apiVersion: v1
 kind: Secret
 metadata:
@@ -75,32 +77,6 @@ subjects:
   - name: {{ .Values.servicePreview.trafficAgent.serviceAccountName }}
     namespace: {{ .Release.Namespace }}
     kind: ServiceAccount
-{{- if and .Values.crds.enabled .Values.rbac.create }}
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRoleBinding
-metadata:
-  name: {{ .Values.servicePreview.trafficAgent.serviceAccountName }}-crds
-  labels:
-    app.kubernetes.io/name: {{ .Values.servicePreview.trafficAgent.serviceAccountName }}-crds
-    app.kubernetes.io/part-of: {{ .Release.Name }}
-    helm.sh/chart: {{ include "ambassador.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    {{- if .Values.deploymentTool }}
-    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
-    {{- else }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
-    {{- end }}
-    product: aes
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: {{ include "ambassador.rbacName" . }}-crds
-subjects:
-  - name: {{ .Values.servicePreview.trafficAgent.serviceAccountName }}
-    namespace: {{ .Release.Namespace }}
-    kind: ServiceAccount
-{{- end }}
 {{- else }}
 ## If we install Service Preview cluster-wide, this means we can't use the 'traffic-agent' ServiceAccount
 ## as it does not exist in every namespace. We must instead grant new Roles to all ServiceAccounts (cluster-wide).
@@ -152,31 +128,5 @@ subjects:
   - name: system:serviceaccounts
     kind: Group
     apiGroup: rbac.authorization.k8s.io
-{{- if and .Values.crds.enabled .Values.rbac.create }}
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRoleBinding
-metadata:
-  name: {{ .Values.servicePreview.trafficAgent.serviceAccountName }}-crds
-  labels:
-    app.kubernetes.io/name: {{ .Values.servicePreview.trafficAgent.serviceAccountName }}-crds
-    app.kubernetes.io/part-of: {{ .Release.Name }}
-    helm.sh/chart: {{ include "ambassador.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    {{- if .Values.deploymentTool }}
-    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
-    {{- else }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
-    {{- end }}
-    product: aes
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: {{ include "ambassador.rbacName" . }}-crds
-subjects:
-  - name: system:serviceaccounts
-    kind: Group
-    apiGroup: rbac.authorization.k8s.io
-{{- end }}
 {{- end }}
 {{- end }}
