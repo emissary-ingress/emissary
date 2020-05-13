@@ -86,7 +86,7 @@ func (w *Waiter) isEmpty() bool {
 func (w *Waiter) Wait(deadline time.Time) bool {
 	start := time.Now()
 	printed := make(map[string]bool)
-	err := w.watcher.Watch("events", func(watcher *k8s.Watcher) {
+	err := w.watcher.WatchQuery(k8s.Query{Kind: "events"}, func(watcher *k8s.Watcher) {
 		for _, r := range watcher.List("events") {
 			if lastStr, ok := r["lastTimestamp"].(string); ok {
 				last, err := time.Parse("2006-01-02T15:04:05Z", lastStr)
@@ -137,7 +137,7 @@ func (w *Waiter) Wait(deadline time.Time) bool {
 	}
 
 	for k := range w.kinds {
-		err := w.watcher.Watch(k.String(), listener)
+		err := w.watcher.WatchQuery(k8s.Query{Kind: k.String()}, listener)
 		if err != nil {
 			panic(err)
 		}

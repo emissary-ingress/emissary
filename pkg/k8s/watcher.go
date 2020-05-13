@@ -87,24 +87,6 @@ func (c *Client) Watcher() *Watcher {
 	return w
 }
 
-func (w *Watcher) Watch(resources string, listener func(*Watcher)) error {
-	return w.WatchNamespace("", resources, listener)
-}
-
-func (w *Watcher) WatchNamespace(namespace, resources string, listener func(*Watcher)) error {
-	return w.SelectiveWatch(namespace, resources, "", "", listener)
-}
-
-func (w *Watcher) SelectiveWatch(namespace, resources, fieldSelector, labelSelector string,
-	listener func(*Watcher)) error {
-	return w.WatchQuery(Query{
-		Kind:          resources,
-		Namespace:     namespace,
-		FieldSelector: fieldSelector,
-		LabelSelector: labelSelector,
-	}, listener)
-}
-
 // WatchQuery watches the set of resources identified by the supplied
 // query and invokes the supplied listener whenever they change.
 func (w *Watcher) WatchQuery(query Query, listener func(*Watcher)) error {
