@@ -6,6 +6,9 @@ kind: ServiceAccount
 metadata:
   name: {{ .Values.servicePreview.trafficAgent.serviceAccountName }}
   namespace: {{ .Release.Namespace }}
+  annotations:
+    # Required because Helm creates secrets before ServiceAccount, but service-account-token depends on an existing SA.
+    "helm.sh/hook": "pre-install"
   labels:
     app.kubernetes.io/name: {{ .Values.servicePreview.trafficAgent.serviceAccountName }}
     app.kubernetes.io/part-of: {{ .Release.Name }}
