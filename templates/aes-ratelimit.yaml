@@ -4,6 +4,7 @@ apiVersion: getambassador.io/v2
 kind: RateLimitService
 metadata:
   name: {{ include "ambassador.fullname" . }}-ratelimit
+  namespace: {{ .Release.Namespace }}
   labels:
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     app.kubernetes.io/part-of: {{ .Release.Name }}

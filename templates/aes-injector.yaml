@@ -40,12 +40,10 @@ spec:
           value: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         - name: TRAFFIC_AGENT_AGENT_LISTEN_PORT
           value: "{{ .Values.servicePreview.trafficAgent.port }}"
+        {{- if .Values.scope.singleNamespace }}
         - name: TRAFFIC_AGENT_SERVICE_ACCOUNT_NAME
-          {{- if .Values.scope.singleNamespace }}
           value: "{{ .Values.servicePreview.trafficAgent.serviceAccountName }}"
-          {{- else }}
-          value: default
-          {{- end }}
+        {{- end }}
         ports:
         - containerPort: 8443
           name: https

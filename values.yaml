@@ -348,6 +348,8 @@ metrics:
 # Setting servicePreview.enabled: true will install the Traffic Agent, Traffic Manager, and ambassador-injector
 servicePreview:
   enabled: false
+  trafficManager:
+    serviceAccountName: "traffic-manager"
   trafficAgent:
     serviceAccountName: "traffic-agent"
     port: 9900
