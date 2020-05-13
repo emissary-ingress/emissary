@@ -3480,10 +3480,12 @@
                     "value": "bar"
                 }
             },
+            "default_class": "httpmapping",
             "group_id": "49126e9740c2df8876c6a8ae04e6e5dfef9db870",
             "group_weight": [
                 0,
                 47,
+                0,
                 0,
                 "/SimpleMapping-HTTP-AddResponseHeaders-zoo-bar/",
                 "GET"
@@ -3538,6 +3540,7 @@
                             "tcp://plain-simplemapping-http-addresponseheaders-zoo-bar-http.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "49126e9740c2df8876c6a8ae04e6e5dfef9db870",
                     "headers": [],
                     "kind": "Mapping",
@@ -3550,11 +3553,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP-AddResponseHeaders-zoo-bar/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         47,
+                        0,
                         0,
                         "/SimpleMapping-HTTP-AddResponseHeaders-zoo-bar/",
                         "GET"
@@ -3572,6 +3577,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP-AddResponseHeaders-zoo-bar/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "add_response_headers:\n  zoo:\n    append: true\n    value: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-zoo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-zoo-bar/\nservice: http://plain-simplemapping-http-addresponseheaders-zoo-bar-http.plain-namespace\n"
         },
@@ -3588,10 +3594,12 @@
                     "value": "dwe"
                 }
             },
+            "default_class": "httpmapping",
             "group_id": "4aae2585cb03b25b4fe7a5caf91014a4469c698a",
             "group_weight": [
                 0,
                 47,
+                0,
                 0,
                 "/SimpleMapping-HTTP-AddResponseHeaders-xoo-dwe/",
                 "GET"
@@ -3646,6 +3654,7 @@
                             "tcp://plain-simplemapping-http-addresponseheaders-xoo-dwe-http.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "4aae2585cb03b25b4fe7a5caf91014a4469c698a",
                     "headers": [],
                     "kind": "Mapping",
@@ -3658,11 +3667,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP-AddResponseHeaders-xoo-dwe/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         47,
+                        0,
                         0,
                         "/SimpleMapping-HTTP-AddResponseHeaders-xoo-dwe/",
                         "GET"
@@ -3680,6 +3691,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP-AddResponseHeaders-xoo-dwe/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "add_response_headers:\n  xoo:\n    append: false\n    value: dwe\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-xoo-dwe\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-xoo-dwe/\nservice: http://plain-simplemapping-http-addresponseheaders-xoo-dwe-http.plain-namespace\n"
         },
@@ -3693,10 +3705,12 @@
             "add_response_headers": {
                 "moo": "arf"
             },
+            "default_class": "httpmapping",
             "group_id": "b2eff4d89afaca913787879312ebebe063a5bbe4",
             "group_weight": [
                 0,
                 47,
+                0,
                 0,
                 "/SimpleMapping-HTTP-AddResponseHeaders-moo-arf/",
                 "GET"
@@ -3748,6 +3762,7 @@
                             "tcp://plain-simplemapping-http-addresponseheaders-moo-arf-http.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "b2eff4d89afaca913787879312ebebe063a5bbe4",
                     "headers": [],
                     "kind": "Mapping",
@@ -3760,11 +3775,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP-AddResponseHeaders-moo-arf/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         47,
+                        0,
                         0,
                         "/SimpleMapping-HTTP-AddResponseHeaders-moo-arf/",
                         "GET"
@@ -3782,6 +3799,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP-AddResponseHeaders-moo-arf/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "add_response_headers:\n  moo: arf\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-moo-arf\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-moo-arf/\nservice: http://plain-simplemapping-http-addresponseheaders-moo-arf-http.plain-namespace\n"
         },
@@ -3795,10 +3813,12 @@
             "add_response_headers": {
                 "foo": "bar"
             },
+            "default_class": "httpmapping",
             "group_id": "119984eba681273308def88ca539a745b4889d2c",
             "group_weight": [
                 0,
                 47,
+                0,
                 0,
                 "/SimpleMapping-HTTP-AddResponseHeaders-foo-bar/",
                 "GET"
@@ -3850,6 +3870,7 @@
                             "tcp://plain-simplemapping-http-addresponseheaders-foo-bar-http.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "119984eba681273308def88ca539a745b4889d2c",
                     "headers": [],
                     "kind": "Mapping",
@@ -3862,11 +3883,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP-AddResponseHeaders-foo-bar/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         47,
+                        0,
                         0,
                         "/SimpleMapping-HTTP-AddResponseHeaders-foo-bar/",
                         "GET"
@@ -3884,6 +3907,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP-AddResponseHeaders-foo-bar/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "add_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-foo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-foo-bar/\nservice: http://plain-simplemapping-http-addresponseheaders-foo-bar-http.plain-namespace\n"
         },
@@ -3899,10 +3923,12 @@
                     "value": "tyu"
                 }
             },
+            "default_class": "httpmapping",
             "group_id": "4d316b8e9e28ff7bb44f05e5c55338d45d8ab313",
             "group_weight": [
                 0,
                 47,
+                0,
                 0,
                 "/SimpleMapping-HTTP-AddResponseHeaders-aoo-tyu/",
                 "GET"
@@ -3956,6 +3982,7 @@
                             "tcp://plain-simplemapping-http-addresponseheaders-aoo-tyu-http.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "4d316b8e9e28ff7bb44f05e5c55338d45d8ab313",
                     "headers": [],
                     "kind": "Mapping",
@@ -3968,11 +3995,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP-AddResponseHeaders-aoo-tyu/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         47,
+                        0,
                         0,
                         "/SimpleMapping-HTTP-AddResponseHeaders-aoo-tyu/",
                         "GET"
@@ -3990,6 +4019,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP-AddResponseHeaders-aoo-tyu/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "add_response_headers:\n  aoo:\n    value: tyu\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-aoo-tyu\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-aoo-tyu/\nservice: http://plain-simplemapping-http-addresponseheaders-aoo-tyu-http.plain-namespace\n"
         },
@@ -4006,10 +4036,12 @@
                     "value": "bar"
                 }
             },
+            "default_class": "httpmapping",
             "group_id": "2ec15adbb9ea7de92174e47a4e9cf36c6c052271",
             "group_weight": [
                 0,
                 47,
+                0,
                 0,
                 "/SimpleMapping-GRPC-AddResponseHeaders-zoo-bar/",
                 "GET"
@@ -4064,6 +4096,7 @@
                             "tcp://plain-simplemapping-grpc-addresponseheaders-zoo-bar-grpc.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "2ec15adbb9ea7de92174e47a4e9cf36c6c052271",
                     "headers": [],
                     "kind": "Mapping",
@@ -4076,11 +4109,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC-AddResponseHeaders-zoo-bar/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         47,
+                        0,
                         0,
                         "/SimpleMapping-GRPC-AddResponseHeaders-zoo-bar/",
                         "GET"
@@ -4098,6 +4133,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC-AddResponseHeaders-zoo-bar/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "add_response_headers:\n  zoo:\n    append: true\n    value: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-zoo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-zoo-bar/\nservice: http://plain-simplemapping-grpc-addresponseheaders-zoo-bar-grpc.plain-namespace\n"
         },
@@ -4114,10 +4150,12 @@
                     "value": "dwe"
                 }
             },
+            "default_class": "httpmapping",
             "group_id": "199f64a3222e0e4114bb21d357502c1d249e63ca",
             "group_weight": [
                 0,
                 47,
+                0,
                 0,
                 "/SimpleMapping-GRPC-AddResponseHeaders-xoo-dwe/",
                 "GET"
@@ -4172,6 +4210,7 @@
                             "tcp://plain-simplemapping-grpc-addresponseheaders-xoo-dwe-grpc.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "199f64a3222e0e4114bb21d357502c1d249e63ca",
                     "headers": [],
                     "kind": "Mapping",
@@ -4184,11 +4223,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC-AddResponseHeaders-xoo-dwe/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         47,
+                        0,
                         0,
                         "/SimpleMapping-GRPC-AddResponseHeaders-xoo-dwe/",
                         "GET"
@@ -4206,6 +4247,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC-AddResponseHeaders-xoo-dwe/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "add_response_headers:\n  xoo:\n    append: false\n    value: dwe\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-xoo-dwe\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-xoo-dwe/\nservice: http://plain-simplemapping-grpc-addresponseheaders-xoo-dwe-grpc.plain-namespace\n"
         },
@@ -4219,10 +4261,12 @@
             "add_response_headers": {
                 "moo": "arf"
             },
+            "default_class": "httpmapping",
             "group_id": "ca38bf3841ee7cfb451cb1f5c89de1ba618f0a3e",
             "group_weight": [
                 0,
                 47,
+                0,
                 0,
                 "/SimpleMapping-GRPC-AddResponseHeaders-moo-arf/",
                 "GET"
@@ -4274,6 +4318,7 @@
                             "tcp://plain-simplemapping-grpc-addresponseheaders-moo-arf-grpc.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "ca38bf3841ee7cfb451cb1f5c89de1ba618f0a3e",
                     "headers": [],
                     "kind": "Mapping",
@@ -4286,11 +4331,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC-AddResponseHeaders-moo-arf/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         47,
+                        0,
                         0,
                         "/SimpleMapping-GRPC-AddResponseHeaders-moo-arf/",
                         "GET"
@@ -4308,6 +4355,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC-AddResponseHeaders-moo-arf/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "add_response_headers:\n  moo: arf\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-moo-arf\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-moo-arf/\nservice: http://plain-simplemapping-grpc-addresponseheaders-moo-arf-grpc.plain-namespace\n"
         },
@@ -4321,10 +4369,12 @@
             "add_response_headers": {
                 "foo": "bar"
             },
+            "default_class": "httpmapping",
             "group_id": "d0d3cdc3ff8a1de173380bbb312d5e2b544ba022",
             "group_weight": [
                 0,
                 47,
+                0,
                 0,
                 "/SimpleMapping-GRPC-AddResponseHeaders-foo-bar/",
                 "GET"
@@ -4376,6 +4426,7 @@
                             "tcp://plain-simplemapping-grpc-addresponseheaders-foo-bar-grpc.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "d0d3cdc3ff8a1de173380bbb312d5e2b544ba022",
                     "headers": [],
                     "kind": "Mapping",
@@ -4388,11 +4439,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC-AddResponseHeaders-foo-bar/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         47,
+                        0,
                         0,
                         "/SimpleMapping-GRPC-AddResponseHeaders-foo-bar/",
                         "GET"
@@ -4410,6 +4463,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC-AddResponseHeaders-foo-bar/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "add_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-foo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-foo-bar/\nservice: http://plain-simplemapping-grpc-addresponseheaders-foo-bar-grpc.plain-namespace\n"
         },
@@ -4425,10 +4479,12 @@
                     "value": "tyu"
                 }
             },
+            "default_class": "httpmapping",
             "group_id": "94b115a2d87697f9722a39318584c284adaf0611",
             "group_weight": [
                 0,
                 47,
+                0,
                 0,
                 "/SimpleMapping-GRPC-AddResponseHeaders-aoo-tyu/",
                 "GET"
@@ -4482,6 +4538,7 @@
                             "tcp://plain-simplemapping-grpc-addresponseheaders-aoo-tyu-grpc.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "94b115a2d87697f9722a39318584c284adaf0611",
                     "headers": [],
                     "kind": "Mapping",
@@ -4494,11 +4551,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC-AddResponseHeaders-aoo-tyu/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         47,
+                        0,
                         0,
                         "/SimpleMapping-GRPC-AddResponseHeaders-aoo-tyu/",
                         "GET"
@@ -4516,6 +4575,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC-AddResponseHeaders-aoo-tyu/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "add_response_headers:\n  aoo:\n    value: tyu\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-aoo-tyu\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-aoo-tyu/\nservice: http://plain-simplemapping-grpc-addresponseheaders-aoo-tyu-grpc.plain-namespace\n"
         },
@@ -4532,10 +4592,12 @@
                     "value": "bar"
                 }
             },
+            "default_class": "httpmapping",
             "group_id": "1d03608b1f043160f7ee4cf2e393d5c5d318ba9e",
             "group_weight": [
                 0,
                 46,
+                0,
                 0,
                 "/SimpleMapping-HTTP-AddRequestHeaders-zoo-bar/",
                 "GET"
@@ -4589,6 +4651,7 @@
                             "tcp://plain-simplemapping-http-addrequestheaders-zoo-bar-http.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "1d03608b1f043160f7ee4cf2e393d5c5d318ba9e",
                     "headers": [],
                     "kind": "Mapping",
@@ -4601,11 +4664,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP-AddRequestHeaders-zoo-bar/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         46,
+                        0,
                         0,
                         "/SimpleMapping-HTTP-AddRequestHeaders-zoo-bar/",
                         "GET"
@@ -4623,6 +4688,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP-AddRequestHeaders-zoo-bar/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "add_request_headers:\n  zoo:\n    append: true\n    value: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-zoo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-zoo-bar/\nservice: http://plain-simplemapping-http-addrequestheaders-zoo-bar-http.plain-namespace\n"
         },
@@ -4639,10 +4705,12 @@
                     "value": "dwe"
                 }
             },
+            "default_class": "httpmapping",
             "group_id": "8dd60d9aa5dee1f36c89156bc93118146bfdc3d7",
             "group_weight": [
                 0,
                 46,
+                0,
                 0,
                 "/SimpleMapping-HTTP-AddRequestHeaders-xoo-dwe/",
                 "GET"
@@ -4696,6 +4764,7 @@
                             "tcp://plain-simplemapping-http-addrequestheaders-xoo-dwe-http.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "8dd60d9aa5dee1f36c89156bc93118146bfdc3d7",
                     "headers": [],
                     "kind": "Mapping",
@@ -4708,11 +4777,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP-AddRequestHeaders-xoo-dwe/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         46,
+                        0,
                         0,
                         "/SimpleMapping-HTTP-AddRequestHeaders-xoo-dwe/",
                         "GET"
@@ -4730,6 +4801,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP-AddRequestHeaders-xoo-dwe/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "add_request_headers:\n  xoo:\n    append: false\n    value: dwe\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-xoo-dwe\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-xoo-dwe/\nservice: http://plain-simplemapping-http-addrequestheaders-xoo-dwe-http.plain-namespace\n"
         },
@@ -4743,10 +4815,12 @@
             "add_request_headers": {
                 "moo": "arf"
             },
+            "default_class": "httpmapping",
             "group_id": "0098ecc126cfece06377359ae9862b0240d4e8c7",
             "group_weight": [
                 0,
                 46,
+                0,
                 0,
                 "/SimpleMapping-HTTP-AddRequestHeaders-moo-arf/",
                 "GET"
@@ -4797,6 +4871,7 @@
                             "tcp://plain-simplemapping-http-addrequestheaders-moo-arf-http.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "0098ecc126cfece06377359ae9862b0240d4e8c7",
                     "headers": [],
                     "kind": "Mapping",
@@ -4809,11 +4884,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP-AddRequestHeaders-moo-arf/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         46,
+                        0,
                         0,
                         "/SimpleMapping-HTTP-AddRequestHeaders-moo-arf/",
                         "GET"
@@ -4831,6 +4908,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP-AddRequestHeaders-moo-arf/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "add_request_headers:\n  moo: arf\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-moo-arf\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-moo-arf/\nservice: http://plain-simplemapping-http-addrequestheaders-moo-arf-http.plain-namespace\n"
         },
@@ -4844,10 +4922,12 @@
             "add_request_headers": {
                 "foo": "bar"
             },
+            "default_class": "httpmapping",
             "group_id": "4979b35e4c7de2c696d579dd42eada70fe4c8be0",
             "group_weight": [
                 0,
                 46,
+                0,
                 0,
                 "/SimpleMapping-HTTP-AddRequestHeaders-foo-bar/",
                 "GET"
@@ -4898,6 +4978,7 @@
                             "tcp://plain-simplemapping-http-addrequestheaders-foo-bar-http.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "4979b35e4c7de2c696d579dd42eada70fe4c8be0",
                     "headers": [],
                     "kind": "Mapping",
@@ -4910,11 +4991,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP-AddRequestHeaders-foo-bar/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         46,
+                        0,
                         0,
                         "/SimpleMapping-HTTP-AddRequestHeaders-foo-bar/",
                         "GET"
@@ -4932,6 +5015,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP-AddRequestHeaders-foo-bar/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "add_request_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-foo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-foo-bar/\nservice: http://plain-simplemapping-http-addrequestheaders-foo-bar-http.plain-namespace\n"
         },
@@ -4947,10 +5031,12 @@
                     "value": "tyu"
                 }
             },
+            "default_class": "httpmapping",
             "group_id": "c6023bc4e22f35ae098eb1320c393cbc4047f03b",
             "group_weight": [
                 0,
                 46,
+                0,
                 0,
                 "/SimpleMapping-HTTP-AddRequestHeaders-aoo-tyu/",
                 "GET"
@@ -5003,6 +5089,7 @@
                             "tcp://plain-simplemapping-http-addrequestheaders-aoo-tyu-http.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "c6023bc4e22f35ae098eb1320c393cbc4047f03b",
                     "headers": [],
                     "kind": "Mapping",
@@ -5015,11 +5102,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP-AddRequestHeaders-aoo-tyu/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         46,
+                        0,
                         0,
                         "/SimpleMapping-HTTP-AddRequestHeaders-aoo-tyu/",
                         "GET"
@@ -5037,6 +5126,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP-AddRequestHeaders-aoo-tyu/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "add_request_headers:\n  aoo:\n    value: tyu\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-aoo-tyu\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-aoo-tyu/\nservice: http://plain-simplemapping-http-addrequestheaders-aoo-tyu-http.plain-namespace\n"
         },
@@ -5053,10 +5143,12 @@
                     "value": "bar"
                 }
             },
+            "default_class": "httpmapping",
             "group_id": "c487e4e6b9b85c21389691855eebf0dfb1188a3f",
             "group_weight": [
                 0,
                 46,
+                0,
                 0,
                 "/SimpleMapping-GRPC-AddRequestHeaders-zoo-bar/",
                 "GET"
@@ -5110,6 +5202,7 @@
                             "tcp://plain-simplemapping-grpc-addrequestheaders-zoo-bar-grpc.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "c487e4e6b9b85c21389691855eebf0dfb1188a3f",
                     "headers": [],
                     "kind": "Mapping",
@@ -5122,11 +5215,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC-AddRequestHeaders-zoo-bar/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         46,
+                        0,
                         0,
                         "/SimpleMapping-GRPC-AddRequestHeaders-zoo-bar/",
                         "GET"
@@ -5144,6 +5239,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC-AddRequestHeaders-zoo-bar/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "add_request_headers:\n  zoo:\n    append: true\n    value: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-zoo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-zoo-bar/\nservice: http://plain-simplemapping-grpc-addrequestheaders-zoo-bar-grpc.plain-namespace\n"
         },
@@ -5160,10 +5256,12 @@
                     "value": "dwe"
                 }
             },
+            "default_class": "httpmapping",
             "group_id": "487bad87e928b589a8580a601a1fe26e61cd87fd",
             "group_weight": [
                 0,
                 46,
+                0,
                 0,
                 "/SimpleMapping-GRPC-AddRequestHeaders-xoo-dwe/",
                 "GET"
@@ -5217,6 +5315,7 @@
                             "tcp://plain-simplemapping-grpc-addrequestheaders-xoo-dwe-grpc.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "487bad87e928b589a8580a601a1fe26e61cd87fd",
                     "headers": [],
                     "kind": "Mapping",
@@ -5229,11 +5328,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC-AddRequestHeaders-xoo-dwe/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         46,
+                        0,
                         0,
                         "/SimpleMapping-GRPC-AddRequestHeaders-xoo-dwe/",
                         "GET"
@@ -5251,6 +5352,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC-AddRequestHeaders-xoo-dwe/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "add_request_headers:\n  xoo:\n    append: false\n    value: dwe\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-xoo-dwe\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-xoo-dwe/\nservice: http://plain-simplemapping-grpc-addrequestheaders-xoo-dwe-grpc.plain-namespace\n"
         },
@@ -5264,10 +5366,12 @@
             "add_request_headers": {
                 "moo": "arf"
             },
+            "default_class": "httpmapping",
             "group_id": "c9042937a997268f1f046fa9797cd269c7f87415",
             "group_weight": [
                 0,
                 46,
+                0,
                 0,
                 "/SimpleMapping-GRPC-AddRequestHeaders-moo-arf/",
                 "GET"
@@ -5318,6 +5422,7 @@
                             "tcp://plain-simplemapping-grpc-addrequestheaders-moo-arf-grpc.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "c9042937a997268f1f046fa9797cd269c7f87415",
                     "headers": [],
                     "kind": "Mapping",
@@ -5330,11 +5435,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC-AddRequestHeaders-moo-arf/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         46,
+                        0,
                         0,
                         "/SimpleMapping-GRPC-AddRequestHeaders-moo-arf/",
                         "GET"
@@ -5352,6 +5459,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC-AddRequestHeaders-moo-arf/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "add_request_headers:\n  moo: arf\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-moo-arf\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-moo-arf/\nservice: http://plain-simplemapping-grpc-addrequestheaders-moo-arf-grpc.plain-namespace\n"
         },
@@ -5365,10 +5473,12 @@
             "add_request_headers": {
                 "foo": "bar"
             },
+            "default_class": "httpmapping",
             "group_id": "ceb529cd12150bc8400d3413ae8799fc4dd91b4b",
             "group_weight": [
                 0,
                 46,
+                0,
                 0,
                 "/SimpleMapping-GRPC-AddRequestHeaders-foo-bar/",
                 "GET"
@@ -5419,6 +5529,7 @@
                             "tcp://plain-simplemapping-grpc-addrequestheaders-foo-bar-grpc.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "ceb529cd12150bc8400d3413ae8799fc4dd91b4b",
                     "headers": [],
                     "kind": "Mapping",
@@ -5431,11 +5542,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC-AddRequestHeaders-foo-bar/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         46,
+                        0,
                         0,
                         "/SimpleMapping-GRPC-AddRequestHeaders-foo-bar/",
                         "GET"
@@ -5453,6 +5566,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC-AddRequestHeaders-foo-bar/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "add_request_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-foo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-foo-bar/\nservice: http://plain-simplemapping-grpc-addrequestheaders-foo-bar-grpc.plain-namespace\n"
         },
@@ -5468,10 +5582,12 @@
                     "value": "tyu"
                 }
             },
+            "default_class": "httpmapping",
             "group_id": "20300692fe7aad221e63395ec638cfda9cc6ae7b",
             "group_weight": [
                 0,
                 46,
+                0,
                 0,
                 "/SimpleMapping-GRPC-AddRequestHeaders-aoo-tyu/",
                 "GET"
@@ -5524,6 +5640,7 @@
                             "tcp://plain-simplemapping-grpc-addrequestheaders-aoo-tyu-grpc.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "20300692fe7aad221e63395ec638cfda9cc6ae7b",
                     "headers": [],
                     "kind": "Mapping",
@@ -5536,11 +5653,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC-AddRequestHeaders-aoo-tyu/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         46,
+                        0,
                         0,
                         "/SimpleMapping-GRPC-AddRequestHeaders-aoo-tyu/",
                         "GET"
@@ -5558,6 +5677,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC-AddRequestHeaders-aoo-tyu/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "add_request_headers:\n  aoo:\n    value: tyu\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-aoo-tyu\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-aoo-tyu/\nservice: http://plain-simplemapping-grpc-addrequestheaders-aoo-tyu-grpc.plain-namespace\n"
         },
@@ -5568,10 +5688,12 @@
                 "plain-simplemapping-http-removeresponseheaders-http.plain-namespace.1"
             ],
             "_rkey": "plain-simplemapping-http-removeresponseheaders-http.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "c8dfbdb289f47a0998eaaa2f797fa3a3dd685cee",
             "group_weight": [
                 0,
                 42,
+                0,
                 0,
                 "/SimpleMapping-HTTP-RemoveResponseHeaders/",
                 "GET"
@@ -5620,6 +5742,7 @@
                             "tcp://plain-simplemapping-http-removeresponseheaders-http.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "c8dfbdb289f47a0998eaaa2f797fa3a3dd685cee",
                     "headers": [],
                     "kind": "Mapping",
@@ -5632,12 +5755,14 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP-RemoveResponseHeaders/",
+                    "query_parameters": [],
                     "remove_response_headers": "x-envoy-upstream-service-time",
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         42,
+                        0,
                         0,
                         "/SimpleMapping-HTTP-RemoveResponseHeaders/",
                         "GET"
@@ -5655,6 +5780,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP-RemoveResponseHeaders/",
+            "query_parameters": [],
             "remove_response_headers": "x-envoy-upstream-service-time",
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-RemoveResponseHeaders\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-RemoveResponseHeaders/\nremove_response_headers: x-envoy-upstream-service-time\nservice: http://plain-simplemapping-http-removeresponseheaders-http.plain-namespace\n"
@@ -5666,10 +5792,12 @@
                 "plain-simplemapping-grpc-removeresponseheaders-grpc.plain-namespace.1"
             ],
             "_rkey": "plain-simplemapping-grpc-removeresponseheaders-grpc.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "26d605908ea8a0834fd11391e5f1bd0ffb344c29",
             "group_weight": [
                 0,
                 42,
+                0,
                 0,
                 "/SimpleMapping-GRPC-RemoveResponseHeaders/",
                 "GET"
@@ -5718,6 +5846,7 @@
                             "tcp://plain-simplemapping-grpc-removeresponseheaders-grpc.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "26d605908ea8a0834fd11391e5f1bd0ffb344c29",
                     "headers": [],
                     "kind": "Mapping",
@@ -5730,12 +5859,14 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC-RemoveResponseHeaders/",
+                    "query_parameters": [],
                     "remove_response_headers": "x-envoy-upstream-service-time",
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         42,
+                        0,
                         0,
                         "/SimpleMapping-GRPC-RemoveResponseHeaders/",
                         "GET"
@@ -5753,6 +5884,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC-RemoveResponseHeaders/",
+            "query_parameters": [],
             "remove_response_headers": "x-envoy-upstream-service-time",
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-RemoveResponseHeaders\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-RemoveResponseHeaders/\nremove_response_headers: x-envoy-upstream-service-time\nservice: http://plain-simplemapping-grpc-removeresponseheaders-grpc.plain-namespace\n"
@@ -5764,10 +5896,12 @@
                 "simpleingresswithannotations-http.plain-namespace.1"
             ],
             "_rkey": "simpleingresswithannotations-http.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "e4c9f7dd5c71216d2eb35dadb1dad2ed398223e8",
             "group_weight": [
                 0,
                 42,
+                0,
                 0,
                 "/SimpleIngressWithAnnotations-HTTP-nested/",
                 "GET"
@@ -5816,6 +5950,7 @@
                             "tcp://plain-simpleingresswithannotations-http-http.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "e4c9f7dd5c71216d2eb35dadb1dad2ed398223e8",
                     "headers": [],
                     "kind": "Mapping",
@@ -5829,11 +5964,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleIngressWithAnnotations-HTTP-nested/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         42,
+                        0,
                         0,
                         "/SimpleIngressWithAnnotations-HTTP-nested/",
                         "GET"
@@ -5852,6 +5989,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleIngressWithAnnotations-HTTP-nested/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simpleingresswithannotations-http-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleIngressWithAnnotations-HTTP-nested\nprefix: /SimpleIngressWithAnnotations-HTTP-nested/\nservice: http://plain-simpleingresswithannotations-http-http.plain-namespace\n"
         },
@@ -5862,10 +6000,12 @@
                 "simpleingresswithannotations-grpc.plain-namespace.1"
             ],
             "_rkey": "simpleingresswithannotations-grpc.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "13720e7b8969add2713610b8099ef8059a6ae87a",
             "group_weight": [
                 0,
                 42,
+                0,
                 0,
                 "/SimpleIngressWithAnnotations-GRPC-nested/",
                 "GET"
@@ -5914,6 +6054,7 @@
                             "tcp://plain-simpleingresswithannotations-grpc-grpc.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "13720e7b8969add2713610b8099ef8059a6ae87a",
                     "headers": [],
                     "kind": "Mapping",
@@ -5927,11 +6068,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleIngressWithAnnotations-GRPC-nested/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         42,
+                        0,
                         0,
                         "/SimpleIngressWithAnnotations-GRPC-nested/",
                         "GET"
@@ -5950,6 +6093,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleIngressWithAnnotations-GRPC-nested/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simpleingresswithannotations-grpc-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleIngressWithAnnotations-GRPC-nested\nprefix: /SimpleIngressWithAnnotations-GRPC-nested/\nservice: http://plain-simpleingresswithannotations-grpc-grpc.plain-namespace\n"
         },
@@ -5960,10 +6104,12 @@
                 "plain-simplemapping-http-rewrite-slash-foo-http.plain-namespace.1"
             ],
             "_rkey": "plain-simplemapping-http-rewrite-slash-foo-http.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "abe6dbd46ef461050fd5eaac17836f38bf290d31",
             "group_weight": [
                 0,
                 38,
+                0,
                 0,
                 "/SimpleMapping-HTTP-Rewrite-SLASH-foo/",
                 "GET"
@@ -6012,6 +6158,7 @@
                             "tcp://plain-simplemapping-http-rewrite-slash-foo-http.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "abe6dbd46ef461050fd5eaac17836f38bf290d31",
                     "headers": [],
                     "kind": "Mapping",
@@ -6024,11 +6171,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP-Rewrite-SLASH-foo/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/foo",
                     "route_weight": [
                         0,
                         38,
+                        0,
                         0,
                         "/SimpleMapping-HTTP-Rewrite-SLASH-foo/",
                         "GET"
@@ -6046,6 +6195,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP-Rewrite-SLASH-foo/",
+            "query_parameters": [],
             "rewrite": "/foo",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-Rewrite-SLASH-foo\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-Rewrite-SLASH-foo/\nrewrite: /foo\nservice: http://plain-simplemapping-http-rewrite-slash-foo-http.plain-namespace\n"
         },
@@ -6056,10 +6206,12 @@
                 "plain-simplemapping-grpc-rewrite-slash-foo-grpc.plain-namespace.1"
             ],
             "_rkey": "plain-simplemapping-grpc-rewrite-slash-foo-grpc.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "ff99456b01c7391f21987d1758acd53e6cafe857",
             "group_weight": [
                 0,
                 38,
+                0,
                 0,
                 "/SimpleMapping-GRPC-Rewrite-SLASH-foo/",
                 "GET"
@@ -6108,6 +6260,7 @@
                             "tcp://plain-simplemapping-grpc-rewrite-slash-foo-grpc.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "ff99456b01c7391f21987d1758acd53e6cafe857",
                     "headers": [],
                     "kind": "Mapping",
@@ -6120,11 +6273,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC-Rewrite-SLASH-foo/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/foo",
                     "route_weight": [
                         0,
                         38,
+                        0,
                         0,
                         "/SimpleMapping-GRPC-Rewrite-SLASH-foo/",
                         "GET"
@@ -6142,6 +6297,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC-Rewrite-SLASH-foo/",
+            "query_parameters": [],
             "rewrite": "/foo",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-Rewrite-SLASH-foo\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-Rewrite-SLASH-foo/\nrewrite: /foo\nservice: http://plain-simplemapping-grpc-rewrite-slash-foo-grpc.plain-namespace\n"
         },
@@ -6153,10 +6309,12 @@
             ],
             "_rkey": "plain-simplemapping-http-autohostrewrite-http.plain-namespace.1",
             "auto_host_rewrite": true,
+            "default_class": "httpmapping",
             "group_id": "d2f92ac6600e0d794afc9a71774689a20494d502",
             "group_weight": [
                 0,
                 36,
+                0,
                 0,
                 "/SimpleMapping-HTTP-AutoHostRewrite/",
                 "GET"
@@ -6206,6 +6364,7 @@
                             "tcp://plain-simplemapping-http-autohostrewrite-http.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "d2f92ac6600e0d794afc9a71774689a20494d502",
                     "headers": [],
                     "kind": "Mapping",
@@ -6218,11 +6377,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP-AutoHostRewrite/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         36,
+                        0,
                         0,
                         "/SimpleMapping-HTTP-AutoHostRewrite/",
                         "GET"
@@ -6240,6 +6401,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP-AutoHostRewrite/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AutoHostRewrite\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AutoHostRewrite/\nservice: http://plain-simplemapping-http-autohostrewrite-http.plain-namespace\n"
         },
@@ -6251,10 +6413,12 @@
             ],
             "_rkey": "plain-simplemapping-grpc-autohostrewrite-grpc.plain-namespace.1",
             "auto_host_rewrite": true,
+            "default_class": "httpmapping",
             "group_id": "4d095cff288cd3b680c2a1a5bac5bdad7bb6bb9c",
             "group_weight": [
                 0,
                 36,
+                0,
                 0,
                 "/SimpleMapping-GRPC-AutoHostRewrite/",
                 "GET"
@@ -6304,6 +6468,7 @@
                             "tcp://plain-simplemapping-grpc-autohostrewrite-grpc.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "4d095cff288cd3b680c2a1a5bac5bdad7bb6bb9c",
                     "headers": [],
                     "kind": "Mapping",
@@ -6316,11 +6481,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC-AutoHostRewrite/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         36,
+                        0,
                         0,
                         "/SimpleMapping-GRPC-AutoHostRewrite/",
                         "GET"
@@ -6338,6 +6505,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC-AutoHostRewrite/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AutoHostRewrite\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AutoHostRewrite/\nservice: http://plain-simplemapping-grpc-autohostrewrite-grpc.plain-namespace\n"
         },
@@ -6348,10 +6516,12 @@
                 "simpleingresswithannotations-http-0-0.plain-namespace.1"
             ],
             "_rkey": "simpleingresswithannotations-http-0-0.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "71782c5185ccc675b71f9e3d8439f4221609dd29",
             "group_weight": [
                 0,
                 35,
+                0,
                 0,
                 "/SimpleIngressWithAnnotations-HTTP/",
                 "GET"
@@ -6400,6 +6570,7 @@
                             "tcp://plain-simpleingresswithannotations-http-http.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "71782c5185ccc675b71f9e3d8439f4221609dd29",
                     "headers": [],
                     "kind": "Mapping",
@@ -6414,11 +6585,13 @@
                     "precedence": 0,
                     "prefix": "/SimpleIngressWithAnnotations-HTTP/",
                     "prefix_exact": false,
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         35,
+                        0,
                         0,
                         "/SimpleIngressWithAnnotations-HTTP/",
                         "GET"
@@ -6438,6 +6611,7 @@
             "precedence": 0,
             "prefix": "/SimpleIngressWithAnnotations-HTTP/",
             "prefix_exact": false,
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simpleingresswithannotations-http-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: simpleingresswithannotations-http-0-0\nnamespace: plain-namespace\nprecedence: 0\nprefix: /SimpleIngressWithAnnotations-HTTP/\nprefix_exact: false\nservice: plain-simpleingresswithannotations-http-http.plain-namespace:80\n"
         },
@@ -6448,10 +6622,12 @@
                 "simpleingresswithannotations-grpc-0-0.plain-namespace.1"
             ],
             "_rkey": "simpleingresswithannotations-grpc-0-0.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "a0b97c69f0802ddc2a0738ca04a84c12028c6021",
             "group_weight": [
                 0,
                 35,
+                0,
                 0,
                 "/SimpleIngressWithAnnotations-GRPC/",
                 "GET"
@@ -6500,6 +6676,7 @@
                             "tcp://plain-simpleingresswithannotations-grpc-grpc.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "a0b97c69f0802ddc2a0738ca04a84c12028c6021",
                     "headers": [],
                     "kind": "Mapping",
@@ -6514,11 +6691,13 @@
                     "precedence": 0,
                     "prefix": "/SimpleIngressWithAnnotations-GRPC/",
                     "prefix_exact": false,
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         35,
+                        0,
                         0,
                         "/SimpleIngressWithAnnotations-GRPC/",
                         "GET"
@@ -6538,6 +6717,7 @@
             "precedence": 0,
             "prefix": "/SimpleIngressWithAnnotations-GRPC/",
             "prefix_exact": false,
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simpleingresswithannotations-grpc-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: simpleingresswithannotations-grpc-0-0\nnamespace: plain-namespace\nprecedence: 0\nprefix: /SimpleIngressWithAnnotations-GRPC/\nprefix_exact: false\nservice: plain-simpleingresswithannotations-grpc-grpc.plain-namespace:80\n"
         },
@@ -6549,10 +6729,12 @@
             ],
             "_rkey": "plain-simplemapping-http-casesensitive-http.plain-namespace.1",
             "case_sensitive": false,
+            "default_class": "httpmapping",
             "group_id": "f00b2f3fe42e6ace4cd13123d2f98f08440bf93c",
             "group_weight": [
                 0,
                 34,
+                0,
                 0,
                 "/SimpleMapping-HTTP-CaseSensitive/",
                 "GET"
@@ -6602,6 +6784,7 @@
                             "tcp://plain-simplemapping-http-casesensitive-http.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "f00b2f3fe42e6ace4cd13123d2f98f08440bf93c",
                     "headers": [],
                     "kind": "Mapping",
@@ -6614,11 +6797,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP-CaseSensitive/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         34,
+                        0,
                         0,
                         "/SimpleMapping-HTTP-CaseSensitive/",
                         "GET"
@@ -6636,6 +6821,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP-CaseSensitive/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\ncase_sensitive: false\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-CaseSensitive\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-CaseSensitive/\nservice: http://plain-simplemapping-http-casesensitive-http.plain-namespace\n"
         },
@@ -6647,10 +6833,12 @@
             ],
             "_rkey": "plain-simplemapping-grpc-casesensitive-grpc.plain-namespace.1",
             "case_sensitive": false,
+            "default_class": "httpmapping",
             "group_id": "c3684f2f815f3d691ce00382d4e2022c2f28a419",
             "group_weight": [
                 0,
                 34,
+                0,
                 0,
                 "/SimpleMapping-GRPC-CaseSensitive/",
                 "GET"
@@ -6700,6 +6888,7 @@
                             "tcp://plain-simplemapping-grpc-casesensitive-grpc.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "c3684f2f815f3d691ce00382d4e2022c2f28a419",
                     "headers": [],
                     "kind": "Mapping",
@@ -6712,11 +6901,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC-CaseSensitive/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         34,
+                        0,
                         0,
                         "/SimpleMapping-GRPC-CaseSensitive/",
                         "GET"
@@ -6734,6 +6925,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC-CaseSensitive/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\ncase_sensitive: false\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-CaseSensitive\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-CaseSensitive/\nservice: http://plain-simplemapping-grpc-casesensitive-grpc.plain-namespace\n"
         },
@@ -6744,10 +6936,12 @@
                 "plain-simplemapping-http-usewebsocket-http.plain-namespace.1"
             ],
             "_rkey": "plain-simplemapping-http-usewebsocket-http.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "d9ad870bfa328cb4d050228bd28eacd5852c5d62",
             "group_weight": [
                 0,
                 33,
+                0,
                 0,
                 "/SimpleMapping-HTTP-UseWebsocket/",
                 "GET"
@@ -6796,6 +6990,7 @@
                             "tcp://plain-simplemapping-http-usewebsocket-http.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "d9ad870bfa328cb4d050228bd28eacd5852c5d62",
                     "headers": [],
                     "kind": "Mapping",
@@ -6808,11 +7003,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP-UseWebsocket/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         33,
+                        0,
                         0,
                         "/SimpleMapping-HTTP-UseWebsocket/",
                         "GET"
@@ -6831,6 +7028,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP-UseWebsocket/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-UseWebsocket\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-UseWebsocket/\nservice: http://plain-simplemapping-http-usewebsocket-http.plain-namespace\nuse_websocket: true\n",
             "use_websocket": true
@@ -6842,10 +7040,12 @@
                 "plain-simplemapping-grpc-usewebsocket-grpc.plain-namespace.1"
             ],
             "_rkey": "plain-simplemapping-grpc-usewebsocket-grpc.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "513210530131791f3e75df96a3efd189a8100301",
             "group_weight": [
                 0,
                 33,
+                0,
                 0,
                 "/SimpleMapping-GRPC-UseWebsocket/",
                 "GET"
@@ -6894,6 +7094,7 @@
                             "tcp://plain-simplemapping-grpc-usewebsocket-grpc.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "513210530131791f3e75df96a3efd189a8100301",
                     "headers": [],
                     "kind": "Mapping",
@@ -6906,11 +7107,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC-UseWebsocket/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         33,
+                        0,
                         0,
                         "/SimpleMapping-GRPC-UseWebsocket/",
                         "GET"
@@ -6929,6 +7132,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC-UseWebsocket/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-UseWebsocket\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-UseWebsocket/\nservice: http://plain-simplemapping-grpc-usewebsocket-grpc.plain-namespace\nuse_websocket: true\n",
             "use_websocket": true
@@ -6940,10 +7144,12 @@
                 "plain-simplemapping-http-rewrite-foo-http.plain-namespace.1"
             ],
             "_rkey": "plain-simplemapping-http-rewrite-foo-http.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "cda7ce1edcdfe733d14578a2723d0532103fb0d1",
             "group_weight": [
                 0,
                 32,
+                0,
                 0,
                 "/SimpleMapping-HTTP-Rewrite-foo/",
                 "GET"
@@ -6992,6 +7198,7 @@
                             "tcp://plain-simplemapping-http-rewrite-foo-http.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "cda7ce1edcdfe733d14578a2723d0532103fb0d1",
                     "headers": [],
                     "kind": "Mapping",
@@ -7004,11 +7211,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP-Rewrite-foo/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "foo",
                     "route_weight": [
                         0,
                         32,
+                        0,
                         0,
                         "/SimpleMapping-HTTP-Rewrite-foo/",
                         "GET"
@@ -7026,6 +7235,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP-Rewrite-foo/",
+            "query_parameters": [],
             "rewrite": "foo",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-Rewrite-foo\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-Rewrite-foo/\nrewrite: foo\nservice: http://plain-simplemapping-http-rewrite-foo-http.plain-namespace\n"
         },
@@ -7036,10 +7246,12 @@
                 "plain-simplemapping-grpc-rewrite-foo-grpc.plain-namespace.1"
             ],
             "_rkey": "plain-simplemapping-grpc-rewrite-foo-grpc.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "1bdf073bc47620e8823e6ad9dfe5d70fbcc95a0f",
             "group_weight": [
                 0,
                 32,
+                0,
                 0,
                 "/SimpleMapping-GRPC-Rewrite-foo/",
                 "GET"
@@ -7088,6 +7300,7 @@
                             "tcp://plain-simplemapping-grpc-rewrite-foo-grpc.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "1bdf073bc47620e8823e6ad9dfe5d70fbcc95a0f",
                     "headers": [],
                     "kind": "Mapping",
@@ -7100,11 +7313,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC-Rewrite-foo/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "foo",
                     "route_weight": [
                         0,
                         32,
+                        0,
                         0,
                         "/SimpleMapping-GRPC-Rewrite-foo/",
                         "GET"
@@ -7122,6 +7337,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC-Rewrite-foo/",
+            "query_parameters": [],
             "rewrite": "foo",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-Rewrite-foo\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-Rewrite-foo/\nrewrite: foo\nservice: http://plain-simplemapping-grpc-rewrite-foo-grpc.plain-namespace\n"
         },
@@ -7132,11 +7348,13 @@
                 "hostheadermappingingress-http-0-0.plain-namespace.1"
             ],
             "_rkey": "hostheadermappingingress-http-0-0.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "783f0943d0a29cbdcb0e225048845fb76533df37",
             "group_weight": [
                 0,
                 31,
                 28,
+                0,
                 "/HostHeaderMappingIngress-HTTP/",
                 "GET",
                 ":authority-inspector.external"
@@ -7191,6 +7409,7 @@
                             "tcp://plain-hostheadermappingingress-http-http.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "783f0943d0a29cbdcb0e225048845fb76533df37",
                     "headers": [
                         {
@@ -7212,12 +7431,14 @@
                     "precedence": 0,
                     "prefix": "/HostHeaderMappingIngress-HTTP/",
                     "prefix_exact": false,
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         31,
                         28,
+                        0,
                         "/HostHeaderMappingIngress-HTTP/",
                         "GET",
                         ":authority-inspector.external"
@@ -7237,6 +7458,7 @@
             "precedence": 0,
             "prefix": "/HostHeaderMappingIngress-HTTP/",
             "prefix_exact": false,
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nhost: inspector.external\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: hostheadermappingingress-http-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: hostheadermappingingress-http-0-0\nnamespace: plain-namespace\nprecedence: 0\nprefix: /HostHeaderMappingIngress-HTTP/\nprefix_exact: false\nservice: plain-hostheadermappingingress-http-http.plain-namespace:80\n"
         },
@@ -7247,11 +7469,13 @@
                 "hostheadermappingingress-grpc-0-0.plain-namespace.1"
             ],
             "_rkey": "hostheadermappingingress-grpc-0-0.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "e0e1b27f04ab21e176b12c47ed54ee1385ff1b14",
             "group_weight": [
                 0,
                 31,
                 28,
+                0,
                 "/HostHeaderMappingIngress-GRPC/",
                 "GET",
                 ":authority-inspector.external"
@@ -7306,6 +7530,7 @@
                             "tcp://plain-hostheadermappingingress-grpc-grpc.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "e0e1b27f04ab21e176b12c47ed54ee1385ff1b14",
                     "headers": [
                         {
@@ -7327,12 +7552,14 @@
                     "precedence": 0,
                     "prefix": "/HostHeaderMappingIngress-GRPC/",
                     "prefix_exact": false,
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         31,
                         28,
+                        0,
                         "/HostHeaderMappingIngress-GRPC/",
                         "GET",
                         ":authority-inspector.external"
@@ -7352,6 +7579,7 @@
             "precedence": 0,
             "prefix": "/HostHeaderMappingIngress-GRPC/",
             "prefix_exact": false,
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nhost: inspector.external\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: hostheadermappingingress-grpc-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: hostheadermappingingress-grpc-0-0\nnamespace: plain-namespace\nprecedence: 0\nprefix: /HostHeaderMappingIngress-GRPC/\nprefix_exact: false\nservice: plain-hostheadermappingingress-grpc-grpc.plain-namespace:80\n"
         },
@@ -7362,10 +7590,12 @@
                 "plain-tlsorigination-http-implicit-http.plain-namespace.1"
             ],
             "_rkey": "plain-tlsorigination-http-implicit-http.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "c2d90dbca739f73557893dbd83407cbaaa327a60",
             "group_weight": [
                 0,
                 30,
+                0,
                 0,
                 "/TLSOrigination-HTTP-IMPLICIT/",
                 "GET"
@@ -7430,6 +7660,7 @@
                             "tcp://plain-tlsorigination-http-implicit-http.plain-namespace:443"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "c2d90dbca739f73557893dbd83407cbaaa327a60",
                     "headers": [],
                     "kind": "Mapping",
@@ -7442,11 +7673,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/TLSOrigination-HTTP-IMPLICIT/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         30,
+                        0,
                         0,
                         "/TLSOrigination-HTTP-IMPLICIT/",
                         "GET"
@@ -7464,6 +7697,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/TLSOrigination-HTTP-IMPLICIT/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: TLSOrigination-HTTP-IMPLICIT\nnamespace: plain-namespace\nprefix: /TLSOrigination-HTTP-IMPLICIT/\nservice: https://plain-tlsorigination-http-implicit-http.plain-namespace\n"
         },
@@ -7474,10 +7708,12 @@
                 "plain-tlsorigination-http-explicit-http.plain-namespace.1"
             ],
             "_rkey": "plain-tlsorigination-http-explicit-http.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "8a4b42e0193d64a2b5f0a2d453fb0b70fe4667a5",
             "group_weight": [
                 0,
                 30,
+                0,
                 0,
                 "/TLSOrigination-HTTP-EXPLICIT/",
                 "GET"
@@ -7542,6 +7778,7 @@
                             "tcp://plain-tlsorigination-http-explicit-http.plain-namespace:443"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "8a4b42e0193d64a2b5f0a2d453fb0b70fe4667a5",
                     "headers": [],
                     "kind": "Mapping",
@@ -7554,11 +7791,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/TLSOrigination-HTTP-EXPLICIT/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         30,
+                        0,
                         0,
                         "/TLSOrigination-HTTP-EXPLICIT/",
                         "GET"
@@ -7577,6 +7816,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/TLSOrigination-HTTP-EXPLICIT/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: TLSOrigination-HTTP-EXPLICIT\nnamespace: plain-namespace\nprefix: /TLSOrigination-HTTP-EXPLICIT/\nservice: plain-tlsorigination-http-explicit-http.plain-namespace\ntls: true\n",
             "tls": true
@@ -7588,10 +7828,12 @@
                 "plain-tlsorigination-grpc-implicit-grpc.plain-namespace.1"
             ],
             "_rkey": "plain-tlsorigination-grpc-implicit-grpc.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "ee9cfcb459ade70db150c32ce39ff12a59788890",
             "group_weight": [
                 0,
                 30,
+                0,
                 0,
                 "/TLSOrigination-GRPC-IMPLICIT/",
                 "GET"
@@ -7656,6 +7898,7 @@
                             "tcp://plain-tlsorigination-grpc-implicit-grpc.plain-namespace:443"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "ee9cfcb459ade70db150c32ce39ff12a59788890",
                     "headers": [],
                     "kind": "Mapping",
@@ -7668,11 +7911,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/TLSOrigination-GRPC-IMPLICIT/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         30,
+                        0,
                         0,
                         "/TLSOrigination-GRPC-IMPLICIT/",
                         "GET"
@@ -7690,6 +7935,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/TLSOrigination-GRPC-IMPLICIT/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: TLSOrigination-GRPC-IMPLICIT\nnamespace: plain-namespace\nprefix: /TLSOrigination-GRPC-IMPLICIT/\nservice: https://plain-tlsorigination-grpc-implicit-grpc.plain-namespace\n"
         },
@@ -7700,10 +7946,12 @@
                 "plain-tlsorigination-grpc-explicit-grpc.plain-namespace.1"
             ],
             "_rkey": "plain-tlsorigination-grpc-explicit-grpc.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "2d5713371e99aff43f6b26458948277f173a23d6",
             "group_weight": [
                 0,
                 30,
+                0,
                 0,
                 "/TLSOrigination-GRPC-EXPLICIT/",
                 "GET"
@@ -7768,6 +8016,7 @@
                             "tcp://plain-tlsorigination-grpc-explicit-grpc.plain-namespace:443"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "2d5713371e99aff43f6b26458948277f173a23d6",
                     "headers": [],
                     "kind": "Mapping",
@@ -7780,11 +8029,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/TLSOrigination-GRPC-EXPLICIT/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         30,
+                        0,
                         0,
                         "/TLSOrigination-GRPC-EXPLICIT/",
                         "GET"
@@ -7803,6 +8054,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/TLSOrigination-GRPC-EXPLICIT/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: TLSOrigination-GRPC-EXPLICIT\nnamespace: plain-namespace\nprefix: /TLSOrigination-GRPC-EXPLICIT/\nservice: plain-tlsorigination-grpc-explicit-grpc.plain-namespace\ntls: true\n",
             "tls": true
@@ -7814,10 +8066,12 @@
                 "plain-removereqheadersmapping-http-http.plain-namespace.1"
             ],
             "_rkey": "plain-removereqheadersmapping-http-http.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "cd5c7de237d0b20f1c2ec16b3ac99bbd0703b5e2",
             "group_weight": [
                 0,
                 30,
+                0,
                 0,
                 "/RemoveReqHeadersMapping-HTTP/",
                 "GET"
@@ -7869,6 +8123,7 @@
                             "tcp://httpbin.org:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "cd5c7de237d0b20f1c2ec16b3ac99bbd0703b5e2",
                     "headers": [],
                     "kind": "Mapping",
@@ -7881,6 +8136,7 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/RemoveReqHeadersMapping-HTTP/",
+                    "query_parameters": [],
                     "remove_request_headers": [
                         "zoo",
                         "aoo"
@@ -7890,6 +8146,7 @@
                     "route_weight": [
                         0,
                         30,
+                        0,
                         0,
                         "/RemoveReqHeadersMapping-HTTP/",
                         "GET"
@@ -7907,6 +8164,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/RemoveReqHeadersMapping-HTTP/",
+            "query_parameters": [],
             "remove_request_headers": [
                 "zoo",
                 "aoo"
@@ -7921,10 +8179,12 @@
                 "plain-removereqheadersmapping-grpc-grpc.plain-namespace.1"
             ],
             "_rkey": "plain-removereqheadersmapping-grpc-grpc.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "36dc0ac1ec071f75f3c3955bdb583d42275e7b17",
             "group_weight": [
                 0,
                 30,
+                0,
                 0,
                 "/RemoveReqHeadersMapping-GRPC/",
                 "GET"
@@ -7976,6 +8236,7 @@
                             "tcp://httpbin.org:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "36dc0ac1ec071f75f3c3955bdb583d42275e7b17",
                     "headers": [],
                     "kind": "Mapping",
@@ -7988,6 +8249,7 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/RemoveReqHeadersMapping-GRPC/",
+                    "query_parameters": [],
                     "remove_request_headers": [
                         "zoo",
                         "aoo"
@@ -7997,6 +8259,7 @@
                     "route_weight": [
                         0,
                         30,
+                        0,
                         0,
                         "/RemoveReqHeadersMapping-GRPC/",
                         "GET"
@@ -8014,6 +8277,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/RemoveReqHeadersMapping-GRPC/",
+            "query_parameters": [],
             "remove_request_headers": [
                 "zoo",
                 "aoo"
@@ -8029,10 +8293,12 @@
                 "plain-canarydiffmapping-http-100-http.plain-namespace.1"
             ],
             "_rkey": "plain-canarydiffmapping-http-100-http-canary.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "856673a71f2bedb89decb235ef32f56e3f54ca65",
             "group_weight": [
                 0,
                 28,
+                0,
                 0,
                 "/CanaryDiffMapping-HTTP-100/",
                 "GET"
@@ -8083,6 +8349,7 @@
                             "tcp://plain-canarydiffmapping-http-100-http.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "856673a71f2bedb89decb235ef32f56e3f54ca65",
                     "headers": [],
                     "host_rewrite": "canary.1.example.com",
@@ -8096,11 +8363,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/CanaryDiffMapping-HTTP-100/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         28,
+                        0,
                         0,
                         "/CanaryDiffMapping-HTTP-100/",
                         "GET"
@@ -8150,6 +8419,7 @@
                             "tcp://plain-canarydiffmapping-http-100-http-canary.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "856673a71f2bedb89decb235ef32f56e3f54ca65",
                     "headers": [],
                     "host_rewrite": "canary.2.example.com",
@@ -8163,11 +8433,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/CanaryDiffMapping-HTTP-100/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         28,
+                        0,
                         0,
                         "/CanaryDiffMapping-HTTP-100/",
                         "GET"
@@ -8185,6 +8457,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/CanaryDiffMapping-HTTP-100/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-100\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-100/\nservice: http://plain-canarydiffmapping-http-100-http.plain-namespace\n"
         },
@@ -8196,10 +8469,12 @@
                 "plain-canarydiffmapping-grpc-100-grpc.plain-namespace.1"
             ],
             "_rkey": "plain-canarydiffmapping-grpc-100-grpc-canary.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "f1f18d5e4e41278d965dbae3277e38081b3de69b",
             "group_weight": [
                 0,
                 28,
+                0,
                 0,
                 "/CanaryDiffMapping-GRPC-100/",
                 "GET"
@@ -8250,6 +8525,7 @@
                             "tcp://plain-canarydiffmapping-grpc-100-grpc.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "f1f18d5e4e41278d965dbae3277e38081b3de69b",
                     "headers": [],
                     "host_rewrite": "canary.1.example.com",
@@ -8263,11 +8539,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/CanaryDiffMapping-GRPC-100/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         28,
+                        0,
                         0,
                         "/CanaryDiffMapping-GRPC-100/",
                         "GET"
@@ -8317,6 +8595,7 @@
                             "tcp://plain-canarydiffmapping-grpc-100-grpc-canary.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "f1f18d5e4e41278d965dbae3277e38081b3de69b",
                     "headers": [],
                     "host_rewrite": "canary.2.example.com",
@@ -8330,11 +8609,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/CanaryDiffMapping-GRPC-100/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         28,
+                        0,
                         0,
                         "/CanaryDiffMapping-GRPC-100/",
                         "GET"
@@ -8352,6 +8633,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/CanaryDiffMapping-GRPC-100/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-100\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-100/\nservice: http://plain-canarydiffmapping-grpc-100-grpc.plain-namespace\n"
         },
@@ -8376,10 +8658,12 @@
                     "value": "ZooZ"
                 }
             },
+            "default_class": "httpmapping",
             "group_id": "5ad5758cd8ecec30abc7114b58e83f5927901b48",
             "group_weight": [
                 0,
                 28,
+                0,
                 0,
                 "/AddRespHeadersMapping-HTTP/",
                 "GET"
@@ -8445,6 +8729,7 @@
                             "tcp://httpbin.org:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "5ad5758cd8ecec30abc7114b58e83f5927901b48",
                     "headers": [],
                     "kind": "Mapping",
@@ -8457,11 +8742,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/AddRespHeadersMapping-HTTP/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         28,
+                        0,
                         0,
                         "/AddRespHeadersMapping-HTTP/",
                         "GET"
@@ -8479,6 +8766,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/AddRespHeadersMapping-HTTP/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "add_response_headers:\n  foo: Foo\n  koo:\n    append: false\n    value: KooK\n  test:\n    value: boo\n  zoo:\n    append: true\n    value: ZooZ\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: AddRespHeadersMapping-HTTP\nnamespace: plain-namespace\nprefix: /AddRespHeadersMapping-HTTP/\nservice: http://httpbin.org\n"
         },
@@ -8503,10 +8791,12 @@
                     "value": "ZooZ"
                 }
             },
+            "default_class": "httpmapping",
             "group_id": "e099c005911a3bb1bed408cf114fc44d58e2a928",
             "group_weight": [
                 0,
                 28,
+                0,
                 0,
                 "/AddRespHeadersMapping-GRPC/",
                 "GET"
@@ -8572,6 +8862,7 @@
                             "tcp://httpbin.org:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "e099c005911a3bb1bed408cf114fc44d58e2a928",
                     "headers": [],
                     "kind": "Mapping",
@@ -8584,11 +8875,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/AddRespHeadersMapping-GRPC/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         28,
+                        0,
                         0,
                         "/AddRespHeadersMapping-GRPC/",
                         "GET"
@@ -8606,6 +8899,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/AddRespHeadersMapping-GRPC/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "add_response_headers:\n  foo: Foo\n  koo:\n    append: false\n    value: KooK\n  test:\n    value: boo\n  zoo:\n    append: true\n    value: ZooZ\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: AddRespHeadersMapping-GRPC\nnamespace: plain-namespace\nprefix: /AddRespHeadersMapping-GRPC/\nservice: http://httpbin.org\n"
         },
@@ -8616,10 +8910,12 @@
                 "simplemappingingress-http-0-0.plain-namespace.1"
             ],
             "_rkey": "simplemappingingress-http-0-0.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "13b7423aafb5036c301fcc0e5e2a27b468bb8d2f",
             "group_weight": [
                 0,
                 27,
+                0,
                 0,
                 "/SimpleMappingIngress-HTTP/",
                 "GET"
@@ -8668,6 +8964,7 @@
                             "tcp://plain-simplemappingingress-http-http.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "13b7423aafb5036c301fcc0e5e2a27b468bb8d2f",
                     "headers": [],
                     "kind": "Mapping",
@@ -8682,11 +8979,13 @@
                     "precedence": 0,
                     "prefix": "/SimpleMappingIngress-HTTP/",
                     "prefix_exact": false,
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         27,
+                        0,
                         0,
                         "/SimpleMappingIngress-HTTP/",
                         "GET"
@@ -8706,6 +9005,7 @@
             "precedence": 0,
             "prefix": "/SimpleMappingIngress-HTTP/",
             "prefix_exact": false,
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simplemappingingress-http-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: simplemappingingress-http-0-0\nnamespace: plain-namespace\nprecedence: 0\nprefix: /SimpleMappingIngress-HTTP/\nprefix_exact: false\nservice: plain-simplemappingingress-http-http.plain-namespace:80\n"
         },
@@ -8716,10 +9016,12 @@
                 "simplemappingingress-grpc-0-0.plain-namespace.1"
             ],
             "_rkey": "simplemappingingress-grpc-0-0.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "0cd81aff9a8f436c841f2b1b0d49d04cd87788e0",
             "group_weight": [
                 0,
                 27,
+                0,
                 0,
                 "/SimpleMappingIngress-GRPC/",
                 "GET"
@@ -8768,6 +9070,7 @@
                             "tcp://plain-simplemappingingress-grpc-grpc.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "0cd81aff9a8f436c841f2b1b0d49d04cd87788e0",
                     "headers": [],
                     "kind": "Mapping",
@@ -8782,11 +9085,13 @@
                     "precedence": 0,
                     "prefix": "/SimpleMappingIngress-GRPC/",
                     "prefix_exact": false,
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         27,
+                        0,
                         0,
                         "/SimpleMappingIngress-GRPC/",
                         "GET"
@@ -8806,6 +9111,7 @@
             "precedence": 0,
             "prefix": "/SimpleMappingIngress-GRPC/",
             "prefix_exact": false,
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simplemappingingress-grpc-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: simplemappingingress-grpc-0-0\nnamespace: plain-namespace\nprecedence: 0\nprefix: /SimpleMappingIngress-GRPC/\nprefix_exact: false\nservice: plain-simplemappingingress-grpc-grpc.plain-namespace:80\n"
         },
@@ -8817,10 +9123,12 @@
                 "plain-canarydiffmapping-http-50-http.plain-namespace.1"
             ],
             "_rkey": "plain-canarydiffmapping-http-50-http-canary.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "85d30692fa132340124410a707acb8b1e87872b6",
             "group_weight": [
                 0,
                 27,
+                0,
                 0,
                 "/CanaryDiffMapping-HTTP-50/",
                 "GET"
@@ -8871,6 +9179,7 @@
                             "tcp://plain-canarydiffmapping-http-50-http.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "85d30692fa132340124410a707acb8b1e87872b6",
                     "headers": [],
                     "host_rewrite": "canary.1.example.com",
@@ -8884,11 +9193,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/CanaryDiffMapping-HTTP-50/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         27,
+                        0,
                         0,
                         "/CanaryDiffMapping-HTTP-50/",
                         "GET"
@@ -8938,6 +9249,7 @@
                             "tcp://plain-canarydiffmapping-http-50-http-canary.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "85d30692fa132340124410a707acb8b1e87872b6",
                     "headers": [],
                     "host_rewrite": "canary.2.example.com",
@@ -8951,11 +9263,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/CanaryDiffMapping-HTTP-50/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         27,
+                        0,
                         0,
                         "/CanaryDiffMapping-HTTP-50/",
                         "GET"
@@ -8973,6 +9287,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/CanaryDiffMapping-HTTP-50/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-50\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-50/\nservice: http://plain-canarydiffmapping-http-50-http.plain-namespace\n"
         },
@@ -8984,10 +9299,12 @@
                 "plain-canarydiffmapping-http-10-http.plain-namespace.1"
             ],
             "_rkey": "plain-canarydiffmapping-http-10-http-canary.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "604928860e111f828bea1f1945219978fd2e51a5",
             "group_weight": [
                 0,
                 27,
+                0,
                 0,
                 "/CanaryDiffMapping-HTTP-10/",
                 "GET"
@@ -9038,6 +9355,7 @@
                             "tcp://plain-canarydiffmapping-http-10-http.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "604928860e111f828bea1f1945219978fd2e51a5",
                     "headers": [],
                     "host_rewrite": "canary.1.example.com",
@@ -9051,11 +9369,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/CanaryDiffMapping-HTTP-10/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         27,
+                        0,
                         0,
                         "/CanaryDiffMapping-HTTP-10/",
                         "GET"
@@ -9105,6 +9425,7 @@
                             "tcp://plain-canarydiffmapping-http-10-http-canary.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "604928860e111f828bea1f1945219978fd2e51a5",
                     "headers": [],
                     "host_rewrite": "canary.2.example.com",
@@ -9118,11 +9439,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/CanaryDiffMapping-HTTP-10/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         27,
+                        0,
                         0,
                         "/CanaryDiffMapping-HTTP-10/",
                         "GET"
@@ -9140,6 +9463,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/CanaryDiffMapping-HTTP-10/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-10\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-10/\nservice: http://plain-canarydiffmapping-http-10-http.plain-namespace\n"
         },
@@ -9151,10 +9475,12 @@
                 "plain-canarydiffmapping-grpc-50-grpc.plain-namespace.1"
             ],
             "_rkey": "plain-canarydiffmapping-grpc-50-grpc-canary.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "eb3f26105dd93aeb3a2ab5d295140198c54e513a",
             "group_weight": [
                 0,
                 27,
+                0,
                 0,
                 "/CanaryDiffMapping-GRPC-50/",
                 "GET"
@@ -9205,6 +9531,7 @@
                             "tcp://plain-canarydiffmapping-grpc-50-grpc.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "eb3f26105dd93aeb3a2ab5d295140198c54e513a",
                     "headers": [],
                     "host_rewrite": "canary.1.example.com",
@@ -9218,11 +9545,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/CanaryDiffMapping-GRPC-50/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         27,
+                        0,
                         0,
                         "/CanaryDiffMapping-GRPC-50/",
                         "GET"
@@ -9272,6 +9601,7 @@
                             "tcp://plain-canarydiffmapping-grpc-50-grpc-canary.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "eb3f26105dd93aeb3a2ab5d295140198c54e513a",
                     "headers": [],
                     "host_rewrite": "canary.2.example.com",
@@ -9285,11 +9615,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/CanaryDiffMapping-GRPC-50/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         27,
+                        0,
                         0,
                         "/CanaryDiffMapping-GRPC-50/",
                         "GET"
@@ -9307,6 +9639,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/CanaryDiffMapping-GRPC-50/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-50\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-50/\nservice: http://plain-canarydiffmapping-grpc-50-grpc.plain-namespace\n"
         },
@@ -9318,10 +9651,12 @@
                 "plain-canarydiffmapping-grpc-10-grpc.plain-namespace.1"
             ],
             "_rkey": "plain-canarydiffmapping-grpc-10-grpc-canary.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "82db7319f7f2a5299df11394e1cee265b172af43",
             "group_weight": [
                 0,
                 27,
+                0,
                 0,
                 "/CanaryDiffMapping-GRPC-10/",
                 "GET"
@@ -9372,6 +9707,7 @@
                             "tcp://plain-canarydiffmapping-grpc-10-grpc.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "82db7319f7f2a5299df11394e1cee265b172af43",
                     "headers": [],
                     "host_rewrite": "canary.1.example.com",
@@ -9385,11 +9721,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/CanaryDiffMapping-GRPC-10/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         27,
+                        0,
                         0,
                         "/CanaryDiffMapping-GRPC-10/",
                         "GET"
@@ -9439,6 +9777,7 @@
                             "tcp://plain-canarydiffmapping-grpc-10-grpc-canary.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "82db7319f7f2a5299df11394e1cee265b172af43",
                     "headers": [],
                     "host_rewrite": "canary.2.example.com",
@@ -9452,11 +9791,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/CanaryDiffMapping-GRPC-10/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         27,
+                        0,
                         0,
                         "/CanaryDiffMapping-GRPC-10/",
                         "GET"
@@ -9474,6 +9815,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/CanaryDiffMapping-GRPC-10/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-10\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-10/\nservice: http://plain-canarydiffmapping-grpc-10-grpc.plain-namespace\n"
         },
@@ -9498,10 +9840,12 @@
                     "value": "Zoo"
                 }
             },
+            "default_class": "httpmapping",
             "group_id": "1cf9a291ecf6b1e2e9bd2ab118109e8860950344",
             "group_weight": [
                 0,
                 27,
+                0,
                 0,
                 "/AddReqHeadersMapping-HTTP/",
                 "GET"
@@ -9563,6 +9907,7 @@
                             "tcp://plain-addreqheadersmapping-http-http.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "1cf9a291ecf6b1e2e9bd2ab118109e8860950344",
                     "headers": [],
                     "kind": "Mapping",
@@ -9575,11 +9920,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/AddReqHeadersMapping-HTTP/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         27,
+                        0,
                         0,
                         "/AddReqHeadersMapping-HTTP/",
                         "GET"
@@ -9597,6 +9944,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/AddReqHeadersMapping-HTTP/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "add_request_headers:\n  aoo:\n    append: true\n    value: aoo\n  boo:\n    value: boo\n  foo: Foo\n  zoo:\n    append: false\n    value: Zoo\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: AddReqHeadersMapping-HTTP\nnamespace: plain-namespace\nprefix: /AddReqHeadersMapping-HTTP/\nservice: http://plain-addreqheadersmapping-http-http.plain-namespace\n"
         },
@@ -9621,10 +9969,12 @@
                     "value": "Zoo"
                 }
             },
+            "default_class": "httpmapping",
             "group_id": "80c004bc8f2ade322c574ee8ff1003bcdb0ae030",
             "group_weight": [
                 0,
                 27,
+                0,
                 0,
                 "/AddReqHeadersMapping-GRPC/",
                 "GET"
@@ -9686,6 +10036,7 @@
                             "tcp://plain-addreqheadersmapping-grpc-grpc.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "80c004bc8f2ade322c574ee8ff1003bcdb0ae030",
                     "headers": [],
                     "kind": "Mapping",
@@ -9698,11 +10049,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/AddReqHeadersMapping-GRPC/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         27,
+                        0,
                         0,
                         "/AddReqHeadersMapping-GRPC/",
                         "GET"
@@ -9720,6 +10073,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/AddReqHeadersMapping-GRPC/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "add_request_headers:\n  aoo:\n    append: true\n    value: aoo\n  boo:\n    value: boo\n  foo: Foo\n  zoo:\n    append: false\n    value: Zoo\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: AddReqHeadersMapping-GRPC\nnamespace: plain-namespace\nprefix: /AddReqHeadersMapping-GRPC/\nservice: http://plain-addreqheadersmapping-grpc-grpc.plain-namespace\n"
         },
@@ -9730,10 +10084,12 @@
                 "--internal--"
             ],
             "_rkey": "ir.ambassador",
+            "default_class": "httpmapping",
             "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
             "group_weight": [
                 0,
                 26,
+                0,
                 0,
                 "/ambassador/v0/check_ready",
                 "GET"
@@ -9785,6 +10141,7 @@
                             "tcp://127.0.0.1:8877"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
                     "headers": [],
                     "kind": "IRHTTPMapping",
@@ -9793,11 +10150,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/ambassador/v0/check_ready",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/ambassador/v0/check_ready",
                     "route_weight": [
                         0,
                         26,
+                        0,
                         0,
                         "/ambassador/v0/check_ready",
                         "GET"
@@ -9811,6 +10170,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/ambassador/v0/check_ready",
+            "query_parameters": [],
             "rewrite": "/ambassador/v0/check_ready",
             "timeout_ms": 10000
         },
@@ -9821,10 +10181,12 @@
                 "--internal--"
             ],
             "_rkey": "ir.ambassador",
+            "default_class": "httpmapping",
             "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
             "group_weight": [
                 0,
                 26,
+                0,
                 0,
                 "/ambassador/v0/check_alive",
                 "GET"
@@ -9876,6 +10238,7 @@
                             "tcp://127.0.0.1:8877"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
                     "headers": [],
                     "kind": "IRHTTPMapping",
@@ -9884,11 +10247,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/ambassador/v0/check_alive",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/ambassador/v0/check_alive",
                     "route_weight": [
                         0,
                         26,
+                        0,
                         0,
                         "/ambassador/v0/check_alive",
                         "GET"
@@ -9902,6 +10267,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/ambassador/v0/check_alive",
+            "query_parameters": [],
             "rewrite": "/ambassador/v0/check_alive",
             "timeout_ms": 10000
         },
@@ -9913,10 +10279,12 @@
                 "plain-canarydiffmapping-http-0-http.plain-namespace.1"
             ],
             "_rkey": "plain-canarydiffmapping-http-0-http-canary.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "71ac6b8a342fc515ae67568320f820290aa9ad00",
             "group_weight": [
                 0,
                 26,
+                0,
                 0,
                 "/CanaryDiffMapping-HTTP-0/",
                 "GET"
@@ -9967,6 +10335,7 @@
                             "tcp://plain-canarydiffmapping-http-0-http.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "71ac6b8a342fc515ae67568320f820290aa9ad00",
                     "headers": [],
                     "host_rewrite": "canary.1.example.com",
@@ -9980,11 +10349,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/CanaryDiffMapping-HTTP-0/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         26,
+                        0,
                         0,
                         "/CanaryDiffMapping-HTTP-0/",
                         "GET"
@@ -10034,6 +10405,7 @@
                             "tcp://plain-canarydiffmapping-http-0-http-canary.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "71ac6b8a342fc515ae67568320f820290aa9ad00",
                     "headers": [],
                     "host_rewrite": "canary.2.example.com",
@@ -10047,11 +10419,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/CanaryDiffMapping-HTTP-0/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         26,
+                        0,
                         0,
                         "/CanaryDiffMapping-HTTP-0/",
                         "GET"
@@ -10069,6 +10443,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/CanaryDiffMapping-HTTP-0/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-0\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-0/\nservice: http://plain-canarydiffmapping-http-0-http.plain-namespace\n"
         },
@@ -10080,10 +10455,12 @@
                 "plain-canarydiffmapping-grpc-0-grpc.plain-namespace.1"
             ],
             "_rkey": "plain-canarydiffmapping-grpc-0-grpc-canary.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "184265711109e9f1725ec92a73e7b6c2bebe80f3",
             "group_weight": [
                 0,
                 26,
+                0,
                 0,
                 "/CanaryDiffMapping-GRPC-0/",
                 "GET"
@@ -10134,6 +10511,7 @@
                             "tcp://plain-canarydiffmapping-grpc-0-grpc.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "184265711109e9f1725ec92a73e7b6c2bebe80f3",
                     "headers": [],
                     "host_rewrite": "canary.1.example.com",
@@ -10147,11 +10525,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/CanaryDiffMapping-GRPC-0/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         26,
+                        0,
                         0,
                         "/CanaryDiffMapping-GRPC-0/",
                         "GET"
@@ -10201,6 +10581,7 @@
                             "tcp://plain-canarydiffmapping-grpc-0-grpc-canary.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "184265711109e9f1725ec92a73e7b6c2bebe80f3",
                     "headers": [],
                     "host_rewrite": "canary.2.example.com",
@@ -10214,11 +10595,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/CanaryDiffMapping-GRPC-0/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         26,
+                        0,
                         0,
                         "/CanaryDiffMapping-GRPC-0/",
                         "GET"
@@ -10236,6 +10619,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/CanaryDiffMapping-GRPC-0/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-0\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-0/\nservice: http://plain-canarydiffmapping-grpc-0-grpc.plain-namespace\n"
         },
@@ -10260,10 +10644,12 @@
                     "runtime_key": "routing.cors_enabled.unset"
                 }
             },
+            "default_class": "httpmapping",
             "group_id": "b6dbc25782c1d9ac4f2081e2289ac2dcae15d7c5",
             "group_weight": [
                 0,
                 25,
+                0,
                 0,
                 "/SimpleMapping-HTTP-CORS/",
                 "GET"
@@ -10326,6 +10712,7 @@
                             "runtime_key": "routing.cors_enabled.unset"
                         }
                     },
+                    "default_class": "httpmapping",
                     "group_id": "b6dbc25782c1d9ac4f2081e2289ac2dcae15d7c5",
                     "headers": [],
                     "kind": "Mapping",
@@ -10338,11 +10725,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP-CORS/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         25,
+                        0,
                         0,
                         "/SimpleMapping-HTTP-CORS/",
                         "GET"
@@ -10360,6 +10749,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP-CORS/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-CORS\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-CORS/\nservice: http://plain-simplemapping-http-cors-http.plain-namespace\n"
         },
@@ -10384,10 +10774,12 @@
                     "runtime_key": "routing.cors_enabled.unset"
                 }
             },
+            "default_class": "httpmapping",
             "group_id": "09eeb3b6514195bb1e8da9c1552e50bf17ed7b02",
             "group_weight": [
                 0,
                 25,
+                0,
                 0,
                 "/SimpleMapping-GRPC-CORS/",
                 "GET"
@@ -10450,6 +10842,7 @@
                             "runtime_key": "routing.cors_enabled.unset"
                         }
                     },
+                    "default_class": "httpmapping",
                     "group_id": "09eeb3b6514195bb1e8da9c1552e50bf17ed7b02",
                     "headers": [],
                     "kind": "Mapping",
@@ -10462,11 +10855,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC-CORS/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         25,
+                        0,
                         0,
                         "/SimpleMapping-GRPC-CORS/",
                         "GET"
@@ -10484,6 +10879,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC-CORS/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-CORS\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-CORS/\nservice: http://plain-simplemapping-grpc-cors-grpc.plain-namespace\n"
         },
@@ -10494,10 +10890,12 @@
                 "plain-invalidportmapping-http-http.plain-namespace.1"
             ],
             "_rkey": "plain-invalidportmapping-http-http.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "8b04e14fdf699a871a1b0b4f77fb1129ed58e907",
             "group_weight": [
                 0,
                 25,
+                0,
                 0,
                 "/InvalidPortMapping-HTTP/",
                 "GET"
@@ -10539,6 +10937,7 @@
                             "tcp://plain-invalidportmapping-http-http.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "8b04e14fdf699a871a1b0b4f77fb1129ed58e907",
                     "headers": [],
                     "kind": "Mapping",
@@ -10551,11 +10950,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/InvalidPortMapping-HTTP/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         25,
+                        0,
                         0,
                         "/InvalidPortMapping-HTTP/",
                         "GET"
@@ -10573,6 +10974,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/InvalidPortMapping-HTTP/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: InvalidPortMapping-HTTP\nnamespace: plain-namespace\nprefix: /InvalidPortMapping-HTTP/\nservice: http://plain-invalidportmapping-http-http.plain-namespace:80.invalid\n"
         },
@@ -10583,10 +10985,12 @@
                 "plain-invalidportmapping-grpc-grpc.plain-namespace.1"
             ],
             "_rkey": "plain-invalidportmapping-grpc-grpc.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "f4935be08f5eac70695a2c35181a4b95a547383b",
             "group_weight": [
                 0,
                 25,
+                0,
                 0,
                 "/InvalidPortMapping-GRPC/",
                 "GET"
@@ -10628,6 +11032,7 @@
                             "tcp://plain-invalidportmapping-grpc-grpc.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "f4935be08f5eac70695a2c35181a4b95a547383b",
                     "headers": [],
                     "kind": "Mapping",
@@ -10640,11 +11045,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/InvalidPortMapping-GRPC/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         25,
+                        0,
                         0,
                         "/InvalidPortMapping-GRPC/",
                         "GET"
@@ -10662,6 +11069,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/InvalidPortMapping-GRPC/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: InvalidPortMapping-GRPC\nnamespace: plain-namespace\nprefix: /InvalidPortMapping-GRPC/\nservice: http://plain-invalidportmapping-grpc-grpc.plain-namespace:80.invalid\n"
         },
@@ -10672,11 +11080,13 @@
                 "plain-hostheadermapping-http-http.plain-namespace.1"
             ],
             "_rkey": "plain-hostheadermapping-http-http.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "343d702707bcdb0f317f7e570a91a4c3fa91d395",
             "group_weight": [
                 0,
                 24,
                 28,
+                0,
                 "/HostHeaderMapping-HTTP/",
                 "GET",
                 ":authority-inspector.external"
@@ -10731,6 +11141,7 @@
                             "tcp://plain-hostheadermapping-http-http.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "343d702707bcdb0f317f7e570a91a4c3fa91d395",
                     "headers": [
                         {
@@ -10750,12 +11161,14 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/HostHeaderMapping-HTTP/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         24,
                         28,
+                        0,
                         "/HostHeaderMapping-HTTP/",
                         "GET",
                         ":authority-inspector.external"
@@ -10773,6 +11186,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/HostHeaderMapping-HTTP/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nhost: inspector.external\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HostHeaderMapping-HTTP\nnamespace: plain-namespace\nprefix: /HostHeaderMapping-HTTP/\nservice: http://plain-hostheadermapping-http-http.plain-namespace\n"
         },
@@ -10783,11 +11197,13 @@
                 "plain-hostheadermapping-grpc-grpc.plain-namespace.1"
             ],
             "_rkey": "plain-hostheadermapping-grpc-grpc.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "96c5e8c5c00f7e47627c072c9720e99cd9cc0fb8",
             "group_weight": [
                 0,
                 24,
                 28,
+                0,
                 "/HostHeaderMapping-GRPC/",
                 "GET",
                 ":authority-inspector.external"
@@ -10842,6 +11258,7 @@
                             "tcp://plain-hostheadermapping-grpc-grpc.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "96c5e8c5c00f7e47627c072c9720e99cd9cc0fb8",
                     "headers": [
                         {
@@ -10861,12 +11278,14 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/HostHeaderMapping-GRPC/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         24,
                         28,
+                        0,
                         "/HostHeaderMapping-GRPC/",
                         "GET",
                         ":authority-inspector.external"
@@ -10884,6 +11303,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/HostHeaderMapping-GRPC/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nhost: inspector.external\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HostHeaderMapping-GRPC\nnamespace: plain-namespace\nprefix: /HostHeaderMapping-GRPC/\nservice: http://plain-hostheadermapping-grpc-grpc.plain-namespace\n"
         },
@@ -10894,11 +11314,13 @@
                 "plain-headerroutingtest-http-http-target2.plain-namespace.1"
             ],
             "_rkey": "plain-headerroutingtest-http-http-target2.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "9ef8804ca9aace8729f7008d1fd8d838196b23df",
             "group_weight": [
                 0,
                 24,
                 14,
+                0,
                 "/HeaderRoutingTest-HTTP/",
                 "GET",
                 "X-Route-target2"
@@ -10953,6 +11375,7 @@
                             "tcp://plain-headerroutingtest-http-http-target2.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "9ef8804ca9aace8729f7008d1fd8d838196b23df",
                     "headers": [
                         {
@@ -10971,12 +11394,14 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/HeaderRoutingTest-HTTP/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         24,
                         14,
+                        0,
                         "/HeaderRoutingTest-HTTP/",
                         "GET",
                         "X-Route-target2"
@@ -10994,6 +11419,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/HeaderRoutingTest-HTTP/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nheaders:\n  X-Route: target2\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HeaderRoutingTest-HTTP-target2\nnamespace: plain-namespace\nprefix: /HeaderRoutingTest-HTTP/\nservice: http://plain-headerroutingtest-http-http-target2.plain-namespace\n"
         },
@@ -11004,11 +11430,13 @@
                 "plain-headerroutingtest-grpc-grpc-target2.plain-namespace.1"
             ],
             "_rkey": "plain-headerroutingtest-grpc-grpc-target2.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "0ed31846e2f18abf8fc108d99f8671391588ef72",
             "group_weight": [
                 0,
                 24,
                 14,
+                0,
                 "/HeaderRoutingTest-GRPC/",
                 "GET",
                 "X-Route-target2"
@@ -11063,6 +11491,7 @@
                             "tcp://plain-headerroutingtest-grpc-grpc-target2.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "0ed31846e2f18abf8fc108d99f8671391588ef72",
                     "headers": [
                         {
@@ -11081,12 +11510,14 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/HeaderRoutingTest-GRPC/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         24,
                         14,
+                        0,
                         "/HeaderRoutingTest-GRPC/",
                         "GET",
                         "X-Route-target2"
@@ -11104,6 +11535,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/HeaderRoutingTest-GRPC/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nheaders:\n  X-Route: target2\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HeaderRoutingTest-GRPC-target2\nnamespace: plain-namespace\nprefix: /HeaderRoutingTest-GRPC/\nservice: http://plain-headerroutingtest-grpc-grpc-target2.plain-namespace\n"
         },
@@ -11136,10 +11568,12 @@
                     "runtime_key": "routing.cors_enabled.unset"
                 }
             },
+            "default_class": "httpmapping",
             "group_id": "76b2c7674a43dbae2926cfa90d3ae576fa5cea64",
             "group_weight": [
                 0,
                 24,
+                0,
                 0,
                 "/SimpleMapping-HTTP-all/",
                 "GET"
@@ -11209,6 +11643,7 @@
                             "runtime_key": "routing.cors_enabled.unset"
                         }
                     },
+                    "default_class": "httpmapping",
                     "group_id": "76b2c7674a43dbae2926cfa90d3ae576fa5cea64",
                     "headers": [],
                     "kind": "Mapping",
@@ -11221,12 +11656,14 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP-all/",
+                    "query_parameters": [],
                     "remove_response_headers": "x-envoy-upstream-service-time",
                     "resolver": "kubernetes-service",
                     "rewrite": "/foo",
                     "route_weight": [
                         0,
                         24,
+                        0,
                         0,
                         "/SimpleMapping-HTTP-all/",
                         "GET"
@@ -11245,6 +11682,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP-all/",
+            "query_parameters": [],
             "remove_response_headers": "x-envoy-upstream-service-time",
             "rewrite": "/foo",
             "serialization": "add_request_headers:\n  foo: bar\nadd_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\ncase_sensitive: false\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-all\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-all/\nremove_response_headers: x-envoy-upstream-service-time\nrewrite: /foo\nservice: http://plain-simplemapping-http-all-http.plain-namespace\nuse_websocket: true\n",
@@ -11279,10 +11717,12 @@
                     "runtime_key": "routing.cors_enabled.unset"
                 }
             },
+            "default_class": "httpmapping",
             "group_id": "d12a2a9c8dfc4947dfaf1f5a0ebadedf55eec10c",
             "group_weight": [
                 0,
                 24,
+                0,
                 0,
                 "/SimpleMapping-GRPC-all/",
                 "GET"
@@ -11352,6 +11792,7 @@
                             "runtime_key": "routing.cors_enabled.unset"
                         }
                     },
+                    "default_class": "httpmapping",
                     "group_id": "d12a2a9c8dfc4947dfaf1f5a0ebadedf55eec10c",
                     "headers": [],
                     "kind": "Mapping",
@@ -11364,12 +11805,14 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC-all/",
+                    "query_parameters": [],
                     "remove_response_headers": "x-envoy-upstream-service-time",
                     "resolver": "kubernetes-service",
                     "rewrite": "/foo",
                     "route_weight": [
                         0,
                         24,
+                        0,
                         0,
                         "/SimpleMapping-GRPC-all/",
                         "GET"
@@ -11388,6 +11831,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC-all/",
+            "query_parameters": [],
             "remove_response_headers": "x-envoy-upstream-service-time",
             "rewrite": "/foo",
             "serialization": "add_request_headers:\n  foo: bar\nadd_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\ncase_sensitive: false\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-all\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-all/\nremove_response_headers: x-envoy-upstream-service-time\nrewrite: /foo\nservice: http://plain-simplemapping-grpc-all-grpc.plain-namespace\nuse_websocket: true\n",
@@ -11400,10 +11844,12 @@
                 "plain-headerroutingtest-http-http.plain-namespace.1"
             ],
             "_rkey": "plain-headerroutingtest-http-http.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "dbbba9aca7faebac338d47cae687895d7b89b38f",
             "group_weight": [
                 0,
                 24,
+                0,
                 0,
                 "/HeaderRoutingTest-HTTP/",
                 "GET"
@@ -11452,6 +11898,7 @@
                             "tcp://plain-headerroutingtest-http-http.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "dbbba9aca7faebac338d47cae687895d7b89b38f",
                     "headers": [],
                     "kind": "Mapping",
@@ -11464,11 +11911,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/HeaderRoutingTest-HTTP/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         24,
+                        0,
                         0,
                         "/HeaderRoutingTest-HTTP/",
                         "GET"
@@ -11486,6 +11935,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/HeaderRoutingTest-HTTP/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HeaderRoutingTest-HTTP-target1\nnamespace: plain-namespace\nprefix: /HeaderRoutingTest-HTTP/\nservice: http://plain-headerroutingtest-http-http.plain-namespace\n"
         },
@@ -11496,10 +11946,12 @@
                 "plain-headerroutingtest-grpc-grpc.plain-namespace.1"
             ],
             "_rkey": "plain-headerroutingtest-grpc-grpc.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "713a73b77a48993a68901c1dc5a13cb3754f88b1",
             "group_weight": [
                 0,
                 24,
+                0,
                 0,
                 "/HeaderRoutingTest-GRPC/",
                 "GET"
@@ -11548,6 +12000,7 @@
                             "tcp://plain-headerroutingtest-grpc-grpc.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "713a73b77a48993a68901c1dc5a13cb3754f88b1",
                     "headers": [],
                     "kind": "Mapping",
@@ -11560,11 +12013,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/HeaderRoutingTest-GRPC/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         24,
+                        0,
                         0,
                         "/HeaderRoutingTest-GRPC/",
                         "GET"
@@ -11582,6 +12037,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/HeaderRoutingTest-GRPC/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HeaderRoutingTest-GRPC-target1\nnamespace: plain-namespace\nprefix: /HeaderRoutingTest-GRPC/\nservice: http://plain-headerroutingtest-grpc-grpc.plain-namespace\n"
         },
@@ -11593,10 +12049,12 @@
                 "plain-canarymapping-http-100-http.plain-namespace.1"
             ],
             "_rkey": "plain-canarymapping-http-100-http-canary.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "d303defb9e587302d1a31e6490030946fac431ac",
             "group_weight": [
                 0,
                 24,
+                0,
                 0,
                 "/CanaryMapping-HTTP-100/",
                 "GET"
@@ -11645,6 +12103,7 @@
                             "tcp://plain-canarymapping-http-100-http.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "d303defb9e587302d1a31e6490030946fac431ac",
                     "headers": [],
                     "kind": "Mapping",
@@ -11657,11 +12116,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/CanaryMapping-HTTP-100/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         24,
+                        0,
                         0,
                         "/CanaryMapping-HTTP-100/",
                         "GET"
@@ -11710,6 +12171,7 @@
                             "tcp://plain-canarymapping-http-100-http-canary.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "d303defb9e587302d1a31e6490030946fac431ac",
                     "headers": [],
                     "kind": "Mapping",
@@ -11722,11 +12184,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/CanaryMapping-HTTP-100/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         24,
+                        0,
                         0,
                         "/CanaryMapping-HTTP-100/",
                         "GET"
@@ -11744,6 +12208,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/CanaryMapping-HTTP-100/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-100\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-100/\nservice: http://plain-canarymapping-http-100-http.plain-namespace\n"
         },
@@ -11755,10 +12220,12 @@
                 "plain-canarymapping-grpc-100-grpc.plain-namespace.1"
             ],
             "_rkey": "plain-canarymapping-grpc-100-grpc-canary.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "e78e0a9a72ff2371c93167e6c216c9d2a84e447a",
             "group_weight": [
                 0,
                 24,
+                0,
                 0,
                 "/CanaryMapping-GRPC-100/",
                 "GET"
@@ -11807,6 +12274,7 @@
                             "tcp://plain-canarymapping-grpc-100-grpc.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "e78e0a9a72ff2371c93167e6c216c9d2a84e447a",
                     "headers": [],
                     "kind": "Mapping",
@@ -11819,11 +12287,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/CanaryMapping-GRPC-100/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         24,
+                        0,
                         0,
                         "/CanaryMapping-GRPC-100/",
                         "GET"
@@ -11872,6 +12342,7 @@
                             "tcp://plain-canarymapping-grpc-100-grpc-canary.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "e78e0a9a72ff2371c93167e6c216c9d2a84e447a",
                     "headers": [],
                     "kind": "Mapping",
@@ -11884,11 +12355,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/CanaryMapping-GRPC-100/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         24,
+                        0,
                         0,
                         "/CanaryMapping-GRPC-100/",
                         "GET"
@@ -11906,6 +12379,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/CanaryMapping-GRPC-100/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-100\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-100/\nservice: http://plain-canarymapping-grpc-100-grpc.plain-namespace\n"
         },
@@ -11916,10 +12390,12 @@
                 "plain-websocketmapping-http-http.plain-namespace.1"
             ],
             "_rkey": "plain-websocketmapping-http-http.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "07ff6553e1b8a02e499d1be15a0cdb4b07043ced",
             "group_weight": [
                 0,
                 23,
+                0,
                 0,
                 "/WebSocketMapping-HTTP/",
                 "GET"
@@ -11971,6 +12447,7 @@
                             "tcp://echo.websocket.org:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "07ff6553e1b8a02e499d1be15a0cdb4b07043ced",
                     "headers": [],
                     "host_rewrite": "echo.websocket.org",
@@ -11984,11 +12461,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/WebSocketMapping-HTTP/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         23,
+                        0,
                         0,
                         "/WebSocketMapping-HTTP/",
                         "GET"
@@ -12007,6 +12486,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/WebSocketMapping-HTTP/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: echo.websocket.org\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: WebSocketMapping-HTTP\nnamespace: plain-namespace\nprefix: /WebSocketMapping-HTTP/\nservice: echo.websocket.org:80\nuse_websocket: true\n",
             "use_websocket": true
@@ -12018,10 +12498,12 @@
                 "plain-websocketmapping-grpc-grpc.plain-namespace.1"
             ],
             "_rkey": "plain-websocketmapping-grpc-grpc.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "3b375e2e8ef79269ef6398c32d7d7474157ededd",
             "group_weight": [
                 0,
                 23,
+                0,
                 0,
                 "/WebSocketMapping-GRPC/",
                 "GET"
@@ -12073,6 +12555,7 @@
                             "tcp://echo.websocket.org:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "3b375e2e8ef79269ef6398c32d7d7474157ededd",
                     "headers": [],
                     "host_rewrite": "echo.websocket.org",
@@ -12086,11 +12569,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/WebSocketMapping-GRPC/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         23,
+                        0,
                         0,
                         "/WebSocketMapping-GRPC/",
                         "GET"
@@ -12109,6 +12594,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/WebSocketMapping-GRPC/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: echo.websocket.org\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: WebSocketMapping-GRPC\nnamespace: plain-namespace\nprefix: /WebSocketMapping-GRPC/\nservice: echo.websocket.org:80\nuse_websocket: true\n",
             "use_websocket": true
@@ -12126,6 +12612,7 @@
                 0,
                 23,
                 0,
+                0,
                 "/HostRedirectMapping-2/",
                 "GET"
             ],
@@ -12136,6 +12623,7 @@
                 "_rkey": "plain-hostredirectmapping-http.plain-namespace.2",
                 "add_request_headers": {},
                 "case_sensitive": false,
+                "default_class": "httpmapping",
                 "group_id": "ce3772b985b2deff189e356271677105d7986588",
                 "headers": [],
                 "host_redirect": true,
@@ -12149,11 +12637,13 @@
                 "namespace": "plain-namespace",
                 "precedence": 0,
                 "prefix": "/HostRedirectMapping-2/",
+                "query_parameters": [],
                 "resolver": "kubernetes-service",
                 "rewrite": "/",
                 "route_weight": [
                     0,
                     23,
+                    0,
                     0,
                     "/HostRedirectMapping-2/",
                     "GET"
@@ -12176,10 +12666,12 @@
                 "plain-canarymapping-http-50-http.plain-namespace.1"
             ],
             "_rkey": "plain-canarymapping-http-50-http-canary.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "be9c155befc0175aa8da07c25dd19519ab55f7de",
             "group_weight": [
                 0,
                 23,
+                0,
                 0,
                 "/CanaryMapping-HTTP-50/",
                 "GET"
@@ -12228,6 +12720,7 @@
                             "tcp://plain-canarymapping-http-50-http.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "be9c155befc0175aa8da07c25dd19519ab55f7de",
                     "headers": [],
                     "kind": "Mapping",
@@ -12240,11 +12733,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/CanaryMapping-HTTP-50/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         23,
+                        0,
                         0,
                         "/CanaryMapping-HTTP-50/",
                         "GET"
@@ -12293,6 +12788,7 @@
                             "tcp://plain-canarymapping-http-50-http-canary.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "be9c155befc0175aa8da07c25dd19519ab55f7de",
                     "headers": [],
                     "kind": "Mapping",
@@ -12305,11 +12801,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/CanaryMapping-HTTP-50/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         23,
+                        0,
                         0,
                         "/CanaryMapping-HTTP-50/",
                         "GET"
@@ -12327,6 +12825,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/CanaryMapping-HTTP-50/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-50\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-50/\nservice: http://plain-canarymapping-http-50-http.plain-namespace\n"
         },
@@ -12338,10 +12837,12 @@
                 "plain-canarymapping-http-10-http.plain-namespace.1"
             ],
             "_rkey": "plain-canarymapping-http-10-http-canary.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "c40ad3f5b1605f1c163478a404da7d109179eefe",
             "group_weight": [
                 0,
                 23,
+                0,
                 0,
                 "/CanaryMapping-HTTP-10/",
                 "GET"
@@ -12390,6 +12891,7 @@
                             "tcp://plain-canarymapping-http-10-http.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "c40ad3f5b1605f1c163478a404da7d109179eefe",
                     "headers": [],
                     "kind": "Mapping",
@@ -12402,11 +12904,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/CanaryMapping-HTTP-10/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         23,
+                        0,
                         0,
                         "/CanaryMapping-HTTP-10/",
                         "GET"
@@ -12455,6 +12959,7 @@
                             "tcp://plain-canarymapping-http-10-http-canary.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "c40ad3f5b1605f1c163478a404da7d109179eefe",
                     "headers": [],
                     "kind": "Mapping",
@@ -12467,11 +12972,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/CanaryMapping-HTTP-10/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         23,
+                        0,
                         0,
                         "/CanaryMapping-HTTP-10/",
                         "GET"
@@ -12489,6 +12996,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/CanaryMapping-HTTP-10/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-10\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-10/\nservice: http://plain-canarymapping-http-10-http.plain-namespace\n"
         },
@@ -12500,10 +13008,12 @@
                 "plain-canarymapping-grpc-50-grpc.plain-namespace.1"
             ],
             "_rkey": "plain-canarymapping-grpc-50-grpc-canary.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "4d4a7b2192e9aa4839e1a5d365ea730093d45517",
             "group_weight": [
                 0,
                 23,
+                0,
                 0,
                 "/CanaryMapping-GRPC-50/",
                 "GET"
@@ -12552,6 +13062,7 @@
                             "tcp://plain-canarymapping-grpc-50-grpc.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "4d4a7b2192e9aa4839e1a5d365ea730093d45517",
                     "headers": [],
                     "kind": "Mapping",
@@ -12564,11 +13075,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/CanaryMapping-GRPC-50/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         23,
+                        0,
                         0,
                         "/CanaryMapping-GRPC-50/",
                         "GET"
@@ -12617,6 +13130,7 @@
                             "tcp://plain-canarymapping-grpc-50-grpc-canary.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "4d4a7b2192e9aa4839e1a5d365ea730093d45517",
                     "headers": [],
                     "kind": "Mapping",
@@ -12629,11 +13143,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/CanaryMapping-GRPC-50/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         23,
+                        0,
                         0,
                         "/CanaryMapping-GRPC-50/",
                         "GET"
@@ -12651,6 +13167,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/CanaryMapping-GRPC-50/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-50\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-50/\nservice: http://plain-canarymapping-grpc-50-grpc.plain-namespace\n"
         },
@@ -12662,10 +13179,12 @@
                 "plain-canarymapping-grpc-10-grpc.plain-namespace.1"
             ],
             "_rkey": "plain-canarymapping-grpc-10-grpc-canary.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "6910bf0dbf9f4732effa69811adf477bb8c41cd7",
             "group_weight": [
                 0,
                 23,
+                0,
                 0,
                 "/CanaryMapping-GRPC-10/",
                 "GET"
@@ -12714,6 +13233,7 @@
                             "tcp://plain-canarymapping-grpc-10-grpc.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "6910bf0dbf9f4732effa69811adf477bb8c41cd7",
                     "headers": [],
                     "kind": "Mapping",
@@ -12726,11 +13246,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/CanaryMapping-GRPC-10/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         23,
+                        0,
                         0,
                         "/CanaryMapping-GRPC-10/",
                         "GET"
@@ -12779,6 +13301,7 @@
                             "tcp://plain-canarymapping-grpc-10-grpc-canary.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "6910bf0dbf9f4732effa69811adf477bb8c41cd7",
                     "headers": [],
                     "kind": "Mapping",
@@ -12791,11 +13314,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/CanaryMapping-GRPC-10/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         23,
+                        0,
                         0,
                         "/CanaryMapping-GRPC-10/",
                         "GET"
@@ -12813,6 +13338,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/CanaryMapping-GRPC-10/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-10\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-10/\nservice: http://plain-canarymapping-grpc-10-grpc.plain-namespace\n"
         },
@@ -12824,10 +13350,12 @@
                 "plain-canarymapping-http-0-http.plain-namespace.1"
             ],
             "_rkey": "plain-canarymapping-http-0-http-canary.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "b57179e798f24bfec2749180adbbcff203155fac",
             "group_weight": [
                 0,
                 22,
+                0,
                 0,
                 "/CanaryMapping-HTTP-0/",
                 "GET"
@@ -12876,6 +13404,7 @@
                             "tcp://plain-canarymapping-http-0-http.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "b57179e798f24bfec2749180adbbcff203155fac",
                     "headers": [],
                     "kind": "Mapping",
@@ -12888,11 +13417,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/CanaryMapping-HTTP-0/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         22,
+                        0,
                         0,
                         "/CanaryMapping-HTTP-0/",
                         "GET"
@@ -12941,6 +13472,7 @@
                             "tcp://plain-canarymapping-http-0-http-canary.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "b57179e798f24bfec2749180adbbcff203155fac",
                     "headers": [],
                     "kind": "Mapping",
@@ -12953,11 +13485,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/CanaryMapping-HTTP-0/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         22,
+                        0,
                         0,
                         "/CanaryMapping-HTTP-0/",
                         "GET"
@@ -12975,6 +13509,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/CanaryMapping-HTTP-0/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-0\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-0/\nservice: http://plain-canarymapping-http-0-http.plain-namespace\n"
         },
@@ -12986,10 +13521,12 @@
                 "plain-canarymapping-grpc-0-grpc.plain-namespace.1"
             ],
             "_rkey": "plain-canarymapping-grpc-0-grpc-canary.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "2da466e68225bc6b2e777b35554356bd136ed2a4",
             "group_weight": [
                 0,
                 22,
+                0,
                 0,
                 "/CanaryMapping-GRPC-0/",
                 "GET"
@@ -13038,6 +13575,7 @@
                             "tcp://plain-canarymapping-grpc-0-grpc.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "2da466e68225bc6b2e777b35554356bd136ed2a4",
                     "headers": [],
                     "kind": "Mapping",
@@ -13050,11 +13588,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/CanaryMapping-GRPC-0/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         22,
+                        0,
                         0,
                         "/CanaryMapping-GRPC-0/",
                         "GET"
@@ -13103,6 +13643,7 @@
                             "tcp://plain-canarymapping-grpc-0-grpc-canary.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "2da466e68225bc6b2e777b35554356bd136ed2a4",
                     "headers": [],
                     "kind": "Mapping",
@@ -13115,11 +13656,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/CanaryMapping-GRPC-0/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         22,
+                        0,
                         0,
                         "/CanaryMapping-GRPC-0/",
                         "GET"
@@ -13137,6 +13680,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/CanaryMapping-GRPC-0/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-0\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-0/\nservice: http://plain-canarymapping-grpc-0-grpc.plain-namespace\n"
         },
@@ -13152,6 +13696,7 @@
                 0,
                 21,
                 0,
+                0,
                 "/HostRedirectMapping/",
                 "GET"
             ],
@@ -13161,6 +13706,7 @@
                 "_errored": false,
                 "_rkey": "plain-hostredirectmapping-http.plain-namespace.1",
                 "add_request_headers": {},
+                "default_class": "httpmapping",
                 "group_id": "fb00c5e23982e0448c77025c1fd82ec921b82ead",
                 "headers": [],
                 "host_redirect": true,
@@ -13174,11 +13720,13 @@
                 "namespace": "plain-namespace",
                 "precedence": 0,
                 "prefix": "/HostRedirectMapping/",
+                "query_parameters": [],
                 "resolver": "kubernetes-service",
                 "rewrite": "/",
                 "route_weight": [
                     0,
                     21,
+                    0,
                     0,
                     "/HostRedirectMapping/",
                     "GET"
@@ -13200,10 +13748,12 @@
                 "plain-simplemapping-http-http.plain-namespace.1"
             ],
             "_rkey": "plain-simplemapping-http-http.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "33904bb8c0eca30124056fb33b3150743976a896",
             "group_weight": [
                 0,
                 20,
+                0,
                 0,
                 "/SimpleMapping-HTTP/",
                 "GET"
@@ -13252,6 +13802,7 @@
                             "tcp://plain-simplemapping-http-http.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "33904bb8c0eca30124056fb33b3150743976a896",
                     "headers": [],
                     "kind": "Mapping",
@@ -13264,11 +13815,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         20,
+                        0,
                         0,
                         "/SimpleMapping-HTTP/",
                         "GET"
@@ -13286,6 +13839,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP/\nservice: http://plain-simplemapping-http-http.plain-namespace\n"
         },
@@ -13296,10 +13850,12 @@
                 "plain-simplemapping-grpc-grpc.plain-namespace.1"
             ],
             "_rkey": "plain-simplemapping-grpc-grpc.plain-namespace.1",
+            "default_class": "httpmapping",
             "group_id": "5a8ee5e9c9350cae91a0dc6555dfd699a5260aee",
             "group_weight": [
                 0,
                 20,
+                0,
                 0,
                 "/SimpleMapping-GRPC/",
                 "GET"
@@ -13348,6 +13904,7 @@
                             "tcp://plain-simplemapping-grpc-grpc.plain-namespace:80"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "5a8ee5e9c9350cae91a0dc6555dfd699a5260aee",
                     "headers": [],
                     "kind": "Mapping",
@@ -13360,11 +13917,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
                         0,
                         20,
+                        0,
                         0,
                         "/SimpleMapping-GRPC/",
                         "GET"
@@ -13382,6 +13941,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC/",
+            "query_parameters": [],
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC/\nservice: http://plain-simplemapping-grpc-grpc.plain-namespace\n"
         },
@@ -13392,10 +13952,12 @@
                 "--internal--"
             ],
             "_rkey": "ir.ambassador",
+            "default_class": "httpmapping",
             "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
             "group_weight": [
                 0,
                 15,
+                0,
                 0,
                 "/ambassador/v0/",
                 "GET"
@@ -13447,6 +14009,7 @@
                             "tcp://127.0.0.1:8877"
                         ]
                     },
+                    "default_class": "httpmapping",
                     "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
                     "headers": [],
                     "kind": "IRHTTPMapping",
@@ -13455,11 +14018,13 @@
                     "namespace": "plain-namespace",
                     "precedence": 0,
                     "prefix": "/ambassador/v0/",
+                    "query_parameters": [],
                     "resolver": "kubernetes-service",
                     "rewrite": "/ambassador/v0/",
                     "route_weight": [
                         0,
                         15,
+                        0,
                         0,
                         "/ambassador/v0/",
                         "GET"
@@ -13473,6 +14038,7 @@
             "namespace": "plain-namespace",
             "precedence": 0,
             "prefix": "/ambassador/v0/",
+            "query_parameters": [],
             "rewrite": "/ambassador/v0/",
             "timeout_ms": 10000
         }

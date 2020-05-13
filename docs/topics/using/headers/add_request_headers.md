@@ -8,13 +8,15 @@ The `add_request_headers` attribute is a dictionary of `header`: `value` pairs. 
 
 Envoy dynamic values `%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%` and `%PROTOCOL%` are supported, in addition to static values.
 
-### A Basic Example
+`add_request_headers` can be set either in a `Mapping` or using [`ambassador Module defaults`](../../using/defaults).
+
+### Mapping Example
 
 ```yaml
 apiVersion: getambassador.io/v2
-kind:  Mapping
+kind: Mapping
 metadata:
-  name:  quote-backend
+  name: quote-backend
 spec:
   prefix: /backend/
   add_request_headers:
@@ -22,11 +24,51 @@ spec:
     x-test-ip: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
     x-test-static: This is a test header
     x-test-static-2:
-      value: This the test header #same as above  x-test-static header
+      value: This the test header    #same as above "x-test-static header"
     x-test-object:
       value: This the value
-      append: False #True by default
+      append: False                  #True by default
   service: quote
   ```
 
 will add the protocol, client IP, and a static header to `/backend/`.
+
+### Defaults Example
+
+```yaml
+apiVersion: getambassador.io/v2
+kind: Module
+metadata:
+  name: ambassador
+spec:
+  config:
+    defaults:
+      httpmapping:
+        add_request_headers:
+          x-test-proto: "%PROTOCOL%"
+          x-test-ip: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
+          x-test-static: This is a test header
+          x-test-static-2:
+            value: This the test header    #same as above "x-test-static header"
+          x-test-object:
+            value: This the value
+            append: False                  #True by default
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: quote-backend1
+spec:
+  prefix: /backend1/
+  service: quote
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: quote-backend2
+spec:
+  prefix: /backend2/
+  service: quote
+```
+
+This example will add the same headers for both mappings.

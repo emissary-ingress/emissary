@@ -1,5 +1,7 @@
 from typing import Any, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
 
+import copy
+
 from ..config import Config
 from ..resource import Resource
 from ..utils import RichStatus
@@ -69,6 +71,53 @@ class IRResource (Resource):
         # ...before we override it with the setup results.
         self.set_active(self.setup(ir, aconf))
 
+    def lookup_default(self, key: str, default_value: Optional[Any]=None, lookup_class: Optional[str]=None) -> Any:
+        """
+        Look up a key in the Ambassador module's "defaults" element.
+
+        The "lookup class" is 
+        - the lookup_class parameter if one was passed, else
+        - self.default_class if that's set, else
+        - None.
+
+        We can look in two places for key -- the first match wins:
+
+        1. defaults[lookup class][key] if the lookup key is neither None nor "/"
+        2. defaults[key]
+
+        (A lookup class of "/" skips step 1.)
+
+        If we don't find the key in either place, return the given default_value.
+        If we _do_ find the key, _return a copy of the data!_ If we return the data itself
+        and the caller later modifies it... that's a problem.
+
+        :param key: the key to look up
+        :param default_value: the value to return if nothing is found in defaults.
+        :param lookup_class: the lookup class, see above
+        :return: Any
+        """
+        
+        defaults = self.ir.ambassador_module.get('defaults', {})
+
+        lclass = lookup_class
+
+        if not lclass:
+            lclass = self.get('default_class', None)
+
+        if lclass and (lclass != '/'):
+            # Case 1.
+            classdict = defaults.get(lclass, None)
+
+            if classdict and (key in classdict):
+                return copy.deepcopy(classdict[key])
+
+        # We didn't find anything in case 1. Try case 2.
+        if defaults and (key in defaults):
+            return copy.deepcopy(defaults[key])
+
+        # We didn't find anything in either case. Return the default value.
+        return default_value
+
     def lookup(self, key: str, *args, default_class: Optional[str]=None, default_key: Optional[str]=None) -> Any:
         """
         Look up a key in this IRResource, with a fallback to the Ambassador module's "defaults"
@@ -77,17 +126,8 @@ class IRResource (Resource):
         Here's the resolution order:
 
         - if key is present in self, use its value.
-        - if not, we'll try to look up a fallback value in the Ambassador module:
-            - the key for the lookup will be the value of "default_key" if that's set,
-              otherwise the same key we just tried in self.
-            - if "default_class" wasn't passed in, and self.default_class isn't set, just
-              look up a fallback value from the "defaults" dict in the Ambassador module.
-            - otherwise, look up the default class in Ambassador's "defaults", then look up
-              the fallback value from that dict (the passed in "default_class" wins if both
-              are set).
-            - (if the default class is '/', explictly skip descending into a sub-directory)
-        - if no key is present in self, and no fallback is found, but a default value was passed
-          in as *args[0], return that.
+        - if not, use lookup_default above to try to find a value in the Ambassador module
+        - if we don't find anything, but a default value was passed in as *args[0], return that.
         - if all else fails, return None.
 
         :param key: the key to look up
@@ -105,23 +145,10 @@ class IRResource (Resource):
             default_value = args[0]
 
         if value is None:
-            get_from = self.ir.ambassador_module.get('defaults', {})
+            if not default_key:
+                default_key = key
 
-            dfl_class = default_class
-
-            if not dfl_class:
-                dfl_class = self.get('default_class', None)
-
-            if dfl_class and (dfl_class != '/'):
-                get_from = get_from.get(dfl_class, None)
-
-            if get_from:
-                if not default_key:
-                    default_key = key
-
-                value = get_from.get(default_key, default_value)
-            else:
-                value = default_value
+            value = self.lookup_default(default_key, default_value=default_value, lookup_class=default_class)
 
         return value
 
