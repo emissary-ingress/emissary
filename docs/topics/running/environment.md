@@ -9,20 +9,21 @@ Use the following variables for the environment of your Ambassador container:
 | Ambassador                 | `AMBASSADOR_ID`                  | `default`                                           | Plain string                                                                  |
 | Ambassador                 | `AMBASSADOR_NAMESPACE`           | `default` ([^1])                                    | Kubernetes namespace                                                          |
 | Ambassador                 | `AMBASSADOR_SINGLE_NAMESPACE`    | Empty                                               | Boolean; non-empty=true, empty=false                                          |
+| Ambassador                 | `AMBASSADOR_ENVOY_BASE_ID`       | `0`                                                 | Integer                                                                       |
 | Ambassador Edge Stack      | `AES_LOG_LEVEL`                  | `info`                                              | Log level (see below)                                                         |
 | Primary Redis              | `REDIS_POOL_SIZE`                | `10`                                                | Integer                                                                       |
 | Primary Redis              | `REDIS_SOCKET_TYPE`              | None, must be set explicitly                        | Go network such as `tcp` or `unix`; see [Go `net.Dial`][]                     |
 | Primary Redis              | `REDIS_URL`                      | None, must be set explicitly                        | Go network address; for TCP this is a `host:port` pair; see [Go `net.Dial`][] |
-| Primary Redis              | `REDIS_USERNAME`                 | Empty                                               | Plain string                                                                        |
-| Primary Redis              | `REDIS_PASSWORD`                 | Empty                                               | Plain string                                                                        |
+| Primary Redis              | `REDIS_USERNAME`                 | Empty                                               | Plain string                                                                  |
+| Primary Redis              | `REDIS_PASSWORD`                 | Empty                                               | Plain string                                                                  |
 | Primary Redis              | `REDIS_TLS_ENABLED`              | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
 | Primary Redis              | `REDIS_TLS_INSECURE`             | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
 | Per-Second RateLimit Redis | `REDIS_PERSECOND`                | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
 | Per-Second RateLimit Redis | `REDIS_PERSECOND_POOL_SIZE`      | `10`                                                | Integer                                                                       |
 | Per-Second RateLimit Redis | `REDIS_PERSECOND_SOCKET_TYPE`    | None, must be set explicitly (if `REDIS_PERSECOND`) | Go network such as `tcp` or `unix`; see [Go `net.Dial`][]                     |
 | Per-Second RateLimit Redis | `REDIS_PERSECOND_URL`            | None, must be set explicitly (if `REDIS_PERSECOND`) | Go network address; for TCP this is a `host:port` pair; see [Go `net.Dial`][] |
-| Per-Second RateLimit Redis | `REDIS_PERSECOND_USERNAME`       | Empty                                               | Plain string                                                                        |
-| Per-Second RateLimit Redis | `REDIS_PERSECOND_PASSWORD`       | Empty                                               | Plain string                                                                        |
+| Per-Second RateLimit Redis | `REDIS_PERSECOND_USERNAME`       | Empty                                               | Plain string                                                                  |
+| Per-Second RateLimit Redis | `REDIS_PERSECOND_PASSWORD`       | Empty                                               | Plain string                                                                  |
 | Per-Second RateLimit Redis | `REDIS_PERSECOND_TLS_ENABLED`    | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
 | Per-Second RateLimit Redis | `REDIS_PERSECOND_TLS_INSECURE`   | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
 | RateLimit                  | `EXPIRATION_JITTER_MAX_SECONDS`  | `300`                                               | Integer                                                                       |

@@ -8,7 +8,9 @@ The `add_response_headers` attribute is a dictionary of `header`: `value` pairs.
 
 Envoy dynamic values `%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%` and `%PROTOCOL%` are supported, in addition to static values.
 
-## A Basic Example
+`add_response_headers` can be set either in a `Mapping` or using [`ambassador Module defaults`](../../using/defaults).
+
+### Mapping Example
 
 ```yaml
 ---
@@ -29,3 +31,41 @@ spec:
 ```
 
 will add the protocol, client IP, and a static header to the response returned to the client.
+
+### Defaults Example
+
+```yaml
+apiVersion: getambassador.io/v2
+kind: Module
+metadata:
+  name: ambassador
+spec:
+  config:
+    defaults:
+      httpmapping:
+        add_response_headers:
+          x-test-proto: "%PROTOCOL%"
+          x-test-ip: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
+          x-test-static: This is a test header
+          x-test-object:
+            append: False
+            value: this is from object header config
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: quote-backend1
+spec:
+  prefix: /backend1/
+  service: quote
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: quote-backend2
+spec:
+  prefix: /backend2/
+  service: quote
+```
+
+This example will add the same headers for both mappings.

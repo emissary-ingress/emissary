@@ -34,7 +34,7 @@ ever find anything missing from this list.
  - bash
  - rsync (with the --info option)
  - golang 1.13
- - python 3.6+
+ - python 3.7+
  - kubectl
  - a kubernetes cluster
  - a docker registry
@@ -266,12 +266,12 @@ If you want to make a change that **only** affects the live documentation for
 an already-released version of Ambassador, you'll need to make your changes in
 a branch from the `release` branch for that version, then PR back to the 
 `release` branch. For example, if you find a typo while reading the documentation
-for Ambassador 1.3:
+for Ambassador 1.4:
 
-- Check out `release/v1.3`
+- Check out `release/v1.4`
 - Make a branch from it.
 - Fix the typo.
-- Push your branch and PR it back to `release/v1.3`.
+- Push your branch and PR it back to `release/v1.4`.
 
 How do I get the source code for a release?
 -------------------------------------------

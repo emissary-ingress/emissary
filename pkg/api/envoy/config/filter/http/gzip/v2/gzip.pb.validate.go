@@ -33,6 +33,9 @@ var (
 	_ = types.DynamicAny{}
 )
 
+// define the regex for a UUID once up-front
+var _gzip_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on Gzip with the rules defined in the proto
 // definition for this message. If any rules are violated, an error is returned.
 func (m *Gzip) Validate() error {
@@ -51,15 +54,19 @@ func (m *Gzip) Validate() error {
 
 	}
 
-	if wrapper := m.GetContentLength(); wrapper != nil {
+	{
+		tmp := m.GetContentLength()
 
-		if wrapper.GetValue() < 30 {
-			return GzipValidationError{
-				field:  "ContentLength",
-				reason: "value must be greater than or equal to 30",
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return GzipValidationError{
+					field:  "ContentLength",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
 			}
 		}
-
 	}
 
 	if _, ok := Gzip_CompressionLevel_Enum_name[int32(m.GetCompressionLevel())]; !ok {
@@ -76,13 +83,6 @@ func (m *Gzip) Validate() error {
 		}
 	}
 
-	if len(m.GetContentType()) > 50 {
-		return GzipValidationError{
-			field:  "ContentType",
-			reason: "value must contain no more than 50 item(s)",
-		}
-	}
-
 	// no validation rules for DisableOnEtagHeader
 
 	// no validation rules for RemoveAcceptEncodingHeader
@@ -96,6 +96,21 @@ func (m *Gzip) Validate() error {
 			}
 		}
 
+	}
+
+	{
+		tmp := m.GetCompressor()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return GzipValidationError{
+					field:  "Compressor",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
 	}
 
 	return nil
