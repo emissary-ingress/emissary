@@ -189,7 +189,7 @@ This will install into your cluster:
 
    Copy this YAML in a file called `qotm-consul-mtls.yaml` and apply it to your cluster with `kubectl apply -f qotm-consul-mtls.yaml`.
 
-   This will deploy a demo application called `qotm-mtls` with the Connect sidecar proxy. The Connect proxy will register the application with Consul, require TLS to access the application, and expose other [Consul Service Segmentation](https://www.consul.io/segmentation.html) features.
+   This will deploy a demo application called `qotm-mtls` with the Connect sidecar proxy. The Connect proxy will register the application with Consul, require TLS to access the application, and expose other [Consul Service Segmentation](https://www.consul.io/docs/connect) features.
 
 3. Verify the `qotm-mtls` application is registered in Consul by accessing the Consul UI on `http://localhost:8500/` after running:
 
