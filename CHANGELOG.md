@@ -67,7 +67,7 @@ Format:
 
 <!--- CueAddReleaseNotes --->
 ## [Next]
-[Next]: https://github.com/datawire/ambassador/compare/v1.4.2...master
+[Next]: https://github.com/datawire/ambassador/compare/v1.4.3...master
 
 ### Ambassador API Gateway + Ambassador Edge Stack
 
@@ -76,6 +76,13 @@ Format:
 - Feature: Support the path and timeout options of the Knative ingress path rules
 - Bugfix: Only update Knative ingress CRDs when the generation changes
 - Bugfix: Now behaves properly when `AMBASSADOR_SINGLE_NAMESPACE` is set to an empty string; rather than getting in to a weird in-between state
+
+## [1.4.3] May 14, 2020
+[1.4.3]: https://github.com/datawire/ambassador/compare/v1.4.2...v1.4.3
+
+### Ambassador Edge Stack Only
+
+- Bugfix: Don't generate spurious 403s in logs when using Edge Policy Console.
 
 ## [1.4.2] April 22, 2020
 [1.4.2]: https://github.com/datawire/ambassador/compare/v1.4.1...v1.4.2
