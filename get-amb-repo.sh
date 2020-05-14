@@ -11,7 +11,7 @@ set +x
 # and friends work properly.
 unset GIT_DIR GIT_WORK_TREE
 
-if ! [ -e ambassador ]; then
+if ! [ -e ambassador/.git ]; then
 	git init ambassador
 	INIT=yes
 fi
