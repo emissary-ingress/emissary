@@ -268,15 +268,18 @@ def main(debug):
         client.models.V1beta1CustomResourceDefinitionStatus.stored_versions = \
             property(hack_stored_versions, hack_stored_versions_setter)
 
-        for touchfile, description, required in required_crds:
-            for crd in required:
-                if not check_crd_type(crd):
-                    touch_file(touchfile)
+        # Skip the required CRD validation if we are running AMBASSADOR_SINGLE_NAMESPACE,
+        # because we have a Role and not a ClusterRole to read CRDs.
+        if not ambassador_single_namespace:
+            for touchfile, description, required in required_crds:
+                for crd in required:
+                    if not check_crd_type(crd):
+                        touch_file(touchfile)
 
-                    logger.debug(f'{description} are not available.' +
-                                 ' To enable CRD support, configure the Ambassador CRD type definitions and RBAC,' +
-                                 ' then restart the Ambassador pod.')
-                    # logger.debug(f'touched {touchpath}')
+                        logger.debug(f'{description} are not available.' +
+                                     ' To enable CRD support, configure the Ambassador CRD type definitions and RBAC,' +
+                                     ' then restart the Ambassador pod.')
+                        # logger.debug(f'touched {touchpath}')
 
         if not check_ingress_classes():
             touch_file('.ambassador_ignore_ingress_class')
