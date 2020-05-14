@@ -66,12 +66,12 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
-## [1.4.3-rc.0] May 13, 2020
-[1.4.3-rc.0]: https://github.com/datawire/ambassador/compare/v1.4.2...v1.4.3-rc.0
+## [1.4.3] May 14, 2020
+[1.4.3]: https://github.com/datawire/ambassador/compare/v1.4.2...v1.4.3
 
 ### Ambassador Edge Stack Only
 
-- Bugfix: Don't generate lots of 403s while logged into the Edge Policy Console.
+- Bugfix: Don't generate spurious 403s in logs when using Edge Policy Console.
 
 ## [1.4.2] April 22, 2020
 [1.4.2]: https://github.com/datawire/ambassador/compare/v1.4.1...v1.4.2
