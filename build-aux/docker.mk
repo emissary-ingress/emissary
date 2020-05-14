@@ -256,7 +256,7 @@ define _docker.tag.rule
 	cat $$< > $$@
 
   %.docker.clean.$(_docker.tag.group):
-	if [ -e $$*.docker.tag.$(_docker.tag.group) ]; then docker image rm $$$$(cat $$*.docker.tag.$(_docker.tag.group)) || true; fi
+	if [ -e $$*.docker.tag.$(_docker.tag.group) ]; then docker image rm -- $$$$(sed 1d $$*.docker.tag.$(_docker.tag.group)) || true; fi
 	rm -f $$*.docker.tag.$(_docker.tag.group) $$*.docker.push.$(_docker.tag.group)
   .PHONY: %.docker.clean.$(_docker.tag.group)
 endef

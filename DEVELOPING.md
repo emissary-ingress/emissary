@@ -1,549 +1,464 @@
-Developing AES
-==============
+Developing Ambassador
+=====================
 
-AES is a complex piece of software with lots of integrations and
-moving parts. Just being able to build the code and run tests is often
-not sufficient to work efficiently on a given piece of the code. This
-document functions as a central registry for how to **efficiently**
-hack on any part of AES.
+Ambassador is a complex piece of software with lots of integrations
+and moving parts. Just being able to build the code and run tests is
+often not sufficient to work efficiently on a given piece of the
+code. This document functions as a central registry for how to
+**efficiently** hack on any part of ambassador.
 
-This guide is an extension of the [Ambassador OSS dev guide](https://github.com/datawire/ambassador/blob/master/DEVELOPING.md).
-Please review that guide first for basic build and test instructions.
+How do I get ambassador without building it?
+--------------------------------------------
 
-How do I hack on the UI?
-------------------------
+Check out https://www.getambassador.io/!
 
-1. Ensure that you have a `ambassador.git` checkout next to your
-   `apro.git` checkout, and make sure that it is in-sync with the
-   `ambassador.commit` file in apro:
-
-   ```sh
-   (cd ../ambassador/ && git fetch && git checkout $(cat ../apro/ambassador.commit))
-   ```
-
-2. Run the sidecar locally with the local backend forwarding all
-   snapshot requests to the backend in the cluster:
-
-   The long and flexible way:
-
-   ```sh
-   DEV_WEBUI_SNAPSHOT_HOST=${MY_CLUSTER_HOST_OR_IP} \
-   DEV_WEBUI_DIR=${PWD}/cmd/amb-sidecar/webui/bindata \
-   POD_NAMESPACE=ambassador \
-   DEV_AES_HTTP_PORT=8501 \
-   DEV_WEBUI_PORT=9000 \
-   go run ./cmd/ambassador amb-sidecar
-   ```
-
-   The short and opinionated way:
-
-   ```sh
-   ./ui-dev.sh
-   ```
-
-3. Visit in your browser:
-
-   - http://localhost:9000 to see all endpoints
-   - http://localhost:9000/dev/tests to run the javascript tests
-   - http://localhost:9000/dev/docs/ to read documentation for our UI code
-
-   Or run `edgectl login --namespace=ambassador localhost:9000`, then
-   replace "https://" with "http://" when it opens your web browser.
-   Note that you won't be able to run log in if you don't also have a
-   copy of Ambassador running in the cluster for the local copy to
-   talk to.
-
-4. Hack away at the files in `${PWD}/cmd/amb-sidecar/webui/bindata/`. Refresh (or shift-refresh)
-   your browser as necessary to get the updated files.
-
-How do I hack on the UI using an IDE on a Mac (e.g. JetBrains WebStorm)?
-------------------------------------------------------------------------
-
-1. Ensure that you have a `ambassador.git` checkout next to your
-   `apro.git` checkout, and make sure that it is in-sync with the
-   `ambassador.commit` file in apro:
-
-   ```sh
-   (cd ../ambassador/ && git fetch && git checkout $(cat ../apro/ambassador.commit))
-   ```
-
-2. Set up JetBrains WebStorm. These set-up tasks only need to be done once:
-   1. Configure [Live Edit](https://www.jetbrains.com/help/webstorm/live-editing.html).
-   2. Configure [the Javscript debugger](https://www.jetbrains.com/help/webstorm/configuring-javascript-debugger.html)
-   3. _(optional)_ Configure WebStorm to use [your Chrome user configuration](https://www.jetbrains.com/help/webstorm/configuring-browsers.html#enablingUseOfBrowsers)
-   4. Add the [JetBrains extension to Chrome](https://chrome.google.com/webstore/detail/jetbrains-ide-support/hmhgeddbohgjknpmjagkdomcpobmllji).
-      Note that you need to add the extension to the user being used by WebStorm. So if
-      you didn't configure in #3, you have to open Chrome by running something from
-      WebStorm, then install the extension in that instance of Chrome.
-   5. Open a WebStorm project on `${PWD}/cmd/amb-sidecar/webui/bindata/edge_stack`
-   6. Use Run > Edit Configurations.. to add a run configuration for `admin/index.html`
-      with `?debug-backend=http://localhost:9000` at the end of the URL.
-
-3. Run the sidecar locally with the local backend forwarding all
-   snapshot requests to the backend in the cluster.
-
-   ```sh
-   DEV_WEBUI_WEBSTORM=1 \
-   DEV_WEBUI_SNAPSHOT_HOST=<my-cluster-host-or-ip> \
-   DEV_WEBUI_DIR=${PWD}/cmd/amb-sidecar/webui/bindata \
-   POD_NAMESPACE=ambassador \
-   DEV_AES_HTTP_PORT=8501 \
-   DEV_WEBUI_PORT=9000 \
-   go run ./cmd/ambassador amb-sidecar
-   ```
-
-4. Use "Run > Debug" to 'run' everything. This opens Chrome, attachs the debugger,
-   opens index.html, etc.
-   
-5. The only awkward part of the dev loop at this time is that the security JWT
-   is passed in through the URL, but the URL is defined in the run configuration.
-   So you would need to update the run configuration with the JWT. However, for
-   convenience, when you run with the `?debug-backend=` feature, there is an
-   extra panel at the bottom of the login page with a button to enter the JWT.
-   Use it by running `edgectl login`, then copying the url from the browser
-   bar of the window that opens, closing that window, then clicking the "Enter
-   URL+JWT" button and pasting the URL.
-
-How do I hack on the UI without a cluster?
-------------------------------------------
-
-1. Ensure that you have a `ambassador.git` checkout next to your
-   `apro.git` checkout, and make sure that it is in-sync with the
-   `ambassador.commit` file in apro:
-
-   ```sh
-   (cd ../ambassador/ && git fetch && git checkout $(cat ../apro/ambassador.commit))
-   ```
-
-2. Run the sidecar locally:
-
-   ```sh
-   DEV_WEBUI_DIR=${PWD}/cmd/amb-sidecar/webui/bindata \
-   POD_NAMESPACE=ambassador \
-   DEV_AES_HTTP_PORT=8501 \
-   DEV_WEBUI_PORT=9000 \
-   go run ./cmd/ambassador amb-sidecar
-   ```
-
-3. To spoof cluster data, run:
-
-   ```sh
-   curl -X POST localhost:9000/_internal/v0/watt?push --data-binary @ui_devloop/snapshot.yaml
-   ```
-
-4. Visit http://localhost:9000 in your browser
-
-5. Hack away at the files in `${PWD}/cmd/amb-sidecar/webui/bindata/`.
-Refresh (or shift-refresh) your browser as necessary to get the updated files.
-
-**NOTE:** You will need to re-do the spoofing each time you restart
-the local sidecar.
-
-How do I hack on the UI without building the code?
---------------------------------------------------
-
-Run all these commands from the root of your apro checkout:
-
-To run a stubbed out webui, in terminal:
-
-1. Docker pull the aes image (with the right version): `docker pull quay.io/datawire/aes:<version>`.
-
-2. Then run the following command (with the right version):
-
-   ```sh
-   docker run -it --rm \
-       --volume=$(pwd)/cmd/amb-sidecar/webui/bindata:/ambassador/webui/bindata \
-       --env=DEV_WEBUI_PORT=9000 --publish=9000:9000 \
-       --entrypoint=/ambassador/sidecars/amb-sidecar \
-       quay.io/datawire/aes:<version>
-   ```
-
-3. To spoof cluster data, run:
-
-   ```sh
-   curl -X POST localhost:9000/_internal/v0/watt?push --data-binary @ui_devloop/snapshot.yaml
-   ```
-
-4. Visit http://localhost:9000 in your browser
-
-5. Hack away at the files in `${PWD}/cmd/amb-sidecar/webui/bindata/`.
-Refresh (or shift-refresh) your browser as necessary to get the updated files.
-
-**NOTE:** You will need to re-do the spoofing each time you restart
-the local sidecar.
-
-How does the UI work?
----------------------
-
-Almost all user supplied ambassador inputs are CRDs and/or existing
-kubernetes resources. (There are some minor exceptions in the form of
-environment variables and files defined in the deployment. These
-exceptions are one-time setup/bootstrap configuration.)
-
-Ambassador communicates with users by watching for certain CRDs and
-kubernetes resources to be defined, and by updating the status fields
-of those resources to provide user feedback.
-
-The UI is really just a way to render some/all of the ambassador
-inputs graphically in a way that is helpful to users, as well as
-supplying controls to allow a user to quickly produce new/updated yaml
-manifests and either directly apply them to the cluster or download
-them to check into git and/or apply by hand.
-
-There are (primarily) two backend endpoints that the UI leverages:
-
-/edge_stack/api/snapshot --> Returns the raw watt snapshot.
-/edge_stack/api/apply --> Applies kubernetes yaml to the cluster.
-/edge_stack/api/delete --> Deletes a kubernetes resource from the cluster.
-
-How do I run tests for javascript code?
----------------------------------------
-
-1. Run the sidecar locally as described in "How do I hack on the UI?".
-
-2. Visit localhost:${DEV_WEBUI_PORT}/dev/tests
-
-3. You should see test results displayed on the screen.
-
-4. Add ?grep=<foo> to the url to run just a subset of the tests.
-
-The endpoint uses mocha as a test runner and chai as an assertion
-library. Visit https://mochajs.org and https://chaijs.com for more
-details on either.
-
-Note that the mocha test endpoint will always run whenever
-DEV_WEBUI_PORT is set.
-
-How do I write tests for javascript code?
+How do I get help with any of this stuff?
 -----------------------------------------
 
-1. Create a .js file for your tests and place it in or under a tests
-   directory within the web root. The web root is
-   ./cmd/amb-sidecar/webui/bindata
+Ask on our [Slack channel](https://d6e.co/slack) in the `#ambassador-dev` channel.
 
-2. Visit the tests endpoint at localhost:${DEV_WEBUI_PORT}/dev/tests
+How do I setup a system for ambassador development?
+---------------------------------------------------
 
-3. If your javascript file has valid tests in it, you will see the
-results. If you do not see your tests, make sure you look at the
-browser console to see any syntax/loading errors.
+To build or hack on ambassador, there are a number of
+prerequisites. In general our tooling tries to detect any missing
+requirements and provide a friendly error message. If you ever find
+that this is not the case please file a PR with a fix. Likewise if you
+ever find anything missing from this list.
 
-When hacking on a single test, it is handy to add ?grep=<foo> to the
-tests URL and run only a subset of the tests. It is also very handy to
-use the `describe.only` and the `it.only` features of mocha to limit
-to just a subset of tests. The way the `.only` feature works, you
-simply append `.only` to the `describe` and/or `it` function calls for
-the tests you are interested in, and mocha will run "only" those
-tests.
+### Requirements:
 
-You can read more about mocha and chai at https://mochajs.org and
-https://chaijs.com respectively.
+ - git
+ - make
+ - docker (make sure you can run docker commands as your dev user without sudo)
+ - bash
+ - rsync (with the --info option)
+ - golang 1.13
+ - python 3.7+
+ - kubectl
+ - a kubernetes cluster
+ - a docker registry
 
-How do I hack on the AES metrics reporting to Metriton?
+### Configuration:
+
+ - `export DEV_REGISTRY=<your-dev-docker-registry>` (you need to be logged in and have permission to push)
+ - `export DEV_KUBECONFIG=<your-dev-kubeconfig>` (your cluster needs to be able to read from your registry,
+                                                  specifically from the ambassador, kat-server, and kat-client repos)
+ - `export GCLOUD_CONFIG=<your-config>` (only needed if your kubeconfig uses gcloud, which is likely for a GKE cluster)
+
+Please note that ambassador tests and build system will do destructive
+things to your development cluster. We therefore recommend that you
+create a separate kubeconfig file dedicated for ambassador development
+and point DEV_KUBECONFIG to this file instead of using the default
+`~/.kube/config` location.
+
+How do I find out what build targets are available?
+---------------------------------------------------
+
+Use `make help` and `make targets` to see what build targets are
+available along with documentation for what each target does.
+
+How do I build an ambassador image from source?
+-----------------------------------------------
+
+0. `git clone https://github.com/datawire/ambassador.git && cd ambassador`
+1. `make images` (this will take a while the first time)
+
+The ambassador image will be tagged as `ambassador:latest`. There will
+also be a `kat-server:latest` and a `kat-client:latest` image. These
+two images are only used for testing.
+
+How do I push an ambassador image from source?
+----------------------------------------------
+
+1. `export DEV_REGISTRY=<your-dev-docker-registry>` (you need to be logged in and have permission to push)
+2. `make push`
+3. The output will contain the image names. You can also display this using
+   `make env` or `make export`. The latter form is suitable for
+   passing to bash.
+
+NOTE: This will also push the `kat-client` and `kat-server` images.
+
+How do I deploy an ambassador to a cluster from source?
 -------------------------------------------------------
 
-AES collects usage metrics and sends them to Metriton, our backend metrics 
-wrangler and database. You might hear the term "scout" as the initial version 
-of Metriton was called the "Scout API".
+XXX: This does not work yet, but will be fixed in a future commit!!!
 
-In AES, different metrics data points are sent from both the A/OSS python 
-component (see `ambscout.py`) and the `phonehome.go` library. This guide is 
-only concerned with the Golang phonehome.go specific to AES.
+1. `export DEV_REGISTRY=<your-dev-docker-registry>` (you need to be logged in and have permission to push)
+2. `export DEV_KUBECONFIG=<your-dev-kubeconfig>`
+3. `make deploy`
 
-1. Ensure the `SCOUT_DISABLE` environment variable is NOT SET in your 
-ambassador deployment.
+How do I run ambassador tests?
+------------------------------
 
-2. In `lib/metriton/phonehome.go`, you might want to change the following 
-constants:
-   - `phoneHomeEveryPeriod` --> Normally, AES would PhoneHome every 12 hours. 
-   For testing purposes, you might want to run this routine every 5 minutes 
-   for example. (5 * time.Minute)
-   - `metritonEndpoint` --> Instead of sending metrics directly to the 
-   production Metriton (and thus polluting production metrics data), you might 
-   want to change the endpoint to `https://kubernaut.io/beta/scout`.
-   
-   Watch out not to commit any unintended change to these constants! 
+- `export DEV_REGISTRY=<your-dev-docker-registry>` (you need to be logged in and have permission to push)
+- `export DEV_KUBECONFIG=<your-dev-kubeconfig>`
 
-Apart from reporting license information, AES will report usage data of 
-licensed-features usage in this format:
-   
-   ```json
-    {
-       "id":"unregistered",
-       "contact":"",
-       "features":[
-          { "name":"authfilter-service", "limit":5, "usage":0, "max_usage":1 },
-          { "name":"devportal-services", "limit":5, "usage":1, "max_usage":1 },
-          { "name":"ratelimit-service", "limit":5, "usage":0, "max_usage":5 }
-       ],
-       "component":"ambassador-sidecar",
-       "user_agent":"Go-http-client/1.1"
-    }
+| Group           | Command                                                             |
+|-----------------|---------------------------------------------------------------------|
+| All Tests       | `make test`                                                         |
+| All Golang      | `make gotest`                                                       |
+| All Python      | `make pytest`                                                       |
+| Some/One Golang | `make gotest GOTEST_PKGS=./cmd/edgectl GOTEST_ARGS="-run TestName"` |
+| Some/One Python | `make pytest PYTEST_ARGS="-k TestName"`                             |
+
+Please note the python tests use a local cache to speed up test
+results. If you make a code update that changes the generated envoy
+configuration, those tests will fail and you will need to update the
+python test cache.
+
+How do I update the python test cache?
+--------------------------------------
+
+- First, run `make KAT_RUN_MODE=envoy pytest` to do a test run _without_
+  using the local cache.
+
+- Once that succeeds, use `make pytest-gold` to update the cache from
+  the passing tests.
+
+How do I debug/develop envoy config generation?
+-----------------------------------------------
+
+Envoy configuration is generated by the ambassador compiler. Debugging
+the ambassador compiler by running it in kubernetes is very slow since
+we need to push both the code and any relevant kubernetes resources
+into the cluster.
+
+#### `mockery`
+
+Fortunately we have the `mockery` tool which lets us run the compiler
+code directly on kubernetes resources without having to push that code
+or the relevant kubernetes resources into the cluster. This is the
+fastest way to hack on and debug the compiler.
+
+The `mockery` tool runs inside the Docker container used to build
+Ambassador, using `make shell`, so it's important to realize that it
+won't have access to your entire filesystem. There are two easy ways
+to arrange to get data in and out of the container:
+
+1. If you `make sync`, everything in the Ambassador source tree gets rsync'd
+   into the container's `/buildroot/ambassador`. The first time you start the
+   shell, this can take a bit, but after that it's pretty fast. You'll
+   probably need to use `docker cp` to get data out of the container, though.
+
+2. You may be able to use Docker volume mounts by exporting `BUILDER_MOUNTS`
+   with the appropriate `-v` switches before running `make shell` -- e.g.
+
+    ```
+    export BUILDER_MOUNTS=$(pwd)/xfer:/xfer
+    make shell
+    ```
+
+   will cause the dev shell to mount `xfer` in your current directory as `/xfer`.
+   This is known to work well on MacOS (though volume mounts are slow on Mac,
+   so moving gigabytes of data around this way isn't ideal).
+
+Once you've sorted out how to move data around:
+
+1. Put together a set of Ambassador configuration CRDs in a file that's somewhere
+   that you'll be able to get them into the builder container. The easy way to do
+   this is to use the files you'd feed to `kubectl apply`; they should be actual
+   Kubernetes objects with `metadata` and `spec` sections, etc. (If you want to
+   use annotations, that's OK too, just put the whole `Service` object in there.)
+
+2. Run `make compile shell` to build everything and start the dev shell.
+
+3. From inside the build shell, run
+
+   ```
+   mockery $path_to_your_file
    ```
 
-You may use the following manifests to easily get a working environment 
-allowing you to use licensed features and generate some usage data points:
+   If you're using a non-default `ambassador_id` you need to provide it in the
+   environment:
 
-1. authfilter-service
-
-   ```yaml
-   ---
-   apiVersion: getambassador.io/v2
-   kind: Filter
-   metadata:
-     name: example-jwt-filter
-     namespace: ambassador
-   spec:
-     JWT:
-       insecureTLS: true
-       jwksURI: "https://getambassador-demo.auth0.com/.well-known/jwks.json"
-       validAlgorithms:
-         - "none"
-   ---
-   apiVersion: getambassador.io/v2
-   kind: FilterPolicy
-   metadata:
-     name: auth-filter-policy
-     namespace: ambassador
-   spec:
-     rules:
-       - host: "*"
-         path: /auth-filter-policy/
-         filters:
-           - name: "example-jwt-filter"
    ```
-   
-   Send any request to `/auth-filter-policy/` to increment usage of the 
-   `authfilter-service` feature. This feature is tracking Requests Per Second
-    usage (RPS).
-
-2. ratelimit-service
-
-   ```yaml
-    apiVersion: getambassador.io/v2
-    kind: Mapping
-    metadata:
-      name: backend-rate-limit
-      namespace: ambassador
-    spec:
-      prefix: /backend-rate-limit/
-      service: quote
-      labels:
-        ambassador:
-          - request_label_group:
-              - backend
-    ---
-    apiVersion: getambassador.io/v2
-    kind: RateLimit
-    metadata:
-      name: backend-rate-limit
-      namespace: ambassador
-    spec:
-      domain: ambassador
-      limits:
-        - pattern: [{generic_key: backend}]
-          rate: 30
-          unit: minute
-   ```
-   
-   Send any request to `/backend-rate-limit/` to increment usage of the 
-   `ratelimit-service` feature. This feature is tracking Requests Per Second 
-   usage (RPS).
-
-3. devportal-services
-
-   ```yaml
-    ---
-    apiVersion: v1
-    kind: Service
-    metadata:
-      name: petstore
-      namespace: ambassador
-    spec:
-      ports:
-        - name: backend
-          port: 8080
-          targetPort: 8080
-      selector:
-        app: petstore
-    ---
-    apiVersion: getambassador.io/v2
-    kind: Mapping
-    metadata:
-      name: petstore
-      namespace: ambassador
-    spec:
-      prefix: /petstore/
-      service: petstore:8080
-    ---
-    apiVersion: apps/v1
-    kind: Deployment
-    metadata:
-      name: petstore
-      namespace: ambassador
-    spec:
-      replicas: 1
-      selector:
-        matchLabels:
-          app: petstore
-      strategy:
-        type: RollingUpdate
-      template:
-        metadata:
-          labels:
-            app: petstore
-        spec:
-          containers:
-            - name: backend
-              image: agervais/petstore-backend:latest
-              imagePullPolicy: Always
-              ports:
-                - name: http
-                  containerPort: 8080
+   AMBASSADOR_ID=whatever mockery $path_to_your_file
    ```
 
-   This feature is tracking the number of published services with API 
-   documentation (Count).
+   Finally, if you're trying to mimic `KAT`, copy the `/tmp/k8s-AmbassadorTest.yaml`
+   file from a KAT run to use as input, then
 
-If you want to dig deeper, you may want to inspect Redis, as all rate-limiting 
-data points are stored in Redis
-
-   ```sh
-   # Exec into the running Redis pod
-   k exec -it ambassador-redis-[POD ID] -n ambassador -- /bin/sh
-   
-   # Start the redis client, which will open a redis> prompt.
-   redis-cli
-
-   # Start inspecting the content of the data store.
-   keys *
-   get ratelimit-service-m
-   ttl ratelimit-service-m
-   del ratelimit-service-m
+   ```
+   mockery --kat $kat_test_name $path_to_k8s_AmbassadorTest.yaml
    ```
 
-How do I debug the OAuth browser tests?
----------------------------------------
+   where `$kat_test_name` is the class name of a `KAT` test class, like `LuaTest` or
+   `TLSContextTest`.
 
-Some of the OAuth filter tests run a headless web browser.  These
-browser tests would normally be very difficult to debug.  However, to
-make things easier, they record a video of the browser session, so you
-can see what happened.  The video file is saved at
 
-    ./tests/cluster/go-test/filter-oauth2/testdata/TESTNAME.webm
+4. Once it's done, `/tmp/ambassador/snapshots` will have all the output from the
+   compiler phase of Ambassador.
 
-You can access this file normally when run locally.  For CI runs, it's
-saved as a build artifact, so you can access that directory by
-going to the "Artifacts" tab for the CircleCI build.
+The point of `mockery` is that it mimics the configuration cycle of real Ambassador,
+without relying at all on a Kubernetes cluster. This means that you can easily and
+quickly take a Kubernetes input and look at the generated Envoy configuration without
+any other infrastructure.
 
-Often, those video files are enough to tell you what's going wrong.
+#### `ambassador dump`
 
-For more advanced debugging, temporarily editing the file
-`./tests/cluster/go-test/filter-oauth2/testdata/run.js` for your test
-runs can be very useful.  Common modifications are
+The `ambassador dump` tool is also useful for debugging and hacking on
+the compiler. After running `make shell`, you'll also be able to use
+the `ambassador` CLI, which can export the most import data structures
+that Ambassador works with as JSON.  It works from an input which can
+be either a single file or a directory full of files in the following
+formats:
 
- - uncomment the `//headless: false,` line, so you can see things live
- - comment out the `browser.close()` line, so you can poke around in
-   the browser after the test finishes
- - uncomment the `//await writeFile("/tmp/f.html", await
-   browsertab.content());` line so you can inspect the DOM of the
-   final page.
+- raw Ambassador resources like you'll find in the `demo/config` directory; or
+- an annotated Kubernetes resources like you'll find in `/tmp/k8s-AmbassadorTest.yaml` after running `make test`; or
+- a `watt` snapshot like you'll find in the `$AMBASSADOR_CONFIG_BASE_DIR/snapshots/snapshot.yaml` (which is a JSON file, I know, it's misnamed).
 
-How do I add new CRD types?
----------------------------
+Given an input source, running
 
-Well, you should probably start by writing a spec for the CRD.  Should you...
- - ...do that in JSON Schema at
-   `ambassador.git/python/schemas/`?
-   + Used for: most of the OSS CRDs
-   + Pros:
-     * Might make teaching the api-server to validate our CRDs easier,
-       if we ever get around to implementing that
-   + Cons:
-     * Can't write comments
-     * Difficult to read
-     * Must describe old annotation-style format, instead of the new
-       resource-style format
-     * Can't define a `status` field (because old annotation-style
-       format)
- - ...do that in Go structs at `apro.git/apis/`?
-   + Used for: the Pro CRDs: Filters, FilterPolicies, and Ratelimits
-   + Pros:
-     * Relatively easy and intuitive to read/write
-   + Cons:
-     * Enums are super clunky to write (because Go doesn't have enums)
-     * Easy to get procedural code mixed in with what should be
-       declarative definitions
-     * Hard to share with Python
- - ...do that in Protobuf at `ambassador.git/api/`?
-   + Used for: Hosts
-   + Pros:
-     * Easy to share with both Go and Python
-     * A little more awkward to write than Go structs, but not
-       not much worse
-   + Cons:
-     * Crappy tooling means that we need to use hacks for certain
-       k8s.io types
-     * Means that you need to do things in 2 repos when adjusting the
-       spec for AES
-     * Impossible (very difficult? impossible without hacks, anyway)
-       to have flexibility like "ambassador_id may be a string or an
-       array of strings"; which is trivial in JSON Schema, and
-       easy-enough in Go structs
- - ...just say "YOLO" and define it as a Go struct in the
-   package where you consume it?
-   + Used for: kale/route-to-code
-   + Pros/Cons similar to `apro.git/apis/`
-   + Pro: Things are defined close to where they are used, separate
-     parts of the codebase remain separate
-   + Con: Even easier than `apro.git/apis/` to get procedural code
-     mixed in with declarative definitions
+```
+ambassador dump --ir --v2 [$input_flags] $input > test.json
+```
 
-Who knows what you should do; we get conflicting answers whenever we
-try to settle on one.
+will dump the Ambassador IR and v2 Envoy configuration into `test.json`. Here
+`$input_flags` will be
 
-OK, so you somehow figured out how to get the code to understand and
-listen for the CRD.  Now you need to add it to the YAML:
+- nothing for raw Ambassador resources;
+- `--k8s` for Kubernetes resources; or
+- `--watt` for a `watt` snapshot.
 
- 1. Define the CRD.
-    - for OSS CRDs, add it to each of the following files:
-      * `ambassador.git/docs/yaml/ambassador/ambassador-crds.yaml`
-      * `ambassador.git/docs/yaml/ambassador/ambassador-knative.yaml`
-      * `ambassador.git/docs/yaml/ambassador/ambassador-rbac-prometheus.yaml`
-    - for AES-only CRDs, add it to the following file:
-      * `apro.git/k8s-aes-src/00-aes-crds.yaml`
- 2. Update the RBAC.
-    - If you need to adjust the OSS RBAC:
-      1. Edit the `ClusterRole` in the following files:
-         + `ambassador.git/docs/yaml/ambassador/ambassador-knative.yaml`
-         + `ambassador.git/docs/yaml/ambassador/ambassador-rbac-prometheus.yaml`
-         + `ambassador.git/docs/yaml/ambassador/ambassador-rbac.yaml`
-         + `ambassador.git/python/tests/manifests/rbac_cluster_scope.yaml`
-      2. Edit the `Role` in the following files:
-         + `ambassador.git/python/tests/manifests/rbac_namespace_scope.yaml`
-      3. Also edit the AES RBAC (below) correspondingly
-    - If you need to adjust the AES RBAC, edit:
-      + `apro.git/k8s-aes-src/01-aes.yaml` (edit the `ClusterRole`)
-      + `apro.git/tests/pytest/manifests/rbac_cluster_scope.yaml` (edit the `ClusterRole`)
-      + `apro.git/tests/pytest/manifests/rbac_namespace_scope.yaml`
-        * You should mostly just be changing the `Role` (not the
-          `ClusterRole`).  However, if you're not handling
-          `AMBASSADOR_SINGLE_NAMESPACE` in client-go (as you're probably
-          not if you're using `github.com/datawire/ambassador/pkg/k8s`
-          directly instead of using WATT), then you also need to add
-          get/list/watch for it to the `ClusterRole`.
- 3. Update generated files.
-    1. If you made any changes in `ambassador.git`, update
-      `apro.git/ambassador.commit`.
-    2. In `apro.git`, run `make update-yaml-locally`.
+You can get more information with
 
-How do I update the builder image used by route-to-code?
---------------------------------------------------------
+```
+ambassador dump --help
+```
 
-Push the desired changes to
-https://github.com/datawire/aes-project-builder .  Quay will
-automatically build a `quay.io/datawire/aes-project-builder` image
-from any branches or tags pushed.  Go to
-https://quay.io/repository/datawire/aes-project-builder?tab=tags and
-find the Docker tag that it made, click the download button on the
-right and select "Docker Pull (by digest)".  Copy the image name, and
-put it in `./cmd/amb-sidecar/kale/kale.go`.
+How do I type check my python code?
+-----------------------------------
+
+XXX: the `make mypy` target does not exist yet, a future commit will fix this!
+
+Ambassador uses Python 3 type hinting and the `mypy` static type checker to
+help find bugs before runtime. If you haven't worked with hinting before, a
+good place to start is
+[the `mypy` cheat sheet](https://mypy.readthedocs.io/en/latest/cheat_sheet_py3.html).
+
+New code must be hinted, and the build process will verify that the type
+check passes when you `make test`. Fair warning: this means that
+PRs will not pass CI if the type checker fails.
+
+We strongly recommend using an editor that can do realtime type checking
+(at Datawire we tend to use PyCharm and VSCode a lot, but many many editors
+can do this now) and also running the type checker by hand before submitting
+anything:
+
+- `make mypy` will start check all the Ambassador code
+
+Since `make mypy` uses the daemon for caching, it should be very fast after
+the first run. Ambassador code should produce _no_ warnings and _no_ errors.
+
+If you're concerned that the cache is somehow wrong (or if you just want the
+daemon to not be there any more), `make mypy-clean` will stop the daemon
+and clear the cache.
+
+How do I make documentation-only changes?
+-----------------------------------------
+
+The Ambassador documentation lives in the `docs` directory. If you're working
+on documentation for an upcoming feature or fix, make your docs changes along
+with your code changes, and include them all in the same PR.
+
+If you want to make a change that **only** affects the live documentation for
+an already-released version of Ambassador, you'll need to make your changes in
+a branch from the `release` branch for that version, then PR back to the 
+`release` branch. For example, if you find a typo while reading the documentation
+for Ambassador 1.4:
+
+- Check out `release/v1.4`
+- Make a branch from it.
+- Fix the typo.
+- Push your branch and PR it back to `release/v1.4`.
+
+How do I get the source code for a release?
+-------------------------------------------
+
+The current shipping release of Ambassador lives on the `master`
+branch. It is tagged with its version (e.g. `v0.78.0`).
+
+Changes on `master` after the last tag have not been released yet, but
+will be included in the next release of Ambassador.
+
+How do I make a contribution?
+-----------------------------
+
+1. **All development must be on branches cut from `master`**.
+   - We recommend that your branches start with your username.
+      - At Datawire we typically use `git-flow`-style naming, e.g. `flynn/dev/telepathic-ui`
+   - Please do not use a branch name starting with `release`.
+
+2. If your development takes any significant time, **merge master back into your branch regularly**.
+   - Think "every morning" and "right before submitting a pull request."
+   - If you're using a branch name that starts with your username, `git rebase` is also OK and no one from Datawire will scream at you for force-pushing.
+   - Please do **not** rebase any branch that does **not** start with your username.
+
+3. **Code changes must include relevant documentation updates.**
+   - Make changes in the `docs` directory as necessary, and commit them to your
+     branch so that they can be incorporated when the feature is merged into `master`.
+
+4. **Code changes must include passing tests.**
+   - See `python/tests/README.md` for more here.
+   - Your tests **must** actually test the change you're making.
+   - Your tests **must** pass in order for your change to be accepted.
+
+5. When you have things working and tested, **submit a pull request back to `master`**.
+   - Make sure your branch is up-to-date with `master` right before submitting the PR!
+   - The PR will trigger CI to perform a build and run tests.
+   - CI tests **must** be passing for the PR to be merged.
+
+6. When all is well, maintainers will merge the PR into `master`, accepting your
+   change for the next Ambassador release. Thanks!
+
+How do I make changes to the Envoy that ships with Ambassador?
+--------------------------------------------------------------
+
+This is a bit more complex than anyone likes, but here goes:
+
+1. From your `ambassador.git` checkout, get Ambassador's current
+   version of the Envoy sources, and create a branch from that:
+
+   ```shell
+   make $(pwd)/cxx/envoy
+   git -C cxx/envoy checkout -b YOUR_BRANCHNAME
+   ```
+
+2. Tell the build system that, yes, you really would like to be
+   compiling envoy, as you'll be modifying Envoy:
+
+   ```shell
+   export YES_I_AM_OK_WITH_COMPILING_ENVOY=true
+   export YES_I_AM_UPDATING_THE_BASE_IMAGES=true
+   export ENVOY_COMMIT='-'
+   ```
+
+   Building Envoy is slow, and most Ambassador contributors do not
+   want to rebuild Envoy, so we require the first two environment
+   variables as a safety.
+
+   Setting `ENVOY_COMMIT=-` does 3 things
+    a. Tell it to use whatever is currently checked out in
+       `./cxx/envoy/` (instead of checking out a specific commit), so
+       that you are free to modify those sources.
+    b. Don't try to download a cached build of Envoy from a Docker
+       cache (since it wouldn't know which `ENVOY_COMMIT` do download
+       the cached build for).
+    c. Don't push the build of Envoy to a Docker cache (since you're
+       still actively working on it).
+
+3. Modify the sources in `./cxx/envoy/`.
+
+4. Build Envoy with `make update-base`.  Again, this is _not_ a quick
+   process.  The build happens in a Docker container; you can set
+   `DOCKER_HOST` to point to a powerful machine if you like.
+
+   * You can build and test **Ambassador** with the usual `make` commands,
+   with the exception that you MUST run `make update-base` first
+   whenever Envoy needs to be recompiled; it won't happen
+   automatically.  So `make test` to build-and-test Ambassador would
+   become `make update-base && make test`, and `make images` to just
+   build Ambassador would become `make update-base && make images`.
+
+   * For **Envoy** development, you can build and run **specific Envoy test** 
+   (i.e. unit tests in test/common/network/listener_impl_test.cc) by exporting Bazel label: 
+   `export ENVOY_TEST_LABEL='//test/common/network:listener_impl_test'` 
+   and running `make check-envoy`.
+   Once you are happy with your changes, it's advised to `unset ENVOY_TEST_LABEL`
+   and run Envoy's **test suite** by executing `make check-envoy`
+   again to make sure your change is not breaking Envoy.
+   Be warned that Envoy's **test suite** requires several hundred gigabytes
+   of disk space to run.
+
+   You can run `make envoy-shell` to get a Bash shell in the Docker
+   container that does the Envoy builds.
+
+5. Once you're happy with your changes to Envoy:
+
+    a. Ensure they're committed to `cxx/envoy/` and push/PR them in to
+       https://github.com/datawire/envoy branch `rebase/master`.
+
+       If you're outside of Datawire, you'll need to
+        1. Create a fork of https://github.com/datawire/envoy on the
+           GitHub web interface
+        2. Add it as a remote to your `./cxx/envoy/`:
+           `git remote add my-fork git@github.com:YOUR_USERNAME/envoy.git`
+        3. Push the branch to that fork:
+           `git push my-fork YOUR_BRANCHNAME`
+
+    b. Update `ENVOY_COMMIT` in `cxx/envoy.mk`
+
+    c. Unset `ENVOY_COMMIT=-` and run a final `make update-base` to
+       push a cached build:
+
+       `unset ENVOY_COMMIT && make update-base`
+
+       If you're outside of Datawire, you can skip this step if you
+       don't want to share your Envoy binary anywhere.  If you don't
+       skip this step, you'll need to `export
+       ENVOY_DOCKER_REPO=${your-envoy-docker-registry}` to tell it to
+       push somewhere other than the `quay.io/datawire/ambassador-base`.
+
+    d. Push/PR the `envoy.mk` `ENVOY_COMMIT` change to
+    https://github.com/datawire/ambassador
+
+### Datawire Only
+
+At the moment, these techniques will only work internally to Datawire. Mostly
+this is because they require credentials to access internal resources at the
+moment, though in several cases we're working to fix that.
+
+How do I test my documentation work?
+------------------------------------
+
+*This will currently only work within Datawire.*
+
+After you've made some documentation changes, run 
+
+```
+bash ambassador/scripts/doc-setup
+```
+
+to do all the Javascript work needed to get a local documentation server
+running. You can point a web browser to `http://localhost:8000` to view docs
+with your changes.
+
+After running `ambassador/scripts/doc-setup`, if you need to make further changes, run
+
+```
+bash ambassador/scripts/doc-sync
+```
+
+to push your changes to the local webserver. They should appear immediately
+(you may have to reload the page in your browser).
+
+How do I share a preview of my documentation work with others?
+--------------------------------------------------------------
+
+*This will currently only work within Datawire.*
+
+After running `ambassador/scripts/doc-setup`, run
+
+```
+bash ambassador/scripts/doc-publish
+```
+
+to push a preview to the `getambassador-preview` Netlify site.
+Find the Netlify preview URL in the output and hand it off to others.
+
+How do I update the getambassador-preview site with my documentation for others to use?
+---------------------------------------------------------------------------------------
+
+*This will currently only work within Datawire.*
+
+After running `ambassador/scripts/doc-setup`, run
+
+```
+bash ambassador/scripts/doc-publish --prod
+```
+
+to update the live `getambassador-preview` Netlify site.
+
+
+

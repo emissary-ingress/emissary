@@ -1,0 +1,741 @@
+{
+    "ambassador": {
+        "_active": true,
+        "_errored": false,
+        "_finalized": true,
+        "_rkey": "ir.ambassador",
+        "admin_port": 8001,
+        "debug_mode": false,
+        "default_label_domain": "ambassador",
+        "default_labels": {},
+        "diag_port": 8877,
+        "diagnostics": {
+            "enabled": true,
+            "prefix": "/ambassador/v0/",
+            "rewrite": "/ambassador/v0/",
+            "service": "127.0.0.1:8877"
+        },
+        "enable_http10": false,
+        "enable_ipv4": true,
+        "enable_ipv6": false,
+        "envoy_log_path": "/dev/fd/1",
+        "envoy_log_type": "text",
+        "kind": "IRAmbassador",
+        "liveness_probe": {
+            "enabled": true,
+            "prefix": "/ambassador/v0/check_alive",
+            "rewrite": "/ambassador/v0/check_alive",
+            "service": "127.0.0.1:8877"
+        },
+        "location": "--internal--",
+        "name": "ir.ambassador",
+        "namespace": "default",
+        "proper_case": false,
+        "readiness_probe": {
+            "enabled": true,
+            "prefix": "/ambassador/v0/check_ready",
+            "rewrite": "/ambassador/v0/check_ready",
+            "service": "127.0.0.1:8877"
+        },
+        "server_name": "envoy",
+        "service_port": 8080,
+        "use_ambassador_namespace_for_service_resolution": false,
+        "use_proxy_proto": false,
+        "use_remote_address": true,
+        "x_forwarded_proto_redirect": false,
+        "xff_num_trusted_hops": 0
+    },
+    "clusters": {
+        "cluster_127_0_0_1_8877_default": {
+            "_active": true,
+            "_errored": false,
+            "_hostname": "127.0.0.1",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 8877,
+            "_referenced_by": [
+                "--internal--"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_127_0_0_1_8877_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "--internal--",
+            "name": "cluster_127_0_0_1_8877_default",
+            "namespace": "default",
+            "service": "127.0.0.1:8877",
+            "targets": [
+                {
+                    "ip": "127.0.0.1",
+                    "port": 8877,
+                    "target_kind": "IPaddr"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://127.0.0.1:8877"
+            ]
+        },
+        "cluster_http___127_0_0_1_8001_default": {
+            "_active": true,
+            "_errored": false,
+            "_hostname": "127.0.0.1",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 8001,
+            "_referenced_by": [
+                "stenography.default.2"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_http___127_0_0_1_8001_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "stenography.default.2",
+            "name": "cluster_http___127_0_0_1_8001_default",
+            "namespace": "default",
+            "service": "127.0.0.1:8001",
+            "targets": [
+                {
+                    "ip": "127.0.0.1",
+                    "port": 8001,
+                    "target_kind": "IPaddr"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://127.0.0.1:8001"
+            ]
+        },
+        "cluster_logging_stenography_25565_default": {
+            "_active": true,
+            "_errored": false,
+            "_hostname": "stenography",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 25565,
+            "_referenced_by": [
+                "stenography.default.1"
+            ],
+            "_rkey": "cluster_logging_stenography_25565_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "stenography.default.1",
+            "name": "cluster_logging_stenography_25565_default",
+            "namespace": "default",
+            "service": "stenography:25565",
+            "targets": [
+                {
+                    "ip": "stenography.default",
+                    "port": 25565,
+                    "target_kind": "DNSname"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://stenography:25565"
+            ]
+        }
+    },
+    "filters": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.cors",
+            "config": {},
+            "kind": "ir.cors",
+            "location": "--internal--",
+            "name": "cors",
+            "namespace": "default"
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.router",
+            "config": {},
+            "kind": "ir.router",
+            "location": "--internal--",
+            "name": "router",
+            "namespace": "default",
+            "type": "decoder"
+        }
+    ],
+    "groups": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "--internal--"
+            ],
+            "_rkey": "ir.ambassador",
+            "default_class": "httpmapping",
+            "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
+            "group_weight": [
+                0,
+                26,
+                0,
+                0,
+                "/ambassador/v0/check_ready",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "--internal--",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_referenced_by": [
+                        "--internal--"
+                    ],
+                    "_rkey": "ir.ambassador",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8877,
+                        "_referenced_by": [
+                            "--internal--"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "--internal--",
+                        "name": "cluster_127_0_0_1_8877_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8877",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8877,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8877"
+                        ]
+                    },
+                    "default_class": "httpmapping",
+                    "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "--internal--",
+                    "name": "internal_readiness_probe_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/ambassador/v0/check_ready",
+                    "query_parameters": [],
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/ambassador/v0/check_ready",
+                    "route_weight": [
+                        0,
+                        26,
+                        0,
+                        0,
+                        "/ambassador/v0/check_ready",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8877",
+                    "timeout_ms": 10000,
+                    "weight": 100
+                }
+            ],
+            "name": "GROUP: internal_readiness_probe_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/check_ready",
+            "query_parameters": [],
+            "rewrite": "/ambassador/v0/check_ready",
+            "timeout_ms": 10000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "--internal--"
+            ],
+            "_rkey": "ir.ambassador",
+            "default_class": "httpmapping",
+            "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
+            "group_weight": [
+                0,
+                26,
+                0,
+                0,
+                "/ambassador/v0/check_alive",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "--internal--",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_referenced_by": [
+                        "--internal--"
+                    ],
+                    "_rkey": "ir.ambassador",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8877,
+                        "_referenced_by": [
+                            "--internal--"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "--internal--",
+                        "name": "cluster_127_0_0_1_8877_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8877",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8877,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8877"
+                        ]
+                    },
+                    "default_class": "httpmapping",
+                    "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "--internal--",
+                    "name": "internal_liveness_probe_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/ambassador/v0/check_alive",
+                    "query_parameters": [],
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/ambassador/v0/check_alive",
+                    "route_weight": [
+                        0,
+                        26,
+                        0,
+                        0,
+                        "/ambassador/v0/check_alive",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8877",
+                    "timeout_ms": 10000,
+                    "weight": 100
+                }
+            ],
+            "name": "GROUP: internal_liveness_probe_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/check_alive",
+            "query_parameters": [],
+            "rewrite": "/ambassador/v0/check_alive",
+            "timeout_ms": 10000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "--internal--"
+            ],
+            "_rkey": "ir.ambassador",
+            "default_class": "httpmapping",
+            "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
+            "group_weight": [
+                0,
+                15,
+                0,
+                0,
+                "/ambassador/v0/",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "--internal--",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_referenced_by": [
+                        "--internal--"
+                    ],
+                    "_rkey": "ir.ambassador",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8877,
+                        "_referenced_by": [
+                            "--internal--"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "--internal--",
+                        "name": "cluster_127_0_0_1_8877_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8877",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8877,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8877"
+                        ]
+                    },
+                    "default_class": "httpmapping",
+                    "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "--internal--",
+                    "name": "internal_diagnostics_probe_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/ambassador/v0/",
+                    "query_parameters": [],
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/ambassador/v0/",
+                    "route_weight": [
+                        0,
+                        15,
+                        0,
+                        0,
+                        "/ambassador/v0/",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8877",
+                    "timeout_ms": 10000,
+                    "weight": 100
+                }
+            ],
+            "name": "GROUP: internal_diagnostics_probe_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/",
+            "query_parameters": [],
+            "rewrite": "/ambassador/v0/",
+            "timeout_ms": 10000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "stenography.default.2"
+            ],
+            "_rkey": "stenography.default.2",
+            "default_class": "httpmapping",
+            "group_id": "2cc88963a98f4f1bd9ddf846f8fe7bf145757e1c",
+            "group_weight": [
+                0,
+                12,
+                0,
+                0,
+                "/config_dump",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "stenography.default.2",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_rkey": "stenography.default.2",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8001,
+                        "_referenced_by": [
+                            "stenography.default.2"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_http___127_0_0_1_8001_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "stenography.default.2",
+                        "name": "cluster_http___127_0_0_1_8001_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8001",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8001,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8001"
+                        ]
+                    },
+                    "default_class": "httpmapping",
+                    "group_id": "2cc88963a98f4f1bd9ddf846f8fe7bf145757e1c",
+                    "headers": [],
+                    "kind": "Mapping",
+                    "location": "stenography.default.2",
+                    "metadata_labels": {
+                        "kat-ambassador-id": "logservicetest",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "config__dump",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/config_dump",
+                    "query_parameters": [],
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/config_dump",
+                    "route_weight": [
+                        0,
+                        12,
+                        0,
+                        0,
+                        "/config_dump",
+                        "GET"
+                    ],
+                    "serialization": "ambassador_id: logservicetest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: logservicetest\n  scope: AmbassadorTest\nname: config__dump\nnamespace: default\nprefix: /config_dump\nrewrite: /config_dump\nservice: http://127.0.0.1:8001\n",
+                    "service": "http://127.0.0.1:8001",
+                    "weight": 100
+                }
+            ],
+            "metadata_labels": {
+                "kat-ambassador-id": "logservicetest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "GROUP: config__dump",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/config_dump",
+            "query_parameters": [],
+            "rewrite": "/config_dump",
+            "serialization": "ambassador_id: logservicetest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: logservicetest\n  scope: AmbassadorTest\nname: config__dump\nnamespace: default\nprefix: /config_dump\nrewrite: /config_dump\nservice: http://127.0.0.1:8001\n"
+        }
+    ],
+    "grpc_services": {},
+    "hosts": [],
+    "identity": {
+        "ambassador_id": "logservicetest",
+        "ambassador_namespace": "default",
+        "ambassador_nodename": "logservicetest-default"
+    },
+    "k8s_status_updates": {},
+    "listeners": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.listener",
+            "hostname": "*",
+            "insecure_action": "Route",
+            "kind": "IRListener",
+            "location": "--internal--",
+            "name": "ir.listener",
+            "namespace": "default",
+            "redirect_listener": false,
+            "secure_action": "Route",
+            "service_port": 8080,
+            "use_proxy_proto": false
+        }
+    ],
+    "log_services": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "stenography.default.1"
+            ],
+            "_rkey": "stenography.default.1",
+            "cluster": {
+                "_active": true,
+                "_errored": false,
+                "_hostname": "stenography",
+                "_is_sidecar": false,
+                "_namespace": "default",
+                "_port": 25565,
+                "_referenced_by": [
+                    "stenography.default.1"
+                ],
+                "_rkey": "cluster_logging_stenography_25565_default",
+                "connect_timeout_ms": 3000,
+                "enable_endpoints": false,
+                "enable_ipv4": true,
+                "enable_ipv6": false,
+                "ignore_cluster": false,
+                "kind": "IRCluster",
+                "lb_type": "round_robin",
+                "location": "stenography.default.1",
+                "name": "cluster_logging_stenography_25565_default",
+                "namespace": "default",
+                "service": "stenography:25565",
+                "targets": [
+                    {
+                        "ip": "stenography.default",
+                        "port": 25565,
+                        "target_kind": "DNSname"
+                    }
+                ],
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://stenography:25565"
+                ]
+            },
+            "driver": "http",
+            "driver_config": {
+                "additional_log_headers": [
+                    {
+                        "header_name": "included-on-all"
+                    },
+                    {
+                        "during_trailer": false,
+                        "header_name": "not-included-on-trailer"
+                    },
+                    {
+                        "during_response": false,
+                        "during_trailer": false,
+                        "header_name": "not-included on resp-trail"
+                    },
+                    {
+                        "during_request": false,
+                        "during_response": false,
+                        "during_trailer": false,
+                        "header_name": "not-anywhere"
+                    }
+                ]
+            },
+            "flush_interval_byte_size": 1,
+            "flush_interval_time": 1,
+            "grpc": false,
+            "kind": "ir.logservice",
+            "location": "stenography.default.1",
+            "name": "logservice",
+            "namespace": "default",
+            "service": "stenography:25565"
+        }
+    ],
+    "services": {
+        "k8s-logservicetest-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "logservicetest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-logservicetest-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "logservicetest",
+                "scope": "AmbassadorTest",
+                "service": "logservicetest-admin"
+            },
+            "name": "logservicetest-admin",
+            "namespace": "default",
+            "rkey": "k8s-logservicetest-admin-default",
+            "serialization": "ambassador_id: logservicetest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: logservicetest\n  scope: AmbassadorTest\n  service: logservicetest-admin\nname: logservicetest-admin\nnamespace: default\n"
+        },
+        "k8s-logservicetest-default": {
+            "_referenced_by": {},
+            "ambassador_id": "logservicetest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-logservicetest-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "logservicetest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "logservicetest",
+            "namespace": "default",
+            "rkey": "k8s-logservicetest-default",
+            "serialization": "ambassador_id: logservicetest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: logservicetest\n  scope: AmbassadorTest\nname: logservicetest\nnamespace: default\n"
+        },
+        "k8s-logservicetest-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "logservicetest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-logservicetest-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "logservicetest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "logservicetest-http",
+            "namespace": "default",
+            "rkey": "k8s-logservicetest-http-default",
+            "serialization": "ambassador_id: logservicetest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: logservicetest\n  scope: AmbassadorTest\nname: logservicetest-http\nnamespace: default\n"
+        },
+        "k8s-stenography-default": {
+            "_referenced_by": {},
+            "ambassador_id": "logservicetest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-stenography-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "logservicetest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "stenography",
+            "namespace": "default",
+            "rkey": "k8s-stenography-default",
+            "serialization": "ambassador_id: logservicetest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: logservicetest\n  scope: AmbassadorTest\nname: stenography\nnamespace: default\n"
+        }
+    },
+    "tls_contexts": []
+}

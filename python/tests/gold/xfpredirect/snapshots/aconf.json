@@ -1,0 +1,185 @@
+{
+    "_errors": {},
+    "_notices": {},
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "k8s-xfpredirect-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "xfpredirect",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-xfpredirect-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "xfpredirect",
+                "scope": "AmbassadorTest",
+                "service": "xfpredirect-admin"
+            },
+            "name": "xfpredirect-admin",
+            "namespace": "default",
+            "rkey": "k8s-xfpredirect-admin-default",
+            "serialization": "ambassador_id: xfpredirect\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: xfpredirect\n  scope: AmbassadorTest\n  service: xfpredirect-admin\nname: xfpredirect-admin\nnamespace: default\n"
+        },
+        "k8s-xfpredirect-default": {
+            "_referenced_by": {},
+            "ambassador_id": "xfpredirect",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-xfpredirect-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "xfpredirect",
+                "scope": "AmbassadorTest"
+            },
+            "name": "xfpredirect",
+            "namespace": "default",
+            "rkey": "k8s-xfpredirect-default",
+            "serialization": "ambassador_id: xfpredirect\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: xfpredirect\n  scope: AmbassadorTest\nname: xfpredirect\nnamespace: default\n"
+        },
+        "k8s-xfpredirect-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "xfpredirect",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-xfpredirect-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "xfpredirect",
+                "scope": "AmbassadorTest"
+            },
+            "name": "xfpredirect-http",
+            "namespace": "default",
+            "rkey": "k8s-xfpredirect-http-default",
+            "serialization": "ambassador_id: xfpredirect\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: xfpredirect\n  scope: AmbassadorTest\nname: xfpredirect-http\nnamespace: default\n"
+        },
+        "xfpredirect-http.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "xfpredirect",
+            "apiVersion": "getambassador.io/v1",
+            "config": {
+                "use_remote_address": false,
+                "x_forwarded_proto_redirect": true
+            },
+            "kind": "Module",
+            "location": "xfpredirect-http.default.1",
+            "metadata_labels": {
+                "kat-ambassador-id": "xfpredirect",
+                "scope": "AmbassadorTest"
+            },
+            "name": "ambassador",
+            "namespace": "default",
+            "rkey": "xfpredirect-http.default.1",
+            "serialization": "ambassador_id: xfpredirect\napiVersion: ambassador/v1\nconfig:\n  use_remote_address: false\n  x_forwarded_proto_redirect: true\nkind: Module\nmetadata_labels:\n  kat-ambassador-id: xfpredirect\n  scope: AmbassadorTest\nname: ambassador\nnamespace: default\n"
+        },
+        "xfpredirect-http.default.2": {
+            "_referenced_by": {},
+            "ambassador_id": "xfpredirect",
+            "apiVersion": "getambassador.io/v1",
+            "kind": "Mapping",
+            "location": "xfpredirect-http.default.2",
+            "metadata_labels": {
+                "kat-ambassador-id": "xfpredirect",
+                "scope": "AmbassadorTest"
+            },
+            "name": "XFPRedirect",
+            "namespace": "default",
+            "prefix": "/XFPRedirect/",
+            "rkey": "xfpredirect-http.default.2",
+            "serialization": "ambassador_id: xfpredirect\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: xfpredirect\n  scope: AmbassadorTest\nname: XFPRedirect\nnamespace: default\nprefix: /XFPRedirect/\nservice: xfpredirect-http\n",
+            "service": "xfpredirect-http"
+        }
+    },
+    "mappings": {
+        "XFPRedirect": {
+            "ambassador_id": "xfpredirect",
+            "apiVersion": "getambassador.io/v1",
+            "kind": "Mapping",
+            "metadata_labels": {
+                "kat-ambassador-id": "xfpredirect",
+                "scope": "AmbassadorTest"
+            },
+            "name": "XFPRedirect",
+            "namespace": "default",
+            "prefix": "/XFPRedirect/",
+            "service": "xfpredirect-http"
+        }
+    },
+    "modules": {
+        "ambassador": {
+            "apiVersion": "getambassador.io/v1",
+            "kind": "Module",
+            "metadata_labels": {
+                "kat-ambassador-id": "xfpredirect",
+                "scope": "AmbassadorTest"
+            },
+            "name": "ambassador",
+            "namespace": "default",
+            "use_remote_address": false,
+            "x_forwarded_proto_redirect": true
+        }
+    },
+    "service": {
+        "k8s-xfpredirect-admin-default": {
+            "ambassador_id": "xfpredirect",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "xfpredirect",
+                "scope": "AmbassadorTest",
+                "service": "xfpredirect-admin"
+            },
+            "name": "xfpredirect-admin",
+            "namespace": "default"
+        },
+        "k8s-xfpredirect-default": {
+            "ambassador_id": "xfpredirect",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "xfpredirect",
+                "scope": "AmbassadorTest"
+            },
+            "name": "xfpredirect",
+            "namespace": "default"
+        },
+        "k8s-xfpredirect-http-default": {
+            "ambassador_id": "xfpredirect",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "xfpredirect",
+                "scope": "AmbassadorTest"
+            },
+            "name": "xfpredirect-http",
+            "namespace": "default"
+        }
+    }
+}

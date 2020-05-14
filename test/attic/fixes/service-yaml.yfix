@@ -1,0 +1,2 @@
+SET profiles/sandbox0/dockerImage $1
+SET profiles/sandbox1/dockerImage $1

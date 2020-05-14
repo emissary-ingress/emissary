@@ -1,0 +1,7 @@
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  diag_mapping
+prefix: /ambassador/
+rewrite: /ambassador/
+service: 127.0.0.1:8877

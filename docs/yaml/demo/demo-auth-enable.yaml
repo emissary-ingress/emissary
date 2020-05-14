@@ -6,12 +6,14 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v0
+      apiVersion: getambassador.io/v2
       kind:  AuthService
       name:  authentication
       auth_service: "example-auth:3000"
       path_prefix: "/extauth"
-      allowed_headers:
+      allowed_request_headers:
+      - "x-qotm-session"
+      allowed_authorization_headers:
       - "x-qotm-session"
 spec:
   type: ClusterIP

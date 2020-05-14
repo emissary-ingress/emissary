@@ -1,0 +1,4 @@
+/envoy/
+/envoy-static
+/envoy-build-image.txt
+/envoy-build-container.txt

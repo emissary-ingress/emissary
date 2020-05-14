@@ -20,17 +20,29 @@ metadata:
   name: ambassador
 rules:
 - apiGroups: [""]
-  resources:
-  - services
+  resources: [ "endpoints", "namespaces", "secrets", "services" ]
   verbs: ["get", "list", "watch"]
-- apiGroups: [""]
-  resources:
-  - configmaps
-  verbs: ["create", "update", "patch", "get", "list", "watch"]
-- apiGroups: [""]
-  resources:
-  - secrets
+- apiGroups: [ "getambassador.io" ]
+  resources: [ "*" ]
   verbs: ["get", "list", "watch"]
+- apiGroups: [ "getambassador.io" ]
+  resources: [ "mappings/status" ]
+  verbs: ["update"]
+- apiGroups: [ "apiextensions.k8s.io" ]
+  resources: [ "customresourcedefinitions" ]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [ "networking.internal.knative.dev" ]
+  resources: [ "clusteringresses", "ingresses" ]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [ "networking.internal.knative.dev" ]
+  resources: [ "ingresses/status", "clusteringresses/status" ]
+  verbs: ["update"]
+- apiGroups: [ "extensions", "networking.k8s.io" ]
+  resources: [ "ingresses", "ingressclasses" ]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [ "extensions", "networking.k8s.io"]
+  resources: [ "ingresses/status" ]
+  verbs: ["update"]
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -50,6 +62,209 @@ subjects:
   name: ambassador
   namespace: default
 ---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: authservices.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: authservices
+    singular: authservice
+    kind: AuthService
+    categories:
+    - ambassador-crds
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: consulresolvers.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: consulresolvers
+    singular: consulresolver
+    kind: ConsulResolver
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: kubernetesendpointresolvers.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: kubernetesendpointresolvers
+    singular: kubernetesendpointresolver
+    kind: KubernetesEndpointResolver
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: kubernetesserviceresolvers.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: kubernetesserviceresolvers
+    singular: kubernetesserviceresolver
+    kind: KubernetesServiceResolver
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: mappings.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: mappings
+    singular: mapping
+    kind: Mapping
+    categories:
+    - ambassador-crds
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: modules.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: modules
+    singular: module
+    kind: Module
+    categories:
+    - ambassador-crds
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: ratelimitservices.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: ratelimitservices
+    singular: ratelimitservice
+    kind: RateLimitService
+    categories:
+    - ambassador-crds
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: tcpmappings.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: tcpmappings
+    singular: tcpmapping
+    kind: TCPMapping
+    categories:
+    - ambassador-crds
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: tlscontexts.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: tlscontexts
+    singular: tlscontext
+    kind: TLSContext
+    categories:
+    - ambassador-crds
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: tracingservices.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: tracingservices
+    singular: tracingservice
+    kind: TracingService
+    categories:
+    - ambassador-crds
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: logservices.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: logservices
+    singular: logservice
+    kind: LogService
+    categories:
+    - ambassador-crds
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -57,12 +272,15 @@ metadata:
 data:
   exporterConfiguration: ''
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ambassador
 spec:
   replicas: 3
+  selector:
+    matchLabels:
+      service: ambassador
   template:
     metadata:
       annotations:
@@ -90,7 +308,7 @@ spec:
             path: mapping-config.yaml
       containers:
       - name: ambassador
-        image: quay.io/datawire/ambassador:%version%
+        image: quay.io/datawire/ambassador:$version$
         resources:
           limits:
             cpu: 1
@@ -109,9 +327,9 @@ spec:
           value: "localhost"
         ports:
         - name: http
-          containerPort: 80
+          containerPort: 8080
         - name: https
-          containerPort: 443
+          containerPort: 8443
         - name: admin
           containerPort: 8877
         livenessProbe:
@@ -139,3 +357,5 @@ spec:
           mountPath: /statsd-exporter/
           readOnly: true
       restartPolicy: Always
+      securityContext:
+        runAsUser: 8888

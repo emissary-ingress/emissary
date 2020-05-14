@@ -1,0 +1,82 @@
+# GENERATED FILE: DO NOT EDIT.
+---
+apiVersion: getambassador.io/v2
+kind: RateLimitService
+metadata:
+  name: ambassador-edge-stack-ratelimit
+  labels:
+    product: aes
+spec:
+  service: "127.0.0.1:8500"
+---
+apiVersion: getambassador.io/v2
+kind: AuthService
+metadata:
+  name: ambassador-edge-stack-auth
+  labels:
+    product: aes
+spec:
+  proto: grpc
+  status_on_error:
+    code: 504
+  auth_service: "127.0.0.1:8500"
+  allow_request_body: false # setting this to 'true' allows Plugin and External filters to access the body, but has performance overhead
+---
+# Configure DevPortal
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  # This Mapping name is referenced by convention, it's important to leave as-is.
+  name: ambassador-devportal
+  labels:
+    product: aes
+spec:
+  prefix: /documentation/
+  rewrite: "/docs/"
+  service: "127.0.0.1:8500"
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  # This Mapping name is what the demo uses. Sigh.
+  name: ambassador-devportal-demo
+  labels:
+    product: aes
+spec:
+  prefix: /docs/
+  rewrite: "/docs/"
+  service: "127.0.0.1:8500"
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  # This Mapping name is referenced by convention, it's important to leave as-is.
+  name: ambassador-devportal-api
+  labels:
+    product: aes
+spec:
+  prefix: /openapi/
+  rewrite: ""
+  service: "127.0.0.1:8500"
+---
+apiVersion: getambassador.io/v2
+kind: FilterPolicy
+metadata:
+  name: ambassador-internal-access-control
+  labels:
+    product: aes
+spec:
+  rules:
+    - host: "*"
+      path: "*/.ambassador-internal/*"
+      filters:
+        - name: ambassador-internal-access-control
+---
+apiVersion: getambassador.io/v2
+kind: Filter
+metadata:
+  name: ambassador-internal-access-control
+  labels:
+    product: aes
+spec:
+  Internal: {}

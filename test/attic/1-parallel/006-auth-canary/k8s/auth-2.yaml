@@ -1,0 +1,57 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-2
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind:  Mapping
+      name:  auth_2_mapping
+      prefix: /auth-2/
+      service: auth-2:3000
+      ambassador_id: 006-auth-canary
+      ---
+      apiVersion: ambassador/v0
+      kind: AuthService
+      name: auth-2
+      auth_service: "auth-2:3000"
+      path_prefix: "/auth-2"
+      allowed_headers:
+      - "x-demo-version"
+      - "x-qotm-session"
+      ambassador_id: 006-auth-canary
+spec:
+  selector:
+    app: auth-2
+  ports:
+  - port: 3000
+    name: http-auth-2
+    targetPort: http-api
+  type: ClusterIP
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: auth-2
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: auth-2
+    spec:
+      containers:
+      - name: auth-2
+        image: dwflynn/demo:2.0.0
+        imagePullPolicy: Always
+        ports:
+        - name: http-api
+          containerPort: 3000
+        resources:
+          limits:
+            cpu: "0.1"
+            memory: 100Mi

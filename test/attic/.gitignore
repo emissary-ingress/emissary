@@ -1,0 +1,5 @@
+ambassador-deployment-mounts.yaml
+ambassador-deployment.yaml
+*/k8s/ambassador-deployment*.yaml
+kubernaut
+*.log

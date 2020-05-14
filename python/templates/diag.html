@@ -1,0 +1,255 @@
+<!--
+Copyright 2018 Datawire. All rights reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="/ambassador/v0/favicon.ico">
+
+    <title>Ambassador Diagnostics</title>
+
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
+
+    <!-- Custom styles for this template -->
+    <link href="https://getbootstrap.com/docs/4.0/examples/grid/grid.css" rel="stylesheet">
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="{%- if system.debug_mode -%}col-7{%- else -%}col-12{%- endif -%}">
+          <h1><a href="/ambassador/v0/diag/">Ambassador Diagnostics
+            {% if method or resource %} for <code>
+              {% if method %}{{ method }}{% endif %}
+              {% if resource %}{{ resource }}{% endif %}
+              </code>
+            {% endif %}
+          </a></h1>
+        </div>
+        {% if system.debug_mode %}
+        <div class="col-5">
+          <h1 style="color: red; text-align: right">DEBUG MODE</h1>
+        </div>
+        {% endif %}
+      </div>
+
+      {%- include "system-info.html" -%}
+      {%- include "guidance.html" -%}
+
+      {% if notices %}
+        <div class="row">
+          <div class="col-12">
+            {% for notice in notices %}
+              <span
+              {% if (notice.level == 'WARNING') or (notice.level == 'ERROR') %}
+              style="color:red"
+              {% elif notice.level == 'NOTICE' %}
+              style="color:orange"
+              {% elif notice.level == 'INFO' %}
+              style="color:green"
+              {% endif %}
+            >{{ notice.level }}</span>: {{ notice.message }}<br/>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+      {% if error %}
+        <div class="row">
+          <div class="col-12">
+            ERROR: {{ error }}
+          </div>
+        </div>
+      {% else %}
+
+      {% if errors %}
+        <div class="row">
+          <div class="col-12">
+            <span style="color:red">CONFIGURATION ERRORS</span>
+            <ul>
+            {% for error in errors | sort %}
+              <li>
+                {% if error[0] %}
+                  <a href="/ambassador/v0/diag/{{ error[0] }}">
+                    <span style="color:red">{{ error[0] }}: {{ error[1] }}</span>
+                  </a>
+                {% else %}
+                  <span style="color:red">{{ error[1] }}</span>
+                {% endif %}
+              </li>
+            {% endfor %}
+            </ul>
+          </div>
+        </div>
+      {% endif %}
+
+      <div class="row">
+        <div class="col-12">
+          Currently active Envoy <a href="https://www.envoyproxy.io/docs/envoy/v1.8.0/api-v2/api/v2/route/route.proto">Routes</a>
+
+          {% for route in route_info %}
+          <div class="row">
+            <div class="col-5">
+
+              <a href="/ambassador/v0/diag/grp-{{ route['_group_id'] }}">
+                <code>{{ route.key }}
+                {% if route['headers'] %}
+                  {% for hdr in route['headers'] %}
+                    <br/>
+                    {{ hdr['name'] }}: {{ hdr['value'] }}
+                  {% endfor %}
+                {% endif %}
+                </code>
+              </a>
+              <br/><br/>
+              sources:
+              <ul>
+                {% for ref in route._route._referenced_by | sort %}
+                  <li><a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref }}</code></a></li>
+                {% endfor %}
+              </ul>
+
+              {% if route._route.shadow %}
+              shadow:
+              <ul>
+                <li><tt>{{ route._route.shadow.name }}</tt></li>
+              </ul>
+              {% endif %}
+            </div>
+            <div class="col-7">
+              {% for ref in route._route._referenced_by | sort %}
+                {% if ref in envoy_elements %}
+                  {% if 'route' in envoy_elements[ref] %}
+                    {% for route_element in envoy_elements[ref]['route'] %}
+                      <div class="row">
+                        <code><pre>{{ route_element | pretty_json }}</pre></code>
+                      </div>
+                      {%- if not loop.last -%}<hr />{%- endif -%}
+                    {% endfor %}
+                  {% endif %}
+                {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12">
+          Currently active Envoy <a href="https://www.envoyproxy.io/docs/envoy/v1.8.0/api-v2/api/v2/cds.proto">Clusters</a>
+
+          <div class="row">
+            {% for cluster in cluster_info.values() | sort(attribute = 'name') %}
+              {% if cluster['name'] in cluster_stats %}
+                <div class="col-5">
+                  <a href="/ambassador/v0/diag/{{ cluster['name'] }}">
+                    <code>{{ cluster['name'] }}</code>
+                  </a>
+                  <br/><br/>
+                  <span style="color:{{ cluster._hcolor }}">
+                    {% if cluster_stats[cluster.name].valid %}
+                      {{ 'Unknown health: ' if cluster._hmetric is not number }}
+                      {{ cluster._health }}
+                    {% else %}
+                      Unknown health: {{ cluster_stats[cluster.name].reason }}
+                    {% endif %}
+                  </span>
+                  <br/><br/>
+                  sources:
+                  <ul>
+                    {% for ref in cluster._referenced_by | sort %}
+                      <li><a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref }}</code></a></li>
+                    {% endfor %}
+                  </ul>
+                </div>
+                <div class="col-7">
+                  <div class="row">
+                    {% for ref in cluster._referenced_by | sort %}
+                      {% if ref in envoy_elements %}
+                        {% if 'cluster' in envoy_elements[ref] %}
+                          {% for cluster_element in envoy_elements[ref]['cluster'] %}
+                            <div class="row">
+                              <code><pre>{{ cluster_element | pretty_json }}</pre></code>
+                            </div>
+                            {%- if not loop.last -%}<hr />{%- endif -%}
+                          {% endfor %}
+                        {% endif %}
+                      {% endif %}
+                    {% endfor %}
+                  </div>
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12">
+          YAML input documents &mdash; these are what Ambassador is currently reading for its configuration.
+
+          {% for key in active_elements | sort %}
+            {% if key in ambassador_elements %}
+              <div class="row">
+                <div class="col-5">
+                  <a href="/ambassador/v0/diag/{{ key }}">
+                    <code>{{ key }}</code>
+                  </a>
+                  {% if ambassador_elements[key].parent %}
+                    <br/>
+                    object in <a href="/ambassador/v0/diag/{{ ambassador_elements[key].parent }}">
+                      {{ ambassador_elements[key].parent }}
+                    </a>
+                  {% endif %}
+                  <br/>
+                  Ambassador
+                  {% if ambassador_elements[key].target %}<a href={{ ambassador_elements[key].target }}>{% endif %}
+                  {{ ambassador_elements[key].kind }}
+                  {% if ambassador_elements[key].target %}</a>{% endif %}
+
+                  {% if ambassador_elements[key].errors %}
+                    <ul>
+                      {% for error in ambassador_elements[key].errors %}
+                      <li>
+                        <span style="color:red">ERROR:</span> {{ error.text }}
+                      </li>
+                      {% endfor %}
+                    </ul>
+                  {% endif %}
+                </div>
+                <div class="col-7">
+                  <div class="row">
+                    {% if not ambassador_elements[key].description %}
+                      <code><pre>{{ ambassador_elements[key].serialization }}</pre></code>
+                    {% else %}
+                      {{ ambassador_elements[key].description }}
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div> <!-- /container -->
+  </body>
+</html>

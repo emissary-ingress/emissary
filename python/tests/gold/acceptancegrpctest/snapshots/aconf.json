@@ -1,0 +1,162 @@
+{
+    "_errors": {},
+    "_notices": {
+        "acceptancegrpctest.default.1": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ]
+    },
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "acceptancegrpctest.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "acceptancegrpctest",
+            "apiVersion": "getambassador.io/v0",
+            "grpc": true,
+            "kind": "Mapping",
+            "location": "acceptancegrpctest.default.1",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "acceptancegrpctest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "acceptancegrpctest-egrpc",
+            "namespace": "default",
+            "prefix": "/echo.EchoService/",
+            "rewrite": "/echo.EchoService/",
+            "rkey": "acceptancegrpctest.default.1",
+            "serialization": "ambassador_id: acceptancegrpctest\napiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpctest\n  scope: AmbassadorTest\nname: acceptancegrpctest-egrpc\nnamespace: default\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nservice: acceptancegrpctest-egrpc\n",
+            "service": "acceptancegrpctest-egrpc"
+        },
+        "k8s-acceptancegrpctest-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "acceptancegrpctest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-acceptancegrpctest-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "acceptancegrpctest",
+                "scope": "AmbassadorTest",
+                "service": "acceptancegrpctest-admin"
+            },
+            "name": "acceptancegrpctest-admin",
+            "namespace": "default",
+            "rkey": "k8s-acceptancegrpctest-admin-default",
+            "serialization": "ambassador_id: acceptancegrpctest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: acceptancegrpctest\n  scope: AmbassadorTest\n  service: acceptancegrpctest-admin\nname: acceptancegrpctest-admin\nnamespace: default\n"
+        },
+        "k8s-acceptancegrpctest-default": {
+            "_referenced_by": {},
+            "ambassador_id": "acceptancegrpctest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-acceptancegrpctest-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "acceptancegrpctest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "acceptancegrpctest",
+            "namespace": "default",
+            "rkey": "k8s-acceptancegrpctest-default",
+            "serialization": "ambassador_id: acceptancegrpctest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpctest\n  scope: AmbassadorTest\nname: acceptancegrpctest\nnamespace: default\n"
+        },
+        "k8s-acceptancegrpctest-egrpc-default": {
+            "_referenced_by": {},
+            "ambassador_id": "acceptancegrpctest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-acceptancegrpctest-egrpc-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "acceptancegrpctest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "acceptancegrpctest-egrpc",
+            "namespace": "default",
+            "rkey": "k8s-acceptancegrpctest-egrpc-default",
+            "serialization": "ambassador_id: acceptancegrpctest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: acceptancegrpctest\n  scope: AmbassadorTest\nname: acceptancegrpctest-egrpc\nnamespace: default\n"
+        }
+    },
+    "mappings": {
+        "acceptancegrpctest-egrpc": {
+            "ambassador_id": "acceptancegrpctest",
+            "apiVersion": "getambassador.io/v0",
+            "grpc": true,
+            "kind": "Mapping",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "acceptancegrpctest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "acceptancegrpctest-egrpc",
+            "namespace": "default",
+            "prefix": "/echo.EchoService/",
+            "rewrite": "/echo.EchoService/",
+            "service": "acceptancegrpctest-egrpc"
+        }
+    },
+    "service": {
+        "k8s-acceptancegrpctest-admin-default": {
+            "ambassador_id": "acceptancegrpctest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "acceptancegrpctest",
+                "scope": "AmbassadorTest",
+                "service": "acceptancegrpctest-admin"
+            },
+            "name": "acceptancegrpctest-admin",
+            "namespace": "default"
+        },
+        "k8s-acceptancegrpctest-default": {
+            "ambassador_id": "acceptancegrpctest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "acceptancegrpctest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "acceptancegrpctest",
+            "namespace": "default"
+        },
+        "k8s-acceptancegrpctest-egrpc-default": {
+            "ambassador_id": "acceptancegrpctest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "acceptancegrpctest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "acceptancegrpctest-egrpc",
+            "namespace": "default"
+        }
+    }
+}

@@ -1,0 +1,48 @@
+{% if system.debug_mode or not system.env_good %}
+<div class="row">
+  <div class="col-12" {%- if not system.env_good -%}style="border: 2px solid red"{%- endif -%}>
+    <p>
+      Ambassador configuration {% if system.env_good -%}looks good{%- else -%}<span style="color: red; font-weight: bold">issues found</span>{%- endif %}
+    </p>
+
+    <div class="row">
+      <div class="col-12">
+        <table cellpadding="2em" width="100%">
+          <thead>
+            <td><b>System</b></td>
+            <td><b>Specifics</b></td>
+          </thead>
+          <tbody>
+            {% for sys_name, sys_stat in system.env_status.items() | sort %}
+            <tr
+              {% if loop.index % 2 %}
+                style="background: rgba(86,61,124,.05);"
+              {% endif %}
+              >
+              <td width="40%">
+                {%- if sys_stat.status %}
+                  <span style="color: green">&#x2713</span> {{ sys_name }} passed
+                {%- else %}
+                  <span style="color: red">&#x2717 {{ sys_name }} failed</span>
+                {%- endif -%}
+              </td>
+              <td width="60%">
+                {% for status, text in sys_stat.specifics %}
+                  <span
+                  {% if status -%}
+                    style="color: green">&#x2713
+                  {%- else -%}
+                    style="color: red">&#x2717
+                  {%- endif -%}
+                </span> {{ text }}{%- if not loop.last -%}<br>{%- endif %}
+              </td>
+            {% endfor %}
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}

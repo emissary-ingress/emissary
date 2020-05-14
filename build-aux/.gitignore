@@ -11,11 +11,10 @@
 *.knaut
 *.knaut.claim
 
-# docker-cluster.mk
+# docker.mk
 /docker-port-forward.lock
 /docker-port-forward.log
 /docker-registry.yaml.o
-/docker-registry.deploy
 
 # go-mod.mk
 /go-test.tap

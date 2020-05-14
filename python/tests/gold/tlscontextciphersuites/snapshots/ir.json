@@ -1,0 +1,808 @@
+{
+    "ambassador": {
+        "_active": true,
+        "_errored": false,
+        "_finalized": true,
+        "_rkey": "ir.ambassador",
+        "admin_port": 8001,
+        "debug_mode": false,
+        "default_label_domain": "ambassador",
+        "default_labels": {},
+        "diag_port": 8877,
+        "diagnostics": {
+            "enabled": true,
+            "prefix": "/ambassador/v0/",
+            "rewrite": "/ambassador/v0/",
+            "service": "127.0.0.1:8877"
+        },
+        "enable_http10": false,
+        "enable_ipv4": true,
+        "enable_ipv6": false,
+        "envoy_log_path": "/dev/fd/1",
+        "envoy_log_type": "text",
+        "kind": "IRAmbassador",
+        "liveness_probe": {
+            "enabled": true,
+            "prefix": "/ambassador/v0/check_alive",
+            "rewrite": "/ambassador/v0/check_alive",
+            "service": "127.0.0.1:8877"
+        },
+        "location": "--internal--",
+        "name": "ir.ambassador",
+        "namespace": "default",
+        "proper_case": false,
+        "readiness_probe": {
+            "enabled": true,
+            "prefix": "/ambassador/v0/check_ready",
+            "rewrite": "/ambassador/v0/check_ready",
+            "service": "127.0.0.1:8877"
+        },
+        "server_name": "envoy",
+        "service_port": 8443,
+        "use_ambassador_namespace_for_service_resolution": false,
+        "use_proxy_proto": false,
+        "use_remote_address": true,
+        "x_forwarded_proto_redirect": false,
+        "xff_num_trusted_hops": 0
+    },
+    "clusters": {
+        "cluster_127_0_0_1_8877_default": {
+            "_active": true,
+            "_errored": false,
+            "_hostname": "127.0.0.1",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 8877,
+            "_referenced_by": [
+                "--internal--"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_127_0_0_1_8877_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "--internal--",
+            "name": "cluster_127_0_0_1_8877_default",
+            "namespace": "default",
+            "service": "127.0.0.1:8877",
+            "targets": [
+                {
+                    "ip": "127.0.0.1",
+                    "port": 8877,
+                    "target_kind": "IPaddr"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://127.0.0.1:8877"
+            ]
+        },
+        "cluster_https___tlscontextciphersuites_http_otls_default": {
+            "_active": true,
+            "_errored": false,
+            "_hostname": "tlscontextciphersuites-http",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 443,
+            "_referenced_by": [
+                "tlscontextciphersuites.default.1"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_https___tlscontextciphersuites_http_otls_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "tlscontextciphersuites.default.1",
+            "name": "cluster_https___tlscontextciphersuites_http_otls_default",
+            "namespace": "default",
+            "service": "tlscontextciphersuites-http",
+            "targets": [
+                {
+                    "ip": "tlscontextciphersuites-http.default",
+                    "port": 443,
+                    "target_kind": "DNSname"
+                }
+            ],
+            "tls_context": {
+                "_active": true,
+                "_ambassador_enabled": true,
+                "_errored": false,
+                "_rkey": "ir.no-cert-upstream",
+                "is_fallback": false,
+                "kind": "null-TLS-context",
+                "location": "ir.no-cert-upstream",
+                "name": "no-cert-upstream",
+                "namespace": "default",
+                "secret_info": {}
+            },
+            "type": "strict_dns",
+            "urls": [
+                "tcp://tlscontextciphersuites-http:443"
+            ]
+        }
+    },
+    "filters": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.cors",
+            "config": {},
+            "kind": "ir.cors",
+            "location": "--internal--",
+            "name": "cors",
+            "namespace": "default"
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.router",
+            "config": {},
+            "kind": "ir.router",
+            "location": "--internal--",
+            "name": "router",
+            "namespace": "default",
+            "type": "decoder"
+        }
+    ],
+    "groups": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "--internal--"
+            ],
+            "_rkey": "ir.ambassador",
+            "default_class": "httpmapping",
+            "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
+            "group_weight": [
+                0,
+                26,
+                0,
+                0,
+                "/ambassador/v0/check_ready",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "--internal--",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_referenced_by": [
+                        "--internal--"
+                    ],
+                    "_rkey": "ir.ambassador",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8877,
+                        "_referenced_by": [
+                            "--internal--"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "--internal--",
+                        "name": "cluster_127_0_0_1_8877_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8877",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8877,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8877"
+                        ]
+                    },
+                    "default_class": "httpmapping",
+                    "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "--internal--",
+                    "name": "internal_readiness_probe_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/ambassador/v0/check_ready",
+                    "query_parameters": [],
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/ambassador/v0/check_ready",
+                    "route_weight": [
+                        0,
+                        26,
+                        0,
+                        0,
+                        "/ambassador/v0/check_ready",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8877",
+                    "timeout_ms": 10000,
+                    "weight": 100
+                }
+            ],
+            "name": "GROUP: internal_readiness_probe_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/check_ready",
+            "query_parameters": [],
+            "rewrite": "/ambassador/v0/check_ready",
+            "timeout_ms": 10000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "--internal--"
+            ],
+            "_rkey": "ir.ambassador",
+            "default_class": "httpmapping",
+            "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
+            "group_weight": [
+                0,
+                26,
+                0,
+                0,
+                "/ambassador/v0/check_alive",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "--internal--",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_referenced_by": [
+                        "--internal--"
+                    ],
+                    "_rkey": "ir.ambassador",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8877,
+                        "_referenced_by": [
+                            "--internal--"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "--internal--",
+                        "name": "cluster_127_0_0_1_8877_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8877",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8877,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8877"
+                        ]
+                    },
+                    "default_class": "httpmapping",
+                    "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "--internal--",
+                    "name": "internal_liveness_probe_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/ambassador/v0/check_alive",
+                    "query_parameters": [],
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/ambassador/v0/check_alive",
+                    "route_weight": [
+                        0,
+                        26,
+                        0,
+                        0,
+                        "/ambassador/v0/check_alive",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8877",
+                    "timeout_ms": 10000,
+                    "weight": 100
+                }
+            ],
+            "name": "GROUP: internal_liveness_probe_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/check_alive",
+            "query_parameters": [],
+            "rewrite": "/ambassador/v0/check_alive",
+            "timeout_ms": 10000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "tlscontextciphersuites.default.1"
+            ],
+            "_rkey": "tlscontextciphersuites.default.1",
+            "default_class": "httpmapping",
+            "group_id": "7f496a7858f3afc5a195897acae9b4f191b4cbee",
+            "group_weight": [
+                0,
+                18,
+                28,
+                0,
+                "/tls-context-same/",
+                "GET",
+                ":authority-tls-context-host-1"
+            ],
+            "headers": [
+                {
+                    "name": ":authority",
+                    "regex": false,
+                    "value": "tls-context-host-1"
+                }
+            ],
+            "kind": "IRHTTPMappingGroup",
+            "location": "tlscontextciphersuites.default.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_rkey": "tlscontextciphersuites.default.1",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "tlscontextciphersuites-http",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 443,
+                        "_referenced_by": [
+                            "tlscontextciphersuites.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_https___tlscontextciphersuites_http_otls_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "tlscontextciphersuites.default.1",
+                        "name": "cluster_https___tlscontextciphersuites_http_otls_default",
+                        "namespace": "default",
+                        "service": "tlscontextciphersuites-http",
+                        "targets": [
+                            {
+                                "ip": "tlscontextciphersuites-http.default",
+                                "port": 443,
+                                "target_kind": "DNSname"
+                            }
+                        ],
+                        "tls_context": {
+                            "_active": true,
+                            "_ambassador_enabled": true,
+                            "_errored": false,
+                            "_rkey": "ir.no-cert-upstream",
+                            "is_fallback": false,
+                            "kind": "null-TLS-context",
+                            "location": "ir.no-cert-upstream",
+                            "name": "no-cert-upstream",
+                            "namespace": "default",
+                            "secret_info": {}
+                        },
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://tlscontextciphersuites-http:443"
+                        ]
+                    },
+                    "default_class": "httpmapping",
+                    "group_id": "7f496a7858f3afc5a195897acae9b4f191b4cbee",
+                    "headers": [
+                        {
+                            "name": ":authority",
+                            "regex": false,
+                            "value": "tls-context-host-1"
+                        }
+                    ],
+                    "host": "tls-context-host-1",
+                    "kind": "Mapping",
+                    "location": "tlscontextciphersuites.default.1",
+                    "metadata_labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "tlscontextciphersuites",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "TLSContextCipherSuites-same-prefix-1",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/tls-context-same/",
+                    "query_parameters": [],
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/",
+                    "route_weight": [
+                        0,
+                        18,
+                        28,
+                        0,
+                        "/tls-context-same/",
+                        "GET",
+                        ":authority-tls-context-host-1"
+                    ],
+                    "serialization": "ambassador_id: tlscontextciphersuites\napiVersion: ambassador/v0\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextciphersuites\n  scope: AmbassadorTest\nname: TLSContextCipherSuites-same-prefix-1\nnamespace: default\nprefix: /tls-context-same/\nservice: https://tlscontextciphersuites-http\n",
+                    "service": "https://tlscontextciphersuites-http",
+                    "sni": true,
+                    "tls_context": {
+                        "_active": true,
+                        "_errored": false,
+                        "_referenced_by": [
+                            "tlscontextciphersuites.default.2"
+                        ],
+                        "_rkey": "tlscontextciphersuites.default.2",
+                        "cipher_suites": [
+                            "ECDHE-RSA-AES128-GCM-SHA256"
+                        ],
+                        "ecdh_curves": [
+                            "P-256"
+                        ],
+                        "hosts": [
+                            "tls-context-host-1"
+                        ],
+                        "is_fallback": false,
+                        "kind": "TLSContext",
+                        "location": "tlscontextciphersuites.default.2",
+                        "max_tls_version": "v1.2",
+                        "metadata_labels": {
+                            "app.kubernetes.io/component": "ambassador-service",
+                            "kat-ambassador-id": "tlscontextciphersuites",
+                            "scope": "AmbassadorTest"
+                        },
+                        "name": "TLSContextCipherSuites-same-context-1",
+                        "namespace": "default",
+                        "secret_info": {
+                            "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/secret.cipher-suites/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.crt",
+                            "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/secret.cipher-suites/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.key",
+                            "secret": "secret.cipher-suites"
+                        },
+                        "secret_namespacing": false
+                    },
+                    "weight": 100
+                }
+            ],
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tlscontextciphersuites",
+                "scope": "AmbassadorTest"
+            },
+            "name": "GROUP: TLSContextCipherSuites-same-prefix-1",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/tls-context-same/",
+            "query_parameters": [],
+            "rewrite": "/",
+            "serialization": "ambassador_id: tlscontextciphersuites\napiVersion: ambassador/v0\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextciphersuites\n  scope: AmbassadorTest\nname: TLSContextCipherSuites-same-prefix-1\nnamespace: default\nprefix: /tls-context-same/\nservice: https://tlscontextciphersuites-http\n",
+            "sni": true,
+            "tls_context": {
+                "_active": true,
+                "_errored": false,
+                "_referenced_by": [
+                    "tlscontextciphersuites.default.2"
+                ],
+                "_rkey": "tlscontextciphersuites.default.2",
+                "cipher_suites": [
+                    "ECDHE-RSA-AES128-GCM-SHA256"
+                ],
+                "ecdh_curves": [
+                    "P-256"
+                ],
+                "hosts": [
+                    "tls-context-host-1"
+                ],
+                "is_fallback": false,
+                "kind": "TLSContext",
+                "location": "tlscontextciphersuites.default.2",
+                "max_tls_version": "v1.2",
+                "metadata_labels": {
+                    "app.kubernetes.io/component": "ambassador-service",
+                    "kat-ambassador-id": "tlscontextciphersuites",
+                    "scope": "AmbassadorTest"
+                },
+                "name": "TLSContextCipherSuites-same-context-1",
+                "namespace": "default",
+                "secret_info": {
+                    "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/secret.cipher-suites/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.crt",
+                    "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/secret.cipher-suites/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.key",
+                    "secret": "secret.cipher-suites"
+                },
+                "secret_namespacing": false
+            }
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "--internal--"
+            ],
+            "_rkey": "ir.ambassador",
+            "default_class": "httpmapping",
+            "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
+            "group_weight": [
+                0,
+                15,
+                0,
+                0,
+                "/ambassador/v0/",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "--internal--",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_referenced_by": [
+                        "--internal--"
+                    ],
+                    "_rkey": "ir.ambassador",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8877,
+                        "_referenced_by": [
+                            "--internal--"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "--internal--",
+                        "name": "cluster_127_0_0_1_8877_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8877",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8877,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8877"
+                        ]
+                    },
+                    "default_class": "httpmapping",
+                    "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "--internal--",
+                    "name": "internal_diagnostics_probe_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/ambassador/v0/",
+                    "query_parameters": [],
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/ambassador/v0/",
+                    "route_weight": [
+                        0,
+                        15,
+                        0,
+                        0,
+                        "/ambassador/v0/",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8877",
+                    "timeout_ms": 10000,
+                    "weight": 100
+                }
+            ],
+            "name": "GROUP: internal_diagnostics_probe_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/",
+            "query_parameters": [],
+            "rewrite": "/ambassador/v0/",
+            "timeout_ms": 10000
+        }
+    ],
+    "grpc_services": {},
+    "hosts": [],
+    "identity": {
+        "ambassador_id": "tlscontextciphersuites",
+        "ambassador_namespace": "default",
+        "ambassador_nodename": "tlscontextciphersuites-default"
+    },
+    "k8s_status_updates": {},
+    "listeners": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.listener",
+            "context": {
+                "_active": true,
+                "_errored": false,
+                "_referenced_by": [
+                    "tlscontextciphersuites.default.2"
+                ],
+                "_rkey": "tlscontextciphersuites.default.2",
+                "cipher_suites": [
+                    "ECDHE-RSA-AES128-GCM-SHA256"
+                ],
+                "ecdh_curves": [
+                    "P-256"
+                ],
+                "hosts": [
+                    "tls-context-host-1"
+                ],
+                "is_fallback": false,
+                "kind": "TLSContext",
+                "location": "tlscontextciphersuites.default.2",
+                "max_tls_version": "v1.2",
+                "metadata_labels": {
+                    "app.kubernetes.io/component": "ambassador-service",
+                    "kat-ambassador-id": "tlscontextciphersuites",
+                    "scope": "AmbassadorTest"
+                },
+                "name": "TLSContextCipherSuites-same-context-1",
+                "namespace": "default",
+                "secret_info": {
+                    "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/secret.cipher-suites/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.crt",
+                    "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/secret.cipher-suites/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.key",
+                    "secret": "secret.cipher-suites"
+                },
+                "secret_namespacing": false
+            },
+            "hostname": "tls-context-host-1",
+            "insecure_action": "Reject",
+            "kind": "IRListener",
+            "location": "tlscontextciphersuites.default.2",
+            "name": "ir.listener",
+            "namespace": "default",
+            "redirect_listener": false,
+            "secure_action": "Route",
+            "service_port": 8443,
+            "use_proxy_proto": false
+        }
+    ],
+    "services": {
+        "k8s-tlscontextciphersuites-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tlscontextciphersuites",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tlscontextciphersuites-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "tlscontextciphersuites",
+                "scope": "AmbassadorTest",
+                "service": "tlscontextciphersuites-admin"
+            },
+            "name": "tlscontextciphersuites-admin",
+            "namespace": "default",
+            "rkey": "k8s-tlscontextciphersuites-admin-default",
+            "serialization": "ambassador_id: tlscontextciphersuites\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tlscontextciphersuites\n  scope: AmbassadorTest\n  service: tlscontextciphersuites-admin\nname: tlscontextciphersuites-admin\nnamespace: default\n"
+        },
+        "k8s-tlscontextciphersuites-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tlscontextciphersuites",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tlscontextciphersuites-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tlscontextciphersuites",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tlscontextciphersuites",
+            "namespace": "default",
+            "rkey": "k8s-tlscontextciphersuites-default",
+            "serialization": "ambassador_id: tlscontextciphersuites\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextciphersuites\n  scope: AmbassadorTest\nname: tlscontextciphersuites\nnamespace: default\n"
+        },
+        "k8s-tlscontextciphersuites-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tlscontextciphersuites",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tlscontextciphersuites-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "tlscontextciphersuites",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tlscontextciphersuites-http",
+            "namespace": "default",
+            "rkey": "k8s-tlscontextciphersuites-http-default",
+            "serialization": "ambassador_id: tlscontextciphersuites\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tlscontextciphersuites\n  scope: AmbassadorTest\nname: tlscontextciphersuites-http\nnamespace: default\n"
+        }
+    },
+    "tls_contexts": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "tlscontextciphersuites.default.2"
+            ],
+            "_rkey": "tlscontextciphersuites.default.2",
+            "cipher_suites": [
+                "ECDHE-RSA-AES128-GCM-SHA256"
+            ],
+            "ecdh_curves": [
+                "P-256"
+            ],
+            "hosts": [
+                "tls-context-host-1"
+            ],
+            "is_fallback": false,
+            "kind": "TLSContext",
+            "location": "tlscontextciphersuites.default.2",
+            "max_tls_version": "v1.2",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tlscontextciphersuites",
+                "scope": "AmbassadorTest"
+            },
+            "name": "TLSContextCipherSuites-same-context-1",
+            "namespace": "default",
+            "secret_info": {
+                "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/secret.cipher-suites/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.crt",
+                "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/secret.cipher-suites/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.key",
+                "secret": "secret.cipher-suites"
+            },
+            "secret_namespacing": false
+        },
+        {
+            "_active": true,
+            "_ambassador_enabled": true,
+            "_errored": false,
+            "_rkey": "ir.no-cert-upstream",
+            "is_fallback": false,
+            "kind": "null-TLS-context",
+            "location": "ir.no-cert-upstream",
+            "name": "no-cert-upstream",
+            "namespace": "default",
+            "secret_info": {}
+        }
+    ]
+}

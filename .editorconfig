@@ -3,37 +3,17 @@ root = true
 [*]
 end_of_line = lf
 insert_final_newline = true
-indent_style = tab
-charset = utf-8
 
-[Makefile]
-indent_style = tab
-
-[{*.go,go.mod,go.sum}]
-indent_style = tab
-
-[{*.yaml,*.yml}]
-indent_style = space
-indent_size = 2
-
-[*.md]
-indent_style = space
+[*.json]
+insert_final_newline = false
 
 [*.py]
 indent_style = space
 indent_size = 4
 
-[*.js]
-indent_style = tab
-
-[*.json]
-insert_final_newline = false
+[*.sh]
 indent_style = space
 indent_size = 4
 
-[*.el]
-indent_style = space
-
-[package.json]
-indent_style = space
-indent_size = 2
+[*.go]
+indent_style = tab

@@ -1,17 +1,11 @@
 #!/hint/bash
 set -e
 
-eval "$(grep BUILD_VERSION /buildroot/apro.version 2>/dev/null)"
-
 # Create symlinks to the multi-call binary so the original names can be used in
 # the builder shell easily (from the shell PATH).
 ln -sf /buildroot/bin/ambassador /buildroot/bin/ambex
 ln -sf /buildroot/bin/ambassador /buildroot/bin/kubestatus
 ln -sf /buildroot/bin/ambassador /buildroot/bin/watt
-ln -sf /buildroot/bin/ambassador /buildroot/bin/amb-sidecar
-ln -sf /buildroot/bin/ambassador /buildroot/bin/app-sidecar
-ln -sf /buildroot/bin/ambassador /buildroot/bin/aes-plugin-runner
-ln -sf /buildroot/bin/ambassador /buildroot/bin/traffic-manager
 
 # Also note there is a different ambassador binary, written in Python, that
 # shows up earlier in the shell PATH:
@@ -25,67 +19,14 @@ sudo install -D -t /opt/ambassador/bin/ /buildroot/bin/ambassador
 sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/ambex
 sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/kubestatus
 sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/watt
-sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/amb-sidecar
-sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/app-sidecar
-sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/aes-plugin-runner
-sudo ln -sf /opt/ambassador/bin/ambassador /opt/ambassador/bin/traffic-manager
+sudo install /buildroot/bin/capabilities_wrapper /opt/ambassador/bin/wrapper
 
 # Copy installer support into /opt/image-build to be run at docker build for the
 # production image. Then run the installers for the builder container.
-# Note: The target dir and the installer script are always handled by
-# ambassador's post-compile script, so we it is safe to assume they exist at
-# this point.
-sudo cp -a /buildroot/apro/build-aux-local/installers /opt/image-build/
+# Note: When this (ambassador's) post-compile runs, it always runs first, and
+# every other post-compile runs as well. So this is the place to recreate the
+# /opt/image-build tree from scratch so the builder container stays valid.
+sudo rm -rf /opt/image-build
+sudo install -D -t /opt/image-build /buildroot/ambassador/build-aux-local/install.sh
+sudo cp -a /buildroot/ambassador/build-aux-local/installers /opt/image-build/
 sudo /opt/image-build/install.sh
-
-# entrypoint.sh, aes-plugin-runner, and the ABI stuff later in this file expect
-# these to be here
-sudo ln -sf /opt/ambassador/bin/amb-sidecar /ambassador/sidecars/
-sudo ln -sf /opt/ambassador/bin/aes-plugin-runner /ambassador/
-
-sudo touch /ambassador/.edge_stack
-
-sudo mkdir -p /ambassador/webui/bindata && sudo make -f build-aux-local/minify.mk
-
-sudo rm -rf /ambassador/init-config
-sudo mkdir /ambassador/init-config
-
-cat > /tmp/edge-stack-mappings.yaml <<EOF
----
-apiVersion: getambassador.io/v2
-kind: Mapping
-metadata:
-  name: ambassador-edge-stack
-  namespace: _automatic_
-  labels:
-    product: aes
-    ambassador_diag_class: private
-spec:
-  ambassador_id: [ "_automatic_" ]
-  prefix: /.ambassador/
-  rewrite: ""
-  service: "127.0.0.1:8500"
-  precedence: 1000000
-EOF
-
-sudo mv /tmp/edge-stack-mappings.yaml /ambassador/init-config
-
-# Hack to have ambassador.version contain the apro.version info,
-# because teaching VERSION.py to read apro.version seems like it will
-# take too much work in the short term.
-#
-# 2020-01-30: Removing this hack speeds up builds.  Since they're
-# released in lockstep, it shouldn't matter anymore?
-#sudo cp -f /buildroot/ambassador.version /buildroot/ambassador/python/ambassador.version.bak
-#sudo cp -f /buildroot/ambassador/python/{apro,ambassador}.version
-
-{
-  echo "# _GOVERSION=$(go version /ambassador/sidecars/amb-sidecar | sed 's/.*go//')"
-  echo "# GOPATH=$(go env GOPATH)"
-  echo '# GOOS=linux'
-  echo '# GOARCH=amd64'
-  echo '# CGO_ENABLED=1'
-  echo '# GO111MODULE=on'
-  go version -m /ambassador/sidecars/amb-sidecar | awk '$1 == "dep" && $4 ~ /^h1:/ { print $2, $3 }'
-} > /tmp/aes-abi.txt
-sudo mv /tmp/aes-abi.txt /ambassador/

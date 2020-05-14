@@ -1,0 +1,361 @@
+{
+    "_errors": {},
+    "_notices": {
+        "linkerdheadermapping.default.1": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ]
+    },
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "k8s-linkerdheadermapping-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "linkerdheadermapping",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-linkerdheadermapping-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "linkerdheadermapping",
+                "scope": "AmbassadorTest",
+                "service": "linkerdheadermapping-admin"
+            },
+            "name": "linkerdheadermapping-admin",
+            "namespace": "default",
+            "rkey": "k8s-linkerdheadermapping-admin-default",
+            "serialization": "ambassador_id: linkerdheadermapping\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\n  service: linkerdheadermapping-admin\nname: linkerdheadermapping-admin\nnamespace: default\n"
+        },
+        "k8s-linkerdheadermapping-default": {
+            "_referenced_by": {},
+            "ambassador_id": "linkerdheadermapping",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-linkerdheadermapping-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "linkerdheadermapping",
+                "scope": "AmbassadorTest"
+            },
+            "name": "linkerdheadermapping",
+            "namespace": "default",
+            "rkey": "k8s-linkerdheadermapping-default",
+            "serialization": "ambassador_id: linkerdheadermapping\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping\nnamespace: default\n"
+        },
+        "k8s-linkerdheadermapping-http-addlinkerdonly-default": {
+            "_referenced_by": {},
+            "ambassador_id": "linkerdheadermapping",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-linkerdheadermapping-http-addlinkerdonly-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "linkerdheadermapping",
+                "scope": "AmbassadorTest"
+            },
+            "name": "linkerdheadermapping-http-addlinkerdonly",
+            "namespace": "default",
+            "rkey": "k8s-linkerdheadermapping-http-addlinkerdonly-default",
+            "serialization": "ambassador_id: linkerdheadermapping\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http-addlinkerdonly\nnamespace: default\n"
+        },
+        "k8s-linkerdheadermapping-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "linkerdheadermapping",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-linkerdheadermapping-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "linkerdheadermapping",
+                "scope": "AmbassadorTest"
+            },
+            "name": "linkerdheadermapping-http",
+            "namespace": "default",
+            "rkey": "k8s-linkerdheadermapping-http-default",
+            "serialization": "ambassador_id: linkerdheadermapping\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http\nnamespace: default\n"
+        },
+        "k8s-linkerdheadermapping-http-noheader-default": {
+            "_referenced_by": {},
+            "ambassador_id": "linkerdheadermapping",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-linkerdheadermapping-http-noheader-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "linkerdheadermapping",
+                "scope": "AmbassadorTest"
+            },
+            "name": "linkerdheadermapping-http-noheader",
+            "namespace": "default",
+            "rkey": "k8s-linkerdheadermapping-http-noheader-default",
+            "serialization": "ambassador_id: linkerdheadermapping\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http-noheader\nnamespace: default\n"
+        },
+        "linkerdheadermapping.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "linkerdheadermapping",
+            "apiVersion": "getambassador.io/v0",
+            "config": {
+                "add_linkerd_headers": true,
+                "defaults": {
+                    "httpmapping": {
+                        "add_request_headers": {
+                            "fruit": {
+                                "append": false,
+                                "value": "orange"
+                            }
+                        },
+                        "remove_request_headers": [
+                            "x-evil-header"
+                        ]
+                    }
+                }
+            },
+            "kind": "Module",
+            "location": "linkerdheadermapping.default.1",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "linkerdheadermapping",
+                "scope": "AmbassadorTest"
+            },
+            "name": "ambassador",
+            "namespace": "default",
+            "rkey": "linkerdheadermapping.default.1",
+            "serialization": "ambassador_id: linkerdheadermapping\napiVersion: ambassador/v0\nconfig:\n  add_linkerd_headers: true\n  defaults:\n    httpmapping:\n      add_request_headers:\n        fruit:\n          append: false\n          value: orange\n      remove_request_headers:\n      - x-evil-header\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: ambassador\nnamespace: default\n"
+        },
+        "linkerdheadermapping.default.2": {
+            "_referenced_by": {},
+            "add_request_headers": {},
+            "ambassador_id": "linkerdheadermapping",
+            "apiVersion": "getambassador.io/v1",
+            "kind": "Mapping",
+            "location": "linkerdheadermapping.default.2",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "linkerdheadermapping",
+                "scope": "AmbassadorTest"
+            },
+            "name": "linkerdheadermapping-http-addlinkerdonly",
+            "namespace": "default",
+            "prefix": "/target_add_linkerd_header_only/",
+            "remove_request_headers": [],
+            "rkey": "linkerdheadermapping.default.2",
+            "serialization": "add_request_headers: {}\nambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http-addlinkerdonly\nnamespace: default\nprefix: /target_add_linkerd_header_only/\nremove_request_headers: []\nservice: linkerdheadermapping-http-addlinkerdonly\n",
+            "service": "linkerdheadermapping-http-addlinkerdonly"
+        },
+        "linkerdheadermapping.default.3": {
+            "_referenced_by": {},
+            "add_linkerd_headers": false,
+            "ambassador_id": "linkerdheadermapping",
+            "apiVersion": "getambassador.io/v1",
+            "kind": "Mapping",
+            "location": "linkerdheadermapping.default.3",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "linkerdheadermapping",
+                "scope": "AmbassadorTest"
+            },
+            "name": "linkerdheadermapping-http-noheader",
+            "namespace": "default",
+            "prefix": "/target_no_header/",
+            "rkey": "linkerdheadermapping.default.3",
+            "serialization": "add_linkerd_headers: false\nambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http-noheader\nnamespace: default\nprefix: /target_no_header/\nservice: linkerdheadermapping-http-noheader\n",
+            "service": "linkerdheadermapping-http-noheader"
+        },
+        "linkerdheadermapping.default.4": {
+            "_referenced_by": {},
+            "add_request_headers": {
+                "fruit": {
+                    "append": false,
+                    "value": "banana"
+                }
+            },
+            "ambassador_id": "linkerdheadermapping",
+            "apiVersion": "getambassador.io/v1",
+            "kind": "Mapping",
+            "location": "linkerdheadermapping.default.4",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "linkerdheadermapping",
+                "scope": "AmbassadorTest"
+            },
+            "name": "linkerdheadermapping-http",
+            "namespace": "default",
+            "prefix": "/target/",
+            "remove_request_headers": [
+                "x-evilness"
+            ],
+            "rkey": "linkerdheadermapping.default.4",
+            "serialization": "add_request_headers:\n  fruit:\n    append: false\n    value: banana\nambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http\nnamespace: default\nprefix: /target/\nremove_request_headers:\n- x-evilness\nservice: linkerdheadermapping-http\n",
+            "service": "linkerdheadermapping-http"
+        }
+    },
+    "mappings": {
+        "linkerdheadermapping-http": {
+            "add_request_headers": {
+                "fruit": {
+                    "append": false,
+                    "value": "banana"
+                }
+            },
+            "ambassador_id": "linkerdheadermapping",
+            "apiVersion": "getambassador.io/v1",
+            "kind": "Mapping",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "linkerdheadermapping",
+                "scope": "AmbassadorTest"
+            },
+            "name": "linkerdheadermapping-http",
+            "namespace": "default",
+            "prefix": "/target/",
+            "remove_request_headers": [
+                "x-evilness"
+            ],
+            "service": "linkerdheadermapping-http"
+        },
+        "linkerdheadermapping-http-addlinkerdonly": {
+            "add_request_headers": {},
+            "ambassador_id": "linkerdheadermapping",
+            "apiVersion": "getambassador.io/v1",
+            "kind": "Mapping",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "linkerdheadermapping",
+                "scope": "AmbassadorTest"
+            },
+            "name": "linkerdheadermapping-http-addlinkerdonly",
+            "namespace": "default",
+            "prefix": "/target_add_linkerd_header_only/",
+            "remove_request_headers": [],
+            "service": "linkerdheadermapping-http-addlinkerdonly"
+        },
+        "linkerdheadermapping-http-noheader": {
+            "add_linkerd_headers": false,
+            "ambassador_id": "linkerdheadermapping",
+            "apiVersion": "getambassador.io/v1",
+            "kind": "Mapping",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "linkerdheadermapping",
+                "scope": "AmbassadorTest"
+            },
+            "name": "linkerdheadermapping-http-noheader",
+            "namespace": "default",
+            "prefix": "/target_no_header/",
+            "service": "linkerdheadermapping-http-noheader"
+        }
+    },
+    "modules": {
+        "ambassador": {
+            "add_linkerd_headers": true,
+            "apiVersion": "getambassador.io/v0",
+            "defaults": {
+                "httpmapping": {
+                    "add_request_headers": {
+                        "fruit": {
+                            "append": false,
+                            "value": "orange"
+                        }
+                    },
+                    "remove_request_headers": [
+                        "x-evil-header"
+                    ]
+                }
+            },
+            "kind": "Module",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "linkerdheadermapping",
+                "scope": "AmbassadorTest"
+            },
+            "name": "ambassador",
+            "namespace": "default"
+        }
+    },
+    "service": {
+        "k8s-linkerdheadermapping-admin-default": {
+            "ambassador_id": "linkerdheadermapping",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "linkerdheadermapping",
+                "scope": "AmbassadorTest",
+                "service": "linkerdheadermapping-admin"
+            },
+            "name": "linkerdheadermapping-admin",
+            "namespace": "default"
+        },
+        "k8s-linkerdheadermapping-default": {
+            "ambassador_id": "linkerdheadermapping",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "linkerdheadermapping",
+                "scope": "AmbassadorTest"
+            },
+            "name": "linkerdheadermapping",
+            "namespace": "default"
+        },
+        "k8s-linkerdheadermapping-http-addlinkerdonly-default": {
+            "ambassador_id": "linkerdheadermapping",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "linkerdheadermapping",
+                "scope": "AmbassadorTest"
+            },
+            "name": "linkerdheadermapping-http-addlinkerdonly",
+            "namespace": "default"
+        },
+        "k8s-linkerdheadermapping-http-default": {
+            "ambassador_id": "linkerdheadermapping",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "linkerdheadermapping",
+                "scope": "AmbassadorTest"
+            },
+            "name": "linkerdheadermapping-http",
+            "namespace": "default"
+        },
+        "k8s-linkerdheadermapping-http-noheader-default": {
+            "ambassador_id": "linkerdheadermapping",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "linkerdheadermapping",
+                "scope": "AmbassadorTest"
+            },
+            "name": "linkerdheadermapping-http-noheader",
+            "namespace": "default"
+        }
+    }
+}

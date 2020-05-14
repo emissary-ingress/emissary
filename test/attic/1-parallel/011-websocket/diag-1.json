@@ -1,0 +1,163 @@
+[
+    {
+        "__saved": [
+            0,
+            26,
+            0,
+            "/ambassador/v0/check_ready",
+            "GET"
+        ],
+        "_group_id": "0a42187b7b3d283e0079ddab01825e1c71fad9f6",
+        "_method": "GET",
+        "_precedence": 0,
+        "_referenced_by": [
+            "--internal--"
+        ],
+        "_source": "--internal--",
+        "clusters": [
+            {
+                "name": "cluster_127_0_0_1_8877",
+                "weight": 100.0
+            }
+        ],
+        "prefix": "/ambassador/v0/check_ready",
+        "prefix_rewrite": "/ambassador/v0/check_ready"
+    },
+    {
+        "__saved": [
+            0,
+            26,
+            0,
+            "/ambassador/v0/check_alive",
+            "GET"
+        ],
+        "_group_id": "6151893fbc2f1f730a1bb946b2eefac391f0d2ec",
+        "_method": "GET",
+        "_precedence": 0,
+        "_referenced_by": [
+            "--internal--"
+        ],
+        "_source": "--internal--",
+        "clusters": [
+            {
+                "name": "cluster_127_0_0_1_8877",
+                "weight": 100.0
+            }
+        ],
+        "prefix": "/ambassador/v0/check_alive",
+        "prefix_rewrite": "/ambassador/v0/check_alive"
+    },
+    {
+        "__saved": [
+            0,
+            15,
+            0,
+            "/ambassador/v0/",
+            "GET"
+        ],
+        "_group_id": "b69eeb747b38f5e5fd3955d044ea7797d67d024f",
+        "_method": "GET",
+        "_precedence": 0,
+        "_referenced_by": [
+            "--internal--"
+        ],
+        "_source": "--internal--",
+        "clusters": [
+            {
+                "name": "cluster_127_0_0_1_8877",
+                "weight": 100.0
+            }
+        ],
+        "prefix": "/ambassador/v0/",
+        "prefix_rewrite": "/ambassador/v0/"
+    },
+    {
+        "__saved": [
+            0,
+            3,
+            0,
+            "/ws",
+            "GET"
+        ],
+        "_group_id": "a8cf9e9c919994eea8202c5b6dbdd4c8a2ad6d0e",
+        "_method": "GET",
+        "_precedence": 0,
+        "_referenced_by": [
+            "web-basic-websocket-insecure-ambassador-sbx0.yaml.1"
+        ],
+        "_source": "web-basic-websocket-insecure-ambassador-sbx0.yaml.1",
+        "clusters": [
+            {
+                "name": "cluster_web_basic_ambassador_sbx0",
+                "weight": 100.0
+            }
+        ],
+        "prefix": "/ws",
+        "prefix_rewrite": "/ws",
+        "use_websocket": true
+    },
+    {
+        "__saved": [
+            0,
+            1,
+            30,
+            "/",
+            "GET",
+            ":authority-web-basic-nosvcproxy"
+        ],
+        "_group_id": "ac31ab0666faab1e25c84be28450e36cca0acc0a",
+        "_method": "GET",
+        "_precedence": 0,
+        "_referenced_by": [
+            "web-basic-nosvcproxy-ambassador-sbx0.yaml.1"
+        ],
+        "_source": "web-basic-nosvcproxy-ambassador-sbx0.yaml.1",
+        "clusters": [
+            {
+                "name": "cluster_web_basic_nosvcproxy_ambassador_sbx0_7000",
+                "weight": 100.0
+            }
+        ],
+        "headers": [
+            {
+                "name": ":authority",
+                "regex": false,
+                "value": "web-basic-nosvcproxy"
+            }
+        ],
+        "prefix": "/",
+        "prefix_rewrite": "/"
+    },
+    {
+        "__saved": [
+            0,
+            1,
+            19,
+            "/",
+            "GET",
+            ":authority-web-basic"
+        ],
+        "_group_id": "eb869ec70e37df6f856e437e5b027ffe8931cd6e",
+        "_method": "GET",
+        "_precedence": 0,
+        "_referenced_by": [
+            "web-basic-ambassador-sbx0.yaml.1"
+        ],
+        "_source": "web-basic-ambassador-sbx0.yaml.1",
+        "clusters": [
+            {
+                "name": "cluster_web_basic_ambassador_sbx0",
+                "weight": 100.0
+            }
+        ],
+        "headers": [
+            {
+                "name": ":authority",
+                "regex": false,
+                "value": "web-basic"
+            }
+        ],
+        "prefix": "/",
+        "prefix_rewrite": "/"
+    }
+]

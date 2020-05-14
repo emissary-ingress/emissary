@@ -1,0 +1,1090 @@
+{
+    "ambassador": {
+        "_active": true,
+        "_errored": false,
+        "_finalized": true,
+        "_rkey": "ir.ambassador",
+        "admin_port": 8001,
+        "debug_mode": false,
+        "default_label_domain": "ambassador",
+        "default_labels": {},
+        "diag_port": 8877,
+        "diagnostics": {
+            "enabled": true,
+            "prefix": "/ambassador/v0/",
+            "rewrite": "/ambassador/v0/",
+            "service": "127.0.0.1:8877"
+        },
+        "enable_http10": false,
+        "enable_ipv4": true,
+        "enable_ipv6": false,
+        "envoy_log_path": "/dev/fd/1",
+        "envoy_log_type": "text",
+        "kind": "IRAmbassador",
+        "liveness_probe": {
+            "enabled": true,
+            "prefix": "/ambassador/v0/check_alive",
+            "rewrite": "/ambassador/v0/check_alive",
+            "service": "127.0.0.1:8877"
+        },
+        "location": "--internal--",
+        "name": "ir.ambassador",
+        "namespace": "default",
+        "proper_case": false,
+        "readiness_probe": {
+            "enabled": true,
+            "prefix": "/ambassador/v0/check_ready",
+            "rewrite": "/ambassador/v0/check_ready",
+            "service": "127.0.0.1:8877"
+        },
+        "server_name": "envoy",
+        "service_port": 8080,
+        "use_ambassador_namespace_for_service_resolution": false,
+        "use_proxy_proto": false,
+        "use_remote_address": true,
+        "x_forwarded_proto_redirect": false,
+        "xff_num_trusted_hops": 0
+    },
+    "clusters": {
+        "cluster_127_0_0_1_8877_default": {
+            "_active": true,
+            "_errored": false,
+            "_hostname": "127.0.0.1",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 8877,
+            "_referenced_by": [
+                "--internal--"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_127_0_0_1_8877_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "--internal--",
+            "name": "cluster_127_0_0_1_8877_default",
+            "namespace": "default",
+            "service": "127.0.0.1:8877",
+            "targets": [
+                {
+                    "ip": "127.0.0.1",
+                    "port": 8877,
+                    "target_kind": "IPaddr"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://127.0.0.1:8877"
+            ]
+        },
+        "cluster_rate_limit_v0_5000_default": {
+            "_active": true,
+            "_errored": false,
+            "_hostname": "rate-limit-v0",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 5000,
+            "_referenced_by": [
+                "rate-limit-v0.default.1"
+            ],
+            "_rkey": "cluster_rate_limit_v0_5000_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "grpc": true,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "rate-limit-v0.default.1",
+            "name": "cluster_rate_limit_v0_5000_default",
+            "namespace": "default",
+            "service": "rate-limit-v0:5000",
+            "targets": [
+                {
+                    "ip": "rate-limit-v0.default",
+                    "port": 5000,
+                    "target_kind": "DNSname"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://rate-limit-v0:5000"
+            ]
+        },
+        "cluster_ratelimitv0test_http_default": {
+            "_active": true,
+            "_errored": false,
+            "_hostname": "ratelimitv0test-http",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 80,
+            "_referenced_by": [
+                "ratelimitv0test-http.default.1",
+                "ratelimitv0test-http.default.2"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_ratelimitv0test_http_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "ratelimitv0test-http.default.1",
+            "name": "cluster_ratelimitv0test_http_default",
+            "namespace": "default",
+            "service": "ratelimitv0test-http",
+            "targets": [
+                {
+                    "ip": "ratelimitv0test-http.default",
+                    "port": 80,
+                    "target_kind": "DNSname"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://ratelimitv0test-http:80"
+            ]
+        }
+    },
+    "filters": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.cors",
+            "config": {},
+            "kind": "ir.cors",
+            "location": "--internal--",
+            "name": "cors",
+            "namespace": "default"
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "rate-limit-v0.default.1"
+            ],
+            "_rkey": "rate-limit-v0.default.1",
+            "cluster": {
+                "_active": true,
+                "_errored": false,
+                "_hostname": "rate-limit-v0",
+                "_is_sidecar": false,
+                "_namespace": "default",
+                "_port": 5000,
+                "_referenced_by": [
+                    "rate-limit-v0.default.1"
+                ],
+                "_rkey": "cluster_rate_limit_v0_5000_default",
+                "connect_timeout_ms": 3000,
+                "enable_endpoints": false,
+                "enable_ipv4": true,
+                "enable_ipv6": false,
+                "grpc": true,
+                "ignore_cluster": false,
+                "kind": "IRCluster",
+                "lb_type": "round_robin",
+                "location": "rate-limit-v0.default.1",
+                "name": "cluster_rate_limit_v0_5000_default",
+                "namespace": "default",
+                "service": "rate-limit-v0:5000",
+                "targets": [
+                    {
+                        "ip": "rate-limit-v0.default",
+                        "port": 5000,
+                        "target_kind": "DNSname"
+                    }
+                ],
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://rate-limit-v0:5000"
+                ]
+            },
+            "config": {
+                "domain": "ambassador",
+                "request_type": "both",
+                "timeout_ms": 500
+            },
+            "data_plane_proto": false,
+            "domain": "ambassador",
+            "grpc_service": {
+                "_active": true,
+                "_errored": false,
+                "_hostname": "rate-limit-v0",
+                "_is_sidecar": false,
+                "_namespace": "default",
+                "_port": 5000,
+                "_referenced_by": [
+                    "rate-limit-v0.default.1"
+                ],
+                "_rkey": "cluster_rate_limit_v0_5000_default",
+                "connect_timeout_ms": 3000,
+                "enable_endpoints": false,
+                "enable_ipv4": true,
+                "enable_ipv6": false,
+                "grpc": true,
+                "ignore_cluster": false,
+                "kind": "IRCluster",
+                "lb_type": "round_robin",
+                "location": "rate-limit-v0.default.1",
+                "name": "cluster_rate_limit_v0_5000_default",
+                "namespace": "default",
+                "service": "rate-limit-v0:5000",
+                "targets": [
+                    {
+                        "ip": "rate-limit-v0.default",
+                        "port": 5000,
+                        "target_kind": "DNSname"
+                    }
+                ],
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://rate-limit-v0:5000"
+                ]
+            },
+            "kind": "IRRateLimit",
+            "location": "rate-limit-v0.default.1",
+            "name": "rate_limit",
+            "namespace": "default",
+            "service": "rate-limit-v0:5000",
+            "type": "decoder"
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.router",
+            "config": {},
+            "kind": "ir.router",
+            "location": "--internal--",
+            "name": "router",
+            "namespace": "default",
+            "type": "decoder"
+        }
+    ],
+    "groups": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "--internal--"
+            ],
+            "_rkey": "ir.ambassador",
+            "default_class": "httpmapping",
+            "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
+            "group_weight": [
+                0,
+                26,
+                0,
+                0,
+                "/ambassador/v0/check_ready",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "--internal--",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_referenced_by": [
+                        "--internal--"
+                    ],
+                    "_rkey": "ir.ambassador",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8877,
+                        "_referenced_by": [
+                            "--internal--"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "--internal--",
+                        "name": "cluster_127_0_0_1_8877_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8877",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8877,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8877"
+                        ]
+                    },
+                    "default_class": "httpmapping",
+                    "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "--internal--",
+                    "name": "internal_readiness_probe_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/ambassador/v0/check_ready",
+                    "query_parameters": [],
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/ambassador/v0/check_ready",
+                    "route_weight": [
+                        0,
+                        26,
+                        0,
+                        0,
+                        "/ambassador/v0/check_ready",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8877",
+                    "timeout_ms": 10000,
+                    "weight": 100
+                }
+            ],
+            "name": "GROUP: internal_readiness_probe_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/check_ready",
+            "query_parameters": [],
+            "rewrite": "/ambassador/v0/check_ready",
+            "timeout_ms": 10000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "--internal--"
+            ],
+            "_rkey": "ir.ambassador",
+            "default_class": "httpmapping",
+            "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
+            "group_weight": [
+                0,
+                26,
+                0,
+                0,
+                "/ambassador/v0/check_alive",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "--internal--",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_referenced_by": [
+                        "--internal--"
+                    ],
+                    "_rkey": "ir.ambassador",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8877,
+                        "_referenced_by": [
+                            "--internal--"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "--internal--",
+                        "name": "cluster_127_0_0_1_8877_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8877",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8877,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8877"
+                        ]
+                    },
+                    "default_class": "httpmapping",
+                    "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "--internal--",
+                    "name": "internal_liveness_probe_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/ambassador/v0/check_alive",
+                    "query_parameters": [],
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/ambassador/v0/check_alive",
+                    "route_weight": [
+                        0,
+                        26,
+                        0,
+                        0,
+                        "/ambassador/v0/check_alive",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8877",
+                    "timeout_ms": 10000,
+                    "weight": 100
+                }
+            ],
+            "name": "GROUP: internal_liveness_probe_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/check_alive",
+            "query_parameters": [],
+            "rewrite": "/ambassador/v0/check_alive",
+            "timeout_ms": 10000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "--internal--"
+            ],
+            "_rkey": "ir.ambassador",
+            "default_class": "httpmapping",
+            "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
+            "group_weight": [
+                0,
+                15,
+                0,
+                0,
+                "/ambassador/v0/",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "--internal--",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_referenced_by": [
+                        "--internal--"
+                    ],
+                    "_rkey": "ir.ambassador",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8877,
+                        "_referenced_by": [
+                            "--internal--"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "--internal--",
+                        "name": "cluster_127_0_0_1_8877_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8877",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8877,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8877"
+                        ]
+                    },
+                    "default_class": "httpmapping",
+                    "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "--internal--",
+                    "name": "internal_diagnostics_probe_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/ambassador/v0/",
+                    "query_parameters": [],
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/ambassador/v0/",
+                    "route_weight": [
+                        0,
+                        15,
+                        0,
+                        0,
+                        "/ambassador/v0/",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8877",
+                    "timeout_ms": 10000,
+                    "weight": 100
+                }
+            ],
+            "name": "GROUP: internal_diagnostics_probe_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/",
+            "query_parameters": [],
+            "rewrite": "/ambassador/v0/",
+            "timeout_ms": 10000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "ratelimitv0test-http.default.1"
+            ],
+            "_rkey": "ratelimitv0test-http.default.1",
+            "default_class": "httpmapping",
+            "group_id": "ef2f76a27cdb850e84f8f5c00ce17c4798f7e065",
+            "group_weight": [
+                0,
+                8,
+                0,
+                0,
+                "/target/",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "labels": {
+                "ambassador": [
+                    {
+                        "v0_ratelimit_01": [
+                            "source_cluster",
+                            "destination_cluster",
+                            "remote_address",
+                            {
+                                "generic_key": "A test case"
+                            },
+                            {
+                                "x-ambassador-test-allow": {
+                                    "header": "x-ambassador-test-allow",
+                                    "omit_if_not_present": true
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            "location": "ratelimitv0test-http.default.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_rkey": "ratelimitv0test-http.default.1",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "ratelimitv0test-http",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 80,
+                        "_referenced_by": [
+                            "ratelimitv0test-http.default.1",
+                            "ratelimitv0test-http.default.2"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_ratelimitv0test_http_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "ratelimitv0test-http.default.1",
+                        "name": "cluster_ratelimitv0test_http_default",
+                        "namespace": "default",
+                        "service": "ratelimitv0test-http",
+                        "targets": [
+                            {
+                                "ip": "ratelimitv0test-http.default",
+                                "port": 80,
+                                "target_kind": "DNSname"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://ratelimitv0test-http:80"
+                        ]
+                    },
+                    "default_class": "httpmapping",
+                    "group_id": "ef2f76a27cdb850e84f8f5c00ce17c4798f7e065",
+                    "headers": [],
+                    "kind": "Mapping",
+                    "labels": {
+                        "ambassador": [
+                            {
+                                "v0_ratelimit_01": [
+                                    "source_cluster",
+                                    "destination_cluster",
+                                    "remote_address",
+                                    {
+                                        "generic_key": "A test case"
+                                    },
+                                    {
+                                        "x-ambassador-test-allow": {
+                                            "header": "x-ambassador-test-allow",
+                                            "omit_if_not_present": true
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "location": "ratelimitv0test-http.default.1",
+                    "metadata_labels": {
+                        "kat-ambassador-id": "ratelimitv0test",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "ratelimit_target_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/target/",
+                    "query_parameters": [],
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/",
+                    "route_weight": [
+                        0,
+                        8,
+                        0,
+                        0,
+                        "/target/",
+                        "GET"
+                    ],
+                    "serialization": "ambassador_id: ratelimitv0test\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: ratelimitv0test\n  scope: AmbassadorTest\nname: ratelimit_target_mapping\nnamespace: default\nprefix: /target/\nrate_limits:\n- descriptor: A test case\n  headers:\n  - x-ambassador-test-allow\nservice: ratelimitv0test-http\n",
+                    "service": "ratelimitv0test-http",
+                    "weight": 100
+                }
+            ],
+            "metadata_labels": {
+                "kat-ambassador-id": "ratelimitv0test",
+                "scope": "AmbassadorTest"
+            },
+            "name": "GROUP: ratelimit_target_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/target/",
+            "query_parameters": [],
+            "rewrite": "/",
+            "serialization": "ambassador_id: ratelimitv0test\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: ratelimitv0test\n  scope: AmbassadorTest\nname: ratelimit_target_mapping\nnamespace: default\nprefix: /target/\nrate_limits:\n- descriptor: A test case\n  headers:\n  - x-ambassador-test-allow\nservice: ratelimitv0test-http\n"
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "ratelimitv0test-http.default.2"
+            ],
+            "_rkey": "ratelimitv0test-http.default.2",
+            "default_class": "httpmapping",
+            "group_id": "8da530d7afdb5345ab5a03d3994e0a24f8ddf04b",
+            "group_weight": [
+                0,
+                8,
+                0,
+                0,
+                "/labels/",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "labels": {
+                "ambassador": [
+                    {
+                        "host_and_user": [
+                            {
+                                "custom-label": {
+                                    "header": ":authority",
+                                    "omit_if_not_present": true
+                                }
+                            },
+                            {
+                                "user": {
+                                    "header": "x-user",
+                                    "omit_if_not_present": true
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "omg_header": [
+                            {
+                                "custom-label": {
+                                    "default": "OMFG!",
+                                    "header": "x-omg"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            "location": "ratelimitv0test-http.default.2",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_errored": false,
+                    "_rkey": "ratelimitv0test-http.default.2",
+                    "add_request_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_errored": false,
+                        "_hostname": "ratelimitv0test-http",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 80,
+                        "_referenced_by": [
+                            "ratelimitv0test-http.default.1",
+                            "ratelimitv0test-http.default.2"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_ratelimitv0test_http_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "ratelimitv0test-http.default.1",
+                        "name": "cluster_ratelimitv0test_http_default",
+                        "namespace": "default",
+                        "service": "ratelimitv0test-http",
+                        "targets": [
+                            {
+                                "ip": "ratelimitv0test-http.default",
+                                "port": 80,
+                                "target_kind": "DNSname"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://ratelimitv0test-http:80"
+                        ]
+                    },
+                    "default_class": "httpmapping",
+                    "group_id": "8da530d7afdb5345ab5a03d3994e0a24f8ddf04b",
+                    "headers": [],
+                    "kind": "Mapping",
+                    "labels": {
+                        "ambassador": [
+                            {
+                                "host_and_user": [
+                                    {
+                                        "custom-label": {
+                                            "header": ":authority",
+                                            "omit_if_not_present": true
+                                        }
+                                    },
+                                    {
+                                        "user": {
+                                            "header": "x-user",
+                                            "omit_if_not_present": true
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "omg_header": [
+                                    {
+                                        "custom-label": {
+                                            "default": "OMFG!",
+                                            "header": "x-omg"
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "location": "ratelimitv0test-http.default.2",
+                    "metadata_labels": {
+                        "kat-ambassador-id": "ratelimitv0test",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "ratelimit_label_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/labels/",
+                    "query_parameters": [],
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/",
+                    "route_weight": [
+                        0,
+                        8,
+                        0,
+                        0,
+                        "/labels/",
+                        "GET"
+                    ],
+                    "serialization": "ambassador_id: ratelimitv0test\napiVersion: ambassador/v1\nkind: Mapping\nlabels:\n  ambassador:\n  - host_and_user:\n    - custom-label:\n        header: :authority\n        omit_if_not_present: true\n    - user:\n        header: x-user\n        omit_if_not_present: true\n  - omg_header:\n    - custom-label:\n        default: OMFG!\n        header: x-omg\nmetadata_labels:\n  kat-ambassador-id: ratelimitv0test\n  scope: AmbassadorTest\nname: ratelimit_label_mapping\nnamespace: default\nprefix: /labels/\nservice: ratelimitv0test-http\n",
+                    "service": "ratelimitv0test-http",
+                    "weight": 100
+                }
+            ],
+            "metadata_labels": {
+                "kat-ambassador-id": "ratelimitv0test",
+                "scope": "AmbassadorTest"
+            },
+            "name": "GROUP: ratelimit_label_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/labels/",
+            "query_parameters": [],
+            "rewrite": "/",
+            "serialization": "ambassador_id: ratelimitv0test\napiVersion: ambassador/v1\nkind: Mapping\nlabels:\n  ambassador:\n  - host_and_user:\n    - custom-label:\n        header: :authority\n        omit_if_not_present: true\n    - user:\n        header: x-user\n        omit_if_not_present: true\n  - omg_header:\n    - custom-label:\n        default: OMFG!\n        header: x-omg\nmetadata_labels:\n  kat-ambassador-id: ratelimitv0test\n  scope: AmbassadorTest\nname: ratelimit_label_mapping\nnamespace: default\nprefix: /labels/\nservice: ratelimitv0test-http\n"
+        }
+    ],
+    "grpc_services": {
+        "rate_limit_service": {
+            "_active": true,
+            "_errored": false,
+            "_hostname": "rate-limit-v0",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 5000,
+            "_referenced_by": [
+                "rate-limit-v0.default.1"
+            ],
+            "_rkey": "cluster_rate_limit_v0_5000_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "grpc": true,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "rate-limit-v0.default.1",
+            "name": "cluster_rate_limit_v0_5000_default",
+            "namespace": "default",
+            "service": "rate-limit-v0:5000",
+            "targets": [
+                {
+                    "ip": "rate-limit-v0.default",
+                    "port": 5000,
+                    "target_kind": "DNSname"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://rate-limit-v0:5000"
+            ]
+        }
+    },
+    "hosts": [],
+    "identity": {
+        "ambassador_id": "ratelimitv0test",
+        "ambassador_namespace": "default",
+        "ambassador_nodename": "ratelimitv0test-default"
+    },
+    "k8s_status_updates": {},
+    "listeners": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.listener",
+            "hostname": "*",
+            "insecure_action": "Route",
+            "kind": "IRListener",
+            "location": "--internal--",
+            "name": "ir.listener",
+            "namespace": "default",
+            "redirect_listener": false,
+            "secure_action": "Route",
+            "service_port": 8080,
+            "use_proxy_proto": false
+        }
+    ],
+    "ratelimit": {
+        "_active": true,
+        "_errored": false,
+        "_referenced_by": [
+            "rate-limit-v0.default.1"
+        ],
+        "_rkey": "rate-limit-v0.default.1",
+        "cluster": {
+            "_active": true,
+            "_errored": false,
+            "_hostname": "rate-limit-v0",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 5000,
+            "_referenced_by": [
+                "rate-limit-v0.default.1"
+            ],
+            "_rkey": "cluster_rate_limit_v0_5000_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "grpc": true,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "rate-limit-v0.default.1",
+            "name": "cluster_rate_limit_v0_5000_default",
+            "namespace": "default",
+            "service": "rate-limit-v0:5000",
+            "targets": [
+                {
+                    "ip": "rate-limit-v0.default",
+                    "port": 5000,
+                    "target_kind": "DNSname"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://rate-limit-v0:5000"
+            ]
+        },
+        "config": {
+            "domain": "ambassador",
+            "request_type": "both",
+            "timeout_ms": 500
+        },
+        "data_plane_proto": false,
+        "domain": "ambassador",
+        "grpc_service": {
+            "_active": true,
+            "_errored": false,
+            "_hostname": "rate-limit-v0",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 5000,
+            "_referenced_by": [
+                "rate-limit-v0.default.1"
+            ],
+            "_rkey": "cluster_rate_limit_v0_5000_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "grpc": true,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "rate-limit-v0.default.1",
+            "name": "cluster_rate_limit_v0_5000_default",
+            "namespace": "default",
+            "service": "rate-limit-v0:5000",
+            "targets": [
+                {
+                    "ip": "rate-limit-v0.default",
+                    "port": 5000,
+                    "target_kind": "DNSname"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://rate-limit-v0:5000"
+            ]
+        },
+        "kind": "IRRateLimit",
+        "location": "rate-limit-v0.default.1",
+        "name": "rate_limit",
+        "namespace": "default",
+        "service": "rate-limit-v0:5000",
+        "type": "decoder"
+    },
+    "services": {
+        "k8s-rate-limit-v0-default": {
+            "_referenced_by": {},
+            "ambassador_id": "ratelimitv0test",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-rate-limit-v0-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "ratelimitv0test",
+                "scope": "AmbassadorTest"
+            },
+            "name": "rate-limit-v0",
+            "namespace": "default",
+            "rkey": "k8s-rate-limit-v0-default",
+            "serialization": "ambassador_id: ratelimitv0test\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: ratelimitv0test\n  scope: AmbassadorTest\nname: rate-limit-v0\nnamespace: default\n"
+        },
+        "k8s-ratelimitv0test-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "ratelimitv0test",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-ratelimitv0test-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "ratelimitv0test",
+                "scope": "AmbassadorTest",
+                "service": "ratelimitv0test-admin"
+            },
+            "name": "ratelimitv0test-admin",
+            "namespace": "default",
+            "rkey": "k8s-ratelimitv0test-admin-default",
+            "serialization": "ambassador_id: ratelimitv0test\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: ratelimitv0test\n  scope: AmbassadorTest\n  service: ratelimitv0test-admin\nname: ratelimitv0test-admin\nnamespace: default\n"
+        },
+        "k8s-ratelimitv0test-default": {
+            "_referenced_by": {},
+            "ambassador_id": "ratelimitv0test",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-ratelimitv0test-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "ratelimitv0test",
+                "scope": "AmbassadorTest"
+            },
+            "name": "ratelimitv0test",
+            "namespace": "default",
+            "rkey": "k8s-ratelimitv0test-default",
+            "serialization": "ambassador_id: ratelimitv0test\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: ratelimitv0test\n  scope: AmbassadorTest\nname: ratelimitv0test\nnamespace: default\n"
+        },
+        "k8s-ratelimitv0test-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "ratelimitv0test",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-ratelimitv0test-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "ratelimitv0test",
+                "scope": "AmbassadorTest"
+            },
+            "name": "ratelimitv0test-http",
+            "namespace": "default",
+            "rkey": "k8s-ratelimitv0test-http-default",
+            "serialization": "ambassador_id: ratelimitv0test\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: ratelimitv0test\n  scope: AmbassadorTest\nname: ratelimitv0test-http\nnamespace: default\n"
+        }
+    },
+    "tls_contexts": []
+}

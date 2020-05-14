@@ -1,1 +1,0 @@
-document.querySelector('body').classList.remove('hide_until_ready');

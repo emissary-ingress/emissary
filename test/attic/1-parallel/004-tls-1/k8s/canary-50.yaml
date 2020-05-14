@@ -1,0 +1,44 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo2
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind:  Mapping
+      name:  demo_with_host_mapping
+      prefix: /demo/
+      host: demo2.datawire.io
+      tls: upstream     
+      service: demo2:443
+      ambassador_id: 004-tls-1
+      ---
+      apiVersion: ambassador/v0
+      kind:  Mapping
+      name:  demo_with_x_mapping
+      prefix: /good/
+      headers:
+        "x-hurkle": true
+      tls: upstream     
+      service: demo2:443
+      ambassador_id: 004-tls-1
+      ---
+      apiVersion: ambassador/v0
+      kind:  Mapping
+      name:  canary_50_mapping
+      prefix: /demo/
+      headers:
+        x-demo-mode: canary
+      tls: upstream    
+      service: https://demo2
+      weight: 50
+      ambassador_id: 004-tls-1
+spec:
+  selector:
+    app: demo2
+  ports:
+    - port: 443
+      targetPort: http-api
+  type: ClusterIP

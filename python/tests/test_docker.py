@@ -1,0 +1,114 @@
+import os
+import sys
+
+import pexpect
+import pytest
+import requests
+import time
+
+DockerImage = os.environ.get("AMBASSADOR_DOCKER_IMAGE", None)
+
+child = None    # see docker_start()
+
+def docker_start(logfile) -> bool:
+    # Use a global here so that the child process doesn't get killed
+    global child
+
+    logfile.write(f'DOCKER_NETWORK = {os.environ["DOCKER_NETWORK"]}\n')
+
+    cmd = f'docker run --rm --name test_docker_ambassador --network {os.environ["DOCKER_NETWORK"]} --network-alias docker-ambassador -u8888:0 {os.environ["AMBASSADOR_DOCKER_IMAGE"]} --demo'
+    logfile.write(f"Running: {cmd}\n")
+
+    child = pexpect.spawn(cmd, encoding='utf-8')
+    child.logfile = logfile
+
+    i = child.expect([ pexpect.EOF, pexpect.TIMEOUT, 'AMBASSADOR DEMO RUNNING' ])
+
+    if i == 0:
+        logfile.write('ambassador died?\n')
+        return False
+    elif i == 1:
+        logfile.write('ambassador timed out?\n')
+        return False
+    else:
+        logfile.write('ambassador running\n')
+        return True
+
+def docker_kill(logfile):
+    cmd = f'docker kill test_docker_ambassador'
+
+    child = pexpect.spawn(cmd, encoding='utf-8')
+    child.logfile = logfile
+
+    child.expect([ pexpect.EOF, pexpect.TIMEOUT ])
+
+def check_http(logfile) -> bool:
+    try:
+        logfile.write("QotM: making request\n")
+        response = requests.get('http://docker-ambassador:8080/qotm/?json=true', headers={ 'Host': 'localhost' })
+        text = response.text
+
+        logfile.write(f"QotM: got status {response.status_code}, text {text}\n")
+
+        if response.status_code != 200:
+            logfile.write(f'QotM: wanted 200 but got {response.status_code} {text}\n')
+            return False
+
+        return True
+    except Exception as e:
+        logfile.write(f'Could not do HTTP: {e}\n')
+
+        return False
+
+def clicheck() -> bool:
+    child = pexpect.spawn("ambassador --help")
+
+    i = child.expect([ pexpect.EOF, pexpect.TIMEOUT, "Usage: ambassador" ])
+
+    if i == 0:
+        print('ambassador died without usage statement?')
+        return False
+    elif i == 1:
+        print('ambassador timed out without usage statement?')
+        return False
+
+    i = child.expect([ pexpect.EOF, pexpect.TIMEOUT ])
+
+    if i == 0:
+        return True
+    else:
+        print("ambassador timed out after usage statement?")
+        return False
+
+
+def test_docker():
+    test_status = False
+
+    # We're running in the build container here, so the Ambassador CLI should work.
+    assert clicheck(), "CLI check failed"
+
+    with open('/tmp/test_docker_output', 'w') as logfile:
+        if not DockerImage:
+            logfile.write('No $AMBASSADOR_DOCKER_IMAGE??\n')
+        else:
+            if docker_start(logfile):
+                logfile.write("Demo started, first check...")
+
+                if check_http(logfile):
+                    logfile.write("Sleeping for second check...")
+                    time.sleep(10)
+
+                    if check_http(logfile):
+                        test_status = True
+
+                docker_kill(logfile)
+
+    if not test_status:
+        with open('/tmp/test_docker_output', 'r') as logfile:
+            for line in logfile:
+                print(line.rstrip())
+
+    assert test_status, 'test failed'
+
+if __name__ == '__main__':
+    pytest.main(sys.argv)

@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+option go_package = "ratelimit";
+
+option cc_generic_services = true;
+
+package pb.lyft.ratelimit;
+
+import "envoy/service/ratelimit/v2/rls.proto";
+
+service RateLimitService {
+  rpc ShouldRateLimit(envoy.service.ratelimit.v2.RateLimitRequest) returns (envoy.service.ratelimit.v2.RateLimitResponse) {
+  }
+}

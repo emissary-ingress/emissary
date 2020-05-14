@@ -1,13 +1,39 @@
 ---
 language: generic
 
-branches:
-  only:
-  - master
+cache:
+  directories:
+    - $HOME/.npm
+
+env:
+  global:
+    # Set from the repository settings:
+    #- GH_TOKEN=[secure]
+    #- NETLIFY_AUTH_TOKEN=[secure]
+
+git:
+  depth: false
+
+install:
+  - node --version
+  - nvm use 11
+  - node --version
+  - source ./.ci/travis-fix-env
+  - ./.ci/install-blc
+
+script:
+  - ./.ci/pr-build-website-preview master
+  - ./.ci/publish-website-preview master
+  - ./.ci/blc-website-preview master
 
 deploy:
   - provider: script
-    script: ./publish-website.sh
+    script: ./.ci/publish-website
     skip_cleanup: true
     on:
       branch: master
+  - provider: script
+    script: ./.ci/publish-website
+    skip_cleanup: true
+    on:
+      branch: early-access

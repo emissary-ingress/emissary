@@ -1,0 +1,51 @@
+@media (max-width: 769px) {
+  #index-installContainer {
+    flex-direction: column;
+  }
+   .index-dropdown{
+     width: auto;
+   }
+   .index-dropBtn {
+     width: 100%;
+   }
+}
+
+.index-dropBtn {
+  background-color: #8e77ff;
+  color: white;
+  padding: 10px;
+  font-size: 16px;
+  border: none;
+  margin-top: -20px;
+}
+
+.index-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.index-dropdownContent {
+  display: none;
+  position: absolute;
+  background-color: #f1f1f1;
+  width: 100%;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.index-dropdownContent a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+.index-dropdownContent a:hover {background-color: #ddd;}
+
+.index-dropdown:hover .index-dropdownContent {display: block;}
+
+.index-dropdown:hover .index-dropBtn {background-color: #5F3EFF;}
+
+#index-installContainer {
+  display: flex;
+}
