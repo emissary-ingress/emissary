@@ -1,6 +1,9 @@
 from typing import Optional
 
 import logging
+import sys
+
+import pytest
 
 logging.basicConfig(
     level=logging.INFO,
@@ -80,5 +83,4 @@ service: test:9999"""
     assert result == ('testservice.default', [expected])
 
 if __name__ == '__main__':
-    test_resourcefetcher()
-
+    pytest.main(sys.argv)

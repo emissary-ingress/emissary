@@ -33,6 +33,9 @@ var (
 	_ = types.DynamicAny{}
 )
 
+// define the regex for a UUID once up-front
+var _server_info_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on ServerInfo with the rules defined in the
 // proto definition for this message. If any rules are violated, an error is returned.
 func (m *ServerInfo) Validate() error {
@@ -177,6 +180,8 @@ func (m *CommandLineOptions) Validate() error {
 	// no validation rules for ComponentLogLevel
 
 	// no validation rules for LogFormat
+
+	// no validation rules for LogFormatEscaped
 
 	// no validation rules for LogPath
 

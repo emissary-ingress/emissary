@@ -6,6 +6,7 @@ import os
 import sys
 
 import jsonschema
+import pytest
 
 logging.basicConfig(
     level=logging.INFO,
@@ -73,5 +74,4 @@ def test_schemas():
 
 
 if __name__ == '__main__':
-    test_schemas()
-
+    pytest.main(sys.argv)

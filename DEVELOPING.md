@@ -34,7 +34,7 @@ ever find anything missing from this list.
  - bash
  - rsync (with the --info option)
  - golang 1.13
- - python 3.6+
+ - python 3.7+
  - kubectl
  - a kubernetes cluster
  - a docker registry
@@ -266,12 +266,12 @@ If you want to make a change that **only** affects the live documentation for
 an already-released version of Ambassador, you'll need to make your changes in
 a branch from the `release` branch for that version, then PR back to the 
 `release` branch. For example, if you find a typo while reading the documentation
-for Ambassador 1.3:
+for Ambassador 1.4:
 
-- Check out `release/v1.3`
+- Check out `release/v1.4`
 - Make a branch from it.
 - Fix the typo.
-- Push your branch and PR it back to `release/v1.3`.
+- Push your branch and PR it back to `release/v1.4`.
 
 How do I get the source code for a release?
 -------------------------------------------
@@ -354,15 +354,21 @@ This is a bit more complex than anyone likes, but here goes:
    process.  The build happens in a Docker container; you can set
    `DOCKER_HOST` to point to a powerful machine if you like.
 
-   You can build and test Ambassador with the usual `make` commands,
+   * You can build and test **Ambassador** with the usual `make` commands,
    with the exception that you MUST run `make update-base` first
    whenever Envoy needs to be recompiled; it won't happen
    automatically.  So `make test` to build-and-test Ambassador would
    become `make update-base && make test`, and `make images` to just
    build Ambassador would become `make update-base && make images`.
 
-   You can run Envoy's test suite by running `make check-envoy`.  Be
-   warned that Envoy's test suite requires several hundred gigabytes
+   * For **Envoy** development, you can build and run **specific Envoy test** 
+   (i.e. unit tests in test/common/network/listener_impl_test.cc) by exporting Bazel label: 
+   `export ENVOY_TEST_LABEL='//test/common/network:listener_impl_test'` 
+   and running `make check-envoy`.
+   Once you are happy with your changes, it's advised to `unset ENVOY_TEST_LABEL`
+   and run Envoy's **test suite** by executing `make check-envoy`
+   again to make sure your change is not breaking Envoy.
+   Be warned that Envoy's **test suite** requires several hundred gigabytes
    of disk space to run.
 
    You can run `make envoy-shell` to get a Bash shell in the Docker

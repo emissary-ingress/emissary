@@ -37,6 +37,9 @@ var (
 	_ = envoy_api_v2_core.RequestMethod(0)
 )
 
+// define the regex for a UUID once up-front
+var _accesslog_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on TCPAccessLogEntry with the rules defined
 // in the proto definition for this message. If any rules are violated, an
 // error is returned.
@@ -578,6 +581,28 @@ func (m *AccessLogCommon) Validate() error {
 				}
 			}
 		}
+	}
+
+	for key, val := range m.GetFilterStateObjects() {
+		_ = val
+
+		// no validation rules for FilterStateObjects[key]
+
+		{
+			tmp := val
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return AccessLogCommonValidationError{
+						field:  fmt.Sprintf("FilterStateObjects[%v]", key),
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
 	}
 
 	return nil
