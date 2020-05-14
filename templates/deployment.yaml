@@ -138,6 +138,9 @@ spec:
               {{- if .protocol }}
               protocol: {{ .protocol }}
               {{- end }}
+              {{- if .hostPort }}
+              hostPort: {{ .hostPort }}
+              {{- end }}
             {{- end}}
             - name: admin
               containerPort: 8877
