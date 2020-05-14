@@ -386,50 +386,49 @@ wait_for_url "diagd" "http://localhost:8877/_internal/v0/ping"
 # WORKER: KUBEWATCH                                                            #
 ################################################################################
 if [[ -z "${AMBASSADOR_NO_KUBEWATCH}" ]]; then
-    KUBEWATCH_SYNC_KINDS="-s service"
+    watt_query_flags=(-s service)
 
     if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_ingress_class" ]; then
-        KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s ingressclasses"
+        watt_query_flags+=(-s ingressclasses)
     fi
 
     if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_ingress" ]; then
-        KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s ingresses"
+        watt_query_flags+=(-s ingresses)
     fi
 
     if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_crds" ]; then
-        KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s AuthService -s Mapping -s Module -s RateLimitService -s TCPMapping -s TLSContext -s TracingService"
+        watt_query_flags+=(-s AuthService -s Mapping -s Module -s RateLimitService -s TCPMapping -s TLSContext -s TracingService)
     fi
 
     if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_crds_2" ]; then
-        KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s ConsulResolver -s KubernetesEndpointResolver -s KubernetesServiceResolver"
+        watt_query_flags+=(-s ConsulResolver -s KubernetesEndpointResolver -s KubernetesServiceResolver)
     fi
 
     if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_crds_3" ]; then
-        KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s Host"
+        watt_query_flags+=(-s Host)
     fi
 
     if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_crds_4" ]; then
-        KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s LogService"
+        watt_query_flags+=(-s LogService)
     fi
 
-    AMBASSADOR_FIELD_SELECTOR_ARG=""
     if [ -n "$AMBASSADOR_FIELD_SELECTOR" ] ; then
-	    AMBASSADOR_FIELD_SELECTOR_ARG="--fields $AMBASSADOR_FIELD_SELECTOR"
+	    watt_query_flags+=(--fields $AMBASSADOR_FIELD_SELECTOR)
     fi
 
-    AMBASSADOR_LABEL_SELECTOR_ARG=""
     if [ -n "$AMBASSADOR_LABEL_SELECTOR" ] ; then
-	    AMBASSADOR_LABEL_SELECTOR_ARG="--labels $AMBASSADOR_LABEL_SELECTOR"
+	    watt_query_flags+=(--labels $AMBASSADOR_LABEL_SELECTOR)
+    fi
+
+    if [ -n "$AMBASSADOR_SINGLE_NAMESPACE" ]; then
+        watt_query_flags+=(--namespace "${AMBASSADOR_NAMESPACE}")
     fi
 
     launch "watt" watt \
            --port 8002 \
-           ${AMBASSADOR_SINGLE_NAMESPACE:+ --namespace "${AMBASSADOR_NAMESPACE}" } \
            --notify 'python /ambassador/post_update.py --watt ' \
-           ${KUBEWATCH_SYNC_KINDS} \
-           ${AMBASSADOR_FIELD_SELECTOR_ARG} \
-           ${AMBASSADOR_LABEL_SELECTOR_ARG} \
-           --watch "python /ambassador/watch_hook.py"
+           --watch "python /ambassador/watch_hook.py" \
+           "${watt_query_flags[@]}"
 fi
 
 ################################################################################
