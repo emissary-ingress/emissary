@@ -35,6 +35,7 @@ import t_ingress
 import t_listeneridletimeout
 import t_cluster_tag
 import t_queryparameter_routing
+import t_request_header
 
 # pytest will find this because Runner is a toplevel callable object in a file
 # that pytest is willing to look inside.
