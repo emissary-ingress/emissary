@@ -4,6 +4,10 @@ releases. Please keep it up to date.
 
 # Ambassador Edge Stack CHANGELOG
 
+## 1.4.3 
+
+- Bugfix: Don't generate lots of 403s while logged into the Edge Policy Console.
+
 ## 1.4.2 (TBD)
 
 - Bugfix: The `OAuth2` Filter redirection-endpoint now handles various XSRF errors more consistently (the way we meant it to in 1.2.1)
