@@ -33,6 +33,9 @@ var (
 	_ = types.DynamicAny{}
 )
 
+// define the regex for a UUID once up-front
+var _config_source_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on ApiConfigSource with the rules defined
 // in the proto definition for this message. If any rules are violated, an
 // error is returned.
@@ -44,6 +47,13 @@ func (m *ApiConfigSource) Validate() error {
 	if _, ok := ApiConfigSource_ApiType_name[int32(m.GetApiType())]; !ok {
 		return ApiConfigSourceValidationError{
 			field:  "ApiType",
+			reason: "value must be one of the defined enum values",
+		}
+	}
+
+	if _, ok := ApiVersion_name[int32(m.GetTransportApiVersion())]; !ok {
+		return ApiConfigSourceValidationError{
+			field:  "TransportApiVersion",
 			reason: "value must be one of the defined enum values",
 		}
 	}
@@ -423,6 +433,13 @@ func (m *ConfigSource) Validate() error {
 					cause:  err,
 				}
 			}
+		}
+	}
+
+	if _, ok := ApiVersion_name[int32(m.GetResourceApiVersion())]; !ok {
+		return ConfigSourceValidationError{
+			field:  "ResourceApiVersion",
+			reason: "value must be one of the defined enum values",
 		}
 	}
 

@@ -15,10 +15,11 @@
 package conversion_test
 
 import (
-	"reflect"
 	"testing"
 
+	"github.com/gogo/protobuf/proto"
 	pstruct "github.com/gogo/protobuf/types"
+	"github.com/google/go-cmp/cmp"
 
 	v2 "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
 	core "github.com/datawire/ambassador/pkg/api/envoy/api/v2/core"
@@ -42,7 +43,7 @@ func TestConversion(t *testing.T) {
 			},
 		}}},
 	}
-	if !reflect.DeepEqual(st.Fields, pbst) {
+	if !cmp.Equal(st.Fields, pbst, cmp.Comparer(proto.Equal)) {
 		t.Errorf("MessageToStruct(%v) => got %v, want %v", pb, st.Fields, pbst)
 	}
 
@@ -51,7 +52,7 @@ func TestConversion(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error %v", err)
 	}
-	if !reflect.DeepEqual(pb, out) {
+	if !cmp.Equal(pb, out, cmp.Comparer(proto.Equal)) {
 		t.Errorf("StructToMessage(%v) => got %v, want %v", st, out, pb)
 	}
 

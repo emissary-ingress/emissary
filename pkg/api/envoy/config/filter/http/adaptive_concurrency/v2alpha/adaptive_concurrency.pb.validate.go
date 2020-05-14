@@ -33,6 +33,9 @@ var (
 	_ = types.DynamicAny{}
 )
 
+// define the regex for a UUID once up-front
+var _adaptive_concurrency_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on GradientControllerConfig with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, an error is returned.
@@ -284,17 +287,6 @@ func (m *GradientControllerConfig_ConcurrencyLimitCalculationParams) Validate() 
 		return nil
 	}
 
-	if wrapper := m.GetMaxGradient(); wrapper != nil {
-
-		if wrapper.GetValue() <= 1 {
-			return GradientControllerConfig_ConcurrencyLimitCalculationParamsValidationError{
-				field:  "MaxGradient",
-				reason: "value must be greater than 1",
-			}
-		}
-
-	}
-
 	if wrapper := m.GetMaxConcurrencyLimit(); wrapper != nil {
 
 		if wrapper.GetValue() <= 0 {
@@ -459,6 +451,32 @@ func (m *GradientControllerConfig_MinimumRTTCalculationParams) Validate() error 
 			if err := v.Validate(); err != nil {
 				return GradientControllerConfig_MinimumRTTCalculationParamsValidationError{
 					field:  "Jitter",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
+	if wrapper := m.GetMinConcurrency(); wrapper != nil {
+
+		if wrapper.GetValue() <= 0 {
+			return GradientControllerConfig_MinimumRTTCalculationParamsValidationError{
+				field:  "MinConcurrency",
+				reason: "value must be greater than 0",
+			}
+		}
+
+	}
+
+	{
+		tmp := m.GetBuffer()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return GradientControllerConfig_MinimumRTTCalculationParamsValidationError{
+					field:  "Buffer",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}

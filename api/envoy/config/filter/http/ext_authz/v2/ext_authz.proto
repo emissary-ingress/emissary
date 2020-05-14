@@ -2,22 +2,27 @@ syntax = "proto3";
 
 package envoy.config.filter.http.ext_authz.v2;
 
-option java_outer_classname = "ExtAuthzProto";
-option java_multiple_files = true;
-option java_package = "io.envoyproxy.envoy.config.filter.http.ext_authz.v2";
-
 import "envoy/api/v2/core/base.proto";
 import "envoy/api/v2/core/grpc_service.proto";
 import "envoy/api/v2/core/http_uri.proto";
 import "envoy/type/http_status.proto";
 import "envoy/type/matcher/string.proto";
 
+import "envoy/annotations/deprecation.proto";
+import "udpa/annotations/migrate.proto";
 import "validate/validate.proto";
+
+option java_package = "io.envoyproxy.envoy.config.filter.http.ext_authz.v2";
+option java_outer_classname = "ExtAuthzProto";
+option java_multiple_files = true;
+option (udpa.annotations.file_migrate).move_to_package =
+    "envoy.extensions.filters.http.ext_authz.v3";
 
 // [#protodoc-title: External Authorization]
 // External Authorization :ref:`configuration overview <config_http_filters_ext_authz>`.
+// [#extension: envoy.filters.http.ext_authz]
 
-// [#next-free-field: 10]
+// [#next-free-field: 11]
 message ExtAuthz {
   // External authorization service configuration.
   oneof services {
@@ -46,7 +51,7 @@ message ExtAuthz {
   // useful when transitioning from alpha to release versions assuming that both definitions are
   // semantically compatible. Deprecation note: This field is deprecated and should only be used for
   // version upgrade. See release notes for more details.
-  bool use_alpha = 4 [deprecated = false];
+  bool use_alpha = 4 [deprecated = true, (envoy.annotations.disallowed_by_default) = true];
 
   // Enables filter to buffer the client request body and send it within the authorization request.
   // A ``x-envoy-auth-partial-body: false|true`` metadata header will be added to the authorization
@@ -85,11 +90,17 @@ message ExtAuthz {
 
   // Specifies if the filter is enabled.
   //
-  // If :ref:`runtime_key <envoy_api_field_core.runtimefractionalpercent.runtime_key>` is specified,
+  // If :ref:`runtime_key <envoy_api_field_core.RuntimeFractionalPercent.runtime_key>` is specified,
   // Envoy will lookup the runtime key to get the percentage of requests to filter.
   //
   // If this field is not specified, the filter will be enabled for all requests.
   api.v2.core.RuntimeFractionalPercent filter_enabled = 9;
+
+  // Specifies if the peer certificate is sent to the external service.
+  //
+  // When this field is true, Envoy will include the peer X.509 certificate, if available, in the
+  // :ref:`certificate<envoy_api_field_service.auth.v2.AttributeContext.Peer.certificate>`.
+  bool include_peer_certificate = 10;
 }
 
 // Configuration for buffering the request data.

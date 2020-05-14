@@ -86,6 +86,7 @@ type HelmDownloader struct {
 	// The chart downloaded (the Chart.yaml file as well as the metadata)
 	downChartFile string
 	downChart     *chart.Metadata
+	DownChartDir  string
 
 	// Directory where the chart will be / has been downloaded (the chart will be in a subdirectory inside)
 	downDir        string
@@ -198,6 +199,7 @@ func (lc *HelmDownloader) Cleanup() error {
 	}
 	lc.downDir = ""
 	lc.downChartFile = ""
+	lc.DownChartDir = ""
 	lc.downChart = nil
 	return nil
 }
@@ -378,6 +380,7 @@ func (lc *HelmDownloader) lookupChart() error {
 	}
 
 	lc.downChart = chart
+	lc.DownChartDir = res
 	lc.downChartFile = chartFile
 	return nil
 }
