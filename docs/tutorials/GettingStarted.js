@@ -362,9 +362,23 @@ class GettingStarted extends Component {
         </div>
       </div>
 
+      <div id="QS-blank"></div>
+
       <div id="QS-fullManual">
         <a href="../../topics/install/">See full-detailed instructions and other install options</a>
       </div>
+
+      <div className="QS-blackbird-image">
+        <img alt="Ambassador's OpenSource Blackbird" src="/images/features-page-bird.svg"/>
+      </div>
+
+      <div className="QS-Spin">
+       <div className="QS-asideText">
+         Take it for a spin!<br/>
+          <span className="QS-spinText">➞ <a href="../../tutorials/quickstart-demo/">See how Ambassador works with a service</a>.</span><br/>
+          <span className="QS-spinText">➞ <a href="../../topics/using/">Check out custom options and integrations</a>.</span>
+        </div>
+       </div>
       
       <div className="QS-main">
 
