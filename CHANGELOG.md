@@ -74,6 +74,7 @@ Format:
 - Bugfix: Only update Knative ingress CRDs when the generation changes
 - Feature: Inform Knative of the route to the Ambassador service if available
 - Feature: Support the path and timeout options of the Knative ingress path rules
+- Bugfix: Websocket library updated to incorporate security fixes
 
 ## [1.4.3] May 14, 2020
 [1.4.3]: https://github.com/datawire/ambassador/compare/v1.4.2...v1.4.3
