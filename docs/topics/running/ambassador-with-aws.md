@@ -7,7 +7,7 @@ This document serves as a reference for how different configuration options avai
 ## tl;dr Recommended Configuration:
 There are lot of configuration options available to you when running Ambassador in AWS. While you should read this entire document to understand what is best for you, the following is the recommended configuration when running Ambassador in AWS:
 
-It is recommended to terminate TLS at Ambassador so you can take advantage of all the tls configuration options available in Ambassador including setting the allowed tls versions, setting `alpn_protocol` options, and enforcing http -> https redirection.
+It is recommended to terminate TLS at Ambassador so you can take advantage of all the tls configuration options available in Ambassador including setting the allowed tls versions, setting `alpn_protocol` options, enforcing http -> https redirection, and [automatic certificate management](../host-crd) in the Ambassador Edge Stack.
 
 When terminating TLS at Ambassador, you should deploy a L4 NLB with the proxy protocol enabled for the best performance out of your load balancer while still preserving the client ip address.
 
@@ -183,7 +183,7 @@ spec:
     targetPort: 8443
 ```
 
-While terminating TLS at Ambassador makes it easier to expose more advanced TLS configuration options, it does have the drawback of not being able to use the ACM to manage certificates. You will have to manage your TLS certificates yourself or use the [automatic HTTPS capabilities](../host-crd) in the Ambassador Edge Stack to have Ambassador do it for you.
+While terminating TLS at Ambassador makes it easier to expose more advanced TLS configuration options, it does have the drawback of not being able to use the ACM to manage certificates. You will have to manage your TLS certificates yourself or use the [automatic certificate management](../host-crd) available in the Ambassador Edge Stack to have Ambassador do it for you.
 
 ### TLS Termination at the Load Balancer
 
