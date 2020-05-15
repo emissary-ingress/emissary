@@ -94,7 +94,7 @@ def hack_conditions_setter(self, conditions):
     self._conditions = conditions
 
 
-def check_crd_type(crd, ignore_forbidden = False):
+def check_crd_type(crd):
     status = False
 
     try:
@@ -103,9 +103,6 @@ def check_crd_type(crd, ignore_forbidden = False):
     except client.rest.ApiException as e:
         if e.status == 404:
             logger.debug(f'CRD type definition not found for {crd}')
-        elif e.status == 403 and ignore_forbidden:
-            status = True
-            logger.debug(f'Insufficient permissions to validate CRD type definition for {crd}; skipping check')
         else:
             logger.debug(f'CRD type definition unreadable for {crd}: {e.reason}')
 
@@ -168,6 +165,38 @@ def check_ingress_classes():
             logger.debug(f'IngressClass check got {e.status}')
 
     return status
+
+
+def get_api_resources(group, version):
+    api_client = client.ApiClient(client.Configuration())
+
+    if api_client:
+        try:
+            # Sadly, the Kubernetes Python library supports a method equivalent to `kubectl api-versions`
+            # but nothing for `kubectl api-resources`.
+            # Here, we extracted (read copy/pasted) a sample call from ApisApi().get_api_versions()
+            # where we use the rest ApiClient to list api resources specific to a group.
+
+            path_params = {}
+            query_params = []
+            header_params = {}
+
+            header_params['Accept'] = api_client. \
+                select_header_accept(['application/json'])
+
+            auth_settings = ['BearerToken']
+
+            (data) = api_client.call_api(f'/apis/{group}/{version}', 'GET',
+                                         path_params,
+                                         query_params,
+                                         header_params,
+                                         auth_settings=auth_settings,
+                                         response_type='V1APIResourceList')
+            return data[0]
+        except ApiException as e:
+            logger.error(f'get_api_resources {e.status}')
+
+    return None
 
 
 def touch_file(touchfile):
@@ -271,11 +300,14 @@ def main(debug):
         client.models.V1beta1CustomResourceDefinitionStatus.stored_versions = \
             property(hack_stored_versions, hack_stored_versions_setter)
 
+        known_api_resources = []
+        api_resources = get_api_resources("getambassador.io", "v2")
+        if api_resources:
+            known_api_resources = list(map(lambda r: r.name + '.getambassador.io', api_resources.resources))
+
         for touchfile, description, required in required_crds:
             for crd in required:
-                # Ignore the required CRD validation if we are running AMBASSADOR_SINGLE_NAMESPACE,
-                # because we have a Role and not a ClusterRole to read CRDs.
-                if not check_crd_type(crd, ambassador_single_namespace):
+                if not crd in known_api_resources:
                     touch_file(touchfile)
 
                     logger.debug(f'{description} are not available.' +
