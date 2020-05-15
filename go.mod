@@ -70,7 +70,7 @@ require (
 	github.com/google/shlex v0.0.0-20181106134648-c34317bd91bf
 	github.com/google/uuid v1.1.1
 	github.com/gookit/color v1.2.3
-	github.com/gorilla/websocket v1.4.0
+	github.com/gorilla/websocket v1.4.1
 	github.com/hashicorp/consul/api v1.1.0
 	github.com/iancoleman/strcase v0.0.0-20180726023541-3605ed457bf7
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
