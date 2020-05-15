@@ -94,7 +94,7 @@ def hack_conditions_setter(self, conditions):
     self._conditions = conditions
 
 
-def check_crd_type(crd):
+def check_crd_type(crd, ignore_forbidden = False):
     status = False
 
     try:
@@ -103,6 +103,9 @@ def check_crd_type(crd):
     except client.rest.ApiException as e:
         if e.status == 404:
             logger.debug(f'CRD type definition not found for {crd}')
+        elif e.status == 403 and ignore_forbidden:
+            status = True
+            logger.debug(f'Insufficient permissions to validate CRD type definition for {crd}; skipping check')
         else:
             logger.debug(f'CRD type definition unreadable for {crd}: {e.reason}')
 
@@ -268,18 +271,17 @@ def main(debug):
         client.models.V1beta1CustomResourceDefinitionStatus.stored_versions = \
             property(hack_stored_versions, hack_stored_versions_setter)
 
-        # Skip the required CRD validation if we are running AMBASSADOR_SINGLE_NAMESPACE,
-        # because we have a Role and not a ClusterRole to read CRDs.
-        if not ambassador_single_namespace:
-            for touchfile, description, required in required_crds:
-                for crd in required:
-                    if not check_crd_type(crd):
-                        touch_file(touchfile)
+        for touchfile, description, required in required_crds:
+            for crd in required:
+                # Ignore the required CRD validation if we are running AMBASSADOR_SINGLE_NAMESPACE,
+                # because we have a Role and not a ClusterRole to read CRDs.
+                if not check_crd_type(crd, ambassador_single_namespace):
+                    touch_file(touchfile)
 
-                        logger.debug(f'{description} are not available.' +
-                                     ' To enable CRD support, configure the Ambassador CRD type definitions and RBAC,' +
-                                     ' then restart the Ambassador pod.')
-                        # logger.debug(f'touched {touchpath}')
+                    logger.debug(f'{description} are not available.' +
+                                 ' To enable CRD support, configure the Ambassador CRD type definitions and RBAC,' +
+                                 ' then restart the Ambassador pod.')
+                    # logger.debug(f'touched {touchpath}')
 
         if not check_ingress_classes():
             touch_file('.ambassador_ignore_ingress_class')
