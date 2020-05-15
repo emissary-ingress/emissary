@@ -15,6 +15,14 @@
 # limitations under the License
 
 set -o errexit
+
+# Don't bother trying to build the website if GH_TOKEN is unset (as it will
+# be for a community PR).
+if [ -z "$GH_TOKEN" ]; then
+	echo '[pr-build-website-preview] skipping: GH_TOKEN is not set'
+	exit 0
+fi
+
 set -o nounset
 set -o xtrace
 

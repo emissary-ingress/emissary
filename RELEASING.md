@@ -108,10 +108,8 @@ In getambassador.io.git repository:
 - The release branches are exposed via git submodules under /submodules/ directory.
 ```
 submodules/
-├── 1.1 <--- links to `release/v1.1` branch
-├── 1.2 <--- links to `release/v1.2` branch
 ├── 1.3 <--- links to `release/v1.3` branch
-└── latest <--- links to `release/v1.3` branch
+└── latest <--- links to `master` branch
 ```
 - All markdown files under `/docs-structure/` directory make their way to the getambassador.io website with the _exact_ path as they are in.
 ```
@@ -126,15 +124,13 @@ docs-structure/
 - Now that we have all release branches under `/submodules/`, we further link their `/docs/` directories under `/docs-structure/docs/`.
 ```
 docs-structure/docs/
-├── 1.1 -> ../../submodules/1.1/docs
-├── 1.2 -> ../../submodules/1.2/docs
 ├── 1.3 -> ../../submodules/1.3/docs
 └── latest -> ../../submodules/latest/docs
 ```
 
 This is how our docs are laid out.
 
-In ambassador.git, the CI is configured to update the submodules in getambassador.io.git on every documentation update to the release branches, which deploys to the website.
+In ambassador.git, the CI is configured to update the submodules in getambassador.io.git on every documentation update to the release branches (and the master branch), which deploys to the website.
 
 #### How to host a new release branch.
 
@@ -144,10 +140,7 @@ For example, let's suppose version 1.4 of ambassador needs to be hosted.
 ##### In ambassador.git,
 
 - In the branch `release/v1.4`,
-  - In `docs/js/doc-page.js`, update Sidebar's prefix to `/docs/latest`
-  ```js
-  <Sidebar location={location} prefix="/docs/latest" items={docLinks} />
-  ```
+  - In `docs/js/doc-links.yml`, make sure the links are pointed at `/docs/1.4/...`
   - In `docs/js/doc-page.js`, update the footer branch.
   ```
   <DocFooter page={page} branch="release/v1.4" />
@@ -155,6 +148,11 @@ For example, let's suppose version 1.4 of ambassador needs to be hosted.
   - Update `.travis.yml` to push on every doc change to `release/v1.4` branch.
   ```yaml
   deploy:
+  - provider: script
+    script: ./.ci/publish-website
+    skip_cleanup: true
+    on:
+      branch: master
   # Add this section
   - provider: script
     script: ./.ci/publish-website
@@ -166,11 +164,6 @@ For example, let's suppose version 1.4 of ambassador needs to be hosted.
     skip_cleanup: true
     on:
       branch: release/v1.3
-  - provider: script
-    script: ./.ci/publish-website
-    skip_cleanup: true
-    on:
-      branch: release/v1.2
   ```
 
 ##### In getambassador.io.git,
@@ -178,20 +171,14 @@ For example, let's suppose version 1.4 of ambassador needs to be hosted.
 ```
 git submodule add --name ambassador-1.4 --branch release/v1.4 https://github.com/datawire/ambassador.git submodules/1.4/
 ```
-- Update `ambassador-latest` submodule to point to `release/v1.4` branch.
+- Update the yaml link to point to the new release.
 ```
-$ cat .gitmodules
-[submodule "ambassador-latest"]
-        path = submodules/latest
-        url = https://github.com/datawire/ambassador.git
-        branch = release/v1.4
-...
-...
-...
+cd docs-structure/
+ln -n -f -s ../submodules/1.4/docs/yaml yaml
 ```
 - Now link only the docs in this branch under `/docs-structure/docs/` directory.
 ```
-cd docs-structure/docs/
+cd docs/
 ln -s ../../submodules/1.4/docs 1.4
 ```
 - Add 1.4 dropdown link in `src/components/Header/Header.js` file.
@@ -203,29 +190,10 @@ ln -s ../../submodules/1.4/docs 1.4
                     <Link to="/docs/latest/">Latest</Link>
                     <Link to="/docs/1.4/">1.4</Link>
                     <Link to="/docs/1.3/">1.3</Link>
-                    <Link to="/docs/1.2/">1.2</Link>
-                    <Link to="/docs/1.1/">1.1</Link>
                   </div>
                 </div>
               </li>
 ```
 
 ##### Note:
-Now the website must now display v1.4 docs under getambassador.io/docs/. Make sure everything looks right.
-
-##### In ambassador.git,
-
-Now that the latest release is `1.4`, we need to remove that tag from `1.3`.
-
-- In the branch `release/v1.3`,
-  - In `docs/js/doc-page.js`, update Sidebar's prefix to `/docs/1.3`
-  ```js
-  <Sidebar location={location} prefix="/docs/1.3" items={docLinks} />
-  ```
-
-##### Note:
-You should be all set now.
-- `/docs/latest/` must now show v1.4 docs.
-- `/docs/1.4/` must now point to `/docs/latest/`.
-- `/docs/1.3/` must now show docs under `release/v1.3` branch.
-- The rest of the versions must also show the right set of docs.
+Now the website must display v1.4 docs under getambassador.io/docs/1.4/. Make sure everything looks right.
