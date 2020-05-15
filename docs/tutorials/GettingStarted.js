@@ -376,7 +376,7 @@ class GettingStarted extends Component {
        <div className="QS-asideText">
          Take it for a spin!<br/>
           <span className="QS-spinText">➞ <a href="../../tutorials/quickstart-demo/">See how Ambassador works with a service</a>.</span><br/>
-          <span className="QS-spinText">➞ <a href="../../topics/using/">Check out custom options and integrations</a>.</span>
+          <span id="QS-customLink" className="QS-spinText">➞ <a href="../../topics/using/">Check out custom options and integrations</a>.</span>
         </div>
        </div>
       
