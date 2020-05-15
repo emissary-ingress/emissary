@@ -4,6 +4,52 @@ The Ambassador Edge Stack is a platform agnostic Kubernetes API gateway. It will
 
 This document serves as a reference for how different configuration options available when running Kubernetes in AWS. See [Installing Ambassador Edge Stack](../../user-guide/install/) for the various installation methods available.
 
+## tl;dr Recommended Configuration:
+There are lot of configuration options available to you when running Ambassador in AWS. While you should read this entire document to understand what is best for you, the following is the recommended configuration when running Ambassador in AWS:
+
+It is recommended to terminate TLS at Ambassador so you can take advantage of all the tls configuration options available in Ambassador including setting the allowed tls versions, setting `alpn_protocol` options, and enforcing http -> https redirection.
+
+When terminating TLS at Ambassador, you should deploy a L4 NLB with the proxy protocol enabled for the best performance out of your load balancer while still preserving the client ip address.
+
+The following `Service` should be configured to deploy an NLB with cross zone load balancing enabled (see [Network Load Balancer (NLB(#network-load-balancer-nlb) for caveat on the cross-zone-load-balancing annotation). You will need to configure the proxy protocol in the NLB manually in the AWS Console.
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: ambassador
+  namespace: ambassador
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+spec:
+  type: LoadBalancer
+  ports:
+  - name: HTTP
+    port: 80
+    targetPort: 8080
+  - name: HTTPS
+    port: 443
+    targetPort: 8443
+  selector:
+    service: ambassador
+```
+
+   After deploying the `Service` above and manually enabling the proxy protocol you will need to deploy the following [Ambassador `Module`](../ambassador) to tell Ambassador to use the proxy protocol and then restart Ambassador for the configuration to take effect.
+
+   ```yaml
+   apiVersion: getambassador.io/v2
+   kind: Module
+   metadata:
+     name: ambassador
+     namespace: ambassador
+   spec:
+     config:
+       use_proxy_proto: true
+   ```
+
+   Ambassador will now expect to traffic from the load balancer to be wrapped with the proxy protocol so it can read the client ip address.
+
 ## AWS load balancer notes
 
 AWS provides three types of load balancers:
