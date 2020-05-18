@@ -279,73 +279,86 @@ class GettingStarted extends Component {
                     </div>
                   </div>
                 </div>
-              <li className="QS-asideNoBullets">Create the ambassador namespace:</li>
-                <div className="styles-module--CodeBlock--1UB4s">
-                  <div className="QS-codeblockInstall">
-                  <span className="QS-copyButton"><CopyButton content="
-                  kubectl create namespace ambassador">Copy</CopyButton></span>
-                    <div className="token-line">
-                      <span className="token-plain">kubectl</span>
-                      <span className="token plain"> </span>
-                      <span className="token-plain">create</span>
-                      <span className="token plain"> </span>
-                      <span className="token-plain">namespace</span>
-                      <span className="token plain"> </span>
-                      <span className="token plain">ambassador</span>
-                    </div>
-                  </div>
-                </div>
 
-              <li className="QS-asideNoBullets">Install the Ambassador Edge Stack Chart:</li>
-              <details open>
-                <summary id="helmVersions">&nbsp;Helm3 Users
-                </summary>
-                  <div id="QS-helm3" className="styles-module--CodeBlock--1UB4s">
-                    <div className="QS-codeblockInstall">
-                    <span className="QS-copyButton"><CopyButton content="
-                    helm install ambassador --namespace ambassador datawire/ambassador">Copy</CopyButton></span>
-                      <div className="token-line">
-                        <span className="token-plain">helm</span>
-                        <span className="token plain"> </span>
-                        <span className="token-plain">install</span>
-                        <span className="token plain"> </span>
-                        <span className="token-plain">ambassador</span>
-                        <span className="token plain"> </span>
-                        <span className="token plain">--namespace</span>
-                        <span className="token plain"> </span>
-                        <span className="token-plain">ambassador</span>
-                        <span className="token plain"> </span>
-                        <span className="token-plain">datawire/ambassador</span>
+              <li className="QS-asideNoBullets">Create the ambassador namespace  and Install the Ambassador Edge Stack Chart:</li>
+                <div id="helmVersionWrapper">
+
+                  <div id="helm2Block">
+                    <details open>
+                      <summary id="helmVersions">&nbsp;Helm2
+                      </summary>
+                      <div id="QS-helm2" className="styles-module--CodeBlock--1UB4s">
+                        <div className="QS-codeblockInstall">
+                        <span className="QS-copyButton"><CopyButton content="
+                        kubectl create namespace ambassador && \helm install --name ambassador --namespace ambassador datawire/ambassador">Copy</CopyButton></span>
+                          <div className="token-line">
+                            <span className="token-plain">kubectl</span>
+                            <span className="token plain"> </span>
+                            <span className="token-plain">create</span>
+                            <span className="token plain"> </span>
+                            <span className="token-plain">namespace</span>
+                            <span className="token plain"> </span>
+                            <span className="token plain">ambassador</span>
+                            <span className="token plain"> </span>
+                            <span className="token plain">&&</span>
+                            <span className="token plain"> </span>
+                            <span className="token-plain">\</span><br/>
+                            <span className="token-plain">helm</span>
+                            <span className="token plain"> </span>
+                            <span className="token-plain">install</span>
+                            <span className="token plain"> </span>
+                            <span className="token-plain">--name</span>
+                            <span className="token plain"> </span>
+                            <span className="token-plain">ambassador</span>
+                            <span className="token plain"> </span>
+                            <span className="token plain">--namespace</span>
+                            <span className="token plain"> </span>
+                            <span className="token-plain">ambassador</span>
+                            <span className="token plain"> </span>
+                            <span className="token-plain">datawire/ambassador</span>
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    </details>
                   </div>
-              </details>
-            
-              <details>
-                <summary id="helmVersions">&nbsp;Helm2 Users
-                </summary>
-                <div id="QS-helm2" className="styles-module--CodeBlock--1UB4s">
-                  <div className="QS-codeblockInstall">
-                  <span className="QS-copyButton"><CopyButton content="
-                  helm install --name ambassador --namespace ambassador datawire/ambassador">Copy</CopyButton></span>
-                    <div className="token-line">
-                      <span className="token-plain">helm</span>
-                      <span className="token plain"> </span>
-                      <span className="token-plain">install</span>
-                      <span className="token plain"> </span>
-                      <span className="token-plain">--name</span>
-                      <span className="token plain"> </span>
-                      <span className="token-plain">ambassador</span>
-                      <span className="token plain"> </span>
-                      <span className="token plain">--namespace</span>
-                      <span className="token plain"> </span>
-                      <span className="token-plain">ambassador</span>
-                      <span className="token plain"> </span>
-                      <span className="token-plain">datawire/ambassador</span>
-                    </div>
+
+                  <div id="helm3Block">
+                    <details open>
+                      <summary id="helmVersions">&nbsp;Helm3
+                      </summary>
+                      <div id="QS-helm3" className="styles-module--CodeBlock--1UB4s">
+                        <div className="QS-codeblockInstall">
+                        <span className="QS-copyButton"><CopyButton content="
+                        kubectl create namespace ambassador && \helm install ambassador --namespace ambassador datawire/ambassador">Copy</CopyButton></span>
+                            <div className="token-line">
+                            <span className="token-plain">kubectl</span>
+                            <span className="token plain"> </span>
+                            <span className="token-plain">create</span>
+                            <span className="token plain"> </span>
+                            <span className="token-plain">namespace</span>
+                            <span className="token plain"> </span>
+                            <span className="token plain">ambassador</span>
+                            <span className="token plain"> </span>
+                            <span className="token plain">&&</span>
+                            <span className="token plain"> </span>
+                            <span className="token-plain">\</span><br/>
+                            <span className="token-plain">helm</span>
+                            <span className="token plain"> </span>
+                            <span className="token-plain">install</span>
+                            <span className="token plain"> </span>
+                            <span className="token-plain">ambassador</span>
+                            <span className="token plain"> </span>
+                            <span className="token plain">--namespace</span>
+                            <span className="token plain"> </span>
+                            <span className="token-plain">ambassador</span>
+                            <span className="token plain"> </span>
+                            <span className="token-plain">datawire/ambassador</span>
+                          </div>
+                        </div>
+                      </div>
+                    </details>
                   </div>
                 </div>
-              </details>
             
               <li className="QS-asideNoBullets">Install Ambassador Edge Stack:</li>
                 <div className="styles-module--CodeBlock--1UB4s">
