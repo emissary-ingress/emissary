@@ -713,8 +713,9 @@ class V2Listener(dict):
                 self.access_log.append({"name": "envoy.tcp_grpc_access_log", "config": access_log_obj})
 
         # Use sane access log spec in JSON
-        if self.config.ir.ambassador_module.envoy_log_type.lower() == "json":
-            json_format = {
+        envoy_log_type = self.config.ir.ambassador_module.envoy_log_type.lower()
+        if envoy_log_type == "json" or envoy_log_type == "typed_json":
+            default_json_format = {
                 'start_time': '%START_TIME%',
                 'method': '%REQ(:METHOD)%',
                 'path': '%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%',
@@ -739,6 +740,18 @@ class V2Listener(dict):
                 'upstream_transport_failure_reason': '%UPSTREAM_TRANSPORT_FAILURE_REASON%'
             }
 
+            log_format = self.config.ir.ambassador_module.get('envoy_log_format', None)
+            if log_format:
+                try:
+                    json_format = json.loads(log_format)
+                except:
+                    self.config.ir.logger.warning("V2Listener: Invalid json log_format '%s'" % log_format)
+                    json_format = default_json_format
+                    envoy_log_type = "json"
+            else:
+                json_format = default_json_format
+                envoy_log_type = "json"
+
             tracing_config = self.config.ir.tracing
             if tracing_config and tracing_config.driver == 'envoy.tracers.datadog':
                 json_format['dd.trace_id'] = '%REQ(X-DATADOG-TRACE-ID)%'
@@ -749,7 +762,7 @@ class V2Listener(dict):
                 'typed_config': {
                     '@type': 'type.googleapis.com/envoy.config.accesslog.v2.FileAccessLog',
                     'path': self.config.ir.ambassador_module.envoy_log_path,
-                    'json_format': json_format
+                    envoy_log_type + '_format': json_format
                 }
             })
         else:
@@ -818,7 +831,7 @@ class V2Listener(dict):
                 self.base_http_config["tracing"]["request_headers_for_tags"] = req_hdrs
 
         proper_case = self.config.ir.ambassador_module['proper_case']
-        
+
         if proper_case:
             proper_case_header = {'header_key_format': {'proper_case_words': {}}}
             if 'http_protocol_options' in self.base_http_config:

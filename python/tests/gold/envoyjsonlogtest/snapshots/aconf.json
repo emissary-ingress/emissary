@@ -1,0 +1,156 @@
+{
+    "_errors": {},
+    "_notices": {},
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "envoyjsonlogtest.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "envoyjsonlogtest",
+            "apiVersion": "getambassador.io/v1",
+            "config": {
+                "envoy_log_type": "json",
+                "envoy_log_format": "{\"response_code\":\"%RESPONSE_CODE%\",\"authority\":\"%REQ(:AUTHORITY)%\",\"user_agent\":\"%REQ(USER-AGENT)%\",\"request_id\":\"%REQ(X-REQUEST-ID)%\",\"upstream_host\":\"%UPSTREAM_HOST%\"}",
+                "envoy_log_path": "/tmp/ambassador/ambassador_log.jsonl"
+            },
+            "kind": "Module",
+            "location": "envoyjsonlogtest.default.1",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "envoyjsonlogtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "ambassador",
+            "namespace": "default",
+            "rkey": "envoyjsonlogtest.default.1",
+            "serialization": "ambassador_id: envoyjsonlogtest\napiVersion: ambassador/v1\nconfig:\n  envoy_log_type: json\n  envoy_log_format: {\"response_code\":\"%RESPONSE_CODE%\",\"authority\":\"%REQ(:AUTHORITY)%\",\"user_agent\":\"%REQ(USER-AGENT)%\",\"request_id\":\"%REQ(X-REQUEST-ID)%\",\"upstream_host\":\"%UPSTREAM_HOST%\"}\n  envoy_log_path: /tmp/ambassador/ambassador_log.jsonl\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: envoyjsonlogtest\n  scope: AmbassadorTest\nname: ambassador\nnamespace: default\n"
+        },
+        "k8s-envoyjsonlogtest-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "envoyjsonlogtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-envoyjsonlogtest-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "envoyjsonlogtest",
+                "scope": "AmbassadorTest",
+                "service": "envoyjsonlogtest-admin"
+            },
+            "name": "envoyjsonlogtest-admin",
+            "namespace": "default",
+            "rkey": "k8s-envoyjsonlogtest-admin-default",
+            "serialization": "ambassador_id: envoyjsonlogtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: envoyjsonlogtest\n  scope: AmbassadorTest\n  service: envoyjsonlogtest-admin\nname: envoyjsonlogtest-admin\nnamespace: default\n"
+        },
+        "k8s-envoyjsonlogtest-default": {
+            "_referenced_by": {},
+            "ambassador_id": "envoyjsonlogtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-envoyjsonlogtest-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "envoyjsonlogtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "envoyjsonlogtest",
+            "namespace": "default",
+            "rkey": "k8s-envoyjsonlogtest-default",
+            "serialization": "ambassador_id: envoyjsonlogtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: envoyjsonlogtest\n  scope: AmbassadorTest\nname: envoyjsonlogtest\nnamespace: default\n"
+        },
+        "k8s-envoyjsonlogtest-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "envoyjsonlogtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-envoyjsonlogtest-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "envoyjsonlogtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "envoyjsonlogtest-http",
+            "namespace": "default",
+            "rkey": "k8s-envoyjsonlogtest-http-default",
+            "serialization": "ambassador_id: envoyjsonlogtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: envoyjsonlogtest\n  scope: AmbassadorTest\nname: envoyjsonlogtest-http\nnamespace: default\n"
+        }
+    },
+    "modules": {
+        "ambassador": {
+            "apiVersion": "getambassador.io/v1",
+            "envoy_log_format": "{\"response_code\":\"%RESPONSE_CODE%\",\"authority\":\"%REQ(:AUTHORITY)%\",\"user_agent\":\"%REQ(USER-AGENT)%\",\"request_id\":\"%REQ(X-REQUEST-ID)%\",\"upstream_host\":\"%UPSTREAM_HOST%\"}",
+            "envoy_log_path": "/tmp/ambassador/ambassador.log",
+            "kind": "Module",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "envoyjsonlogtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "ambassador",
+            "namespace": "default"
+        }
+    },
+    "service": {
+        "k8s-envoyjsonlogtest-admin-default": {
+            "ambassador_id": "envoyjsonlogtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "envoyjsonlogtest",
+                "scope": "AmbassadorTest",
+                "service": "envoyjsonlogtest-admin"
+            },
+            "name": "envoyjsonlogtest-admin",
+            "namespace": "default"
+        },
+        "k8s-envoyjsonlogtest-default": {
+            "ambassador_id": "envoyjsonlogtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "envoyjsonlogtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "envoyjsonlogtest",
+            "namespace": "default"
+        },
+        "k8s-envoyjsonlogtest-http-default": {
+            "ambassador_id": "envoyjsonlogtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "envoyjsonlogtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "envoyjsonlogtest-http",
+            "namespace": "default"
+        }
+    }
+}

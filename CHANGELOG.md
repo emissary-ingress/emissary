@@ -85,6 +85,7 @@ Format:
 - Bugfix: The websocket library used by the test suite has been upgraded to incorporate security fixes (thanks, [Andrew Allbright](https://github.com/aallbrig)!)
 - Bugfix: Fixed evaluation of label selectors causing the wrong IP to be put in to Ingress resource statuses
 - Bugfix: The `watt` (port 8002) and `ambex` (port 8003) components now bind to localhost instead of 0.0.0.0, so they are no longer erroneously available from outside the Pod
+- Feature: Customizable JSON access logging format 
 
 ## [1.4.3] May 14, 2020
 [1.4.3]: https://github.com/datawire/ambassador/compare/v1.4.2...v1.4.3
