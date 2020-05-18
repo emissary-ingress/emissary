@@ -56,15 +56,15 @@ class GettingStarted extends Component {
             <div className="QS-codeblockInstall">
             <span className="QS-copyButton"><CopyButton content="sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl">Copy</CopyButton></span>
               <div className="token-line">
-                <span className="QS-token-function">sudo</span>
+                <span className="token plain">sudo</span>
                 <span className="token plain"> </span>
-                <span className="QS-token-function">curl</span>
+                <span className="token-plan">curl</span>
                 <span className="token plain"> -fL https://metriton.datawire.io/downloads/darwin/edgectl <br/>   -o /usr/local/bin/edgectl </span>
-                <span className="token operator">&&</span><br/>
+                <span className="token plain">&&</span><br/>
                 <span className="token plain">  </span>
-                <span className="QS-token-function">sudo</span>
+                <span className="token plain">sudo</span>
                 <span className="token plain"> </span>
-                <span className="QS-token-function">chmod</span>
+                <span className="token plain">chmod</span>
                 <span className="token plain"> a+x /usr/local/bin/edgectl</span>
               </div>
             </div>
@@ -79,15 +79,15 @@ class GettingStarted extends Component {
             <div className="QS-codeblockInstall">
               <span className="QS-copyButton"><CopyButton content="sudo curl -fL https://metriton.datawire.io/downloads/linux/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl">Copy</CopyButton></span>
               <div className="token-line">
-                <span className="QS-token-function">sudo</span>
+                <span className="token plain">sudo</span>
                 <span className="token plain"> </span>
-                <span className="QS-token-function">curl</span>
+                <span className="token plain">curl</span>
                 <span className="token plain"> -fL https://metriton.datawire.io/downloads/linux/edgectl <br/>   -o /usr/local/bin/edgectl </span>
-                <span className="token operator">&&</span><br/>
+                <span className="token plain">&&</span><br/>
                 <span className="token plain">  </span>
-                <span className="QS-token-function">sudo</span>
+                <span className="token plain">sudo</span>
                 <span className="token plain"> </span>
-                <span className="QS-token-function">chmod</span>
+                <span className="token plain">chmod</span>
                 <span className="token plain"> a+x /usr/local/bin/edgectl</span>
               </div>
             </div>
@@ -113,9 +113,9 @@ class GettingStarted extends Component {
               <div className="QS-codeblockInstall">
               <div className="QS-copyButton"><CopyButton content="edgectl install">Copy</CopyButton></div>
                 <div className="token-line">
-                  <span className="QS-token-function">edgectl</span>
+                  <span className="token plain">edgectl</span>
                   <span className="token plain"> </span>
-                  <span className="QS-token-function">install</span>
+                  <span className="token plain">install</span>
                 </div>
               </div>
             </div>
@@ -143,28 +143,28 @@ class GettingStarted extends Component {
                     <span className="token plain"> </span>
                     <span className="token-plain">-f https://www.getambassador.io/yaml/aes-crds.yaml</span>
                     <span className="token plain"> </span>
-                    <span className="token operator">&&</span>
+                    <span className="token plain">&&</span>
                     <span className="token plain"> </span>
                     <span className="token-plain">\</span><br/>
                     <span className="token-plain">kubectl</span>
                     <span className="token plain"> </span>
-                    <span className="QS-token-function">wait</span>
+                    <span className="token plain">wait</span>
                     <span className="token plain"> </span>
                     <span className="token-plain">--for</span>
                     <span className="token plain"> </span>
                     <span className="token variable">condition</span>
-                    <span className="token operator">=</span>
+                    <span className="token plain">=</span>
                     <span className="token-plain">established</span>
                     <span className="token plain"> </span>
                     <span className="token-plain">--timeout</span>
-                    <span className="token operator">=</span>
+                    <span className="token plain">=</span>
                     <span className="token-plain">90s</span>
                     <span className="token plain"> </span>
                     <span className="token-plain">crd -lproduct</span>
-                    <span className="token operator">=</span>
+                    <span className="token plain">=</span>
                     <span className="token-plain">aes</span>
                     <span className="token plain"> </span>
-                    <span className="token operator">&&</span>
+                    <span className="token plain">&&</span>
                     <span className="token plain"> </span>
                     <span className="token-plain">\</span><br/>
                     <span className="token-plain">kubectl</span>
@@ -173,7 +173,7 @@ class GettingStarted extends Component {
                     <span className="token plain"> </span>
                     <span className="token-plain">-f https://www.getambassador.io/yaml/aes.yaml</span>
                     <span className="token plain"> </span>
-                    <span className="token operator">&&</span>
+                    <span className="token plain">&&</span>
                     <span className="token plain"> </span>
                     <span className="token-plain">\</span><br/>
                     <span className="token-plain">kubectl</span>
@@ -182,22 +182,21 @@ class GettingStarted extends Component {
                     <span className="token plain"> </span>
                     <span className="token-plain">ambassador</span>
                     <span className="token plain"> </span>
-                    <span className="QS-token-function">wait</span>
+                    <span className="token plain">wait</span>
                     <span className="token plain"> </span>
                     <span className="token-plain">--for</span>
                     <span className="token plain"> </span>
                     <span className="token variable">condition</span>
-                    <span className="token operator">=</span>
+                    <span className="token plain">=</span>
                     <span className="token-plain">available</span>
                     <span className="token plain"> </span>
                     <span className="token-plain">--timeout</span>
-                    <span className="token operator">=</span>
+                    <span className="token plain">=</span>
                     <span className="token-plain">90s</span>
                     <span className="token plain"> </span>
                     <span className="token-plain">deploy</span>
                     <span className="token plain"> </span>
-                    <span className="token-plain">-lproduct</span>
-                    <span className="token operator">=</span>
+                    <span className="token-plain">=</span>
                     <span className="token-plain">aes</span>
                   </div>
                 </div>
@@ -222,32 +221,32 @@ class GettingStarted extends Component {
                     <span className="token plain"> </span>
                     <span className="token-plain">-o</span>
                     <span className="token plain"> </span>
-                    <span className="token string">"go-template</span>
-                    <span className="token string">=</span>
-                    <span className="token string">&#123;</span>
-                    <span className="token string">&#123;</span>
-                    <span className="token string">range</span>
-                    <span className="token string"> </span>
-                    <span className="token string">.status</span>
-                    <span className="token string">.loadBalancer</span>
-                    <span className="token string">.ingress</span>
-                    <span className="token string">&#125;</span>
-                    <span className="token string">&#125;</span>
-                    <span className="token string">&#123;</span>
-                    <span className="token string">&#123;</span>
-                    <span className="token string">or</span>
-                    <span className="token string"> </span>
-                    <span className="token string">.ip</span>
-                    <span className="token string"> </span>
-                    <span className="token string">.hostname</span>
-                    <span className="token string">&#125;</span>
-                    <span className="token string">&#125;</span>
-                    <span className="token string">&#123;</span>
-                    <span className="token string">&#123;</span>
-                    <span className="token string">end</span>
-                    <span className="token string">&#125;</span>
-                    <span className="token string">&#125;</span>
-                    <span className="token string">"</span>
+                    <span className="token plain">"go-template</span>
+                    <span className="token plain">=</span>
+                    <span className="token plain">&#123;</span>
+                    <span className="token plain">&#123;</span>
+                    <span className="token plain">range</span>
+                    <span className="token plain"> </span>
+                    <span className="token plain">.status</span>
+                    <span className="token plain">.loadBalancer</span>
+                    <span className="token plain">.ingress</span>
+                    <span className="token plain">&#125;</span>
+                    <span className="token plain">&#125;</span>
+                    <span className="token plain">&#123;</span>
+                    <span className="token plain">&#123;</span>
+                    <span className="token plain">or</span>
+                    <span className="token plain"> </span>
+                    <span className="token plain">.ip</span>
+                    <span className="token plain"> </span>
+                    <span className="token plain">.hostname</span>
+                    <span className="token plain">&#125;</span>
+                    <span className="token plain">&#125;</span>
+                    <span className="token plain">&#123;</span>
+                    <span className="token plain">&#123;</span>
+                    <span className="token plain">end</span>
+                    <span className="token plain">&#125;</span>
+                    <span className="token plain">&#125;</span>
+                    <span className="token plain">"</span>
                   </div>
                 </div>
               </div>
@@ -271,11 +270,11 @@ class GettingStarted extends Component {
                       <span className="token plain"> </span>
                       <span className="token-plain">repo</span>
                       <span className="token plain"> </span>
-                      <span className="QS-token-function">add</span>
+                      <span className="token plain">add</span>
                       <span className="token plain"> </span>
                       <span className="token plain">datawire</span>
                       <span className="token plain"> </span>
-                      <span className="QS-token-plain">https://www.getambassador.io</span>
+                      <span className="token plain">https://www.getambassador.io</span>
                     </div>
                   </div>
                 </div>
@@ -365,9 +364,9 @@ class GettingStarted extends Component {
                     <div className="QS-codeblockInstall">
                     <div className="QS-copyButton"><CopyButton content="edgectl install">Copy</CopyButton></div>
                       <div className="token-line">
-                        <span className="QS-token-function">edgectl</span>
+                        <span className="token plain">edgectl</span>
                         <span className="token plain"> </span>
-                        <span className="QS-token-function">install</span>
+                        <span className="token plain">install</span>
                       </div>
                     </div>
                 </div>
