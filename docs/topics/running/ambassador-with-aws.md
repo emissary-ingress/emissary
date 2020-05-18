@@ -2,7 +2,7 @@
 
 The Ambassador Edge Stack is a platform agnostic Kubernetes API gateway. It will run in any distribution of Kubernetes whether it is managed by a cloud provider or on homegrown bare-metal servers.
 
-This document serves as a reference for how different configuration options available when running Kubernetes in AWS. See [Installing Ambassador Edge Stack](../../user-guide/install/) for the various installation methods available.
+This document serves as a reference for how different configuration options available when running Kubernetes in AWS. See [Installing Ambassador Edge Stack](../../install) for the various installation methods available.
 
 ## tl;dr Recommended Configuration:
 There are lot of configuration options available to you when running Ambassador in AWS. While you should read this entire document to understand what is best for you, the following is the recommended configuration when running Ambassador in AWS:
@@ -158,7 +158,7 @@ Kubernetes on AWS exposes a mechanism to request certain load balancer configura
 
 ## TLS Termination
 
-TLS termination is an important part of any modern web app. Ambassador exposes a lot of TLS termination configuration options that make it a powerful tool for managing encryption between your clients and microservices. Refer to the [TLS Termination](../../user-guide/tls-termination) documentation for more information on how to configure TLS termination at Ambassador.
+TLS termination is an important part of any modern web app. Ambassador exposes a lot of TLS termination configuration options that make it a powerful tool for managing encryption between your clients and microservices. Refer to the [TLS Termination](../tls) documentation for more information on how to configure TLS termination at Ambassador.
 
 With AWS, the AWS Certificate Manager (ACM) makes it easy to configure TLS termination at an AWS load balancer using the annotations explained above.
 
