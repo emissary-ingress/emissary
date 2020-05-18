@@ -276,7 +276,7 @@ class GettingStarted extends Component {
                   </div>
                 </div>
 
-              <li className="QS-asideNoBullets">Create the ambassador namespace  and Install the Ambassador Edge Stack Chart:</li>
+              <li className="QS-asideNoBullets">Install the Ambassador Edge Stack Chart:</li>
                 <div id="helmVersionWrapper">
 
                   <div id="helm2Block">
