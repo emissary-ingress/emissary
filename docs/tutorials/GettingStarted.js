@@ -152,7 +152,7 @@ class GettingStarted extends Component {
                     <span className="token plain"> </span>
                     <span className="token-plain">--for</span>
                     <span className="token plain"> </span>
-                    <span className="token variable">condition</span>
+                    <span className="token plain">condition</span>
                     <span className="token plain">=</span>
                     <span className="token-plain">established</span>
                     <span className="token plain"> </span>
@@ -186,7 +186,7 @@ class GettingStarted extends Component {
                     <span className="token plain"> </span>
                     <span className="token-plain">--for</span>
                     <span className="token plain"> </span>
-                    <span className="token variable">condition</span>
+                    <span className="token plain">condition</span>
                     <span className="token plain">=</span>
                     <span className="token-plain">available</span>
                     <span className="token plain"> </span>
