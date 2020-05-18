@@ -135,7 +135,7 @@ class GettingStarted extends Component {
               <div className="styles-module--CodeBlock--1UB4s">
                 <div className="QS-codeblockInstall">
                 <span className="QS-copyButton"><CopyButton content="
-                kubectl apply -f https://www.getambassador.io/yaml/aes-crds.yaml && \kubectl wait --for condition=established --timeout=90s crd -lproduct=aes && \kubectl apply -f https://www.getambassador.io/yaml/aes.yaml && \kubectl -n ambassador wait --for condition=available --timeout=90s deploy -lproduct=aes">Copy</CopyButton></span>
+                kubectl apply -f https://www.getambassador.io/yaml/aes-crds.yaml && kubectl wait --for condition=established --timeout=90s crd -lproduct=aes && kubectl apply -f https://www.getambassador.io/yaml/aes.yaml && kubectl -n ambassador wait --for condition=available --timeout=90s deploy -lproduct=aes">Copy</CopyButton></span>
                   <div className="token-line">
                     <span className="token-plain">kubectl</span>
                     <span className="token plain"> </span>
@@ -145,7 +145,6 @@ class GettingStarted extends Component {
                     <span className="token plain"> </span>
                     <span className="token plain">&&</span>
                     <span className="token plain"> </span>
-                    <span className="token-plain">\</span><br/>
                     <span className="token-plain">kubectl</span>
                     <span className="token plain"> </span>
                     <span className="token plain">wait</span>
@@ -166,7 +165,6 @@ class GettingStarted extends Component {
                     <span className="token plain"> </span>
                     <span className="token plain">&&</span>
                     <span className="token plain"> </span>
-                    <span className="token-plain">\</span><br/>
                     <span className="token-plain">kubectl</span>
                     <span className="token plain"> </span>
                     <span className="token-plain">apply</span>
@@ -175,7 +173,6 @@ class GettingStarted extends Component {
                     <span className="token plain"> </span>
                     <span className="token plain">&&</span>
                     <span className="token plain"> </span>
-                    <span className="token-plain">\</span><br/>
                     <span className="token-plain">kubectl</span>
                     <span className="token plain"> </span>
                     <span className="token-plain">-n</span>
@@ -289,7 +286,7 @@ class GettingStarted extends Component {
                       <div id="QS-helm2" className="styles-module--CodeBlock--1UB4s">
                         <div className="QS-codeblockInstall">
                         <span className="QS-copyButton"><CopyButton content="
-                        kubectl create namespace ambassador && \helm install --name ambassador --namespace ambassador datawire/ambassador">Copy</CopyButton></span>
+                        kubectl create namespace ambassador && helm install --name ambassador --namespace ambassador datawire/ambassador">Copy</CopyButton></span>
                           <div className="token-line">
                             <span className="token-plain">kubectl</span>
                             <span className="token plain"> </span>
@@ -301,7 +298,6 @@ class GettingStarted extends Component {
                             <span className="token plain"> </span>
                             <span className="token plain">&&</span>
                             <span className="token plain"> </span>
-                            <span className="token-plain">\</span><br/>
                             <span className="token-plain">helm</span>
                             <span className="token plain"> </span>
                             <span className="token-plain">install</span>
@@ -328,7 +324,7 @@ class GettingStarted extends Component {
                       <div id="QS-helm3" className="styles-module--CodeBlock--1UB4s">
                         <div className="QS-codeblockInstall">
                         <span className="QS-copyButton"><CopyButton content="
-                        kubectl create namespace ambassador && \helm install ambassador --namespace ambassador datawire/ambassador">Copy</CopyButton></span>
+                        kubectl create namespace ambassador && helm install ambassador --namespace ambassador datawire/ambassador">Copy</CopyButton></span>
                             <div className="token-line">
                             <span className="token-plain">kubectl</span>
                             <span className="token plain"> </span>
@@ -340,7 +336,6 @@ class GettingStarted extends Component {
                             <span className="token plain"> </span>
                             <span className="token plain">&&</span>
                             <span className="token plain"> </span>
-                            <span className="token-plain">\</span><br/>
                             <span className="token-plain">helm</span>
                             <span className="token plain"> </span>
                             <span className="token-plain">install</span>
