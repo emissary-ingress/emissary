@@ -145,6 +145,7 @@ class GettingStarted extends Component {
                     <span className="token plain"> </span>
                     <span className="token plain">&&</span>
                     <span className="token plain"> </span>
+                    <span className="token plain">\</span><br/>
                     <span className="token-plain">kubectl</span>
                     <span className="token plain"> </span>
                     <span className="token plain">wait</span>
@@ -165,6 +166,7 @@ class GettingStarted extends Component {
                     <span className="token plain"> </span>
                     <span className="token plain">&&</span>
                     <span className="token plain"> </span>
+                    <span className="token-plain">\</span><br/>
                     <span className="token-plain">kubectl</span>
                     <span className="token plain"> </span>
                     <span className="token-plain">apply</span>
@@ -173,6 +175,7 @@ class GettingStarted extends Component {
                     <span className="token plain"> </span>
                     <span className="token plain">&&</span>
                     <span className="token plain"> </span>
+                    <span className="token-plain">\</span><br/>
                     <span className="token-plain">kubectl</span>
                     <span className="token plain"> </span>
                     <span className="token-plain">-n</span>
@@ -298,6 +301,7 @@ class GettingStarted extends Component {
                             <span className="token plain"> </span>
                             <span className="token plain">&&</span>
                             <span className="token plain"> </span>
+                            <span className="token-plain">\</span><br/>
                             <span className="token-plain">helm</span>
                             <span className="token plain"> </span>
                             <span className="token-plain">install</span>
@@ -336,6 +340,7 @@ class GettingStarted extends Component {
                             <span className="token plain"> </span>
                             <span className="token plain">&&</span>
                             <span className="token plain"> </span>
+                            <span className="token-plain">\</span><br/>
                             <span className="token-plain">helm</span>
                             <span className="token plain"> </span>
                             <span className="token-plain">install</span>
