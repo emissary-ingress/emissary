@@ -108,7 +108,7 @@ class GettingStarted extends Component {
 
 
         <div className="QS-asideText">
-          <li className="QS-asideNoBullets">Install Ambassador Edge Stack.</li>
+          <li className="QS-asideNoBullets">Install Ambassador Edge Stack:</li>
             <div className="styles-module--CodeBlock--1UB4s">
               <div className="QS-codeblockInstall">
               <div className="QS-copyButton"><CopyButton content="edgectl install">Copy</CopyButton></div>
