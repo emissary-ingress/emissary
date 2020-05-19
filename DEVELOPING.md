@@ -398,7 +398,7 @@ This is a bit more complex than anyone likes, but here goes:
        don't want to share your Envoy binary anywhere.  If you don't
        skip this step, you'll need to `export
        ENVOY_DOCKER_REPO=${your-envoy-docker-registry}` to tell it to
-       push somewhere other than the `quay.io/datawire/ambassador-base`.
+       push somewhere other than Datawire's registry.
 
     d. Push/PR the `envoy.mk` `ENVOY_COMMIT` change to
     https://github.com/datawire/ambassador
