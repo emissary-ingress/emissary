@@ -71,6 +71,8 @@ Format:
 
 ### Ambassador API Gateway + Ambassador Edge Stack
 
+- Switched from quay.io back to DockerHub as our primary publication point. **If you are using your own Kubernetes manifests, you will have to update them!** Datawire's Helm charts and published YAML have already been updated.
+
 - Bugfix: Only update Knative ingress CRDs when the generation changes
 - Feature: Inform Knative of the route to the Ambassador service if available
 - Feature: Support the path and timeout options of the Knative ingress path rules
