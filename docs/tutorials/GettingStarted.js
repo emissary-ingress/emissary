@@ -58,7 +58,7 @@ class GettingStarted extends Component {
               <div className="token-line">
                 <span className="token plain">sudo</span>
                 <span className="token plain"> </span>
-                <span className="token-plan">curl</span>
+                <span className="token-plain">curl</span>
                 <span className="token plain"> -fL https://metriton.datawire.io/downloads/darwin/edgectl <br/>   -o /usr/local/bin/edgectl </span>
                 <span className="token plain">&&</span><br/>
                 <span className="token plain">  </span>
