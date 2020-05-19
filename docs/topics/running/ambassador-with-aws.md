@@ -2,7 +2,7 @@
 
 The Ambassador Edge Stack is a platform agnostic Kubernetes API gateway. It will run in any distribution of Kubernetes whether it is managed by a cloud provider or on homegrown bare-metal servers.
 
-This document serves as a reference for how different configuration options available when running Kubernetes in AWS. See [Installing Ambassador Edge Stack](../../install) for the various installation methods available.
+This document serves as a reference for different configuration options available when running Kubernetes in AWS. See [Installing Ambassador Edge Stack](../../install) for the various installation methods available.
 
 ## tl;dr Recommended Configuration:
 There are lot of configuration options available to you when running Ambassador in AWS. While you should read this entire document to understand what is best for you, the following is the recommended configuration when running Ambassador in AWS:
@@ -50,7 +50,7 @@ spec:
 
    Ambassador will now expect traffic from the load balancer to be wrapped with the proxy protocol so it can read the client IP address.
 
-## AWS load balancer notes
+## AWS Load Balancer Notes
 
 AWS provides three types of load balancers:
 
@@ -94,7 +94,7 @@ The NLB is a second generation AWS Elastic Load Balancer. It can be ensure by a 
 
 **Notes:** 
 - The NLB is the most efficient load balancer capable of handling millions of requests per second. It is recommended for streaming connections since it will maintain the connection stream between the client and Ambassador. 
-- Most  of the [load balancer annotations](#load-balancer-annotations) are respected by the NLB. You will need to manually configure the proxy protocol and take an extra step to enable cross zone load balancing.
+- Most of the [load balancer annotations](#load-balancer-annotations) are respected by the NLB. You will need to manually configure the proxy protocol and take an extra step to enable cross zone load balancing.
 - Since it operates at L4 and cannot modify the request, you will need to tell Ambassador if it is terminating TLS or not (see [TLS termination](#tls-termination) notes below).
 
 ### Application Load Balancer (ALB)
@@ -124,7 +124,7 @@ Kubernetes on AWS exposes a mechanism to request certain load balancer configura
 
     Configures the load balancer to use a valid certificate ARN to terminate TLS at the Load Balancer.
     
-    Traffic from the client into the load balancer is encrypted but, since TLS is being terminated at the load balancer, traffic from the load balancer to Ambassador Edge Stack will be cleartext. You will need to configure Ambassador differently depending on if the load balancer is running in L4 or L7 (see [TLS termination](#tls-termination) notes below).
+    Traffic from the client into the load balancer is encrypted but, since TLS is being terminated at the load balancer, traffic from the load balancer to Ambassador Edge Stack will be cleartext. You will need to configure Ambassador differently depending on whether the load balancer is running in L4 or L7 (see [TLS termination](#tls-termination) notes below).
 
 - `service.beta.kubernetes.io/aws-load-balancer-ssl-ports`:
 
