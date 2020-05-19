@@ -196,6 +196,7 @@ class GettingStarted extends Component {
                     <span className="token plain"> </span>
                     <span className="token-plain">deploy</span>
                     <span className="token plain"> </span>
+                    <span className="token plain">-lproduct</span>
                     <span className="token-plain">=</span>
                     <span className="token-plain">aes</span>
                   </div>
