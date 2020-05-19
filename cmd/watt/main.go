@@ -24,7 +24,9 @@ var initialFieldSelector string
 var initialLabelSelector string
 var watchHooks = make([]string, 0)
 var notifyReceivers = make([]string, 0)
-var port int
+var listenNetwork string
+var listenAddress string
+var legacyListenPort int
 var interval time.Duration
 var showVersion bool
 
@@ -44,10 +46,15 @@ func init() {
 	rootCmd.Flags().StringSliceVarP(&watchHooks, "watch", "w", []string{}, "configure watch hook(s)")
 	rootCmd.Flags().StringSliceVar(&notifyReceivers, "notify", []string{},
 		"invoke the program with the given arguments as a receiver")
-	rootCmd.Flags().IntVarP(&port, "port", "p", 7000, "configure the snapshot server port")
 	rootCmd.Flags().DurationVarP(&interval, "interval", "i", 250*time.Millisecond,
 		"configure the rate limit interval")
 	rootCmd.Flags().BoolVarP(&showVersion, "version", "", false, "display version information")
+
+	rootCmd.Flags().StringVar(&listenNetwork, "listen-network", "tcp", "network for the snapshot server to listen on")
+	rootCmd.Flags().StringVar(&listenAddress, "listen-address", ":7000", "address (on --listen-network) for the snapshot server to listen on")
+
+	rootCmd.Flags().IntVarP(&legacyListenPort, "port", "p", 0, "configure the snapshot server port")
+	rootCmd.Flags().MarkHidden("port")
 }
 
 func runWatt(cmd *cobra.Command, args []string) {
@@ -58,6 +65,10 @@ func _runWatt(cmd *cobra.Command, args []string) int {
 	if showVersion {
 		fmt.Println("watt", Version)
 		return 0
+	}
+
+	if legacyListenPort != 0 {
+		listenAddress = fmt.Sprintf(":%v", legacyListenPort)
 	}
 
 	if len(initialSources) == 0 {
@@ -86,7 +97,11 @@ func _runWatt(cmd *cobra.Command, args []string) int {
 	// kubernetes watch manager.
 	aggregatorToKubewatchmanCh := make(chan []KubernetesWatchSpec, 100)
 
-	invoker := NewInvoker(port, notifyReceivers)
+	apiServerAuthority := listenAddress
+	if strings.HasPrefix(apiServerAuthority, ":") {
+		apiServerAuthority = "localhost" + apiServerAuthority
+	}
+	invoker := NewInvoker(apiServerAuthority, notifyReceivers)
 	limiter := limiter.NewComposite(limiter.NewUnlimited(), limiter.NewInterval(interval), interval)
 	aggregator := NewAggregator(invoker.Snapshots, aggregatorToKubewatchmanCh, aggregatorToConsulwatchmanCh,
 		initialSources, ExecWatchHook(watchHooks), limiter)
@@ -112,8 +127,9 @@ func _runWatt(cmd *cobra.Command, args []string) int {
 	}
 
 	apiServer := &apiServer{
-		port:    port,
-		invoker: invoker,
+		listenNetwork: listenNetwork,
+		listenAddress: listenAddress,
+		invoker:       invoker,
 	}
 
 	ctx := context.Background()
