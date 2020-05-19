@@ -287,7 +287,7 @@ spec:
           value: http://127.0.0.1:8877
         - name: AMBASSADOR_SINGLE_NAMESPACE
           value: ''
-        image: quay.io/datawire/aes:$version$
+        image: datawire/aes:$version$
         imagePullPolicy: Always
         livenessProbe:
           httpGet:

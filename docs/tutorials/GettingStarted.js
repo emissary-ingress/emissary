@@ -56,15 +56,15 @@ class GettingStarted extends Component {
             <div className="QS-codeblockInstall">
             <span className="QS-copyButton"><CopyButton content="sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl">Copy</CopyButton></span>
               <div className="token-line">
-                <span className="QS-token-function">sudo</span>
+                <span className="token plain">sudo</span>
                 <span className="token plain"> </span>
-                <span className="QS-token-function">curl</span>
+                <span className="token-plain">curl</span>
                 <span className="token plain"> -fL https://metriton.datawire.io/downloads/darwin/edgectl <br/>   -o /usr/local/bin/edgectl </span>
-                <span className="token operator">&&</span><br/>
+                <span className="token plain">&&</span><br/>
                 <span className="token plain">  </span>
-                <span className="QS-token-function">sudo</span>
+                <span className="token plain">sudo</span>
                 <span className="token plain"> </span>
-                <span className="QS-token-function">chmod</span>
+                <span className="token plain">chmod</span>
                 <span className="token plain"> a+x /usr/local/bin/edgectl</span>
               </div>
             </div>
@@ -79,15 +79,15 @@ class GettingStarted extends Component {
             <div className="QS-codeblockInstall">
               <span className="QS-copyButton"><CopyButton content="sudo curl -fL https://metriton.datawire.io/downloads/linux/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl">Copy</CopyButton></span>
               <div className="token-line">
-                <span className="QS-token-function">sudo</span>
+                <span className="token plain">sudo</span>
                 <span className="token plain"> </span>
-                <span className="QS-token-function">curl</span>
+                <span className="token plain">curl</span>
                 <span className="token plain"> -fL https://metriton.datawire.io/downloads/linux/edgectl <br/>   -o /usr/local/bin/edgectl </span>
-                <span className="token operator">&&</span><br/>
+                <span className="token plain">&&</span><br/>
                 <span className="token plain">  </span>
-                <span className="QS-token-function">sudo</span>
+                <span className="token plain">sudo</span>
                 <span className="token plain"> </span>
-                <span className="QS-token-function">chmod</span>
+                <span className="token plain">chmod</span>
                 <span className="token plain"> a+x /usr/local/bin/edgectl</span>
               </div>
             </div>
@@ -108,14 +108,14 @@ class GettingStarted extends Component {
 
 
         <div className="QS-asideText">
-          <li className="QS-asideNoBullets">Install Ambassador Edge Stack.</li>
+          <li className="QS-asideNoBullets">Install Ambassador Edge Stack:</li>
             <div className="styles-module--CodeBlock--1UB4s">
               <div className="QS-codeblockInstall">
               <div className="QS-copyButton"><CopyButton content="edgectl install">Copy</CopyButton></div>
                 <div className="token-line">
-                  <span className="QS-token-function">edgectl</span>
+                  <span className="token plain">edgectl</span>
                   <span className="token plain"> </span>
-                  <span className="QS-token-function">install</span>
+                  <span className="token plain">install</span>
                 </div>
               </div>
             </div>
@@ -135,7 +135,7 @@ class GettingStarted extends Component {
               <div className="styles-module--CodeBlock--1UB4s">
                 <div className="QS-codeblockInstall">
                 <span className="QS-copyButton"><CopyButton content="
-                kubectl apply -f https://www.getambassador.io/yaml/aes-crds.yaml && \kubectl wait --for condition=established --timeout=90s crd -lproduct=aes && \kubectl apply -f https://www.getambassador.io/yaml/aes.yaml && \kubectl -n ambassador wait --for condition=available --timeout=90s deploy -lproduct=aes">Copy</CopyButton></span>
+                kubectl apply -f https://www.getambassador.io/yaml/aes-crds.yaml && kubectl wait --for condition=established --timeout=90s crd -lproduct=aes && kubectl apply -f https://www.getambassador.io/yaml/aes.yaml && kubectl -n ambassador wait --for condition=available --timeout=90s deploy -lproduct=aes">Copy</CopyButton></span>
                   <div className="token-line">
                     <span className="token-plain">kubectl</span>
                     <span className="token plain"> </span>
@@ -143,28 +143,28 @@ class GettingStarted extends Component {
                     <span className="token plain"> </span>
                     <span className="token-plain">-f https://www.getambassador.io/yaml/aes-crds.yaml</span>
                     <span className="token plain"> </span>
-                    <span className="token operator">&&</span>
+                    <span className="token plain">&&</span>
                     <span className="token plain"> </span>
-                    <span className="token-plain">\</span><br/>
+                    <span className="token plain">\</span><br/>
                     <span className="token-plain">kubectl</span>
                     <span className="token plain"> </span>
-                    <span className="QS-token-function">wait</span>
+                    <span className="token plain">wait</span>
                     <span className="token plain"> </span>
                     <span className="token-plain">--for</span>
                     <span className="token plain"> </span>
-                    <span className="token variable">condition</span>
-                    <span className="token operator">=</span>
+                    <span className="token plain">condition</span>
+                    <span className="token plain">=</span>
                     <span className="token-plain">established</span>
                     <span className="token plain"> </span>
                     <span className="token-plain">--timeout</span>
-                    <span className="token operator">=</span>
+                    <span className="token plain">=</span>
                     <span className="token-plain">90s</span>
                     <span className="token plain"> </span>
                     <span className="token-plain">crd -lproduct</span>
-                    <span className="token operator">=</span>
+                    <span className="token plain">=</span>
                     <span className="token-plain">aes</span>
                     <span className="token plain"> </span>
-                    <span className="token operator">&&</span>
+                    <span className="token plain">&&</span>
                     <span className="token plain"> </span>
                     <span className="token-plain">\</span><br/>
                     <span className="token-plain">kubectl</span>
@@ -173,7 +173,7 @@ class GettingStarted extends Component {
                     <span className="token plain"> </span>
                     <span className="token-plain">-f https://www.getambassador.io/yaml/aes.yaml</span>
                     <span className="token plain"> </span>
-                    <span className="token operator">&&</span>
+                    <span className="token plain">&&</span>
                     <span className="token plain"> </span>
                     <span className="token-plain">\</span><br/>
                     <span className="token-plain">kubectl</span>
@@ -182,22 +182,22 @@ class GettingStarted extends Component {
                     <span className="token plain"> </span>
                     <span className="token-plain">ambassador</span>
                     <span className="token plain"> </span>
-                    <span className="QS-token-function">wait</span>
+                    <span className="token plain">wait</span>
                     <span className="token plain"> </span>
                     <span className="token-plain">--for</span>
                     <span className="token plain"> </span>
-                    <span className="token variable">condition</span>
-                    <span className="token operator">=</span>
+                    <span className="token plain">condition</span>
+                    <span className="token plain">=</span>
                     <span className="token-plain">available</span>
                     <span className="token plain"> </span>
                     <span className="token-plain">--timeout</span>
-                    <span className="token operator">=</span>
+                    <span className="token plain">=</span>
                     <span className="token-plain">90s</span>
                     <span className="token plain"> </span>
                     <span className="token-plain">deploy</span>
                     <span className="token plain"> </span>
-                    <span className="token-plain">-lproduct</span>
-                    <span className="token operator">=</span>
+                    <span className="token plain">-lproduct</span>
+                    <span className="token-plain">=</span>
                     <span className="token-plain">aes</span>
                   </div>
                 </div>
@@ -222,32 +222,32 @@ class GettingStarted extends Component {
                     <span className="token plain"> </span>
                     <span className="token-plain">-o</span>
                     <span className="token plain"> </span>
-                    <span className="token string">"go-template</span>
-                    <span className="token string">=</span>
-                    <span className="token string">&#123;</span>
-                    <span className="token string">&#123;</span>
-                    <span className="token string">range</span>
-                    <span className="token string"> </span>
-                    <span className="token string">.status</span>
-                    <span className="token string">.loadBalancer</span>
-                    <span className="token string">.ingress</span>
-                    <span className="token string">&#125;</span>
-                    <span className="token string">&#125;</span>
-                    <span className="token string">&#123;</span>
-                    <span className="token string">&#123;</span>
-                    <span className="token string">or</span>
-                    <span className="token string"> </span>
-                    <span className="token string">.ip</span>
-                    <span className="token string"> </span>
-                    <span className="token string">.hostname</span>
-                    <span className="token string">&#125;</span>
-                    <span className="token string">&#125;</span>
-                    <span className="token string">&#123;</span>
-                    <span className="token string">&#123;</span>
-                    <span className="token string">end</span>
-                    <span className="token string">&#125;</span>
-                    <span className="token string">&#125;</span>
-                    <span className="token string">"</span>
+                    <span className="token plain">"go-template</span>
+                    <span className="token plain">=</span>
+                    <span className="token plain">&#123;</span>
+                    <span className="token plain">&#123;</span>
+                    <span className="token plain">range</span>
+                    <span className="token plain"> </span>
+                    <span className="token plain">.status</span>
+                    <span className="token plain">.loadBalancer</span>
+                    <span className="token plain">.ingress</span>
+                    <span className="token plain">&#125;</span>
+                    <span className="token plain">&#125;</span>
+                    <span className="token plain">&#123;</span>
+                    <span className="token plain">&#123;</span>
+                    <span className="token plain">or</span>
+                    <span className="token plain"> </span>
+                    <span className="token plain">.ip</span>
+                    <span className="token plain"> </span>
+                    <span className="token plain">.hostname</span>
+                    <span className="token plain">&#125;</span>
+                    <span className="token plain">&#125;</span>
+                    <span className="token plain">&#123;</span>
+                    <span className="token plain">&#123;</span>
+                    <span className="token plain">end</span>
+                    <span className="token plain">&#125;</span>
+                    <span className="token plain">&#125;</span>
+                    <span className="token plain">"</span>
                   </div>
                 </div>
               </div>
@@ -271,90 +271,103 @@ class GettingStarted extends Component {
                       <span className="token plain"> </span>
                       <span className="token-plain">repo</span>
                       <span className="token plain"> </span>
-                      <span className="QS-token-function">add</span>
+                      <span className="token plain">add</span>
                       <span className="token plain"> </span>
                       <span className="token plain">datawire</span>
                       <span className="token plain"> </span>
-                      <span className="QS-token-plain">https://www.getambassador.io</span>
-                    </div>
-                  </div>
-                </div>
-              <li className="QS-asideNoBullets">Create the ambassador namespace:</li>
-                <div className="styles-module--CodeBlock--1UB4s">
-                  <div className="QS-codeblockInstall">
-                  <span className="QS-copyButton"><CopyButton content="
-                  kubectl create namespace ambassador">Copy</CopyButton></span>
-                    <div className="token-line">
-                      <span className="token-plain">kubectl</span>
-                      <span className="token plain"> </span>
-                      <span className="token-plain">create</span>
-                      <span className="token plain"> </span>
-                      <span className="token-plain">namespace</span>
-                      <span className="token plain"> </span>
-                      <span className="token plain">ambassador</span>
+                      <span className="token plain">https://www.getambassador.io</span>
                     </div>
                   </div>
                 </div>
 
-              <li className="QS-asideNoBullets">Install the Ambassador Edge Stack Chart:</li>
-              <details open>
-                <summary id="helmVersions">&nbsp;Helm3 Users
-                </summary>
-                  <div id="QS-helm3" className="styles-module--CodeBlock--1UB4s">
-                    <div className="QS-codeblockInstall">
-                    <span className="QS-copyButton"><CopyButton content="
-                    helm install ambassador --namespace ambassador datawire/ambassador">Copy</CopyButton></span>
-                      <div className="token-line">
-                        <span className="token-plain">helm</span>
-                        <span className="token plain"> </span>
-                        <span className="token-plain">install</span>
-                        <span className="token plain"> </span>
-                        <span className="token-plain">ambassador</span>
-                        <span className="token plain"> </span>
-                        <span className="token plain">--namespace</span>
-                        <span className="token plain"> </span>
-                        <span className="token-plain">ambassador</span>
-                        <span className="token plain"> </span>
-                        <span className="token-plain">datawire/ambassador</span>
+              <li className="QS-asideNoBullets">Install the Ambassador Edge Stack chart:</li>
+                <div id="helmVersionWrapper">
+
+                  <div id="helm2Block">
+                    <details open>
+                      <summary id="helmVersions">&nbsp;Helm2
+                      </summary>
+                      <div id="QS-helm2" className="styles-module--CodeBlock--1UB4s">
+                        <div className="QS-codeblockInstall">
+                        <span className="QS-copyButton"><CopyButton content="
+                        kubectl create namespace ambassador && helm install --name ambassador --namespace ambassador datawire/ambassador">Copy</CopyButton></span>
+                          <div className="token-line">
+                            <span className="token-plain">kubectl</span>
+                            <span className="token plain"> </span>
+                            <span className="token-plain">create</span>
+                            <span className="token plain"> </span>
+                            <span className="token-plain">namespace</span>
+                            <span className="token plain"> </span>
+                            <span className="token plain">ambassador</span>
+                            <span className="token plain"> </span>
+                            <span className="token plain">&&</span>
+                            <span className="token plain"> </span>
+                            <span className="token-plain">\</span><br/>
+                            <span className="token-plain">helm</span>
+                            <span className="token plain"> </span>
+                            <span className="token-plain">install</span>
+                            <span className="token plain"> </span>
+                            <span className="token-plain">--name</span>
+                            <span className="token plain"> </span>
+                            <span className="token-plain">ambassador</span>
+                            <span className="token plain"> </span>
+                            <span className="token plain">--namespace</span>
+                            <span className="token plain"> </span>
+                            <span className="token-plain">ambassador</span>
+                            <span className="token plain"> </span>
+                            <span className="token-plain">datawire/ambassador</span>
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    </details>
                   </div>
-              </details>
-            
-              <details>
-                <summary id="helmVersions">&nbsp;Helm2 Users
-                </summary>
-                <div id="QS-helm2" className="styles-module--CodeBlock--1UB4s">
-                  <div className="QS-codeblockInstall">
-                  <span className="QS-copyButton"><CopyButton content="
-                  helm install --name ambassador --namespace ambassador datawire/ambassador">Copy</CopyButton></span>
-                    <div className="token-line">
-                      <span className="token-plain">helm</span>
-                      <span className="token plain"> </span>
-                      <span className="token-plain">install</span>
-                      <span className="token plain"> </span>
-                      <span className="token-plain">--name</span>
-                      <span className="token plain"> </span>
-                      <span className="token-plain">ambassador</span>
-                      <span className="token plain"> </span>
-                      <span className="token plain">--namespace</span>
-                      <span className="token plain"> </span>
-                      <span className="token-plain">ambassador</span>
-                      <span className="token plain"> </span>
-                      <span className="token-plain">datawire/ambassador</span>
-                    </div>
+
+                  <div id="helm3Block">
+                    <details open>
+                      <summary id="helmVersions">&nbsp;Helm3
+                      </summary>
+                      <div id="QS-helm3" className="styles-module--CodeBlock--1UB4s">
+                        <div className="QS-codeblockInstall">
+                        <span className="QS-copyButton"><CopyButton content="
+                        kubectl create namespace ambassador && helm install ambassador --namespace ambassador datawire/ambassador">Copy</CopyButton></span>
+                            <div className="token-line">
+                            <span className="token-plain">kubectl</span>
+                            <span className="token plain"> </span>
+                            <span className="token-plain">create</span>
+                            <span className="token plain"> </span>
+                            <span className="token-plain">namespace</span>
+                            <span className="token plain"> </span>
+                            <span className="token plain">ambassador</span>
+                            <span className="token plain"> </span>
+                            <span className="token plain">&&</span>
+                            <span className="token plain"> </span>
+                            <span className="token-plain">\</span><br/>
+                            <span className="token-plain">helm</span>
+                            <span className="token plain"> </span>
+                            <span className="token-plain">install</span>
+                            <span className="token plain"> </span>
+                            <span className="token-plain">ambassador</span>
+                            <span className="token plain"> </span>
+                            <span className="token plain">--namespace</span>
+                            <span className="token plain"> </span>
+                            <span className="token-plain">ambassador</span>
+                            <span className="token plain"> </span>
+                            <span className="token-plain">datawire/ambassador</span>
+                          </div>
+                        </div>
+                      </div>
+                    </details>
                   </div>
                 </div>
-              </details>
             
               <li className="QS-asideNoBullets">Install Ambassador Edge Stack:</li>
                 <div className="styles-module--CodeBlock--1UB4s">
                     <div className="QS-codeblockInstall">
                     <div className="QS-copyButton"><CopyButton content="edgectl install">Copy</CopyButton></div>
                       <div className="token-line">
-                        <span className="QS-token-function">edgectl</span>
+                        <span className="token plain">edgectl</span>
                         <span className="token plain"> </span>
-                        <span className="QS-token-function">install</span>
+                        <span className="token plain">install</span>
                       </div>
                     </div>
                 </div>
@@ -362,9 +375,23 @@ class GettingStarted extends Component {
         </div>
       </div>
 
+      <div id="QS-blank"></div>
+
       <div id="QS-fullManual">
         <a href="../../topics/install/">See full-detailed instructions and other install options</a>
       </div>
+
+      <div className="QS-blackbird-image">
+        <img alt="Ambassador's OpenSource Blackbird" src="/images/features-page-bird.svg"/>
+      </div>
+
+      <div className="QS-Spin">
+       <div className="QS-asideText">
+         Take it for a spin!<br/>
+          <span className="QS-spinText">➞ <a href="../../tutorials/quickstart-demo/">See how Ambassador works with a service</a>.</span><br/>
+          <span id="QS-customLink" className="QS-spinText">➞ <a href="../../topics/using/">Check out custom options and integrations</a>.</span><br/>
+        </div>
+       </div>
       
       <div className="QS-main">
 
