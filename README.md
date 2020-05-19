@@ -95,7 +95,7 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `dnsPolicy`                        | Dns policy, when hostNetwork set to ClusterFirstWithHostNet                     | `ClusterFirst`                    |
 | `env`                              | Any additional environment variables for ambassador pods                        | `{}`                              |
 | `image.pullPolicy`                 | Ambassador image pull policy                                                    | `IfNotPresent`                    |
-| `image.repository`                 | Ambassador image                                                                | `quay.io/datawire/aes`            |
+| `image.repository`                 | Ambassador image                                                                | `docker.io/datawire/aes`          |
 | `image.tag`                        | Ambassador image tag                                                            | `1.4.3`                           |
 | `imagePullSecrets`                 | Image pull secrets                                                              | `[]`                              |
 | `namespace.name`                   | Set the `AMBASSADOR_NAMESPACE` environment variable                             | `metadata.namespace`              |
