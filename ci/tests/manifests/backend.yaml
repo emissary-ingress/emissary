@@ -37,7 +37,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: quay.io/datawire/quote:0.2.8
+        image: datawire/quote:0.4.0
         ports:
         - name: http
           containerPort: 8080
