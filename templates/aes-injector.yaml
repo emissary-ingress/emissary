@@ -26,7 +26,15 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: {{ include "ambassador.fullname" . }}-injector
+        app.kubernetes.io/part-of: {{ .Release.Name }}
+        helm.sh/chart: {{ include "ambassador.chart" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
+        {{- if .Values.deploymentTool }}
+        app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+        {{- else }}
+        app.kubernetes.io/managed-by: {{ .Release.Service }}
+        {{- end }}
+        product: aes
     spec:
       containers:
       - name: webhook
