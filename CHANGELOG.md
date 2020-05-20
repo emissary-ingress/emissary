@@ -3,6 +3,22 @@
 This file documents all notable changes to Ambassador Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
+## v6.3.6
+
+- Switch from Quay.io to DockerHub
+
+## v6.3.5
+
+- Upgrade Ambassador to version 1.4.3: [CHANGELOG}](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
+
+## v6.3.4
+
+- Minor bug fixes
+
+## v6.3.3
+
+- Add extra labels to ServiceMonitor: [CHANGELOG}](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
+
 ## v6.3.2
 
 - Upgrade Ambassador to version 1.4.2: [CHANGELOG}](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)

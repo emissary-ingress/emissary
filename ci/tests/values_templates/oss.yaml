@@ -1,5 +1,5 @@
 image:
-  repository: quay.io/datawire/ambassador
+  repository: datawire/ambassador
   tag: $OSS_TAG
 
 service:

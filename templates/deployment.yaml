@@ -138,6 +138,9 @@ spec:
               {{- if .protocol }}
               protocol: {{ .protocol }}
               {{- end }}
+              {{- if .hostPort }}
+              hostPort: {{ .hostPort }}
+              {{- end }}
             {{- end}}
             - name: admin
               containerPort: 8877
@@ -153,6 +156,10 @@ spec:
               {{- else }}
               value: {{ include "ambassador.fullname" . }}-redis:6379
               {{- end }}
+            {{- end }}
+            {{- if and .Values.licenseKey.secretName .Values.enableAES}}
+            - name: AMBASSADOR_AES_SECRET_NAME
+              value: {{ .Values.licenseKey.secretName }}
             {{- end }}
             {{- if .Values.prometheusExporter.enabled }}
             - name: STATSD_ENABLED

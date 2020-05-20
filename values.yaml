@@ -59,8 +59,8 @@ securityContext:
   runAsUser: 8888
 
 image:
-  repository: quay.io/datawire/aes
-  tag: 1.4.2
+  repository: docker.io/datawire/aes
+  tag: 1.4.3
   pullPolicy: IfNotPresent
 
 dnsPolicy: "ClusterFirst"
@@ -77,11 +77,13 @@ service:
       targetPort: 8080
       # protocol: TCP
       # nodePort: 30080
+      # hostPort: 80
     - name: https
       port: 443
       targetPort: 8443
       # protocol: TCP
       # nodePort: 30443
+      # hostPort: 443
     # TCPMapping_Port
       # port: 2222
       # targetPort: 2222
@@ -343,6 +345,7 @@ metrics:
     enabled: false
     # interval: 30s
     # scrapeTimeout: 30s
+    # selector: {}
 
 # Configures Service Preview that ships with the Ambassador Edge Stack and edgectl.
 # Setting servicePreview.enabled: true will install the Traffic Agent, Traffic Manager, and ambassador-injector
