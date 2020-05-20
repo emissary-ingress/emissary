@@ -342,7 +342,7 @@ type HostHealthStatus struct {
 	PendingActiveHc bool `protobuf:"varint,6,opt,name=pending_active_hc,json=pendingActiveHc,proto3" json:"pending_active_hc,omitempty"`
 	// Health status as reported by EDS. Note: only HEALTHY and UNHEALTHY are currently supported
 	// here.
-	// TODO(mrice32): pipe through remaining EDS health status possibilities.
+	// [#comment:TODO(mrice32): pipe through remaining EDS health status possibilities.]
 	EdsHealthStatus      core.HealthStatus `protobuf:"varint,3,opt,name=eds_health_status,json=edsHealthStatus,proto3,enum=envoy.api.v2.core.HealthStatus" json:"eds_health_status,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
 	XXX_unrecognized     []byte            `json:"-"`
@@ -431,7 +431,9 @@ func init() {
 	proto.RegisterType((*HostHealthStatus)(nil), "envoy.admin.v2alpha.HostHealthStatus")
 }
 
-func init() { proto.RegisterFile("envoy/admin/v2alpha/clusters.proto", fileDescriptor_c6251a3a957f478b) }
+func init() {
+	proto.RegisterFile("envoy/admin/v2alpha/clusters.proto", fileDescriptor_c6251a3a957f478b)
+}
 
 var fileDescriptor_c6251a3a957f478b = []byte{
 	// 683 bytes of a gzipped FileDescriptorProto
@@ -1711,6 +1713,7 @@ func (m *HostHealthStatus) Unmarshal(dAtA []byte) error {
 func skipClusters(dAtA []byte) (n int, err error) {
 	l := len(dAtA)
 	iNdEx := 0
+	depth := 0
 	for iNdEx < l {
 		var wire uint64
 		for shift := uint(0); ; shift += 7 {
@@ -1742,10 +1745,8 @@ func skipClusters(dAtA []byte) (n int, err error) {
 					break
 				}
 			}
-			return iNdEx, nil
 		case 1:
 			iNdEx += 8
-			return iNdEx, nil
 		case 2:
 			var length int
 			for shift := uint(0); ; shift += 7 {
@@ -1766,55 +1767,30 @@ func skipClusters(dAtA []byte) (n int, err error) {
 				return 0, ErrInvalidLengthClusters
 			}
 			iNdEx += length
-			if iNdEx < 0 {
-				return 0, ErrInvalidLengthClusters
-			}
-			return iNdEx, nil
 		case 3:
-			for {
-				var innerWire uint64
-				var start int = iNdEx
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return 0, ErrIntOverflowClusters
-					}
-					if iNdEx >= l {
-						return 0, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					innerWire |= (uint64(b) & 0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				innerWireType := int(innerWire & 0x7)
-				if innerWireType == 4 {
-					break
-				}
-				next, err := skipClusters(dAtA[start:])
-				if err != nil {
-					return 0, err
-				}
-				iNdEx = start + next
-				if iNdEx < 0 {
-					return 0, ErrInvalidLengthClusters
-				}
-			}
-			return iNdEx, nil
+			depth++
 		case 4:
-			return iNdEx, nil
+			if depth == 0 {
+				return 0, ErrUnexpectedEndOfGroupClusters
+			}
+			depth--
 		case 5:
 			iNdEx += 4
-			return iNdEx, nil
 		default:
 			return 0, fmt.Errorf("proto: illegal wireType %d", wireType)
 		}
+		if iNdEx < 0 {
+			return 0, ErrInvalidLengthClusters
+		}
+		if depth == 0 {
+			return iNdEx, nil
+		}
 	}
-	panic("unreachable")
+	return 0, io.ErrUnexpectedEOF
 }
 
 var (
-	ErrInvalidLengthClusters = fmt.Errorf("proto: negative length found during unmarshaling")
-	ErrIntOverflowClusters   = fmt.Errorf("proto: integer overflow")
+	ErrInvalidLengthClusters        = fmt.Errorf("proto: negative length found during unmarshaling")
+	ErrIntOverflowClusters          = fmt.Errorf("proto: integer overflow")
+	ErrUnexpectedEndOfGroupClusters = fmt.Errorf("proto: unexpected end of group")
 )

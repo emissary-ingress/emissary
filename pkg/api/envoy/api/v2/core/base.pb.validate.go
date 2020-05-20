@@ -33,6 +33,9 @@ var (
 	_ = types.DynamicAny{}
 )
 
+// define the regex for a UUID once up-front
+var _base_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on Locality with the rules defined in the
 // proto definition for this message. If any rules are violated, an error is returned.
 func (m *Locality) Validate() error {
@@ -103,6 +106,188 @@ var _ interface {
 	ErrorName() string
 } = LocalityValidationError{}
 
+// Validate checks the field values on BuildVersion with the rules defined in
+// the proto definition for this message. If any rules are violated, an error
+// is returned.
+func (m *BuildVersion) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	{
+		tmp := m.GetVersion()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return BuildVersionValidationError{
+					field:  "Version",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
+	{
+		tmp := m.GetMetadata()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return BuildVersionValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+// BuildVersionValidationError is the validation error returned by
+// BuildVersion.Validate if the designated constraints aren't met.
+type BuildVersionValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e BuildVersionValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e BuildVersionValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e BuildVersionValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e BuildVersionValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e BuildVersionValidationError) ErrorName() string { return "BuildVersionValidationError" }
+
+// Error satisfies the builtin error interface
+func (e BuildVersionValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sBuildVersion.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = BuildVersionValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = BuildVersionValidationError{}
+
+// Validate checks the field values on Extension with the rules defined in the
+// proto definition for this message. If any rules are violated, an error is returned.
+func (m *Extension) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	// no validation rules for Name
+
+	// no validation rules for Category
+
+	// no validation rules for TypeDescriptor
+
+	{
+		tmp := m.GetVersion()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return ExtensionValidationError{
+					field:  "Version",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
+	// no validation rules for Disabled
+
+	return nil
+}
+
+// ExtensionValidationError is the validation error returned by
+// Extension.Validate if the designated constraints aren't met.
+type ExtensionValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ExtensionValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ExtensionValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ExtensionValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ExtensionValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ExtensionValidationError) ErrorName() string { return "ExtensionValidationError" }
+
+// Error satisfies the builtin error interface
+func (e ExtensionValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sExtension.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ExtensionValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ExtensionValidationError{}
+
 // Validate checks the field values on Node with the rules defined in the proto
 // definition for this message. If any rules are violated, an error is returned.
 func (m *Node) Validate() error {
@@ -145,6 +330,52 @@ func (m *Node) Validate() error {
 	}
 
 	// no validation rules for BuildVersion
+
+	// no validation rules for UserAgentName
+
+	for idx, item := range m.GetExtensions() {
+		_, _ = idx, item
+
+		{
+			tmp := item
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return NodeValidationError{
+						field:  fmt.Sprintf("Extensions[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
+	}
+
+	switch m.UserAgentVersionType.(type) {
+
+	case *Node_UserAgentVersion:
+		// no validation rules for UserAgentVersion
+
+	case *Node_UserAgentBuildVersion:
+
+		{
+			tmp := m.GetUserAgentBuildVersion()
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return NodeValidationError{
+						field:  "UserAgentBuildVersion",
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
+	}
 
 	return nil
 }
@@ -210,7 +441,27 @@ func (m *Metadata) Validate() error {
 		return nil
 	}
 
-	// no validation rules for FilterMetadata
+	for key, val := range m.GetFilterMetadata() {
+		_ = val
+
+		// no validation rules for FilterMetadata[key]
+
+		{
+			tmp := val
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return MetadataValidationError{
+						field:  fmt.Sprintf("FilterMetadata[%v]", key),
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
+	}
 
 	return nil
 }

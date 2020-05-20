@@ -1,6 +1,9 @@
 from typing import Optional
 
 import logging
+import sys
+
+import pytest
 
 logging.basicConfig(
     level=logging.INFO,
@@ -104,5 +107,4 @@ def test_lookup():
     assert t2.lookup('max_request_words', 77, default_key='altered2', default_class='/') == 77
 
 if __name__ == '__main__':
-    test_lookup()
-
+    pytest.main(sys.argv)

@@ -100,6 +100,7 @@ func RunManagementServer(ctx context.Context, server xds.Server, port uint) {
 	v2grpc.RegisterRouteDiscoveryServiceServer(grpcServer, server)
 	v2grpc.RegisterListenerDiscoveryServiceServer(grpcServer, server)
 	discoverygrpc.RegisterSecretDiscoveryServiceServer(grpcServer, server)
+	discoverygrpc.RegisterRuntimeDiscoveryServiceServer(grpcServer, server)
 
 	log.Printf("management server listening on %d\n", port)
 	go func() {

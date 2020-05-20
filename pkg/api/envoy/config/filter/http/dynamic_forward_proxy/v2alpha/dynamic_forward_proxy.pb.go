@@ -5,6 +5,7 @@ package envoy_config_filter_http_dynamic_forward_proxy_v2alpha
 
 import (
 	fmt "fmt"
+	_ "github.com/cncf/udpa/go/udpa/annotations"
 	v2alpha "github.com/datawire/ambassador/pkg/api/envoy/config/common/dynamic_forward_proxy/v2alpha"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	proto "github.com/gogo/protobuf/proto"
@@ -26,6 +27,7 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Configuration for the dynamic forward proxy HTTP filter. See the :ref:`architecture overview
 // <arch_overview_http_dynamic_forward_proxy>` for more information.
+// [#extension: envoy.filters.http.dynamic_forward_proxy]
 type FilterConfig struct {
 	// The DNS cache configuration that the filter will attach to. Note this configuration must
 	// match that of associated :ref:`dynamic forward proxy cluster configuration
@@ -78,13 +80,13 @@ func (m *FilterConfig) GetDnsCacheConfig() *v2alpha.DnsCacheConfig {
 
 // Per route Configuration for the dynamic forward proxy HTTP filter.
 type PerRouteConfig struct {
-	// Indicates that before DNS lookup, the host header will be swapped with
-	// this value. If not set or empty, the original host header value
-	// will be used and no rewrite will happen.
-	HostRewrite          string   `protobuf:"bytes,1,opt,name=host_rewrite,json=hostRewrite,proto3" json:"host_rewrite,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	// Types that are valid to be assigned to HostRewriteSpecifier:
+	//	*PerRouteConfig_HostRewrite
+	//	*PerRouteConfig_AutoHostRewriteHeader
+	HostRewriteSpecifier isPerRouteConfig_HostRewriteSpecifier `protobuf_oneof:"host_rewrite_specifier"`
+	XXX_NoUnkeyedLiteral struct{}                              `json:"-"`
+	XXX_unrecognized     []byte                                `json:"-"`
+	XXX_sizecache        int32                                 `json:"-"`
 }
 
 func (m *PerRouteConfig) Reset()         { *m = PerRouteConfig{} }
@@ -120,11 +122,49 @@ func (m *PerRouteConfig) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_PerRouteConfig proto.InternalMessageInfo
 
-func (m *PerRouteConfig) GetHostRewrite() string {
+type isPerRouteConfig_HostRewriteSpecifier interface {
+	isPerRouteConfig_HostRewriteSpecifier()
+	MarshalTo([]byte) (int, error)
+	Size() int
+}
+
+type PerRouteConfig_HostRewrite struct {
+	HostRewrite string `protobuf:"bytes,1,opt,name=host_rewrite,json=hostRewrite,proto3,oneof" json:"host_rewrite,omitempty"`
+}
+type PerRouteConfig_AutoHostRewriteHeader struct {
+	AutoHostRewriteHeader string `protobuf:"bytes,2,opt,name=auto_host_rewrite_header,json=autoHostRewriteHeader,proto3,oneof" json:"auto_host_rewrite_header,omitempty"`
+}
+
+func (*PerRouteConfig_HostRewrite) isPerRouteConfig_HostRewriteSpecifier()           {}
+func (*PerRouteConfig_AutoHostRewriteHeader) isPerRouteConfig_HostRewriteSpecifier() {}
+
+func (m *PerRouteConfig) GetHostRewriteSpecifier() isPerRouteConfig_HostRewriteSpecifier {
 	if m != nil {
-		return m.HostRewrite
+		return m.HostRewriteSpecifier
+	}
+	return nil
+}
+
+func (m *PerRouteConfig) GetHostRewrite() string {
+	if x, ok := m.GetHostRewriteSpecifier().(*PerRouteConfig_HostRewrite); ok {
+		return x.HostRewrite
 	}
 	return ""
+}
+
+func (m *PerRouteConfig) GetAutoHostRewriteHeader() string {
+	if x, ok := m.GetHostRewriteSpecifier().(*PerRouteConfig_AutoHostRewriteHeader); ok {
+		return x.AutoHostRewriteHeader
+	}
+	return ""
+}
+
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*PerRouteConfig) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
+		(*PerRouteConfig_HostRewrite)(nil),
+		(*PerRouteConfig_AutoHostRewriteHeader)(nil),
+	}
 }
 
 func init() {
@@ -137,26 +177,33 @@ func init() {
 }
 
 var fileDescriptor_85a2356b260c47da = []byte{
-	// 290 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x90, 0x41, 0x4a, 0xc3, 0x40,
-	0x14, 0x40, 0x19, 0x45, 0xc1, 0x69, 0x29, 0x25, 0x1b, 0x4b, 0x17, 0x41, 0xbb, 0x72, 0x35, 0x03,
-	0x2d, 0xb8, 0x6f, 0x1a, 0xba, 0x0e, 0xb9, 0x40, 0x18, 0x93, 0x89, 0x19, 0x48, 0xe6, 0x87, 0xc9,
-	0x98, 0x98, 0x13, 0x08, 0x1e, 0xc9, 0x95, 0x4b, 0x97, 0x1e, 0x41, 0xb2, 0xf3, 0x16, 0x92, 0xfc,
-	0x2a, 0x04, 0x8a, 0x82, 0xbb, 0xe1, 0x3f, 0xe6, 0xfd, 0xc7, 0xa7, 0xa1, 0xd4, 0x35, 0xb4, 0x3c,
-	0x06, 0x9d, 0xaa, 0x7b, 0x9e, 0xaa, 0xdc, 0x4a, 0xc3, 0x33, 0x6b, 0x4b, 0x9e, 0xb4, 0x5a, 0x14,
-	0x2a, 0x8e, 0x52, 0x30, 0x8d, 0x30, 0x49, 0x54, 0x1a, 0x78, 0x6c, 0x79, 0xbd, 0x16, 0x79, 0x99,
-	0x89, 0xe3, 0x94, 0x95, 0x06, 0x2c, 0x38, 0xb7, 0x83, 0x93, 0xa1, 0x93, 0xa1, 0x93, 0xf5, 0x4e,
-	0x76, 0xfc, 0xd7, 0xc1, 0xb9, 0xdc, 0x8e, 0x5a, 0x62, 0x28, 0x0a, 0xd0, 0x7f, 0x65, 0xe8, 0x2a,
-	0x8a, 0x45, 0x9c, 0x49, 0x5c, 0xbd, 0xbc, 0xac, 0x45, 0xae, 0x12, 0x61, 0x25, 0xff, 0x7e, 0x20,
-	0x58, 0x3d, 0x11, 0x3a, 0xdd, 0x0f, 0x25, 0xbb, 0x41, 0xef, 0x34, 0x74, 0xfe, 0xf3, 0x39, 0xc2,
-	0x95, 0x0b, 0x72, 0x45, 0x6e, 0x26, 0xeb, 0x2d, 0x1b, 0xf5, 0x63, 0xc7, 0xef, 0xe9, 0xcc, 0xd7,
-	0xd5, 0xae, 0x37, 0xa1, 0xdc, 0xa3, 0x2f, 0x9f, 0xaf, 0xa7, 0x67, 0xcf, 0xe4, 0x64, 0x4e, 0xc2,
-	0x59, 0x32, 0x62, 0xab, 0x0d, 0x9d, 0x05, 0xd2, 0x84, 0xf0, 0x60, 0x0f, 0x13, 0xe7, 0x9a, 0x4e,
-	0x33, 0xa8, 0x6c, 0x64, 0x64, 0x63, 0x94, 0x95, 0x43, 0xc6, 0x45, 0x38, 0xe9, 0x67, 0x21, 0x8e,
-	0x3c, 0xfd, 0xd6, 0xb9, 0xe4, 0xbd, 0x73, 0xc9, 0x47, 0xe7, 0x12, 0xea, 0x2b, 0xc0, 0x46, 0x8c,
-	0xf8, 0xdf, 0xb9, 0xbd, 0x85, 0x8f, 0x78, 0x8f, 0x34, 0xe8, 0x61, 0xd0, 0x1f, 0x2b, 0x20, 0x77,
-	0xe7, 0xc3, 0xd5, 0x36, 0x5f, 0x01, 0x00, 0x00, 0xff, 0xff, 0x06, 0x0b, 0x34, 0xfd, 0x1f, 0x02,
-	0x00, 0x00,
+	// 406 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x92, 0xbf, 0x6a, 0xe3, 0x30,
+	0x1c, 0xc7, 0xa3, 0x40, 0x8e, 0x3b, 0x25, 0x84, 0xe0, 0xbb, 0xe4, 0x4c, 0xee, 0x30, 0x47, 0xa6,
+	0x9b, 0x2c, 0x48, 0xe0, 0xb8, 0x35, 0x4e, 0x08, 0x1e, 0x8d, 0x87, 0xae, 0x46, 0xb5, 0xe5, 0x58,
+	0x60, 0x4b, 0x46, 0x96, 0xf3, 0xe7, 0x01, 0xba, 0x74, 0xe9, 0xda, 0x87, 0xe8, 0x6b, 0x14, 0x3a,
+	0xf6, 0x11, 0x4a, 0x1e, 0xa1, 0x63, 0x87, 0x52, 0x2c, 0x25, 0x6d, 0x0d, 0x21, 0x85, 0x6e, 0xe6,
+	0xf7, 0x91, 0x3e, 0xfa, 0xca, 0xfa, 0x42, 0x9f, 0xb0, 0x15, 0xdf, 0xa2, 0x90, 0xb3, 0x98, 0x2e,
+	0x51, 0x4c, 0x53, 0x49, 0x04, 0x4a, 0xa4, 0xcc, 0x51, 0xb4, 0x65, 0x38, 0xa3, 0x61, 0x10, 0x73,
+	0xb1, 0xc6, 0x22, 0x0a, 0x72, 0xc1, 0x37, 0x5b, 0xb4, 0x1a, 0xe3, 0x34, 0x4f, 0xf0, 0x71, 0x6a,
+	0xe7, 0x82, 0x4b, 0x6e, 0xfc, 0x53, 0x4e, 0x5b, 0x3b, 0x6d, 0xed, 0xb4, 0x2b, 0xa7, 0x7d, 0x7c,
+	0xd7, 0xde, 0x39, 0x9c, 0xd6, 0xb2, 0x84, 0x3c, 0xcb, 0x38, 0xfb, 0x28, 0x06, 0x2b, 0x82, 0x10,
+	0x87, 0x09, 0xd1, 0x47, 0x0f, 0xad, 0x32, 0xca, 0x31, 0xc2, 0x8c, 0x71, 0x89, 0x25, 0xe5, 0xac,
+	0x40, 0x19, 0x5d, 0x0a, 0x2c, 0x0f, 0xfc, 0xe7, 0x0a, 0xa7, 0x34, 0xc2, 0x92, 0xa0, 0xc3, 0x87,
+	0x06, 0xa3, 0x0b, 0x00, 0x3b, 0x0b, 0x95, 0x74, 0xa6, 0x8e, 0x37, 0x4a, 0xd8, 0x7b, 0x95, 0x07,
+	0x3a, 0x92, 0x09, 0xfe, 0x80, 0xbf, 0xed, 0xf1, 0xd4, 0xae, 0xdd, 0x4f, 0xe7, 0x3c, 0x7d, 0x35,
+	0x7b, 0xce, 0x8a, 0x59, 0x65, 0xd2, 0x72, 0xe7, 0xeb, 0x93, 0xd3, 0xba, 0x04, 0xcd, 0x1e, 0xf0,
+	0xbb, 0x51, 0x8d, 0x8c, 0x6e, 0x01, 0xec, 0x7a, 0x44, 0xf8, 0xbc, 0x94, 0xfb, 0x91, 0x31, 0x85,
+	0x9d, 0x84, 0x17, 0x32, 0x10, 0x64, 0x2d, 0xa8, 0x24, 0x2a, 0xc5, 0x37, 0xe7, 0xf7, 0xe3, 0xf5,
+	0xf3, 0x55, 0x6b, 0x00, 0x7f, 0xbc, 0x67, 0x41, 0x4a, 0x25, 0x11, 0x38, 0x75, 0x1b, 0x7e, 0xbb,
+	0x9a, 0xfb, 0x7a, 0x6c, 0x9c, 0x41, 0x13, 0x97, 0x92, 0x07, 0xb5, 0xb5, 0x09, 0xc1, 0x11, 0x11,
+	0x66, 0x53, 0xe9, 0x7e, 0x29, 0x5d, 0x1f, 0x7e, 0x3f, 0xb2, 0xc4, 0x6d, 0xf8, 0xfd, 0x6a, 0xbb,
+	0xfb, 0x66, 0x74, 0x15, 0x70, 0x4c, 0x38, 0xa8, 0xad, 0x2f, 0x72, 0x12, 0xd2, 0x98, 0x12, 0xe1,
+	0xdc, 0x80, 0xbb, 0x9d, 0x05, 0xee, 0x77, 0x16, 0x78, 0xd8, 0x59, 0x40, 0xc9, 0xff, 0x1f, 0x8a,
+	0x41, 0x36, 0x92, 0xb0, 0xa2, 0x7a, 0x9d, 0x7d, 0x39, 0x8a, 0x93, 0xed, 0x98, 0xc0, 0x39, 0xe5,
+	0xfa, 0x9f, 0xeb, 0xc9, 0xe7, 0xea, 0xe5, 0x98, 0x73, 0x8d, 0x17, 0x9a, 0x7a, 0x15, 0xf4, 0xaa,
+	0xc7, 0xf7, 0xc0, 0xf9, 0x17, 0xd5, 0x82, 0xc9, 0x4b, 0x00, 0x00, 0x00, 0xff, 0xff, 0xa5, 0xb9,
+	0x4e, 0xe2, 0x0f, 0x03, 0x00, 0x00,
 }
 
 func (m *FilterConfig) Marshal() (dAtA []byte, err error) {
@@ -222,16 +269,46 @@ func (m *PerRouteConfig) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if len(m.HostRewrite) > 0 {
-		i -= len(m.HostRewrite)
-		copy(dAtA[i:], m.HostRewrite)
-		i = encodeVarintDynamicForwardProxy(dAtA, i, uint64(len(m.HostRewrite)))
-		i--
-		dAtA[i] = 0xa
+	if m.HostRewriteSpecifier != nil {
+		{
+			size := m.HostRewriteSpecifier.Size()
+			i -= size
+			if _, err := m.HostRewriteSpecifier.MarshalTo(dAtA[i:]); err != nil {
+				return 0, err
+			}
+		}
 	}
 	return len(dAtA) - i, nil
 }
 
+func (m *PerRouteConfig_HostRewrite) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *PerRouteConfig_HostRewrite) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	i -= len(m.HostRewrite)
+	copy(dAtA[i:], m.HostRewrite)
+	i = encodeVarintDynamicForwardProxy(dAtA, i, uint64(len(m.HostRewrite)))
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+func (m *PerRouteConfig_AutoHostRewriteHeader) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *PerRouteConfig_AutoHostRewriteHeader) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	i -= len(m.AutoHostRewriteHeader)
+	copy(dAtA[i:], m.AutoHostRewriteHeader)
+	i = encodeVarintDynamicForwardProxy(dAtA, i, uint64(len(m.AutoHostRewriteHeader)))
+	i--
+	dAtA[i] = 0x12
+	return len(dAtA) - i, nil
+}
 func encodeVarintDynamicForwardProxy(dAtA []byte, offset int, v uint64) int {
 	offset -= sovDynamicForwardProxy(v)
 	base := offset
@@ -265,13 +342,33 @@ func (m *PerRouteConfig) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.HostRewrite)
-	if l > 0 {
-		n += 1 + l + sovDynamicForwardProxy(uint64(l))
+	if m.HostRewriteSpecifier != nil {
+		n += m.HostRewriteSpecifier.Size()
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
 	}
+	return n
+}
+
+func (m *PerRouteConfig_HostRewrite) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.HostRewrite)
+	n += 1 + l + sovDynamicForwardProxy(uint64(l))
+	return n
+}
+func (m *PerRouteConfig_AutoHostRewriteHeader) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.AutoHostRewriteHeader)
+	n += 1 + l + sovDynamicForwardProxy(uint64(l))
 	return n
 }
 
@@ -430,7 +527,39 @@ func (m *PerRouteConfig) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.HostRewrite = string(dAtA[iNdEx:postIndex])
+			m.HostRewriteSpecifier = &PerRouteConfig_HostRewrite{string(dAtA[iNdEx:postIndex])}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AutoHostRewriteHeader", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDynamicForwardProxy
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDynamicForwardProxy
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDynamicForwardProxy
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.HostRewriteSpecifier = &PerRouteConfig_AutoHostRewriteHeader{string(dAtA[iNdEx:postIndex])}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -460,6 +589,7 @@ func (m *PerRouteConfig) Unmarshal(dAtA []byte) error {
 func skipDynamicForwardProxy(dAtA []byte) (n int, err error) {
 	l := len(dAtA)
 	iNdEx := 0
+	depth := 0
 	for iNdEx < l {
 		var wire uint64
 		for shift := uint(0); ; shift += 7 {
@@ -491,10 +621,8 @@ func skipDynamicForwardProxy(dAtA []byte) (n int, err error) {
 					break
 				}
 			}
-			return iNdEx, nil
 		case 1:
 			iNdEx += 8
-			return iNdEx, nil
 		case 2:
 			var length int
 			for shift := uint(0); ; shift += 7 {
@@ -515,55 +643,30 @@ func skipDynamicForwardProxy(dAtA []byte) (n int, err error) {
 				return 0, ErrInvalidLengthDynamicForwardProxy
 			}
 			iNdEx += length
-			if iNdEx < 0 {
-				return 0, ErrInvalidLengthDynamicForwardProxy
-			}
-			return iNdEx, nil
 		case 3:
-			for {
-				var innerWire uint64
-				var start int = iNdEx
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return 0, ErrIntOverflowDynamicForwardProxy
-					}
-					if iNdEx >= l {
-						return 0, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					innerWire |= (uint64(b) & 0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				innerWireType := int(innerWire & 0x7)
-				if innerWireType == 4 {
-					break
-				}
-				next, err := skipDynamicForwardProxy(dAtA[start:])
-				if err != nil {
-					return 0, err
-				}
-				iNdEx = start + next
-				if iNdEx < 0 {
-					return 0, ErrInvalidLengthDynamicForwardProxy
-				}
-			}
-			return iNdEx, nil
+			depth++
 		case 4:
-			return iNdEx, nil
+			if depth == 0 {
+				return 0, ErrUnexpectedEndOfGroupDynamicForwardProxy
+			}
+			depth--
 		case 5:
 			iNdEx += 4
-			return iNdEx, nil
 		default:
 			return 0, fmt.Errorf("proto: illegal wireType %d", wireType)
 		}
+		if iNdEx < 0 {
+			return 0, ErrInvalidLengthDynamicForwardProxy
+		}
+		if depth == 0 {
+			return iNdEx, nil
+		}
 	}
-	panic("unreachable")
+	return 0, io.ErrUnexpectedEOF
 }
 
 var (
-	ErrInvalidLengthDynamicForwardProxy = fmt.Errorf("proto: negative length found during unmarshaling")
-	ErrIntOverflowDynamicForwardProxy   = fmt.Errorf("proto: integer overflow")
+	ErrInvalidLengthDynamicForwardProxy        = fmt.Errorf("proto: negative length found during unmarshaling")
+	ErrIntOverflowDynamicForwardProxy          = fmt.Errorf("proto: integer overflow")
+	ErrUnexpectedEndOfGroupDynamicForwardProxy = fmt.Errorf("proto: unexpected end of group")
 )
