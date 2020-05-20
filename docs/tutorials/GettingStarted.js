@@ -58,7 +58,7 @@ class GettingStarted extends Component {
               <div className="token-line">	
                 <span className="token plain">sudo</span>	
                 <span className="token plain"> </span>	
-                <span className="token-plain">curl</span>	
+                <span className="token plain">curl</span>	
                 <span className="token plain"> -fL https://metriton.datawire.io/downloads/darwin/edgectl <br/>   -o /usr/local/bin/edgectl </span>	
                 <span className="token plain">&&</span><br/>	
                 <span className="token plain">  </span>	
@@ -127,74 +127,74 @@ class GettingStarted extends Component {
       <div className="QS-aside QS-aside2">
         <div className="QS-asideText">
           <ul id="QS-asideBullets">
-            <li>Have Kubernetes? Deploy with yaml:</li>
+            <li>Have Kubernetes? Deploy with YAML:</li>
               <div className="styles-module--CodeBlock--1UB4s">
                 <div className="QS-codeblockInstall">
                 <span className="QS-copyButton"><CopyButton content="
                 kubectl apply -f https://www.getambassador.io/yaml/aes-crds.yaml && kubectl wait --for condition=established --timeout=90s crd -lproduct=aes && kubectl apply -f https://www.getambassador.io/yaml/aes.yaml && kubectl -n ambassador wait --for condition=available --timeout=90s deploy -lproduct=aes">Copy</CopyButton></span>
                   <div className="token-line">
-                    <span className="token-plain">kubectl</span>
+                    <span className="token plain">kubectl</span>
                     <span className="token plain"> </span>
-                    <span className="token-plain">apply</span>
+                    <span className="token plain">apply</span>
                     <span className="token plain"> </span>
-                    <span className="token-plain">-f https://www.getambassador.io/yaml/aes-crds.yaml</span>
+                    <span className="token plain">-f https://www.getambassador.io/yaml/aes-crds.yaml</span>
                     <span className="token plain"> </span>
                     <span className="token plain">&&</span>
                     <span className="token plain"> </span>
                     <span className="token plain">\</span><br/>
-                    <span className="token-plain">kubectl</span>
+                    <span className="token plain">kubectl</span>
                     <span className="token plain"> </span>
                     <span className="token plain">wait</span>
                     <span className="token plain"> </span>
-                    <span className="token-plain">--for</span>
+                    <span className="token plain">--for</span>
                     <span className="token plain"> </span>
                     <span className="token plain">condition</span>
                     <span className="token plain">=</span>
-                    <span className="token-plain">established</span>
+                    <span className="token plain">established</span>
                     <span className="token plain"> </span>
-                    <span className="token-plain">--timeout</span>
+                    <span className="token plain">--timeout</span>
                     <span className="token plain">=</span>
-                    <span className="token-plain">90s</span>
+                    <span className="token plain">90s</span>
                     <span className="token plain"> </span>
-                    <span className="token-plain">crd -lproduct</span>
+                    <span className="token plain">crd -lproduct</span>
                     <span className="token plain">=</span>
-                    <span className="token-plain">aes</span>
+                    <span className="token plain">aes</span>
                     <span className="token plain"> </span>
                     <span className="token plain">&&</span>
                     <span className="token plain"> </span>
-                    <span className="token-plain">\</span><br/>
-                    <span className="token-plain">kubectl</span>
+                    <span className="token plain">\</span><br/>
+                    <span className="token plain">kubectl</span>
                     <span className="token plain"> </span>
-                    <span className="token-plain">apply</span>
+                    <span className="token plain">apply</span>
                     <span className="token plain"> </span>
-                    <span className="token-plain">-f https://www.getambassador.io/yaml/aes.yaml</span>
+                    <span className="token plain">-f https://www.getambassador.io/yaml/aes.yaml</span>
                     <span className="token plain"> </span>
                     <span className="token plain">&&</span>
                     <span className="token plain"> </span>
-                    <span className="token-plain">\</span><br/>
-                    <span className="token-plain">kubectl</span>
+                    <span className="token plain">\</span><br/>
+                    <span className="token plain">kubectl</span>
                     <span className="token plain"> </span>
-                    <span className="token-plain">-n</span>
+                    <span className="token plain">-n</span>
                     <span className="token plain"> </span>
-                    <span className="token-plain">ambassador</span>
+                    <span className="token plain">ambassador</span>
                     <span className="token plain"> </span>
                     <span className="token plain">wait</span>
                     <span className="token plain"> </span>
-                    <span className="token-plain">--for</span>
+                    <span className="token plain">--for</span>
                     <span className="token plain"> </span>
                     <span className="token plain">condition</span>
                     <span className="token plain">=</span>
-                    <span className="token-plain">available</span>
+                    <span className="token plain">available</span>
                     <span className="token plain"> </span>
-                    <span className="token-plain">--timeout</span>
+                    <span className="token plain">--timeout</span>
                     <span className="token plain">=</span>
-                    <span className="token-plain">90s</span>
+                    <span className="token plain">90s</span>
                     <span className="token plain"> </span>
-                    <span className="token-plain">deploy</span>
+                    <span className="token plain">deploy</span>
                     <span className="token plain"> </span>
                     <span className="token plain">-lproduct</span>
-                    <span className="token-plain">=</span>
-                    <span className="token-plain">aes</span>
+                    <span className="token plain">=</span>
+                    <span className="token plain">aes</span>
                   </div>
                 </div>
               </div>
@@ -204,19 +204,19 @@ class GettingStarted extends Component {
                 <span className="QS-copyButton"><CopyButton content='
                 kubectl get -n ambassador service ambassador -o "go-template={{range .status.loadBalancer.ingress}}{{or .ip .hostname}}{{end}}"'>Copy</CopyButton></span>
                   <div className="token-line">
-                    <span className="token-plain">kubectl</span>
+                    <span className="token plain">kubectl</span>
                     <span className="token plain"> </span>
-                    <span className="token-plain">get</span>
+                    <span className="token plain">get</span>
                     <span className="token plain"> </span>
-                    <span className="token-plain">-n</span>
+                    <span className="token plain">-n</span>
                     <span className="token plain"> </span>
-                    <span className="token-plain">ambassador</span>
+                    <span className="token plain">ambassador</span>
                     <span className="token plain"> </span>
-                    <span className="token-plain">service</span>
+                    <span className="token plain">service</span>
                     <span className="token plain"> </span>
-                    <span className="token-plain">ambassador</span>
+                    <span className="token plain">ambassador</span>
                     <span className="token plain"> </span>
-                    <span className="token-plain">-o</span>
+                    <span className="token plain">-o</span>
                     <span className="token plain"> </span>
                     <span className="token plain">"go-template</span>
                     <span className="token plain">=</span>
@@ -257,15 +257,15 @@ class GettingStarted extends Component {
         <div className="QS-aside QS-aside3">
           <div className="QS-asideText">
             <ul id="QS-asideBullets">
-              <li>Prefer Helm?  Add this repo to your helm client:</li>
+              <li>Prefer Helm?  Add this repo to your Helm client:</li>
                 <div className="styles-module--CodeBlock--1UB4s">
                   <div className="QS-codeblockInstall">
                   <span className="QS-copyButton"><CopyButton content="
                   helm repo add datawire https://www.getambassador.io">Copy</CopyButton></span>
                     <div className="token-line">
-                      <span className="token-plain">helm</span>
+                      <span className="token plain">helm</span>
                       <span className="token plain"> </span>
-                      <span className="token-plain">repo</span>
+                      <span className="token plain">repo</span>
                       <span className="token plain"> </span>
                       <span className="token plain">add</span>
                       <span className="token plain"> </span>
@@ -288,30 +288,30 @@ class GettingStarted extends Component {
                         <span className="QS-copyButton"><CopyButton content="
                         kubectl create namespace ambassador && helm install --name ambassador --namespace ambassador datawire/ambassador">Copy</CopyButton></span>
                           <div className="token-line">
-                            <span className="token-plain">kubectl</span>
+                            <span className="token plain">kubectl</span>
                             <span className="token plain"> </span>
-                            <span className="token-plain">create</span>
+                            <span className="token plain">create</span>
                             <span className="token plain"> </span>
-                            <span className="token-plain">namespace</span>
+                            <span className="token plain">namespace</span>
                             <span className="token plain"> </span>
                             <span className="token plain">ambassador</span>
                             <span className="token plain"> </span>
                             <span className="token plain">&&</span>
                             <span className="token plain"> </span>
-                            <span className="token-plain">\</span><br/>
-                            <span className="token-plain">helm</span>
+                            <span className="token plain">\</span><br/>
+                            <span className="token plain">helm</span>
                             <span className="token plain"> </span>
-                            <span className="token-plain">install</span>
+                            <span className="token plain">install</span>
                             <span className="token plain"> </span>
-                            <span className="token-plain">--name</span>
+                            <span className="token plain">--name</span>
                             <span className="token plain"> </span>
-                            <span className="token-plain">ambassador</span>
+                            <span className="token plain">ambassador</span>
                             <span className="token plain"> </span>
                             <span className="token plain">--namespace</span>
                             <span className="token plain"> </span>
-                            <span className="token-plain">ambassador</span>
+                            <span className="token plain">ambassador</span>
                             <span className="token plain"> </span>
-                            <span className="token-plain">datawire/ambassador</span>
+                            <span className="token plain">datawire/ambassador</span>
                           </div>
                         </div>
                       </div>
@@ -327,28 +327,28 @@ class GettingStarted extends Component {
                         <span className="QS-copyButton"><CopyButton content="
                         kubectl create namespace ambassador && helm install ambassador --namespace ambassador datawire/ambassador">Copy</CopyButton></span>
                             <div className="token-line">
-                            <span className="token-plain">kubectl</span>
+                            <span className="token plain">kubectl</span>
                             <span className="token plain"> </span>
-                            <span className="token-plain">create</span>
+                            <span className="token plain">create</span>
                             <span className="token plain"> </span>
-                            <span className="token-plain">namespace</span>
+                            <span className="token plain">namespace</span>
                             <span className="token plain"> </span>
                             <span className="token plain">ambassador</span>
                             <span className="token plain"> </span>
                             <span className="token plain">&&</span>
                             <span className="token plain"> </span>
-                            <span className="token-plain">\</span><br/>
-                            <span className="token-plain">helm</span>
+                            <span className="token plain">\</span><br/>
+                            <span className="token plain">helm</span>
                             <span className="token plain"> </span>
-                            <span className="token-plain">install</span>
+                            <span className="token plain">install</span>
                             <span className="token plain"> </span>
-                            <span className="token-plain">ambassador</span>
+                            <span className="token plain">ambassador</span>
                             <span className="token plain"> </span>
                             <span className="token plain">--namespace</span>
                             <span className="token plain"> </span>
-                            <span className="token-plain">ambassador</span>
+                            <span className="token plain">ambassador</span>
                             <span className="token plain"> </span>
-                            <span className="token-plain">datawire/ambassador</span>
+                            <span className="token plain">datawire/ambassador</span>
                           </div>
                         </div>
                       </div>
