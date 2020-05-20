@@ -158,6 +158,13 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `metrics.serviceMonitor.interval`  | Interval at which metrics should be scraped                                     | `30s`                             |
 | `metrics.serviceMonitor.scrapeTimeout` | Timeout after which the scrape is ended                                     | `30s`                             |
 | `metrics.serviceMonitor.selector`  | Label Selector for Prometheus to find ServiceMonitors                           | `{ prometheus: kube-prometheus }` |
+| `servicePreview.enabled`           | If true, install Service Preview components: traffic-manager & traffic-agent (`enableAES` needs to also be to `true`) | `false` |
+| `servicePreview.trafficManager.serviceAccountName` | Traffic-manager Service Account to be used                      | `traffic-manager`                 |
+| `servicePreview.trafficAgent.serviceAccountName`   | Label Selector for Prometheus to find ServiceMonitors           | `traffic-agent`                   |
+| `servicePreview.trafficAgent.port` | Traffic-agent listening port number when injected with ambassador-injector      | `9900`                            |
+| `injector.enabled`                 | If true, install the ambassador-injector (`servicePreview.enabled` needs to also be to `true`) | `true`             |
+| `injector.crtPEM`                  | TLS certificate for the Common Name of <ambassador-injector>.<namespace>.svc    | Auto-generated, valid for 365 days |
+| `injector.keyPEM`                  | TLS private key for the Common Name of <ambassador-injector>.<namespace>.svc    | Auto-generated, valid for 365 days |
 
 **NOTE:** Make sure the configured `service.http.targetPort` and `service.https.targetPort` ports match your [Ambassador Module's](https://www.getambassador.io/reference/modules/#the-ambassador-module) `service_port` and `redirect_cleartext_from` configurations.
 

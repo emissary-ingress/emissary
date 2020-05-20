@@ -348,7 +348,7 @@ metrics:
     # selector: {}
 
 # Configures Service Preview that ships with the Ambassador Edge Stack and edgectl.
-# Setting servicePreview.enabled: true will install the Traffic Agent, Traffic Manager, and ambassador-injector
+# Setting servicePreview.enabled: true will install the Traffic Agent Service Account, Traffic Manager with RBAC, and ambassador-injector
 servicePreview:
   enabled: false
   trafficManager:
