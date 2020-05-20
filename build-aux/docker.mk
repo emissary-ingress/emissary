@@ -90,10 +90,10 @@
 #     >   For the mast part, the Ambassador Pro images are
 #     >    - built as  : `docker/$(NAME).docker`
 #     >    - built from: `docker/$(NAME)/Dockerfile`
-#     >    - pushed as : `quay.io/datawire/ambassador_pro:$(NAME)-$(VERSION)`
+#     >    - pushed as : `docker.io/datawire/ambassador_pro:$(NAME)-$(VERSION)`
 #     >   However, as an exception, the Ambassador Core image is
 #     >    - built as  : `ambassador/ambassador.docker`
-#     >    - pushed as : `quay.io/datawire/ambassador_pro:amb-core-$(VERSION)`
+#     >    - pushed as : `docker.io/datawire/ambassador_pro:amb-core-$(VERSION)`
 #     >
 #     >   Additionally, we want to be able to push to a private
 #     >   in-cluster registry for testing before we do a release.  The
@@ -103,7 +103,7 @@
 #     >
 #     >   We accomplish this by saying:
 #     >
-#     >       docker.tag.release = quay.io/datawire/ambassador_pro:$(notdir $*)-$(VERSION)
+#     >       docker.tag.release = docker.io/datawire/ambassador_pro:$(notdir $*)-$(VERSION)
 #     >       include build-aux/docker-cluster.mk # docker-cluster.mk sets the `docker.tag.cluster` variable
 #     >       include build-aux/docker.mk
 #     >       # The above will cause docker.mk to define targets:
@@ -114,9 +114,9 @@
 #     >
 #     >       # Override the release name a specific image.
 #     >       # Release ambassador/ambassador.docker
-#     >       #  - based on the above    : quay.io/datawire/ambassador_pro:ambassador-$(VERSION)
-#     >       #  - after being overridden: quay.io/datawire/ambassador_pro:amb-core-$(VERSION)
-#     >       ambassador/ambassador.docker.tag.release: docker.tag.release = quay.io/datawire/ambassador_pro:amb-core-$(VERSION)
+#     >       #  - based on the above    : docker.io/datawire/ambassador_pro:ambassador-$(VERSION)
+#     >       #  - after being overridden: docker.io/datawire/ambassador_pro:amb-core-$(VERSION)
+#     >       ambassador/ambassador.docker.tag.release: docker.tag.release = docker.io/datawire/ambassador_pro:amb-core-$(VERSION)
 #     >
 #     >   and having our
 #     >    - `build` target depend on `NAME.docker.tag.release` (for each NAME).
