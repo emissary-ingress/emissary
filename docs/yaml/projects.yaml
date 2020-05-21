@@ -165,7 +165,7 @@ subjects:
 #
 # - You can configure the docker registry to have a prefix,
 #   e.g. <host>/<special-prefix>/v2/..., however without special
-#   configuration to override the defaults, clients cant push/pull
+#   configuration to override the defaults, clients can't push/pull
 #   from a registry served at a prefix. If your image is named
 #   <foo>/<bar>, the client will look for <foo>/v2/... endpoints.
 #
@@ -203,17 +203,6 @@ spec:
   rewrite: /v2/
   service: https://registry
   timeout_ms: 300000
----
-apiVersion: getambassador.io/v2
-kind: Filter
-metadata:
-  name: ambassador-registry-filter
-  namespace: ambassador
-spec:
-  External:
-    auth_service: 127.0.0.1:8500
-    tls: true
-    path_prefix: "/edge_stack_ui/kale/blah???"
 ---
 apiVersion: v1
 kind: Service
