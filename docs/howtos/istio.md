@@ -93,8 +93,6 @@ spec:
           value: '60'
         - name: AMBASSADOR_INTERNAL_URL
           value: https://127.0.0.1:8443
-        - name: AMBASSADOR_ADMIN_URL
-          value: http://127.0.0.1:8877
         - name: AMBASSADOR_SINGLE_NAMESPACE
           value: ''
 +        # Necessary to run the istio-proxy sidecar
