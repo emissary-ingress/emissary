@@ -59,9 +59,9 @@ class GettingStarted extends Component {
                 <span className="token plain">sudo</span>
                 <span className="token plain"> </span>
                 <span className="token plain">curl</span>
-                <span className="token plain"> -fL https://metriton.datawire.io/downloads/darwin/edgectl</span>
+                <span className="token plain"> -fL https://metriton.datawire.io/downloads/darwin/edgectl </span>
                 <span className="token plain">\</span><br/>
-                <span className="token plain">  -o /usr/local/bin/edgectl</span>	
+                <span className="token plain">  -o /usr/local/bin/edgectl </span>	
                 <span className="token plain">&&</span><br/>	
                 <span className="token plain">sudo</span>	
                 <span className="token plain"> </span>	
@@ -82,9 +82,9 @@ class GettingStarted extends Component {
                 <span className="token plain">sudo</span>	
                 <span className="token plain"> </span>	
                 <span className="token plain">curl</span>	
-                <span className="token plain"> -fL https://metriton.datawire.io/downloads/linux/edgectl</span>	
+                <span className="token plain"> -fL https://metriton.datawire.io/downloads/linux/edgectl </span>	
                 <span className="token plain">\</span><br/>
-                <span className="token plain">  -o /usr/local/bin/edgectl</span>	
+                <span className="token plain">  -o /usr/local/bin/edgectl </span>	
                 <span className="token plain">&&</span><br/>	
                 <span className="token plain">sudo</span>	
                 <span className="token plain"> </span>	
