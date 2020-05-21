@@ -189,7 +189,7 @@ This will install into your cluster:
 
    Copy this YAML in a file called `qotm-consul-mtls.yaml` and apply it to your cluster with `kubectl apply -f qotm-consul-mtls.yaml`.
 
-   This will deploy a demo application called `qotm-mtls` with the Connect sidecar proxy. The Connect proxy will register the application with Consul, require TLS to access the application, and expose other [Consul Service Segmentation](https://www.consul.io/segmentation.html) features.
+   This will deploy a demo application called `qotm-mtls` with the Connect sidecar proxy. The Connect proxy will register the application with Consul, require TLS to access the application, and expose other [Consul Service Segmentation](https://www.consul.io/docs/connect) features.
 
 3. Verify the `qotm-mtls` application is registered in Consul by accessing the Consul UI on `http://localhost:8500/` after running:
 
@@ -229,6 +229,18 @@ This will install into your cluster:
 
    {"hostname":"qotm-6c6dc4f67d-hbznl","ok":true,"quote":"A principal idea is omnipresent, much like candy.","time":"2019-04-17T19:27:54.758361","version":"1.7"}
    ```
+
+## Environment Variables
+
+The Consul Connector can be configured with the following environment variables. The defaults will be best for most use-cases.
+
+| Environment Variable | Description | Default |
+| -------------------- | ----------- | ------- |
+| \_AMBASSADOR\_ID        | Set the Ambassador ID so multiple instances of this integration can run per-Cluster when there are multiple Ambassadors (Required if `AMBASSADOR_ID` is set in your Ambassador deployment) | `""` |
+| \_CONSUL\_HOST          | Set the IP or DNS name of the target Consul HTTP API server | `127.0.0.1` |
+| \_CONSUL\_PORT          | Set the port number of the target Consul HTTP API server | `8500` |
+| \_AMBASSADOR\_TLS\_SECRET\_NAME | Set the name of the Kubernetes `v1.Secret` created by this program that contains the Consul-generated TLS certificate. | `$AMBASSADOR_ID-consul-connect` |
+| \_AMBASSADOR\_TLS\_SECRET\_NAMESPACE | Set the namespace of the Kubernetes `v1.Secret` created by this program. | (same Namespace as the Pod running this integration) |
 
 ## More Information
 

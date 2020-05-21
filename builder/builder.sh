@@ -33,6 +33,9 @@ DOCKER_RUN=${DOCKER_RUN:-docker run}
 # note: use your local k3d/microk8s/kind network for running tests
 DOCKER_NETWORK=${DOCKER_NETWORK:-${BUILDER_NAME}}
 
+# Do this with `eval` so that we properly interpret quotes.
+eval "pytest_args=(${PYTEST_ARGS:-})"
+
 builder() { docker ps -q -f label=builder -f label="${BUILDER_NAME}"; }
 builder_network() { docker network ls -q -f name="${DOCKER_NETWORK}"; }
 
@@ -346,7 +349,7 @@ case "${cmd}" in
         fail=""
         for MODDIR in $(find-modules); do
             if [ -e "${MODDIR}/python" ]; then
-                if ! (cd ${MODDIR} && pytest --tb=short -ra ${PYTEST_ARGS}) then
+                if ! (cd ${MODDIR} && pytest --tb=short -ra "${pytest_args[@]}") then
                    fail="yes"
                 fi
             fi

@@ -56,13 +56,13 @@ require (
 	github.com/Masterminds/sprig v2.17.1+incompatible
 	github.com/aokoli/goutils v1.1.0 // indirect
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869
-	github.com/cncf/udpa v0.0.0-20200124205748-db4b343e48c1 // indirect
-	github.com/cncf/udpa/go v0.0.0-20200124205748-db4b343e48c1
+	github.com/cncf/udpa v0.0.0-20200324003616-bae28a880fdb // indirect
+	github.com/cncf/udpa/go v0.0.0-20200324003616-bae28a880fdb
 	github.com/datawire/libk8s v0.0.0-20191023073802-9add2eb01af2
 	github.com/datawire/pf v0.0.0-20180510150411-31a823f9495a
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/ecodia/golang-awaitility v0.0.0-20180710094957-fb55e59708c7
-	github.com/envoyproxy/protoc-gen-validate v0.2.0-java.0.20191226181232-973ea075fe98
+	github.com/envoyproxy/protoc-gen-validate v0.3.0-java.0.20200311152155-ab56c3dd1cf9
 	github.com/fsnotify/fsnotify v1.4.7
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/protobuf v1.3.2
@@ -70,7 +70,7 @@ require (
 	github.com/google/shlex v0.0.0-20181106134648-c34317bd91bf
 	github.com/google/uuid v1.1.1
 	github.com/gookit/color v1.2.3
-	github.com/gorilla/websocket v1.4.0
+	github.com/gorilla/websocket v1.4.1
 	github.com/hashicorp/consul/api v1.1.0
 	github.com/iancoleman/strcase v0.0.0-20180726023541-3605ed457bf7
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51

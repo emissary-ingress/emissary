@@ -77,6 +77,8 @@ func (m *Endpoint) Validate() error {
 		}
 	}
 
+	// no validation rules for Hostname
+
 	return nil
 }
 
@@ -399,6 +401,8 @@ func (m *Endpoint_HealthCheckConfig) Validate() error {
 			reason: "value must be less than or equal to 65535",
 		}
 	}
+
+	// no validation rules for Hostname
 
 	return nil
 }

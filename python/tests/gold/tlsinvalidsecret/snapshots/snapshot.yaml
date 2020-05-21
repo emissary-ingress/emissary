@@ -21,9 +21,58 @@
                 "kind": "Service",
                 "metadata": {
                     "annotations": {
+                        "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind: Module\nname: tls\nambassador_id: tlsinvalidsecret\nconfig:\n  server:\n    enabled: True\n    secret: test-certs-secret-invalid\n  missing-secret-key:\n    cert_chain_file: /nonesuch\n  bad-path-info:\n    cert_chain_file: /nonesuch\n    private_key_file: /nonesuch\n  validation-without-termination:\n    enabled: True\n    secret: test-certs-secret-invalid\n    ca_secret: ambassador-certs\n",
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v0\\nkind: Module\\nname: tls\\nambassador_id: tlsinvalidsecret\\nconfig:\\n  server:\\n    enabled: True\\n    secret: test-certs-secret-invalid\\n  missing-secret-key:\\n    cert_chain_file: /nonesuch\\n  bad-path-info:\\n    cert_chain_file: /nonesuch\\n    private_key_file: /nonesuch\\n  validation-without-termination:\\n    enabled: True\\n    secret: test-certs-secret-invalid\\n    ca_secret: ambassador-certs\\n\"},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"tlsinvalidsecret\",\"scope\":\"AmbassadorTest\"},\"name\":\"tlsinvalidsecret\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"tlsinvalidsecret\"},\"type\":\"NodePort\"}}\n"
+                    },
+                    "creationTimestamp": "2020-05-12T21:33:47Z",
+                    "labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "tlsinvalidsecret",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "tlsinvalidsecret",
+                    "namespace": "default",
+                    "resourceVersion": "3896",
+                    "selfLink": "/api/v1/namespaces/default/services/tlsinvalidsecret",
+                    "uid": "4349da60-9498-11ea-a105-06252487e9d7"
+                },
+                "spec": {
+                    "clusterIP": "10.101.158.5",
+                    "externalTrafficPolicy": "Cluster",
+                    "ports": [
+                        {
+                            "name": "http",
+                            "nodePort": 30226,
+                            "port": 80,
+                            "protocol": "TCP",
+                            "targetPort": 8080
+                        },
+                        {
+                            "name": "https",
+                            "nodePort": 30140,
+                            "port": 443,
+                            "protocol": "TCP",
+                            "targetPort": 8443
+                        }
+                    ],
+                    "selector": {
+                        "service": "tlsinvalidsecret"
+                    },
+                    "sessionAffinity": "None",
+                    "type": "NodePort"
+                },
+                "status": {
+                    "loadBalancer": {}
+                }
+            },
+            {
+                "apiVersion": "v1",
+                "kind": "Service",
+                "metadata": {
+                    "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"tlsinvalidsecret\",\"scope\":\"AmbassadorTest\",\"service\":\"tlsinvalidsecret-admin\"},\"name\":\"tlsinvalidsecret-admin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"tlsinvalidsecret-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"tlsinvalidsecret\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-02-26T15:53:25Z",
+                    "creationTimestamp": "2020-05-12T21:33:47Z",
                     "labels": {
                         "kat-ambassador-id": "tlsinvalidsecret",
                         "scope": "AmbassadorTest",
@@ -31,17 +80,17 @@
                     },
                     "name": "tlsinvalidsecret-admin",
                     "namespace": "default",
-                    "resourceVersion": "68155",
+                    "resourceVersion": "3910",
                     "selfLink": "/api/v1/namespaces/default/services/tlsinvalidsecret-admin",
-                    "uid": "1f913d34-58b0-11ea-86d6-0e674b3ff44f"
+                    "uid": "439fe663-9498-11ea-a105-06252487e9d7"
                 },
                 "spec": {
-                    "clusterIP": "10.100.42.90",
+                    "clusterIP": "10.96.93.110",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "tlsinvalidsecret-admin",
-                            "nodePort": 31820,
+                            "nodePort": 31252,
                             "port": 8877,
                             "protocol": "TCP",
                             "targetPort": 8877
@@ -65,19 +114,19 @@
                         "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind: Mapping\nname: tls_target_mapping\nprefix: /tls-target/\nservice: tlsinvalidsecret-http\nambassador_id: tlsinvalidsecret\n",
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v0\\nkind: Mapping\\nname: tls_target_mapping\\nprefix: /tls-target/\\nservice: tlsinvalidsecret-http\\nambassador_id: tlsinvalidsecret\\n\"},\"labels\":{\"kat-ambassador-id\":\"tlsinvalidsecret\",\"scope\":\"AmbassadorTest\"},\"name\":\"tlsinvalidsecret-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8126},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8489}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
                     },
-                    "creationTimestamp": "2020-02-26T15:53:25Z",
+                    "creationTimestamp": "2020-05-12T21:33:48Z",
                     "labels": {
                         "kat-ambassador-id": "tlsinvalidsecret",
                         "scope": "AmbassadorTest"
                     },
                     "name": "tlsinvalidsecret-http",
                     "namespace": "default",
-                    "resourceVersion": "68163",
+                    "resourceVersion": "3919",
                     "selfLink": "/api/v1/namespaces/default/services/tlsinvalidsecret-http",
-                    "uid": "1fbdde90-58b0-11ea-86d6-0e674b3ff44f"
+                    "uid": "43da905e-9498-11ea-a105-06252487e9d7"
                 },
                 "spec": {
-                    "clusterIP": "10.102.183.200",
+                    "clusterIP": "10.96.90.187",
                     "ports": [
                         {
                             "name": "http",
@@ -97,55 +146,6 @@
                     },
                     "sessionAffinity": "None",
                     "type": "ClusterIP"
-                },
-                "status": {
-                    "loadBalancer": {}
-                }
-            },
-            {
-                "apiVersion": "v1",
-                "kind": "Service",
-                "metadata": {
-                    "annotations": {
-                        "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind: Module\nname: tls\nambassador_id: tlsinvalidsecret\nconfig:\n  server:\n    enabled: True\n    secret: test-certs-secret-invalid\n  missing-secret-key:\n    cert_chain_file: /nonesuch\n  bad-path-info:\n    cert_chain_file: /nonesuch\n    private_key_file: /nonesuch\n  validation-without-termination:\n    enabled: True\n    secret: test-certs-secret-invalid\n    ca_secret: ambassador-certs\n",
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v0\\nkind: Module\\nname: tls\\nambassador_id: tlsinvalidsecret\\nconfig:\\n  server:\\n    enabled: True\\n    secret: test-certs-secret-invalid\\n  missing-secret-key:\\n    cert_chain_file: /nonesuch\\n  bad-path-info:\\n    cert_chain_file: /nonesuch\\n    private_key_file: /nonesuch\\n  validation-without-termination:\\n    enabled: True\\n    secret: test-certs-secret-invalid\\n    ca_secret: ambassador-certs\\n\"},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"tlsinvalidsecret\",\"scope\":\"AmbassadorTest\"},\"name\":\"tlsinvalidsecret\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"tlsinvalidsecret\"},\"type\":\"NodePort\"}}\n"
-                    },
-                    "creationTimestamp": "2020-02-26T15:53:25Z",
-                    "labels": {
-                        "app.kubernetes.io/component": "ambassador-service",
-                        "kat-ambassador-id": "tlsinvalidsecret",
-                        "scope": "AmbassadorTest"
-                    },
-                    "name": "tlsinvalidsecret",
-                    "namespace": "default",
-                    "resourceVersion": "68147",
-                    "selfLink": "/api/v1/namespaces/default/services/tlsinvalidsecret",
-                    "uid": "1f5c33d2-58b0-11ea-86d6-0e674b3ff44f"
-                },
-                "spec": {
-                    "clusterIP": "10.100.26.208",
-                    "externalTrafficPolicy": "Cluster",
-                    "ports": [
-                        {
-                            "name": "http",
-                            "nodePort": 31424,
-                            "port": 80,
-                            "protocol": "TCP",
-                            "targetPort": 8080
-                        },
-                        {
-                            "name": "https",
-                            "nodePort": 30074,
-                            "port": 443,
-                            "protocol": "TCP",
-                            "targetPort": 8443
-                        }
-                    ],
-                    "selector": {
-                        "service": "tlsinvalidsecret"
-                    },
-                    "sessionAffinity": "None",
-                    "type": "NodePort"
                 },
                 "status": {
                     "loadBalancer": {}

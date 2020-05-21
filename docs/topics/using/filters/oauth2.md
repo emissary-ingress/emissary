@@ -45,60 +45,75 @@ metadata:
   namespace: "example-namespace"
 spec:
   OAuth2:
-    authorizationURL:      "url-string"      # required
-    grantType              "enum-string"     # optional; default is "AuthorizationCode"
-    extraAuthorizationParameters:            # optional; default is {}
+    authorizationURL:       "url"      # required
+
+    ############################################################################
+    # OAuth Client settings                                                    #
+    ############################################################################
+
+    expirationSafteyMargin: "duration" # optional; default is "0"
+
+    # Which settings exist depends on the grantType; supported grantTypes
+    # are "AuthorizationCode", "Password", and "ClientCredentials".
+    grantType:              "enum"     # optional; default is "AuthorizationCode"
+
+    ## OAuth Client settings: grantType=="AuthorizationCode" ###################
+    clientURL:              "string"   # deprecated; us 'protectedOrigins' instead
+    protectedOrigins:                  # required; must have at least 1 item
+    - origin: "url"                      # required
+      includeSubdomains: bool            # optional; default is false
+    useSessionCookies:                 # optional; default is { value: false }
+      value: bool                        # optional: default is true
+      ifRequestHeader:                   # optional; default to apply "useSessionCookies.value" to all requests
+        name: "string"                     # required
+        negate: bool                       # optional; default is false
+        # It is invalid to specify both "value" and "valueRegex".
+        value: "string"                    # optional; default is any non-empty string
+        valueRegex: "regex"                # optional; default is any non-empty string
+    extraAuthorizationParameters:      # optional; default is {}
       "string": "string"
 
-    accessTokenValidation: "enum-string"     # optional; default is "auto"
-    accessTokenJWTFilter:                    # optional; default is null
-      name: "string"                           # required
-      namespace: "string"                      # optional; default is the same namespace as the Filter
-      arguments: JWT-Filter-Arguments          # optional
+    ## OAuth Client settings: grantType=="AuthorizationCode" or "Password" #####
+    clientID:               "string"   # required
+    # The client secret can be specified by including the raw secret as a
+    # string in "secret", or by referencing Kubernetes secret with
+    # "secretName" (and "secretNamespace").  It is invalid to specify both
+    # "secret" and "secretName".
+    secret:                 "string"   # required (unless secretName is set)
+    secretName:             "string"   # required (unless secret is set)
+    secretNamespace:        "string"   # optional; default is the same namespace as the Filter
 
-    # ProtectedOrigins is required when grantType=="AuthorizationCode", and not allowed otherwise.
-    # More than one is allowed, but the first must be what your IdP will redirect to on successful
-    # authentication.
-    protectedOrigins:
-    - origin:              "url-string"       # origin is required for each entry
-    - origin:              "url-string"
-      includeSubdomains:   bool               # includeSubdomains defaults to false
-    ...
+    ## OAuth Client settings (grantType=="ClientCredentials") ##################
+    #
+    # (there are no additional client settings for
+    # grantType=="ClientCredentials")
 
-    # ClientURL is deprecated: see the `protectedOrigins` documentation below instead.
-    clientURL:             "string"         # deprecated!
+    ############################################################################
+    # OAuth Resource Server settings                                           #
+    ############################################################################
 
-    # ClientID is required for grantType "AuthorizationCode" and grantType "Password", and is
-    # not allowed otherwise.
-    clientID:              "string"
+    accessTokenValidation:  "enum"     # optional; default is "auto"
+    accessTokenJWTFilter:              # optional; default is null
+      name: "string"                     # required
+      namespace: "string"                # optional; default is the same namespace as the Filter
+      arguments: JWT-Filter-Arguments    # optional
 
-    # A client secret must be specified for grantType "AuthorizationCode" and grantType "Password".
-    # This can be done by including the raw secret as a string in "secret",
-    # or by referencing Kubernetes secret with "secretName" (and "secretNamespace").
-    # It is invalid to specify both "secret" and "secretName".
-    secret:                "string"          # required (unless secretName is set)
-    secretName:            "string"          # required (unless secret is set)
-    secretNamespace:       "string"          # optional; default is the same namespace as the Filter
+    ############################################################################
+    # HTTP client settings for talking with the identity provider              #
+    ############################################################################
 
-    # grantType "AuthorizationCode" uses cookies for session tracking. If useSessionCookies is true,
-    # it will use session cookies, which are deleted when the browser is closed. If useSessionCookies
-    # is false, the cookies can persist after the browser is closed.
-    useSessionCookies:                       # optional; default is { value: false }
-      value: bool                              # optional: default is true
-      ifRequestHeader:                         # optional; default to apply "useSessionCookies.value" to all requests
-        name: "string"                           # required
-        negate: bool                             # optional; default is false
-        # It is invalid to specify both "value" and "valueRegex".
-        value: "string"                          # optional; default is any non-empty string
-        valueRegex: "regex-string"               # optional; default is any non-empty string
-
-    # HTTP client settings for talking with the identity provider
-    insecureTLS:           bool              # optional; default is false
-    renegotiateTLS:        "enum-string"     # optional; default is "never"
-    maxStale:              "duration-string" # optional; default is "0"
+    insecureTLS:           bool       # optional; default is false
+    renegotiateTLS:        "enum"     # optional; default is "never"
+    maxStale:              "duration" # optional; default is "0"
 ```
 
-General settings:
+### General settings
+
+ - `authorizationURL`: Identifies where to look for the `/.well-known/openid-configuration` descriptor to figure out how to talk to the OAuth2 provider
+
+### OAuth Client settings
+
+These settings configure the OAuth Client part of the filter.
 
  - `grantType`: Which type of OAuth 2.0 authorization grant to request from the identity provider.  Currently supported are:
    * `"AuthorizationCode"`: Authenticate by redirecting to a login page served by the identity provider.
@@ -106,16 +121,16 @@ General settings:
    * `"Password"`: Authenticate by requiring `X-Ambassador-Username` and `X-Ambassador-Password` on all
      incoming requests, and use them to authenticate with the identity provider using the OAuth2
      `Resource Owner Password Credentials` grant type.
- - `authorizationURL`: Identifies where to look for the `/.well-known/openid-configuration` descriptor to figure out how to talk to the OAuth2 provider
- - `extraAuthorizationParameters`: Extra (non-standard or extension) OAuth authorization parameters to use.  It is not valid to specify a parameter used by OAuth itself ("response_type", "client_id", "redirect_uri", "scope", or "state").
- - `accessTokenValidation`: How to verify the liveness and scope of Access Tokens issued by the identity provider.  Valid values are either `"auto"`, `"jwt"`, or `"userinfo"`.  Empty or unset is equivalent to `"auto"`.
-   * `"jwt"`: Validates the Access Token as a JWT.
-     + By default: It accepts the RS256, RS384, or RS512 signature algorithms, and validates the signature against the JWKS from OIDC Discovery.  It then validates the `exp`, `iat`, `nbf`, `iss` (with the Issuer from OIDC Discovery), and `scope` claims: if present, none of the scopes are required to be present.  This relies on the identity provider using non-encrypted signed JWTs as Access Tokens, and configuring the signing appropriately
-     + This behavior can be modified by delegating to [`JWT` Filter](#filter-type-jwt) with `accessTokenJWTFilter`. The arguments are the same as the arguments when referring to a JWT Filter from a FilterPolicy.
-   * `"userinfo"`: Validates the access token by polling the OIDC UserInfo Endpoint. This means that the Ambassador Edge Stack must initiate an HTTP request to the identity provider for each authorized request to a protected resource.  This performs poorly, but functions properly with a wider range of identity providers.  It is not valid to set `accessTokenJWTFilter` if `accessTokenValidation: userinfo`.
-   * `"auto"` attempts to do `"jwt"` validation if `accessTokenJWTFilter` is set or if the Access Token parses as a JWT and the signature is valid, and otherwise falls back to `"userinfo"` validation.
+ - `expirationSafetyMargin`: Check that access tokens not expire for
+   at least this much longer; otherwise consider them to be already
+   expired.  This provides a safety margin of time for your
+   application to send it to an upstream Resource Server that grants
+   insufficient leeway to account for clock skew and
+   network/application latency.
 
-Settings that are only valid for `grantType: "AuthorizationCode"` or `grantType: "Password"`:
+Depending on which `grantType` is used, different settings exist.
+
+Settings that are only valid when `grantType: "AuthorizationCode"` or `grantType: "Password"`:
 
  - `clientID`: The Client ID you get from your identity provider.
  - The client secret you get from your identity provider can be specified 2 different ways:
@@ -126,44 +141,105 @@ Settings that are only valid for `grantType: "AuthorizationCode"` or `grantType:
 
 Settings that are only valid when `grantType: "AuthorizationCode"`:
 
- - `protectedOrigins`: (You determine these, and must register them with your identity provider) Identifies hostnames that can appropriately set cookies for the application.  Only the scheme (`https://`) and authority (`example.com:1234`) parts are used; the path part of the URL is ignored.  You will need to register each origin in `protectedOrigins` as an authorized callback endpoint with your identity provider. The URL will look like `{{ORIGIN}}/.ambassador/oauth2/redirection-endpoint`.
+ - `protectedOrigins`: (You determine these, and must register them
+   with your identity provider) Identifies hostnames that can
+   appropriately set cookies for the application.  Only the scheme
+   (`https://`) and authority (`example.com:1234`) parts are used; the
+   path part of the URL is ignored.
 
-    * If you provide more than one `protectedOrigin`, all are assumed to share the same authentication system, so that logging into one origin logs you into all origins. To have multiple independent origins, use multiple `Filter`s.
+   You will need to register each origin in `protectedOrigins` as an
+   authorized callback endpoint with your identity provider. The URL
+   will look like
+   `{{ORIGIN}}/.ambassador/oauth2/redirection-endpoint`.
+   <!-- If you're looking at the above sentence and thinking "that's
+   not correct!" (as I was): Yes, it's a lie that you need to register
+   each one; you only need to register the first one, but support has
+   he strong opinion that it's much simpler to just tell people
+   register all of them.  Plus that gives us more flexibility for
+   future changes.  So leave the lie.  -->
 
-  - `clientURL` (**DEPRECATED**): If present, setting `clientURL` is exactly the same as setting 
-     
-    ```
-    protectedOrigins:
-    - origin: clientURL-value
-    ```
+   If you provide more than one `protectedOrigin`, all share the same
+   authentication system, so that logging into one origin logs you
+   into all origins; to have multiple domains that have separate
+   logins, use separate `Filter`s.
 
-    `clientURL` will be removed in a future release; you should switch to using `protectedOrigins` instead.
+ - `clientURL` is deprecated, and is equivalent to setting
 
-* By default, any cookies set by the Ambassador Edge Stack will be set to expire when the session expires naturally. Use the `useSessionCookies` setting to specify expiration on session cookies instead; the cookies will be deleted when the user closes their web browser.  
-		* However, this can prematurely delete cookies if the user closes their web browser. Conversely, it also means that cookies can persist for longer than normal if the user does not close their browser.
-		* Any prematurely deleted cookies may or may not affect user-perceived behavior, depending on
-		   the behavior of the identity provider.  
-		* Any cookies persisting longer will not affect behavior of the system; the Ambassador Edge
-		   Stack validates whether the session is expired when considering the
-		   cookie.  
-	* If `useSessionCookies` is non-`null`, then by default it will have the cookies for all requests be session cookies or not  according to the `useSessionCookies.value` sub-argument.  Setting the `ifRequestHeader` sub-argument to use `value` for requests that have (and `!value` for requests that don't have) the HTTP header field `name` (case-insensitive) either set to (if `negate: false`) or not set to (if `negate: true`)
-    + a non-empty string if neither `value` nor `valueRegex` are set
-    + the exact string `value` (case-sensitive) (if `value` is set)
-    + a string that matches the regular expression `valueRegex` (if
-      `valueRegex` is set).  This uses [RE2][] syntax (always, not
-      obeying [`regex_type`][] in the Ambassador module) but does
-      not support the `\C` escape sequence.
+   ```yaml
+   protectedOrigins:
+   - origin: clientURL-value
+   ```
+
+ - `extraAuthorizationParameters`: Extra (non-standard or extension) OAuth authorization parameters to use.  It is not valid to specify a parameter used by OAuth itself ("response_type", "client_id", "redirect_uri", "scope", or "state").
+
+ - By default, any cookies set by the Ambassador Edge Stack will be
+   set to expire when the session expires naturally.  The
+   `useSessionCookies` setting may be used to cuase session cookies to
+   be used instead.
+
+    * Normally cookies are set to be deleted at a specific time;
+      session cookies are deleted whenever the user closes their web
+      browser.  This may mean that the cookies are deleted sooner than
+      normal if the user closes their web browser; conversely, it may
+      mean that cookies persist for longer than normal if the use does
+      not close their browser.
+    * The cookies being deleted sooner may or may not affect
+      user-perceived behavior, depending on the behavior of the
+      identity provider.
+    * Any cookies persisting longer will not affect behavior of the
+      system; the Ambassador Edge Stack validates whether the session
+      is expired when considering the cookie.
+
+   If `useSessionCookies` is non-`null`, then:
+
+    * By default it will have the cookies for all requests be
+      session cookies or not according to the
+      `useSessionCookies.value` sub-argument.
+
+    * Setting the `useSessionCookies.ifRequestHeader` sub-argument
+      tells it to use `useSessionCookeies.value` for requests that
+      match the condition, and `!useSessionCookeies.value` for
+      requests don't match.
+
+      When determining if a request matches, it looks at the HTTP
+      header field named by `useSessionCookeies.ifRequestHeader.name`
+      (case-insensitive), and checks if it is either set to (if
+      `useSessionCookeies.ifRequestHeader.negate: false`) or not set
+      to (if `useSessionCookeies.ifRequestHeader.negate: true`)...
+       + a non-empty string (if neither
+         `useSessionCookeies.ifRequestHeader.value` nor
+         `useSessionCookeies.ifRequestHeader.valueRegex` are set)
+       + the exact string `value` (case-sensitive) (if
+         `useSessionCookeies.ifRequestHeader.value` is set)
+       + a string that matches the regular expression
+         `useSessionCookeies.ifRequestHeader.valueRegex` (if
+         `valueRegex` is set).  This uses [RE2][] syntax (always, not
+         obeying [`regex_type` in the `ambassador Module`][]) but does
+         not support the `\C` escape sequence.
+       + (it is invalid to have both `value` and `valueRegex` set)
+
+### OAuth Resource Server settings
+
+ - `accessTokenValidation`: How to verify the liveness and scope of Access Tokens issued by the identity provider.  Valid values are either `"auto"`, `"jwt"`, or `"userinfo"`.  Empty or unset is equivalent to `"auto"`.
+   * `"jwt"`: Validates the Access Token as a JWT.
+     + By default: It accepts the RS256, RS384, or RS512 signature algorithms, and validates the signature against the JWKS from OIDC Discovery.  It then validates the `exp`, `iat`, `nbf`, `iss` (with the Issuer from OIDC Discovery), and `scope` claims: if present, none of the scopes are required to be present.  This relies on the identity provider using non-encrypted signed JWTs as Access Tokens, and configuring the signing appropriately
+     + This behavior can be modified by delegating to [`JWT` Filter](#filter-type-jwt) with `accessTokenJWTFilter`. The arguments are the same as the arguments when referring to a JWT Filter from a FilterPolicy.
+   * `"userinfo"`: Validates the access token by polling the OIDC UserInfo Endpoint. This means that the Ambassador Edge Stack must initiate an HTTP request to the identity provider for each authorized request to a protected resource.  This performs poorly, but functions properly with a wider range of identity providers.  It is not valid to set `accessTokenJWTFilter` if `accessTokenValidation: userinfo`.
+   * `"auto"` attempts to do `"jwt"` validation if `accessTokenJWTFilter` is set or if the Access Token parses as a JWT and the signature is valid, and otherwise falls back to `"userinfo"` validation.
 
 [RE2]: https://github.com/google/re2/wiki/Syntax
-[`regex_type`]: ../../../running/ambassador/#regular-expressions-regex_type
+[`regex_type` in the `ambassador Module`]: ../../../running/ambassador/#regular-expressions-regex_type
 
-HTTP client settings for talking to the identity provider:
+### HTTP client
+
+These HTTP client settings are used for talking to the identity
+provider:
 
  - `maxStale`: How long to keep stale cached OIDC replies for. This sets the `max-stale` Cache-Control directive on requests, and also ignores the `no-store` and `no-cache` Cache-Control directives on responses.  This is useful for maintaining good performance when working with identity providers with misconfigured Cache-Control.
- - `insecureTLS` disables TLS verification when speaking to an identity provider with an `https://` `authorizationURL`.  This is discouraged in favor of either using plain `http://` or [installing a self-signed certificate](#installing-self-signed-certificates).
+ - `insecureTLS` disables TLS verification when speaking to an identity provider with an `https://` `authorizationURL`.  This is discouraged in favor of either using plain `http://` or [installing a self-signed certificate](../#installing-self-signed-certificates).
  - `renegotiateTLS` allows a remote server to request TLS renegotiation.  Accepted values are "never", "onceAsClient", and "freelyAsClient".
 
-`"duration-string"` strings are parsed as a sequence of decimal numbers, each with optional fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m". Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".  See [Go `time.ParseDuration`](https://golang.org/pkg/time/#ParseDuration).
+`"duration"` strings are parsed as a sequence of decimal numbers, each with optional fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m". Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".  See [Go `time.ParseDuration`](https://golang.org/pkg/time/#ParseDuration).
 
 ## `OAuth2` Path-Specific Arguments
 
@@ -190,7 +266,7 @@ spec:
             negate: bool                # optional; default is false
             # It is invalid to specify both "value" and "valueRegex".
             value: "string"             # optional; default is any non-empty string
-            valueRegex: "regex-string"  # optional; default is any non-empty string
+            valueRegex: "regex"  # optional; default is any non-empty string
           # option 1:
           httpStatusCode: integer     # optional; default is 403 (unless `filters` is set)
           # option 2:
@@ -202,9 +278,9 @@ spec:
               negate: bool                # optional; default is false
               # It is invalid to specify both "value" and "valueRegex".
               value: "string"             # optional; default is any non-empty string
-              valueRegex: "regex-string"  # optional; default is any non-empty string
-            onDeny: "enum-string"       # optional; default is "break"
-            onAllow: "enum-string"      # optional; default is "continue"
+              valueRegex: "regex"         # optional; default is any non-empty string
+            onDeny: "enum"              # optional; default is "break"
+            onAllow: "enum"             # optional; default is "continue"
             arguments: DEPENDS          # optional
 ```
 
@@ -237,7 +313,7 @@ spec:
        + the exact string `value` (case-sensitive) (if `value` is set)
        + a string that matches the regular expression `valueRegex` (if
          `valueRegex` is set).  This uses [RE2][] syntax (always, not
-         obeying [`regex_type`][] in the Ambassador module) but does
+         obeying [`regex_type` in the `ambassador Module`][]) but does
          not support the `\C` escape sequence.
     * By default, it serves an authorization-denied error page; by default HTTP 403 ("Forbidden"), but this can be configured by the `httpStatusCode` sub-argument.
     * Instead of serving that simple error page, it can instead be configured to call out to a list of other Filters, by setting the `filters` list. The syntax and semantics of this list are the same as `.spec.rules[].filters` in a [`FilterPolicy`](#filterpolicy-definition). Be aware that if one of these filters modify the request rather than returning a response, then the request will be allowed through to the backend service, even though the `OAuth2` Filter denied it.

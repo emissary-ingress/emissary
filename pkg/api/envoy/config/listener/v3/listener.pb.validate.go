@@ -289,6 +289,26 @@ func (m *Listener) Validate() error {
 
 	// no validation rules for ReusePort
 
+	for idx, item := range m.GetAccessLog() {
+		_, _ = idx, item
+
+		{
+			tmp := item
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return ListenerValidationError{
+						field:  fmt.Sprintf("AccessLog[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
+	}
+
 	return nil
 }
 

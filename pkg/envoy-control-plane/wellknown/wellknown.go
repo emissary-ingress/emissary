@@ -46,9 +46,11 @@ const (
 	// Squash HTTP filter
 	Squash = "envoy.squash"
 	// HTTPExternalAuthorization HTTP filter
-	HTTPExternalAuthorization = "envoy.ext_authz"
+	HTTPExternalAuthorization = "envoy.filters.http.ext_authz"
 	// HTTPRoleBasedAccessControl HTTP filter
 	HTTPRoleBasedAccessControl = "envoy.filters.http.rbac"
+	// HTTPGRPCStats HTTP filter
+	HTTPGRPCStats = "envoy.filters.http.grpc_stats"
 )
 
 // Network filter names
@@ -72,7 +74,7 @@ const (
 	// MySQLProxy network filter
 	MySQLProxy = "envoy.filters.network.mysql_proxy"
 	// ExternalAuthorization network filter
-	ExternalAuthorization = "envoy.ext_authz"
+	ExternalAuthorization = "envoy.filters.network.ext_authz"
 	// RoleBasedAccessControl network filter
 	RoleBasedAccessControl = "envoy.filters.network.rbac"
 )
@@ -115,4 +117,18 @@ const (
 	FileAccessLog = "envoy.file_access_log"
 	// HTTPGRPCAccessLog sink for the HTTP gRPC access log service
 	HTTPGRPCAccessLog = "envoy.http_grpc_access_log"
+)
+
+// Transport socket names
+const (
+	// TransportSocket Alts
+	TransportSocketAlts = "envoy.transport_sockets.alts"
+	// TransportSocket Tap
+	TransportSocketTap = "envoy.transport_sockets.tap"
+	// TransportSocket RawBuffer
+	TransportSocketRawBuffer = "envoy.transport_sockets.raw_buffer"
+	// TransportSocket Tls
+	TransportSocketTls = "envoy.transport_sockets.tls"
+	// TransportSocket Quic
+	TransportSocketQuic = "envoy.transport_sockets.quic"
 )

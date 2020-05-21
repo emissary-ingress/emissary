@@ -103,7 +103,7 @@
               link: /docs/latest/topics/using/shadowing
         - title: Filters and Authentication
           items: 
-            - title: OAuth and OIDC Overview
+            - title: Filters and Filter Policies
               link: /docs/latest/topics/using/filters/
             - title: OAuth2 Filter
               link: /docs/latest/topics/using/filters/oauth2

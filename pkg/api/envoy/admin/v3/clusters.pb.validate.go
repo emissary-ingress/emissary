@@ -336,6 +336,21 @@ func (m *HostStatus) Validate() error {
 		}
 	}
 
+	{
+		tmp := m.GetLocality()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return HostStatusValidationError{
+					field:  "Locality",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
 	return nil
 }
 
