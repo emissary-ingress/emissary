@@ -37,6 +37,9 @@ const (
 	// defInstallNamespace is the default installation namespace
 	defInstallNamespace = "ambassador"
 
+	// defImageRepo is tyhe default image (with no tag)
+	defImageRepo = "docker.io/datawire/aes"
+
 	// env variable used for specifying an alternative Helm repo
 	defEnvVarHelmRepo = "AES_HELM_REPO"
 
@@ -138,8 +141,8 @@ func (i *Installer) GrabAESInstallID() error {
 	i.log.Printf("> aesImage = %s", aesImage)
 	podName := ""
 	containerName := ""
-	podInterface := i.coreClient.Pods("ambassador") // namespace
-	i.log.Print("> k -n ambassador get po")
+	podInterface := i.coreClient.Pods(defInstallNamespace) // namespace
+	i.log.Printf("> k -n %s get po", defInstallNamespace)
 	pods, err := podInterface.List(k8sTypesMetaV1.ListOptions{})
 	if err != nil {
 		return err
@@ -447,7 +450,7 @@ func (i *Installer) Perform(kcontext string) Result {
 			strvals.ParseInto(fmt.Sprintf("image.repository=%s", ir), chartValues)
 			i.imageRepo = ir
 		} else {
-			i.imageRepo = "quay.io/datawire/aes"
+			i.imageRepo = defImageRepo
 		}
 
 		if it := os.Getenv(defEnvVarImageTag); it != "" {

@@ -163,9 +163,9 @@ const (
 )
 
 var (
-	regexAOSSImage = regexp.MustCompile("quay[.]io/datawire/ambassador:([[:^space:]]+)")
+	regexAOSSImage = regexp.MustCompile("datawire/ambassador:([[:^space:]]+)")
 
-	regexAESImage = regexp.MustCompile("quay[.]io/datawire/aes:([[:^space:]]+)")
+	regexAESImage = regexp.MustCompile("datawire/aes:([[:^space:]]+)")
 )
 
 type installationMethodInfo struct {
