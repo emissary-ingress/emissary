@@ -64,7 +64,7 @@ class GettingStarted extends Component {
                 <span className="token plain">  -o /usr/local/bin/edgectl </span>	
                 <span className="token plain">&&</span>
                 <span className="token plain"> </span>
-                <span className="token-plain">\</span><br/>	
+                <span className="token plain">\</span><br/>	
                 <span className="token plain">sudo</span>	
                 <span className="token plain"> </span>	
                 <span className="token plain">chmod</span>	
@@ -89,7 +89,7 @@ class GettingStarted extends Component {
                 <span className="token plain">  -o /usr/local/bin/edgectl </span>	
                 <span className="token plain">&&</span>
                 <span className="token plain"> </span>
-                <span className="token-plain">\</span><br/>
+                <span className="token plain">\</span><br/>
                 <span className="token plain">sudo</span>	
                 <span className="token plain"> </span>	
                 <span className="token plain">chmod</span>	
