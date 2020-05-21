@@ -56,12 +56,13 @@ class GettingStarted extends Component {
             <div className="QS-codeblockInstall">	
             <span className="QS-copyButton"><CopyButton content="sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl">Copy</CopyButton></span>	
               <div className="token-line">	
-                <span className="token plain">sudo</span>	
-                <span className="token plain"> </span>	
-                <span className="token plain">curl</span>	
-                <span className="token plain"> -fL https://metriton.datawire.io/downloads/darwin/edgectl <br/>   -o /usr/local/bin/edgectl </span>	
+                <span className="token plain">sudo</span>
+                <span className="token plain"> </span>
+                <span className="token plain">curl</span>
+                <span className="token plain"> -fL https://metriton.datawire.io/downloads/darwin/edgectl</span>
+                <span className="token plain">\</span><br/>
+                <span className="token plain">  -o /usr/local/bin/edgectl</span>	
                 <span className="token plain">&&</span><br/>	
-                <span className="token plain">  </span>	
                 <span className="token plain">sudo</span>	
                 <span className="token plain"> </span>	
                 <span className="token plain">chmod</span>	
@@ -81,9 +82,10 @@ class GettingStarted extends Component {
                 <span className="token plain">sudo</span>	
                 <span className="token plain"> </span>	
                 <span className="token plain">curl</span>	
-                <span className="token plain"> -fL https://metriton.datawire.io/downloads/linux/edgectl <br/>   -o /usr/local/bin/edgectl </span>	
+                <span className="token plain"> -fL https://metriton.datawire.io/downloads/linux/edgectl</span>	
+                <span className="token plain">\</span><br/>
+                <span className="token plain">  -o /usr/local/bin/edgectl</span>	
                 <span className="token plain">&&</span><br/>	
-                <span className="token plain">  </span>	
                 <span className="token plain">sudo</span>	
                 <span className="token plain"> </span>	
                 <span className="token plain">chmod</span>	
