@@ -51,7 +51,7 @@ class GettingStarted extends Component {
         <ul id="QS-asideBullets">	
           <div id="QS-showMacAside1" data-os="mac" className="QS-asideText">	
 
-          <li>New user? Get Edgectl, the Ambassador CLI.</li>	
+          <li>New user? Get Edgectl, the Ambassador CLI:</li>	
           <div className="styles-module--CodeBlock--1UB4s">	
             <div className="QS-codeblockInstall">	
             <span className="QS-copyButton"><CopyButton content="sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl">Copy</CopyButton></span>	
@@ -73,7 +73,7 @@ class GettingStarted extends Component {
 
         <div id="QS-showLinuxAside1" data-os="linux" className="	
         QS-asideText">	
-          <li>New user? Get Edgectl, the Ambassador CLI.</li>	
+          <li>New user? Get Edgectl, the Ambassador CLI:</li>	
           <div className="styles-module--CodeBlock--1UB4s">	
             <div className="QS-codeblockInstall">	
               <span className="QS-copyButton"><CopyButton content="sudo curl -fL https://metriton.datawire.io/downloads/linux/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl">Copy</CopyButton></span>	
@@ -94,7 +94,7 @@ class GettingStarted extends Component {
         </div>	
 
         <div id="QS-showWindowsAside1" data-os="windows" className="QS-asideText">	
-          <li>New user? Get Edgectl, the Ambassador CLI.</li>	
+          <li>New user? Get Edgectl, the Ambassador CLI:</li>	
           <div className="styles-module--CodeBlock--1UB4s">	
               <div className="QS-codeblockInstall">	
                 <button><a className="windowsDownloadButton" href="https://metriton.datawire.io/downloads/windows/edgectl.exe" rel="nofollow noopener noreferrer">Download edgectl.exe</a></button><span>&nbsp;</span>	
