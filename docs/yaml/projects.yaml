@@ -104,7 +104,7 @@ metadata:
     product: aes
 rules:
 - apiGroups: [""]
-  resources: [ "services" ]
+  resources: [ "secrets", "services" ]
   verbs: [ "get", "list", "create", "patch", "delete", "watch" ]
 - apiGroups: ["apps"]
   resources: [ "deployments" ]
