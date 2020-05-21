@@ -180,7 +180,7 @@ You will need to open the `greeter_client.py` and change `localhost:50051` to `$
 
 ```diff
 - with grpc.insecure_channel('localhost:50051') as channel:
-+ with grpc.insecure_channel(‘$AMBASSADORHOST:$PORT’) as channel:
++ with grpc.insecure_channel('$AMBASSADORHOST:$PORT') as channel:
         stub = helloworld_pb2_grpc.GreeterStub(channel)
         response = stub.SayHello(helloworld_pb2.HelloRequest(name='you'))
     print("Greeter client received: " + response.message)
@@ -219,8 +219,8 @@ spec:
 Next, you need to change the client code slightly and tell it to open a secure RPC channel with Ambassador Edge Stack.
 
 ```diff
-- with grpc.insecure_channel(‘$AMBASSADORHOST:$PORT’) as channel:
-+ with grpc.secure_channel(‘$AMBASSADORHOST:$PORT’, grpc.ssl_channel_credentials()) as channel:
+- with grpc.insecure_channel('$AMBASSADORHOST:$PORT') as channel:
++ with grpc.secure_channel('$AMBASSADORHOST:$PORT', grpc.ssl_channel_credentials()) as channel:
         stub = helloworld_pb2_grpc.GreeterStub(channel)
         response = stub.SayHello(helloworld_pb2.HelloRequest(name='you'))
     print("Greeter client received: " + response.message)
@@ -257,8 +257,8 @@ def serve():
 Rebuild your docker container **making sure the certificates are included** and follow the same steps of testing and deploying to Kubernetes. You will need to make a small change to the client code to test locally.
 
 ```diff
-- with grpc.insecure_channel(‘localhost:$PORT’) as channel:
-+ with grpc.secure_channel(‘localhost:$PORT’, grpc.ssl_channel_credentials(open('certs/server.crt', 'rb').read())) as channel:
+- with grpc.insecure_channel('localhost:$PORT') as channel:
++ with grpc.secure_channel('localhost:$PORT', grpc.ssl_channel_credentials(open('certs/server.crt', 'rb').read())) as channel:
         stub = helloworld_pb2_grpc.GreeterStub(channel)
         response = stub.SayHello(helloworld_pb2.HelloRequest(name='you'))
     print("Greeter client received: " + response.message)
