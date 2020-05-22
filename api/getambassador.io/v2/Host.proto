@@ -46,12 +46,13 @@ message HostSpec {
   // Selector by which we can find further configuration. Defaults to hostname=$hostname
   k8s.io.apimachinery.pkg.apis.meta.v1.LabelSelector selector = 4;
 
-  // Specifies who to talk ACME with to get certs. Defaults to Let's Encrypt; if "none", do
-  // not try to do TLS for this Host.
+  // Specifies whether/who to talk ACME with to automatically manage the $tlsSecret.
   ACMEProviderSpec acmeProvider = 5;
 
-  // Name of the Kubernetes secret into which to save generated certificates. Defaults
-  // to $hostname
+  // Name of the Kubernetes secret into which to save generated
+  // certificates.  If ACME is enabled (see $acmeProvider), then the
+  // default is $hostname; otherwise the default is "".  If the value
+  // is "", then we do not do TLS for this Host.
   k8s.io.api.core.v1.LocalObjectReference tlsSecret = 6;
 
   // Request policy definition.
@@ -102,8 +103,8 @@ message HostStatus {
 }
 
 message ACMEProviderSpec {
-  // Specifies who to talk ACME with to get certs. Defaults to Let's
-  // Encrypt; if "none", do not try to do TLS for this Host.
+  // Encrypt; if "none" (case-insensitive), do not try to do ACME for
+  // this Host.
   string authority = 1;
 
   string email = 2;
