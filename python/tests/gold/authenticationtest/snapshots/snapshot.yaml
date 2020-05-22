@@ -20,54 +20,10 @@
                 "kind": "Service",
                 "metadata": {
                     "annotations": {
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"authenticationtest\",\"scope\":\"AmbassadorTest\"},\"name\":\"authenticationtest-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8093},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8456}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
-                    },
-                    "creationTimestamp": "2020-05-12T21:32:59Z",
-                    "labels": {
-                        "kat-ambassador-id": "authenticationtest",
-                        "scope": "AmbassadorTest"
-                    },
-                    "name": "authenticationtest-http",
-                    "namespace": "default",
-                    "resourceVersion": "2263",
-                    "selfLink": "/api/v1/namespaces/default/services/authenticationtest-http",
-                    "uid": "26ddbd8f-9498-11ea-a105-06252487e9d7"
-                },
-                "spec": {
-                    "clusterIP": "10.99.125.103",
-                    "ports": [
-                        {
-                            "name": "http",
-                            "port": 80,
-                            "protocol": "TCP",
-                            "targetPort": 8093
-                        },
-                        {
-                            "name": "https",
-                            "port": 443,
-                            "protocol": "TCP",
-                            "targetPort": 8456
-                        }
-                    ],
-                    "selector": {
-                        "backend": "superpod-default"
-                    },
-                    "sessionAffinity": "None",
-                    "type": "ClusterIP"
-                },
-                "status": {
-                    "loadBalancer": {}
-                }
-            },
-            {
-                "apiVersion": "v1",
-                "kind": "Service",
-                "metadata": {
-                    "annotations": {
                         "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind: AuthService\nname: authenticationtest-ahttp-auth\nauth_service: \"authenticationtest-ahttp-auth\"\npath_prefix: \"/extauth\"\nallowed_headers:\n- X-Foo\n- X-Bar\n- Requested-Location\n- Requested-Status\n- Requested-Header\n- X-Foo\n- Extauth\nambassador_id: authenticationtest\n\n---\napiVersion: ambassador/v0\nkind: Mapping\nname: authenticationtest-http\nprefix: /target/\nservice: authenticationtest-http\nambassador_id: authenticationtest\n",
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v0\\nkind: AuthService\\nname: authenticationtest-ahttp-auth\\nauth_service: \\\"authenticationtest-ahttp-auth\\\"\\npath_prefix: \\\"/extauth\\\"\\nallowed_headers:\\n- X-Foo\\n- X-Bar\\n- Requested-Location\\n- Requested-Status\\n- Requested-Header\\n- X-Foo\\n- Extauth\\nambassador_id: authenticationtest\\n\\n---\\napiVersion: ambassador/v0\\nkind: Mapping\\nname: authenticationtest-http\\nprefix: /target/\\nservice: authenticationtest-http\\nambassador_id: authenticationtest\\n\"},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"authenticationtest\",\"scope\":\"AmbassadorTest\"},\"name\":\"authenticationtest\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"authenticationtest\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-05-12T21:32:59Z",
+                    "creationTimestamp": "2020-05-14T17:38:21Z",
                     "labels": {
                         "app.kubernetes.io/component": "ambassador-service",
                         "kat-ambassador-id": "authenticationtest",
@@ -75,24 +31,24 @@
                     },
                     "name": "authenticationtest",
                     "namespace": "default",
-                    "resourceVersion": "2250",
+                    "resourceVersion": "63657",
                     "selfLink": "/api/v1/namespaces/default/services/authenticationtest",
-                    "uid": "26bfa73e-9498-11ea-a105-06252487e9d7"
+                    "uid": "b473668d-9609-11ea-ae16-06e21b589211"
                 },
                 "spec": {
-                    "clusterIP": "10.105.132.197",
+                    "clusterIP": "10.99.27.237",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "http",
-                            "nodePort": 30485,
+                            "nodePort": 31357,
                             "port": 80,
                             "protocol": "TCP",
                             "targetPort": 8080
                         },
                         {
                             "name": "https",
-                            "nodePort": 30742,
+                            "nodePort": 31862,
                             "port": 443,
                             "protocol": "TCP",
                             "targetPort": 8443
@@ -115,7 +71,7 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"authenticationtest\",\"scope\":\"AmbassadorTest\",\"service\":\"authenticationtest-admin\"},\"name\":\"authenticationtest-admin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"authenticationtest-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"authenticationtest\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-05-12T21:32:59Z",
+                    "creationTimestamp": "2020-05-14T17:38:21Z",
                     "labels": {
                         "kat-ambassador-id": "authenticationtest",
                         "scope": "AmbassadorTest",
@@ -123,17 +79,17 @@
                     },
                     "name": "authenticationtest-admin",
                     "namespace": "default",
-                    "resourceVersion": "2254",
+                    "resourceVersion": "63661",
                     "selfLink": "/api/v1/namespaces/default/services/authenticationtest-admin",
-                    "uid": "26cd68e5-9498-11ea-a105-06252487e9d7"
+                    "uid": "b47e75de-9609-11ea-ae16-06e21b589211"
                 },
                 "spec": {
-                    "clusterIP": "10.106.214.121",
+                    "clusterIP": "10.103.60.203",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "authenticationtest-admin",
-                            "nodePort": 30755,
+                            "nodePort": 32669,
                             "port": 8877,
                             "protocol": "TCP",
                             "targetPort": 8877
@@ -156,19 +112,19 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"authenticationtest\",\"scope\":\"AmbassadorTest\"},\"name\":\"authenticationtest-ahttp-auth\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"backend\":\"authenticationtest-ahttp-auth\"}}}\n"
                     },
-                    "creationTimestamp": "2020-05-12T21:32:59Z",
+                    "creationTimestamp": "2020-05-14T17:38:21Z",
                     "labels": {
                         "kat-ambassador-id": "authenticationtest",
                         "scope": "AmbassadorTest"
                     },
                     "name": "authenticationtest-ahttp-auth",
                     "namespace": "default",
-                    "resourceVersion": "2266",
+                    "resourceVersion": "63672",
                     "selfLink": "/api/v1/namespaces/default/services/authenticationtest-ahttp-auth",
-                    "uid": "26e6a032-9498-11ea-a105-06252487e9d7"
+                    "uid": "b49dfcd8-9609-11ea-ae16-06e21b589211"
                 },
                 "spec": {
-                    "clusterIP": "10.104.21.16",
+                    "clusterIP": "10.109.110.56",
                     "ports": [
                         {
                             "name": "http",
@@ -185,6 +141,50 @@
                     ],
                     "selector": {
                         "backend": "authenticationtest-ahttp-auth"
+                    },
+                    "sessionAffinity": "None",
+                    "type": "ClusterIP"
+                },
+                "status": {
+                    "loadBalancer": {}
+                }
+            },
+            {
+                "apiVersion": "v1",
+                "kind": "Service",
+                "metadata": {
+                    "annotations": {
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"authenticationtest\",\"scope\":\"AmbassadorTest\"},\"name\":\"authenticationtest-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8093},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8456}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
+                    },
+                    "creationTimestamp": "2020-05-14T17:38:21Z",
+                    "labels": {
+                        "kat-ambassador-id": "authenticationtest",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "authenticationtest-http",
+                    "namespace": "default",
+                    "resourceVersion": "63669",
+                    "selfLink": "/api/v1/namespaces/default/services/authenticationtest-http",
+                    "uid": "b4937b3c-9609-11ea-ae16-06e21b589211"
+                },
+                "spec": {
+                    "clusterIP": "10.97.93.109",
+                    "ports": [
+                        {
+                            "name": "http",
+                            "port": 80,
+                            "protocol": "TCP",
+                            "targetPort": 8093
+                        },
+                        {
+                            "name": "https",
+                            "port": 443,
+                            "protocol": "TCP",
+                            "targetPort": 8456
+                        }
+                    ],
+                    "selector": {
+                        "backend": "superpod-default"
                     },
                     "sessionAffinity": "None",
                     "type": "ClusterIP"

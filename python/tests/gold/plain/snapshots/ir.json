@@ -3554,6 +3554,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP-AddResponseHeaders-zoo-bar/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -3578,6 +3579,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP-AddResponseHeaders-zoo-bar/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "add_response_headers:\n  zoo:\n    append: true\n    value: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-zoo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-zoo-bar/\nservice: http://plain-simplemapping-http-addresponseheaders-zoo-bar-http.plain-namespace\n"
         },
@@ -3668,6 +3670,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP-AddResponseHeaders-xoo-dwe/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -3692,6 +3695,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP-AddResponseHeaders-xoo-dwe/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "add_response_headers:\n  xoo:\n    append: false\n    value: dwe\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-xoo-dwe\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-xoo-dwe/\nservice: http://plain-simplemapping-http-addresponseheaders-xoo-dwe-http.plain-namespace\n"
         },
@@ -3776,6 +3780,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP-AddResponseHeaders-moo-arf/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -3800,6 +3805,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP-AddResponseHeaders-moo-arf/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "add_response_headers:\n  moo: arf\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-moo-arf\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-moo-arf/\nservice: http://plain-simplemapping-http-addresponseheaders-moo-arf-http.plain-namespace\n"
         },
@@ -3884,6 +3890,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP-AddResponseHeaders-foo-bar/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -3908,6 +3915,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP-AddResponseHeaders-foo-bar/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "add_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-foo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-foo-bar/\nservice: http://plain-simplemapping-http-addresponseheaders-foo-bar-http.plain-namespace\n"
         },
@@ -3996,6 +4004,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP-AddResponseHeaders-aoo-tyu/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -4020,6 +4029,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP-AddResponseHeaders-aoo-tyu/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "add_response_headers:\n  aoo:\n    value: tyu\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-aoo-tyu\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-aoo-tyu/\nservice: http://plain-simplemapping-http-addresponseheaders-aoo-tyu-http.plain-namespace\n"
         },
@@ -4110,6 +4120,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC-AddResponseHeaders-zoo-bar/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -4134,6 +4145,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC-AddResponseHeaders-zoo-bar/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "add_response_headers:\n  zoo:\n    append: true\n    value: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-zoo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-zoo-bar/\nservice: http://plain-simplemapping-grpc-addresponseheaders-zoo-bar-grpc.plain-namespace\n"
         },
@@ -4224,6 +4236,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC-AddResponseHeaders-xoo-dwe/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -4248,6 +4261,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC-AddResponseHeaders-xoo-dwe/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "add_response_headers:\n  xoo:\n    append: false\n    value: dwe\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-xoo-dwe\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-xoo-dwe/\nservice: http://plain-simplemapping-grpc-addresponseheaders-xoo-dwe-grpc.plain-namespace\n"
         },
@@ -4332,6 +4346,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC-AddResponseHeaders-moo-arf/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -4356,6 +4371,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC-AddResponseHeaders-moo-arf/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "add_response_headers:\n  moo: arf\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-moo-arf\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-moo-arf/\nservice: http://plain-simplemapping-grpc-addresponseheaders-moo-arf-grpc.plain-namespace\n"
         },
@@ -4440,6 +4456,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC-AddResponseHeaders-foo-bar/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -4464,6 +4481,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC-AddResponseHeaders-foo-bar/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "add_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-foo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-foo-bar/\nservice: http://plain-simplemapping-grpc-addresponseheaders-foo-bar-grpc.plain-namespace\n"
         },
@@ -4552,6 +4570,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC-AddResponseHeaders-aoo-tyu/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -4576,6 +4595,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC-AddResponseHeaders-aoo-tyu/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "add_response_headers:\n  aoo:\n    value: tyu\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-aoo-tyu\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-aoo-tyu/\nservice: http://plain-simplemapping-grpc-addresponseheaders-aoo-tyu-grpc.plain-namespace\n"
         },
@@ -4665,6 +4685,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP-AddRequestHeaders-zoo-bar/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -4689,6 +4710,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP-AddRequestHeaders-zoo-bar/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "add_request_headers:\n  zoo:\n    append: true\n    value: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-zoo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-zoo-bar/\nservice: http://plain-simplemapping-http-addrequestheaders-zoo-bar-http.plain-namespace\n"
         },
@@ -4778,6 +4800,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP-AddRequestHeaders-xoo-dwe/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -4802,6 +4825,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP-AddRequestHeaders-xoo-dwe/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "add_request_headers:\n  xoo:\n    append: false\n    value: dwe\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-xoo-dwe\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-xoo-dwe/\nservice: http://plain-simplemapping-http-addrequestheaders-xoo-dwe-http.plain-namespace\n"
         },
@@ -4885,6 +4909,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP-AddRequestHeaders-moo-arf/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -4909,6 +4934,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP-AddRequestHeaders-moo-arf/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "add_request_headers:\n  moo: arf\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-moo-arf\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-moo-arf/\nservice: http://plain-simplemapping-http-addrequestheaders-moo-arf-http.plain-namespace\n"
         },
@@ -4992,6 +5018,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP-AddRequestHeaders-foo-bar/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -5016,6 +5043,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP-AddRequestHeaders-foo-bar/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "add_request_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-foo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-foo-bar/\nservice: http://plain-simplemapping-http-addrequestheaders-foo-bar-http.plain-namespace\n"
         },
@@ -5103,6 +5131,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP-AddRequestHeaders-aoo-tyu/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -5127,6 +5156,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP-AddRequestHeaders-aoo-tyu/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "add_request_headers:\n  aoo:\n    value: tyu\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-aoo-tyu\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-aoo-tyu/\nservice: http://plain-simplemapping-http-addrequestheaders-aoo-tyu-http.plain-namespace\n"
         },
@@ -5216,6 +5246,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC-AddRequestHeaders-zoo-bar/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -5240,6 +5271,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC-AddRequestHeaders-zoo-bar/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "add_request_headers:\n  zoo:\n    append: true\n    value: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-zoo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-zoo-bar/\nservice: http://plain-simplemapping-grpc-addrequestheaders-zoo-bar-grpc.plain-namespace\n"
         },
@@ -5329,6 +5361,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC-AddRequestHeaders-xoo-dwe/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -5353,6 +5386,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC-AddRequestHeaders-xoo-dwe/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "add_request_headers:\n  xoo:\n    append: false\n    value: dwe\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-xoo-dwe\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-xoo-dwe/\nservice: http://plain-simplemapping-grpc-addrequestheaders-xoo-dwe-grpc.plain-namespace\n"
         },
@@ -5436,6 +5470,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC-AddRequestHeaders-moo-arf/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -5460,6 +5495,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC-AddRequestHeaders-moo-arf/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "add_request_headers:\n  moo: arf\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-moo-arf\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-moo-arf/\nservice: http://plain-simplemapping-grpc-addrequestheaders-moo-arf-grpc.plain-namespace\n"
         },
@@ -5543,6 +5579,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC-AddRequestHeaders-foo-bar/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -5567,6 +5604,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC-AddRequestHeaders-foo-bar/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "add_request_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-foo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-foo-bar/\nservice: http://plain-simplemapping-grpc-addrequestheaders-foo-bar-grpc.plain-namespace\n"
         },
@@ -5654,6 +5692,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC-AddRequestHeaders-aoo-tyu/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -5678,6 +5717,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC-AddRequestHeaders-aoo-tyu/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "add_request_headers:\n  aoo:\n    value: tyu\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-aoo-tyu\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-aoo-tyu/\nservice: http://plain-simplemapping-grpc-addrequestheaders-aoo-tyu-grpc.plain-namespace\n"
         },
@@ -5756,6 +5796,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP-RemoveResponseHeaders/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "remove_response_headers": "x-envoy-upstream-service-time",
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
@@ -5781,6 +5822,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP-RemoveResponseHeaders/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "remove_response_headers": "x-envoy-upstream-service-time",
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-RemoveResponseHeaders\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-RemoveResponseHeaders/\nremove_response_headers: x-envoy-upstream-service-time\nservice: http://plain-simplemapping-http-removeresponseheaders-http.plain-namespace\n"
@@ -5860,6 +5902,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC-RemoveResponseHeaders/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "remove_response_headers": "x-envoy-upstream-service-time",
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
@@ -5885,6 +5928,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC-RemoveResponseHeaders/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "remove_response_headers": "x-envoy-upstream-service-time",
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-RemoveResponseHeaders\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-RemoveResponseHeaders/\nremove_response_headers: x-envoy-upstream-service-time\nservice: http://plain-simplemapping-grpc-removeresponseheaders-grpc.plain-namespace\n"
@@ -5956,7 +6000,6 @@
                     "kind": "Mapping",
                     "location": "simpleingresswithannotations-http.plain-namespace.1",
                     "metadata_labels": {
-                        "ambassador_crd": "simpleingresswithannotations-http-0-0.plain-namespace",
                         "kat-ambassador-id": "plain",
                         "scope": "AmbassadorTest"
                     },
@@ -5965,6 +6008,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleIngressWithAnnotations-HTTP-nested/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -5975,13 +6019,12 @@
                         "/SimpleIngressWithAnnotations-HTTP-nested/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simpleingresswithannotations-http-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleIngressWithAnnotations-HTTP-nested\nprefix: /SimpleIngressWithAnnotations-HTTP-nested/\nservice: http://plain-simpleingresswithannotations-http-http.plain-namespace\n",
+                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleIngressWithAnnotations-HTTP-nested\nprefix: /SimpleIngressWithAnnotations-HTTP-nested/\nservice: http://plain-simpleingresswithannotations-http-http.plain-namespace\n",
                     "service": "http://plain-simpleingresswithannotations-http-http.plain-namespace",
                     "weight": 100
                 }
             ],
             "metadata_labels": {
-                "ambassador_crd": "simpleingresswithannotations-http-0-0.plain-namespace",
                 "kat-ambassador-id": "plain",
                 "scope": "AmbassadorTest"
             },
@@ -5990,8 +6033,9 @@
             "precedence": 0,
             "prefix": "/SimpleIngressWithAnnotations-HTTP-nested/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simpleingresswithannotations-http-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleIngressWithAnnotations-HTTP-nested\nprefix: /SimpleIngressWithAnnotations-HTTP-nested/\nservice: http://plain-simpleingresswithannotations-http-http.plain-namespace\n"
+            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleIngressWithAnnotations-HTTP-nested\nprefix: /SimpleIngressWithAnnotations-HTTP-nested/\nservice: http://plain-simpleingresswithannotations-http-http.plain-namespace\n"
         },
         {
             "_active": true,
@@ -6060,7 +6104,6 @@
                     "kind": "Mapping",
                     "location": "simpleingresswithannotations-grpc.plain-namespace.1",
                     "metadata_labels": {
-                        "ambassador_crd": "simpleingresswithannotations-grpc-0-0.plain-namespace",
                         "kat-ambassador-id": "plain",
                         "scope": "AmbassadorTest"
                     },
@@ -6069,6 +6112,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleIngressWithAnnotations-GRPC-nested/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -6079,13 +6123,12 @@
                         "/SimpleIngressWithAnnotations-GRPC-nested/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simpleingresswithannotations-grpc-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleIngressWithAnnotations-GRPC-nested\nprefix: /SimpleIngressWithAnnotations-GRPC-nested/\nservice: http://plain-simpleingresswithannotations-grpc-grpc.plain-namespace\n",
+                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleIngressWithAnnotations-GRPC-nested\nprefix: /SimpleIngressWithAnnotations-GRPC-nested/\nservice: http://plain-simpleingresswithannotations-grpc-grpc.plain-namespace\n",
                     "service": "http://plain-simpleingresswithannotations-grpc-grpc.plain-namespace",
                     "weight": 100
                 }
             ],
             "metadata_labels": {
-                "ambassador_crd": "simpleingresswithannotations-grpc-0-0.plain-namespace",
                 "kat-ambassador-id": "plain",
                 "scope": "AmbassadorTest"
             },
@@ -6094,8 +6137,9 @@
             "precedence": 0,
             "prefix": "/SimpleIngressWithAnnotations-GRPC-nested/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simpleingresswithannotations-grpc-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleIngressWithAnnotations-GRPC-nested\nprefix: /SimpleIngressWithAnnotations-GRPC-nested/\nservice: http://plain-simpleingresswithannotations-grpc-grpc.plain-namespace\n"
+            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleIngressWithAnnotations-GRPC-nested\nprefix: /SimpleIngressWithAnnotations-GRPC-nested/\nservice: http://plain-simpleingresswithannotations-grpc-grpc.plain-namespace\n"
         },
         {
             "_active": true,
@@ -6172,6 +6216,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP-Rewrite-SLASH-foo/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/foo",
                     "route_weight": [
@@ -6196,6 +6241,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP-Rewrite-SLASH-foo/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/foo",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-Rewrite-SLASH-foo\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-Rewrite-SLASH-foo/\nrewrite: /foo\nservice: http://plain-simplemapping-http-rewrite-slash-foo-http.plain-namespace\n"
         },
@@ -6274,6 +6320,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC-Rewrite-SLASH-foo/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/foo",
                     "route_weight": [
@@ -6298,6 +6345,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC-Rewrite-SLASH-foo/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/foo",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-Rewrite-SLASH-foo\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-Rewrite-SLASH-foo/\nrewrite: /foo\nservice: http://plain-simplemapping-grpc-rewrite-slash-foo-grpc.plain-namespace\n"
         },
@@ -6378,6 +6426,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP-AutoHostRewrite/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -6402,6 +6451,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP-AutoHostRewrite/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AutoHostRewrite\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AutoHostRewrite/\nservice: http://plain-simplemapping-http-autohostrewrite-http.plain-namespace\n"
         },
@@ -6482,6 +6532,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC-AutoHostRewrite/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -6506,6 +6557,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC-AutoHostRewrite/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AutoHostRewrite\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AutoHostRewrite/\nservice: http://plain-simplemapping-grpc-autohostrewrite-grpc.plain-namespace\n"
         },
@@ -6586,6 +6638,7 @@
                     "prefix": "/SimpleIngressWithAnnotations-HTTP/",
                     "prefix_exact": false,
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -6612,6 +6665,7 @@
             "prefix": "/SimpleIngressWithAnnotations-HTTP/",
             "prefix_exact": false,
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simpleingresswithannotations-http-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: simpleingresswithannotations-http-0-0\nnamespace: plain-namespace\nprecedence: 0\nprefix: /SimpleIngressWithAnnotations-HTTP/\nprefix_exact: false\nservice: plain-simpleingresswithannotations-http-http.plain-namespace:80\n"
         },
@@ -6692,6 +6746,7 @@
                     "prefix": "/SimpleIngressWithAnnotations-GRPC/",
                     "prefix_exact": false,
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -6718,6 +6773,7 @@
             "prefix": "/SimpleIngressWithAnnotations-GRPC/",
             "prefix_exact": false,
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simpleingresswithannotations-grpc-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: simpleingresswithannotations-grpc-0-0\nnamespace: plain-namespace\nprecedence: 0\nprefix: /SimpleIngressWithAnnotations-GRPC/\nprefix_exact: false\nservice: plain-simpleingresswithannotations-grpc-grpc.plain-namespace:80\n"
         },
@@ -6798,6 +6854,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP-CaseSensitive/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -6822,6 +6879,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP-CaseSensitive/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\ncase_sensitive: false\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-CaseSensitive\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-CaseSensitive/\nservice: http://plain-simplemapping-http-casesensitive-http.plain-namespace\n"
         },
@@ -6902,6 +6960,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC-CaseSensitive/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -6926,6 +6985,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC-CaseSensitive/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\ncase_sensitive: false\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-CaseSensitive\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-CaseSensitive/\nservice: http://plain-simplemapping-grpc-casesensitive-grpc.plain-namespace\n"
         },
@@ -7004,6 +7064,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP-UseWebsocket/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -7029,6 +7090,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP-UseWebsocket/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-UseWebsocket\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-UseWebsocket/\nservice: http://plain-simplemapping-http-usewebsocket-http.plain-namespace\nuse_websocket: true\n",
             "use_websocket": true
@@ -7108,6 +7170,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC-UseWebsocket/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -7133,6 +7196,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC-UseWebsocket/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-UseWebsocket\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-UseWebsocket/\nservice: http://plain-simplemapping-grpc-usewebsocket-grpc.plain-namespace\nuse_websocket: true\n",
             "use_websocket": true
@@ -7212,6 +7276,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP-Rewrite-foo/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "foo",
                     "route_weight": [
@@ -7236,6 +7301,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP-Rewrite-foo/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "foo",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-Rewrite-foo\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-Rewrite-foo/\nrewrite: foo\nservice: http://plain-simplemapping-http-rewrite-foo-http.plain-namespace\n"
         },
@@ -7314,6 +7380,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC-Rewrite-foo/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "foo",
                     "route_weight": [
@@ -7338,6 +7405,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC-Rewrite-foo/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "foo",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-Rewrite-foo\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-Rewrite-foo/\nrewrite: foo\nservice: http://plain-simplemapping-grpc-rewrite-foo-grpc.plain-namespace\n"
         },
@@ -7432,6 +7500,7 @@
                     "prefix": "/HostHeaderMappingIngress-HTTP/",
                     "prefix_exact": false,
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -7459,6 +7528,7 @@
             "prefix": "/HostHeaderMappingIngress-HTTP/",
             "prefix_exact": false,
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nhost: inspector.external\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: hostheadermappingingress-http-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: hostheadermappingingress-http-0-0\nnamespace: plain-namespace\nprecedence: 0\nprefix: /HostHeaderMappingIngress-HTTP/\nprefix_exact: false\nservice: plain-hostheadermappingingress-http-http.plain-namespace:80\n"
         },
@@ -7553,6 +7623,7 @@
                     "prefix": "/HostHeaderMappingIngress-GRPC/",
                     "prefix_exact": false,
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -7580,6 +7651,7 @@
             "prefix": "/HostHeaderMappingIngress-GRPC/",
             "prefix_exact": false,
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nhost: inspector.external\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: hostheadermappingingress-grpc-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: hostheadermappingingress-grpc-0-0\nnamespace: plain-namespace\nprecedence: 0\nprefix: /HostHeaderMappingIngress-GRPC/\nprefix_exact: false\nservice: plain-hostheadermappingingress-grpc-grpc.plain-namespace:80\n"
         },
@@ -7674,6 +7746,7 @@
                     "precedence": 0,
                     "prefix": "/TLSOrigination-HTTP-IMPLICIT/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -7698,6 +7771,7 @@
             "precedence": 0,
             "prefix": "/TLSOrigination-HTTP-IMPLICIT/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: TLSOrigination-HTTP-IMPLICIT\nnamespace: plain-namespace\nprefix: /TLSOrigination-HTTP-IMPLICIT/\nservice: https://plain-tlsorigination-http-implicit-http.plain-namespace\n"
         },
@@ -7792,6 +7866,7 @@
                     "precedence": 0,
                     "prefix": "/TLSOrigination-HTTP-EXPLICIT/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -7817,6 +7892,7 @@
             "precedence": 0,
             "prefix": "/TLSOrigination-HTTP-EXPLICIT/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: TLSOrigination-HTTP-EXPLICIT\nnamespace: plain-namespace\nprefix: /TLSOrigination-HTTP-EXPLICIT/\nservice: plain-tlsorigination-http-explicit-http.plain-namespace\ntls: true\n",
             "tls": true
@@ -7912,6 +7988,7 @@
                     "precedence": 0,
                     "prefix": "/TLSOrigination-GRPC-IMPLICIT/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -7936,6 +8013,7 @@
             "precedence": 0,
             "prefix": "/TLSOrigination-GRPC-IMPLICIT/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: TLSOrigination-GRPC-IMPLICIT\nnamespace: plain-namespace\nprefix: /TLSOrigination-GRPC-IMPLICIT/\nservice: https://plain-tlsorigination-grpc-implicit-grpc.plain-namespace\n"
         },
@@ -8030,6 +8108,7 @@
                     "precedence": 0,
                     "prefix": "/TLSOrigination-GRPC-EXPLICIT/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -8055,6 +8134,7 @@
             "precedence": 0,
             "prefix": "/TLSOrigination-GRPC-EXPLICIT/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: TLSOrigination-GRPC-EXPLICIT\nnamespace: plain-namespace\nprefix: /TLSOrigination-GRPC-EXPLICIT/\nservice: plain-tlsorigination-grpc-explicit-grpc.plain-namespace\ntls: true\n",
             "tls": true
@@ -8137,6 +8217,7 @@
                     "precedence": 0,
                     "prefix": "/RemoveReqHeadersMapping-HTTP/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "remove_request_headers": [
                         "zoo",
                         "aoo"
@@ -8165,6 +8246,7 @@
             "precedence": 0,
             "prefix": "/RemoveReqHeadersMapping-HTTP/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "remove_request_headers": [
                 "zoo",
                 "aoo"
@@ -8250,6 +8332,7 @@
                     "precedence": 0,
                     "prefix": "/RemoveReqHeadersMapping-GRPC/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "remove_request_headers": [
                         "zoo",
                         "aoo"
@@ -8278,6 +8361,7 @@
             "precedence": 0,
             "prefix": "/RemoveReqHeadersMapping-GRPC/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "remove_request_headers": [
                 "zoo",
                 "aoo"
@@ -8364,6 +8448,7 @@
                     "precedence": 0,
                     "prefix": "/CanaryDiffMapping-HTTP-100/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -8434,6 +8519,7 @@
                     "precedence": 0,
                     "prefix": "/CanaryDiffMapping-HTTP-100/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -8458,6 +8544,7 @@
             "precedence": 0,
             "prefix": "/CanaryDiffMapping-HTTP-100/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-100\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-100/\nservice: http://plain-canarydiffmapping-http-100-http.plain-namespace\n"
         },
@@ -8540,6 +8627,7 @@
                     "precedence": 0,
                     "prefix": "/CanaryDiffMapping-GRPC-100/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -8610,6 +8698,7 @@
                     "precedence": 0,
                     "prefix": "/CanaryDiffMapping-GRPC-100/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -8634,6 +8723,7 @@
             "precedence": 0,
             "prefix": "/CanaryDiffMapping-GRPC-100/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-100\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-100/\nservice: http://plain-canarydiffmapping-grpc-100-grpc.plain-namespace\n"
         },
@@ -8743,6 +8833,7 @@
                     "precedence": 0,
                     "prefix": "/AddRespHeadersMapping-HTTP/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -8767,6 +8858,7 @@
             "precedence": 0,
             "prefix": "/AddRespHeadersMapping-HTTP/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "add_response_headers:\n  foo: Foo\n  koo:\n    append: false\n    value: KooK\n  test:\n    value: boo\n  zoo:\n    append: true\n    value: ZooZ\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: AddRespHeadersMapping-HTTP\nnamespace: plain-namespace\nprefix: /AddRespHeadersMapping-HTTP/\nservice: http://httpbin.org\n"
         },
@@ -8876,6 +8968,7 @@
                     "precedence": 0,
                     "prefix": "/AddRespHeadersMapping-GRPC/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -8900,6 +8993,7 @@
             "precedence": 0,
             "prefix": "/AddRespHeadersMapping-GRPC/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "add_response_headers:\n  foo: Foo\n  koo:\n    append: false\n    value: KooK\n  test:\n    value: boo\n  zoo:\n    append: true\n    value: ZooZ\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: AddRespHeadersMapping-GRPC\nnamespace: plain-namespace\nprefix: /AddRespHeadersMapping-GRPC/\nservice: http://httpbin.org\n"
         },
@@ -8980,6 +9074,7 @@
                     "prefix": "/SimpleMappingIngress-HTTP/",
                     "prefix_exact": false,
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -9006,6 +9101,7 @@
             "prefix": "/SimpleMappingIngress-HTTP/",
             "prefix_exact": false,
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simplemappingingress-http-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: simplemappingingress-http-0-0\nnamespace: plain-namespace\nprecedence: 0\nprefix: /SimpleMappingIngress-HTTP/\nprefix_exact: false\nservice: plain-simplemappingingress-http-http.plain-namespace:80\n"
         },
@@ -9086,6 +9182,7 @@
                     "prefix": "/SimpleMappingIngress-GRPC/",
                     "prefix_exact": false,
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -9112,6 +9209,7 @@
             "prefix": "/SimpleMappingIngress-GRPC/",
             "prefix_exact": false,
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simplemappingingress-grpc-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: simplemappingingress-grpc-0-0\nnamespace: plain-namespace\nprecedence: 0\nprefix: /SimpleMappingIngress-GRPC/\nprefix_exact: false\nservice: plain-simplemappingingress-grpc-grpc.plain-namespace:80\n"
         },
@@ -9194,6 +9292,7 @@
                     "precedence": 0,
                     "prefix": "/CanaryDiffMapping-HTTP-50/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -9264,6 +9363,7 @@
                     "precedence": 0,
                     "prefix": "/CanaryDiffMapping-HTTP-50/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -9288,6 +9388,7 @@
             "precedence": 0,
             "prefix": "/CanaryDiffMapping-HTTP-50/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-50\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-50/\nservice: http://plain-canarydiffmapping-http-50-http.plain-namespace\n"
         },
@@ -9370,6 +9471,7 @@
                     "precedence": 0,
                     "prefix": "/CanaryDiffMapping-HTTP-10/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -9440,6 +9542,7 @@
                     "precedence": 0,
                     "prefix": "/CanaryDiffMapping-HTTP-10/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -9464,6 +9567,7 @@
             "precedence": 0,
             "prefix": "/CanaryDiffMapping-HTTP-10/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-10\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-10/\nservice: http://plain-canarydiffmapping-http-10-http.plain-namespace\n"
         },
@@ -9546,6 +9650,7 @@
                     "precedence": 0,
                     "prefix": "/CanaryDiffMapping-GRPC-50/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -9616,6 +9721,7 @@
                     "precedence": 0,
                     "prefix": "/CanaryDiffMapping-GRPC-50/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -9640,6 +9746,7 @@
             "precedence": 0,
             "prefix": "/CanaryDiffMapping-GRPC-50/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-50\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-50/\nservice: http://plain-canarydiffmapping-grpc-50-grpc.plain-namespace\n"
         },
@@ -9722,6 +9829,7 @@
                     "precedence": 0,
                     "prefix": "/CanaryDiffMapping-GRPC-10/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -9792,6 +9900,7 @@
                     "precedence": 0,
                     "prefix": "/CanaryDiffMapping-GRPC-10/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -9816,6 +9925,7 @@
             "precedence": 0,
             "prefix": "/CanaryDiffMapping-GRPC-10/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-10\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-10/\nservice: http://plain-canarydiffmapping-grpc-10-grpc.plain-namespace\n"
         },
@@ -9921,6 +10031,7 @@
                     "precedence": 0,
                     "prefix": "/AddReqHeadersMapping-HTTP/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -9945,6 +10056,7 @@
             "precedence": 0,
             "prefix": "/AddReqHeadersMapping-HTTP/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "add_request_headers:\n  aoo:\n    append: true\n    value: aoo\n  boo:\n    value: boo\n  foo: Foo\n  zoo:\n    append: false\n    value: Zoo\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: AddReqHeadersMapping-HTTP\nnamespace: plain-namespace\nprefix: /AddReqHeadersMapping-HTTP/\nservice: http://plain-addreqheadersmapping-http-http.plain-namespace\n"
         },
@@ -10050,6 +10162,7 @@
                     "precedence": 0,
                     "prefix": "/AddReqHeadersMapping-GRPC/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -10074,6 +10187,7 @@
             "precedence": 0,
             "prefix": "/AddReqHeadersMapping-GRPC/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "add_request_headers:\n  aoo:\n    append: true\n    value: aoo\n  boo:\n    value: boo\n  foo: Foo\n  zoo:\n    append: false\n    value: Zoo\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: AddReqHeadersMapping-GRPC\nnamespace: plain-namespace\nprefix: /AddReqHeadersMapping-GRPC/\nservice: http://plain-addreqheadersmapping-grpc-grpc.plain-namespace\n"
         },
@@ -10151,6 +10265,7 @@
                     "precedence": 0,
                     "prefix": "/ambassador/v0/check_ready",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/ambassador/v0/check_ready",
                     "route_weight": [
@@ -10171,6 +10286,7 @@
             "precedence": 0,
             "prefix": "/ambassador/v0/check_ready",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/ambassador/v0/check_ready",
             "timeout_ms": 10000
         },
@@ -10248,6 +10364,7 @@
                     "precedence": 0,
                     "prefix": "/ambassador/v0/check_alive",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/ambassador/v0/check_alive",
                     "route_weight": [
@@ -10268,6 +10385,7 @@
             "precedence": 0,
             "prefix": "/ambassador/v0/check_alive",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/ambassador/v0/check_alive",
             "timeout_ms": 10000
         },
@@ -10350,6 +10468,7 @@
                     "precedence": 0,
                     "prefix": "/CanaryDiffMapping-HTTP-0/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -10420,6 +10539,7 @@
                     "precedence": 0,
                     "prefix": "/CanaryDiffMapping-HTTP-0/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -10444,6 +10564,7 @@
             "precedence": 0,
             "prefix": "/CanaryDiffMapping-HTTP-0/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-0\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-0/\nservice: http://plain-canarydiffmapping-http-0-http.plain-namespace\n"
         },
@@ -10526,6 +10647,7 @@
                     "precedence": 0,
                     "prefix": "/CanaryDiffMapping-GRPC-0/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -10596,6 +10718,7 @@
                     "precedence": 0,
                     "prefix": "/CanaryDiffMapping-GRPC-0/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -10620,6 +10743,7 @@
             "precedence": 0,
             "prefix": "/CanaryDiffMapping-GRPC-0/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-0\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-0/\nservice: http://plain-canarydiffmapping-grpc-0-grpc.plain-namespace\n"
         },
@@ -10726,6 +10850,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP-CORS/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -10750,6 +10875,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP-CORS/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-CORS\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-CORS/\nservice: http://plain-simplemapping-http-cors-http.plain-namespace\n"
         },
@@ -10856,6 +10982,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC-CORS/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -10880,6 +11007,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC-CORS/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-CORS\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-CORS/\nservice: http://plain-simplemapping-grpc-cors-grpc.plain-namespace\n"
         },
@@ -10951,6 +11079,7 @@
                     "precedence": 0,
                     "prefix": "/InvalidPortMapping-HTTP/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -10975,6 +11104,7 @@
             "precedence": 0,
             "prefix": "/InvalidPortMapping-HTTP/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: InvalidPortMapping-HTTP\nnamespace: plain-namespace\nprefix: /InvalidPortMapping-HTTP/\nservice: http://plain-invalidportmapping-http-http.plain-namespace:80.invalid\n"
         },
@@ -11046,6 +11176,7 @@
                     "precedence": 0,
                     "prefix": "/InvalidPortMapping-GRPC/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -11070,6 +11201,7 @@
             "precedence": 0,
             "prefix": "/InvalidPortMapping-GRPC/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: InvalidPortMapping-GRPC\nnamespace: plain-namespace\nprefix: /InvalidPortMapping-GRPC/\nservice: http://plain-invalidportmapping-grpc-grpc.plain-namespace:80.invalid\n"
         },
@@ -11162,6 +11294,7 @@
                     "precedence": 0,
                     "prefix": "/HostHeaderMapping-HTTP/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -11187,6 +11320,7 @@
             "precedence": 0,
             "prefix": "/HostHeaderMapping-HTTP/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nhost: inspector.external\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HostHeaderMapping-HTTP\nnamespace: plain-namespace\nprefix: /HostHeaderMapping-HTTP/\nservice: http://plain-hostheadermapping-http-http.plain-namespace\n"
         },
@@ -11279,6 +11413,7 @@
                     "precedence": 0,
                     "prefix": "/HostHeaderMapping-GRPC/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -11304,6 +11439,7 @@
             "precedence": 0,
             "prefix": "/HostHeaderMapping-GRPC/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nhost: inspector.external\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HostHeaderMapping-GRPC\nnamespace: plain-namespace\nprefix: /HostHeaderMapping-GRPC/\nservice: http://plain-hostheadermapping-grpc-grpc.plain-namespace\n"
         },
@@ -11395,6 +11531,7 @@
                     "precedence": 0,
                     "prefix": "/HeaderRoutingTest-HTTP/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -11420,6 +11557,7 @@
             "precedence": 0,
             "prefix": "/HeaderRoutingTest-HTTP/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nheaders:\n  X-Route: target2\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HeaderRoutingTest-HTTP-target2\nnamespace: plain-namespace\nprefix: /HeaderRoutingTest-HTTP/\nservice: http://plain-headerroutingtest-http-http-target2.plain-namespace\n"
         },
@@ -11511,6 +11649,7 @@
                     "precedence": 0,
                     "prefix": "/HeaderRoutingTest-GRPC/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -11536,6 +11675,7 @@
             "precedence": 0,
             "prefix": "/HeaderRoutingTest-GRPC/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nheaders:\n  X-Route: target2\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HeaderRoutingTest-GRPC-target2\nnamespace: plain-namespace\nprefix: /HeaderRoutingTest-GRPC/\nservice: http://plain-headerroutingtest-grpc-grpc-target2.plain-namespace\n"
         },
@@ -11657,6 +11797,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP-all/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "remove_response_headers": "x-envoy-upstream-service-time",
                     "resolver": "kubernetes-service",
                     "rewrite": "/foo",
@@ -11683,6 +11824,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP-all/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "remove_response_headers": "x-envoy-upstream-service-time",
             "rewrite": "/foo",
             "serialization": "add_request_headers:\n  foo: bar\nadd_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\ncase_sensitive: false\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-all\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-all/\nremove_response_headers: x-envoy-upstream-service-time\nrewrite: /foo\nservice: http://plain-simplemapping-http-all-http.plain-namespace\nuse_websocket: true\n",
@@ -11806,6 +11948,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC-all/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "remove_response_headers": "x-envoy-upstream-service-time",
                     "resolver": "kubernetes-service",
                     "rewrite": "/foo",
@@ -11832,6 +11975,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC-all/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "remove_response_headers": "x-envoy-upstream-service-time",
             "rewrite": "/foo",
             "serialization": "add_request_headers:\n  foo: bar\nadd_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\ncase_sensitive: false\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-all\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-all/\nremove_response_headers: x-envoy-upstream-service-time\nrewrite: /foo\nservice: http://plain-simplemapping-grpc-all-grpc.plain-namespace\nuse_websocket: true\n",
@@ -11912,6 +12056,7 @@
                     "precedence": 0,
                     "prefix": "/HeaderRoutingTest-HTTP/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -11936,6 +12081,7 @@
             "precedence": 0,
             "prefix": "/HeaderRoutingTest-HTTP/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HeaderRoutingTest-HTTP-target1\nnamespace: plain-namespace\nprefix: /HeaderRoutingTest-HTTP/\nservice: http://plain-headerroutingtest-http-http.plain-namespace\n"
         },
@@ -12014,6 +12160,7 @@
                     "precedence": 0,
                     "prefix": "/HeaderRoutingTest-GRPC/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -12038,6 +12185,7 @@
             "precedence": 0,
             "prefix": "/HeaderRoutingTest-GRPC/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HeaderRoutingTest-GRPC-target1\nnamespace: plain-namespace\nprefix: /HeaderRoutingTest-GRPC/\nservice: http://plain-headerroutingtest-grpc-grpc.plain-namespace\n"
         },
@@ -12117,6 +12265,7 @@
                     "precedence": 0,
                     "prefix": "/CanaryMapping-HTTP-100/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -12185,6 +12334,7 @@
                     "precedence": 0,
                     "prefix": "/CanaryMapping-HTTP-100/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -12209,6 +12359,7 @@
             "precedence": 0,
             "prefix": "/CanaryMapping-HTTP-100/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-100\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-100/\nservice: http://plain-canarymapping-http-100-http.plain-namespace\n"
         },
@@ -12288,6 +12439,7 @@
                     "precedence": 0,
                     "prefix": "/CanaryMapping-GRPC-100/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -12356,6 +12508,7 @@
                     "precedence": 0,
                     "prefix": "/CanaryMapping-GRPC-100/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -12380,6 +12533,7 @@
             "precedence": 0,
             "prefix": "/CanaryMapping-GRPC-100/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-100\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-100/\nservice: http://plain-canarymapping-grpc-100-grpc.plain-namespace\n"
         },
@@ -12462,6 +12616,7 @@
                     "precedence": 0,
                     "prefix": "/WebSocketMapping-HTTP/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -12487,6 +12642,7 @@
             "precedence": 0,
             "prefix": "/WebSocketMapping-HTTP/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: echo.websocket.org\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: WebSocketMapping-HTTP\nnamespace: plain-namespace\nprefix: /WebSocketMapping-HTTP/\nservice: echo.websocket.org:80\nuse_websocket: true\n",
             "use_websocket": true
@@ -12570,6 +12726,7 @@
                     "precedence": 0,
                     "prefix": "/WebSocketMapping-GRPC/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -12595,6 +12752,7 @@
             "precedence": 0,
             "prefix": "/WebSocketMapping-GRPC/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: echo.websocket.org\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: WebSocketMapping-GRPC\nnamespace: plain-namespace\nprefix: /WebSocketMapping-GRPC/\nservice: echo.websocket.org:80\nuse_websocket: true\n",
             "use_websocket": true
@@ -12638,6 +12796,7 @@
                 "precedence": 0,
                 "prefix": "/HostRedirectMapping-2/",
                 "query_parameters": [],
+                "regex_rewrite": {},
                 "resolver": "kubernetes-service",
                 "rewrite": "/",
                 "route_weight": [
@@ -12734,6 +12893,7 @@
                     "precedence": 0,
                     "prefix": "/CanaryMapping-HTTP-50/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -12802,6 +12962,7 @@
                     "precedence": 0,
                     "prefix": "/CanaryMapping-HTTP-50/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -12826,6 +12987,7 @@
             "precedence": 0,
             "prefix": "/CanaryMapping-HTTP-50/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-50\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-50/\nservice: http://plain-canarymapping-http-50-http.plain-namespace\n"
         },
@@ -12905,6 +13067,7 @@
                     "precedence": 0,
                     "prefix": "/CanaryMapping-HTTP-10/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -12973,6 +13136,7 @@
                     "precedence": 0,
                     "prefix": "/CanaryMapping-HTTP-10/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -12997,6 +13161,7 @@
             "precedence": 0,
             "prefix": "/CanaryMapping-HTTP-10/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-10\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-10/\nservice: http://plain-canarymapping-http-10-http.plain-namespace\n"
         },
@@ -13076,6 +13241,7 @@
                     "precedence": 0,
                     "prefix": "/CanaryMapping-GRPC-50/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -13144,6 +13310,7 @@
                     "precedence": 0,
                     "prefix": "/CanaryMapping-GRPC-50/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -13168,6 +13335,7 @@
             "precedence": 0,
             "prefix": "/CanaryMapping-GRPC-50/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-50\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-50/\nservice: http://plain-canarymapping-grpc-50-grpc.plain-namespace\n"
         },
@@ -13247,6 +13415,7 @@
                     "precedence": 0,
                     "prefix": "/CanaryMapping-GRPC-10/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -13315,6 +13484,7 @@
                     "precedence": 0,
                     "prefix": "/CanaryMapping-GRPC-10/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -13339,6 +13509,7 @@
             "precedence": 0,
             "prefix": "/CanaryMapping-GRPC-10/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-10\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-10/\nservice: http://plain-canarymapping-grpc-10-grpc.plain-namespace\n"
         },
@@ -13418,6 +13589,7 @@
                     "precedence": 0,
                     "prefix": "/CanaryMapping-HTTP-0/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -13486,6 +13658,7 @@
                     "precedence": 0,
                     "prefix": "/CanaryMapping-HTTP-0/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -13510,6 +13683,7 @@
             "precedence": 0,
             "prefix": "/CanaryMapping-HTTP-0/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-0\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-0/\nservice: http://plain-canarymapping-http-0-http.plain-namespace\n"
         },
@@ -13589,6 +13763,7 @@
                     "precedence": 0,
                     "prefix": "/CanaryMapping-GRPC-0/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -13657,6 +13832,7 @@
                     "precedence": 0,
                     "prefix": "/CanaryMapping-GRPC-0/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -13681,6 +13857,7 @@
             "precedence": 0,
             "prefix": "/CanaryMapping-GRPC-0/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-0\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-0/\nservice: http://plain-canarymapping-grpc-0-grpc.plain-namespace\n"
         },
@@ -13721,6 +13898,7 @@
                 "precedence": 0,
                 "prefix": "/HostRedirectMapping/",
                 "query_parameters": [],
+                "regex_rewrite": {},
                 "resolver": "kubernetes-service",
                 "rewrite": "/",
                 "route_weight": [
@@ -13816,6 +13994,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-HTTP/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -13840,6 +14019,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-HTTP/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP/\nservice: http://plain-simplemapping-http-http.plain-namespace\n"
         },
@@ -13918,6 +14098,7 @@
                     "precedence": 0,
                     "prefix": "/SimpleMapping-GRPC/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -13942,6 +14123,7 @@
             "precedence": 0,
             "prefix": "/SimpleMapping-GRPC/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC/\nservice: http://plain-simplemapping-grpc-grpc.plain-namespace\n"
         },
@@ -14019,6 +14201,7 @@
                     "precedence": 0,
                     "prefix": "/ambassador/v0/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/ambassador/v0/",
                     "route_weight": [
@@ -14039,6 +14222,7 @@
             "precedence": 0,
             "prefix": "/ambassador/v0/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/ambassador/v0/",
             "timeout_ms": 10000
         }
