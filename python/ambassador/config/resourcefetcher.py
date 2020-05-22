@@ -636,8 +636,10 @@ class ResourceFetcher:
         # We do this by checking that the pod's labels match the selector in the service.
         for key, value in service_selector.items():
             pod_label_value = self.aconf.pod_labels.get(key)
-            if pod_label_value == value:
-                return True
+            if pod_label_value != value:
+                return False
+
+        return True
 
     def handle_k8s_endpoints(self, k8s_object: AnyDict) -> HandlerResult:
         # Don't include Endpoints unless endpoint routing is enabled.
