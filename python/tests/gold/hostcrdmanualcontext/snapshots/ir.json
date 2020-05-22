@@ -215,6 +215,7 @@
                     "precedence": 0,
                     "prefix": "/ambassador/v0/check_ready",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/ambassador/v0/check_ready",
                     "route_weight": [
@@ -235,6 +236,7 @@
             "precedence": 0,
             "prefix": "/ambassador/v0/check_ready",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/ambassador/v0/check_ready",
             "timeout_ms": 10000
         },
@@ -312,6 +314,7 @@
                     "precedence": 0,
                     "prefix": "/ambassador/v0/check_alive",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/ambassador/v0/check_alive",
                     "route_weight": [
@@ -332,6 +335,7 @@
             "precedence": 0,
             "prefix": "/ambassador/v0/check_alive",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/ambassador/v0/check_alive",
             "timeout_ms": 10000
         },
@@ -409,6 +413,7 @@
                     "precedence": 0,
                     "prefix": "/ambassador/v0/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/ambassador/v0/",
                     "route_weight": [
@@ -429,6 +434,7 @@
             "precedence": 0,
             "prefix": "/ambassador/v0/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/ambassador/v0/",
             "timeout_ms": 10000
         },
@@ -509,6 +515,7 @@
                     "precedence": 0,
                     "prefix": "/target/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -535,6 +542,7 @@
             "precedence": 0,
             "prefix": "/target/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id:\n- hostcrdmanualcontext\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: manual-target-mapping.default\n  hostname: manual-hostname\n  kat-ambassador-id: hostcrdmanualcontext\n  scope: AmbassadorTest\nname: manual-target-mapping\nnamespace: default\nprefix: /target/\nservice: hostcrdmanualcontext-http\n"
         }

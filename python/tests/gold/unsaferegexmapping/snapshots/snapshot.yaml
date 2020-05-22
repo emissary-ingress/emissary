@@ -23,7 +23,7 @@
                         "getambassador.io/config": "---\napiVersion: ambassador/v2\nkind: Mapping\nname: UnsafeRegexMapping\nprefix: /UnsafeRegexMapping/\nprefix_regex: true\nhost: \"[a-zA-Z].*\"\nhost_regex: true\nregex_headers:\n  X-Foo: \"^[a-z].*\"\nservice: http://unsaferegexmapping-http\nambassador_id: unsaferegexmapping\n---\napiVersion: ambassador/v2\nkind: Module\nname: ambassador\nconfig:\n  regex_type: unsafe\nambassador_id: unsaferegexmapping\n",
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v2\\nkind: Mapping\\nname: UnsafeRegexMapping\\nprefix: /UnsafeRegexMapping/\\nprefix_regex: true\\nhost: \\\"[a-zA-Z].*\\\"\\nhost_regex: true\\nregex_headers:\\n  X-Foo: \\\"^[a-z].*\\\"\\nservice: http://unsaferegexmapping-http\\nambassador_id: unsaferegexmapping\\n---\\napiVersion: ambassador/v2\\nkind: Module\\nname: ambassador\\nconfig:\\n  regex_type: unsafe\\nambassador_id: unsaferegexmapping\\n\"},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"unsaferegexmapping\",\"scope\":\"AmbassadorTest\"},\"name\":\"unsaferegexmapping\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"unsaferegexmapping\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-05-12T21:32:52Z",
+                    "creationTimestamp": "2020-05-14T17:38:16Z",
                     "labels": {
                         "app.kubernetes.io/component": "ambassador-service",
                         "kat-ambassador-id": "unsaferegexmapping",
@@ -31,24 +31,24 @@
                     },
                     "name": "unsaferegexmapping",
                     "namespace": "default",
-                    "resourceVersion": "2026",
+                    "resourceVersion": "63435",
                     "selfLink": "/api/v1/namespaces/default/services/unsaferegexmapping",
-                    "uid": "2293ed28-9498-11ea-a105-06252487e9d7"
+                    "uid": "b1b06146-9609-11ea-ae16-06e21b589211"
                 },
                 "spec": {
-                    "clusterIP": "10.102.52.101",
+                    "clusterIP": "10.109.22.42",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "http",
-                            "nodePort": 31015,
+                            "nodePort": 30794,
                             "port": 80,
                             "protocol": "TCP",
                             "targetPort": 8080
                         },
                         {
                             "name": "https",
-                            "nodePort": 30057,
+                            "nodePort": 31686,
                             "port": 443,
                             "protocol": "TCP",
                             "targetPort": 8443
@@ -71,7 +71,7 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"unsaferegexmapping\",\"scope\":\"AmbassadorTest\",\"service\":\"unsaferegexmapping-admin\"},\"name\":\"unsaferegexmapping-admin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"unsaferegexmapping-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"unsaferegexmapping\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-05-12T21:32:52Z",
+                    "creationTimestamp": "2020-05-14T17:38:16Z",
                     "labels": {
                         "kat-ambassador-id": "unsaferegexmapping",
                         "scope": "AmbassadorTest",
@@ -79,17 +79,17 @@
                     },
                     "name": "unsaferegexmapping-admin",
                     "namespace": "default",
-                    "resourceVersion": "2033",
+                    "resourceVersion": "63442",
                     "selfLink": "/api/v1/namespaces/default/services/unsaferegexmapping-admin",
-                    "uid": "229ba9ec-9498-11ea-a105-06252487e9d7"
+                    "uid": "b1c1b67c-9609-11ea-ae16-06e21b589211"
                 },
                 "spec": {
-                    "clusterIP": "10.111.198.104",
+                    "clusterIP": "10.105.226.181",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "unsaferegexmapping-admin",
-                            "nodePort": 31546,
+                            "nodePort": 30000,
                             "port": 8877,
                             "protocol": "TCP",
                             "targetPort": 8877
@@ -112,19 +112,19 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"unsaferegexmapping\",\"scope\":\"AmbassadorTest\"},\"name\":\"unsaferegexmapping-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8083},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8446}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
                     },
-                    "creationTimestamp": "2020-05-12T21:32:52Z",
+                    "creationTimestamp": "2020-05-14T17:38:17Z",
                     "labels": {
                         "kat-ambassador-id": "unsaferegexmapping",
                         "scope": "AmbassadorTest"
                     },
                     "name": "unsaferegexmapping-http",
                     "namespace": "default",
-                    "resourceVersion": "2040",
+                    "resourceVersion": "63449",
                     "selfLink": "/api/v1/namespaces/default/services/unsaferegexmapping-http",
-                    "uid": "22a9b166-9498-11ea-a105-06252487e9d7"
+                    "uid": "b1d8d3c5-9609-11ea-ae16-06e21b589211"
                 },
                 "spec": {
-                    "clusterIP": "10.96.62.9",
+                    "clusterIP": "10.109.127.57",
                     "ports": [
                         {
                             "name": "http",

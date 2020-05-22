@@ -2,10 +2,10 @@
   display: grid;
   grid-template-columns: 50px auto;
   grid-template-areas:
-  "os sidebar1"
   "k8 sidebar2"
   "helm sidebar3"
-  "manual0 manual"
+  "blank manual"
+  "blackbird spins"
   "main main";
   grid-gap: 15px;
   margin-left: -125px;
@@ -25,7 +25,7 @@ a#QS-moreInstallOptions:hover {
   grid-area: main;
   padding: 5px;
   margin-left: 60px;
-  margin-top: -30px;
+  margin-top: -20px;
   position: relative;
   z-index: 2;
   cursor: default;
@@ -122,6 +122,24 @@ details[open] summary::before { content:"▼" }
 summary#helmVersions {
   font-size: .7em;
 }
+#helmVersionWrapper {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 5px;
+  margin-bottom: 10px;
+}
+#helm2Block {
+  width: 49%;
+  padding: 5px;
+  border: 1px solid #bbb;
+  border-radius: 0.3em;
+}
+#helm3Block {
+  width: 49%;
+  padding: 5px;
+  border: 1px solid #bbb;
+  border-radius: 0.3em;
+}
 .QS-codeblockInstall {
   font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
   font-size: 13px;
@@ -156,11 +174,25 @@ summary#helmVersions {
   border: thin solid gray;
   font-size: 90%;
 }
-.QS-token-function {
-  color: #FF4329;
-}
 .QS-windowsDownloadButton {
   color: black;
+}
+.QS-blackbird-image {
+  grid-area: blackbird;
+  width: 30px;
+  margin: 0 0 -4px 4px;
+}
+.QS-spin {
+  grid-area: spins;
+}
+.QS-spinText {
+  font-size: 16px;
+}
+#QS-blank {
+  grid-area: blank;
+}
+#QS-customLink {
+  padding-bottom: 10px;
 }
 #QS-fullManual {
   grid-area: manual;
