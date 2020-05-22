@@ -188,7 +188,7 @@ Connected
 
 ## Usage: Outbound Services
 
-1. Starting with an empty cluster, add the simple microservice from above.
+1. Starting with an empty cluster, add the simple microservice from the [Introduction to Service Preview and Edge Control](../edgectl#traffic-agent).
 
 ```bash
 $ kubectl get svc,deploy
@@ -246,7 +246,7 @@ Not connected
 
 ## Usage: Intercept
 
-1. Install the traffic manager in your cluster and the traffic agent in the simple microservice as described above.
+1. Install the traffic manager in your cluster and the traffic agent in the simple microservice as described in the [Introduction to Service Preview and Edge Control](../edgectl#configuring-service-preview)..
 
 ```bash
 $ kubectl apply -f traffic-manager.yaml
