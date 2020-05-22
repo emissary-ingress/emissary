@@ -46,7 +46,7 @@ We've created an example filter that you can customize for your particular use c
               value: https://127.0.0.1:8443
             - name: AMBASSADOR_ADMIN_URL
               value: http://127.0.0.1:8877
-   -        image: quay.io/datawire/aes:$version$
+   -        image: docker.io/datawire/aes:$version$
    +        image: DOCKER_REGISTRY/aes-plugin:VERSION
             imagePullPolicy: Always
             livenessProbe:

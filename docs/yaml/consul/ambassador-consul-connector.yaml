@@ -73,7 +73,7 @@ spec:
       terminationGracePeriodSeconds: 0
       containers:
         - name: consul-connect-integration
-          image: quay.io/datawire/ambassador_pro:consul_connect_integration-$aproVersion$
+          image: docker.io/datawire/ambassador_pro:consul_connect_integration-$aproVersion$
           imagePullPolicy: Always
           resources:
             limits:
