@@ -79,6 +79,7 @@ Format:
 - Bugfix: Only update Knative ingress CRDs when the generation changes
 - Bugfix: Now behaves properly when `AMBASSADOR_SINGLE_NAMESPACE` is set to an empty string; rather than getting in to a weird in-between state
 - Bugfix: Websocket library updated to incorporate security fixes
+- Bugfix: Fixed evaluation of label selectors causing the wrong IP to be put in to Ingress resource statuses
 
 ## [1.4.3] May 14, 2020
 [1.4.3]: https://github.com/datawire/ambassador/compare/v1.4.2...v1.4.3
