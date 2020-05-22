@@ -58,8 +58,8 @@ First, check to see if the Edge Policy Console is reachable. If it is successful
         ----    ------                 ----  ----                                                     -------
         Normal  Scheduled              4m    default-scheduler                                        Successfully assigned ambassador-85c4cf67b-4pfj2 to gke-ambassador-demo-default-pool-912378e5-dkxc
         Normal  SuccessfulMountVolume  4m    kubelet, gke-ambassador-demo-default-pool-912378e5-dkxc  MountVolume.SetUp succeeded for volume "ambassador-token-tmk94"
-        Normal  Pulling                4m    kubelet, gke-ambassador-demo-default-pool-912378e5-dkxc  pulling image "quay.io/datawire/ambassador:0.40.0"
-        Normal  Pulled                 4m    kubelet, gke-ambassador-demo-default-pool-912378e5-dkxc  Successfully pulled image "quay.io/datawire/ambassador:0.40.0"
+        Normal  Pulling                4m    kubelet, gke-ambassador-demo-default-pool-912378e5-dkxc  pulling image "docker.io/datawire/ambassador:0.40.0"
+        Normal  Pulled                 4m    kubelet, gke-ambassador-demo-default-pool-912378e5-dkxc  Successfully pulled image "docker.io/datawire/ambassador:0.40.0"
         Normal  Created                4m    kubelet, gke-ambassador-demo-default-pool-912378e5-dkxc  Created container
         Normal  Started                4m    kubelet, gke-ambassador-demo-default-pool-912378e5-dkxc  Started container
         ```
