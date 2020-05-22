@@ -48,7 +48,7 @@ spec:
           value: "{{ .Values.servicePreview.trafficAgent.image.repository | default .Values.image.repository }}:{{ .Values.servicePreview.trafficAgent.image.tag | default .Values.image.tag }}"
         - name: TRAFFIC_AGENT_AGENT_LISTEN_PORT
           value: "{{ .Values.servicePreview.trafficAgent.port }}"
-        {{- if .Values.scope.singleNamespace }}
+        {{- if .Values.servicePreview.trafficAgent.singleNamespace }}
         - name: TRAFFIC_AGENT_SERVICE_ACCOUNT_NAME
           value: "{{ .Values.servicePreview.trafficAgent.serviceAccountName }}"
         {{- end }}
