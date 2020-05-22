@@ -175,11 +175,11 @@ spec:
 The `JWT` and `OAuth2` filters speak to other services over HTTP or HTTPS.  If those services are configured to speak HTTPS using a self-signed certificate, attempting to talk to them will result in an error mentioning `ERR x509: certificate signed by unknown authority`. You can fix this by installing that self-signed certificate into the AES container following the standard procedure for Alpine Linux 3.8: Copy the certificate to `/usr/local/share/ca-certificates/` and then run `update-ca-certificates`.  Note that the `aes` image sets `USER 1000`, but that `update-ca-certificates` needs to be run as root.
 
 ```Dockerfile
-FROM quay.io/datawire/aes:$version$
+FROM docker.io/datawire/aes:$version$
 USER root
 COPY ./my-certificate.pem /usr/local/share/ca-certificates/my-certificate.crt
 RUN update-ca-certificates
 USER 1000
 ```
 
-When deploying the Ambassador Edge Stack, refer to that custom Docker image, rather than to `quay.io/datawire/aes:$version$`
+When deploying the Ambassador Edge Stack, refer to that custom Docker image, rather than to `docker.io/datawire/aes:$version$`

@@ -3,7 +3,7 @@ services:
 
   # curl -v -H "requested-cookie: foo, bar, baz" -H "requested-status:307"  http://localhost:61880/echo-service/get 
   ambassador:
-    image: quay.io/datawire/ambassador:0.73.0
+    image: docker.io/datawire/ambassador:0.73.0
     ports:
     - 61880:8080
     volumes:

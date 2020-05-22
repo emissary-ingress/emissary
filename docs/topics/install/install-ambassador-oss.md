@@ -161,7 +161,7 @@ For example:
 
 ```yaml
 image:
-  repository: quay.io/datawire/ambassador
+  repository: docker.io/datawire/ambassador
   tag: $version$
 enableAES: false
 ```
@@ -175,7 +175,7 @@ helm install ambassador datawire/ambassador -f values.yaml
 You can also install the chart with the `--set` flag:
 
 ```
-helm install ambassador datawire/ambassador --set image.repository=quay.io/datawire/ambassador --set image.tag=$version$ --set enableAES=false
+helm install ambassador datawire/ambassador --set image.repository=docker.io/datawire/ambassador --set image.tag=$version$ --set enableAES=false
 ```
 
 ## Want More?
