@@ -110,7 +110,7 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `rbac.podSecurityPolicies`         | pod security polices to bind to                                                 |                                   |
 | `rbac.nameOverride`                | Overrides the default name of the RBAC resources                                | ``                                |
 | `replicaCount`                     | Number of Ambassador replicas                                                   | `3`                               |
-| `resources`                        | CPU/memory resource requests/limits                                             | `{}`                              |
+| `resources`                        | CPU/memory resource requests/limits                                             | `{ "limits":{"cpu":"1000m","memory":"600Mi"},"requests":{"cpu":"200m","memory":"300Mi"}}` |
 | `securityContext`                  | Set security context for pod                                                    | `{ "runAsUser": "8888" }`         |
 | `security.podSecurityContext`      | Set the security context for the Ambassador pod                                 | `{ "runAsNonRoot": true }`        |
 | `security.containerSecurityContext`| Set the security context for the Ambassador container                           | `{ "readOnlyRootFilesystem": true, "allowPrivilegeEscalation": false }` |
