@@ -362,6 +362,7 @@ servicePreview:
       # Leave blank to use image.repository and image.tag
       repository:
       tag:
+    singleNamespace: true
     serviceAccountName: "traffic-agent"
     port: 9900
 

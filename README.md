@@ -169,6 +169,7 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `servicePreview.trafficAgent.injector.keyPEM`      | TLS private key for the Common Name of <ambassador-injector>.<namespace>.svc | Auto-generated, valid for 365 days |
 | `servicePreview.trafficAgent.port`                 | Traffic-agent listening port number when injected with ambassador-injector   | `9900`               |
 | `servicePreview.trafficAgent.serviceAccountName`   | Label Selector for Prometheus to find ServiceMonitors           | `traffic-agent`                   |
+| `servicePreview.trafficAgent.singleNamespace`      | If `true`, installs the traffic-agent ServiceAccount and Role in the current installation namespace; Otherwise uses a global ClusterRole applied to every ServiceAccount | `true` |
 
 **NOTE:** Make sure the configured `service.http.targetPort` and `service.https.targetPort` ports match your [Ambassador Module's](https://www.getambassador.io/reference/modules/#the-ambassador-module) `service_port` and `redirect_cleartext_from` configurations.
 
