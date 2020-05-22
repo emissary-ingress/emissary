@@ -124,6 +124,8 @@ spec:
           requests:
             cpu: 200m
             memory: 100Mi
+        securityContext:
+          allowPrivilegeEscalation: false
         volumeMounts:
         - mountPath: /tmp/ambassador-pod-info
           name: ambassador-pod-info
