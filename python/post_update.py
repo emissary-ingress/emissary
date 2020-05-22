@@ -10,11 +10,11 @@ def usage(program):
     sys.exit(1)
 
 
-base_host = os.environ.get('AMBASSADOR_EVENT_HOST', 'http://localhost:8877')
-base_path = os.environ.get('AMBASSADOR_EVENT_PATH', '_internal/v0')
+base_host = os.environ.get('DEV_AMBASSADOR_EVENT_HOST', 'http://localhost:8877')
+base_path = os.environ.get('DEV_AMBASSADOR_EVENT_PATH', '_internal/v0')
 
-sidecar_host = os.environ.get('AMBASSADOR_SIDECAR_HOST', 'http://localhost:8500')
-sidecar_path = os.environ.get('AMBASSADOR_SIDECAR_PATH', '_internal/v0')
+sidecar_host = os.environ.get('DEV_AMBASSADOR_SIDECAR_HOST', 'http://localhost:8500')
+sidecar_path = os.environ.get('DEV_AMBASSADOR_SIDECAR_PATH', '_internal/v0')
 
 url_type = 'update'
 arg_key = 'url'
