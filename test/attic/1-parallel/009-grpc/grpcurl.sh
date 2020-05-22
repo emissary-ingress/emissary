@@ -3,7 +3,7 @@
 # set -x
 
 PROGRAM="$(basename $0)"
-IMAGE="quay.io/datawire/grpcurl"
+IMAGE="docker.io/datawire/grpcurl"
 VERSION="latest"
 
 # -it
