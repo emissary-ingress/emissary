@@ -13,12 +13,12 @@ import (
 )
 
 type invoker struct {
-	Snapshots        chan string
-	mux              sync.Mutex
-	invokedSnapshots map[int]string
-	id               int
-	notify           []string
-	apiServerPort    int
+	Snapshots          chan string
+	mux                sync.Mutex
+	invokedSnapshots   map[int]string
+	id                 int
+	notify             []string
+	apiServerAuthority string
 
 	// This stores the latest snapshot, but we don't assign an id
 	// unless/until we invoke... some of these will be discarded
@@ -27,12 +27,12 @@ type invoker struct {
 	process        *supervisor.Process
 }
 
-func NewInvoker(port int, notify []string) *invoker {
+func NewInvoker(addr string, notify []string) *invoker {
 	return &invoker{
-		Snapshots:        make(chan string),
-		invokedSnapshots: make(map[int]string),
-		notify:           notify,
-		apiServerPort:    port,
+		Snapshots:          make(chan string),
+		invokedSnapshots:   make(map[int]string),
+		notify:             notify,
+		apiServerAuthority: addr,
 	}
 }
 
@@ -159,7 +159,7 @@ func (a *invoker) getKeys() (result []int) {
 func (a *invoker) invoke() {
 	id := a.storeSnapshot(a.latestSnapshot)
 	for _, n := range a.notify {
-		k := tpu.NewKeeper("notify", fmt.Sprintf("%s http://localhost:%d/snapshots/%d", n, a.apiServerPort, id))
+		k := tpu.NewKeeper("notify", fmt.Sprintf("%s http://%s/snapshots/%d", n, a.apiServerAuthority, id))
 		k.Limit = 1
 		k.Start()
 		k.Wait()
@@ -167,8 +167,9 @@ func (a *invoker) invoke() {
 }
 
 type apiServer struct {
-	port    int
-	invoker *invoker
+	listenNetwork string
+	listenAddress string
+	invoker       *invoker
 }
 
 func (s *apiServer) Work(p *supervisor.Process) error {
@@ -201,16 +202,13 @@ func (s *apiServer) Work(p *supervisor.Process) error {
 		}
 	})
 
-	listenHostAndPort := fmt.Sprintf(":%d", s.port)
-	listener, err := net.Listen("tcp", listenHostAndPort)
+	listener, err := net.Listen(s.listenNetwork, s.listenAddress)
 	if err != nil {
 		return err
 	}
 	p.Ready()
-	p.Logf("snapshot server listening on: %s", listenHostAndPort)
-	srv := &http.Server{
-		Addr: listenHostAndPort,
-	}
+	p.Logf("snapshot server listening on: %s:%s", s.listenNetwork, s.listenAddress)
+	srv := &http.Server{}
 	return p.DoClean(func() error {
 		err := srv.Serve(listener)
 		if err == http.ErrServerClosed {

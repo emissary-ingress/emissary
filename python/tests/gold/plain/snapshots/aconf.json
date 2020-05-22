@@ -5,25 +5,25 @@
                 "error": "Ambassador could not find core CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...",
                 "hostname": "plain",
                 "ok": false,
-                "version": "1.4.2-10252-g36bf68775-dirty"
+                "version": "1.4.2-10396-gd59f69983-dirty"
             },
             {
                 "error": "Ambassador could not find Resolver type CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...",
                 "hostname": "plain",
                 "ok": false,
-                "version": "1.4.2-10252-g36bf68775-dirty"
+                "version": "1.4.2-10396-gd59f69983-dirty"
             },
             {
                 "error": "Ambassador could not find the Host CRD definition. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...",
                 "hostname": "plain",
                 "ok": false,
-                "version": "1.4.2-10252-g36bf68775-dirty"
+                "version": "1.4.2-10396-gd59f69983-dirty"
             },
             {
                 "error": "Ambassador could not find the LogService CRD definition. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...",
                 "hostname": "plain",
                 "ok": false,
-                "version": "1.4.2-10252-g36bf68775-dirty"
+                "version": "1.4.2-10396-gd59f69983-dirty"
             }
         ]
     },
@@ -3659,7 +3659,6 @@
             "kind": "Mapping",
             "location": "simpleingresswithannotations-grpc.plain-namespace.1",
             "metadata_labels": {
-                "ambassador_crd": "simpleingresswithannotations-grpc-0-0.plain-namespace",
                 "kat-ambassador-id": "plain",
                 "scope": "AmbassadorTest"
             },
@@ -3667,7 +3666,7 @@
             "namespace": "plain-namespace",
             "prefix": "/SimpleIngressWithAnnotations-GRPC-nested/",
             "rkey": "simpleingresswithannotations-grpc.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simpleingresswithannotations-grpc-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleIngressWithAnnotations-GRPC-nested\nprefix: /SimpleIngressWithAnnotations-GRPC-nested/\nservice: http://plain-simpleingresswithannotations-grpc-grpc.plain-namespace\n",
+            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleIngressWithAnnotations-GRPC-nested\nprefix: /SimpleIngressWithAnnotations-GRPC-nested/\nservice: http://plain-simpleingresswithannotations-grpc-grpc.plain-namespace\n",
             "service": "http://plain-simpleingresswithannotations-grpc-grpc.plain-namespace"
         },
         "simpleingresswithannotations-http-0-0.plain-namespace.1": {
@@ -3698,7 +3697,6 @@
             "kind": "Mapping",
             "location": "simpleingresswithannotations-http.plain-namespace.1",
             "metadata_labels": {
-                "ambassador_crd": "simpleingresswithannotations-http-0-0.plain-namespace",
                 "kat-ambassador-id": "plain",
                 "scope": "AmbassadorTest"
             },
@@ -3706,7 +3704,7 @@
             "namespace": "plain-namespace",
             "prefix": "/SimpleIngressWithAnnotations-HTTP-nested/",
             "rkey": "simpleingresswithannotations-http.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: simpleingresswithannotations-http-0-0.plain-namespace\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleIngressWithAnnotations-HTTP-nested\nprefix: /SimpleIngressWithAnnotations-HTTP-nested/\nservice: http://plain-simpleingresswithannotations-http-http.plain-namespace\n",
+            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleIngressWithAnnotations-HTTP-nested\nprefix: /SimpleIngressWithAnnotations-HTTP-nested/\nservice: http://plain-simpleingresswithannotations-http-http.plain-namespace\n",
             "service": "http://plain-simpleingresswithannotations-http-http.plain-namespace"
         },
         "simplemappingingress-grpc-0-0.plain-namespace.1": {
@@ -4489,7 +4487,6 @@
             "apiVersion": "getambassador.io/v1",
             "kind": "Mapping",
             "metadata_labels": {
-                "ambassador_crd": "simpleingresswithannotations-grpc-0-0.plain-namespace",
                 "kat-ambassador-id": "plain",
                 "scope": "AmbassadorTest"
             },
@@ -4503,7 +4500,6 @@
             "apiVersion": "getambassador.io/v1",
             "kind": "Mapping",
             "metadata_labels": {
-                "ambassador_crd": "simpleingresswithannotations-http-0-0.plain-namespace",
                 "kat-ambassador-id": "plain",
                 "scope": "AmbassadorTest"
             },
