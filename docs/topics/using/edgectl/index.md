@@ -31,7 +31,7 @@ To get started with Service Preview, you'll need to install Traffic Manager, con
 The Traffic Manager is the central point of communication between Traffic Agents in the cluster and Edge Control Daemons on developer workstations.
 
 
-1. Ensure that you have fully functional Ambassador Edge Stack installation with a valid license key installed in your cluster.
+1. Ensure that you have a fully functional Ambassador Edge Stack installation with a valid license key installed in your cluster.
 2. Save the manifest below into a file called `traffic-manager.yaml`.
 3. Apply the manifest to your cluster with `kubectl apply -f traffic-manager.yaml`.
 
@@ -237,7 +237,7 @@ subjects:
 
 #### Manual Traffic Agent Sidecar Configuration
 
-Next, you'll need to modify the YAML for each microservice to include the Traffic Agent. We'll start with a set of manifests for a simple microservice:
+You'll need to modify the YAML for each microservice to include the Traffic Agent. We'll start with a set of manifests for a simple microservice:
 
 ```yaml
 # This is hello.yaml
@@ -282,7 +282,7 @@ spec:
 
 In order to run the sidecar:
 - you need to include the Traffic Agent container in the microservice pod;
-- you need to switch the microservice's `Service` definition to point to the Traffic Agent's listening port. Using named ports such as `http` or `https` allow us to change the `Pod` definition without changing the `Service` definition; and
+- you need to switch the microservice's `Service` definition to point to the Traffic Agent's listening port (using named ports such as `http` or `https` allow us to change the `Pod` definition without changing the `Service` definition); and
 - you need to tell the Traffic Agent how to set up for the microservice, using environment variables.
 
 Here is a modified set of manifests that includes the Traffic Agent (with notes below):
