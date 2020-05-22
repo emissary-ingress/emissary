@@ -55,8 +55,40 @@ env: {}
 
 imagePullSecrets: []
 
-securityContext:
-  runAsUser: 8888
+security:
+  # Security Context for all containers in the pod.
+  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#podsecuritycontext-v1-core
+  podSecurityContext:
+    runAsUser: 8888
+  # Security Context for the Ambassador container specifically
+  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#securitycontext-v1-core
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+  # A basic PodSecurityPolicy to ensure Ambassador is running with appropriate security permissions
+  # https://kubernetes.io/docs/concepts/policy/pod-security-policy/
+  podSecurityPolicy:
+    # Add AppArmor and Seccomp annotations
+    # https://kubernetes.io/docs/concepts/policy/pod-security-policy/#apparmor
+    annotations:
+    spec:
+      seLinux:
+        rule: RunAsAny
+      supplementalGroups:
+        rule: 'MustRunAs'
+        ranges:
+          # Forbid adding the root group.
+          - min: 1
+            max: 65535
+      fsGroup:
+        rule: 'MustRunAs'
+        ranges:
+          # Forbid adding the root group.
+          - min: 1
+            max: 65535
+      privileged: false
+      allowPrivilegeEscalation: false
+      runAsUser:
+        rule: MustRunAsNonRoot
 
 image:
   repository: docker.io/datawire/aes
@@ -154,6 +186,8 @@ adminService:
 rbac:
   # Specifies whether RBAC resources should be created
   create: true
+  # List of Pod Security Policies to use on the container.
+  # If security.podSecurityPolicy is set, it will be appended to the list
   podSecurityPolicies: []
   # Name of the RBAC resources defaults to the name of the release.
   # Set nameOverride when installing Ambassador with cluster-wide scope in
@@ -233,6 +267,19 @@ crds:
   create: true
   keep: true
 
+# Prometheus Operator ServiceMonitor configuration
+# See documentation: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#servicemonitor
+metrics:
+  serviceMonitor:
+    enabled: false
+    # interval: 30s
+    # scrapeTimeout: 30s
+    # selector: {}
+
+################################################################################
+## Ambassador Edge Stack Configuration                                        ##
+################################################################################
+
 # The Ambassador Edge Stack is free for limited use without a license key.
 # Go to https://{ambassador-host}/edge_stack/admin/#dashboard to register
 # for a community license key.
@@ -308,6 +355,10 @@ authService:
 rateLimit:
   create: true
 
+################################################################################
+## DEPRECATED configuration objects                                           ##
+################################################################################
+
 # DEPRECATED: Ambassador now exposes the /metrics endpoint in Envoy.
 # DEPRECATED: See https://www.getambassador.io/user-guide/monitoring#deployment for more information on how to use the /metrics endpoint
 #
@@ -338,11 +389,6 @@ prometheusExporter:
   #     labels:
   #       cluster_name: "$1"
 
-# Prometheus Operator ServiceMonitor configuration
-# See documentation: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#servicemonitor
-metrics:
-  serviceMonitor:
-    enabled: false
-    # interval: 30s
-    # scrapeTimeout: 30s
-    # selector: {}
+# DEPRECATED: Use security.podSecurityContext
+# securityContext:
+#   runAsUser: 8888 
