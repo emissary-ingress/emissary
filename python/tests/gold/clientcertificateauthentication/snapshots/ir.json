@@ -217,6 +217,7 @@
                     "precedence": 0,
                     "prefix": "/ClientCertificateAuthentication/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/",
                     "route_weight": [
@@ -242,6 +243,7 @@
             "precedence": 0,
             "prefix": "/ClientCertificateAuthentication/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/",
             "serialization": "ambassador_id: clientcertificateauthentication\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: clientcertificateauthentication\n  scope: AmbassadorTest\nname: clientcertificateauthentication-http\nnamespace: default\nprefix: /ClientCertificateAuthentication/\nservice: clientcertificateauthentication-http\n"
         },
@@ -319,6 +321,7 @@
                     "precedence": 0,
                     "prefix": "/ambassador/v0/check_ready",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/ambassador/v0/check_ready",
                     "route_weight": [
@@ -339,6 +342,7 @@
             "precedence": 0,
             "prefix": "/ambassador/v0/check_ready",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/ambassador/v0/check_ready",
             "timeout_ms": 10000
         },
@@ -416,6 +420,7 @@
                     "precedence": 0,
                     "prefix": "/ambassador/v0/check_alive",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/ambassador/v0/check_alive",
                     "route_weight": [
@@ -436,6 +441,7 @@
             "precedence": 0,
             "prefix": "/ambassador/v0/check_alive",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/ambassador/v0/check_alive",
             "timeout_ms": 10000
         },
@@ -513,6 +519,7 @@
                     "precedence": 0,
                     "prefix": "/ambassador/v0/",
                     "query_parameters": [],
+                    "regex_rewrite": {},
                     "resolver": "kubernetes-service",
                     "rewrite": "/ambassador/v0/",
                     "route_weight": [
@@ -533,6 +540,7 @@
             "precedence": 0,
             "prefix": "/ambassador/v0/",
             "query_parameters": [],
+            "regex_rewrite": {},
             "rewrite": "/ambassador/v0/",
             "timeout_ms": 10000
         }
