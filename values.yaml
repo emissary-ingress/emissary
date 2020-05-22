@@ -352,17 +352,25 @@ metrics:
 servicePreview:
   enabled: false
   trafficManager:
+    image:
+      # Leave blank to use image.repository and image.tag
+      repository:
+      tag:
     serviceAccountName: "traffic-manager"
   trafficAgent:
+    image:
+      # Leave blank to use image.repository and image.tag
+      repository:
+      tag:
     serviceAccountName: "traffic-agent"
     port: 9900
 
-# Configure the ambassador-injector webhook for Service Preview Traffic Agent automatic sidecar injection.
-injector:
-  enabled: true
+    # Configure the ambassador-injector webhook for Service Preview Traffic Agent automatic sidecar injection.
+    injector:
+      enabled: true
 
-  # If no injector.crtPEM and injector.keyPEM are provided, a self-signed certificate will be issued
-  # for the Common Name (CN) of `<ambassador-injector>.<namespace>.svc`, which is the cluster-internal DNS name
-  # for the service.
-  crtPEM: ""
-  keyPEM: ""
+      # If no injector.crtPEM and injector.keyPEM are provided, a self-signed certificate will be issued
+      # for the Common Name (CN) of `<ambassador-injector>.<namespace>.svc`, which is the cluster-internal DNS name
+      # for the service.
+      crtPEM: ""
+      keyPEM: ""

@@ -1,4 +1,4 @@
-{{- if and .Values.enableAES .Values.servicePreview.enabled .Values.injector.enabled }}
+{{- if and .Values.enableAES .Values.servicePreview.enabled .Values.servicePreview.trafficAgent.injector.enabled }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -38,14 +38,14 @@ spec:
     spec:
       containers:
       - name: webhook
-        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        image: "{{ .Values.servicePreview.trafficAgent.image.repository | default .Values.image.repository }}:{{ .Values.servicePreview.trafficAgent.image.tag | default .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: [ "aes-injector" ]
         env:
         - name: AGENT_MANAGER_NAMESPACE
           value: "{{ .Release.Namespace }}"
         - name: TRAFFIC_AGENT_IMAGE
-          value: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          value: "{{ .Values.servicePreview.trafficAgent.image.repository | default .Values.image.repository }}:{{ .Values.servicePreview.trafficAgent.image.tag | default .Values.image.tag }}"
         - name: TRAFFIC_AGENT_AGENT_LISTEN_PORT
           value: "{{ .Values.servicePreview.trafficAgent.port }}"
         {{- if .Values.scope.singleNamespace }}
@@ -113,8 +113,8 @@ metadata:
 type: Opaque
 data:
   {{ $ca := genCA (printf "%s-injector.%s.svc" (include "ambassador.fullname" .) (.Release.Namespace)) 365 -}}
-  crt.pem: {{ ternary (b64enc $ca.Cert) (b64enc (trim .Values.injector.crtPEM)) (empty .Values.injector.crtPEM) }}
-  key.pem: {{ ternary (b64enc $ca.Key) (b64enc (trim .Values.injector.keyPEM)) (empty .Values.injector.keyPEM) }}
+  crt.pem: {{ ternary (b64enc $ca.Cert) (b64enc (trim .Values.servicePreview.trafficAgent.injector.crtPEM)) (empty .Values.servicePreview.trafficAgent.injector.crtPEM) }}
+  key.pem: {{ ternary (b64enc $ca.Key) (b64enc (trim .Values.servicePreview.trafficAgent.injector.keyPEM)) (empty .Values.servicePreview.trafficAgent.injector.keyPEM) }}
 ---
 apiVersion: admissionregistration.k8s.io/v1beta1
 kind: MutatingWebhookConfiguration
@@ -138,7 +138,7 @@ webhooks:
       name: {{ include "ambassador.fullname" . }}-injector
       namespace: {{ .Release.Namespace }}
       path: "/traffic-agent"
-    caBundle: {{ ternary (b64enc $ca.Cert) (b64enc (trim .Values.injector.crtPEM)) (empty .Values.injector.crtPEM) }}
+    caBundle: {{ ternary (b64enc $ca.Cert) (b64enc (trim .Values.servicePreview.trafficAgent.injector.crtPEM)) (empty .Values.servicePreview.trafficAgent.injector.crtPEM) }}
   failurePolicy: Ignore
   rules:
   - operations: ["CREATE"]
