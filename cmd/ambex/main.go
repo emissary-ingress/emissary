@@ -82,9 +82,13 @@ const (
 )
 
 var (
-	debug   bool
-	adsPort uint
-	watch   bool
+	debug bool
+	watch bool
+
+	adsNetwork string
+	adsAddress string
+
+	legacyAdsPort uint
 
 	// Version is inserted at build using --ldflags -X
 	Version = "-no-version-"
@@ -92,8 +96,13 @@ var (
 
 func init() {
 	flag.BoolVar(&debug, "debug", false, "Use debug logging")
-	flag.UintVar(&adsPort, "ads", 18000, "ADS port")
 	flag.BoolVar(&watch, "watch", false, "Watch for file changes")
+
+	// TODO(lukeshu): Consider changing the default here so we don't need to put it in entrypoint.sh
+	flag.StringVar(&adsNetwork, "ads-listen-network", "tcp", "network for ADS to listen on")
+	flag.StringVar(&adsAddress, "ads-listen-address", ":18000", "address (on --ads-listen-network) for ADS to listen on")
+
+	flag.UintVar(&legacyAdsPort, "ads", 0, "port number for ADS to listen on--deprecated, use --ads-listen-address=:1234 instead")
 }
 
 // Hasher returns node ID as an ID
@@ -121,10 +130,10 @@ var log = &logger{
 
 // run stuff
 // RunManagementServer starts an xDS server at the given port.
-func runManagementServer(ctx context.Context, server server.Server, port uint) {
+func runManagementServer(ctx context.Context, server server.Server, adsNetwork, adsAddress string) {
 	grpcServer := grpc.NewServer()
 
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	lis, err := net.Listen(adsNetwork, adsAddress)
 	if err != nil {
 		log.WithError(err).Fatal("failed to listen")
 	}
@@ -136,7 +145,7 @@ func runManagementServer(ctx context.Context, server server.Server, port uint) {
 	v2.RegisterRouteDiscoveryServiceServer(grpcServer, server)
 	v2.RegisterListenerDiscoveryServiceServer(grpcServer, server)
 
-	log.WithFields(logrus.Fields{"port": port}).Info("Listening")
+	log.WithFields(logrus.Fields{"addr": adsNetwork + ":" + adsAddress}).Info("Listening")
 	go func() {
 		go func() {
 			err := grpcServer.Serve(lis)
@@ -354,6 +363,9 @@ func (l logger) OnFetchResponse(req *v2.DiscoveryRequest, res *v2.DiscoveryRespo
 
 func Main() {
 	flag.Parse()
+	if legacyAdsPort != 0 {
+		adsAddress = fmt.Sprintf(":%v", legacyAdsPort)
+	}
 
 	if debug {
 		log.SetLevel(logrus.DebugLevel)
@@ -390,7 +402,7 @@ func Main() {
 	config := cache.NewSnapshotCache(true, Hasher{}, log)
 	srv := server.NewServer(ctx, config, log)
 
-	runManagementServer(ctx, srv, adsPort)
+	runManagementServer(ctx, srv, adsNetwork, adsAddress)
 
 	pid := os.Getpid()
 	file := "ambex.pid"

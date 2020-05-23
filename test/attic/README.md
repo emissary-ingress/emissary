@@ -28,7 +28,7 @@ It will download `kubernaut` if necessary, allocate a `kubernaut` cluster, then 
   This is particularly useful when you have only made changes to the end-to-end tests
 
   ```
-  make AMBASSADOR_DOCKER_IMAGE=quay.io/datawire/ambassador:0.37.0 e2e
+  make AMBASSADOR_DOCKER_IMAGE=docker.io/datawire/ambassador:0.37.0 e2e
   ```
 
 - Clean up test artifacts (among other generated junk)

@@ -2,7 +2,7 @@ version: '3.5'
 
 services:
   ambassador:
-    image: quay.io/datawire/ambassador:0.73.0
+    image: docker.io/datawire/ambassador:0.73.0
     ports:
     # expose port 80 via 8080 on the host machine
     - 7080:80
