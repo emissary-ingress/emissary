@@ -58,7 +58,7 @@ spec:
       serviceAccountName: ambassador
       containers:
       - name: ambassador
-        image: quay.io/datawire/ambassador:$version$
+        image: docker.io/datawire/ambassador:$version$
         resources:
           limits:
             cpu: 1

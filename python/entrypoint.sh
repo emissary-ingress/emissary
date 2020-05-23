@@ -309,7 +309,8 @@ fi
 # WORKER: AMBEX                                                                #
 ################################################################################
 if [[ -z "${DIAGD_ONLY}" ]]; then
-    launch "ambex" ambex -ads 8003 "${ENVOY_DIR}"
+    # Keep the listen address in-sync with v2bootstrap.py
+    launch "ambex" ambex --ads-listen-address=127.0.0.1:8003 "${ENVOY_DIR}"
 
     diagd_flags+=('--kick' "kill -HUP $$")
 else
@@ -425,7 +426,7 @@ if [[ -z "${AMBASSADOR_NO_KUBEWATCH}" ]]; then
     fi
 
     launch "watt" watt \
-           --port 8002 \
+           --listen-address="127.0.0.1:8002" \
            --notify 'python /ambassador/post_update.py --watt ' \
            --watch "python /ambassador/watch_hook.py" \
            "${watt_query_flags[@]}"

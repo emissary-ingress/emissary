@@ -17,6 +17,17 @@
 set -o errexit
 set -o nounset
 
+registryname () {
+    fqregistry="$1"
+    registry=$(dirname "$fqregistry")
+
+    if [ "$registry" == "." ]; then
+        registry="$fqregistry"
+    fi
+
+    echo "$registry"
+}
+
 printf "== Begin: travis-script.sh ==\n"
 
 echo "Environment:"
@@ -82,7 +93,7 @@ case "$COMMIT_TYPE" in
         : # We just re-tag the RC image as GA; nothing to build
         ;;
     *)
-        docker login -u="$DOCKER_BUILD_USERNAME" --password-stdin "${DEV_REGISTRY}" <<<"$DOCKER_BUILD_PASSWORD"
+        docker login -u="$DOCKER_BUILD_USERNAME" --password-stdin "$(registryname ${DEV_REGISTRY})" <<<"$DOCKER_BUILD_PASSWORD"
 
         make test
         ;;
@@ -93,19 +104,19 @@ printf "========\nPublishing artifacts...\n"
 case "$COMMIT_TYPE" in
     GA)
         if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
-            docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${RELEASE_REGISTRY}" <<<"$DOCKER_RELEASE_PASSWORD"
+            docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "$(registryname ${RELEASE_REGISTRY})" <<<"$DOCKER_RELEASE_PASSWORD"
         fi
         make release/promote-oss/to-ga
         ;;
     RC)
         if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
-            docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${RELEASE_REGISTRY}" <<<"$DOCKER_RELEASE_PASSWORD"
+            docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "$(registryname ${RELEASE_REGISTRY})" <<<"$DOCKER_RELEASE_PASSWORD"
         fi
         make release/bits
         ;;
     EA)
         if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
-            docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${RELEASE_REGISTRY}" <<<"$DOCKER_RELEASE_PASSWORD"
+            docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "$(registryname ${RELEASE_REGISTRY})" <<<"$DOCKER_RELEASE_PASSWORD"
         fi
         make release/bits
         ;;
