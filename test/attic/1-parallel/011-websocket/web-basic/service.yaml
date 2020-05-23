@@ -3,10 +3,10 @@ name: web-basic
 
 profiles:
   sandbox0:
-    dockerImage: quay.io/datawire/conntest:latest
+    dockerImage: docker.io/datawire/conntest:latest
     namespace: ambassador-sbx0
     replicas: 3
   sandbox1:
-    dockerImage: quay.io/datawire/conntest:latest
+    dockerImage: docker.io/datawire/conntest:latest
     namespace: ambassador-sbx0
     replicas: 3

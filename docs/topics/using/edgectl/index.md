@@ -103,7 +103,7 @@ spec:
     spec:
       containers:
       - name: telepresence-proxy
-        image: quay.io/datawire/aes:$version$
+        image: docker.io/datawire/aes:$version$
         command: [ "traffic-manager" ]
         ports:
           - name: sshd
@@ -326,7 +326,7 @@ spec:
           ports:
             - containerPort: 8000   # Application port
         - name: traffic-agent       # Traffic Agent container (note 3)
-          image: quay.io/datawire/aes:$version$ # (note 4)
+          image: docker.io/datawire/aes:$version$ # (note 4)
           ports:
             - name: http
               containerPort: 9900   # Traffic Agent listen port
