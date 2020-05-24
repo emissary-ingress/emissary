@@ -71,7 +71,7 @@ RUN apk --no-cache add \
 RUN pip3 install -U pip
 RUN npm config set user 0 && \
     npm config set unsafe-perm true && \
-    npm install -g rollup rollup-plugin-terser
+    npm install -g rollup@2.9.1 rollup-plugin-terser@5.3.0
 RUN curl --fail -L https://dl.google.com/go/go1.13.linux-amd64.tar.gz | tar -C /usr/local -xzf -
 RUN curl https://sdk.cloud.google.com > /tmp/install.sh && \
     mkdir /usr/lib64/ && \
