@@ -18,6 +18,10 @@ set -o errexit
 
 source_dir=$(pwd)
 
+if [ \( $(basename $source_dir) != "ambassador" \) -a \( -d "$source_dir/ambassador/docs" \) ]; then
+    source_dir="$source_dir/ambassador"
+fi
+
 cd $(dirname $0)
 root_dir=$(pwd)
 

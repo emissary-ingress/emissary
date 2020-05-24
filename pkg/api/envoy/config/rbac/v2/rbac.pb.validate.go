@@ -326,6 +326,23 @@ func (m *Permission) Validate() error {
 			}
 		}
 
+	case *Permission_UrlPath:
+
+		{
+			tmp := m.GetUrlPath()
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return PermissionValidationError{
+						field:  "UrlPath",
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
 	case *Permission_DestinationIp:
 
 		{
@@ -554,6 +571,40 @@ func (m *Principal) Validate() error {
 			}
 		}
 
+	case *Principal_DirectRemoteIp:
+
+		{
+			tmp := m.GetDirectRemoteIp()
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return PrincipalValidationError{
+						field:  "DirectRemoteIp",
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
+	case *Principal_RemoteIp:
+
+		{
+			tmp := m.GetRemoteIp()
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return PrincipalValidationError{
+						field:  "RemoteIp",
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
 	case *Principal_Header:
 
 		{
@@ -564,6 +615,23 @@ func (m *Principal) Validate() error {
 				if err := v.Validate(); err != nil {
 					return PrincipalValidationError{
 						field:  "Header",
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
+	case *Principal_UrlPath:
+
+		{
+			tmp := m.GetUrlPath()
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return PrincipalValidationError{
+						field:  "UrlPath",
 						reason: "embedded message failed validation",
 						cause:  err,
 					}

@@ -417,17 +417,17 @@ How do I test my documentation work?
 After you've made some documentation changes, run 
 
 ```
-bash scripts/doc-setup
+bash ambassador/scripts/doc-setup
 ```
 
 to do all the Javascript work needed to get a local documentation server
 running. You can point a web browser to `http://localhost:8000` to view docs
 with your changes.
 
-After running `scripts/doc-setup`, if you need to make further changes, run
+After running `ambassador/scripts/doc-setup`, if you need to make further changes, run
 
 ```
-bash scripts/doc-sync
+bash ambassador/scripts/doc-sync
 ```
 
 to push your changes to the local webserver. They should appear immediately
@@ -438,11 +438,27 @@ How do I share a preview of my documentation work with others?
 
 *This will currently only work within Datawire.*
 
-After running `scripts/doc-setup`, run
+After running `ambassador/scripts/doc-setup`, run
 
 ```
-bash scripts/doc-preview
+bash ambassador/scripts/doc-publish
 ```
 
-to push a preview to Netlify. Find the Netlify preview URL in the output
-and hand it off to others.
+to push a preview to the `getambassador-preview` Netlify site.
+Find the Netlify preview URL in the output and hand it off to others.
+
+How do I update the getambassador-preview site with my documentation for others to use?
+---------------------------------------------------------------------------------------
+
+*This will currently only work within Datawire.*
+
+After running `ambassador/scripts/doc-setup`, run
+
+```
+bash ambassador/scripts/doc-publish --prod
+```
+
+to update the live `getambassador-preview` Netlify site.
+
+
+

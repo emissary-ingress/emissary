@@ -116,6 +116,7 @@
         },
         "resolver": { "type": "string" },
         "rewrite": { "type": "string" },
+        "regex_rewrite": { "$ref": "#/definitions/mapStrStr" },
         "shadow": { "type": "boolean" },
         "connect_timeout_ms": { "type": "integer" },
         "cluster_idle_timeout_ms": { "type": "integer" },

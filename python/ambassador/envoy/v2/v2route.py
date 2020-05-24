@@ -25,8 +25,10 @@ if TYPE_CHECKING:
     from . import V2Config
 
 
-def regex_matcher(config: 'V2Config', regex: str, key="regex", safe_key=None) -> Dict[str, Any]:
-        re_type = config.ir.ambassador_module.get('regex_type', 'safe').lower()
+def regex_matcher(config: 'V2Config', regex: str, key="regex", safe_key=None, re_type=None) -> Dict[str, Any]:
+        # If re_type is specified explicitly, do not query its value from config
+        if re_type is None:
+            re_type = config.ir.ambassador_module.get('regex_type', 'safe').lower()
 
         config.ir.logger.info(f"re_type {re_type}")
 
@@ -173,7 +175,10 @@ class V2Route(dict):
         if idle_timeout_ms is not None:
             route['idle_timeout'] = "%0.3fs" % (idle_timeout_ms / 1000.0)
 
-        if mapping.get('rewrite', None):
+        regex_rewrite = self.generate_regex_rewrite(config, group)
+        if len(regex_rewrite) > 0:
+            route['regex_rewrite'] =  regex_rewrite
+        elif mapping.get('rewrite', None):
             route['prefix_rewrite'] = mapping['rewrite']
 
         if 'host_rewrite' in mapping:
@@ -382,3 +387,16 @@ class V2Route(dict):
                         'append': append  # Default append True, for backward compatability
                     })
         return headers
+
+    @staticmethod
+    def generate_regex_rewrite(config: 'V2Config', mapping_group: IRHTTPMappingGroup) -> dict:
+        regex_rewrite = {}
+        group_regex_rewrite = mapping_group.get('regex_rewrite', None)
+        if group_regex_rewrite is not None:
+            pattern = group_regex_rewrite.get('pattern', None)            
+            if (pattern is not None):
+                regex_rewrite.update(regex_matcher(config, pattern, key='regex',safe_key='pattern', re_type='safe')) # regex_rewrite should never ever be unsafe
+        substitution = group_regex_rewrite.get('substitution', None)
+        if (substitution is not None):
+            regex_rewrite["substitution"] = substitution
+        return regex_rewrite

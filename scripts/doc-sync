@@ -30,6 +30,11 @@ set -o nounset
 set -o xtrace
 
 source_dir=$(pwd)
+
+if [ \( $(basename $source_dir) != "ambassador" \) -a \( -d "$source_dir/ambassador/docs" \) ]; then
+    source_dir="$source_dir/ambassador"
+fi
+
 cd "$WEBSITE_DIR"
 
 # In the Real World, we use git submodule to update all the docs, but for our purposes here, we're

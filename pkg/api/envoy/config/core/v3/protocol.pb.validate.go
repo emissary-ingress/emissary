@@ -113,6 +113,8 @@ func (m *UpstreamHttpProtocolOptions) Validate() error {
 
 	// no validation rules for AutoSni
 
+	// no validation rules for AutoSanValidation
+
 	return nil
 }
 
@@ -221,6 +223,23 @@ func (m *HttpProtocolOptions) Validate() error {
 		}
 
 	}
+
+	{
+		tmp := m.GetMaxStreamDuration()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return HttpProtocolOptionsValidationError{
+					field:  "MaxStreamDuration",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
+	// no validation rules for HeadersWithUnderscoresAction
 
 	return nil
 }
@@ -508,6 +527,26 @@ func (m *Http2ProtocolOptions) Validate() error {
 	}
 
 	// no validation rules for StreamErrorOnInvalidHttpMessaging
+
+	for idx, item := range m.GetCustomSettingsParameters() {
+		_, _ = idx, item
+
+		{
+			tmp := item
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return Http2ProtocolOptionsValidationError{
+						field:  fmt.Sprintf("CustomSettingsParameters[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
+	}
 
 	return nil
 }
@@ -820,3 +859,109 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = Http1ProtocolOptions_HeaderKeyFormat_ProperCaseWordsValidationError{}
+
+// Validate checks the field values on Http2ProtocolOptions_SettingsParameter
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, an error is returned.
+func (m *Http2ProtocolOptions_SettingsParameter) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if wrapper := m.GetIdentifier(); wrapper != nil {
+
+		if val := wrapper.GetValue(); val < 1 || val > 65536 {
+			return Http2ProtocolOptions_SettingsParameterValidationError{
+				field:  "Identifier",
+				reason: "value must be inside range [1, 65536]",
+			}
+		}
+
+	} else {
+		return Http2ProtocolOptions_SettingsParameterValidationError{
+			field:  "Identifier",
+			reason: "value is required and must not be nil.",
+		}
+	}
+
+	if m.GetValue() == nil {
+		return Http2ProtocolOptions_SettingsParameterValidationError{
+			field:  "Value",
+			reason: "value is required",
+		}
+	}
+
+	{
+		tmp := m.GetValue()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return Http2ProtocolOptions_SettingsParameterValidationError{
+					field:  "Value",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+// Http2ProtocolOptions_SettingsParameterValidationError is the validation
+// error returned by Http2ProtocolOptions_SettingsParameter.Validate if the
+// designated constraints aren't met.
+type Http2ProtocolOptions_SettingsParameterValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e Http2ProtocolOptions_SettingsParameterValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e Http2ProtocolOptions_SettingsParameterValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e Http2ProtocolOptions_SettingsParameterValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e Http2ProtocolOptions_SettingsParameterValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e Http2ProtocolOptions_SettingsParameterValidationError) ErrorName() string {
+	return "Http2ProtocolOptions_SettingsParameterValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e Http2ProtocolOptions_SettingsParameterValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sHttp2ProtocolOptions_SettingsParameter.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = Http2ProtocolOptions_SettingsParameterValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = Http2ProtocolOptions_SettingsParameterValidationError{}

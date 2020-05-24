@@ -137,6 +137,18 @@ func (m *LightstepConfig) Validate() error {
 		}
 	}
 
+	for idx, item := range m.GetPropagationModes() {
+		_, _ = idx, item
+
+		if _, ok := LightstepConfig_PropagationMode_name[int32(item)]; !ok {
+			return LightstepConfigValidationError{
+				field:  fmt.Sprintf("PropagationModes[%v]", idx),
+				reason: "value must be one of the defined enum values",
+			}
+		}
+
+	}
+
 	return nil
 }
 
@@ -489,6 +501,21 @@ func (m *OpenCensusConfig) Validate() error {
 
 	// no validation rules for StackdriverAddress
 
+	{
+		tmp := m.GetStackdriverGrpcService()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return OpenCensusConfigValidationError{
+					field:  "StackdriverGrpcService",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
 	// no validation rules for ZipkinExporterEnabled
 
 	// no validation rules for ZipkinUrl
@@ -496,6 +523,21 @@ func (m *OpenCensusConfig) Validate() error {
 	// no validation rules for OcagentExporterEnabled
 
 	// no validation rules for OcagentAddress
+
+	{
+		tmp := m.GetOcagentGrpcService()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return OpenCensusConfigValidationError{
+					field:  "OcagentGrpcService",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
 
 	return nil
 }

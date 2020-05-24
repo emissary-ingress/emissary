@@ -31,6 +31,7 @@ config:
         test_resource:
             max_request_words: 3
             altered: 4
+            funk: 8
 ---
 apiVersion: getambassador.io/v1
 kind: Mapping
@@ -81,11 +82,18 @@ def test_lookup():
 
     assert t1.lookup('max_request_words', default_class='test_resource') == 3
     assert t1.lookup('max_request_words', 77, default_class='test_resource') == 3
-    assert t1.lookup('max_request_words', 77, default_class='test_resource2') == 77
+    assert t1.lookup('max_request_words', 77, default_class='test_resource2') == 1
     assert t1.lookup('max_request_words', default_key='altered', default_class='test_resource') == 4
     assert t1.lookup('max_request_words', 77, default_key='altered', default_class='test_resource') == 4
     assert t1.lookup('max_request_words', default_key='altered2', default_class='test_resource') == None
     assert t1.lookup('max_request_words', 77, default_key='altered2', default_class='test_resource') == 77
+
+    assert t1.lookup('funk') == None
+    assert t1.lookup('funk', 77) == 77
+
+    assert t1.lookup('funk', default_class='test_resource') == 8
+    assert t1.lookup('funk', 77, default_class='test_resource') == 8
+    assert t1.lookup('funk', 77, default_class='test_resource2') == 77
 
     assert t2.lookup('max_request_bytes') == 8192
     assert t2.lookup('max_request_bytes', 57) == 8192
@@ -100,11 +108,18 @@ def test_lookup():
 
     assert t2.lookup('max_request_words', default_class='/') == 1
     assert t2.lookup('max_request_words', 77, default_class='/') == 1
-    assert t2.lookup('max_request_words', 77, default_class='/2') == 77
+    assert t2.lookup('max_request_words', 77, default_class='/2') == 1
     assert t2.lookup('max_request_words', default_key='altered', default_class='/') == 2
     assert t2.lookup('max_request_words', 77, default_key='altered', default_class='/') == 2
     assert t2.lookup('max_request_words', default_key='altered2', default_class='/') == None
     assert t2.lookup('max_request_words', 77, default_key='altered2', default_class='/') == 77
+
+    assert t2.lookup('funk') == 8
+    assert t2.lookup('funk', 77) == 8
+
+    assert t2.lookup('funk', default_class='test_resource') == 8
+    assert t2.lookup('funk', 77, default_class='test_resource') == 8
+    assert t2.lookup('funk', 77, default_class='test_resource2') == 77
 
 if __name__ == '__main__':
     pytest.main(sys.argv)

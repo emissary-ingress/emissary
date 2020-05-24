@@ -67,7 +67,17 @@ export DOCKER_ERR=$(RED)ERROR: cannot find docker, please make sure docker is in
 DOCKER_NETWORK ?= $(BUILDER_NAME)
 
 # local host IP address (and not 127.0.0.1)
-HOST_IP := $(shell ip -o route get to 8.8.8.8 | sed -n 's/.*src \([0-9.]\+\).*/\1/p' | cut -d' ' -f1)
+ifneq ($(shell which ipconfig 2>/dev/null),)
+  # macOS
+  HOST_IP := $(shell ipconfig getifaddr $$(route get 1.1.1.1 | awk '/interface:/ {print $$2}'))
+else ifneq ($(shell which ip 2>/dev/null),)
+  # modern (iproute2) GNU/Linux
+  #HOST_IP := $(shell ip --json route get to 1.1.1.1 | jq -r '.[0].prefsrc')
+  HOST_IP := $(shell ip route get to 1.1.1.1 | sed -n '1s/.*src \([0-9.]\+\).*/\1/p')
+else
+  $(error I do not know how to get the host IP on this system; it has neither 'ipconfig' (macOS) nor 'ip' (modern GNU/Linux))
+  # ...and I (lukeshu) couldn't figure out a good way to do it on old (net-tools) GNU/Linux.
+endif
 
 preflight:
 ifeq ($(strip $(shell $(BUILDER))),)
@@ -235,7 +245,7 @@ ingresstest:
 
 	@printf "$(CYN)==> $(GRN)Loading Ambassador (from the Ingress conformance tests) with image=$(AMB_IMAGE)$(END)\n"
 	@for f in $(INGRESS_TEST_MANIFS) ; do \
-  		printf "$(CYN)==> $(GRN)... $$f $(END)\n" ; \
+		printf "$(CYN)==> $(GRN)... $$f $(END)\n" ; \
 		cat $(INGRESS_TEST_MANIF_DIR)/$$f | sed -e "s|image:.*ambassador\:.*|image: $(AMB_IMAGE)|g" | tee /dev/tty | kubectl apply -f - ; \
 	done
 

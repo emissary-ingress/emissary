@@ -15,13 +15,14 @@ spec:
     plural: authservices
     singular: authservice
   scope: Namespaced
+  version: null
   versions:
-  - name: v1
-    served: true
-    storage: false
   - name: v2
     served: true
     storage: true
+  - name: v1
+    served: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -38,13 +39,14 @@ spec:
     plural: consulresolvers
     singular: consulresolver
   scope: Namespaced
+  version: null
   versions:
-  - name: v1
-    served: true
-    storage: false
   - name: v2
     served: true
     storage: true
+  - name: v1
+    served: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -79,6 +81,7 @@ spec:
   scope: Namespaced
   subresources:
     status: {}
+  version: null
   versions:
   - name: v2
     served: true
@@ -99,13 +102,14 @@ spec:
     plural: kubernetesendpointresolvers
     singular: kubernetesendpointresolver
   scope: Namespaced
+  version: null
   versions:
-  - name: v1
-    served: true
-    storage: false
   - name: v2
     served: true
     storage: true
+  - name: v1
+    served: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -122,13 +126,14 @@ spec:
     plural: kubernetesserviceresolvers
     singular: kubernetesserviceresolver
   scope: Namespaced
+  version: null
   versions:
-  - name: v1
-    served: true
-    storage: false
   - name: v2
     served: true
     storage: true
+  - name: v1
+    served: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -145,13 +150,14 @@ spec:
     plural: logservices
     singular: logservice
   scope: Namespaced
+  version: null
   versions:
-  - name: v1
-    served: true
-    storage: false
   - name: v2
     served: true
     storage: true
+  - name: v1
+    served: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -183,13 +189,14 @@ spec:
   scope: Namespaced
   subresources:
     status: {}
+  version: null
   versions:
-  - name: v1
-    served: true
-    storage: false
   - name: v2
     served: true
     storage: true
+  - name: v1
+    served: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -206,13 +213,14 @@ spec:
     plural: modules
     singular: module
   scope: Namespaced
+  version: null
   versions:
-  - name: v1
-    served: true
-    storage: false
   - name: v2
     served: true
     storage: true
+  - name: v1
+    served: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -229,13 +237,14 @@ spec:
     plural: ratelimitservices
     singular: ratelimitservice
   scope: Namespaced
+  version: null
   versions:
-  - name: v1
-    served: true
-    storage: false
   - name: v2
     served: true
     storage: true
+  - name: v1
+    served: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -252,13 +261,14 @@ spec:
     plural: tcpmappings
     singular: tcpmapping
   scope: Namespaced
+  version: null
   versions:
-  - name: v1
-    served: true
-    storage: false
   - name: v2
     served: true
     storage: true
+  - name: v1
+    served: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -275,13 +285,14 @@ spec:
     plural: tlscontexts
     singular: tlscontext
   scope: Namespaced
+  version: null
   versions:
-  - name: v1
-    served: true
-    storage: false
   - name: v2
     served: true
     storage: true
+  - name: v1
+    served: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -298,13 +309,14 @@ spec:
     plural: tracingservices
     singular: tracingservice
   scope: Namespaced
+  version: null
   versions:
-  - name: v1
-    served: true
-    storage: false
   - name: v2
     served: true
     storage: true
+  - name: v1
+    served: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -323,16 +335,17 @@ spec:
     - fp
     singular: filterpolicy
   scope: Namespaced
+  version: null
   versions:
-  - name: v1beta1
-    served: true
-    storage: false
-  - name: v1beta2
-    served: true
-    storage: false
   - name: v2
     served: true
     storage: true
+  - name: v1beta2
+    served: true
+    storage: false
+  - name: v1beta1
+    served: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -351,16 +364,17 @@ spec:
     - fil
     singular: filter
   scope: Namespaced
+  version: null
   versions:
-  - name: v1beta1
-    served: true
-    storage: false
-  - name: v1beta2
-    served: true
-    storage: false
   - name: v2
     served: true
     storage: true
+  - name: v1beta2
+    served: true
+    storage: false
+  - name: v1beta1
+    served: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -379,14 +393,15 @@ spec:
     - rl
     singular: ratelimit
   scope: Namespaced
+  version: null
   versions:
-  - name: v1beta1
-    served: true
-    storage: false
-  - name: v1beta2
-    served: true
-    storage: false
   - name: v2
     served: true
     storage: true
+  - name: v1beta2
+    served: true
+    storage: false
+  - name: v1beta1
+    served: true
+    storage: false
 

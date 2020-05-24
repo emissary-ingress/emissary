@@ -44,6 +44,8 @@ func (m *StringMatcher) Validate() error {
 		return nil
 	}
 
+	// no validation rules for IgnoreCase
+
 	switch m.MatchPattern.(type) {
 
 	case *StringMatcher_Exact:

@@ -58,7 +58,12 @@ func (m *XRayConfig) Validate() error {
 		}
 	}
 
-	// no validation rules for SegmentName
+	if utf8.RuneCountInString(m.GetSegmentName()) < 1 {
+		return XRayConfigValidationError{
+			field:  "SegmentName",
+			reason: "value length must be at least 1 runes",
+		}
+	}
 
 	{
 		tmp := m.GetSamplingRuleManifest()

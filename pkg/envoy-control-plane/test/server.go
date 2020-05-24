@@ -1,17 +1,3 @@
-// Copyright 2018 Envoyproxy Authors
-//
-//   Licensed under the Apache License, Version 2.0 (the "License");
-//   you may not use this file except in compliance with the License.
-//   You may obtain a copy of the License at
-//
-//       http://www.apache.org/licenses/LICENSE-2.0
-//
-//   Unless required by applicable law or agreed to in writing, software
-//   distributed under the License is distributed on an "AS IS" BASIS,
-//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//   See the License for the specific language governing permissions and
-//   limitations under the License.
-
 // Package test contains test utilities
 package test
 
@@ -22,49 +8,45 @@ import (
 	"net"
 	"net/http"
 
+	serverv2 "github.com/datawire/ambassador/pkg/envoy-control-plane/server/v2"
+	serverv3 "github.com/datawire/ambassador/pkg/envoy-control-plane/server/v3"
+	testv2 "github.com/datawire/ambassador/pkg/envoy-control-plane/test/v2"
+	testv3 "github.com/datawire/ambassador/pkg/envoy-control-plane/test/v3"
 	"google.golang.org/grpc"
 
-	v2grpc "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
-	accessloggrpc "github.com/datawire/ambassador/pkg/api/envoy/service/accesslog/v2"
-	discoverygrpc "github.com/datawire/ambassador/pkg/api/envoy/service/discovery/v2"
-	xds "github.com/datawire/ambassador/pkg/envoy-control-plane/server"
+	gcplogger "github.com/datawire/ambassador/pkg/envoy-control-plane/log"
 )
 
 const (
 	// Hello is the echo message
 	Hello = "Hi, there!\n"
+
+	grpcMaxConcurrentStreams = 1000000
 )
 
 type echo struct{}
 
-func (h echo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/text")
-	if _, err := w.Write([]byte(Hello)); err != nil {
-		log.Println(err)
-	}
+// HTTPGateway is a custom implementation of [gRPC gateway](https://github.com/grpc-ecosystem/grpc-gateway)
+// specialized to Envoy xDS API.
+type HTTPGateway struct {
+	// Log is an optional log for errors in response write
+	Log gcplogger.Logger
+
+	GatewayV2 serverv2.HTTPGateway
+
+	GatewayV3 serverv3.HTTPGateway
 }
 
-// RunHTTP opens a simple listener on the port.
-func RunHTTP(ctx context.Context, upstreamPort uint) {
-	log.Printf("upstream listening HTTP/1.1 on %d\n", upstreamPort)
-	server := &http.Server{Addr: fmt.Sprintf(":%d", upstreamPort), Handler: echo{}}
-	go func() {
-		if err := server.ListenAndServe(); err != nil {
-			log.Println(err)
-		}
-	}()
-}
-
-// RunAccessLogServer starts an accessloggrpc service.
-func RunAccessLogServer(ctx context.Context, als *AccessLogService, port uint) {
+// RunAccessLogServer starts an accesslog server.
+func RunAccessLogServer(ctx context.Context, alsv2 *testv2.AccessLogService, alsv3 *testv3.AccessLogService, alsPort uint) {
 	grpcServer := grpc.NewServer()
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", alsPort))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	accessloggrpc.RegisterAccessLogServiceServer(grpcServer, als)
-	log.Printf("access log server listening on %d\n", port)
+	testv2.RegisterAccessLogServer(grpcServer, alsv2)
+	log.Printf("access log server listening on %d\n", alsPort)
 
 	go func() {
 		if err = grpcServer.Serve(lis); err != nil {
@@ -76,10 +58,8 @@ func RunAccessLogServer(ctx context.Context, als *AccessLogService, port uint) {
 	grpcServer.GracefulStop()
 }
 
-const grpcMaxConcurrentStreams = 1000000
-
 // RunManagementServer starts an xDS server at the given port.
-func RunManagementServer(ctx context.Context, server xds.Server, port uint) {
+func RunManagementServer(ctx context.Context, srv2 serverv2.Server, srv3 serverv3.Server, port uint) {
 	// gRPC golang library sets a very small upper bound for the number gRPC/h2
 	// streams over a single TCP connection. If a proxy multiplexes requests over
 	// a single connection to the management server, then it might lead to
@@ -93,14 +73,8 @@ func RunManagementServer(ctx context.Context, server xds.Server, port uint) {
 		log.Fatal(err)
 	}
 
-	// register services
-	discoverygrpc.RegisterAggregatedDiscoveryServiceServer(grpcServer, server)
-	v2grpc.RegisterEndpointDiscoveryServiceServer(grpcServer, server)
-	v2grpc.RegisterClusterDiscoveryServiceServer(grpcServer, server)
-	v2grpc.RegisterRouteDiscoveryServiceServer(grpcServer, server)
-	v2grpc.RegisterListenerDiscoveryServiceServer(grpcServer, server)
-	discoverygrpc.RegisterSecretDiscoveryServiceServer(grpcServer, server)
-	discoverygrpc.RegisterRuntimeDiscoveryServiceServer(grpcServer, server)
+	testv2.RegisterServer(grpcServer, srv2)
+	testv3.RegisterServer(grpcServer, srv3)
 
 	log.Printf("management server listening on %d\n", port)
 	go func() {
@@ -114,9 +88,41 @@ func RunManagementServer(ctx context.Context, server xds.Server, port uint) {
 }
 
 // RunManagementGateway starts an HTTP gateway to an xDS server.
-func RunManagementGateway(ctx context.Context, srv xds.Server, port uint) {
+func RunManagementGateway(ctx context.Context, srv2 serverv2.Server, srv3 serverv3.Server, port uint, lg gcplogger.Logger) {
 	log.Printf("gateway listening HTTP/1.1 on %d\n", port)
-	server := &http.Server{Addr: fmt.Sprintf(":%d", port), Handler: &xds.HTTPGateway{Server: srv}}
+	server := &http.Server{
+		Addr: fmt.Sprintf(":%d", port),
+		Handler: &HTTPGateway{
+			GatewayV2: serverv2.HTTPGateway{Log: lg, Server: srv2},
+			GatewayV3: serverv3.HTTPGateway{Log: lg, Server: srv3},
+			Log:       lg,
+		},
+	}
+	go func() {
+		if err := server.ListenAndServe(); err != nil {
+			log.Println(err)
+		}
+	}()
+}
+
+func (h *HTTPGateway) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+	err := h.GatewayV2.ServeHTTP(resp, req)
+	if err != nil {
+		h.GatewayV3.ServeHTTP(resp, req)
+	}
+}
+
+func (h echo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/text")
+	if _, err := w.Write([]byte(Hello)); err != nil {
+		log.Println(err)
+	}
+}
+
+// RunHTTP opens a simple listener on the port.
+func RunHTTP(ctx context.Context, upstreamPort uint) {
+	log.Printf("upstream listening HTTP/1.1 on %d\n", upstreamPort)
+	server := &http.Server{Addr: fmt.Sprintf(":%d", upstreamPort), Handler: echo{}}
 	go func() {
 		if err := server.ListenAndServe(); err != nil {
 			log.Println(err)

@@ -10,7 +10,7 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"empty\",\"scope\":\"AmbassadorTest\"},\"name\":\"empty\",\"namespace\":\"empty-namespace\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"empty\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-02-26T15:51:36Z",
+                    "creationTimestamp": "2020-05-14T17:38:14Z",
                     "labels": {
                         "app.kubernetes.io/component": "ambassador-service",
                         "kat-ambassador-id": "empty",
@@ -18,24 +18,24 @@
                     },
                     "name": "empty",
                     "namespace": "empty-namespace",
-                    "resourceVersion": "65775",
+                    "resourceVersion": "63339",
                     "selfLink": "/api/v1/namespaces/empty-namespace/services/empty",
-                    "uid": "de7d5714-58af-11ea-86d6-0e674b3ff44f"
+                    "uid": "b095ccb4-9609-11ea-ae16-06e21b589211"
                 },
                 "spec": {
-                    "clusterIP": "10.105.87.98",
+                    "clusterIP": "10.110.173.187",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "http",
-                            "nodePort": 32547,
+                            "nodePort": 31316,
                             "port": 80,
                             "protocol": "TCP",
                             "targetPort": 8080
                         },
                         {
                             "name": "https",
-                            "nodePort": 31652,
+                            "nodePort": 30453,
                             "port": 443,
                             "protocol": "TCP",
                             "targetPort": 8443
@@ -58,7 +58,7 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"empty\",\"scope\":\"AmbassadorTest\",\"service\":\"empty-admin\"},\"name\":\"empty-admin\",\"namespace\":\"empty-namespace\"},\"spec\":{\"ports\":[{\"name\":\"empty-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"empty\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-02-26T15:51:36Z",
+                    "creationTimestamp": "2020-05-14T17:38:15Z",
                     "labels": {
                         "kat-ambassador-id": "empty",
                         "scope": "AmbassadorTest",
@@ -66,17 +66,17 @@
                     },
                     "name": "empty-admin",
                     "namespace": "empty-namespace",
-                    "resourceVersion": "65779",
+                    "resourceVersion": "63343",
                     "selfLink": "/api/v1/namespaces/empty-namespace/services/empty-admin",
-                    "uid": "de8a43e9-58af-11ea-86d6-0e674b3ff44f"
+                    "uid": "b0a3ae55-9609-11ea-ae16-06e21b589211"
                 },
                 "spec": {
-                    "clusterIP": "10.109.33.49",
+                    "clusterIP": "10.99.230.50",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "empty-admin",
-                            "nodePort": 32162,
+                            "nodePort": 30623,
                             "port": 8877,
                             "protocol": "TCP",
                             "targetPort": 8877

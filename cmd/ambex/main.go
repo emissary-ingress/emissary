@@ -8,7 +8,7 @@ package ambex
  * go-control-plane, several different classes manage this stuff:
  *
  * - The root of the world is a SnapshotCache.
- *   - import github.com/datawire/ambassador/pkg/envoy-control-plane/cache, then refer
+ *   - import github.com/datawire/ambassador/pkg/envoy-control-plane/cache/v2, then refer
  *     to cache.SnapshotCache.
  *   - A collection of internally consistent configuration objects is a
  *     Snapshot (cache.Snapshot).
@@ -61,8 +61,9 @@ import (
 	"github.com/gogo/protobuf/types"
 
 	// envoy control plane
-	"github.com/datawire/ambassador/pkg/envoy-control-plane/cache"
-	"github.com/datawire/ambassador/pkg/envoy-control-plane/server"
+	ctypes "github.com/datawire/ambassador/pkg/envoy-control-plane/cache/types"
+	"github.com/datawire/ambassador/pkg/envoy-control-plane/cache/v2"
+	"github.com/datawire/ambassador/pkg/envoy-control-plane/server/v2"
 
 	// envoy protobuf -- Be sure to import the package of any types that the Python
 	// emits a "@type" of in the generated config, even if that package is otherwise
@@ -81,9 +82,13 @@ const (
 )
 
 var (
-	debug   bool
-	adsPort uint
-	watch   bool
+	debug bool
+	watch bool
+
+	adsNetwork string
+	adsAddress string
+
+	legacyAdsPort uint
 
 	// Version is inserted at build using --ldflags -X
 	Version = "-no-version-"
@@ -91,8 +96,13 @@ var (
 
 func init() {
 	flag.BoolVar(&debug, "debug", false, "Use debug logging")
-	flag.UintVar(&adsPort, "ads", 18000, "ADS port")
 	flag.BoolVar(&watch, "watch", false, "Watch for file changes")
+
+	// TODO(lukeshu): Consider changing the default here so we don't need to put it in entrypoint.sh
+	flag.StringVar(&adsNetwork, "ads-listen-network", "tcp", "network for ADS to listen on")
+	flag.StringVar(&adsAddress, "ads-listen-address", ":18000", "address (on --ads-listen-network) for ADS to listen on")
+
+	flag.UintVar(&legacyAdsPort, "ads", 0, "port number for ADS to listen on--deprecated, use --ads-listen-address=:1234 instead")
 }
 
 // Hasher returns node ID as an ID
@@ -120,10 +130,10 @@ var log = &logger{
 
 // run stuff
 // RunManagementServer starts an xDS server at the given port.
-func runManagementServer(ctx context.Context, server server.Server, port uint) {
+func runManagementServer(ctx context.Context, server server.Server, adsNetwork, adsAddress string) {
 	grpcServer := grpc.NewServer()
 
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	lis, err := net.Listen(adsNetwork, adsAddress)
 	if err != nil {
 		log.WithError(err).Fatal("failed to listen")
 	}
@@ -135,7 +145,7 @@ func runManagementServer(ctx context.Context, server server.Server, port uint) {
 	v2.RegisterRouteDiscoveryServiceServer(grpcServer, server)
 	v2.RegisterListenerDiscoveryServiceServer(grpcServer, server)
 
-	log.WithFields(logrus.Fields{"port": port}).Info("Listening")
+	log.WithFields(logrus.Fields{"addr": adsNetwork + ":" + adsAddress}).Info("Listening")
 	go func() {
 		go func() {
 			err := grpcServer.Serve(lis)
@@ -226,11 +236,11 @@ func Clone(src proto.Message) proto.Message {
 }
 
 func update(config cache.SnapshotCache, generation *int, dirs []string) {
-	clusters := []cache.Resource{}  // v2.Cluster
-	endpoints := []cache.Resource{} // v2.ClusterLoadAssignment
-	routes := []cache.Resource{}    // v2.RouteConfiguration
-	listeners := []cache.Resource{} // v2.Listener
-	runtimes := []cache.Resource{}  // discovery.Runtime
+	clusters := []ctypes.Resource{}  // v2.Cluster
+	endpoints := []ctypes.Resource{} // v2.ClusterLoadAssignment
+	routes := []ctypes.Resource{}    // v2.RouteConfiguration
+	listeners := []ctypes.Resource{} // v2.Listener
+	runtimes := []ctypes.Resource{}  // discovery.Runtime
 
 	var filenames []string
 
@@ -254,7 +264,7 @@ func update(config cache.SnapshotCache, generation *int, dirs []string) {
 			log.Warnf("%s: %v", name, e)
 			continue
 		}
-		var dst *[]cache.Resource
+		var dst *[]ctypes.Resource
 		switch m.(type) {
 		case *v2.Cluster:
 			dst = &clusters
@@ -270,17 +280,17 @@ func update(config cache.SnapshotCache, generation *int, dirs []string) {
 			bs := m.(*bootstrap.Bootstrap)
 			sr := bs.StaticResources
 			for _, lst := range sr.Listeners {
-				listeners = append(listeners, Clone(lst).(cache.Resource))
+				listeners = append(listeners, Clone(lst).(ctypes.Resource))
 			}
 			for _, cls := range sr.Clusters {
-				clusters = append(clusters, Clone(cls).(cache.Resource))
+				clusters = append(clusters, Clone(cls).(ctypes.Resource))
 			}
 			continue
 		default:
 			log.Warnf("Unrecognized resource %s: %v", name, e)
 			continue
 		}
-		*dst = append(*dst, m.(cache.Resource))
+		*dst = append(*dst, m.(ctypes.Resource))
 	}
 
 	version := fmt.Sprintf("v%d", *generation)
@@ -353,6 +363,9 @@ func (l logger) OnFetchResponse(req *v2.DiscoveryRequest, res *v2.DiscoveryRespo
 
 func Main() {
 	flag.Parse()
+	if legacyAdsPort != 0 {
+		adsAddress = fmt.Sprintf(":%v", legacyAdsPort)
+	}
 
 	if debug {
 		log.SetLevel(logrus.DebugLevel)
@@ -389,7 +402,7 @@ func Main() {
 	config := cache.NewSnapshotCache(true, Hasher{}, log)
 	srv := server.NewServer(ctx, config, log)
 
-	runManagementServer(ctx, srv, adsPort)
+	runManagementServer(ctx, srv, adsNetwork, adsAddress)
 
 	pid := os.Getpid()
 	file := "ambex.pid"
