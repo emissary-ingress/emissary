@@ -2,6 +2,32 @@
 
 If you currently have the open source API Gateway version of Ambassador, you can upgrade to the Ambassador Edge Stack with a few simple commands. When you upgrade to the Ambassador Edge Stack, you'll be able to access several new features, such as **automatic HTTPS/TLS termination, Swagger/OpenAPI support, API catalog, IdP support, the Edge Policy Console (a declarative interface), and many more.**
 
+## Upgrading on supported Kubernetes environments
+
+Automatic upgrades with `edgectl` are supported on some Kubernetes environments where the Ambassador API Gateway has been
+installed by following specific instructions. The current list of environments include: 
+
+* [KIND](https://kind.sigs.k8s.io/docs/user/ingress/#ambassador)
+
+In general, `edgectl` can automate the upgrade from installations that match the following criteria:
+
+* the Ambassador API Gateway has been done (and is still managed by) the
+  [Ambassador Operator](../../install/aes-operator/).
+* the `AmbassadorInstallation` has:
+  * the `ambassador` name and `ambassador` namespace
+  * `installOSS: true`
+
+First, install `edgectl` by following the instructions
+[here](../../using/edgectl/edge-control/#installing-edge-control).
+
+Then use the following command to upgrade the Ambassador API Gateway installation to Ambassador Edge Stack:
+
+```commandline
+edgectl upgrade
+```
+
+## Upgrading from other installations
+
 **Prerequisites**:
 
 * You must have properly installed Ambassador previously following [these](../install-ambassador-oss) instructions.
