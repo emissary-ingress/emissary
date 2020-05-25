@@ -1,5 +1,7 @@
 # Introduction to the `Project` resource
 
+This feature is in beta, your feedback is appreciated.
+
 Ambassador is designed around a [declarative, self-service management model](../../concepts/gitops-continuous-delivery). The `Project` resource takes self-service, declarative configuration, and gitops to the next level by enabling developers to stage and deploy code with nothing more than a github repository. See [The Project Quickstart](../../../tutorials/projects/) to setup your first `Project`.
 
 ## The `Project` Resource
@@ -14,7 +16,21 @@ A `Project` resource requires the following configuration:
 | `githubToken`             | A token that has access to the repo with your source code |
 | `githubRepo`              | The `owner/name` of the github repo that holds your source code. The repo must have a Dockerfile located in the root that builds your server and runs it on port 8080. |
 
-**Note:** The `Edge Policy Console` provides a streamlined self-service workflow for creating a `Project` resource.
+The `Edge Policy Console` provides a streamlined self-service workflow for creating a `Project` resource, but you can define projects just like any other kubernetes resource:
+
+```
+---
+apiVersion: getambassador.io/v2
+kind: Project
+metadata:
+  name: <your-project-name>
+  namespace: <your-project-namespace>
+spec:
+  host: <your-hostname>
+  prefix: <your-project-prefix> # e.g. /foo/
+  githubRepo: <your-github-org>/<your-github-repo>
+  githubToken: <your-github-api-token>
+```
 
 ## `Project` Repositories
 
@@ -23,7 +39,9 @@ The `Project` Controller expects `Project` repositories to have a `Dockerfile` i
 ```
 <root>
   |
-  +-- Dockerfile
+  +-- Dockerfile                  // Required: tells the controller how to build your project
+  |
+  +-- project-revision.yaml.tmpl  // Optional: allows customization of kubernetes resources
   |
   +-- ...
 ```
@@ -38,6 +56,8 @@ RUN <your-build-instructions>
 EXPOSE 8080 # PLEASE NOTE: Your code must bind to port 8080 also!!
 CMD <your-server>
 ```
+
+The `project-revision.yaml.tmpl` is optional. When present, the contents of this file are evaluated as a [golang template](https://golang.org/pkg/text/template/), and then used to deploy each revision. See [Customizing Project Deployment](../project-customization) for more details.
 
 ## How it Works
 
@@ -130,41 +150,3 @@ Deployed. Every `ProjectRevision` will progress through its lifecycle
 until it reaches one of these stages.
 
 The resources managed by each project are prefixed by the project name and the commit sha so that you can easily drill down and examine e.g. the build or server logs using `kubectl`. The `Edge Policy Console` provides a live streaming in-browser terminal for viewing build and server logs as well as the full state of each `ProjectRevision` resource.
-
-## Adding Authentication to your `Project`
-
-Make sure you have configured at least one working [authentication Filter](filters). The [HOWTO section](../../howtos/) has numerous dentailed entries on integrating with specific IDPs.
-
-The following `FilterPolicy` will enable authentication for your `Project`'s production deployment:
-
-```
-apiVersion: getambassador.io/v2
-kind: FilterPolicy
-metadata:
-  name: foo
-  namespace: default
-spec:
-  rules:
-  - host: <your-hostname>
-    path: <your-project-prefix>** # e.g. /foo/**
-    filters:
-    - name: <your-filter-name>
-      namespace: <your-filter-namespace>
-```
-
-You can apply the following `FilterPolicy` to enable authentication for your `Project`'s preview deploys. Note that you can use a different authentication filter for previews, and in fact you can omit the project-specific portion of the path if you wish to lock down previews for all `Projects`:
-
-```
-apiVersion: getambassador.io/v2
-kind: FilterPolicy
-metadata:
-  name: foo
-  namespace: default
-spec:
-  rules:
-  - host: <your-hostname>
-    path: /.previews/<your-project-prefix>** # e.g. /.previews/foo/*
-    filters:
-    - name: <your-filter-name>
-      namespace: <your-filter-namespace>
-```

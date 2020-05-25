@@ -1,5 +1,7 @@
 # Getting started with the Project CRD
 
+This feature is in beta, your feedback is appreciated.
+
 In this guide, we'll walk you through using Ambassador Edge Stack's [Project CRD](../../topics/using/projects/). At the end of this you will have launched your own microservice in less time than it takes to microwave popcorn. Not only that, but this service will meet the most important standards of **production-readiness**. It will be:
 
 * **Secure:** Protected with TLS, Authentication, and Rate Limiting
