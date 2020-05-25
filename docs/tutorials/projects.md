@@ -19,33 +19,26 @@ You will need:
 
 ## Quick Start
 
-1. First, let's enable the `ProjectController` for your AES installation. This will give you access to the `Projects` tab in the `Edge Policy Console`. If you already see the `Projects` tab then you can skip this step:
+1. Run `edgectl login $YOUR_HOST` and click on the `Projects` tab.
 
-```
-kubectl apply -f https://getambassador-preview.netlify.app/yaml/projects.yaml &&  \
-kubectl wait --for condition=established --timeout=90s crd -lproduct=aes && \
-kubectl apply -f - <<EOF && kubectl patch deployment ambassador -n ambassador -p "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"date\":\"`date +'%s'`\"}}}}}"
-apiVersion: getambassador.io/v2
-kind: ProjectController
-metadata:
-  labels:
-    projects.getambassador.io/ambassador_id: default
-  name: projectcontroller
-  namespace: ambassador
-EOF
-```
+2. Create an HTTP service implementation in your own new Github repo with our [quick start project generator](https://github.com/datawire/project-template/generate).
 
-2. Run `edgectl login $YOUR_HOST` and click on the `Projects` tab.
+3. Click on Projects -> Add, you will be directed to enter the name, namespace, host, and url path prefix for your project:
 
-3. Create an HTTP service implementation in your own new Github repo with our [quick start project generator](https://github.com/datawire/project-template/generate).
+   ![Add Project](../../images/project-create.png)
 
-4. Click on Projects -> Add, you will be directed to enter the name, namespace, host, and url path prefix for your project: ![Add Project](../../images/project-create.png)
+4. You will also need to supply a github token:
 
-5. You will also need to supply a github token: ![Github Token](../../images/project-create-github-token.png)
-   Make sure you select the repo scope for your token: ![Repo Scope](../../images/project-create-repo-scope.png)
+   ![Github Token](../../images/project-create-github-token.png)
+
+   Make sure you select the repo scope for your token:
+
+   ![Repo Scope](../../images/project-create-repo-scope.png)
 
 
-6. As soon as you enter a valid access token, you will see the "github repo" field populate with all the github repos granted access by that token. Choose your newly created repo from step 3 and click Save: ![Github Repo](../../images/project-create-github-repo.png)
+5. As soon as you enter a valid access token, you will see the "github repo" field populate with all the github repos granted access by that token. Choose your newly created repo from step 3 and click Save:
+
+   ![Github Repo](../../images/project-create-github-repo.png)
 
 You will see the Project resource automatically build and deploy the code in your newly created repo. Building the first time will take a few minutes. Subsequent builds will be much faster due to caching of the docker image layers in the build. To follow the progress of building, you can click on the "build" link to see your build logs streamed in realtime:
 
