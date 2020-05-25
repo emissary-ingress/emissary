@@ -545,7 +545,7 @@ If this microservice expects incoming requests to speak TLS, tell the Traffic Ag
 
 ### Ambassador Edge Stack
 
-To enable Preview URLs, you must first enable preview URL processing in one or more Host resources. Ambassador Edge Stack uses Host resources to configure various aspects of a given host. Enabling preview URLs is as simple as adding the `previewURL` section and setting `enabled` to `true`:
+To enable Preview URLs, you must first enable preview URL processing in one or more Host resources. Ambassador Edge Stack uses Host resources to configure various aspects of a given host. Enabling preview URLs is as simple as adding the `previewUrl` section and setting `enabled` to `true`:
 
 ```yaml
 apiVersion: getambassador.io/v2
