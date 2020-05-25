@@ -8,7 +8,7 @@ The `add_response_headers` attribute is a dictionary of `header`: `value` pairs.
 
 Envoy dynamic values `%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%` and `%PROTOCOL%` are supported, in addition to static values.
 
-`add_response_headers` can be set either in a `Mapping` or using [`ambassador Module defaults`](../../using/defaults).
+`add_response_headers` can be set either in a `Mapping` or using [`ambassador Module defaults`](../../defaults).
 
 ### Mapping Example
 
