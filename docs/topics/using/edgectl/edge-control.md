@@ -350,6 +350,81 @@ Hello, world!
 
 Requests are no longer intercepted.
 
+6. Now let's set up an intercept with a preview URL.
+
+Make sure your Host resource has preview URLs enabled.
+
+```console
+$ kubectl get host minimal-host -o yaml
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  # [...]
+spec:
+  # [...]
+  previewUrl:
+    enabled: true
+```
+
+Now add an intercept and give it a try.
+
+```console
+$ edgectl intercept avail
+Found 1 interceptable deployment(s):
+    1. hello
+
+$ edgectl intercept list
+No intercepts
+
+$ edgectl intercept add hello -n example-url -t 9000
+Using deployment hello in namespace default
+Added intercept "example-url"
+Share a preview of your changes with anyone by visiting
+   https://staging.example.com/.ambassador/service-preview/0efb6d52-9ddc-410d-8717-8db58bac2088/
+
+$ edgectl intercept list
+   1. example-url
+      (preview URL available)
+      Intercepting requests to hello when
+      - x-service-preview: 0efb6d52-9ddc-410d-8717-8db58bac2088
+      and redirecting them to 127.0.0.1:9000
+Share a preview of your changes with anyone by visiting
+   https://staging.example.com/.ambassador/service-preview/0efb6d52-9ddc-410d-8717-8db58bac2088/
+
+$ curl https://staging.example.com/hello/
+Hello, world!
+
+$ curl https://staging.example.com/.ambassador/service-preview/0efb6d52-9ddc-410d-8717-8db58bac2088/hello/
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Directory listing for /</title>
+</head>
+<body>
+<h1>Directory listing for /</h1>
+<hr>
+<ul>
+</ul>
+<hr>
+</body>
+</html>
+```
+
+As you can see, the second request, which uses the preview URL, is served by the local server.
+
+7. Next, remove the intercept to restore normal operation.
+
+```bash
+$ edgectl intercept remove example-url
+Removed intercept "example-url"
+
+$ curl https://staging.example.com/.ambassador/service-preview/0efb6d52-9ddc-410d-8717-8db58bac2088/hello/
+Hello, world!
+```
+
+Requests are no longer intercepted.
+
 ## What's Next?
 
 Multiple intercepts of the same deployment can run at the same time too. You can direct them to the same machine, allowing you to “or” together intercept conditions. Also, multiple developers can intercept the same deployment simultaneously. As long as their match patterns don’t collide, they don’t need to worry about disrupting one another.
