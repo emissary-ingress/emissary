@@ -12,6 +12,11 @@ When Service Preview is used, incoming requests get routed by Ambassador to a Tr
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/LDiyKOa1V_A" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
+
+## Preview URLs
+
+Ambassador Edge Stack, when used as your cluster's API gateway, offers the ability to use preview URLs. Just as you can access your application at a specific URL, you can access the development version of the same application through a Preview URL. When AES detects a Preview URL at the edge, it rewrites the request to look like a normal request but with a service preview header added. 
+
 ## Service Preview Components
 
 There are three main components to Service Preview:
@@ -22,9 +27,13 @@ There are three main components to Service Preview:
 
 3. The Edge Control local client, which runs in your local environment (Linux or Mac OS X). The client is the command line interface to the Traffic Manager.
 
+For Preview URLs to function, Ambassador Edge Stack must be running as your API gateway.
+
 ## Configuring Service Preview
 
 To get started with Service Preview, you'll need to install Traffic Manager, configure a Traffic Agent, and then download and install the `edgectl` client.
+
+To use Preview URLs, you must enable preview URL processing in one or more Host resources used by Ambassador Edge Stack.
 
 ### Traffic Manager
 
@@ -533,3 +542,22 @@ If other microservices in the cluster expect to speak TLS to this microservice, 
 If this microservice expects incoming requests to speak TLS, tell the Traffic Agent to originate TLS:
 - Set the `AGENT_TLS_ORIG_SECRET` environment variable, or the `getambassador.io/inject-originating-tls-secret` pod annotation if using `ambassador-injector`, to the name of a Kubernetes Secret that contains a TLS certificate
 - The Traffic Agent will use that certificate originate HTTPS requests to the application
+
+### Ambassador Edge Stack
+
+To enable Preview URLs, you must first enable preview URL processing in one or more Host resources. Ambassador Edge Stack uses Host resources to configure various aspects of a given host. Enabling preview URLs is as simple as adding the `previewUrl` section and setting `enabled` to `true`:
+
+```yaml
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: minimal-host
+spec:
+  hostname: host.example.com
+  acmeProvider:
+    email: julian@example.com
+  previewUrl:
+    enabled: true
+```
+
+When you first edit your Host to enable preview URLs, you must reconnect to the cluster for the Edge Control Daemon to detect the change. This limitation will be removed in the future.
