@@ -92,6 +92,8 @@ service:
 
   externalTrafficPolicy:
 
+  externalIPs: []
+
   annotations: {}
   #############################################################################
   ## Ambassador should be configured using CRD definition. If you want
