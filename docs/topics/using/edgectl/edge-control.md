@@ -366,6 +366,8 @@ spec:
     enabled: true
 ```
 
+When you first edit your Host to enable preview URLs, you must reconnect to the cluster for the Edge Control Daemon to detect the change. This limitation will be removed in the future.
+
 Now add an intercept and give it a try.
 
 ```console
