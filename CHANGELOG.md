@@ -81,7 +81,7 @@ Format:
 - Feature: Allow setting the Envoy shared-memory base ID (thanks, [Phil Peble](https://github.com/ppeble)!)
 - Bugfix: Only update Knative ingress CRDs when the generation changes (thanks, [Noah Fontes](https://github.com/impl)!)
 - Bugfix: Now behaves properly when `AMBASSADOR_SINGLE_NAMESPACE` is set to an empty string; rather than getting in to a weird in-between state
-- Bugfix: Websocket library updated to incorporate security fixes
+- Bugfix: Websocket library updated to incorporate security fixes (thanks, [Andrew Allbright](https://github.com/aallbrig)!)
 - Bugfix: Fixed evaluation of label selectors causing the wrong IP to be put in to Ingress resource statuses
 - Bugfix: The `watt` (port 8002) and `ambex` (port 8003) components now bind to localhost instead of 0.0.0.0, so they are no longer erroneously available from outside the Pod
 
