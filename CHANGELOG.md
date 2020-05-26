@@ -76,6 +76,7 @@ Format:
 - Feature: Allow defaults for `add_request_header`, `remove_request_header`, `add_response_header`, and `remove_response_header`
 - Feature: Inform Knative of the route to the Ambassador service if available
 - Feature: Support the path and timeout options of the Knative ingress path rules
+- Feature: Additional security configurations no set on default YAMLs
 - Bugfix: Only update Knative ingress CRDs when the generation changes
 - Bugfix: Now behaves properly when `AMBASSADOR_SINGLE_NAMESPACE` is set to an empty string; rather than getting in to a weird in-between state
 - Bugfix: Websocket library updated to incorporate security fixes
