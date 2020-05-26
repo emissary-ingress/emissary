@@ -74,11 +74,14 @@ Format:
 - Switched from quay.io back to DockerHub as our primary publication point. **If you are using your own Kubernetes manifests, you will have to update them!** Datawire's Helm charts and published YAML have already been updated.
 
 - Feature: Allow defaults for `add_request_header`, `remove_request_header`, `add_response_header`, and `remove_response_header`
-- Feature: Inform Knative of the route to the Ambassador service if available
-- Feature: Support the path and timeout options of the Knative ingress path rules
-- Bugfix: Only update Knative ingress CRDs when the generation changes
+- Feature: Inform Knative of the route to the Ambassador service if available (thanks, [Noah Fontes](https://github.com/impl)!)
+- Feature: Support the path and timeout options of the Knative ingress path rules (thanks, [Noah Fontes](https://github.com/impl)!)
+- Feature: Allow preserving `X-Request-ID` on requests from external clients (thanks, [Prakhar Joshi](https://github.com/prakharjoshi)!)
+- Feature: Mappings now support query parameters (thanks, [Phil Peble](https://github.com/ppeble)!)
+- Feature: Allow setting the Envoy shared-memory base ID (thanks, [Phil Peble](https://github.com/ppeble)!)
+- Bugfix: Only update Knative ingress CRDs when the generation changes (thanks, [Noah Fontes](https://github.com/impl)!)
 - Bugfix: Now behaves properly when `AMBASSADOR_SINGLE_NAMESPACE` is set to an empty string; rather than getting in to a weird in-between state
-- Bugfix: Websocket library updated to incorporate security fixes
+- Bugfix: The websocket library used by the test suite has been upgraded to incorporate security fixes (thanks, [Andrew Allbright](https://github.com/aallbrig)!)
 - Bugfix: Fixed evaluation of label selectors causing the wrong IP to be put in to Ingress resource statuses
 - Bugfix: The `watt` (port 8002) and `ambex` (port 8003) components now bind to localhost instead of 0.0.0.0, so they are no longer erroneously available from outside the Pod
 
