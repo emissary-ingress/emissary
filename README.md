@@ -70,7 +70,7 @@ The command removes all the Kubernetes components associated with the chart and 
 
 ## Changelog
 
-Notable chart changes are listed in the [CHANGELOG](https://github.com/helm/charts/blob/master/stable/ambassador/CHANGELOG.md)
+Notable chart changes are listed in the [CHANGELOG](https://github.com/datawire/ambassador-chart/CHANGELOG.md)
 
 ## Configuration
 
@@ -110,8 +110,11 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `rbac.podSecurityPolicies`         | pod security polices to bind to                                                 |                                   |
 | `rbac.nameOverride`                | Overrides the default name of the RBAC resources                                | ``                                |
 | `replicaCount`                     | Number of Ambassador replicas                                                   | `3`                               |
-| `resources`                        | CPU/memory resource requests/limits                                             | `{}`                              |
+| `resources`                        | CPU/memory resource requests/limits                                             | `{ "limits":{"cpu":"1000m","memory":"600Mi"},"requests":{"cpu":"200m","memory":"300Mi"}}` |
 | `securityContext`                  | Set security context for pod                                                    | `{ "runAsUser": "8888" }`         |
+| `security.podSecurityContext`      | Set the security context for the Ambassador pod                                 | `{ "runAsNonRoot": true }`        |
+| `security.containerSecurityContext`| Set the security context for the Ambassador container                           | `{ "readOnlyRootFilesystem": true, "allowPrivilegeEscalation": false }` |
+| `security.podSecurityPolicy`       | Create a PodSecurityPolicy to be used for the pod.                              | See the CHANGELOG                 |
 | `restartPolicy`                    | Set the `restartPolicy` for pods                                                | ``                                |
 | `initContainers`                   | Containers used to initialize context for pods                                  | `[]`                              |
 | `sidecarContainers`                | Containers that share the pod context                                           | `[]`                              |
@@ -181,7 +184,52 @@ The `crds` flags (Helm 2 only) let you configure how a release manages crds.
 - `crds.enabled` Should be set on all releases using Ambassador CRDs
 - `crds.keep` Configures if the CRDs are deleted when the master release is 
   purged. This value is only checked for the master release and can be set to
-  any value on secondary releases. 
+  any value on secondary releases.
+
+### Security
+
+Ambassador takes security very seriously. For this reason, the YAML installation will default with a couple of basic security policies in place.
+
+The `security` field of the `values.yaml` file configures these default policies and replaces the `securityContext` field used earlier.
+
+The defaults will configure the pod to run as a non-root user and prohibit privilege escalation and deploy a `PodSecurityPolicy` to ensure these conditions are met.
+
+```yaml
+security:
+  # Security Context for all containers in the pod.
+  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#podsecuritycontext-v1-core
+  podSecurityContext:
+    runAsUser: 8888
+  # Security Context for the Ambassador container specifically
+  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#securitycontext-v1-core
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+  # A basic PodSecurityPolicy to ensure Ambassador is running with appropriate security permissions
+  # https://kubernetes.io/docs/concepts/policy/pod-security-policy/
+  podSecurityPolicy:
+    # Add AppArmor and Seccomp annotations
+    # https://kubernetes.io/docs/concepts/policy/pod-security-policy/#apparmor
+    annotations:
+    spec:
+      seLinux:
+        rule: RunAsAny
+      supplementalGroups:
+        rule: 'MustRunAs'
+        ranges:
+          # Forbid adding the root group.
+          - min: 1
+            max: 65535
+      fsGroup:
+        rule: 'MustRunAs'
+        ranges:
+          # Forbid adding the root group.
+          - min: 1
+            max: 65535
+      privileged: false
+      allowPrivilegeEscalation: false
+      runAsUser:
+        rule: MustRunAsNonRoot
+```
 
 ### Annotations
 

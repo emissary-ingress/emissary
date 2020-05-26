@@ -3,6 +3,12 @@
 This file documents all notable changes to Ambassador Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
+## v6.4.0
+
+- Add additional security policy configurations.
+
+   `securityContext` has been deprecated in favor of `security` which allows you to set container and pod security contexts as well as a default `PodSecurityPolicy`.
+
 ## v6.3.6
 
 - Switch from Quay.io to DockerHub
