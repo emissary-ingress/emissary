@@ -13,11 +13,14 @@ import (
 	"github.com/datawire/ambassador/cmd/ambex"
 	"github.com/datawire/ambassador/cmd/kubestatus"
 	"github.com/datawire/ambassador/cmd/watt"
+	"github.com/datawire/ambassador/pkg/environment"
 )
 
 var Version = "(unknown version)"
 
 func main() {
+	environment.EnvironmentSetupEntrypoint()
+
 	ambex.Version = Version
 	watt.Version = Version
 
