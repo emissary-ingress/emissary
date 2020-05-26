@@ -8,56 +8,68 @@ There are two approaches for rewriting: `rewrite` for simpler scenarios and `reg
 
 ## `rewrite`
 
+By default, the `prefix` is rewritten to `/`, so e.g., if we map `/backend-api/` to the service `service1`, then
 
-By default, the `prefix` is rewritten to `/`, so e.g., if we map `/prefix1/` to the service `service1`, then
+<code>
+http://ambassador.example.com<span style="color:red">/backend-api/</span><span style="color:green">foo/bar</span>
+</code>
 
-```shell
-http://ambassador.example.com/prefix1/foo/bar
-```
+* ```prefix```: <span style="color:red">/backend-api/</span> which rewrites to <span style="color:red">/</span> by default.
+* ```rewrite```: <span style="color:red">/</span>
+* ```remainder```: <span style="color:green">foo/bar</span>
+
 
 would effectively be written to
 
-```shell
-http://service1/foo/bar
-```
+<code>
+http://service1<span style="color:red">/</span><span style="color:green">foo/bar</span>
+</code>
 
-when it was handed to `service1`.
+* ```prefix```: was <span style="color:red">/backend-api/</span>
+* ```rewrite```: <span style="color:red">/</span> (by default)
 
-You can change the rewriting: for example, if you choose to rewrite the prefix as `/v1/` in this example, the final target would be:
+You can change the rewriting: for example, if you choose to rewrite the prefix as <span style="color:red">/v1/</span> in this example, the final target would be:
 
-```shell
-http://service1/v1/foo/bar
-```
+
+<code>
+http://service1<span style="color:red">/v1/</span><span style="color:green">foo/bar</span>
+</code>
+
+* ```prefix```: was <span style="color:red">/backend-api/</span> 
+* ```rewrite```: <span style="color:red">/v1/</span>
 
 And, of course, you can choose to rewrite the prefix to the prefix itself, so that
 
-```shell
-http://ambassador.example.com/prefix1/foo/bar
-```
+<code>
+http://ambassador.example.com<span style="color:red">/backend-api/</span><span style="color:green">foo/bar</span>
+</code>
+
+* ```prefix```: <span style="color:red">/backend-api/</span>
+* ```rewrite```: <span style="color:red">/backend-api/</span>
 
 would be "rewritten" as:
 
-```shell
-http://service1/prefix1/foo/bar
-```
+<code>
+http://service1<span style="color:red">/backend-api/</span><span style="color:green">foo/bar</span>
+</code>
 
-Ambassador Edge Stack can be configured to not change the prefix as it forwards a request to the upstream service. To do that, specify an empty `rewrite` directive:
+Ambassador can be configured to not change the prefix as it forwards a request to the upstream service. To do that, specify an empty `rewrite` directive:
 
 - `rewrite: ""`
 
 ## `regex_rewrite`
 
-In some cases, a portion of URL needs to be extracted before making the upstream service URL. For example, suppose that when a request is made to `leaderboards/v1/12345/find`, the target URL must be rewritten as `game/12345`. We can do this as follows:
+In some cases, a portion of URL needs to be extracted before making the upstream service URL. For example, suppose that when a request is made to `foo/12345/list`, the target URL must be rewritten as `bar/12345`. We can do this as follows:
 
 ```shell
-prefix: /leaderboards/
+prefix: /foo/
 regex_rewrite:
-    pattern: 'leaderboards/v1/([0-9]*)/find'
-    substitution: '/game/\1'
+    pattern: '/foo/([0-9]*)/list'
+    substitution: '/bar/\1'
 ```
 
 `([0-9]*)` can be replaced with `(\d)` for simplicity.
 
 More than one group can be captured in the `pattern` to be referenced by `\2`, `\3` and `\n` in the `substitution` section.
 
-For more information on how rewrite and prefix can be configured, see [Mappings](../mappings).
+For more information on how `Mapping` can be configured, see [Mappings](../mappings).
