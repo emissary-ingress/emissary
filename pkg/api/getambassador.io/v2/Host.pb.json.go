@@ -88,3 +88,19 @@ func (msg *InsecureRequestPolicy) MarshalJSON() ([]byte, error) {
 func (msg *InsecureRequestPolicy) UnmarshalJSON(b []byte) error {
 	return jsonpb.Unmarshal(bytes.NewReader(b), msg)
 }
+
+// MarshalJSON implements json.Marshaler
+func (msg *PreviewURLSpec) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	err := (&jsonpb.Marshaler{
+		EnumsAsInts:  false,
+		EmitDefaults: false,
+		OrigName:     false,
+	}).Marshal(&buf, msg)
+	return buf.Bytes(), err
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *PreviewURLSpec) UnmarshalJSON(b []byte) error {
+	return jsonpb.Unmarshal(bytes.NewReader(b), msg)
+}

@@ -79,6 +79,7 @@ Format:
 - Feature: Allow preserving `X-Request-ID` on requests from external clients (thanks, [Prakhar Joshi](https://github.com/prakharjoshi)!)
 - Feature: Mappings now support query parameters (thanks, [Phil Peble](https://github.com/ppeble)!)
 - Feature: Allow setting the Envoy shared-memory base ID (thanks, [Phil Peble](https://github.com/ppeble)!)
+- Feature: Additional security configurations not set on default YAMLs
 - Bugfix: Only update Knative ingress CRDs when the generation changes (thanks, [Noah Fontes](https://github.com/impl)!)
 - Bugfix: Now behaves properly when `AMBASSADOR_SINGLE_NAMESPACE` is set to an empty string; rather than getting in to a weird in-between state
 - Bugfix: The websocket library used by the test suite has been upgraded to incorporate security fixes (thanks, [Andrew Allbright](https://github.com/aallbrig)!)

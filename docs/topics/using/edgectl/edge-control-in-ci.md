@@ -17,7 +17,7 @@ The CI job that performs system tests of MyService would look roughly like this
 4. Launch the Edge Control Daemon and connect to the cluster
    ```console
    sudo edgectl daemon
-   edgectl connect
+   edgectl connect --ci
    ```
 5. Add an intercept specific to this test session, e.g., using commit information to construct a unique name
    ```console
