@@ -10,6 +10,12 @@ numbering uses [semantic versioning](http://semver.org).
 - Add option to install Service Preview components (traffic-manager, traffic-agent).
 - Add option to install ambassador-injector, alongside Service Preview.
 
+## v6.4.0
+
+- Add additional security policy configurations.
+
+   `securityContext` has been deprecated in favor of `security` which allows you to set container and pod security contexts as well as a default `PodSecurityPolicy`.
+
 ## v6.3.6
 
 - Switch from Quay.io to DockerHub
