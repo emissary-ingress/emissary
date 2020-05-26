@@ -1,5 +1,7 @@
 # Customizing Project Deployment
 
+## This feature is in BETA. Your feedback is greatly appreciated!
+
 The project controller deploys each project revision using a default set of resources that include:
 
  - a Deployment

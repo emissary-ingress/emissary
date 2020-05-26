@@ -1,5 +1,7 @@
 # Adding Authentication to your `Project`
 
+## This feature is in BETA. Your feedback is greatly appreciated!
+
 Make sure you have configured at least one working [authentication Filter](filters). The [HOWTO section](../../howtos/) has numerous dentailed entries on integrating with specific IDPs.
 
 The following `FilterPolicy` will enable authentication for your `Project`'s production deployment:

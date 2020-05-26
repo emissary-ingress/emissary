@@ -1,5 +1,5 @@
 ######################################################################
-# CRDs
+# Project CRDs
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -94,12 +94,12 @@ spec:
     storage: true
 
 ######################################################################
-# RBAC
+# Project RBAC
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
-  name: ambassador-kale
+  name: ambassador-projects
   labels:
     product: aes
 rules:
@@ -122,13 +122,13 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
-  name: ambassador-kale
+  name: ambassador-projects
   labels:
     product: aes
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: ambassador-kale
+  name: ambassador-projects
 subjects:
 - kind: ServiceAccount
   name: ambassador
@@ -136,7 +136,7 @@ subjects:
 
 
 ######################################################################
-# In-cluster Registry for Kale
+# In-cluster Registry for Projects
 
 # This mapping will make every host function as a docker
 # registry. It's not ideal to take over the "v2" mapping, but there
