@@ -8,7 +8,9 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 
+	"github.com/datawire/ambassador/pkg/metriton"
 	"github.com/datawire/ambassador/pkg/supervisor"
 )
 
@@ -30,6 +32,13 @@ func (d *Daemon) handleCommand(p *supervisor.Process, conn net.Conn, data *Clien
 }
 
 func (d *Daemon) GetRootCommand(p *supervisor.Process, out *Emitter, data *ClientMessage) *cobra.Command {
+	reporter := &metriton.Reporter{
+		Application:  "edgectl",
+		Version:      Version,
+		GetInstallID: func(_ *metriton.Reporter) (string, error) { return data.InstallID, nil },
+		BaseMetadata: map[string]interface{}{"mode": "daemon"},
+	}
+
 	rootCmd := &cobra.Command{
 		Use:          "edgectl",
 		Short:        "Edge Control",
@@ -122,10 +131,18 @@ func (d *Daemon) GetRootCommand(p *supervisor.Process, out *Emitter, data *Clien
 		Use:   "connect [flags] [-- additional kubectl arguments...]",
 		Short: "Connect to a cluster",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if _, err := reporter.Report(p.Context(), map[string]interface{}{"action": "connect"}); err != nil {
+				p.Logf("report failed: %+v", err)
+			}
 			context, _ := cmd.Flags().GetString("context")
 			namespace, _ := cmd.Flags().GetString("namespace")
 			managerNs, _ := cmd.Flags().GetString("manager-namespace")
-			if err := d.Connect(p, out, data.RAI, context, namespace, managerNs, args); err != nil {
+			isCI, _ := cmd.Flags().GetBool("ci")
+			if err := d.Connect(
+				p, out, data.RAI,
+				context, namespace, managerNs, args,
+				data.InstallID, isCI,
+			); err != nil {
 				return err
 			}
 			return out.Err()
@@ -143,6 +160,7 @@ func (d *Daemon) GetRootCommand(p *supervisor.Process, out *Emitter, data *Clien
 		"manager-namespace", "m", "ambassador",
 		"The Kubernetes namespace in which the Traffic Manager is running.",
 	)
+	_ = connectCmd.Flags().Bool("ci", false, "This session is a CI run.")
 	rootCmd.AddCommand(connectCmd)
 	rootCmd.AddCommand(&cobra.Command{
 		Use:   "disconnect",
@@ -222,9 +240,10 @@ func (d *Daemon) GetRootCommand(p *supervisor.Process, out *Emitter, data *Clien
 		},
 	})
 	interceptCmd.AddCommand(&cobra.Command{
-		Use:   "remove",
-		Short: "Deactivate and remove an existent intercept",
-		Args:  cobra.MinimumNArgs(1),
+		Use:     "remove [flags] DEPLOYMENT",
+		Aliases: []string{"delete"},
+		Short:   "Deactivate and remove an existent intercept",
+		Args:    cobra.MinimumNArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			name := strings.TrimSpace(args[0])
 			if err := d.RemoveIntercept(p, out, name); err != nil {
@@ -234,8 +253,10 @@ func (d *Daemon) GetRootCommand(p *supervisor.Process, out *Emitter, data *Clien
 		},
 	})
 	intercept := InterceptInfo{}
+	interceptPreview := true
+	var interceptAddCmdFlags *pflag.FlagSet
 	interceptAddCmd := &cobra.Command{
-		Use:   "add DEPLOYMENT -t [HOST:]PORT -m HEADER=REGEX ...",
+		Use:   "add [flags] DEPLOYMENT -t [HOST:]PORT ([-p] | -m HEADER=REGEX ...)",
 		Short: "Add a deployment intercept",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
@@ -265,26 +286,86 @@ func (d *Daemon) GetRootCommand(p *supervisor.Process, out *Emitter, data *Clien
 			}
 			port, err := strconv.Atoi(portStr)
 			if err != nil {
-				out.Printf("Failed to parse %q as HOST:PORT: %v", intercept.TargetHost, err)
+				out.Printf("Failed to parse %q as HOST:PORT: %v\n", intercept.TargetHost, err)
 				out.Send("failed", "parse target")
 				out.SendExit(1)
 				return nil
 			}
 			intercept.TargetHost = host
 			intercept.TargetPort = port
+
+			// If the user specifies --preview on the command line, then use its
+			// value (--preview is the same as --preview=true, or it could be
+			// --preview=false). But if the user does not specify --preview on
+			// the command line, compute its value from the presence or absence
+			// of --match, since they are mutually exclusive.
+			userSetPreviewFlag := interceptAddCmdFlags.Changed("preview")
+			userSetMatchFlag := len(intercept.Patterns) > 0
+
+			if userSetPreviewFlag && interceptPreview {
+				// User specified --preview (or --preview=true) at the command line
+				if userSetMatchFlag {
+					out.Println("Error: Cannot use --match and --preview at the same time")
+					out.Send("failed", "both match and preview")
+					out.SendExit(1)
+					return nil
+				} else {
+					// ok: --preview=true and no --match
+				}
+			} else if userSetPreviewFlag && !interceptPreview {
+				// User specified --preview=false at the command line
+				if userSetMatchFlag {
+					// ok: --preview=false and at least one --match
+				} else {
+					out.Println("Error: Must specify --match when using --preview=false")
+					out.Send("failed", "neither match nor preview")
+					out.SendExit(1)
+					return nil
+				}
+			} else {
+				// User did not specify --preview at the command line
+				if userSetMatchFlag {
+					// ok: at least one --match
+					interceptPreview = false
+				} else {
+					// ok: neither --match nor --preview, fall back to preview
+					interceptPreview = true
+				}
+			}
+
+			if interceptPreview {
+				if d.trafficMgr.previewHost == "" {
+					out.Println("Your cluster is not configured for Preview URLs.")
+					out.Println("(Could not find a Host resource that enables Path-type Preview URLs.)")
+					out.Println("Please specify one or more header matches using --match.")
+					out.Send("failed", "preview requested but unavailable")
+					out.SendExit(1)
+					return nil
+				}
+
+				intercept.Patterns = make(map[string]string)
+				intercept.Patterns["x-service-preview"] = data.InstallID
+			}
+
 			if err := d.AddIntercept(p, out, &intercept); err != nil {
 				return err
 			}
+
+			if url := intercept.PreviewURL(d.trafficMgr.previewHost); url != "" {
+				out.Println("Share a preview of your changes with anyone by visiting\n  ", url)
+			}
+
 			return out.Err()
 		},
 	}
 	interceptAddCmd.Flags().StringVarP(&intercept.Name, "name", "n", "", "a name for this intercept")
-	interceptAddCmd.Flags().StringVarP(&intercept.Prefix, "prefix", "p", "", "prefix to intercept (default /)")
+	interceptAddCmd.Flags().StringVar(&intercept.Prefix, "prefix", "/", "prefix to intercept")
+	interceptAddCmd.Flags().BoolVarP(&interceptPreview, "preview", "p", true, "use a preview URL") // this default is unused
 	interceptAddCmd.Flags().StringVarP(&intercept.TargetHost, "target", "t", "", "the [HOST:]PORT to forward to")
 	_ = interceptAddCmd.MarkFlagRequired("target")
 	interceptAddCmd.Flags().StringToStringVarP(&intercept.Patterns, "match", "m", nil, "match expression (HEADER=REGEX)")
-	_ = interceptAddCmd.MarkFlagRequired("match")
 	interceptAddCmd.Flags().StringVarP(&intercept.Namespace, "namespace", "", "", "Kubernetes namespace in which to create mapping for intercept")
+	interceptAddCmdFlags = interceptAddCmd.Flags()
 
 	interceptCmd.AddCommand(interceptAddCmd)
 	interceptCG := []CmdGroup{
