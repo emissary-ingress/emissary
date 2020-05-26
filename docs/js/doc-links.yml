@@ -43,14 +43,7 @@
           link: /docs/latest/topics/concepts/architecture
     - title: Using Ambassador
       link: /docs/latest/topics/using/
-      items:
-        - title: The Project Resource
-          link: /docs/latest/topics/using/projects
-          items:
-            - title: Configuring Authentication
-              link: /docs/latest/topics/using/project-authentication
-            - title: Customizing Deployment
-              link: /docs/latest/topics/using/project-customization
+      items: 
         - title: The Mapping Object
           link: /docs/latest/topics/using/intro-mappings
         - title: Mapping Configuration
