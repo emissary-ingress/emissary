@@ -240,7 +240,7 @@ This YAML is changing the StatsD container definition on our Deployment to use t
 
 ```yaml
       - name: statsd-sink
-        image: datawire/prom-statsd-exporter:0.6.0
+        image: docker.io/datawire/prom-statsd-exporter:0.6.0
       restartPolicy: Always
 ```
 
