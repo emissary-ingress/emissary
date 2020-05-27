@@ -3,6 +3,13 @@
 This file documents all notable changes to Ambassador Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
+## Next Release
+
+- AuthService and RateLimitService are now installed in the same namespace as Ambassador.
+- Changes RBAC permissions to better support single-namespace installations and detecting getambassador.io CRDs.
+- Add option to install Service Preview components (traffic-manager, traffic-agent).
+- Add option to install ambassador-injector, alongside Service Preview.
+
 ## v6.4.0
 
 - Add additional security policy configurations.

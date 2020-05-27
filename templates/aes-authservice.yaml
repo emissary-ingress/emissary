@@ -4,6 +4,7 @@ apiVersion: getambassador.io/v2
 kind: AuthService
 metadata:
   name: {{ include "ambassador.fullname" . }}-auth
+  namespace: {{ .Release.Namespace }}
   labels:
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     app.kubernetes.io/part-of: {{ .Release.Name }}
