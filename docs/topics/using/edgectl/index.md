@@ -283,7 +283,7 @@ spec:
     spec:
       containers:                   # Application container
         - name: hello
-          image: datawire/hello-world:latest
+          image: docker.io/datawire/hello-world:latest
           ports:
             - name: http
               containerPort: 8000   # Application port
@@ -331,7 +331,7 @@ spec:
     spec:
       containers:
         - name: hello               # Application container (note 2)
-          image: datawire/hello-world:latest
+          image: docker.io/datawire/hello-world:latest
           ports:
             - containerPort: 8000   # Application port
         - name: traffic-agent       # Traffic Agent container (note 3)
@@ -526,7 +526,7 @@ spec:
     spec:
       containers:                   # Application container
         - name: hello
-          image: datawire/hello-world:latest
+          image: docker.io/datawire/hello-world:latest
           ports:
             - name: http
               containerPort: 8000   # Application port unchanged, ambassador-injector will detect named ports `http` and `https` and reconfigure port settings on the Pod.
