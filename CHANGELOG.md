@@ -91,6 +91,8 @@ Format:
 ### Ambassador Edge Stack only
 
 - Feature: `edgectl upgrade` allows upgrading API Gateway installations to AES
+- Feature: `edgectl intercept` can generate preview-urls for Host resources that enabled the feature
+- Feature: `edgectl install` will now automatically install the Service Preview components (ambassador-injector, telepresence-proxy) and scoped RBAC
 - Feature: Rate-limited 429 responses now include the `Retry-After` header
 - Feature: The `JWT` Filter now makes `hasKey` and `doNotSet` functions available to header field templates; in order to facilitate only conditionally setting a header field.
 - Feature: The `OAuth2` Filter now has an `expirationSafetyMargin` setting that will cause an access token to be treated as expired sooner, in order to have a safety margin of time to send it to the upstream Resource Server that grants insufficient leeway.
