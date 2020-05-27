@@ -92,7 +92,7 @@ security:
 
 image:
   repository: docker.io/datawire/aes
-  tag: 1.4.3
+  tag: 1.5.0
   pullPolicy: IfNotPresent
 
 dnsPolicy: "ClusterFirst"

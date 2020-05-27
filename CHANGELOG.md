@@ -10,6 +10,10 @@ numbering uses [semantic versioning](http://semver.org).
 - Add option to install Service Preview components (traffic-manager, traffic-agent).
 - Add option to install ambassador-injector, alongside Service Preview.
 
+## v6.4.1
+
+- Upgrade Ambassador to version 1.5.0: [CHANGELOG}](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
+
 ## v6.4.0
 
 - Add additional security policy configurations.
