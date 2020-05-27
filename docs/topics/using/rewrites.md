@@ -53,13 +53,25 @@ would be "rewritten" as:
 http://service1<span style="color:red">/backend-api/</span><span style="color:green">foo/bar</span>
 </code>
 
-Ambassador can be configured to not change the prefix as it forwards a request to the upstream service. To do that, specify an empty `rewrite` directive:
+To prevent Ambassador rewrite the matched prefix to `/` by default, it can be configured to not change the prefix as it forwards a request to the upstream service. To do that, specify an empty `rewrite` directive:
 
 - `rewrite: ""`
 
+In this case requests that match the prefix <span style="color:red">/backend-api/</span> will be forwarded to the service without any rewriting:
+
+<code>
+http://ambassador.example.com<span style="color:red">/backend-api/</span><span style="color:green">foo/bar</span>
+</code>
+
+would be forwarded to:
+
+<code>
+http://service1<span style="color:red">/backend-api/</span><span style="color:green">foo/bar</span>
+</code>
+
 ## `regex_rewrite`
 
-In some cases, a portion of URL needs to be extracted before making the upstream service URL. For example, suppose that when a request is made to `foo/12345/list`, the target URL must be rewritten as `bar/12345`. We can do this as follows:
+In some cases, a portion of URL needs to be extracted before making the upstream service URL. For example, suppose that when a request is made to `foo/12345/list`, the target URL must be rewritten as `/bar/12345`. We can do this as follows:
 
 ```shell
 prefix: /foo/
@@ -67,8 +79,21 @@ regex_rewrite:
     pattern: '/foo/([0-9]*)/list'
     substitution: '/bar/\1'
 ```
-
 `([0-9]*)` can be replaced with `(\d)` for simplicity.
+
+<code>
+http://ambassador.example.com<span style="color:red">/foo/</span><span style="color:green">12345/list</span>
+</code>
+
+* ```prefix```: <span style="color:red">/foo/</span>
+* ```pattern```: <span style="color:green">/foo/<span style="color:DarkSlateBlue">12345</span>/list</span> where `12345` captured by `([0-9]*)`
+* ```substitution```:  <span style="color:brown">/bar/</span><span style="color:DarkSlateBlue">12345</span> where `12345` substituted by `\1`
+
+would be forwarded to:
+
+<code>
+http://service1<span style="color:brown">/bar/</span><span style="color:DarkSlateBlue">12345</span>
+</code>
 
 More than one group can be captured in the `pattern` to be referenced by `\2`, `\3` and `\n` in the `substitution` section.
 
