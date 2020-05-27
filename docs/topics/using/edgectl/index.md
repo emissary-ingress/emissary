@@ -424,11 +424,11 @@ spec:
     spec:
       containers:
         - name: webhook
-          image: quay.io/datawire/aes:$version$
+          image: docker.io/datawire/aes:$version$
           command: [ "aes-injector" ]
           env:
             - name: TRAFFIC_AGENT_IMAGE                # Mandatory. The Traffic Agent is included in the AES image.
-              value: quay.io/datawire/aes:$version$
+              value: docker.io/datawire/aes:$version$
             - name: TRAFFIC_AGENT_SERVICE_ACCOUNT_NAME # Optional. The Injector can configure the sidecar to use a specific ServiceAccount and service-account-token. if unspecified, the original Pod ServiceAccount is used.
               value: traffic-agent
             - name: TRAFFIC_AGENT_AGENT_LISTEN_PORT    # Optional. The port on which the Traffic Agent will listen. Defaults to "9900".
