@@ -55,10 +55,18 @@ jobs:
           at: /tmp/getambassador.io
       - run: ./.ci/website-preview-blc
 
+  "website-prod-publish":
+    <<: *website-job
+    steps:
+      - website-setup
+      - run: ./.ci/website-prod-publish
+
 workflows:
   # All of these filters assume that "Only build pull requests" is turned on at
   # https://app.circleci.com/settings/project/github/datawire/apro/advanced
-  "Docs":
+  # and that any non-'master' branches that we wish to run on are set up to be
+  # triggered by GitHub actions (see ".github/workflows/circleci-branches.yml").
+  "Docs: Dev":
     jobs:
       - "website-preview-build":
           filters:
@@ -77,8 +85,19 @@ workflows:
             branches:
               ignore:
                 - master
+                - /^release\/v1\.[0-9]+$/
       - "website-preview-blc":
           requires: ["website-preview-build"]
           # Just run this on 'master' and on PRs; don't bother with
           # prerelease tags; we already check those trees for broken
           # links from the PR.
+  "Docs: Release":
+    when:
+      equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
+    jobs:
+      - "website-prod-publish":
+          filters:
+            branches:
+              only:
+                - master
+                - /^release\/v1\.[0-9]+$/

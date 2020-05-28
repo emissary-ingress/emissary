@@ -147,26 +147,6 @@ For example, let's suppose version 1.4 of ambassador needs to be hosted.
   ```
   <DocFooter page={page} branch="release/v1.4" />
   ```
-  - Update `.travis.yml` to push on every doc change to `release/v1.4` branch.
-  ```yaml
-  deploy:
-  - provider: script
-    script: ./.ci/website-prod-publish
-    skip_cleanup: true
-    on:
-      branch: master
-  # Add this section
-  - provider: script
-    script: ./.ci/website-prod-publish
-    skip_cleanup: true
-    on:
-      branch: release/v1.4
-  - provider: script
-    script: ./.ci/website-prod-publish
-    skip_cleanup: true
-    on:
-      branch: release/v1.3
-  ```
 
 ##### In getambassador.io.git,
 - Add the submodule pointing to `release/v1.4` branch to the `submodules/1.4/` directory
