@@ -22,17 +22,7 @@ You will need:
 1. First, let's enable the `ProjectController` for your AES installation. This will give you access to the `Projects` tab in the `Edge Policy Console`. If you already see the `Projects` tab then you can skip this step:
 
 ```
-kubectl apply -f https://getambassador-preview.netlify.app/yaml/projects.yaml &&  \
-kubectl wait --for condition=established --timeout=90s crd -lproduct=aes && \
-kubectl apply -f - <<EOF && kubectl patch deployment ambassador -n ambassador -p "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"date\":\"`date +'%s'`\"}}}}}"
-apiVersion: getambassador.io/v2
-kind: ProjectController
-metadata:
-  labels:
-    projects.getambassador.io/ambassador_id: default
-  name: projectcontroller
-  namespace: ambassador
-EOF
+curl -L https://getambassador-preview.netlify.app/yaml/projects-install.sh | bash
 ```
 
 2. Run `edgectl login $YOUR_HOST` and click on the `Projects` tab.
