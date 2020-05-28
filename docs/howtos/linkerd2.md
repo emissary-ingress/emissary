@@ -99,7 +99,7 @@ You'll now register a demo application with Linkerd 2, and show how Ambassador E
         spec:
           containers:
           - name: qotm
-            image: datawire/qotm:$qotmVersion$
+            image: docker.io/datawire/qotm:$qotmVersion$
             ports:
             - name: http-api
               containerPort: 5000
