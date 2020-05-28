@@ -22,7 +22,7 @@ fi
 #     exit 0
 # fi
 
-# From ./ambassador/.ci/pr-build-website-preview master
+# From ./ambassador/.ci/website-preview-build master
 
 set -o xtrace
 set -o verbose
@@ -51,10 +51,10 @@ sed -e '/to="\/docs\/[0-9]/d' < src/components/Header/Header.js > H2.js && mv H2
 npm install
 npm run build
 
-# From ./ambassador/.ci/publish-website-preview master
+# From ./ambassador/.ci/website-preview-publish master
 
 if ! [[ -d /tmp/getambassador.io-${website_branch}/public ]]; then
-	echo '[publish-website-preview] skipping: website preview was not built'
+	echo '[website-preview-publish] skipping: website preview was not built'
 	exit 0
 fi
 
@@ -90,7 +90,7 @@ curl --fail \
 
 ${build_dir}/ambassador/.ci/install-blc
 
-# ...then continue with stuff from blc-website-preview
+# ...then continue with stuff from website-preview-blc
 
 set -o verbose
 

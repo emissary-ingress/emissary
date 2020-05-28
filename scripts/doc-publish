@@ -65,10 +65,10 @@ printf "${GRN}${BLD}==== Starting build${END}\n"
 
 npm run build
 
-# From ./ambassador/.ci/publish-website-preview master
+# From ./ambassador/.ci/website-preview-publish master
 
 if ! [[ -d /tmp/getambassador.io-${WEBSITE_BRANCH}/public ]]; then
-	echo '[publish-website-preview] skipping: website preview was not built'
+	echo '[website-preview-publish] skipping: website preview was not built'
 	exit 0
 fi
 
@@ -91,7 +91,7 @@ netlify deploy \
 DEPLOY_URL=$(python3 -c "import json; import sys; x=json.load(sys.stdin); print(x['deploy_url'])" < /tmp/netlify-deploy.json)
 printf "${GRN}${BLD}==== Deployed to ${END}${DEPLOY_URL}\n"
 
-# If you look in publish-website-preview, you'll see it post status to GitHub. Skip that
+# If you look in website-preview-publish, you'll see it post status to GitHub. Skip that
 # since we're not running inside Travis.
 
 printf "${GRN}${BLD}==== Installing BLC${END}\n"
@@ -100,7 +100,7 @@ printf "${GRN}${BLD}==== Installing BLC${END}\n"
 
 ${source_dir}/.ci/install-blc
 
-# ...then continue with stuff from blc-website-preview
+# ...then continue with stuff from website-preview-blc
 
 # set -o verbose
 

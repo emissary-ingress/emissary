@@ -66,9 +66,9 @@ install:
 
 script:
   #- docker pull ${DEV_REGISTRY}/builder:latest
-  - ./.ci/pr-build-website-preview master
-  - ./.ci/publish-website-preview master
-  - ./.ci/blc-website-preview master
+  - ./.ci/website-preview-build master
+  - ./.ci/website-preview-publish master
+  - ./.ci/website-preview-blc master
   - ./releng/travis-script.sh
 
 after_script:
@@ -79,12 +79,12 @@ after_script:
 deploy:
   # publish to getambassador.io
   - provider: script
-    script: ./.ci/publish-website
+    script: ./.ci/website-prod-publish
     skip_cleanup: true
     on:
       branch: master
   - provider: script
-    script: ./.ci/publish-website
+    script: ./.ci/website-prod-publish
     skip_cleanup: true
     on:
       branch: release/v1.5
@@ -94,7 +94,7 @@ deploy:
     on:
       branch: release/v1.4
   - provider: script
-    script: ./.ci/publish-website
+    script: ./.ci/website-prod-publish
     skip_cleanup: true
     on:
       branch: release/v1.3

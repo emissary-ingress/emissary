@@ -151,18 +151,18 @@ For example, let's suppose version 1.4 of ambassador needs to be hosted.
   ```yaml
   deploy:
   - provider: script
-    script: ./.ci/publish-website
+    script: ./.ci/website-prod-publish
     skip_cleanup: true
     on:
       branch: master
   # Add this section
   - provider: script
-    script: ./.ci/publish-website
+    script: ./.ci/website-prod-publish
     skip_cleanup: true
     on:
       branch: release/v1.4
   - provider: script
-    script: ./.ci/publish-website
+    script: ./.ci/website-prod-publish
     skip_cleanup: true
     on:
       branch: release/v1.3

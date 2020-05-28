@@ -20,7 +20,7 @@ set -o nounset
 website_branch=${1:-master}
 
 if ! [[ -d /tmp/getambassador.io-${website_branch}/public ]]; then
-	echo '[publish-website-preview] skipping: website preview was not built'
+	echo "[${0##*/}] skipping: website preview was not built"
 	exit 0
 fi
 
