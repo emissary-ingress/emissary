@@ -38,8 +38,9 @@ python3 --version
 
 # In the Real World, we use git submodule to update all the docs, but for our purposes here, we're
 # not "really" building all the docs -- we just want a single preview.
-rm -rf submodules/*
-mkdir submodules/latest
+# rm -rf submodules/*
+# mkdir submodules/latest
+rm -rf submodules/latest
 cp -prv $build_dir/ambassador/docs submodules/latest/docs
 
 # Since we only want the one preview, toss out links to other versions from the header...

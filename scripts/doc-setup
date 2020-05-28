@@ -50,8 +50,10 @@ cd "${WEBSITE_DIR}"
 
 # In the Real World, we use git submodule to update all the docs, but for our purposes here, we're
 # not "really" building all the docs -- we just want a single preview.
-rm -rf submodules/*
-mkdir -p submodules/latest/docs
+# rm -rf submodules/*
+# mkdir submodules/latest
+rm -rf submodules/latest
+cp -prv $build_dir/ambassador/docs submodules/latest/docs
 
 (cd "$source_dir" && bash ${root_dir}/doc-sync "${WEBSITE_DIR}")
 
