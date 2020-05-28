@@ -65,7 +65,7 @@ printf "${GRN}${BLD}==== Starting build${END}\n"
 
 npm run build
 
-# From ./ambassador/.ci/website-preview-publish master
+# From ./ambassador/.ci/website-preview-publish
 
 if ! [[ -d /tmp/getambassador.io-${WEBSITE_BRANCH}/public ]]; then
 	echo '[website-preview-publish] skipping: website preview was not built'

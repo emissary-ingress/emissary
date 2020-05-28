@@ -22,17 +22,16 @@ fi
 #     exit 0
 # fi
 
-# From ./ambassador/.ci/website-preview-build master
+# From ./ambassador/.ci/website-preview-build
 
 set -o xtrace
 set -o verbose
 
-website_branch=master
 build_dir=$(pwd)
 
-rm -rf "/tmp/getambassador.io-${website_branch}"
-git clone --single-branch --branch="$website_branch" https://d6e-automaton:${GH_TOKEN}@github.com/datawire/getambassador.io.git "/tmp/getambassador.io-${website_branch}"
-cd "/tmp/getambassador.io-${website_branch}"
+rm -rf "/tmp/getambassador.io"
+git clone --single-branch https://d6e-automaton:${GH_TOKEN}@github.com/datawire/getambassador.io.git "/tmp/getambassador.io"
+cd "/tmp/getambassador.io"
 git submodule update --init
 pyenv local 3.7.0
 python3 --version
@@ -51,9 +50,9 @@ sed -e '/to="\/docs\/[0-9]/d' < src/components/Header/Header.js > H2.js && mv H2
 npm install
 npm run build
 
-# From ./ambassador/.ci/website-preview-publish master
+# From ./ambassador/.ci/website-preview-publish
 
-if ! [[ -d /tmp/getambassador.io-${website_branch}/public ]]; then
+if ! [[ -d /tmp/getambassador.io/public ]]; then
 	echo '[website-preview-publish] skipping: website preview was not built'
 	exit 0
 fi
@@ -61,8 +60,8 @@ fi
 npm install netlify-cli -g
 
 netlify deploy \
-	--dir="/tmp/getambassador.io-${website_branch}/public" \
-	--message="ambassador.git preview $website_branch (pipeline $PIPELINE_ID)" \
+	--dir="/tmp/getambassador.io/public" \
+	--message="ambassador.git preview (pipeline $PIPELINE_ID)" \
 	--site=1d6f5395-6386-49af-8b47-e85aa28488f8 \
 	--auth="${NETLIFY_AUTH_TOKEN}" \
 	--json \
@@ -75,7 +74,7 @@ cat >/tmp/github-status.json <<EOF
   "context": "website-preview",
   "state": "success",
   "target_url": $(jq .deploy_url </tmp/netlify-deploy.json),
-  "description": "Website ${website_branch} preview"
+  "description": "Website preview"
 }
 EOF
 
@@ -94,7 +93,7 @@ ${build_dir}/ambassador/.ci/install-blc
 
 set -o verbose
 
-pushd "/tmp/getambassador.io-$website_branch/public"
+pushd "/tmp/getambassador.io/public"
 python3 -m http.server 2>/dev/null &
 trap "kill $!" EXIT
 popd
@@ -109,11 +108,11 @@ GRN=$'\033[1;32m'
 BLD=$'\033[1m'
 END=$'\033[0m'
 if [[ $num_complaints -eq 0 ]]; then
-	printf "%s======================= 0 broken-link-checker complaints for %s =======================%s\n" "$GRN$BLD" "$website_branch" "$END"
+	printf "%s======================= 0 broken-link-checker complaints =======================%s\n" "$GRN$BLD" "$END"
 else
-	printf "%s======================= %d broken-link-checker complaints for %s ======================%s\n" "$RED$BLD" $num_complaints "$website_branch" "$END"
+	printf "%s======================= %d broken-link-checker complaints ======================%s\n" "$RED$BLD" $num_complaints "$END"
 	grep ^Page /tmp/blc.txt | sort -u
-	printf "%s====================== end broken-link-checker complaints for %s ======================%s\n" "$RED$BLD" "$website_branch" "$END"
+	printf "%s====================== end broken-link-checker complaints ======================%s\n" "$RED$BLD" "$END"
 	exit $num_complaints
 fi
 

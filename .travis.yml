@@ -66,9 +66,9 @@ install:
 
 script:
   #- docker pull ${DEV_REGISTRY}/builder:latest
-  - ./.ci/website-preview-build master
-  - ./.ci/website-preview-publish master
-  - ./.ci/website-preview-blc master
+  - ./.ci/website-preview-build
+  - ./.ci/website-preview-publish
+  - ./.ci/website-preview-blc
   - ./releng/travis-script.sh
 
 after_script:
