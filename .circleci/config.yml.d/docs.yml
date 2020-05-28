@@ -1,0 +1,40 @@
+version: 2.1
+
+# Secure environment variables set from the Web UI:
+# - NETLIFY_AUTH_TOKEN (Netlify)
+# - GH_TOKEN (GitHub)
+
+commands:
+
+  "docs":
+    machine:
+      # If you bump this, be sure to bump install-python.executor-key
+      # below.
+      image: "ubuntu-1604:201903-01"
+    environment:
+      GIT_BASE_COMMIT: << pipeline.git.base_revision >>
+      GIT_HEAD_COMMIT: << pipeline.git.revision >>
+      PIPELINE_ID: << pipeline.id >>
+    steps:
+      - install-node:
+          version: "11"
+      - run:
+          name: "Show environment"
+          command: |
+            env | grep -e GIT -e TRAVIS -e CIRCLE | sort
+      - checkout
+      - run:
+          name: "Build Docs"
+          command: |
+            ./ambassador/.ci/website-preview-circle
+
+workflows:
+  # All of these filters assume that "Only build pull requests" is turned on at
+  # https://app.circleci.com/settings/project/github/datawire/apro/advanced
+  "Docs":
+    jobs:
+      - "docs":
+          # Run this on prerelease tags (in addition to 'master' and PRs)
+          filters:
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+-.*/

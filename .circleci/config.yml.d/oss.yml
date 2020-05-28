@@ -1,0 +1,108 @@
+version: 2.1
+
+# Secure environement variables set from the Web UI:
+# - DEPLOY_KEY_ID (AWS S3)
+# - DEPLOY_KEY (AWS S3)
+#
+# - DEV_REGISTRY (DockerHub)
+# - DOCKER_BUILD_USERNAME (DockerHub)
+# - DOCKER_BUILD_PASSWORD (DockerHub)
+#
+# - RELEASE_REGISTRY (DockerHub)
+# - DOCKER_RELEASE_USERNAME (DockerHub) (optional)
+# - DOCKER_RELEASE_PASSWORD (DockerHub) (optional)
+#
+# - KUBERNAUT_TOKEN (Kubernaut)
+
+commands:
+
+  "oss-main":
+    steps:
+      - checkout:
+          path: ~/project
+      - run:
+          name: "Check Make Test"
+          command: |
+            set -x
+            set +o pipefail # Our make invocation below will always "fail", so clear pipefail.
+            test_targets=$(make -n noop --print-data-base 2>/dev/null | egrep '^test:' | sed -e s'/^test: *//' | tr ' ' '\n' | sort | tr '\n' ' ' | sed -e 's/ $//')
+            if [ "$test_targets" != "gotest ingresstest pytest" ]; then
+              echo "Test target has changed to $test_targets, you need to update Circle" >&2
+              exit 1
+            fi
+      - run:
+          name: "Build"
+          command: |
+            docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY%%/*}"
+            ./.ci/kubernaut-claim
+            export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
+            make push
+      - run:
+          name: "Go Tests"
+          command: |
+            export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
+            make gotest
+      - run:
+          name: "KAT"
+          command: |
+            export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
+            export DEV_KUBE110=yes
+            export DEV_KUBE_NO_PVC=yes
+            export KAT_REQ_LIMIT=600
+            make pytest-only
+      # We might want to run ingress-conformance tests in AES in the future
+      # This would require we install `kind` on circleci and that the test suite
+      # supports HTTP to HTTPS redirects (AES enables cleartext redirection by
+      # default, even for fallback hosts, contrary to AOSS)
+      # - run:
+      #     name: "Ingress Conformance Tests"
+      #     command: |
+      #       export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
+      #       export DEV_KUBE110=yes
+      #       make ingresstest
+      - run:
+          command: "./.ci/kubernaut-unclaim"
+          when: "always"
+      - dirty-check
+      # - run:
+      #     name: "Release"
+      #     command: |
+      #       if [[ -z "$CIRCLE_TAG" ]]; then
+      #           echo 'Skipping for non-tagged build'
+      #           exit 0
+      #       fi
+      #       export AWS_ACCESS_KEY_ID=$DEPLOY_KEY_ID
+      #       export AWS_SECRET_ACCESS_KEY=$DEPLOY_KEY
+      #       if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
+      #           docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
+      #       fi
+      #       DEV_KUBECONFIG="-skip-for-release-" make release/bits
+      # - oss-save-logs
+
+jobs:
+  "oss-main":
+    machine:
+      # If you bump this, be sure to bump install-python.executor-key
+      # below.
+      image: "ubuntu-1604:201903-01"
+    working_directory: ~/project/ambassador
+    steps:
+      - pip-install:
+          packages: awscli
+      - install-go
+      - install-kubectl
+      - install-node
+      - install-python:
+          executor-key: "201903-01"
+      - oss-main
+
+workflows:
+  # All of these filters assume that "Only build pull requests" is turned on at
+  # https://app.circleci.com/settings/project/github/datawire/apro/advanced
+  "OSS":
+    jobs:
+      - "oss-main":
+          # Run this on prerelease tags (in addition to 'master' and PRs)
+          filters:
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+-.*/
