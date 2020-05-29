@@ -4,6 +4,8 @@
 
 cert-manager is still required for DNS-01 challenges for wildcard domains and when using Ambassador OSS. 
 
+**Note:** Cert-manager release v0.15 removed legacy CRD support.  This document has been updated to use CRD standards specified in v0.15 and tested with Ambassador v1.4.2.
+
 ---
 
 Creating and managing certificates in Kubernetes is made simple with Jetstack's [cert-manager](https://github.com/jetstack/cert-manager). Cert-manager will automatically create and renew TLS certificates and store them in Kubernetes secrets for easy use in a cluster. Ambassador will automatically watch for secret changes and reload certificates upon renewal.
@@ -14,14 +16,17 @@ Note: Ambassador Edge Stack will automatically create and renew TLS certificates
 
 There are many different ways to [install cert-manager](https://docs.cert-manager.io/en/latest/getting-started/install.html). For simplicity, we will use Helm.
 
-1. Install cert-manager
+1. Add the `jetstack` repository.
+  ```bash
+  helm repo add jetstack https://charts.jetstack.io && helm repo update
+  ```
 
-```
-kubectl create ns cert-manager
-kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v0.11.1/cert-manager-no-webhook.yaml
-```
+2. Install cert-manager
 
-**Note:** The resource validation webhook is not mandatory, but if implemented, requires additional configuration.
+  ```
+  kubectl create ns cert-manager
+  helm install cert-manager --namespace cert-manager --set installCRDs=true
+  ```
 
 ## Issuing Certificates
 
@@ -47,7 +52,7 @@ The DNS-01 challenge verifies domain ownership by proving you have control over 
 
 1. Create the IAM policy specified in the cert-manager [AWS Route53](https://cert-manager.readthedocs.io/en/latest/tasks/acme/configuring-dns01/route53.html) documentation.
 
-2. Note the `accessKeyID` and create a secret named `prod-route53-credentials-secret` holding the `secret-access-key`.
+2. Note the `accessKeyID` and create a secret named `cert-manager-route-53` holding the `secret-access-key`.
 
 3. Create and apply a `ClusterIssuer`:
 
@@ -57,26 +62,27 @@ The DNS-01 challenge verifies domain ownership by proving you have control over 
     kind: ClusterIssuer
     metadata:
       name: letsencrypt-prod
-      namespace: default
     spec:
       acme:
-        email: example@example.com
+        email: email@example.com
         server: https://acme-v02.api.letsencrypt.org/directory
         privateKeySecretRef:
           name: letsencrypt-prod
-        dns01:
-          providers:
-          - name: route53
+        solvers:
+        - selector:
+            dnsZones:
+              - "myzone.route53.com"
+          dns01:
             route53:
               region: us-east-1
-              accessKeyID: {SECRET_KEY}
+              accessKeyID: {User Access Key}
+              hostedZoneID: {Hosted Zone ID} # optional, allows you to reduce the scope of permissions in Amazon IAM
               secretAccessKeySecretRef:
-                name: prod-route53-credentials-secret
+                name: cert-manager-route-53
                 key: secret-access-key
     ```
 
 4. Create and apply a certificate:
-
 
     ```yaml
     ---
@@ -84,21 +90,20 @@ The DNS-01 challenge verifies domain ownership by proving you have control over 
     kind: Certificate
     metadata:
       name: ambassador-certs
-      namespace: default
+      # cert-manager will put the resulting Secret in the same Kubernetes namespace
+      # as the Certificate. Therefore you should put this Certificate in the same namespace as Ambassador.
+      # eg. if you deploy ambassador to ambassador namespace, you need to change to namespace: ambassador
+      namespace: ambassador
     spec:
+      # naming the secret name certificate ambassador-certs is important because
+      # ambassador just look for this particular name
       secretName: ambassador-certs
       issuerRef:
         name: letsencrypt-prod
         kind: ClusterIssuer
-      commonName: example.com
+      commonName: myzone.route53.com
       dnsNames:
-      - example.com
-      acme:
-        config:
-        - dns01:
-            provider: route53
-          domains:
-          - example.com
+      - myzone.route53.com
     ```
 
 5. Verify the secret is created
@@ -125,12 +130,10 @@ The HTTP-01 challenge verifies ownership of the domain by sending a request for 
       name: letsencrypt-prod
     spec:
       acme:
-        email: example@example.com
+        email: email@example.com
         server: https://acme-v02.api.letsencrypt.org/directory
         privateKeySecretRef:
           name: letsencrypt-prod
-        http01:
-          serviceType: ClusterIP
         solvers:
         - http01:
             ingress:
@@ -149,7 +152,7 @@ The HTTP-01 challenge verifies ownership of the domain by sending a request for 
       # cert-manager will put the resulting Secret in the same Kubernetes namespace
       # as the Certificate. Therefore you should put this Certificate in the same namespace as Ambassador.
       # eg. if you deploy ambassador to ambassador namespace, you need to change to namespace: ambassador
-      namespace: default
+      namespace: ambassador
     spec:
       # naming the secret name certificate ambassador-certs is important because
       # ambassador just look for this particular name
@@ -159,12 +162,6 @@ The HTTP-01 challenge verifies ownership of the domain by sending a request for 
         kind: ClusterIssuer
       dnsNames:
       - example.com
-      acme:
-        config:
-        - http01:
-            ingressClass: nginx
-          domains:
-          - example.com
     ```
 
 3. Apply both the `ClusterIssuer` and `Certificate`
