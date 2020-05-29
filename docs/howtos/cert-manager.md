@@ -1,10 +1,8 @@
 # Cert-Manager and Ambassador Edge Stack
 
-**Note:** The Ambassador Edge Stack can issue and manage certificate with the ACME HTTP-01 challenge.
+**Note:** Cert-manager release v0.15 removed legacy CRD support.  This document has been updated to use CRD standards specified in v0.15.
 
 cert-manager is still required for DNS-01 challenges for wildcard domains and when using Ambassador OSS. 
-
-**Note:** Cert-manager release v0.15 removed legacy CRD support.  This document has been updated to use CRD standards specified in v0.15 and tested with Ambassador v1.4.2.
 
 ---
 
@@ -17,16 +15,16 @@ Note: Ambassador Edge Stack will automatically create and renew TLS certificates
 There are many different ways to [install cert-manager](https://docs.cert-manager.io/en/latest/getting-started/install.html). For simplicity, we will use Helm.
 
 1. Add the `jetstack` repository.
-  ```bash
-  helm repo add jetstack https://charts.jetstack.io && helm repo update
-  ```
+    ```bash
+    helm repo add jetstack https://charts.jetstack.io && helm repo update
+    ```
 
 2. Install cert-manager
 
-  ```
-  kubectl create ns cert-manager
-  helm install cert-manager --namespace cert-manager --set installCRDs=true
-  ```
+    ```
+    kubectl create ns cert-manager
+    helm install cert-manager --namespace cert-manager --set installCRDs=true
+    ```
 
 ## Issuing Certificates
 
@@ -42,7 +40,7 @@ A [Certificate](https://cert-manager.readthedocs.io/en/latest/reference/certific
 
 By duplicating issuers, certificates, and secrets one can support multiple domains with [SNI](../../topics/running/tls/sni).
 
-### Challenge
+## Challenge
 
 cert-manager supports two kinds of ACME challenges that verify domain ownership in different ways: HTTP-01 and DNS-01.
 
@@ -116,7 +114,7 @@ The DNS-01 challenge verifies domain ownership by proving you have control over 
     default-token-4l772      kubernetes.io/service-account-token   3         2h
     ```
 
-#### HTTP-01 Challenge
+### HTTP-01 Challenge
 
 The HTTP-01 challenge verifies ownership of the domain by sending a request for a specific file on that domain. cert-manager accomplishes this by sending a request to a temporary pod with the prefix `/.well-known/acme-challenge/`. To perform this challenge:
 
