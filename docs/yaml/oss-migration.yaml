@@ -158,7 +158,7 @@ spec:
               value: https://127.0.0.1:8443
             - name: AMBASSADOR_ADMIN_URL
               value: http://127.0.0.1:8877
-          image: datawire/aes:$version$
+          image: docker.io/datawire/aes:$version$
           imagePullPolicy: Always
           livenessProbe:
             httpGet:

@@ -308,7 +308,7 @@ spec:
             path: mapping-config.yaml
       containers:
       - name: ambassador
-        image: datawire/ambassador:$version$
+        image: docker.io/datawire/ambassador:$version$
         resources:
           limits:
             cpu: 1
