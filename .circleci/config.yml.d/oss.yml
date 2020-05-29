@@ -1,18 +1,17 @@
 version: 2.1
 
 # Secure environement variables set from the Web UI:
-# - DEPLOY_KEY_ID (AWS S3)
-# - DEPLOY_KEY (AWS S3)
+#
+# - AWS_ACCESS_KEY_ID (AWS S3)
+# - AWS_SECRET_ACCESS_KEY (AWS S3)
 #
 # - DEV_REGISTRY (DockerHub)
 # - DOCKER_BUILD_USERNAME (DockerHub)
 # - DOCKER_BUILD_PASSWORD (DockerHub)
 #
 # - RELEASE_REGISTRY (DockerHub)
-# - DOCKER_RELEASE_USERNAME (DockerHub) (optional)
-# - DOCKER_RELEASE_PASSWORD (DockerHub) (optional)
-#
-# - KUBERNAUT_TOKEN (Kubernaut)
+# - DOCKER_RELEASE_USERNAME (DockerHub)
+# - DOCKER_RELEASE_PASSWORD (DockerHub)
 
 commands:
 
@@ -71,11 +70,7 @@ commands:
       #           echo 'Skipping for non-tagged build'
       #           exit 0
       #       fi
-      #       export AWS_ACCESS_KEY_ID=$DEPLOY_KEY_ID
-      #       export AWS_SECRET_ACCESS_KEY=$DEPLOY_KEY
-      #       if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
-      #           docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
-      #       fi
+      #       docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
       #       DEV_KUBECONFIG="-skip-for-release-" make release/bits
       # - oss-save-logs
 
