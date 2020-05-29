@@ -33,14 +33,13 @@ build_dir=$(pwd)
 rm -rf "/tmp/getambassador.io-${website_branch}"
 git clone --single-branch --branch="$website_branch" https://d6e-automaton:${GH_TOKEN}@github.com/datawire/getambassador.io.git "/tmp/getambassador.io-${website_branch}"
 cd "/tmp/getambassador.io-${website_branch}"
+git submodule update --init
 pyenv local 3.7.0
 python3 --version
 
-# In the Real World, we use git submodule to update all the docs, but for our purposes here, we're
-# not "really" building all the docs -- we just want a single preview.
-# rm -rf submodules/*
-# mkdir submodules/latest
+# Swap out the "latest" info for our stuff.
 rm -rf submodules/latest
+mkdir submodules/latest
 cp -prv $build_dir/ambassador/docs submodules/latest/docs
 
 # Since we only want the one preview, toss out links to other versions from the header...
