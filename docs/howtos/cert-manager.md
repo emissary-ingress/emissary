@@ -12,7 +12,7 @@ Note: Ambassador Edge Stack will automatically create and renew TLS certificates
 
 ## Install Cert-Manager
 
-There are many different ways to [install cert-manager](https://docs.cert-manager.io/en/latest/getting-started/install.html). For simplicity, we will use Helm.
+There are many different ways to [install cert-manager](https://docs.cert-manager.io/en/latest/getting-started/install.html). For simplicity, we will use Helm v3.
 
 1. Add the `jetstack` repository.
     ```bash
