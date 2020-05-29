@@ -1,6 +1,6 @@
 # Cert-Manager and Ambassador Edge Stack
 
-**Note:** Cert-manager release v0.15 removed legacy CRD support.  This document has been updated to use CRD standards specified in v0.15.
+**Note:** Cert-manager release v0.15 [removed legacy CRD support](https://cert-manager.io/docs/installation/upgrading/upgrading-0.14-0.15/).  This document has been updated to use CRD standards specified in v0.15.  For more details about upgrading existing installations of cert-manager, see the [Upgrading](https://cert-manager.io/docs/installation/upgrading/) page
 
 cert-manager is still required for DNS-01 challenges for wildcard domains and when using Ambassador OSS. 
 
@@ -15,15 +15,20 @@ Note: Ambassador Edge Stack will automatically create and renew TLS certificates
 There are many different ways to [install cert-manager](https://docs.cert-manager.io/en/latest/getting-started/install.html). For simplicity, we will use Helm v3.
 
 1. Add the `jetstack` repository.
-    ```bash
+    ```shell
     helm repo add jetstack https://charts.jetstack.io && helm repo update
     ```
 
-2. Install cert-manager
-
+2. Apply cert-manager CRD manifest.
+    ```shell
+    kubectl apply -f https://github.com/jetstack/cert-manager/releases/latest/download/cert-manager.crds.yaml
     ```
+
+3. Install cert-manager.
+
+    ```shell
     kubectl create ns cert-manager
-    helm install cert-manager --namespace cert-manager --set installCRDs=true
+    helm install cert-manager --namespace cert-manager jetstack/cert-manager
     ```
 
 ## Issuing Certificates
@@ -50,9 +55,9 @@ The DNS-01 challenge verifies domain ownership by proving you have control over 
 
 1. Create the IAM policy specified in the cert-manager [AWS Route53](https://cert-manager.readthedocs.io/en/latest/tasks/acme/configuring-dns01/route53.html) documentation.
 
-2. Note the `accessKeyID` and create a secret named `cert-manager-route-53` holding the `secret-access-key`.
+2. Note the `accessKeyID` and create a `secret` named `prod-route53-credentials-secret` in the cert-manager namespace that has a key value: `secret-access-key` from your AWS IaM credentials.
 
-3. Create and apply a `ClusterIssuer`:
+3. Create and apply a `ClusterIssuer`.  Make sure that the `Issuer` and the `secret` are in the same namespace.
 
     ```yaml
     ---
@@ -73,14 +78,14 @@ The DNS-01 challenge verifies domain ownership by proving you have control over 
           dns01:
             route53:
               region: us-east-1
-              accessKeyID: {User Access Key}
+              accessKeyID: {accessKeyID}
               hostedZoneID: {Hosted Zone ID} # optional, allows you to reduce the scope of permissions in Amazon IAM
               secretAccessKeySecretRef:
-                name: cert-manager-route-53
+                name: prod-route54-credentials-secret
                 key: secret-access-key
     ```
 
-4. Create and apply a certificate:
+4. Create and apply a `Certificate`.  Make sure the `Certificate` is in the same namespace as Ambassador.
 
     ```yaml
     ---
@@ -104,21 +109,20 @@ The DNS-01 challenge verifies domain ownership by proving you have control over 
       - myzone.route53.com
     ```
 
-5. Verify the secret is created
+5. Verify the secret is created.
 
     ```shell
-    $ kubectl get secrets
+    $ kubectl get secrets -n ambassador
     NAME                     TYPE                                  DATA      AGE
     ambassador-certs         kubernetes.io/tls                     2         1h
-    ambassador-token-846d5   kubernetes.io/service-account-token   3         2h
-    default-token-4l772      kubernetes.io/service-account-token   3         2h
+    ambassador-token-846d5   kubernetes.io/
     ```
 
 ### HTTP-01 Challenge
 
 The HTTP-01 challenge verifies ownership of the domain by sending a request for a specific file on that domain. cert-manager accomplishes this by sending a request to a temporary pod with the prefix `/.well-known/acme-challenge/`. To perform this challenge:
 
-1. Create a `ClusterIssuer`:
+1. Create and apply a `ClusterIssuer`.
 
     ```yaml
     ---
@@ -139,7 +143,7 @@ The HTTP-01 challenge verifies ownership of the domain by sending a request for 
           selector: {}
     ```
 
-2. Configure a `Certificate` to use this `ClusterIssuer`:
+2. Create and apply a `Certificate`.  Make sure the `Certificate` is in the same namespace as Ambassador.
 
     ```yaml
     ---
@@ -217,5 +221,4 @@ The HTTP-01 challenge verifies ownership of the domain by sending a request for 
     NAME                     TYPE                                  DATA      AGE
     ambassador-certs         kubernetes.io/tls                     2         1h
     ambassador-token-846d5   kubernetes.io/service-account-token   3         2h
-    default-token-4l772      kubernetes.io/service-account-token   3         2h
     ```
