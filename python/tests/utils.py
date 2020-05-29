@@ -42,7 +42,7 @@ spec:
       serviceAccountName: ambassador
       containers:
       - name: qotm
-        image: datawire/qotm:1.3
+        image: docker.io/datawire/qotm:1.3
         imagePullPolicy: Always
         ports:
         - name: http-api

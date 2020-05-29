@@ -87,6 +87,11 @@ deploy:
     script: ./.ci/publish-website
     skip_cleanup: true
     on:
+      branch: release/v1.5
+  - provider: script
+    script: ./.ci/publish-website
+    skip_cleanup: true
+    on:
       branch: release/v1.4
   - provider: script
     script: ./.ci/publish-website
