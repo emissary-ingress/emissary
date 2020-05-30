@@ -17,8 +17,7 @@ commands:
 
   "oss-main":
     steps:
-      - checkout:
-          path: ~/project
+      - oss-checkout
       - run:
           name: "Check Make Test"
           command: |

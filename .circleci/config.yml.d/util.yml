@@ -91,6 +91,28 @@ commands:
           paths:
             - "/opt/circleci/.pyenv"
 
+  ##############################################################################
+  # Ambassador-specific granular commands                                      #
+  ##############################################################################
+
+  "oss-checkout":
+    steps:
+      - when:
+          condition:
+            equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
+          steps:
+            - checkout:
+                path: ~/project/ambassador
+      - when:
+          condition:
+            equal: [ "https://github.com/datawire/apro", << pipeline.project.git_url >> ]
+          steps:
+            - run:
+                working_directory: ~/project
+                command: rmdir ~/project/ambassador
+            - checkout:
+                path: ~/project
+
   "dirty-check":
     steps:
       - run:
