@@ -33,9 +33,3 @@ git clone -b master "$remote_url" /tmp/getambassador.io
 cd /tmp/getambassador.io
 npm run pull-docs
 git push origin master
-
-rm -rf "$PWD-esu"
-git worktree add "$PWD-esu" Edge-stack-update || exit 0
-cd "$PWD-esu"
-npm run pull-docs
-git push origin Edge-stack-update
