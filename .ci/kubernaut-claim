@@ -30,7 +30,7 @@ chmod +x ~/bin/kubernaut
 # Configure kubernaut
 base64 -d < "${0%/*}/kconf.b64" | ( cd ~ ; tar xzf - )
 # Grab a kubernaut cluster
-CLAIM_NAME=kat-${USER}-$(uuidgen)
+CLAIM_NAME=ci-${USER}-$(uuidgen)
 DEV_KUBECONFIG=~/.kube/${CLAIM_NAME}.yaml
 echo $CLAIM_NAME > ~/kubernaut-claim.txt
 kubernaut claims delete ${CLAIM_NAME}
