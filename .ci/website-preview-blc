@@ -22,12 +22,6 @@ if ! [[ -d /tmp/getambassador.io/public ]]; then
 	exit 0
 fi
 
-if [[ -n "$TRAVIS_PULL_REQUEST_SHA" ]]; then
-	build_type=pr
-else
-	build_type=push
-fi
-
 set -o verbose
 
 pushd /tmp
@@ -57,32 +51,5 @@ else
 	printf "%s======================= %d broken-link-checker complaints ======================%s\n" "$RED$BLD" $num_complaints "$END"
 	grep ^Page /tmp/blc.txt | sort -u
 	printf "%s====================== end broken-link-checker complaints ======================%s\n" "$RED$BLD" "$END"
+	exit 1
 fi
-
-if [[ -z "${GH_TOKEN:-}" ]]; then
-	if [[ $num_complaints -eq 0 ]]; then
-		exit 0
-	else
-		exit 1
-	fi
-fi
-
-set -o verbose
-
-cat >/tmp/github-status.json <<EOF
-{
-  "context": "broken-link-check/${build_type}",
-  "state": "$(if [[ $num_complaints -eq 0 ]]; then echo success; else echo failure; fi)",
-  "target_url": "${TRAVIS_JOB_WEB_URL}",
-  "description": "Found ${num_complaints} bad links in the website preview"
-}
-EOF
-
-cat /tmp/github-status.json
-
-curl --fail \
-	-H "Accept: application/json" \
-	-H "Content-Type: application/json" \
-	-X POST \
-	--data '@/tmp/github-status.json' \
-	"https://${GH_TOKEN}@api.github.com/repos/datawire/ambassador/statuses/${TRAVIS_PULL_REQUEST_SHA:-${TRAVIS_COMMIT}}"

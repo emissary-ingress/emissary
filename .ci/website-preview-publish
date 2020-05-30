@@ -22,7 +22,7 @@ if ! [[ -d /tmp/getambassador.io/public ]]; then
 	exit 0
 fi
 
-if [[ -n "${CIRCLE_PULL_REQUESTS:-${TRAVIS_PULL_REQUEST_SHA:-}}" ]]; then
+if [[ -n "$CIRCLE_PULL_REQUESTS" ]]; then
 	build_type=pr
 else
 	build_type=push
@@ -34,7 +34,7 @@ npm install netlify-cli -g
 
 netlify deploy \
 	--dir="/tmp/getambassador.io/public" \
-	--message="ambassador.git preview ${CIRCLE_BUILD_URL:-${TRAVIS_JOB_WEB_URL}}" \
+	--message="ambassador.git preview ${CIRCLE_BUILD_URL}" \
 	--site=1d6f5395-6386-49af-8b47-e85aa28488f8 \
 	--auth="${NETLIFY_AUTH_TOKEN}" \
 	--json \
@@ -56,4 +56,4 @@ curl --fail \
 	-H "Content-Type: application/json" \
 	-X POST \
 	--data '@/tmp/github-status.json' \
-	"https://${GH_TOKEN}@api.github.com/repos/datawire/${CIRCLE_PROJECT_REPONAME:-${TRAVIS_REPO_SLUG#*/}/statuses/${CIRCLE_SHA1:-${TRAVIS_PULL_REQUEST_SHA:-${TRAVIS_COMMIT}}}"
+	"https://${GH_TOKEN}@api.github.com/repos/datawire/${CIRCLE_PROJECT_REPONAME}/statuses/${CIRCLE_SHA1}"

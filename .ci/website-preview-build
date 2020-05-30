@@ -36,7 +36,7 @@ cd "/tmp/getambassador.io"
 git submodule update --init --reference="$git_workdir"
 # Swap out the "latest" info for our stuff.  We do this with a dumb
 # `rm`/`cp` rather than a simple checkout
-#     $ git -C submodules/latest checkout "${TRAVIS_COMMIT:-$CIRCLE_SHA1}"
+#     $ git -C submodules/latest checkout "$CIRCLE_SHA1"
 # because we might be in apro.git instead of ambassador.git, and I
 # don't want to deal with having to do a subtree split here.
 rm -rf submodules/latest
