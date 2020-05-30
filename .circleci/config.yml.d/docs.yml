@@ -4,36 +4,43 @@ version: 2.1
 # - NETLIFY_AUTH_TOKEN (Netlify)
 # - GH_TOKEN (GitHub)
 
+_anchors:
+  "website-job": &website-job
+    machine:
+      # If you bump this, be sure to bump "install-python.executor-key"
+      # in the "website-setup" command below.
+      image: "ubuntu-1604:201903-01"
+    working_directory: ~/project
+
 commands:
 
-  "docs":
-    machine:
-      # If you bump this, be sure to bump install-python.executor-key
-      # below.
-      image: "ubuntu-1604:201903-01"
-    environment:
-      GIT_BASE_COMMIT: << pipeline.git.base_revision >>
-      GIT_HEAD_COMMIT: << pipeline.git.revision >>
-      PIPELINE_ID: << pipeline.id >>
+  "website-setup":
     steps:
       - install-node:
           version: "11"
+      - install-python:
+          executor-key: "201903-01"
+          version: "3.7.0"
       - run:
           name: "Show environment"
           command: |
             env | grep -e GIT -e TRAVIS -e CIRCLE | sort
       - checkout
-      - run:
-          name: "Build Docs"
-          command: |
-            ./ambassador/.ci/website-preview-circle
+
+jobs:
+
+  "website-main":
+    <<: *website-job
+    steps:
+      - website-setup
+      - run: ./ambassador/.ci/website-preview-circle
 
 workflows:
   # All of these filters assume that "Only build pull requests" is turned on at
   # https://app.circleci.com/settings/project/github/datawire/apro/advanced
   "Docs":
     jobs:
-      - "docs":
+      - "website-main":
           # Run this on prerelease tags (in addition to 'master' and PRs)
           filters:
             tags:

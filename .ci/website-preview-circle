@@ -5,23 +5,6 @@ set -o nounset
 
 printf "== Begin: build-docs.sh ==\n"
 
-echo "Environment:"
-env | fgrep 'GIT' | sort
-
-if [ -z "$GIT_BASE_COMMIT" -o -z "$GIT_HEAD_COMMIT" ]; then
-    echo "GIT_BASE_COMMIT and GIT_HEAD_COMMIT must both be set" >&2
-    exit 1
-fi
-
-# TRAVIS_COMMIT_RANGE=${GIT_BASE_COMMIT}..${GIT_HEAD_COMMIT}
-
-# CHANGED_DOCS=$(git diff --name-only  "${GIT_BASE_COMMIT}..${GIT_HEAD_COMMIT}" -- 'docs')
-
-# if [ -z "$CHANGED_DOCS" ]; then
-#     echo "No changes in ambassador/docs, so not building docs"
-#     exit 0
-# fi
-
 # From ./ambassador/.ci/website-preview-build
 
 set -o xtrace
@@ -33,8 +16,6 @@ rm -rf "/tmp/getambassador.io"
 git clone --single-branch https://d6e-automaton:${GH_TOKEN}@github.com/datawire/getambassador.io.git "/tmp/getambassador.io"
 cd "/tmp/getambassador.io"
 git submodule update --init
-pyenv local 3.7.0
-python3 --version
 
 # Swap out the "latest" info for our stuff.
 rm -rf submodules/latest
@@ -61,7 +42,7 @@ npm install netlify-cli -g
 
 netlify deploy \
 	--dir="/tmp/getambassador.io/public" \
-	--message="ambassador.git preview (pipeline $PIPELINE_ID)" \
+	--message="ambassador.git preview" \
 	--site=1d6f5395-6386-49af-8b47-e85aa28488f8 \
 	--auth="${NETLIFY_AUTH_TOKEN}" \
 	--json \
