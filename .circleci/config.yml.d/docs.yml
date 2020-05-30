@@ -10,7 +10,7 @@ _anchors:
       # If you bump this, be sure to bump "install-python.executor-key"
       # in the "website-setup" command below.
       image: "ubuntu-1604:201903-01"
-    working_directory: ~/project
+    working_directory: ~/project/ambassador
 
 commands:
 
@@ -25,7 +25,8 @@ commands:
           name: "Show environment"
           command: |
             env | grep -e GIT -e TRAVIS -e CIRCLE | sort
-      - checkout
+      - checkout:
+          path: ~/project
 
 jobs:
 
@@ -33,7 +34,9 @@ jobs:
     <<: *website-job
     steps:
       - website-setup
-      - run: ./ambassador/.ci/website-preview-circle
+      - run: ./.ci/website-preview-build
+      - run: ./.ci/website-preview-publish
+      - run: ./.ci/website-preview-blc
 
 workflows:
   # All of these filters assume that "Only build pull requests" is turned on at
