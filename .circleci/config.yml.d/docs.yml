@@ -29,12 +29,30 @@ commands:
 
 jobs:
 
-  "website-main":
+  "website-preview-build":
     <<: *website-job
     steps:
       - website-setup
       - run: ./.ci/website-preview-build
+      - persist_to_workspace:
+          root: /tmp/getambassador.io
+          paths:
+            - public
+
+  "website-preview-publish":
+    <<: *website-job
+    steps:
+      - website-setup
+      - attach_workspace:
+          at: /tmp/getambassador.io
       - run: ./.ci/website-preview-publish
+
+  "website-preview-blc":
+    <<: *website-job
+    steps:
+      - website-setup
+      - attach_workspace:
+          at: /tmp/getambassador.io
       - run: ./.ci/website-preview-blc
 
 workflows:
@@ -42,8 +60,25 @@ workflows:
   # https://app.circleci.com/settings/project/github/datawire/apro/advanced
   "Docs":
     jobs:
-      - "website-main":
-          # Run this on prerelease tags (in addition to 'master' and PRs)
+      - "website-preview-build":
           filters:
+            # Run this on prerelease tags (in addition to 'master' and
+            # PRs) so that we have a preview for the smoke-testers to use.
             tags:
               only: /^v[0-9]+\.[0-9]+\.[0-9]+-.*/
+      - "website-preview-publish":
+          requires: ["website-preview-build"]
+          filters:
+            # Run this on prerelease tags (in addition to PRs) so that
+            # we have a preview for the smoke-testers to use.
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+-.*/
+            # And don't bother running on 'master'.
+            branches:
+              ignore:
+                - master
+      - "website-preview-blc":
+          requires: ["website-preview-build"]
+          # Just run this on 'master' and on PRs; don't bother with
+          # prerelease tags; we already check those trees for broken
+          # links from the PR.
