@@ -85,35 +85,5 @@ curl --fail \
 	--data '@/tmp/github-status.json' \
 	"https://${GH_TOKEN}@api.github.com/repos/datawire/apro/statuses/${CIRCLE_SHA1}"
 
-# Install the broken link checker...
-
-${build_dir}/ambassador/.ci/install-blc
-
-# ...then continue with stuff from website-preview-blc
-
-set -o verbose
-
-pushd "/tmp/getambassador.io/public"
-python3 -m http.server 2>/dev/null &
-trap "kill $!" EXIT
-popd
-
-cd /tmp/getambassador.io-blc
-./blc.js http://localhost:8000/ > /tmp/blc.txt
-
-set +o verbose
-num_complaints=$(grep ^Page /tmp/blc.txt | sort -u | wc -l)
-RED=$'\033[1;31m'
-GRN=$'\033[1;32m'
-BLD=$'\033[1m'
-END=$'\033[0m'
-if [[ $num_complaints -eq 0 ]]; then
-	printf "%s======================= 0 broken-link-checker complaints =======================%s\n" "$GRN$BLD" "$END"
-else
-	printf "%s======================= %d broken-link-checker complaints ======================%s\n" "$RED$BLD" $num_complaints "$END"
-	grep ^Page /tmp/blc.txt | sort -u
-	printf "%s====================== end broken-link-checker complaints ======================%s\n" "$RED$BLD" "$END"
-	exit $num_complaints
-fi
-
-# Don't post to GitHub.
+export GH_TOKEN='' # Don't post to GitHub; set an exit code instead
+${source_dir}/.ci/website-preview-blc

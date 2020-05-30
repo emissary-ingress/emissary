@@ -96,35 +96,12 @@ printf "${GRN}${BLD}==== Deployed to ${END}${DEPLOY_URL}\n"
 
 printf "${GRN}${BLD}==== Installing BLC${END}\n"
 
-# Install the broken link checker...
-
-${source_dir}/.ci/install-blc
-
-# ...then continue with stuff from website-preview-blc
-
-# set -o verbose
+# Install and run the broken link checker...
 
 printf "${GRN}${BLD}==== Running BLC${END}\n"
 
-pushd "${WEBSITE_DIR}/public"
-python3 -m http.server 2>/dev/null &
-trap "kill $! 2>/dev/null" EXIT
-popd
-
-cd /tmp/getambassador.io-blc
-./blc.js http://localhost:8000/ > /tmp/blc.txt
-
-# set +o verbose
-num_complaints=$(grep ^Page /tmp/blc.txt | sort -u | wc -l)
-if [[ $num_complaints -eq 0 ]]; then
-	printf "%s======================= 0 broken-link-checker complaints for %s =======================%s\n" "$GRN$BLD" "$WEBSITE_BRANCH" "$END"
-else
-	printf "%s======================= %d broken-link-checker complaints for %s ======================%s\n" "$RED$BLD" $num_complaints "$WEBSITE_BRANCH" "$END"
-	grep ^Page /tmp/blc.txt | sort -u
-	printf "%s====================== end broken-link-checker complaints for %s ======================%s\n" "$RED$BLD" "$WEBSITE_BRANCH" "$END"
-	exit $num_complaints
-fi
+export WEBSITE_DIR
+export GH_TOKEN='' # Don't post to GitHub; set an exit code instead
+${source_dir}/.ci/website-preview-blc
 
 printf "${GRN}${BLD}==== Deployed to ${END}${DEPLOY_URL}\n"
-
-# Don't post to GitHub.

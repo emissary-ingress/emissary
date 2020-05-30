@@ -62,7 +62,6 @@ install:
   - nvm use 11
   - node --version
   - source ./.ci/travis-fix-env
-  - ./.ci/install-blc
 
 script:
   #- docker pull ${DEV_REGISTRY}/builder:latest

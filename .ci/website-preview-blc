@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright 2019 Datawire. All rights reserved.
+# Copyright 2019-2020 Datawire. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,9 +30,16 @@ fi
 
 set -o verbose
 
-pushd "/tmp/getambassador.io/public"
+pushd /tmp
+git clone https://github.com/datawire/getambassador.io-blc.git
+cd getambassador.io-blc
+npm install
+sed -i '39iif (url.endsWith(".pdf")) { return Promise.reject(); }' node_modules/broken-link-checker/lib/internal/streamHtml.js # FFS
+popd
+
+pushd "${WEBSITE_DIR:-/tmp/getambassador.io}/public"
 python3 -m http.server 2>/dev/null &
-trap "kill $!" EXIT
+trap "kill $! 2>/dev/null" EXIT
 popd
 
 cd /tmp/getambassador.io-blc
@@ -51,6 +58,15 @@ else
 	grep ^Page /tmp/blc.txt | sort -u
 	printf "%s====================== end broken-link-checker complaints ======================%s\n" "$RED$BLD" "$END"
 fi
+
+if [[ -z "${GH_TOKEN:-}" ]]; then
+	if [[ $num_complaints -eq 0 ]]; then
+		exit 0
+	else
+		exit 1
+	fi
+fi
+
 set -o verbose
 
 cat >/tmp/github-status.json <<EOF
