@@ -18,18 +18,14 @@ set -o errexit
 set -o nounset
 set -o verbose
 
-CHANGED_DOCS_FILES=$(git diff --name-only "$TRAVIS_COMMIT_RANGE" docs)
-if [ -z "$CHANGED_DOCS_FILES" ]; then
-    echo "No changes have been made to /docs/, website will not be updated..."
-    exit 0
-else
-  echo "Publishing changes to website..."
-fi
+git_workdir=$(git rev-parse --show-toplevel)
 
 remote_url=https://d6e-automaton:${GH_TOKEN}@github.com/datawire/getambassador.io.git
 
 rm -rf /tmp/getambassador.io
 git clone -b master "$remote_url" /tmp/getambassador.io
 cd /tmp/getambassador.io
+git submodule update --init --reference="$git_workdir"
+
 npm run pull-docs
 git push origin master
