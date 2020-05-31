@@ -13,11 +13,28 @@ version: 2.1
 # - DOCKER_RELEASE_USERNAME (DockerHub)
 # - DOCKER_RELEASE_PASSWORD (DockerHub)
 
+_anchors:
+  "oss-linux-job": &oss-linux-job
+    machine:
+      # If you bump this, be sure to bump "install-python.executor-key"
+      # in the "oss-linux-setup" command below.
+      image: "ubuntu-1604:201903-01"
+    working_directory: ~/project/ambassador
+
 commands:
 
-  "oss-main":
+  "oss-linux-setup":
     steps:
+      - pip-install:
+          packages: awscli
+      - install-go
+      - install-kubectl
+      - install-python:
+          executor-key: "201903-01"
       - oss-checkout
+
+  "oss-images-build-and-test":
+    steps:
       - run:
           name: "Check Make Test"
           command: |
@@ -62,6 +79,14 @@ commands:
           command: "./.ci/kubernaut-unclaim"
           when: "always"
       - dirty-check
+      #- oss-save-logs
+
+jobs:
+  "oss-images":
+    <<: *oss-linux-job
+    steps:
+      - oss-linux-setup
+      - oss-images-build-and-test
       # - run:
       #     name: "Release"
       #     command: |
@@ -71,31 +96,13 @@ commands:
       #       fi
       #       docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
       #       DEV_KUBECONFIG="-skip-for-release-" make release/bits
-      # - oss-save-logs
-
-jobs:
-  "oss-main":
-    machine:
-      # If you bump this, be sure to bump install-python.executor-key
-      # below.
-      image: "ubuntu-1604:201903-01"
-    working_directory: ~/project/ambassador
-    steps:
-      - pip-install:
-          packages: awscli
-      - install-go
-      - install-kubectl
-      - install-node
-      - install-python:
-          executor-key: "201903-01"
-      - oss-main
 
 workflows:
   # All of these filters assume that "Only build pull requests" is turned on at
   # https://app.circleci.com/settings/project/github/datawire/apro/advanced
   "OSS":
     jobs:
-      - "oss-main":
+      - "oss-images":
           # Run this on prerelease tags (in addition to 'master' and PRs)
           filters:
             tags:
