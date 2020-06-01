@@ -1,27 +1,25 @@
 # Cert-Manager and Ambassador Edge Stack
 
-**Note:** Cert-manager release v0.15 [removed legacy CRD support](https://cert-manager.io/docs/installation/upgrading/upgrading-0.14-0.15/).  This document has been updated to use CRD standards specified in v0.15.  For more details about upgrading existing installations of cert-manager, see the [Upgrading](https://cert-manager.io/docs/installation/upgrading/) page
-
-cert-manager is still required for DNS-01 challenges for wildcard domains and when using Ambassador OSS. 
+**Note:** This document assumes cert-manager  v0.15 or greater.   This document has been updated to use CRD standards specified in v0.15.  [Legacy CRD support](https://cert-manager.io/docs/installation/upgrading/upgrading-0.14-0.15/) was removed in cert-manager v0.15, see their [upgrading](https://cert-manager.io/docs/installation/upgrading/) document for more info.
 
 ---
 
 Creating and managing certificates in Kubernetes is made simple with Jetstack's [cert-manager](https://github.com/jetstack/cert-manager). Cert-manager will automatically create and renew TLS certificates and store them in Kubernetes secrets for easy use in a cluster. Ambassador will automatically watch for secret changes and reload certificates upon renewal.
 
-Note: Ambassador Edge Stack will automatically create and renew TLS certificates with the HTTP-01 challenge. You should use cert-manager if you need support for the DNS-01 challenge and/or wildcard certificates.
+**Note:** Ambassador Edge Stack will automatically create and renew TLS certificates with the HTTP-01 challenge. You should use cert-manager if you need support for the DNS-01 challenge and/or wildcard certificates.
 
 ## Install Cert-Manager
 
 There are many different ways to [install cert-manager](https://docs.cert-manager.io/en/latest/getting-started/install.html). For simplicity, we will use Helm v3.
 
-1. Add the `jetstack` repository.
-    ```shell
-    helm repo add jetstack https://charts.jetstack.io && helm repo update
-    ```
-
-2. Apply cert-manager CRD manifest.
+1. Create the cert-manager CRDs.
     ```shell
     kubectl apply -f https://github.com/jetstack/cert-manager/releases/latest/download/cert-manager.crds.yaml
+    ```
+
+2. Add the `jetstack` Helm repository.
+    ```shell
+    helm repo add jetstack https://charts.jetstack.io && helm repo update
     ```
 
 3. Install cert-manager.
@@ -81,25 +79,22 @@ The DNS-01 challenge verifies domain ownership by proving you have control over 
               accessKeyID: {accessKeyID}
               hostedZoneID: {Hosted Zone ID} # optional, allows you to reduce the scope of permissions in Amazon IAM
               secretAccessKeySecretRef:
-                name: prod-route54-credentials-secret
+                name: prod-route53-credentials-secret
                 key: secret-access-key
     ```
 
-4. Create and apply a `Certificate`.  Make sure the `Certificate` is in the same namespace as Ambassador.
+4. Create and apply a `Certificate`. 
 
     ```yaml
     ---
     apiVersion: cert-manager.io/v1alpha2
     kind: Certificate
     metadata:
-      name: ambassador-certs
-      # cert-manager will put the resulting Secret in the same Kubernetes namespace
-      # as the Certificate. Therefore you should put this Certificate in the same namespace as Ambassador.
-      # eg. if you deploy ambassador to ambassador namespace, you need to change to namespace: ambassador
-      namespace: ambassador
+      name: myzone.route53.com
+      # cert-manager will put the resulting Secret in the same Kubernetes 
+      # namespace as the Certificate. You should create the certificate in 
+      # whichever namespace you want to configure a Host.
     spec:
-      # naming the secret name certificate ambassador-certs is important because
-      # ambassador just look for this particular name
       secretName: ambassador-certs
       issuerRef:
         name: letsencrypt-prod
@@ -115,7 +110,6 @@ The DNS-01 challenge verifies domain ownership by proving you have control over 
     $ kubectl get secrets -n ambassador
     NAME                     TYPE                                  DATA      AGE
     ambassador-certs         kubernetes.io/tls                     2         1h
-    ambassador-token-846d5   kubernetes.io/
     ```
 
 ### HTTP-01 Challenge
@@ -151,13 +145,11 @@ The HTTP-01 challenge verifies ownership of the domain by sending a request for 
     kind: Certificate
     metadata:
       name: ambassador-certs
-      # cert-manager will put the resulting Secret in the same Kubernetes namespace
-      # as the Certificate. Therefore you should put this Certificate in the same namespace as Ambassador.
-      # eg. if you deploy ambassador to ambassador namespace, you need to change to namespace: ambassador
+      # cert-manager will put the resulting Secret in the same Kubernetes 
+      # namespace as the Certificate. You should create the certificate in 
+      # whichever namespace you want to configure a Host.
       namespace: ambassador
     spec:
-      # naming the secret name certificate ambassador-certs is important because
-      # ambassador just look for this particular name
       secretName: ambassador-certs
       issuerRef:
         name: letsencrypt-prod
@@ -186,7 +178,7 @@ The HTTP-01 challenge verifies ownership of the domain by sending a request for 
 
 4. Create a Mapping for the `/.well-known/acme-challenge/` route.
 
-    cert-manager uses an `Ingress` resource to issue the challenge to `/.well-known/acme-challenge/` but, since Ambassador is not an `Ingress`, we will need to create a `Mapping` so the cert-manager can reach the temporary pod.
+    cert-manager uses an `Ingress` to issue the challenge to `/.well-known/acme-challenge/` that is incompatible with Ambassador. We will need to create a `Mapping` so the cert-manager can reach the temporary pod.
  
     ```yaml
     ---
