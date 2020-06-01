@@ -82,7 +82,13 @@ commands:
       #- oss-save-logs
 
 jobs:
-  "oss-images":
+  "oss-dev-images":
+    <<: *oss-linux-job
+    steps:
+      - oss-linux-setup
+      - oss-images-build-and-test
+
+  "oss-release-images":
     <<: *oss-linux-job
     steps:
       - oss-linux-setup
@@ -90,18 +96,10 @@ jobs:
       - run:
           name: "Release"
           command: |
-            if [[ "$CIRCLE_PROJECT_REPONAME" != ambassador ]]; then
-              echo 'Skipping for apro.git'
-              exit 0
-            fi
-            if [[ -z "$CIRCLE_TAG" ]]; then
-              echo 'Skipping for non-tagged build'
-              exit 0
-            fi
             docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
             DEV_KUBECONFIG="-skip-for-release-" make release/bits
 
-  "oss-promote":
+  "oss-release-promote":
     <<: *oss-linux-job
     steps:
       - oss-linux-setup
@@ -114,18 +112,23 @@ jobs:
 workflows:
   # All of these filters assume that "Only build pull requests" is turned on at
   # https://app.circleci.com/settings/project/github/datawire/apro/advanced
-  "OSS":
+  "OSS: Dev":
+    # Run this workflow on just 'master' and PRs.
     jobs:
-      - "oss-images":
-          # Run this on prerelease tags (in addition to 'master' and PRs)
+      - "oss-dev-images"
+  "OSS: Release":
+    when:
+      equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
+    # Run this workflow on tags, not branches or PRs.
+    jobs:
+      - "oss-release-images":
+          # Run this on just prerelease tags
           filters:
             tags:
               only: /^v[0-9]+\.[0-9]+\.[0-9]+-.*/
-  "OSS GA":
-    when:
-      equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
-    jobs:
-      - "oss-promote":
+            branches:
+              ignore: /.*/
+      - "oss-release-promote":
           # Run this on just GA tags
           filters:
             tags:

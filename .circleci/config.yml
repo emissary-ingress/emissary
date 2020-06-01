@@ -222,27 +222,26 @@ jobs:
     steps:
     - website-setup
     - run: ./.ci/website-prod-publish
-  oss-images:
+  oss-dev-images:
+    steps:
+    - oss-linux-setup
+    - oss-images-build-and-test
+    machine:
+      image: "ubuntu-1604:201903-01"
+    working_directory: ~/project/ambassador
+  oss-release-images:
     steps:
     - oss-linux-setup
     - oss-images-build-and-test
     - run:
         name: "Release"
         command: |
-          if [[ "$CIRCLE_PROJECT_REPONAME" != ambassador ]]; then
-            echo 'Skipping for apro.git'
-            exit 0
-          fi
-          if [[ -z "$CIRCLE_TAG" ]]; then
-            echo 'Skipping for non-tagged build'
-            exit 0
-          fi
           docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
           DEV_KUBECONFIG="-skip-for-release-" make release/bits
     machine:
       image: "ubuntu-1604:201903-01"
     working_directory: ~/project/ambassador
-  oss-promote:
+  oss-release-promote:
     steps:
     - oss-linux-setup
     - run:
@@ -294,19 +293,22 @@ workflows:
             only:
             - master
             - /^release\/v1\.[0-9]+$/
-  OSS:
+  'OSS: Dev':
     jobs:
-    - oss-images:
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-.*/
-  OSS GA:
+    - "oss-dev-images"
+  'OSS: Release':
     when:
       equal:
       - "https://github.com/datawire/ambassador"
       - << pipeline.project.git_url >>
     jobs:
-    - oss-promote:
+    - oss-release-images:
+        filters:
+          tags:
+            only: /^v[0-9]+\.[0-9]+\.[0-9]+-.*/
+          branches:
+            ignore: /.*/
+    - oss-release-promote:
         filters:
           tags:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
