@@ -66,29 +66,29 @@ security:
     allowPrivilegeEscalation: false
   # A basic PodSecurityPolicy to ensure Ambassador is running with appropriate security permissions
   # https://kubernetes.io/docs/concepts/policy/pod-security-policy/
-  podSecurityPolicy:
-    # Add AppArmor and Seccomp annotations
-    # https://kubernetes.io/docs/concepts/policy/pod-security-policy/#apparmor
-    annotations:
-    spec:
-      seLinux:
-        rule: RunAsAny
-      supplementalGroups:
-        rule: 'MustRunAs'
-        ranges:
-          # Forbid adding the root group.
-          - min: 1
-            max: 65535
-      fsGroup:
-        rule: 'MustRunAs'
-        ranges:
-          # Forbid adding the root group.
-          - min: 1
-            max: 65535
-      privileged: false
-      allowPrivilegeEscalation: false
-      runAsUser:
-        rule: MustRunAsNonRoot
+  podSecurityPolicy: []
+    # # Add AppArmor and Seccomp annotations
+    # # https://kubernetes.io/docs/concepts/policy/pod-security-policy/#apparmor
+    # annotations:
+    # spec:
+    #   seLinux:
+    #     rule: RunAsAny
+    #   supplementalGroups:
+    #     rule: 'MustRunAs'
+    #     ranges:
+    #       # Forbid adding the root group.
+    #       - min: 1
+    #         max: 65535
+    #   fsGroup:
+    #     rule: 'MustRunAs'
+    #     ranges:
+    #       # Forbid adding the root group.
+    #       - min: 1
+    #         max: 65535
+    #   privileged: false
+    #   allowPrivilegeEscalation: false
+    #   runAsUser:
+    #     rule: MustRunAsNonRoot
 
 image:
   repository: docker.io/datawire/aes

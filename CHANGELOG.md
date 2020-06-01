@@ -3,6 +3,12 @@
 This file documents all notable changes to Ambassador Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
+## v6.4.1
+
+- BugFix: The `PodSecurityPolicy` should not be created by default since it is a cluster-wide resource that should only be created once. 
+
+If you would like to use the default `PodSecurityPolicy`, make sure to unset `security.podSecurityPolicy` it in all other releases.
+
 ## v6.4.0
 
 - Upgrade Ambassador to version 1.5.0: [CHANGELOG}](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
