@@ -112,9 +112,9 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `replicaCount`                     | Number of Ambassador replicas                                                   | `3`                               |
 | `resources`                        | CPU/memory resource requests/limits                                             | `{ "limits":{"cpu":"1000m","memory":"600Mi"},"requests":{"cpu":"200m","memory":"300Mi"}}` |
 | `securityContext`                  | Set security context for pod                                                    | `{ "runAsUser": "8888" }`         |
-| `security.podSecurityContext`      | Set the security context for the Ambassador pod                                 | `{ "runAsNonRoot": true }`        |
-| `security.containerSecurityContext`| Set the security context for the Ambassador container                           | `{ "readOnlyRootFilesystem": true, "allowPrivilegeEscalation": false }` |
-| `security.podSecurityPolicy`       | Create a PodSecurityPolicy to be used for the pod.                              | See the CHANGELOG                 |
+| `security.podSecurityContext`      | Set the security context for the Ambassador pod                                 | `{ "runAsUser": "8888" }`        |
+| `security.containerSecurityContext`| Set the security context for the Ambassador container                           | `{ "allowPrivilegeEscalation": false }` |
+| `security.podSecurityPolicy`       | Create a PodSecurityPolicy to be used for the pod.                              | `[]`                              |
 | `restartPolicy`                    | Set the `restartPolicy` for pods                                                | ``                                |
 | `initContainers`                   | Containers used to initialize context for pods                                  | `[]`                              |
 | `sidecarContainers`                | Containers that share the pod context                                           | `[]`                              |
@@ -204,7 +204,9 @@ Ambassador takes security very seriously. For this reason, the YAML installation
 
 The `security` field of the `values.yaml` file configures these default policies and replaces the `securityContext` field used earlier.
 
-The defaults will configure the pod to run as a non-root user and prohibit privilege escalation and deploy a `PodSecurityPolicy` to ensure these conditions are met.
+The defaults will configure the pod to run as a non-root user and prohibit privilege escalation and outline a `PodSecurityPolicy` to ensure these conditions are met.
+
+
 
 ```yaml
 security:
@@ -218,29 +220,34 @@ security:
     allowPrivilegeEscalation: false
   # A basic PodSecurityPolicy to ensure Ambassador is running with appropriate security permissions
   # https://kubernetes.io/docs/concepts/policy/pod-security-policy/
-  podSecurityPolicy:
-    # Add AppArmor and Seccomp annotations
-    # https://kubernetes.io/docs/concepts/policy/pod-security-policy/#apparmor
-    annotations:
-    spec:
-      seLinux:
-        rule: RunAsAny
-      supplementalGroups:
-        rule: 'MustRunAs'
-        ranges:
-          # Forbid adding the root group.
-          - min: 1
-            max: 65535
-      fsGroup:
-        rule: 'MustRunAs'
-        ranges:
-          # Forbid adding the root group.
-          - min: 1
-            max: 65535
-      privileged: false
-      allowPrivilegeEscalation: false
-      runAsUser:
-        rule: MustRunAsNonRoot
+  #
+  # A set of reasonable defaults is outlined below. This is not created by default as it should only
+  # be created by a one Release. If you want to use the PodSecurityPolicy in the chart, create it in
+  # the "master" Release and then leave it unset in all others. Set the `rbac.podSecurityPolicies` 
+  # in all non-"master" Releases.
+  podSecurityPolicy: []
+    # # Add AppArmor and Seccomp annotations
+    # # https://kubernetes.io/docs/concepts/policy/pod-security-policy/#apparmor
+    # annotations:
+    # spec:
+    #   seLinux:
+    #     rule: RunAsAny
+    #   supplementalGroups:
+    #     rule: 'MustRunAs'
+    #     ranges:
+    #       # Forbid adding the root group.
+    #       - min: 1
+    #         max: 65535
+    #   fsGroup:
+    #     rule: 'MustRunAs'
+    #     ranges:
+    #       # Forbid adding the root group.
+    #       - min: 1
+    #         max: 65535
+    #   privileged: false
+    #   allowPrivilegeEscalation: false
+    #   runAsUser:
+    #     rule: MustRunAsNonRoot
 ```
 
 ### Annotations
