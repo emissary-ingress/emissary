@@ -204,7 +204,9 @@ Ambassador takes security very seriously. For this reason, the YAML installation
 
 The `security` field of the `values.yaml` file configures these default policies and replaces the `securityContext` field used earlier.
 
-The defaults will configure the pod to run as a non-root user and prohibit privilege escalation and deploy a `PodSecurityPolicy` to ensure these conditions are met.
+The defaults will configure the pod to run as a non-root user and prohibit privilege escalation and outline a `PodSecurityPolicy` to ensure these conditions are met.
+
+
 
 ```yaml
 security:
@@ -218,29 +220,34 @@ security:
     allowPrivilegeEscalation: false
   # A basic PodSecurityPolicy to ensure Ambassador is running with appropriate security permissions
   # https://kubernetes.io/docs/concepts/policy/pod-security-policy/
-  podSecurityPolicy:
-    # Add AppArmor and Seccomp annotations
-    # https://kubernetes.io/docs/concepts/policy/pod-security-policy/#apparmor
-    annotations:
-    spec:
-      seLinux:
-        rule: RunAsAny
-      supplementalGroups:
-        rule: 'MustRunAs'
-        ranges:
-          # Forbid adding the root group.
-          - min: 1
-            max: 65535
-      fsGroup:
-        rule: 'MustRunAs'
-        ranges:
-          # Forbid adding the root group.
-          - min: 1
-            max: 65535
-      privileged: false
-      allowPrivilegeEscalation: false
-      runAsUser:
-        rule: MustRunAsNonRoot
+  #
+  # A set of reasonable defaults is outlined below. This is not created by default as it should only
+  # be created by a one Release. If you want to use the PodSecurityPolicy in the chart, create it in
+  # the "master" Release and then leave it unset in all others. Set the `rbac.podSecurityPolicies` 
+  # in all non-"master" Releases.
+  podSecurityPolicy: []
+    # # Add AppArmor and Seccomp annotations
+    # # https://kubernetes.io/docs/concepts/policy/pod-security-policy/#apparmor
+    # annotations:
+    # spec:
+    #   seLinux:
+    #     rule: RunAsAny
+    #   supplementalGroups:
+    #     rule: 'MustRunAs'
+    #     ranges:
+    #       # Forbid adding the root group.
+    #       - min: 1
+    #         max: 65535
+    #   fsGroup:
+    #     rule: 'MustRunAs'
+    #     ranges:
+    #       # Forbid adding the root group.
+    #       - min: 1
+    #         max: 65535
+    #   privileged: false
+    #   allowPrivilegeEscalation: false
+    #   runAsUser:
+    #     rule: MustRunAsNonRoot
 ```
 
 ### Annotations
