@@ -40,13 +40,12 @@ commands:
   oss-images-build-and-test:
     steps:
     - run:
-        name: "Check Make Test"
+        name: "Ensure CI configuration is up-to-date"
         command: |
           set -x
-          set +o pipefail # Our make invocation below will always "fail", so clear pipefail.
-          test_targets=$(make -n noop --print-data-base 2>/dev/null | egrep '^test:' | sed -e s'/^test: *//' | tr ' ' '\n' | sort | tr '\n' ' ' | sed -e 's/ $//')
+          test_targets=$(make -n noop --print-data-base 2>/dev/null | sed -n 's/^test: *//p' | xargs printf '%s\n' | LC_COLLATE=C sort -u | xargs echo)
           if [ "$test_targets" != "gotest ingresstest pytest" ]; then
-            echo "Test target has changed to $test_targets, you need to update Circle" >&2
+            echo "Makefile 'test' target has changed to $test_targets, you need to update '.circleci/config.yml.d/oss.yml'" >&2
             exit 1
           fi
     - run:
