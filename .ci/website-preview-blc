@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+# Copyright 2019-2020 Datawire. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License
+
+set -o errexit
+set -o nounset
+
+if ! [[ -d /tmp/getambassador.io/public ]]; then
+	echo "[${0##*/}] skipping: website preview was not built"
+	exit 0
+fi
+
+set -o verbose
+
+pushd /tmp
+git clone https://github.com/datawire/getambassador.io-blc.git
+cd getambassador.io-blc
+npm install
+sed -i '39iif (url.endsWith(".pdf")) { return Promise.reject(); }' node_modules/broken-link-checker/lib/internal/streamHtml.js # FFS
+popd
+
+pushd "${WEBSITE_DIR:-/tmp/getambassador.io}/public"
+python3 -m http.server 2>/dev/null &
+trap "kill $! 2>/dev/null" EXIT
+popd
+
+cd /tmp/getambassador.io-blc
+./blc.js http://localhost:8000/ > /tmp/blc.txt
+
+set +o verbose
+num_complaints=$(grep ^Page /tmp/blc.txt | sort -u | wc -l)
+RED=$'\033[1;31m'
+GRN=$'\033[1;32m'
+BLD=$'\033[1m'
+END=$'\033[0m'
+if [[ $num_complaints -eq 0 ]]; then
+	printf "%s======================= 0 broken-link-checker complaints =======================%s\n" "$GRN$BLD" "$END"
+else
+	printf "%s======================= %d broken-link-checker complaints ======================%s\n" "$RED$BLD" $num_complaints "$END"
+	grep ^Page /tmp/blc.txt | sort -u
+	printf "%s====================== end broken-link-checker complaints ======================%s\n" "$RED$BLD" "$END"
+	exit 1
+fi
