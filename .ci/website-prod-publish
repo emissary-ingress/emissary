@@ -16,8 +16,16 @@
 
 set -o errexit
 set -o nounset
+set -o verbose
 
-printf "== Begin: travis-cleanup.sh ==\n"
-set -o xtrace
+git_workdir=$(git rev-parse --show-toplevel)
 
-kubernaut claims delete $(cat ~/kubernaut-claim.txt)
+remote_url=https://d6e-automaton:${GH_TOKEN}@github.com/datawire/getambassador.io.git
+
+rm -rf /tmp/getambassador.io
+git clone -b master "$remote_url" /tmp/getambassador.io
+cd /tmp/getambassador.io
+git submodule update --init --reference="$git_workdir"
+
+npm run pull-docs
+git push origin master

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright 2019 Datawire. All rights reserved.
+# Copyright 2018 Datawire. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,10 +16,8 @@
 
 set -o errexit
 set -o nounset
-set -o verbose
+set -o xtrace
 
-cd /tmp
-git clone https://github.com/datawire/getambassador.io-blc.git
-cd getambassador.io-blc
-npm install
-sed -i '39iif (url.endsWith(".pdf")) { return Promise.reject(); }' node_modules/broken-link-checker/lib/internal/streamHtml.js # FFS
+PATH=~/bin:$PATH
+
+kubernaut claims delete $(cat ~/kubernaut-claim.txt)

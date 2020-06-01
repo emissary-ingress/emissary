@@ -17,17 +17,9 @@
 set -o errexit
 set -o nounset
 
-website_branch=${1:-master}
-
-if ! [[ -d /tmp/getambassador.io-${website_branch}/public ]]; then
-	echo '[publish-website-preview] skipping: website preview was not built'
+if ! [[ -d /tmp/getambassador.io/public ]]; then
+	echo "[${0##*/}] skipping: website preview was not built"
 	exit 0
-fi
-
-if [[ -n "$TRAVIS_PULL_REQUEST_SHA" ]]; then
-	build_type=pr
-else
-	build_type=push
 fi
 
 set -o verbose
@@ -35,8 +27,8 @@ set -o verbose
 npm install netlify-cli -g
 
 netlify deploy \
-	--dir="/tmp/getambassador.io-${website_branch}/public" \
-	--message="ambassador.git preview ${TRAVIS_JOB_WEB_URL}" \
+	--dir="/tmp/getambassador.io/public" \
+	--message="ambassador.git preview ${CIRCLE_JOB#website-} ${CIRCLE_BUILD_URL}" \
 	--site=1d6f5395-6386-49af-8b47-e85aa28488f8 \
 	--auth="${NETLIFY_AUTH_TOKEN}" \
 	--json \
@@ -46,10 +38,10 @@ cat /tmp/netlify-deploy.json
 
 cat >/tmp/github-status.json <<EOF
 {
-  "context": "website-preview/${build_type}",
+  "context": "website-preview/${CIRCLE_JOB#website-}",
   "state": "success",
   "target_url": $(jq .deploy_url </tmp/netlify-deploy.json),
-  "description": "Website ${website_branch} preview"
+  "description": "Website preview"
 }
 EOF
 
@@ -58,4 +50,4 @@ curl --fail \
 	-H "Content-Type: application/json" \
 	-X POST \
 	--data '@/tmp/github-status.json' \
-	"https://${GH_TOKEN}@api.github.com/repos/datawire/ambassador/statuses/${TRAVIS_PULL_REQUEST_SHA:-${TRAVIS_COMMIT}}"
+	"https://${GH_TOKEN}@api.github.com/repos/datawire/${CIRCLE_PROJECT_REPONAME}/statuses/${CIRCLE_SHA1}"
