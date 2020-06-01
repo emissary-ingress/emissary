@@ -55,6 +55,13 @@ jobs:
           at: /tmp/getambassador.io
       - run: ./.ci/website-preview-blc
 
+  "website-preview-for-smoketest":
+    <<: *website-job
+    steps:
+      - website-setup
+      - run: ./.ci/website-preview-build
+      - run: ./.ci/website-preview-publish
+
   "website-prod-publish":
     <<: *website-job
     steps:
@@ -68,29 +75,32 @@ workflows:
   # triggered by GitHub actions (see ".github/workflows/circleci-branches.yml").
   "Docs: Dev":
     jobs:
-      - "website-preview-build":
-          filters:
-            # Run this on prerelease tags (in addition to 'master' and
-            # PRs) so that we have a preview for the smoke-testers to use.
-            tags:
-              only: /^v[0-9]+\.[0-9]+\.[0-9]+-.*/
+      - "website-preview-build"
       - "website-preview-publish":
           requires: ["website-preview-build"]
           filters:
-            # Run this on prerelease tags (in addition to PRs) so that
-            # we have a preview for the smoke-testers to use.
-            tags:
-              only: /^v[0-9]+\.[0-9]+\.[0-9]+-.*/
-            # And don't bother running on 'master'.
+            # Don't bother running on 'master' or the other branches
+            # that we do the "Release" workflow for.
             branches:
               ignore:
                 - master
                 - /^release\/v1\.[0-9]+$/
       - "website-preview-blc":
           requires: ["website-preview-build"]
-          # Just run this on 'master' and on PRs; don't bother with
-          # prerelease tags; we already check those trees for broken
-          # links from the PR.
+  "Docs: Prerelease":
+    # Run preview-build+preview-publish on prerelease tags so that we
+    # have a preview for the smoke-testers to use.  Do this in a
+    # separate job from the "Dev" workflow so that people looking at
+    # the PR vs the tag don't get different preview URLs.
+    when:
+      equal: [ "https://github.com/datawire/apro", << pipeline.project.git_url >> ]
+    jobs:
+      - "website-preview-for-smoketest":
+          filters:
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+-.*/
+            branches:
+              ignore: /.*/
   "Docs: Release":
     when:
       equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
