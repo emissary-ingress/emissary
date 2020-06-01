@@ -66,6 +66,12 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## Next Release
+
+### Ambassador API Gateway + Ambassador Edge Stack
+
+- Documentation: add our Code of Conduct
+
 ## [1.5.0] May 28, 2020
 [1.5.0]: https://github.com/datawire/ambassador/compare/v1.4.3...v1.5.0
 
