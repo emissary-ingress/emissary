@@ -67,6 +67,7 @@ commands:
             echo >>"$BASH_ENV" 'KUBECONFIG=$DEV_KUBECONFIG go run ./cmd/k8sregistryctl up --storage=hostPath'
             echo >>"$BASH_ENV" export DEV_REGISTRY=127.0.0.1:31000
           fi
+          echo >>"$BASH_ENV" unset BASH_ENV
     - run:
         name: "Build"
         command: |
