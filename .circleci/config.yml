@@ -48,6 +48,13 @@ commands:
             echo "Makefile 'test' target has changed to $test_targets, you need to update '.circleci/config.yml.d/oss.yml'" >&2
             exit 1
           fi
+
+          (cd .circleci && ./generate --always-make)
+          if test -n "$(git status --porcelain)"; then
+            echo "The file '.circleci/config.yml' is out of date." >&2
+            echo "Run '(cd .circleci && ./generate)' to update it." >&2
+            exit 1
+          fi
     - run:
         name: "Set up cluster and registry"
         command: |
