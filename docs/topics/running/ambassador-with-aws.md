@@ -64,7 +64,7 @@ The ELB is the first generation AWS Elastic Load Balancer. It is the default typ
       * HTTP(S)
       * Websockets
       * HTTP/2
-   * Connection based load balacing
+   * Connection based load balancing
    * Cannot modify the request
 * Layer 7: HTTP, HTTPS
    * Protocol support
