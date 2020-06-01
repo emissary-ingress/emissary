@@ -8,6 +8,7 @@ single configuration resource:
 * How Ambassador should handle TLS certificates
 * How Ambassador should handle secure and insecure requests
 * Which resources to examine for further configuration
+* How Ambassador should handle [Service Preview URLs](../../using/edgectl/#ambassador-edge-stack)
 
 A minimal Host resource, using Let’s Encrypt to handle TLS, would be:
 
@@ -343,6 +344,10 @@ This example is the same for an L4 LB, or without a load balancer at all.
   However, as long as the L7 LB is properly supplying `X-Forwarded-Proto` and `xff_num_trusted_hops` is set correctly, it should be possible to configure Ambassador to handle TLS and redirection of cleartext, by configuring Ambassador as if the L7 LB was not present (cases 1 - 3 above).
 
   **Again, it is critical that the load balancer correctly supplies `X-Forwarded-Proto`, and that `xff_num_trusted_hops` is set correctly.**
+
+## Service Preview URLs
+
+See [Service Preview and Edge Control](../../using/edgectl/#ambassador-edge-stack) for more information.
 
 ## `Host` Specification
 

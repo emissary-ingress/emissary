@@ -26,7 +26,9 @@ type wattFlags struct {
 	initialLabelSelector string
 	watchHooks           []string
 	notifyReceivers      []string
-	port                 int
+	listenNetwork        string
+	listenAddress        string
+	legacyListenPort     int
 	interval             time.Duration
 	showVersion          bool
 }
@@ -48,10 +50,15 @@ func Main() {
 	rootCmd.Flags().StringSliceVarP(&flags.watchHooks, "watch", "w", []string{}, "configure watch hook(s)")
 	rootCmd.Flags().StringSliceVar(&flags.notifyReceivers, "notify", []string{},
 		"invoke the program with the given arguments as a receiver")
-	rootCmd.Flags().IntVarP(&flags.port, "port", "p", 7000, "configure the snapshot server port")
 	rootCmd.Flags().DurationVarP(&flags.interval, "interval", "i", 250*time.Millisecond,
 		"configure the rate limit interval")
 	rootCmd.Flags().BoolVarP(&flags.showVersion, "version", "", false, "display version information")
+
+	rootCmd.Flags().StringVar(&flags.listenNetwork, "listen-network", "tcp", "network for the snapshot server to listen on")
+	rootCmd.Flags().StringVar(&flags.listenAddress, "listen-address", ":7000", "address (on --listen-network) for the snapshot server to listen on")
+
+	rootCmd.Flags().IntVarP(&flags.legacyListenPort, "port", "p", 0, "configure the snapshot server port")
+	rootCmd.Flags().MarkHidden("port")
 
 	ctx := context.Background()
 
@@ -80,6 +87,10 @@ func runWatt(ctx context.Context, flags wattFlags, args []string) error {
 		return nil
 	}
 
+	if flags.legacyListenPort != 0 {
+		flags.listenAddress = fmt.Sprintf(":%v", flags.legacyListenPort)
+	}
+
 	if len(flags.initialSources) == 0 {
 		return errors.New("no initial sources configured")
 	}
@@ -104,7 +115,11 @@ func runWatt(ctx context.Context, flags wattFlags, args []string) error {
 	// kubernetes watch manager.
 	aggregatorToKubewatchmanCh := make(chan []KubernetesWatchSpec, 100)
 
-	invoker := NewInvoker(flags.port, flags.notifyReceivers)
+	apiServerAuthority := flags.listenAddress
+	if strings.HasPrefix(apiServerAuthority, ":") {
+		apiServerAuthority = "localhost" + apiServerAuthority
+	}
+	invoker := NewInvoker(apiServerAuthority, flags.notifyReceivers)
 	limiter := limiter.NewComposite(limiter.NewUnlimited(), limiter.NewInterval(flags.interval), flags.interval)
 	aggregator := NewAggregator(invoker.Snapshots, aggregatorToKubewatchmanCh, aggregatorToConsulwatchmanCh,
 		flags.initialSources, ExecWatchHook(flags.watchHooks), limiter)
@@ -130,8 +145,9 @@ func runWatt(ctx context.Context, flags wattFlags, args []string) error {
 	}
 
 	apiServer := &apiServer{
-		port:    flags.port,
-		invoker: invoker,
+		listenNetwork: flags.listenNetwork,
+		listenAddress: flags.listenAddress,
+		invoker:       invoker,
 	}
 
 	s := supervisor.WithContext(ctx)

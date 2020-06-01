@@ -29,20 +29,20 @@ COPY_GOLD = $(abspath $(BUILDER_HOME)/copy-gold.sh)
 # build this image with:
 # 1. checkout the Kuberentes sources in a directory like "~/sources/kubernetes"
 # 2. kind build node-image --kube-root ~/sources/kubernetes
-# 3. docker tag kindest/node:latest quay.io/datawire/kindest-node:latest
-# 4. docker push quay.io/datawire/kindest-node:latest
+# 3. docker tag kindest/node:latest docker.io/datawire/kindest-node:latest
+# 4. docker push docker.io/datawire/kindest-node:latest
 # This will not be necessary once the KIND images are built for a Kubernetes 1.18 and support Ingress v1beta1 improvements.
 KIND_IMAGE ?= kindest/node:v1.18.0
-#KIND_IMAGE ?= quay.io/datawire/kindest-node:latest
+#KIND_IMAGE ?= docker.io/datawire/kindest-node:latest
 KIND_KUBECONFIG = /tmp/kind-kubeconfig
 
 # The ingress conformance tests directory
 # build this image with:
 # 1. checkout https://github.com/kubernetes-sigs/ingress-controller-conformance
 # 2. cd ingress-controller-conformance && make image
-# 3. docker tag ingress-controller-conformance:latest quay.io/datawire/ingress-controller-conformance:latest
-# 4. docker push quay.io/datawire/ingress-controller-conformance:latest
-INGRESS_TEST_IMAGE ?= quay.io/datawire/ingress-controller-conformance:latest
+# 3. docker tag ingress-controller-conformance:latest docker.io/datawire/ingress-controller-conformance:latest
+# 4. docker push docker.io/datawire/ingress-controller-conformance:latest
+INGRESS_TEST_IMAGE ?= docker.io/datawire/ingress-controller-conformance:latest
 
 # local ports for the Ingress conformance tests
 INGRESS_TEST_LOCAL_PLAIN_PORT = 8000

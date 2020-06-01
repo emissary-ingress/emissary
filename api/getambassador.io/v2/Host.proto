@@ -56,6 +56,9 @@ message HostSpec {
 
   // Request policy definition.
   RequestPolicy requestPolicy = 7;
+
+  // Configuration for the Preview URL feature of Service Preview. Defaults to preview URLs not enabled.
+  PreviewURLSpec previewUrl = 8;
 }
 
 enum HostTLSCertificateSource {
@@ -133,4 +136,18 @@ enum InsecureRequestAction {
   Redirect = 0;
   Reject   = 1;
   Route    = 2;
+}
+
+message PreviewURLSpec {
+  // Is the Preview URL feature enabled?
+  bool enabled = 1;
+
+  // What type of Preview URL is allowed?
+  PreviewURLType type = 2;
+}
+
+enum PreviewURLType {
+  Path = 0;
+  // Wildcard = 1;
+  // Datawire = 2; // FIXME rename this before release
 }

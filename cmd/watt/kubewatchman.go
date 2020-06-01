@@ -47,8 +47,12 @@ func (m *KubernetesWatchMaker) MakeKubernetesWatch(spec KubernetesWatchSpec) (*s
 				}
 			}
 
-			watcherErr := watcher.SelectiveWatch(spec.Namespace, spec.Kind, spec.FieldSelector, spec.LabelSelector,
-				watchFunc(spec.WatchId(), spec.Namespace, spec.Kind))
+			watcherErr := watcher.WatchQuery(k8s.Query{
+				Namespace:     spec.Namespace,
+				Kind:          spec.Kind,
+				FieldSelector: spec.FieldSelector,
+				LabelSelector: spec.LabelSelector,
+			}, watchFunc(spec.WatchId(), spec.Namespace, spec.Kind))
 
 			if watcherErr != nil {
 				return watcherErr
@@ -155,7 +159,12 @@ func (b *kubebootstrap) Work(p *supervisor.Process) error {
 			}
 		}
 
-		err := b.kubeAPIWatcher.SelectiveWatch(b.namespace, kind, b.fieldSelector, b.labelSelector, watcherFunc(b.namespace, kind))
+		err := b.kubeAPIWatcher.WatchQuery(k8s.Query{
+			Namespace:     b.namespace,
+			Kind:          kind,
+			FieldSelector: b.fieldSelector,
+			LabelSelector: b.labelSelector,
+		}, watcherFunc(b.namespace, kind))
 
 		if err != nil {
 			return err

@@ -43,28 +43,48 @@ ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local
 # The YAML parser is... special. To get the C version, we need to install Cython and libyaml, then
 # build it locally -- just using pip won't work.
 
-RUN apk --no-cache add bash bash-completion ncurses curl jq rsync python3 python3-dev build-base libffi-dev openssl-dev sudo \
-                       iptables docker openssh-client libcap libcap-dev yaml-dev cython git nodejs npm && \
-    pip3 install -U pip && \
-    curl --fail https://dl.google.com/go/go1.13.linux-amd64.tar.gz | tar -C /usr/local -xzf - && \
-    curl --fail -L https://storage.googleapis.com/kubernetes-release/release/v1.16.0/bin/linux/amd64/kubectl -o /usr/bin/kubectl && \
-    chmod a+x /usr/bin/kubectl && \
-    curl --fail -L https://raw.githubusercontent.com/ahmetb/kubectx/v0.7.0/kubectx -o /usr/local/bin/kubectx && \
-    curl --fail -L https://raw.githubusercontent.com/ahmetb/kubectx/v0.7.0/kubens -o /usr/local/bin/kubens && \
-    chmod a+x /usr/local/bin/kubectx /usr/local/bin/kubens && \
-    curl --fail -L https://raw.githubusercontent.com/ahmetb/kubectx/v0.7.0/completion/kubectx.bash -o /usr/share/bash-completion/completions/kubectx && \
-    curl --fail -L https://raw.githubusercontent.com/ahmetb/kubectx/v0.7.0/completion/kubens.bash -o /usr/share/bash-completion/completions/kubens && \
-    curl -L https://raw.githubusercontent.com/jonmosco/kube-ps1/v0.7.0/kube-ps1.sh -o /usr/local/bin/kube-ps1.sh && \
-    ln -s /usr/bin/python3 /usr/bin/python && \
-    npm config set user 0 && \
+RUN apk --no-cache add \
+	bash \
+	bash-completion \
+	build-base \
+	curl \
+	cython \
+	docker \
+	git \
+	iptables \
+	jq \
+	libcap \
+	libcap-dev \
+	libffi-dev \
+	ncurses \
+	nodejs \
+	npm \
+	openssh-client \
+	openssl-dev \
+	python3 \
+	python3-dev \
+	rsync \
+	sudo \
+	yaml-dev \
+    && ln -s /usr/bin/python3 /usr/bin/python \
+    && chmod u+s $(which docker)
+RUN pip3 install -U pip
+RUN npm config set user 0 && \
     npm config set unsafe-perm true && \
-    npm install -g rollup rollup-plugin-terser && \
-    curl https://sdk.cloud.google.com > /tmp/install.sh && \
+    npm install -g rollup@2.9.1 rollup-plugin-terser@5.3.0
+RUN curl --fail -L https://dl.google.com/go/go1.13.linux-amd64.tar.gz | tar -C /usr/local -xzf -
+RUN curl https://sdk.cloud.google.com > /tmp/install.sh && \
     mkdir /usr/lib64/ && \
     bash /tmp/install.sh --disable-prompts --install-dir=/usr/lib64
 
-RUN sh -c "/usr/bin/kubectl completion bash > /usr/share/bash-completion/completions/kubectl"
-RUN chmod u+s $(which docker)
+RUN curl --fail -L https://storage.googleapis.com/kubernetes-release/release/v1.16.0/bin/linux/amd64/kubectl -o /usr/bin/kubectl && chmod a+x /usr/bin/kubectl && \
+    kubectl completion bash > /usr/share/bash-completion/completions/kubectl
+RUN curl --fail -L https://raw.githubusercontent.com/ahmetb/kubectx/v0.7.0/kubectx -o /usr/local/bin/kubectx && chmod a+x /usr/local/bin/kubectx && \
+    curl --fail -L https://raw.githubusercontent.com/ahmetb/kubectx/v0.7.0/completion/kubectx.bash -o /usr/share/bash-completion/completions/kubectx
+RUN curl --fail -L https://raw.githubusercontent.com/ahmetb/kubectx/v0.7.0/kubens -o /usr/local/bin/kubens && chmod a+x /usr/local/bin/kubens && \
+    curl --fail -L https://raw.githubusercontent.com/ahmetb/kubectx/v0.7.0/completion/kubens.bash -o /usr/share/bash-completion/completions/kubens
+
+RUN curl --fail -L https://raw.githubusercontent.com/jonmosco/kube-ps1/v0.7.0/kube-ps1.sh -o /usr/local/bin/kube-ps1.sh
 
 COPY --from=envoy /usr/local/bin/envoy-static-stripped /usr/local/bin/envoy
 

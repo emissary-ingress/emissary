@@ -157,12 +157,12 @@ func (lc *HelmDownloader) Download() error {
 			}
 		} else {
 			lc.log.Printf("URL is a Helm repo: looking for version in repo")
-			u, err := lc.findInRepo()
+			u, version, err := lc.findInRepo()
 			if err != nil {
 				return err
 			}
 
-			lc.log.Printf("Downloading release from %q", u)
+			lc.log.Printf("Downloading release %s from %q", version, u)
 			if err := lc.downloadChartFile(u); err != nil {
 				return err
 			}
@@ -185,6 +185,51 @@ func (lc *HelmDownloader) Download() error {
 	}
 
 	return nil
+}
+
+// FindLatestVersionAvailable returns the latest version available in the
+// repository (or file) specified in the `helmRepo`.
+func (lc *HelmDownloader) FindLatestVersionAvailable() (string, error) {
+	var err error
+	var version string
+
+	// parse the helm repo URL and try to download the helm chart
+	switch lc.URL.Scheme {
+	case "http", "https":
+		if fileIsArchive(*lc.URL) {
+			lc.log.Printf("URL points to an archive: we must download the file")
+			if err := lc.downloadChartFile(lc.URL); err != nil {
+				return "", err
+			}
+			lc.log.Printf("Finding version of Chart in file")
+			if err = lc.lookupChart(); err != nil {
+				return "", err
+			}
+			version = lc.downChart.AppVersion
+			lc.log.Printf("Latest version in remote file: %q", version)
+		} else {
+			lc.log.Printf("URL is a Helm repo: looking for latest version in repo")
+			_, version, err = lc.findInRepo()
+			if err != nil {
+				return "", err
+			}
+			lc.log.Printf("Latest version in repo: %q", version)
+		}
+
+	case "file", "":
+		lc.downDir = lc.URL.String()
+		lc.log.Printf("Finding chart in local file %q", lc.URL.String())
+		if err = lc.lookupChart(); err != nil {
+			return "", err
+		}
+		version = lc.downChart.AppVersion
+		lc.log.Printf("Latest version in local file: %q", version)
+
+	default:
+		return "", fmt.Errorf("%w: scheme %q in %q", ErrUnknownHelmRepoScheme, lc.URL.Scheme, lc.URL.String())
+	}
+
+	return version, nil
 }
 
 // Cleanup removed all the download directories
@@ -236,14 +281,14 @@ func (lc *HelmDownloader) downloadChartFile(url *url.URL) error {
 	return nil
 }
 
-func (lc *HelmDownloader) findInRepo() (*url.URL, error) {
+func (lc *HelmDownloader) findInRepo() (*url.URL, string, error) {
 	chartName := DefaultChartName
 	repoURL := lc.URL.String()
 
 	// Download and write the index file to a temporary location
 	tempIndexFile, err := ioutil.TempFile("", "tmp-repo-file")
 	if err != nil {
-		return nil, fmt.Errorf("cannot write index file for repository requested")
+		return nil, "", fmt.Errorf("cannot write index file for repository requested")
 	}
 	defer func() { _ = os.Remove(tempIndexFile.Name()) }()
 
@@ -257,24 +302,24 @@ func (lc *HelmDownloader) findInRepo() (*url.URL, error) {
 	}
 	r, err := repo.NewChartRepository(&c, getter.All(settings))
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	if err := r.DownloadIndexFile(tempIndexFile.Name()); err != nil {
-		return nil, fmt.Errorf("looks like %q is not a valid chart repository or cannot be reached: %s", repoURL, err)
+		return nil, "", fmt.Errorf("looks like %q is not a valid chart repository or cannot be reached: %s", repoURL, err)
 	}
 
 	// Read the index file for the repository to get chart information and return chart URL
 	repoIndex, err := repo.LoadIndexFile(tempIndexFile.Name())
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	versions, ok := repoIndex.Entries[chartName]
 	if !ok {
-		return nil, repo.ErrNoChartName
+		return nil, "", repo.ErrNoChartName
 	}
 	if len(versions) == 0 {
-		return nil, repo.ErrNoChartVersion
+		return nil, "", repo.ErrNoChartVersion
 	}
 
 	parsedURL := func(u string) (*url.URL, error) {
@@ -306,14 +351,14 @@ func (lc *HelmDownloader) findInRepo() (*url.URL, error) {
 	for _, curVer := range versions {
 		allowed, err := lc.Version.Allowed(curVer.AppVersion)
 		if err != nil {
-			return nil, fmt.Errorf("%w while checking if allowed for %s", err, lc.Version)
+			return nil, "", fmt.Errorf("%w while checking if allowed for %s", err, lc.Version)
 		}
 		if !allowed {
 			lc.log.Printf("Chart not allowed by version constraint: version=%q, required=%q", curVer.AppVersion, lc.Version)
 			continue
 		}
 		if len(curVer.URLs) == 0 {
-			return nil, fmt.Errorf("no URL found for %s-%s", chartName, lc.Version)
+			return nil, "", fmt.Errorf("no URL found for %s-%s", chartName, lc.Version)
 		}
 
 		// no previous `latest` chart: use this one
@@ -335,10 +380,11 @@ func (lc *HelmDownloader) findInRepo() (*url.URL, error) {
 		}
 	}
 	if latest != nil {
-		return parsedURL(latest.URLs[0])
+		u, err := parsedURL(latest.URLs[0])
+		return u, latest.AppVersion, err
 	}
 
-	return nil, fmt.Errorf("no chart version found for %s-%s", chartName, lc.Version)
+	return nil, "", fmt.Errorf("no chart version found for %s-%s", chartName, lc.Version)
 }
 
 // lookupChart looks for the chart in a directory or subdirectory that can contain a Chart

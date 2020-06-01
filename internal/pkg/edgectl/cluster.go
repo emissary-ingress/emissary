@@ -1,6 +1,7 @@
 package edgectl
 
 import (
+	"bufio"
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
@@ -8,11 +9,13 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/pkg/errors"
 
+	"github.com/datawire/ambassador/pkg/k8s"
 	"github.com/datawire/ambassador/pkg/supervisor"
 )
 
@@ -37,6 +40,7 @@ var hClient = &http.Client{
 func (d *Daemon) Connect(
 	p *supervisor.Process, out *Emitter, rai *RunAsInfo,
 	context, namespace, managerNs string, kargs []string,
+	installID string, isCI bool,
 ) error {
 	// Sanity checks
 	if d.cluster != nil {
@@ -71,6 +75,12 @@ func (d *Daemon) Connect(
 	}
 	d.cluster = cluster
 
+	previewHost, err := getClusterPreviewHostname(p, cluster)
+	if err != nil {
+		p.Logf("get preview URL hostname: %+v", err)
+		previewHost = ""
+	}
+
 	bridge, err := CheckedRetryingCommand(
 		p,
 		"bridge",
@@ -96,7 +106,7 @@ func (d *Daemon) Connect(
 	out.Send("cluster.context", d.cluster.Context())
 	out.Send("cluster.server", d.cluster.Server())
 
-	tmgr, err := NewTrafficManager(p, d.cluster, managerNs)
+	tmgr, err := NewTrafficManager(p, d.cluster, managerNs, installID, isCI)
 	if err != nil {
 		out.Println()
 		out.Println("Unable to connect to the traffic manager in your cluster.")
@@ -105,6 +115,7 @@ func (d *Daemon) Connect(
 		// out.Println("Use <some command> to set up the traffic manager.") // FIXME
 		out.Send("intercept", false)
 	} else {
+		tmgr.previewHost = previewHost
 		d.trafficMgr = tmgr
 		out.Send("intercept", true)
 	}
@@ -138,17 +149,103 @@ func (d *Daemon) Disconnect(p *supervisor.Process, out *Emitter) error {
 	return err
 }
 
-// checkBridge checks the status of teleproxy bridge by doing the equivalent of
-// curl -k https://kubernetes/api/.
-func checkBridge(p *supervisor.Process) error {
-	res, err := hClient.Get("https://kubernetes.default/api/")
+// getClusterPreviewHostname returns the hostname of the first Host resource it
+// finds that has Preview URLs enabled with a supported URL type.
+func getClusterPreviewHostname(p *supervisor.Process, cluster *KCluster) (hostname string, err error) {
+	p.Log("Looking for a Host with Preview URLs enabled")
+
+	// kubectl get hosts, in all namespaces or in this namespace
+	var outBytes []byte
+	outBytes, err = func() ([]byte, error) {
+		clusterCmd := cluster.GetKubectlCmdNoNamespace(p, "get", "host", "-o", "yaml", "--all-namespaces")
+		if outBytes, err := clusterCmd.CombinedOutput(); err == nil {
+			return outBytes, nil
+		}
+
+		nsCmd := cluster.GetKubectlCmd(p, "get", "host", "-o", "yaml")
+		if outBytes, err := nsCmd.CombinedOutput(); err == nil {
+			return outBytes, nil
+		} else {
+			return nil, err
+		}
+	}()
 	if err != nil {
-		return errors.Wrap(err, "get")
+		return
 	}
-	_, err = ioutil.ReadAll(res.Body)
-	res.Body.Close()
+
+	// Parse the output
+	hostLists, kerr := k8s.ParseResources("get hosts", string(outBytes))
+	if kerr != nil {
+		err = kerr
+		return
+	}
+	if len(hostLists) != 1 {
+		err = errors.Errorf("weird result with length %d", len(hostLists))
+		return
+	}
+
+	// Grab the "items" slice, as the result should be a list of Host resources
+	hostItems := k8s.Map(hostLists[0]).GetMaps("items")
+	p.Logf("Found %d Host resources", len(hostItems))
+
+	// Loop over Hosts looking for a Preview URL hostname
+	for _, hostItem := range hostItems {
+		host := k8s.Resource(hostItem)
+		logEntry := fmt.Sprintf("- Host %s / %s: %%s", host.Namespace(), host.Name())
+
+		previewUrlSpec := host.Spec().GetMap("previewUrl")
+		if len(previewUrlSpec) == 0 {
+			p.Logf(logEntry, "no preview URL config")
+			continue
+		}
+
+		if enabled, ok := previewUrlSpec["enabled"].(bool); !ok || !enabled {
+			p.Logf(logEntry, "preview URL not enabled")
+			continue
+		}
+
+		// missing type, default is "Path" --> success
+		// type is present, set to "Path" --> success
+		// otherwise --> failure
+		if pType, ok := previewUrlSpec["type"].(string); ok && pType != "Path" {
+			p.Logf(logEntry+": %#v", "unsupported preview URL type", previewUrlSpec["type"])
+			continue
+		}
+
+		if hostname = host.Spec().GetString("hostname"); hostname == "" {
+			p.Logf(logEntry, "empty hostname???")
+			continue
+		}
+
+		p.Logf(logEntry+": %q", "SUCCESS! Hostname is", hostname)
+		return
+	}
+
+	p.Logf("No appropriate Host resource found.")
+	return
+}
+
+// checkBridge checks the status of teleproxy bridge by doing the equivalent of
+//  curl http://traffic-proxy.svc.cluster.local:8022.
+// Note there is no namespace specified, as we are checking for bridge status in the
+// current namespace.
+func checkBridge(p *supervisor.Process) error {
+	address := "traffic-proxy.svc.cluster.local:8022"
+	conn, err := net.DialTimeout("tcp", address, 15*time.Second)
 	if err != nil {
-		return errors.Wrap(err, "read body")
+		return errors.Wrap(err, "tcp connect")
+	}
+	if conn != nil {
+		defer conn.Close()
+		msg, _, err := bufio.NewReader(conn).ReadLine()
+		if err != nil {
+			return errors.Wrap(err, "tcp read")
+		}
+		if !strings.Contains(string(msg), "SSH") {
+			return fmt.Errorf("expected SSH prompt, got: %v", string(msg))
+		}
+	} else {
+		return fmt.Errorf("fail to establish tcp connection to %v", address)
 	}
 	return nil
 }
@@ -163,11 +260,16 @@ type TrafficManager struct {
 	interceptables []string
 	totalClusCepts int
 	snapshotSent   bool
+	installID      string // edgectl's install ID
+	connectCI      bool   // whether --ci was passed to connect
+	apiErr         error  // holds the latest traffic-manager API error
+	licenseInfo    string // license information from traffic-manager
+	previewHost    string // hostname to use for preview URLs, if enabled
 }
 
 // NewTrafficManager returns a TrafficManager resource for the given
 // cluster if it has a Traffic Manager service.
-func NewTrafficManager(p *supervisor.Process, cluster *KCluster, managerNs string) (*TrafficManager, error) {
+func NewTrafficManager(p *supervisor.Process, cluster *KCluster, managerNs string, installID string, isCI bool) (*TrafficManager, error) {
 	cmd := cluster.GetKubectlCmd(p, "get", "-n", managerNs, "svc/telepresence-proxy", "deploy/telepresence-proxy")
 	err := cmd.Run()
 	if err != nil {
@@ -188,6 +290,8 @@ func NewTrafficManager(p *supervisor.Process, cluster *KCluster, managerNs strin
 		apiPort:   apiPort,
 		sshPort:   sshPort,
 		namespace: managerNs,
+		installID: installID,
+		connectCI: isCI,
 	}
 
 	pf, err := CheckedRetryingCommand(p, "traffic-kpf", kpfArgs, cluster.RAI(), tm.check, 15*time.Second)
@@ -199,15 +303,25 @@ func NewTrafficManager(p *supervisor.Process, cluster *KCluster, managerNs strin
 }
 
 func (tm *TrafficManager) check(p *supervisor.Process) error {
-	body, _, err := tm.request("GET", "state", []byte{})
+	body, code, err := tm.request("GET", "state", []byte{})
 	if err != nil {
 		return err
 	}
+
+	if code != http.StatusOK {
+		tm.apiErr = fmt.Errorf("%v: %v", code, body)
+		return tm.apiErr
+	}
+	tm.apiErr = nil
+
 	var state map[string]interface{}
 	if err := json.Unmarshal([]byte(body), &state); err != nil {
 		p.Logf("check: bad JSON from tm: %v", err)
 		p.Logf("check: JSON data is: %q", body)
 		return err
+	}
+	if licenseInfo, ok := state["LicenseInfo"]; ok {
+		tm.licenseInfo = licenseInfo.(string)
 	}
 	deployments, ok := state["Deployments"].(map[string]interface{})
 	if !ok {
@@ -257,6 +371,10 @@ func (tm *TrafficManager) request(method, path string, data []byte) (result stri
 	if err != nil {
 		return
 	}
+
+	req.Header.Set("edgectl-install-id", tm.installID)
+	req.Header.Set("edgectl-connect-ci", strconv.FormatBool(tm.connectCI))
+
 	resp, err := hClient.Do(req)
 	if err != nil {
 		err = errors.Wrap(err, "get")
