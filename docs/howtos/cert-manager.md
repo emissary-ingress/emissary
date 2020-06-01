@@ -55,7 +55,7 @@ The DNS-01 challenge verifies domain ownership by proving you have control over 
 
 2. Note the `accessKeyID` and create a `secret` named `prod-route53-credentials-secret` in the cert-manager namespace that has a key value: `secret-access-key` from your AWS IaM credentials.
 
-3. Create and apply a `ClusterIssuer`.  Make sure that the `Issuer` and the `secret` are in the same namespace.
+3. Create and apply a `ClusterIssuer`. 
 
     ```yaml
     ---
@@ -137,7 +137,7 @@ The HTTP-01 challenge verifies ownership of the domain by sending a request for 
           selector: {}
     ```
 
-2. Create and apply a `Certificate`.  Make sure the `Certificate` is in the same namespace as Ambassador.
+2. Create and apply a `Certificate`.
 
     ```yaml
     ---
