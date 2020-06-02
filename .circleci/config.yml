@@ -245,6 +245,8 @@ jobs:
     !!merge <<: *website-job
     steps:
     - website-setup
+    - run: "git config user.name 'ambassador.git CircleCI user' && git config user.email
+        dev@datawire.io"
     - run: ./.ci/website-prod-publish
   oss-dev-images:
     steps:
