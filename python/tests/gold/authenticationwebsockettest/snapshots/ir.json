@@ -160,6 +160,7 @@
                 "authenticationwebsockettest.default.1"
             ],
             "_rkey": "authenticationwebsockettest.default.1",
+            "add_auth_headers": {},
             "add_linkerd_headers": false,
             "allow_request_body": true,
             "allowed_authorization_headers": [],

@@ -15,7 +15,7 @@ logging.basicConfig(
 logger = logging.getLogger("ambassador")
 
 from ambassador import Config, IR
-from ambassador.config import ResourceFetcher
+from ambassador.fetch import ResourceFetcher
 from ambassador.utils import NullSecretHandler
 from ambassador.ir import IRResource
 from ambassador.ir.irbuffer import IRBuffer
