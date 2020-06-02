@@ -1,8 +1,10 @@
 # Ambassador and Istio
 
-The Ambassador Edge Stack is a feature-rich ingress controller than easily handles getting requests from your clients to your backend services. It exposes powerful security and access control functionality that makes it easy to control and observe which clients and accessing your services and how they are doing so.
+Ambassador Edge Stack and Istio: Edge Proxy and Service Mesh together in one. The Edge Stack is deployed at the edge of your network and routes incoming traffic to your internal services (aka "north-south" traffic). [Istio](https://istio.io/) is a service mesh for microservices, and is designed to add application-level Layer (L7) observability, routing, and resilience to service-to-service traffic (aka "east-west" traffic). Both Istio and the Ambassador Edge Stack are built using [Envoy](https://www.envoyproxy.io).
 
-Istio, is a feature-rich service mesh that gives you fine-grained control and observability over requests that travel from service-to-service in your cluster.
+Ambassador Edge Stack and Istio can be deployed together on Kubernetes. In this configuration, incoming traffic from outside the cluster is first routed through the Ambassador Edge Stack, which then routes the traffic to Istio-powered services. The Ambassador Edge Stack handles authentication, edge routing, TLS termination, and other traditional edge functions.
+
+This allows the operator to have the best of both worlds: a high performance, modern edge service (Ambassador Edge Stack) combined with a state-of-the-art service mesh (Istio). While Istio has introduced a [Gateway](https://istio.io/docs/tasks/traffic-management/ingress/#configuring-ingress-using-an-istio-gateway) abstraction, the Ambassador Edge Stack still has a much broader feature set for edge routing than Istio. For more on this topic, see our blog post on [API Gateway vs Service Mesh](https://blog.getambassador.io/api-gateway-vs-service-mesh-104c01fa4784).
 
 This guide will explain how to take advantage of both Ambassador and Istio to have complete control and observability over how requests are made in your cluster. 
 
@@ -17,18 +19,30 @@ This guide will explain how to take advantage of both Ambassador and Istio to ha
 
 ## Install Ambassador
 
-Select your Istio version below for instructions on how to install Ambassador.
+There a number of installation options for Ambassador. See the [getting started](../tutorials/getting-started) for the full list of installation options and instructions.
 
-- [Istio 1.5 and above](#istio-1.5-and-above)
-- [Istio 1.4 and below](#istio-1.4-and-below)
+## Integrate Ambassador and Istio
 
-### Istio 1.5 and Above
+Ambassador integrates with Istio in three ways:
 
-Istio 1.5 introduced [istiod](https://istio.io/docs/ops/deployment/architecture/#istiod) which moved Istio away from a microservice architecture and towards a single control plane process. 
+* Uses Istio [mutual TLS (mTLS)](#mutual-tls) certificates for end-to-end encryption
+* Integrates with Prometheus for centralized metrics collection
+* Integrates with Istio distributed tracing for end-to-end observability
 
-Due to this change, acquiring mTLS certificates relies on the presence of an `istio-proxy` to get them from the control plane. Because we do not want this proxy to handle route, we will manually add it to our Ambassador `Deployment`.
+Integrating Ambassador and Istio allows you to take advantage of the edge routing capabilities of Ambassador while maintaining the end-to-end security and observability that makes Istio so powerful.
 
-Below is the standard AES deployment YAML found at https://getambassador.io/yaml/aes.yaml with the `istio-proxy` sidecar added:
+### Mutual TLS
+
+The process of collecting mTLS certificates is different depending on your Istio version. Select your Istio version below for instructions on how to integrate Ambassador with Istio.
+
+- [Istio 1.5 and above](#integrating-ambassador-with-istio-15-and-above)
+- [Istio 1.4 and below](#integrating-ambassador-with-istio-14-and-below)
+
+#### Integrating Ambassador with Istio 1.5 and Above
+
+Istio 1.5 introduced [istiod](https://istio.io/docs/ops/deployment/architecture/#istiod) which moved Istio towards a single control plane process.
+
+Below we will update the deployment of Ambassador to add the `istio-proxy` sidecar so we can get Istio's mTLS certificates straight from the Istio control plane.
 
 ```diff
 ---
@@ -83,6 +97,9 @@ spec:
           value: http://127.0.0.1:8877
         - name: AMBASSADOR_SINGLE_NAMESPACE
           value: ''
++        # Necessary to run the istio-proxy sidecar
++        - name: AMBASSADOR_ENVOY_BASE_ID
++          value: "1"
         livenessProbe:
           httpGet:
             path: /ambassador/v0/check_alive
@@ -233,15 +250,13 @@ spec:
       terminationGracePeriodSeconds: 0
 ```
 
-Adding the `istio-proxy` container and volumes will allow Ambassador to get the mTLS certificates from Istio for sending requests upstream. 
-
 **Make sure the `istio-proxy` is the same version as your Istio installation**
 
 Deploy the YAML above with `kubectl apply` to install Ambassador with the `istio-proxy` sidecar.
 
-After installing Ambassador, we need to stage the Istio mTLS certificates for use.
+After applying the updated Ambassador deployment above to your cluster, we need to stage the Istio mTLS certificates for use.
 
-Simply create a `TLSContext` object to load the TLS certificates the `istio-proxy` got from Istio for Ambassador to use on requests upstream.
+We do this with a `TLSContext` that loads the mTLS certificates from the `istio-proxy` for use when sending requests upstream.
 
 ```bash
 $ kubectl apply -f - <<EOF
@@ -259,15 +274,13 @@ spec:
 EOF
 ```
 
-You now have Ambassador installed and staged to do mTLS with upstream services.
+Ambassador is now integrated with Istio for end-to-end encryption.
 
-### Istio 1.4 and Below
+#### Integrating Ambassador with Istio 1.4 and Below
 
-There is no change in how you install Ambassador when running Istio 1.4 and below. See the [getting started](../tutorials/getting-started) page to install Ambassador.
+With Istio 1.4 and below, Istio stores it's mTLS certificates as a Kubernetes `Secret` in each namespace.
 
-After installing Ambassador, we need to stage the Istio mTLS certificates for use.
-
-Simply create a `TLSContext` object to load the `istio.default` secret from the Ambassador namespace for Ambassador to use on requests upstream.
+We can read these certificates from the `istio.default` `Secret` in the Ambassador namespace with a `TLSContext`.
 
 ```bash
 $ kubectl apply -f - <<EOF
@@ -284,41 +297,162 @@ spec:
 EOF
 ```
 
-You now have Ambassador installed and staged to do mTLS with upstream services.
+Ambassador is now integrated with Istio for end-to-end encryption.
+
+### Integrating Prometheus Metrics Collection
+
+Istio installs by default with a Prometheus deployment for collecting metrics from different resources in your cluster. 
+
+We can integrate Ambassador with the same Prometheus to give us a single metrics endpoint.
+
+Istio's Prometheus deployment is configured using a `ConfigMap`. To add Ambassador as a Metrics endpoint, we need to update this `ConfigMap` and restart Prometheus.
+
+1. Export the current Prometheus configuration.
+
+   * If you installed Istio with `istioctl`, you can get the YAML that was installed with
+
+      ```bash
+      istioctl manifest generate > istio.yaml
+      ```
+      This will export all of the YAML configuration used by Istio to a file named `istio.yaml` so you can update the `ConfigMap` there.
+
+   * If you did not install with `istioctl`, you can export the YAML of the current `ConfigMap` in your cluster with `kubectl`:
+
+      ```bash
+      kubectl get -n istio-system configmap prometheus  -o yaml > prom-cm.yaml
+      ```
+   
+      You should now have a `ConfigMap` that looks something like this:
+   
+      ```yaml
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: prometheus
+        namespace: istio-system
+        labels:
+          app: prometheus
+          release: istio
+      data:
+        prometheus.yml: |-
+          global:
+            scrape_interval: 15s
+          scrape_configs:
+          ...
+      ```
+
+2. Update the `Prometheus` `ConfigMap` to add Ambassador as a scraping endpoint
+
+   To configure Prometheus to get metrics from Ambassador, add the following config under `scrape_configs` in the `Prometheus` `ConfigMap` we exported above and apply it with `kubectl`.
+
+   ```yaml
+   ...
+   data:
+     prometheus.yml: |-
+       global:
+         scrape_interval: 15s
+       scrape_configs:
+       # Ambassador scraping.
+       - job_name: 'ambassador'
+         kubernetes_sd_configs:
+         - role: endpoints
+           namespaces:
+             names:
+             - ambassador
+         relabel_configs:
+         - source_labels: [__meta_kubernetes_service_name,    __meta_kubernetes_endpoint_port_name]
+           action: keep
+           regex: ambassador-admin;ambassador-admin
+         - source_labels: [__meta_kubernetes_endpoint_address_target_name]
+           action: replace
+           target_label: pod_name
+       
+       # Mixer scrapping. Defaults to Prometheus and mixer on same namespace.
+       ...
+   ```
+
+3. Restart and access the Prometheus UI
+
+   The Prometheus pod must be restarted to start with the new configuration. 
+
+   ```bash
+   kubectl delete pod -n istio-system $(kubectl get pods -n istio-system | grep prometheus | awk '{print $1}')
+   ```
+
+   After the pod restarts you can port-forward the Prometheus `Service` to access the Prometheus UI.
+
+   ```bash
+   kubectl port-forward -n istio-system svc/prometheus 9090:9090
+   ```
+
+   You can now access the UI at http://localhost:9090/
+
+### Integrating Distributed Tracing
+
+Enabling the [tracing component](https://istio.io/docs/tasks/observability/distributed-tracing/overview/) in Istio gives you the power to observe how a request behaves at each point in your application.
+
+Since Istio will propagate the tracing headers automatically, integrating Ambassador with the Istio Jaeger deployment will give you end-to-end observability of requests throughout your cluster.
+
+To do so, simply create a [`TracingService`](../topics/running/services/tracing-service) and point it at the `zipkin` `Service` in the istio-system namespace.
+
+```yaml
+---
+apiVersion: getambassador.io/v2
+kind:  TracingService
+metadata:
+  name:  tracing
+  namespace: ambassador
+spec:
+  service: "zipkin.istio-system:9411"
+  driver: zipkin
+  config: {}
+  tag_headers:
+    - ":authority"
+    - ":path"
+```
+
+After applying this configuration with `kubectl apply`, restart the Ambassador pod for the configuration to take effect.
+
+```bash
+kubectl delete po -n ambassador {{AMBASSADOR_POD_NAME}}
+```
+
+You can now access the tracing service UI to see Ambassador is now one of the services.
 
 ## Routing to Services
 
-Now we will have Ambassador route to services in our Kubernetes cluster.
-
-1. Install the [bookinfo sample application](https://istio.io/docs/examples/bookinfo/)
-
-2. 
-
-
+Above, we integrated Ambassador with Istio to take advantage of end-to-end encryption and observability offered by Istio while leveraging the feature-rich edge routing capabilities of Ambassador.
 
 Now we will show how you can use Ambassador to route to services in the Istio service mesh.
 
 1. Label the default namespace for [automatic sidecar injection](https://istio.io/docs/setup/additional-setup/sidecar-injection/#automatic-sidecar-injection)
 
-   ```
+   ```bash
    kubectl label namespace default istio-injection=enabled
    ```
 
    This will tell Istio to automatically inject the `istio-proxy` sidecar container into pods in this namespace.
 
+2. Install the quote example service
 
-
-2. Install the quote example service:
-
-   ```
+   ```bash
    kubectl apply -n default -f https://getambassador.io/yaml/backends/quote.yaml
    ```
 
    Wait for the pod to start and see that there are two containers: the `quote` application and the `istio-proxy` sidecar.
 
-3. Send a request to the service
+   ```bash
+   $ kubectl get po -n default 
 
-   The above `kubectl apply` installed the following `Mapping` which configured Ambassador to route traffic with URL prefix `/backend/` to the `quote` service.
+   NAME                     READY   STATUS    RESTARTS   AGE
+   quote-6bc6b6bd5d-jctbh   2/2     Running   0          91m
+   ```
+
+3. Route to the service
+
+   Traffic routing in Ambassador is configured with the [`Mapping`](../topics/using/intro-mappings) resource. This is a powerful configuration object that lets you configure different routing rules for different services. 
+
+   The above `kubectl apply` installed the following basic `Mapping` which has configured Ambassador to route traffic with URL prefix `/backend/` to the `quote` service.
 
    ```yaml
    apiVersion: getambassador.io/v2
@@ -328,6 +462,23 @@ Now we will show how you can use Ambassador to route to services in the Istio se
    spec:
      prefix: /backend/
      service: quote
+   ```
+
+   Since we have integrated Ambassador with Istio, we can tell it to use the mTLS certificates to encrypt requests to the quote service.
+
+   Simply do that by updating the above `Mapping` with the following one.
+
+   ```bash
+   $ kubectl apply -f - <<EOF
+   apiVersion: getambassador.io/v2
+   kind: Mapping
+   metadata:
+     name: quote-backend
+   spec:
+     prefix: /backend/
+     service: quote
+     tls: istio-upstream
+   EOF
    ```
 
    Send a request to the quote service using curl:
@@ -342,11 +493,11 @@ Now we will show how you can use Ambassador to route to services in the Istio se
    }
    ```
 
-   While you may not be able to tell, Ambassador received the above request and forwarded it on to the quote service where the `istio-proxy` intercepted it and forwarded it on to the application.
+   While the majority of the work being done is transparent to the user, you have successfully sent a request to Ambassador which routed it to the quote service in the default namespace. It was then intercepted by the `istio-proxy` which authenticated the request from Ambassador and exported various metrics and finally forwarded it on to the  quote service.
 
-## Mutual TLS (mTLS)
+## Enforcing Authentication Between Containers
 
-Istio defaults to PERMISSIVE mTLS that does not require authentication between containers in the cluster. Configuring STRICT mTLS will require all connections within the cluster be encrypted. We have already staged Ambassador with the necessary TLS certificates to support this during [installation](#install-ambassador).
+Istio defaults to PERMISSIVE mTLS that does not require authentication between containers in the cluster. Configuring STRICT mTLS will require all connections within the cluster be encrypted.
 
 1. Configure Istio in [STRICT mTLS](https://istio.io/docs/tasks/security/authentication/authn-policy/#globally-enabling-istio-mutual-tls-in-strict-mode) mode.
 
@@ -363,18 +514,33 @@ Istio defaults to PERMISSIVE mTLS that does not require authentication between c
    EOF
    ```
 
-   This will enforce authentication between all containers in the mesh.
+   This will enforce authentication for all containers in the mesh.
 
-   Now, if you send a request to the quote service, you will see the request fails because we are not sending an encrypted request.
+   We can test this by removing the `tls` configuration from the quote-backend `Mapping`
+   and sending a request.
 
    ```bash
+   $ kubectl apply -f - <<EOF
+   apiVersion: getambassador.io/v2
+   kind: Mapping
+   metadata:
+     name: quote-backend
+   spec:
+     prefix: /backend/
+     service: quote
+   EOF
+   ```
+
+   ```
    $ curl -k https://{{AMBASSADOR_HOST}}/backend/
+   
    upstream connect error or disconnect/reset before headers. reset reason: connection termination
    ```
 
+
 2. Configure Ambassador to use mTLS certificates
 
-   Since we already staged Ambassador to use the mTLS certificates above, we can simply add that `TLSContext` to the `Mapping` to the quote service.
+   As we have demonstrated above we can tell Ambassador to use the mTLS certificates from Istio to authenticate with the `istio-proxy` in the quote pod.
 
    ```bash
    $ kubectl apply -f - <<EOF
@@ -400,3 +566,45 @@ Istio defaults to PERMISSIVE mTLS that does not require authentication between c
        "time": "2020-06-02T11:06:53.854468941Z"
    }
    ```
+
+## Grafana
+
+The Istio [Grafana addon](https://istio.io/docs/tasks/observability/metrics/using-istio-dashboard/) integrates a Grafana dashboard with the Istio Prometheus deployment to visualize the metrics collected there.
+
+The metrics Ambassador adds to the list will appear in the Istio dashboard but we can add an Ambassador dashboard as well. We're going to use the Ambassador dashboard on [Grafana's](https://grafana.com/) website under entry [4689](https://grafana.com/dashboards/4698) as a starting point.
+
+First, let's start the port-forwarding for Istio's Grafana service:
+
+```sh
+$ kubectl -n istio-system port-forward $(kubectl -n istio-system get pod -l app=grafana -o jsonpath='{.items[0].metadata.name}') 3000:3000 &
+```
+
+Now, open Grafana tool by accessing: `http://localhost:3000/`
+
+To install the Ambassador Edge Stack Dashboard:
+
+* Click on Create
+* Select Import
+* Enter number 4698
+
+Now we need to adjust the Dashboard Port to reflect our Ambassador Edge Stack configuration:
+
+* Open the Imported Dashboard
+* Click on Settings in the Top Right corner
+* Click on Variables
+* Change the port to 80 (according to the ambassador service port)
+
+Next, adjust the Dashboard Registered Services metric:
+
+* Open the Imported Dashboard
+* Find Registered Services
+* Click on the down arrow and select Edit
+* Change the Metric to:
+
+```yaml
+envoy_cluster_manager_active_clusters{job="ambassador"}
+```
+
+Now let's save the changes:
+
+* Click on Save Dashboard in the Top Right corner
