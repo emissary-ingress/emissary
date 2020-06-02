@@ -1,21 +1,7 @@
+import logging
 import sys
 
-import logging
 import pytest
-
-from ambassador import Config
-from ambassador.config.resourceprocessor import (
-    LocationManager,
-    ResourceManager,
-    KubernetesProcessor,
-    KubernetesGVK,
-    KubernetesObject,
-    AggregateKubernetesProcessor,
-    CountingKubernetesProcessor,
-    DeduplicatingKubernetesProcessor,
-    AmbassadorProcessor,
-)
-from ambassador.utils import parse_yaml
 
 logging.basicConfig(
     level=logging.INFO,
@@ -24,6 +10,20 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger("ambassador")
+
+from ambassador import Config
+from ambassador.fetch import ResourceFetcher
+from ambassador.fetch.location import LocationManager
+from ambassador.fetch.resource import NormalizedResource, ResourceManager
+from ambassador.fetch.k8sobject import KubernetesGVK, KubernetesObject
+from ambassador.fetch.k8sprocessor import (
+    KubernetesProcessor,
+    AggregateKubernetesProcessor,
+    CountingKubernetesProcessor,
+    DeduplicatingKubernetesProcessor,
+)
+from ambassador.fetch.ambassador import AmbassadorProcessor
+from ambassador.utils import parse_yaml
 
 
 def k8s_object_from_yaml(yaml: str, **kwargs) -> KubernetesObject:
@@ -140,7 +140,7 @@ class TestKubernetesObject:
 class TestNormalizedResource:
 
     def test_kubernetes_object_conversion(self):
-        resource = valid_mapping.as_normalized_resource()
+        resource = NormalizedResource.from_kubernetes_object(valid_mapping)
 
         assert resource.rkey == f'{valid_mapping.name}.{valid_mapping.namespace}'
         assert resource.object['apiVersion'] == valid_mapping.gvk.api_version
@@ -286,6 +286,49 @@ class TestCountingKubernetesProcessor:
         assert not p.try_process(valid_knative_ingress), 'Processor accepted non-matching resource'
 
         assert aconf.get_count('test') == 2, 'Processor did not increment counter'
+
+
+def test_resourcefetcher_handle_k8s_service():
+    aconf = Config()
+
+    fetcher = ResourceFetcher(logger, aconf)
+
+    # Test no metadata key
+    svc = {}
+    result = fetcher.handle_k8s_service(svc)
+    assert result is None
+
+    svc["metadata"] = {
+        "name": "testservice",
+        "annotations": {
+            "foo": "bar"
+        }
+    }
+    # Test no ambassador annotation
+    result = fetcher.handle_k8s_service(svc)
+    assert result == ('testservice.default', [])
+
+    # Test empty annotation
+    svc["metadata"]["annotations"]["getambassador.io/config"] = {}
+    result = fetcher.handle_k8s_service(svc)
+    assert result == ('testservice.default', [])
+
+    # Test valid annotation
+    svc["metadata"]["annotations"]["getambassador.io/config"] = """apiVersion: getambassador.io/v1
+kind: Mapping
+name: test_mapping
+prefix: /test/
+service: test:9999"""
+    result = fetcher.handle_k8s_service(svc)
+    expected = {
+        'apiVersion': 'getambassador.io/v1',
+        'kind': 'Mapping',
+        'name': 'test_mapping',
+        'prefix': '/test/',
+        'service': 'test:9999',
+        'namespace': 'default'
+    }
+    assert result == ('testservice.default', [expected])
 
 
 if __name__ == '__main__':
