@@ -168,6 +168,7 @@
                 "authenticationtestv1.default.2"
             ],
             "_rkey": "authenticationtestv1.default.1",
+            "add_auth_headers": {},
             "add_linkerd_headers": true,
             "allow_request_body": false,
             "allowed_authorization_headers": [

@@ -38,6 +38,8 @@ spec:
   - "x-example-header"
   allowed_authorization_headers:   # optional; default is []
   - "x-qotm-session"
+  add_auth_headers:                # optional; default is {}
+    x-added-auth: auth-added
   add_linkerd_headers: bool        # optional; default is based on the ambassador Module
 ```
 
@@ -82,6 +84,8 @@ The following fields are only used if `proto: http`; they are ignored if `proto:
     * `Proxy-Authenticate`
     * `Set-cookie`
     * `WWW-Authenticate`
+
+ - `add_auth_headers` (optional) is a dictionary of `header`: `value` pairs that will be added to the request made to the external auth service.
 
  - `add_linkerd_headers` (optional) when true, in the request to the external auth service, adds an `l5d-dst-override` HTTP header that is set to the hostname and port number of the external auth service.  Defaults to the value set in the [`ambassador Module`](../../ambassador).
 

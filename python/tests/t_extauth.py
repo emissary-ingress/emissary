@@ -38,9 +38,9 @@ service: {self.target.path.fqdn}
                                                   "baz": "baz",
                                                   "request-header": "baz"}, expected=401)
         # [1]
-        yield Query(self.url("target/"), headers={"requested-status": "302", 
+        yield Query(self.url("target/"), headers={"requested-status": "302",
                                                   "requested-location": "foo"}, expected=302)
-        
+
         # [2]
         yield Query(self.url("target/"), headers={"requested-status": "401",
                                                   "x-foo": "foo",
@@ -136,6 +136,9 @@ allowed_request_headers:
 allowed_authorization_headers:
 - Auth-Request-Body
 
+add_auth_headers:
+  X-Added-Auth: auth-added
+
 include_body:
   max_bytes: 7
   allow_partial: true
@@ -152,9 +155,12 @@ service: {self.target.path.fqdn}
     def queries(self):
         # [0]
         yield Query(self.url("target/"), headers={"Requested-Status": "200"}, body="message_body", expected=200)
-        
+
         # [1]
         yield Query(self.url("target/"), headers={"Requested-Status": "200"}, body="body", expected=200)
+
+        # [2]
+        yield Query(self.url("target/"), headers={"Requested-Status": "401"}, body="body", expected=401)
 
     def check(self):
         # [0] Verifies that the authorization server received the partial message body.
@@ -163,7 +169,7 @@ service: {self.target.path.fqdn}
         assert self.results[0].status == 200
         assert self.results[0].headers["Server"] == ["envoy"]
         assert extauth_res1["request"]["headers"]["auth-request-body"] == ["message"]
-        
+
         # [1] Verifies that the authorization server received the full message body.
         extauth_res2 = json.loads(self.results[1].headers["Extauth"][0])
         assert self.results[1].backend.request.headers["requested-status"] == ["200"]
@@ -171,6 +177,12 @@ service: {self.target.path.fqdn}
         assert self.results[1].headers["Server"] == ["envoy"]
         assert extauth_res2["request"]["headers"]["auth-request-body"] == ["body"]
 
+        # [2] Verifies that the authorization server received added headers
+        assert self.results[2].backend.request.headers["requested-status"] == ["401"]
+        assert self.results[2].backend.request.headers["x-added-auth"] == ["auth-added"]
+        assert self.results[2].status == 401
+        assert self.results[2].headers["Server"] == ["envoy"]
+        assert extauth_res2["request"]["headers"]["auth-request-body"] == ["body"]
 
 class AuthenticationHTTPBufferedTest(AmbassadorTest):
 
@@ -228,7 +240,7 @@ allowed_request_headers:
 
 allowed_authorization_headers:
 - X-Foo
-- Set-Cookie 
+- Set-Cookie
 
 include_body:
   max_bytes: 4096
@@ -251,7 +263,7 @@ service: {self.target.path.fqdn}
         # [1]
         yield Query(self.url("target/"), headers={"requested-status": "302",
                                                   "location": "foo",
-                                                  "requested-cookie": "foo, bar, baz", 
+                                                  "requested-cookie": "foo, bar, baz",
                                                   "requested-header": "location"}, expected=302)
         # [2]
         yield Query(self.url("target/"), headers={"Requested-Status": "401",
@@ -287,7 +299,7 @@ service: {self.target.path.fqdn}
         assert self.results[1].headers["Server"] == ["envoy"]
         assert self.results[1].headers["Location"] == ["foo"]
         assert self.results[1].headers["Set-Cookie"] == ["foo=foo", "bar=bar", "baz=baz"]
-        
+
         # [2] Verifies Envoy returns whitelisted headers input by the user.
         assert self.results[2].backend.name == self.auth.path.k8s
         assert self.results[2].backend.request.headers["requested-status"] == ["401"]
@@ -371,7 +383,7 @@ service: {self.target.path.fqdn}
     def queries(self):
         # [0]
         yield Query(self.url("target/"), headers={"Requested-Status": "200"}, expected=200)
-        
+
         # [1]
         yield Query(self.url("target/"), headers={"Requested-Status": "503"}, expected=503)
 
@@ -381,7 +393,7 @@ service: {self.target.path.fqdn}
         assert self.results[0].backend.request.headers["requested-status"] == ["200"]
         assert self.results[0].status == 200
         assert self.results[0].headers["Server"] == ["envoy"]
-        
+
         # [1] Verifies that the authorization server received the full message body.
         extauth_res2 = json.loads(self.results[1].headers["Extauth"][0])
         assert self.results[1].backend.request.headers["requested-status"] == ["503"]

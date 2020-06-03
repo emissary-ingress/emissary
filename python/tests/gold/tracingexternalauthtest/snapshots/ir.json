@@ -193,6 +193,7 @@
                 "zipkin-auth.default.2"
             ],
             "_rkey": "zipkin-auth.default.2",
+            "add_auth_headers": {},
             "add_linkerd_headers": false,
             "allow_request_body": false,
             "allowed_authorization_headers": [],
