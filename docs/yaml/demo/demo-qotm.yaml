@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
       - name: qotm
-        image: datawire/qotm:1.1
+        image: docker.io/datawire/qotm:1.1
         ports:
         - name: http-api
           containerPort: 5000

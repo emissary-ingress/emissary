@@ -55,7 +55,7 @@ spec:
     spec:
       containers:
       - name: example-auth
-        image: datawire/ambassador-auth-service:2.0.0
+        image: docker.io/datawire/ambassador-auth-service:2.0.0
         imagePullPolicy: Always
         ports:
         - name: http-api

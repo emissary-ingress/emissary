@@ -1,0 +1,143 @@
+version: 2.1
+
+# Secure environement variables set from the Web UI:
+#
+# - AWS_ACCESS_KEY_ID (AWS S3)
+# - AWS_SECRET_ACCESS_KEY (AWS S3)
+#
+# - DEV_REGISTRY (DockerHub)
+# - DOCKER_BUILD_USERNAME (DockerHub)
+# - DOCKER_BUILD_PASSWORD (DockerHub)
+#
+# - RELEASE_REGISTRY (DockerHub)
+# - DOCKER_RELEASE_USERNAME (DockerHub)
+# - DOCKER_RELEASE_PASSWORD (DockerHub)
+
+_anchors:
+  "oss-linux-job": &oss-linux-job
+    machine:
+      # If you bump this, be sure to bump "install-python.executor-key"
+      # in the "oss-linux-setup" command below.
+      image: "ubuntu-1604:201903-01"
+    working_directory: ~/project/ambassador
+
+commands:
+
+  "oss-linux-setup":
+    steps:
+      - pip-install:
+          packages: awscli
+      - install-go
+      - install-kubectl
+      - install-python:
+          executor-key: "201903-01"
+      - oss-checkout
+
+  "oss-images-build-and-test":
+    steps:
+      - run:
+          name: "Check Make Test"
+          command: |
+            set -x
+            set +o pipefail # Our make invocation below will always "fail", so clear pipefail.
+            test_targets=$(make -n noop --print-data-base 2>/dev/null | egrep '^test:' | sed -e s'/^test: *//' | tr ' ' '\n' | sort | tr '\n' ' ' | sed -e 's/ $//')
+            if [ "$test_targets" != "gotest ingresstest pytest" ]; then
+              echo "Test target has changed to $test_targets, you need to update Circle" >&2
+              exit 1
+            fi
+      - run:
+          name: "Set up cluster and registry"
+          command: |
+            ./.ci/kubernaut-claim
+            echo >>"$BASH_ENV" export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
+
+            if [[ -n "$DEV_REGISTRY" && -n "$DOCKER_BUILD_USERNAME" && -n "DOCKER_BUILD_PASSWORD" ]]; then
+              docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY%%/*}"
+            else
+              echo >>"$BASH_ENV" go run ./cmd/k8sregistryctl up --storage=hostPath
+              echo >>"$BASH_ENV" export DEV_REGISTRY=127.0.0.1:31000
+            fi
+      - run:
+          name: "Build"
+          command: |
+            make push
+      - run:
+          name: "Go Tests"
+          command: |
+            make gotest
+      - run:
+          name: "KAT"
+          command: |
+            export DEV_KUBE110=yes
+            export DEV_KUBE_NO_PVC=yes
+            export KAT_REQ_LIMIT=600
+            make pytest-only
+      # We might want to run ingress-conformance tests in AES in the future
+      # This would require we install `kind` on circleci and that the test suite
+      # supports HTTP to HTTPS redirects (AES enables cleartext redirection by
+      # default, even for fallback hosts, contrary to AOSS)
+      # - run:
+      #     name: "Ingress Conformance Tests"
+      #     command: |
+      #       export DEV_KUBE110=yes
+      #       make ingresstest
+      - run:
+          command: "./.ci/kubernaut-unclaim"
+          when: "always"
+      - dirty-check
+      #- oss-save-logs
+
+jobs:
+  "oss-dev-images":
+    <<: *oss-linux-job
+    steps:
+      - oss-linux-setup
+      - oss-images-build-and-test
+
+  "oss-release-images":
+    <<: *oss-linux-job
+    steps:
+      - oss-linux-setup
+      - oss-images-build-and-test
+      - run:
+          name: "Release"
+          command: |
+            docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
+            DEV_KUBECONFIG="-skip-for-release-" make release/bits
+
+  "oss-release-promote":
+    <<: *oss-linux-job
+    steps:
+      - oss-linux-setup
+      - run:
+          name: "Promote to GA"
+          command: |
+            docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
+            DEV_KUBECONFIG="-skip-for-release-" make release/promote-oss/to-ga
+
+workflows:
+  # All of these filters assume that "Only build pull requests" is turned on at
+  # https://app.circleci.com/settings/project/github/datawire/apro/advanced
+  "OSS: Dev":
+    # Run this workflow on just 'master' and PRs.
+    jobs:
+      - "oss-dev-images"
+  "OSS: Release":
+    when:
+      equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
+    # Run this workflow on tags, not branches or PRs.
+    jobs:
+      - "oss-release-images":
+          # Run this on just prerelease tags
+          filters:
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+-.*/
+            branches:
+              ignore: /.*/
+      - "oss-release-promote":
+          # Run this on just GA tags
+          filters:
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
+            branches:
+              ignore: /.*/
