@@ -611,7 +611,7 @@ Now let's save the changes:
 
 ## FAQ
 
-### How to test Istio Certificate Rotation
+### How to Test Istio Certificate Rotation
 
 Istio mTLS certificates, by default, will be valid for a max of 90 days but will be rotated every day.
 
