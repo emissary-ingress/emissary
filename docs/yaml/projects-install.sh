@@ -9,10 +9,13 @@
 
     REQUIRED_VERSION='1.5.*'
     PROJECTS_MANIFEST=https://getambassador-preview.netlify.app/yaml/projects.yaml
-    AES_IMAGE=datawire/aes:1.5.0
+    AES_IMAGE=docker.io/datawire/aes:1.5.0
 
     echo "Checking AES version..."
-    eval "$(kubectl get deploy -n ambassador ambassador -o go-template='{{range .spec.template.spec.containers}}{{.name}}='\''{{.image}}'\''{{"\n"}}{{end}}' | grep '^ambassador=')"
+    # we need to check both ambassador an aes because of inconsistent yaml
+    eval "$(kubectl get deploy -n ambassador ambassador -o go-template='{{range .spec.template.spec.containers}}{{.name}}='\''{{.image}}'\''{{"\n"}}{{end}}' | grep '^\(ambassador\|aes\)=')"
+    image="${ambassador}${aes}"
+
     eval "$(kubectl exec -n ambassador deploy/ambassador -- grep -F 'BUILD_VERSION=' /buildroot/ambassador/python/apro.version)"
 
     if ! [[ ${BUILD_VERSION} == ${REQUIRED_VERSION} ]] ; then
@@ -20,15 +23,15 @@
         exit 1
     fi
 
-    if ! [[ "${ambassador}" == */aes:* ]]; then
+    if ! [[ "${image}" == */aes:* ]]; then
         echo "This beta requires AES version ${REQUIRED_VERSION}, found OSS \"${BUILD_VERSION}\""
         exit 1
     fi
 
-    echo "Found AES image=${ambassador}"
+    echo "Found AES image=${image}"
     echo "Found BUILD_VERSION=${BUILD_VERSION}"
 
-    if [ "${ambassador}" != ${AES_IMAGE} ]; then
+    if [ "${image}" != ${AES_IMAGE} ]; then
        echo
        echo "Please note! Continuing will update your ambassador image to: ${AES_IMAGE}"
        echo
