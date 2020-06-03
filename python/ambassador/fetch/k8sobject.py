@@ -3,6 +3,7 @@ from typing import Any, Dict, Iterator, Optional
 
 import collections.abc
 import dataclasses
+import enum
 
 from ..config import Config
 
@@ -45,6 +46,12 @@ class KubernetesGVK:
         return cls('networking.internal.knative.dev/v1alpha1', kind)
 
 
+@enum.unique
+class KubernetesObjectScope (enum.Enum):
+    CLUSTER = enum.auto()
+    NAMESPACE = enum.auto()
+
+
 @dataclasses.dataclass(frozen=True)
 class KubernetesObjectKey:
     """
@@ -55,17 +62,26 @@ class KubernetesObjectKey:
     namespace: Optional[str]
     name: str
 
+    @property
+    def kind(self) -> str:
+        return self.gvk.kind
 
-class KubernetesObject(collections.abc.Mapping):
+    @property
+    def scope(self) -> KubernetesObjectScope:
+        return KubernetesObjectScope.CLUSTER if self.namespace is None else KubernetesObjectScope.NAMESPACE
+
+    @classmethod
+    def from_object_reference(cls, ref: Dict[str, Any]) -> KubernetesObjectKey:
+        return cls(KubernetesGVK('v1', ref['kind']), ref.get('namespace'), ref['name'])
+
+
+class KubernetesObject (collections.abc.Mapping):
     """
     Represents a raw object from Kubernetes.
     """
 
-    default_namespace: Optional[str]
-
-    def __init__(self, delegate: Dict[str, Any], default_namespace: Optional[str] = None) -> None:
+    def __init__(self, delegate: Dict[str, Any]) -> None:
         self.delegate = delegate
-        self.default_namespace = default_namespace
 
         try:
             self.gvk
@@ -95,10 +111,12 @@ class KubernetesObject(collections.abc.Mapping):
         return self['metadata']
 
     @property
-    def namespace(self) -> Optional[str]:
-        val = self.metadata.get('namespace', self.default_namespace)
+    def namespace(self) -> str:
+        val = self.metadata.get('namespace')
         if val == '_automatic_':
             val = Config.ambassador_namespace
+        elif val is None:
+            raise AttributeError(f'{self.__class__.__name__} {self.gvk.domain} {self.name} is cluster-scoped and has no namespace')
 
         return val
 
@@ -108,7 +126,16 @@ class KubernetesObject(collections.abc.Mapping):
 
     @property
     def key(self) -> KubernetesObjectKey:
-        return KubernetesObjectKey(self.gvk, self.namespace, self.name)
+        try:
+            namespace = self.namespace
+        except AttributeError:
+            namespace = None
+
+        return KubernetesObjectKey(self.gvk, namespace, self.name)
+
+    @property
+    def scope(self) -> KubernetesObjectScope:
+        return self.key.scope
 
     @property
     def generation(self) -> int:

@@ -90,7 +90,7 @@ class KnativeIngressProcessor (ManagedKubernetesProcessor):
             mapping = NormalizedResource.from_data(
                 'Mapping',
                 mapping_identifier,
-                namespace=obj.namespace or 'default',
+                namespace=obj.namespace,
                 generation=obj.generation,
                 labels=obj.labels,
                 spec=spec,
@@ -154,7 +154,7 @@ class KnativeIngressProcessor (ManagedKubernetesProcessor):
             # the relevant domain by doing a DNS lookup on
             # kubernetes.default.svc, but this problem appears elsewhere in the
             # code as well and probably should just be fixed all at once.
-            current_lb_domain = f"{self.manager.ambassador_service.name}.{self.manager.ambassador_service.namespace or 'default'}.svc.cluster.local"
+            current_lb_domain = f"{self.manager.ambassador_service.name}.{self.manager.ambassador_service.namespace}.svc.cluster.local"
 
         observed_ingress: Dict[str, Any] = next(iter(obj.status.get('privateLoadBalancer', {}).get('ingress', [])), {})
         observed_lb_domain = observed_ingress.get('domainInternal')

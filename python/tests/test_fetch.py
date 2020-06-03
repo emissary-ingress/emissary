@@ -15,7 +15,12 @@ from ambassador import Config
 from ambassador.fetch import ResourceFetcher
 from ambassador.fetch.location import LocationManager
 from ambassador.fetch.resource import NormalizedResource, ResourceManager
-from ambassador.fetch.k8sobject import KubernetesGVK, KubernetesObject
+from ambassador.fetch.k8sobject import (
+    KubernetesGVK,
+    KubernetesObjectScope,
+    KubernetesObjectKey,
+    KubernetesObject,
+)
 from ambassador.fetch.k8sprocessor import (
     KubernetesProcessor,
     AggregateKubernetesProcessor,
@@ -23,11 +28,12 @@ from ambassador.fetch.k8sprocessor import (
     DeduplicatingKubernetesProcessor,
 )
 from ambassador.fetch.ambassador import AmbassadorProcessor
+from ambassador.fetch.service import ServiceProcessor
 from ambassador.utils import parse_yaml
 
 
-def k8s_object_from_yaml(yaml: str, **kwargs) -> KubernetesObject:
-    return KubernetesObject(parse_yaml(yaml)[0], **kwargs)
+def k8s_object_from_yaml(yaml: str) -> KubernetesObject:
+    return KubernetesObject(parse_yaml(yaml)[0])
 
 
 valid_knative_ingress = k8s_object_from_yaml('''
@@ -72,16 +78,26 @@ status:
   observedGeneration: 2
 ''')
 
+valid_ingress_class = k8s_object_from_yaml('''
+apiVersion: networking.k8s.io/v1beta1
+kind: IngressClass
+metadata:
+  name: external-lb
+spec:
+  controller: getambassador.io/ingress-controller
+''')
+
 valid_mapping = k8s_object_from_yaml('''
 ---
 apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: test
+  namespace: default
 spec:
   prefix: /test/
   service: test.default
-''', default_namespace='default')
+''')
 
 valid_mapping_v1 = k8s_object_from_yaml('''
 ---
@@ -89,10 +105,11 @@ apiVersion: getambassador.io/v1
 kind: Mapping
 metadata:
   name: test
+  namespace: default
 spec:
   prefix: /test/
   service: test.default
-''', default_namespace='default')
+''')
 
 
 class TestKubernetesGVK:
@@ -122,6 +139,8 @@ class TestKubernetesObject:
         assert valid_knative_ingress.gvk == KubernetesGVK.for_knative_networking('Ingress')
         assert valid_knative_ingress.namespace == 'test'
         assert valid_knative_ingress.name == 'helloworld-go'
+        assert valid_knative_ingress.scope == KubernetesObjectScope.NAMESPACE
+        assert valid_knative_ingress.key == KubernetesObjectKey(valid_knative_ingress.gvk, 'test', 'helloworld-go')
         assert valid_knative_ingress.generation == 2
         assert len(valid_knative_ingress.annotations) == 2
         assert valid_knative_ingress.ambassador_id == 'webhook'
@@ -129,8 +148,14 @@ class TestKubernetesObject:
         assert valid_knative_ingress.spec['rules'][0]['hosts'][0] == 'helloworld-go.test.svc.cluster.local'
         assert valid_knative_ingress.status['observedGeneration'] == 2
 
-        # Test default namespace fallback:
-        assert valid_mapping.namespace == 'default'
+    def test_valid_cluster_scoped(self):
+        assert valid_ingress_class.name == 'external-lb'
+        assert valid_ingress_class.scope == KubernetesObjectScope.CLUSTER
+        assert valid_ingress_class.key == KubernetesObjectKey(valid_ingress_class.gvk, None, 'external-lb')
+        assert valid_ingress_class.key.namespace is None
+
+        with pytest.raises(AttributeError):
+            valid_ingress_class.namespace
 
     def test_invalid(self):
         with pytest.raises(ValueError, match='not a valid Kubernetes object'):
@@ -288,48 +313,69 @@ class TestCountingKubernetesProcessor:
         assert aconf.get_count('test') == 2, 'Processor did not increment counter'
 
 
-def test_resourcefetcher_handle_k8s_service():
-    aconf = Config()
+class TestServiceAnnotations:
 
-    fetcher = ResourceFetcher(logger, aconf)
+    def setup(self):
+        self.manager = ResourceManager(logger, Config())
+        self.processor = ServiceProcessor(self.manager)
 
-    # Test no metadata key
-    svc = {}
-    result = fetcher.handle_k8s_service(svc)
-    assert result is None
+    def test_no_ambassador_annotation(self):
+        assert self.processor.try_process(KubernetesObject({
+            'apiVersion': 'v1',
+            'kind': 'Service',
+            'metadata': {
+                'name': 'test',
+                'namespace': 'default',
+            },
+        }))
+        self.processor.finalize()
+        assert len(self.manager.elements) == 0
 
-    svc["metadata"] = {
-        "name": "testservice",
-        "annotations": {
-            "foo": "bar"
-        }
-    }
-    # Test no ambassador annotation
-    result = fetcher.handle_k8s_service(svc)
-    assert result == ('testservice.default', [])
+    def test_empty_annotation(self):
+        assert self.processor.try_process(KubernetesObject({
+            'apiVersion': 'v1',
+            'kind': 'Service',
+            'metadata': {
+                'name': 'test',
+                'namespace': 'default',
+                'annotations': {
+                    'getambassador.io/config': '',
+                },
+            },
+        }))
+        self.processor.finalize()
+        assert len(self.manager.elements) == 0
 
-    # Test empty annotation
-    svc["metadata"]["annotations"]["getambassador.io/config"] = {}
-    result = fetcher.handle_k8s_service(svc)
-    assert result == ('testservice.default', [])
-
-    # Test valid annotation
-    svc["metadata"]["annotations"]["getambassador.io/config"] = """apiVersion: getambassador.io/v1
+    def test_valid_annotation(self):
+        assert self.processor.try_process(KubernetesObject({
+            'apiVersion': 'v1',
+            'kind': 'Service',
+            'metadata': {
+                'name': 'test',
+                'namespace': 'default',
+                'annotations': {
+                    'getambassador.io/config': """apiVersion: getambassador.io/v1
 kind: Mapping
 name: test_mapping
 prefix: /test/
-service: test:9999"""
-    result = fetcher.handle_k8s_service(svc)
-    expected = {
-        '_force_validation': True,
-        'apiVersion': 'getambassador.io/v1',
-        'kind': 'Mapping',
-        'name': 'test_mapping',
-        'prefix': '/test/',
-        'service': 'test:9999',
-        'namespace': 'default'
-    }
-    assert result == ('testservice.default', [expected])
+service: test:9999""",
+                },
+            },
+        }))
+        self.processor.finalize()
+        assert len(self.manager.elements) == 1
+
+        expected = {
+            'apiVersion': 'getambassador.io/v1',
+            'kind': 'Mapping',
+            'name': 'test_mapping',
+            'prefix': '/test/',
+            'service': 'test:9999',
+            'namespace': 'default',
+            '_force_validation': True,
+        }
+        for key, value in expected.items():
+            assert self.manager.elements[0].get(key) == value
 
 
 if __name__ == '__main__':

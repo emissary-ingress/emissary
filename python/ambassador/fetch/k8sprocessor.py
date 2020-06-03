@@ -5,7 +5,7 @@ import logging
 
 from ..config import Config
 
-from .k8sobject import KubernetesGVK, KubernetesObjectKey, KubernetesObject
+from .k8sobject import KubernetesGVK, KubernetesObjectScope, KubernetesObjectKey, KubernetesObject
 from .resource import ResourceManager
 
 
@@ -29,6 +29,13 @@ class KubernetesProcessor:
     def try_process(self, obj: KubernetesObject) -> bool:
         if obj.gvk not in self.kinds():
             return False
+
+        if obj.scope == KubernetesObjectScope.NAMESPACE:
+            if Config.single_namespace and obj.namespace != Config.ambassador_namespace:
+                # This should never happen in actual usage, since we shouldn't
+                # be given things in the wrong namespace. However, in
+                # development, this can happen a lot.
+                return False
 
         self._process(obj)
         return True
@@ -83,7 +90,7 @@ class AggregateKubernetesProcessor (KubernetesProcessor):
         for proc in procs:
             proc.try_process(obj)
 
-    def finalize(self):
+    def finalize(self) -> None:
         for proc in self.delegates:
             proc.finalize()
 
@@ -111,7 +118,7 @@ class DeduplicatingKubernetesProcessor (KubernetesProcessor):
         self.cache.add(obj.key)
         self.delegate.try_process(obj)
 
-    def finalize(self):
+    def finalize(self) -> None:
         self.delegate.finalize()
 
 
