@@ -36,6 +36,10 @@
             "type": "array",
             "items": { "type": "string" }
         },
+        "add_auth_headers": {
+            "type": "object",
+            "additionalProperties": { "type": [ "string", "boolean" ] }
+        },
         "allow_request_body": { "type": "boolean" },
         "add_linkerd_headers": { "type": "boolean" },
         "include_body": {
@@ -47,7 +51,7 @@
             "required": [ "max_bytes", "allow_partial" ],
             "additionalProperties": false
         },
-        "status_on_error": { 
+        "status_on_error": {
             "type": "object",
             "properties": {
                 "code": { "type": "integer" }
