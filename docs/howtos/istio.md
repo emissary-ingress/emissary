@@ -608,3 +608,36 @@ envoy_cluster_manager_active_clusters{job="ambassador"}
 Now let's save the changes:
 
 * Click on Save Dashboard in the Top Right corner
+
+## FAQ
+
+### How to test Istio Certificate Rotation
+
+Istio mTLS certificates, by default, will be valid for a max of 90 days but will be rotated every day.
+
+Ambassador will watch and update the mTLS certificates as they rotate so you will not need to worry about certificate expiration. 
+
+To test that Ambassador is properly rotating certificates you can shorten the TTL of the Istio certificates so you can verify that Ambassador is using the new certificates.
+
+In **Istio 1.5 and above**, you can configure that by setting the following environment variables in the `istiod` container.
+
+```yaml
+env:
+- name: DEFAULT_WORKLOAD_CERT_TTL
+  value: 30m
+- name: MAX_WORKLOAD_CERT_TTL
+  value: 1h
+```
+
+In **Istio 1.4 and below**, you can configure this by passing the following arguments to the `istio-citadel` container
+
+```yaml
+      containers:
+      - name: citadel
+        ...
+        args:
+          - --workload-cert-ttl=1h # Lifetime of certificates issued to workloads in Kubernetes.
+          - --max-workload-cert-ttl=48h # Maximum lifetime of certificates issued to workloads by Citadel.
+```
+
+This will make the certificates Istio issues expire in one hour so testing certificate rotation is much easier.
