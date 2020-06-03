@@ -66,7 +66,11 @@ jobs:
     <<: *website-job
     steps:
       - website-setup
-      - run: "git config user.name 'ambassador.git CircleCI user' && git config user.email dev@datawire.io"
+      - run:
+          name: "Configure Git user"
+          command: |
+            git config --global user.name 'ambassador.git CircleCI user'
+            git config --global user.email dev@datawire.io
       - run: ./.ci/website-prod-publish
 
 workflows:
