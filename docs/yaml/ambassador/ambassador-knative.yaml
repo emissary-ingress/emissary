@@ -291,7 +291,7 @@ spec:
       serviceAccountName: ambassador
       containers:
       - name: ambassador
-        image: datawire/ambassador:$version$
+        image: docker.io/datawire/ambassador:$version$
         resources:
           limits:
             cpu: 1
@@ -325,6 +325,8 @@ spec:
             port: 8877
           initialDelaySeconds: 30
           periodSeconds: 3
+        securityContext:
+          allowPrivilegeEscalation: false
         volumeMounts:                                                           
         - name: ambassador-pod-info                                             
           mountPath: /tmp/ambassador-pod-info                                   

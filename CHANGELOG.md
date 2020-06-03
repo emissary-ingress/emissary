@@ -66,21 +66,44 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
-## [Next]
-[Next]: https://github.com/datawire/ambassador/compare/v1.4.3...master
+## [1.5.0] May 28, 2020
+[1.5.0]: https://github.com/datawire/ambassador/compare/v1.4.3...v1.5.0
 
 ### Ambassador API Gateway + Ambassador Edge Stack
 
 - Switched from quay.io back to DockerHub as our primary publication point. **If you are using your own Kubernetes manifests, you will have to update them!** Datawire's Helm charts and published YAML have already been updated.
 
+- Feature: switch to Envoy 1.14.1
 - Feature: Allow defaults for `add_request_header`, `remove_request_header`, `add_response_header`, and `remove_response_header`
-- Feature: Inform Knative of the route to the Ambassador service if available
-- Feature: Support the path and timeout options of the Knative ingress path rules
-- Bugfix: Only update Knative ingress CRDs when the generation changes
+- Feature: Inform Knative of the route to the Ambassador service if available (thanks, [Noah Fontes](https://github.com/impl)!)
+- Feature: Support the path and timeout options of the Knative ingress path rules (thanks, [Noah Fontes](https://github.com/impl)!)
+- Feature: Allow preserving `X-Request-ID` on requests from external clients (thanks, [Prakhar Joshi](https://github.com/prakharjoshi)!)
+- Feature: Mappings now support query parameters (thanks, [Phil Peble](https://github.com/ppeble)!)
+- Feature: Allow setting the Envoy shared-memory base ID (thanks, [Phil Peble](https://github.com/ppeble)!)
+- Feature: Additional security configurations not set on default YAMLs
+- Feature: Let Ambassador configure `regex_rewrite` for advanced forwarding
+- Bugfix: Only update Knative ingress CRDs when the generation changes (thanks, [Noah Fontes](https://github.com/impl)!)
 - Bugfix: Now behaves properly when `AMBASSADOR_SINGLE_NAMESPACE` is set to an empty string; rather than getting in to a weird in-between state
-- Bugfix: Websocket library updated to incorporate security fixes
+- Bugfix: The websocket library used by the test suite has been upgraded to incorporate security fixes (thanks, [Andrew Allbright](https://github.com/aallbrig)!)
 - Bugfix: Fixed evaluation of label selectors causing the wrong IP to be put in to Ingress resource statuses
 - Bugfix: The `watt` (port 8002) and `ambex` (port 8003) components now bind to localhost instead of 0.0.0.0, so they are no longer erroneously available from outside the Pod
+
+### Ambassador Edge Stack only
+
+- Feature: `edgectl upgrade` allows upgrading API Gateway installations to AES
+- Feature: `edgectl intercept` can generate preview-urls for Host resources that enabled the feature
+- Feature: `edgectl install` will now automatically install the Service Preview components (ambassador-injector, telepresence-proxy) and scoped RBAC
+- Feature: Rate-limited 429 responses now include the `Retry-After` header
+- Feature: The `JWT` Filter now makes `hasKey` and `doNotSet` functions available to header field templates; in order to facilitate only conditionally setting a header field.
+- Feature: The `OAuth2` Filter now has an `expirationSafetyMargin` setting that will cause an access token to be treated as expired sooner, in order to have a safety margin of time to send it to the upstream Resource Server that grants insufficient leeway.
+- Feature: The `JWT` Filter now has `leewayFor{ExpiresAt,IssuedAt,NotBefore}` settings for configuring leeway when validating the timestamps of a token.
+- Feature: The environment variables `REDIS{,_PERSECOND}_{USERNAME,PASSWORD,TLS_ENABLED,TLS_INSECURE}` may now be used to further configure how the Ambassador Edge Stack communicates with Redis.
+- Bugfix: Don't start the dev portal running if `POLL_EVERY_SECS` is 0
+- Bugfix: Now no longer needs cluster-wide RBAC when running with `AMBASSADOR_SINGLE_NAMESPACE`.
+- Bugfix: The `OAuth2` Filter now validates the reported-to-Client scope of an Access Token even if a separate `accessTokenJWTFilter` is configured.
+- Bugfix: The `OAuth2` Filter now sends the user back to the identity provider to upgrade the scope if they request an endpoint that requires broader scope than initially requested; instead of erroring.
+- Bugfix: The `OAuth2` Filter will no longer send RFC 7235 challenges back to the user agent if it would not accept RFC 7235 credentials (previously it only avoided sending HTTP 401 challenges, but still sent 400 or 403 challenges).
+- Bugfix: The `amb-sidecar` (port 8500) component now binds to localhost instead of 0.0.0.0, so it is no longer erroneously available from outside the Pod
 
 ## [1.4.3] May 14, 2020
 [1.4.3]: https://github.com/datawire/ambassador/compare/v1.4.2...v1.4.3

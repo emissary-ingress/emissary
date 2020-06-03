@@ -308,7 +308,7 @@ spec:
             path: mapping-config.yaml
       containers:
       - name: ambassador
-        image: datawire/ambassador:$version$
+        image: docker.io/datawire/ambassador:$version$
         resources:
           limits:
             cpu: 1
@@ -343,7 +343,9 @@ spec:
             path: /ambassador/v0/check_ready
             port: 8877
           initialDelaySeconds: 30
-          periodSeconds: 3
+          periodSeconds: 3 
+        securityContext:
+          allowPrivilegeEscalation: false
       - name: statsd-sink
         image: prom/statsd-exporter:v0.8.1
         ports:

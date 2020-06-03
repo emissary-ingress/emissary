@@ -65,7 +65,7 @@ You'll now register a demo application with Consul, and show how Ambassador Edge
         spec:
           containers:
           - name: qotm
-            image: datawire/qotm:$qotmVersion$
+            image: docker.io/datawire/qotm:$qotmVersion$
             ports:
             - name: http-api
               containerPort: 5000
@@ -171,7 +171,7 @@ This will install into your cluster:
         spec:
           containers:
           - name: qotm
-            image: datawire/qotm:$qotmVersion$
+            image: docker.io/datawire/qotm:$qotmVersion$
             ports:
             - name: http-api
               containerPort: 5000

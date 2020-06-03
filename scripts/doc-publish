@@ -24,6 +24,13 @@ if [ -z "$NETLIFY_AUTH_TOKEN" ]; then
     NETLIFY_AUTH_TOKEN=$(keybase fs read /keybase/team/datawireio/secrets/netlify.d6e-automaton.personal-access-token)
 fi
 
+RED=$'\033[1;31m'
+GRN=$'\033[1;32m'
+BLD=$'\033[1m'
+END=$'\033[0m'
+
+PROD=""
+
 if [ "$1" == "--prod" ]; then
     echo "PROD MODE"
     PROD="--prod"
@@ -50,22 +57,27 @@ if [ ! -d "$WEBSITE_DIR" ]; then
 fi
 
 set -o nounset
-set -o xtrace
+# set -o xtrace
 
 cd "$WEBSITE_DIR"
+
+printf "${GRN}${BLD}==== Starting build${END}\n"
+
 npm run build
 
-# From ./ambassador/.ci/publish-website-preview master
+# From ./ambassador/.ci/website-preview-publish
 
-if ! [[ -d /tmp/getambassador.io-${WEBSITE_BRANCH}/public ]]; then
-	echo '[publish-website-preview] skipping: website preview was not built'
+if ! [[ -d ${WEBSITE_DIR}/public ]]; then
+	echo '[website-preview-publish] skipping: website preview was not built'
 	exit 0
 fi
 
 npm install netlify-cli
 
+printf "${GRN}${BLD}==== Deploying to Netlify${END}\n"
+
 netlify deploy \
-	--dir="/tmp/getambassador.io-${WEBSITE_BRANCH}/public" \
+	--dir="${WEBSITE_DIR}/public" \
 	--message="ambassador.git preview $WEBSITE_BRANCH from $USER" \
 	--site="${NETLIFY_SITE}" \
 	--auth="${NETLIFY_AUTH_TOKEN}" \
@@ -73,40 +85,23 @@ netlify deploy \
     $PROD \
 	> /tmp/netlify-deploy.json
 
-cat /tmp/netlify-deploy.json
+# cat /tmp/netlify-deploy.json
 
-# If you look in publish-website-preview, you'll see it post status to GitHub. Skip that
+# Yep. This is ugly.
+DEPLOY_URL=$(python3 -c "import json; import sys; x=json.load(sys.stdin); print(x['deploy_url'])" < /tmp/netlify-deploy.json)
+printf "${GRN}${BLD}==== Deployed to ${END}${DEPLOY_URL}\n"
+
+# If you look in website-preview-publish, you'll see it post status to GitHub. Skip that
 # since we're not running inside Travis.
 
-# Install the broken link checker...
+printf "${GRN}${BLD}==== Installing BLC${END}\n"
 
-${source_dir}/.ci/install-blc
+# Install and run the broken link checker...
 
-# ...then continue with stuff from blc-website-preview
+printf "${GRN}${BLD}==== Running BLC${END}\n"
 
-set -o verbose
+export WEBSITE_DIR
+export GH_TOKEN='' # Don't post to GitHub; set an exit code instead
+${source_dir}/.ci/website-preview-blc
 
-pushd "/tmp/getambassador.io-$WEBSITE_BRANCH/public"
-python3 -m http.server 2>/dev/null &
-trap "kill $!" EXIT
-popd
-
-cd /tmp/getambassador.io-blc
-./blc.js http://localhost:8000/ > /tmp/blc.txt
-
-set +o verbose
-num_complaints=$(grep ^Page /tmp/blc.txt | sort -u | wc -l)
-RED=$'\033[1;31m'
-GRN=$'\033[1;32m'
-BLD=$'\033[1m'
-END=$'\033[0m'
-if [[ $num_complaints -eq 0 ]]; then
-	printf "%s======================= 0 broken-link-checker complaints for %s =======================%s\n" "$GRN$BLD" "$WEBSITE_BRANCH" "$END"
-else
-	printf "%s======================= %d broken-link-checker complaints for %s ======================%s\n" "$RED$BLD" $num_complaints "$WEBSITE_BRANCH" "$END"
-	grep ^Page /tmp/blc.txt | sort -u
-	printf "%s====================== end broken-link-checker complaints for %s ======================%s\n" "$RED$BLD" "$WEBSITE_BRANCH" "$END"
-	exit $num_complaints
-fi
-
-# Don't post to GitHub.
+printf "${GRN}${BLD}==== Deployed to ${END}${DEPLOY_URL}\n"

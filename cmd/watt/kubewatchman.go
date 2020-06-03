@@ -146,7 +146,7 @@ func (b *kubebootstrap) SaveError(message string) {
 
 func (b *kubebootstrap) Work(p *supervisor.Process) error {
 	for _, kind := range b.kinds {
-		p.Logf("adding kubernetes watch for %q in namespace %q", kind, fmtNamespace(kubernetesNamespace))
+		p.Logf("adding kubernetes watch for %q in namespace %q", kind, fmtNamespace(b.namespace))
 
 		watcherFunc := func(ns, kind string) func(watcher *k8s.Watcher) {
 			return func(watcher *k8s.Watcher) {

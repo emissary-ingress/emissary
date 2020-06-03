@@ -12,7 +12,7 @@ The example below configures two `Host`s and assigns routes to them.
 ## Configuring a `Host`
 
 The `Host` resources lets you separate configuration for each distinct domain 
-and subdomain you plan om serving behind Ambassador.  
+and subdomain you plan on serving behind Ambassador.
 
 Let's start by creating a simple `Host` and providing our own certificate in 
 the `host-cert` secret.

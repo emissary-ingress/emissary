@@ -6,7 +6,7 @@ Ambassador Edge Stack can remove a list of HTTP headers that would be sent to th
 
 The `remove_response_headers` attribute takes a list of keys used to match to the header.
 
-`remove_request_headers` can be set either in a `Mapping` or using [`ambassador Module defaults`](../../using/defaults).
+`remove_request_headers` can be set either in a `Mapping` or using [`ambassador Module defaults`](../../defaults).
 
 ## Mapping Example
 
