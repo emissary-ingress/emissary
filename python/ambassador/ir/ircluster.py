@@ -176,6 +176,13 @@ class IRCluster (IRResource):
         # Make sure we save the namespace in the cluster name, to prevent clashes with non-fully qualified service resolution
         name_fields.append(namespace)
 
+        # Do we actually have a hostname?
+        if not hostname:
+            # We don't. That ain't good.
+            errors.append("service %s has no hostname and will be ignored; please re-configure" % service)
+            self.ignore_cluster = True
+            hostname = "unknown"
+
         try:
             port = p.port
         except ValueError as e:

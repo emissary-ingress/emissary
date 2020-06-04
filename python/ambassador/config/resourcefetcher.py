@@ -147,7 +147,7 @@ class ResourceFetcher:
             inputs.append((config_dir_path, os.path.basename(config_dir_path)))
 
         for filepath, filename in inputs:
-            self.logger.info("reading %s (%s)" % (filename, filepath))
+            self.logger.debug("reading %s (%s)" % (filename, filepath))
 
             try:
                 serialization = open(filepath, "r").read()
@@ -283,7 +283,7 @@ class ResourceFetcher:
         key = f"{kind}/{name}.{namespace}"
 
         if key in self.k8s_parsed:
-            self.logger.info(f"dropping K8s dup {key}")
+            # self.logger.debug(f"dropping K8s dup {key}")
             return False
 
         # self.logger.info(f"remembering K8s {key}")

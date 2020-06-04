@@ -151,14 +151,14 @@ class IRHTTPMapping (IRBaseMapping):
             if key in kwargs:
                 # Yes, it wins.
                 value = kwargs[key]
-                self.ir.logger.info(f"IRHTTPMapping: accept {key}={value} from kwargs")
+                # self.ir.logger.debug(f"IRHTTPMapping: accept {key}={value} from kwargs")
                 new_args[key] = value
             elif check_defaults:
                 # No value in kwargs, but we're allowed to check defaults for it. 
                 value = self.lookup_default(key)
 
                 if value is not None:
-                    self.ir.logger.info(f"IRHTTPMapping: accept {key}={value} from defaults")
+                    # self.ir.logger.debug(f"IRHTTPMapping: accept {key}={value} from defaults")
                     new_args[key] = value
 
         # add_linkerd_headers is special, because we support setting it as a default

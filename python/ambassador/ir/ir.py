@@ -209,7 +209,7 @@ class IR:
         elif self.edge_stack_allowed:
             _mode_str = 'Edge Stack'
 
-        self.logger.info(f"IR: {_activity_str} {_mode_str}")
+        self.logger.debug(f"IR: {_activity_str} {_mode_str}")
 
         # Next up, initialize our IRServiceResolvers...
         IRServiceResolverFactory.load_all(self, aconf)
@@ -291,7 +291,7 @@ class IR:
                 mangled_name = "%s-%d" % (short_name, i)
                 i += 1
 
-                self.logger.info("%s => %s" % (name, mangled_name))
+                self.logger.debug("%s => %s" % (name, mangled_name))
                 self.clusters[name]['name'] = mangled_name
 
         # After we have the cluster names fixed up, go finalize filters.
@@ -322,7 +322,7 @@ class IR:
 
         # Intercept stuff is an Edge Stack thing.
         if not (self.edge_stack_allowed and self.agent_active):
-            self.logger.info("Intercept agent not active, skipping initialization")
+            self.logger.debug("Intercept agent not active, skipping initialization")
             return
 
         self.agent_service = os.environ.get("AGENT_SERVICE", None)
@@ -333,7 +333,7 @@ class IR:
             self.agent_active = False
             return
 
-        self.logger.info(f"Intercept agent active for {self.agent_service}, initializing")
+        self.logger.debug(f"Intercept agent active for {self.agent_service}, initializing")
 
         # We're going to either create a Host to terminate TLS, or to do cleartext. In neither
         # case will we do ACME. Set additionalPort to -1 so we don't grab 8080 in the TLS case.
@@ -372,11 +372,11 @@ class IR:
             host.referenced_by(self.ambassador_module)
             host.sourced_by(self.ambassador_module)
 
-            self.logger.info(f"Intercept agent: saving host {host.pretty()}")
-            self.logger.info(host.as_json())
+            self.logger.debug(f"Intercept agent: saving host {host.pretty()}")
+            # self.logger.debug(host.as_json())
             self.save_host(host)
         else:
-            self.logger.info(f"Intercept agent: not saving inactive host {host.pretty()}")
+            self.logger.debug(f"Intercept agent: not saving inactive host {host.pretty()}")
 
         # How about originating TLS?
         agent_origination_secret = os.environ.get("AGENT_TLS_ORIG_SECRET", None)
@@ -392,17 +392,17 @@ class IR:
             ctx.referenced_by(self.ambassador_module)
             self.save_tls_context(ctx)
 
-            self.logger.info(f"Intercept agent: saving origination TLSContext {ctx.name}")
-            self.logger.info(ctx.as_json())
+            self.logger.debug(f"Intercept agent: saving origination TLSContext {ctx.name}")
+            # self.logger.debug(ctx.as_json())
 
             self.agent_origination_ctx = ctx
 
     def agent_finalize(self, aconf) -> None:
         if not (self.edge_stack_allowed and self.agent_active):
-            self.logger.info(f"Intercept agent not active, skipping finalization")
+            self.logger.debug(f"Intercept agent not active, skipping finalization")
             return
 
-        self.logger.info(f"Intercept agent active for {self.agent_service}, finalizing")
+        # self.logger.info(f"Intercept agent active for {self.agent_service}, finalizing")
 
         # We don't want to listen on the default AES ports (8080, 8443) as that is likely to
         # conflict with the user's application running in the same Pod.
@@ -434,7 +434,7 @@ class IR:
             self.agent_active = False
             return
 
-        self.logger.info(f"Intercept agent active for {self.agent_service}:{agent_port}, adding fallback mapping")
+        # self.logger.info(f"Intercept agent active for {self.agent_service}:{agent_port}, adding fallback mapping")
 
         # XXX OMG this is a crock. Don't use precedence -1000000 for this, because otherwise Edge
         # Stack might decide it's the Edge Policy Console fallback mapping and force it to be
@@ -657,7 +657,7 @@ class IR:
             self.clusters[cluster.name] = cluster
 
             if cluster.is_edge_stack_sidecar():
-                self.logger.info(f"IR: cluster {cluster.name} is the sidecar")
+                # self.logger.debug(f"IR: cluster {cluster.name} is the sidecar")
                 self.sidecar_cluster_name = cluster.name
 
         return self.clusters[cluster.name]

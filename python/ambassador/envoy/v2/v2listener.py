@@ -220,7 +220,7 @@ def auth_cluster_uri(auth: IRAuth, cluster: IRCluster) -> str:
 
     server_uri = "%s://%s" % (scheme, prefix)
 
-    auth.ir.logger.info("%s: server_uri %s" % (auth.name, server_uri))
+    auth.ir.logger.debug("%s: server_uri %s" % (auth.name, server_uri))
 
     return server_uri
 
@@ -865,7 +865,7 @@ class V2Listener(dict):
             self.first_vhost = vhost
 
     def finalize(self) -> None:
-        self.config.ir.logger.info(f"V2Listener finalize {self.pretty()}")
+        self.config.ir.logger.debug(f"V2Listener finalize {self.pretty()}")
 
         # Check if AMBASSADOR_ENVOY_BIND_ADDRESS is set, and if so, bind Envoy to that external address.
         if "AMBASSADOR_ENVOY_BIND_ADDRESS" in environ:
@@ -1190,8 +1190,8 @@ class V2Listener(dict):
             group_key = irgroup.bind_to()
             listener = tcplisteners.get(group_key, None)
 
-            config.ir.logger.info("V2TCPListener: group at %s found %s listener" %
-                                  (group_key, "extant" if listener else "no"))
+            config.ir.logger.debug("V2TCPListener: group at %s found %s listener" %
+                                   (group_key, "extant" if listener else "no"))
 
             if not listener:
                 # Nope. Make a new one and save it.

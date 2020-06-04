@@ -135,7 +135,7 @@ class IRTLSContext(IRResource):
             if key in self:
                 self.secret_info[key] = self.pop(key)
 
-        ir.logger.info(f"IRTLSContext setup good: {self.pretty()}")
+        ir.logger.debug(f"IRTLSContext setup good: {self.pretty()}")
 
         return True
 
