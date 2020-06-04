@@ -106,6 +106,7 @@ message HostStatus {
 }
 
 message ACMEProviderSpec {
+  // Specifies who to talk ACME with to get certs. Defaults to Let's
   // Encrypt; if "none" (case-insensitive), do not try to do ACME for
   // this Host.
   string authority = 1;
