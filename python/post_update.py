@@ -6,7 +6,8 @@ import urllib
 import requests
 
 def usage(program):
-    sys.stderr.write(f'Usage: {program} [--watt|--k8s|--fs] update-url\n')
+    sys.stderr.write(f'Usage: {program} [--watt|--k8s|--fs] UPDATE_URL\n')
+    sys.stderr.write('Notify `diagd` (and `amb-sidecar`, if AES) that a new WATT snapshot is available at UPDATE_URL.\n')
     sys.exit(1)
 
 
