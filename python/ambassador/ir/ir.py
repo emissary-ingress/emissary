@@ -306,8 +306,8 @@ class IR:
 
     # XXX Brutal hackery here! Probably this is a clue that Config and IR and such should have
     # a common container that can hold errors.
-    def post_error(self, rc: Union[str, RichStatus], resource: Optional[IRResource]=None, rkey: Optional[str]=None):
-        self.aconf.post_error(rc, resource=resource, rkey=rkey)
+    def post_error(self, rc: Union[str, RichStatus], resource: Optional[IRResource]=None, rkey: Optional[str]=None, log_level=logging.INFO):
+        self.aconf.post_error(rc, resource=resource, rkey=rkey, log_level=log_level)
 
     def agent_init(self, aconf: Config) -> None:
         """
