@@ -274,10 +274,10 @@ class ResourceFetcher:
         for pod_label in pod_labels:
             pod_label_kv = k8sLabelMatcher.findall(pod_label)
             if len(pod_label_kv) != 1 or len(pod_label_kv[0]) != 2:
-                self.logger.warning(f"Dropping pod label {pod_label}")
+                self.aconf.post_notice(f"Dropping pod label {pod_label}")
             else:
                 self.aconf.pod_labels[pod_label_kv[0][0]] = pod_label_kv[0][1]
-        self.logger.info(f"Parsed pod labels: {self.aconf.pod_labels}")
+        self.aconf.post_notice(f"Parsed pod labels: {self.aconf.pod_labels}")
 
     def check_k8s_dup(self, kind: str, namespace: Optional[str], name: str) -> bool:
         key = f"{kind}/{name}.{namespace}"
@@ -836,7 +836,7 @@ class ResourceFetcher:
             selector = spec.get('selector', {})
 
             if self.is_ambassador_service(labels, selector):
-                self.logger.info(f"Found Ambassador service: {resource_name}")
+                self.aconf.post_notice(f"Found Ambassador service: {resource_name}")
                 self.manager.ambassador_service = KubernetesObject(k8s_object, default_namespace='default')
 
         else:

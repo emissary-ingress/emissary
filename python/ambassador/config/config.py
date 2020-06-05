@@ -308,7 +308,7 @@ class Config:
         if self.errors:
             self.logger.error("ERROR ERROR ERROR Starting with configuration errors")
 
-    def post_notice(self, msg: str, resource: Optional[Resource]=None) -> None:
+    def post_notice(self, msg: str, resource: Optional[Resource]=None, log_level=logging.DEBUG) -> None:
         if resource is None:
             resource = self.current_resource
 
@@ -319,10 +319,11 @@ class Config:
 
         notices = self.notices.setdefault(rkey, [])
         notices.append(msg)
-        self.logger.info("%s: NOTICE: %s" % (rkey, msg))
+
+        self.logger.log(log_level, "%s: NOTICE: %s" % (rkey, msg))
 
     @multi
-    def post_error(self, msg: Union[RichStatus, str], resource: Optional[Resource]=None, rkey: Optional[str]=None) -> str:
+    def post_error(self, msg: Union[RichStatus, str], resource: Optional[Resource]=None, rkey: Optional[str]=None, log_level=logging.INFO) -> str:
         del resource    # silence warnings
         del rkey
 
@@ -334,13 +335,13 @@ class Config:
             return type(msg).__name__
 
     @post_error.when('string')
-    def post_error_string(self, msg: str, resource: Optional[Resource]=None, rkey: Optional[str]=None):
+    def post_error_string(self, msg: str, resource: Optional[Resource]=None, rkey: Optional[str]=None, log_level=logging.INFO):
         rc = RichStatus.fromError(msg)
 
-        self.post_error(rc, resource=resource)
+        self.post_error(rc, resource=resource, log_level=log_level)
 
     @post_error.when('RichStatus')
-    def post_error_richstatus(self, rc: RichStatus, resource: Optional[Resource]=None, rkey: Optional[str]=None):
+    def post_error_richstatus(self, rc: RichStatus, resource: Optional[Resource]=None, rkey: Optional[str]=None, log_level=logging.INFO):
         if resource is None:
             resource = self.current_resource
 
@@ -356,7 +357,7 @@ class Config:
         errors = self.errors.setdefault(rkey, [])
         errors.append(rc.as_dict())
 
-        self.logger.error("%s: %s" % (rkey, rc))
+        self.logger.log(log_level, "%s: %s" % (rkey, rc))
 
     def process(self, resource: ACResource) -> RichStatus:
         # This should be impossible.
