@@ -64,7 +64,10 @@ func Main() {
 					rsrc["status"] = status
 					_, err := w.UpdateStatus(rsrc)
 					if err != nil {
-						log.Printf("error updating resource: %v", err)
+						// log.Debugf doesn't exist.
+						if false {
+							log.Printf("error updating resource: %v", err)
+						}
 					}
 				}
 			}

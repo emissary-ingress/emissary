@@ -57,6 +57,22 @@ func (p *Process) Logf(format string, args ...interface{}) {
 	p.supervisor.Logger.Printf("%s: %v", p.Worker().Name, fmt.Sprintf(format, args...))
 }
 
+// We would _like_ to have Debug and Debugf, but we can't really support that with
+// dlog right now. So for now, these are no-ops.
+func (p *Process) Debug(obj interface{}) {
+	// Yes, this is a no-op, see above.
+	if (false) {
+		p.supervisor.Logger.Printf("%s: %v", p.Worker().Name, obj)
+	}
+}
+
+func (p *Process) Debugf(format string, args ...interface{}) {
+	// Yes, this is a no-op, see above.
+	if (false) {
+		p.supervisor.Logger.Printf("%s: %v", p.Worker().Name, fmt.Sprintf(format, args...))
+	}
+}
+
 func (p *Process) allocateID() int64 {
 	return atomic.AddInt64(&p.Worker().children, 1)
 }
