@@ -64,6 +64,49 @@ dexec() {
     docker exec ${flags} $(builder) "$@"
 }
 
+# Rebuild (and push if DEV_REGISTRY is set) the builder's base image if
+# - Dockerfile.base changes
+# - Enough time has passed
+#
+# The base only has external/third-party dependencies, and most of those
+# dependencies are not pinned by version, so we rebuild periodically to make
+# sure we don't fall too far behind and then get surprised when a rebuild is
+# required for Dockerfile changes.
+#
+# We have defined "enough time" as a few days. See the variable
+# "build_every_n_days" below.
+
+builder_base_tag_py='
+# Someone please rewrite this in portable Bash. Until then, this code
+# works on Python 2.7 and 3.5+.
+
+import datetime, hashlib
+
+build_every_n_days = 5  # Periodic rebuild even if Dockerfile does not change
+
+epoch = datetime.datetime(2017, 4, 13, 1, 30)
+age = int((datetime.datetime.now() - epoch).days / build_every_n_days)
+hasher = hashlib.sha256(open("Dockerfile.base", "rb").read())
+print("%s-%sx%s" % (hasher.hexdigest()[:16], age, build_every_n_days))
+'
+
+build_builder_base() {
+    builder_base_tag="$(cd "$DIR" && python -c "$builder_base_tag_py")"
+
+    if [ -n "$DEV_REGISTRY" ]; then
+        # We can push. Build and push if necessary.
+        builder_base_image=${DEV_REGISTRY}/builder-base:${builder_base_tag}
+        if ! docker pull "${builder_base_image}" >& /dev/null ; then
+            ${DBUILD} -f "${DIR}/Dockerfile.base" "${DIR}" -t "${builder_base_image}"
+            docker push "${builder_base_image}"
+        fi
+    else
+        # We CANNOT push. Build locally and lean on the cache.
+        builder_base_image=builder-base:${builder_base_tag}
+        ${DBUILD} -f "${DIR}/Dockerfile.base" "${DIR}" -t "${builder_base_image}"
+    fi
+}
+
 bootstrap() {
     if [ -z "$(builder_volume)" ] ; then
         docker volume create --label builder
@@ -78,8 +121,10 @@ bootstrap() {
     fi
 
     if [ -z "$(builder)" ] ; then
+        printf "${CYN}==> ${GRN}Bootstrapping builder base image${END}\n"
+        build_builder_base
         printf "${CYN}==> ${GRN}Bootstrapping build image${END}\n"
-        ${DBUILD} --build-arg envoy="${ENVOY_DOCKER_TAG}" --target builder ${DIR} -t builder
+        ${DBUILD} --build-arg envoy="${ENVOY_DOCKER_TAG}" --build-arg builderbase="${builder_base_image}" --target builder ${DIR} -t builder
         if [ "$(uname -s)" == Darwin ]; then
             DOCKER_GID=$(stat -f "%g" /var/run/docker.sock)
         else
