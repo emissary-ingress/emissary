@@ -432,14 +432,15 @@ case "${cmd}" in
         fi
         if dexec test -e /buildroot/image.dirty; then
             printf "${CYN}==> ${GRN}Snapshotting ${BLU}builder${GRN} image${END}\n"
+            build_builder_base
             docker rmi -f "${name}" &> /dev/null
             docker commit -c 'ENTRYPOINT [ "/bin/bash" ]' $(builder) "${name}"
             printf "${CYN}==> ${GRN}Building ${BLU}${BUILDER_NAME}${END}\n"
-            ${DBUILD} ${DIR} --build-arg artifacts=${name} --build-arg envoy="${ENVOY_DOCKER_TAG}" --target ambassador -t ${BUILDER_NAME}
+            ${DBUILD} ${DIR} --build-arg artifacts=${name} --build-arg envoy="${ENVOY_DOCKER_TAG}" --build-arg builderbase="${builder_base_image}" --target ambassador -t ${BUILDER_NAME}
             printf "${CYN}==> ${GRN}Building ${BLU}kat-client${END}\n"
-            ${DBUILD} ${DIR} --build-arg artifacts=${name} --build-arg envoy="${ENVOY_DOCKER_TAG}" --target kat-client -t kat-client
+            ${DBUILD} ${DIR} --build-arg artifacts=${name} --build-arg envoy="${ENVOY_DOCKER_TAG}" --build-arg builderbase="${builder_base_image}" --target kat-client -t kat-client
             printf "${CYN}==> ${GRN}Building ${BLU}kat-server${END}\n"
-            ${DBUILD} ${DIR} --build-arg artifacts=${name} --build-arg envoy="${ENVOY_DOCKER_TAG}" --target kat-server -t kat-server
+            ${DBUILD} ${DIR} --build-arg artifacts=${name} --build-arg envoy="${ENVOY_DOCKER_TAG}" --build-arg builderbase="${builder_base_image}" --target kat-server -t kat-server
         fi
         dexec rm -f /buildroot/image.dirty
         ;;
