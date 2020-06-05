@@ -280,7 +280,7 @@ class IRAmbassador (IRResource):
 
         if ir.edge_stack_allowed:
             if self.diagnostics and self.diagnostics.get("enabled", False):
-                ir.logger.info("adding mappings for Edge Policy Console")
+                ir.logger.debug("adding mappings for Edge Policy Console")
                 mapping = IRHTTPMapping(ir, aconf, rkey=self.rkey, location=self.location,
                                         name="edgestack-direct-mapping",
                                         metadata_labels={"ambassador_diag_class": "private"},

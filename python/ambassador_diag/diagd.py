@@ -785,7 +785,7 @@ class KubeStatus:
 
 def kubestatus_update(kind: str, name: str, namespace: str, text: str) -> str:
     cmd = [ 'kubestatus', kind, '-f', f'metadata.name={name}', '-n', namespace, '-u', '/dev/fd/0' ]
-    print(f"KubeStatus UPDATE {os.getpid()}: running command: {cmd}")
+    # print(f"KubeStatus UPDATE {os.getpid()}: running command: {cmd}")
 
     try:
         rc = subprocess.run(cmd, input=text.encode('utf-8'), timeout=5)
@@ -799,8 +799,8 @@ def kubestatus_update(kind: str, name: str, namespace: str, text: str) -> str:
         return f"{name}.{namespace}: timed out"
 
 def kubestatus_update_done(f: concurrent.futures.Future) -> None:
-    print(f"KubeStatus DONE {os.getpid()}: result {f.result()}")
-
+    # print(f"KubeStatus DONE {os.getpid()}: result {f.result()}")
+    pass
 
 class AmbassadorEventWatcher(threading.Thread):
     # The key for 'Actions' is chimed - chimed_ok - env_good. This will make more sense
@@ -1152,7 +1152,7 @@ class AmbassadorEventWatcher(threading.Thread):
 
                 app.kubestatus.post(kind, resource_name, namespace, text)
 
-        self.logger.debug("configuration updated from snapshot %s" % snapshot)
+        self.logger.info("configuration updated from snapshot %s" % snapshot)
         self._respond(rqueue, 200, 'configuration updated from snapshot %s' % snapshot)
 
         if app.health_checks and not app.stats_updater:
