@@ -78,7 +78,7 @@ func (w *consulwatchman) Work(p *supervisor.Process) error {
 		select {
 		case watches := <-w.watchesCh:
 			found := make(map[string]*supervisor.Worker)
-			p.Logf("processing %d consul watches", len(watches))
+			p.Debugf("processing %d consul watches", len(watches))
 			for _, cw := range watches {
 				worker, err := w.WatchMaker.MakeConsulWatch(cw)
 				if err != nil {
@@ -89,7 +89,7 @@ func (w *consulwatchman) Work(p *supervisor.Process) error {
 				if _, exists := w.watched[worker.Name]; exists {
 					found[worker.Name] = w.watched[worker.Name]
 				} else {
-					p.Logf("add consul watcher %s\n", worker.Name)
+					p.Debugf("add consul watcher %s\n", worker.Name)
 					p.Supervisor().Supervise(worker)
 					w.watched[worker.Name] = worker
 					found[worker.Name] = worker
@@ -100,7 +100,7 @@ func (w *consulwatchman) Work(p *supervisor.Process) error {
 			// report
 			for workerName, worker := range w.watched {
 				if _, exists := found[workerName]; !exists {
-					p.Logf("remove consul watcher %s\n", workerName)
+					p.Debugf("remove consul watcher %s\n", workerName)
 					worker.Shutdown()
 					worker.Wait()
 				}
@@ -108,7 +108,7 @@ func (w *consulwatchman) Work(p *supervisor.Process) error {
 
 			w.watched = found
 		case <-p.Shutdown():
-			p.Logf("shutdown initiated")
+			p.Debugf("shutdown initiated")
 			return nil
 		}
 	}

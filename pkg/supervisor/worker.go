@@ -109,7 +109,10 @@ func (w *Worker) reconcile() bool {
 					return false
 				}
 			}
-			s.Logger.Printf("%s: starting", w.Name)
+			// s.Logger.Debugf doesn't exist
+			if false {
+				s.Logger.Printf("%s: starting", w.Name)
+			}
 			s.launch(w)
 		}
 

@@ -44,7 +44,7 @@ class IRHost(IRResource):
         )
 
     def setup(self, ir: 'IR', aconf: Config) -> bool:
-        ir.logger.info(f"Host {self.name} setting up")
+        ir.logger.debug(f"Host {self.name} setting up")
 
         tls_ss: Optional[SavedSecret] = None
         pkey_ss: Optional[SavedSecret] = None
@@ -54,7 +54,7 @@ class IRHost(IRResource):
             tls_name = tls_secret.get('name', None)
 
             if tls_name:
-                ir.logger.info(f"Host {self.name}: TLS secret name is {tls_name}")
+                ir.logger.debug(f"Host {self.name}: TLS secret name is {tls_name}")
 
                 tls_ss = self.resolve(ir, tls_name)
 
@@ -65,9 +65,9 @@ class IRHost(IRResource):
                     ctx_name = f"{self.name}-context"
 
                     if ir.has_tls_context(ctx_name):
-                        ir.logger.info(f"Host {self.name}: TLSContext {ctx_name} already exists")
+                        ir.logger.debug(f"Host {self.name}: TLSContext {ctx_name} already exists")
                     else:
-                        ir.logger.info(f"Host {self.name}: creating TLSContext {ctx_name}")
+                        ir.logger.debug(f"Host {self.name}: creating TLSContext {ctx_name}")
 
                         new_ctx = dict(
                             rkey=self.rkey,
@@ -135,14 +135,14 @@ class IRHost(IRResource):
                 pkey_name = pkey_secret.get('name', None)
 
                 if pkey_name:
-                    ir.logger.info(f"Host {self.name}: ACME private key name is {pkey_name}")
+                    ir.logger.debug(f"Host {self.name}: ACME private key name is {pkey_name}")
 
                     pkey_ss = self.resolve(ir, pkey_name)
 
                     if not pkey_ss:
                         ir.logger.error(f"Host {self.name}: continuing with invalid private key secret {pkey_name}")
 
-        ir.logger.info(f"Host setup OK: {self.pretty()}")
+        ir.logger.debug(f"Host setup OK: {self.pretty()}")
         return True
 
     def pretty(self) -> str:
@@ -180,10 +180,10 @@ class HostFactory:
                     host.referenced_by(config)
                     host.sourced_by(config)
 
-                    ir.logger.info(f"HostFactory: saving host {host.pretty()}")
+                    ir.logger.debug(f"HostFactory: saving host {host.pretty()}")
                     ir.save_host(host)
                 else:
-                    ir.logger.info(f"HostFactory: not saving inactive host {host.pretty()}")
+                    ir.logger.debug(f"HostFactory: not saving inactive host {host.pretty()}")
 
     @classmethod
     def finalize(cls, ir: 'IR', aconf: Config) -> None:
@@ -200,12 +200,12 @@ class HostFactory:
                 if ctx.get('hosts'):  # not None and not the empty list
                     found_termination_context = True
 
-            ir.logger.info(f"HostFactory: FTC {found_termination_context}, host_count {host_count}")
+            ir.logger.debug(f"HostFactory: FTC {found_termination_context}, host_count {host_count}")
 
             if (host_count == 0) and not found_termination_context:
                 # We have no Hosts and no termination contexts, so we know that this is an unconfigured
                 # installation. Set up the fallback TLSContext so we can redirect people to the UI.
-                ir.logger.info("Creating fallback context")
+                ir.logger.debug("Creating fallback context")
                 ctx_name = "fallback-self-signed-context"
                 tls_name = "fallback-self-signed-cert"
 

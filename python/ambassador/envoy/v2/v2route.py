@@ -30,7 +30,7 @@ def regex_matcher(config: 'V2Config', regex: str, key="regex", safe_key=None, re
         if re_type is None:
             re_type = config.ir.ambassador_module.get('regex_type', 'safe').lower()
 
-        config.ir.logger.info(f"re_type {re_type}")
+        config.ir.logger.debug(f"re_type {re_type}")
 
         # 'safe' is the default. You must explicitly say "unsafe" to get the unsafe
         # regex matcher.
