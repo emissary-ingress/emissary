@@ -303,7 +303,7 @@ class IRAmbassador (IRResource):
                 mapping.referenced_by(self)
                 ir.add_mapping(aconf, mapping)
             else:
-                ir.logger.info("diagnostics disabled, skipping mapping for Edge Policy Console")
+                ir.logger.debug("diagnostics disabled, skipping mapping for Edge Policy Console")
 
     def get_default_label_domain(self) -> str:
         return self.default_label_domain

@@ -1033,7 +1033,7 @@ class V2Listener(dict):
 
                 # Force a listener on 8080 with a VHost for '*' that rejects everything. The ACME
                 # hole-puncher will override the reject for ACME, and nothing else will get through.
-                logger.info(f"V2Listeners: listeners_by_port has no 8080, forcing Edge Stack listener on 8080")
+                logger.debug(f"V2Listeners: listeners_by_port has no 8080, forcing Edge Stack listener on 8080")
                 listener = listeners_by_port.get(8080, use_proxy_proto)
 
                 # Remember, it is not a bug to have action=None. There is no secure action
