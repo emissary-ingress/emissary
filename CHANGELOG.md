@@ -3,6 +3,10 @@
 This file documents all notable changes to Ambassador Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
+## v6.4.2
+
+- Upgrade Ambassador to version 1.5.1: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
+
 ## v6.4.1
 
 - BugFix: The `PodSecurityPolicy` should not be created by default since it is a cluster-wide resource that should only be created once. 
@@ -11,7 +15,7 @@ If you would like to use the default `PodSecurityPolicy`, make sure to unset `se
 
 ## v6.4.0
 
-- Upgrade Ambassador to version 1.5.0: [CHANGELOG}](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
+- Upgrade Ambassador to version 1.5.0: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
 - AuthService and RateLimitService are now installed in the same namespace as Ambassador.
 - Changes RBAC permissions to better support single-namespace installations and detecting getambassador.io CRDs.
 - Add option to install Service Preview components (traffic-manager, traffic-agent).
