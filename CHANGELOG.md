@@ -66,6 +66,14 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [1.5.1] June 5, 2020
+[1.5.1]: https://github.com/datawire/ambassador/compare/v1.5.0...v1.5.1
+
+### Ambassador API Gateway + Ambassador Edge Stack
+
+- Bugfix: Logging has been made _much_ quieter
+- Bugfix: A service that somehow has no hostname should no longer cause an exception
+
 ## [1.5.0] May 28, 2020
 [1.5.0]: https://github.com/datawire/ambassador/compare/v1.4.3...v1.5.0
 

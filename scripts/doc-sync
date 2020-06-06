@@ -45,4 +45,4 @@ rsync -av "${source_dir}/docs/" submodules/latest/docs
 sed -e '/to="\/docs\/[0-9]/d' < src/components/Header/Header.js > H2.js && mv H2.js src/components/Header/Header.js
 
 # ...and in docs-structure.
-rm -f docs-structure/docs/[0-9]*
+# rm -f docs-structure/docs/[0-9]*

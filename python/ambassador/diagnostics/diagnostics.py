@@ -239,8 +239,8 @@ class DiagResult:
 
             route_clusters.append(redirect_cluster)
 
-            self.logger.info("host_redirect route: %s" % group)
-            self.logger.info("host_redirect cluster: %s" % redirect_cluster)
+            self.logger.debug("host_redirect route: %s" % group)
+            self.logger.debug("host_redirect cluster: %s" % redirect_cluster)
 
         shadows = group.get('shadows', [])
 
@@ -252,8 +252,8 @@ class DiagResult:
             shadow_cluster = self.include_cluster(shadow_dict)
             route_clusters.append(shadow_cluster)
 
-            self.logger.info("shadow route: %s" % group)
-            self.logger.info("shadow cluster: %s" % shadow_cluster)
+            self.logger.debug("shadow route: %s" % group)
+            self.logger.debug("shadow cluster: %s" % shadow_cluster)
 
         headers = []
 

@@ -115,6 +115,7 @@ fi
 # being in AMBASSADOR_CONFIG_BASE_DIR.
 envoy_config_file="${ENVOY_DIR}/envoy.json"         # not a typo, see above
 envoy_flags=('-c' "${ENVOY_BOOTSTRAP_FILE}" "--drain-time-s" "1" "--base-id" "${ENVOY_BASE_ID}")
+envoy_logging=('-l' 'warning')
 
 # AMBASSADOR_DEBUG is a list of things to enable debugging for,
 # separated by spaces; parse that in to an array.
@@ -127,7 +128,7 @@ for item in "${ambassador_debug[@]}"; do
             ;;
         envoy)
             debug 'AMBASSADOR_DEBUG: `envoy -l debug` enabled'
-            envoy_flags+=('-l' 'debug')
+            envoy_logging=('-l' 'debug')
             ;;
         entrypoint)
             debug "AMBASSADOR_DEBUG: ENTRYPOINT_DEBUG enabled"
@@ -143,6 +144,8 @@ for item in "${ambassador_debug[@]}"; do
             ;;
     esac
 done
+
+envoy_flags+=( "${envoy_logging[@]}" )
 
 if [[ "$1" == "--demo" ]]; then
     # This is _not_ meant to be overridden by AMBASSADOR_CONFIG_BASE_DIR.

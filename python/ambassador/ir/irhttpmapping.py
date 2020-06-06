@@ -151,14 +151,12 @@ class IRHTTPMapping (IRBaseMapping):
             if key in kwargs:
                 # Yes, it wins.
                 value = kwargs[key]
-                self.ir.logger.info(f"IRHTTPMapping: accept {key}={value} from kwargs")
                 new_args[key] = value
             elif check_defaults:
                 # No value in kwargs, but we're allowed to check defaults for it. 
                 value = self.lookup_default(key)
 
                 if value is not None:
-                    self.ir.logger.info(f"IRHTTPMapping: accept {key}={value} from defaults")
                     new_args[key] = value
 
         # add_linkerd_headers is special, because we support setting it as a default
@@ -223,7 +221,7 @@ class IRHTTPMapping (IRBaseMapping):
         # If we _don't_ have an origination context, but our IR has an agent_origination_ctx,
         # force TLS origination because it's the agent. I know, I know. It's a hack.
         if ('tls' not in new_args) and ir.agent_origination_ctx:
-            ir.logger.info(f"Mapping {name}: Agent forcing origination TLS context to {ir.agent_origination_ctx.name}")
+            ir.logger.debug(f"Mapping {name}: Agent forcing origination TLS context to {ir.agent_origination_ctx.name}")
             new_args['tls'] = ir.agent_origination_ctx.name
 
         if 'query_parameters' in kwargs:

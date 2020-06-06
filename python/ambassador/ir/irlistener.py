@@ -144,7 +144,7 @@ class ListenerFactory:
 
                     # Force additionalPort to 8080 if it's not set at all.
                     if insecure_addl_port is None:
-                        ir.logger.info(f"ListenerFactory: Host {hostname} has TLS active, defaulting additionalPort to 8080")
+                        ir.logger.debug(f"ListenerFactory: Host {hostname} has TLS active, defaulting additionalPort to 8080")
                         insecure_addl_port = 8080
                 else:
                     # Huh. This is actually a different kind of "impossible".
@@ -157,7 +157,7 @@ class ListenerFactory:
             # TLS termination.
 
             if ctx:
-                ir.logger.info(f"ListenerFactory: Host {hostname} terminating TLS with context {ctx.name}")
+                ir.logger.debug(f"ListenerFactory: Host {hostname} terminating TLS with context {ctx.name}")
 
                 # We could check for the secure action here, but we're only supporting
                 # 'route' right now.
