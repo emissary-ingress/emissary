@@ -1,6 +1,6 @@
 # Introduction to the `Project` resource
 
-## This feature is in BETA. Your feedback is greatly appreciated!
+## This feature is in BETA. Please [tell me](mailto:rhs@datawire.io?subject=Project%20CRD%20UX%20Feedback) (lead developer of the feature) about your experience.
 
 Ambassador is designed around a [declarative, self-service management model](../../concepts/gitops-continuous-delivery). The `Project` resource takes self-service, declarative configuration, and gitops to the next level by enabling developers to stage and deploy code with nothing more than a github repository. See [The Project Quickstart](../../../tutorials/projects/) to setup your first `Project`.
 
