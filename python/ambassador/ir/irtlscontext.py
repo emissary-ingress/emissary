@@ -1,6 +1,7 @@
 from typing import ClassVar, Dict, List, Optional, TYPE_CHECKING
 
 import base64
+import logging
 import os
 
 from ..utils import SavedSecret
@@ -135,7 +136,7 @@ class IRTLSContext(IRResource):
             if key in self:
                 self.secret_info[key] = self.pop(key)
 
-        ir.logger.info(f"IRTLSContext setup good: {self.pretty()}")
+        ir.logger.debug(f"IRTLSContext setup good: {self.pretty()}")
 
         return True
 
@@ -173,9 +174,9 @@ class IRTLSContext(IRResource):
         if self.get('redirect_cleartext_from', False) or self.get('alpn_protocols', False):
             is_valid = True
 
-        # If we don't have secret info, it's worth logging.
+        # If we don't have secret info, it's worth posting an error.
         if not self.secret_info:
-            self.logger.info("TLSContext %s has no certificate information at all?" % self.name)
+            self.post_error("TLSContext %s has no certificate information at all?" % self.name, log_level=logging.DEBUG)
 
         self.ir.logger.debug("resolve_secrets working on: %s" % self.as_json())
 

@@ -211,7 +211,7 @@ def standard_handler(f):
         reqid = str(uuid.uuid4()).upper()
         prefix = "%s: %s \"%s %s\"" % (reqid, request.remote_addr, request.method, request.path)
 
-        app.logger.info("%s START" % prefix)
+        app.logger.debug("%s START" % prefix)
 
         start = datetime.datetime.now()
 
@@ -336,7 +336,7 @@ def system_info(app):
         amod = ir.ambassador_module
         debug_mode = amod.get('debug_mode', False)
 
-        app.logger.info(f'DEBUG_MODE {debug_mode}')
+        app.logger.debug(f'DEBUG_MODE {debug_mode}')
 
     status_dict = {'config failure': [False, 'no configuration loaded']}
 
@@ -424,7 +424,7 @@ def handle_kubewatch_update():
         app.logger.error("error: update requested with no URL")
         return "error: update requested with no URL\n", 400
 
-    app.logger.info("Update requested: kubewatch, %s" % url)
+    app.logger.debug("Update requested: kubewatch, %s" % url)
 
     status, info = app.watcher.post('CONFIG', ( 'kw', url ))
 
@@ -439,7 +439,7 @@ def handle_watt_update():
         app.logger.error("error: watt update requested with no URL")
         return "error: watt update requested with no URL\n", 400
 
-    app.logger.info("Update requested: watt, %s" % url)
+    app.logger.debug("Update requested: watt, %s" % url)
 
     status, info = app.watcher.post('CONFIG', ( 'watt', url ))
 
@@ -454,7 +454,7 @@ def handle_fs():
         app.logger.error("error: update requested with no PATH")
         return "error: update requested with no PATH\n", 400
 
-    app.logger.info("Update requested from %s" % path)
+    app.logger.debug("Update requested from %s" % path)
 
     status, info = app.watcher.post('CONFIG_FS', path)
 
@@ -470,7 +470,7 @@ def handle_events():
         ( x['local_scout_timestamp'], x['mode'], x['action'], x ) for x in app.scout._scout.events
     ]
 
-    app.logger.info(f'Event dump {event_dump}')
+    app.logger.debug(f'Event dump {event_dump}')
 
     return jsonify(event_dump)
 
@@ -683,11 +683,11 @@ def sort_clusters_by_service(clusters):
 
 @app.template_filter('source_lookup')
 def source_lookup(name, sources):
-    app.logger.info("%s => sources %s" % (name, sources))
+    app.logger.debug("%s => sources %s" % (name, sources))
 
     source = sources.get(name, {})
 
-    app.logger.info("%s => source %s" % (name, source))
+    app.logger.debug("%s => source %s" % (name, source))
 
     return source.get('_source', name)
 
@@ -785,7 +785,7 @@ class KubeStatus:
 
 def kubestatus_update(kind: str, name: str, namespace: str, text: str) -> str:
     cmd = [ 'kubestatus', kind, '-f', f'metadata.name={name}', '-n', namespace, '-u', '/dev/fd/0' ]
-    print(f"KubeStatus UPDATE {os.getpid()}: running command: {cmd}")
+    # print(f"KubeStatus UPDATE {os.getpid()}: running command: {cmd}")
 
     try:
         rc = subprocess.run(cmd, input=text.encode('utf-8'), timeout=5)
@@ -799,8 +799,8 @@ def kubestatus_update(kind: str, name: str, namespace: str, text: str) -> str:
         return f"{name}.{namespace}: timed out"
 
 def kubestatus_update_done(f: concurrent.futures.Future) -> None:
-    print(f"KubeStatus DONE {os.getpid()}: result {f.result()}")
-
+    # print(f"KubeStatus DONE {os.getpid()}: result {f.result()}")
+    pass
 
 class AmbassadorEventWatcher(threading.Thread):
     # The key for 'Actions' is chimed - chimed_ok - env_good. This will make more sense
@@ -895,7 +895,7 @@ class AmbassadorEventWatcher(threading.Thread):
         rqueue.put((status, info))
 
     def load_config_fs(self, rqueue: queue.Queue, path: str) -> None:
-        self.logger.info("loading configuration from disk: %s" % path)
+        self.logger.debug("loading configuration from disk: %s" % path)
 
         # The "path" here can just be a path, but it can also be a command for testing,
         # if the user has chosen to allow that.
@@ -972,7 +972,7 @@ class AmbassadorEventWatcher(threading.Thread):
         snapshot = url.split('/')[-1]
         ss_path = os.path.join(app.snapshot_path, "snapshot-tmp.yaml")
 
-        self.logger.info("copying configuration: kubewatch, %s to %s" % (url, ss_path))
+        self.logger.debug("copying configuration: kubewatch, %s to %s" % (url, ss_path))
 
         # Grab the serialization, and save it to disk too.
         elements: List[str] = []
@@ -1020,7 +1020,7 @@ class AmbassadorEventWatcher(threading.Thread):
         snapshot = url.split('/')[-1]
         ss_path = os.path.join(app.snapshot_path, "snapshot-tmp.yaml")
 
-        self.logger.info("copying configuration: watt, %s to %s" % (url, ss_path))
+        self.logger.debug("copying configuration: watt, %s to %s" % (url, ss_path))
 
         # Grab the serialization, and save it to disk too.
         serialization = load_url_contents(self.logger, url, stream2=open(ss_path, "w"))
@@ -1109,7 +1109,7 @@ class AmbassadorEventWatcher(threading.Thread):
                     self.logger.debug("could not rename %s -> %s: %s" % (from_path, to_path, e))
 
         app.latest_snapshot = snapshot
-        self.logger.info("saving Envoy configuration for snapshot %s" % snapshot)
+        self.logger.debug("saving Envoy configuration for snapshot %s" % snapshot)
 
         with open(app.bootstrap_path, "w") as output:
             output.write(json.dumps(bootstrap_config, sort_keys=True, indent=4))
@@ -1123,10 +1123,10 @@ class AmbassadorEventWatcher(threading.Thread):
         app.diag = diag
 
         if app.kick:
-            self.logger.info("running '%s'" % app.kick)
+            self.logger.debug("running '%s'" % app.kick)
             os.system(app.kick)
         elif app.ambex_pid != 0:
-            self.logger.info("notifying PID %d ambex" % app.ambex_pid)
+            self.logger.debug("notifying PID %d ambex" % app.ambex_pid)
             os.kill(app.ambex_pid, signal.SIGHUP)
 
         # don't worry about TCPMappings yet
@@ -1148,7 +1148,7 @@ class AmbassadorEventWatcher(threading.Thread):
                 kind, namespace, update = app.ir.k8s_status_updates[name]
                 text = json.dumps(update)
 
-                # self.logger.info(f"K8s status update: {kind} {resource_name}.{namespace}, {text}...")
+                # self.logger.debug(f"K8s status update: {kind} {resource_name}.{namespace}, {text}...")
 
                 app.kubestatus.post(kind, resource_name, namespace, text)
 
@@ -1156,7 +1156,7 @@ class AmbassadorEventWatcher(threading.Thread):
         self._respond(rqueue, 200, 'configuration updated from snapshot %s' % snapshot)
 
         if app.health_checks and not app.stats_updater:
-            app.logger.info("starting Envoy status updater")
+            app.logger.debug("starting Envoy status updater")
             app.stats_updater = PeriodicTrigger(app.watcher.update_estats, period=5)
 
         # Check our environment...
@@ -1355,8 +1355,8 @@ class AmbassadorEventWatcher(threading.Thread):
             else:
                 self.app.logger.debug(f'Scout section: skip {notice}')
 
-        self.app.logger.info("Scout reports %s" % json.dumps(scout_result))
-        self.app.logger.info("Scout notices: %s" % json.dumps(scout_notices))
+        self.app.logger.debug("Scout reports %s" % json.dumps(scout_result))
+        self.app.logger.debug("Scout notices: %s" % json.dumps(scout_notices))
         self.app.logger.debug("App notices after scout: %s" % json.dumps(app.notices.notices))
 
     def validate_envoy_config(self, config, retries) -> bool:
@@ -1402,7 +1402,7 @@ class AmbassadorEventWatcher(threading.Thread):
                 continue
 
         if odict['exit_code'] == 0:
-            self.logger.info("successfully validated the resulting envoy configuration, continuing...")
+            self.logger.debug("successfully validated the resulting envoy configuration, continuing...")
             return True
 
         try:
@@ -1424,7 +1424,8 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
         # Boot chime. This is basically the earliest point at which we can consider an Ambassador
         # to be "running".
         scout_result = self.application.scout.report(mode="boot", action="boot1", no_cache=True)
-        self.application.logger.info(f'BOOT: Scout result {json.dumps(scout_result)}')
+        self.application.logger.debug(f'BOOT: Scout result {json.dumps(scout_result)}')
+        self.application.logger.info(f'Ambassador {__version__} booted')
 
     def load_config(self):
         config = dict([(key, value) for key, value in iteritems(self.options)

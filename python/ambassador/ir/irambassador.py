@@ -280,7 +280,7 @@ class IRAmbassador (IRResource):
 
         if ir.edge_stack_allowed:
             if self.diagnostics and self.diagnostics.get("enabled", False):
-                ir.logger.info("adding mappings for Edge Policy Console")
+                ir.logger.debug("adding mappings for Edge Policy Console")
                 mapping = IRHTTPMapping(ir, aconf, rkey=self.rkey, location=self.location,
                                         name="edgestack-direct-mapping",
                                         metadata_labels={"ambassador_diag_class": "private"},
@@ -303,7 +303,7 @@ class IRAmbassador (IRResource):
                 mapping.referenced_by(self)
                 ir.add_mapping(aconf, mapping)
             else:
-                ir.logger.info("diagnostics disabled, skipping mapping for Edge Policy Console")
+                ir.logger.debug("diagnostics disabled, skipping mapping for Edge Policy Console")
 
     def get_default_label_domain(self) -> str:
         return self.default_label_domain

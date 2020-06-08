@@ -50,7 +50,7 @@ for url in urls:
     r = requests.post(url, params={ arg_key: args[0] })
 
     if r.status_code != 200:
-        sys.stderr.write("update to %s failed:\nstatus %d: %s" % (r.url, r.status_code, r.text))
+        sys.stderr.write("failed to update %s: %d: %s" % (r.url, r.status_code, r.text))
         exitcode = 1
 
 sys.exit(exitcode)
