@@ -429,6 +429,20 @@ data:
     NjRZZUh1YlllOE9Iemp5UEZGSnJZdz09Ci0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0K
 
 ######################################################################
+# Project Controller
+#
+# Comment this out if you want to disable the micro CI/CD functionality:
+---
+apiVersion: getambassador.io/v2
+kind: ProjectController
+metadata:
+  name: projectcontroller
+  namespace: ambassador
+  labels:
+    projects.getambassador.io/ambassador_id: default
+    product: aes
+
+######################################################################
 # Configure Ambassador Edge Stack.
 ---
 apiVersion: getambassador.io/v2
