@@ -79,6 +79,10 @@ else
   # ...and I (lukeshu) couldn't figure out a good way to do it on old (net-tools) GNU/Linux.
 endif
 
+noop:
+	@true
+.PHONY: noop
+
 preflight:
 ifeq ($(strip $(shell $(BUILDER))),)
 	@printf "$(CYN)==> $(GRN)Preflight checks$(END)\n"

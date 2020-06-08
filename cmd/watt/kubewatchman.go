@@ -41,9 +41,9 @@ func (m *KubernetesWatchMaker) MakeKubernetesWatch(spec KubernetesWatchSpec) (*s
 			watchFunc := func(watchId, ns, kind string) func(watcher *k8s.Watcher) {
 				return func(watcher *k8s.Watcher) {
 					resources := watcher.List(kind)
-					p.Logf("found %d %q in namespace %q", len(resources), kind, fmtNamespace(ns))
+					p.Debugf("found %d %q in namespace %q", len(resources), kind, fmtNamespace(ns))
 					m.notify <- k8sEvent{watchId: watchId, kind: kind, resources: resources}
-					p.Logf("sent %q to receivers", kind)
+					p.Debugf("sent %q to receivers", kind)
 				}
 			}
 
@@ -85,7 +85,7 @@ func (w *kubewatchman) Work(p *supervisor.Process) error {
 		select {
 		case watches := <-w.in:
 			found := make(map[string]*supervisor.Worker)
-			p.Logf("processing %d kubernetes watch specs", len(watches))
+			p.Debugf("processing %d kubernetes watch specs", len(watches))
 			for _, spec := range watches {
 				worker, err := w.WatchMaker.MakeKubernetesWatch(spec)
 				if err != nil {
@@ -96,7 +96,7 @@ func (w *kubewatchman) Work(p *supervisor.Process) error {
 				if _, exists := w.watched[worker.Name]; exists {
 					found[worker.Name] = w.watched[worker.Name]
 				} else {
-					p.Logf("add kubernetes watcher %s\n", worker.Name)
+					p.Debugf("add kubernetes watcher %s\n", worker.Name)
 					p.Supervisor().Supervise(worker)
 					w.watched[worker.Name] = worker
 					found[worker.Name] = worker
@@ -105,7 +105,7 @@ func (w *kubewatchman) Work(p *supervisor.Process) error {
 
 			for workerName, worker := range w.watched {
 				if _, exists := found[workerName]; !exists {
-					p.Logf("remove kubernetes watcher %s\n", workerName)
+					p.Debugf("remove kubernetes watcher %s\n", workerName)
 					worker.Shutdown()
 					worker.Wait()
 				}
@@ -113,7 +113,7 @@ func (w *kubewatchman) Work(p *supervisor.Process) error {
 
 			w.watched = found
 		case <-p.Shutdown():
-			p.Logf("shutdown initiated")
+			p.Debugf("shutdown initiated")
 			return nil
 		}
 	}
@@ -146,16 +146,16 @@ func (b *kubebootstrap) SaveError(message string) {
 
 func (b *kubebootstrap) Work(p *supervisor.Process) error {
 	for _, kind := range b.kinds {
-		p.Logf("adding kubernetes watch for %q in namespace %q", kind, fmtNamespace(b.namespace))
+		p.Debugf("adding kubernetes watch for %q in namespace %q", kind, fmtNamespace(b.namespace))
 
 		watcherFunc := func(ns, kind string) func(watcher *k8s.Watcher) {
 			return func(watcher *k8s.Watcher) {
 				resources := watcher.List(kind)
-				p.Logf("found %d %q in namespace %q", len(resources), kind, fmtNamespace(ns))
+				p.Debugf("found %d %q in namespace %q", len(resources), kind, fmtNamespace(ns))
 				for _, n := range b.notify {
 					n <- k8sEvent{kind: kind, resources: resources}
 				}
-				p.Logf("sent %q to %d receivers", kind, len(b.notify))
+				p.Debugf("sent %q to %d receivers", kind, len(b.notify))
 			}
 		}
 
@@ -175,7 +175,7 @@ func (b *kubebootstrap) Work(p *supervisor.Process) error {
 	p.Ready()
 
 	for range p.Shutdown() {
-		p.Logf("shutdown initiated")
+		p.Debugf("shutdown initiated")
 		b.kubeAPIWatcher.Stop()
 	}
 

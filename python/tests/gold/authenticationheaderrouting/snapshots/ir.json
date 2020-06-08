@@ -194,6 +194,7 @@
                 "authenticationheaderrouting.default.1"
             ],
             "_rkey": "authenticationheaderrouting.default.1",
+            "add_auth_headers": {},
             "add_linkerd_headers": false,
             "allow_request_body": false,
             "allowed_authorization_headers": [

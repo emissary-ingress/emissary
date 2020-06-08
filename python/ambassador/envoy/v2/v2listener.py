@@ -220,7 +220,7 @@ def auth_cluster_uri(auth: IRAuth, cluster: IRCluster) -> str:
 
     server_uri = "%s://%s" % (scheme, prefix)
 
-    auth.ir.logger.info("%s: server_uri %s" % (auth.name, server_uri))
+    auth.ir.logger.debug("%s: server_uri %s" % (auth.name, server_uri))
 
     return server_uri
 
@@ -319,6 +319,12 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
     if auth.proto == "http":
         allowed_authorization_headers = []
         headers_to_add = []
+
+        for k, v in auth.get('add_auth_headers').items():
+            headers_to_add.append({
+                'key': k,
+                'value': v,
+            })
 
         for key in list(set(auth.allowed_authorization_headers).union(AllowedAuthorizationHeaders)):
             allowed_authorization_headers.append({"exact": key})
@@ -865,7 +871,7 @@ class V2Listener(dict):
             self.first_vhost = vhost
 
     def finalize(self) -> None:
-        self.config.ir.logger.info(f"V2Listener finalize {self.pretty()}")
+        self.config.ir.logger.debug(f"V2Listener finalize {self.pretty()}")
 
         # Check if AMBASSADOR_ENVOY_BIND_ADDRESS is set, and if so, bind Envoy to that external address.
         if "AMBASSADOR_ENVOY_BIND_ADDRESS" in environ:
@@ -1033,7 +1039,7 @@ class V2Listener(dict):
 
                 # Force a listener on 8080 with a VHost for '*' that rejects everything. The ACME
                 # hole-puncher will override the reject for ACME, and nothing else will get through.
-                logger.info(f"V2Listeners: listeners_by_port has no 8080, forcing Edge Stack listener on 8080")
+                logger.debug(f"V2Listeners: listeners_by_port has no 8080, forcing Edge Stack listener on 8080")
                 listener = listeners_by_port.get(8080, use_proxy_proto)
 
                 # Remember, it is not a bug to have action=None. There is no secure action
@@ -1190,8 +1196,8 @@ class V2Listener(dict):
             group_key = irgroup.bind_to()
             listener = tcplisteners.get(group_key, None)
 
-            config.ir.logger.info("V2TCPListener: group at %s found %s listener" %
-                                  (group_key, "extant" if listener else "no"))
+            config.ir.logger.debug("V2TCPListener: group at %s found %s listener" %
+                                   (group_key, "extant" if listener else "no"))
 
             if not listener:
                 # Nope. Make a new one and save it.

@@ -227,19 +227,19 @@ func (a *aggregator) isComplete(p *supervisor.Process, watchset WatchSet) bool {
 
 	for _, w := range watchset.KubernetesWatches {
 		if _, ok := a.ids[w.WatchId()]; ok {
-			p.Logf("initialized k8s watch: %s", w.WatchId())
+			p.Debugf("initialized k8s watch: %s", w.WatchId())
 		} else {
 			complete = false
-			p.Logf("waiting for k8s watch: %s", w.WatchId())
+			p.Debugf("waiting for k8s watch: %s", w.WatchId())
 		}
 	}
 
 	for _, w := range watchset.ConsulWatches {
 		if _, ok := a.ids[w.WatchId()]; ok {
-			p.Logf("initialized consul watch: %s", w.WatchId())
+			p.Debugf("initialized consul watch: %s", w.WatchId())
 		} else {
 			complete = false
-			p.Logf("waiting for consul watch: %s", w.WatchId())
+			p.Debugf("waiting for consul watch: %s", w.WatchId())
 		}
 	}
 
@@ -268,8 +268,8 @@ func (a *aggregator) notify(p *supervisor.Process) {
 
 	watchset := a.getWatches(p)
 
-	p.Logf("found %d kubernetes watches", len(watchset.KubernetesWatches))
-	p.Logf("found %d consul watches", len(watchset.ConsulWatches))
+	p.Debugf("found %d kubernetes watches", len(watchset.KubernetesWatches))
+	p.Debugf("found %d consul watches", len(watchset.ConsulWatches))
 	a.k8sWatches <- watchset.KubernetesWatches
 	a.consulWatches <- watchset.ConsulWatches
 
@@ -343,7 +343,7 @@ func invokeHook(p *supervisor.Process, hook, snapshot string) WatchSet {
 	err = decoder.Decode(&result)
 	if err != nil {
 		for _, line := range lines(encoded) {
-			p.Logf("watch hook: %s", line)
+			p.Debugf("watch hook: %s", line)
 		}
 		p.Logf("watchset decode failed: %v", err)
 		return WatchSet{}
