@@ -79,8 +79,8 @@ func TestCommandRunLogging(t *testing.T) {
 			if err := cmd.Run(); err != nil {
 				t.Errorf("unexpted error: %v", err)
 			}
-			if len(theLogger.Lines) != 6 {
-				t.Log("Expected 6 lines: process start, cmd start, 1, 2, 3, cmd end")
+			if len(theLogger.Lines) != 5 {
+				t.Log("Expected 5 lines: cmd start, 1, 2, 3, cmd end")
 				t.Logf("Got (%d lines): %q", len(theLogger.Lines), theLogger.Lines)
 				t.Fail()
 			}

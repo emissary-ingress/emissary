@@ -655,9 +655,11 @@ redirect_cleartext_from: 8081
         # XXX Ew. If self.results[0].json is empty, the harness won't convert it to a response.
         errors = self.results[0].json
         num_errors = len(errors)
-        assert num_errors == 3, "expected 3 errors, got {} -\n{}".format(num_errors, errors)
+        assert num_errors == 5, "expected 5 errors, got {} -\n{}".format(num_errors, errors)
 
         errors_that_should_be_found = {
+          'TLSContext TLSContextTest-no-secret has no certificate information at all?': False,
+          'TLSContext TLSContextTest-same-context-error has no certificate information at all?': False,
           'TLSContext TLSContextTest-same-context-error is missing cert_chain_file': False,
           'TLSContext TLSContextTest-same-context-error is missing private_key_file': False,
           'TLSContext: TLSContextTest-rcf-error; configured conflicting redirect_from port: 8081': False

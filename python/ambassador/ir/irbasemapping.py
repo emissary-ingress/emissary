@@ -108,7 +108,7 @@ class IRBaseMapping (IRResource):
 
             for context_host in hosts:
                 if context_host == host:
-                    ir.logger.info("Matched host {} with TLSContext {}".format(host, context.get('name')))
+                    ir.logger.debug("Matched host {} with TLSContext {}".format(host, context.get('name')))
                     self.sni = True
                     return context
 

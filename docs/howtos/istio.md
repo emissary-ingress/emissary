@@ -19,7 +19,7 @@ This guide will explain how to take advantage of both Ambassador and Istio to ha
 
 ## Install Ambassador
 
-There a number of installation options for Ambassador. See the [getting started](../tutorials/getting-started) for the full list of installation options and instructions.
+There a number of installation options for Ambassador. See the [getting started](../../tutorials/getting-started) for the full list of installation options and instructions.
 
 ## Integrate Ambassador and Istio
 
@@ -393,7 +393,7 @@ Enabling the [tracing component](https://istio.io/docs/tasks/observability/distr
 
 Since Istio will propagate the tracing headers automatically, integrating Ambassador with the Istio Jaeger deployment will give you end-to-end observability of requests throughout your cluster.
 
-To do so, simply create a [`TracingService`](../topics/running/services/tracing-service) and point it at the `zipkin` `Service` in the istio-system namespace.
+To do so, simply create a [`TracingService`](../../topics/running/services/tracing-service) and point it at the `zipkin` `Service` in the istio-system namespace.
 
 ```yaml
 ---
@@ -450,7 +450,7 @@ Now we will show how you can use Ambassador to route to services in the Istio se
 
 3. Route to the service
 
-   Traffic routing in Ambassador is configured with the [`Mapping`](../topics/using/intro-mappings) resource. This is a powerful configuration object that lets you configure different routing rules for different services. 
+   Traffic routing in Ambassador is configured with the [`Mapping`](../../topics/using/intro-mappings) resource. This is a powerful configuration object that lets you configure different routing rules for different services. 
 
    The above `kubectl apply` installed the following basic `Mapping` which has configured Ambassador to route traffic with URL prefix `/backend/` to the `quote` service.
 
