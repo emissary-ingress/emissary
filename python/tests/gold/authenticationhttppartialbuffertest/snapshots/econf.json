@@ -182,7 +182,12 @@
                                                                 }
                                                             ]
                                                         },
-                                                        "headers_to_add": []
+                                                        "headers_to_add": [
+                                                            {
+                                                                "key": "X-Added-Auth",
+                                                                "value": "auth-added"
+                                                            }
+                                                        ]
                                                     },
                                                     "authorization_response": {
                                                         "allowed_client_headers": {

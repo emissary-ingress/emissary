@@ -11,7 +11,7 @@ import logging
 import os
 
 from ambassador import Config, IR
-from ambassador.config.resourcefetcher import ResourceFetcher
+from ambassador.fetch import ResourceFetcher
 from ambassador.utils import SecretInfo, SavedSecret, SecretHandler
 
 if TYPE_CHECKING:
