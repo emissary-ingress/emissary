@@ -8,7 +8,7 @@ There are many examples and walkthroughs on how to write gRPC applications so th
 
 This document will use the [gRPC python helloworld example](https://github.com/grpc/grpc/tree/master/examples/python/helloworld) to demonstrate how to configure a gRPC service with Ambassador Edge Stack.
 
-Follow the example up through [Run a gRPC application](https://grpc.io/docs/quickstart/python.html#run-a-grpc-application) to get started.
+Follow the example up through [Run a gRPC application](https://grpc.io/docs/languages/python/quickstart/#run-a-grpc-application) to get started.
 
 ### Dockerize
 

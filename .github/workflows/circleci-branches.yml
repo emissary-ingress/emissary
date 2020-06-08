@@ -1,0 +1,27 @@
+name: Trigger CircleCI pipelines for branches
+
+# Because CircleCI gitref filtering is trash, we have CircleCI
+# configured to run on
+#  - The "default branch" (`master`)
+#  - Tags
+#  - Pull Requests
+# but cannot configure it to run also run on a whitelist of other
+# branches; so we have this GitHub action to trigger pipelines on the
+# non-`master` branches that we want it to run on.
+
+on:
+  push:
+    branches:
+    - 'release/**'
+    - 'shared/**'
+
+jobs:
+  "trigger":
+    runs-on: ubuntu-latest
+    steps:
+    - name: Trigger CircleCI pipeline
+      run: |
+        curl -u "$CIRCLECI_TOKEN:" -X POST https://circleci.com/api/v2/project/github/${GITHUB_REPOSITORY}/pipeline \
+          -H 'Content-Type: application/json' \
+          -H 'Accept: application/json' \
+          --data "{ \"branch\": \"${GITHUB_REF#refs/heads/}\" }"

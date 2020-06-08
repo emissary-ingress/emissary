@@ -1,0 +1,136 @@
+version: 2.1
+
+# Secure environment variables set from the Web UI:
+# - NETLIFY_AUTH_TOKEN (Netlify)
+# - GH_TOKEN (GitHub)
+
+_anchors:
+  "website-job": &website-job
+    machine:
+      # If you bump this, be sure to bump "install-python.executor-key"
+      # in the "website-setup" command below.
+      image: "ubuntu-1604:201903-01"
+    working_directory: ~/project/ambassador
+
+commands:
+
+  "website-setup":
+    steps:
+      - install-node:
+          version: "11"
+      - install-python:
+          executor-key: "201903-01"
+          version: "3.7.0"
+      - run:
+          name: "Show environment"
+          command: |
+            env | grep -e GIT -e TRAVIS -e CIRCLE | sort
+      - oss-checkout
+
+jobs:
+
+  "website-preview-build":
+    <<: *website-job
+    steps:
+      - website-setup
+      - run: ./.ci/website-preview-build
+      - persist_to_workspace:
+          root: /tmp/getambassador.io
+          paths:
+            - public
+
+  "website-preview-publish":
+    <<: *website-job
+    steps:
+      - website-setup
+      - attach_workspace:
+          at: /tmp/getambassador.io
+      - run: ./.ci/website-preview-publish
+
+  "website-preview-blc":
+    <<: *website-job
+    steps:
+      - website-setup
+      - attach_workspace:
+          at: /tmp/getambassador.io
+      - run: ./.ci/website-preview-blc
+
+  "website-preview-for-smoketest":
+    <<: *website-job
+    steps:
+      - website-setup
+      - run: ./.ci/website-preview-build
+      - run: ./.ci/website-preview-publish
+
+  "website-prod-publish":
+    <<: *website-job
+    steps:
+      - website-setup
+      - run:
+          name: "Configure Git user"
+          command: |
+            git config --global user.name 'ambassador.git CircleCI user'
+            git config --global user.email dev@datawire.io
+      - run: ./.ci/website-prod-publish
+
+workflows:
+  # All of these filters assume that "Only build pull requests" is turned on at
+  # https://app.circleci.com/settings/project/github/datawire/apro/advanced
+  # and that any non-'master' branches that we wish to run on are set up to be
+  # triggered by GitHub actions (see ".github/workflows/circleci-branches.yml").
+  "Docs: Dev":
+    jobs:
+      - "website-preview-build":
+          filters:
+            branches:
+              ignore:
+                # Don't bother running on forked PRs (which CircleCI
+                # shows as branch="pull/${number}"); they won't have
+                # GH_TOKEN set to be able to pull getambassador.io.git
+                - /^pull\/[0-9]+$/
+      - "website-preview-publish":
+          requires: ["website-preview-build"]
+          filters:
+            branches:
+              ignore:
+                # Don't bother running on 'master' or the other
+                # branches that we do the "Release" workflow for.
+                - master
+                - /^release\/v1\.[0-9]+$/
+                # Don't bother running on forked PRs (which CircleCI
+                # shows as branch="pull/${number}"); they won't have
+                # GH_TOKEN set to be able to pull getambassador.io.git
+                - /^pull\/[0-9]+$/
+      - "website-preview-blc":
+          requires: ["website-preview-build"]
+          filters:
+            branches:
+              ignore:
+                # Don't bother running on forked PRs (which CircleCI
+                # shows as branch="pull/${number}"); they won't have
+                # GH_TOKEN set to be able to pull getambassador.io.git
+                - /^pull\/[0-9]+$/
+  "Docs: Prerelease":
+    # Run preview-build+preview-publish on prerelease tags so that we
+    # have a preview for the smoke-testers to use.  Do this in a
+    # separate job from the "Dev" workflow so that people looking at
+    # the PR vs the tag don't get different preview URLs.
+    when:
+      equal: [ "https://github.com/datawire/apro", << pipeline.project.git_url >> ]
+    jobs:
+      - "website-preview-for-smoketest":
+          filters:
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+-.*/
+            branches:
+              ignore: /.*/
+  "Docs: Release":
+    when:
+      equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
+    jobs:
+      - "website-prod-publish":
+          filters:
+            branches:
+              only:
+                - master
+                - /^release\/v1\.[0-9]+$/

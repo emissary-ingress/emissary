@@ -1,3 +1,0 @@
-grpcio
-grpcio-tools
-grpcio-reflection
