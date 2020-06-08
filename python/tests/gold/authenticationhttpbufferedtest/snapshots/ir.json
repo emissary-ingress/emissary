@@ -207,6 +207,7 @@
                 "authenticationhttpbufferedtest.default.3"
             ],
             "_rkey": "authenticationhttpbufferedtest.default.3",
+            "add_auth_headers": {},
             "add_linkerd_headers": true,
             "allow_request_body": false,
             "allowed_authorization_headers": [

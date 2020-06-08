@@ -20,111 +20,68 @@
                 "kind": "Service",
                 "metadata": {
                     "annotations": {
-                        "getambassador.io/config": "---\napiVersion: ambassador/v1\nkind: AuthService\nname: authenticationgrpctest-agrpc-auth\nauth_service: \"authenticationgrpctest-agrpc-auth\"\ntimeout_ms: 5000\nproto: grpc\nambassador_id: authenticationgrpctest\n\n---\napiVersion: ambassador/v0\nkind: Mapping\nname: authenticationgrpctest-http\nprefix: /target/\nservice: authenticationgrpctest-http\nambassador_id: authenticationgrpctest\n",
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v1\\nkind: AuthService\\nname: authenticationgrpctest-agrpc-auth\\nauth_service: \\\"authenticationgrpctest-agrpc-auth\\\"\\ntimeout_ms: 5000\\nproto: grpc\\nambassador_id: authenticationgrpctest\\n\\n---\\napiVersion: ambassador/v0\\nkind: Mapping\\nname: authenticationgrpctest-http\\nprefix: /target/\\nservice: authenticationgrpctest-http\\nambassador_id: authenticationgrpctest\\n\"},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"authenticationgrpctest\",\"scope\":\"AmbassadorTest\"},\"name\":\"authenticationgrpctest\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"authenticationgrpctest\"},\"type\":\"NodePort\"}}\n"
-                    },
-                    "creationTimestamp": "2020-05-14T17:38:17Z",
-                    "labels": {
-                        "app.kubernetes.io/component": "ambassador-service",
-                        "kat-ambassador-id": "authenticationgrpctest",
-                        "scope": "AmbassadorTest"
-                    },
-                    "name": "authenticationgrpctest",
-                    "namespace": "default",
-                    "resourceVersion": "63488",
-                    "selfLink": "/api/v1/namespaces/default/services/authenticationgrpctest",
-                    "uid": "b2589cbb-9609-11ea-ae16-06e21b589211"
-                },
-                "spec": {
-                    "clusterIP": "10.102.186.154",
-                    "externalTrafficPolicy": "Cluster",
-                    "ports": [
-                        {
-                            "name": "http",
-                            "nodePort": 30655,
-                            "port": 80,
-                            "protocol": "TCP",
-                            "targetPort": 8080
-                        },
-                        {
-                            "name": "https",
-                            "nodePort": 32441,
-                            "port": 443,
-                            "protocol": "TCP",
-                            "targetPort": 8443
-                        }
-                    ],
-                    "selector": {
-                        "service": "authenticationgrpctest"
-                    },
-                    "sessionAffinity": "None",
-                    "type": "NodePort"
-                },
-                "status": {
-                    "loadBalancer": {}
-                }
-            },
-            {
-                "apiVersion": "v1",
-                "kind": "Service",
-                "metadata": {
-                    "annotations": {
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"authenticationgrpctest\",\"scope\":\"AmbassadorTest\",\"service\":\"authenticationgrpctest-admin\"},\"name\":\"authenticationgrpctest-admin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"authenticationgrpctest-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"authenticationgrpctest\"},\"type\":\"NodePort\"}}\n"
-                    },
-                    "creationTimestamp": "2020-05-14T17:38:18Z",
-                    "labels": {
-                        "kat-ambassador-id": "authenticationgrpctest",
-                        "scope": "AmbassadorTest",
-                        "service": "authenticationgrpctest-admin"
-                    },
-                    "name": "authenticationgrpctest-admin",
-                    "namespace": "default",
-                    "resourceVersion": "63492",
-                    "selfLink": "/api/v1/namespaces/default/services/authenticationgrpctest-admin",
-                    "uid": "b2644303-9609-11ea-ae16-06e21b589211"
-                },
-                "spec": {
-                    "clusterIP": "10.111.86.249",
-                    "externalTrafficPolicy": "Cluster",
-                    "ports": [
-                        {
-                            "name": "authenticationgrpctest-admin",
-                            "nodePort": 32241,
-                            "port": 8877,
-                            "protocol": "TCP",
-                            "targetPort": 8877
-                        }
-                    ],
-                    "selector": {
-                        "service": "authenticationgrpctest"
-                    },
-                    "sessionAffinity": "None",
-                    "type": "NodePort"
-                },
-                "status": {
-                    "loadBalancer": {}
-                }
-            },
-            {
-                "apiVersion": "v1",
-                "kind": "Service",
-                "metadata": {
-                    "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"authenticationgrpctest\",\"scope\":\"AmbassadorTest\"},\"name\":\"authenticationgrpctest-agrpc-auth\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"backend\":\"authenticationgrpctest-agrpc-auth\"}}}\n"
                     },
-                    "creationTimestamp": "2020-05-14T17:38:18Z",
+                    "creationTimestamp": "2020-06-02T08:39:03Z",
                     "labels": {
                         "kat-ambassador-id": "authenticationgrpctest",
                         "scope": "AmbassadorTest"
                     },
+                    "managedFields": [
+                        {
+                            "apiVersion": "v1",
+                            "fieldsType": "FieldsV1",
+                            "fieldsV1": {
+                                "f:metadata": {
+                                    "f:annotations": {
+                                        ".": {},
+                                        "f:kubectl.kubernetes.io/last-applied-configuration": {}
+                                    },
+                                    "f:labels": {
+                                        ".": {},
+                                        "f:kat-ambassador-id": {},
+                                        "f:scope": {}
+                                    }
+                                },
+                                "f:spec": {
+                                    "f:ports": {
+                                        ".": {},
+                                        "k:{\"port\":443,\"protocol\":\"TCP\"}": {
+                                            ".": {},
+                                            "f:name": {},
+                                            "f:port": {},
+                                            "f:protocol": {},
+                                            "f:targetPort": {}
+                                        },
+                                        "k:{\"port\":80,\"protocol\":\"TCP\"}": {
+                                            ".": {},
+                                            "f:name": {},
+                                            "f:port": {},
+                                            "f:protocol": {},
+                                            "f:targetPort": {}
+                                        }
+                                    },
+                                    "f:selector": {
+                                        ".": {},
+                                        "f:backend": {}
+                                    },
+                                    "f:sessionAffinity": {},
+                                    "f:type": {}
+                                }
+                            },
+                            "manager": "kubectl",
+                            "operation": "Update",
+                            "time": "2020-06-02T08:39:02Z"
+                        }
+                    ],
                     "name": "authenticationgrpctest-agrpc-auth",
                     "namespace": "default",
-                    "resourceVersion": "63502",
+                    "resourceVersion": "1946",
                     "selfLink": "/api/v1/namespaces/default/services/authenticationgrpctest-agrpc-auth",
-                    "uid": "b283a923-9609-11ea-ae16-06e21b589211"
+                    "uid": "3fabf0a8-5085-4b93-880b-5b0c8802f736"
                 },
                 "spec": {
-                    "clusterIP": "10.97.253.124",
+                    "clusterIP": "10.107.65.120",
                     "ports": [
                         {
                             "name": "http",
@@ -154,33 +111,80 @@
                 "kind": "Service",
                 "metadata": {
                     "annotations": {
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"authenticationgrpctest\",\"scope\":\"AmbassadorTest\"},\"name\":\"authenticationgrpctest-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8085},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8448}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"authenticationgrpctest\",\"scope\":\"AmbassadorTest\"},\"name\":\"authenticationgrpctest-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
                     },
-                    "creationTimestamp": "2020-05-14T17:38:18Z",
+                    "creationTimestamp": "2020-06-02T08:39:02Z",
                     "labels": {
                         "kat-ambassador-id": "authenticationgrpctest",
                         "scope": "AmbassadorTest"
                     },
+                    "managedFields": [
+                        {
+                            "apiVersion": "v1",
+                            "fieldsType": "FieldsV1",
+                            "fieldsV1": {
+                                "f:metadata": {
+                                    "f:annotations": {
+                                        ".": {},
+                                        "f:kubectl.kubernetes.io/last-applied-configuration": {}
+                                    },
+                                    "f:labels": {
+                                        ".": {},
+                                        "f:kat-ambassador-id": {},
+                                        "f:scope": {}
+                                    }
+                                },
+                                "f:spec": {
+                                    "f:ports": {
+                                        ".": {},
+                                        "k:{\"port\":443,\"protocol\":\"TCP\"}": {
+                                            ".": {},
+                                            "f:name": {},
+                                            "f:port": {},
+                                            "f:protocol": {},
+                                            "f:targetPort": {}
+                                        },
+                                        "k:{\"port\":80,\"protocol\":\"TCP\"}": {
+                                            ".": {},
+                                            "f:name": {},
+                                            "f:port": {},
+                                            "f:protocol": {},
+                                            "f:targetPort": {}
+                                        }
+                                    },
+                                    "f:selector": {
+                                        ".": {},
+                                        "f:backend": {}
+                                    },
+                                    "f:sessionAffinity": {},
+                                    "f:type": {}
+                                }
+                            },
+                            "manager": "kubectl",
+                            "operation": "Update",
+                            "time": "2020-06-02T08:39:02Z"
+                        }
+                    ],
                     "name": "authenticationgrpctest-http",
                     "namespace": "default",
-                    "resourceVersion": "63499",
+                    "resourceVersion": "1941",
                     "selfLink": "/api/v1/namespaces/default/services/authenticationgrpctest-http",
-                    "uid": "b2797d0a-9609-11ea-ae16-06e21b589211"
+                    "uid": "b64df909-5895-4a5a-8cd5-df0366be9a61"
                 },
                 "spec": {
-                    "clusterIP": "10.106.130.235",
+                    "clusterIP": "10.96.231.11",
                     "ports": [
                         {
                             "name": "http",
                             "port": 80,
                             "protocol": "TCP",
-                            "targetPort": 8085
+                            "targetPort": 8080
                         },
                         {
                             "name": "https",
                             "port": 443,
                             "protocol": "TCP",
-                            "targetPort": 8448
+                            "targetPort": 8443
                         }
                     ],
                     "selector": {
@@ -188,6 +192,188 @@
                     },
                     "sessionAffinity": "None",
                     "type": "ClusterIP"
+                },
+                "status": {
+                    "loadBalancer": {}
+                }
+            },
+            {
+                "apiVersion": "v1",
+                "kind": "Service",
+                "metadata": {
+                    "annotations": {
+                        "getambassador.io/config": "---\napiVersion: ambassador/v1\nkind: AuthService\nname: authenticationgrpctest-agrpc-auth\nauth_service: \"authenticationgrpctest-agrpc-auth\"\ntimeout_ms: 5000\nproto: grpc\nambassador_id: authenticationgrpctest\n\n---\napiVersion: ambassador/v0\nkind: Mapping\nname: authenticationgrpctest-http\nprefix: /target/\nservice: authenticationgrpctest-http\nambassador_id: authenticationgrpctest\n",
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v1\\nkind: AuthService\\nname: authenticationgrpctest-agrpc-auth\\nauth_service: \\\"authenticationgrpctest-agrpc-auth\\\"\\ntimeout_ms: 5000\\nproto: grpc\\nambassador_id: authenticationgrpctest\\n\\n---\\napiVersion: ambassador/v0\\nkind: Mapping\\nname: authenticationgrpctest-http\\nprefix: /target/\\nservice: authenticationgrpctest-http\\nambassador_id: authenticationgrpctest\\n\"},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"authenticationgrpctest\",\"scope\":\"AmbassadorTest\"},\"name\":\"authenticationgrpctest\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"authenticationgrpctest\"},\"type\":\"NodePort\"}}\n"
+                    },
+                    "creationTimestamp": "2020-06-02T08:39:02Z",
+                    "labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "authenticationgrpctest",
+                        "scope": "AmbassadorTest"
+                    },
+                    "managedFields": [
+                        {
+                            "apiVersion": "v1",
+                            "fieldsType": "FieldsV1",
+                            "fieldsV1": {
+                                "f:metadata": {
+                                    "f:annotations": {
+                                        ".": {},
+                                        "f:getambassador.io/config": {},
+                                        "f:kubectl.kubernetes.io/last-applied-configuration": {}
+                                    },
+                                    "f:labels": {
+                                        ".": {},
+                                        "f:app.kubernetes.io/component": {},
+                                        "f:kat-ambassador-id": {},
+                                        "f:scope": {}
+                                    }
+                                },
+                                "f:spec": {
+                                    "f:externalTrafficPolicy": {},
+                                    "f:ports": {
+                                        ".": {},
+                                        "k:{\"port\":443,\"protocol\":\"TCP\"}": {
+                                            ".": {},
+                                            "f:name": {},
+                                            "f:port": {},
+                                            "f:protocol": {},
+                                            "f:targetPort": {}
+                                        },
+                                        "k:{\"port\":80,\"protocol\":\"TCP\"}": {
+                                            ".": {},
+                                            "f:name": {},
+                                            "f:port": {},
+                                            "f:protocol": {},
+                                            "f:targetPort": {}
+                                        }
+                                    },
+                                    "f:selector": {
+                                        ".": {},
+                                        "f:service": {}
+                                    },
+                                    "f:sessionAffinity": {},
+                                    "f:type": {}
+                                }
+                            },
+                            "manager": "kubectl",
+                            "operation": "Update",
+                            "time": "2020-06-02T08:39:02Z"
+                        }
+                    ],
+                    "name": "authenticationgrpctest",
+                    "namespace": "default",
+                    "resourceVersion": "1926",
+                    "selfLink": "/api/v1/namespaces/default/services/authenticationgrpctest",
+                    "uid": "cd6d9d30-edd6-4482-9948-e2bc19bd8c58"
+                },
+                "spec": {
+                    "clusterIP": "10.103.211.216",
+                    "externalTrafficPolicy": "Cluster",
+                    "ports": [
+                        {
+                            "name": "http",
+                            "nodePort": 32618,
+                            "port": 80,
+                            "protocol": "TCP",
+                            "targetPort": 8080
+                        },
+                        {
+                            "name": "https",
+                            "nodePort": 30181,
+                            "port": 443,
+                            "protocol": "TCP",
+                            "targetPort": 8443
+                        }
+                    ],
+                    "selector": {
+                        "service": "authenticationgrpctest"
+                    },
+                    "sessionAffinity": "None",
+                    "type": "NodePort"
+                },
+                "status": {
+                    "loadBalancer": {}
+                }
+            },
+            {
+                "apiVersion": "v1",
+                "kind": "Service",
+                "metadata": {
+                    "annotations": {
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"authenticationgrpctest\",\"scope\":\"AmbassadorTest\",\"service\":\"authenticationgrpctest-admin\"},\"name\":\"authenticationgrpctest-admin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"authenticationgrpctest-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"authenticationgrpctest\"},\"type\":\"NodePort\"}}\n"
+                    },
+                    "creationTimestamp": "2020-06-02T08:39:02Z",
+                    "labels": {
+                        "kat-ambassador-id": "authenticationgrpctest",
+                        "scope": "AmbassadorTest",
+                        "service": "authenticationgrpctest-admin"
+                    },
+                    "managedFields": [
+                        {
+                            "apiVersion": "v1",
+                            "fieldsType": "FieldsV1",
+                            "fieldsV1": {
+                                "f:metadata": {
+                                    "f:annotations": {
+                                        ".": {},
+                                        "f:kubectl.kubernetes.io/last-applied-configuration": {}
+                                    },
+                                    "f:labels": {
+                                        ".": {},
+                                        "f:kat-ambassador-id": {},
+                                        "f:scope": {},
+                                        "f:service": {}
+                                    }
+                                },
+                                "f:spec": {
+                                    "f:externalTrafficPolicy": {},
+                                    "f:ports": {
+                                        ".": {},
+                                        "k:{\"port\":8877,\"protocol\":\"TCP\"}": {
+                                            ".": {},
+                                            "f:name": {},
+                                            "f:port": {},
+                                            "f:protocol": {},
+                                            "f:targetPort": {}
+                                        }
+                                    },
+                                    "f:selector": {
+                                        ".": {},
+                                        "f:service": {}
+                                    },
+                                    "f:sessionAffinity": {},
+                                    "f:type": {}
+                                }
+                            },
+                            "manager": "kubectl",
+                            "operation": "Update",
+                            "time": "2020-06-02T08:39:02Z"
+                        }
+                    ],
+                    "name": "authenticationgrpctest-admin",
+                    "namespace": "default",
+                    "resourceVersion": "1932",
+                    "selfLink": "/api/v1/namespaces/default/services/authenticationgrpctest-admin",
+                    "uid": "63c08b90-28bc-4462-beda-56c190a103de"
+                },
+                "spec": {
+                    "clusterIP": "10.104.190.197",
+                    "externalTrafficPolicy": "Cluster",
+                    "ports": [
+                        {
+                            "name": "authenticationgrpctest-admin",
+                            "nodePort": 30367,
+                            "port": 8877,
+                            "protocol": "TCP",
+                            "targetPort": 8877
+                        }
+                    ],
+                    "selector": {
+                        "service": "authenticationgrpctest"
+                    },
+                    "sessionAffinity": "None",
+                    "type": "NodePort"
                 },
                 "status": {
                     "loadBalancer": {}

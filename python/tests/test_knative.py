@@ -9,7 +9,7 @@ import pytest
 from kat.harness import is_knative
 from kat.harness import load_manifest
 from ambassador import Config, IR
-from ambassador.config import ResourceFetcher
+from ambassador.fetch import ResourceFetcher
 from ambassador.utils import NullSecretHandler
 from utils import run_and_assert, apply_kube_artifacts, install_ambassador, qotm_manifests, create_qotm_mapping
 
