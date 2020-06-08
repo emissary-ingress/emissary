@@ -1,6 +1,6 @@
 # Customizing Project Deployment
 
-## This feature is in BETA. Your feedback is greatly appreciated!
+## This feature is in BETA. Please [tell me](mailto:rhs@datawire.io?subject=Project%20CRD%20UX%20Feedback) (lead developer of the feature) about your experience.
 
 The project controller deploys each project revision using a default set of resources that include:
 

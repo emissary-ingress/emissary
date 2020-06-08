@@ -1,6 +1,6 @@
 # Adding Authentication to your `Project`
 
-## This feature is in BETA. Your feedback is greatly appreciated!
+## This feature is in BETA. Please [tell me](mailto:rhs@datawire.io?subject=Project%20CRD%20UX%20Feedback) (lead developer of the feature) about your experience.
 
 Make sure you have configured at least one working [authentication Filter](filters). The [HOWTO section](../../howtos/) has numerous dentailed entries on integrating with specific IDPs.
 
