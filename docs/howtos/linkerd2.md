@@ -309,4 +309,4 @@ At this point, all should be well!
 
 ## More information
 
-For more about Ambassador Edge Stack's integration with Linkerd 2, read the [service discovery configuration](../../topics/running/resolvers) documentation. For further reading about Linkerd 2 multi-cluster, see the [install documentation](https://linkerd2.io/2/tasks/installing-multicluster/) and [introduction](https://linkerd2.io/2/features/multicluster/).
+For more about Ambassador Edge Stack's integration with Linkerd 2, read the [service discovery configuration](../../topics/running/resolvers) documentation. For further reading about Linkerd 2 multi-cluster, see the [install documentation](https://linkerd.io/2/tasks/installing-multicluster/) and [introduction](https://linkerd.io/2/features/multicluster/).
