@@ -240,7 +240,7 @@ This requires changes to the Ambassador's `deployment` and `service`. **For all 
 - In the `deployment`, you need the `config.linkerd.io/enable-gateway` `annotation`:
 
 ```bash
-$ kubectl -n ambassador patch deploy ambassador -p='
+kubectl -n ambassador patch deploy ambassador -p='
 spec:
     template:
         metadata:
@@ -255,7 +255,7 @@ spec:
    - `mc-probe` needs to be defined as `port` 80, `targetPort` 8080 (or wherever Ambassador is listening)
 
 ```bash
-$ kubectl -n ambassador patch svc ambassador --type='json' -p='[
+kubectl -n ambassador patch svc ambassador --type='json' -p='[
         {"op":"add","path":"/spec/ports/-", "value":{"name": "mc-gateway", "port": 4143}},
         {"op":"replace","path":"/spec/ports/0", "value":{"name": "mc-probe", "port": 80, "targetPort": 8080}}
     ]'
@@ -264,7 +264,7 @@ $ kubectl -n ambassador patch svc ambassador --type='json' -p='[
 - Finally, the `service` also needs its own set of `annotation`s:
 
 ```bash
-$ kubectl -n ambassador patch svc ambassador -p='
+kubectl -n ambassador patch svc ambassador -p='
 metadata:
     annotations:
         mirror.linkerd.io/gateway-identity: ambassador.ambassador.serviceaccount.identity.linkerd.cluster.local
@@ -279,7 +279,7 @@ metadata:
 4. Configure individual exported services. Adding the following annotations to a service will tell the service to use Ambassador as the gateway:
 
 ```bash
-$ kubectl -n $namespace patch svc $service -p='
+kubectl -n $namespace patch svc $service -p='
 metadata:
     annotations:
         mirror.linkerd.io/gateway-name: ambassador
@@ -296,13 +296,13 @@ This annotation will tell Linkerd that the given service can be reached via the 
 - First, check to make that the clusters are correctly linked:
 
 ```bash
-$ linkerd check --multicluster
+linkerd check --multicluster
 ```
 
 - Next, make sure that the Ambassador gateway shows up when listing active gateways:
 
 ```bash
-$ linkerd multicluster gateways
+linkerd multicluster gateways
 ```
 
 At this point, all should be well!
