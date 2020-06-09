@@ -15,7 +15,10 @@ spec:
   ports:
   - name: http
     port: 80
-    targetPort: 8080
+    targetPort: 8000
+  - name: https
+    port: 443
+    targetPort: 8000
   selector:
     app: quote
 ---
@@ -40,7 +43,10 @@ spec:
         image: docker.io/datawire/quote:$quoteVersion$
         ports:
         - name: http
-          containerPort: 8080
+          containerPort: 8000
+        env:
+        - name: PORT
+          value: 8000
         resources:
           limits:
             cpu: "0.1"
