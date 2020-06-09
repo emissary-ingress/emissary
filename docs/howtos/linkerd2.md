@@ -283,7 +283,7 @@ $ kubectl -n $namespace patch svc $service -p='
 metadata:
     annotations:
         mirror.linkerd.io/gateway-name: ambassador
-        mirror.linkerd.io/gateway-ns: 
+        mirror.linkerd.io/gateway-ns: ambassador
 '
 ```
 
