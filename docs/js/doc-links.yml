@@ -44,6 +44,13 @@
     - title: Using Ambassador
       link: /docs/pre-release/topics/using/
       items: 
+        - title: The Project Resource
+          link: /docs/pre-release/topics/using/projects
+          items:
+            - title: Configuring Authentication
+              link: /docs/pre-release/topics/using/project-authentication
+            - title: Customizing Deployment
+              link: /docs/pre-release/topics/using/project-customization
         - title: The Mapping Object
           link: /docs/pre-release/topics/using/intro-mappings
         - title: Mapping Configuration
