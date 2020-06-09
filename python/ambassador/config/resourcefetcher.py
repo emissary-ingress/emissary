@@ -88,7 +88,7 @@ class ResourceFetcher:
         # XXX This is rather a hack. We can do better.
 
         if os.environ.get("AGENT_SERVICE", "").lower() != "":
-            logger.info("Intercept agent active: skipping init dir")
+            logger.debug("Intercept agent active: skipping init dir")
             skip_init_dir = True
 
         if not skip_init_dir:
@@ -147,7 +147,7 @@ class ResourceFetcher:
             inputs.append((config_dir_path, os.path.basename(config_dir_path)))
 
         for filepath, filename in inputs:
-            self.logger.info("reading %s (%s)" % (filename, filepath))
+            self.logger.debug("reading %s (%s)" % (filename, filepath))
 
             try:
                 serialization = open(filepath, "r").read()
@@ -274,16 +274,16 @@ class ResourceFetcher:
         for pod_label in pod_labels:
             pod_label_kv = k8sLabelMatcher.findall(pod_label)
             if len(pod_label_kv) != 1 or len(pod_label_kv[0]) != 2:
-                self.logger.warning(f"Dropping pod label {pod_label}")
+                self.aconf.post_notice(f"Dropping pod label {pod_label}")
             else:
                 self.aconf.pod_labels[pod_label_kv[0][0]] = pod_label_kv[0][1]
-        self.logger.info(f"Parsed pod labels: {self.aconf.pod_labels}")
+        self.aconf.post_notice(f"Parsed pod labels: {self.aconf.pod_labels}")
 
     def check_k8s_dup(self, kind: str, namespace: Optional[str], name: str) -> bool:
         key = f"{kind}/{name}.{namespace}"
 
         if key in self.k8s_parsed:
-            self.logger.info(f"dropping K8s dup {key}")
+            # self.logger.debug(f"dropping K8s dup {key}")
             return False
 
         # self.logger.info(f"remembering K8s {key}")
@@ -368,7 +368,7 @@ class ResourceFetcher:
 
         # We only want to deal with IngressClasses that belong to "spec.controller: getambassador.io/ingress-controller"
         if ingress_class_spec.get('controller', '').lower() != 'getambassador.io/ingress-controller':
-            self.logger.info(f'ignoring IngressClass {ingress_class_name} without controller - getambassador.io/ingress-controller')
+            self.logger.debug(f'ignoring IngressClass {ingress_class_name} without controller - getambassador.io/ingress-controller')
             skip = True
 
         if skip:
@@ -379,7 +379,7 @@ class ResourceFetcher:
 
         # We don't want to deal with non-matching Ambassador IDs
         if ambassador_id != Config.ambassador_id:
-            self.logger.info(f'IngressClass {ingress_class_name} does not have Ambassador ID {Config.ambassador_id}, ignoring...')
+            self.logger.debug(f'IngressClass {ingress_class_name} does not have Ambassador ID {Config.ambassador_id}, ignoring...')
             return None
 
         # TODO: Do we intend to use this parameter in any way?
@@ -394,7 +394,7 @@ class ResourceFetcher:
         # implementation... although usage is optional and not prescribed.
         ingress_parameters = ingress_class_spec.get('parameters', {})
 
-        self.logger.info(f'Handling IngressClass {ingress_class_name} with parameters {ingress_parameters}...')
+        self.logger.debug(f'Handling IngressClass {ingress_class_name} with parameters {ingress_parameters}...')
 
         # Don't return this as we won't handle IngressClass downstream.
         # Instead, save it in self.aconf.k8s_ingress_classes for reference in handle_k8s_ingress
@@ -443,7 +443,7 @@ class ResourceFetcher:
         #   annotations:
         #     ingressclass.kubernetes.io/is-default-class: "true"
         if (not has_ambassador_ingress_class_annotation) and (ingress_class is None):
-            self.logger.info(f'ignoring Ingress {ingress_name} without annotation (kubernetes.io/ingress.class: "ambassador") or IngressClass controller (getambassador.io/ingress-controller)')
+            self.logger.debug(f'ignoring Ingress {ingress_name} without annotation (kubernetes.io/ingress.class: "ambassador") or IngressClass controller (getambassador.io/ingress-controller)')
             skip = True
 
         if skip:
@@ -466,10 +466,10 @@ class ResourceFetcher:
 
         # We don't want to deal with non-matching Ambassador IDs
         if ambassador_id != Config.ambassador_id:
-            self.logger.info(f"Ingress {ingress_name} does not have Ambassador ID {Config.ambassador_id}, ignoring...")
+            self.logger.debug(f"Ingress {ingress_name} does not have Ambassador ID {Config.ambassador_id}, ignoring...")
             return None
 
-        self.logger.info(f"Handling Ingress {ingress_name}...")
+        self.logger.debug(f"Handling Ingress {ingress_name}...")
         # We will translate the Ingress resource into Hosts and Mappings,
         # but keep a reference to the k8s resource in aconf for debugging and stats
         self.aconf.k8s_ingresses[resource_identifier] = k8s_object
@@ -510,7 +510,7 @@ class ResourceFetcher:
                     if metadata_labels:
                         ingress_host['metadata']['labels'] = metadata_labels
 
-                    self.logger.info(f"Generated Host from ingress {ingress_name}: {ingress_host}")
+                    self.logger.debug(f"Generated Host from ingress {ingress_name}: {ingress_host}")
                     self.handle_k8s(ingress_host)
 
         # parse ingress.spec.defaultBackend
@@ -538,7 +538,7 @@ class ResourceFetcher:
             if metadata_labels:
                 default_backend_mapping['metadata']['labels'] = metadata_labels
 
-            self.logger.info(f"Generated mapping from Ingress {ingress_name}: {default_backend_mapping}")
+            self.logger.debug(f"Generated mapping from Ingress {ingress_name}: {default_backend_mapping}")
             self.handle_k8s(default_backend_mapping)
 
         # parse ingress.spec.rules
@@ -598,7 +598,7 @@ class ResourceFetcher:
                     else:
                         path_mapping['spec']['host'] = rule_host
 
-                self.logger.info(f"Generated mapping from Ingress {ingress_name}: {path_mapping}")
+                self.logger.debug(f"Generated mapping from Ingress {ingress_name}: {path_mapping}")
                 self.handle_k8s(path_mapping)
 
         # let's make arrangements to update Ingress' status now
@@ -607,7 +607,7 @@ class ResourceFetcher:
         else:
             ingress_status = self.manager.ambassador_service.status
             ingress_status_update = (k8s_object.get('kind'), ingress_namespace, ingress_status)
-            self.logger.info(f"Updating Ingress {ingress_name} status to {ingress_status_update}")
+            self.logger.debug(f"Updating Ingress {ingress_name} status to {ingress_status_update}")
             self.aconf.k8s_status_updates[f'{ingress_name}.{ingress_namespace}'] = ingress_status_update
 
         if parsed_ambassador_annotations is not None:
@@ -836,7 +836,7 @@ class ResourceFetcher:
             selector = spec.get('selector', {})
 
             if self.is_ambassador_service(labels, selector):
-                self.logger.info(f"Found Ambassador service: {resource_name}")
+                self.aconf.post_notice(f"Found Ambassador service: {resource_name}")
                 self.manager.ambassador_service = KubernetesObject(k8s_object, default_namespace='default')
 
         else:

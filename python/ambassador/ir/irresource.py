@@ -1,6 +1,7 @@
 from typing import Any, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
 
 import copy
+import logging
 
 from ..config import Config
 from ..resource import Resource
@@ -172,13 +173,13 @@ class IRResource (Resource):
         # If you don't override add_mappings, uh, no mappings will get added.
         pass
 
-    def post_error(self, error: Union[str, RichStatus]):
+    def post_error(self, error: Union[str, RichStatus], log_level=logging.INFO):
         self._errored = True
 
         if not self.ir:
             raise Exception("post_error cannot be called before __init__")
 
-        self.ir.post_error(error, resource=self)
+        self.ir.post_error(error, resource=self, log_level=log_level)
         # super().post_error(error)
         # self.ir.logger.error("%s: %s" % (self, error))
 

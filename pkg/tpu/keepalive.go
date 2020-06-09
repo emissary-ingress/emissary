@@ -39,7 +39,10 @@ func (k *Keeper) Wait() {
 }
 
 func (k *Keeper) log(line string, args ...interface{}) {
-	log.Printf(k.Prefix+": "+line, args...)
+	// log doesn't have a Debugf method...
+	if (false) {
+		log.Printf(k.Prefix+": exec "+line, args...)
+	}
 }
 
 func (k *Keeper) Start() {

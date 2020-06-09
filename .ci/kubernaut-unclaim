@@ -20,4 +20,7 @@ set -o xtrace
 
 PATH=~/bin:$PATH
 
-kubernaut claims delete $(cat ~/kubernaut-claim.txt)
+if test -e ~/kubernaut-claim.txt; then
+	kubernaut claims delete $(cat ~/kubernaut-claim.txt)
+fi
+rm -f ~/kubernaut-claim.txt

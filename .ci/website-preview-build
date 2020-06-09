@@ -34,14 +34,16 @@ git clone --single-branch https://d6e-automaton:${GH_TOKEN}@github.com/datawire/
 cd "/tmp/getambassador.io"
 
 git submodule update --init --reference="$git_workdir"
-# Swap out the "latest" info for our stuff.  We do this with a dumb
+# Swap out the "pre-release" info for our stuff.  We do this with a dumb
 # `rm`/`cp` rather than a simple checkout
-#     $ git -C submodules/latest checkout "$CIRCLE_SHA1"
+#     $ git -C submodules/pre-release checkout "$CIRCLE_SHA1"
 # because we might be in apro.git instead of ambassador.git, and I
 # don't want to deal with having to do a subtree split here.
-rm -rf submodules/latest
-mkdir submodules/latest
-cp -prv $amb_dir/docs submodules/latest/docs
+for submodule in latest 1.5; do
+	rm -rf submodules/"$submodule"
+	mkdir submodules/"$submodule"
+	cp -prv $amb_dir/docs submodules/"$submodule"/docs
+done
 
 npm install
 npm run build

@@ -38,7 +38,7 @@ spec:
   labels:
     ambassador:
       - label_group:
-        - foo-app_generic_key_label
+        - default_generic_key_label
 ```
 
 You can then create a default rate limit on every request that matches this label:

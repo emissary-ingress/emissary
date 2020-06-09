@@ -459,7 +459,7 @@ class KnativeIngressProcessor (ManagedKubernetesProcessor):
 
         # We don't want to deal with non-matching Ambassador IDs
         if obj.ambassador_id != Config.ambassador_id:
-            self.logger.info(f"Knative {obj.kind} {obj.name} does not have Ambassador ID {Config.ambassador_id}, ignoring...")
+            self.logger.debug(f"Knative {obj.kind} {obj.name} does not have Ambassador ID {Config.ambassador_id}, ignoring...")
             return False
 
         return True
@@ -582,7 +582,7 @@ class KnativeIngressProcessor (ManagedKubernetesProcessor):
             status = self._make_status(generation=current_generation, lb_domain=current_lb_domain)
             status_update = (obj.gvk.domain, obj.namespace, status)
 
-            self.logger.info(f"Updating Knative {obj.kind} {obj.name} status to {status_update}")
+            self.logger.debug(f"Updating Knative {obj.kind} {obj.name} status to {status_update}")
             self.aconf.k8s_status_updates[f"{obj.name}.{obj.namespace}"] = status_update
         else:
             self.logger.debug(f"Not reconciling Knative {obj.kind} {obj.name}: observed and current generations are in sync")
