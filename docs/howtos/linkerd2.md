@@ -1,6 +1,6 @@
 # Linkerd 2 Integration
 
-[Linkerd 2](https://www.linkerd.io) is a zero-config and ultra-lightweight service mesh. Ambassador Edge Stack natively supports Linkerd 2 for service discovery and end-to-end TLS (including mTLS between services).
+[Linkerd 2](https://www.linkerd.io) is a zero-config and ultra-lightweight service mesh. Ambassador Edge Stack natively supports Linkerd 2 for service discovery, end-to-end TLS (including mTLS between services), and (with Linkerd 2.8) multicluster operation.
 
 ## Architecture
 
@@ -166,6 +166,146 @@ to apply this configuration to your Kubernetes cluster. Note that in the above c
 Congratulations! You're successfully routing traffic to the QOTM application, the location of which is registered in Linkerd 2. The traffic to Ambassador Edge Stack is not TLS secured, but from Ambassador Edge Stack to the QOTM an automatic mTLS connection is being used.
 
 If you now [configure TLS termination](../../topics/running/tls) in Ambassador Edge Stack, you have an end-to-end secured connection.
+
+## Multicluster Operation
+
+Linkerd 2.8 can support [multicluster operation](https://linkerd.io/2/features/multicluster/), where the Linkerd mesh transparently bridges from one cluster to another, allowing seamless access between the two. This works using the Linkerd "[service mirror controller](https://linkerd.io/2020/02/25/multicluster-kubernetes-with-service-mirroring/#step-1-service-discovery)" to discover services in the target cluster, and expose (mirror) them in the source cluster. Requests to mirrored services in the source cluster are transparently proxied via the Ambassador in the target cluster to the appropriate target service, using Linkerd's [automatic mTLS](https://linkerd.io/2/features/automatic-mtls/) to protect the requests in flight between clusters.
+
+### Initial Multicluster Setup
+
+1. Install Linkerd and Ambassador.
+2. Manually inject the Ambassador deployment with Linkerd (even if you have AutoInject enabled):
+
+  ```
+  kubectl -n ambassador get deploy ambassador -o yaml | \
+    linkerd inject \
+    --skip-inbound-ports 80,443 \
+    --require-identity-on-inbound-ports 4183 - | \
+    kubectl apply -f -
+  ```
+
+   (It's important to require identity on the gateway port so that automatic mTLS works, but it's also important to let Ambassador handle its own ports. AutoInject can't handle this on its own.)
+
+3. Configure Ambassador as normal for your application. Don't forget to set `add_linkerd_headers: true`!
+
+At this point, your Ambassador installation should work fine with multicluster Linkerd as a source cluster: you can configure Linkerd to bridge to a target cluster, and all should be well.
+
+### Using the Cluster as a Target Cluster
+
+Allowing the Ambassador installation to serve as a target cluster requires explicitly giving permission for Linkerd to mirror services from the cluster, and explicitly telling Linkerd to use the Ambassador as the target gateway. 
+
+1. Configure the target cluster Ambassador to allow insecure routing.
+
+When Ambassador is running in a Linkerd mesh, Linkerd provides transport security, so connections coming in from the Linkerd in the source cluster will always be HTTP when they reach Ambassador. Therefore, the `Host` CRDs corresponding to services that you'll be accessing from the source cluster *must* be configured to `Route` insecure requests. More information on this topic is available in the [`Host` documentation](../../topics/running/host-crd); an example might be
+
+```yaml
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: linkerd-host
+spec:
+  hostname: host.example.com
+  acmeProvider:
+    authority: none
+  requestPolicy:
+    insecure:
+      action: Route
+```
+
+2. Configure the target cluster Ambassador to support Linkerd health checks.
+
+Multicluster Linkerd does its own health checks beyond what Kubernetes does, so a `Mapping` is needed to allow Linkerd's health checks to succeed:
+
+```yaml
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: public-health-check
+  namespace: ambassador
+spec:
+  prefix: /-/ambassador/ready
+  rewrite: /ambassador/v0/check_ready
+  service: localhost:8877
+  bypass_auth: true
+```
+
+When configuring Ambassador, Kubernetes is usually configured to run health checks directly against port 8877 -- however, that port is not meant to be exposed outside the cluster. The `Mapping` permits accessing the health check endpoint without directly exposing the port.
+
+(The actual prefix in the `Mapping` is not terribly important, but it needs to match the metadata supplied to the service mirror controller, below.)
+
+3. Configure the target cluster Ambassador for the service mirror controller.
+
+This requires changes to the Ambassador's `deployment` and `service`. **For all of these commands, you will need to make sure your Kubernetes context is set to talk to the target cluster.**
+
+- In the `deployment`, you need the `config.linkerd.io/enable-gateway` `annotation`:
+
+```bash
+$ kubectl -n ambassador patch deploy ambassador -p='
+spec:
+    template:
+        metadata:
+            annotations:
+                config.linkerd.io/enable-gateway: "true"
+'
+```
+
+- In the `service`, you need to provide appropriate named `port` definitions:
+
+   - `mc-gateway` needs to be defined as `port` 4143
+   - `mc-probe` needs to be defined as `port` 80, `targetPort` 8080 (or wherever Ambassador is listening)
+
+```bash
+$ kubectl -n ambassador patch svc ambassador --type='json' -p='[
+        {"op":"add","path":"/spec/ports/-", "value":{"name": "mc-gateway", "port": 4143}},
+        {"op":"replace","path":"/spec/ports/0", "value":{"name": "mc-probe", "port": 80, "targetPort": 8080}}
+    ]'
+```
+
+- Finally, the `service` also needs its own set of `annotation`s:
+
+```bash
+$ kubectl -n ambassador patch svc ambassador -p='
+metadata:
+    annotations:
+        mirror.linkerd.io/gateway-identity: ambassador.ambassador.serviceaccount.identity.linkerd.cluster.local
+        mirror.linkerd.io/multicluster-gateway: "true"
+        mirror.linkerd.io/probe-path: -/ambassador/ready
+        mirror.linkerd.io/probe-period: "3"
+'
+```
+
+(Here, the value of `mirror.linkerd.io/probe-path` must match the `prefix` using for the probe `Mapping` above.)
+
+4. Configure individual exported services.
+
+```bash
+$ kubectl -n $namespace patch svc $service -p='
+metadata:
+    annotations:
+        mirror.linkerd.io/gateway-name: ambassador
+        mirror.linkerd.io/gateway-ns: 
+'
+```
+
+This annotation will tell Linkerd that the given service can be reached via the Ambassador in the `ambassador` namespace.
+
+5. Verify that all is well from the source cluster.
+
+**For all of these commands, you'll need to set your Kubernetes context for the _source_ cluster.**
+
+- First, check to make that the clusters are correctly linked:
+
+```bash
+$ linkerd check --multicluster
+```
+
+- Next, make sure that the Ambassador gateway shows up when listing active gateways:
+
+```bash
+$ linkerd multicluster gateways
+```
+
+At this point, all should be well!
 
 ## More information
 
