@@ -36,9 +36,9 @@ communicate with `AuthService`s and `RateLimitService`s:
 
 - In some future version of Ambassador, there will be settings to control which name is
   used; with the default being the current name; it will be opt-in to the new names.
-- In some future version of Ambassador after that, *no sooner than Ambassador 1.3.0*, the
+- In some future version of Ambassador after that, *no sooner than Ambassador 1.6.0*, the
   default values of those setting swill change; making them opt-out from the new names.
-- In some future version of Ambassador after that, *no sooner than Ambassador 1.4.0*, the
+- In some future version of Ambassador after that, *no sooner than Ambassador 1.7.0*, the
   settings will go away, and Ambassador will always use the new names.
 
 Note that Ambassador Edge Stack `External` Filters already unconditionally use the newer
@@ -68,10 +68,21 @@ Format:
 <!--- CueAddReleaseNotes --->
 ## Next Release
 
+## [1.5.2-rc.0] June 10, 2020
+[1.5.2-rc.0]: https://github.com/datawire/ambassador/compare/v1.5.1...v1.5.2-rc.0
+
 ### Ambassador API Gateway + Ambassador Edge Stack
 
-- Documentation: add our Code of Conduct
-- Upgrade to [Envoy 1.14.2](https://www.envoyproxy.io/docs/envoy/v1.14.2/intro/version_history#june-8-2020)
+- Incorporate the [Envoy 1.14.2](https://www.envoyproxy.io/docs/envoy/v1.14.2/intro/version_history#june-8-2020) security update.
+- Upgrade the base Docker images used by several tests (thanks, [Daniel Sutton](https://github.com/ducksecops)!).
+
+### Ambassador Edge Stack only
+
+- Feature: Added an in-cluster micro CI/CD system to enable building, staging, and publishing of github projects from source.  This has been included in previous versions as an alpha, but disabled by default.
+- Bugfix: The `DEVPORTAL_CONTENT_URL` environment variable now properly handles `file:///` URLs to refer to volume-mounted content.
+- Bugfix: `acmeProvider.authority: none` is no longer case sensitive
+- Bugfix: `edgectl connect` works again on Ubuntu and other Linux setups with old versions of nss-mdns (older than version 0.11)
+- Bugfix: `edgectl` works again on Windows
 
 ## [1.5.1] June 5, 2020
 [1.5.1]: https://github.com/datawire/ambassador/compare/v1.5.0...v1.5.1
