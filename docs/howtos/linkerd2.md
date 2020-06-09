@@ -169,12 +169,12 @@ If you now [configure TLS termination](../../topics/running/tls) in Ambassador E
 
 ## Multicluster Operation
 
-Linkerd 2.8 can support [multicluster operation](https://linkerd.io/2/features/multicluster/), where the Linkerd mesh transparently bridges from one cluster to another, allowing seamless access between the two. This works using the Linkerd "[service mirror controller](https://linkerd.io/2020/02/25/multicluster-kubernetes-with-service-mirroring/#step-1-service-discovery)" to discover services in the target cluster, and expose (mirror) them in the source cluster. Requests to mirrored services in the source cluster are transparently proxied via the Ambassador in the target cluster to the appropriate target service, using Linkerd's [automatic mTLS](https://linkerd.io/2/features/automatic-mtls/) to protect the requests in flight between clusters.
+Linkerd 2.8 can support [multicluster operation](https://linkerd.io/2/features/multicluster/), where the Linkerd mesh transparently bridges from one cluster to another, allowing seamless access between the two. This works using the Linkerd "[service mirror controller](https://linkerd.io/2020/02/25/multicluster-kubernetes-with-service-mirroring/#step-1-service-discovery)" to discover services in the target cluster, and expose (mirror) them in the source cluster. Requests to mirrored services in the source cluster are transparently proxied via the Ambassador in the target cluster to the appropriate target service, using Linkerd's [automatic mTLS](https://linkerd.io/2/features/automatic-mtls/) to protect the requests in flight between clusters. By configuring Linkerd to use the existing Ambassador as the ingress gateway between clusters, you eliminate the need to deploy and manage an additional ingress gateway.
 
 ### Initial Multicluster Setup
 
-1. Install Linkerd and Ambassador.
-2. Manually inject the Ambassador deployment with Linkerd (even if you have AutoInject enabled):
+1. Install Ambassador and the [Linkerd multicluster control plane](https://linkerd.io/2/tasks/installing-multicluster/). Make sure you've also linked the clusters.
+2. Inject the Ambassador deployment with Linkerd (even if you have AutoInject enabled):
 
   ```
   kubectl -n ambassador get deploy ambassador -o yaml | \
@@ -192,7 +192,7 @@ At this point, your Ambassador installation should work fine with multicluster L
 
 ### Using the Cluster as a Target Cluster
 
-Allowing the Ambassador installation to serve as a target cluster requires explicitly giving permission for Linkerd to mirror services from the cluster, and explicitly telling Linkerd to use the Ambassador as the target gateway. 
+Allowing the Ambassador installation to serve as a target cluster requires explicitly giving permission for Linkerd to mirror services from the cluster, and explicitly telling Linkerd to use the Ambassador as the target gateway.
 
 1. Configure the target cluster Ambassador to allow insecure routing.
 
@@ -276,7 +276,7 @@ metadata:
 
 (Here, the value of `mirror.linkerd.io/probe-path` must match the `prefix` using for the probe `Mapping` above.)
 
-4. Configure individual exported services.
+4. Configure individual exported services. Adding the following annotations to a service will tell the service to use Ambassador as the gateway:
 
 ```bash
 $ kubectl -n $namespace patch svc $service -p='
@@ -309,4 +309,4 @@ At this point, all should be well!
 
 ## More information
 
-For more about Ambassador Edge Stack's integration with Linkerd 2, read the [service discovery configuration](../../topics/running/resolvers) documentation.
+For more about Ambassador Edge Stack's integration with Linkerd 2, read the [service discovery configuration](../../topics/running/resolvers) documentation. For further reading about Linkerd 2 multi-cluster, see the [install documentation](https://linkerd2.io/2/tasks/installing-multicluster/) and [introduction](https://linkerd2.io/2/features/multicluster/).
