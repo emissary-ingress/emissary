@@ -1,4 +1,4 @@
-Ambassador [![Build Status][build-status]][build-pages] [![Docker Repository][docker-latest]][docker-repo] ![Docker Pulls][docker-pulls] [![Join Slack][slack-join]][slack-url]
+Ambassador API Gateway [![Build Status][build-status]][build-pages] [![Docker Repository][docker-latest]][docker-repo] ![Docker Pulls][docker-pulls] [![Join Slack][slack-join]][slack-url]
 
 [build-pages]:   https://travis-ci.org/datawire/ambassador
 [build-status]:  https://travis-ci.org/datawire/ambassador.png?branch=master
@@ -7,7 +7,6 @@ Ambassador [![Build Status][build-status]][build-pages] [![Docker Repository][do
 [docker-pulls]:  https://img.shields.io/docker/pulls/datawire/ambassador
 [slack-url]:     https://d6e.co/slack
 [slack-join]:    https://img.shields.io/badge/slack-join-orange.svg
-
 ==========
 
 [Ambassador API Gateway](https://www.getambassador.io) is an open-source Kubernetes-native API Gateway + Layer 7 load balancer + Kubernetes Ingress built on [Envoy Proxy](https://www.envoyproxy.io). The Ambassador Edge Stack is a complete superset of the OSS Ambassador API Gateway that offers additional functionality. Ambassador is designed to easily expose, secure, and manage traffic to your Kubernetes microservices of any type. Ambassador was built around the ideas of self-service (enabling GitOps-style management) and comprehensiveness (so it works with your situations and technology solutions). 
