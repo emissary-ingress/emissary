@@ -20,8 +20,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Trigger CircleCI pipeline
+      env:
+        CIRCLECI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}
       run: |
-        curl -u "$CIRCLECI_TOKEN:" -X POST https://circleci.com/api/v2/project/github/${GITHUB_REPOSITORY}/pipeline \
+        # https://stackoverflow.com/a/22508743
+        post() {
+          [ "$(set -x; curl -s -i -w '%{http_code}' -o /dev/stderr -X POST "$@")" = 201 ]
+        }
+        post https://circleci.com/api/v2/project/github/${GITHUB_REPOSITORY}/pipeline \
+          -u "$CIRCLECI_TOKEN:" \
           -H 'Content-Type: application/json' \
           -H 'Accept: application/json' \
           --data "{ \"branch\": \"${GITHUB_REF#refs/heads/}\" }"
