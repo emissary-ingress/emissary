@@ -57,10 +57,10 @@
 apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
-  name: ambassador-registry
+  name: {{ include "ambassador.fullname" . }}-registry
   namespace: {{ .Release.Namespace }}
   labels:
-    app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}-registry
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
@@ -73,16 +73,16 @@ metadata:
 spec:
   prefix: /v2/
   rewrite: /v2/
-  service: https://registry
+  service: https://{{ include "ambassador.fullname" . }}-registry
   timeout_ms: 300000
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: registry
+  name: {{ include "ambassador.fullname" . }}-registry
   namespace: {{ .Release.Namespace }}
   labels:
-    app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}-registry
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
@@ -95,7 +95,8 @@ metadata:
 spec:
   type: ClusterIP
   selector:
-    app: registry
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}-registry
+    app.kubernetes.io/instance: {{ .Release.Name }}
   ports:
     - port: 443
       targetPort: 5000
@@ -107,7 +108,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: registry
+  name: {{ include "ambassador.fullname" . }}-registry
   namespace: {{ .Release.Namespace }}
   labels:
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
@@ -120,7 +121,6 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     {{- end }}
     product: aes
-    app: registry
 spec:
   replicas: 1
   strategy:
@@ -128,13 +128,15 @@ spec:
       maxSurge: 0
   selector:
     matchLabels:
-      app: registry
+      app.kubernetes.io/name: {{ include "ambassador.fullname" . }}-registry
+      app.kubernetes.io/instance: {{ .Release.Name }}
   template:
     metadata:
       annotations:
         foo: "5"
       labels:
-        app: registry
+        app.kubernetes.io/name: {{ include "ambassador.fullname" . }}-registry
+        app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
       containers:
       - name: registry
@@ -153,23 +155,23 @@ spec:
           configMap:
             # Provide the name of the ConfigMap containing the files you want
             # to add to the container
-            name: registry-config
+            name: {{ include "ambassador.fullname" . }}-registry-config
         - name: registry-data
           persistentVolumeClaim:
-            claimName: registry-data
+            claimName: {{ include "ambassador.fullname" . }}-registry-data
         - name: registry-tls
           secret:
-            secretName: registry-tls
+            secretName: {{ include "ambassador.fullname" . }}-registry-tls
 
 # The configuration file for our registry.
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: registry-config
+  name: {{ include "ambassador.fullname" . }}-registry-config
   namespace: {{ .Release.Namespace }}
   labels:
-    app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}-registry
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
@@ -208,10 +210,10 @@ data:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: registry-data
+  name: {{ include "ambassador.fullname" . }}-registry-data
   namespace: {{ .Release.Namespace }}
   labels:
-    app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}-registry
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
@@ -234,10 +236,10 @@ spec:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: registry-tls
+  name: {{ include "ambassador.fullname" . }}-registry-tls
   namespace: {{ .Release.Namespace }}
   labels:
-    app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}-registry
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
@@ -316,10 +318,10 @@ data:
 apiVersion: getambassador.io/v2
 kind: ProjectController
 metadata:
-  name: projectcontroller
+  name: {{ include "ambassador.fullname" . }}-projectcontroller
   namespace: {{ .Release.Namespace }}
   labels:
-    app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}-projectcontroller
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
