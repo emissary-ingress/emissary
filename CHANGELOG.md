@@ -68,8 +68,8 @@ Format:
 <!--- CueAddReleaseNotes --->
 ## Next Release
 
-## [1.5.2-rc.1] June 10, 2020
-[1.5.2-rc.1]: https://github.com/datawire/ambassador/compare/v1.5.1...v1.5.2-rc.1
+## [1.5.2] June 10, 2020
+[1.5.2]: https://github.com/datawire/ambassador/compare/v1.5.1...v1.5.2
 
 ### Ambassador API Gateway + Ambassador Edge Stack
 
