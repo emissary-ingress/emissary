@@ -83,6 +83,7 @@ Format:
 - Bugfix: `acmeProvider.authority: none` is no longer case sensitive
 - Bugfix: `edgectl connect` works again on Ubuntu and other Linux setups with old versions of nss-mdns (older than version 0.11)
 - Bugfix: `edgectl` works again on Windows
+- Bugfix: The Edge Policy Console now correctly creates FilterPolicy resources
 
 ## [1.5.1] June 5, 2020
 [1.5.1]: https://github.com/datawire/ambassador/compare/v1.5.0...v1.5.1
