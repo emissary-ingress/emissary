@@ -79,6 +79,7 @@ Format:
 
 - Incorporate the [Envoy 1.14.2](https://www.envoyproxy.io/docs/envoy/v1.14.2/intro/version_history#june-8-2020) security update.
 - Upgrade the base Docker images used by several tests (thanks, [Daniel Sutton](https://github.com/ducksecops)!).
+- Feature: Add support for circuit breakers in TCP mapping
 
 ### Ambassador Edge Stack only
 
