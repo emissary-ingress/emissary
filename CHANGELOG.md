@@ -68,6 +68,10 @@ Format:
 <!--- CueAddReleaseNotes --->
 ## Next Release
 
+### Ambassador API Gateway + Ambassador Edge Stack
+
+- Bugfix: Read Knative ingress generation from the correct place in the Kubernetes object
+
 ## [1.5.2] June 10, 2020
 [1.5.2]: https://github.com/datawire/ambassador/compare/v1.5.1...v1.5.2
 
