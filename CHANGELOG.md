@@ -3,6 +3,10 @@
 This file documents all notable changes to Ambassador Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
+## Next Release
+
+- redisEnv for setting environment variables to control how Ambassador interacts with redis. See [redis environment](https://www.getambassador.io/docs/latest/topics/running/environment/#redis)
+
 ## v6.4.3
 
 - Upgrade Ambassador to version 1.5.2: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
