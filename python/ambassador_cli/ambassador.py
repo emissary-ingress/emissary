@@ -34,7 +34,7 @@ import clize
 from clize import Parameter
 
 from ambassador import Scout, Config, IR, Diagnostics, Version
-from ambassador.config.resourcefetcher import ResourceFetcher
+from ambassador.fetch import ResourceFetcher
 from ambassador.envoy import EnvoyConfig, V2Config
 
 from ambassador.utils import RichStatus, NullSecretHandler
