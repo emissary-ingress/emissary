@@ -251,6 +251,6 @@
 - title: Community
   items:
     - title: Contributor's Guide
-      link: https://github.com/datawire/ambassador/blob/master/DEVELOPING.md
+      link: https://github.com/datawire/ambassador/blob/release/v1.4/DEVELOPING.md
     - title: CHANGELOG
-      link: https://github.com/datawire/ambassador/blob/master/CHANGELOG.md
+      link: https://github.com/datawire/ambassador/blob/release/v1.4/CHANGELOG.md
