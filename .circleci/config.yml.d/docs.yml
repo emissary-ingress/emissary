@@ -54,6 +54,9 @@ jobs:
       - attach_workspace:
           at: /tmp/getambassador.io
       - run: ./.ci/website-preview-blc
+      - store_artifacts:
+          path: /tmp/blc.txt
+          destination: blc.txt
 
   "website-preview-for-smoketest":
     <<: *website-job
