@@ -19,17 +19,17 @@ You will need:
 
 ## Enabling the Project Controller
 
-The projects functionality depends on an in-cluster registry. By
+The projects functionality depends on an in-cluster Docker registry. By
 default this registry is not included in the Ambassador manifests, and
 the project functionality is not enabled. If you have performed a
-manual install of ambassador, you can include this registry and enable
+manual install of Ambassador, you can include this registry and enable
 the project controller by running the following command:
 
 ```bash
 kubectl apply -f https://www.getambassador.io/yaml/projects.yaml
 ```
 
-If you use helm to install ambassador, you can get the equivalent by
+If you use Helm to install Ambassador, you can get the equivalent by
 setting the `registry.create` option to true in your `values.yaml`
 file:
 
