@@ -181,8 +181,8 @@ ln -s ../../submodules/1.6/docs 1.6
                   <div className={styles.DropdownContent}>
                     <Link to="/docs/latest/">Pre-release</Link>
                     <Link to="/docs/latest/">Latest</Link>
-                    <Link to="/docs/1.4/">1.6</Link>
-                    <Link to="/docs/1.4/">1.5</Link>
+                    <Link to="/docs/1.6/">1.6</Link>
+                    <Link to="/docs/1.5/">1.5</Link>
                     <Link to="/docs/1.4/">1.4</Link>
                     <Link to="/docs/1.3/">1.3</Link>
                   </div>
