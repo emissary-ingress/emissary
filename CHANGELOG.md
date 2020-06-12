@@ -78,7 +78,7 @@ Format:
 
 ### Ambassador Edge Stack only
 
-- Feature: Added an in-cluster micro CI/CD system to enable building, staging, and publishing of github projects from source.  This has been included in previous versions as an alpha, but disabled by default.
+- Feature: (BETA) Added an in-cluster micro CI/CD system to enable building, staging, and publishing of GitHub projects from source.  This has been included in previous versions as an alpha, but disabled by default. It is now in BETA.
 - Bugfix: The `DEVPORTAL_CONTENT_URL` environment variable now properly handles `file:///` URLs to refer to volume-mounted content.
 - Bugfix: `acmeProvider.authority: none` is no longer case sensitive
 - Bugfix: `edgectl connect` works again on Ubuntu and other Linux setups with old versions of nss-mdns (older than version 0.11)
