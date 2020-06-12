@@ -39,9 +39,11 @@ git submodule update --init --reference="$git_workdir"
 #     $ git -C submodules/pre-release checkout "$CIRCLE_SHA1"
 # because we might be in apro.git instead of ambassador.git, and I
 # don't want to deal with having to do a subtree split here.
-rm -rf submodules/pre-release
-mkdir submodules/pre-release
-cp -prv $amb_dir/docs submodules/pre-release/docs
+for submodule in pre-release; do
+	rm -rf submodules/"$submodule"
+	mkdir submodules/"$submodule"
+	cp -prv $amb_dir/docs submodules/"$submodule"/docs
+done
 
 npm install
 npm run build
