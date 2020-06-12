@@ -17,7 +17,30 @@ You will need:
   * With TLS configured. (Needed for the github webhook used to sync source changes to your cluster.)
   * And access to the AES admin console: https://$YOUR_HOST/edge_stack/admin/.
 
-## Quick Start
+## Enabling the Project Controller
+
+The projects functionality depends on an in-cluster registry. By
+default this registry is not included in the ambassador manifests, and
+the project functionality is not enabled. If you have performed a
+manual install of ambassador, you can include this registry and enable
+the project controller by running the following command:
+
+```bash
+kubectl apply -f https://www.getambassador.io/yaml/projects.yaml
+```
+
+If you use helm to install ambassador, you can get the equivalent by
+setting the `registry.create` option to true in your `values.yaml`
+file:
+
+```
+registry:
+  create: true
+```
+
+## Project Quick Start
+
+To setup your first project:
 
 1. Run `edgectl login $YOUR_HOST` and click on the `Projects` tab.
 
