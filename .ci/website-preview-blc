@@ -35,6 +35,10 @@ pushd "${WEBSITE_DIR:-/tmp/getambassador.io}/public"
 python3 -m http.server 2>/dev/null &
 trap "kill $! 2>/dev/null" EXIT
 popd
+while ! curl --fail http://localhost:8000/; do
+	echo 'waiting for http server to start...'
+	sleep 1
+done
 
 cd /tmp/getambassador.io-blc
 ./blc.js http://localhost:8000/ > /tmp/blc.txt
