@@ -268,7 +268,7 @@ spec:
   tls:
   - hosts:
     - sslexample.foo.com
-    secret: testsecret-tls
+    secretName: testsecret-tls
   rules:
     - host: sslexample.foo.com
       http:
@@ -279,7 +279,7 @@ spec:
             servicePort: 80
 ```
 
-This is equivalent to
+This is equivalent to:
 
 ```yaml
 ---
