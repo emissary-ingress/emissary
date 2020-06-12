@@ -20,7 +20,7 @@ You will need:
 ## Enabling the Project Controller
 
 The projects functionality depends on an in-cluster registry. By
-default this registry is not included in the ambassador manifests, and
+default this registry is not included in the Ambassador manifests, and
 the project functionality is not enabled. If you have performed a
 manual install of ambassador, you can include this registry and enable
 the project controller by running the following command:
