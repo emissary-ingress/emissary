@@ -358,6 +358,12 @@ authService:
 rateLimit:
   create: true
 
+# Projects are a beta feature of Ambassador that allow developers to stage and
+# deploy code with nothing more than a Github repository.
+# See: https://www.getambassador.io/docs/latest/topics/using/projects/
+registry:
+  create: false
+
 ################################################################################
 ## DEPRECATED configuration objects                                           ##
 ################################################################################

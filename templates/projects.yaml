@@ -1,3 +1,4 @@
+{{- if .Values.registry.create }}
 ######################################################################
 # In-cluster Registry for Projects
 
@@ -332,4 +333,4 @@ metadata:
     {{- end }}
     projects.getambassador.io/ambassador_id: {{ if hasKey .Values.env "AMBASSADOR_ID" }}{{ .Values.env.AMBASSADOR_ID | quote }}{{ else }}default{{ end }}
     product: aes
-
+{{- end }}
