@@ -307,6 +307,16 @@ createDevPortalMappings: true
 #
 # URL of your redis instance. Defaults to redis instance created below.
 redisURL:
+# Ambassador has a couple of environment variables that configure how it uses redis.
+# See: https://www.getambassador.io/docs/latest/topics/running/environment/#redis
+# This is interpreted as a YAML dictionary so format is the same as setting directly in Kubernetes YAML
+redisEnv:
+# - name: REDIS_PASSWORD
+#   value: password
+#   valueFrom:
+#     secretKeyRef:
+#       name: redis-password
+#       key: password
 # Ambassador ships with a basic redis instance. Configure the deployment with the options below.
 redis:
   create: true

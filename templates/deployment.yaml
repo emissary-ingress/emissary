@@ -187,10 +187,15 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
               {{- end -}}
+            {{- if .Values.redisEnv }}
+            {{ toYaml .Values.redisEnv | nindent 12 }}
+            {{- end }}
             {{- if .Values.env }}
             {{- range $key,$value := .Values.env }}
+            {{- if not (contains "REDIS" $key) }}
             - name: {{ $key | upper | quote}}
               value: {{ $value | quote}}
+            {{- end }}
             {{- end }}
             {{- end }}
           {{- with .Values.security.containerSecurityContext }}

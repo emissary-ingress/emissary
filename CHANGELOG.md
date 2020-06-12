@@ -6,6 +6,7 @@ numbering uses [semantic versioning](http://semver.org).
 ## v6.4.4
 
 - Feature flag for enabling or disabling the [`Project` registry](https://www.getambassador.io/docs/latest/topics/using/projects/)
+- redisEnv for setting environment variables to control how Ambassador interacts with redis. See [redis environment](https://www.getambassador.io/docs/latest/topics/running/environment/#redis)
 
 ## v6.4.3
 
