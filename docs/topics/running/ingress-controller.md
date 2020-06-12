@@ -268,7 +268,7 @@ spec:
   tls:
   - hosts:
     - sslexample.foo.com
-    secretName: testsecret-tls
+    secret: testsecret-tls
   rules:
     - host: sslexample.foo.com
       http:
@@ -290,7 +290,7 @@ metadata:
 spec:
   hosts:
   - sslexample.foo.com
-  secretName: testsecret-tls
+  secret: testsecret-tls
 ---
 apiVersion: getambassador.io/v2
 kind: Mapping
