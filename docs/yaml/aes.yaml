@@ -227,19 +227,21 @@ spec:
 # requiring you to build your own platform. For more security minded
 # people we should expect to eventually be able to configure an
 # external registry and/or turn off the builtin one.
----
-apiVersion: getambassador.io/v2
-kind: Mapping
-metadata:
-  labels:
-    product: aes
-  name: ambassador-registry
-  namespace: ambassador
-spec:
-  prefix: /v2/
-  rewrite: /v2/
-  service: https://registry
-  timeout_ms: 300000
+
+# Uncomment this maping to use the RtC beta: (see above for detailed explanation)
+#---
+#apiVersion: getambassador.io/v2
+#kind: Mapping
+#metadata:
+#  labels:
+#    product: aes
+#  name: ambassador-registry
+#  namespace: ambassador
+#spec:
+#  prefix: /v2/
+#  rewrite: /v2/
+#  service: https://registry
+#  timeout_ms: 300000
 ---
 apiVersion: v1
 kind: Service
