@@ -148,6 +148,7 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `authService.create`               | Create the `AuthService` CRD for Ambassador Edge Stack                          | `true`                            |
 | `authService.optional_configurations` | Config options for the `AuthService` CRD                                     | `""`                              |
 | `rateLimit.create`                 | Create the `RateLimit` CRD for Ambassador Edge Stack                            | `true`                            |
+| `registry.create`                  | Create the `Project` registry.                                                  | `false`                           |
 | `autoscaling.enabled`              | If true, creates Horizontal Pod Autoscaler                                      | `false`                           |
 | `autoscaling.minReplicas`           | If autoscaling enabled, this field sets minimum replica count                   | `2`                               |
 | `autoscaling.maxReplicas`           | If autoscaling enabled, this field sets maximum replica count                   | `5`                               |
