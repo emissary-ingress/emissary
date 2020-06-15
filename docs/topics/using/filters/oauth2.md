@@ -61,6 +61,7 @@ spec:
     clientURL:              "string"   # deprecated; use 'protectedOrigins' instead
     protectedOrigins:                  # required; must have at least 1 item
     - origin: "url"                      # required
+      internalOrigin: "url"              # optional; default is "*://*" if there's exactly 1 protected origin, and is the 'origin' URL otherwise
       includeSubdomains: bool            # optional; default is false
     useSessionCookies:                 # optional; default is { value: false }
       value: bool                        # optional: default is true
@@ -162,6 +163,16 @@ Settings that are only valid when `grantType: "AuthorizationCode"`:
    authentication system, so that logging into one origin logs you
    into all origins; to have multiple domains that have separate
    logins, use separate `Filter`s.
+
+   In order to facilitate complex setups, such as having another
+   gateway in front of Ambassador that rewrites the `Host` header, you
+   may specify an `internalOrigin` field that tells Ambassador use
+   that instead of the `origin` field when determining whether a given
+   protectedOrigin applies to a request.  The scheme and/or the
+   hostname in the `internalOrigin` may be a wildcard `*` to support
+   not having to explicitly configure what the rewritten hostname is;
+   wildcards are simple exact-matches for `*`.  Wildcards cannot be
+   used in a protected origin with `includeSubdomains: true`.
 
  - `clientURL` is deprecated, and is equivalent to setting
 
