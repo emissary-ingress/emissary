@@ -5,7 +5,6 @@ from ..config import Config
 
 from .irbasemapping import IRBaseMapping
 from .irbasemappinggroup import IRBaseMappingGroup
-from .irhttpmapping import IRHTTPMapping
 from .irtcpmappinggroup import IRTCPMappingGroup
 
 import hashlib
@@ -69,20 +68,6 @@ class IRTCPMapping (IRBaseMapping):
     @staticmethod
     def group_class() -> Type[IRBaseMappingGroup]:
         return IRTCPMappingGroup
-
-    def setup(self, ir: 'IR', aconf: Config) -> bool:
-        if not super().setup(ir, aconf):
-            return False
-
-        if self.get('circuit_breakers', None) is None:
-            self['circuit_breakers'] = ir.ambassador_module.circuit_breakers
-
-        if self.get('circuit_breakers', None) is not None:
-            if not IRHTTPMapping.validate_circuit_breakers(ir, self['circuit_breakers']):
-                self.post_error("Invalid circuit_breakers specified: {}, invalidating mapping".format(self['circuit_breakers']))
-                return False
-
-        return True
 
     def bind_to(self) -> str:
         bind_addr = self.get('address') or '0.0.0.0'

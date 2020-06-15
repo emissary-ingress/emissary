@@ -1,3 +1,5 @@
+import json
+
 from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
 
 from ..config import Config
@@ -64,6 +66,56 @@ class IRBaseMapping (IRResource):
         if not resolver.valid_mapping(ir, self):
             # If there's trouble, the resolver should've already posted about it.
             return False
+
+        if self.get('circuit_breakers', None) is None:
+            self['circuit_breakers'] = ir.ambassador_module.circuit_breakers
+
+        if self.get('circuit_breakers', None) is not None:
+            if not self.validate_circuit_breakers(ir, self['circuit_breakers']):
+                self.post_error("Invalid circuit_breakers specified: {}, invalidating mapping".format(self['circuit_breakers']))
+                return False
+
+        return True
+
+    @staticmethod
+    def validate_circuit_breakers(ir: 'IR', circuit_breakers) -> bool:
+        if not isinstance(circuit_breakers, (list, tuple)):
+            return False
+
+        for circuit_breaker in circuit_breakers:
+            if '_name' in circuit_breaker:
+                # Already reconciled.
+                ir.logger.debug(f'Breaker validation: good breaker {circuit_breaker["_name"]}')
+                continue
+
+            ir.logger.debug(f'Breaker validation: {json.dumps(circuit_breakers, indent=4, sort_keys=True)}')
+
+            name_fields = [ 'cb' ]
+
+            if 'priority' in circuit_breaker:
+                prio = circuit_breaker.get('priority').lower()
+                if prio not in ['default', 'high']:
+                    return False
+
+                name_fields.append(prio[0])
+            else:
+                name_fields.append('n')
+
+            digit_fields = [ ( 'max_connections', 'c' ),
+                             ( 'max_pending_requests', 'p' ),
+                             ( 'max_requests', 'r' ),
+                             ( 'max_retries', 't' ) ]
+
+            for field, abbrev in digit_fields:
+                if field in circuit_breaker:
+                    try:
+                        value = int(circuit_breaker[field])
+                        name_fields.append(f'{abbrev}{value}')
+                    except ValueError:
+                        return False
+
+            circuit_breaker['_name'] = ''.join(name_fields)
+            ir.logger.debug(f'Breaker valid: {circuit_breaker["_name"]}')
 
         return True
 
