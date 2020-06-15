@@ -58,7 +58,7 @@ spec:
     grantType:              "enum"     # optional; default is "AuthorizationCode"
 
     ## OAuth Client settings: grantType=="AuthorizationCode" ###################
-    clientURL:              "string"   # deprecated; us 'protectedOrigins' instead
+    clientURL:              "string"   # deprecated; use 'protectedOrigins' instead
     protectedOrigins:                  # required; must have at least 1 item
     - origin: "url"                      # required
       includeSubdomains: bool            # optional; default is false
