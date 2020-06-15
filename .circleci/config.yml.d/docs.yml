@@ -26,6 +26,8 @@ commands:
           command: |
             env | grep -e GIT -e TRAVIS -e CIRCLE | sort
       - oss-checkout
+      - skip-if-no-changes:
+          to: docs/
 
 jobs:
 
@@ -109,6 +111,9 @@ workflows:
           filters:
             branches:
               ignore:
+                # Don't bother running on 'master' as broken links
+                # should be caught in PRs or at release.
+                - master
                 # Don't bother running on forked PRs (which CircleCI
                 # shows as branch="pull/${number}"); they won't have
                 # GH_TOKEN set to be able to pull getambassador.io.git

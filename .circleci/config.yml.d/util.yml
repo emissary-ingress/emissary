@@ -131,3 +131,41 @@ commands:
                PAGER= git diff --cached
                exit 1
             fi
+
+  "skip-if-no-changes":
+    parameters:
+      "to":
+        description: The folder to look for changes, a grep regex
+        type: string
+    steps:
+      - run:
+          name: "Diff changes"
+          command: |
+            COMMIT_RANGE="<< pipeline.git.base_revision >>...<<pipeline.git.revision>>"
+            echo "Commit range: " $COMMIT_RANGE
+            git --no-pager diff $COMMIT_RANGE --name-only
+
+            if [[ $(git --no-pager diff $COMMIT_RANGE --name-only | grep -E "<< parameters.to >>") == "" ]]; then
+              echo "Exiting this CircleCI step because code in the following paths have not changed:"
+              echo "<< parameters.to >>"
+              circleci step halt
+            fi
+
+  "skip-if-only-changes":
+    parameters:
+      "to":
+        description: The folder to look for changes, a grep regex
+        type: string
+    steps:
+      - run:
+          name: "Diff changes"
+          command: |
+            COMMIT_RANGE="<< pipeline.git.base_revision >>...<<pipeline.git.revision>>"
+            echo "Commit range: " $COMMIT_RANGE
+            git --no-pager diff $COMMIT_RANGE --name-only
+
+            if [[ $(git --no-pager diff $COMMIT_RANGE --name-only | grep -v -E "<< parameters.to >>") == "" ]]; then
+              echo "Exiting this CircleCI step because only code in the following paths has changed:"
+              echo "<< parameters.to >>"
+              circleci step halt
+            fi
