@@ -183,6 +183,9 @@
                 "authenticationhttppartialbuffertest.default.2"
             ],
             "_rkey": "authenticationhttppartialbuffertest.default.2",
+            "add_auth_headers": {
+                "X-Added-Auth": "auth-added"
+            },
             "add_linkerd_headers": false,
             "allow_request_body": false,
             "allowed_authorization_headers": [

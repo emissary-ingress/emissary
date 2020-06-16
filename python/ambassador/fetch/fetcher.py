@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Tuple, cast
+from typing import Any, Dict, List, Optional, Tuple
 
 import json
 import logging
@@ -6,22 +6,19 @@ import os
 import yaml
 import re
 
-from .config import Config
-from .acresource import ACResource
-from .resourceprocessor import (
-    NormalizedResource,
-    ResourceManager,
-    KubernetesObject,
-    KubernetesGVK,
+from ..config import ACResource, Config
+from ..utils import parse_yaml, dump_yaml
+
+from .resource import NormalizedResource, ResourceManager
+from .k8sobject import KubernetesGVK, KubernetesObject
+from .k8sprocessor import (
     KubernetesProcessor,
     AggregateKubernetesProcessor,
     DeduplicatingKubernetesProcessor,
     CountingKubernetesProcessor,
-    AmbassadorProcessor,
-    KnativeIngressProcessor,
 )
-
-from ..utils import parse_yaml, dump_yaml
+from .ambassador import AmbassadorProcessor
+from .knative import KnativeIngressProcessor
 
 AnyDict = Dict[str, Any]
 HandlerResult = Optional[Tuple[str, List[AnyDict]]]
@@ -52,6 +49,7 @@ HandlerResult = Optional[Tuple[str, List[AnyDict]]]
 #   address.
 
 k8sLabelMatcher = re.compile(r'([\w\-_./]+)=\"(.+)\"')
+
 
 class ResourceFetcher:
     manager: ResourceManager

@@ -48,7 +48,7 @@ from gunicorn.six import iteritems
 from ambassador import Config, IR, EnvoyConfig, Diagnostics, Scout, Version
 from ambassador.utils import SystemInfo, PeriodicTrigger, SavedSecret, load_url_contents
 from ambassador.utils import SecretHandler, KubewatchSecretHandler, FSSecretHandler
-from ambassador.config.resourcefetcher import ResourceFetcher
+from ambassador.fetch import ResourceFetcher
 
 from ambassador.diagnostics import EnvoyStats
 
