@@ -222,6 +222,11 @@ commands:
     - run:
         name: "Diff changes"
         command: |
+          if [[ "<< pipeline.git.base_revision >>" == "" ]]; then
+            echo "There is no base_revision, therefore no changes"
+            exit 0
+          fi
+
           COMMIT_RANGE="<< pipeline.git.base_revision >>...<<pipeline.git.revision>>"
           echo "Commit range: " $COMMIT_RANGE
           git --no-pager diff $COMMIT_RANGE --name-only
@@ -240,6 +245,11 @@ commands:
     - run:
         name: "Diff changes"
         command: |
+          if [[ "<< pipeline.git.base_revision >>" == "" ]]; then
+            echo "There is no base_revision, therefore no changes"
+            exit 0
+          fi
+
           COMMIT_RANGE="<< pipeline.git.base_revision >>...<<pipeline.git.revision>>"
           echo "Commit range: " $COMMIT_RANGE
           git --no-pager diff $COMMIT_RANGE --name-only
