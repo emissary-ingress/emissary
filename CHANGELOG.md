@@ -46,26 +46,6 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ## RELEASE NOTES
 
-<!---
-Add release notes right after this point.
-
-(version number: MAJOR.MINOR.PATCH)
-
-Format:
-
-## [version] <month> <date>, <year>:
-[version]: https://github.com/datawire/ambassador/compare/<last released version>...<version>
-
-### Major changes:
-- Feature: <insert feature description here>
-- Bugfix: <insert bugfix description here>
-
-### Minor changes:
-- Feature: <insert feature description here>
-- Bugfix: <insert bugfix description here>
---->
-
-<!--- CueAddReleaseNotes --->
 ## Next Release
 
 ### Ambassador API Gateway + Ambassador Edge Stack
