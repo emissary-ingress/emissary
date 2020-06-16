@@ -17,7 +17,30 @@ You will need:
   * With TLS configured. (Needed for the github webhook used to sync source changes to your cluster.)
   * And access to the AES admin console: https://$YOUR_HOST/edge_stack/admin/.
 
-## Quick Start
+## Enabling the Project Controller
+
+The projects functionality depends on an in-cluster Docker registry. By
+default this registry is not included in the Ambassador manifests, and
+the project functionality is not enabled. If you have performed a
+manual install of Ambassador, you can include this registry and enable
+the project controller by running the following command:
+
+```bash
+kubectl apply -f https://www.getambassador.io/yaml/projects.yaml
+```
+
+If you use Helm to install Ambassador, you can get the equivalent by
+setting the `registry.create` option to true in your `values.yaml`
+file:
+
+```
+registry:
+  create: true
+```
+
+## Project Quick Start
+
+To setup your first project:
 
 1. Run `edgectl login $YOUR_HOST` and click on the `Projects` tab.
 
@@ -111,6 +134,6 @@ The Ambassador Edge Stack has a comprehensive range of [features](/features/) to
 
 To learn more about how the Ambassador Edge Stack works, along with use cases,
 best practices, and more, check out the [Welcome page](/docs/) or read the
-[Ambassador Story](/about/why-ambassador).
+[Ambassador Story](../../about/why-ambassador).
 
-For a custom configuration, you can install the Ambassador Edge Stack [manually](/user-guide/manual-install).
+For a custom configuration, you can install the Ambassador Edge Stack [manually](../../topics/install/yaml-install/).
