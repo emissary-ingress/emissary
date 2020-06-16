@@ -164,15 +164,39 @@ Settings that are only valid when `grantType: "AuthorizationCode"`:
    into all origins; to have multiple domains that have separate
    logins, use separate `Filter`s.
 
-   In order to facilitate complex setups, such as having another
-   gateway in front of Ambassador that rewrites the `Host` header, you
-   may specify an `internalOrigin` field that tells Ambassador use
-   that instead of the `origin` field when determining whether a given
-   protectedOrigin applies to a request.  The scheme and/or the
-   hostname in the `internalOrigin` may be a wildcard `*` to support
-   not having to explicitly configure what the rewritten hostname is;
-   wildcards are simple exact-matches for `*`.  Wildcards cannot be
-   used in a protected origin with `includeSubdomains: true`.
+   + `internalOrigin`: This sub-field of `protectedOrigins[i]` allows
+     you to tell Ambassador that there is another gateway in front of
+     Ambassador that rewrites the `Host` header, so that on the
+     internal network between that gateway and Ambassador, the origin
+     appears to be `internalOrigin` instead of `origin`.  As a
+     special-case the scheme and/or authority of the `internalOrigin`
+     may be `*`, which matches any scheme or any domain respectively.
+     The `*` is most useful in configurations with exactly one
+     protected origin; in such a configuration, Ambassador doesn't
+     need to know what the origin looks like on the internal network,
+     just that a gateway in front of Ambassador is rewriting it.  It
+     is invalid to use `*` with `includeSubdomains: true`.
+
+     For example, if you have a gateway in front of Ambassador
+     handling traffic for `myservice.example.com`, terminating TLS
+     and routing that traffic to Ambassador with the name
+     `ambassador.internal`, you might write:
+
+         ```yaml
+         protectedOrigins:
+         - origin: https://myservice.example.com
+           internalOrigin: http://ambassador.internal
+         ```
+
+     or, to avoid being fragile to renaming `ambassador.internal` to
+     something else, since there are not multiple origins that the
+     Filter must distinguish between, you could instead write:
+
+         ```yaml
+         protectedOrigins:
+         - origin: https://myservice.example.com
+           internalOrigin: "*://*"
+         ```
 
  - `clientURL` is deprecated, and is equivalent to setting
 
