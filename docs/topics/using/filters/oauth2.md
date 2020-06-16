@@ -61,7 +61,7 @@ spec:
     clientURL:              "string"   # deprecated; use 'protectedOrigins' instead
     protectedOrigins:                  # required; must have at least 1 item
     - origin: "url"                      # required
-      internalOrigin: "url"              # optional; default is "*://*" if there's exactly 1 protected origin, and is the 'origin' URL otherwise
+      internalOrigin: "url"              # optional; default is to just use the 'origin' field
       includeSubdomains: bool            # optional; default is false
     useSessionCookies:                 # optional; default is { value: false }
       value: bool                        # optional: default is true
@@ -179,6 +179,7 @@ Settings that are only valid when `grantType: "AuthorizationCode"`:
    ```yaml
    protectedOrigins:
    - origin: clientURL-value
+     internalOrigin: "*://*"
    ```
 
  - `extraAuthorizationParameters`: Extra (non-standard or extension) OAuth authorization parameters to use.  It is not valid to specify a parameter used by OAuth itself ("response_type", "client_id", "redirect_uri", "scope", or "state").
