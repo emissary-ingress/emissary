@@ -3,6 +3,10 @@
 This file documents all notable changes to Ambassador Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
+## v6.4.5
+
+- Upgrade Ambassador to version 1.5.3: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
+
 ## v6.4.4
 
 - Feature flag for enabling or disabling the [`Project` registry](https://www.getambassador.io/docs/latest/topics/using/projects/)
