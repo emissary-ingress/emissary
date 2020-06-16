@@ -59,7 +59,7 @@ spec:
 
 The following fields are only used if `proto: http`; they are ignored if `proto: grpc`:
 
- - `path_prefix` (optional) prepends a string to the request path of the request when sending it to the external auth service.  By default this is empty, and nothing is prepended.  For example, if the client makes a request to `/foo`, and `path_prefix: /bar`, then the path in the request made to the external auth service will be `/foo/bar`.
+ - `path_prefix` (optional) prepends a string to the path of the original request when sending it to the external auth service. By default this is empty, and the path is not changed. For example, if the client makes a request to `/path`, and the external auth service is configured with `path_prefix: /auth`, then the path in the request made to the external auth service will be `/auth/path`.
 
  - `allowed_request_headers` (optional) lists the headers that will be sent copied from the incoming request to the request made to the external auth service (case-insensitive).  In addition to the headers listed in this field, the following headers are always included:
     * `Authorization`

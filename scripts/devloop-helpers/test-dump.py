@@ -18,7 +18,7 @@ from ambassador import Config, IR
 from ambassador.envoy import V2Config
 
 from ambassador.utils import SecretInfo, SavedSecret, SecretHandler
-from ambassador.config.resourcefetcher import ResourceFetcher
+from ambassador.fetch import ResourceFetcher
 
 if TYPE_CHECKING:
     from ambassador.ir.irtlscontext import IRTLSContext
