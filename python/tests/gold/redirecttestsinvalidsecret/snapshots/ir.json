@@ -106,7 +106,7 @@
             "service": "redirecttestsinvalidsecret-http",
             "targets": [
                 {
-                    "ip": "redirecttestsinvalidsecret-http.default",
+                    "ip": "redirecttestsinvalidsecret-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -489,7 +489,7 @@
                         "service": "redirecttestsinvalidsecret-http",
                         "targets": [
                             {
-                                "ip": "redirecttestsinvalidsecret-http.default",
+                                "ip": "redirecttestsinvalidsecret-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }

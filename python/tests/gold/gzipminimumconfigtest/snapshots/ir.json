@@ -120,7 +120,7 @@
             "service": "gzipminimumconfigtest-http",
             "targets": [
                 {
-                    "ip": "gzipminimumconfigtest-http.default",
+                    "ip": "gzipminimumconfigtest-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -514,7 +514,7 @@
                         "service": "gzipminimumconfigtest-http",
                         "targets": [
                             {
-                                "ip": "gzipminimumconfigtest-http.default",
+                                "ip": "gzipminimumconfigtest-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }

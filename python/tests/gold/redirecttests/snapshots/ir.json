@@ -106,7 +106,7 @@
             "service": "redirecttests-http",
             "targets": [
                 {
-                    "ip": "redirecttests-http.default",
+                    "ip": "redirecttests-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -489,7 +489,7 @@
                         "service": "redirecttests-http",
                         "targets": [
                             {
-                                "ip": "redirecttests-http.default",
+                                "ip": "redirecttests-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }

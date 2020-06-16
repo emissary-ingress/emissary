@@ -55,7 +55,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "redirecttestsinvalidsecret-http.default",
+                                                "address": "redirecttestsinvalidsecret-http",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }

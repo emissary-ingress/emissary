@@ -109,7 +109,7 @@
             "service": "xfpredirect-http",
             "targets": [
                 {
-                    "ip": "xfpredirect-http.default",
+                    "ip": "xfpredirect-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -492,7 +492,7 @@
                         "service": "xfpredirect-http",
                         "targets": [
                             {
-                                "ip": "xfpredirect-http.default",
+                                "ip": "xfpredirect-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }

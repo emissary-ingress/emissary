@@ -106,7 +106,7 @@
             "service": "rate-limit-v0:5000",
             "targets": [
                 {
-                    "ip": "rate-limit-v0.default",
+                    "ip": "rate-limit-v0",
                     "port": 5000,
                     "target_kind": "DNSname"
                 }
@@ -142,7 +142,7 @@
             "service": "ratelimitv0test-http",
             "targets": [
                 {
-                    "ip": "ratelimitv0test-http.default",
+                    "ip": "ratelimitv0test-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -196,7 +196,7 @@
                 "service": "rate-limit-v0:5000",
                 "targets": [
                     {
-                        "ip": "rate-limit-v0.default",
+                        "ip": "rate-limit-v0",
                         "port": 5000,
                         "target_kind": "DNSname"
                     }
@@ -238,7 +238,7 @@
                 "service": "rate-limit-v0:5000",
                 "targets": [
                     {
-                        "ip": "rate-limit-v0.default",
+                        "ip": "rate-limit-v0",
                         "port": 5000,
                         "target_kind": "DNSname"
                     }
@@ -637,7 +637,7 @@
                         "service": "ratelimitv0test-http",
                         "targets": [
                             {
-                                "ip": "ratelimitv0test-http.default",
+                                "ip": "ratelimitv0test-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -792,7 +792,7 @@
                         "service": "ratelimitv0test-http",
                         "targets": [
                             {
-                                "ip": "ratelimitv0test-http.default",
+                                "ip": "ratelimitv0test-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -902,7 +902,7 @@
             "service": "rate-limit-v0:5000",
             "targets": [
                 {
-                    "ip": "rate-limit-v0.default",
+                    "ip": "rate-limit-v0",
                     "port": 5000,
                     "target_kind": "DNSname"
                 }
@@ -969,7 +969,7 @@
             "service": "rate-limit-v0:5000",
             "targets": [
                 {
-                    "ip": "rate-limit-v0.default",
+                    "ip": "rate-limit-v0",
                     "port": 5000,
                     "target_kind": "DNSname"
                 }
@@ -1011,7 +1011,7 @@
             "service": "rate-limit-v0:5000",
             "targets": [
                 {
-                    "ip": "rate-limit-v0.default",
+                    "ip": "rate-limit-v0",
                     "port": 5000,
                     "target_kind": "DNSname"
                 }

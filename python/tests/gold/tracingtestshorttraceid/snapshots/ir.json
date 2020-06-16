@@ -105,7 +105,7 @@
             "service": "zipkin-64:9411",
             "targets": [
                 {
-                    "ip": "zipkin-64.default",
+                    "ip": "zipkin-64",
                     "port": 9411,
                     "target_kind": "DNSname"
                 }
@@ -140,7 +140,7 @@
             "service": "tracingtestshorttraceid-http",
             "targets": [
                 {
-                    "ip": "tracingtestshorttraceid-http.default",
+                    "ip": "tracingtestshorttraceid-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -525,7 +525,7 @@
                         "service": "tracingtestshorttraceid-http",
                         "targets": [
                             {
-                                "ip": "tracingtestshorttraceid-http.default",
+                                "ip": "tracingtestshorttraceid-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -704,7 +704,7 @@
             "service": "zipkin-64:9411",
             "targets": [
                 {
-                    "ip": "zipkin-64.default",
+                    "ip": "zipkin-64",
                     "port": 9411,
                     "target_kind": "DNSname"
                 }

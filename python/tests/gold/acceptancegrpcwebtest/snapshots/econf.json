@@ -56,7 +56,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "acceptancegrpcwebtest-egrpc.default",
+                                                "address": "acceptancegrpcwebtest-egrpc",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }

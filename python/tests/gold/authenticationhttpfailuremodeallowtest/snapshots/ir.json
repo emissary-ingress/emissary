@@ -106,7 +106,7 @@
             "service": "authenticationhttpfailuremodeallowtest-http",
             "targets": [
                 {
-                    "ip": "authenticationhttpfailuremodeallowtest-http.default",
+                    "ip": "authenticationhttpfailuremodeallowtest-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -140,7 +140,7 @@
             "service": "authenticationhttpfailuremodeallowtest-http-auth",
             "targets": [
                 {
-                    "ip": "authenticationhttpfailuremodeallowtest-http-auth.default",
+                    "ip": "authenticationhttpfailuremodeallowtest-http-auth",
                     "port": 443,
                     "target_kind": "DNSname"
                 }
@@ -217,7 +217,7 @@
                 "service": "authenticationhttpfailuremodeallowtest-http-auth",
                 "targets": [
                     {
-                        "ip": "authenticationhttpfailuremodeallowtest-http-auth.default",
+                        "ip": "authenticationhttpfailuremodeallowtest-http-auth",
                         "port": 443,
                         "target_kind": "DNSname"
                     }
@@ -641,7 +641,7 @@
                         "service": "authenticationhttpfailuremodeallowtest-http",
                         "targets": [
                             {
-                                "ip": "authenticationhttpfailuremodeallowtest-http.default",
+                                "ip": "authenticationhttpfailuremodeallowtest-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }

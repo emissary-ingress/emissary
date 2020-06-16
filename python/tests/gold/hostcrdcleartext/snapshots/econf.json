@@ -55,7 +55,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "hostcrdcleartext-http.default",
+                                                "address": "hostcrdcleartext-http",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }

@@ -55,7 +55,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "tlscontextprotocolmaxversion-http.default",
+                                                "address": "tlscontextprotocolmaxversion-http",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }
