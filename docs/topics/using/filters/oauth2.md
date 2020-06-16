@@ -58,9 +58,10 @@ spec:
     grantType:              "enum"     # optional; default is "AuthorizationCode"
 
     ## OAuth Client settings: grantType=="AuthorizationCode" ###################
-    clientURL:              "string"   # deprecated; us 'protectedOrigins' instead
+    clientURL:              "string"   # deprecated; use 'protectedOrigins' instead
     protectedOrigins:                  # required; must have at least 1 item
     - origin: "url"                      # required
+      internalOrigin: "url"              # optional; default is to just use the 'origin' field
       includeSubdomains: bool            # optional; default is false
     useSessionCookies:                 # optional; default is { value: false }
       value: bool                        # optional: default is true
@@ -163,11 +164,46 @@ Settings that are only valid when `grantType: "AuthorizationCode"`:
    into all origins; to have multiple domains that have separate
    logins, use separate `Filter`s.
 
+   + `internalOrigin`: This sub-field of `protectedOrigins[i]` allows
+     you to tell Ambassador that there is another gateway in front of
+     Ambassador that rewrites the `Host` header, so that on the
+     internal network between that gateway and Ambassador, the origin
+     appears to be `internalOrigin` instead of `origin`.  As a
+     special-case the scheme and/or authority of the `internalOrigin`
+     may be `*`, which matches any scheme or any domain respectively.
+     The `*` is most useful in configurations with exactly one
+     protected origin; in such a configuration, Ambassador doesn't
+     need to know what the origin looks like on the internal network,
+     just that a gateway in front of Ambassador is rewriting it.  It
+     is invalid to use `*` with `includeSubdomains: true`.
+
+     For example, if you have a gateway in front of Ambassador
+     handling traffic for `myservice.example.com`, terminating TLS
+     and routing that traffic to Ambassador with the name
+     `ambassador.internal`, you might write:
+
+         ```yaml
+         protectedOrigins:
+         - origin: https://myservice.example.com
+           internalOrigin: http://ambassador.internal
+         ```
+
+     or, to avoid being fragile to renaming `ambassador.internal` to
+     something else, since there are not multiple origins that the
+     Filter must distinguish between, you could instead write:
+
+         ```yaml
+         protectedOrigins:
+         - origin: https://myservice.example.com
+           internalOrigin: "*://*"
+         ```
+
  - `clientURL` is deprecated, and is equivalent to setting
 
    ```yaml
    protectedOrigins:
    - origin: clientURL-value
+     internalOrigin: "*://*"
    ```
 
  - `extraAuthorizationParameters`: Extra (non-standard or extension) OAuth authorization parameters to use.  It is not valid to specify a parameter used by OAuth itself ("response_type", "client_id", "redirect_uri", "scope", or "state").
