@@ -22,7 +22,7 @@
   - title: Install Manually
     link: /docs/pre-release/topics/install/yaml-install
   - title: Ambassador Edge Stack Operator
-    link: /docs/pre-release/topics/install/aes-operator   
+    link: /docs/pre-release/topics/install/aes-operator
   - title: Install with Edgectl
     link: /docs/pre-release/topics/install/help/
 - title: Running and Using Ambassador
