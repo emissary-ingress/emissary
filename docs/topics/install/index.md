@@ -107,6 +107,20 @@ Ambassador API Gateway, you can upgrade your instance:
 1. [Upgrade to the Ambassador Edge Stack from the API Gateway](upgrade-to-edge-stack/).
 2. [Upgrade your Ambassador Edge Stack instance](upgrading/) to the latest version.
 
+## Container Images
+Although our installation guides will favor using the `docker.io` container registry,
+did you know we publish the Ambassador Edge Stack and Ambassador API Gateway releases
+on multiple registries? 
+
+Starting with version 1.0.0, you can pull the `ambassador` and `aes` images from multiple public registries:
+- `docker.io/datawire/`
+- `quay.io/datawire/`
+- `gcr.io/datawire/`
+
+We want to give you flexibility, and independence from a hosting platform's uptime to support
+your production needs for Ambassador Edge Stack or Ambassador API Gateway. Read more about 
+[Running Ambassador in Production](../running).
+
 # What’s Next?
 The Ambassador Edge Stack has a comprehensive range of [features](/features/) to
 support the requirements of any edge microservice. To learn more about how the

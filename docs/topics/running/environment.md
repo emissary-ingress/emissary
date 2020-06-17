@@ -1,5 +1,14 @@
 # The Ambassador Container
 
+## Container Images
+
+To give you flexibility, and independence from a hosting platform's uptime, you can pull the `ambassador` and `aes` images from multiple public registries:
+- `docker.io/datawire/`
+- `quay.io/datawire/`
+- `gcr.io/datawire/`
+
+For an even more robust installation, consider using a [local registry as a pull through cache](https://docs.docker.com/registry/recipes/mirror/) or configure a [publicly accessible mirror](https://cloud.google.com/container-registry/docs/using-dockerhub-mirroring).
+
 ## Environment Variables
 
 Use the following variables for the environment of your Ambassador container:
