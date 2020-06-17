@@ -46,27 +46,21 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ## RELEASE NOTES
 
-<!---
-Add release notes right after this point.
-
-(version number: MAJOR.MINOR.PATCH)
-
-Format:
-
-## [version] <month> <date>, <year>:
-[version]: https://github.com/datawire/ambassador/compare/<last released version>...<version>
-
-### Major changes:
-- Feature: <insert feature description here>
-- Bugfix: <insert bugfix description here>
-
-### Minor changes:
-- Feature: <insert feature description here>
-- Bugfix: <insert bugfix description here>
---->
-
-<!--- CueAddReleaseNotes --->
 ## Next Release
+
+(no changes yet)
+
+## [1.5.3] June 16, 2020
+[1.5.3]: https://github.com/datawire/ambassador/compare/v1.5.2...v1.5.3
+
+### Ambassador API Gateway + Ambassador Edge Stack
+
+- Bugfix: Restore Envoy listener drain time to its pre-Ambassador 1.3.0 default of 10 minutes.
+
+### Ambassador Edge Stack only
+
+- Bugfix: Allow deletion of ProjectControllers.
+- Bugfix: Fix regression introduced in 1.4.2 where the `OAuth2` AuthorizationCode filter no longer works when behind another gateway that rewrites the request hostname.  The behavior here is now controllable via the `internalOrigin` sub-field.
 
 ### Ambassador API Gateway + Ambassador Edge Stack
 
