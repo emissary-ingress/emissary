@@ -7,6 +7,21 @@ from .irresource import IRResource
 if TYPE_CHECKING:
     from .ir import IR
 
+def qualify_service_name(ir: 'IR', service: str, namespace: Optional[str]) -> str:
+    fully_qualified = "." in service or "localhost" == service
+
+    if namespace != ir.ambassador_namespace and namespace and not fully_qualified and not ir.ambassador_module.use_ambassador_namespace_for_service_resolution:
+        # The target service name is not fully qualified.
+        # We are most likely targeting a simple k8s svc with kube-dns resolution.
+        # Make sure we actually resolve the service it's namespace, not the Ambassador process namespace.
+        service = f"{service}.{namespace}"
+        ir.logger.debug("KubernetesServiceResolver use_ambassador_namespace_for_service_resolution %s, fully qualified %s, upstream hostname %s" % (
+            ir.ambassador_module.use_ambassador_namespace_for_service_resolution,
+            fully_qualified,
+            service
+        ))
+    
+    return service
 
 class IRBaseMapping (IRResource):
     group_id: str

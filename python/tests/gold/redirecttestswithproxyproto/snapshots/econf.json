@@ -55,7 +55,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "redirecttestswithproxyproto-http.default",
+                                                "address": "redirecttestswithproxyproto-http",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }

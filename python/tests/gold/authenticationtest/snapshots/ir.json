@@ -106,7 +106,7 @@
             "service": "authenticationtest-http",
             "targets": [
                 {
-                    "ip": "authenticationtest-http.default",
+                    "ip": "authenticationtest-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -140,7 +140,7 @@
             "service": "authenticationtest-ahttp-auth",
             "targets": [
                 {
-                    "ip": "authenticationtest-ahttp-auth.default",
+                    "ip": "authenticationtest-ahttp-auth",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -197,7 +197,7 @@
                 "service": "authenticationtest-ahttp-auth",
                 "targets": [
                     {
-                        "ip": "authenticationtest-ahttp-auth.default",
+                        "ip": "authenticationtest-ahttp-auth",
                         "port": 80,
                         "target_kind": "DNSname"
                     }
@@ -596,7 +596,7 @@
                         "service": "authenticationtest-http",
                         "targets": [
                             {
-                                "ip": "authenticationtest-http.default",
+                                "ip": "authenticationtest-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }

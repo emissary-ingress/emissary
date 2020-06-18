@@ -55,7 +55,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "tlscontextprotocolminversion-http.default",
+                                                "address": "tlscontextprotocolminversion-http",
                                                 "port_value": 443,
                                                 "protocol": "TCP"
                                             }

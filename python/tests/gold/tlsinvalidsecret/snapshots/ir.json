@@ -106,7 +106,7 @@
             "service": "tlsinvalidsecret-http",
             "targets": [
                 {
-                    "ip": "tlsinvalidsecret-http.default",
+                    "ip": "tlsinvalidsecret-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -489,7 +489,7 @@
                         "service": "tlsinvalidsecret-http",
                         "targets": [
                             {
-                                "ip": "tlsinvalidsecret-http.default",
+                                "ip": "tlsinvalidsecret-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }

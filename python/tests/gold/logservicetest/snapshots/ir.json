@@ -140,7 +140,7 @@
             "service": "stenography:25565",
             "targets": [
                 {
-                    "ip": "stenography.default",
+                    "ip": "stenography",
                     "port": 25565,
                     "target_kind": "DNSname"
                 }
@@ -634,7 +634,7 @@
                 "service": "stenography:25565",
                 "targets": [
                     {
-                        "ip": "stenography.default",
+                        "ip": "stenography",
                         "port": 25565,
                         "target_kind": "DNSname"
                     }

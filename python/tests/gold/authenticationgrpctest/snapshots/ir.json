@@ -106,7 +106,7 @@
             "service": "authenticationgrpctest-http",
             "targets": [
                 {
-                    "ip": "authenticationgrpctest-http.default",
+                    "ip": "authenticationgrpctest-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -141,7 +141,7 @@
             "service": "authenticationgrpctest-agrpc-auth",
             "targets": [
                 {
-                    "ip": "authenticationgrpctest-agrpc-auth.default",
+                    "ip": "authenticationgrpctest-agrpc-auth",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -192,7 +192,7 @@
                 "service": "authenticationgrpctest-agrpc-auth",
                 "targets": [
                     {
-                        "ip": "authenticationgrpctest-agrpc-auth.default",
+                        "ip": "authenticationgrpctest-agrpc-auth",
                         "port": 80,
                         "target_kind": "DNSname"
                     }
@@ -590,7 +590,7 @@
                         "service": "authenticationgrpctest-http",
                         "targets": [
                             {
-                                "ip": "authenticationgrpctest-http.default",
+                                "ip": "authenticationgrpctest-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
