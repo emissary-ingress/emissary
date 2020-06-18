@@ -106,7 +106,7 @@
             "service": "tls-http",
             "targets": [
                 {
-                    "ip": "tls-http.default",
+                    "ip": "tls-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -489,7 +489,7 @@
                         "service": "tls-http",
                         "targets": [
                             {
-                                "ip": "tls-http.default",
+                                "ip": "tls-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }

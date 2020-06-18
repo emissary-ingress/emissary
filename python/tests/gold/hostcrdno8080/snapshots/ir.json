@@ -106,7 +106,7 @@
             "service": "hostcrdno8080-http",
             "targets": [
                 {
-                    "ip": "hostcrdno8080-http.default",
+                    "ip": "hostcrdno8080-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -489,7 +489,7 @@
                         "service": "hostcrdno8080-http",
                         "targets": [
                             {
-                                "ip": "hostcrdno8080-http.default",
+                                "ip": "hostcrdno8080-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }

@@ -120,7 +120,7 @@
             "service": "acceptancegrpcbridgetest-egrpc",
             "targets": [
                 {
-                    "ip": "acceptancegrpcbridgetest-egrpc.default",
+                    "ip": "acceptancegrpcbridgetest-egrpc",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -416,7 +416,7 @@
                         "service": "acceptancegrpcbridgetest-egrpc",
                         "targets": [
                             {
-                                "ip": "acceptancegrpcbridgetest-egrpc.default",
+                                "ip": "acceptancegrpcbridgetest-egrpc",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }

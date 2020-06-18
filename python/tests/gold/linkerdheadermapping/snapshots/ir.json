@@ -123,7 +123,7 @@
             "service": "linkerdheadermapping-http-addlinkerdonly",
             "targets": [
                 {
-                    "ip": "linkerdheadermapping-http-addlinkerdonly.default",
+                    "ip": "linkerdheadermapping-http-addlinkerdonly",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -158,7 +158,7 @@
             "service": "linkerdheadermapping-http",
             "targets": [
                 {
-                    "ip": "linkerdheadermapping-http.default",
+                    "ip": "linkerdheadermapping-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -193,7 +193,7 @@
             "service": "linkerdheadermapping-http-noheader",
             "targets": [
                 {
-                    "ip": "linkerdheadermapping-http-noheader.default",
+                    "ip": "linkerdheadermapping-http-noheader",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -286,7 +286,7 @@
                         "service": "linkerdheadermapping-http-addlinkerdonly",
                         "targets": [
                             {
-                                "ip": "linkerdheadermapping-http-addlinkerdonly.default",
+                                "ip": "linkerdheadermapping-http-addlinkerdonly",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -647,7 +647,7 @@
                         "service": "linkerdheadermapping-http-noheader",
                         "targets": [
                             {
-                                "ip": "linkerdheadermapping-http-noheader.default",
+                                "ip": "linkerdheadermapping-http-noheader",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -894,7 +894,7 @@
                         "service": "linkerdheadermapping-http",
                         "targets": [
                             {
-                                "ip": "linkerdheadermapping-http.default",
+                                "ip": "linkerdheadermapping-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }

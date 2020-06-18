@@ -125,7 +125,7 @@
             "service": "globalcorstest-http",
             "targets": [
                 {
-                    "ip": "globalcorstest-http.default",
+                    "ip": "globalcorstest-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -509,7 +509,7 @@
                         "service": "globalcorstest-http",
                         "targets": [
                             {
-                                "ip": "globalcorstest-http.default",
+                                "ip": "globalcorstest-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -631,7 +631,7 @@
                         "service": "globalcorstest-http",
                         "targets": [
                             {
-                                "ip": "globalcorstest-http.default",
+                                "ip": "globalcorstest-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }

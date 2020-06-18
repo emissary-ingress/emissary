@@ -114,7 +114,7 @@
             "service": "retrypolicytest-http",
             "targets": [
                 {
-                    "ip": "retrypolicytest-http.default",
+                    "ip": "retrypolicytest-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -399,7 +399,7 @@
                         "service": "retrypolicytest-http",
                         "targets": [
                             {
-                                "ip": "retrypolicytest-http.default",
+                                "ip": "retrypolicytest-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -508,7 +508,7 @@
                         "service": "retrypolicytest-http",
                         "targets": [
                             {
-                                "ip": "retrypolicytest-http.default",
+                                "ip": "retrypolicytest-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }

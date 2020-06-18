@@ -112,7 +112,7 @@
             "service": "tlscontextprotocolmaxversion-http",
             "targets": [
                 {
-                    "ip": "tlscontextprotocolmaxversion-http.default",
+                    "ip": "tlscontextprotocolmaxversion-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -403,7 +403,7 @@
                         "service": "tlscontextprotocolmaxversion-http",
                         "targets": [
                             {
-                                "ip": "tlscontextprotocolmaxversion-http.default",
+                                "ip": "tlscontextprotocolmaxversion-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }

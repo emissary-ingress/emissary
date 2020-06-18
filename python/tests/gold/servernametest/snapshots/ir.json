@@ -109,7 +109,7 @@
             "service": "servernametest-http",
             "targets": [
                 {
-                    "ip": "servernametest-http.default",
+                    "ip": "servernametest-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -492,7 +492,7 @@
                         "service": "servernametest-http",
                         "targets": [
                             {
-                                "ip": "servernametest-http.default",
+                                "ip": "servernametest-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }

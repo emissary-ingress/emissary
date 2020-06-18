@@ -107,7 +107,7 @@
             "service": "acceptancegrpctest-egrpc",
             "targets": [
                 {
-                    "ip": "acceptancegrpctest-egrpc.default",
+                    "ip": "acceptancegrpctest-egrpc",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -393,7 +393,7 @@
                         "service": "acceptancegrpctest-egrpc",
                         "targets": [
                             {
-                                "ip": "acceptancegrpctest-egrpc.default",
+                                "ip": "acceptancegrpctest-egrpc",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }

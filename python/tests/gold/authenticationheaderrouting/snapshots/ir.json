@@ -105,7 +105,7 @@
             "service": "authenticationheaderrouting-headerroutingauth",
             "targets": [
                 {
-                    "ip": "authenticationheaderrouting-headerroutingauth.default",
+                    "ip": "authenticationheaderrouting-headerroutingauth",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -140,7 +140,7 @@
             "service": "authenticationheaderrouting-http-target1",
             "targets": [
                 {
-                    "ip": "authenticationheaderrouting-http-target1.default",
+                    "ip": "authenticationheaderrouting-http-target1",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -175,7 +175,7 @@
             "service": "authenticationheaderrouting-http-target2",
             "targets": [
                 {
-                    "ip": "authenticationheaderrouting-http-target2.default",
+                    "ip": "authenticationheaderrouting-http-target2",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -228,7 +228,7 @@
                 "service": "authenticationheaderrouting-headerroutingauth",
                 "targets": [
                     {
-                        "ip": "authenticationheaderrouting-headerroutingauth.default",
+                        "ip": "authenticationheaderrouting-headerroutingauth",
                         "port": 80,
                         "target_kind": "DNSname"
                     }
@@ -633,7 +633,7 @@
                         "service": "authenticationheaderrouting-http-target2",
                         "targets": [
                             {
-                                "ip": "authenticationheaderrouting-http-target2.default",
+                                "ip": "authenticationheaderrouting-http-target2",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -744,7 +744,7 @@
                         "service": "authenticationheaderrouting-http-target1",
                         "targets": [
                             {
-                                "ip": "authenticationheaderrouting-http-target1.default",
+                                "ip": "authenticationheaderrouting-http-target1",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
