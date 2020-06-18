@@ -273,7 +273,18 @@ jobs:
     machine:
       image: "ubuntu-1604:201903-01"
     working_directory: ~/project/ambassador
-  oss-release-promote:
+  oss-release-promote-to-rc-latest:
+    steps:
+    - oss-linux-setup
+    - run:
+        name: "Promote to -rc-latest"
+        command: |
+          docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
+          DEV_KUBECONFIG="-skip-for-release-" make release/promote-oss/to-rc-latest
+    machine:
+      image: "ubuntu-1604:201903-01"
+    working_directory: ~/project/ambassador
+  oss-release-promote-to-ga:
     steps:
     - oss-linux-setup
     - run:
@@ -361,7 +372,15 @@ workflows:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+-.*/
           branches:
             ignore: /.*/
-    - oss-release-promote:
+    - oss-release-promote-to-rc-latest:
+        requires:
+        - "oss-release-images"
+        filters:
+          tags:
+            only: /^v[0-9]+\.[0-9]+\.[0-9]+-.*/
+          branches:
+            ignore: /.*/
+    - oss-release-promote-to-ga:
         filters:
           tags:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
