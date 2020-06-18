@@ -393,6 +393,19 @@ This is a bit more complex than anyone likes, but here goes:
        push a cached build:
 
        `unset ENVOY_COMMIT && make update-base`
+       
+       The image will be pushed to the default registry:
+       ENVOY_DOCKER_REPO=docker.io/datawire/ambassador-base
+       
+       Ensure the image is pushed to backup container registries:
+       
+       ```
+       docker pull datawire/ambassador-base:$TAG
+       for target_registry in quay.io grc.io; do
+         docker images datawire/ambassador-base:$TAG \
+           --format "docker tag {{.Repository}}:{{.Tag}} $target_registry/{{.Repository}}:{{.Tag}} | docker push $target_registry/{{.Repository}}:{{.Tag}}" | bash
+       done
+       ```
 
        If you're outside of Datawire, you can skip this step if you
        don't want to share your Envoy binary anywhere.  If you don't
