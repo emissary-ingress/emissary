@@ -109,15 +109,14 @@ Ambassador API Gateway, you can upgrade your instance:
 
 ## Container Images
 Although our installation guides will favor using the `docker.io` container registry,
-did you know we publish the Ambassador Edge Stack and Ambassador API Gateway releases
-on multiple registries? 
+we publish the Ambassador Edge Stack and Ambassador API Gateway releases to multiple registries.
 
-Starting with version 1.0.0, you can pull the `ambassador` and `aes` images from multiple public registries:
+Starting with version 1.0.0, you can pull the `ambassador` and `aes` images from any of the following registries:
 - `docker.io/datawire/`
 - `quay.io/datawire/`
 - `gcr.io/datawire/`
 
-We want to give you flexibility, and independence from a hosting platform's uptime to support
+We want to give you flexibility and independence from a hosting platform's uptime to support
 your production needs for Ambassador Edge Stack or Ambassador API Gateway. Read more about 
 [Running Ambassador in Production](../running).
 
