@@ -150,7 +150,14 @@ class DiagApp (Flask):
         self.logger = logging.getLogger("ambassador.diagd")
         self.logger.setLevel(logging.INFO)
 
-        self.kubestatus = KubeStatus()
+        # For the moment, we're defaulting AMBASSADOR_UPDATE_MAPPING_STATUS
+        # to true. Plan is to change this for 1.6.
+        ksclass = KubeStatusNoOp
+
+        if os.environ.get("AMBASSADOR_UPDATE_MAPPING_STATUS", "true").lower() == "true":
+            ksclass = KubeStatus
+
+        self.kubestatus = ksclass(self)
 
         if debug:
             self.logger.setLevel(logging.DEBUG)
@@ -738,6 +745,20 @@ class SystemStatus:
 
     def to_dict(self) -> Dict[str, Dict[str, Union[bool, List[Tuple[bool, str]]]]]:
         return { key: info.to_dict() for key, info in self.status.items() }
+
+
+class KubeStatusNoOp:
+    def __init__(self) -> None:
+        pass
+
+    def mark_live(self, kind: str, name: str, namespace: str) -> None:
+        pass
+
+    def prune(self) -> None:
+        pass
+
+    def post(self, kind: str, name: str, namespace: str, text: str) -> None:
+        pass
 
 
 class KubeStatus:
