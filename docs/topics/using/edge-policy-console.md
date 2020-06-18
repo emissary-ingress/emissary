@@ -2,7 +2,9 @@
 
 The Ambassador Edge Stack provides you with an easy-to-use interface that so you can create custom resource definitions, download YAML files, and visit the Developer Portal, all in one place.
 
-After you [install the Ambassador Edge Stack](../../install), you can log in to the Edge Policy Console (EPC) to manage your deployment.
+After you [install the Ambassador Edge Stack](../../install), you can log in to the Edge Policy Console (EPC) to manage your deployment using the `edgectl login` command shown when you visit your installation's host in your web browser.
+
+Note: You can force all Edge Policy Console sessions to sign out using the **Log Out** button on the [Debugging](#debugging) page.
 
 ## Available Pages
 
@@ -23,7 +25,7 @@ The EPC makes it easy to configure what you need for a successful deployment. Ho
 
 On most pages, you have the option to click `See YAML` which will provide you the raw YAML file for your CRD. For those that want YAML changes for Git source control, all of your configuration changes will be saved to the YAML Download" tab.
 
-You can also browse the [Edge Control](../edgectl/edge-control) for information on using the `edgectl` commands for additional actions.
+You can also browse the [Edge Control documentation](../edgectl/edge-control) for information on using `edgectl` commands for additional actions.
 
 ### Dashboard
 
@@ -89,7 +91,9 @@ The **Ambassador Configuration** box shows an immediate status along with detail
 
 The **Configuration Errors** box provides further information about any configuration errors.
 
- See [Debugging](../../running/debugging) for more information.
+See [Debugging](../../running/debugging) for more information.
+
+The **Sign Out of All Sessions** box gives you the ability to terminate all Edge Policy Console sessions associated with this installation of Ambassador Edge Stack.
 
 ### YAML Download
 
