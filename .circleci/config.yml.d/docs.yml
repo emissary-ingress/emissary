@@ -26,6 +26,8 @@ commands:
           command: |
             env | grep -e GIT -e TRAVIS -e CIRCLE | sort
       - oss-checkout
+      - skip-if-no-changes:
+          to: docs/
 
 jobs:
 
