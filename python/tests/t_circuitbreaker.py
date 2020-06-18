@@ -312,26 +312,26 @@ circuit_breakers:
         if len(self.results) != 400:
             failures.append(f'wanted 400 results, got {len(self.results)}')
         else:
-            normal_mapping_results = self.results[0:200]
-            low_mapping_results = self.results[200:400]
+            default_limit_result = self.results[0:200]
+            low_limit_results = self.results[200:400]
 
-            normal_overloaded = 0
+            default_limit_failure = 0
 
-            for result in normal_mapping_results:
+            for result in default_limit_result:
                 if result.error:
-                    normal_overloaded += 1
+                    default_limit_failure += 1
 
-            if normal_overloaded != 0:
-              failures.append(f'[GCR] expected no normal overloaded, got {normal_overloaded}')
+            if default_limit_failure != 0:
+              failures.append(f'expected no failure with default limit, got {normal_overloaded}')
 
-            low_overloaded = 0
+            low_limit_failure = 0
 
-            for result in low_mapping_results:
+            for result in low_limit_results:
                 if result.error:
-                    low_overloaded += 1
+                    low_limit_failure += 1
 
-            if not 100 < low_overloaded < 200:
-                failures.append(f'[GCF] expected 100-200 low_overloaded, got {low_overloaded}')
+            if not 100 < low_limit_failure < 200:
+                failures.append(f'expected 100-200 failure with low limit, got {low_overloaded}')
 
         if failures:
             pytest.xfail("failed:\n  %s" % "\n  ".join(failures))
