@@ -115,7 +115,7 @@ fi
 # being in AMBASSADOR_CONFIG_BASE_DIR.
 envoy_config_file="${ENVOY_DIR}/envoy.json"         # not a typo, see above
 envoy_flags=('-c' "${ENVOY_BOOTSTRAP_FILE}" "--base-id" "${ENVOY_BASE_ID}")
-envoy_logging=('-l' 'warning')
+envoy_logging=('-l' 'error')
 
 if [ -n "$AGENT_SERVICE" ]; then
     # We are the intercept agent. Force Envoy's drain time very low.
