@@ -341,38 +341,29 @@ workflows:
   # https://app.circleci.com/settings/project/github/datawire/apro/advanced
   # and that any non-'master' branches that we wish to run on are set up to be
   # triggered by GitHub actions (see ".github/workflows/circleci-branches.yml").
-  #  "Docs: Dev":
-  #    jobs:
-  #      - "website-preview-build":
-  #          filters:
-  #            branches:
-  #              ignore:
-  #                # Don't bother running on forked PRs (which CircleCI
-  #                # shows as branch="pull/${number}"); they won't have
-  #                # GH_TOKEN set to be able to pull getambassador.io.git
-  #                - /^pull\/[0-9]+$/
-  #      - "website-preview-publish":
-  #          requires: ["website-preview-build"]
-  #          filters:
-  #            branches:
-  #              ignore:
-  #                # Don't bother running on 'master' or the other
-  #                # branches that we do the "Release" workflow for.
-  #                - master
-  #                - /^release\/v1\.[0-9]+$/
-  #                # Don't bother running on forked PRs (which CircleCI
-  #                # shows as branch="pull/${number}"); they won't have
-  #                # GH_TOKEN set to be able to pull getambassador.io.git
-  #                - /^pull\/[0-9]+$/
-  #      - "website-preview-blc":
-  #          requires: ["website-preview-build"]
-  #          filters:
-  #            branches:
-  #              ignore:
-  #                # Don't bother running on forked PRs (which CircleCI
-  #                # shows as branch="pull/${number}"); they won't have
-  #                # GH_TOKEN set to be able to pull getambassador.io.git
-  #                - /^pull\/[0-9]+$/
+  "Docs: Dev":
+    jobs:
+    - "website-preview-build":
+        filters:
+          branches:
+            ignore:
+            # Don't bother running on forked PRs (which CircleCI
+            # shows as branch="pull/${number}"); they won't have
+            # GH_TOKEN set to be able to pull getambassador.io.git
+            - /^pull\/[0-9]+$/
+    - "website-preview-publish":
+        requires: ["website-preview-build"]
+        filters:
+          branches:
+            ignore:
+            # Don't bother running on 'master' or the other
+            # branches that we do the "Release" workflow for.
+            - master
+            - /^release\/v1\.[0-9]+$/
+            # Don't bother running on forked PRs (which CircleCI
+            # shows as branch="pull/${number}"); they won't have
+            # GH_TOKEN set to be able to pull getambassador.io.git
+            - /^pull\/[0-9]+$/
   "Docs: Prerelease":
     # Run preview-build+preview-publish on prerelease tags so that we
     # have a preview for the smoke-testers to use.  Do this in a
@@ -398,6 +389,9 @@ workflows:
             only:
             - master
             - /^release\/v1\.[0-9]+$/
+  'OSS: Dev':
+    jobs:
+    - "oss-dev-images"
   'OSS: Release':
     when:
       equal:
