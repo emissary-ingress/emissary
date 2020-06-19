@@ -237,7 +237,6 @@ Unless disabled, the Ambassador Edge Stack will also report the following anonym
 | `cluster_routing_kube_count` | int | count of clusters routing using Kubernetes |
 | `cluster_tls_count` | int | count of clusters originating TLS |
 | `custom_ambassador_id` | bool | has the `ambassador_id` been changed from 'default'? |
-| `custom_diag_port` | bool | has the diag port been changed from 8877? |
 | `custom_listener_port` | bool | has the listener port been changed from 80/443? |
 | `diagnostics` | bool | is the diagnostics service enabled? |
 | `endpoint_grpc_count` | int | count of endpoints to which Ambassador will originate GRPC |
