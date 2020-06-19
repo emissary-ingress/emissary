@@ -16,9 +16,13 @@
 # that simply copy the relevant artifacts out of the builder
 # container.
 
-# This argument controlls the base image is used for both our build
-# container and for the release containers.
+# This argument controls the base image that is used for the release
+# containers.
 ARG base="frolvlad/alpine-glibc:alpine-3.10"
+
+# This argument sets the base image for the build container image. This
+# base image contains only third-party code.
+ARG builderbase="i-forgot-to-set-build-arg-builderbase"
 
 # This argument controls where the release images get their artifacts
 # from. We override it for incremental builds, but default it to the
@@ -34,73 +38,15 @@ ARG envoy="i-forgot-to-set-build-arg-envoy"
 
 FROM ${envoy} as envoy
 
-FROM ${base} as builder
+FROM ${builderbase} as builder
 
 WORKDIR /buildroot
 
 ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/buildroot/bin
 
-# The YAML parser is... special. To get the C version, we need to install Cython and libyaml, then
-# build it locally -- just using pip won't work.
-
-RUN apk --no-cache add \
-	bash \
-	bash-completion \
-	build-base \
-	curl \
-	cython \
-	docker \
-	git \
-	iptables \
-	jq \
-	libcap \
-	libcap-dev \
-	libffi-dev \
-	ncurses \
-	nodejs \
-	npm \
-	openssh-client \
-	openssl-dev \
-	python3 \
-	python3-dev \
-	rsync \
-	sudo \
-	yaml-dev \
-    && ln -s /usr/bin/python3 /usr/bin/python \
-    && chmod u+s $(which docker)
-RUN pip3 install -U pip
-RUN npm config set user 0 && \
-    npm config set unsafe-perm true && \
-    npm install -g rollup@2.9.1 rollup-plugin-terser@5.3.0
-RUN curl --fail -L https://dl.google.com/go/go1.13.linux-amd64.tar.gz | tar -C /usr/local -xzf -
-RUN curl https://sdk.cloud.google.com > /tmp/install.sh && \
-    mkdir /usr/lib64/ && \
-    bash /tmp/install.sh --disable-prompts --install-dir=/usr/lib64
-
-RUN curl --fail -L https://storage.googleapis.com/kubernetes-release/release/v1.16.0/bin/linux/amd64/kubectl -o /usr/bin/kubectl && chmod a+x /usr/bin/kubectl && \
-    kubectl completion bash > /usr/share/bash-completion/completions/kubectl
-RUN curl --fail -L https://raw.githubusercontent.com/ahmetb/kubectx/v0.7.0/kubectx -o /usr/local/bin/kubectx && chmod a+x /usr/local/bin/kubectx && \
-    curl --fail -L https://raw.githubusercontent.com/ahmetb/kubectx/v0.7.0/completion/kubectx.bash -o /usr/share/bash-completion/completions/kubectx
-RUN curl --fail -L https://raw.githubusercontent.com/ahmetb/kubectx/v0.7.0/kubens -o /usr/local/bin/kubens && chmod a+x /usr/local/bin/kubens && \
-    curl --fail -L https://raw.githubusercontent.com/ahmetb/kubectx/v0.7.0/completion/kubens.bash -o /usr/share/bash-completion/completions/kubens
-
-RUN curl --fail -L https://raw.githubusercontent.com/jonmosco/kube-ps1/v0.7.0/kube-ps1.sh -o /usr/local/bin/kube-ps1.sh
-
 COPY --from=envoy /usr/local/bin/envoy-static-stripped /usr/local/bin/envoy
 
 ENV KUBECONFIG=/buildroot/kubeconfig.yaml
-
-# Download, build, and install PyYAML.
-RUN mkdir /tmp/pyyaml && \
-    cd /tmp/pyyaml && \
-    curl -O -L http://pyyaml.org/download/pyyaml/PyYAML-5.1.tar.gz && \
-    tar xzf PyYAML-5.1.tar.gz && \
-    cd PyYAML-5.1 && \
-    python3 setup.py --with-libyaml install
-
-# Then we can do the rest of the Python stuff.
-COPY requirements.txt .
-RUN pip install -r requirements.txt
 
 # XXX: this will go away
 RUN mkdir -p /ambassador/sidecars && \

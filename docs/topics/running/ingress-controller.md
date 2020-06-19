@@ -279,7 +279,7 @@ spec:
             servicePort: 80
 ```
 
-This is equivalent to
+This is equivalent to:
 
 ```yaml
 ---
@@ -290,7 +290,7 @@ metadata:
 spec:
   hosts:
   - sslexample.foo.com
-  secretName: testsecret-tls
+  secret: testsecret-tls
 ---
 apiVersion: getambassador.io/v2
 kind: Mapping
