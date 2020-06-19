@@ -46,7 +46,7 @@ import gunicorn.app.base
 from gunicorn.six import iteritems
 
 from ambassador import Config, IR, EnvoyConfig, Diagnostics, Scout, Version
-from ambassador.utils import SystemInfo, PeriodicTrigger, SavedSecret, load_url_contents
+from ambassador.utils import SystemInfo, Timer, PeriodicTrigger, SavedSecret, load_url_contents
 from ambassador.utils import SecretHandler, KubewatchSecretHandler, FSSecretHandler
 from ambassador.config.resourcefetcher import ResourceFetcher
 
@@ -149,6 +149,14 @@ class DiagApp (Flask):
         # This feels like overkill.
         self.logger = logging.getLogger("ambassador.diagd")
         self.logger.setLevel(logging.INFO)
+
+        # Use Timers to keep some stats on reconfigurations
+        self.config_timer = Timer("reconfiguration")
+        self.fetcher_timer = Timer("Fetcher")
+        self.aconf_timer = Timer("AConf")
+        self.ir_timer = Timer("IR")
+        self.econf_timer = Timer("EConf")
+        self.diag_timer = Timer("Diagnostics")
 
         # For the moment, we're defaulting AMBASSADOR_UPDATE_MAPPING_STATUS
         # to true. Plan is to change this for 1.6.
@@ -1045,6 +1053,9 @@ class AmbassadorEventWatcher(threading.Thread):
         snapshot = url.split('/')[-1]
         ss_path = os.path.join(app.snapshot_path, "snapshot-tmp.yaml")
 
+        # OK, we're starting a reconfiguration.
+        self.app.config_timer.start()
+
         self.logger.debug("copying configuration: watt, %s to %s" % (url, ss_path))
 
         # Grab the serialization, and save it to disk too.
@@ -1060,11 +1071,14 @@ class AmbassadorEventWatcher(threading.Thread):
         # the secrets that watt sends.
         scc = SecretHandler(app.logger, url, app.snapshot_path, snapshot)
 
-        aconf = Config()
-        fetcher = ResourceFetcher(app.logger, aconf)
+        # OK. Time the various configuration sections separately.
 
-        if serialization:
-            fetcher.parse_watt(serialization)
+        with self.app.fetcher_timer:
+            aconf = Config()
+            fetcher = ResourceFetcher(app.logger, aconf)
+
+            if serialization:
+                fetcher.parse_watt(serialization)
 
         if not fetcher.elements:
             self.logger.debug("no configuration found in snapshot %s" % snapshot)
@@ -1078,18 +1092,23 @@ class AmbassadorEventWatcher(threading.Thread):
 
     def _load_ir(self, rqueue: queue.Queue, aconf: Config, fetcher: ResourceFetcher,
                  secret_handler: SecretHandler, snapshot: str) -> None:
-        aconf.load_all(fetcher.sorted())
+        with self.app.aconf_timer:
+            aconf.load_all(fetcher.sorted())
 
         aconf_path = os.path.join(app.snapshot_path, "aconf-tmp.json")
         open(aconf_path, "w").write(aconf.as_json())
 
-        ir = IR(aconf, secret_handler=secret_handler)
+        with self.app.ir_timer:
+            ir = IR(aconf, secret_handler=secret_handler)
 
         ir_path = os.path.join(app.snapshot_path, "ir-tmp.json")
         open(ir_path, "w").write(ir.as_json())
 
-        econf = EnvoyConfig.generate(ir, "V2")
-        diag = Diagnostics(ir, econf)
+        with self.app.econf_timer:
+            econf = EnvoyConfig.generate(ir, "V2")
+
+        with self.app.diag_timer:
+            diag = Diagnostics(ir, econf)
 
         bootstrap_config, ads_config = econf.split_config()
 
@@ -1147,6 +1166,9 @@ class AmbassadorEventWatcher(threading.Thread):
         app.econf = econf
         app.diag = diag
 
+        # We're finally done with the whole configuration process.
+        self.app.config_timer.stop()
+
         if app.kick:
             self.logger.debug("running '%s'" % app.kick)
             os.system(app.kick)
@@ -1183,9 +1205,18 @@ class AmbassadorEventWatcher(threading.Thread):
         listener_count = len(app.ir.listeners)
         service_count = len(app.ir.services)
 
+        self._respond(rqueue, 200, 'configuration updated from snapshot %s' % snapshot)
+
         self.logger.info("configuration updated from snapshot %s (S%d L%d G%d C%d)" % 
                          (snapshot, service_count, listener_count, group_count, cluster_count))
-        self._respond(rqueue, 200, 'configuration updated from snapshot %s' % snapshot)
+
+        for t in [ self.app.config_timer,
+                   self.app.fetcher_timer,
+                   self.app.aconf_timer,
+                   self.app.ir_timer,
+                   self.app.econf_timer,
+                   self.app.diag_timer ]:
+            self.logger.info(t.summary())
 
         if app.health_checks and not app.stats_updater:
             app.logger.debug("starting Envoy status updater")

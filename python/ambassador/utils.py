@@ -187,6 +187,193 @@ class RichStatus:
         return RichStatus(True, **kwargs)
 
 
+class Timer:
+    """
+    Timer is a simple class to measure time. When a Timer is created,
+    it is given a name, and is stopped.
+
+    t = Timer("test timer")
+
+    The simplest way to use the Timer is as a context manager:
+
+    with t:
+        something_to_be_timed()
+
+    You can also use the start method to start the timer:
+
+    t.start()
+
+    ...and the .stop method to stop the timer and update the timer's 
+    records.
+
+    t.stop()
+
+    Timers record the accumulated time and the number of start/stop
+    cycles (in .accumulated and .cycles respectively). They can also
+    return the average time per cycle (.average) and minimum and
+    maximum times per cycle (.minimum and .maximum).
+    """
+
+    name: str
+    _cycles: int
+    _starttime: float
+    _accumulated: float
+    _minimum: float
+    _maximum: float
+    _running: bool
+    _faketime: float
+
+    def __init__(self, name: str) -> None:
+        """
+        Create a Timer, given a name. The Timer is initially stopped.
+        """
+
+        self.name = name
+        self._cycles = 0
+        self._starttime = 0
+        self._accumulated = 0.0
+        self._minimum = 999999999999
+        self._maximum = -999999999999
+        self._running = False
+        self._faketime = 0.0
+
+    def __enter__(self):
+        self.start()
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.stop()
+
+    def start(self, when: Optional[float]=None) -> None:
+        """
+        Start a Timer running.
+
+        :param when: Optional start time. If not supplied,
+        the current time is used.
+        """
+
+        if self._running:
+            raise Exception(f"Timer {self.name}.start: already running")
+
+        self._starttime = when or time.perf_counter()
+        self._running = True
+
+    def stop(self, when: Optional[float]=None) -> float:
+        """
+        Stop a Timer, increment the cycle count, and update the
+        accumulated time with the amount of time since the Timer
+        was started.
+
+        :param when: Optional stop time. If not supplied,
+        the current time is used.
+        :return: The amount of time the Timer has accumulated
+        """
+
+        if not self._running:
+            raise Exception(f"Timer {self.name}.stop: not running")
+
+        if not when:
+            when = time.perf_counter()
+
+        self._running = False
+        self._cycles += 1
+
+        this_cycle = (when - self._starttime) + self._faketime
+        self._faketime = 0
+
+        self._accumulated += this_cycle
+
+        if this_cycle < self._minimum:
+            self._minimum = this_cycle
+
+        if this_cycle > self._maximum:
+            self._maximum = this_cycle
+
+        return self._accumulated
+
+    def faketime(self, faketime: float) -> None:
+        """
+        Add fake time to a Timer. This is intended solely for
+        testing.
+        """
+
+        if not self._running:
+            raise Exception(f"Timer {self.name}.faketime: not running")
+
+        self._faketime = faketime
+
+    @property
+    def cycles(self):
+        """
+        The number of timing cycles this Timer has recorded.
+        """
+        return self._cycles
+    
+    @property
+    def starttime(self):
+        """
+        The time this Timer was last started, or 0 if it has
+        never been started.
+        """
+        return self._starttime
+    
+    @property
+    def accumulated(self):
+        """
+        The amount of time this Timer has accumulated.
+        """
+        return self._accumulated
+    
+    @property
+    def minimum(self):
+        """
+        The minimum single-cycle time this Timer has recorded.
+        """
+        return self._minimum
+    
+    @property
+    def maximum(self):
+        """
+        The maximum single-cycle time this Timer has recorded.
+        """
+        return self._maximum
+    
+    @property
+    def average(self):
+        """
+        The average cycle time for this Timer.
+        """
+        if self._cycles > 0:
+            return self._accumulated / self._cycles
+
+        raise Exception(f"Timer {self.name}.average: no cycles to average")
+
+    @property
+    def running(self):
+        """
+        Whether or not this Timer is running.
+        """
+        return self._running
+    
+    def __str__(self) -> str:
+        s = "Timer %s: " % self.name
+
+        if self._running:
+            s += "running, "
+
+        s += "%.6f sec" % self._accumulated
+
+        return s
+
+    def summary(self) -> str:
+        """
+        Return a summary of this Timer.
+        """
+
+        return "TIMER %s: %d, %.3f/%.3f/%.3f" % (
+                    self.name, self.cycles, self.minimum, self.average, self.maximum
+               )
+
 class DelayTrigger (threading.Thread):
     def __init__(self, onfired, timeout=5, name=None):
         super().__init__()
