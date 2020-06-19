@@ -193,11 +193,12 @@ type HostSpec struct {
 	Hostname string `protobuf:"bytes,3,opt,name=hostname,proto3" json:"hostname,omitempty"`
 	// Selector by which we can find further configuration. Defaults to hostname=$hostname
 	Selector *v1.LabelSelector `protobuf:"bytes,4,opt,name=selector,proto3" json:"selector,omitempty"`
-	// Specifies who to talk ACME with to get certs. Defaults to Let's Encrypt; if "none", do
-	// not try to do TLS for this Host.
+	// Specifies whether/who to talk ACME with to automatically manage the $tlsSecret.
 	AcmeProvider *ACMEProviderSpec `protobuf:"bytes,5,opt,name=acmeProvider,proto3" json:"acmeProvider,omitempty"`
-	// Name of the Kubernetes secret into which to save generated certificates. Defaults
-	// to $hostname
+	// Name of the Kubernetes secret into which to save generated
+	// certificates.  If ACME is enabled (see $acmeProvider), then the
+	// default is $hostname; otherwise the default is "".  If the value
+	// is "", then we do not do TLS for this Host.
 	TlsSecret *v11.LocalObjectReference `protobuf:"bytes,6,opt,name=tlsSecret,proto3" json:"tlsSecret,omitempty"`
 	// Request policy definition.
 	RequestPolicy *RequestPolicy `protobuf:"bytes,7,opt,name=requestPolicy,proto3" json:"requestPolicy,omitempty"`
@@ -397,7 +398,8 @@ func (m *HostStatus) GetErrorBackoff() *time.Duration {
 
 type ACMEProviderSpec struct {
 	// Specifies who to talk ACME with to get certs. Defaults to Let's
-	// Encrypt; if "none", do not try to do TLS for this Host.
+	// Encrypt; if "none" (case-insensitive), do not try to do ACME for
+	// this Host.
 	Authority        string                    `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
 	Email            string                    `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
 	PrivateKeySecret *v11.LocalObjectReference `protobuf:"bytes,3,opt,name=privateKeySecret,proto3" json:"privateKeySecret,omitempty"`
