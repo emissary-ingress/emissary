@@ -8,6 +8,7 @@ class NoUITest (AmbassadorTest):
     # the cluster-scope RBAC instead of the namespace-scope
     # RBAC. Our ambassador_id filters out the stuff we want.
     namespace = "no-ui-namespace"
+    extra_ports = [8877]
 
     def manifests(self) -> str:
         return self.format("""
@@ -34,4 +35,5 @@ spec:
     def queries(self):
         yield(Query(self.url("ambassador/v0/diag/"), expected=404))
         yield(Query(self.url("edge_stack/admin/"), expected=404))
+        yield Query(self.url("ambassador/v0/diag/", scheme="http", port=8877), expected=404)
 

@@ -583,6 +583,12 @@ def check_ready():
 @app.route('/ambassador/v0/diag/', methods=[ 'GET' ])
 @standard_handler
 def show_overview(reqid=None):
+    enabled = app.ir and app.ir.ambassador_module.diagnostics.get("enabled", False)
+    if not enabled:
+        return Response("Not found\n", 404)
+
+    app.logger.debug("OV %s - showing overview" % reqid)
+
     diag = app.diag
 
     if not diag:
@@ -703,6 +709,12 @@ def collect_errors_and_notices(request, reqid, what: str, diag: Diagnostics) -> 
 @app.route('/ambassador/v0/diag/<path:source>', methods=[ 'GET' ])
 @standard_handler
 def show_intermediate(source=None, reqid=None):
+    enabled = app.ir and app.ir.ambassador_module.diagnostics.get("enabled", False)
+    if not enabled:
+        return Response("Not found\n", 404)
+
+    app.logger.debug("SRC %s - getting intermediate for '%s'" % (reqid, source))
+
     diag = app.diag
 
     if not diag:
