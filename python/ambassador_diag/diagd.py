@@ -748,7 +748,7 @@ class SystemStatus:
 
 
 class KubeStatusNoOp:
-    def __init__(self) -> None:
+    def __init__(self, app) -> None:
         pass
 
     def mark_live(self, kind: str, name: str, namespace: str) -> None:
@@ -764,10 +764,14 @@ class KubeStatusNoOp:
 class KubeStatus:
     pool: concurrent.futures.ProcessPoolExecutor
 
-    def __init__(self) -> None:
+    def __init__(self, app) -> None:
+        self.app = app
+        self.logger = app.logger
         self.live: Dict[str,  bool] = {}
         self.current_status: Dict[str, str] = {}
         self.pool = concurrent.futures.ProcessPoolExecutor(max_workers=5)
+
+        self.app.logger.info("WILL update Mapping status")
 
     def mark_live(self, kind: str, name: str, namespace: str) -> None:
         key = f"{kind}/{name}.{namespace}"
