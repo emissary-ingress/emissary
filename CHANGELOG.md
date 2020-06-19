@@ -48,7 +48,15 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ## Next Release
 
-(no changes yet)
+### Ambassador API Gateway + Ambassador Edge Stack
+
+- Bugfix: Allow disabling `Mapping`-status updates (RECOMMENDED: see below)
+
+We recommend that users not relying on `Mapping` status updates
+set `AMBASSADOR_UPDATE_MAPPING_STATUS=false` in the environment to
+tell Ambassador not to update `Mapping` statuses. The default value
+of `AMBASSADOR_UPDATE_MAPPING_STATUS` will change to `false` in 
+Ambassador 1.6.
 
 ## [1.5.3] June 16, 2020
 [1.5.3]: https://github.com/datawire/ambassador/compare/v1.5.2...v1.5.3
