@@ -41,6 +41,7 @@ the following `kubectl apply` command:
 
 ```shell
 kubectl apply -f https://www.getambassador.io/yaml/aes-crds.yaml
+kubectl apply -f https://www.getambassador.io/yaml/aes.yaml
 ```
 
 This will trigger a rolling upgrade of Ambassador Edge Stack.
