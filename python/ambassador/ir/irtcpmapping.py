@@ -22,6 +22,7 @@ class IRTCPMapping (IRBaseMapping):
 
     AllowedKeys: ClassVar[Dict[str, bool]] = {
         "address": True,
+        "circuit_breakers": False,
         "enable_ipv4": True,
         "enable_ipv6": True,
         "host": True,
