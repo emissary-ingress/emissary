@@ -48,7 +48,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ## Next Release
 
-(no changes yet)
+- Internal: Configuration endpoints used internally by Ambassador are no longer accessible from outside the Ambassador Pod.
 
 ## [1.5.3] June 16, 2020
 [1.5.3]: https://github.com/datawire/ambassador/compare/v1.5.2...v1.5.3

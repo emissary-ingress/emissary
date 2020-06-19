@@ -255,6 +255,33 @@ def standard_handler(f):
     return wrapper
 
 
+def internal_handler(f):
+    """
+    Reject requests where the remote address is not localhost.
+
+    This works because of an implementation detail of Flask (Werkzeug), the
+    existence of the REMOTE_ADDR environment variable. This may not work as
+    intended on other WSGI implementations, though if the environment variable
+    is missing entirely, the effect is to fail closed, i.e. all requests will
+    be rejected, in which case the problem will become apparent very quickly.
+
+    For a somewhat more portable implementation, consider using the environment
+    variables SERVER_NAME and SERVER_PORT instead, as those are required by
+    WSGI. It's not clear (to me, ark3) what they mean, and relying on what they
+    do in Flask/Werkzeug yielded a worse implementation that was still not
+    portable.
+    """
+    func_name = getattr(f, '__name__', '<anonymous>')
+
+    @functools.wraps(f)
+    def wrapper(*args, **kwds):
+        if request.environ.get("REMOTE_ADDR") != "127.0.0.1":
+            return "Forbidden\n", 403
+        return f(*args, **kwds)
+
+    return wrapper
+
+
 ######## UTILITIES
 
 
@@ -412,11 +439,13 @@ def filter_webui(d: Dict[Any, Any]):
 
 
 @app.route('/_internal/v0/ping', methods=[ 'GET' ])
+@internal_handler
 def handle_ping():
     return "ACK\n", 200
 
 
 @app.route('/_internal/v0/watt', methods=[ 'POST' ])
+@internal_handler
 def handle_watt_update():
     url = request.args.get('url', None)
 
@@ -432,6 +461,7 @@ def handle_watt_update():
 
 
 @app.route('/_internal/v0/fs', methods=[ 'POST' ])
+@internal_handler
 def handle_fs():
     path = request.args.get('path', None)
 
@@ -447,6 +477,7 @@ def handle_fs():
 
 
 @app.route('/_internal/v0/events', methods=[ 'GET' ])
+@internal_handler
 def handle_events():
     if not app.local_scout:
         return 'Local Scout is not enabled\n', 400
