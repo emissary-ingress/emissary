@@ -138,7 +138,7 @@ func (a *invoker) gcSnapshots() {
 	for k := range a.invokedSnapshots {
 		if k <= a.id-10 {
 			delete(a.invokedSnapshots, k)
-			a.process.Logf("deleting snapshot %d", k)
+			a.process.Debugf("deleting snapshot %d", k)
 		}
 	}
 }

@@ -57,10 +57,16 @@ func Main() {
 		}, func(w *k8s.Watcher) {
 			for _, rsrc := range w.List(kind) {
 				if *statusFile == "" {
+					// The user is asking for the status, so print it.
 					fmt.Println("Status of", rsrc.QName())
 					fmt.Printf("  %v\n", rsrc["status"])
 				} else {
-					fmt.Println("Updating", rsrc.QName())
+					// The user is asking for a status update.
+					// log.Debugf doesn't exist.
+					if false {
+						fmt.Println("Updating", rsrc.QName())
+					}
+
 					rsrc["status"] = status
 					_, err := w.UpdateStatus(rsrc)
 					if err != nil {

@@ -150,7 +150,14 @@ class DiagApp (Flask):
         self.logger = logging.getLogger("ambassador.diagd")
         self.logger.setLevel(logging.INFO)
 
-        self.kubestatus = KubeStatus()
+        # For the moment, we're defaulting AMBASSADOR_UPDATE_MAPPING_STATUS
+        # to true. Plan is to change this for 1.6.
+        ksclass = KubeStatusNoOp
+
+        if os.environ.get("AMBASSADOR_UPDATE_MAPPING_STATUS", "true").lower() == "true":
+            ksclass = KubeStatus
+
+        self.kubestatus = ksclass(self)
 
         if debug:
             self.logger.setLevel(logging.DEBUG)
@@ -740,18 +747,36 @@ class SystemStatus:
         return { key: info.to_dict() for key, info in self.status.items() }
 
 
+class KubeStatusNoOp:
+    def __init__(self, app) -> None:
+        pass
+
+    def mark_live(self, kind: str, name: str, namespace: str) -> None:
+        pass
+
+    def prune(self) -> None:
+        pass
+
+    def post(self, kind: str, name: str, namespace: str, text: str) -> None:
+        pass
+
+
 class KubeStatus:
     pool: concurrent.futures.ProcessPoolExecutor
 
-    def __init__(self) -> None:
+    def __init__(self, app) -> None:
+        self.app = app
+        self.logger = app.logger
         self.live: Dict[str,  bool] = {}
         self.current_status: Dict[str, str] = {}
         self.pool = concurrent.futures.ProcessPoolExecutor(max_workers=5)
 
+        self.app.logger.info("WILL update Mapping status")
+
     def mark_live(self, kind: str, name: str, namespace: str) -> None:
         key = f"{kind}/{name}.{namespace}"
 
-        # print(f"KubeStatus MASTER {os.getpid()}: mark_live {key}")
+        # self.logger.debug(f"KubeStatus MASTER {os.getpid()}: mark_live {key}")
         self.live[key] = True
 
     def prune(self) -> None:
@@ -762,7 +787,7 @@ class KubeStatus:
                 drop.append(key)
 
         for key in drop:
-            # print(f"KubeStatus MASTER {os.getpid()}: prune {key}")
+            # self.logger.debug(f"KubeStatus MASTER {os.getpid()}: prune {key}")
             del(self.current_status[key])
 
         self.live = {}
@@ -772,10 +797,10 @@ class KubeStatus:
         extant = self.current_status.get(key, None)
 
         if extant == text:
-            # print(f"KubeStatus MASTER {os.getpid()}: {key} == {text}")
+            # self.logger.info(f"KubeStatus MASTER {os.getpid()}: {key} == {text}")
             pass
         else:
-            # print(f"KubeStatus MASTER {os.getpid()}: {key} needs {text}")
+            # self.logger.info(f"KubeStatus MASTER {os.getpid()}: {key} needs {text}")
 
             # For now we're going to assume that this works.
             self.current_status[key] = text
@@ -1152,7 +1177,14 @@ class AmbassadorEventWatcher(threading.Thread):
 
                 app.kubestatus.post(kind, resource_name, namespace, text)
 
-        self.logger.info("configuration updated from snapshot %s" % snapshot)
+
+        group_count = len(app.ir.groups)
+        cluster_count = len(app.ir.clusters)
+        listener_count = len(app.ir.listeners)
+        service_count = len(app.ir.services)
+
+        self.logger.info("configuration updated from snapshot %s (S%d L%d G%d C%d)" % 
+                         (snapshot, service_count, listener_count, group_count, cluster_count))
         self._respond(rqueue, 200, 'configuration updated from snapshot %s' % snapshot)
 
         if app.health_checks and not app.stats_updater:
