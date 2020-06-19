@@ -776,7 +776,7 @@ class KubeStatus:
     def mark_live(self, kind: str, name: str, namespace: str) -> None:
         key = f"{kind}/{name}.{namespace}"
 
-        # print(f"KubeStatus MASTER {os.getpid()}: mark_live {key}")
+        # self.logger.debug(f"KubeStatus MASTER {os.getpid()}: mark_live {key}")
         self.live[key] = True
 
     def prune(self) -> None:
@@ -787,7 +787,7 @@ class KubeStatus:
                 drop.append(key)
 
         for key in drop:
-            # print(f"KubeStatus MASTER {os.getpid()}: prune {key}")
+            # self.logger.debug(f"KubeStatus MASTER {os.getpid()}: prune {key}")
             del(self.current_status[key])
 
         self.live = {}
@@ -797,10 +797,10 @@ class KubeStatus:
         extant = self.current_status.get(key, None)
 
         if extant == text:
-            # print(f"KubeStatus MASTER {os.getpid()}: {key} == {text}")
+            # self.logger.info(f"KubeStatus MASTER {os.getpid()}: {key} == {text}")
             pass
         else:
-            # print(f"KubeStatus MASTER {os.getpid()}: {key} needs {text}")
+            # self.logger.info(f"KubeStatus MASTER {os.getpid()}: {key} needs {text}")
 
             # For now we're going to assume that this works.
             self.current_status[key] = text
