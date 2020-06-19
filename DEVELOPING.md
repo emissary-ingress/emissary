@@ -403,7 +403,7 @@ This is a bit more complex than anyone likes, but here goes:
        docker pull datawire/ambassador-base:$TAG
        for target_registry in quay.io grc.io; do
          docker images datawire/ambassador-base:$TAG \
-           --format "docker tag {{.Repository}}:{{.Tag}} $target_registry/{{.Repository}}:{{.Tag}} | docker push $target_registry/{{.Repository}}:{{.Tag}}" | bash
+           --format "docker tag {{.Repository}}:{{.Tag}} $target_registry/{{.Repository}}:{{.Tag}} && docker push $target_registry/{{.Repository}}:{{.Tag}}" | bash
        done
        ```
 
