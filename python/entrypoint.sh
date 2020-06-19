@@ -115,7 +115,8 @@ fi
 # being in AMBASSADOR_CONFIG_BASE_DIR.
 envoy_config_file="${ENVOY_DIR}/envoy.json"         # not a typo, see above
 envoy_flags=('-c' "${ENVOY_BOOTSTRAP_FILE}" "--base-id" "${ENVOY_BASE_ID}")
-envoy_logging=('-l' 'warning')
+envoy_logging=('-l' 'error')
+
 
 if [ -n "$AGENT_SERVICE" ]; then
     # We are the intercept agent. Force Envoy's drain time very low.
@@ -323,7 +324,7 @@ fi
 ################################################################################
 if [[ -z "${DIAGD_ONLY}" ]]; then
     # Keep the listen address in-sync with v2bootstrap.py
-    launch "ambex" ambex --ads-listen-address=127.0.0.1:8003 "${ENVOY_DIR}"
+    launch "ambex" ambex --ads-listen-address=127.0.0.1:8003 --secrets-listen-address=127.0.0.1:8004 "${ENVOY_DIR}"
 
     diagd_flags+=('--kick' "kill -HUP $$")
 else

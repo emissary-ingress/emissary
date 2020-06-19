@@ -103,6 +103,7 @@ class DiagApp (Flask):
     health_checks: bool
     no_envoy: bool
     debugging: bool
+    debug: bool
     allow_fs_commands: bool
     report_action_keys: bool
     verbose: bool
@@ -131,6 +132,7 @@ class DiagApp (Flask):
         self.health_checks = do_checks
         self.no_envoy = no_envoy
         self.debugging = reload
+        self.debug = debug
         self.verbose = verbose
         self.notice_path = notices
         self.notices = Notices(self.notice_path)
@@ -1014,7 +1016,7 @@ class AmbassadorEventWatcher(threading.Thread):
 
         # Weirdly, we don't need a special WattSecretHandler: parse_watt knows how to handle
         # the secrets that watt sends.
-        scc = SecretHandler(app.logger, url, app.snapshot_path, snapshot)
+        scc = SecretHandler(app.logger, url, app.snapshot_path, snapshot, self.app.debug)
 
         aconf = Config()
         fetcher = ResourceFetcher(app.logger, aconf)
@@ -1049,7 +1051,7 @@ class AmbassadorEventWatcher(threading.Thread):
 
         bootstrap_config, ads_config = econf.split_config()
 
-        if not self.validate_envoy_config(config=ads_config, retries=self.app.validation_retries):
+        if not self.validate_envoy_config(config=ads_config, retries=self.app.validation_retries, bootstrap_config=bootstrap_config):
             self.logger.info("no updates were performed due to invalid envoy configuration, continuing with current configuration...")
             # Don't use app.check_scout; it will deadlock.
             self.check_scout("attempted bad update")
@@ -1340,7 +1342,7 @@ class AmbassadorEventWatcher(threading.Thread):
         self.app.logger.debug("Scout notices: %s" % json.dumps(scout_notices))
         self.app.logger.debug("App notices after scout: %s" % json.dumps(app.notices.notices))
 
-    def validate_envoy_config(self, config, retries) -> bool:
+    def validate_envoy_config(self, config, retries, bootstrap_config) -> bool:
         if self.app.no_envoy:
             self.app.logger.debug("Skipping validation")
             return True
@@ -1349,12 +1351,34 @@ class AmbassadorEventWatcher(threading.Thread):
         validation_config = copy.deepcopy(config)
         # Envoy fails to validate with @type field in envoy config, so removing that
         validation_config.pop('@type')
+
         config_json = json.dumps(validation_config, sort_keys=True, indent=4)
 
-        econf_validation_path = os.path.join(app.snapshot_path, "econf-tmp.json")
+        # Following elements are needed when there is a reference to ads/xds in tls_context (in envoy.json). 
+        # These changes are not needed to be saved in the econf file.
+        validation_config['node'] = bootstrap_config['node']
+        validation_config['dynamic_resources'] = bootstrap_config['dynamic_resources']
+        static_resource_clusters = [cluster for cluster in bootstrap_config['static_resources']['clusters'] if 'xds_cluster' in cluster['name']]
+        if len(static_resource_clusters)>0:
+            validation_config['static_resources']['clusters'].append(static_resource_clusters[0])
+
+        validation_json = json.dumps(validation_config, sort_keys=True, indent=4)
+
+        econf_path = os.path.join(app.snapshot_path, "econf-tmp.json")
+
+        # After we are done with validation, this file will be deleted.
+        # This file has everything that envoy.json has with an additional 
+        # configuration for node and all sds/ads stuff defined in bootstrap_ads.json. 
+        # To be clear, in the tls_context if you use sds/ads, 
+        # you need to provide configurations for xds cluster, ads_config and etc.
+        econf_validation_path = os.path.join(app.snapshot_path, "econf-validation.json")
+        
+
+        with open(econf_path, "w") as output:
+            output.write(config_json)
 
         with open(econf_validation_path, "w") as output:
-            output.write(config_json)
+            output.write(validation_json)
 
         command = ['envoy', '--config-path', econf_validation_path, '--mode', 'validate']
         odict = {
@@ -1384,6 +1408,8 @@ class AmbassadorEventWatcher(threading.Thread):
 
         if odict['exit_code'] == 0:
             self.logger.debug("successfully validated the resulting envoy configuration, continuing...")
+            # No need to keep this file, otherwise mockery dir comparison for gold files would fail.
+            os.remove(econf_validation_path)
             return True
 
         try:
