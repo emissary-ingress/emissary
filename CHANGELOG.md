@@ -48,6 +48,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ## Next Release
 
+- BREAKING CHANGE: Turning off the Diagnostics UI via the Ambassador Module disables access to it from outside the Ambassador Pod.
 - Internal: Configuration endpoints used internally by Ambassador are no longer accessible from outside the Ambassador Pod.
 
 ## [1.5.3] June 16, 2020
