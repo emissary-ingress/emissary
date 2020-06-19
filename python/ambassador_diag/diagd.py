@@ -1177,7 +1177,14 @@ class AmbassadorEventWatcher(threading.Thread):
 
                 app.kubestatus.post(kind, resource_name, namespace, text)
 
-        self.logger.info("configuration updated from snapshot %s" % snapshot)
+
+        group_count = len(app.ir.groups)
+        cluster_count = len(app.ir.clusters)
+        listener_count = len(app.ir.listeners)
+        service_count = len(app.ir.services)
+
+        self.logger.info("configuration updated from snapshot %s (S%d L%d G%d C%d)" % 
+                         (snapshot, service_count, listener_count, group_count, cluster_count))
         self._respond(rqueue, 200, 'configuration updated from snapshot %s' % snapshot)
 
         if app.health_checks and not app.stats_updater:
