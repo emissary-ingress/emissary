@@ -158,6 +158,17 @@ class DiagApp (Flask):
         self.econf_timer = Timer("EConf")
         self.diag_timer = Timer("Diagnostics")
 
+        # When did we last reconfigure?
+        self.last_reconfigure = -1.0
+
+        # What's the longest we'll go without logging the timers?
+        self.timer_log_interval = 60    # seconds
+
+        # When will we next be willing to log the timers? (None means that
+        # we're not ready to log, because no reconfigure has happened since
+        # we last logged.)
+        self.next_timer_log: Optional[float] = None
+
         # For the moment, we're defaulting AMBASSADOR_UPDATE_MAPPING_STATUS
         # to true. Plan is to change this for 1.6.
         ksclass = KubeStatusNoOp
@@ -191,6 +202,39 @@ class DiagApp (Flask):
 
     def check_scout(self, what: str) -> None:
         self.watcher.post("SCOUT", (what, self.ir))
+
+    def post_timer_event(self) -> None:
+        # Post an event to do a timer check.
+        self.watcher.post("TIMER", None)
+
+    def check_timers(self) -> None:
+        # Actually do the timer check.
+        #
+        # First up, we have nothing to do if self.next_timer_log is None...
+
+        if not self.next_timer_log:
+            return
+
+        # ...or if it's set, but it's not yet time.
+
+        now = time.perf_counter()
+
+        if now < self.next_timer_log:
+            # Nope. Bail until we're called again (another second from now).
+            return
+
+        # OK! Log the timers...
+
+        for t in [ self.config_timer,
+                   self.fetcher_timer,
+                   self.aconf_timer,
+                   self.ir_timer,
+                   self.econf_timer,
+                   self.diag_timer ]:
+            self.logger.info(t.summary())
+
+        # ...and reset next_timer_log so we don't log forever.
+        self.next_timer_log = None
 
 
 # get the "templates" directory, or raise "FileNotFoundError" if not found
@@ -872,8 +916,9 @@ class AmbassadorEventWatcher(threading.Thread):
         self.post('ESTATS', '')
 
     def run(self):
-        self.logger.info("starting Scout checker")
+        self.logger.info("starting Scout checker and timer logger")
         self.app.scout_checker = PeriodicTrigger(lambda: self.check_scout("checkin"), period=86400)     # Yup, one day.
+        self.app.timer_logger = PeriodicTrigger(self.app.post_timer_event, period=1)
 
         self.logger.info("starting event watcher")
 
@@ -919,6 +964,13 @@ class AmbassadorEventWatcher(threading.Thread):
                     self.logger.error("could not reconfigure: %s" % e)
                     self.logger.exception(e)
                     self._respond(rqueue, 500, 'scout check failed')
+            elif cmd == 'TIMER':
+                try:
+                    self._respond(rqueue, 200, 'done')
+                    self.app.check_timers()
+                except Exception as e:
+                    self.logger.error("could not check timers? %s" % e)
+                    self.logger.exception(e)
             else:
                 self.logger.error(f"unknown event type: '{cmd}' '{arg}'")
                 self._respond(rqueue, 400, f"unknown event type '{cmd}' '{arg}'")
@@ -1210,13 +1262,11 @@ class AmbassadorEventWatcher(threading.Thread):
         self.logger.info("configuration updated from snapshot %s (S%d L%d G%d C%d)" % 
                          (snapshot, service_count, listener_count, group_count, cluster_count))
 
-        for t in [ self.app.config_timer,
-                   self.app.fetcher_timer,
-                   self.app.aconf_timer,
-                   self.app.ir_timer,
-                   self.app.econf_timer,
-                   self.app.diag_timer ]:
-            self.logger.info(t.summary())
+        # Remember that we've reconfigured...
+        app.last_reconfigure = time.perf_counter()
+
+        # ...and that it'll be OK with us to log timers 10 seconds from now.
+        app.next_timer_log = app.last_reconfigure + 10.0
 
         if app.health_checks and not app.stats_updater:
             app.logger.debug("starting Envoy status updater")
