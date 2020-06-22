@@ -121,8 +121,9 @@ kind:  Module
 metadata:
   name:  ambassador
 spec:
+  ambassador_id: ambassador-1
   config:
-    ambassador_id: ambassador-1
+    ...
 ```
 
 Then, assign each Ambassador pod a unique `AMBASSADOR_ID` with the environment variable as part of your deployment:
