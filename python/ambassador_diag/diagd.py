@@ -1039,12 +1039,16 @@ class AmbassadorEventWatcher(threading.Thread):
 
             return
 
+        # OK, we're starting a reconfiguration.
+        self.app.config_timer.start()
+
         snapshot = re.sub(r'[^A-Za-z0-9_-]', '_', path)
         scc = FSSecretHandler(app.logger, path, app.snapshot_path, "0")
 
-        aconf = Config()
-        fetcher = ResourceFetcher(app.logger, aconf)
-        fetcher.load_from_filesystem(path, k8s=app.k8s, recurse=True)
+        with self.app.fetcher_timer:
+            aconf = Config()
+            fetcher = ResourceFetcher(app.logger, aconf)
+            fetcher.load_from_filesystem(path, k8s=app.k8s, recurse=True)
 
         if not fetcher.elements:
             self.logger.debug("no configuration resources found at %s" % path)
@@ -1056,6 +1060,9 @@ class AmbassadorEventWatcher(threading.Thread):
     def load_config_kubewatch(self, rqueue: queue.Queue, url: str):
         snapshot = url.split('/')[-1]
         ss_path = os.path.join(app.snapshot_path, "snapshot-tmp.yaml")
+
+        # OK, we're starting a reconfiguration.
+        self.app.config_timer.start()
 
         self.logger.debug("copying configuration: kubewatch, %s to %s" % (url, ss_path))
 
@@ -1087,9 +1094,10 @@ class AmbassadorEventWatcher(threading.Thread):
 
         scc = KubewatchSecretHandler(app.logger, url, app.snapshot_path, snapshot)
 
-        aconf = Config()
-        fetcher = ResourceFetcher(app.logger, aconf)
-        fetcher.parse_yaml(serialization, k8s=True)
+        with self.app.fetcher_timer:
+            aconf = Config()
+            fetcher = ResourceFetcher(app.logger, aconf)
+            fetcher.parse_yaml(serialization, k8s=True)
 
         if not fetcher.elements:
             self.logger.debug("no configuration found in snapshot %s" % snapshot)
