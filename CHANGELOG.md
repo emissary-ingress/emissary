@@ -51,6 +51,8 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 ### Ambassador API Gateway + Ambassador Edge Stack
 
 - Bugfix: Allow disabling `Mapping`-status updates (RECOMMENDED: see below)
+- Bugfix: Logging has been made _much_ quieter; the default Envoy log level has been turned down from "warning" to "error"
+- Ambassador now logs timing information about reconfigures
 
 We recommend that users not relying on `Mapping` status updates
 set `AMBASSADOR_UPDATE_MAPPING_STATUS=false` in the environment to
