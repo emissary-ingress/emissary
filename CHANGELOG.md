@@ -48,6 +48,11 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ## Next Release
 
+(no changes yet)
+
+## [1.5.4-rc.0] June 22, 2020
+[1.5.4-rc.0]: https://github.com/datawire/ambassador/compare/v1.5.3...v1.5.4-rc.0
+
 ### Ambassador API Gateway + Ambassador Edge Stack
 
 - Bugfix: Allow disabling `Mapping`-status updates (RECOMMENDED: see below)
