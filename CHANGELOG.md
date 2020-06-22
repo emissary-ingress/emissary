@@ -3,8 +3,9 @@
 This file documents all notable changes to Ambassador Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
-## vNext
+## v6.4.6
 
+- Upgrade Ambassador to version 1.5.4: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
 - Added support setting external IPs for the ambassador service (thanks, [Jason Smith](https://github.com/jasons42)!)
 
 ## v6.4.5
