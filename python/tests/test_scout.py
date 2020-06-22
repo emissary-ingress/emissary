@@ -9,7 +9,8 @@ import pytest
 import requests
 
 DockerImage = os.environ.get("AMBASSADOR_DOCKER_IMAGE", None)
-child = None    # see docker_start()
+child = None                    # see docker_start()
+child_name = "diagd-unset"      # see docker_start() and docker_kill()
 
 SEQUENCES = [
     (
@@ -42,7 +43,10 @@ def docker_start(logfile) -> bool:
     # Use a global here so that the child process doesn't get killed
     global child
 
-    cmd = f'docker run --rm --network {os.environ["DOCKER_NETWORK"]} --network-alias diagd {os.environ["AMBASSADOR_DOCKER_IMAGE"]} --dev-magic'
+    global child_name
+    child_name = f"diagd-{int(time.time() * 1000)}"
+
+    cmd = f'docker run --name {child_name} --rm --network {os.environ["DOCKER_NETWORK"]} --network-alias diagd {os.environ["AMBASSADOR_DOCKER_IMAGE"]} --dev-magic'
 
     child = pexpect.spawn(cmd, encoding='utf-8')
     child.logfile = logfile
@@ -59,7 +63,7 @@ def docker_start(logfile) -> bool:
         return True
 
 def docker_kill(logfile):
-    cmd = f'docker kill diagd'
+    cmd = f'docker kill {child_name}'
 
     child = pexpect.spawn(cmd, encoding='utf-8')
     child.logfile = logfile
