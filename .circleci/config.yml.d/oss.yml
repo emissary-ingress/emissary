@@ -116,7 +116,17 @@ jobs:
             docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
             DEV_KUBECONFIG="-skip-for-release-" make release/bits
 
-  "oss-release-promote":
+  "oss-release-promote-to-rc-latest":
+    <<: *oss-linux-job
+    steps:
+      - oss-linux-setup
+      - run:
+          name: "Promote to -rc-latest"
+          command: |
+            docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
+            DEV_KUBECONFIG="-skip-for-release-" make release/promote-oss/to-rc-latest
+
+  "oss-release-promote-to-ga":
     <<: *oss-linux-job
     steps:
       - oss-linux-setup
@@ -142,10 +152,19 @@ workflows:
           # Run this on just prerelease tags
           filters:
             tags:
-              only: /^v[0-9]+\.[0-9]+\.[0-9]+-.*/
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
             branches:
               ignore: /.*/
-      - "oss-release-promote":
+      - "oss-release-promote-to-rc-latest":
+          requires:
+          - "oss-release-images"
+          # Run this on just RC tags
+          filters:
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$/
+            branches:
+              ignore: /.*/
+      - "oss-release-promote-to-ga":
           # Run this on just GA tags
           filters:
             tags:
