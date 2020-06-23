@@ -53,7 +53,6 @@ spec:
       containers:
       - name: shadow
         image: {self.test_image[shadow]}
-        imagePullPolicy: Always
         ports:
         - name: http
           containerPort: 3000

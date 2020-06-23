@@ -159,7 +159,6 @@ spec:
             - name: AMBASSADOR_ADMIN_URL
               value: http://127.0.0.1:8877
           image: docker.io/datawire/aes:$version$
-          imagePullPolicy: Always
           livenessProbe:
             httpGet:
               path: /ambassador/v0/check_alive
