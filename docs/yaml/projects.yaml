@@ -55,6 +55,44 @@
 # people we should expect to eventually be able to configure an
 # external registry and/or turn off the builtin one.
 ---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: ambassador-projects
+  labels:
+    product: aes
+rules:
+- apiGroups: [""]
+  resources: [ "secrets", "services" ]
+  verbs: [ "get", "list", "create", "patch", "delete", "watch" ]
+- apiGroups: ["apps"]
+  resources: [ "deployments" ]
+  verbs: [ "get", "list", "create", "patch", "delete", "watch" ]
+- apiGroups: ["batch"]
+  resources: [ "jobs" ]
+  verbs: [ "get", "list", "create", "patch", "delete", "watch" ]
+- apiGroups: [""]
+  resources: [ "pods" ]
+  verbs: [ "get", "list", "watch" ]
+- apiGroups: [""]
+  resources: [ "pods/log" ]
+  verbs: [ "get" ]
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: ambassador-projects
+  labels:
+    product: aes
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ambassador-projects
+subjects:
+- kind: ServiceAccount
+  name: ambassador
+  namespace: ambassador
+---
 apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
