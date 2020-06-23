@@ -114,8 +114,18 @@ fi
 # Note that the envoy_config_file really is in ENVOY_DIR, rather than
 # being in AMBASSADOR_CONFIG_BASE_DIR.
 envoy_config_file="${ENVOY_DIR}/envoy.json"         # not a typo, see above
-envoy_flags=('-c' "${ENVOY_BOOTSTRAP_FILE}" "--drain-time-s" "1" "--base-id" "${ENVOY_BASE_ID}")
-envoy_logging=('-l' 'warning')
+envoy_flags=('-c' "${ENVOY_BOOTSTRAP_FILE}" "--base-id" "${ENVOY_BASE_ID}")
+envoy_logging=('-l' 'error')
+
+if [ -n "$AGENT_SERVICE" ]; then
+    # We are the intercept agent. Force Envoy's drain time very low.
+    envoy_flags+=( "--drain-time-s" "1" )
+else
+    # We are not the intercept agent, so leave Envoy's drain time much higher.
+    drain_time="${AMBASSADOR_DRAIN_TIME:-600}"
+    debug "Using drain_time $drain_time"
+    envoy_flags+=( "--drain-time-s" "$drain_time" )
+fi
 
 # AMBASSADOR_DEBUG is a list of things to enable debugging for,
 # separated by spaces; parse that in to an array.

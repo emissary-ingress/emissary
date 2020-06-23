@@ -110,7 +110,9 @@ In getambassador.io.git repository:
 submodules/
 ├── 1.3 <--- links to `release/v1.3` branch
 ├── 1.4 <--- links to `release/v1.4` branch
-└── latest <--- links to `master` branch
+├── 1.5 <--- links to `release/v1.5` branch
+├── latest <--- links to `release/v1.5` branch
+└── pre-release <--- links to `master` branch
 ```
 - All markdown files under `/docs-structure/` directory make their way to the getambassador.io website with the _exact_ path as they are in.
 ```
@@ -127,7 +129,9 @@ docs-structure/
 docs-structure/docs/
 ├── 1.3 -> ../../submodules/1.3/docs
 ├── 1.4 -> ../../submodules/1.4/docs
-└── latest -> ../../submodules/latest/docs
+├── 1.5 -> ../../submodules/1.5/docs
+├── latest -> ../../submodules/1.5/docs
+└── pre-release -> ../../submodules/pre-release/docs
 ```
 
 This is how our docs are laid out.
@@ -137,59 +141,48 @@ In ambassador.git, the CI is configured to update the submodules in getambassado
 #### How to host a new release branch.
 
 After a new major/minor release is cut, this is how to host it on the website.
-For example, let's suppose version 1.4 of ambassador needs to be hosted.
+For example, let's suppose version 1.6 of ambassador needs to be hosted.
 
 ##### In ambassador.git,
 
-- In the branch `release/v1.4`,
-  - In `docs/js/doc-links.yml`, make sure the links are pointed at `/docs/1.4/...`
+- In the branch `release/v1.6`,
+  - In `docs/js/doc-links.yml`, make sure the links are pointed at `/docs/latest/...`
   - In `docs/js/doc-page.js`, update the footer branch.
   ```
-  <DocFooter page={page} branch="release/v1.4" />
-  ```
-  - Update `.travis.yml` to push on every doc change to `release/v1.4` branch.
-  ```yaml
-  deploy:
-  - provider: script
-    script: ./.ci/publish-website
-    skip_cleanup: true
-    on:
-      branch: master
-  # Add this section
-  - provider: script
-    script: ./.ci/publish-website
-    skip_cleanup: true
-    on:
-      branch: release/v1.4
-  - provider: script
-    script: ./.ci/publish-website
-    skip_cleanup: true
-    on:
-      branch: release/v1.3
+  <DocFooter page={page} branch="release/v1.6" />
   ```
 
 ##### In getambassador.io.git,
-- Add the submodule pointing to `release/v1.4` branch to the `submodules/1.4/` directory
+- Add the submodule pointing to `release/v1.6` branch to the `submodules/1.6/` directory
 ```
-git submodule add --name ambassador-1.4 --branch release/v1.4 https://github.com/datawire/ambassador.git submodules/1.4/
+git submodule add --name ambassador-1.6 --branch release/v1.6 https://github.com/datawire/ambassador.git submodules/1.6/
 ```
-- Update the yaml link to point to the new release.
+- Update `ambassador-latest` submodule to point to `release/v1.6` branch.
 ```
-cd docs-structure/
-ln -n -f -s ../submodules/1.4/docs/yaml yaml
+$ cat .gitmodules
+[submodule "ambassador-latest"]
+        path = submodules/latest
+        url = https://github.com/datawire/ambassador.git
+        branch = release/v1.6
+...
+...
+...
 ```
 - Now link only the docs in this branch under `/docs-structure/docs/` directory.
 ```
-cd docs/
-ln -s ../../submodules/1.4/docs 1.4
+cd docs-structure/docs/
+ln -s ../../submodules/1.6/docs 1.6
 ```
-- Add 1.4 dropdown link in `src/components/Header/Header.js` file.
+- Add 1.6 dropdown link in `src/components/Header/Header.js` file.
 ```js
               <li>
                 <div className={classnames(styles.Dropdown, !isDocLink((location || {}).pathname) && styles.hidden)}>
                   <button className={classnames(styles.DropdownButton, styles.DocsDropdownColor)}>{ docsVersion((location || {}).pathname) } ▾</button>
                   <div className={styles.DropdownContent}>
+                    <Link to="/docs/latest/">Pre-release</Link>
                     <Link to="/docs/latest/">Latest</Link>
+                    <Link to="/docs/1.6/">1.6</Link>
+                    <Link to="/docs/1.5/">1.5</Link>
                     <Link to="/docs/1.4/">1.4</Link>
                     <Link to="/docs/1.3/">1.3</Link>
                   </div>
@@ -198,4 +191,4 @@ ln -s ../../submodules/1.4/docs 1.4
 ```
 
 ##### Note:
-Now the website must display v1.4 docs under getambassador.io/docs/1.4/. Make sure everything looks right.
+Now the website must display v1.6 docs under getambassador.io/docs/1.6/ and getambassador.io/docs/latest/. Make sure everything looks right.

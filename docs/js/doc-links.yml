@@ -22,7 +22,7 @@
   - title: Install Manually
     link: /docs/latest/topics/install/yaml-install
   - title: Ambassador Edge Stack Operator
-    link: /docs/latest/topics/install/aes-operator   
+    link: /docs/latest/topics/install/aes-operator
   - title: Install with Edgectl
     link: /docs/latest/topics/install/help/
 - title: Running and Using Ambassador
@@ -44,7 +44,7 @@
     - title: Using Ambassador
       link: /docs/latest/topics/using/
       items: 
-        - title: The Mapping Object
+        - title: The Mapping Resource
           link: /docs/latest/topics/using/intro-mappings
         - title: Mapping Configuration
           link: /docs/latest/topics/using/mappings
@@ -123,6 +123,13 @@
           link: /docs/latest/topics/using/dev-portal
         - title: Edge Policy Console
           link: /docs/latest/topics/using/edge-policy-console
+        - title: The Project Resource
+          link: /docs/latest/topics/using/projects
+          items:
+            - title: Configuring Authentication
+              link: /docs/latest/topics/using/project-authentication
+            - title: Customizing Deployment
+              link: /docs/latest/topics/using/project-customization
     - title: Running Ambassador in Production
       link: /docs/latest/topics/running/
       items: 
@@ -208,6 +215,8 @@
           link: /docs/latest/howtos/oauth-oidc-auth
     - title: Custom Filters
       link: /docs/latest/howtos/filter-dev-guide
+    - title: Deploying to Kubernetes from GitHub
+      link: /docs/latest/tutorials/projects
     - title: Distributed Tracing
       items:
         - title: DataDog
@@ -251,6 +260,6 @@
 - title: Community
   items:
     - title: Contributor's Guide
-      link: https://github.com/datawire/ambassador/blob/master/DEVELOPING.md
+      link: https://github.com/datawire/ambassador/blob/release/v1.5/DEVELOPING.md
     - title: CHANGELOG
-      link: https://github.com/datawire/ambassador/blob/master/CHANGELOG.md
+      link: https://github.com/datawire/ambassador/blob/release/v1.5/CHANGELOG.md
