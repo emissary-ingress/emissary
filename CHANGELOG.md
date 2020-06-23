@@ -48,7 +48,9 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ## Next Release
 
-(no changes yet)
+### Ambassador API Gateway + Ambassador Edge Stack
+
+- Feature: Add support for circuit breakers in TCP mapping
 
 ## [1.5.3] June 16, 2020
 [1.5.3]: https://github.com/datawire/ambassador/compare/v1.5.2...v1.5.3
@@ -73,7 +75,6 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 - Incorporate the [Envoy 1.14.2](https://www.envoyproxy.io/docs/envoy/v1.14.2/intro/version_history#june-8-2020) security update.
 - Upgrade the base Docker images used by several tests (thanks, [Daniel Sutton](https://github.com/ducksecops)!).
-- Feature: Add support for circuit breakers in TCP mapping
 
 ### Ambassador Edge Stack only
 
