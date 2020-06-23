@@ -92,6 +92,11 @@ diagnostics:
   enabled: false
 ```
 
+When configured this way, diagnostics are only available from inside the Ambassador pod(s) via `localhost` networking. You can use Kubernetes port forwarding to set up remote access temporarily:
+
+```
+kubectl port-forward -n ambassador deploy/ambassador 8877
+```
 
 `keepalive` sets the global keepalive settings.
 Ambassador will use for all mappings unless overridden in a
