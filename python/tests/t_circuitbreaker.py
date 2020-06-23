@@ -262,3 +262,76 @@ config:
 
         if failures:
             pytest.xfail("failed:\n  %s" % "\n  ".join(failures))
+
+class CircuitBreakingTCPTest(AmbassadorTest):
+    extra_ports = [ 6789, 6790 ]
+
+    target1: ServiceType
+    target2: ServiceType
+
+    def init(self):
+      self.target1 = HTTP(name="target1")
+      self.target2 = HTTP(name="target2")
+
+    # config() must _yield_ tuples of Node, Ambassador-YAML where the
+    # Ambassador-YAML will be annotated onto the Node.
+
+    def config(self):
+        yield self.target1, self.format("""
+---
+apiVersion: ambassador/v2
+kind:  TCPMapping
+name:  {self.name}-1
+port: 6789
+service: {self.target1.path.fqdn}:80
+""")
+        yield self.target2, self.format("""
+---
+apiVersion: ambassador/v2
+kind:  TCPMapping
+name:  {self.name}-2
+port: 6790
+service: {self.target2.path.fqdn}:80
+circuit_breakers:
+- priority: default
+  max_pending_requests: 1
+  max_connections: 1
+""")
+
+    def queries(self):
+        for i in range(200):
+            yield Query(self.url(self.name, port=6789) , headers={ "Requested-Backend-Delay": "1000" },
+                        ignore_result=True, phase=1)
+        for i in range(200):
+            yield Query(self.url(self.name, port=6790) , headers={ "Requested-Backend-Delay": "1000" },
+                        ignore_result=True, phase=1)
+
+    def check(self):
+        failures = []
+
+        if len(self.results) != 400:
+            failures.append(f'wanted 400 results, got {len(self.results)}')
+        else:
+            default_limit_result = self.results[0:200]
+            low_limit_results = self.results[200:400]
+
+            default_limit_failure = 0
+
+            for result in default_limit_result:
+                if result.error:
+                    default_limit_failure += 1
+
+            if default_limit_failure != 0:
+              failures.append(f'expected no failure with default limit, got {normal_overloaded}')
+
+            low_limit_failure = 0
+
+            for result in low_limit_results:
+                if result.error:
+                    low_limit_failure += 1
+
+            if not 100 < low_limit_failure < 200:
+                failures.append(f'expected 100-200 failure with low limit, got {low_overloaded}')
+
+        if failures:
+            pytest.xfail("failed:\n  %s" % "\n  ".join(failures))

@@ -55,7 +55,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "globalcorstest-http.default",
+                                                "address": "globalcorstest-http",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }

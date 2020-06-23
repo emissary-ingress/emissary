@@ -55,7 +55,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "saferegexmapping-http.default",
+                                                "address": "saferegexmapping-http",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }

@@ -107,7 +107,7 @@
             "service": "authenticationtestv1-http",
             "targets": [
                 {
-                    "ip": "authenticationtestv1-http.default",
+                    "ip": "authenticationtestv1-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -142,12 +142,12 @@
             "service": "authenticationtestv1-ahttp-auth1",
             "targets": [
                 {
-                    "ip": "authenticationtestv1-ahttp-auth1.default",
+                    "ip": "authenticationtestv1-ahttp-auth1",
                     "port": 80,
                     "target_kind": "DNSname"
                 },
                 {
-                    "ip": "authenticationtestv1-ahttp-auth2.default",
+                    "ip": "authenticationtestv1-ahttp-auth2",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -168,6 +168,7 @@
                 "authenticationtestv1.default.2"
             ],
             "_rkey": "authenticationtestv1.default.1",
+            "add_auth_headers": {},
             "add_linkerd_headers": true,
             "allow_request_body": false,
             "allowed_authorization_headers": [
@@ -208,12 +209,12 @@
                 "service": "authenticationtestv1-ahttp-auth1",
                 "targets": [
                     {
-                        "ip": "authenticationtestv1-ahttp-auth1.default",
+                        "ip": "authenticationtestv1-ahttp-auth1",
                         "port": 80,
                         "target_kind": "DNSname"
                     },
                     {
-                        "ip": "authenticationtestv1-ahttp-auth2.default",
+                        "ip": "authenticationtestv1-ahttp-auth2",
                         "port": 80,
                         "target_kind": "DNSname"
                     }
@@ -526,7 +527,7 @@
                         "service": "authenticationtestv1-http",
                         "targets": [
                             {
-                                "ip": "authenticationtestv1-http.default",
+                                "ip": "authenticationtestv1-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -732,7 +733,7 @@
                         "service": "authenticationtestv1-http",
                         "targets": [
                             {
-                                "ip": "authenticationtestv1-http.default",
+                                "ip": "authenticationtestv1-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }

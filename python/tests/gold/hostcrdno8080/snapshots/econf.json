@@ -55,7 +55,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "hostcrdno8080-http.default",
+                                                "address": "hostcrdno8080-http",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }

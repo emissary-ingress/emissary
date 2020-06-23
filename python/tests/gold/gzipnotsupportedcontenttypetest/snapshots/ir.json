@@ -122,7 +122,7 @@
             "service": "gzipnotsupportedcontenttypetest-http",
             "targets": [
                 {
-                    "ip": "gzipnotsupportedcontenttypetest-http.default",
+                    "ip": "gzipnotsupportedcontenttypetest-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -518,7 +518,7 @@
                         "service": "gzipnotsupportedcontenttypetest-http",
                         "targets": [
                             {
-                                "ip": "gzipnotsupportedcontenttypetest-http.default",
+                                "ip": "gzipnotsupportedcontenttypetest-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }

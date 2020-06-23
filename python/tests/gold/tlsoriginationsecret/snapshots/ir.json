@@ -106,7 +106,7 @@
             "service": "tlsoriginationsecret-http",
             "targets": [
                 {
-                    "ip": "tlsoriginationsecret-http.default",
+                    "ip": "tlsoriginationsecret-http",
                     "port": 443,
                     "target_kind": "DNSname"
                 }
@@ -160,7 +160,7 @@
             "service": "tlsoriginationsecret-http",
             "targets": [
                 {
-                    "ip": "tlsoriginationsecret-http.default",
+                    "ip": "tlsoriginationsecret-http",
                     "port": 443,
                     "target_kind": "DNSname"
                 }
@@ -264,7 +264,7 @@
                         "service": "tlsoriginationsecret-http",
                         "targets": [
                             {
-                                "ip": "tlsoriginationsecret-http.default",
+                                "ip": "tlsoriginationsecret-http",
                                 "port": 443,
                                 "target_kind": "DNSname"
                             }
@@ -588,7 +588,7 @@
                         "service": "tlsoriginationsecret-http",
                         "targets": [
                             {
-                                "ip": "tlsoriginationsecret-http.default",
+                                "ip": "tlsoriginationsecret-http",
                                 "port": 443,
                                 "target_kind": "DNSname"
                             }

@@ -55,7 +55,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "authenticationhttpbufferedtest-http.default",
+                                                "address": "authenticationhttpbufferedtest-http",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }
@@ -82,7 +82,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "authenticationhttpbufferedtest-http-auth.default",
+                                                "address": "authenticationhttpbufferedtest-http-auth",
                                                 "port_value": 443,
                                                 "protocol": "TCP"
                                             }

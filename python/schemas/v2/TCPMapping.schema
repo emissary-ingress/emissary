@@ -27,6 +27,23 @@
         "weight": { "type": "integer" },
         "enable_ipv4": { "type": "boolean" },
         "enable_ipv6": { "type": "boolean" },
+        "circuit_breakers": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "priority": {
+                        "type": "string",
+                        "enum": ["default", "high"]
+                    },
+                    "max_connections": { "type": "integer" },
+                    "max_pending_requests": { "type": "integer" },
+                    "max_requests": { "type": "integer" },
+                    "max_retries": { "type": "integer" }
+                },
+                "additionalProperties": false
+            }
+        },
         "resolver": { "type": "string" },
         "tls": { "type": [ "string", "boolean" ] },
         "cluster_tag": { "type": "string" },

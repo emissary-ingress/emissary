@@ -55,7 +55,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "xfpredirect-http.default",
+                                                "address": "xfpredirect-http",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }

@@ -106,7 +106,7 @@
             "service": "hostcrdsingle-http",
             "targets": [
                 {
-                    "ip": "hostcrdsingle-http.default",
+                    "ip": "hostcrdsingle-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -489,7 +489,7 @@
                         "service": "hostcrdsingle-http",
                         "targets": [
                             {
-                                "ip": "hostcrdsingle-http.default",
+                                "ip": "hostcrdsingle-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
