@@ -103,6 +103,8 @@ jobs:
     <<: *oss-linux-job
     steps:
       - oss-linux-setup
+      - skip-if-only-changes:
+          to: docs/
       - oss-images-build-and-test
 
   "oss-release-images":
