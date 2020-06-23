@@ -1,8 +1,0 @@
-MATCH kind Deployment
-MATCH metadata/name ambassador
-MKDICT spec/template/spec/securityContext
-SETINT spec/template/spec/securityContext/runAsUser 8888
-SET spec/template/spec/containers/0/imagePullPolicy Always
-MKDICT spec/template/spec/containers/0/env/2
-SET spec/template/spec/containers/0/env/2/name AMBASSADOR_EXIT_DELAY
-SET spec/template/spec/containers/0/env/2/value 3600
