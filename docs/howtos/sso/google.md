@@ -44,7 +44,7 @@ After creating an OAuth client in Google, configuring Ambassador Edge Stack to m
     apiVersion: getambassador.io/v2
     kind: FilterPolicy
     metadata:
-      name: azure-policy
+      name: google-policy
     spec:
       rules:
           # Requires authentication on requests from any hostname
