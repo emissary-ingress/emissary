@@ -59,8 +59,39 @@ def docker_start(logfile) -> bool:
     elif i == 1:
         print('diagd timed out?')
         return False
-    else:
-        return True
+
+    # Set up port forwarding in the Ambassador container from all:9999, where
+    # this test will connect, to localhost:9998, where diagd is listening. This
+    # is necessary because diagd rejects (403) requests originating outside the
+    # container for security reasons.
+
+    # Copy the simple port forwarding script into the container
+    child2 = pexpect.spawn(f'docker cp python/tests/_forward.py {child_name}:/tmp/', encoding='utf-8')
+    child2.logfile = logfile
+
+    if child2.expect([ pexpect.EOF, pexpect.TIMEOUT ]) == 1:
+        print("docker cp timed out?")
+        return False
+
+    child2.close()
+    if child2.exitstatus != 0:
+        print("docker cp failed?")
+        return False
+
+    # Run the port forwarding script
+    child2 = pexpect.spawn(f'docker exec -d {child_name} python /tmp/_forward.py localhost 9998 "" 9999', encoding='utf-8')
+    child2.logfile = logfile
+
+    if child2.expect([ pexpect.EOF, pexpect.TIMEOUT ]) == 1:
+        print("docker exec timed out?")
+        return False
+
+    child2.close()
+    if child2.exitstatus != 0:
+        print("docker exec failed?")
+        return False
+
+    return True
 
 def docker_kill(logfile):
     cmd = f'docker kill {child_name}'
@@ -78,7 +109,7 @@ def wait_for_diagd(logfile) -> bool:
         logfile.write(f'...checking diagd ({tries_left})\n')
 
         try:
-            response = requests.get('http://diagd:9998/_internal/v0/ping')
+            response = requests.get('http://diagd:9999/_internal/v0/ping')
 
             if response.status_code == 200:
                 logfile.write('   got it\n')
@@ -96,7 +127,7 @@ def wait_for_diagd(logfile) -> bool:
 
 def check_http(logfile, cmd: str) -> bool:
     try:
-        response = requests.post('http://diagd:9998/_internal/v0/fs', params={ 'path': f'cmd:{cmd}' })
+        response = requests.post('http://diagd:9999/_internal/v0/fs', params={ 'path': f'cmd:{cmd}' })
         text = response.text
 
         if response.status_code != 200:
@@ -111,7 +142,7 @@ def check_http(logfile, cmd: str) -> bool:
 
 def fetch_events(logfile) -> Any:
     try:
-        response = requests.get('http://diagd:9998/_internal/v0/events')
+        response = requests.get('http://diagd:9999/_internal/v0/events')
 
         if response.status_code != 200:
             logfile.write(f'events: wanted 200 but got {response.status_code} {response.text}\n')
