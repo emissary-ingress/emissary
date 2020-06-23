@@ -27,7 +27,7 @@ sed -i '39iif (url.endsWith(".pdf")) { return Promise.reject(); }' node_modules/
 popd
 
 cd /tmp/getambassador.io-blc
-./blc.js https://getambassador.io/ > /tmp/blc.txt
+./blc.js https://getambassador.io/ | tee /tmp/blc.txt
 
 set +o verbose
 num_complaints=$(grep ^Page /tmp/blc.txt | sort -u | wc -l)
@@ -39,7 +39,8 @@ if [[ $num_complaints -eq 0 ]]; then
 	printf "%s======================= 0 broken-link-checker complaints =======================%s\n" "$GRN$BLD" "$END"
 else
 	printf "%s======================= %d broken-link-checker complaints ======================%s\n" "$RED$BLD" $num_complaints "$END"
-	grep ^Page /tmp/blc.txt | sort -u
+	grep ^Page /tmp/blc.txt | sort -u | tee /tmp/complaints.txt
 	printf "%s====================== end broken-link-checker complaints ======================%s\n" "$RED$BLD" "$END"
+	sed -i 's/"//g' /tmp/complaints.txt
 	exit 1
 fi
