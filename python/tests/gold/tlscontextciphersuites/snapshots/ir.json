@@ -106,7 +106,7 @@
             "service": "tlscontextciphersuites-http",
             "targets": [
                 {
-                    "ip": "tlscontextciphersuites-http.default",
+                    "ip": "tlscontextciphersuites-http",
                     "port": 443,
                     "target_kind": "DNSname"
                 }
@@ -409,7 +409,7 @@
                         "service": "tlscontextciphersuites-http",
                         "targets": [
                             {
-                                "ip": "tlscontextciphersuites-http.default",
+                                "ip": "tlscontextciphersuites-http",
                                 "port": 443,
                                 "target_kind": "DNSname"
                             }

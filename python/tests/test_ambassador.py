@@ -29,7 +29,7 @@ import t_tls
 import t_tracing
 import t_retrypolicy
 import t_consul
-#import t_circuitbreaker
+import t_circuitbreaker
 import t_envoy_logs
 import t_ingress
 import t_listeneridletimeout

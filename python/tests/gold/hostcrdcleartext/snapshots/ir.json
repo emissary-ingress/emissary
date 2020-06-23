@@ -106,7 +106,7 @@
             "service": "hostcrdcleartext-http",
             "targets": [
                 {
-                    "ip": "hostcrdcleartext-http.default",
+                    "ip": "hostcrdcleartext-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -489,7 +489,7 @@
                         "service": "hostcrdcleartext-http",
                         "targets": [
                             {
-                                "ip": "hostcrdcleartext-http.default",
+                                "ip": "hostcrdcleartext-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }

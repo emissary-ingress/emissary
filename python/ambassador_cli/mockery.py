@@ -44,7 +44,7 @@ click_option = functools.partial(click.option, show_default=True)
 click_option_no_default = functools.partial(click.option, show_default=False)
 
 from ambassador import Config, IR, Diagnostics, EnvoyConfig
-from ambassador.config.resourcefetcher import ResourceFetcher
+from ambassador.fetch import ResourceFetcher
 from ambassador.utils import parse_yaml, SecretHandler, SecretInfo
 from kat.utils import ShellCommand
 

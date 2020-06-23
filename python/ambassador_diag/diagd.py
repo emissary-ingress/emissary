@@ -48,7 +48,7 @@ from gunicorn.six import iteritems
 from ambassador import Config, IR, EnvoyConfig, Diagnostics, Scout, Version
 from ambassador.utils import SystemInfo, Timer, PeriodicTrigger, SavedSecret, load_url_contents
 from ambassador.utils import SecretHandler, KubewatchSecretHandler, FSSecretHandler
-from ambassador.config.resourcefetcher import ResourceFetcher
+from ambassador.fetch import ResourceFetcher
 
 from ambassador.diagnostics import EnvoyStats
 
@@ -1517,9 +1517,9 @@ class AmbassadorEventWatcher(threading.Thread):
                 break
             except subprocess.TimeoutExpired as e:
                 odict['exit_code'] = 1
-                odict['output'] = e.output
+                odict['output'] = e.output or ''
                 self.logger.warn("envoy configuration validation timed out after {} seconds{}\n{}",
-                    timeout, ', retrying...' if retry < retries - 1 else '', e.output)
+                    timeout, ', retrying...' if retry < retries - 1 else '', odict['output'])
                 continue
 
         if odict['exit_code'] == 0:

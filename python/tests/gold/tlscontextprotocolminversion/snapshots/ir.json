@@ -106,7 +106,7 @@
             "service": "tlscontextprotocolminversion-http",
             "targets": [
                 {
-                    "ip": "tlscontextprotocolminversion-http.default",
+                    "ip": "tlscontextprotocolminversion-http",
                     "port": 443,
                     "target_kind": "DNSname"
                 }
@@ -409,7 +409,7 @@
                         "service": "tlscontextprotocolminversion-http",
                         "targets": [
                             {
-                                "ip": "tlscontextprotocolminversion-http.default",
+                                "ip": "tlscontextprotocolminversion-http",
                                 "port": 443,
                                 "target_kind": "DNSname"
                             }

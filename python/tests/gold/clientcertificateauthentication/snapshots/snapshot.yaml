@@ -25,16 +25,16 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"data\":{\"tls.crt\":\"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUR1RENDQXFDZ0F3SUJBZ0lKQUowWDU3ZXlwQk5UTUEwR0NTcUdTSWIzRFFFQkN3VUFNSEV4Q3pBSkJnTlYKQkFZVEFsVlRNUXN3Q1FZRFZRUUlEQUpOUVRFUE1BMEdBMVVFQnd3R1FtOXpkRzl1TVJFd0R3WURWUVFLREFoRQpZWFJoZDJseVpURVVNQklHQTFVRUN3d0xSVzVuYVc1bFpYSnBibWN4R3pBWkJnTlZCQU1NRW0xaGMzUmxjaTVrCllYUmhkMmx5WlM1cGJ6QWVGdzB4T1RBeE1UQXhPVEF6TXpCYUZ3MHlOREF4TURreE9UQXpNekJhTUhFeEN6QUoKQmdOVkJBWVRBbFZUTVFzd0NRWURWUVFJREFKTlFURVBNQTBHQTFVRUJ3d0dRbTl6ZEc5dU1SRXdEd1lEVlFRSwpEQWhFWVhSaGQybHlaVEVVTUJJR0ExVUVDd3dMUlc1bmFXNWxaWEpwYm1jeEd6QVpCZ05WQkFNTUVtMWhjM1JsCmNpNWtZWFJoZDJseVpTNXBiekNDQVNJd0RRWUpLb1pJaHZjTkFRRUJCUUFEZ2dFUEFEQ0NBUW9DZ2dFQkFPdlEKVjVad1NmcmQ1Vndtelo5SmNoOTdyUW40OXA2b1FiNkVIWjF5T2EyZXZBNzE2NWpkMHFqS1BPMlgyRk80MVg4QgpwQWFLZExnMmltaC9wL2NXN2JncjNHNnRHVEZVMVZHanllTE1EV0Q1MGV2TTYydnpYOFRuYVV6ZFRHTjFOdTM2CnJaM2JnK0VLcjhFYjI1b2RabEpyMm1mNktSeDdTcjZzT1N4NlE1VHhSb3NycmZ0d0tjejI5cHZlMGQ4b0NiZGkKRFJPVlZjNXpBaW0zc2Nmd3VwRUJrQzYxdlpKMzhmaXYwRENYOVpna3BMdEZKUTllTEVQSEdKUGp5ZmV3alNTeQovbk52L21Sc2J6aUNtQ3R3Z3BmbFRtODljK3EzSWhvbUE1YXhZQVFjQ0NqOXBvNUhVZHJtSUJKR0xBTVZ5OWJ5CkZnZE50aFdBeHZCNHZmQXl4OXNDQXdFQUFhTlRNRkV3SFFZRFZSME9CQllFRkdUOVAvOHBQeGI3UVJVeFcvV2gKaXpkMnNnbEtNQjhHQTFVZEl3UVlNQmFBRkdUOVAvOHBQeGI3UVJVeFcvV2hpemQyc2dsS01BOEdBMVVkRXdFQgovd1FGTUFNQkFmOHdEUVlKS29aSWh2Y05BUUVMQlFBRGdnRUJBS3NWT2Fyc01aSXhLOUpLUzBHVHNnRXNjYThqCllhTDg1YmFsbndBbnBxMllSMGNIMlhvd2dLYjNyM3VmbVRCNERzWS9RMGllaENKeTMzOUJyNjVQMVBKMGgvemYKZEZOcnZKNGlvWDVMWnc5YkowQVFORCtZUTBFK010dFppbE9DbHNPOVBCdm1tUEp1dWFlYVdvS2pWZnNOL1RjMAoycUxVM1pVMHo5bmhYeDZlOWJxYUZLSU1jYnFiVk9nS2p3V0ZpbDlkRG4vQ29KbGFUUzRJWjlOaHFjUzhYMXd0ClQybWQvSUtaaEtKc3A3VlBGeDU5ZWhuZ0VPakZocGhzd20xdDhnQWVxL1A3SkhaUXlBUGZYbDNyZDFSQVJuRVIKQUpmVUxET2tzWFNFb2RTZittR0NrVWh1b2QvaDhMTUdXTFh6Q2d0SHBKMndaVHA5a1ZWVWtKdkpqSVU9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K\"},\"kind\":\"Secret\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"clientcertificateauthentication\",\"scope\":\"AmbassadorTest\"},\"name\":\"test-clientcert-client-secret\",\"namespace\":\"default\"},\"type\":\"Opaque\"}\n"
                     },
-                    "creationTimestamp": "2020-05-14T17:40:11Z",
+                    "creationTimestamp": "2020-06-16T21:34:22Z",
                     "labels": {
                         "kat-ambassador-id": "clientcertificateauthentication",
                         "scope": "AmbassadorTest"
                     },
                     "name": "test-clientcert-client-secret",
                     "namespace": "default",
-                    "resourceVersion": "65695",
+                    "resourceVersion": "35046",
                     "selfLink": "/api/v1/namespaces/default/secrets/test-clientcert-client-secret",
-                    "uid": "f5e1c86b-9609-11ea-ae16-06e21b589211"
+                    "uid": "2473f734-b019-11ea-8d61-42010a8401c0"
                 },
                 "type": "Opaque"
             },
@@ -49,16 +49,16 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"data\":{\"tls.crt\":\"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURaekNDQWs4Q0NRQ3JLNzRhM0dGaGlUQU5CZ2txaGtpRzl3MEJBUXNGQURCeE1Rc3dDUVlEVlFRR0V3SlYKVXpFTE1Ba0dBMVVFQ0F3Q1RVRXhEekFOQmdOVkJBY01Ca0p2YzNSdmJqRVJNQThHQTFVRUNnd0lSR0YwWVhkcApjbVV4RkRBU0JnTlZCQXNNQzBWdVoybHVaV1Z5YVc1bk1Sc3dHUVlEVlFRRERCSnRZWE4wWlhJdVpHRjBZWGRwCmNtVXVhVzh3SGhjTk1Ua3dNVEV3TVRrd056TTRXaGNOTWprd01UQTNNVGt3TnpNNFdqQjZNUXN3Q1FZRFZRUUcKRXdKSlRqRUxNQWtHQTFVRUNBd0NTMEV4RWpBUUJnTlZCQWNNQ1VKaGJtZGhiRzl5WlRFVE1CRUdBMVVFQ2d3SwpRVzFpWVhOellXUnZjakVVTUJJR0ExVUVDd3dMUlc1bmFXNWxaWEpwYm1jeEh6QWRCZ05WQkFNTUZtRnRZbUZ6CmMyRmtiM0l1WlhoaGJYQnNaUzVqYjIwd2dnRWlNQTBHQ1NxR1NJYjNEUUVCQVFVQUE0SUJEd0F3Z2dFS0FvSUIKQVFDN1liY3o5SkZOSHVYY3pvZERrTURvUXd0M1pmQnpjaElwTFlkeHNDZnB1UUYybGNmOGxXMEJKNnZlNU0xTAovMjNZalFYeEFsV25VZ3FZdFlEL1hiZGh3RCtyRWx3RXZWUzR1US9IT2EyUTUwVkF6SXNYa0lxWm00dVA1QzNECk8rQ0NncXJ3UUgzYS8vdlBERldYWkUyeTJvcUdZdE1Xd20zVXQrYnFWSFEzOThqcTNoaGt3MmNXL0pLTjJkR2UKRjk0OWxJWG15NHMrbGE3b21RWldWY0JFcWdQVzJDL1VrZktSbVdsVkRwK0duSk8vZHFobDlMN3d2a2hhc2JETAphbVkweXdiOG9LSjFRdmlvV1JxcjhZZnQ5NzVwaGgzazRlRVdMMUNFTmxFK09vUWNTNVRPUEdndko3WlMyaU43CllVTDRBK0gydCt1WWdUdnFSYVNqcTdnckFnTUJBQUV3RFFZSktvWklodmNOQVFFTEJRQURnZ0VCQUJURGJ4MzkKUGpoT2JpVW1Rdm9vbVhOVjJ1TG1FZkxJcGlKQUhWOTM0VTlmMnhVUS93eExkcElhVXM0WTlRSzhOR2h2U3dSSAp4Y2w4R2hGYzBXRDRoNEJTdmNhdUdVS21LRzh5ZVFhdGhGVjBzcGFHYjUvaFBqUVdDWnNYK3crbjU4WDROOHBrCmx5YkE4akZGdUZlb3R3Z1l6UUhzQUppU29DbW9OQ0ZkaE4xT05FS1FMY1gxT2NRSUFUd3JVYzRBRkw2Y0hXZ1MKb1FOc3BTMlZIbENsVkpVN0E3Mkh4R3E5RFVJOWlaMmYxVnc1Rmpod0dxalBQMDJVZms1Tk9RNFgzNWlrcjlDcApyQWtJSnh1NkZPUUgwbDBmZ3VNUDlsUFhJZndlMUowQnNLZHRtd2wvcHp0TVV5dW5TbURVWEgyR1l5YmdQTlQyCnNMVFF1RFZaR0xmbFJUdz0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=\",\"tls.key\":\"LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFcEFJQkFBS0NBUUVBdTJHM00vU1JUUjdsM002SFE1REE2RU1MZDJYd2MzSVNLUzJIY2JBbjZia0JkcFhICi9KVnRBU2VyM3VUTlMvOXQySTBGOFFKVnAxSUttTFdBLzEyM1ljQS9xeEpjQkwxVXVMa1B4em10a09kRlFNeUwKRjVDS21adUxqK1F0d3p2Z2dvS3E4RUI5MnYvN3p3eFZsMlJOc3RxS2htTFRGc0p0MUxmbTZsUjBOL2ZJNnQ0WQpaTU5uRnZ5U2pkblJuaGZlUFpTRjVzdUxQcFd1NkprR1ZsWEFSS29EMXRndjFKSHlrWmxwVlE2ZmhweVR2M2FvClpmUys4TDVJV3JHd3kycG1OTXNHL0tDaWRVTDRxRmthcS9HSDdmZSthWVlkNU9IaEZpOVFoRFpSUGpxRUhFdVUKemp4b0x5ZTJVdG9qZTJGQytBUGg5cmZybUlFNzZrV2tvNnU0S3dJREFRQUJBb0lCQVFDbmZrZjViQko1Z2pYcgpzcnliKzRkRDFiSXBMdmpJNk4wczY2S1hUK1BOZW03QlprOVdDdWRkMGUxQ2x2aWZoeG5VS1BKM3BTT1ZKYk9OCkh5aklteWV4ZTl3dGVZTEJSYysyTXMzVXdrelFLcm52bXlaMWtPRWpQek40RW5tSmV6dEt6YXdvaHkwNGxmcXEKNzVhT2RiMHlNMEVCc05LSkZKQ0NSVVJtajhrMndJQXIwbHFhV0ZNcGlYT3FzTXBvWTZMY3plaGlMZHU0bUFaSQpRRHhCM3dLVGpmdGNIdzcxTmFKZlg5V2t2OFI4ZWlqeWpNOUl2Y1cwZmRQem9YVTBPZEFTa09ZRlFIZHlCUFNiCjllNWhDSGFJczZia1hBOEs4YmZRazBSL0d6STcyVXArd0JrbnJnTlhZTXFudHJSa0ljNURER1g0b3VOc2lqUkoKSWtrWER2TjVBb0dCQU8veFQrNTYyQ2hwc3R2NUpvMi9ycFdGb05tZ3ZJT0RMRGxiamhHZEpqKytwNk1BdjFQWgo2d042WnozMmppUG1OYzdCK2hrQm40RFQvVkFpU3NLRG1SK09tUkg1TVNzQXh6aWRxU3lNcldxdG1lMDNBVzd6Cklja0FNTGdwWHhDdW1HMzRCM2Jxb3VUdGVRdm5WcmRlR2hvdUJ5OUJSMVpXbnRtWHVscVhyNUFmQW9HQkFNZnIKN29NVGwzdUVVeml5a0IzYmkxb0RYdUNjN01Qc3h0c1IwdElqZXc3RStwTGoyaUxXZUZuMGVhdnJYaHQ1ODRJbwpDZG90a1ZMMHhrZ1g3M2ZremxEd1hobTJVTXBaQmxzSzBnR09SaUYzd0ZMU0hJNmxRUmJkaXRIb0JqcDRGTEZzCitlanZKUDZ1ZitBekZ5cjBLTnc3TnpyaCthbFhFQ09RS2NqUXJlWjFBb0dBQXRLZzhScEszcmJYbnRUZ2lqeGUKRG01REJTeHA2MVlvdUFnR3ROaFhjZHFKV0ZhUzZhYWZxQ3ZSZVI0a2IvR3VZbDlQMU9sNitlWUVqZVBKWTE1dQo5N3NTdSs1bGtLN3lxUXpaeDZka0J1UkI4bE42VmRiUVorL3pvc2NCMGsxcmg2ZXFWdEROMThtZmFlOXZ5cnAxCnJpY3FlSGpaSVAvbDRJTnpjc3RrQ2xzQ2dZQmh5TVZkZVZ5emZuS1NIY3lkdmY5MzVJUW9pcmpIeiswbnc1MEIKU1hkc0x1NThvRlBXakY1TGFXZUZybGJXUzV6T1FiVW44UGZPd29pbFJJZk5kYTF3SzFGcmRDQXFDTWN5Q3FYVApPdnFVYmhVMHJTNW9tdTJ1T0dnbzZUcjZxRGMrM1JXVFdEMFpFTkxkSDBBcXMwZTFDSVdvR0ZWYi9ZaVlUSEFUCmwvWW03UUtCZ1FEcFYvSjRMakY5VzBlUlNXenFBaDN1TStCdzNNN2NEMUxnUlZ6ZWxGS2w2ZzRBMWNvdU8wbHAKalpkMkVMZDlzTHhBVENVeFhQZ0dDTjY0RVNZSi92ZUozUmJzMTMrU2xqdjRleTVKck1ieEhNRC9CU1ovY2VjaAp4aFNWNkJsMHVKb2tlMTRPMEJ3OHJzSUlxZTVZSUxqSlMwL2E2eTllSlJtaGZJVG9PZU5PTUE9PQotLS0tLUVORCBSU0EgUFJJVkFURSBLRVktLS0tLQo=\"},\"kind\":\"Secret\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"clientcertificateauthentication\",\"scope\":\"AmbassadorTest\"},\"name\":\"test-clientcert-server-secret\",\"namespace\":\"default\"},\"type\":\"kubernetes.io/tls\"}\n"
                     },
-                    "creationTimestamp": "2020-05-14T17:40:11Z",
+                    "creationTimestamp": "2020-06-16T21:34:22Z",
                     "labels": {
                         "kat-ambassador-id": "clientcertificateauthentication",
                         "scope": "AmbassadorTest"
                     },
                     "name": "test-clientcert-server-secret",
                     "namespace": "default",
-                    "resourceVersion": "65697",
+                    "resourceVersion": "35048",
                     "selfLink": "/api/v1/namespaces/default/secrets/test-clientcert-server-secret",
-                    "uid": "f5fbea73-9609-11ea-ae16-06e21b589211"
+                    "uid": "247f7ab4-b019-11ea-8d61-42010a8401c0"
                 },
                 "type": "kubernetes.io/tls"
             }
@@ -69,10 +69,54 @@
                 "kind": "Service",
                 "metadata": {
                     "annotations": {
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"clientcertificateauthentication\",\"scope\":\"AmbassadorTest\"},\"name\":\"clientcertificateauthentication-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8123},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8486}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
+                    },
+                    "creationTimestamp": "2020-06-16T21:34:24Z",
+                    "labels": {
+                        "kat-ambassador-id": "clientcertificateauthentication",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "clientcertificateauthentication-http",
+                    "namespace": "default",
+                    "resourceVersion": "35082",
+                    "selfLink": "/api/v1/namespaces/default/services/clientcertificateauthentication-http",
+                    "uid": "25e8e707-b019-11ea-8d61-42010a8401c0"
+                },
+                "spec": {
+                    "clusterIP": "10.16.7.40",
+                    "ports": [
+                        {
+                            "name": "http",
+                            "port": 80,
+                            "protocol": "TCP",
+                            "targetPort": 8123
+                        },
+                        {
+                            "name": "https",
+                            "port": 443,
+                            "protocol": "TCP",
+                            "targetPort": 8486
+                        }
+                    ],
+                    "selector": {
+                        "backend": "superpod-default"
+                    },
+                    "sessionAffinity": "None",
+                    "type": "ClusterIP"
+                },
+                "status": {
+                    "loadBalancer": {}
+                }
+            },
+            {
+                "apiVersion": "v1",
+                "kind": "Service",
+                "metadata": {
+                    "annotations": {
                         "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind: Module\nambassador_id: clientcertificateauthentication\nname: tls\nconfig:\n  server:\n    enabled: True\n    secret: test-clientcert-server-secret\n  client:\n    enabled: True\n    secret: test-clientcert-client-secret\n    cert_required: True\n\n---\napiVersion: ambassador/v0\nkind: Mapping\nname: clientcertificateauthentication-http\nprefix: /ClientCertificateAuthentication/\nservice: clientcertificateauthentication-http\nambassador_id: clientcertificateauthentication\n",
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v0\\nkind: Module\\nambassador_id: clientcertificateauthentication\\nname: tls\\nconfig:\\n  server:\\n    enabled: True\\n    secret: test-clientcert-server-secret\\n  client:\\n    enabled: True\\n    secret: test-clientcert-client-secret\\n    cert_required: True\\n\\n---\\napiVersion: ambassador/v0\\nkind: Mapping\\nname: clientcertificateauthentication-http\\nprefix: /ClientCertificateAuthentication/\\nservice: clientcertificateauthentication-http\\nambassador_id: clientcertificateauthentication\\n\"},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"clientcertificateauthentication\",\"scope\":\"AmbassadorTest\"},\"name\":\"clientcertificateauthentication\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"clientcertificateauthentication\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-05-14T17:40:12Z",
+                    "creationTimestamp": "2020-06-16T21:34:23Z",
                     "labels": {
                         "app.kubernetes.io/component": "ambassador-service",
                         "kat-ambassador-id": "clientcertificateauthentication",
@@ -80,24 +124,24 @@
                     },
                     "name": "clientcertificateauthentication",
                     "namespace": "default",
-                    "resourceVersion": "65714",
+                    "resourceVersion": "35060",
                     "selfLink": "/api/v1/namespaces/default/services/clientcertificateauthentication",
-                    "uid": "f67145e6-9609-11ea-ae16-06e21b589211"
+                    "uid": "2564e20b-b019-11ea-8d61-42010a8401c0"
                 },
                 "spec": {
-                    "clusterIP": "10.106.23.110",
+                    "clusterIP": "10.16.12.161",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "http",
-                            "nodePort": 31226,
+                            "nodePort": 31306,
                             "port": 80,
                             "protocol": "TCP",
                             "targetPort": 8080
                         },
                         {
                             "name": "https",
-                            "nodePort": 30895,
+                            "nodePort": 31485,
                             "port": 443,
                             "protocol": "TCP",
                             "targetPort": 8443
@@ -120,7 +164,7 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"clientcertificateauthentication\",\"scope\":\"AmbassadorTest\",\"service\":\"clientcertificateauthentication-admin\"},\"name\":\"clientcertificateauthentication-admin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"clientcertificateauthentication-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"clientcertificateauthentication\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-05-14T17:40:12Z",
+                    "creationTimestamp": "2020-06-16T21:34:23Z",
                     "labels": {
                         "kat-ambassador-id": "clientcertificateauthentication",
                         "scope": "AmbassadorTest",
@@ -128,17 +172,17 @@
                     },
                     "name": "clientcertificateauthentication-admin",
                     "namespace": "default",
-                    "resourceVersion": "65719",
+                    "resourceVersion": "35065",
                     "selfLink": "/api/v1/namespaces/default/services/clientcertificateauthentication-admin",
-                    "uid": "f681526f-9609-11ea-ae16-06e21b589211"
+                    "uid": "2593438e-b019-11ea-8d61-42010a8401c0"
                 },
                 "spec": {
-                    "clusterIP": "10.98.195.91",
+                    "clusterIP": "10.16.12.229",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "clientcertificateauthentication-admin",
-                            "nodePort": 30457,
+                            "nodePort": 31783,
                             "port": 8877,
                             "protocol": "TCP",
                             "targetPort": 8877
@@ -149,50 +193,6 @@
                     },
                     "sessionAffinity": "None",
                     "type": "NodePort"
-                },
-                "status": {
-                    "loadBalancer": {}
-                }
-            },
-            {
-                "apiVersion": "v1",
-                "kind": "Service",
-                "metadata": {
-                    "annotations": {
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"clientcertificateauthentication\",\"scope\":\"AmbassadorTest\"},\"name\":\"clientcertificateauthentication-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8123},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8486}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
-                    },
-                    "creationTimestamp": "2020-05-14T17:40:12Z",
-                    "labels": {
-                        "kat-ambassador-id": "clientcertificateauthentication",
-                        "scope": "AmbassadorTest"
-                    },
-                    "name": "clientcertificateauthentication-http",
-                    "namespace": "default",
-                    "resourceVersion": "65726",
-                    "selfLink": "/api/v1/namespaces/default/services/clientcertificateauthentication-http",
-                    "uid": "f69afaba-9609-11ea-ae16-06e21b589211"
-                },
-                "spec": {
-                    "clusterIP": "10.97.89.69",
-                    "ports": [
-                        {
-                            "name": "http",
-                            "port": 80,
-                            "protocol": "TCP",
-                            "targetPort": 8123
-                        },
-                        {
-                            "name": "https",
-                            "port": 443,
-                            "protocol": "TCP",
-                            "targetPort": 8486
-                        }
-                    ],
-                    "selector": {
-                        "backend": "superpod-default"
-                    },
-                    "sessionAffinity": "None",
-                    "type": "ClusterIP"
                 },
                 "status": {
                     "loadBalancer": {}

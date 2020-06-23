@@ -77,6 +77,10 @@ The default value of `AMBASSADOR_UPDATE_MAPPING_STATUS` will change to
 - Bugfix: Allow deletion of ProjectControllers.
 - Bugfix: Fix regression introduced in 1.4.2 where the `OAuth2` AuthorizationCode filter no longer works when behind another gateway that rewrites the request hostname.  The behavior here is now controllable via the `internalOrigin` sub-field.
 
+### Ambassador API Gateway + Ambassador Edge Stack
+
+- Bugfix: Read Knative ingress generation from the correct place in the Kubernetes object
+
 ## [1.5.2] June 10, 2020
 [1.5.2]: https://github.com/datawire/ambassador/compare/v1.5.1...v1.5.2
 
@@ -84,6 +88,7 @@ The default value of `AMBASSADOR_UPDATE_MAPPING_STATUS` will change to
 
 - Incorporate the [Envoy 1.14.2](https://www.envoyproxy.io/docs/envoy/v1.14.2/intro/version_history#june-8-2020) security update.
 - Upgrade the base Docker images used by several tests (thanks, [Daniel Sutton](https://github.com/ducksecops)!).
+- Feature: Add support for circuit breakers in TCP mapping
 
 ### Ambassador Edge Stack only
 
