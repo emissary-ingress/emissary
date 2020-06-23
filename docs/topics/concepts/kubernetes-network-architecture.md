@@ -1,6 +1,6 @@
 # Kubernetes Network Architecture
 
-## Kubrernetes has its own isolated network
+## Kubernetes has its own isolated network
 
 Each Kubernetes cluster provides its own isolated network namespace. This approach has a number of benefits. For example, each pod can be easily accessed with its own IP address. One of the consequences of this approach, however, is that a network bridge is required in order to route traffic from outside the Kubernetes cluster to services inside the cluster.
 

@@ -52,6 +52,21 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 - Feature: Add support for circuit breakers in TCP mapping
 
+## [1.5.4] June 23, 2020
+[1.5.4]: https://github.com/datawire/ambassador/compare/v1.5.3...v1.5.4
+
+### Ambassador API Gateway + Ambassador Edge Stack
+
+- Bugfix: Allow disabling `Mapping`-status updates (RECOMMENDED: see below)
+- Bugfix: Logging has been made _much_ quieter; the default Envoy log level has been turned down from "warning" to "error"
+- Ambassador now logs timing information about reconfigures
+
+We recommend that users set `AMBASSADOR_UPDATE_MAPPING_STATUS=false`
+in the environment to tell Ambassador not to update `Mapping` statuses
+unless you have some script that relies on `Mapping` status updates.
+The default value of `AMBASSADOR_UPDATE_MAPPING_STATUS` will change to
+`false` in Ambassador 1.6.
+
 ## [1.5.3] June 16, 2020
 [1.5.3]: https://github.com/datawire/ambassador/compare/v1.5.2...v1.5.3
 
