@@ -137,8 +137,7 @@ class KnativeIngressProcessor (ManagedKubernetesProcessor):
         return status
 
     def _update_status(self, obj: KubernetesObject) -> None:
-        current_generation = obj.spec.get('generation', 1)
-        has_new_generation = current_generation > obj.status.get('observedGeneration', 0)
+        has_new_generation = obj.generation > obj.status.get('observedGeneration', 0)
 
         # Knative expects the load balancer information on the ingress, which it
         # then propagates to an ExternalName service for intra-cluster use. We
@@ -163,7 +162,7 @@ class KnativeIngressProcessor (ManagedKubernetesProcessor):
         has_new_lb_domain = current_lb_domain != observed_lb_domain
 
         if has_new_generation or has_new_lb_domain:
-            status = self._make_status(generation=current_generation, lb_domain=current_lb_domain)
+            status = self._make_status(generation=obj.generation, lb_domain=current_lb_domain)
             status_update = (obj.gvk.domain, obj.namespace, status)
 
             self.logger.info(f"Updating Knative {obj.kind} {obj.name} status to {status_update}")

@@ -55,7 +55,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "tlscontextstest-http.default",
+                                                "address": "tlscontextstest-http",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }

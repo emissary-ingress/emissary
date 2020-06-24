@@ -92,6 +92,47 @@ subjects:
   namespace: ambassador
 
 ######################################################################
+# Project RBAC
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: ambassador-projects
+  labels:
+    product: aes
+rules:
+- apiGroups: [""]
+  resources: [ "secrets", "services" ]
+  verbs: [ "get", "list", "create", "patch", "delete", "watch" ]
+- apiGroups: ["apps"]
+  resources: [ "deployments" ]
+  verbs: [ "get", "list", "create", "patch", "delete", "watch" ]
+- apiGroups: ["batch"]
+  resources: [ "jobs" ]
+  verbs: [ "get", "list", "create", "patch", "delete", "watch" ]
+- apiGroups: [""]
+  resources: [ "pods" ]
+  verbs: [ "get", "list", "watch" ]
+- apiGroups: [""]
+  resources: [ "pods/log" ]
+  verbs: [ "get" ]
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: ambassador-projects
+  labels:
+    product: aes
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ambassador-projects
+subjects:
+- kind: ServiceAccount
+  name: ambassador
+  namespace: ambassador
+
+######################################################################
 # Redis
 ---
 apiVersion: v1
@@ -288,7 +329,6 @@ spec:
         - name: AMBASSADOR_SINGLE_NAMESPACE
           value: ''
         image: docker.io/datawire/aes:$version$
-        imagePullPolicy: Always
         livenessProbe:
           httpGet:
             path: /ambassador/v0/check_alive

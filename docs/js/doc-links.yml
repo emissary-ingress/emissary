@@ -22,7 +22,7 @@
   - title: Install Manually
     link: /docs/pre-release/topics/install/yaml-install
   - title: Ambassador Edge Stack Operator
-    link: /docs/pre-release/topics/install/aes-operator   
+    link: /docs/pre-release/topics/install/aes-operator
   - title: Install with Edgectl
     link: /docs/pre-release/topics/install/help/
 - title: Running and Using Ambassador
@@ -44,7 +44,7 @@
     - title: Using Ambassador
       link: /docs/pre-release/topics/using/
       items: 
-        - title: The Mapping Object
+        - title: The Mapping Resource
           link: /docs/pre-release/topics/using/intro-mappings
         - title: Mapping Configuration
           link: /docs/pre-release/topics/using/mappings
@@ -123,6 +123,13 @@
           link: /docs/pre-release/topics/using/dev-portal
         - title: Edge Policy Console
           link: /docs/pre-release/topics/using/edge-policy-console
+        - title: The Project Resource
+          link: /docs/pre-release/topics/using/projects
+          items:
+            - title: Configuring Authentication
+              link: /docs/pre-release/topics/using/project-authentication
+            - title: Customizing Deployment
+              link: /docs/pre-release/topics/using/project-customization
     - title: Running Ambassador in Production
       link: /docs/pre-release/topics/running/
       items: 
@@ -208,6 +215,8 @@
           link: /docs/pre-release/howtos/oauth-oidc-auth
     - title: Custom Filters
       link: /docs/pre-release/howtos/filter-dev-guide
+    - title: Deploying to Kubernetes from GitHub
+      link: /docs/pre-release/tutorials/projects
     - title: Distributed Tracing
       items:
         - title: DataDog

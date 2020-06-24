@@ -106,7 +106,7 @@
             "service": "tlscontextstest-http",
             "targets": [
                 {
-                    "ip": "tlscontextstest-http.default",
+                    "ip": "tlscontextstest-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -390,7 +390,7 @@
                         "service": "tlscontextstest-http",
                         "targets": [
                             {
-                                "ip": "tlscontextstest-http.default",
+                                "ip": "tlscontextstest-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }

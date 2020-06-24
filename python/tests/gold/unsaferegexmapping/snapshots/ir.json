@@ -110,7 +110,7 @@
             "service": "unsaferegexmapping-http",
             "targets": [
                 {
-                    "ip": "unsaferegexmapping-http.default",
+                    "ip": "unsaferegexmapping-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -408,7 +408,7 @@
                         "service": "unsaferegexmapping-http",
                         "targets": [
                             {
-                                "ip": "unsaferegexmapping-http.default",
+                                "ip": "unsaferegexmapping-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }

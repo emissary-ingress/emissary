@@ -106,7 +106,7 @@
             "service": "saferegexmapping-http",
             "targets": [
                 {
-                    "ip": "saferegexmapping-http.default",
+                    "ip": "saferegexmapping-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -404,7 +404,7 @@
                         "service": "saferegexmapping-http",
                         "targets": [
                             {
-                                "ip": "saferegexmapping-http.default",
+                                "ip": "saferegexmapping-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }

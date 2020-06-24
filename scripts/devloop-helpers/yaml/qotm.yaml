@@ -64,7 +64,6 @@ spec:
       containers:
       - name: qotm
         image: docker.io/datawire/qotm:1.3
-        imagePullPolicy: Always
         ports:
         - name: http-api
           containerPort: 5000

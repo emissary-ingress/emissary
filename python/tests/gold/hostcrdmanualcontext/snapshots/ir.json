@@ -106,7 +106,7 @@
             "service": "hostcrdmanualcontext-http",
             "targets": [
                 {
-                    "ip": "hostcrdmanualcontext-http.default",
+                    "ip": "hostcrdmanualcontext-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -489,7 +489,7 @@
                         "service": "hostcrdmanualcontext-http",
                         "targets": [
                             {
-                                "ip": "hostcrdmanualcontext-http.default",
+                                "ip": "hostcrdmanualcontext-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }

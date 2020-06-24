@@ -106,7 +106,7 @@
             "service": "hostcrddouble-http-target1",
             "targets": [
                 {
-                    "ip": "hostcrddouble-http-target1.default",
+                    "ip": "hostcrddouble-http-target1",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -141,7 +141,7 @@
             "service": "hostcrddouble-http-target2",
             "targets": [
                 {
-                    "ip": "hostcrddouble-http-target2.default",
+                    "ip": "hostcrddouble-http-target2",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -531,7 +531,7 @@
                         "service": "hostcrddouble-http-target2",
                         "targets": [
                             {
-                                "ip": "hostcrddouble-http-target2.default",
+                                "ip": "hostcrddouble-http-target2",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -698,7 +698,7 @@
                         "service": "hostcrddouble-http-target1",
                         "targets": [
                             {
-                                "ip": "hostcrddouble-http-target1.default",
+                                "ip": "hostcrddouble-http-target1",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }

@@ -36,9 +36,9 @@ communicate with `AuthService`s and `RateLimitService`s:
 
 - In some future version of Ambassador, there will be settings to control which name is
   used; with the default being the current name; it will be opt-in to the new names.
-- In some future version of Ambassador after that, *no sooner than Ambassador 1.3.0*, the
+- In some future version of Ambassador after that, *no sooner than Ambassador 1.6.0*, the
   default values of those setting swill change; making them opt-out from the new names.
-- In some future version of Ambassador after that, *no sooner than Ambassador 1.4.0*, the
+- In some future version of Ambassador after that, *no sooner than Ambassador 1.7.0*, the
   settings will go away, and Ambassador will always use the new names.
 
 Note that Ambassador Edge Stack `External` Filters already unconditionally use the newer
@@ -46,31 +46,59 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ## RELEASE NOTES
 
-<!---
-Add release notes right after this point.
-
-(version number: MAJOR.MINOR.PATCH)
-
-Format:
-
-## [version] <month> <date>, <year>:
-[version]: https://github.com/datawire/ambassador/compare/<last released version>...<version>
-
-### Major changes:
-- Feature: <insert feature description here>
-- Bugfix: <insert bugfix description here>
-
-### Minor changes:
-- Feature: <insert feature description here>
-- Bugfix: <insert bugfix description here>
---->
-
-<!--- CueAddReleaseNotes --->
 ## Next Release
 
 ### Ambassador API Gateway + Ambassador Edge Stack
 
-- Documentation: add our Code of Conduct
+- Feature: Add support for circuit breakers in TCP mapping
+
+## [1.5.4] June 23, 2020
+[1.5.4]: https://github.com/datawire/ambassador/compare/v1.5.3...v1.5.4
+
+### Ambassador API Gateway + Ambassador Edge Stack
+
+- Bugfix: Allow disabling `Mapping`-status updates (RECOMMENDED: see below)
+- Bugfix: Logging has been made _much_ quieter; the default Envoy log level has been turned down from "warning" to "error"
+- Ambassador now logs timing information about reconfigures
+
+We recommend that users set `AMBASSADOR_UPDATE_MAPPING_STATUS=false`
+in the environment to tell Ambassador not to update `Mapping` statuses
+unless you have some script that relies on `Mapping` status updates.
+The default value of `AMBASSADOR_UPDATE_MAPPING_STATUS` will change to
+`false` in Ambassador 1.6.
+
+## [1.5.3] June 16, 2020
+[1.5.3]: https://github.com/datawire/ambassador/compare/v1.5.2...v1.5.3
+
+### Ambassador API Gateway + Ambassador Edge Stack
+
+- Bugfix: Restore Envoy listener drain time to its pre-Ambassador 1.3.0 default of 10 minutes.
+
+### Ambassador Edge Stack only
+
+- Bugfix: Allow deletion of ProjectControllers.
+- Bugfix: Fix regression introduced in 1.4.2 where the `OAuth2` AuthorizationCode filter no longer works when behind another gateway that rewrites the request hostname.  The behavior here is now controllable via the `internalOrigin` sub-field.
+
+### Ambassador API Gateway + Ambassador Edge Stack
+
+- Bugfix: Read Knative ingress generation from the correct place in the Kubernetes object
+
+## [1.5.2] June 10, 2020
+[1.5.2]: https://github.com/datawire/ambassador/compare/v1.5.1...v1.5.2
+
+### Ambassador API Gateway + Ambassador Edge Stack
+
+- Incorporate the [Envoy 1.14.2](https://www.envoyproxy.io/docs/envoy/v1.14.2/intro/version_history#june-8-2020) security update.
+- Upgrade the base Docker images used by several tests (thanks, [Daniel Sutton](https://github.com/ducksecops)!).
+
+### Ambassador Edge Stack only
+
+- Feature: (BETA) Added an in-cluster micro CI/CD system to enable building, staging, and publishing of GitHub projects from source.  This has been included in previous versions as an alpha, but disabled by default. It is now in BETA.
+- Bugfix: The `DEVPORTAL_CONTENT_URL` environment variable now properly handles `file:///` URLs to refer to volume-mounted content.
+- Bugfix: `acmeProvider.authority: none` is no longer case sensitive
+- Bugfix: `edgectl connect` works again on Ubuntu and other Linux setups with old versions of nss-mdns (older than version 0.11)
+- Bugfix: `edgectl` works again on Windows
+- Bugfix: The Edge Policy Console now correctly creates FilterPolicy resources
 
 ## [1.5.1] June 5, 2020
 [1.5.1]: https://github.com/datawire/ambassador/compare/v1.5.0...v1.5.1

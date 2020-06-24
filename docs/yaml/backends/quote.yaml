@@ -46,7 +46,7 @@ spec:
           containerPort: 8000
         env:
         - name: PORT
-          value: 8000
+          value: "8000"
         resources:
           limits:
             cpu: "0.1"

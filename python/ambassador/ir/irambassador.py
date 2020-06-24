@@ -5,6 +5,7 @@ from ..constants import Constants
 from ..config import Config
 
 from .irresource import IRResource
+from .irbasemapping import IRBaseMapping
 from .irhttpmapping import IRHTTPMapping
 from .irtls import IRAmbassadorTLS
 from .irtlscontext import IRTLSContext
@@ -260,7 +261,7 @@ class IRAmbassador (IRResource):
                 return False
 
         if self.get('circuit_breakers', None) is not None:
-            if not IRHTTPMapping.validate_circuit_breakers(self.ir, self['circuit_breakers']):
+            if not IRBaseMapping.validate_circuit_breakers(self.ir, self['circuit_breakers']):
                 self.post_error("Invalid circuit_breakers specified: {}".format(self['circuit_breakers']))
                 return False
 
