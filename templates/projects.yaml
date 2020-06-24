@@ -96,7 +96,7 @@ metadata:
 spec:
   type: ClusterIP
   selector:
-    app.kubernetes.io/name: {{ include "ambassador.name" . }}-registry
+    app.kubernetes.io/name: {{ include "ambassador.fullname" . }}-registry
     app.kubernetes.io/instance: {{ .Release.Name }}
   ports:
     - port: 443

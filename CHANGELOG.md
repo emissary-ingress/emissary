@@ -3,6 +3,10 @@
 This file documents all notable changes to Ambassador Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
+## Next Release
+
+- BugFix: Registry service is now using the proper `app.kubernetes.io/name`
+
 ## v6.4.6
 
 - Upgrade Ambassador to version 1.5.4: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
