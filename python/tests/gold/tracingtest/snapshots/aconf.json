@@ -1,6 +1,10 @@
 {
     "_errors": {},
     "_notices": {
+        "-global-": [
+            "Parsed pod labels: {'kat-ambassador-id': 'tracingtest', 'scope': 'AmbassadorTest', 'service': 'tracingtest'}",
+            "Found Ambassador service: tracingtest"
+        ],
         "tracingtest-http.default.1": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ],

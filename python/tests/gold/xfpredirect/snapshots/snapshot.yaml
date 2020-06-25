@@ -22,7 +22,7 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"xfpredirect\",\"scope\":\"AmbassadorTest\"},\"name\":\"xfpredirect\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"xfpredirect\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-06-16T21:34:14Z",
+                    "creationTimestamp": "2020-06-25T03:49:49Z",
                     "labels": {
                         "app.kubernetes.io/component": "ambassador-service",
                         "kat-ambassador-id": "xfpredirect",
@@ -30,24 +30,24 @@
                     },
                     "name": "xfpredirect",
                     "namespace": "default",
-                    "resourceVersion": "34914",
+                    "resourceVersion": "85995280",
                     "selfLink": "/api/v1/namespaces/default/services/xfpredirect",
-                    "uid": "1fe08c07-b019-11ea-8d61-42010a8401c0"
+                    "uid": "eb600ced-b696-11ea-bc23-022a80997af0"
                 },
                 "spec": {
-                    "clusterIP": "10.16.12.59",
+                    "clusterIP": "100.65.64.48",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "http",
-                            "nodePort": 30243,
+                            "nodePort": 30140,
                             "port": 80,
                             "protocol": "TCP",
                             "targetPort": 8080
                         },
                         {
                             "name": "https",
-                            "nodePort": 31465,
+                            "nodePort": 31663,
                             "port": 443,
                             "protocol": "TCP",
                             "targetPort": 8443
@@ -70,7 +70,7 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"xfpredirect\",\"scope\":\"AmbassadorTest\",\"service\":\"xfpredirect-admin\"},\"name\":\"xfpredirect-admin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"xfpredirect-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"xfpredirect\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-06-16T21:34:15Z",
+                    "creationTimestamp": "2020-06-25T03:49:49Z",
                     "labels": {
                         "kat-ambassador-id": "xfpredirect",
                         "scope": "AmbassadorTest",
@@ -78,17 +78,17 @@
                     },
                     "name": "xfpredirect-admin",
                     "namespace": "default",
-                    "resourceVersion": "34926",
+                    "resourceVersion": "85995286",
                     "selfLink": "/api/v1/namespaces/default/services/xfpredirect-admin",
-                    "uid": "2050f1d7-b019-11ea-8d61-42010a8401c0"
+                    "uid": "eb6f0436-b696-11ea-bc23-022a80997af0"
                 },
                 "spec": {
-                    "clusterIP": "10.16.14.82",
+                    "clusterIP": "100.66.78.7",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "xfpredirect-admin",
-                            "nodePort": 30791,
+                            "nodePort": 32715,
                             "port": 8877,
                             "protocol": "TCP",
                             "targetPort": 8877
@@ -112,19 +112,19 @@
                         "getambassador.io/config": "---\napiVersion: ambassador/v1\nkind: Module\nname: ambassador\nconfig:\n  x_forwarded_proto_redirect: true\n  use_remote_address: false\nambassador_id: xfpredirect\n---\napiVersion: ambassador/v1\nkind: Mapping\nname: XFPRedirect\nprefix: /XFPRedirect/\nservice: xfpredirect-http\nambassador_id: xfpredirect\n",
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v1\\nkind: Module\\nname: ambassador\\nconfig:\\n  x_forwarded_proto_redirect: true\\n  use_remote_address: false\\nambassador_id: xfpredirect\\n---\\napiVersion: ambassador/v1\\nkind: Mapping\\nname: XFPRedirect\\nprefix: /XFPRedirect/\\nservice: xfpredirect-http\\nambassador_id: xfpredirect\\n\"},\"labels\":{\"kat-ambassador-id\":\"xfpredirect\",\"scope\":\"AmbassadorTest\"},\"name\":\"xfpredirect-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8121},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8484}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
                     },
-                    "creationTimestamp": "2020-06-16T21:34:16Z",
+                    "creationTimestamp": "2020-06-25T03:49:50Z",
                     "labels": {
                         "kat-ambassador-id": "xfpredirect",
                         "scope": "AmbassadorTest"
                     },
                     "name": "xfpredirect-http",
                     "namespace": "default",
-                    "resourceVersion": "34936",
+                    "resourceVersion": "85995299",
                     "selfLink": "/api/v1/namespaces/default/services/xfpredirect-http",
-                    "uid": "20e7cfed-b019-11ea-8d61-42010a8401c0"
+                    "uid": "eb8bc5a0-b696-11ea-bc23-022a80997af0"
                 },
                 "spec": {
-                    "clusterIP": "10.16.5.91",
+                    "clusterIP": "100.71.27.40",
                     "ports": [
                         {
                             "name": "http",
