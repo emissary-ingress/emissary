@@ -3,9 +3,11 @@
 This file documents all notable changes to Ambassador Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
-## Next Release
+## 6.4.7
 
 - BugFix: Registry service is now using the proper `app.kubernetes.io/name`
+- BugFix: Restore ability to set `REDIS` env vars in `env` instead of `redisEnv`
+- Feature: Add `envRaw` to support supplying raw yaml for environment variables. Deprecates `redisEnv`.
 
 ## v6.4.6
 

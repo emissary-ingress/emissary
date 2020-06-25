@@ -94,6 +94,7 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `hostNetwork`                      | If `true`, uses the host network, useful for on-premise setups                  | `false`                           |
 | `dnsPolicy`                        | Dns policy, when hostNetwork set to ClusterFirstWithHostNet                     | `ClusterFirst`                    |
 | `env`                              | Any additional environment variables for ambassador pods                        | `{}`                              |
+| `envRaw`                           | Additional environment variables in raw YAML format                             | `{}`                              |
 | `image.pullPolicy`                 | Ambassador image pull policy                                                    | `IfNotPresent`                    |
 | `image.repository`                 | Ambassador image                                                                | `docker.io/datawire/aes`          |
 | `image.tag`                        | Ambassador image tag                                                            | `1.5.4`                           |
@@ -141,7 +142,7 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `licenseKey.createSecret`          | Set to `false` if installing mutltiple Ambassdor Edge Stacks in a namespace.    | `true`                            |
 | `licenseKey.secretName`            | Name of the secret to store Ambassador license key in.                          | ``                                |
 | `redisURL`                         | URL of redis instance not created by the release                                | `""`                              |
-| `redisEnv`                         | Set env vars that control how Ambassador interacts with redis. See [redis environment](https://www.getambassador.io/docs/latest/topics/running/environment/#redis) | `""` |
+| `redisEnv`                         | (**DEPRECATED:** Use `envRaw`) Set env vars that control how Ambassador interacts with redis. | `""`                |
 | `redis.create`                     | Create a basic redis instance with default configurations                       | `true`                            |
 | `redis.annotations`                | Annotations for the redis service and deployment                                | `""`                              |
 | `redis.resources`                  | Resource requests for the redis instance                                        | `""`                              |
