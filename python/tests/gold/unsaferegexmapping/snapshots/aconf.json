@@ -1,6 +1,11 @@
 {
     "_errors": {},
-    "_notices": {},
+    "_notices": {
+        "-global-": [
+            "Parsed pod labels: {'kat-ambassador-id': 'unsaferegexmapping', 'scope': 'AmbassadorTest', 'service': 'unsaferegexmapping'}",
+            "Found Ambassador service: unsaferegexmapping"
+        ]
+    },
     "_sources": {
         "--diagnostics--": {
             "_referenced_by": {},

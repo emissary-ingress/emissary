@@ -1,6 +1,10 @@
 {
     "_errors": {},
     "_notices": {
+        "-global-": [
+            "Parsed pod labels: {'kat-ambassador-id': 'linkerdheadermapping', 'scope': 'AmbassadorTest', 'service': 'linkerdheadermapping'}",
+            "Found Ambassador service: linkerdheadermapping"
+        ],
         "linkerdheadermapping.default.1": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ]

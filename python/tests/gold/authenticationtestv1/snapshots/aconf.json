@@ -1,6 +1,10 @@
 {
     "_errors": {},
     "_notices": {
+        "-global-": [
+            "Parsed pod labels: {'kat-ambassador-id': 'authenticationtestv1', 'scope': 'AmbassadorTest', 'service': 'authenticationtestv1'}",
+            "Found Ambassador service: authenticationtestv1"
+        ],
         "authenticationtestv1.default.3": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ]

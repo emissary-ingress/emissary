@@ -1,6 +1,11 @@
 {
     "_errors": {},
-    "_notices": {},
+    "_notices": {
+        "-global-": [
+            "Parsed pod labels: {'kat-ambassador-id': 'hostcrdmanualcontext', 'scope': 'AmbassadorTest', 'service': 'hostcrdmanualcontext'}",
+            "Found Ambassador service: hostcrdmanualcontext"
+        ]
+    },
     "_sources": {
         "--diagnostics--": {
             "_referenced_by": {},
