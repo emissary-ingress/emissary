@@ -1,6 +1,10 @@
 {
     "_errors": {},
     "_notices": {
+        "-global-": [
+            "Parsed pod labels: {'kat-ambassador-id': 'retrypolicytest', 'scope': 'AmbassadorTest', 'service': 'retrypolicytest'}",
+            "Found Ambassador service: retrypolicytest"
+        ],
         "retrypolicytest.default.1": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ],

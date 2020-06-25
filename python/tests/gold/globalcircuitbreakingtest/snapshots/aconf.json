@@ -1,0 +1,250 @@
+{
+    "_errors": {},
+    "_notices": {
+        "-global-": [
+            "Parsed pod labels: {'kat-ambassador-id': 'globalcircuitbreakingtest', 'scope': 'AmbassadorTest', 'service': 'globalcircuitbreakingtest'}",
+            "Found Ambassador service: globalcircuitbreakingtest"
+        ]
+    },
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "globalcircuitbreakingtest.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "globalcircuitbreakingtest",
+            "apiVersion": "getambassador.io/v1",
+            "circuit_breakers": [
+                {
+                    "max_connections": 1024,
+                    "max_pending_requests": 1024,
+                    "priority": "default"
+                }
+            ],
+            "kind": "Mapping",
+            "location": "globalcircuitbreakingtest.default.1",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "globalcircuitbreakingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "globalcircuitbreakingtest-http-pr",
+            "namespace": "default",
+            "prefix": "/GlobalCircuitBreakingTest-pr/",
+            "rkey": "globalcircuitbreakingtest.default.1",
+            "serialization": "ambassador_id: globalcircuitbreakingtest\napiVersion: ambassador/v1\ncircuit_breakers:\n- max_connections: 1024\n  max_pending_requests: 1024\n  priority: default\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: globalcircuitbreakingtest\n  scope: AmbassadorTest\nname: globalcircuitbreakingtest-http-pr\nnamespace: default\nprefix: /GlobalCircuitBreakingTest-pr/\nservice: globalcircuitbreakingtest-http\n",
+            "service": "globalcircuitbreakingtest-http"
+        },
+        "globalcircuitbreakingtest.default.2": {
+            "_referenced_by": {},
+            "ambassador_id": "globalcircuitbreakingtest",
+            "apiVersion": "getambassador.io/v1",
+            "kind": "Mapping",
+            "location": "globalcircuitbreakingtest.default.2",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "globalcircuitbreakingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "globalcircuitbreakingtest-http-normal",
+            "namespace": "default",
+            "prefix": "/GlobalCircuitBreakingTest-normal/",
+            "rkey": "globalcircuitbreakingtest.default.2",
+            "serialization": "ambassador_id: globalcircuitbreakingtest\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: globalcircuitbreakingtest\n  scope: AmbassadorTest\nname: globalcircuitbreakingtest-http-normal\nnamespace: default\nprefix: /GlobalCircuitBreakingTest-normal/\nservice: globalcircuitbreakingtest-http\n",
+            "service": "globalcircuitbreakingtest-http"
+        },
+        "globalcircuitbreakingtest.default.3": {
+            "_referenced_by": {},
+            "ambassador_id": "globalcircuitbreakingtest",
+            "apiVersion": "getambassador.io/v1",
+            "config": {
+                "circuit_breakers": [
+                    {
+                        "max_connections": 1,
+                        "max_pending_requests": 1,
+                        "priority": "default"
+                    }
+                ]
+            },
+            "kind": "Module",
+            "location": "globalcircuitbreakingtest.default.3",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "globalcircuitbreakingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "ambassador",
+            "namespace": "default",
+            "rkey": "globalcircuitbreakingtest.default.3",
+            "serialization": "ambassador_id: globalcircuitbreakingtest\napiVersion: ambassador/v1\nconfig:\n  circuit_breakers:\n  - max_connections: 1\n    max_pending_requests: 1\n    priority: default\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: globalcircuitbreakingtest\n  scope: AmbassadorTest\nname: ambassador\nnamespace: default\n"
+        },
+        "k8s-globalcircuitbreakingtest-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "globalcircuitbreakingtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-globalcircuitbreakingtest-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "globalcircuitbreakingtest",
+                "scope": "AmbassadorTest",
+                "service": "globalcircuitbreakingtest-admin"
+            },
+            "name": "globalcircuitbreakingtest-admin",
+            "namespace": "default",
+            "rkey": "k8s-globalcircuitbreakingtest-admin-default",
+            "serialization": "ambassador_id: globalcircuitbreakingtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: globalcircuitbreakingtest\n  scope: AmbassadorTest\n  service: globalcircuitbreakingtest-admin\nname: globalcircuitbreakingtest-admin\nnamespace: default\n"
+        },
+        "k8s-globalcircuitbreakingtest-default": {
+            "_referenced_by": {},
+            "ambassador_id": "globalcircuitbreakingtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-globalcircuitbreakingtest-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "globalcircuitbreakingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "globalcircuitbreakingtest",
+            "namespace": "default",
+            "rkey": "k8s-globalcircuitbreakingtest-default",
+            "serialization": "ambassador_id: globalcircuitbreakingtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: globalcircuitbreakingtest\n  scope: AmbassadorTest\nname: globalcircuitbreakingtest\nnamespace: default\n"
+        },
+        "k8s-globalcircuitbreakingtest-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "globalcircuitbreakingtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-globalcircuitbreakingtest-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "globalcircuitbreakingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "globalcircuitbreakingtest-http",
+            "namespace": "default",
+            "rkey": "k8s-globalcircuitbreakingtest-http-default",
+            "serialization": "ambassador_id: globalcircuitbreakingtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: globalcircuitbreakingtest\n  scope: AmbassadorTest\nname: globalcircuitbreakingtest-http\nnamespace: default\n"
+        }
+    },
+    "mappings": {
+        "globalcircuitbreakingtest-http-normal": {
+            "ambassador_id": "globalcircuitbreakingtest",
+            "apiVersion": "getambassador.io/v1",
+            "kind": "Mapping",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "globalcircuitbreakingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "globalcircuitbreakingtest-http-normal",
+            "namespace": "default",
+            "prefix": "/GlobalCircuitBreakingTest-normal/",
+            "service": "globalcircuitbreakingtest-http"
+        },
+        "globalcircuitbreakingtest-http-pr": {
+            "ambassador_id": "globalcircuitbreakingtest",
+            "apiVersion": "getambassador.io/v1",
+            "circuit_breakers": [
+                {
+                    "max_connections": 1024,
+                    "max_pending_requests": 1024,
+                    "priority": "default"
+                }
+            ],
+            "kind": "Mapping",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "globalcircuitbreakingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "globalcircuitbreakingtest-http-pr",
+            "namespace": "default",
+            "prefix": "/GlobalCircuitBreakingTest-pr/",
+            "service": "globalcircuitbreakingtest-http"
+        }
+    },
+    "modules": {
+        "ambassador": {
+            "apiVersion": "getambassador.io/v1",
+            "circuit_breakers": [
+                {
+                    "max_connections": 1,
+                    "max_pending_requests": 1,
+                    "priority": "default"
+                }
+            ],
+            "kind": "Module",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "globalcircuitbreakingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "ambassador",
+            "namespace": "default"
+        }
+    },
+    "service": {
+        "k8s-globalcircuitbreakingtest-admin-default": {
+            "ambassador_id": "globalcircuitbreakingtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "globalcircuitbreakingtest",
+                "scope": "AmbassadorTest",
+                "service": "globalcircuitbreakingtest-admin"
+            },
+            "name": "globalcircuitbreakingtest-admin",
+            "namespace": "default"
+        },
+        "k8s-globalcircuitbreakingtest-default": {
+            "ambassador_id": "globalcircuitbreakingtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "globalcircuitbreakingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "globalcircuitbreakingtest",
+            "namespace": "default"
+        },
+        "k8s-globalcircuitbreakingtest-http-default": {
+            "ambassador_id": "globalcircuitbreakingtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "globalcircuitbreakingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "globalcircuitbreakingtest-http",
+            "namespace": "default"
+        }
+    }
+}

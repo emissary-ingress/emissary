@@ -57,7 +57,8 @@ class IRAmbassador (IRResource):
         'use_remote_address',
         'x_forwarded_proto_redirect',
         'xff_num_trusted_hops',
-        'use_ambassador_namespace_for_service_resolution'
+        'use_ambassador_namespace_for_service_resolution',
+        'preserve_external_request_id'
     ]
 
     service_port: int
@@ -114,6 +115,7 @@ class IRAmbassador (IRResource):
             use_ambassador_namespace_for_service_resolution=False,
             server_name="envoy",
             debug_mode=False,
+            preserve_external_request_id=False,
             **kwargs
         )
 
