@@ -1,6 +1,10 @@
 {
     "_errors": {},
     "_notices": {
+        "-global-": [
+            "Parsed pod labels: {'kat-ambassador-id': 'tlscontextprotocolmaxversion', 'scope': 'AmbassadorTest', 'service': 'tlscontextprotocolmaxversion'}",
+            "Found Ambassador service: tlscontextprotocolmaxversion"
+        ],
         "tlscontextprotocolmaxversion.default.1": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ],

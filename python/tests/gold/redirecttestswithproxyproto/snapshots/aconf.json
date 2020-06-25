@@ -1,6 +1,11 @@
 {
     "_errors": {},
-    "_notices": {},
+    "_notices": {
+        "-global-": [
+            "Parsed pod labels: {'kat-ambassador-id': 'redirecttestswithproxyproto', 'scope': 'AmbassadorTest', 'service': 'redirecttestswithproxyproto'}",
+            "Found Ambassador service: redirecttestswithproxyproto"
+        ]
+    },
     "_sources": {
         "--diagnostics--": {
             "_referenced_by": {},

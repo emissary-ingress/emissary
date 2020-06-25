@@ -1,0 +1,109 @@
+{
+    "Consul": {},
+    "Kubernetes": {
+        "AuthService": null,
+        "ConsulResolver": null,
+        "Host": null,
+        "KubernetesEndpointResolver": null,
+        "KubernetesServiceResolver": null,
+        "LogService": null,
+        "Mapping": null,
+        "Module": null,
+        "RateLimitService": null,
+        "TCPMapping": null,
+        "TLSContext": null,
+        "TracingService": null,
+        "ingresses": null,
+        "service": [
+            {
+                "apiVersion": "v1",
+                "kind": "Service",
+                "metadata": {
+                    "annotations": {
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"empty\",\"scope\":\"AmbassadorTest\"},\"name\":\"empty\",\"namespace\":\"empty-namespace\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"empty\"},\"type\":\"NodePort\"}}\n"
+                    },
+                    "creationTimestamp": "2020-06-25T03:49:03Z",
+                    "labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "empty",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "empty",
+                    "namespace": "empty-namespace",
+                    "resourceVersion": "85993786",
+                    "selfLink": "/api/v1/namespaces/empty-namespace/services/empty",
+                    "uid": "cfc23b93-b696-11ea-bc23-022a80997af0"
+                },
+                "spec": {
+                    "clusterIP": "100.65.120.69",
+                    "externalTrafficPolicy": "Cluster",
+                    "ports": [
+                        {
+                            "name": "http",
+                            "nodePort": 31808,
+                            "port": 80,
+                            "protocol": "TCP",
+                            "targetPort": 8080
+                        },
+                        {
+                            "name": "https",
+                            "nodePort": 30665,
+                            "port": 443,
+                            "protocol": "TCP",
+                            "targetPort": 8443
+                        }
+                    ],
+                    "selector": {
+                        "service": "empty"
+                    },
+                    "sessionAffinity": "None",
+                    "type": "NodePort"
+                },
+                "status": {
+                    "loadBalancer": {}
+                }
+            },
+            {
+                "apiVersion": "v1",
+                "kind": "Service",
+                "metadata": {
+                    "annotations": {
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"empty\",\"scope\":\"AmbassadorTest\",\"service\":\"empty-admin\"},\"name\":\"empty-admin\",\"namespace\":\"empty-namespace\"},\"spec\":{\"ports\":[{\"name\":\"empty-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"empty\"},\"type\":\"NodePort\"}}\n"
+                    },
+                    "creationTimestamp": "2020-06-25T03:49:03Z",
+                    "labels": {
+                        "kat-ambassador-id": "empty",
+                        "scope": "AmbassadorTest",
+                        "service": "empty-admin"
+                    },
+                    "name": "empty-admin",
+                    "namespace": "empty-namespace",
+                    "resourceVersion": "85993791",
+                    "selfLink": "/api/v1/namespaces/empty-namespace/services/empty-admin",
+                    "uid": "cfd65efc-b696-11ea-bc23-022a80997af0"
+                },
+                "spec": {
+                    "clusterIP": "100.70.88.129",
+                    "externalTrafficPolicy": "Cluster",
+                    "ports": [
+                        {
+                            "name": "empty-admin",
+                            "nodePort": 30958,
+                            "port": 8877,
+                            "protocol": "TCP",
+                            "targetPort": 8877
+                        }
+                    ],
+                    "selector": {
+                        "service": "empty"
+                    },
+                    "sessionAffinity": "None",
+                    "type": "NodePort"
+                },
+                "status": {
+                    "loadBalancer": {}
+                }
+            }
+        ]
+    }
+}

@@ -1,6 +1,10 @@
 {
     "_errors": {},
     "_notices": {
+        "-global-": [
+            "Parsed pod labels: {'kat-ambassador-id': 'authenticationhttppartialbuffertest', 'scope': 'AmbassadorTest', 'service': 'authenticationhttppartialbuffertest'}",
+            "Found Ambassador service: authenticationhttppartialbuffertest"
+        ],
         "authenticationhttppartialbuffertest.default.3": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ]
