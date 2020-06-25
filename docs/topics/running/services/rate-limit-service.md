@@ -61,12 +61,46 @@ spec:
 ## External Rate Limit Service
 
 In order for the Ambassador API Gateway to rate limit, you need to implement a
-gRPC `RateLimitService`, as defined in [Envoy's `rls.proto`][rls.proto]
+gRPC `RateLimitService`, as defined in [Envoy's `v1/rls.proto`][`v1/rls.proto`]
 interface.  If you do not have the time or resources to implement your own rate
 limit service, the Ambassador Edge Stack integrates a high-performance rate
 limiting service.
 
-[rls.proto]: https://github.com/datawire/ambassador/tree/master/api/envoy/service/ratelimit/v2/rls.proto
+> Note: *In a future version of Ambassador*, the Ambassador API Gateway will
+> change the version of the gRPC service name used to communicate
+> `RateLimitService`s from the one defined in [`v1/rls.proto`][]
+> (`pb.lyft.ratelimit.RateLimitService`) to the one defined in
+> [`v2/rls.proto`][] (`envoy.service.ratelimit.v2.RateLimitService`):
+>
+> - In some future version of Ambassador, there will be a setting to control
+>   which name is used; with the default being the current name; it will be
+>   opt-in to the new name.
+>
+> - In some future version of Ambassador after that, *no sooner than Ambassador
+>   1.6.0*, the default value of that setting swill change; making it opt-out
+>   from the new name.
+>
+> - In some future version of Ambassador after that, *no sooner than Ambassador
+>   1.7.0*, the setting will go away, and Ambassador will always use the new
+>   name.
+>
+> In the mean-time, implementations of `RateLimitService` are encouraged to
+> respond to both both names--they are simply aliases of eachother, registering
+> the service under both names is usually a simple 1-or-2-line addition.  For
+> example, in Go the change to support both names is:
+>
+> ```diff
+>  import (
+>  	envoy_ratelimit_v1 "github.com/datawire/ambassador/pkg/api/envoy/service/ratelimit/v1"
+> +	envoy_ratelimit_v2 "github.com/datawire/ambassador/pkg/api/envoy/service/ratelimit/v2"
+>  )
+> ...
+>  	envoy_ratelimit_v1.RegisterRateLimitServiceServer(myGRPCServer, myRateLimitImplementation)
+> +	envoy_ratelimit_v2.RegisterRateLimitServiceServer(myGRPCServer, myRateLimitImplementation)
+> ```
+
+[`v1/rls.proto`]: https://github.com/datawire/ambassador/tree/master/api/envoy/service/ratelimit/v1/rls.proto
+[`v2/rls.proto`]: https://github.com/datawire/ambassador/tree/master/api/envoy/service/ratelimit/v2/rls.proto
 
 The Ambassador API Gateway generates a gRPC request to the external rate limit
 service and provides a list of labels on which the rate limit service can base
