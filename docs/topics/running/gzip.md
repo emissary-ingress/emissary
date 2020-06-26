@@ -33,7 +33,7 @@ spec:
       min_content_length: 32
       compression_level: BEST
       compression_strategy: RLE
-      content_type: 
+      content_type:
       - application/javascript
       - application/json
       - text/plain

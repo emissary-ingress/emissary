@@ -98,7 +98,7 @@ metadata:
   name: example-host
 spec:
   hostname: host.example.com
-  acmeProvider: 
+  acmeProvider:
     authority: none
   requestPolicy:
     insecure:
@@ -226,7 +226,7 @@ Next, you need to change the client code slightly and tell it to open a secure R
     print("Greeter client received: " + response.message)
 ```
 
-`grpc.ssl_channel_credentials(root_certificates=None, private_key=None, certificate_chain=None)`returns the root certificate that will be used to validate the certificate and public key sent by Ambassador Edge Stack. The default values of `None` tells the gRPC runtime to grab the root certificate from the default location packaged with gRPC and ignore the private key and certificate chain fields. Generally, passing no arguments to the method that requests credentials gives the same behavior. Refer to the languages [API Reference](https://grpc.io/docs/) if this is not the case.  
+`grpc.ssl_channel_credentials(root_certificates=None, private_key=None, certificate_chain=None)`returns the root certificate that will be used to validate the certificate and public key sent by Ambassador Edge Stack. The default values of `None` tells the gRPC runtime to grab the root certificate from the default location packaged with gRPC and ignore the private key and certificate chain fields. Generally, passing no arguments to the method that requests credentials gives the same behavior. Refer to the languages [API Reference](https://grpc.io/docs/) if this is not the case.
 
 Ambassador Edge Stack is now terminating TLS from the gRPC client and proxying the call to the application over cleartext.
 

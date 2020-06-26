@@ -1,12 +1,12 @@
 # Client Certificate Validation
 
 Sometimes, for additional security or authentication purposes, you will want
-the server to validate who the client is before establishing an encrypted 
+the server to validate who the client is before establishing an encrypted
 connection.
 
-To support this, Ambassador can be configured to use a provided CA certificate 
-to validate certificates sent from your clients. This allows for client-side 
-mTLS where both Ambassador and the client provide and validate each other's 
+To support this, Ambassador can be configured to use a provided CA certificate
+to validate certificates sent from your clients. This allows for client-side
+mTLS where both Ambassador and the client provide and validate each other's
 certificates.
 
 ## Prerequisites
@@ -31,11 +31,11 @@ certificates.
    Since this certificate will only be shared between a client and Ambassador,
    the Common Name must be set to something. Everything else can be left blank.
 
-   **Note:** If using MacOS, 
-   [you must](https://curl.haxx.se/mail/archive-2014-10/0053.html) 
-   add the certificate and key as a PKCS encoded file to your Keychain. To do 
+   **Note:** If using MacOS,
+   [you must](https://curl.haxx.se/mail/archive-2014-10/0053.html)
+   add the certificate and key as a PKCS encoded file to your Keychain. To do
    this:
-   
+
    1. Encode `cert.pem` and `key.pem` created above in PKCS format
 
       ```
@@ -70,7 +70,7 @@ certificates.
 
    Then create a `TLSContext` to configure advanced TLS options like client
    certificate validation:
-   
+
     ```yaml
     ---
     apiVersion: getambassador.io/v2
@@ -85,7 +85,7 @@ certificates.
       cert_required: false      # Optional: Configures Ambassador to reject the request if the client does not provide a certificate. Default: false
     ```
 
-    **Note**: Client certificate validation requires Ambassador Edge Stack be configured to terminate TLS 
+    **Note**: Client certificate validation requires Ambassador Edge Stack be configured to terminate TLS
 
     Ambassador is now be configured to validate certificates that the client provides.
 
@@ -102,7 +102,7 @@ certificates.
    ```
 
    Looking through the verbose output, you can see we are sending a client
-   certificate and Ambassador is validating it. 
+   certificate and Ambassador is validating it.
 
-   If you need further proof, simply create a new set of certificates and 
+   If you need further proof, simply create a new set of certificates and
    try sending the curl with those. You will see Ambassador deny the request.

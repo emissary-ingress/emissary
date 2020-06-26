@@ -51,7 +51,7 @@ On the diagnostic overview, you can also see that Ambassador Edge Stack is confi
 
 You saw above that access to the diagnostic overview required you to authenticate as an administrator. Getting a random Quote of the Moment does not require authentication, but to get a specific quote, you'll have to authenticate as a demo user. To see this in action, open
 
-`http://localhost:8080/qotm/quote/5` 
+`http://localhost:8080/qotm/quote/5`
 
 in your browser. From the command line, you can see that:
 

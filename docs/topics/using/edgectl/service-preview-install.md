@@ -29,7 +29,7 @@ Helm is a popular Kubernetes package manager. The Ambassador helm chart allows y
 
 If you are a new user, or you are looking to start using Ambassador Edge Stack with Service Preview on a fresh installation, the `edgectl install` command will get you up and running in no time with a pre-configured Traffic Manager and Traffic Agent supported by automatic sidecar injection.
 
-### 1. Install the Traffic Manager and Ambassador Injector Alongside the Ambassador Edge Stack 
+### 1. Install the Traffic Manager and Ambassador Injector Alongside the Ambassador Edge Stack
 
 The Traffic Manager is what is responsible for managing communications between your Kubernetes cluster and your local machine.
 
@@ -165,9 +165,9 @@ spec:
           image: docker.io/datawire/hello-world:latest
           ports:
             - name: http
-              containerPort: 8000 
+              containerPort: 8000
 EOF
- 
+
 service/hello created
 mapping.getambassador.io/hello created
 deployment.apps/hello created
@@ -184,7 +184,7 @@ Found 1 interceptable deployment(s):
 
 Take a look at the [Traffic Agent reference](../service-preview-reference#traffic-agent) for more information on how to connect your services to Service Preview.
 
-Service Preview is now installed in your cluster and ready to intercept traffic sent to the `Hello` service! 
+Service Preview is now installed in your cluster and ready to intercept traffic sent to the `Hello` service!
 
 ### Next Steps
 
@@ -283,7 +283,7 @@ The Traffic Agent sidecar needs to be added to any service that you would like t
 
 With the automatic injector, we can simply add it to our services by annotating the pod with `getambassador.io/inject-traffic-agent: enabled`.
 
-First, you need to create the RBAC resources required for the Traffic 
+First, you need to create the RBAC resources required for the Traffic
 
 The following will create the required resources in the default namespace. If you would like to run Service Preview in another namespace, you need to download and edit the YAML and
 
@@ -351,9 +351,9 @@ spec:
           image: docker.io/datawire/hello-world:latest
           ports:
             - name: http
-              containerPort: 8000 
+              containerPort: 8000
 EOF
- 
+
 service/hello created
 mapping.getambassador.io/hello created
 deployment.apps/hello created
@@ -370,7 +370,7 @@ Found 1 interceptable deployment(s):
 
 Take a look at the [Traffic Agent reference](../service-preview-reference#traffic-agent) for more information on how to connect your services to Service Preview.
 
-Service Preview is now installed in your cluster and ready to intercept traffic sent to the `Hello` service! 
+Service Preview is now installed in your cluster and ready to intercept traffic sent to the `Hello` service!
 
 ## Next Steps
 
@@ -388,13 +388,13 @@ The Ambassador chart also contains configurations for installing Service Preview
 
 Downloading and installing our published Kubernetes YAML gives you full control over the installation of Service Preview. This is the most popular approach for running Service Preview in production and in CI.
 
-### 1. Install the Traffic Manager and Ambassador Injector Alongside the Ambassador Edge Stack 
+### 1. Install the Traffic Manager and Ambassador Injector Alongside the Ambassador Edge Stack
 
 The Traffic Manager is what is responsible for managing communications between your Kubernetes cluster and your local machine.
 
 Services in your cluster opt-in to using Service Preview by injecting the Traffic Agent sidecar. Service Preview includes an automatic sidecar injection feature which simplifies the process of injecting the Traffic Agent as sidecars to your services.
 
-These services are available to be deployed in the helm chart. 
+These services are available to be deployed in the helm chart.
 
 Install Service Preview alongside the Ambassador Edge Stack with the following `values.yaml` options:
 
@@ -471,7 +471,7 @@ The Traffic Agent sidecar needs to be added to any service that you would like t
 
 With the automatic injector, we can simply add it to our services by annotating the pod with `getambassador.io/inject-traffic-agent: enabled`.
 
-First, you need to create the RBAC resources required for the Traffic 
+First, you need to create the RBAC resources required for the Traffic
 
 The following will create the required resources in the default namespace. If you would like to run Service Preview in another namespace, you need to download and edit the YAML and
 
@@ -540,9 +540,9 @@ spec:
           image: docker.io/datawire/hello-world:latest
           ports:
             - name: http
-              containerPort: 8000 
+              containerPort: 8000
 EOF
- 
+
 service/hello created
 mapping.getambassador.io/hello created
 deployment.apps/hello created
@@ -559,7 +559,7 @@ Found 1 interceptable deployment(s):
 
 Take a look at the [Traffic Agent reference](../service-preview-reference#traffic-agent) for more information on how to connect your services to Service Preview.
 
-Service Preview is now installed in your cluster and ready to intercept traffic sent to the `Hello` service! 
+Service Preview is now installed in your cluster and ready to intercept traffic sent to the `Hello` service!
 
 ## Next Steps
 

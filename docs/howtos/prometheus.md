@@ -195,7 +195,7 @@ documentation.
 
 1. Install the Prometheus Operator from the helm chart
 
-    ```	
+    ```
     helm install -n prometheus stable/prometheus-operator
     ```
 

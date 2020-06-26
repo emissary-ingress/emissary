@@ -21,7 +21,7 @@ Since this hook is required for Helm 2 support it **IS NOT AN ERROR AND CAN BE S
 ## Install with Helm
 
 When you run the Helm chart, it installs the Ambassador Edge Stack. You can
-deploy it with either version of the tool. 
+deploy it with either version of the tool.
 
 1. If you are installing the Ambassador Edge Stack **for the first time on your cluster**, create the `ambassador` namespace for the Ambassador Edge Stack:
 

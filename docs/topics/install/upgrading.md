@@ -9,7 +9,7 @@ The steps to upgrade depend on the method that was used to install Ambassador Ed
 To verify whether the Operator was used to install Ambassador Edge Stack, run the following command
 to see if it returns resources:
 ```commandline
-$ kubectl get deployment -n ambassador -l 'app.kubernetes.io/name=ambassador,app.kubernetes.io/managed-by in (amb-oper,amb-oper-manifest,amb-oper-helm,amb-oper-azure)' 
+$ kubectl get deployment -n ambassador -l 'app.kubernetes.io/name=ambassador,app.kubernetes.io/managed-by in (amb-oper,amb-oper-manifest,amb-oper-helm,amb-oper-azure)'
 NAME               READY   UP-TO-DATE   AVAILABLE   AGE
 ambassador         1/1     1            1           ...
 ```

@@ -1,6 +1,6 @@
 # Install with Edgectl
 We recommend edgectl for [installing Ambassador Edge Stack](../../../tutorials/getting-started). Edgectl is very helpful and quite robust, but there are certain situations where it is unable to successfully complete the installation. In those cases, edgectl directs you to the following appropriate “more help” detailed instructions pages. *(If you’re not using `edgectl install`, these pages won’t be that relevant, but they are here for you to read if you want.)*
- 
+
 - [Ambassador Edge Stack failed to respond to the ACME challenge](aes-acme-challenge)
 - [Could not find a Kubernetes cluster](no-cluster)
 - [Email request interrupted](email-request)

@@ -12,7 +12,7 @@ Client      Ambassador Edge Stack     Upstream
   |      OPTIONS       |               |
   | —————————————————> |               |
   |     CORS_RESP      |               |
-  | <————————————————— |               | 
+  | <————————————————— |               |
   |      GET /foo/     |               |
   | —————————————————> | ————————————> |
   |                    |      RESP     |
@@ -95,7 +95,7 @@ spec:
 
 ## AuthService and Cross-Origin Resource Sharing
 
-When you use external authorization, each incoming request is authenticated before routing to its destination, including pre-flight `OPTIONS` requests.  
+When you use external authorization, each incoming request is authenticated before routing to its destination, including pre-flight `OPTIONS` requests.
 
 By default, many [`AuthService`](../../running/services/auth-service) implementations will deny these requests. If this is the case, you will need to add some logic to your `AuthService` to accept all CORS headers.
 

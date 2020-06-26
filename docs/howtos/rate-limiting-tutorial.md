@@ -107,9 +107,9 @@ spec:
   prefix: /backend/
   service: quote
   labels:
-    ambassador:    
-      - request_label_group:      
-        - x-ambassador-test-allow:        
+    ambassador:
+      - request_label_group:
+        - x-ambassador-test-allow:
           header: "x-ambassador-test-allow"
           omit_if_not_present: true
 ```
@@ -196,7 +196,7 @@ TCP_NODELAY set
 < content-length: 172
 < x-envoy-upstream-service-time: 0
 < server: envoy
-< 
+<
 {
     "server": "humble-blueberry-o2v493st",
     "quote": "Nihilism gambles with lives, happiness, and even destiny itself!",

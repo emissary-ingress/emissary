@@ -1,5 +1,5 @@
 # Edgectl Install: Unable to talk to an AES Pod
- 
+
 The installer failed to communicate with an Ambassador Edge Stack (AES) Pod in your Kubernetes cluster to validate the installation.
 
 ## What's next?

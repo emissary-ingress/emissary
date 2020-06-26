@@ -47,11 +47,11 @@ memory usage so you can see in the logs if memory limits might be a problem and 
 
 ```
 2020/11/26 22:35:20 Memory Usage 0.56Gi (28%)
-    PID 1, 0.22Gi: busyambassador entrypoint 
-    PID 14, 0.04Gi: /usr/bin/python /usr/bin/diagd /ambassador/snapshots /ambassador/bootstrap-ads.json /ambassador/envoy/envoy.json --notices /ambassador/notices.json --port 8004 --kick kill -HUP 1 
-    PID 16, 0.12Gi: /ambassador/sidecars/amb-sidecar 
-    PID 37, 0.07Gi: /usr/bin/python /usr/bin/diagd /ambassador/snapshots /ambassador/bootstrap-ads.json /ambassador/envoy/envoy.json --notices /ambassador/notices.json --port 8004 --kick kill -HUP 1 
-    PID 48, 0.08Gi: envoy -c /ambassador/bootstrap-ads.json --base-id 0 --drain-time-s 600 -l error 
+    PID 1, 0.22Gi: busyambassador entrypoint
+    PID 14, 0.04Gi: /usr/bin/python /usr/bin/diagd /ambassador/snapshots /ambassador/bootstrap-ads.json /ambassador/envoy/envoy.json --notices /ambassador/notices.json --port 8004 --kick kill -HUP 1
+    PID 16, 0.12Gi: /ambassador/sidecars/amb-sidecar
+    PID 37, 0.07Gi: /usr/bin/python /usr/bin/diagd /ambassador/snapshots /ambassador/bootstrap-ads.json /ambassador/envoy/envoy.json --notices /ambassador/notices.json --port 8004 --kick kill -HUP 1
+    PID 48, 0.08Gi: envoy -c /ambassador/bootstrap-ads.json --base-id 0 --drain-time-s 600 -l error
 ```
 
 In general you should try to keep Ambassador's memory usage below 50% of the pod's limit. This may

@@ -18,14 +18,14 @@ One of the main use cases of Service Preview is to intercept certain requests to
 
 #### Intercept with an HTTP header
 
-1. Make sure sure that the `Hello` is installed. See the [installation instructions](../service-preview-install). 
+1. Make sure sure that the `Hello` is installed. See the [installation instructions](../service-preview-install).
 
    ```
    $ kubectl get svc,deploy
    NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
    service/hello        ClusterIP   10.4.28.14   <none>        80/TCP    6m18s
    service/kubernetes   ClusterIP   10.4.16.1    <none>        443/TCP   25m
-    
+
    NAME                          READY   UP-TO-DATE   AVAILABLE   AGE
    deployment.extensions/hello   1/1     1            1           6m18s
    ```
@@ -43,14 +43,14 @@ One of the main use cases of Service Preview is to intercept certain requests to
    ```
    $ edgectl connect
    Already connected
-    
+
    $ edgectl status
    Connected
      Context:       default (https://localhost:6443)
      Proxy:         ON (networking to the cluster is enabled)
      Interceptable: 1 deployments
      Intercepts:    0 total, 0 local
-    
+
    $ curl -L hello
    Hello, world!
    ```
@@ -61,23 +61,23 @@ One of the main use cases of Service Preview is to intercept certain requests to
    $ edgectl intercept avail
    Found 1 interceptable deployment(s):
       1. hello in namespace default
-    
+
    $ edgectl intercept list
    No intercepts
-    
+
    $ edgectl intercept add hello -n example -m x-dev=$USER -t localhost:9000
    Using deployment hello in namespace default
    Added intercept "example"
-    
+
    $ edgectl intercept list
    1. example
        Intercepting requests to hello when
        - x-dev: ark3
        and redirecting them to localhost:9000
-    
+
    $ curl -L hello
    Hello, world!
-    
+
    $ curl -L -H x-dev:$USER hello
    <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
    <html>
@@ -102,7 +102,7 @@ One of the main use cases of Service Preview is to intercept certain requests to
    ```
    $ edgectl intercept remove example
    Removed intercept "example"
-    
+
    $ curl -L -H x-dev:$USER hello
    Hello, world!
    ```
@@ -140,7 +140,7 @@ Now let's set up an intercept with a preview URL.
    ```
    $ edgectl disconnect
    Disconnected
-    
+
    $ edgectl connect
    Connecting to traffic manager in namespace ambassador...
    Connected to context k3s-default (https://172.20.0.3:6443)
@@ -152,16 +152,16 @@ Now let's set up an intercept with a preview URL.
    $ edgectl intercept avail
    Found 1 interceptable deployment(s):
        1. hello in namespace default
-    
+
    $ edgectl intercept list
    No intercepts
-    
+
    $ edgectl intercept add hello -n example-url -t 9000
    Using deployment hello in namespace default
    Added intercept "example-url"
    Share a preview of your changes with anyone by visiting
     https://staging.example.com/.ambassador/service-preview/251b550a-66e4-47f3-aa5e-97801b4037a8/
-    
+
    $ edgectl intercept list
       1. example-url
          (preview URL available)
@@ -170,10 +170,10 @@ Now let's set up an intercept with a preview URL.
          and redirecting them to 127.0.0.1:9000
    Share a preview of your changes with anyone by visiting
       https://staging.example.com/.ambassador/service-preview/251b550a-66e4-47f3-aa5e-97801b4037a8/
-    
+
    $ curl https://staging.example.com/hello/
    Hello, world!
-    
+
    $ curl https://staging.example.com/.ambassador/service-preview/251b550a-66e4-47f3-aa5e-97801b4037a8/hello/
    <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
    <html>
@@ -198,25 +198,25 @@ Now let's set up an intercept with a preview URL.
   ```
   $ edgectl intercept remove example-url
   Removed intercept "example-url"
-   
+
   $ curl https://staging.example.com/.ambassador/service-preview/0efb6d52-9ddc-410d-8717-8db58bac2088/hello/
   Hello, world!
   ```
-  
+
   Requests are no longer intercepted.
 
 ### Outbound Services
 
 Service Preview bridges your local and cluster DNS. This allows for the use case of using Service Preview as a debug tool for interacting with services in your cluster.
 
-1. Make sure sure that the `Hello` service is installed. See the [installation instructions](../service-preview-install). 
+1. Make sure sure that the `Hello` service is installed. See the [installation instructions](../service-preview-install).
 
    ```
    $ kubectl get svc,deploy
    NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
    service/hello        ClusterIP   10.4.28.14   <none>        80/TCP    6m18s
    service/kubernetes   ClusterIP   10.4.16.1    <none>        443/TCP   25m
-    
+
    NAME                          READY   UP-TO-DATE   AVAILABLE   AGE
    deployment.extensions/hello   1/1     1            1           6m18s
    ```
@@ -226,14 +226,14 @@ Service Preview bridges your local and cluster DNS. This allows for the use case
    ```
    $ edgectl connect
    Already connected
-    
+
    $ edgectl status
    Connected
      Context:       default (https://34.72.18.227)
      Proxy:         ON (networking to the cluster is enabled)
      Interceptable: 1 deployments
      Intercepts:    0 total, 0 local
-    
+
    $ curl -L hello
    Hello, world!
    ```
@@ -245,7 +245,7 @@ You are now able to connect to services directly from your laptop, as demonstrat
    ```
    $ edgectl disconnect
    Disconnected
-    
+
    $ edgectl status
    Not connected
    ```

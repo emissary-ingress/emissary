@@ -4,7 +4,7 @@
 
 Please note that the Project functionality is disabled by default. See [The Project Quickstart](../../../tutorials/projects/) for instructions on enabling the Project Controller and setting up your first `Project`.
 
-Ambassador is designed around a [declarative, self-service management model](../../concepts/gitops-continuous-delivery). The `Project` resource takes self-service, declarative configuration, and gitops to the next level by enabling developers to stage and deploy code with nothing more than a github repository. 
+Ambassador is designed around a [declarative, self-service management model](../../concepts/gitops-continuous-delivery). The `Project` resource takes self-service, declarative configuration, and gitops to the next level by enabling developers to stage and deploy code with nothing more than a github repository.
 
 ## The `Project` Resource
 
@@ -116,7 +116,7 @@ Each `ProjectRevision` will create a `Job` to perform the build, and a `Deployme
 
 ```
 Project
-   | 
+   |
    +---> ProjectRevision_1
    |       |
    |       +-> Job (builds and pushes the image)

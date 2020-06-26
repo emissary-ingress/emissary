@@ -6,7 +6,7 @@ Below is some information on how Service Preview runs alongside different servic
 
 ## Service Preview and Istio
 
-Istio is an open source Envoy-based service mesh implementation that transparently intercepts traffic to your containers and adds observability, security, and layer 7 routing to your services. 
+Istio is an open source Envoy-based service mesh implementation that transparently intercepts traffic to your containers and adds observability, security, and layer 7 routing to your services.
 
 Service Preview can intercept services in an Istio service mesh with a couple of configuration details.
 
@@ -28,6 +28,6 @@ This is easily done by setting `AMBASSADOR_ENVOY_BASE_ID: "1"` in the `traffic-a
 
 > **IMPORTANT**
 > At the moment, the Ambassador Injector does not automatically set `AMBASSADOR_ENVOY_BASE_ID`. You will need to manually inject the `traffic-agent` when intercepting a service in your Istio mesh.
-> 
+>
 > Future versions of the Ambassador Injector will support setting `AMBASSADOR_ENVOY_BASE_ID`.
 

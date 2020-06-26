@@ -21,7 +21,7 @@ retry_policy:
 
 | Value | Description |
 | --- | --- |
-|`5xx`| Retries if the upstream service responds with any 5xx code or does not respond at all 
+|`5xx`| Retries if the upstream service responds with any 5xx code or does not respond at all
 |`gateway-error`| Similar to a `5xx` but only applies to a 502, 503, or 504 response
 |`connect-failure`| Retries on a connection failure to the upstream service (included in `5xx`)
 |`retriable-4xx`| Retries on a retriable 4xx response (currently only 409)

@@ -55,7 +55,7 @@ The DNS-01 challenge verifies domain ownership by proving you have control over 
 
 2. Note the `accessKeyID` and create a `secret` named `prod-route53-credentials-secret` in the cert-manager namespace that has a key value: `secret-access-key` from your AWS IaM credentials.
 
-3. Create and apply a `ClusterIssuer`. 
+3. Create and apply a `ClusterIssuer`.
 
     ```yaml
     ---
@@ -83,7 +83,7 @@ The DNS-01 challenge verifies domain ownership by proving you have control over 
                 key: secret-access-key
     ```
 
-4. Create and apply a `Certificate`. 
+4. Create and apply a `Certificate`.
 
     ```yaml
     ---
@@ -91,8 +91,8 @@ The DNS-01 challenge verifies domain ownership by proving you have control over 
     kind: Certificate
     metadata:
       name: myzone.route53.com
-      # cert-manager will put the resulting Secret in the same Kubernetes 
-      # namespace as the Certificate. You should create the certificate in 
+      # cert-manager will put the resulting Secret in the same Kubernetes
+      # namespace as the Certificate. You should create the certificate in
       # whichever namespace you want to configure a Host.
     spec:
       secretName: ambassador-certs
@@ -145,8 +145,8 @@ The HTTP-01 challenge verifies ownership of the domain by sending a request for 
     kind: Certificate
     metadata:
       name: ambassador-certs
-      # cert-manager will put the resulting Secret in the same Kubernetes 
-      # namespace as the Certificate. You should create the certificate in 
+      # cert-manager will put the resulting Secret in the same Kubernetes
+      # namespace as the Certificate. You should create the certificate in
       # whichever namespace you want to configure a Host.
       namespace: ambassador
     spec:
@@ -179,7 +179,7 @@ The HTTP-01 challenge verifies ownership of the domain by sending a request for 
 4. Create a Mapping for the `/.well-known/acme-challenge/` route.
 
     cert-manager uses an `Ingress` to issue the challenge to `/.well-known/acme-challenge/` that is incompatible with Ambassador. We will need to create a `Mapping` so the cert-manager can reach the temporary pod.
- 
+
     ```yaml
     ---
     apiVersion: getambassador.io/v2

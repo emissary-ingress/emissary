@@ -1,6 +1,6 @@
 # Service Preview Reference
 
-The following is a reference for the various components of Service Preview. 
+The following is a reference for the various components of Service Preview.
 
 See [Service Preview Quick Start](../service-preview-install) for detailed installation instructions.
 
@@ -137,8 +137,8 @@ It also requires the ability to read your Ambassador Edge Stack license key from
 
 - __Run with namespace scope__
 
-   You can run the Traffic Agent without cluster-wide permissions if you only want to use service preview in a single namespace. 
-   
+   You can run the Traffic Agent without cluster-wide permissions if you only want to use service preview in a single namespace.
+
    To do so, you will need use the following manifest which modifies the deployment to run only in the `ambassador` namespace.
 
    ```yaml
@@ -380,7 +380,7 @@ If you want to include the Traffic Agent with multiple services, they can all us
      - name: system:serviceaccounts
        kind: Group
        apiGroup: rbac.authorization.k8s.io
-   ``` 
+   ```
 
 #### Automatic Traffic Agent Sidecar Injection with Ambassador Injector
 
@@ -641,7 +641,7 @@ Key points include:
 - **Note 5**: The `AGENT_SERVICE` environment variable is mandatory. It sets the name that the Traffic Agent will report to the Traffic Manager for this microservice: you will have to provide this name to intercept this microservice.
 - **Note 6**: The `AGENT_PORT` environment variable is mandatory. It tells the Traffic Agent the local port on which the microservice is listening.
 - **Note 7**: The `AGENT_MANAGER_NAMESPACE` environment variable tells the Traffic Agent the namespace in which it will be able to find the Traffic Manager. If not present, it defaults to the `ambassador` namespace.
-- **Note 8**: The `AMBASSADOR_NAMESPACE` environment variable is mandatory. It lets the Traffic Agent tell the Traffic Manager the namespace in which the microservice is running. 
+- **Note 8**: The `AMBASSADOR_NAMESPACE` environment variable is mandatory. It lets the Traffic Agent tell the Traffic Manager the namespace in which the microservice is running.
 - **Note 9**: The `AMBASSADOR_SINGLE_NAMESPACE` environment variable tells the Traffic Agent to watch resources only in its current namespace. This allows the `traffic-agent` `ServiceAccount` to only have `Role` permissions instead of a cluster-wide `ClusterRole`.
 - **Note 10**: The `AGENT_LISTEN_PORT` environment variable tells the Traffic Agent the port on which to listen for incoming connections. The `Service` must point to this port (see Note 1). If not present, it defaults to port 9900.
 

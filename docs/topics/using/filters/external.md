@@ -54,7 +54,7 @@ spec:
 
  - `status_on_error` (optional) controls the status code returned when unable to communicate with external auth service.  This is ignored if `failure_mode_allow: true`.
     * `code` (optional) defaults to 403.
-    
+
  - `failure_mode_allow` (optional) being set to `true` causes the request to be allowed through to the upstream backend service if there is an error communicating with the external auth service, instead of returning `status_on_error.code` to the client.  Defaults to false.
 
 The following fields are only used if `proto: http`; they are ignored if `proto: grpc`:

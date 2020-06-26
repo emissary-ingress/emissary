@@ -1,20 +1,20 @@
-# Install with Google Kubernetes Engine (GKE) Ingress 
+# Install with Google Kubernetes Engine (GKE) Ingress
 
-Google offers a [L7 load balancer](https://cloud.google.com/kubernetes-engine/docs/concepts/ingress) to 
-leverage network services such as managed SSL certificates, SSL offloading or the Google content delivery network. 
-A L7 load balancer in front of Ambassador can be configured by hand or by using the ingress-gce resource. Using the 
+Google offers a [L7 load balancer](https://cloud.google.com/kubernetes-engine/docs/concepts/ingress) to
+leverage network services such as managed SSL certificates, SSL offloading or the Google content delivery network.
+A L7 load balancer in front of Ambassador can be configured by hand or by using the ingress-gce resource. Using the
 ingress resource also allows you to create google managed SSL certificates through kubernetes.
 
-With this setup, HTTPS will be terminated at the Google load balancer. The load balancer will be created and configured by 
-the ingress-gce resource. The load balancer consists of a set of 
+With this setup, HTTPS will be terminated at the Google load balancer. The load balancer will be created and configured by
+the ingress-gce resource. The load balancer consists of a set of
 [forwarding rules](https://cloud.google.com/load-balancing/docs/forwarding-rule-concepts#https_lb) and a set of
-[backend service](https://cloud.google.com/load-balancing/docs/backend-service). 
+[backend service](https://cloud.google.com/load-balancing/docs/backend-service).
 In this setup the ingress resource creates two forwarding rules, one for HTTP and one for HTTPS. The HTTPS
 forwarding rule has the SSL certificates attached. In addition one backend service will be created to point to
-a list of instance groups at a static port. This will be the NodePort of the Ambassador service. 
+a list of instance groups at a static port. This will be the NodePort of the Ambassador service.
 
-With this setup the load balancer terminates HTTPS and then directs the traffic to the Ambassador service 
-via the NodePort. Ambassador is then doing all the routing to the other internal/external services. 
+With this setup the load balancer terminates HTTPS and then directs the traffic to the Ambassador service
+via the NodePort. Ambassador is then doing all the routing to the other internal/external services.
 
 # Overview of steps
 
@@ -32,13 +32,13 @@ This guide will install Ambassador API gateway. You can also install Ambassador 
 - The ingress and the ambassador service need to run in the same namespace
 - The Ambassador service needs to be of type `NodePort` and not `LoadBalancer`. Also remove the line with `externalTrafficPolicy: Local`
 - Ambassador-Admin needs to be of type `NodePort` instead of `ClusterIP` since it needs to be available for health checks
- 
+
 ## 1 . Install and configure ingress with the HTTP(S) load balancer
 
 Create a GKE cluster through the web console. Use the release channel. When the cluster
-is up and running follow [this tutorial from google](https://cloud.google.com/kubernetes-engine/docs/tutorials/http-balancer) to configure 
+is up and running follow [this tutorial from google](https://cloud.google.com/kubernetes-engine/docs/tutorials/http-balancer) to configure
 an ingress and a L7 load balancer. After you have completed these steps you will have a running L7 load balancer
-and one services. 
+and one services.
 
 ## 2. Install Ambassador
 
@@ -104,7 +104,7 @@ a DNS name and point it to the external IP of the load balancer. Going forward i
 is www.example.com .
 
 certificate.yaml:
-```yaml 
+```yaml
 apiVersion: networking.gke.io/v1beta1
 kind: ManagedCertificate
 metadata:
@@ -128,7 +128,7 @@ spec:
     servicePort: 8080
 ```
 
-Please wait (5-15 minutes) until the certificate is created and all edge servers have the certificates ready. 
+Please wait (5-15 minutes) until the certificate is created and all edge servers have the certificates ready.
 `kubectl describe ManagedCertificate` will show you the status or go to the web console to view the load balancer.
 
 You should now be able to access the web service via https://www.example.com
@@ -155,11 +155,11 @@ and will return the correct HTTP 200 answer.
 
 Now the service health is determined by contacting ambassador-admin service
 
-### Enabling HTTP -> HTTPS 
+### Enabling HTTP -> HTTPS
 
-- Configure Ambassador to [redirect traffic from HTTP to HTTPS](../tls/cleartext-redirection/#protocol-based-redirection). 
+- Configure Ambassador to [redirect traffic from HTTP to HTTPS](../tls/cleartext-redirection/#protocol-based-redirection).
 - you need to restart Ambassador to effect the changes
 
-The result should be that http://www.example.com will redirect to https://www.example.com. 
+The result should be that http://www.example.com will redirect to https://www.example.com.
 
 You can now add more services by specifying the hostname in the mapping.

@@ -100,7 +100,7 @@ You'll now register a demo application with Consul, and show how Ambassador Edge
 
    Go to `http://localhost:8500/` from a web browser and you should see a service named `qotm-consul`.
 
-3. Create a `Mapping` for the `qotm-consul` service. 
+3. Create a `Mapping` for the `qotm-consul` service.
 
    ```yaml
    ---
@@ -140,7 +140,7 @@ Ambassador Edge Stack can also use certificates stored in Consul to originate en
    ```
    kubectl apply -f https://www.getambassador.io/yaml/consul/ambassador-consul-connector.yaml
    ```
-   
+
 This will install into your cluster:
 
    - RBAC resources.

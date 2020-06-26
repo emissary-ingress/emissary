@@ -28,7 +28,7 @@ The `Resolver` resource is used to configure the discovery service strategy for 
 
 ### The Kubernetes Service Resolver
 
-The Kubernetes Service Resolver configures Ambassador Edge Stack to use Kubernetes services. If no resolver is specified, this behavior is the default. When this resolver is used, the `service.namespace` value from a `Mapping` is handed to the Kubernetes cluster's DNS resolver to determine where requests are sent. 
+The Kubernetes Service Resolver configures Ambassador Edge Stack to use Kubernetes services. If no resolver is specified, this behavior is the default. When this resolver is used, the `service.namespace` value from a `Mapping` is handed to the Kubernetes cluster's DNS resolver to determine where requests are sent.
 
 ```yaml
 ---
