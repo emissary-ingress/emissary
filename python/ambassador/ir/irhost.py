@@ -19,6 +19,8 @@ class IRHost(IRResource):
         'requestPolicy',
         'selector',
         'tlsSecret',
+        'tlsContext',
+        'tls',
     }
 
     def __init__(self, ir: 'IR', aconf: Config,
@@ -64,8 +66,112 @@ class IRHost(IRResource):
 
                     ctx_name = f"{self.name}-context"
 
+                    host_tls_context_name = self.get('tlsContext', None)
+                    host_tls_config = self.get('tls', None)
+
+                    self.logger.info(f"Found TLSContext: {host_tls_context_name}")
+                    self.logger.info(f"Found TLS config: {host_tls_config}")
+
+                    if host_tls_context_name and host_tls_config:
+                        ir.logger.info(f"Host {self.name}: both TLSContext name and TLS config specified, ignoring...")
+                        ir.logger.error(f"Host {self.name}: both TLSContext name and TLS config specified, ignoring...")
+                        return False
+
                     if ir.has_tls_context(ctx_name):
                         ir.logger.debug(f"Host {self.name}: TLSContext {ctx_name} already exists")
+                    elif host_tls_context_name:
+                        if not ir.has_tls_context(host_tls_context_name):
+                            ir.logger.info(f"Host {self.name}: invalid TLSContext specified {host_tls_context_name}")
+                            ir.logger.error(f"Host {self.name}: invalid TLSContext specified {host_tls_context_name}")
+                            return False
+
+                        ir.logger.info(f"Found TLSContext {host_tls_context_name} as specified")
+                        host_tls_context = ir.get_tls_context(host_tls_context_name)
+                        host_tls_context.rkey = self.rkey
+                        host_tls_context.name = ctx_name
+                        host_tls_context.namespace = self.namespace
+                        host_tls_context.location = self.location
+                        host_tls_context.hosts = [self.hostname or self.name]
+                        host_tls_context.secret = tls_name
+
+                        match_labels = self.get('matchLabels')
+
+                        if not match_labels:
+                            match_labels = self.get('match_labels')
+
+                        if match_labels:
+                            host_tls_context['metadata_labels'] = match_labels
+
+                        if host_tls_context.is_active():
+                            self.context = host_tls_context
+                            host_tls_context.referenced_by(self)
+                            host_tls_context.sourced_by(self)
+
+                            ir.save_tls_context(host_tls_context)
+
+                    elif host_tls_config:
+                        ir.logger.info(f"Host {self.name}: creating TLSContext {ctx_name}")
+
+                        new_ctx = dict(
+                            rkey=self.rkey,
+                            name=ctx_name,
+                            namespace=self.namespace,
+                            location=self.location,
+                            hosts=[ self.hostname or self.name ],
+                            secret=tls_name,
+                            alpn_protocols=host_tls_config.get('alpn_protocols'),
+                            cipher_suites=host_tls_config.get('cipher_suites'),
+                            ecdh_curves=host_tls_config.get('ecdh_curves'),
+                            redirect_cleartext_from=host_tls_config.get('redirect_cleartext_from'),
+                            sni=host_tls_config.get('sni'),
+                            cert_required=host_tls_config.get('cert_required')
+                        )
+
+                        if host_tls_config.get('max_tls_version'):
+                            if host_tls_config.get('max_tls_version') in IRTLSContext.AllowedTLSVersions:
+                                new_ctx['max_tls_version'] = host_tls_config.get('max_tls_version')
+                            else:
+                                ir.logger.error(f"Invalid max_tls_version set: {host_tls_config.get('max_tls_version')}")
+                                return False
+
+                        if host_tls_config.get('min_tls_version'):
+                            if host_tls_config.get('min_tls_version') in IRTLSContext.AllowedTLSVersions:
+                                new_ctx['min_tls_version'] = host_tls_config.get('min_tls_version')
+                            else:
+                                ir.logger.error(f"Invalid min_tls_version set: {host_tls_config.get('min_tls_version')}")
+                                return False
+
+                        if host_tls_config.get('cert_chain_file'):
+                            new_ctx['cert_chain_file'] = host_tls_config.get('cert_chain_file')
+
+                        if host_tls_config.get('private_key_file'):
+                            new_ctx['private_key_file'] = host_tls_config.get('private_key_file')
+
+                        if host_tls_config.get('cacert_chain_file'):
+                            new_ctx['cacert_chain_file'] = host_tls_config.get('cacert_chain_file')
+
+                        if host_tls_config.get('ca_secret'):
+                            new_ctx['ca_secret'] = host_tls_config.get('ca_secret')
+
+                        ctx = IRTLSContext(ir, aconf, **new_ctx)
+
+                        match_labels = self.get('matchLabels')
+
+                        if not match_labels:
+                            match_labels = self.get('match_labels')
+
+                        if match_labels:
+                            ctx['metadata_labels'] = match_labels
+
+                        if ctx.is_active():
+                            self.context = ctx
+                            ctx.referenced_by(self)
+                            ctx.sourced_by(self)
+
+                            ir.save_tls_context(ctx)
+                        else:
+                            ir.logger.info(f"Host {self.name}: new TLSContext {ctx_name} is not valid")
+                            ir.logger.error(f"Host {self.name}: new TLSContext {ctx_name} is not valid")
                     else:
                         ir.logger.debug(f"Host {self.name}: creating TLSContext {ctx_name}")
 

@@ -60,6 +60,12 @@ message HostSpec {
 
   // Configuration for the Preview URL feature of Service Preview. Defaults to preview URLs not enabled.
   PreviewURLSpec previewUrl = 8;
+
+  // Name of the TLSContext the Host resource is linked with
+  string tlsContext = 9;
+
+  // TLS config
+  TLSConfig tls = 10;
 }
 
 enum HostTLSCertificateSource {
@@ -117,6 +123,21 @@ message ACMEProviderSpec {
 
   // This is normally set automatically
   string registration = 4;
+}
+
+message TLSConfig {
+  string cert_chain_file = 1;
+  string private_key_file = 2;
+  string ca_secret = 3;
+  string cacert_chain_file = 4;
+  string alpn_protocols = 5;
+  bool cert_required = 6;
+  string min_tls_version = 7;
+  string max_tls_version = 8;
+  repeated string cipher_suites = 9;
+  repeated string ecdh_curves = 10;
+  int32 redirect_cleartext_from = 11;
+  string sni = 12;
 }
 
 message RequestPolicy {
