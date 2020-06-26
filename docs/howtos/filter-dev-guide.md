@@ -71,7 +71,7 @@ Now, you can quickly test and develop your filter.
 1. In your filter directory, type: `aes-plugin-runner :8080 ./param-plugin.so`.
 2. Test the filter by running `curl`:
 
-    ```
+    ```console
     $ curl -Lv localhost:8080?db=2
     * Rebuilt URL to: localhost:8080/?db=2
     *   Trying ::1...

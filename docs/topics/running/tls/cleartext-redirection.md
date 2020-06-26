@@ -74,7 +74,7 @@ Most modern websites that force HTTPS will also automatically redirect any
 requests that come into it over HTTP. In the Ambassador Edge Stack, this is
 enabled by default but can easily be enabled in any version of Ambassador.
 
-```
+```asciiart
 Client              Ambassador Edge Stack
 |                             |
 | http://<hostname>/api       |

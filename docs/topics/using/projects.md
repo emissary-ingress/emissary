@@ -20,7 +20,7 @@ A `Project` resource requires the following configuration:
 
 The `Edge Policy Console` provides a streamlined self-service workflow for creating a `Project` resource, but you can define projects just like any other kubernetes resource:
 
-```
+```yaml
 ---
 apiVersion: getambassador.io/v2
 kind: Project
@@ -38,7 +38,7 @@ spec:
 
 The `Project` Controller expects `Project` repositories to have a `Dockerfile` in the root of the referenced github repo:
 
-```
+```asciiart
 <root>
   |
   +-- Dockerfile                  // Required: tells the controller how to build your project
@@ -50,7 +50,7 @@ The `Project` Controller expects `Project` repositories to have a `Dockerfile` i
 
 This `Dockerfile` will be used to build and deploy the `Project`. The `Dockerfile` MUST include an `EXPOSE 8080` instruction, and the server's code MUST be written to bind to port 8080:
 
-```
+```Dockerfile
 FROM <your-base-image>
 ...
 RUN <your-build-instructions>
@@ -72,7 +72,7 @@ The `Project Controller` automatically registers a webhook so that it is notifie
 
 For example, if the foo `Project` points to a repo with 3 open feature branches, the foo `Project` will stage 3 commits and deploy 1 commit as depicted below:
 
-```
+```asciiart
 .          <<Project>>    <====>     <<Repo>>
                foo             github.com/octocat/foo
                 |                        |
@@ -103,7 +103,7 @@ For example, if the foo `Project` points to a repo with 3 open feature branches,
 
 The `Project` resource accomplishes its goals by delegating to the `ProjectRevision` resource which in turn manages a number of other kubernetes resources. The `Project Controller` will create a `ProjectRevision` for every git commit that is to be staged or deployed:
 
-```
+```console
 $ kubectl get projectrevisions
 NAME              PROJECT   REF                 REV         STATUS         AGE
 foo-07d04b...     foo       refs/heads/master   07d04b...   Deployed       2d
@@ -114,7 +114,7 @@ foo-5664e9...     foo       refs/pull/11/head   5664e9...   Deploying      65s
 
 Each `ProjectRevision` will create a `Job` to perform the build, and a `Deployment` + `Service` + [`Mapping`](#mapping) to publish the commit:
 
-```
+```asciiart
 Project
    |
    +---> ProjectRevision_1

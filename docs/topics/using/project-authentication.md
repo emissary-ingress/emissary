@@ -6,7 +6,7 @@ Make sure you have configured at least one working [authentication Filter](../fi
 
 The following `FilterPolicy` will enable authentication for your `Project`'s production deployment:
 
-```
+```yaml
 apiVersion: getambassador.io/v2
 kind: FilterPolicy
 metadata:
@@ -23,7 +23,7 @@ spec:
 
 You can apply the following `FilterPolicy` to enable authentication for your `Project`'s preview deploys. Note that you can use a different authentication filter for previews, and in fact you can omit the project-specific portion of the path if you wish to lock down previews for all `Projects`:
 
-```
+```yaml
 apiVersion: getambassador.io/v2
 kind: FilterPolicy
 metadata:

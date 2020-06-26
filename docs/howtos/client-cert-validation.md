@@ -23,7 +23,7 @@ certificates.
 
    This can be done with a single command with `openssl`:
 
-   ```
+   ```shell
    openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365
    ```
 
@@ -38,7 +38,7 @@ certificates.
 
    1. Encode `cert.pem` and `key.pem` created above in PKCS format
 
-      ```
+      ```shell
       openssl pkcs12 -inkey key.pem -in cert.pem -export -out certificate.p12
       ```
 
@@ -92,12 +92,12 @@ certificates.
 4. Test that Ambassador is validating the client certificates with `curl`
 
    **Linux**:
-   ```
+   ```shell
    curl -v --cert cert.pem --key key.pem https://host.example.com/
    ```
 
    **MacOS**:
-   ```
+   ```shell
    curl -v --cert certificate.p12:[password] https://host.example.com/
    ```
 

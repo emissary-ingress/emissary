@@ -7,7 +7,7 @@ CORS configuration can be set for all Ambassador Edge Stack mappings in the [`am
 When the CORS attribute is set at either the `Mapping` or `Module` level, Ambassador Edge Stack will intercept the pre-flight `OPTIONS` request and respond with the appropriate CORS headers. This means you will not need to implement any logic in your upstreams to handle these CORS `OPTIONS` requests.
 
 The flow of the request will look similar to the following:
-```
+```asciiart
 Client      Ambassador Edge Stack     Upstream
   |      OPTIONS       |               |
   | —————————————————> |               |
@@ -137,7 +137,7 @@ This is okay since CORS is being handled by Ambassador Edge Stack after authenti
 
 The flow of this request will look similar to the following:
 
-```
+```asciiart
 Client     Ambassador Edge Stack       Auth          Upstream
   |      OPTIONS       |               |               |
   | —————————————————> | ————————————> |               |

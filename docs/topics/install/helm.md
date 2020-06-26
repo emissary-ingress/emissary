@@ -27,19 +27,19 @@ deploy it with either version of the tool.
 
 1. If you are installing the Ambassador Edge Stack **for the first time on your cluster**, create the `ambassador` namespace for the Ambassador Edge Stack:
 
-   ```
+   ```shell
    kubectl create namespace ambassador
    ```
 
 2. **Helm 3 users:** Install the Ambassador Edge Stack Chart with the following command:
 
-   ```
+   ```shell
    helm install ambassador --namespace ambassador datawire/ambassador
    ```
 
 3. **Helm 2 users**: Install the Ambassador Edge Stack Chart with the following command:
 
-   ```
+   ```shell
    helm install --name ambassador --namespace ambassador datawire/ambassador
    ```
 
@@ -47,7 +47,7 @@ deploy it with either version of the tool.
 5. Provide an email address when prompted to receive notices if your domain or TLS certificate is about to expire. (optional)
 
 Your terminal should print something similar to the following:
-```
+```console
 $ edgectl install
 -> Installing the Ambassador Edge Stack 1.0.
 -> Existing Ambassador Edge Stack installation detected.
@@ -70,13 +70,13 @@ Upgrading an existing installation of the Ambassador Edge Stack is a two-step pr
 
 1. First, apply any CRD updates (as of Helm 3, this is not supported in the chart itself):
 
-   ```
+   ```shell
    kubectl apply -f https://www.getambassador.io/yaml/aes-crds.yaml
    ```
 
 2. Next, upgrade the Ambassador Edge Stack itself:
 
-   ```
+   ```shell
    helm upgrade ambassador datawire/ambassador
    ```
 
@@ -92,7 +92,7 @@ If you have an existing Ambassador API Gateway installation but are not yet runn
 
    To take full advantage of the Ambassador Edge Stack, you'll need the new `Host` CRD, and you'll need the new `getambassador.io/v2` version of earlier CRDs. To upgrade all the CRDs, run
 
-   ```
+   ```shell
    kubectl apply -f https://www.getambassador.io/yaml/aes-crds.yaml
    ```
 
@@ -100,13 +100,13 @@ If you have an existing Ambassador API Gateway installation but are not yet runn
 
    If you're using **Helm 3**, simply run
 
-   ```
+   ```shell
    helm upgrade --namespace ambassador ambassador datawire/ambassador
    ```
 
    If you're using **Helm 2**, you need to modify the command slightly:
 
-   ```
+   ```shell
    helm upgrade --set crds.create=false --namespace ambassador ambassador datawire/ambassador
    ```
 

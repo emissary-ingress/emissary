@@ -54,7 +54,7 @@ After creating an OAuth client in Google, configuring Ambassador Edge Stack to m
     ```
 3. Apply both the `Filter` and `FilterPolicy` above with `kubectl`
 
-    ```
+    ```shell
     kubectl apply -f google-filter.yaml
     kubectl apply -f google-policy.yaml
     ```

@@ -71,7 +71,7 @@ After configuring an OAuth application in Salesforce, configuring Ambassador Edg
 
 3. Apply both the `Filter` and `FilterPolicy` above with `kubectl`
 
-    ```
+    ```shell
     kubectl apply -f salesforce-filter.yaml
     kubectl apply -f oauth-policy.yaml
     ```

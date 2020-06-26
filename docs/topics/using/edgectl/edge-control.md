@@ -30,7 +30,7 @@ sudo chmod a+x /usr/local/bin/edgectl
 
 Make sure you've terminated the daemon.
 
-```
+```console
 $ edgectl quit
 Edge Control Daemon quitting...
 ```
@@ -43,7 +43,7 @@ Download the latest binary, as above, and replace your existing binary.
 
 Connect to the cluster. This command allows your local environment to initiate traffic to the cluster, allowing services running locally to send and receive requests to cluster services.
 
-```
+```console
 $ edgectl connect
 Connecting to traffic manager in namespace ambassador...
 Connected to context gke_us-east1-b_demo-cluster (https://35.136.57.145)
@@ -63,14 +63,14 @@ The daemon’s logging output may be found in `/tmp/edgectl.log`.
 
 Launch Daemon:
 
-```
+```console
 $ sudo edgectl daemon
 Launching Edge Control Daemon v1.0.0-ea5 (api v1)
 ```
 
 If `/etc/resolv.conf` is correct, but you have a local DNS server available on 10.0.0.1 that should be used for non-cluster queries, you could run Configure fallback server:
 
-```
+```console
 $ sudo edgectl daemon --fallback 10.0.0.1
 Launching Edge Control Daemon v1.0.0-ea5 (api v1)
 ```
@@ -87,7 +87,7 @@ Intercept enables the cluster to initiate traffic to the local environment. To p
 
 List available Kubernetes deployments for intercept.
 
-```
+```console
 $ edgectl intercept available
 Found 2 interceptable deployment(s):
    1. xyz in namespace default
@@ -121,7 +121,7 @@ A few other options to `intercept` include:
 
 Intercept all requests to the `hello` deployment that match the HTTP `x-dev` header with a value of `jane` to a service running locally on port 9000:
 
-```
+```console
 $ edgectl intercept add hello -n example -m x-dev=jane -t localhost:9000
 Added intercept "example"
 ```
@@ -130,7 +130,7 @@ Added intercept "example"
 
 Pause the daemon. The network overrides used by the edgectl daemon are temporarily disabled. Typically, this is used for connecting with a VPN that is not compatible with Edge Control.
 
-```
+```console
 $ edgectl pause
 Network overrides paused.
 Use "edgectl resume" to reestablish network overrides.
@@ -148,7 +148,7 @@ Resume the daemon. Used after `edgectl pause`.
 
 Print the status of Edge Control, including the Kubernetes context that is currently being used.
 
-```
+```console
 $ edgectl status
 Connected
   Context:       gke_us-east1-b_demo-cluster (https://35.136.57.145)

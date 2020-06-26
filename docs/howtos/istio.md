@@ -531,7 +531,7 @@ Istio defaults to PERMISSIVE mTLS that does not require authentication between c
    EOF
    ```
 
-   ```
+   ```console
    $ curl -k https://{{AMBASSADOR_HOST}}/backend/
 
    upstream connect error or disconnect/reset before headers. reset reason: connection termination

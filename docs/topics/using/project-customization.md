@@ -26,7 +26,7 @@ When writing this file there are a number of things that are helpful to keep in 
 
 The default resources are defined as follows:
 
-```
+```yaml
 ---
 apiVersion: getambassador.io/v2
 kind: Mapping

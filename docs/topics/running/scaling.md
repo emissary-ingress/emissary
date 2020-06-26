@@ -45,7 +45,7 @@ kubectl get pods -n ambassador -w
 In order to take the luck out of the equation, Ambassador Edge Stack will periodically log its
 memory usage so you can see in the logs if memory limits might be a problem and require adjustment:
 
-```
+```console
 2020/11/26 22:35:20 Memory Usage 0.56Gi (28%)
 PID 1, 0.22Gi: busyambassador entrypoint
 PID 14, 0.04Gi: /usr/bin/python /usr/bin/diagd /ambassador/snapshots /ambassador/bootstrap-ads.json /ambassador/envoy/envoy.json --notices /ambassador/notices.json --port 8004 --kick kill -HUP 1

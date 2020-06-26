@@ -63,7 +63,7 @@ $ docker push <docker_reg>/grpc_example
 
 Ambassador Edge Stack `Mapping`s are based on URL prefixes; for gRPC, the URL prefix is the full-service name, including the package path (`package.service`). These are defined in the `.proto` definition file. In the example [proto definition file](https://github.com/grpc/grpc/blob/master/examples/protos/helloworld.proto) we see:
 
-```
+```protobuf
 package helloworld;
 
 // The greeting service definition.
@@ -170,7 +170,7 @@ $ kubectl get service ambassador -o wide
 ```
 Which should return something similar to:
 
-```
+```console
 NAME         CLUSTER-IP      EXTERNAL-IP     PORT(S)        AGE
 ambassador   10.11.12.13     35.36.37.38     80:31656/TCP   1m
 ```
@@ -315,7 +315,7 @@ Refer to the [TLS document](../../topics/running/tls/origination#advanced-config
 
 gRPC services use [HTTP/2 headers](https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-HTTP2.md). This means that some header-based routing rules will need to be rewritten to support HTTP/2 headers. For example, `host: subdomain.host.com` needs to be rewritten using the `headers: ` attribute with the `:authority` header:
 
-```
+```yaml
 headers:
   :authority: subdomain.host.com
 ```

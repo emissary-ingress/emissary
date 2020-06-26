@@ -64,7 +64,7 @@ After configuring an OAuth application in Azure AD, configuring Ambassador Edge 
 
 3. Apply both the `Filter` and `FilterPolicy` above with `kubectl`
 
-    ```
+    ```shell
     kubectl apply -f azure-ad-filter.yaml
     kubectl apply -f azure-policy.yaml
     ```

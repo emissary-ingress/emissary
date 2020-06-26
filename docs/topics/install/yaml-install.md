@@ -156,7 +156,7 @@ In a typical configuration workflow, Custom Resource Definitions (CRDs) are used
 
 5. Test the configuration by typing `curl -Lk https://<hostname>/backend/` or `curl -Lk https://<IP address>/backend/`. You should see something similar to the following:
 
-   ```
+   ```console
    (⎈ |rdl-1:default)$ curl -Lk https://aes.ri.k36.net/backend/
    {
     "server": "idle-cranberry-8tbb6iks",
@@ -179,7 +179,7 @@ just created on the command line.
 
 2. If you configured TLS, you can type `kubectl get hosts` to see the `Host` resource that was created:
 
-   ```
+   ```console
    (⎈ |rdl-1:default)$ kubectl get hosts
    NAME               HOSTNAME           STATE   PHASE COMPLETED   PHASE PENDING   AGE
    aes.ri.k36.net     aes.ri.k36.net     Ready                                    158m

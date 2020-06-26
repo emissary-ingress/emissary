@@ -29,7 +29,7 @@ spec:
 
 A `Mapping` resource can be managed using the same workflow as any other Kubernetes resources (e.g., `service`, `deployment`). For example, if the above `Mapping` is saved into a file called `httpbin-mapping.yaml`, the following command will apply the configuration directly to Ambassador:
 
-```
+```shell
 kubectl apply -f httpbin-mapping.yaml
 ```
 
@@ -107,7 +107,7 @@ which is probably not what was intended.
 
 Ambassador Edge Stack routes traffic to a `service`. A `service` is defined as:
 
-```
+```text
 [scheme://]service[.namespace][:port]
 ```
 

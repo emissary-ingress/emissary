@@ -43,7 +43,7 @@ Setting up Linkerd 2 requires to install three components. The first is the CLI 
 
    **Note:** If this is your first time deploying Ambassador Edge Stack, reviewing the Ambassador Edge Stack [getting started](../../tutorials/getting-started) is strongly recommended.
 
-   ```
+   ```shell
    kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-rbac.yaml
    ```
 
@@ -122,7 +122,7 @@ You'll now register a demo application with Linkerd 2, and show how Ambassador E
 
     Save the above to a file called `qotm.yaml` and deploy it with
 
-    ```
+    ```shell
     kubectl apply -f qotm.yaml
     ```
 
@@ -150,7 +150,7 @@ You'll now register a demo application with Linkerd 2, and show how Ambassador E
    ```
 
 Save the above YAML to a file named `qotm-mapping.yaml`, and apply it with:
-```
+```shell
 kubectl apply -f qotm-mapping.yaml
 ```
 to apply this configuration to your Kubernetes cluster. Note that in the above config there is nothing special to make it work with Linkerd 2. The general config for Ambassador Edge Stack already adds Linkerd Headers when forwarding requests to the service mesh.
@@ -177,7 +177,7 @@ Linkerd 2.8 can support [multicluster operation](https://linkerd.io/2/features/m
 
 2. Inject the Ambassador deployment with Linkerd (even if you have AutoInject enabled):
 
-    ```
+    ```shell
     kubectl -n ambassador get deploy ambassador -o yaml | \
       linkerd inject \
       --skip-inbound-ports 80,443 \

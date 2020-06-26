@@ -5,7 +5,7 @@ The upgrader has not been able to find an existing API Gateway installation.
 ## What's next?
 
 * Check that there is an `AmbassadorInstallation` in your cluster:
-  ```
+  ```console
   kubectl -n ambassador get ambassadorinstallations.getambassador.io
   NAME         VERSION   UPDATE-WINDOW   LAST-CHECK             DEPLOYED   DEPLOYED-VERSION   DEPLOYED-FLAVOR
   ambassador   *                         2020-05-21T21:32:24Z   True       1.4.3              OSS

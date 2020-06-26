@@ -134,7 +134,7 @@ standard YAML files.  Alternatively, you can install it with
           memory: 400Mi
     ```
 
-    ```
+    ```shell
     kubectl apply -f prometheus.yaml
     ```
 
@@ -192,7 +192,7 @@ documentation.
 
 1. Install the Prometheus Operator from the helm chart
 
-    ```
+    ```shell
     helm install -n prometheus stable/prometheus-operator
     ```
 

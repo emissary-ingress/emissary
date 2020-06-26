@@ -85,7 +85,7 @@ spec:
 
 3. Lastly, apply both the `Filter` and `FilterPolicy` you created with a `kubectl` command in your terminal:
 
-```
+```shell
 kubectl apply -f onelogin-filter.yaml
 kubectl apply -f oauth-policy.yaml
 ```

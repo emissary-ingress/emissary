@@ -81,7 +81,7 @@ If you use Helm to install Ambassador, you can get the equivalent by
 setting the `registry.create` option to true in your `values.yaml`
 file:
 
-```
+```yaml
 registry:
   create: true
 ```

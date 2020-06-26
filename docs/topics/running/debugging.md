@@ -43,7 +43,7 @@ First, check to see if the Edge Policy Console is reachable. If it is successful
 
     * Look for data in the “Events” log field near the bottom of the output, which often displays data such as a fail image pull, RBAC issues, or a lack of cluster resources. For example:
 
-        ```
+        ```console
         Events:
         Type    Reason              Age     From                      Message
         ----    ------              ----    ----                      -------
@@ -56,7 +56,7 @@ First, check to see if the Edge Policy Console is reachable. If it is successful
 
     * Look for data in the “Events” field near the bottom of the output, as it will often show issues such as image pull failures, volume mount issues, and container crash loops. For example:
 
-        ```
+        ```console
         Events:
         Type    Reason                 Age   From                                                     Message
         ----    ------                 ----  ----                                                     -------

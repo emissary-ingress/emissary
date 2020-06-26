@@ -87,14 +87,14 @@ requests by host and URL path from the edge of your cluster to Kubernetes servic
 5. Store the Ambassador `LoadBalancer` address to a local environment variable.
    You will use this variable to test accessing your pod.
 
-   ```
+   ```shell
    export AMBASSADOR_LB_ENDPOINT=$(kubectl -n ambassador get svc ambassador -o "go-template={{range .status.loadBalancer.ingress}}{{or .ip .hostname}}{{end}}")
    ```
 
 6. Test the configuration by accessing the service through the Ambassador load
    balancer.
 
-   ```
+   ```console
    $ curl -Lk "https://$AMBASSADOR_LB_ENDPOINT/backend/"
    {
     "server": "idle-cranberry-8tbb6iks",
@@ -117,7 +117,7 @@ monitor Ambassador.
    earlier as a variable, echo that variable now to your terminal and make a
    note of it.
 
-   ```
+   ```shell
    echo $AMBASSADOR_LB_ENDPOINT
    ```
 
@@ -152,7 +152,7 @@ Edge Policy Console and vice versa.  Try the following to see this in action.
    `quote-backend` `Mapping` has the updated prefix listed. Try to access the
    endpoint again via `curl` with the updated prefix.
 
-   ```
+   ```console
    $ kubectl get mappings --namespace ambassador
    NAME            PREFIX      SERVICE   STATE   REASON
    quote-backend   /quoteme/   quote

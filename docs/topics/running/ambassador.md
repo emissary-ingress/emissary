@@ -67,7 +67,7 @@ The Ambassador `Module` can set global configurations for circuit-breaking, cors
 
 `circuit_breakers` sets the global circuit breaking configuration that Ambassador will use for all mappings, unless overridden in a mapping. More information at the [circuit breaking reference](../../using/circuit-breakers).
 
-```
+```yaml
 circuit_breakers
   max_connections: 2048
   ...
@@ -77,7 +77,7 @@ circuit_breakers
 
 `cors` sets the default CORS configuration for all mappings in the cluster. See the [CORS syntax](../../using/cors).
 
-```
+```yaml
 cors:
   origins: http://foo.example,http://bar.example
   methods: POST, GET, OPTIONS
@@ -106,7 +106,7 @@ You may specify as many ranges for each kind of keyword as desired.
 
 `keepalive` sets the global keepalive settings. Ambassador will use for all mappings unless overridden in a mapping. No default value is provided by Ambassador. More information at https://www.envoyproxy.io/docs/envoy/latest/api-v2/api/v2/core/address.proto#envoy-api-msg-core-tcpkeepalive.
 
-```
+```yaml
 keepalive:
   time: 2
   interval: 2
@@ -118,7 +118,7 @@ keepalive:
 
 `load_balancer` sets the global load balancing type and policy that Ambassador will use for all mappings unless overridden in a mapping. Defaults to round-robin with Kubernetes. More information at the [load balancer reference](../load-balancer).
 
-```
+```yaml
 load_balancer:
   policy: round_robin/least_request/ring_hash/maglev
   ...
@@ -128,7 +128,7 @@ load_balancer:
 
 `retry_policy` lets you add resilience to your services in case of request failures by performing automatic retries.
 
-```
+```yaml
 retry_policy:
   retry_on: "5xx"
   ...
@@ -153,21 +153,21 @@ The `defaults` element is a dictionary of default values that will be applied to
 
 By default, both services are enabled:
 
-```
+```yaml
 diagnostics:
   enabled: true
 ```
 
 Setting `diagnostics.enabled` to `false` will disable the routes for both services (they will remain accessible from inside the Ambassador pod on port 8877):
 
-```
+```yaml
 diagnostics:
   enabled: false
 ```
 
 When configured this way, diagnostics are only available from inside the Ambassador pod(s) via `localhost` networking. You can use Kubernetes port forwarding to set up remote access temporarily:
 
-```
+```shell
 kubectl port-forward -n ambassador deploy/ambassador 8877
 ```
 
@@ -197,7 +197,7 @@ A `Mapping` can override both `enable_ipv4` and `enable_ipv6`, but if either is 
 
 Ambassador allows for two types of logging output, json and text (`envoy_log_type`). These logs can be formatted using Envoy [operators](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log/usage#command-operators) to display specific information about an incoming request. For example, a log of type `json` could use the following to show only the protocol and duration of a request:
 
-```
+```yaml
 envoy_log_format:
   {
     "protocol": "%PROTOCOL%",

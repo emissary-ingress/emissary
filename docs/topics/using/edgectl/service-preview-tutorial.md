@@ -20,7 +20,7 @@ One of the main use cases of Service Preview is to intercept certain requests to
 
 1. Make sure sure that the `Hello` is installed. See the [installation instructions](../service-preview-install).
 
-   ```
+   ```console
    $ kubectl get svc,deploy
    NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
    service/hello        ClusterIP   10.4.28.14   <none>        80/TCP    6m18s
@@ -32,7 +32,7 @@ One of the main use cases of Service Preview is to intercept certain requests to
 
 2. Launch a local service on your laptop. If you were debugging the `Hello` service, you might run a local copy in your debugger. In this example, we will start an arbitrary service on port 9000.
 
-   ```
+   ```console
    # using Python
    $ python3 -m http.server 9000 &
    Serving HTTP on :: port 9000 (http://[::]:9000/) ...
@@ -40,7 +40,7 @@ One of the main use cases of Service Preview is to intercept certain requests to
 
 3. Make sure you are connected to the cluster to set up outbound connectivity and check that you can access the `Hello` service in the cluster with `curl`.
 
-   ```
+   ```console
    $ edgectl connect
    Already connected
 
@@ -57,7 +57,7 @@ One of the main use cases of Service Preview is to intercept certain requests to
 
 4. Set up an intercept. In this example, we’ll capture requests that have the `x-dev` header set to $USER.
 
-   ```
+   ```console
    $ edgectl intercept avail
    Found 1 interceptable deployment(s):
       1. hello in namespace default
@@ -99,7 +99,7 @@ One of the main use cases of Service Preview is to intercept certain requests to
 
 5. Next, remove the intercept to restore normal operation.
 
-   ```
+   ```console
    $ edgectl intercept remove example
    Removed intercept "example"
 
@@ -131,13 +131,13 @@ Now let's set up an intercept with a preview URL.
 
    Replace `{{AMBASSADOR_IP_OR_DOMAIN_NAME}}` with the IP address or domain name of your Ambassador service and apply it with `kubectl`
 
-   ```
+   ```shell
    kubectl apply -f preview-host
    ```
 
 2. Refresh the edgectl connection for it to detect the new `Host`
 
-   ```
+   ```console
    $ edgectl disconnect
    Disconnected
 
@@ -148,7 +148,7 @@ Now let's set up an intercept with a preview URL.
 
 3. Now add an intercept and give it a try.
 
-   ```
+   ```console
    $ edgectl intercept avail
    Found 1 interceptable deployment(s):
        1. hello in namespace default
@@ -195,7 +195,7 @@ Now let's set up an intercept with a preview URL.
 
 4. Remove the intercept to restore normal operation.
 
-  ```
+  ```console
   $ edgectl intercept remove example-url
   Removed intercept "example-url"
 
@@ -211,7 +211,7 @@ Service Preview bridges your local and cluster DNS. This allows for the use case
 
 1. Make sure sure that the `Hello` service is installed. See the [installation instructions](../service-preview-install).
 
-   ```
+   ```console
    $ kubectl get svc,deploy
    NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
    service/hello        ClusterIP   10.4.28.14   <none>        80/TCP    6m18s
@@ -223,7 +223,7 @@ Service Preview bridges your local and cluster DNS. This allows for the use case
 
 2. Make sure you are still connected to the cluster.
 
-   ```
+   ```console
    $ edgectl connect
    Already connected
 
@@ -242,7 +242,7 @@ You are now able to connect to services directly from your laptop, as demonstrat
 
 3. When you’re done working with this cluster, disconnect.
 
-   ```
+   ```console
    $ edgectl disconnect
    Disconnected
 

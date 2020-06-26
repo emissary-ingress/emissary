@@ -101,7 +101,7 @@ spec:
 
 After applying this `Module`, to view the diagnostics UI, we'll need to get the name of one of the Ambassador pods:
 
-```
+```console
 $ kubectl get pods
 NAME                          READY     STATUS    RESTARTS   AGE
 ambassador-3655608000-43x86   1/1       Running   0          2m
@@ -110,7 +110,7 @@ ambassador-3655608000-w63zf   1/1       Running   0          2m
 
 Forwarding local port 8877 to one of the pods:
 
-```
+```shell
 kubectl port-forward ambassador-3655608000-43x86 8877
 ```
 
@@ -150,7 +150,7 @@ Because this hook is required for Helm 2 support, it **IS NOT AN ERROR AND CAN B
 
 ### 1. Add the Datawire repo to your Helm repositories
 
-```
+```shell
 helm repo add datawire https://www.getambassador.io
 ```
 
@@ -171,13 +171,13 @@ enableAES: false
 
 Then, install the chart using the `values.yaml` file:
 
-```
+```shell
 helm install ambassador datawire/ambassador -f values.yaml
 ```
 
 You can also install the chart with the `--set` flag:
 
-```
+```shell
 helm install ambassador datawire/ambassador --set image.repository=docker.io/datawire/ambassador --set image.tag=$version$ --set enableAES=false
 ```
 

@@ -37,7 +37,7 @@ termination.
 
 - Create a private key and certificate.
 
-   ```
+   ```shell
    openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -subj '/CN=ambassador-cert' -nodes
    ```
 
@@ -47,7 +47,7 @@ termination.
 
 - Verify the `key.pem` and `cert.pem` files were created
 
-   ```
+   ```console
    ls *.pem
    cert.pem	key.pem
    ```
@@ -58,7 +58,7 @@ Ambassador Edge Stack dynamically loads TLS certificates by reading them from
 Kubernetes secrets. Use `kubectl` to create a `tls` secret to hold the pem
 files we created above.
 
-```
+```shell
 kubectl create secret tls tls-cert --cert=cert.pem --key=key.pem
 ```
 
@@ -93,7 +93,7 @@ spec:
 
 Apply the `Host` configured above with `kubectl`:
 
-```
+```shell
 kubectl apply -f wildcard-host.yaml
 ```
 
@@ -107,7 +107,7 @@ We can now send encrypted traffic over HTTPS.
 First, make sure the Ambassador service is listening on `443` and forwarding
 to port `8443`. Verify this with `kubectl`:
 
-```
+```console
 kubectl get service ambassador -o yaml
 
 apiVersion: v1
@@ -132,7 +132,7 @@ edit the Ambassador service to add the `https` port.
 After verifying Ambassador Edge Stack is listening on port 443, send a request
 to your backend service with curl:
 
-```
+```console
 curl -Lk https://{{AMBASSADOR_IP}}/backend/
 
 {

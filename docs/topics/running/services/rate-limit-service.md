@@ -76,7 +76,7 @@ The Ambassador API Gateway generates a gRPC request to the external rate limit
 service and provides a list of labels on which the rate limit service can base
 its decision to accept or reject the request:
 
-```
+```json
 [
   {"source_cluster", "<local service cluster>"},
   {"destination_cluster", "<routed target cluster>"},

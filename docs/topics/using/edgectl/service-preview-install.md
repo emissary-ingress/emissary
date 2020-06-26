@@ -106,7 +106,7 @@ The following will create the required resources in the default namespace. If yo
 
 Create the RBAC resources with `kubectl`:
 
-```
+```shell
 kubectl apply -f https://getambassador.io/yaml/traffic-agent-rbac.yaml
 ```
 
@@ -175,7 +175,7 @@ deployment.apps/hello created
 
 After applying the above manifest, you can see that there is now an available service to intercept.
 
-```
+```console
 $ edgectl intercept available
 
 Found 1 interceptable deployment(s):
@@ -213,7 +213,7 @@ Services in your cluster opt-in to using Service Preview by injecting the Traffi
 
 Deploy the Traffic Manager and Ambassador Injector in the `ambassador` namespace with `kubectl`:
 
-```
+```shell
 kubectl apply -f https://getambassador.io/yaml/traffic-manager.yaml
 kubectl apply -f https://getambassador.io/yaml/ambassador-injector.yaml
 ```
@@ -293,8 +293,9 @@ The following will create the required resources in the default namespace. If yo
 
 Create the RBAC resources with `kubectl`:
 
-```
+```shell
 kubectl apply -f https://getambassador.io/yaml/traffic-agent-rbac.yaml
+```
 
 Then, apply the `Hello` service manifest that is annotated to inject the Traffic Agent.
 
@@ -361,7 +362,7 @@ deployment.apps/hello created
 
 After applying the above manifest, you can see that there is now an available service to intercept.
 
-```
+```console
 $ edgectl intercept available
 
 Found 1 interceptable deployment(s):
@@ -481,7 +482,7 @@ The following will create the required resources in the default namespace. If yo
 
 Create the RBAC resources with `kubectl`:
 
-```
+```shell
 kubectl apply -f https://getambassador.io/yaml/traffic-agent-rbac.yaml
 ```
 
@@ -550,7 +551,7 @@ deployment.apps/hello created
 
 After applying the above manifest, you can see that there is now an available service to intercept.
 
-```
+```console
 $ edgectl intercept available
 
 Found 1 interceptable deployment(s):

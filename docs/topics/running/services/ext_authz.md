@@ -48,7 +48,7 @@ The `Content-Length` HTTP header is set to the number of bytes in the body of th
 
 So, for example, if the incoming request is
 
-```
+```http
 PUT /path/to/service HTTP/1.1
 Host: myservice.example.com:8080
 User-Agent: curl/7.54.0
@@ -61,7 +61,7 @@ Content-Length: 27
 
 then the request Ambassador will make of the auth service is:
 
-```
+```http
 PUT /path/to/service HTTP/1.1
 Host: extauth.example.com:8080
 User-Agent: curl/7.54.0
