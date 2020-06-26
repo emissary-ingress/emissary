@@ -42,7 +42,7 @@ We've created an example filter that you can customize for your particular use c
 6. Update the standard Ambassador Edge Stack manifest to use your Docker
    image instead of the standard sidecar.
 
-   ```patch
+   ```diff
               value: '60'
             - name: AMBASSADOR_INTERNAL_URL
               value: https://127.0.0.1:8443
