@@ -85,5 +85,40 @@ def test_Timer():
     assert feq(t1.maximum, 200), f"t1.maximum must be 200, got {t1.maximum}"
     assert feq(t1.average, 200), f"t1.average must be 200, got {t1.average}"
 
+    # Test calling stop twice...
+    a1 = t1.stop(300)
+    assert feq(a1, 200), f"t1.stop() must be 200, got {a1}"
+    assert not t1.running, "t1 must not be running"
+    assert t1.starttime == 100
+    assert t1.cycles == 1
+
+    assert feq(t1.accumulated, 200), f"t1.accumulated must be 200, got {t1.accumulated}"
+    assert feq(t1.minimum, 200), f"t1.minimum must be 200, got {t1.minimum}"
+    assert feq(t1.maximum, 200), f"t1.maximum must be 200, got {t1.maximum}"
+    assert feq(t1.average, 200), f"t1.average must be 200, got {t1.average}"
+
+    # Test calling start twice...
+    t1.start(400)
+    assert t1.running, "t1 must be running"
+    assert feq(t1.starttime, 400), "t1.starttime must be 400, got {t1.starttime}"
+    assert t1.cycles == 1
+
+    t1.start(500)
+    assert t1.running, "t1 must be running"
+    assert feq(t1.starttime, 500), "t1.starttime must be 500, got {t1.starttime}"
+    assert t1.cycles == 1
+
+    a1 = t1.stop(600)
+    assert feq(a1, 300), f"t1.stop() must be 300, got {a1}"
+    assert not t1.running, "t1 must not be running"
+    assert t1.starttime == 500
+    assert t1.cycles == 2
+
+    assert feq(t1.accumulated, 300), f"t1.accumulated must be 300, got {t1.accumulated}"
+    assert feq(t1.minimum, 100), f"t1.minimum must be 200, got {t1.minimum}"
+    assert feq(t1.maximum, 200), f"t1.maximum must be 300, got {t1.maximum}"
+    assert feq(t1.average, 150), f"t1.average must be 150, got {t1.average}"
+
+
 if __name__ == '__main__':
     pytest.main(sys.argv)

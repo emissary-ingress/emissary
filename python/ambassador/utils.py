@@ -252,8 +252,12 @@ class Timer:
         the current time is used.
         """
 
-        if self._running:
-            raise Exception(f"Timer {self.name}.start: already running")
+        # If we're already running, this method silently discards the 
+        # currently-running cycle. Why? Because otherwise, it's a little
+        # too easy to forget to stop a Timer, cause an Exception, and 
+        # crash the world.
+        #
+        # Not that I ever got bitten by this. Of course. [ :P ]
 
         self._starttime = when or time.perf_counter()
         self._running = True
@@ -269,25 +273,27 @@ class Timer:
         :return: The amount of time the Timer has accumulated
         """
 
-        if not self._running:
-            raise Exception(f"Timer {self.name}.stop: not running")
+        # If we're already stopped, just return the same thing as the
+        # previous call to stop. See comments in start() for why this
+        # isn't an Exception...
 
-        if not when:
-            when = time.perf_counter()
+        if self._running:
+            if not when:
+                when = time.perf_counter()
 
-        self._running = False
-        self._cycles += 1
+            self._running = False
+            self._cycles += 1
 
-        this_cycle = (when - self._starttime) + self._faketime
-        self._faketime = 0
+            this_cycle = (when - self._starttime) + self._faketime
+            self._faketime = 0
 
-        self._accumulated += this_cycle
+            self._accumulated += this_cycle
 
-        if this_cycle < self._minimum:
-            self._minimum = this_cycle
+            if this_cycle < self._minimum:
+                self._minimum = this_cycle
 
-        if this_cycle > self._maximum:
-            self._maximum = this_cycle
+            if this_cycle > self._maximum:
+                self._maximum = this_cycle
 
         return self._accumulated
 
