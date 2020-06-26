@@ -10,64 +10,50 @@ There are two approaches for rewriting: `rewrite` for simpler scenarios and `reg
 
 By default, the `prefix` is rewritten to `/`, so e.g., if we map `/backend-api/` to the service `service1`, then
 
-<code>
-http://ambassador.example.com<span style="color:red">/backend-api/</span><span style="color:green">foo/bar</span>
-</code>
+<samp>http://ambassador.example.com<span style="color:red">/backend-api/</span><span style="color:green">foo/bar</span></samp>
 
-* `prefix`: <span style="color:red">/backend-api/</span> which rewrites to <span style="color:red">/</span> by default.
-* `rewrite`: <span style="color:red">/</span>
-* `remainder`: <span style="color:green">foo/bar</span>
+* `prefix`: <samp style="color:red">/backend-api/</samp> which rewrites to <samp style="color:red">/</samp> by default.
+* `rewrite`: <samp style="color:red">/</samp>
+* `remainder`: <samp style="color:green">foo/bar</samp>
 
 
 would effectively be written to
 
-<code>
-http://service1<span style="color:red">/</span><span style="color:green">foo/bar</span>
-</code>
+<samp>http://service1<span style="color:red">/</span><span style="color:green">foo/bar</span></samp>
 
-* `prefix`: was <span style="color:red">/backend-api/</span>
-* `rewrite`: <span style="color:red">/</span> (by default)
+* `prefix`: was <samp style="color:red">/backend-api/</samp>
+* `rewrite`: <samp style="color:red">/</samp> (by default)
 
-You can change the rewriting: for example, if you choose to rewrite the prefix as <span style="color:red">/v1/</span> in this example, the final target would be:
+You can change the rewriting: for example, if you choose to rewrite the prefix as <samp style="color:red">/v1/</samp> in this example, the final target would be:
 
 
-<code>
-http://service1<span style="color:red">/v1/</span><span style="color:green">foo/bar</span>
-</code>
+<samp>http://service1<span style="color:red">/v1/</span><span style="color:green">foo/bar</span></samp>
 
-* `prefix`: was <span style="color:red">/backend-api/</span>
-* `rewrite`: <span style="color:red">/v1/</span>
+* `prefix`: was <samp style="color:red">/backend-api/</samp>
+* `rewrite`: <samp style="color:red">/v1/</samp>
 
 And, of course, you can choose to rewrite the prefix to the prefix itself, so that
 
-<code>
-http://ambassador.example.com<span style="color:red">/backend-api/</span><span style="color:green">foo/bar</span>
-</code>
+<samp>http://ambassador.example.com<span style="color:red">/backend-api/</span><span style="color:green">foo/bar</span></samp>
 
-* `prefix`: <span style="color:red">/backend-api/</span>
-* `rewrite`: <span style="color:red">/backend-api/</span>
+* `prefix`: <samp style="color:red">/backend-api/</samp>
+* `rewrite`: <samp style="color:red">/backend-api/</samp>
 
 would be "rewritten" as:
 
-<code>
-http://service1<span style="color:red">/backend-api/</span><span style="color:green">foo/bar</span>
-</code>
+<samp>http://service1<span style="color:red">/backend-api/</span><span style="color:green">foo/bar</span></samp>
 
 To prevent Ambassador rewrite the matched prefix to `/` by default, it can be configured to not change the prefix as it forwards a request to the upstream service. To do that, specify an empty `rewrite` directive:
 
 - `rewrite: ""`
 
-In this case requests that match the prefix <span style="color:red">/backend-api/</span> will be forwarded to the service without any rewriting:
+In this case requests that match the prefix <samp style="color:red">/backend-api/</samp> will be forwarded to the service without any rewriting:
 
-<code>
-http://ambassador.example.com<span style="color:red">/backend-api/</span><span style="color:green">foo/bar</span>
-</code>
+<samp>http://ambassador.example.com<span style="color:red">/backend-api/</span><span style="color:green">foo/bar</span></samp>
 
 would be forwarded to:
 
-<code>
-http://service1<span style="color:red">/backend-api/</span><span style="color:green">foo/bar</span>
-</code>
+<samp>http://service1<span style="color:red">/backend-api/</span><span style="color:green">foo/bar</span></samp>
 
 ## `regex_rewrite`
 
@@ -79,21 +65,18 @@ regex_rewrite:
     pattern: '/foo/([0-9]*)/list'
     substitution: '/bar/\1'
 ```
+
 `([0-9]*)` can be replaced with `(\d)` for simplicity.
 
-<code>
-http://ambassador.example.com<span style="color:red">/foo/</span><span style="color:green">12345/list</span>
-</code>
+<samp>http://ambassador.example.com<span style="color:red">/foo/</span><span style="color:green">12345/list</span></samp>
 
-* `prefix`: <span style="color:red">/foo/</span>
-* `pattern`: <span style="color:green">/foo/<span style="color:DarkSlateBlue">12345</span>/list</span> where `12345` captured by `([0-9]*)`
-* `substitution`:  <span style="color:brown">/bar/</span><span style="color:DarkSlateBlue">12345</span> where `12345` substituted by `\1`
+* `prefix`: <samp style="color:red">/foo/</samp>
+* `pattern`: <samp style="color:green">/foo/<span style="color:DarkSlateBlue">12345</span>/list</samp> where <samp style="color:DarkSlateBlue">12345</samp> is captured by `([0-9]*)`
+* `substitution`:  <samp style="color:brown">/bar/<span style="color:DarkSlateBlue">12345</span></samp> where <samp style="color:DarkSlateBlue">12345</samp> is substituted by `\1`
 
 would be forwarded to:
 
-<code>
-http://service1<span style="color:brown">/bar/</span><span style="color:DarkSlateBlue">12345</span>
-</code>
+<samp>http://service1<span style="color:brown">/bar/</span><span style="color:DarkSlateBlue">12345</span></samp>
 
 More than one group can be captured in the `pattern` to be referenced by `\2`, `\3` and `\n` in the `substitution` section.
 
