@@ -8,6 +8,7 @@
 package k8s
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -26,8 +27,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 
-	// help pin dependencies
-	_ "github.com/datawire/libk8s"
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
 )
 
 const (
@@ -377,7 +377,7 @@ func (c *Client) ListQuery(query Query) ([]Resource, error) {
 		filtered = cli
 	}
 
-	uns, err := filtered.List(metav1.ListOptions{
+	uns, err := filtered.List(context.TODO(), metav1.ListOptions{
 		FieldSelector: query.FieldSelector,
 		LabelSelector: query.LabelSelector,
 	})
