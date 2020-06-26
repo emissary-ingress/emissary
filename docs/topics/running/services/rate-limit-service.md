@@ -77,16 +77,16 @@ limiting service.
 >   opt-in to the new name.
 >
 > - In some future version of Ambassador after that, *no sooner than Ambassador
->   1.6.0*, the default value of that setting swill change; making it opt-out
+>   1.7.0*, the default value of that setting will change; making it opt-out
 >   from the new name.
 >
 > - In some future version of Ambassador after that, *no sooner than Ambassador
->   1.7.0*, the setting will go away, and Ambassador will always use the new
+>   1.8.0*, the setting will go away, and Ambassador will always use the new
 >   name.
 >
-> In the mean-time, implementations of `RateLimitService` are encouraged to
-> respond to both both names--they are simply aliases of eachother, registering
-> the service under both names is usually a simple 1-or-2-line addition.  For
+> In the meantime, implementations of `RateLimitService` are encouraged to
+> respond to both names--they are simply aliases of eachother, registering the
+> service under both names is usually a simple 1-or-2-line addition.  For
 > example, in Go the change to support both names is:
 >
 > ```diff
