@@ -36,7 +36,10 @@ First, check to see if the Edge Policy Console is reachable. If it is successful
 4. Use the following command for details about the history of the Deployment: `kubectl describe -n ambassador deployment ambassador`
 
     * Look for data in the “Replicas” field near the top of the output. For example:
-        `Replicas: 3 desired | 3 updated | 3 total | 3 available | 0 unavailable`
+
+      ```console
+      Replicas: 3 desired | 3 updated | 3 total | 3 available | 0 unavailable
+      ```
 
     * Look for data in the “Events” log field near the bottom of the output, which often displays data such as a fail image pull, RBAC issues, or a lack of cluster resources. For example:
 
