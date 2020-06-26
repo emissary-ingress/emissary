@@ -36,9 +36,9 @@ communicate with `AuthService`s and `RateLimitService`s:
 
 - In some future version of Ambassador, there will be settings to control which name is
   used; with the default being the current name; it will be opt-in to the new names.
-- In some future version of Ambassador after that, *no sooner than Ambassador 1.6.0*, the
-  default values of those setting swill change; making them opt-out from the new names.
 - In some future version of Ambassador after that, *no sooner than Ambassador 1.7.0*, the
+  default values of those settings will change; making them opt-out from the new names.
+- In some future version of Ambassador after that, *no sooner than Ambassador 1.8.0*, the
   settings will go away, and Ambassador will always use the new names.
 
 Note that Ambassador Edge Stack `External` Filters already unconditionally use the newer
