@@ -83,6 +83,7 @@ cors:
   methods: POST, GET, OPTIONS
   ...
 ```
+
 #### `ip_allow` and `ip_deny`
 
 `ip_allow` specifies IP source ranges from which HTTP requests will be allowed, with all others being denied. `ip_deny` specifies IP source ranges from which HTTP requests will be denied, with all others being allowed. If both are present, it is an error: `ip_allow` will be honored and `ip_deny` will be ignored.

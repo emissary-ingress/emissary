@@ -2,28 +2,28 @@ import './index.less'
 
 # Installing the Ambassador Edge Stack
 <div id="index-installContainer">
-<span id="index-installContainerText">The Ambassador Edge Stack can be installed many different ways.</span><span>&nbsp;&nbsp;</span>
-<div class="index-dropdown">
+ <span id="index-installContainerText">The Ambassador Edge Stack can be installed many different ways.&nbsp;&nbsp;</span>
+ <div class="index-dropdown">
   <button class="index-dropBtn">Jump to Installation Type</button>
   <div class="index-dropdownContent">
-    <a href="#index-installMac">Mac</a>
-    <a href="#index-installLinux">Linux</a>
-    <a href="#index-installWindows">Windows</a>
-    <a href="#index-installKubernetesYaml">Kubernetes YAML</a>
-    <a href="#index-installHelm">Helm</a>
-    <a href="#index-installDocker">Docker</a>
-    <a href="#index-installAmbassadorOperator">Ambassador Operator</a>
-    <a href="#index-installBareMetal">Bare Metal</a>
-    <a href="#index-installUpgrade">Upgrade</a>
+   <a href="#index-installMac">Mac</a>
+   <a href="#index-installLinux">Linux</a>
+   <a href="#index-installWindows">Windows</a>
+   <a href="#index-installKubernetesYaml">Kubernetes YAML</a>
+   <a href="#index-installHelm">Helm</a>
+   <a href="#index-installDocker">Docker</a>
+   <a href="#index-installAmbassadorOperator">Ambassador Operator</a>
+   <a href="#index-installBareMetal">Bare Metal</a>
+   <a href="#index-installUpgrade">Upgrade</a>
   </div>
-</div>
+ </div>
 </div>
 
 <span id="index-installMac"></span><br/>
 
 ## <img class="os-logo" src="../../images/apple.png"/> Install from MacOS
 1. (1a) [Download the `edgectl` installer](https://metriton.datawire.io/downloads/darwin/edgectl)
- or (1b) download it with a curl command:
+    or (1b) download it with a curl command:
 
     ```shell
     sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl
@@ -36,37 +36,43 @@ import './index.less'
 
 2. Run the installer with `edgectl install`
 
-3. The installer will provision a load balancer, configure TLS,
-and provide you with an `edgestack.me` subdomain. The `edgestack.me` subdomain
-allows the Ambassador Edge Stack to automatically provision TLS and HTTPS
-for a domain name, so you can get started right away.
+3. The installer will provision a load balancer, configure TLS, and
+   provide you with an `edgestack.me` subdomain. The `edgestack.me`
+   subdomain allows the Ambassador Edge Stack to automatically
+   provision TLS and HTTPS for a domain name, so you can get started
+   right away.
+
 <span id="index-installLinux"></span><br/>
 
 ## <img class="os-logo" src="../../images/linux.png"/> Install from Linux
 
 1. (1a) [Download the `edgectl` installer](https://metriton.datawire.io/downloads/linux/edgectl) or
- (1b) download it with a curl
-   command:
+    (1b) download it with a curl command:
 
     ```shell
     sudo curl -fL https://metriton.datawire.io/downloads/linux/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl
     ```
+
 2. Run the installer with `edgectl install`
 
-3. The installer will provision a load balancer, configure TLS,
-and provide you with an `edgestack.me` subdomain. The `edgestack.me` subdomain
-allows the Ambassador Edge Stack to automatically provision TLS and HTTPS
-for a domain name, so you can get started right away.
+3. The installer will provision a load balancer, configure TLS, and
+   provide you with an `edgestack.me` subdomain. The `edgestack.me`
+   subdomain allows the Ambassador Edge Stack to automatically
+   provision TLS and HTTPS for a domain name, so you can get started
+   right away.
+
 <p id="index-installWindows"></p><br/>
 
 ## <img class="os-logo" src="../../images/windows.png"/> Install from Windows
 
 1. [Download the `edgectl.exe` installer](https://metriton.datawire.io/downloads/windows/edgectl.exe).
 2. Run the installer with `edgectl install`
-3. The installer will provision a load balancer, configure TLS,
-and provide you with an `edgestack.me` subdomain. The `edgestack.me` subdomain
-allows the Ambassador Edge Stack to automatically provision TLS and HTTPS
-for a domain name, so you can get started right away.
+3. The installer will provision a load balancer, configure TLS, and
+   provide you with an `edgestack.me` subdomain. The `edgestack.me`
+   subdomain allows the Ambassador Edge Stack to automatically
+   provision TLS and HTTPS for a domain name, so you can get started
+   right away.
+
 <p id="index-installKubernetesYaml"></p><br/>
 
 ## <img class="os-logo" src="../../images/kubernetes.png"/> Install via Kubernetes YAML

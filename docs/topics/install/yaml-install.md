@@ -67,8 +67,8 @@ The Ambassador Edge Stack is typically deployed to Kubernetes from the command l
   For more information, see [Edge Control](../../../topics/using/edgectl/edge-control).
 
 5. To access the Edge Policy Console going forward, you can access it using one of the following options:
-* `edgectl login -n <namespace> <AES_host>` or
-* `https://{{AES_URL}}/edge_stack/admin`
+    * `edgectl login -n <namespace> <AES_host>` or
+    * `https://{{AES_URL}}/edge_stack/admin`
 
 ## Configure TLS Termination and Automatic HTTPS
 

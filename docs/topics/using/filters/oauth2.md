@@ -279,21 +279,21 @@ Settings that are only valid when `grantType: "AuthorizationCode"`:
      and routing that traffic to Ambassador with the name
      `ambassador.internal`, you might write:
 
-         ```yaml
-         protectedOrigins:
-         - origin: https://myservice.example.com
-           internalOrigin: http://ambassador.internal
-         ```
+     ```yaml
+     protectedOrigins:
+     - origin: https://myservice.example.com
+       internalOrigin: http://ambassador.internal
+     ```
 
      or, to avoid being fragile to renaming `ambassador.internal` to
      something else, since there are not multiple origins that the
      Filter must distinguish between, you could instead write:
 
-         ```yaml
-         protectedOrigins:
-         - origin: https://myservice.example.com
-           internalOrigin: "*://*"
-         ```
+     ```yaml
+     protectedOrigins:
+     - origin: https://myservice.example.com
+       internalOrigin: "*://*"
+     ```
 
  - `clientURL` is deprecated, and is equivalent to setting
 

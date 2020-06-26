@@ -124,16 +124,29 @@ Note that while using `service.namespace.svc.cluster.local` may work for Kuberne
 
 Ambassador's configuration is assembled from multiple YAML blocks which are managed by independent application teams. This implies:
 
-- Ambassador Edge Stack's configuration should be under version control.
+- Ambassador Edge Stack's configuration should be under version
+  control.
 
-    While you can always read back the Ambassador Edge Stack's configuration from Kubernetes or its diagnostic service, the Ambassador Edge Stack will not do versioning for you.
+  While you can always read back the Ambassador Edge Stack's
+  configuration from Kubernetes or its diagnostic service, the
+  Ambassador Edge Stack will not do versioning for you.
 
-- Be aware that the Ambassador Edge Stack tries to not start with a broken configuration, but it's not perfect.
+- Be aware that the Ambassador Edge Stack tries to not start with a
+  broken configuration, but it's not perfect.
 
-    Gross errors will result in the Ambassador Edge Stack refusing to start, in which case `kubectl logs` will be helpful. However, it's always possible to e.g. map a resource to the wrong service, or use the wrong `rewrite` rules. The Ambassador Edge Stack can't detect that on its own, although its diagnostic pages can help you figure it out.
+  Gross errors will result in the Ambassador Edge Stack refusing to
+  start, in which case `kubectl logs` will be helpful. However, it's
+  always possible to e.g. map a resource to the wrong service, or use
+  the wrong `rewrite` rules. The Ambassador Edge Stack can't detect
+  that on its own, although its diagnostic pages can help you figure
+  it out.
 
 - Be careful of mapping collisions.
 
-    If two different developers try to map `/user/` to something, this can lead to unexpected behavior. The Ambassador Edge Stack's canary-deployment logic means that it's more likely that traffic will be split between them than that it will throw an error -- again, the diagnostic service can help you here.
+  If two different developers try to map `/user/` to something, this
+  can lead to unexpected behavior. The Ambassador Edge Stack's
+  canary-deployment logic means that it's more likely that traffic
+  will be split between them than that it will throw an error --
+  again, the diagnostic service can help you here.
 
 **Note:** Unless specified, mapping attributes cannot be applied to any other resource type.

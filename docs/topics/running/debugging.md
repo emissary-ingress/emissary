@@ -55,6 +55,7 @@ First, check to see if the Edge Policy Console is reachable. If it is successful
     * Look for data in the “Status” field near the top of the output. For example, `Status: Running`
 
     * Look for data in the “Events” field near the bottom of the output, as it will often show issues such as image pull failures, volume mount issues, and container crash loops. For example:
+
         ```
         Events:
         Type    Reason                 Age   From                                                     Message
@@ -87,7 +88,7 @@ You can turn on Debug mode in the [Edge Policy Console](../../using/edge-policy-
 
 2. Then, run the following: `kubectl logs -n ambassador <ambassador-pod-name>`
 
-The terminal will print something similar to the following:
+   The terminal will print something similar to the following:
 
     ```console
     $ kubectl logs -n ambassador ambassador-85c4cf67b-4pfj2

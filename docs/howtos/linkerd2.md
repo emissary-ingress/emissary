@@ -251,10 +251,10 @@ Allowing the Ambassador installation to serve as a target cluster requires expli
     ```
 
     In the `service`, you need to provide appropriate named `port` definitions:
-
-       - `mc-gateway` needs to be defined as `port` 4143
-       - `mc-probe` needs to be defined as `port` 80, `targetPort` 8080 (or wherever Ambassador is listening)
-
+    
+     - `mc-gateway` needs to be defined as `port` 4143
+     - `mc-probe` needs to be defined as `port` 80, `targetPort` 8080 (or wherever Ambassador is listening)
+    
     ```bash
     kubectl -n ambassador patch svc ambassador --type='json' -p='[
             {"op":"add","path":"/spec/ports/-", "value":{"name": "mc-gateway", "port": 4143}},

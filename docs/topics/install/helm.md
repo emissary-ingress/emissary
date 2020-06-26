@@ -13,9 +13,11 @@ helm repo add datawire https://www.getambassador.io
 ```
 
 Both Helm 2 and Helm 3 are supported. To enable CRD creation in Helm 2, the `crd-install` hook is included in the CRD manifests. When installing with Helm 3, the following message will be output to `stderr`:
+
 ```bash
 manifest_sorter.go:175: info: skipping unknown hook: "crd-install"
 ```
+
 Since this hook is required for Helm 2 support it **IS NOT AN ERROR AND CAN BE SAFELY IGNORED**.
 
 ## Install with Helm
@@ -46,14 +48,14 @@ deploy it with either version of the tool.
 
 Your terminal should print something similar to the following:
 ```
-   $ edgectl install
-   -> Installing the Ambassador Edge Stack 1.0.
-   -> Existing Ambassador Edge Stack installation detected.
-   -> Automatically configuring TLS.
-   Please enter an email address. We’ll use this email address to notify you prior to domain and certification expiration [None]: john@example.com.
-   -> Obtaining a TLS certificate from Let’s Encrypt.
+$ edgectl install
+-> Installing the Ambassador Edge Stack 1.0.
+-> Existing Ambassador Edge Stack installation detected.
+-> Automatically configuring TLS.
+Please enter an email address. We’ll use this email address to notify you prior to domain and certification expiration [None]: john@example.com.
+-> Obtaining a TLS certificate from Let’s Encrypt.
 
-   Congratulations, you’ve successfully installed the Ambassador Edge Stack in your Kubernetes cluster. Visit https://random-word.edgestack.me to access your Edge Stack installation and for additional configuration.
+Congratulations, you’ve successfully installed the Ambassador Edge Stack in your Kubernetes cluster. Visit https://random-word.edgestack.me to access your Edge Stack installation and for additional configuration.
 ```
 
 \* [Edge Control](../../using/edgectl/edge-control) (`edgectl`) automatically configures TLS for your instance and provisions a domain name for your Ambassador Edge Stack.  This is not necessary if you already have a domain name and certificates.

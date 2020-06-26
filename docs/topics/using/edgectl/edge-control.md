@@ -103,7 +103,7 @@ List the current active intercepts.
 Add an intercept. The basic format of this command is:
 
 ```bash
-  edgectl intercept add DEPLOYMENT -n NAME -t [HOST:]PORT -m HEADER=REGEX ...
+edgectl intercept add DEPLOYMENT -n NAME -t [HOST:]PORT -m HEADER=REGEX ...
 ```
 
 * DEPLOYMENT specifies a Kubernetes deployment with a traffic agent installed. You can get the list of available deployments with the `intercept available` command.

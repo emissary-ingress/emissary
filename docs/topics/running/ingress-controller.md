@@ -38,7 +38,7 @@ If you're new to the Ambassador Edge Stack and to Kubernetes, we'd recommend you
     verbs: ["update"]
   ```
 
-   **Note:** This is included by default in all recent versions of the Ambassador install YAML
+  **Note:** This is included by default in all recent versions of the Ambassador install YAML
 
 - You must create your `Ingress` resource with the correct `ingress.class`.
 
