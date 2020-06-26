@@ -946,9 +946,7 @@ class AmbassadorEventWatcher(threading.Thread):
                 version, url = arg
 
                 try:
-                    if version == 'kw':
-                        self.load_config_kubewatch(rqueue, url)
-                    elif version == 'watt':
+                    if version == 'watt':
                         self.load_config_watt(rqueue, url)
                     else:
                         raise RuntimeError("config from %s not supported" % version)
@@ -1064,62 +1062,7 @@ class AmbassadorEventWatcher(threading.Thread):
 
         self._load_ir(rqueue, aconf, fetcher, scc, snapshot)
 
-    # load_config_fs reconfigures from the filesystem. It's believed to be legacy
-    # code at this point.
-    #
-    # BE CAREFUL ABOUT STOPPING THE RECONFIGURATION TIMER ONCE IT IS STARTED.
-    def load_config_kubewatch(self, rqueue: queue.Queue, url: str):
-        snapshot = url.split('/')[-1]
-        ss_path = os.path.join(app.snapshot_path, "snapshot-tmp.yaml")
-
-        # OK, we're starting a reconfiguration. BE CAREFUL TO STOP THE TIMER
-        # BEFORE YOU RESPOND TO THE CALLER.
-        self.app.config_timer.start()
-
-        self.logger.debug("copying configuration: kubewatch, %s to %s" % (url, ss_path))
-
-        # Grab the serialization, and save it to disk too.
-        elements: List[str] = []
-
-        serialization = load_url_contents(self.logger, "%s/services" % url, stream2=open(ss_path, "w"))
-
-        if serialization:
-            elements.append(serialization)
-        else:
-            self.logger.debug("no services loaded from snapshot %s" % snapshot)
-
-        if Config.enable_endpoints:
-            serialization = load_url_contents(self.logger, "%s/endpoints" % url, stream2=open(ss_path, "a"))
-
-            if serialization:
-                elements.append(serialization)
-            else:
-                self.logger.debug("no endpoints loaded from snapshot %s" % snapshot)
-
-        serialization = "---\n".join(elements)
-
-        if not serialization:
-            self.logger.debug("no data loaded from snapshot %s" % snapshot)
-            # We never used to return here. I'm not sure if that's really correct?
-            # 
-            # IF YOU CHANGE THIS, BE CAREFUL TO STOP THE RECONFIGURATION TIMER.
-
-        with self.app.fetcher_timer:
-            aconf = Config()
-            fetcher = ResourceFetcher(app.logger, aconf)
-            fetcher.parse_yaml(serialization, k8s=True)
-
-        if not fetcher.elements:
-            self.logger.debug("no configuration found in snapshot %s" % snapshot)
-
-            # Don't actually bail here. If they send over a valid config that happens
-            # to have nothing for us, it's still a legit config.
-            # 
-            # IF YOU CHANGE THIS, BE CAREFUL TO STOP THE RECONFIGURATION TIMER.
-
-        self._load_ir(rqueue, aconf, fetcher, scc, snapshot)
-
-    # load_config_fs reconfigures from the filesystem. It's the one true way of
+    # load_config_watt reconfigures from the filesystem. It's the one true way of
     # reconfiguring these days.
     #
     # BE CAREFUL ABOUT STOPPING THE RECONFIGURATION TIMER ONCE IT IS STARTED.
@@ -1229,7 +1172,7 @@ class AmbassadorEventWatcher(threading.Thread):
                 # Make sure we don't leave this method on error! The reconfiguration
                 # timer is still running, but also, the snapshots are a debugging aid:
                 # if we can't rotate them, meh, whatever.
-                
+
                 try:
                     self.logger.debug("rotate: %s -> %s" % (from_path, to_path))
                     os.rename(from_path, to_path)
