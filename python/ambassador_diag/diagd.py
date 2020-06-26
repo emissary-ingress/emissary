@@ -334,7 +334,7 @@ def internal_handler(f):
 
     @functools.wraps(f)
     def wrapper(*args, **kwds):
-        if request.environ.get("REMOTE_ADDR") != "127.0.0.1":
+        if not _is_local_request():
             return "Forbidden\n", 403
         return f(*args, **kwds)
 
@@ -342,6 +342,13 @@ def internal_handler(f):
 
 
 ######## UTILITIES
+
+
+def _is_local_request() -> bool:
+    """
+    See the docstring for internal_handler(...) for important caveats.
+    """
+    return request.environ.get("REMOTE_ADDR") == "127.0.0.1"
 
 
 class Notices:
@@ -584,7 +591,7 @@ def check_ready():
 @standard_handler
 def show_overview(reqid=None):
     enabled = app.ir and app.ir.ambassador_module.diagnostics.get("enabled", False)
-    if not enabled:
+    if not enabled and not _is_local_request():
         return Response("Not found\n", 404)
 
     app.logger.debug("OV %s - showing overview" % reqid)
@@ -710,7 +717,7 @@ def collect_errors_and_notices(request, reqid, what: str, diag: Diagnostics) -> 
 @standard_handler
 def show_intermediate(source=None, reqid=None):
     enabled = app.ir and app.ir.ambassador_module.diagnostics.get("enabled", False)
-    if not enabled:
+    if not enabled and not _is_local_request():
         return Response("Not found\n", 404)
 
     app.logger.debug("SRC %s - getting intermediate for '%s'" % (reqid, source))
