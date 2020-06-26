@@ -40,15 +40,15 @@ EXPOSE 50051
 Create the container and test it:
 
 ```shell
-$ docker build -t <docker_reg>/grpc_example
-$ docker run -p 50051:50051 <docker_reg>/grpc_example
+docker build -t <docker_reg>/grpc_example
+docker run -p 50051:50051 <docker_reg>/grpc_example
 ```
 
 Where `<docker_reg>` is your Docker user or registry.
 
 Switch to another terminal and from the same directory, run the `greeter_client`. The output should be the same as running it outside of the container.
 
-```shell
+```console
 $ docker run -p 50051:50051 <docker_reg>/grpc_example
 Greeter client received: Hello, you!
 ```
@@ -56,7 +56,7 @@ Greeter client received: Hello, you!
 Once you verify the container works, push it to your Docker registry:
 
 ```shell
-$ docker push <docker_reg>/grpc_example
+docker push <docker_reg>/grpc_example
 ```
 
 ### Mapping gRPC Services
@@ -158,7 +158,7 @@ The Host is declared here because we are using gRPC without TLS.  Since Ambassad
 Once you have the YAML file and the correct Docker registry, deploy it to your cluster with `kubectl`.
 
 ```shell
-$ kubectl apply -f grpc_example.yaml
+kubectl apply -f grpc_example.yaml
 ```
 
 ### Testing the Deployment
@@ -166,11 +166,12 @@ $ kubectl apply -f grpc_example.yaml
 Make sure to test your Kubernetes deployment before making more advanced changes (like adding TLS). To test any service with Ambassador Edge Stack, we will need the hostname of the running Ambassador Edge Stack service which you can get with:
 
 ```shell
-$ kubectl get service ambassador -o wide
+kubectl get service ambassador -o wide
 ```
 Which should return something similar to:
 
 ```console
+$ kubectl get service ambassador -o wide
 NAME         CLUSTER-IP      EXTERNAL-IP     PORT(S)        AGE
 ambassador   10.11.12.13     35.36.37.38     80:31656/TCP   1m
 ```
@@ -188,7 +189,7 @@ You will need to open the `greeter_client.py` and change `localhost:50051` to `$
 
 After making that change, simply run the client again and you will see the gRPC service in your cluster respond:
 
-```shell
+```console
 $ python greeter_client.py
 Greeter client received: Hello, you!
 ```

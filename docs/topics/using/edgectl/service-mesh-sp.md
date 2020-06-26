@@ -16,7 +16,7 @@ Istio does some complicated networking to ensure that it can transparently inter
 
 The Traffic Manager and Ambassador Injector have this annotation by default. You must manually set this in the `teleproxy` pod that is created after running `edgectl connect` for the first time. You can do this with the following `kubectl` command:
 
-```sh
+```shell
 kubectl annotation po teleproxy sidecar.istio.io/inject='false'
 ```
 
@@ -30,4 +30,3 @@ This is easily done by setting `AMBASSADOR_ENVOY_BASE_ID: "1"` in the `traffic-a
 > At the moment, the Ambassador Injector does not automatically set `AMBASSADOR_ENVOY_BASE_ID`. You will need to manually inject the `traffic-agent` when intercepting a service in your Istio mesh.
 >
 > Future versions of the Ambassador Injector will support setting `AMBASSADOR_ENVOY_BASE_ID`.
-

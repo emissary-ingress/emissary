@@ -15,17 +15,17 @@ The CI job that performs system tests of `MyService` would look roughly like thi
 2. Perform the usual CI steps (build the microservice and perform unit/local tests).
 3. Set up access to the shared cluster, so that e.g., `kubectl get pods` talks to the right place.
 4. Launch the Edge Control Daemon and connect to the cluster
-   ```shell script
+   ```shell
    sudo edgectl daemon
    edgectl connect --ci
    ```
 5. Add an intercept specific to this test session, e.g., using commit information to construct a unique name
-   ```shell script
+   ```shell
    CI_TAG="MyService-$(git describe --always --tags)"
    edgectl intercept add MyService -n "$CI_TAG" -m "x-ci-tag=$CI_TAG" -t localhost:9000
    ```
 6. Run system tests by sending requests to the application with the appropriate header set
-   ```shell script
+   ```shell
    curl -L -H "x-ci-tag:$CI_TAG" https://my-service-endpoint
    # (or)
    env "TEST_HEADER_VALUE=$CI_TAG" pytest ...
@@ -34,6 +34,6 @@ The CI job that performs system tests of `MyService` would look roughly like thi
    These requests will go to your shared cluster just as any request would, but calls to `MyService` from within the application will be routed back to the modified version running in CI because the intercepted header is set appropriately. All other calls to `MyService` will function as usual, going to the version of `MyService` running in the cluster.
 7. Delete the intercept when the job is done.
    This is not strictly necessary, as the Traffic Manager will clean up automatically after a while, but doing so here keeps diagnostic output (`edgectl intercept list`, etc.) clean.
-   ```shell script
+   ```shell
    edgectl intercept remove "$CI_TAG"
    ```

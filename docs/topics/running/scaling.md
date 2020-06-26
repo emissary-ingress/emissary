@@ -38,7 +38,7 @@ indication that this has occurred is the pod transitioning momentarily into the 
 state. The only way to actually observe this is if you are lucky enough to be running the following
 command (or have similar monitoring configured) when Ambassador gets `OOMKilled`:
 
-```bash
+```shell
 kubectl get pods -n ambassador -w
 ```
 
@@ -128,7 +128,7 @@ Ambassador internally tracks a number of key performance indicators. You can ins
 debug endpoint at `localhost:8877/debug`. Note that the `AMBASSADOR_FAST_RECONFIGURE` flag needs to
 be set to `"true"` for this endpoint to be present:
 
-```bash
+```console
 $ kubectl exec -n ambassador -it ${POD} curl localhost:8877/debug
 {
   "timers": {

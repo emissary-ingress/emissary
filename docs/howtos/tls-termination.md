@@ -48,7 +48,7 @@ termination.
 - Verify the `key.pem` and `cert.pem` files were created
 
    ```console
-   ls *.pem
+   $ ls *.pem
    cert.pem	key.pem
    ```
 
@@ -108,7 +108,7 @@ First, make sure the Ambassador service is listening on `443` and forwarding
 to port `8443`. Verify this with `kubectl`:
 
 ```console
-kubectl get service ambassador -o yaml
+$ kubectl get service ambassador -o yaml
 
 apiVersion: v1
 kind: Service
@@ -133,7 +133,7 @@ After verifying Ambassador Edge Stack is listening on port 443, send a request
 to your backend service with curl:
 
 ```console
-curl -Lk https://{{AMBASSADOR_IP}}/backend/
+$ curl -Lk https://{{AMBASSADOR_IP}}/backend/
 
 {
     "server": "trim-kumquat-fccjxh8x",

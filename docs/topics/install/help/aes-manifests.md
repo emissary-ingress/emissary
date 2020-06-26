@@ -8,7 +8,7 @@ If Internet connectivity is not available, the installer cannot proceed.
 
    Try `curl -ISsf https://www.getambassador.io/` to verify that your computer can reach important websites. Successfully reaching the Internet will show something like
 
-   ```shell
+   ```http
    HTTP/2 200
    cache-control: public, max-age=0, must-revalidate
    content-length: 0
@@ -20,7 +20,7 @@ If Internet connectivity is not available, the installer cannot proceed.
 
    A result that looks like
 
-   ```shell
+   ```console
    curl: (7) Failed to connect to 167.170.215.127 port 443: Network is unreachable
    ```
 

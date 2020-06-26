@@ -258,8 +258,8 @@ After applying the updated Ambassador deployment above to your cluster, we need 
 
 We do this with a `TLSContext` that loads the mTLS certificates from the `istio-proxy` for use when sending requests upstream.
 
-```bash
-$ kubectl apply -f - <<EOF
+```shell
+kubectl apply -f - <<EOF
 ---
 apiVersion: getambassador.io/v2
 kind: TLSContext
@@ -282,8 +282,8 @@ With Istio 1.4 and below, Istio stores it's mTLS certificates as a Kubernetes `S
 
 We can read these certificates from the `istio.default` `Secret` in the Ambassador namespace with a `TLSContext`.
 
-```bash
-$ kubectl apply -f - <<EOF
+```shell
+kubectl apply -f - <<EOF
 ---
 apiVersion: getambassador.io/v2
 kind: TLSContext
@@ -311,14 +311,14 @@ Istio's Prometheus deployment is configured using a `ConfigMap`. To add Ambassad
 
    * If you installed Istio with `istioctl`, you can get the YAML that was installed with
 
-      ```bash
+      ```shell
       istioctl manifest generate > istio.yaml
       ```
       This will export all of the YAML configuration used by Istio to a file named `istio.yaml` so you can update the `ConfigMap` there.
 
    * If you did not install with `istioctl`, you can export the YAML of the current `ConfigMap` in your cluster with `kubectl`:
 
-      ```bash
+      ```shell
       kubectl get -n istio-system configmap prometheus  -o yaml > prom-cm.yaml
       ```
 
@@ -375,13 +375,13 @@ Istio's Prometheus deployment is configured using a `ConfigMap`. To add Ambassad
 
    The Prometheus pod must be restarted to start with the new configuration.
 
-   ```bash
+   ```shell
    kubectl delete pod -n istio-system $(kubectl get pods -n istio-system | grep prometheus | awk '{print $1}')
    ```
 
    After the pod restarts you can port-forward the Prometheus `Service` to access the Prometheus UI.
 
-   ```bash
+   ```shell
    kubectl port-forward -n istio-system svc/prometheus 9090:9090
    ```
 
@@ -413,7 +413,7 @@ spec:
 
 After applying this configuration with `kubectl apply`, restart the Ambassador pod for the configuration to take effect.
 
-```bash
+```shell
 kubectl delete po -n ambassador {{AMBASSADOR_POD_NAME}}
 ```
 
@@ -427,7 +427,7 @@ Now we will show how you can use Ambassador to route to services in the Istio se
 
 1. Label the default namespace for [automatic sidecar injection](https://istio.io/docs/setup/additional-setup/sidecar-injection/#automatic-sidecar-injection)
 
-   ```bash
+   ```shell
    kubectl label namespace default istio-injection=enabled
    ```
 
@@ -435,15 +435,14 @@ Now we will show how you can use Ambassador to route to services in the Istio se
 
 2. Install the quote example service
 
-   ```bash
+   ```shell
    kubectl apply -n default -f https://getambassador.io/yaml/backends/quote.yaml
    ```
 
    Wait for the pod to start and see that there are two containers: the `quote` application and the `istio-proxy` sidecar.
 
-   ```bash
+   ```console
    $ kubectl get po -n default
-
    NAME                     READY   STATUS    RESTARTS   AGE
    quote-6bc6b6bd5d-jctbh   2/2     Running   0          91m
    ```
@@ -468,7 +467,7 @@ Now we will show how you can use Ambassador to route to services in the Istio se
 
    Simply do that by updating the above `Mapping` with the following one.
 
-   ```bash
+   ```console
    $ kubectl apply -f - <<EOF
    apiVersion: getambassador.io/v2
    kind: Mapping
@@ -483,7 +482,7 @@ Now we will show how you can use Ambassador to route to services in the Istio se
 
    Send a request to the quote service using curl:
 
-   ```bash
+   ```console
    $ curl -k https://{{AMBASSADOR_HOST}}/backend/
 
    {
@@ -501,8 +500,8 @@ Istio defaults to PERMISSIVE mTLS that does not require authentication between c
 
 1. Configure Istio in [STRICT mTLS](https://istio.io/docs/tasks/security/authentication/authn-policy/#globally-enabling-istio-mutual-tls-in-strict-mode) mode.
 
-   ```bash
-   $ kubectl apply -f - <<EOF
+   ```shell
+   kubectl apply -f - <<EOF
    apiVersion: security.istio.io/v1beta1
    kind: PeerAuthentication
    metadata:
@@ -519,8 +518,8 @@ Istio defaults to PERMISSIVE mTLS that does not require authentication between c
    We can test this by removing the `tls` configuration from the quote-backend `Mapping`
    and sending a request.
 
-   ```bash
-   $ kubectl apply -f - <<EOF
+   ```shell
+   kubectl apply -f - <<EOF
    apiVersion: getambassador.io/v2
    kind: Mapping
    metadata:
@@ -542,8 +541,8 @@ Istio defaults to PERMISSIVE mTLS that does not require authentication between c
 
    As we have demonstrated above we can tell Ambassador to use the mTLS certificates from Istio to authenticate with the `istio-proxy` in the quote pod.
 
-   ```bash
-   $ kubectl apply -f - <<EOF
+   ```shell
+   kubectl apply -f - <<EOF
    ---
    apiVersion: getambassador.io/v2
    kind: Mapping
@@ -558,7 +557,7 @@ Istio defaults to PERMISSIVE mTLS that does not require authentication between c
 
    Now Ambassador will use the Istio mTLS certificates when routing to the `quote` service.
 
-   ```bash
+   ```console
    $ curl -k https://{{AMBASSADOR_HOST}}/backend/
    {
        "server": "bewitched-acai-5jq7q81r",
@@ -575,8 +574,8 @@ The metrics Ambassador adds to the list will appear in the Istio dashboard but w
 
 First, let's start the port-forwarding for Istio's Grafana service:
 
-```sh
-$ kubectl -n istio-system port-forward $(kubectl -n istio-system get pod -l app=grafana -o jsonpath='{.items[0].metadata.name}') 3000:3000 &
+```shell
+kubectl -n istio-system port-forward $(kubectl -n istio-system get pod -l app=grafana -o jsonpath='{.items[0].metadata.name}') 3000:3000 &
 ```
 
 Now, open Grafana tool by accessing: `http://localhost:3000/`

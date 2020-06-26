@@ -106,7 +106,7 @@ The DNS-01 challenge verifies domain ownership by proving you have control over 
 
 5. Verify the secret is created.
 
-    ```shell
+    ```console
     $ kubectl get secrets -n ambassador
     NAME                     TYPE                                  DATA      AGE
     ambassador-certs         kubernetes.io/tls                     2         1h
@@ -162,7 +162,7 @@ The HTTP-01 challenge verifies ownership of the domain by sending a request for 
 
     After applying both of these YAML manifests, you will notice that cert-manager has spun up a temporary pod named `cm-acme-http-solver-xxxx` but no certificate has been issued. Check the cert-manager logs and you will see a log message that looks like this:
 
-    ```shell
+    ```console
     $ kubectl logs cert-manager-756d6d885d-v7gmg
     ...
     Preparing certificate default/ambassador-certs with issuer
@@ -208,7 +208,7 @@ The HTTP-01 challenge verifies ownership of the domain by sending a request for 
 
 5. Verify the secret is created:
 
-    ```shell
+    ```console
     $ kubectl get secrets
     NAME                     TYPE                                  DATA      AGE
     ambassador-certs         kubernetes.io/tls                     2         1h

@@ -157,13 +157,15 @@ to `path_prefix` regardless of non-conformant slashing.
 
 If we `curl` to a protected URL:
 
-```shell
+```console
 $ curl -Lv $AMBASSADORURL/backend/get-quote/
 ```
 
 We get a 401 since we haven't authenticated.
 
-```shell
+```console
+$ curl -Lv $AMBASSADORURL/backend/get-quote/
+
 * TCP_NODELAY set
 * Connected to 54.165.128.189 (54.165.128.189) port 32281 (#0)
 > GET /backend/get-quote/ HTTP/1.1
@@ -182,7 +184,7 @@ We get a 401 since we haven't authenticated.
 
 If we authenticate to the service, we will get a quote successfully:
 
-```shell
+```console
 $ curl -Lv -u username:password $AMBASSADORURL/backend/get-quote/
 
 * TCP_NODELAY set

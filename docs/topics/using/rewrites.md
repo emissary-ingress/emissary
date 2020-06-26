@@ -59,7 +59,7 @@ would be forwarded to:
 
 In some cases, a portion of URL needs to be extracted before making the upstream service URL. For example, suppose that when a request is made to `foo/12345/list`, the target URL must be rewritten as `/bar/12345`. We can do this as follows:
 
-```shell
+```yaml
 prefix: /foo/
 regex_rewrite:
     pattern: '/foo/([0-9]*)/list'

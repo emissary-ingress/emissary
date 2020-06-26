@@ -8,7 +8,7 @@ The installer retrieves information required to install AES over the Internet. S
 
    Try `curl -ISsf https://www.getambassador.io/` to verify that your computer can reach important websites. Successfully reaching the Internet will show something like
 
-   ```shell
+   ```http
    HTTP/2 200
    cache-control: public, max-age=0, must-revalidate
    content-length: 0
@@ -20,7 +20,7 @@ The installer retrieves information required to install AES over the Internet. S
 
    A result that looks like
 
-   ```shell
+   ```console
    curl: (7) Failed to connect to 167.170.215.127 port 443: Network is unreachable
    ```
 

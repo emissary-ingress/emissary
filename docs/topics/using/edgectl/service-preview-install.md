@@ -37,7 +37,7 @@ Services in your cluster opt-in to using Service Preview by injecting the Traffi
 
 Run the following command to let `edgectl` bootstrap your cluster with Ambassador, the Traffic Manager, and Ambassador Injector:
 
-```sh
+```console
 $ edgectl install
 ```
 
@@ -47,7 +47,7 @@ Now that you installed the Traffic Manager, you can connect to your cluster usin
 
 First, start the daemon on your local machine to prime your local machine for connecting to your cluster
 
-```sh
+```console
 $ sudo edgectl daemon
 
 Launching Edge Control Daemon v1.6.1 (api v1)
@@ -59,7 +59,7 @@ After starting the daemon, you are ready to connect to the Traffic Manager.
 
 Connect your local machine to the cluster with `edgectl`:
 
-```sh
+```console
 $ edgectl connect
 
 Connecting to traffic manager in namespace ambassador...
@@ -70,7 +70,7 @@ Connected to context default (https://34.72.18.227)
 
 Verify that you are connected to your cluster:
 
-```sh
+```console
 $ edgectl status
 
 Connected
@@ -86,7 +86,7 @@ The Traffic Agent sidecar is required in order to intercept requests to a servic
 
 At the moment, you can see that no sidecars are currently available with `edgectl`:
 
-```sh
+```console
 $ edgectl intercept available
 
 No interceptable deployments
@@ -112,7 +112,7 @@ kubectl apply -f https://getambassador.io/yaml/traffic-agent-rbac.yaml
 
 Then, apply the `Hello` service manifest that is annotated to inject the Traffic Agent.
 
-```sh
+```shell
 kubectl apply -f - <<EOF
 ---
 apiVersion: v1
@@ -234,7 +234,7 @@ Now that you installed the Traffic Manager, you can connect to your cluster usin
 
 First, start the daemon on your local machine to prime your local machine for connecting to your cluster
 
-```sh
+```console
 $ sudo edgectl daemon
 
 Launching Edge Control Daemon v1.6.1 (api v1)
@@ -246,7 +246,7 @@ After starting the daemon, you are ready to connect to the Traffic Manager.
 
 Connect your local machine to the cluster with `edgectl`:
 
-```sh
+```console
 $ edgectl connect
 
 Connecting to traffic manager in namespace ambassador...
@@ -257,7 +257,7 @@ Connected to context default (https://34.72.18.227)
 
 Verify that you are connected to your cluster:
 
-```sh
+```console
 $ edgectl status
 
 Connected
@@ -273,7 +273,7 @@ The Traffic Agent sidecar is required in order to intercept requests to a servic
 
 At the moment, you can see that no sidecars are currently available with `edgectl`:
 
-```sh
+```console
 $ edgectl intercept available
 
 No interceptable deployments
@@ -299,7 +299,7 @@ kubectl apply -f https://getambassador.io/yaml/traffic-agent-rbac.yaml
 
 Then, apply the `Hello` service manifest that is annotated to inject the Traffic Agent.
 
-```sh
+```shell
 kubectl apply -f - <<EOF
 ---
 apiVersion: v1
@@ -406,13 +406,13 @@ servicePreview:
 
 Create the Ambassador namespace if it is not already created:
 
-```sh
+```console
 $ kubectl create namespace ambassador
 ```
 
 Upgrade or install your release of the Ambassador Edge Stack with the Traffic Manager and Ambassador Injector
 
-```sh
+```console
 $ helm upgrade --install ambassador -n ambassador datawire/ambassador -f values.yaml
 ```
 
@@ -423,7 +423,7 @@ Now that you installed the Traffic Manager, you can connect to your cluster usin
 
 First, start the daemon on your local machine to prime your local machine for connecting to your cluster
 
-```sh
+```console
 $ sudo edgectl daemon
 
 Launching Edge Control Daemon v1.6.1 (api v1)
@@ -435,7 +435,7 @@ After starting the daemon, you are ready to connect to the Traffic Manager.
 
 Connect your local machine to the cluster with `edgectl`:
 
-```sh
+```console
 $ edgectl connect
 
 Connecting to traffic manager in namespace ambassador...
@@ -446,7 +446,7 @@ Connected to context default (https://34.72.18.227)
 
 Verify that you are connected to your cluster:
 
-```sh
+```console
 $ edgectl status
 
 Connected
@@ -462,7 +462,7 @@ The Traffic Agent sidecar is required in order to intercept requests to a servic
 
 At the moment, you can see that no sidecars are currently available with `edgectl`:
 
-```sh
+```console
 $ edgectl intercept available
 
 No interceptable deployments
@@ -488,7 +488,7 @@ kubectl apply -f https://getambassador.io/yaml/traffic-agent-rbac.yaml
 
 Then, apply the `Hello` service manifest that is annotated to inject the Traffic Agent.
 
-```sh
+```shell
 kubectl apply -f - <<EOF
 ---
 apiVersion: v1

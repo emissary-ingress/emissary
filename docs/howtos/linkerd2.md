@@ -20,7 +20,7 @@ Setting up Linkerd 2 requires to install three components. The first is the CLI 
 
     In a nutshell, these steps boil down to the following:
 
-    ```bash
+    ```shell
     # install linkerd cli tool
     curl -sL https://run.linkerd.io/install | sh
     # add linkerd to your path
@@ -31,7 +31,7 @@ Setting up Linkerd 2 requires to install three components. The first is the CLI 
 
 2. Now it is time to install Linkerd 2 itself. To do so execute the following command:
 
-    ```bash
+    ```shell
     linkerd install --ha | kubectl apply -f -
     ```
 
@@ -157,8 +157,8 @@ to apply this configuration to your Kubernetes cluster. Note that in the above c
 
 1. Send a request to the `qotm-Linkerd2` API.
 
-   ```shell
-   curl -L http://$AMBASSADOR_IP/qotm-Linkerd2/
+   ```console
+   $ curl -L http://$AMBASSADOR_IP/qotm-Linkerd2/
 
    {"hostname":"qotm-749c675c6c-hq58f","ok":true,"quote":"The last sentence you read is often sensible nonsense.","time":"2019-03-29T22:21:42.197663","version":"1.7"}
    ```
@@ -240,7 +240,7 @@ Allowing the Ambassador installation to serve as a target cluster requires expli
 
     In the `deployment`, you need the `config.linkerd.io/enable-gateway` `annotation`:
 
-    ```bash
+    ```shell
     kubectl -n ambassador patch deploy ambassador -p='
     spec:
         template:
@@ -251,11 +251,11 @@ Allowing the Ambassador installation to serve as a target cluster requires expli
     ```
 
     In the `service`, you need to provide appropriate named `port` definitions:
-    
+
      - `mc-gateway` needs to be defined as `port` 4143
      - `mc-probe` needs to be defined as `port` 80, `targetPort` 8080 (or wherever Ambassador is listening)
-    
-    ```bash
+
+    ```shell
     kubectl -n ambassador patch svc ambassador --type='json' -p='[
             {"op":"add","path":"/spec/ports/-", "value":{"name": "mc-gateway", "port": 4143}},
             {"op":"replace","path":"/spec/ports/0", "value":{"name": "mc-probe", "port": 80, "targetPort": 8080}}
@@ -264,7 +264,7 @@ Allowing the Ambassador installation to serve as a target cluster requires expli
 
     Finally, the `service` also needs its own set of `annotation`s:
 
-    ```bash
+    ```shell
     kubectl -n ambassador patch svc ambassador -p='
     metadata:
         annotations:
@@ -279,7 +279,7 @@ Allowing the Ambassador installation to serve as a target cluster requires expli
 
 4. Configure individual exported services. Adding the following annotations to a service will tell the service to use Ambassador as the gateway:
 
-    ```bash
+    ```shell
     kubectl -n $namespace patch svc $service -p='
     metadata:
         annotations:
@@ -296,13 +296,13 @@ Allowing the Ambassador installation to serve as a target cluster requires expli
 
     First, check to make that the clusters are correctly linked:
 
-    ```bash
+    ```shell
     linkerd check --multicluster
     ```
 
     Next, make sure that the Ambassador gateway shows up when listing active gateways:
 
-    ```bash
+    ```shell
     linkerd multicluster gateways
     ```
 

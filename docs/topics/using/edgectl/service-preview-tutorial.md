@@ -33,7 +33,7 @@ One of the main use cases of Service Preview is to intercept certain requests to
 2. Launch a local service on your laptop. If you were debugging the `Hello` service, you might run a local copy in your debugger. In this example, we will start an arbitrary service on port 9000.
 
    ```console
-   # using Python
+   $ # using Python
    $ python3 -m http.server 9000 &
    Serving HTTP on :: port 9000 (http://[::]:9000/) ...
    ```

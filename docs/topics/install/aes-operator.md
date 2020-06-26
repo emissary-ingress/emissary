@@ -33,8 +33,8 @@ Start by installing the operator:
    then run the following command:
 
     ```shell
-    $ NS="custom-namespace"
-    $ curl -L https://github.com/datawire/ambassador-operator/releases/latest/download/ambassador-operator.yaml | \
+    NS="custom-namespace"
+    curl -L https://github.com/datawire/ambassador-operator/releases/latest/download/ambassador-operator.yaml | \
         sed -e "s/namespace: ambassador/namespace: $NS/g" | \
         kubectl apply -n $NS -f -
     ```

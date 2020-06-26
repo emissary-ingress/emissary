@@ -8,13 +8,13 @@ The Ambassador Edge Stack Helm chart is hosted by Datawire and published at `htt
 
 Start by adding this repo to your helm client with the following command:
 
-```bash
+```shell
 helm repo add datawire https://www.getambassador.io
 ```
 
 Both Helm 2 and Helm 3 are supported. To enable CRD creation in Helm 2, the `crd-install` hook is included in the CRD manifests. When installing with Helm 3, the following message will be output to `stderr`:
 
-```bash
+```console
 manifest_sorter.go:175: info: skipping unknown hook: "crd-install"
 ```
 
