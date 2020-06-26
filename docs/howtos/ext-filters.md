@@ -141,7 +141,17 @@ spec:
     - name: authentication
 ```
 
-If the auth service uses a framework like [Gorilla Toolkit](http://www.gorillatoolkit.org) which enforces strict slashes as HTTP path separators, it is possible to end up with an infinite redirect where the filter's framework redirects any request with non-conformant slashing. This would arise if the above example had ```path_prefix: "/extauth/"```, the filter would see a request for ```/extauth//backend/get-quote/``` which would then be redirected to ```/extauth/backend/get-quote/``` rather than actually be handled by the authentication handler. For this reason, remember that the full path of the incoming request including the leading slash, will be appended to ```path_prefix``` regardless of non-conformant slashing.
+If the auth service uses a framework like [Gorilla
+Toolkit](http://www.gorillatoolkit.org) which enforces strict slashes
+as HTTP path separators, it is possible to end up with an infinite
+redirect where the filter's framework redirects any request with
+non-conformant slashing.  This would arise if the above example had
+`path_prefix: "/extauth/"`, the filter would see a request for
+`/extauth//backend/get-quote/` which would then be redirected to
+`/extauth/backend/get-quote/` rather than actually be handled by the
+authentication handler.  For this reason, remember that the full path
+of the incoming request including the leading slash, will be appended
+to `path_prefix` regardless of non-conformant slashing.
 
 ## 3. Test Authentication
 

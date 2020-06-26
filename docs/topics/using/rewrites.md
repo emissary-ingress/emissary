@@ -14,9 +14,9 @@ By default, the `prefix` is rewritten to `/`, so e.g., if we map `/backend-api/`
 http://ambassador.example.com<span style="color:red">/backend-api/</span><span style="color:green">foo/bar</span>
 </code>
 
-* ```prefix```: <span style="color:red">/backend-api/</span> which rewrites to <span style="color:red">/</span> by default.
-* ```rewrite```: <span style="color:red">/</span>
-* ```remainder```: <span style="color:green">foo/bar</span>
+* `prefix`: <span style="color:red">/backend-api/</span> which rewrites to <span style="color:red">/</span> by default.
+* `rewrite`: <span style="color:red">/</span>
+* `remainder`: <span style="color:green">foo/bar</span>
 
 
 would effectively be written to
@@ -25,8 +25,8 @@ would effectively be written to
 http://service1<span style="color:red">/</span><span style="color:green">foo/bar</span>
 </code>
 
-* ```prefix```: was <span style="color:red">/backend-api/</span>
-* ```rewrite```: <span style="color:red">/</span> (by default)
+* `prefix`: was <span style="color:red">/backend-api/</span>
+* `rewrite`: <span style="color:red">/</span> (by default)
 
 You can change the rewriting: for example, if you choose to rewrite the prefix as <span style="color:red">/v1/</span> in this example, the final target would be:
 
@@ -35,8 +35,8 @@ You can change the rewriting: for example, if you choose to rewrite the prefix a
 http://service1<span style="color:red">/v1/</span><span style="color:green">foo/bar</span>
 </code>
 
-* ```prefix```: was <span style="color:red">/backend-api/</span>
-* ```rewrite```: <span style="color:red">/v1/</span>
+* `prefix`: was <span style="color:red">/backend-api/</span>
+* `rewrite`: <span style="color:red">/v1/</span>
 
 And, of course, you can choose to rewrite the prefix to the prefix itself, so that
 
@@ -44,8 +44,8 @@ And, of course, you can choose to rewrite the prefix to the prefix itself, so th
 http://ambassador.example.com<span style="color:red">/backend-api/</span><span style="color:green">foo/bar</span>
 </code>
 
-* ```prefix```: <span style="color:red">/backend-api/</span>
-* ```rewrite```: <span style="color:red">/backend-api/</span>
+* `prefix`: <span style="color:red">/backend-api/</span>
+* `rewrite`: <span style="color:red">/backend-api/</span>
 
 would be "rewritten" as:
 
@@ -85,9 +85,9 @@ regex_rewrite:
 http://ambassador.example.com<span style="color:red">/foo/</span><span style="color:green">12345/list</span>
 </code>
 
-* ```prefix```: <span style="color:red">/foo/</span>
-* ```pattern```: <span style="color:green">/foo/<span style="color:DarkSlateBlue">12345</span>/list</span> where `12345` captured by `([0-9]*)`
-* ```substitution```:  <span style="color:brown">/bar/</span><span style="color:DarkSlateBlue">12345</span> where `12345` substituted by `\1`
+* `prefix`: <span style="color:red">/foo/</span>
+* `pattern`: <span style="color:green">/foo/<span style="color:DarkSlateBlue">12345</span>/list</span> where `12345` captured by `([0-9]*)`
+* `substitution`:  <span style="color:brown">/bar/</span><span style="color:DarkSlateBlue">12345</span> where `12345` substituted by `\1`
 
 would be forwarded to:
 
