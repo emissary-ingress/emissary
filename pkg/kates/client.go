@@ -1,0 +1,688 @@
+package kates
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"io"
+	"log"
+	"os"
+	"strconv"
+	"sync"
+	"time"
+
+	"github.com/spf13/pflag"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/watch"
+	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/discovery/cached/disk"
+	"k8s.io/client-go/discovery/cached/memory"
+	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/restmapper"
+	"k8s.io/client-go/tools/cache"
+
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
+)
+
+type Client struct {
+	config   *ConfigFlags
+	cli      dynamic.Interface
+	mapper   meta.RESTMapper
+	mutex    sync.Mutex
+	modified map[string]*Unstructured
+}
+
+type ClientOptions struct {
+	Kubeconfig string
+	Context    string
+	Namespace  string
+}
+
+func NewClient(options ClientOptions) (*Client, error) {
+	return NewClientFromConfigFlags(config(options))
+}
+
+func NewClientFromFlagSet(flags *pflag.FlagSet) (*Client, error) {
+	config := NewConfigFlags(false)
+
+	// We can disable or enable flags by setting them to
+	// nil/non-nil prior to calling .AddFlags().
+	//
+	// .Username and .Password are already disabled by default in
+	// genericclioptions.NewConfigFlags().
+
+	config.AddFlags(flags)
+	return NewClientFromConfigFlags(config)
+}
+
+func NewClientFromConfigFlags(config *ConfigFlags) (*Client, error) {
+	restconfig, err := config.ToRESTConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	cli, err := dynamic.NewForConfig(restconfig)
+	if err != nil {
+		return nil, err
+	}
+
+	mapper, err := NewRESTMapper(config)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Client{config: config, cli: cli, mapper: mapper, modified: make(map[string]*Unstructured)}, nil
+}
+
+func NewRESTMapper(config *ConfigFlags) (meta.RESTMapper, error) {
+	// Throttling is scoped to rest.Config, so we use a dedicated
+	// rest.Config for discovery so we can disable throttling for
+	// discovery, but leave it in place for normal requests. This
+	// is largely the same thing that ConfigFlags.ToRESTMapper()
+	// does, hence the same thing that kubectl does. There are two
+	// differences we are introducing here: (1) is that if there
+	// is no cache dir supplied, we fallback to in-memory caching
+	// rather than not caching discovery requests at all. The
+	// second thing is that (2) unlike kubectl we do not cache
+	// non-discovery requests.
+	restconfig, err := config.ToRESTConfig()
+	if err != nil {
+		return nil, err
+	}
+	restconfig.QPS = 1000000
+	restconfig.Burst = 1000000
+
+	var cachedDiscoveryClient discovery.CachedDiscoveryInterface
+	if config.CacheDir != nil {
+		cachedDiscoveryClient, err = disk.NewCachedDiscoveryClientForConfig(restconfig, *config.CacheDir, "",
+			time.Duration(10*time.Minute))
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		discoveryClient, err := discovery.NewDiscoveryClientForConfig(restconfig)
+		if err != nil {
+			return nil, err
+		}
+		cachedDiscoveryClient = memory.NewMemCacheClient(discoveryClient)
+	}
+
+	mapper := restmapper.NewDeferredDiscoveryRESTMapper(cachedDiscoveryClient)
+	expander := restmapper.NewShortcutExpander(mapper, cachedDiscoveryClient)
+
+	return expander, nil
+}
+
+// This is how client-go figures out if it is inside a cluster (from
+// client-go/tools/clientcmd/client_config.go), we don't use it right
+// now, but it might prove useful in the future if we want to choose a
+// different caching strategy when we are inside the cluster.
+func inCluster() bool {
+	fi, err := os.Stat("/var/run/secrets/kubernetes.io/serviceaccount/token")
+	return os.Getenv("KUBERNETES_SERVICE_HOST") != "" &&
+		os.Getenv("KUBERNETES_SERVICE_PORT") != "" &&
+		err == nil && !fi.IsDir()
+}
+
+func (c *Client) WaitFor(ctx context.Context, kindOrResource string) {
+	for {
+		_, err := c.mappingFor(kindOrResource)
+		if err != nil {
+			_, ok := err.(*unknownResource)
+			if ok {
+				select {
+				case <-time.After(1 * time.Second):
+					c.InvalidateCache()
+					continue
+				case <-ctx.Done():
+					return
+				}
+			}
+		}
+		return
+	}
+}
+
+func (c *Client) InvalidateCache() {
+	// TODO: it's possible that invalidate could be smarter now
+	// and use the methods on CachedDiscoveryInterface
+	mapper, err := NewRESTMapper(c.config)
+	if err != nil {
+		panic(err)
+	}
+	c.mapper = mapper
+}
+
+// ==
+
+// TODO: Query is interpreted a bit differently for List and
+// Watch. Should either reconcile this or perhaps split Query into two
+// separate types.
+
+// A Query holds all the information needed to List or Watch a set of
+// kubernetes resources.
+type Query struct {
+	// The Name field holds the name of the Query. This is used by
+	// Watch to determine how multiple queries are unmarshaled by
+	// Accumulator.Update(). This is ignored for List.
+	Name string
+	// The Kind field indicates what sort of resource is being queried.
+	Kind string
+	// The Namespace field holds the namespace to Query.
+	Namespace string
+	// The FieldSelector field holds a string in selector syntax
+	// that is used to filter results based on field values. The
+	// only field values supported are metadata.name and
+	// metadata.namespace. This is only supported for List.
+	FieldSelector string
+	// The LabelSelector field holds a string in selector syntax
+	// that is used to filter results based on label values.
+	LabelSelector string
+}
+
+func (c *Client) Watch(ctx context.Context, queries ...Query) *Accumulator {
+	return NewAccumulator(ctx, c, queries...)
+}
+
+// ==
+
+func (c *Client) watchRaw(ctx context.Context, name string, target chan rawUpdate, cli dynamic.ResourceInterface,
+	selector string, correlation interface{}) {
+	var informer cache.SharedInformer
+
+	update := func() {
+		items := informer.GetStore().List()
+		copy := make([]*Unstructured, len(items))
+		for i, o := range items {
+			copy[i] = o.(*Unstructured)
+		}
+		target <- rawUpdate{copy, correlation}
+	}
+
+	// we override Watch to let us signal when our initial List is
+	// complete so we can send an update() even when there are no
+	// resource instances of the kind being watched
+	lw := LW(ctx, cli, selector, func() {
+		if informer.HasSynced() {
+			update()
+		}
+	})
+	informer = cache.NewSharedInformer(lw, &Unstructured{}, 5*time.Minute)
+	/* TODO: uncomment this when we get to kubernetes 1.19
+	informer.SetWatchErrorHandler(func(r *cache.Reflector, err error) {
+		errorHandler(name, err)
+	})
+	*/
+	informer.AddEventHandler(
+		cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				if informer.HasSynced() {
+					update()
+				}
+			},
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				if informer.HasSynced() {
+					update()
+				}
+			},
+			DeleteFunc: func(obj interface{}) {
+				key := unKey(obj.(*Unstructured))
+				c.mutex.Lock()
+				delete(c.modified, key)
+				c.mutex.Unlock()
+				if informer.HasSynced() {
+					update()
+				}
+			},
+		},
+	)
+
+	go informer.Run(ctx.Done())
+}
+
+type rawUpdate struct {
+	items       []*Unstructured
+	correlation interface{}
+}
+
+func errorHandler(name string, err error) {
+	switch {
+	case isExpiredError(err):
+		log.Printf("Watch of %s closed with: %v", name, err)
+	case err == io.EOF:
+		// watch closed normally
+	case err == io.ErrUnexpectedEOF:
+		log.Printf("Watch for %s closed with unexpected EOF: %v", name, err)
+	default:
+		log.Printf("Failed to watch %s: %v", name, err)
+	}
+}
+
+func isExpiredError(err error) bool {
+	// In Kubernetes 1.17 and earlier, the api server returns both apierrors.StatusReasonExpired and
+	// apierrors.StatusReasonGone for HTTP 410 (Gone) status code responses. In 1.18 the kube server is more consistent
+	// and always returns apierrors.StatusReasonExpired. For backward compatibility we can only remove the apierrors.IsGone
+	// check when we fully drop support for Kubernetes 1.17 servers from reflectors.
+	return apierrors.IsResourceExpired(err) || apierrors.IsGone(err)
+}
+
+type lw struct {
+	ctx      context.Context
+	client   dynamic.ResourceInterface
+	selector string
+	synced   func()
+	once     sync.Once
+}
+
+func LW(ctx context.Context, client dynamic.ResourceInterface, selector string, synced func()) cache.ListerWatcher {
+	return &lw{ctx: ctx, client: client, selector: selector, synced: synced}
+}
+
+func (lw *lw) List(opts ListOptions) (runtime.Object, error) {
+	opts.LabelSelector = lw.selector
+	return lw.client.List(lw.ctx, opts)
+}
+
+func (lw *lw) Watch(opts ListOptions) (watch.Interface, error) {
+	lw.once.Do(lw.synced)
+	opts.LabelSelector = lw.selector
+	return lw.client.Watch(lw.ctx, opts)
+}
+
+// ==
+
+func (c *Client) cliFor(mapping *meta.RESTMapping, namespace string) dynamic.ResourceInterface {
+	cli := c.cli.Resource(mapping.Resource)
+	if mapping.Scope.Name() == meta.RESTScopeNameNamespace && namespace != NamespaceAll {
+		return cli.Namespace(namespace)
+	} else {
+		return cli
+	}
+}
+
+func (c *Client) cliForResource(resource *Unstructured) dynamic.ResourceInterface {
+	mapping, err := c.mappingFor(resource.GroupVersionKind().GroupKind().String())
+	if err != nil {
+		panic(err)
+	}
+
+	// this will canonicalize the kind and version so any
+	// shortcuts are expanded
+	resource.SetGroupVersionKind(mapping.GroupVersionKind)
+
+	ns := resource.GetNamespace()
+	if ns == "" {
+		ns = "default"
+	}
+	return c.cliFor(mapping, ns)
+}
+
+// mappingFor returns the RESTMapping for the Kind given, or the Kind referenced by the resource.
+// Prefers a fully specified GroupVersionResource match. If one is not found, we match on a fully
+// specified GroupVersionKind, or fallback to a match on GroupKind.
+//
+// This is copy/pasted from k8s.io/cli-runtime/pkg/resource.Builder.mappingFor() (which is
+// unfortunately private), with modified lines marked with "// MODIFIED".
+func (c *Client) mappingFor(resourceOrKind string) (*meta.RESTMapping, error) { // MODIFIED: args
+	fullySpecifiedGVR, groupResource := schema.ParseResourceArg(resourceOrKind)
+	gvk := schema.GroupVersionKind{}
+	// MODIFIED: Don't call b.restMapperFn(), use c.mapper instead.
+
+	if fullySpecifiedGVR != nil {
+		gvk, _ = c.mapper.KindFor(*fullySpecifiedGVR)
+	}
+	if gvk.Empty() {
+		gvk, _ = c.mapper.KindFor(groupResource.WithVersion(""))
+	}
+	if !gvk.Empty() {
+		return c.mapper.RESTMapping(gvk.GroupKind(), gvk.Version)
+	}
+
+	fullySpecifiedGVK, groupKind := schema.ParseKindArg(resourceOrKind)
+	if fullySpecifiedGVK == nil {
+		gvk := groupKind.WithVersion("")
+		fullySpecifiedGVK = &gvk
+	}
+
+	if !fullySpecifiedGVK.Empty() {
+		if mapping, err := c.mapper.RESTMapping(fullySpecifiedGVK.GroupKind(), fullySpecifiedGVK.Version); err == nil {
+			return mapping, nil
+		}
+	}
+
+	mapping, err := c.mapper.RESTMapping(groupKind, gvk.Version)
+	if err != nil {
+		// if we error out here, it is because we could not match a resource or a kind
+		// for the given argument. To maintain consistency with previous behavior,
+		// announce that a resource type could not be found.
+		// if the error is _not_ a *meta.NoKindMatchError, then we had trouble doing discovery,
+		// so we should return the original error since it may help a user diagnose what is actually wrong
+		if meta.IsNoMatchError(err) {
+			return nil, &unknownResource{resourceOrKind}
+		}
+		return nil, err
+	}
+
+	return mapping, nil
+}
+
+type unknownResource struct {
+	arg string
+}
+
+func (e *unknownResource) Error() string {
+	return fmt.Sprintf("the server doesn't have a resource type %q", e.arg)
+}
+
+// ==
+
+func (c *Client) List(ctx context.Context, query Query, target interface{}) error {
+	mapping, err := c.mappingFor(query.Kind)
+	if err != nil {
+		return err
+	}
+
+	items := make([]*Unstructured, 0)
+	if err := func() error {
+		c.mutex.Lock()
+		defer c.mutex.Unlock()
+		cli := c.cliFor(mapping, query.Namespace)
+		res, err := cli.List(ctx, ListOptions{
+			FieldSelector: query.FieldSelector,
+			LabelSelector: query.LabelSelector,
+		})
+		if err != nil {
+			return err
+		}
+
+		for _, un := range res.Items {
+			copy := un.DeepCopy()
+			key := unKey(copy)
+			// TODO: rename modified to something more accurate,
+			// it is really a store to temporarily hold canonical
+			// values for a given object until the same or a later
+			// version is returned by a watch.
+			// TODO: Deal with garbage collection in the case
+			// where there is no watch.
+			c.modified[key] = copy
+			items = append(items, copy)
+		}
+		return nil
+	}(); err != nil {
+		return err
+	}
+
+	return convert(items, target)
+}
+
+// ==
+
+func (c *Client) Get(ctx context.Context, resource interface{}, target interface{}) error {
+	var un Unstructured
+	err := convert(resource, &un)
+	if err != nil {
+		return err
+	}
+
+	var res *Unstructured
+	if err := func() error {
+		c.mutex.Lock()
+		defer c.mutex.Unlock()
+		cli := c.cliForResource(&un)
+		res, err = cli.Get(ctx, un.GetName(), GetOptions{})
+		if err != nil {
+			return err
+		}
+		key := unKey(res)
+		// TODO: rename modified to something more accurate,
+		// it is really a store to temporarily hold canonical
+		// values for a given object until the same or a later
+		// version is returned by a watch.
+		// TODO: Deal with garbage collection in the case
+		// where there is no watch.
+		c.modified[key] = res
+		return nil
+	}(); err != nil {
+		return err
+	}
+
+	return convert(res, target)
+}
+
+// ==
+
+func (c *Client) Create(ctx context.Context, resource interface{}, target interface{}) error {
+	var un Unstructured
+	err := convert(resource, &un)
+	if err != nil {
+		return err
+	}
+
+	var res *Unstructured
+	if err := func() error {
+		c.mutex.Lock()
+		defer c.mutex.Unlock()
+		cli := c.cliForResource(&un)
+		res, err = cli.Create(ctx, &un, CreateOptions{})
+		if err != nil {
+			return err
+		}
+		key := unKey(res)
+		c.modified[key] = res
+		return nil
+	}(); err != nil {
+		return err
+	}
+
+	return convert(res, target)
+}
+
+// ==
+
+func (c *Client) Update(ctx context.Context, resource interface{}, target interface{}) error {
+	var un Unstructured
+	err := convert(resource, &un)
+	if err != nil {
+		return err
+	}
+
+	prev := un.GetResourceVersion()
+
+	var res *Unstructured
+	if err := func() error {
+		c.mutex.Lock()
+		defer c.mutex.Unlock()
+		cli := c.cliForResource(&un)
+		res, err = cli.Update(ctx, &un, UpdateOptions{})
+		if err != nil {
+			return err
+		}
+		if res.GetResourceVersion() != prev {
+			key := unKey(res)
+			c.modified[key] = res
+		}
+		return nil
+	}(); err != nil {
+		return err
+	}
+
+	return convert(res, target)
+}
+
+// ==
+
+func (c *Client) UpdateStatus(ctx context.Context, resource interface{}, target interface{}) error {
+	var un Unstructured
+	err := convert(resource, &un)
+	if err != nil {
+		return err
+	}
+
+	prev := un.GetResourceVersion()
+
+	var res *Unstructured
+	if err := func() error {
+		c.mutex.Lock()
+		defer c.mutex.Unlock()
+		cli := c.cliForResource(&un)
+		res, err = cli.UpdateStatus(ctx, &un, UpdateOptions{})
+		if err != nil {
+			return err
+		}
+		if res.GetResourceVersion() != prev {
+			key := unKey(res)
+			c.modified[key] = res
+		}
+		return nil
+	}(); err != nil {
+		return err
+	}
+
+	return convert(res, target)
+}
+
+// ==
+
+func (c *Client) Delete(ctx context.Context, resource interface{}, target interface{}) error {
+	var un Unstructured
+	err := convert(resource, &un)
+	if err != nil {
+		return err
+	}
+
+	if err := func() error {
+		c.mutex.Lock()
+		defer c.mutex.Unlock()
+		cli := c.cliForResource(&un)
+		err = cli.Delete(ctx, un.GetName(), DeleteOptions{})
+		if err != nil {
+			return err
+		}
+		key := unKey(&un)
+		c.modified[key] = nil
+		return nil
+	}(); err != nil {
+		return err
+	}
+
+	return convert(nil, target)
+}
+
+// ==
+
+func (c *Client) patch(items *[]*Unstructured, mapping *meta.RESTMapping, sel Selector) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
+	included := make(map[string]bool)
+
+	// loop through updates and replace anything returned with the newer version
+	idx := 0
+	for _, item := range *items {
+		key := unKey(item)
+		mod, ok := c.modified[key]
+		if ok {
+			log.Println("Patching", key)
+			if mod != nil {
+				if gteq(item.GetResourceVersion(), mod.GetResourceVersion()) {
+					delete(c.modified, key)
+					(*items)[idx] = item
+				} else {
+					(*items)[idx] = mod
+				}
+				idx += 1
+			}
+		} else {
+			(*items)[idx] = item
+			idx += 1
+		}
+		included[key] = true
+	}
+	*items = (*items)[:idx]
+
+	// loop through any modified items not included in the result and add them
+	for key, mod := range c.modified {
+		if _, ok := included[key]; ok {
+			continue
+		}
+		if mod == nil {
+			continue
+		}
+		if mod.GroupVersionKind() != mapping.GroupVersionKind {
+			continue
+		}
+		if !sel.Matches(LabelSet(mod.GetLabels())) {
+			continue
+		}
+		*items = append(*items, mod)
+	}
+}
+
+func gteq(v1, v2 string) bool {
+	i1, err := strconv.ParseInt(v1, 10, 64)
+	if err != nil {
+		panic(err)
+	}
+	i2, err := strconv.ParseInt(v2, 10, 64)
+	if err != nil {
+		panic(err)
+	}
+	return i1 >= i2
+}
+
+func convert(in interface{}, out interface{}) error {
+	if out == nil {
+		return nil
+	}
+
+	jsonBytes, err := json.Marshal(in)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(jsonBytes, out)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func unKey(u *Unstructured) string {
+	return u.GetKind() + ":" + u.GetNamespace() + ":" + u.GetName()
+}
+
+func config(options ClientOptions) *ConfigFlags {
+	flags := pflag.NewFlagSet("KubeInfo", pflag.PanicOnError)
+	result := NewConfigFlags(false)
+
+	// We can disable or enable flags by setting them to
+	// nil/non-nil prior to calling .AddFlags().
+	//
+	// .Username and .Password are already disabled by default in
+	// genericclioptions.NewConfigFlags().
+
+	result.AddFlags(flags)
+
+	var args []string
+	if options.Kubeconfig != "" {
+		args = append(args, "--kubeconfig", options.Kubeconfig)
+	}
+	if options.Context != "" {
+		args = append(args, "--context", options.Context)
+	}
+	if options.Namespace != "" {
+		args = append(args, "--namespace", options.Namespace)
+	}
+
+	err := flags.Parse(args)
+	if err != nil {
+		// Args is constructed by us, we should never get an
+		// error, so it's ok to panic.
+		panic(err)
+	}
+	return result
+}
