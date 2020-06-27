@@ -171,7 +171,7 @@ class DiagApp (Flask):
 
         # For the moment, we're defaulting AMBASSADOR_UPDATE_MAPPING_STATUS
         # to true. Plan is to change this for 1.6.
-        ksclass = KubeStatusNoOp
+        ksclass = KubeStatusNoMappings
 
         if os.environ.get("AMBASSADOR_UPDATE_MAPPING_STATUS", "true").lower() == "true":
             ksclass = KubeStatus
@@ -799,20 +799,6 @@ class SystemStatus:
         return { key: info.to_dict() for key, info in self.status.items() }
 
 
-class KubeStatusNoOp:
-    def __init__(self, app) -> None:
-        pass
-
-    def mark_live(self, kind: str, name: str, namespace: str) -> None:
-        pass
-
-    def prune(self) -> None:
-        pass
-
-    def post(self, kind: str, name: str, namespace: str, text: str) -> None:
-        pass
-
-
 class KubeStatus:
     pool: concurrent.futures.ProcessPoolExecutor
 
@@ -858,6 +844,14 @@ class KubeStatus:
             self.current_status[key] = text
             f = self.pool.submit(kubestatus_update, kind, name, namespace, text)
             f.add_done_callback(kubestatus_update_done)
+
+
+# The KubeStatusNoMappings class clobbers the mark_live() method of the
+# KubeStatus class, so that updates to Mappings don't actually have any
+# effect, but updates to Ingress (for example) do.
+class KubeStatusNoMappings (KubeStatus):
+    def mark_live(self, kind: str, name: str, namespace: str) -> None:
+        pass
 
 
 def kubestatus_update(kind: str, name: str, namespace: str, text: str) -> str:
