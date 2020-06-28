@@ -298,6 +298,7 @@ class IRAmbassador (IRResource):
         if ir.edge_stack_allowed:
             if self.diagnostics and self.diagnostics.get("enabled", False):
                 ir.logger.debug("adding mappings for Edge Policy Console")
+                edge_stack_response_header = {"x-content-type-options": "nosniff"}
                 mapping = IRHTTPMapping(ir, aconf, rkey=self.rkey, location=self.location,
                                         name="edgestack-direct-mapping",
                                         metadata_labels={"ambassador_diag_class": "private"},
@@ -305,7 +306,8 @@ class IRAmbassador (IRResource):
                                         rewrite="/edge_stack_ui/edge_stack/",
                                         service="127.0.0.1:8500",
                                         precedence=1000000,
-                                        timeout_ms=60000)
+                                        timeout_ms=60000,
+                                        add_response_headers=edge_stack_response_header)
                 mapping.referenced_by(self)
                 ir.add_mapping(aconf, mapping)
 
@@ -316,7 +318,8 @@ class IRAmbassador (IRResource):
                                         rewrite="/edge_stack_ui/",
                                         service="127.0.0.1:8500",
                                         precedence=-1000000,
-                                        timeout_ms=60000)
+                                        timeout_ms=60000,
+                                        add_response_headers=edge_stack_response_header)
                 mapping.referenced_by(self)
                 ir.add_mapping(aconf, mapping)
             else:
