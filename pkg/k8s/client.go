@@ -112,6 +112,11 @@ func (info *KubeInfo) load() error {
 	return nil
 }
 
+// GetConfigFlags returns the genericclioptions.ConfigFlags from inside the KubeInfo
+func (info *KubeInfo) GetConfigFlags() *genericclioptions.ConfigFlags {
+	return info.configFlags
+}
+
 // Namespace returns the namespace for a KubeInfo.
 func (info *KubeInfo) Namespace() (string, error) {
 	err := info.load()
