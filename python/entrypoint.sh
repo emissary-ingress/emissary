@@ -351,8 +351,10 @@ kick_ads() {
         if [ -z "${pids[envoy]}" ]; then
             # Envoy isn't running. Start it.
             # First check to see if this process has the capability to bind to a low port, if so it can run Envoy through a wrapper to grant the same
-            capsh --decode=$(awk '/CapInh/ { print $2}' /proc/$$/status) | grep -q cap_net_bind_service
-            if [ $? -eq 0 ]; then
+            # To bind to the low port it can't have privilege escalation revoked, and needs the NET_BIND_SERVICE capability
+            nonewprivs=$(awk '/NoNewPrivs/ { print $2 }' /proc/$$/status)
+            capsh --decode=$(awk '/CapInh/ { print $2 }' /proc/$$/status) | grep -q cap_net_bind_service
+            if [ $? -eq 0 -a "X$nonewprivs" != "X1" ]; then
               log "cap_net_bind_service is supported, launching Envoy through a wrapper"
               launch "envoy-wrapper" wrapper "${envoy_flags[@]}"
             else
