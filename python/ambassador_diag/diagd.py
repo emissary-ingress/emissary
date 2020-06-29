@@ -567,9 +567,13 @@ def check_ready():
 @app.route('/ambassador/v0/diag/', methods=[ 'GET' ])
 @standard_handler
 def show_overview(reqid=None):
-    app.logger.debug("OV %s - showing overview" % reqid)
-
     diag = app.diag
+
+    if not diag:
+        app.logger.debug("OV %s - can't do overview before configuration" % reqid)
+        return "Can't do overview before configuration", 400
+
+    app.logger.debug("OV %s - showing overview" % reqid)        
 
     if app.verbose:
         app.logger.debug("OV %s: DIAG" % reqid)
@@ -683,9 +687,13 @@ def collect_errors_and_notices(request, reqid, what: str, diag: Diagnostics) -> 
 @app.route('/ambassador/v0/diag/<path:source>', methods=[ 'GET' ])
 @standard_handler
 def show_intermediate(source=None, reqid=None):
-    app.logger.debug("SRC %s - getting intermediate for '%s'" % (reqid, source))
-
     diag = app.diag
+
+    if not diag:
+        app.logger.debug("SRC %s - can't do intermediate before configuration" % reqid)
+        return "Can't do overview before configuration", 400
+
+    app.logger.debug("SRC %s - getting intermediate for '%s'" % (reqid, source))
 
     method = request.args.get('method', None)
     resource = request.args.get('resource', None)
