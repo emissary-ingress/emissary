@@ -16,7 +16,23 @@ def qualify_service_name(ir: 'IR', service: str, namespace: Optional[str]) -> st
         # The target service name is not fully qualified.
         # We are most likely targeting a simple k8s svc with kube-dns resolution.
         # Make sure we actually resolve the service it's namespace, not the Ambassador process namespace.
-        service = f"{service}.{namespace}"
+        # 
+        # Note well! The "unqualified" service here might contain a port number, so just appending 
+        # the namespace won't end well. So start by checking for a port number...
+
+        fields = service.split(":", 1)
+
+        hostname = fields[0]
+        port: Optional[str] = None
+
+        if len(fields) > 1:
+            port = fields[1]
+
+        service = f"{hostname}.{namespace}"
+
+        if port is not None:
+            service += f":{port}"
+
         ir.logger.debug("KubernetesServiceResolver use_ambassador_namespace_for_service_resolution %s, fully qualified %s, upstream hostname %s" % (
             ir.ambassador_module.use_ambassador_namespace_for_service_resolution,
             fully_qualified,
