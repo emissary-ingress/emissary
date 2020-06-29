@@ -811,7 +811,6 @@ class V2Listener(dict):
         if 'preserve_external_request_id' in self.config.ir.ambassador_module:
             self.base_http_config["preserve_external_request_id"] = self.config.ir.ambassador_module.preserve_external_request_id
 
-
         if self.config.ir.tracing:
             self.base_http_config["generate_request_id"] = True
 
@@ -822,6 +821,26 @@ class V2Listener(dict):
 
             if req_hdrs:
                 self.base_http_config["tracing"]["request_headers_for_tags"] = req_hdrs
+
+            sampling = self.config.ir.tracing.get('sampling', {})
+            if sampling:
+                client_sampling = sampling.get('client', None)
+                if client_sampling is not None:
+                    self.base_http_config["tracing"]["client_sampling"] = {
+                        "value": client_sampling
+                    }
+
+                random_sampling = sampling.get('random', None)
+                if random_sampling is not None:
+                    self.base_http_config["tracing"]["random_sampling"] = {
+                        "value": random_sampling
+                    }
+
+                overall_sampling = sampling.get('overall', None)
+                if overall_sampling is not None:
+                    self.base_http_config["tracing"]["overall_sampling"] = {
+                        "value": overall_sampling
+                    }
 
         proper_case = self.config.ir.ambassador_module['proper_case']
         
