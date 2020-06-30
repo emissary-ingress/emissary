@@ -66,6 +66,7 @@ type Client struct {
 	config    *ConfigFlags
 	cli       dynamic.Interface
 	mapper    meta.RESTMapper
+	disco     discovery.CachedDiscoveryInterface
 	mutex     sync.Mutex
 	canonical map[string]*Unstructured
 }
@@ -107,15 +108,16 @@ func NewClientFromConfigFlags(config *ConfigFlags) (*Client, error) {
 		return nil, err
 	}
 
-	mapper, err := NewRESTMapper(config)
+	mapper, disco, err := NewRESTMapper(config)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Client{config: config, cli: cli, mapper: mapper, canonical: make(map[string]*Unstructured)}, nil
+	return &Client{config: config, cli: cli, mapper: mapper, disco: disco,
+		canonical: make(map[string]*Unstructured)}, nil
 }
 
-func NewRESTMapper(config *ConfigFlags) (meta.RESTMapper, error) {
+func NewRESTMapper(config *ConfigFlags) (meta.RESTMapper, discovery.CachedDiscoveryInterface, error) {
 	// Throttling is scoped to rest.Config, so we use a dedicated
 	// rest.Config for discovery so we can disable throttling for
 	// discovery, but leave it in place for normal requests. This
@@ -128,7 +130,7 @@ func NewRESTMapper(config *ConfigFlags) (meta.RESTMapper, error) {
 	// non-discovery requests.
 	restconfig, err := config.ToRESTConfig()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	restconfig.QPS = 1000000
 	restconfig.Burst = 1000000
@@ -138,12 +140,12 @@ func NewRESTMapper(config *ConfigFlags) (meta.RESTMapper, error) {
 		cachedDiscoveryClient, err = disk.NewCachedDiscoveryClientForConfig(restconfig, *config.CacheDir, "",
 			time.Duration(10*time.Minute))
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	} else {
 		discoveryClient, err := discovery.NewDiscoveryClientForConfig(restconfig)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		cachedDiscoveryClient = memory.NewMemCacheClient(discoveryClient)
 	}
@@ -151,7 +153,7 @@ func NewRESTMapper(config *ConfigFlags) (meta.RESTMapper, error) {
 	mapper := restmapper.NewDeferredDiscoveryRESTMapper(cachedDiscoveryClient)
 	expander := restmapper.NewShortcutExpander(mapper, cachedDiscoveryClient)
 
-	return expander, nil
+	return expander, cachedDiscoveryClient, nil
 }
 
 // This is how client-go figures out if it is inside a cluster (from
@@ -187,11 +189,18 @@ func (c *Client) WaitFor(ctx context.Context, kindOrResource string) {
 func (c *Client) InvalidateCache() {
 	// TODO: it's possible that invalidate could be smarter now
 	// and use the methods on CachedDiscoveryInterface
-	mapper, err := NewRESTMapper(c.config)
+	mapper, disco, err := NewRESTMapper(c.config)
 	if err != nil {
 		panic(err)
 	}
 	c.mapper = mapper
+	c.disco = disco
+}
+
+// The ServerVersion() method returns a struct with information about
+// the kubernetes api-server version.
+func (c *Client) ServerVersion() (*VersionInfo, error) {
+	return c.disco.ServerVersion()
 }
 
 // ==

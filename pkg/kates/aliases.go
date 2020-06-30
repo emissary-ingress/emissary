@@ -12,6 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/apimachinery/pkg/version"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
@@ -94,6 +95,8 @@ var Int = intstr.Int
 type ConfigFlags = genericclioptions.ConfigFlags
 
 var NewConfigFlags = genericclioptions.NewConfigFlags
+
+type VersionInfo = version.Info
 
 type PatchType = types.PatchType
 

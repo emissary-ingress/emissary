@@ -185,7 +185,7 @@ func NewClient(info *KubeInfo) (*Client, error) {
 		return nil, err
 	}
 
-	mapper, err := kates.NewRESTMapper(info.configFlags)
+	mapper, _, err := kates.NewRESTMapper(info.configFlags)
 	if err != nil {
 		return nil, err
 	}

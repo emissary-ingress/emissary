@@ -14,6 +14,15 @@ func TestValidation(t *testing.T) {
 	client, err := NewClient(ClientOptions{})
 	require.NoError(t, err)
 
+	version, err := client.ServerVersion()
+	require.NoError(t, err)
+	if version.Major == "1" && version.Minor == "10" {
+		t.Skip("skipping test because kubernetes version is too old")
+		return
+	} else {
+		t.Log("Kubernetes Version", version)
+	}
+
 	// create a crd with schema validations so we can test that they work
 	objs, err := ParseManifests(CRD)
 	require.NoError(t, err)
