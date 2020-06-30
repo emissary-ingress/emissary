@@ -30,6 +30,7 @@
         "location": "--internal--",
         "name": "ir.ambassador",
         "namespace": "default",
+        "preserve_external_request_id": false,
         "proper_case": false,
         "readiness_probe": {
             "enabled": true,
@@ -106,7 +107,7 @@
             "service": "tlsoriginationsecret-http",
             "targets": [
                 {
-                    "ip": "tlsoriginationsecret-http.default",
+                    "ip": "tlsoriginationsecret-http",
                     "port": 443,
                     "target_kind": "DNSname"
                 }
@@ -160,7 +161,7 @@
             "service": "tlsoriginationsecret-http",
             "targets": [
                 {
-                    "ip": "tlsoriginationsecret-http.default",
+                    "ip": "tlsoriginationsecret-http",
                     "port": 443,
                     "target_kind": "DNSname"
                 }
@@ -264,7 +265,7 @@
                         "service": "tlsoriginationsecret-http",
                         "targets": [
                             {
-                                "ip": "tlsoriginationsecret-http.default",
+                                "ip": "tlsoriginationsecret-http",
                                 "port": 443,
                                 "target_kind": "DNSname"
                             }
@@ -588,7 +589,7 @@
                         "service": "tlsoriginationsecret-http",
                         "targets": [
                             {
-                                "ip": "tlsoriginationsecret-http.default",
+                                "ip": "tlsoriginationsecret-http",
                                 "port": 443,
                                 "target_kind": "DNSname"
                             }

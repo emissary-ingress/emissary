@@ -1,6 +1,11 @@
 {
     "_errors": {},
-    "_notices": {},
+    "_notices": {
+        "-global-": [
+            "Parsed pod labels: {'kat-ambassador-id': 'globalcorstest', 'scope': 'AmbassadorTest', 'service': 'globalcorstest'}",
+            "Found Ambassador service: globalcorstest"
+        ]
+    },
     "_sources": {
         "--diagnostics--": {
             "_referenced_by": {},

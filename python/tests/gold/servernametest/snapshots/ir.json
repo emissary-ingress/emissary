@@ -33,6 +33,7 @@
         "location": "servernametest.default.1",
         "name": "ir.ambassador",
         "namespace": "default",
+        "preserve_external_request_id": false,
         "proper_case": false,
         "readiness_probe": {
             "enabled": true,
@@ -109,7 +110,7 @@
             "service": "servernametest-http",
             "targets": [
                 {
-                    "ip": "servernametest-http.default",
+                    "ip": "servernametest-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -492,7 +493,7 @@
                         "service": "servernametest-http",
                         "targets": [
                             {
-                                "ip": "servernametest-http.default",
+                                "ip": "servernametest-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }

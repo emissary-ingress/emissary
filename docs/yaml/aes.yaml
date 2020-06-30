@@ -329,7 +329,6 @@ spec:
         - name: AMBASSADOR_SINGLE_NAMESPACE
           value: ''
         image: docker.io/datawire/aes:$version$
-        imagePullPolicy: Always
         livenessProbe:
           httpGet:
             path: /ambassador/v0/check_alive

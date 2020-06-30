@@ -3,7 +3,7 @@ from typing import Any, ClassVar, Dict, List, Optional, Type, Union, TYPE_CHECKI
 
 from ..config import Config
 
-from .irbasemapping import IRBaseMapping
+from .irbasemapping import IRBaseMapping, qualify_service_name
 from .irbasemappinggroup import IRBaseMappingGroup
 from .irtcpmappinggroup import IRTCPMappingGroup
 
@@ -22,6 +22,7 @@ class IRTCPMapping (IRBaseMapping):
 
     AllowedKeys: ClassVar[Dict[str, bool]] = {
         "address": True,
+        "circuit_breakers": False,
         "enable_ipv4": True,
         "enable_ipv6": True,
         "host": True,
@@ -39,6 +40,7 @@ class IRTCPMapping (IRBaseMapping):
                  rkey: str,      # REQUIRED
                  name: str,      # REQUIRED
                  location: str,  # REQUIRED
+                 service: str,   # REQUIRED
                  namespace: Optional[str] = None,
                  metadata_labels: Optional[Dict[str, str]] = None,
 
@@ -52,10 +54,11 @@ class IRTCPMapping (IRBaseMapping):
         # we're going to allow from the incoming kwargs...
 
         new_args = { x: kwargs[x] for x in kwargs.keys() if x in IRTCPMapping.AllowedKeys }
+        service = qualify_service_name(ir, service, namespace)
 
         # ...and then init the superclass.
         super().__init__(
-            ir=ir, aconf=aconf, rkey=rkey, location=location,
+            ir=ir, aconf=aconf, rkey=rkey, location=location, service=service,
             kind=kind, name=name, namespace=namespace, metadata_labels=metadata_labels,
             apiVersion=apiVersion, precedence=precedence, cluster_tag=cluster_tag,
             **new_args

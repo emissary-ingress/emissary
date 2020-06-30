@@ -55,7 +55,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "authenticationgrpctest-http.default",
+                                                "address": "authenticationgrpctest-http",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }
@@ -83,7 +83,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "authenticationgrpctest-agrpc-auth.default",
+                                                "address": "authenticationgrpctest-agrpc-auth",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }
@@ -150,6 +150,7 @@
                                         "accept_http_10": false
                                     },
                                     "normalize_path": true,
+                                    "preserve_external_request_id": false,
                                     "route_config": {
                                         "virtual_hosts": [
                                             {

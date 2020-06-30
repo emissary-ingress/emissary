@@ -50,7 +50,6 @@ spec:
       containers:
       - name: zipkin
         image: openzipkin/zipkin:2.17
-        imagePullPolicy: Always
         ports:
         - name: http
           containerPort: 9411
@@ -159,7 +158,6 @@ spec:
       containers:
       - name: zipkin
         image: openzipkin/zipkin:2.17
-        imagePullPolicy: Always
         ports:
         - name: http
           containerPort: 9411
@@ -250,7 +248,6 @@ spec:
       containers:
       - name: zipkin-auth
         image: openzipkin/zipkin:2.17
-        imagePullPolicy: Always
         ports:
         - name: http
           containerPort: 9411
