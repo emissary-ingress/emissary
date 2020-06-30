@@ -1,6 +1,10 @@
 {
     "_errors": {},
     "_notices": {
+        "-global-": [
+            "Parsed pod labels: {'kat-ambassador-id': 'gziptest', 'scope': 'AmbassadorTest', 'service': 'gziptest'}",
+            "Found Ambassador service: gziptest"
+        ],
         "gziptest.default.1": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ],

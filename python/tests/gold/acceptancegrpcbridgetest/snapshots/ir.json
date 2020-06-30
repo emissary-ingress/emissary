@@ -43,6 +43,7 @@
         "location": "acceptancegrpcbridgetest.default.1",
         "name": "ir.ambassador",
         "namespace": "default",
+        "preserve_external_request_id": false,
         "proper_case": false,
         "readiness_probe": {
             "enabled": true,
@@ -120,7 +121,7 @@
             "service": "acceptancegrpcbridgetest-egrpc",
             "targets": [
                 {
-                    "ip": "acceptancegrpcbridgetest-egrpc.default",
+                    "ip": "acceptancegrpcbridgetest-egrpc",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -416,7 +417,7 @@
                         "service": "acceptancegrpcbridgetest-egrpc",
                         "targets": [
                             {
-                                "ip": "acceptancegrpcbridgetest-egrpc.default",
+                                "ip": "acceptancegrpcbridgetest-egrpc",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }

@@ -26,16 +26,16 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"data\":{\"tls.crt\":\"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURnRENDQW1pZ0F3SUJBZ0lKQUpycUl0ekY2MTBpTUEwR0NTcUdTSWIzRFFFQkN3VUFNRlV4Q3pBSkJnTlYKQkFZVEFsVlRNUXN3Q1FZRFZRUUlEQUpOUVRFUE1BMEdBMVVFQnd3R1FtOXpkRzl1TVFzd0NRWURWUVFLREFKRQpWekViTUJrR0ExVUVBd3dTZEd4ekxXTnZiblJsZUhRdGFHOXpkQzB4TUI0WERURTRNVEV3TVRFek5UTXhPRm9YCkRUSTRNVEF5T1RFek5UTXhPRm93VlRFTE1Ba0dBMVVFQmhNQ1ZWTXhDekFKQmdOVkJBZ01BazFCTVE4d0RRWUQKVlFRSERBWkNiM04wYjI0eEN6QUpCZ05WQkFvTUFrUlhNUnN3R1FZRFZRUUREQkowYkhNdFkyOXVkR1Y0ZEMxbwpiM04wTFRFd2dnRWlNQTBHQ1NxR1NJYjNEUUVCQVFVQUE0SUJEd0F3Z2dFS0FvSUJBUUM5T2dDOHd4eUlyUHpvCkdYc0xwUEt0NzJERXgyd2p3VzhuWFcyd1dieWEzYzk2bjJuU0NLUEJuODVoYnFzaHpqNWloU1RBTURJb2c5RnYKRzZSS1dVUFhUNEtJa1R2M0NESHFYc0FwSmxKNGxTeW5ReW8yWnYwbytBZjhDTG5nWVpCK3JmenRad3llRGhWcAp3WXpCVjIzNXp6NisycWJWbUNabHZCdVhiVXFUbEVZWXZ1R2xNR3o3cFBmT1dLVXBlWW9kYkcyZmIraEZGcGVvCkN4a1VYclFzT29SNUpkSEc1aldyWnVCTzQ1NVNzcnpCTDhSbGU1VUhvMDVXY0s3YkJiaVF6MTA2cEhDSllaK3AKdmxQSWNOU1g1S2gzNEZnOTZVUHg5bFFpQTN6RFRLQmZ5V2NMUStxMWNabExjV2RnUkZjTkJpckdCLzdyYTFWVApnRUplR2tQekFnTUJBQUdqVXpCUk1CMEdBMVVkRGdRV0JCUkRWVUtYWWJsRFdNTzE3MUJuWWZhYlkzM0NFVEFmCkJnTlZIU01FR0RBV2dCUkRWVUtYWWJsRFdNTzE3MUJuWWZhYlkzM0NFVEFQQmdOVkhSTUJBZjhFQlRBREFRSC8KTUEwR0NTcUdTSWIzRFFFQkN3VUFBNElCQVFBUE8vRDRUdDUyWHJsQ0NmUzZnVUVkRU5DcnBBV05YRHJvR2M2dApTVGx3aC8rUUxRYk5hZEtlaEtiZjg5clhLaituVXF0cS9OUlpQSXNBSytXVWtHOVpQb1FPOFBRaVY0V1g1clE3CjI5dUtjSmZhQlhrZHpVVzdxTlFoRTRjOEJhc0JySWVzcmtqcFQ5OVF4SktuWFFhTitTdzdvRlBVSUFOMzhHcWEKV2wvS1BNVHRicWt3eWFjS01CbXExVkx6dldKb0g1Q2l6Skp3aG5rWHh0V0tzLzY3clROblBWTXorbWVHdHZTaQpkcVg2V1NTbUdMRkVFcjJoZ1VjQVpqazNWdVFoLzc1aFh1K1UySXRzQys1cXBsaEc3Q1hzb1huS0t5MVhsT0FFCmI4a3IyZFdXRWs2STVZNm5USnpXSWxTVGtXODl4d1hyY3RtTjlzYjlxNFNuaVZsegotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==\",\"tls.key\":\"LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2UUlCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktjd2dnU2pBZ0VBQW9JQkFRQzlPZ0M4d3h5SXJQem8KR1hzTHBQS3Q3MkRFeDJ3andXOG5YVzJ3V2J5YTNjOTZuMm5TQ0tQQm44NWhicXNoemo1aWhTVEFNRElvZzlGdgpHNlJLV1VQWFQ0S0lrVHYzQ0RIcVhzQXBKbEo0bFN5blF5bzJadjBvK0FmOENMbmdZWkIrcmZ6dFp3eWVEaFZwCndZekJWMjM1eno2KzJxYlZtQ1psdkJ1WGJVcVRsRVlZdnVHbE1HejdwUGZPV0tVcGVZb2RiRzJmYitoRkZwZW8KQ3hrVVhyUXNPb1I1SmRIRzVqV3JadUJPNDU1U3NyekJMOFJsZTVVSG8wNVdjSzdiQmJpUXoxMDZwSENKWVorcAp2bFBJY05TWDVLaDM0Rmc5NlVQeDlsUWlBM3pEVEtCZnlXY0xRK3ExY1psTGNXZGdSRmNOQmlyR0IvN3JhMVZUCmdFSmVHa1B6QWdNQkFBRUNnZ0VBQmFsN3BpcE1hMGFKMXNRVWEzZkhEeTlQZlBQZXAzODlQVGROZGU1cGQxVFYKeFh5SnBSQS9IaWNTL05WYjU0b05VZE5jRXlnZUNCcFJwUHAxd3dmQ3dPbVBKVmo3SzF3aWFqbmxsQldpZUJzMgpsOWFwcDdFVE9DdWJ5WTNWU2dLQldWa0piVzBjOG9uSFdEL0RYM0duUjhkTXdGYzRrTUdadkllUlo4bU1acmdHCjZPdDNKOHI2eVZsZWI2OGF1WmtneXMwR2VGc3pNdVRubHJCOEw5djI1UUtjVGtESjIvRWx1Y1p5aER0eGF0OEIKTzZOUnNubmNyOHhwUVdPci9sV3M5VVFuZEdCdHFzbXMrdGNUN1ZUNU9UanQ4WHY5NVhNSHB5Z29pTHk3czhvYwpJMGprNDJabzRKZW5JT3c2Rm0weUFEZ0E3eWlXcks0bEkzWGhqaTVSb1FLQmdRRGRqaWNkTUpYVUZWc28rNTJkCkUwT2EwcEpVMFNSaC9JQmdvRzdNakhrVWxiaXlpR1pNanA5MEo5VHFaL1ErM1pWZVdqMmxPSWF0OG5nUzB6MDAKVzA3T1ZxYXprMVNYaFZlY2tGNWFEcm5PRDNhU2VWMSthV3JUdDFXRWdqOVFxYnJZYVA5emd4UkpkRzV3WENCUApGNDNFeXE5ZEhXOWF6SSt3UHlJQ0JqNnZBd0tCZ1FEYXBTelhPR2ViMi9SMWhlWXdWV240czNGZEtYVjgzemtTCnFSWDd6d1pLdkk5OGMybDU1Y1ZNUzBoTGM0bTVPMXZCaUd5SG80eTB2SVAvR0k0Rzl4T1FhMXdpVnNmUVBiSU4KLzJPSDFnNXJLSFdCWVJUaHZGcERqdHJRU2xyRHVjWUNSRExCd1hUcDFrbVBkL09mY2FybG42MjZEamthZllieAp3dWUydlhCTVVRS0JnQm4vTmlPOHNiZ0RFWUZMbFFEN1k3RmxCL3FmMTg4UG05aTZ1b1dSN2hzMlBrZmtyV3hLClIvZVBQUEtNWkNLRVNhU2FuaVVtN3RhMlh0U0dxT1hkMk85cFI0Skd4V1JLSnkrZDJSUmtLZlU5NTBIa3I4M0gKZk50KzVhLzR3SWtzZ1ZvblorSWIvV05wSUJSYkd3ZHMwaHZIVkxCdVpjU1h3RHlFQysrRTRCSVZBb0dCQUoxUQp6eXlqWnRqYnI4NkhZeEpQd29teEF0WVhLSE9LWVJRdUdLVXZWY1djV2xrZTZUdE51V0dsb1FTNHd0VkdBa1VECmxhTWFaL2o2MHJaT3dwSDhZRlUvQ2ZHakl1MlFGbmEvMUtzOXR1NGZGRHpjenh1RVhDWFR1Vmk0eHdtZ3R2bVcKZkRhd3JTQTZrSDdydlp4eE9wY3hCdHloc3pCK05RUHFTckpQSjJlaEFvR0FkdFJKam9vU0lpYURVU25lZUcyZgpUTml1T01uazJkeFV3RVF2S1E4eWNuUnpyN0QwaEtZVWIycThHKzE2bThQUjNCcFMzZDFLbkpMVnI3TUhaWHpSCitzZHNaWGtTMWVEcEZhV0RFREFEWWI0ckRCb2RBdk8xYm03ZXdTMzhSbk1UaTlhdFZzNVNTODNpZG5HbFZiSmsKYkZKWG0rWWxJNHFkaXowTFdjWGJyREE9Ci0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0K\"},\"kind\":\"Secret\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"authenticationhttppartialbuffertest\",\"scope\":\"AmbassadorTest\"},\"name\":\"auth-partial-secret\",\"namespace\":\"default\"},\"type\":\"kubernetes.io/tls\"}\n"
                     },
-                    "creationTimestamp": "2020-05-14T17:38:18Z",
+                    "creationTimestamp": "2020-06-25T03:49:07Z",
                     "labels": {
                         "kat-ambassador-id": "authenticationhttppartialbuffertest",
                         "scope": "AmbassadorTest"
                     },
                     "name": "auth-partial-secret",
                     "namespace": "default",
-                    "resourceVersion": "63511",
+                    "resourceVersion": "85993917",
                     "selfLink": "/api/v1/namespaces/default/secrets/auth-partial-secret",
-                    "uid": "b29c8c05-9609-11ea-ae16-06e21b589211"
+                    "uid": "d2132cc8-b696-11ea-bc23-022a80997af0"
                 },
                 "type": "kubernetes.io/tls"
             }
@@ -46,10 +46,10 @@
                 "kind": "Service",
                 "metadata": {
                     "annotations": {
-                        "getambassador.io/config": "---\napiVersion: ambassador/v1\nkind: TLSContext\nname: AuthenticationHTTPPartialBufferTest-same-context-1\nsecret: auth-partial-secret\nambassador_id: authenticationhttppartialbuffertest\n---\napiVersion: ambassador/v2\nkind: AuthService\nname: authenticationhttppartialbuffertest-http-auth\nauth_service: \"authenticationhttppartialbuffertest-http-auth\"\npath_prefix: \"/extauth\"\ntimeout_ms: 5000\ntls: AuthenticationHTTPPartialBufferTest-same-context-1\nallowed_request_headers:\n- Requested-Status\n- Requested-Header\nallowed_authorization_headers:\n- Auth-Request-Body\ninclude_body:\n  max_bytes: 7\n  allow_partial: true\nambassador_id: authenticationhttppartialbuffertest\n\n---\napiVersion: ambassador/v0\nkind: Mapping\nname: authenticationhttppartialbuffertest-http\nprefix: /target/\nservice: authenticationhttppartialbuffertest-http\nambassador_id: authenticationhttppartialbuffertest\n",
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v1\\nkind: TLSContext\\nname: AuthenticationHTTPPartialBufferTest-same-context-1\\nsecret: auth-partial-secret\\nambassador_id: authenticationhttppartialbuffertest\\n---\\napiVersion: ambassador/v2\\nkind: AuthService\\nname: authenticationhttppartialbuffertest-http-auth\\nauth_service: \\\"authenticationhttppartialbuffertest-http-auth\\\"\\npath_prefix: \\\"/extauth\\\"\\ntimeout_ms: 5000\\ntls: AuthenticationHTTPPartialBufferTest-same-context-1\\nallowed_request_headers:\\n- Requested-Status\\n- Requested-Header\\nallowed_authorization_headers:\\n- Auth-Request-Body\\ninclude_body:\\n  max_bytes: 7\\n  allow_partial: true\\nambassador_id: authenticationhttppartialbuffertest\\n\\n---\\napiVersion: ambassador/v0\\nkind: Mapping\\nname: authenticationhttppartialbuffertest-http\\nprefix: /target/\\nservice: authenticationhttppartialbuffertest-http\\nambassador_id: authenticationhttppartialbuffertest\\n\"},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"authenticationhttppartialbuffertest\",\"scope\":\"AmbassadorTest\"},\"name\":\"authenticationhttppartialbuffertest\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"authenticationhttppartialbuffertest\"},\"type\":\"NodePort\"}}\n"
+                        "getambassador.io/config": "---\napiVersion: ambassador/v1\nkind: TLSContext\nname: AuthenticationHTTPPartialBufferTest-same-context-1\nsecret: auth-partial-secret\nambassador_id: authenticationhttppartialbuffertest\n---\napiVersion: ambassador/v2\nkind: AuthService\nname: authenticationhttppartialbuffertest-http-auth\nauth_service: \"authenticationhttppartialbuffertest-http-auth\"\npath_prefix: \"/extauth\"\ntimeout_ms: 5000\ntls: AuthenticationHTTPPartialBufferTest-same-context-1\nallowed_request_headers:\n- Requested-Status\n- Requested-Header\nallowed_authorization_headers:\n- Auth-Request-Body\nadd_auth_headers:\n  X-Added-Auth: auth-added\ninclude_body:\n  max_bytes: 7\n  allow_partial: true\nambassador_id: authenticationhttppartialbuffertest\n\n---\napiVersion: ambassador/v0\nkind: Mapping\nname: authenticationhttppartialbuffertest-http\nprefix: /target/\nservice: authenticationhttppartialbuffertest-http\nambassador_id: authenticationhttppartialbuffertest\n",
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v1\\nkind: TLSContext\\nname: AuthenticationHTTPPartialBufferTest-same-context-1\\nsecret: auth-partial-secret\\nambassador_id: authenticationhttppartialbuffertest\\n---\\napiVersion: ambassador/v2\\nkind: AuthService\\nname: authenticationhttppartialbuffertest-http-auth\\nauth_service: \\\"authenticationhttppartialbuffertest-http-auth\\\"\\npath_prefix: \\\"/extauth\\\"\\ntimeout_ms: 5000\\ntls: AuthenticationHTTPPartialBufferTest-same-context-1\\nallowed_request_headers:\\n- Requested-Status\\n- Requested-Header\\nallowed_authorization_headers:\\n- Auth-Request-Body\\nadd_auth_headers:\\n  X-Added-Auth: auth-added\\ninclude_body:\\n  max_bytes: 7\\n  allow_partial: true\\nambassador_id: authenticationhttppartialbuffertest\\n\\n---\\napiVersion: ambassador/v0\\nkind: Mapping\\nname: authenticationhttppartialbuffertest-http\\nprefix: /target/\\nservice: authenticationhttppartialbuffertest-http\\nambassador_id: authenticationhttppartialbuffertest\\n\"},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"authenticationhttppartialbuffertest\",\"scope\":\"AmbassadorTest\"},\"name\":\"authenticationhttppartialbuffertest\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"authenticationhttppartialbuffertest\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-05-14T17:38:18Z",
+                    "creationTimestamp": "2020-06-25T03:49:07Z",
                     "labels": {
                         "app.kubernetes.io/component": "ambassador-service",
                         "kat-ambassador-id": "authenticationhttppartialbuffertest",
@@ -57,24 +57,24 @@
                     },
                     "name": "authenticationhttppartialbuffertest",
                     "namespace": "default",
-                    "resourceVersion": "63523",
+                    "resourceVersion": "85993922",
                     "selfLink": "/api/v1/namespaces/default/services/authenticationhttppartialbuffertest",
-                    "uid": "b2c682a0-9609-11ea-ae16-06e21b589211"
+                    "uid": "d23cb093-b696-11ea-bc23-022a80997af0"
                 },
                 "spec": {
-                    "clusterIP": "10.99.20.195",
+                    "clusterIP": "100.67.150.214",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "http",
-                            "nodePort": 30849,
+                            "nodePort": 32618,
                             "port": 80,
                             "protocol": "TCP",
                             "targetPort": 8080
                         },
                         {
                             "name": "https",
-                            "nodePort": 32427,
+                            "nodePort": 30835,
                             "port": 443,
                             "protocol": "TCP",
                             "targetPort": 8443
@@ -97,7 +97,7 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"authenticationhttppartialbuffertest\",\"scope\":\"AmbassadorTest\",\"service\":\"authenticationhttppartialbuffertest-admin\"},\"name\":\"authenticationhttppartialbuffertest-admin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"authenticationhttppartialbuffertest-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"authenticationhttppartialbuffertest\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-05-14T17:38:18Z",
+                    "creationTimestamp": "2020-06-25T03:49:07Z",
                     "labels": {
                         "kat-ambassador-id": "authenticationhttppartialbuffertest",
                         "scope": "AmbassadorTest",
@@ -105,17 +105,17 @@
                     },
                     "name": "authenticationhttppartialbuffertest-admin",
                     "namespace": "default",
-                    "resourceVersion": "63528",
+                    "resourceVersion": "85993929",
                     "selfLink": "/api/v1/namespaces/default/services/authenticationhttppartialbuffertest-admin",
-                    "uid": "b2d1a949-9609-11ea-ae16-06e21b589211"
+                    "uid": "d24e8ead-b696-11ea-bc23-022a80997af0"
                 },
                 "spec": {
-                    "clusterIP": "10.101.46.201",
+                    "clusterIP": "100.68.251.160",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "authenticationhttppartialbuffertest-admin",
-                            "nodePort": 31767,
+                            "nodePort": 30037,
                             "port": 8877,
                             "protocol": "TCP",
                             "targetPort": 8877
@@ -138,19 +138,19 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"authenticationhttppartialbuffertest\",\"scope\":\"AmbassadorTest\"},\"name\":\"authenticationhttppartialbuffertest-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8086},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8449}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
                     },
-                    "creationTimestamp": "2020-05-14T17:38:18Z",
+                    "creationTimestamp": "2020-06-25T03:49:08Z",
                     "labels": {
                         "kat-ambassador-id": "authenticationhttppartialbuffertest",
                         "scope": "AmbassadorTest"
                     },
                     "name": "authenticationhttppartialbuffertest-http",
                     "namespace": "default",
-                    "resourceVersion": "63535",
+                    "resourceVersion": "85993934",
                     "selfLink": "/api/v1/namespaces/default/services/authenticationhttppartialbuffertest-http",
-                    "uid": "b2ea8c23-9609-11ea-ae16-06e21b589211"
+                    "uid": "d270cba2-b696-11ea-bc23-022a80997af0"
                 },
                 "spec": {
-                    "clusterIP": "10.101.181.85",
+                    "clusterIP": "100.69.11.190",
                     "ports": [
                         {
                             "name": "http",
@@ -182,19 +182,19 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"authenticationhttppartialbuffertest\",\"scope\":\"AmbassadorTest\"},\"name\":\"authenticationhttppartialbuffertest-http-auth\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8087},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8450}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
                     },
-                    "creationTimestamp": "2020-05-14T17:38:18Z",
+                    "creationTimestamp": "2020-06-25T03:49:08Z",
                     "labels": {
                         "kat-ambassador-id": "authenticationhttppartialbuffertest",
                         "scope": "AmbassadorTest"
                     },
                     "name": "authenticationhttppartialbuffertest-http-auth",
                     "namespace": "default",
-                    "resourceVersion": "63541",
+                    "resourceVersion": "85993938",
                     "selfLink": "/api/v1/namespaces/default/services/authenticationhttppartialbuffertest-http-auth",
-                    "uid": "b2f9df48-9609-11ea-ae16-06e21b589211"
+                    "uid": "d27ea4a4-b696-11ea-bc23-022a80997af0"
                 },
                 "spec": {
-                    "clusterIP": "10.107.229.103",
+                    "clusterIP": "100.64.21.129",
                     "ports": [
                         {
                             "name": "http",

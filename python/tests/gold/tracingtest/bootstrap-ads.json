@@ -86,7 +86,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "zipkin.default",
+                                                "address": "zipkin",
                                                 "port_value": 9411,
                                                 "protocol": "TCP"
                                             }

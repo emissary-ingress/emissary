@@ -48,7 +48,9 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ## Next Release
 
-(no changes yet)
+### Ambassador API Gateway + Ambassador Edge Stack
+
+- Feature: Add support for circuit breakers in TCP mapping
 
 ## [1.5.5] June 30, 2020
 [1.5.5]: https://github.com/datawire/ambassador/compare/vv1.5.4...v1.5.5
@@ -83,6 +85,10 @@ The default value of `AMBASSADOR_UPDATE_MAPPING_STATUS` will change to
 
 - Bugfix: Allow deletion of ProjectControllers.
 - Bugfix: Fix regression introduced in 1.4.2 where the `OAuth2` AuthorizationCode filter no longer works when behind another gateway that rewrites the request hostname.  The behavior here is now controllable via the `internalOrigin` sub-field.
+
+### Ambassador API Gateway + Ambassador Edge Stack
+
+- Bugfix: Read Knative ingress generation from the correct place in the Kubernetes object
 
 ## [1.5.2] June 10, 2020
 [1.5.2]: https://github.com/datawire/ambassador/compare/v1.5.1...v1.5.2

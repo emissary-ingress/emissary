@@ -74,7 +74,6 @@ spec:
       containers:
         - name: consul-connect-integration
           image: docker.io/datawire/ambassador_pro:consul_connect_integration-$aproVersion$
-          imagePullPolicy: Always
           resources:
             limits:
               cpu: 200m

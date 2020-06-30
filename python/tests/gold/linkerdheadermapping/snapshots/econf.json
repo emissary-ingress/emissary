@@ -55,7 +55,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "linkerdheadermapping-http-addlinkerdonly.default",
+                                                "address": "linkerdheadermapping-http-addlinkerdonly",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }
@@ -82,7 +82,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "linkerdheadermapping-http.default",
+                                                "address": "linkerdheadermapping-http",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }
@@ -109,7 +109,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "linkerdheadermapping-http-noheader.default",
+                                                "address": "linkerdheadermapping-http-noheader",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }
@@ -163,6 +163,7 @@
                                         "accept_http_10": false
                                     },
                                     "normalize_path": true,
+                                    "preserve_external_request_id": false,
                                     "route_config": {
                                         "virtual_hosts": [
                                             {

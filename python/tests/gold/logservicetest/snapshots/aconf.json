@@ -1,6 +1,10 @@
 {
     "_errors": {},
     "_notices": {
+        "-global-": [
+            "Parsed pod labels: {'kat-ambassador-id': 'logservicetest', 'scope': 'AmbassadorTest', 'service': 'logservicetest'}",
+            "Found Ambassador service: logservicetest"
+        ],
         "stenography.default.2": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ]

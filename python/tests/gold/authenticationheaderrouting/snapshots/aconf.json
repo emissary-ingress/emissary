@@ -1,6 +1,10 @@
 {
     "_errors": {},
     "_notices": {
+        "-global-": [
+            "Parsed pod labels: {'kat-ambassador-id': 'authenticationheaderrouting', 'scope': 'AmbassadorTest', 'service': 'authenticationheaderrouting'}",
+            "Found Ambassador service: authenticationheaderrouting"
+        ],
         "authenticationheaderrouting-http-target1.default.1": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ],

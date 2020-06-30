@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License
-from typing import Any, Callable, Dict, Iterable, List, Optional, Type, Union, ValuesView
+from typing import Any, Callable, Dict, Iterable, List, Optional, Union, ValuesView
 from typing import cast as typecast
 
 import json
@@ -24,8 +24,6 @@ from ..constants import Constants
 
 from ..utils import RichStatus, SavedSecret, SecretHandler, SecretInfo
 from ..config import Config
-from ..config import ACResource
-from ..config import ResourceFetcher
 
 from .irresource import IRResource
 from .irambassador import IRAmbassador
@@ -43,7 +41,7 @@ from .irlistener import ListenerFactory, IRListener
 from .irlogservice import IRLogService, IRLogServiceFactory
 from .irtracing import IRTracing
 from .irtlscontext import IRTLSContext, TLSContextFactory
-from .irserviceresolver import IRServiceResolver, IRServiceResolverFactory, SvcEndpoint, SvcEndpointSet
+from .irserviceresolver import IRServiceResolver, IRServiceResolverFactory, SvcEndpointSet
 
 from ..VERSION import Version, Build
 
@@ -756,7 +754,7 @@ class IR:
             od[key] = self.ambassador_module.get(key, {}).get('enabled', False)
 
         for key in [ 'use_proxy_proto', 'use_remote_address', 'x_forwarded_proto_redirect', 'enable_http10',
-                     'add_linkerd_headers', 'use_ambassador_namespace_for_service_resolution', 'proper_case' ]:
+                     'add_linkerd_headers', 'use_ambassador_namespace_for_service_resolution', 'proper_case', 'preserve_external_request_id' ]:
             od[key] = self.ambassador_module.get(key, False)
 
         od['service_resource_total'] = len(list(self.services.keys()))
