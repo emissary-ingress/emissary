@@ -119,11 +119,11 @@ jobs:
   "oss-release-promote-to-rc-latest":
     <<: *oss-linux-job
     steps:
+      - oss-linux-setup
       - when:
           condition:
             equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
           steps:
-            - oss-linux-setup
             - run:
                 name: "Promote to -rc-latest"
                 command: |
