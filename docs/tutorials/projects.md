@@ -38,6 +38,8 @@ registry:
   create: true
 ```
 
+**Note:** The above installs an update to Ambassador RBAC permissions required to run Micro CD. You must restart the Ambassador Pods for this change to take effect.
+
 ## Project Quick Start
 
 To setup your first project:
