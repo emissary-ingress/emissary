@@ -171,7 +171,7 @@ class DiagApp (Flask):
 
         # For the moment, we're defaulting AMBASSADOR_UPDATE_MAPPING_STATUS
         # to true. Plan is to change this for 1.6.
-        ksclass = KubeStatusNoOp
+        ksclass = KubeStatusNoMappings
 
         if os.environ.get("AMBASSADOR_UPDATE_MAPPING_STATUS", "true").lower() == "true":
             ksclass = KubeStatus
@@ -567,9 +567,13 @@ def check_ready():
 @app.route('/ambassador/v0/diag/', methods=[ 'GET' ])
 @standard_handler
 def show_overview(reqid=None):
-    app.logger.debug("OV %s - showing overview" % reqid)
-
     diag = app.diag
+
+    if not diag:
+        app.logger.debug("OV %s - can't do overview before configuration" % reqid)
+        return "Can't do overview before configuration", 400
+
+    app.logger.debug("OV %s - showing overview" % reqid)        
 
     if app.verbose:
         app.logger.debug("OV %s: DIAG" % reqid)
@@ -683,9 +687,13 @@ def collect_errors_and_notices(request, reqid, what: str, diag: Diagnostics) -> 
 @app.route('/ambassador/v0/diag/<path:source>', methods=[ 'GET' ])
 @standard_handler
 def show_intermediate(source=None, reqid=None):
-    app.logger.debug("SRC %s - getting intermediate for '%s'" % (reqid, source))
-
     diag = app.diag
+
+    if not diag:
+        app.logger.debug("SRC %s - can't do intermediate before configuration" % reqid)
+        return "Can't do overview before configuration", 400
+
+    app.logger.debug("SRC %s - getting intermediate for '%s'" % (reqid, source))
 
     method = request.args.get('method', None)
     resource = request.args.get('resource', None)
@@ -799,20 +807,6 @@ class SystemStatus:
         return { key: info.to_dict() for key, info in self.status.items() }
 
 
-class KubeStatusNoOp:
-    def __init__(self, app) -> None:
-        pass
-
-    def mark_live(self, kind: str, name: str, namespace: str) -> None:
-        pass
-
-    def prune(self) -> None:
-        pass
-
-    def post(self, kind: str, name: str, namespace: str, text: str) -> None:
-        pass
-
-
 class KubeStatus:
     pool: concurrent.futures.ProcessPoolExecutor
 
@@ -858,6 +852,14 @@ class KubeStatus:
             self.current_status[key] = text
             f = self.pool.submit(kubestatus_update, kind, name, namespace, text)
             f.add_done_callback(kubestatus_update_done)
+
+
+# The KubeStatusNoMappings class clobbers the mark_live() method of the
+# KubeStatus class, so that updates to Mappings don't actually have any
+# effect, but updates to Ingress (for example) do.
+class KubeStatusNoMappings (KubeStatus):
+    def mark_live(self, kind: str, name: str, namespace: str) -> None:
+        pass
 
 
 def kubestatus_update(kind: str, name: str, namespace: str, text: str) -> str:
@@ -946,9 +948,7 @@ class AmbassadorEventWatcher(threading.Thread):
                 version, url = arg
 
                 try:
-                    if version == 'kw':
-                        self.load_config_kubewatch(rqueue, url)
-                    elif version == 'watt':
+                    if version == 'watt':
                         self.load_config_watt(rqueue, url)
                     else:
                         raise RuntimeError("config from %s not supported" % version)
@@ -979,6 +979,10 @@ class AmbassadorEventWatcher(threading.Thread):
         self.logger.debug("responding to query with %s %s" % (status, info))
         rqueue.put((status, info))
 
+    # load_config_fs reconfigures from the filesystem. It's _mostly_ legacy
+    # code, but not entirely, since Docker demo mode still uses it.
+    #
+    # BE CAREFUL ABOUT STOPPING THE RECONFIGURATION TIMER ONCE IT IS STARTED.
     def load_config_fs(self, rqueue: queue.Queue, path: str) -> None:
         self.logger.debug("loading configuration from disk: %s" % path)
 
@@ -1039,7 +1043,8 @@ class AmbassadorEventWatcher(threading.Thread):
 
             return
 
-        # OK, we're starting a reconfiguration.
+        # OK, we're starting a reconfiguration. BE CAREFUL TO STOP THE TIMER
+        # BEFORE YOU RESPOND TO THE CALLER.
         self.app.config_timer.start()
 
         snapshot = re.sub(r'[^A-Za-z0-9_-]', '_', path)
@@ -1052,68 +1057,23 @@ class AmbassadorEventWatcher(threading.Thread):
 
         if not fetcher.elements:
             self.logger.debug("no configuration resources found at %s" % path)
-            # self._respond(rqueue, 204, 'ignoring empty configuration')
-            # return
+            # Don't bail from here -- go ahead and reload the IR.
+            # 
+            # XXX This is basically historical logic, honestly. But if you try
+            # to respond from here and bail, STOP THE RECONFIGURATION TIMER.
 
         self._load_ir(rqueue, aconf, fetcher, scc, snapshot)
 
-    def load_config_kubewatch(self, rqueue: queue.Queue, url: str):
-        snapshot = url.split('/')[-1]
-        ss_path = os.path.join(app.snapshot_path, "snapshot-tmp.yaml")
-
-        # OK, we're starting a reconfiguration.
-        self.app.config_timer.start()
-
-        self.logger.debug("copying configuration: kubewatch, %s to %s" % (url, ss_path))
-
-        # Grab the serialization, and save it to disk too.
-        elements: List[str] = []
-
-        serialization = load_url_contents(self.logger, "%s/services" % url, stream2=open(ss_path, "w"))
-
-        if serialization:
-            elements.append(serialization)
-        else:
-            self.logger.debug("no services loaded from snapshot %s" % snapshot)
-
-        if Config.enable_endpoints:
-            serialization = load_url_contents(self.logger, "%s/endpoints" % url, stream2=open(ss_path, "a"))
-
-            if serialization:
-                elements.append(serialization)
-            else:
-                self.logger.debug("no endpoints loaded from snapshot %s" % snapshot)
-
-        serialization = "---\n".join(elements)
-
-        if not serialization:
-            self.logger.debug("no data loaded from snapshot %s" % snapshot)
-            # We never used to return here. I'm not sure if that's really correct?
-            # self._respond(rqueue, 204, 'ignoring: no data loaded from snapshot %s' % snapshot)
-            # return
-
-        scc = KubewatchSecretHandler(app.logger, url, app.snapshot_path, snapshot)
-
-        with self.app.fetcher_timer:
-            aconf = Config()
-            fetcher = ResourceFetcher(app.logger, aconf)
-            fetcher.parse_yaml(serialization, k8s=True)
-
-        if not fetcher.elements:
-            self.logger.debug("no configuration found in snapshot %s" % snapshot)
-
-            # Don't actually bail here. If they send over a valid config that happens
-            # to have nothing for us, it's still a legit config.
-            # self._respond(rqueue, 204, 'ignoring: no configuration found in snapshot %s' % snapshot)
-            # return
-
-        self._load_ir(rqueue, aconf, fetcher, scc, snapshot)
-
+    # load_config_watt reconfigures from the filesystem. It's the one true way of
+    # reconfiguring these days.
+    #
+    # BE CAREFUL ABOUT STOPPING THE RECONFIGURATION TIMER ONCE IT IS STARTED.
     def load_config_watt(self, rqueue: queue.Queue, url: str):
         snapshot = url.split('/')[-1]
         ss_path = os.path.join(app.snapshot_path, "snapshot-tmp.yaml")
 
-        # OK, we're starting a reconfiguration.
+        # OK, we're starting a reconfiguration. BE CAREFUL TO STOP THE TIMER
+        # BEFORE YOU RESPOND TO THE CALLER.
         self.app.config_timer.start()
 
         self.logger.debug("copying configuration: watt, %s to %s" % (url, ss_path))
@@ -1124,8 +1084,8 @@ class AmbassadorEventWatcher(threading.Thread):
         if not serialization:
             self.logger.debug("no data loaded from snapshot %s" % snapshot)
             # We never used to return here. I'm not sure if that's really correct?
-            # self._respond(rqueue, 204, 'ignoring: no data loaded from snapshot %s' % snapshot)
-            # return
+            # 
+            # IF YOU CHANGE THIS, BE CAREFUL TO STOP THE RECONFIGURATION TIMER.
 
         # Weirdly, we don't need a special WattSecretHandler: parse_watt knows how to handle
         # the secrets that watt sends.
@@ -1145,11 +1105,15 @@ class AmbassadorEventWatcher(threading.Thread):
 
             # Don't actually bail here. If they send over a valid config that happens
             # to have nothing for us, it's still a legit config.
-            # self._respond(rqueue, 204, 'ignoring: no configuration found in snapshot %s' % snapshot)
-            # return
+            # 
+            # IF YOU CHANGE THIS, BE CAREFUL TO STOP THE RECONFIGURATION TIMER.
 
         self._load_ir(rqueue, aconf, fetcher, scc, snapshot)
 
+    # _load_ir is where the heavy lifting of a reconfigure happens. 
+    #
+    # AT THE POINT OF ENTRY, THE RECONFIGURATION TIMER IS RUNNING. DO NOT LEAVE
+    # THIS METHOD WITHOUT STOPPING THE RECONFIGURATION TIMER.
     def _load_ir(self, rqueue: queue.Queue, aconf: Config, fetcher: ResourceFetcher,
                  secret_handler: SecretHandler, snapshot: str) -> None:
         with self.app.aconf_timer:
@@ -1174,8 +1138,12 @@ class AmbassadorEventWatcher(threading.Thread):
 
         if not self.validate_envoy_config(config=ads_config, retries=self.app.validation_retries):
             self.logger.info("no updates were performed due to invalid envoy configuration, continuing with current configuration...")
+
             # Don't use app.check_scout; it will deadlock.
             self.check_scout("attempted bad update")
+
+            # DO stop the reconfiguration timer before leaving.
+            self.app.config_timer.stop()
             self._respond(rqueue, 500, 'ignoring: invalid Envoy configuration in snapshot %s' % snapshot)
             return
 
@@ -1202,6 +1170,10 @@ class AmbassadorEventWatcher(threading.Thread):
             for fmt in [ "aconf{}.json", "econf{}.json", "ir{}.json", "snapshot{}.yaml" ]:
                 from_path = os.path.join(app.snapshot_path, fmt.format(from_suffix))
                 to_path = os.path.join(app.snapshot_path, fmt.format(to_suffix))
+
+                # Make sure we don't leave this method on error! The reconfiguration
+                # timer is still running, but also, the snapshots are a debugging aid:
+                # if we can't rotate them, meh, whatever.
 
                 try:
                     self.logger.debug("rotate: %s -> %s" % (from_path, to_path))
