@@ -17,7 +17,7 @@ IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
   # You may reset BASE_ENVOY_RELVER when adjusting ENVOY_COMMIT.
   BASE_ENVOY_RELVER ?= 1
 
-  ENVOY_DOCKER_REPO ?= $(if $(IS_PRIVATE),quay.io/datawire/ambassador-base-private,docker.io/datawire/ambassador-base)
+  ENVOY_DOCKER_REPO ?= $(if $(IS_PRIVATE),quay.io/datawire-private/ambassador-base,docker.io/datawire/ambassador-base)
   ENVOY_DOCKER_VERSION ?= $(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE)
   ENVOY_DOCKER_TAG ?= $(ENVOY_DOCKER_REPO):envoy-$(ENVOY_DOCKER_VERSION)
 # END LIST OF VARIABLES REQUIRING `make update-base`.
