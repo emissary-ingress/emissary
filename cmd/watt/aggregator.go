@@ -8,11 +8,11 @@ import (
 	"time"
 
 	"github.com/datawire/ambassador/pkg/consulwatch"
-	"github.com/datawire/ambassador/pkg/limiter"
-	"github.com/datawire/ambassador/pkg/watt"
-
 	"github.com/datawire/ambassador/pkg/k8s"
+	"github.com/datawire/ambassador/pkg/kates"
+	"github.com/datawire/ambassador/pkg/limiter"
 	"github.com/datawire/ambassador/pkg/supervisor"
+	"github.com/datawire/ambassador/pkg/watt"
 )
 
 type WatchHook func(p *supervisor.Process, snapshot string) WatchSet
@@ -39,10 +39,11 @@ type aggregator struct {
 	bootstrapped        bool
 	notifyMux           sync.Mutex
 	errors              map[string][]watt.Error
+	validator           *kates.Validator
 }
 
 func NewAggregator(snapshots chan<- string, k8sWatches chan<- []KubernetesWatchSpec, consulWatches chan<- []ConsulWatchSpec,
-	requiredKinds []string, watchHook WatchHook, limiter limiter.Limiter) *aggregator {
+	requiredKinds []string, watchHook WatchHook, limiter limiter.Limiter, validator *kates.Validator) *aggregator {
 	return &aggregator{
 		KubernetesEvents:    make(chan k8sEvent),
 		ConsulEvents:        make(chan consulEvent),
@@ -56,6 +57,7 @@ func NewAggregator(snapshots chan<- string, k8sWatches chan<- []KubernetesWatchS
 		kubernetesResources: make(map[string]map[string][]k8s.Resource),
 		consulEndpoints:     make(map[string]consulwatch.Endpoints),
 		errors:              make(map[string][]watt.Error),
+		validator:           validator,
 	}
 }
 
@@ -181,10 +183,11 @@ func (a *aggregator) setKubernetesResources(event k8sEvent) {
 	submap[event.kind] = event.resources
 }
 
-func (a *aggregator) generateSnapshot() (string, error) {
+func (a *aggregator) generateSnapshot(p *supervisor.Process) (string, error) {
 	k8sResources := make(map[string][]k8s.Resource)
 	for _, submap := range a.kubernetesResources {
 		for k, v := range submap {
+			a.validate(p, v)
 			k8sResources[k] = append(k8sResources[k], v...)
 		}
 	}
@@ -200,6 +203,17 @@ func (a *aggregator) generateSnapshot() (string, error) {
 	}
 
 	return string(jsonBytes), nil
+}
+
+func (a *aggregator) validate(p *supervisor.Process, resources []k8s.Resource) {
+	for _, r := range resources {
+		err := a.validator.Validate(p.Context(), map[string]interface{}(r))
+		if err == nil {
+			delete(r, "errors")
+		} else {
+			r["errors"] = err.Error()
+		}
+	}
 }
 
 func (a *aggregator) isKubernetesBootstrapped(p *supervisor.Process) bool {
@@ -279,7 +293,7 @@ func (a *aggregator) notify(p *supervisor.Process) {
 	}
 
 	if a.bootstrapped {
-		snapshot, err := a.generateSnapshot()
+		snapshot, err := a.generateSnapshot(p)
 		if err != nil {
 			p.Logf("generate snapshot failed %v", err)
 			return
@@ -290,7 +304,7 @@ func (a *aggregator) notify(p *supervisor.Process) {
 }
 
 func (a *aggregator) getWatches(p *supervisor.Process) WatchSet {
-	snapshot, err := a.generateSnapshot()
+	snapshot, err := a.generateSnapshot(p)
 	if err != nil {
 		p.Logf("generate snapshot failed %v", err)
 		return WatchSet{}

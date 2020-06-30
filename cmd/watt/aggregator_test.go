@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/datawire/ambassador/pkg/consulwatch"
+	"github.com/datawire/ambassador/pkg/kates"
+	"github.com/stretchr/testify/require"
 
 	"github.com/datawire/ambassador/pkg/watt"
 
@@ -41,8 +43,11 @@ func newAggIsolator(t *testing.T, requiredKinds []string, watchHook WatchHook) *
 		// for signaling when the isolator is done
 		done: make(chan struct{}),
 	}
+	client, err := kates.NewClient(kates.ClientOptions{})
+	require.NoError(t, err)
 	iso.aggregator = NewAggregator(iso.snapshots, iso.k8sWatches, iso.consulWatches, requiredKinds, watchHook,
-		limiter.NewUnlimited())
+		limiter.NewUnlimited(),
+		kates.NewValidator(client))
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	iso.cancel = cancel
 	iso.sup = supervisor.WithContext(ctx)
