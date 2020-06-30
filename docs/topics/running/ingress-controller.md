@@ -29,12 +29,14 @@ If you're new to the Ambassador Edge Stack and to Kubernetes, we'd recommend you
   You can see this in the [`aes-crds.yaml`](/yaml/aes.yaml)
   file, but this is the critical rule to add to the Ambassador Edge Stack's `Role` or `ClusterRole`:
 
-      - apiGroups: [ "extensions", "networking.k8s.io" ]
-        resources: [ "ingresses", "ingressclasses" ]
-        verbs: ["get", "list", "watch"]
-      - apiGroups: [ "extensions", "networking.k8s.io" ]
-        resources: [ "ingresses/status" ]
-        verbs: ["update"]
+  ```yaml
+  - apiGroups: [ "extensions", "networking.k8s.io" ]
+    resources: [ "ingresses", "ingressclasses" ]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [ "extensions", "networking.k8s.io" ]
+    resources: [ "ingresses/status" ]
+    verbs: ["update"]
+  ```
 
    **Note:** This is included by default in all recent versions of the Ambassador install YAML
 
@@ -54,25 +56,26 @@ If you're new to the Ambassador Edge Stack and to Kubernetes, we'd recommend you
   from the Service with the annotation `app.kubernetes.io/component: ambassador-service`.
   
   ```yaml
-      kind: Service
-      apiVersion: v1
-      metadata:
-        name: ingress-ambassador
-        labels:
-          app.kubernetes.io/component: ambassador-service
-      spec:
-        externalTrafficPolicy: Local
-        type: LoadBalancer
-        selector:
-          service: ambassador
-        ports:
-          - name: http
-            port: 80
-            targetPort: http
-          - name: https
-            port: 443
-            targetPort: https
-            ```
+  ---
+  kind: Service
+  apiVersion: v1
+  metadata:
+    name: ingress-ambassador
+    labels:
+      app.kubernetes.io/component: ambassador-service
+  spec:
+    externalTrafficPolicy: Local
+    type: LoadBalancer
+    selector:
+      service: ambassador
+    ports:
+      - name: http
+        port: 80
+        targetPort: http
+      - name: https
+        port: 443
+        targetPort: https
+  ```
 
 ### When Should I Use an `Ingress` Instead of Annotations or CRDs?
 
@@ -174,6 +177,7 @@ will set up the Ambassador Edge Stack to do canary routing where 50% of the traf
 An `Ingress` resource must provide at least some routes or a [default backend](https://kubernetes.io/docs/concepts/services-networking/ingress/#default-backend). The default backend provides for a simple way to direct all traffic to some upstream service:
 
 ```yaml
+---
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
@@ -258,6 +262,7 @@ Read more from Kubernetes [here](https://kubernetes.io/docs/concepts/services-ne
 ### TLS Termination
 
 ```yaml
+---
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
