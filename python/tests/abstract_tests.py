@@ -99,6 +99,13 @@ class AmbassadorTest(Test):
     def manifests(self) -> str:
         rbac = RBAC_CLUSTER_SCOPE
 
+        self.manifest_envs += """
+    - name: POLL_EVERY_SECS
+      value: "0"
+    - name: AMBASSADOR_UPDATE_MAPPING_STATUS
+      value: "false"
+"""
+
         if self.debug_diagd:
             self.manifest_envs += """
     - name: AMBASSADOR_DEBUG
@@ -249,6 +256,8 @@ class AmbassadorTest(Test):
                  "KUBERNETES_SERVICE_PORT=443",
                  "AMBASSADOR_SNAPSHOT_COUNT=1",
                  "AMBASSADOR_CONFIG_BASE_DIR=/tmp/ambassador",
+                 "POLL_EVERY_SECS=0",
+                 "AMBASSADOR_UPDATE_MAPPING_STATUS=false",
                  "AMBASSADOR_ID=%s" % self.ambassador_id]
 
         if self.namespace:
