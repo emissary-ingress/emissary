@@ -13,6 +13,28 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
+// The kubernetes client libraries and core protobufs are split across so many different packages
+// that it is extremely difficult to keep them straight. The naming conventions are also very poorly
+// chosen resulting in frequent name collisions under even simple uses. Case in point, there are a
+// whole lot of v1 packages (core/v1, apiextensions/v1, meta/v1, apps/v1) just to name a few, and
+// you need to use at least 3 of these together in order to accomplish almost anything. The types
+// within packages are often horribly named as well (e.g. dynamic.Interface, rest.Config,
+// version.Info are not super description when you omit the packages).
+//
+// The aliases in this file are intended to do several things:
+//
+//   1. Make our kubernetes code easier to read by providing a standard set of aliases instead of
+//      requiring developers to make up potentially different aliases at the point of use.
+//
+//   2. Make for a simpler and easier Quickstart for our kubernetes library by providing a single
+//      entry point.
+//
+//   3. Allow us to build a set of simpler and easier to use APIs on top of client-go while using
+//      types that are compatible with client-go so we have a good escape hatch for directly using
+//      client-go.
+//
+//   4. Provide a single file that helps me (rhs@datawire.io) remember where the hell everything is.
+
 // type related aliases
 
 type TypeMeta = metav1.TypeMeta
