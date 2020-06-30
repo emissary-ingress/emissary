@@ -120,11 +120,15 @@ jobs:
     <<: *oss-linux-job
     steps:
       - oss-linux-setup
-      - run:
-          name: "Promote to -rc-latest"
-          command: |
-            docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
-            DEV_KUBECONFIG="-skip-for-release-" make release/promote-oss/to-rc-latest
+      - when:
+          condition:
+            equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
+          steps:
+            - run:
+                name: "Promote to -rc-latest"
+                command: |
+                  docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
+                  DEV_KUBECONFIG="-skip-for-release-" make release/promote-oss/to-rc-latest
 
   "oss-release-promote-to-ga":
     <<: *oss-linux-job
@@ -145,7 +149,9 @@ workflows:
       - "oss-dev-images"
   "OSS: Release":
     when:
-      equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
+      or:
+      - equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
+      - equal: [ "https://github.com/datawire/ambassador-private", << pipeline.project.git_url >> ]
     # Run this workflow on tags, not branches or PRs.
     jobs:
       - "oss-release-images":

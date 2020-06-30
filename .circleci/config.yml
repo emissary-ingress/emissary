@@ -176,17 +176,25 @@ commands:
     steps:
     - when:
         condition:
-          equal:
-          - "https://github.com/datawire/ambassador"
-          - << pipeline.project.git_url >>
+          or:
+          - equal:
+            - "https://github.com/datawire/ambassador"
+            - << pipeline.project.git_url >>
+          - equal:
+            - "https://github.com/datawire/ambassador-private"
+            - << pipeline.project.git_url >>
         steps:
         - checkout:
             path: ~/project/ambassador
     - when:
         condition:
-          equal:
-          - "https://github.com/datawire/apro"
-          - << pipeline.project.git_url >>
+          or:
+          - equal:
+            - "https://github.com/datawire/apro"
+            - << pipeline.project.git_url >>
+          - equal:
+            - "https://github.com/datawire/apro-private"
+            - << pipeline.project.git_url >>
         steps:
         - run:
             working_directory: ~/project
@@ -276,11 +284,17 @@ jobs:
   oss-release-promote-to-rc-latest:
     steps:
     - oss-linux-setup
-    - run:
-        name: "Promote to -rc-latest"
-        command: |
-          docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
-          DEV_KUBECONFIG="-skip-for-release-" make release/promote-oss/to-rc-latest
+    - when:
+        condition:
+          equal:
+          - "https://github.com/datawire/ambassador"
+          - << pipeline.project.git_url >>
+        steps:
+        - run:
+            name: "Promote to -rc-latest"
+            command: |
+              docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
+              DEV_KUBECONFIG="-skip-for-release-" make release/promote-oss/to-rc-latest
     machine:
       image: "ubuntu-1604:201903-01"
     working_directory: ~/project/ambassador
@@ -367,9 +381,13 @@ workflows:
     - "oss-dev-images"
   'OSS: Release':
     when:
-      equal:
-      - "https://github.com/datawire/ambassador"
-      - << pipeline.project.git_url >>
+      or:
+      - equal:
+        - "https://github.com/datawire/ambassador"
+        - << pipeline.project.git_url >>
+      - equal:
+        - "https://github.com/datawire/ambassador-private"
+        - << pipeline.project.git_url >>
     jobs:
     - oss-release-images:
         filters:
