@@ -141,9 +141,9 @@ export default ({ data, location }) => {
     // get the parts of the path by splitting it
     .split('/');
 
-  // Finally, build the canonical URL: we know the initial part (docs/latest)
+  // Finally, build the canonical URL: we know the initial part (docs/1.4)
   // and need to append the rest of the original slug to it
-  const canonicalUrl = `https://www.getambassador.io/docs/latest${removeDoubleSlashes(
+  const canonicalUrl = `https://www.getambassador.io/docs/1.4${removeDoubleSlashes(
     // Also, we can add a trailing slash to make sure we're pointing to the right URL
     `/${rest.join('/')}/`,
   )}`;
