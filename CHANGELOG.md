@@ -3,7 +3,15 @@
 This file documents all notable changes to Ambassador Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
-## 6.4.7
+## Next Release
+
+(no changes yet)
+
+## v6.4.8
+
+- Upgrade Ambassador to version 1.5.5: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
+
+## v6.4.7
 
 - BugFix: Registry service is now using the proper `app.kubernetes.io/name`
 - BugFix: Restore ability to set `REDIS` env vars in `env` instead of `redisEnv`
