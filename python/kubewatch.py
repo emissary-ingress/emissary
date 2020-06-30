@@ -201,7 +201,10 @@ def get_api_resources(group, version):
 
 def touch_file(touchfile):
     touchpath = Path(ambassador_basedir, touchfile)
-    touchpath.touch()
+    try:
+        touchpath.touch()
+    except PermissionError as e:
+        logger.error(e)
 
 
 @click.command()
