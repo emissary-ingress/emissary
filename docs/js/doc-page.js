@@ -25,11 +25,8 @@ function getPathFromSlug(str) {
   return removeDoubleSlashes(`/${str}/`);
 }
 
-function relativeToAbsUrl(url) {
-  if (url.startsWith('http') || url.startsWith('mailto')) {
-    return url;
-  } else
-    return 'https://www.getambassador.io' + removeDoubleSlashes(`/${url}/`);
+function relativeToAbsUrl(slug) {
+  return 'https://www.getambassador.io' + getPathFromSlug(slug);
 }
 
 const getDocPageSchema = ({
@@ -44,7 +41,6 @@ const getDocPageSchema = ({
   // the current sidebar section (only if applicable)
   section,
   isFAQ,
-  isLatest,
 }) => ({
   '@context': 'http://schema.org',
   '@type': isFAQ ? 'FAQPage' : 'WebPage',
@@ -61,9 +57,7 @@ const getDocPageSchema = ({
         position: 1,
         item: {
           // be sure to update this /latest with the current version
-          '@id': isLatest
-            ? relativeToAbsUrl('/docs/latest/')
-            : relativeToAbsUrl(`/docs/${version}/`),
+          '@id': relativeToAbsUrl(slug.match(/\/docs\/[\d\.(latest)]*/)[0]),
           name: 'Ambassador Docs',
         },
       },
@@ -91,9 +85,9 @@ const getDocPageSchema = ({
     headline: title,
     inLanguage: 'en',
     isPartOf: 'https://www.getambassador.io/#software',
-    // the current docs version
+    // the currently selected docs version
     assemblyVersion: version,
-    // the sidebar section, if applicable,
+    // the sidebar section / parent link, if applicable,
     articleSection: section,
     // @TODO: check this license
     license: 'Apache-2.0',
@@ -106,7 +100,7 @@ const getDocPageSchema = ({
 });
 
 // Used to get a flat array of *all* links with their corresponding parents
-function flatAllLinks(links, parent) {
+function flattenLinks(links, parent) {
   return links.reduce((acc, cur) => {
     let link = cur;
     if (parent) {
@@ -115,7 +109,7 @@ function flatAllLinks(links, parent) {
     if (!link.items) {
       return [...acc, link];
     }
-    return [...acc, link, ...flatAllLinks(link.items, link)];
+    return [...acc, link, ...flattenLinks(link.items, link)];
   }, []);
 }
 
@@ -129,7 +123,7 @@ export default ({ data, location }) => {
 
   const metaDescription = page.frontmatter
     ? page.frontmatter.description
-    : null;
+    : page.excerpt;
 
   // docs/version/path/to/page
   const slug = data.mdx.fields.slug || location.pathname;
@@ -149,8 +143,8 @@ export default ({ data, location }) => {
   )}`;
 
   // For Schema purposes, we want to make the relationship between pages and their parents explicit
-  // So we flat all links (see flatAllLinks above)
-  const flatLinks = flatAllLinks(docLinks);
+  // So we flatten all links (see flattenLinks above)
+  const flatLinks = flattenLinks(docLinks);
   // Find the current expanded link
   const expandedLink = flatLinks.find(
     (l) => getPathFromSlug(l.link) === getPathFromSlug(slug),
@@ -191,7 +185,6 @@ export default ({ data, location }) => {
         <script type="application/ld+json">
           {JSON.stringify(
             getDocPageSchema({
-              isLatest: slug.includes('docs/latest'),
               slug,
               title,
               version: versions.version,
@@ -245,6 +238,7 @@ export const query = graphql`
       fields {
         slug
       }
+      excerpt(pruneLength: 150, truncate: true)
       headings(depth: h1) {
         value
       }
