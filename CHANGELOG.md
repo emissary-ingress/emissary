@@ -36,9 +36,9 @@ communicate with `AuthService`s and `RateLimitService`s:
 
 - In some future version of Ambassador, there will be settings to control which name is
   used; with the default being the current name; it will be opt-in to the new names.
-- In some future version of Ambassador after that, *no sooner than Ambassador 1.6.0*, the
-  default values of those setting swill change; making them opt-out from the new names.
 - In some future version of Ambassador after that, *no sooner than Ambassador 1.7.0*, the
+  default values of those settings will change; making them opt-out from the new names.
+- In some future version of Ambassador after that, *no sooner than Ambassador 1.8.0*, the
   settings will go away, and Ambassador will always use the new names.
 
 Note that Ambassador Edge Stack `External` Filters already unconditionally use the newer
@@ -51,6 +51,13 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 ### Ambassador API Gateway + Ambassador Edge Stack
 
 - Feature: Add support for circuit breakers in TCP mapping
+
+## [1.5.5] June 30, 2020
+[1.5.5]: https://github.com/datawire/ambassador/compare/vv1.5.4...v1.5.5
+
+### Ambassador API Gateway + Ambassador Edge Stack
+
+- Incorporate the Envoy 1.14.3 security update.
 
 ## [1.5.4] June 23, 2020
 [1.5.4]: https://github.com/datawire/ambassador/compare/v1.5.3...v1.5.4
