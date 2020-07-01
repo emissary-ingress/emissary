@@ -89,11 +89,7 @@ const getDocPageSchema = ({
     assemblyVersion: version,
     // the sidebar section / parent link, if applicable,
     articleSection: section,
-    // @TODO: check this license
     license: 'Apache-2.0',
-    // @TODO: check this programmingModel
-    programmingModel: 'unmanaged',
-    // @TODO: adding keywords related to this doc page would be optimal
     keywords:
       'Kubernertes,API Gateway,Edge Stack,Envoy Proxy,Kubernetes Ingress,Load Balancer,Identity Aware Proxy,Developer Portal, microservices, open source',
   },
