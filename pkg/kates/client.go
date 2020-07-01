@@ -27,6 +27,41 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 )
 
+// The Client struct provides an interface to interact with the kuberentes api-server. You can think
+// of it like a programatic version of the familiar kubectl command line tool. In fact a goal of
+// these APIs is that where possible, your knowledge of kubectl should translate well into using
+// these APIs. It provides a golang-friendly way to perform basic CRUD and Watch operations on
+// kubernetes resources, as well as providing some additional capabilities.
+//
+// Differences from kubectl:
+//
+//  - You can also use a Client to update the status of a resource.
+//  - The Client struct cannot perform an apply operation.
+//  - The Client provides Read/write coherence (more about this below).
+//  - The Client provides load shedding via event coalescing for watches.
+//  - The Client provides bootstrapping of multiple watches.
+//
+// The biggest difference from kubectl (and also from using client-go directly) is the Read/Write
+// coherence it provides. Kubernetes Watches are inherently asynchronous. This means that if a
+// kubernetes resource is modified at time T0, a client won't find out about it until some later
+// time T1. It is normally difficult to notice this since the delay may be quite small, however if
+// you are writing a controller that uses watches in combination with modifying the resources it is
+// watching, the delay is big enough that a program will often be "notified" with versions of
+// resources that do not included updates made by the program itself. This even happens when a
+// program has a lock and is guaranteed to be the only process modifying a given resource. Needless
+// to say, programming against an API like this can make for some brain twisting logic. The Client
+// struct allows for much simpler code by tracking what changes have been made locally and updating
+// all Watch results with the most recent version of an object, thereby providing the guarantee that
+// your Watch results will *always* include any changes you have made via the Client performing the
+// watch.
+//
+// Additionally, the Accumulator API provides two key pieces of watch related functionality:
+//
+//   1. By coalescing multiple updates behind the scenes, the Accumulator API provides a natural
+//      form of load shedding if a user of the API cannot keep up with every single update.
+//
+//   2. The Accumulator API is guaranteed to bootstrap (i.e. perform an initial List operation) on
+//      all watches prior to notifying the user that resources are available to process.
 type Client struct {
 	config   *ConfigFlags
 	cli      dynamic.Interface
@@ -35,12 +70,15 @@ type Client struct {
 	modified map[string]*Unstructured
 }
 
+// The ClientOptions struct holds all the parameters and configuration
+// that can be passed upon construct of a new Client.
 type ClientOptions struct {
 	Kubeconfig string
 	Context    string
 	Namespace  string
 }
 
+// The NewClient function constructs a new client with the supplied ClientOptions.
 func NewClient(options ClientOptions) (*Client, error) {
 	return NewClientFromConfigFlags(config(options))
 }
