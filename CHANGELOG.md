@@ -5,7 +5,7 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
-(no changes yet)
+- BugFix: Cannot specify podSecurityPolicies: [ambassador-chart/#97](https://github.com/datawire/ambassador-chart/issues/97)
 
 ## v6.4.8
 
