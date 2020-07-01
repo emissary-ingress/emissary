@@ -6,7 +6,7 @@
       link: /docs/pre-release/tutorials/getting-started
 - title: Install Ambassador Edge Stack
   link: /docs/pre-release/topics/install/
-  items: 
+  items:
   - title: Install with Helm
     link: /docs/pre-release/topics/install/helm
   - title: Upgrade to the Ambassador Edge Stack
@@ -27,10 +27,10 @@
     link: /docs/pre-release/topics/install/help/
 - title: Running and Using Ambassador
   collapsable: false
-  items:  
+  items:
     - title: Core Concepts
       link: /docs/pre-release/topics/concepts/
-      items: 
+      items:
         - title: Kubernetes Network Architecture
           link: /docs/pre-release/topics/concepts/kubernetes-network-architecture
         - title: "The Ambassador Operating Model: GitOps and Continuous Delivery"
@@ -43,12 +43,12 @@
           link: /docs/pre-release/topics/concepts/architecture
     - title: Using Ambassador
       link: /docs/pre-release/topics/using/
-      items: 
+      items:
         - title: The Mapping Resource
           link: /docs/pre-release/topics/using/intro-mappings
         - title: Mapping Configuration
           link: /docs/pre-release/topics/using/mappings
-          items: 
+          items:
             - title: Automatic Retries
               link: /docs/pre-release/topics/using/retries
             - title: Canary Releases
@@ -59,7 +59,7 @@
               link: /docs/pre-release/topics/using/cors
             - title: Headers
               link: /docs/pre-release/topics/using/headers/headers
-              items: 
+              items:
                 - title: Add Request Headers
                   link: /docs/pre-release/topics/using/headers/add_request_headers
                 - title: Remove Request Headers
@@ -100,7 +100,7 @@
             - title: Traffic Shadowing
               link: /docs/pre-release/topics/using/shadowing
         - title: Filters and Authentication
-          items: 
+          items:
             - title: Filters and Filter Policies
               link: /docs/pre-release/topics/using/filters/
             - title: OAuth2 Filter
@@ -132,7 +132,7 @@
               link: /docs/pre-release/topics/using/project-customization
     - title: Running Ambassador in Production
       link: /docs/pre-release/topics/running/
-      items: 
+      items:
         - title: The Ambassador Module
           link: /docs/pre-release/topics/running/ambassador
         - title: Deploying Ambassador
@@ -190,7 +190,7 @@
           link: /docs/pre-release/topics/running/debugging
 - title: HOWTO Guides
   link: /docs/pre-release/howtos
-  items: 
+  items:
     - title: Authentication
       items:
         - title: Basic Authentication
