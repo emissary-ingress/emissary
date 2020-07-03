@@ -1,3 +1,4 @@
+import copy
 from typing import Optional, TYPE_CHECKING
 
 import os
@@ -86,28 +87,38 @@ class IRHost(IRResource):
                             return False
 
                         ir.logger.info(f"Found TLSContext {host_tls_context_name} as specified")
+
                         host_tls_context = ir.get_tls_context(host_tls_context_name)
-                        host_tls_context.rkey = self.rkey
-                        host_tls_context.name = ctx_name
-                        host_tls_context.namespace = self.namespace
-                        host_tls_context.location = self.location
-                        host_tls_context.hosts = [self.hostname or self.name]
-                        host_tls_context.secret = tls_name
+
+                        new_ctx = copy.deepcopy(host_tls_context)
+                        new_ctx.set_active(True)
+
+                        # We don't need a duplicate TLSContext
+                        host_tls_context.set_active(False)
+
+                        new_ctx.rkey = self.rkey
+                        new_ctx.name = ctx_name
+                        new_ctx.namespace = self.namespace
+                        new_ctx.location = self.location
+                        new_ctx.hosts = [self.hostname or self.name]
+                        new_ctx.secret = tls_name
 
                         match_labels = self.get('matchLabels')
-
                         if not match_labels:
                             match_labels = self.get('match_labels')
-
                         if match_labels:
-                            host_tls_context['metadata_labels'] = match_labels
+                            new_ctx['metadata_labels'] = match_labels
 
-                        if host_tls_context.is_active():
-                            self.context = host_tls_context
-                            host_tls_context.referenced_by(self)
-                            host_tls_context.sourced_by(self)
+                        if new_ctx.is_active():
+                            self.context = new_ctx
+                            new_ctx.referenced_by(self)
+                            new_ctx.sourced_by(self)
 
-                            ir.save_tls_context(host_tls_context)
+                            ir.logger.info(f"Created new TLSContext: {new_ctx}")
+                            ir.save_tls_context(new_ctx)
+                        else:
+                            ir.logger.info(f"Host {self.name}: new TLSContext {ctx_name} is not valid")
+                            ir.logger.error(f"Host {self.name}: new TLSContext {ctx_name} is not valid")
 
                     elif host_tls_config:
                         ir.logger.info(f"Host {self.name}: creating TLSContext {ctx_name}")
@@ -117,7 +128,7 @@ class IRHost(IRResource):
                             name=ctx_name,
                             namespace=self.namespace,
                             location=self.location,
-                            hosts=[ self.hostname or self.name ],
+                            hosts=[self.hostname or self.name],
                             secret=tls_name,
                             alpn_protocols=host_tls_config.get('alpn_protocols'),
                             cipher_suites=host_tls_config.get('cipher_suites'),
