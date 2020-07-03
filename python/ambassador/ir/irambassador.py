@@ -265,6 +265,22 @@ class IRAmbassador (IRResource):
                 self.post_error("Invalid circuit_breakers specified: {}".format(self['circuit_breakers']))
                 return False
 
+        if self.get('envoy_log_type') == 'text':
+            if self.get('envoy_log_format', None) is not None and not isinstance(self.get('envoy_log_format'), str):
+                self.post_error("Non string log format specified with log type 'text': {}, invalidating...".format(
+                    self.get('envoy_log_format')))
+                self['envoy_log_format'] = ""
+                return False
+        elif self.get('envoy_log_type') == 'json':
+            if self.get('envoy_log_format', None) is not None and not isinstance(self.get('envoy_log_format'), dict):
+                self.post_error("Non JSON dict log format specified with log type 'json': {}, invalidating...".format(
+                    self.get('envoy_log_format')))
+                self['envoy_log_format'] = {}
+                return False
+        else:
+            self.post_error("Invalid log_type specified: {}. Supported: json, text".format(self.get('envoy_log_type')))
+            return False
+
         return True
 
     def add_mappings(self, ir: 'IR', aconf: Config):
