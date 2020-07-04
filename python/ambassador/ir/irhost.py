@@ -127,12 +127,12 @@ class IRHost(IRResource):
                             location=self.location,
                             hosts=[self.hostname or self.name],
                             secret=tls_name,
-                            alpn_protocols=host_tls_config.get('alpn_protocols') or host_tls_config.get('AlpnProtocols'),
-                            cipher_suites=host_tls_config.get('cipher_suites') or host_tls_config.get('CipherSuites'),
-                            ecdh_curves=host_tls_config.get('ecdh_curves') or host_tls_config.get('EcdhCurves'),
-                            redirect_cleartext_from=host_tls_config.get('redirect_cleartext_from') or host_tls_config.get('RedirectCleartextFrom'),
-                            sni=host_tls_config.get('sni') or host_tls_config.get('Sni'),
-                            cert_required=host_tls_config.get('cert_required') or host_tls_config.get('CertRequired')
+                            alpn_protocols=host_tls_config.get('alpn_protocols') or host_tls_config.get('alpnProtocols'),
+                            cipher_suites=host_tls_config.get('cipher_suites') or host_tls_config.get('cipherSuites'),
+                            ecdh_curves=host_tls_config.get('ecdh_curves') or host_tls_config.get('ecdhCurves'),
+                            redirect_cleartext_from=host_tls_config.get('redirect_cleartext_from') or host_tls_config.get('redirectCleartextFrom'),
+                            sni=host_tls_config.get('sni'),
+                            cert_required=host_tls_config.get('cert_required') or host_tls_config.get('certRequired')
                         )
 
                         host_min_tls_version = host_tls_config.get('min_tls_version') or host_tls_config.get('minTlsVersion')
@@ -152,19 +152,19 @@ class IRHost(IRResource):
                                 return False
 
 
-                        host_cert_chain_file = host_tls_config.get('cert_chain_file') or host_tls_config.get('CertChainFile')
+                        host_cert_chain_file = host_tls_config.get('cert_chain_file') or host_tls_config.get('certChainFile')
                         if host_cert_chain_file:
                             new_ctx['cert_chain_file'] = host_cert_chain_file
 
-                        host_private_key_file = host_tls_config.get('private_key_file') or host_tls_config.get('PrivateKeyFile')
+                        host_private_key_file = host_tls_config.get('private_key_file') or host_tls_config.get('privateKeyFile')
                         if host_private_key_file:
                             new_ctx['private_key_file'] = host_private_key_file
 
-                        host_cacert_chain_file = host_tls_config.get('cacert_chain_file') or host_tls_config.get('CacertChainFile')
+                        host_cacert_chain_file = host_tls_config.get('cacert_chain_file') or host_tls_config.get('cacertChainFile')
                         if host_cacert_chain_file:
                             new_ctx['cacert_chain_file'] = host_cacert_chain_file
 
-                        host_ca_secret = host_tls_config.get('ca_secret') or host_tls_config.get('CaSecret')
+                        host_ca_secret = host_tls_config.get('ca_secret') or host_tls_config.get('caSecret')
                         if host_ca_secret:
                             new_ctx['ca_secret'] = host_ca_secret
 
