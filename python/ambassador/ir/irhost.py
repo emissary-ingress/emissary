@@ -91,10 +91,10 @@ class IRHost(IRResource):
                         host_tls_context = ir.get_tls_context(host_tls_context_name)
 
                         new_ctx = copy.deepcopy(host_tls_context)
-                        new_ctx.set_active(True)
 
                         # We don't need a duplicate TLSContext
                         host_tls_context.set_active(False)
+                        new_ctx.set_active(True)
 
                         new_ctx.rkey = self.rkey
                         new_ctx.name = ctx_name
@@ -109,16 +109,13 @@ class IRHost(IRResource):
                         if match_labels:
                             new_ctx['metadata_labels'] = match_labels
 
-                        if new_ctx.is_active():
-                            self.context = new_ctx
-                            new_ctx.referenced_by(self)
-                            new_ctx.sourced_by(self)
+                        self.context = new_ctx
+                        new_ctx.referenced_by(self)
+                        new_ctx.sourced_by(self)
 
-                            ir.logger.info(f"Created new TLSContext: {new_ctx}")
-                            ir.save_tls_context(new_ctx)
-                        else:
-                            ir.logger.info(f"Host {self.name}: new TLSContext {ctx_name} is not valid")
-                            ir.logger.error(f"Host {self.name}: new TLSContext {ctx_name} is not valid")
+                        ir.logger.info(f"Created new TLSContext: {new_ctx}")
+                        ir.resolve_secret(self, tls_name, self.namespace)
+                        ir.save_tls_context(new_ctx)
 
                     elif host_tls_config:
                         ir.logger.info(f"Host {self.name}: creating TLSContext {ctx_name}")
