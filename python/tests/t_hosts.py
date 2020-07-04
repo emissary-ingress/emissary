@@ -243,7 +243,7 @@ class HostCRDManualContextDifferentTLSContext(AmbassadorTest):
 apiVersion: v1
 kind: Secret
 metadata:
-  name: manual-secret-separate
+  name: {self.name.k8s}-secret
   labels:
     kat-ambassador-id: {self.ambassador_id}
 type: kubernetes.io/tls
@@ -264,9 +264,9 @@ spec:
     authority: none
   selector:
     matchLabels:
-      hostname: manual-hostname-separate
+      hostname: {self.path.fqdn}
   tlsSecret:
-    name: manual-secret-separate
+    name: {self.name.k8s}-secret
   tlsContext: separate-tls-context
 ---
 apiVersion: getambassador.io/v2
@@ -277,7 +277,7 @@ metadata:
     kat-ambassador-id: {self.ambassador_id}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
-  secret: manual-secret-separate
+  secret: {self.name.k8s}-secret
   min_tls_version: v1.2
   max_tls_version: v1.3
 ---
@@ -286,7 +286,7 @@ kind: Mapping
 metadata:
   name: manual-target-mapping-separate
   labels:
-    hostname: manual-hostname-separate
+    hostname: {self.path.fqdn}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   prefix: /target/
@@ -327,7 +327,7 @@ class HostCRDManualContextTLSConfig(AmbassadorTest):
 apiVersion: v1
 kind: Secret
 metadata:
-  name: manual-secret-tls
+  name: {self.name.k8s}-secret
   labels:
     kat-ambassador-id: {self.ambassador_id}
 type: kubernetes.io/tls
@@ -348,9 +348,9 @@ spec:
     authority: none
   selector:
     matchLabels:
-      hostname: manual-tls-hostname
+      hostname: {self.path.fqdn}
   tlsSecret:
-    name: manual-secret-tls
+    name: {self.name.k8s}-secret
   tls:
     min_tls_version: v1.2
     max_tls_version: v1.3
@@ -360,7 +360,7 @@ kind: Mapping
 metadata:
   name: manual-target-mapping
   labels:
-    hostname: manual-tls-hostname
+    hostname: {self.path.fqdn}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   prefix: /target/
