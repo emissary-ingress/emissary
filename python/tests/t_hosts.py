@@ -327,7 +327,7 @@ class HostCRDManualContextTLSConfig(AmbassadorTest):
 apiVersion: v1
 kind: Secret
 metadata:
-  name: manual-secret
+  name: manual-secret-tls
   labels:
     kat-ambassador-id: {self.ambassador_id}
 type: kubernetes.io/tls
@@ -338,7 +338,7 @@ data:
 apiVersion: getambassador.io/v2
 kind: Host
 metadata:
-  name: manual-host
+  name: manual-host-tls
   labels:
     kat-ambassador-id: {self.ambassador_id}
 spec:
@@ -348,9 +348,9 @@ spec:
     authority: none
   selector:
     matchLabels:
-      hostname: manual-hostname
+      hostname: manual-tls-hostname
   tlsSecret:
-    name: manual-secret
+    name: manual-secret-tls
   tls:
     min_tls_version: v1.2
     max_tls_version: v1.3
@@ -360,7 +360,7 @@ kind: Mapping
 metadata:
   name: manual-target-mapping
   labels:
-    hostname: manual-hostname
+    hostname: manual-tls-hostname
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   prefix: /target/
