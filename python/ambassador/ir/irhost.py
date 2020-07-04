@@ -127,47 +127,52 @@ class IRHost(IRResource):
                             location=self.location,
                             hosts=[self.hostname or self.name],
                             secret=tls_name,
-                            alpn_protocols=host_tls_config.get('alpn_protocols'),
-                            cipher_suites=host_tls_config.get('cipher_suites'),
-                            ecdh_curves=host_tls_config.get('ecdh_curves'),
-                            redirect_cleartext_from=host_tls_config.get('redirect_cleartext_from'),
-                            sni=host_tls_config.get('sni'),
-                            cert_required=host_tls_config.get('cert_required')
+                            alpn_protocols=host_tls_config.get('alpn_protocols') or host_tls_config.get('AlpnProtocols'),
+                            cipher_suites=host_tls_config.get('cipher_suites') or host_tls_config.get('CipherSuites'),
+                            ecdh_curves=host_tls_config.get('ecdh_curves') or host_tls_config.get('EcdhCurves'),
+                            redirect_cleartext_from=host_tls_config.get('redirect_cleartext_from') or host_tls_config.get('RedirectCleartextFrom'),
+                            sni=host_tls_config.get('sni') or host_tls_config.get('Sni'),
+                            cert_required=host_tls_config.get('cert_required') or host_tls_config.get('CertRequired')
                         )
 
-                        if host_tls_config.get('max_tls_version'):
-                            if host_tls_config.get('max_tls_version') in IRTLSContext.AllowedTLSVersions:
-                                new_ctx['max_tls_version'] = host_tls_config.get('max_tls_version')
+                        host_min_tls_version = host_tls_config.get('min_tls_version') or host_tls_config.get('MinTlsVersion')
+                        if host_min_tls_version:
+                            if host_min_tls_version in IRTLSContext.AllowedTLSVersions:
+                                new_ctx['min_tls_version'] = host_min_tls_version
                             else:
-                                ir.logger.error(f"Invalid max_tls_version set: {host_tls_config.get('max_tls_version')}")
+                                self.post_error(f"Invalid min_tls_version set in Host.tls: {host_min_tls_version}")
                                 return False
 
-                        if host_tls_config.get('min_tls_version'):
-                            if host_tls_config.get('min_tls_version') in IRTLSContext.AllowedTLSVersions:
-                                new_ctx['min_tls_version'] = host_tls_config.get('min_tls_version')
+                        host_max_tls_version = host_tls_config.get('max_tls_version') or host_tls_config.get('MaxTlsVersion')
+                        if host_max_tls_version:
+                            if host_max_tls_version in IRTLSContext.AllowedTLSVersions:
+                                new_ctx['max_tls_version'] = host_max_tls_version
                             else:
-                                ir.logger.error(f"Invalid min_tls_version set: {host_tls_config.get('min_tls_version')}")
+                                self.post_error(f"Invalid max_tls_version set in Host.tls: {host_max_tls_version}")
                                 return False
 
-                        if host_tls_config.get('cert_chain_file'):
-                            new_ctx['cert_chain_file'] = host_tls_config.get('cert_chain_file')
 
-                        if host_tls_config.get('private_key_file'):
-                            new_ctx['private_key_file'] = host_tls_config.get('private_key_file')
+                        host_cert_chain_file = host_tls_config.get('cert_chain_file') or host_tls_config.get('CertChainFile')
+                        if host_cert_chain_file:
+                            new_ctx['cert_chain_file'] = host_cert_chain_file
 
-                        if host_tls_config.get('cacert_chain_file'):
-                            new_ctx['cacert_chain_file'] = host_tls_config.get('cacert_chain_file')
+                        host_private_key_file = host_tls_config.get('private_key_file') or host_tls_config.get('PrivateKeyFile')
+                        if host_private_key_file:
+                            new_ctx['private_key_file'] = host_private_key_file
 
-                        if host_tls_config.get('ca_secret'):
-                            new_ctx['ca_secret'] = host_tls_config.get('ca_secret')
+                        host_cacert_chain_file = host_tls_config.get('cacert_chain_file') or host_tls_config.get('CacertChainFile')
+                        if host_cacert_chain_file:
+                            new_ctx['cacert_chain_file'] = host_cacert_chain_file
+
+                        host_ca_secret = host_tls_config.get('ca_secret') or host_tls_config.get('CaSecret')
+                        if host_ca_secret:
+                            new_ctx['ca_secret'] = host_ca_secret
 
                         ctx = IRTLSContext(ir, aconf, **new_ctx)
 
                         match_labels = self.get('matchLabels')
-
                         if not match_labels:
                             match_labels = self.get('match_labels')
-
                         if match_labels:
                             ctx['metadata_labels'] = match_labels
 
@@ -176,6 +181,7 @@ class IRHost(IRResource):
                             ctx.referenced_by(self)
                             ctx.sourced_by(self)
 
+                            ir.logger.info(f"w00t: Create internal TLSContext: {ctx.as_json()}")
                             ir.save_tls_context(ctx)
                         else:
                             ir.logger.info(f"Host {self.name}: new TLSContext {ctx_name} is not valid")
