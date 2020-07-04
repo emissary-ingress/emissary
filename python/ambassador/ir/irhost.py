@@ -135,7 +135,7 @@ class IRHost(IRResource):
                             cert_required=host_tls_config.get('cert_required') or host_tls_config.get('CertRequired')
                         )
 
-                        host_min_tls_version = host_tls_config.get('min_tls_version') or host_tls_config.get('MinTlsVersion')
+                        host_min_tls_version = host_tls_config.get('min_tls_version') or host_tls_config.get('minTlsVersion')
                         if host_min_tls_version:
                             if host_min_tls_version in IRTLSContext.AllowedTLSVersions:
                                 new_ctx['min_tls_version'] = host_min_tls_version
@@ -143,7 +143,7 @@ class IRHost(IRResource):
                                 self.post_error(f"Invalid min_tls_version set in Host.tls: {host_min_tls_version}")
                                 return False
 
-                        host_max_tls_version = host_tls_config.get('max_tls_version') or host_tls_config.get('MaxTlsVersion')
+                        host_max_tls_version = host_tls_config.get('max_tls_version') or host_tls_config.get('maxTlsVersion')
                         if host_max_tls_version:
                             if host_max_tls_version in IRTLSContext.AllowedTLSVersions:
                                 new_ctx['max_tls_version'] = host_max_tls_version
