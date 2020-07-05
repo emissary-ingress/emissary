@@ -229,7 +229,7 @@ spec:
             yield Query(self.url("target/", scheme="http"), error=[ "EOF", "connection refused" ])
 
 
-class HostCRDManualContextDifferentTLSContext(AmbassadorTest):
+class HostCRDSeparateTLSContext(AmbassadorTest):
     target: ServiceType
 
     def init(self):
@@ -313,7 +313,7 @@ spec:
         #
 
 
-class HostCRDManualContextTLSConfig(AmbassadorTest):
+class HostCRDTLSConfig(AmbassadorTest):
     target: ServiceType
 
     def init(self):
