@@ -61,11 +61,14 @@ message HostSpec {
   // Configuration for the Preview URL feature of Service Preview. Defaults to preview URLs not enabled.
   PreviewURLSpec previewUrl = 8;
 
-  // Name of the TLSContext the Host resource is linked with
-  string tlsContext = 9;
+  // Only one of `tlsConfig` or `tls` can be specified
+  oneof tlsConfig {
+    // Name of the TLSContext the Host resource is linked with
+    string tlsContext = 9;
 
-  // TLS config
-  TLSConfig tls = 10;
+    // TLS config
+    TLSConfig tls = 10;
+  }
 }
 
 enum HostTLSCertificateSource {
