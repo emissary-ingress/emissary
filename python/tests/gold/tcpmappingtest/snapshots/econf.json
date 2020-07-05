@@ -160,13 +160,11 @@
                     "typed_config": {
                         "@type": "type.googleapis.com/envoy.api.v2.auth.UpstreamTlsContext",
                         "common_tls_context": {
-                            "tls_certificates": [
+                            "tls_certificate_sds_secret_configs": [
                                 {
-                                    "certificate_chain": {
-                                        "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/4CB5C4C15C3BBBF727E8572838933519EA42D103.crt"
-                                    },
-                                    "private_key": {
-                                        "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/4CB5C4C15C3BBBF727E8572838933519EA42D103.key"
+                                    "name": "tls.supersecret.tcp-namespace",
+                                    "sds_config": {
+                                        "ads": {}
                                     }
                                 }
                             ]
@@ -347,13 +345,11 @@
                         ],
                         "tls_context": {
                             "common_tls_context": {
-                                "tls_certificates": [
+                                "tls_certificate_sds_secret_configs": [
                                     {
-                                        "certificate_chain": {
-                                            "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/4CB5C4C15C3BBBF727E8572838933519EA42D103.crt"
-                                        },
-                                        "private_key": {
-                                            "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/4CB5C4C15C3BBBF727E8572838933519EA42D103.key"
+                                        "name": "tls.supersecret.tcp-namespace",
+                                        "sds_config": {
+                                            "ads": {}
                                         }
                                     }
                                 ]
@@ -490,13 +486,11 @@
                         ],
                         "tls_context": {
                             "common_tls_context": {
-                                "tls_certificates": [
+                                "tls_certificate_sds_secret_configs": [
                                     {
-                                        "certificate_chain": {
-                                            "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/4CB5C4C15C3BBBF727E8572838933519EA42D103.crt"
-                                        },
-                                        "private_key": {
-                                            "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/4CB5C4C15C3BBBF727E8572838933519EA42D103.key"
+                                        "name": "tls.supersecret.tcp-namespace",
+                                        "sds_config": {
+                                            "ads": {}
                                         }
                                     }
                                 ]
@@ -633,13 +627,11 @@
                         ],
                         "tls_context": {
                             "common_tls_context": {
-                                "tls_certificates": [
+                                "tls_certificate_sds_secret_configs": [
                                     {
-                                        "certificate_chain": {
-                                            "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/4CB5C4C15C3BBBF727E8572838933519EA42D103.crt"
-                                        },
-                                        "private_key": {
-                                            "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/4CB5C4C15C3BBBF727E8572838933519EA42D103.key"
+                                        "name": "tls.supersecret.tcp-namespace",
+                                        "sds_config": {
+                                            "ads": {}
                                         }
                                     }
                                 ]
@@ -689,13 +681,11 @@
                         ],
                         "tls_context": {
                             "common_tls_context": {
-                                "tls_certificates": [
+                                "tls_certificate_sds_secret_configs": [
                                     {
-                                        "certificate_chain": {
-                                            "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/4CB5C4C15C3BBBF727E8572838933519EA42D103.crt"
-                                        },
-                                        "private_key": {
-                                            "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/4CB5C4C15C3BBBF727E8572838933519EA42D103.key"
+                                        "name": "tls.supersecret.tcp-namespace",
+                                        "sds_config": {
+                                            "ads": {}
                                         }
                                     }
                                 ]
@@ -726,13 +716,11 @@
                         ],
                         "tls_context": {
                             "common_tls_context": {
-                                "tls_certificates": [
+                                "tls_certificate_sds_secret_configs": [
                                     {
-                                        "certificate_chain": {
-                                            "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/4CB5C4C15C3BBBF727E8572838933519EA42D103.crt"
-                                        },
-                                        "private_key": {
-                                            "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/4CB5C4C15C3BBBF727E8572838933519EA42D103.key"
+                                        "name": "tls.supersecret.tcp-namespace",
+                                        "sds_config": {
+                                            "ads": {}
                                         }
                                     }
                                 ]
@@ -763,13 +751,11 @@
                         ],
                         "tls_context": {
                             "common_tls_context": {
-                                "tls_certificates": [
+                                "tls_certificate_sds_secret_configs": [
                                     {
-                                        "certificate_chain": {
-                                            "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/4CB5C4C15C3BBBF727E8572838933519EA42D103.crt"
-                                        },
-                                        "private_key": {
-                                            "filename": "/tmp/ambassador/snapshots/tcp-namespace/secrets-decoded/supersecret/4CB5C4C15C3BBBF727E8572838933519EA42D103.key"
+                                        "name": "tls.supersecret.tcp-namespace",
+                                        "sds_config": {
+                                            "ads": {}
                                         }
                                     }
                                 ]

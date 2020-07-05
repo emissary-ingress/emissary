@@ -8,7 +8,6 @@
         "debug_mode": false,
         "default_label_domain": "ambassador",
         "default_labels": {},
-        "diag_port": 8877,
         "diagnostics": {
             "enabled": true,
             "prefix": "/ambassador/v0/",
@@ -4636,6 +4635,7 @@
                             "value": "bar"
                         }
                     },
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -4751,6 +4751,7 @@
                             "value": "dwe"
                         }
                     },
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -4860,6 +4861,7 @@
                     "add_request_headers": {
                         "moo": "arf"
                     },
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -4969,6 +4971,7 @@
                     "add_request_headers": {
                         "foo": "bar"
                     },
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -5082,6 +5085,7 @@
                             "value": "tyu"
                         }
                     },
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -5197,6 +5201,7 @@
                             "value": "bar"
                         }
                     },
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -5312,6 +5317,7 @@
                             "value": "dwe"
                         }
                     },
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -5421,6 +5427,7 @@
                     "add_request_headers": {
                         "moo": "arf"
                     },
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -5530,6 +5537,7 @@
                     "add_request_headers": {
                         "foo": "bar"
                     },
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -5643,6 +5651,7 @@
                             "value": "tyu"
                         }
                     },
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -5747,6 +5756,7 @@
                     "_errored": false,
                     "_rkey": "plain-simplemapping-http-removeresponseheaders-http.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -5853,6 +5863,7 @@
                     "_errored": false,
                     "_rkey": "plain-simplemapping-grpc-removeresponseheaders-grpc.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -5959,6 +5970,7 @@
                     "_errored": false,
                     "_rkey": "simpleingresswithannotations-http.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -6063,6 +6075,7 @@
                     "_errored": false,
                     "_rkey": "simpleingresswithannotations-grpc.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -6167,6 +6180,7 @@
                     "_errored": false,
                     "_rkey": "plain-simplemapping-http-rewrite-slash-foo-http.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -6271,6 +6285,7 @@
                     "_errored": false,
                     "_rkey": "plain-simplemapping-grpc-rewrite-slash-foo-grpc.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -6376,6 +6391,7 @@
                     "_errored": false,
                     "_rkey": "plain-simplemapping-http-autohostrewrite-http.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "auto_host_rewrite": true,
                     "cluster": {
                         "_active": true,
@@ -6482,6 +6498,7 @@
                     "_errored": false,
                     "_rkey": "plain-simplemapping-grpc-autohostrewrite-grpc.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "auto_host_rewrite": true,
                     "cluster": {
                         "_active": true,
@@ -6587,6 +6604,7 @@
                     "_errored": false,
                     "_rkey": "simpleingresswithannotations-http-0-0.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -6695,6 +6713,7 @@
                     "_errored": false,
                     "_rkey": "simpleingresswithannotations-grpc-0-0.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -6804,6 +6823,7 @@
                     "_errored": false,
                     "_rkey": "plain-simplemapping-http-casesensitive-http.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "case_sensitive": false,
                     "cluster": {
                         "_active": true,
@@ -6910,6 +6930,7 @@
                     "_errored": false,
                     "_rkey": "plain-simplemapping-grpc-casesensitive-grpc.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "case_sensitive": false,
                     "cluster": {
                         "_active": true,
@@ -7015,6 +7036,7 @@
                     "_errored": false,
                     "_rkey": "plain-simplemapping-http-usewebsocket-http.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -7121,6 +7143,7 @@
                     "_errored": false,
                     "_rkey": "plain-simplemapping-grpc-usewebsocket-grpc.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -7227,6 +7250,7 @@
                     "_errored": false,
                     "_rkey": "plain-simplemapping-http-rewrite-foo-http.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -7331,6 +7355,7 @@
                     "_errored": false,
                     "_rkey": "plain-simplemapping-grpc-rewrite-foo-grpc.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -7442,6 +7467,7 @@
                     "_errored": false,
                     "_rkey": "hostheadermappingingress-http-0-0.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -7565,6 +7591,7 @@
                     "_errored": false,
                     "_rkey": "hostheadermappingingress-grpc-0-0.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -7681,6 +7708,7 @@
                     "_errored": false,
                     "_rkey": "plain-tlsorigination-http-implicit-http.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -7801,6 +7829,7 @@
                     "_errored": false,
                     "_rkey": "plain-tlsorigination-http-explicit-http.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -7923,6 +7952,7 @@
                     "_errored": false,
                     "_rkey": "plain-tlsorigination-grpc-implicit-grpc.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -8043,6 +8073,7 @@
                     "_errored": false,
                     "_rkey": "plain-tlsorigination-grpc-explicit-grpc.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -8165,6 +8196,7 @@
                     "_errored": false,
                     "_rkey": "plain-removereqheadersmapping-http-http.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -8280,6 +8312,7 @@
                     "_errored": false,
                     "_rkey": "plain-removereqheadersmapping-grpc-grpc.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -8397,6 +8430,7 @@
                     "_errored": false,
                     "_rkey": "plain-canarydiffmapping-http-100-http.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -8468,6 +8502,7 @@
                     "_errored": false,
                     "_rkey": "plain-canarydiffmapping-http-100-http-canary.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -8576,6 +8611,7 @@
                     "_errored": false,
                     "_rkey": "plain-canarydiffmapping-grpc-100-grpc.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -8647,6 +8683,7 @@
                     "_errored": false,
                     "_rkey": "plain-canarydiffmapping-grpc-100-grpc-canary.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -9023,6 +9060,7 @@
                     "_errored": false,
                     "_rkey": "simplemappingingress-http-0-0.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -9131,6 +9169,7 @@
                     "_errored": false,
                     "_rkey": "simplemappingingress-grpc-0-0.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -9241,6 +9280,7 @@
                     "_errored": false,
                     "_rkey": "plain-canarydiffmapping-http-50-http.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -9312,6 +9352,7 @@
                     "_errored": false,
                     "_rkey": "plain-canarydiffmapping-http-50-http-canary.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -9420,6 +9461,7 @@
                     "_errored": false,
                     "_rkey": "plain-canarydiffmapping-http-10-http.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -9491,6 +9533,7 @@
                     "_errored": false,
                     "_rkey": "plain-canarydiffmapping-http-10-http-canary.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -9599,6 +9642,7 @@
                     "_errored": false,
                     "_rkey": "plain-canarydiffmapping-grpc-50-grpc.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -9670,6 +9714,7 @@
                     "_errored": false,
                     "_rkey": "plain-canarydiffmapping-grpc-50-grpc-canary.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -9778,6 +9823,7 @@
                     "_errored": false,
                     "_rkey": "plain-canarydiffmapping-grpc-10-grpc.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -9849,6 +9895,7 @@
                     "_errored": false,
                     "_rkey": "plain-canarydiffmapping-grpc-10-grpc-canary.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -9982,6 +10029,7 @@
                             "value": "Zoo"
                         }
                     },
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -10113,6 +10161,7 @@
                             "value": "Zoo"
                         }
                     },
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -10220,6 +10269,7 @@
                     ],
                     "_rkey": "ir.ambassador",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -10319,6 +10369,7 @@
                     ],
                     "_rkey": "ir.ambassador",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -10417,6 +10468,7 @@
                     "_errored": false,
                     "_rkey": "plain-canarydiffmapping-http-0-http.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -10488,6 +10540,7 @@
                     "_errored": false,
                     "_rkey": "plain-canarydiffmapping-http-0-http-canary.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -10596,6 +10649,7 @@
                     "_errored": false,
                     "_rkey": "plain-canarydiffmapping-grpc-0-grpc.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -10667,6 +10721,7 @@
                     "_errored": false,
                     "_rkey": "plain-canarydiffmapping-grpc-0-grpc-canary.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -10787,6 +10842,7 @@
                     "_errored": false,
                     "_rkey": "plain-simplemapping-http-cors-http.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -10919,6 +10975,7 @@
                     "_errored": false,
                     "_rkey": "plain-simplemapping-grpc-cors-grpc.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -11037,6 +11094,7 @@
                     "_errored": false,
                     "_rkey": "plain-invalidportmapping-http-http.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": false,
                         "_errored": false,
@@ -11134,6 +11192,7 @@
                     "_errored": false,
                     "_rkey": "plain-invalidportmapping-grpc-grpc.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": false,
                         "_errored": false,
@@ -11238,6 +11297,7 @@
                     "_errored": false,
                     "_rkey": "plain-hostheadermapping-http-http.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -11357,6 +11417,7 @@
                     "_errored": false,
                     "_rkey": "plain-hostheadermapping-grpc-grpc.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -11476,6 +11537,7 @@
                     "_errored": false,
                     "_rkey": "plain-headerroutingtest-http-http-target2.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -11594,6 +11656,7 @@
                     "_errored": false,
                     "_rkey": "plain-headerroutingtest-grpc-grpc-target2.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -12007,6 +12070,7 @@
                     "_errored": false,
                     "_rkey": "plain-headerroutingtest-http-http.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -12111,6 +12175,7 @@
                     "_errored": false,
                     "_rkey": "plain-headerroutingtest-grpc-grpc.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -12216,6 +12281,7 @@
                     "_errored": false,
                     "_rkey": "plain-canarymapping-http-100-http.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -12285,6 +12351,7 @@
                     "_errored": false,
                     "_rkey": "plain-canarymapping-http-100-http-canary.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -12390,6 +12457,7 @@
                     "_errored": false,
                     "_rkey": "plain-canarymapping-grpc-100-grpc.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -12459,6 +12527,7 @@
                     "_errored": false,
                     "_rkey": "plain-canarymapping-grpc-100-grpc-canary.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -12564,6 +12633,7 @@
                     "_errored": false,
                     "_rkey": "plain-websocketmapping-http-http.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -12674,6 +12744,7 @@
                     "_errored": false,
                     "_rkey": "plain-websocketmapping-grpc-grpc.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -12780,6 +12851,7 @@
                 "_errored": false,
                 "_rkey": "plain-hostredirectmapping-http.plain-namespace.2",
                 "add_request_headers": {},
+                "add_response_headers": {},
                 "case_sensitive": false,
                 "default_class": "httpmapping",
                 "group_id": "ce3772b985b2deff189e356271677105d7986588",
@@ -12844,6 +12916,7 @@
                     "_errored": false,
                     "_rkey": "plain-canarymapping-http-50-http.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -12913,6 +12986,7 @@
                     "_errored": false,
                     "_rkey": "plain-canarymapping-http-50-http-canary.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -13018,6 +13092,7 @@
                     "_errored": false,
                     "_rkey": "plain-canarymapping-http-10-http.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -13087,6 +13162,7 @@
                     "_errored": false,
                     "_rkey": "plain-canarymapping-http-10-http-canary.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -13192,6 +13268,7 @@
                     "_errored": false,
                     "_rkey": "plain-canarymapping-grpc-50-grpc.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -13261,6 +13338,7 @@
                     "_errored": false,
                     "_rkey": "plain-canarymapping-grpc-50-grpc-canary.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -13366,6 +13444,7 @@
                     "_errored": false,
                     "_rkey": "plain-canarymapping-grpc-10-grpc.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -13435,6 +13514,7 @@
                     "_errored": false,
                     "_rkey": "plain-canarymapping-grpc-10-grpc-canary.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -13540,6 +13620,7 @@
                     "_errored": false,
                     "_rkey": "plain-canarymapping-http-0-http.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -13609,6 +13690,7 @@
                     "_errored": false,
                     "_rkey": "plain-canarymapping-http-0-http-canary.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -13714,6 +13796,7 @@
                     "_errored": false,
                     "_rkey": "plain-canarymapping-grpc-0-grpc.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -13783,6 +13866,7 @@
                     "_errored": false,
                     "_rkey": "plain-canarymapping-grpc-0-grpc-canary.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -13883,6 +13967,7 @@
                 "_errored": false,
                 "_rkey": "plain-hostredirectmapping-http.plain-namespace.1",
                 "add_request_headers": {},
+                "add_response_headers": {},
                 "default_class": "httpmapping",
                 "group_id": "fb00c5e23982e0448c77025c1fd82ec921b82ead",
                 "headers": [],
@@ -13945,6 +14030,7 @@
                     "_errored": false,
                     "_rkey": "plain-simplemapping-http-http.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -14049,6 +14135,7 @@
                     "_errored": false,
                     "_rkey": "plain-simplemapping-grpc-grpc.plain-namespace.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -14156,6 +14243,7 @@
                     ],
                     "_rkey": "ir.ambassador",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -14930,6 +15018,22 @@
             "namespace": "plain-namespace",
             "rkey": "k8s-plain-canarymapping-http-50-http-plain-namespace",
             "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: plain-canarymapping-http-50-http\nnamespace: plain-namespace\n"
+        },
+        "k8s-plain-edgestackmapping-http-plain-namespace": {
+            "_referenced_by": {},
+            "ambassador_id": "plain",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-plain-edgestackmapping-http-plain-namespace",
+            "metadata_labels": {
+                "kat-ambassador-id": "plain",
+                "scope": "AmbassadorTest"
+            },
+            "name": "plain-edgestackmapping-http",
+            "namespace": "plain-namespace",
+            "rkey": "k8s-plain-edgestackmapping-http-plain-namespace",
+            "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: plain-edgestackmapping-http\nnamespace: plain-namespace\n"
         },
         "k8s-plain-headerroutingtest-grpc-grpc-plain-namespace": {
             "_referenced_by": {},

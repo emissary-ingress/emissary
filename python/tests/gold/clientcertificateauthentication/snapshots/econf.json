@@ -232,19 +232,18 @@
                         ],
                         "tls_context": {
                             "common_tls_context": {
-                                "tls_certificates": [
+                                "tls_certificate_sds_secret_configs": [
                                     {
-                                        "certificate_chain": {
-                                            "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/test-clientcert-server-secret/8FB752F9041E28BF670D13CAACFCAA93444B6955.crt"
-                                        },
-                                        "private_key": {
-                                            "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/test-clientcert-server-secret/8FB752F9041E28BF670D13CAACFCAA93444B6955.key"
+                                        "name": "tls.test-clientcert-server-secret.default",
+                                        "sds_config": {
+                                            "ads": {}
                                         }
                                     }
                                 ],
-                                "validation_context": {
-                                    "trusted_ca": {
-                                        "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/test-clientcert-client-secret/631341503C68B2279DD972CC1936DCAE84D9C177.crt"
+                                "validation_context_sds_secret_config": {
+                                    "name": "root.test-clientcert-client-secret.default",
+                                    "sds_config": {
+                                        "ads": {}
                                     }
                                 }
                             },

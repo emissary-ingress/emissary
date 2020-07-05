@@ -324,13 +324,11 @@
                         ],
                         "tls_context": {
                             "common_tls_context": {
-                                "tls_certificates": [
+                                "tls_certificate_sds_secret_configs": [
                                     {
-                                        "certificate_chain": {
-                                            "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-0/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt"
-                                        },
-                                        "private_key": {
-                                            "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-0/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key"
+                                        "name": "tls.test-tlscontext-secret-0.default",
+                                        "sds_config": {
+                                            "ads": {}
                                         }
                                     }
                                 ]
@@ -607,13 +605,11 @@
                         ],
                         "tls_context": {
                             "common_tls_context": {
-                                "tls_certificates": [
+                                "tls_certificate_sds_secret_configs": [
                                     {
-                                        "certificate_chain": {
-                                            "filename": "/tmp/ambassador/snapshots/secret-namespace/secrets-decoded/test-tlscontext-secret-1/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.crt"
-                                        },
-                                        "private_key": {
-                                            "filename": "/tmp/ambassador/snapshots/secret-namespace/secrets-decoded/test-tlscontext-secret-1/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.key"
+                                        "name": "tls.test-tlscontext-secret-1.secret-namespace",
+                                        "sds_config": {
+                                            "ads": {}
                                         }
                                     }
                                 ],
@@ -897,13 +893,11 @@
                                 "alpn_protocols": [
                                     "h2,http/1.1"
                                 ],
-                                "tls_certificates": [
+                                "tls_certificate_sds_secret_configs": [
                                     {
-                                        "certificate_chain": {
-                                            "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-2/4CB5C4C15C3BBBF727E8572838933519EA42D103.crt"
-                                        },
-                                        "private_key": {
-                                            "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-2/4CB5C4C15C3BBBF727E8572838933519EA42D103.key"
+                                        "name": "tls.test-tlscontext-secret-2.default",
+                                        "sds_config": {
+                                            "ads": {}
                                         }
                                     }
                                 ]
