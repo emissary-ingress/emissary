@@ -97,14 +97,25 @@ class IRHost(IRResource):
                         host_tls_context = ir.get_tls_context(host_tls_context_name)
 
                         # First make sure that the TLSContext is "compatible" i.e. it at least has the same cert related
-                        # configuration as the one in this Host.
+                        # configuration as the one in this Host AND hosts are same as well.
                         if 'secret' in host_tls_context:
                             context_ss = self.resolve(ir, host_tls_context.get('secret'))
                             if str(context_ss) != str(tls_ss):
                                 self.post_error(f"Secret info mismatch between Host: {self.name} (secret: {tls_name})"
-                                                f"and TLSContext: {host_tls_context.name}"
+                                                f"and TLSContext: {host_tls_context_name}"
                                                 f"(secret: {host_tls_context.get('secret')})")
                                 return False
+
+                        if 'hosts' in host_tls_context:
+                            is_valid_hosts = False
+                            for host_tc in host_tls_context.get('hosts'):
+                                if host_tc in [self.hostname, self.name]:
+                                    is_valid_hosts = True
+                            if not is_valid_hosts:
+                                self.post_error(f"Hosts mismatch between Host: {self.name} "
+                                                f"(accepted hosts: {[self.hostname, self.name]}) and "
+                                                f"TLSContext {host_tls_context_name} "
+                                                f"(hosts: {host_tls_context.get('hosts')})")
 
                         # Now, let's create a new internal TLSContext ...
                         new_ctx = copy.deepcopy(host_tls_context)
