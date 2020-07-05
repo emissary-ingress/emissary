@@ -306,12 +306,6 @@ spec:
                            "tls: no supported versions satisfy MinVersion and MaxVersion",
                            "tls: protocol version not supported"])
 
-        # if EDGE_STACK:
-        #     yield Query(self.url("target/", scheme="http"), expected=404)
-        # else:
-        #     yield Query(self.url("target/", scheme="http"), error=[ "EOF", "connection refused" ])
-        #
-
 
 class HostCRDTLSConfig(AmbassadorTest):
     target: ServiceType
@@ -379,11 +373,6 @@ spec:
                     error=["tls: server selected unsupported protocol version 303",
                            "tls: no supported versions satisfy MinVersion and MaxVersion",
                            "tls: protocol version not supported"])
-
-        # if EDGE_STACK:
-        #     yield Query(self.url("target/", scheme="http"), expected=404)
-        # else:
-        #     yield Query(self.url("target/", scheme="http"), error=[ "EOF", "connection refused" ])
 
 
 class HostCRDClearText(AmbassadorTest):
