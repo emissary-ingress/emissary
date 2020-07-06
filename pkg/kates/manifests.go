@@ -112,3 +112,32 @@ func ByName(objs interface{}, target interface{}) {
 		vtarget.SetMapIndex(reflect.ValueOf(name), reflect.ValueOf(obj).Convert(vtarget.Type().Elem()))
 	}
 }
+
+func MergeUpdate(target *Unstructured, source *Unstructured) {
+	annotations := make(map[string]string)
+	for k, v := range target.GetAnnotations() {
+		annotations[k] = v
+	}
+	for k, v := range source.GetAnnotations() {
+		annotations[k] = v
+	}
+	target.SetAnnotations(annotations)
+
+	labels := make(map[string]string)
+	for k, v := range target.GetLabels() {
+		labels[k] = v
+	}
+	for k, v := range source.GetLabels() {
+		labels[k] = v
+	}
+	target.SetLabels(labels)
+
+	target.SetOwnerReferences(source.GetOwnerReferences())
+
+	spec, ok := source.Object["spec"]
+	if ok {
+		target.Object["spec"] = spec
+	} else {
+		delete(target.Object, "spec")
+	}
+}
