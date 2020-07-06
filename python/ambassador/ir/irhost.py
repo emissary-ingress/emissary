@@ -107,6 +107,8 @@ class IRHost(IRResource):
                                                 f"and TLSContext: {host_tls_context_name}"
                                                 f"(secret: {host_tls_context.get('secret')})")
                                 return False
+                        else:
+                            host_tls_context['secret'] = tls_name
 
                         if 'hosts' in host_tls_context:
                             is_valid_hosts = False
@@ -118,6 +120,8 @@ class IRHost(IRResource):
                                                 f"(accepted hosts: {[self.hostname, self.name]}) and "
                                                 f"TLSContext {host_tls_context_name} "
                                                 f"(hosts: {host_tls_context.get('hosts')})")
+                        else:
+                            host_tls_context['hosts'] = [self.hostname or self.name]
 
                         # All seems good, this context belongs to self now!
                         self.context = host_tls_context
