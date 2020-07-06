@@ -46,9 +46,6 @@ class EnvoyLogJSONTest(AmbassadorTest):
     log_path: str
 
     def init(self):
-        if EDGE_STACK:
-            self.xfail = "Not yet supported in Edge Stack"
-
         self.target = HTTP()
         self.log_path = '/tmp/ambassador/ambassador.log'
 
