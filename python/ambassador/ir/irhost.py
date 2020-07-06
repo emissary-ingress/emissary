@@ -67,11 +67,19 @@ class IRHost(IRResource):
 
                     ctx_name = f"{self.name}-context"
 
+                    implicit_tls_exists = ir.has_tls_context(ctx_name)
+                    self.logger.debug(f"TLSContext with name {ctx_name} exists in the cluster?: {implicit_tls_exists}")
+
                     host_tls_context_name = self.get('tlsContext', None)
                     self.logger.debug(f"Found TLSContext: {host_tls_context_name}")
 
                     host_tls_config = self.get('tls', None)
                     self.logger.debug(f"Found TLS config: {host_tls_config}")
+
+                    # Choose explicit TLS configuration over implicit TLSContext name
+                    if implicit_tls_exists and (host_tls_context_name or host_tls_config):
+                        self.logger.info(f"Host {self.name}: even though TLSContext {ctx_name} exists in the cluster,"
+                                         f"it will be ignored in favor of 'tls'/'tlsConfig' specified in the Host.")
 
                     # Even though this is unlikely because we have a oneOf is proto definitions, but just in case the
                     # objects have a different source :shrug:
@@ -80,14 +88,7 @@ class IRHost(IRResource):
                                         f"Host...")
                         return False
 
-                    if ir.has_tls_context(ctx_name):
-                        ir.logger.debug(f"Host {self.name}: TLSContext {ctx_name} already exists")
-
-                        if host_tls_config or host_tls_context_name:
-                            self.post_error(f"Host {self.name}: TLSContext {ctx_name} already exists but tlsContext or"
-                                            f"tls configuration is also specified in Host which will be ignored...")
-
-                    elif host_tls_context_name:
+                    if host_tls_context_name:
                         ir.logger.debug(f"Host {self.name}: found TLSContext name in config: {host_tls_context_name}")
                         if not ir.has_tls_context(host_tls_context_name):
                             self.post_error(f"Host {self.name}: Specified TLSContext does not exist: "
@@ -219,6 +220,10 @@ class IRHost(IRResource):
                             ir.save_tls_context(ctx)
                         else:
                             self.post_error(f"Host {self.name}: generated TLSContext {ctx_name} is not valid")
+
+                    elif implicit_tls_exists:
+                        ir.logger.debug(f"Host {self.name}: TLSContext {ctx_name} already exists")
+
                     else:
                         ir.logger.debug(f"Host {self.name}: creating TLSContext {ctx_name}")
 
