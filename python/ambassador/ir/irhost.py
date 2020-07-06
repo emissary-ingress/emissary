@@ -159,7 +159,7 @@ class IRHost(IRResource):
                             if host_tls_config['max_tls_version'] not in IRTLSContext.AllowedTLSVersions:
                                 self.post_error(f"Host {self.name}: Invalid max_tls_version set in Host.tls: "
                                                 f"{host_tls_config['max_tls_version']}")
-                            return False
+                                return False
 
                         tls_context_init = dict(
                             rkey=self.rkey,
