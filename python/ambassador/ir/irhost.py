@@ -90,6 +90,7 @@ class IRHost(IRResource):
 
                     if host_tls_context_name:
                         ir.logger.debug(f"Host {self.name}: found TLSContext name in config: {host_tls_context_name}")
+
                         if not ir.has_tls_context(host_tls_context_name):
                             self.post_error(f"Host {self.name}: Specified TLSContext does not exist: "
                                             f"{host_tls_context_name}")
@@ -118,32 +119,35 @@ class IRHost(IRResource):
                                                 f"TLSContext {host_tls_context_name} "
                                                 f"(hosts: {host_tls_context.get('hosts')})")
 
-                        # Now, let's create a new internal TLSContext ...
-                        new_ctx = copy.deepcopy(host_tls_context)
-                        # ... and make the one in the cluster inactive. We don't need a duplicate TLSContext!
-                        host_tls_context.set_active(False)
+                        # All seems good, this context belongs to self now!
+                        self.context = host_tls_context
 
-                        new_ctx.set_active(True)
-                        new_ctx.rkey = self.rkey
-                        new_ctx.name = ctx_name
-                        new_ctx.namespace = self.namespace
-                        new_ctx.location = self.location
-                        new_ctx.hosts = [self.hostname or self.name]
-                        new_ctx.secret = tls_name
-
-                        match_labels = self.get('matchLabels')
-                        if not match_labels:
-                            match_labels = self.get('match_labels')
-                        if match_labels:
-                            new_ctx['metadata_labels'] = match_labels
-
-                        self.context = new_ctx
-                        new_ctx.referenced_by(self)
-                        new_ctx.sourced_by(self)
-
-                        ir.resolve_secret(self, tls_name, self.namespace)
-                        ir.logger.debug(f"Created new TLSContext: {new_ctx.as_json()}")
-                        ir.save_tls_context(new_ctx)
+                        # # Now, let's create a new internal TLSContext ...
+                        # new_ctx = copy.deepcopy(host_tls_context)
+                        # # ... and make the one in the cluster inactive. We don't need a duplicate TLSContext!
+                        # host_tls_context.set_active(False)
+                        #
+                        # new_ctx.set_active(True)
+                        # new_ctx.rkey = self.rkey
+                        # new_ctx.name = ctx_name
+                        # new_ctx.namespace = self.namespace
+                        # new_ctx.location = self.location
+                        # new_ctx.hosts = [self.hostname or self.name]
+                        # new_ctx.secret = tls_name
+                        #
+                        # match_labels = self.get('matchLabels')
+                        # if not match_labels:
+                        #     match_labels = self.get('match_labels')
+                        # if match_labels:
+                        #     new_ctx['metadata_labels'] = match_labels
+                        #
+                        # self.context = new_ctx
+                        # new_ctx.referenced_by(self)
+                        # new_ctx.sourced_by(self)
+                        #
+                        # ir.resolve_secret(self, tls_name, self.namespace)
+                        # ir.logger.debug(f"Created new TLSContext: {new_ctx.as_json()}")
+                        # ir.save_tls_context(new_ctx)
 
                     elif host_tls_config:
                         ir.logger.debug(f"Host {self.name}: found tlsConfig {host_tls_config}")
