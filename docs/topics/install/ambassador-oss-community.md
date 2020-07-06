@@ -15,4 +15,3 @@ is currently available out-of-the-box in some Kubernetes installers and local en
 | <img width="75" src="https://kubespray.io/logo/logo-clear.png"></img> | [Kubespray](https://github.com/kubernetes-sigs/kubespray/tree/master/roles/kubernetes-apps/ingress_controller/ambassador) |  |
 | <img width="75" src="https://github.com/kubernetes/kops/raw/master/docs/img/logo-notext.png"></img> | [kops](https://github.com/kubernetes/kops/blob/master/addons/ambassador/README.md) |  |
 | <img width="75" src="https://raw.githubusercontent.com/kubernetes/minikube/master/images/logo/logo.png"></img> | [minikube](https://minikube.sigs.k8s.io/docs/tutorials/ambassador_ingress_controller/) |  |
-| | | |
