@@ -29,6 +29,24 @@ function relativeToAbsUrl(slug) {
   return 'https://www.getambassador.io' + getPathFromSlug(slug);
 }
 
+function getMainDocsUrl(slug) {
+  return relativeToAbsUrl(slug.match(/\/docs\/[\d\.(latest)]*/)[0]);
+}
+
+// Used to get a flat array of *all* links with their corresponding parents
+function flattenLinks(links, parent) {
+  return links.reduce((acc, cur) => {
+    let link = cur;
+    if (parent) {
+      link = { ...cur, parent };
+    }
+    if (!link.items) {
+      return [...acc, link];
+    }
+    return [...acc, link, ...flattenLinks(link.items, link)];
+  }, []);
+}
+
 const getDocPageSchema = ({
   slug,
   // an array of { title, slug } relative to parent pages (only if applicable)
@@ -51,13 +69,12 @@ const getDocPageSchema = ({
   breadcrumb: {
     '@type': 'BreadcrumbList',
     itemListElement: [
-      // Every doc page will have this as the root
+      // Every page (except the main docs pages) will have this as the root
       {
         '@type': 'ListItem',
         position: 1,
         item: {
-          // be sure to update this /latest with the current version
-          '@id': relativeToAbsUrl(slug.match(/\/docs\/[\d\.(latest)]*/)[0]),
+          '@id': getMainDocsUrl(slug),
           name: 'Ambassador Docs',
         },
       },
@@ -70,14 +87,6 @@ const getDocPageSchema = ({
           name: crumb.title,
         },
       })),
-      {
-        '@type': 'ListItem',
-        position: 1 + breadcrumbs.length + 1,
-        item: {
-          '@id': relativeToAbsUrl(slug),
-          name: title,
-        },
-      },
     ],
   },
   mainEntity: {
@@ -95,35 +104,7 @@ const getDocPageSchema = ({
   },
 });
 
-// Used to get a flat array of *all* links with their corresponding parents
-function flattenLinks(links, parent) {
-  return links.reduce((acc, cur) => {
-    let link = cur;
-    if (parent) {
-      link = { ...cur, parent };
-    }
-    if (!link.items) {
-      return [...acc, link];
-    }
-    return [...acc, link, ...flattenLinks(link.items, link)];
-  }, []);
-}
-
-export default ({ data, location }) => {
-  const page = data.mdx || {};
-  const title =
-    page.headings && page.headings[0] ? page.headings[0].value : 'Docs';
-
-  const aesPage = isAesPage(page.fields.slug);
-  const apiGatewayPage = isApiGatewayPage(page.fields.slug);
-
-  const metaDescription = page.frontmatter
-    ? page.frontmatter.description
-    : page.excerpt;
-
-  // docs/version/path/to/page
-  const slug = data.mdx.fields.slug || location.pathname;
-
+function useDocSEO({ slug, title }) {
   // we don't need the version, which is the first element of the array
   const [, ...rest] = slug
     // remove the docs part
@@ -145,29 +126,74 @@ export default ({ data, location }) => {
   const expandedLink = flatLinks.find(
     (l) => getPathFromSlug(l.link) === getPathFromSlug(slug),
   );
+
+  // We also need a list of parent links to display in the Schema as breadcrumbs
   let breadcrumbs = [];
+  // And if this page is inside a given sidebar section, we'll also include it in the Schema (as an articleSection property)
   let section;
-  // And check to see if it has any parent
-  if (expandedLink && expandedLink.parent) {
-    if (expandedLink.parent.link) {
-      // If it does, that's the Schema section and part of the breadcrumbs
-      section = expandedLink.parent.title;
-      breadcrumbs.push({
-        title: expandedLink.parent.title,
-        slug: expandedLink.parent.link,
-      });
-    }
-    // If the parent also has a parent, then that's also part of the breadcrumbs
-    if (expandedLink.parent.parent && expandedLink.parent.parent.link) {
+
+  function parseBreadcrumbs(menuEntry) {
+    // We'll only add a menu entry to the breadcrumbs array if it has a link
+    if (menuEntry.link) {
       breadcrumbs = [
-        {
-          title: expandedLink.parent.parent.title,
-          slug: expandedLink.parent.parent.link,
-        },
+        { title: menuEntry.title, slug: menuEntry.link },
         ...breadcrumbs,
       ];
     }
+    // If it has a parent, we'll have to process it as well
+    if (menuEntry.parent) {
+      // The section is a textual representation of where in the docs the current page is found
+      // If it's already defined, it means we have more than one parent-level, so we separate each of them with a " > "
+      section = section
+        ? `${menuEntry.parent.title} > ${section}`
+        : menuEntry.parent.title;
+      // This process is recursive as, theoretically, we could have infinitely nested links in the docs sidebar
+      parseBreadcrumbs(menuEntry.parent);
+    }
   }
+  if (getMainDocsUrl(slug) === relativeToAbsUrl(slug)) {
+    // If the current slug is that of the main page for the current docs version (/docs/latest, /docs/1.4/, etc.), then we don't want to parse breadcrumbs for it.
+    // If we did, we'd have duplicate breadcrumbs in the getDocPageSchema func()
+  } else {
+    parseBreadcrumbs(expandedLink);
+  }
+
+  // We only want the major and minor versions as the docs doesn't differentiate between fixes (1.5.0 and 1.5.4 have the same docs, for example)
+  // 1.5.2 => [1, 5, 2] => [1, 5] => 1.5
+  const docsVersion = versions.version.split('.').slice(0, 2).join('.');
+
+  const schema = getDocPageSchema({
+    slug,
+    title,
+    version: docsVersion,
+    isFAQ: slug.includes('about/faq/'),
+    breadcrumbs,
+    section,
+  });
+
+  return {
+    canonicalUrl,
+    schema,
+  };
+}
+
+export default ({ data, location }) => {
+  const page = data.mdx || {};
+  const title =
+    page.headings && page.headings[0] ? page.headings[0].value : 'Docs';
+
+  const aesPage = isAesPage(page.fields.slug);
+  const apiGatewayPage = isApiGatewayPage(page.fields.slug);
+
+  const metaDescription = page.frontmatter
+    ? page.frontmatter.description
+    : page.excerpt;
+
+  // docs/version/path/to/page
+  const slug = data.mdx.fields.slug || location.pathname;
+
+  const { canonicalUrl, schema } = useDocSEO({ slug, title });
+
   return (
     <React.Fragment>
       <Helmet>
@@ -178,18 +204,7 @@ export default ({ data, location }) => {
         {metaDescription && (
           <meta name="description" content={metaDescription} />
         )}
-        <script type="application/ld+json">
-          {JSON.stringify(
-            getDocPageSchema({
-              slug,
-              title,
-              version: versions.version,
-              isFAQ: slug.includes('about/faq/'),
-              breadcrumbs,
-              section,
-            }),
-          )}
-        </script>
+        <script type="application/ld+json">{JSON.stringify(schema)}</script>
       </Helmet>
       <Layout location={location}>
         <Sidebar location={location} prefix="" items={docLinks} />
