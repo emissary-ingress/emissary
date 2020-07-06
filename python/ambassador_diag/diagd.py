@@ -671,9 +671,10 @@ def collect_errors_and_notices(request, reqid, what: str, diag: Diagnostics) -> 
     if notice:
         app.notices.prepend(notice)
 
-    for notice_key, notice_list in dnotices.items():
-        for notice in notice_list:
-            app.notices.post({'level': 'NOTICE', 'message': "%s: %s" % (notice_key, notice)})
+    #for notice_key, notice_list in dnotices.items():
+        #for notice in notice_list:
+     if notice:
+        app.notices.post({'level': 'NOTICE', 'message': "%s: %s" % (notice_key, notice)})
 
     ddict['errors'] = errors
 
