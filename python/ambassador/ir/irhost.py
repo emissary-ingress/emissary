@@ -129,78 +129,64 @@ class IRHost(IRResource):
                     elif host_tls_config:
                         ir.logger.debug(f"Host {self.name}: found tlsConfig {host_tls_config}")
 
-                        new_ctx = dict(
+                        camel_snake_map = {
+                            'alpnProtocols': 'alpn_protocols',
+                            'cipherSuites': 'cipher_suites',
+                            'ecdhCurves': 'ecdh_curves',
+                            'redirectCleartextFrom': 'redirect_cleartext_from',
+                            'certRequired': 'cert_required',
+                            'minTlsVersion': 'min_tls_version',
+                            'maxTlsVersion': 'max_tls_version',
+                            'certChainFile': 'cert_chain_file',
+                            'privateKeyFile': 'private_key_file',
+                            'cacertChainFile': 'cacert_chain_file',
+                            'caSecret': 'ca_secret',
+                            # 'sni': 'sni' (this field is not required in snake-camel but adding for completeness)
+                        }
+
+                        # We don't need any camel case in our generated TLSContext
+                        for camel, snake in camel_snake_map.items():
+                            if camel in host_tls_config:
+                                host_tls_config[snake] = host_tls_config.pop(camel)
+
+                        if 'min_tls_version' in host_tls_config:
+                            if host_tls_config['min_tls_version'] not in IRTLSContext.AllowedTLSVersions:
+                                self.post_error(f"Host {self.name}: Invalid min_tls_version set in Host.tls: "
+                                                f"{host_tls_config['min_tls_version']}")
+                                return False
+
+                        if 'max_tls_version' in host_tls_config:
+                            if host_tls_config['max_tls_version'] not in IRTLSContext.AllowedTLSVersions:
+                                self.post_error(f"Host {self.name}: Invalid max_tls_version set in Host.tls: "
+                                                f"{host_tls_config['max_tls_version']}")
+                            return False
+
+                        tls_context_init = dict(
                             rkey=self.rkey,
                             name=ctx_name,
                             namespace=self.namespace,
                             location=self.location,
                             hosts=[self.hostname or self.name],
                             secret=tls_name,
-                            alpn_protocols=host_tls_config.get('alpn_protocols') or \
-                                           host_tls_config.get('alpnProtocols'),
-                            cipher_suites=host_tls_config.get('cipher_suites') or host_tls_config.get('cipherSuites'),
-                            ecdh_curves=host_tls_config.get('ecdh_curves') or host_tls_config.get('ecdhCurves'),
-                            redirect_cleartext_from=host_tls_config.get('redirect_cleartext_from') or \
-                                                    host_tls_config.get('redirectCleartextFrom'),
-                            sni=host_tls_config.get('sni'),
-                            cert_required=host_tls_config.get('cert_required') or host_tls_config.get('certRequired')
                         )
 
-                        host_min_tls_version = host_tls_config.get('min_tls_version') or \
-                                               host_tls_config.get('minTlsVersion')
-                        if host_min_tls_version:
-                            if host_min_tls_version in IRTLSContext.AllowedTLSVersions:
-                                new_ctx['min_tls_version'] = host_min_tls_version
-                            else:
-                                self.post_error(f"Host {self.name}: Invalid min_tls_version set in Host.tls: "
-                                                f"{host_min_tls_version}")
-                                return False
-
-                        host_max_tls_version = host_tls_config.get('max_tls_version') or \
-                                               host_tls_config.get('maxTlsVersion')
-                        if host_max_tls_version:
-                            if host_max_tls_version in IRTLSContext.AllowedTLSVersions:
-                                new_ctx['max_tls_version'] = host_max_tls_version
-                            else:
-                                self.post_error(f"Host {self.name}: Invalid max_tls_version set in Host.tls: "
-                                                f"{host_max_tls_version}")
-                                return False
-
-                        host_cert_chain_file = host_tls_config.get('cert_chain_file') or \
-                                               host_tls_config.get('certChainFile')
-                        if host_cert_chain_file:
-                            new_ctx['cert_chain_file'] = host_cert_chain_file
-
-                        host_private_key_file = host_tls_config.get('private_key_file') or \
-                                                host_tls_config.get('privateKeyFile')
-                        if host_private_key_file:
-                            new_ctx['private_key_file'] = host_private_key_file
-
-                        host_cacert_chain_file = host_tls_config.get('cacert_chain_file') or \
-                                                 host_tls_config.get('cacertChainFile')
-                        if host_cacert_chain_file:
-                            new_ctx['cacert_chain_file'] = host_cacert_chain_file
-
-                        host_ca_secret = host_tls_config.get('ca_secret') or host_tls_config.get('caSecret')
-                        if host_ca_secret:
-                            new_ctx['ca_secret'] = host_ca_secret
-
-                        ctx = IRTLSContext(ir, aconf, **new_ctx)
+                        tls_config_context = IRTLSContext(ir, aconf, {**tls_context_init, **host_tls_config})
 
                         match_labels = self.get('matchLabels')
                         if not match_labels:
                             match_labels = self.get('match_labels')
                         if match_labels:
-                            ctx['metadata_labels'] = match_labels
+                            tls_config_context['metadata_labels'] = match_labels
 
-                        if ctx.is_active():
-                            self.context = ctx
-                            ctx.referenced_by(self)
-                            ctx.sourced_by(self)
+                        if tls_config_context.is_active():
+                            self.context = tls_config_context
+                            tls_config_context.referenced_by(self)
+                            tls_config_context.sourced_by(self)
 
-                            ir.save_tls_context(ctx)
+                            ir.save_tls_context(tls_config_context)
                         else:
-                            self.post_error(f"Host {self.name}: generated TLSContext {ctx_name} is not valid")
+                            self.post_error(f"Host {self.name}: generated TLSContext {tls_config_context.name} from "
+                                            f"Host.tls is not valid")
 
                     elif implicit_tls_exists:
                         ir.logger.debug(f"Host {self.name}: TLSContext {ctx_name} already exists")
