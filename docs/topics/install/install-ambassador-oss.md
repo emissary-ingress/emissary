@@ -184,7 +184,7 @@ helm install ambassador datawire/ambassador --set image.repository=docker.io/dat
 ## Kubernetes distributions
 
 The Ambassador API Gateway is currently available out-of-the-box in some Kubernetes distributions.
-See the [integrations with community projects](ambassador-oss-community) to quickly install the
+See the [integrations with community projects](../ambassador-oss-community) to quickly install the
 Ambassador API Gateway.
 
 ## Want More?
