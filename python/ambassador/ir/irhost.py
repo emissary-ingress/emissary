@@ -187,6 +187,7 @@ class IRHost(IRResource):
                         else:
                             self.post_error(f"Host {self.name}: generated TLSContext {tls_config_context.name} from "
                                             f"Host.tls is not valid")
+                            return False
 
                     elif implicit_tls_exists:
                         ir.logger.debug(f"Host {self.name}: TLSContext {ctx_name} already exists")
