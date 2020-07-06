@@ -170,7 +170,7 @@ class IRHost(IRResource):
                             secret=tls_name,
                         )
 
-                        tls_config_context = IRTLSContext(ir, aconf, {**tls_context_init, **host_tls_config})
+                        tls_config_context = IRTLSContext(ir, aconf, **tls_context_init, **host_tls_config)
 
                         match_labels = self.get('matchLabels')
                         if not match_labels:
