@@ -721,7 +721,7 @@ class V2Listener(dict):
         # Use sane access log spec in JSON
         if self.config.ir.ambassador_module.envoy_log_type.lower() == "json":
             log_format = self.config.ir.ambassador_module.get('envoy_log_format', None)
-            if not log_format:
+            if log_format is None:
                 log_format = {
                     'start_time': '%START_TIME%',
                     'method': '%REQ(:METHOD)%',
