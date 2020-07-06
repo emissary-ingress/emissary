@@ -85,7 +85,7 @@ security:
   # be created by a one Release. If you want to use the PodSecurityPolicy in the chart, create it in
   # the "master" Release and then leave it unset in all others. Set the `rbac.podSecurityPolicies` 
   # in all non-"master" Releases.
-  podSecurityPolicy: []
+  podSecurityPolicy: {}
     # # Add AppArmor and Seccomp annotations
     # # https://kubernetes.io/docs/concepts/policy/pod-security-policy/#apparmor
     # annotations:

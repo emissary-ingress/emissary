@@ -115,7 +115,7 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `securityContext`                  | Set security context for pod                                                    | `{ "runAsUser": "8888" }`         |
 | `security.podSecurityContext`      | Set the security context for the Ambassador pod                                 | `{ "runAsUser": "8888" }`        |
 | `security.containerSecurityContext`| Set the security context for the Ambassador container                           | `{ "allowPrivilegeEscalation": false }` |
-| `security.podSecurityPolicy`       | Create a PodSecurityPolicy to be used for the pod.                              | `[]`                              |
+| `security.podSecurityPolicy`       | Create a PodSecurityPolicy to be used for the pod.                              | `{}`                              |
 | `restartPolicy`                    | Set the `restartPolicy` for pods                                                | ``                                |
 | `initContainers`                   | Containers used to initialize context for pods                                  | `[]`                              |
 | `sidecarContainers`                | Containers that share the pod context                                           | `[]`                              |
@@ -229,7 +229,7 @@ security:
   # be created by a one Release. If you want to use the PodSecurityPolicy in the chart, create it in
   # the "master" Release and then leave it unset in all others. Set the `rbac.podSecurityPolicies` 
   # in all non-"master" Releases.
-  podSecurityPolicy: []
+  podSecurityPolicy: {}
     # # Add AppArmor and Seccomp annotations
     # # https://kubernetes.io/docs/concepts/policy/pod-security-policy/#apparmor
     # annotations:
