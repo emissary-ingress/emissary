@@ -86,11 +86,6 @@
                   link: /docs/latest/howtos/grpc
                 - title: WebSockets
                   link: /docs/latest/howtos/websockets
-            - title: Rate Limit Concepts
-              link: /docs/latest/topics/using/rate-limits/
-              items:
-                - title: Using Rate Limits
-                  link: /docs/latest/topics/using/rate-limits/rate-limits
             - title: Redirects
               link: /docs/latest/topics/using/redirects
             - title: Rewrites
@@ -111,6 +106,11 @@
               link: /docs/latest/topics/using/filters/external
             - title: Plugin Filter
               link: /docs/latest/topics/using/filters/plugin
+        - title: Rate Limit Concepts
+          link: /docs/latest/topics/using/rate-limits/
+          items:
+            - title: Using Rate Limits
+              link: /docs/latest/topics/using/rate-limits/rate-limits
         - title: Service Preview and Edge Control
           items:
             - title: Introduction to Service Preview and Edge Control
