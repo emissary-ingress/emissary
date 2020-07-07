@@ -1,3 +1,4 @@
+import copy
 from typing import Optional, TYPE_CHECKING
 
 import os
@@ -19,6 +20,8 @@ class IRHost(IRResource):
         'requestPolicy',
         'selector',
         'tlsSecret',
+        'tlsContext',
+        'tls',
     }
 
     def __init__(self, ir: 'IR', aconf: Config,
@@ -64,8 +67,132 @@ class IRHost(IRResource):
 
                     ctx_name = f"{self.name}-context"
 
-                    if ir.has_tls_context(ctx_name):
+                    implicit_tls_exists = ir.has_tls_context(ctx_name)
+                    self.logger.debug(f"TLSContext with name {ctx_name} exists in the cluster?: {implicit_tls_exists}")
+
+                    host_tls_context_name = self.get('tlsContext', None)
+                    self.logger.debug(f"Found TLSContext: {host_tls_context_name}")
+
+                    host_tls_config = self.get('tls', None)
+                    self.logger.debug(f"Found TLS config: {host_tls_config}")
+
+                    # Choose explicit TLS configuration over implicit TLSContext name
+                    if implicit_tls_exists and (host_tls_context_name or host_tls_config):
+                        self.logger.info(f"Host {self.name}: even though TLSContext {ctx_name} exists in the cluster,"
+                                         f"it will be ignored in favor of 'tls'/'tlsConfig' specified in the Host.")
+
+                    # Even though this is unlikely because we have a oneOf is proto definitions, but just in case the
+                    # objects have a different source :shrug:
+                    if host_tls_context_name and host_tls_config:
+                        self.post_error(f"Host {self.name}: both TLSContext name and TLS config specified, ignoring "
+                                        f"Host...")
+                        return False
+
+                    if host_tls_context_name:
+                        ir.logger.debug(f"Host {self.name}: found TLSContext name in config: {host_tls_context_name}")
+
+                        if not ir.has_tls_context(host_tls_context_name):
+                            self.post_error(f"Host {self.name}: Specified TLSContext does not exist: "
+                                            f"{host_tls_context_name}")
+                            return False
+
+                        host_tls_context = ir.get_tls_context(host_tls_context_name)
+
+                        # First make sure that the TLSContext is "compatible" i.e. it at least has the same cert related
+                        # configuration as the one in this Host AND hosts are same as well.
+                        if 'secret' in host_tls_context:
+                            context_ss = self.resolve(ir, host_tls_context.get('secret'))
+                            if str(context_ss) != str(tls_ss):
+                                self.post_error(f"Secret info mismatch between Host: {self.name} (secret: {tls_name})"
+                                                f"and TLSContext: {host_tls_context_name}"
+                                                f"(secret: {host_tls_context.get('secret')})")
+                                return False
+                        else:
+                            host_tls_context['secret'] = tls_name
+
+                        if 'hosts' in host_tls_context:
+                            is_valid_hosts = False
+                            for host_tc in host_tls_context.get('hosts'):
+                                if host_tc in [self.hostname, self.name]:
+                                    is_valid_hosts = True
+                            if not is_valid_hosts:
+                                self.post_error(f"Hosts mismatch between Host: {self.name} "
+                                                f"(accepted hosts: {[self.hostname, self.name]}) and "
+                                                f"TLSContext {host_tls_context_name} "
+                                                f"(hosts: {host_tls_context.get('hosts')})")
+                        else:
+                            host_tls_context['hosts'] = [self.hostname or self.name]
+
+                        # All seems good, this context belongs to self now!
+                        self.context = host_tls_context
+
+                    elif host_tls_config:
+                        ir.logger.debug(f"Host {self.name}: found tlsConfig {host_tls_config}")
+
+                        camel_snake_map = {
+                            'alpnProtocols': 'alpn_protocols',
+                            'cipherSuites': 'cipher_suites',
+                            'ecdhCurves': 'ecdh_curves',
+                            'redirectCleartextFrom': 'redirect_cleartext_from',
+                            'certRequired': 'cert_required',
+                            'minTlsVersion': 'min_tls_version',
+                            'maxTlsVersion': 'max_tls_version',
+                            'certChainFile': 'cert_chain_file',
+                            'privateKeyFile': 'private_key_file',
+                            'cacertChainFile': 'cacert_chain_file',
+                            'caSecret': 'ca_secret',
+                            # 'sni': 'sni' (this field is not required in snake-camel but adding for completeness)
+                        }
+
+                        # We don't need any camel case in our generated TLSContext
+                        for camel, snake in camel_snake_map.items():
+                            if camel in host_tls_config:
+                                # We use .pop() to actually replace the camelCase name with snake case
+                                host_tls_config[snake] = host_tls_config.pop(camel)
+
+                        if 'min_tls_version' in host_tls_config:
+                            if host_tls_config['min_tls_version'] not in IRTLSContext.AllowedTLSVersions:
+                                self.post_error(f"Host {self.name}: Invalid min_tls_version set in Host.tls: "
+                                                f"{host_tls_config['min_tls_version']}")
+                                return False
+
+                        if 'max_tls_version' in host_tls_config:
+                            if host_tls_config['max_tls_version'] not in IRTLSContext.AllowedTLSVersions:
+                                self.post_error(f"Host {self.name}: Invalid max_tls_version set in Host.tls: "
+                                                f"{host_tls_config['max_tls_version']}")
+                                return False
+
+                        tls_context_init = dict(
+                            rkey=self.rkey,
+                            name=ctx_name,
+                            namespace=self.namespace,
+                            location=self.location,
+                            hosts=[self.hostname or self.name],
+                            secret=tls_name,
+                        )
+
+                        tls_config_context = IRTLSContext(ir, aconf, **tls_context_init, **host_tls_config)
+
+                        match_labels = self.get('matchLabels')
+                        if not match_labels:
+                            match_labels = self.get('match_labels')
+                        if match_labels:
+                            tls_config_context['metadata_labels'] = match_labels
+
+                        if tls_config_context.is_active():
+                            self.context = tls_config_context
+                            tls_config_context.referenced_by(self)
+                            tls_config_context.sourced_by(self)
+
+                            ir.save_tls_context(tls_config_context)
+                        else:
+                            self.post_error(f"Host {self.name}: generated TLSContext {tls_config_context.name} from "
+                                            f"Host.tls is not valid")
+                            return False
+
+                    elif implicit_tls_exists:
                         ir.logger.debug(f"Host {self.name}: TLSContext {ctx_name} already exists")
+
                     else:
                         ir.logger.debug(f"Host {self.name}: creating TLSContext {ctx_name}")
 
