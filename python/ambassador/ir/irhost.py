@@ -147,6 +147,7 @@ class IRHost(IRResource):
                         # We don't need any camel case in our generated TLSContext
                         for camel, snake in camel_snake_map.items():
                             if camel in host_tls_config:
+                                # We use .pop() to actually replace the camelCase name with snake case
                                 host_tls_config[snake] = host_tls_config.pop(camel)
 
                         if 'min_tls_version' in host_tls_config:
