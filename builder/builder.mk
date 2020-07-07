@@ -196,6 +196,18 @@ pytest-only: sync preflight-cluster
 pytest-gold:
 	sh $(COPY_GOLD) $(PYTEST_GOLD_DIR)
 
+mypy-server-stop: sync
+	docker exec -it $(shell $(BUILDER)) /buildroot/builder.sh mypy-internal stop
+.PHONY: mypy
+
+mypy-server: sync
+	docker exec -it $(shell $(BUILDER)) /buildroot/builder.sh mypy-internal start
+.PHONY: mypy
+
+mypy: mypy-server
+	docker exec -it $(shell $(BUILDER)) /buildroot/builder.sh mypy-internal check
+.PHONY: mypy
+
 GOTEST_PKGS ?= ./...
 export GOTEST_PKGS
 GOTEST_ARGS ?=
