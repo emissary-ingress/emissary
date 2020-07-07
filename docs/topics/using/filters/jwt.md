@@ -71,7 +71,7 @@ spec:
     * `.token.Signature` → `string` the token signature
     * `.httpRequestHeader` → [`http.Header`][] a copy of the header of the incoming HTTP request.  Any changes to `.httpRequestHeader` (such as by using using `.httpRequestHeader.Set`) have no effect.  It is recommended to use `.httpRequestHeader.Get` instead of treating it as a map, in order to handle capitalization correctly.
 
-   Also availabe to the template are the [standard functions available
+   Also available to the template are the [standard functions available
    to Go `text/template`s][Go `text/template` functions], as well as:
 
     * a `hasKey` function that takes the a string-indexed map as arg1,
