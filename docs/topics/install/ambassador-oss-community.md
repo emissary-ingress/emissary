@@ -17,42 +17,50 @@ is currently available out-of-the-box in some Kubernetes installers and local en
 
   <thead>
     <tr>
-      <th>Project</th>
+      <th style="text-align:center">Project</th>
       <th>Instructions</th>
     </tr>
   </thead>
 
   <tbody>
     <tr>
-      <td>
+      <td style="text-align:center">
+        <a href="https://kind.sigs.k8s.io/" target="_blank">
           <img width="75" src="https://github.com/kubernetes-sigs/kind/blob/master/logo/logo.png?raw=true"></img>
+        </a>
       </td>
       <td>
-          <a href="https://kind.sigs.k8s.io/docs/user/ingress/#ambassador">KIND</a> documentation.
+        <a href="https://kind.sigs.k8s.io/docs/user/ingress/#ambassador" target="_blank">KIND</a> documentation.
       </td>
     </tr>
     <tr>
-      <td>
+      <td style="text-align:center">
+        <a href="https://kubespray.io" target="_blank">
           <img width="75" src="https://kubespray.io/logo/logo-clear.png"></img>
+        </a>
       </td>
       <td>
-          <a href="https://github.com/kubernetes-sigs/kubespray/tree/master/roles/kubernetes-apps/ingress_controller/ambassador">kubespray</a> README file.
+        <a href="https://github.com/kubernetes-sigs/kubespray/tree/master/roles/kubernetes-apps/ingress_controller/ambassador" target="_blank">kubespray</a> README file.
       </td>
     </tr>
     <tr>
-      <td>
+      <td style="text-align:center">
+        <a href="https://kops.sigs.k8s.io" target="_blank">
           <img width="75" src="https://github.com/kubernetes/kops/raw/master/docs/img/logo-notext.png"></img>
+        </a>
       </td>
       <td>
-          <a href="https://github.com/kubernetes/kops/blob/master/addons/ambassador/README.md">KOPS</a> README file.
+        <a href="https://kops.sigs.k8s.io/operations/addons/#ambassador" target="_blank">KOPS</a> documentation.
       </td>
     </tr>
     <tr>
-      <td>
+      <td style="text-align:center">
+        <a href="https://minikube.sigs.k8s.io" target="_blank">
           <img width="75" src="https://raw.githubusercontent.com/kubernetes/minikube/master/images/logo/logo.png"></img>
+        </a>
       </td>
       <td>
-          <a href="https://minikube.sigs.k8s.io/docs/tutorials/ambassador_ingress_controller/">minikube</a> documentation.
+        <a href="https://minikube.sigs.k8s.io/docs/tutorials/ambassador_ingress_controller/" target="_blank">minikube</a> documentation.
       </td>
     </tr>
   </tbody>
