@@ -111,7 +111,8 @@ class DiagApp (Flask):
     aconf: Config
     ir: Optional[IR]
     econf: Optional[EnvoyConfig]
-    diag: Optional[Diagnostics]
+    # self.diag is actually a property
+    _diag: Optional[Diagnostics]
     notices: 'Notices'
     scout: Scout
     watcher: 'AmbassadorEventWatcher'
@@ -121,6 +122,8 @@ class DiagApp (Flask):
     last_request_time: Optional[datetime.datetime]
     latest_snapshot: str
     banner_endpoint: Optional[str]
+
+    config_lock: threading.Lock
 
     def setup(self, snapshot_path: str, bootstrap_path: str, ads_path: str,
               config_path: Optional[str], ambex_pid: int, kick: Optional[str], banner_endpoint: Optional[str],
@@ -157,6 +160,7 @@ class DiagApp (Flask):
         self.ir_timer = Timer("IR")
         self.econf_timer = Timer("EConf")
         self.diag_timer = Timer("Diagnostics")
+        self.lock_timer = Timer("Lock")
 
         # When did we last reconfigure?
         self.last_reconfigure = -1.0
@@ -187,9 +191,21 @@ class DiagApp (Flask):
         self.ads_path = ads_path
         self.snapshot_path = snapshot_path
 
-        self.ir = None
-        self.econf = None
-        self.diag = None
+        # You must hold config_lock when updating config elements (including diag!).
+        self.config_lock = threading.Lock()
+
+        # Why are we doing this? Aren't we sure we're singlethreaded here?
+        # Well, yes. But self.diag is actually a property, and it will raise an
+        # assertion failure if we're not holding self.config_lock... and once
+        # the lock is in play at all, we're gonna time it, in case my belief 
+        # that grabbing the lock here is always effectively free turns out to
+        # be wrong.
+
+        with self.lock_timer:
+            with self.config_lock:
+                self.ir = None      # don't update unless you hold config_lock
+                self.econf = None   # don't update unless you hold config_lock
+                self.diag = None    # don't update unless you hold config_lock
 
         self.stats_updater = None
         self.scout_checker = None
@@ -199,6 +215,50 @@ class DiagApp (Flask):
 
         # self.scout = Scout(update_frequency=datetime.timedelta(seconds=10))
         self.scout = Scout(local_only=self.local_scout)
+
+    @property
+    def diag(self) -> Diagnostics:
+        """
+        It turns out to be expensive to generate the Diagnostics class, so 
+        app.diag is a property that does it on demand, handling Timers and
+        the config lock for you.
+
+        You MUST NOT already hold the config_lock when trying to read app.diag.
+        """
+        assert(not self.config_lock.locked())
+
+        # OK -- the lock_timer is meant to track _all_ the time we spend
+        # interacting with the lock, and the config_lock is meant to make
+        # sure that we don't ever update self.diag in two places at once.
+        # Hence the double context here.
+        with self.lock_timer:
+            with self.config_lock:
+                # OK. If we haven't already generated the Diagnostics...
+                if not app._diag:
+                    # ...then we need to fix that, and the diag_timer is the 
+                    # thing to use to time it.
+                    with self.diag_timer:
+                        app._diag = Diagnostics(app.ir, app.econf)
+
+                        # We've done something time-worthy, so log the timers
+                        # in a little bit.
+                        app.ok_to_log_timers()
+
+                # Either we had a Diagnostics to start with, or we just generated
+                # it, so we should be good to go.
+                return app._diag
+
+    @diag.setter
+    def diag(self, diag: Diagnostics) -> None:
+        """
+        It turns out to be expensive to generate the Diagnostics class, so 
+        app.diag is a property that does it on demand, handling Timers and
+        the config lock for you.
+
+        You MUST already hold the config_lock when trying to update app.diag.
+        """
+        assert(self.config_lock.locked())
+        self._diag = diag
 
     def check_scout(self, what: str) -> None:
         self.watcher.post("SCOUT", (what, self.ir))
@@ -230,12 +290,24 @@ class DiagApp (Flask):
                    self.aconf_timer,
                    self.ir_timer,
                    self.econf_timer,
-                   self.diag_timer ]:
-            self.logger.info(t.summary())
+                   self.diag_timer,
+                   self.lock_timer ]:
+            if t:
+                self.logger.info(t.summary())
 
         # ...and reset next_timer_log so we don't log forever.
         self.next_timer_log = None
 
+    def ok_to_log_timers(self, base_time: Optional[float]=None, delta: Optional[float]=10.0) -> None:
+        """
+        Note that it's OK to log the timers delta seconds (default 10) from base_time (default
+        now). Call this whenever you've done something that would be timeable.
+        """
+
+        if not base_time:
+            base_time = time.perf_counter()
+
+        self.next_timer_log = base_time + delta
 
 # get the "templates" directory, or raise "FileNotFoundError" if not found
 def get_templates_dir():
@@ -553,7 +625,7 @@ def check_alive():
 
 @app.route('/ambassador/v0/check_ready', methods=[ 'GET' ])
 def check_ready():
-    if not (app.ir and app.diag):
+    if not app.ir:
         return "ambassador waiting for config\n", 503
 
     status = envoy_status(app.estats)
@@ -567,8 +639,21 @@ def check_ready():
 @app.route('/ambassador/v0/diag/', methods=[ 'GET' ])
 @standard_handler
 def show_overview(reqid=None):
+    # If we don't have an IR yet, do nothing. 
+    #
+    # We don't bother grabbing the config_lock here because we're not changing
+    # anything, and an overview request hitting at exactly the same moment as
+    # the first configure is a race anyway. If it fails, that's not a big deal,
+    # they can try again.
+    if not app.ir:
+          app.logger.debug("OV %s - can't do overview before configuration" % reqid)
+          return "Can't do overview before configuration", 400
+
     app.logger.debug("OV %s - showing overview" % reqid)
 
+    # Remember that app.diag is a property that can involve some real expense
+    # to compute -- we don't want to call it more than once here, so we cache
+    # its value.
     diag = app.diag
 
     if app.verbose:
@@ -683,8 +768,21 @@ def collect_errors_and_notices(request, reqid, what: str, diag: Diagnostics) -> 
 @app.route('/ambassador/v0/diag/<path:source>', methods=[ 'GET' ])
 @standard_handler
 def show_intermediate(source=None, reqid=None):
+    # If we don't have an IR yet, do nothing. 
+    #
+    # We don't bother grabbing the config_lock here because we're not changing
+    # anything, and an overview request hitting at exactly the same moment as
+    # the first configure is a race anyway. If it fails, that's not a big deal,
+    # they can try again.
+    if not app.ir:
+          app.logger.debug("SRC %s - can't do intermediate for %s before configuration" % (reqid, source))
+          return "Can't do overview before configuration", 400
+
     app.logger.debug("SRC %s - getting intermediate for '%s'" % (reqid, source))
 
+    # Remember that app.diag is a property that can involve some real expense
+    # to compute -- we don't want to call it more than once here, so we cache
+    # its value.
     diag = app.diag
 
     method = request.args.get('method', None)
@@ -1167,8 +1265,9 @@ class AmbassadorEventWatcher(threading.Thread):
         with self.app.econf_timer:
             econf = EnvoyConfig.generate(ir, "V2")
 
-        with self.app.diag_timer:
-            diag = Diagnostics(ir, econf)
+        # DON'T generate the Diagnostics here, because that turns out to be expensive.
+        # Instead, we'll just reset app.diag to None, then generate it on-demand when
+        # we need it.
 
         bootstrap_config, ads_config = econf.split_config()
 
@@ -1221,10 +1320,14 @@ class AmbassadorEventWatcher(threading.Thread):
         with open(app.ads_path, "w") as output:
             output.write(json.dumps(ads_config, sort_keys=True, indent=4))
 
-        app.aconf = aconf
-        app.ir = ir
-        app.econf = econf
-        app.diag = diag
+        with app.lock_timer:
+            with app.config_lock:
+                app.aconf = aconf
+                app.ir = ir
+                app.econf = econf
+
+                # Force app.diag to None so that it'll be regenerated on-demand.
+                app.diag = None
 
         # We're finally done with the whole configuration process.
         self.app.config_timer.stop()
@@ -1273,8 +1376,8 @@ class AmbassadorEventWatcher(threading.Thread):
         # Remember that we've reconfigured...
         app.last_reconfigure = time.perf_counter()
 
-        # ...and that it'll be OK with us to log timers 10 seconds from now.
-        app.next_timer_log = app.last_reconfigure + 10.0
+        # ...and make sure we log the timers sometime soonish.
+        self.app.ok_to_log_timers(base_time=app.last_reconfigure)
 
         if app.health_checks and not app.stats_updater:
             app.logger.debug("starting Envoy status updater")

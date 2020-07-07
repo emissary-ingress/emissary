@@ -244,6 +244,13 @@ class Timer:
     def __exit__(self, type, value, traceback):
         self.stop()
 
+    def __bool__(self) -> bool:
+        """
+        Timers test True in a boolean context if they have timed at least one 
+        cycle.
+        """
+        return self._cycles > 0
+
     def start(self, when: Optional[float]=None) -> None:
         """
         Start a Timer running.
