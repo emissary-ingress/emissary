@@ -30,6 +30,7 @@
         "location": "--internal--",
         "name": "ir.ambassador",
         "namespace": "default",
+        "preserve_external_request_id": false,
         "proper_case": false,
         "readiness_probe": {
             "enabled": true,
@@ -107,7 +108,7 @@
             "service": "tlscontexttest-http",
             "targets": [
                 {
-                    "ip": "tlscontexttest-http.default",
+                    "ip": "tlscontexttest-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -142,7 +143,7 @@
             "service": "tlscontexttest-http",
             "targets": [
                 {
-                    "ip": "tlscontexttest-http.default",
+                    "ip": "tlscontexttest-http",
                     "port": 443,
                     "target_kind": "DNSname"
                 }
@@ -446,7 +447,7 @@
                         "service": "tlscontexttest-http",
                         "targets": [
                             {
-                                "ip": "tlscontexttest-http.default",
+                                "ip": "tlscontexttest-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -626,7 +627,7 @@
                         "service": "tlscontexttest-http",
                         "targets": [
                             {
-                                "ip": "tlscontexttest-http.default",
+                                "ip": "tlscontexttest-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -800,7 +801,7 @@
                         "service": "tlscontexttest-http",
                         "targets": [
                             {
-                                "ip": "tlscontexttest-http.default",
+                                "ip": "tlscontexttest-http",
                                 "port": 443,
                                 "target_kind": "DNSname"
                             }
@@ -1231,7 +1232,7 @@
         },
         {
             "_active": true,
-            "_errored": false,
+            "_errored": true,
             "_referenced_by": [
                 "tlscontexttest.default.7"
             ],

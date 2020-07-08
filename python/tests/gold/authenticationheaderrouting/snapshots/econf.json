@@ -55,7 +55,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "authenticationheaderrouting-headerroutingauth.default",
+                                                "address": "authenticationheaderrouting-headerroutingauth",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }
@@ -82,7 +82,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "authenticationheaderrouting-http-target1.default",
+                                                "address": "authenticationheaderrouting-http-target1",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }
@@ -109,7 +109,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "authenticationheaderrouting-http-target2.default",
+                                                "address": "authenticationheaderrouting-http-target2",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }
@@ -260,6 +260,7 @@
                                         "accept_http_10": false
                                     },
                                     "normalize_path": true,
+                                    "preserve_external_request_id": false,
                                     "route_config": {
                                         "virtual_hosts": [
                                             {

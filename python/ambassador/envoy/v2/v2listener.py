@@ -320,6 +320,12 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
         allowed_authorization_headers = []
         headers_to_add = []
 
+        for k, v in auth.get('add_auth_headers').items():
+            headers_to_add.append({
+                'key': k,
+                'value': v,
+            })
+
         for key in list(set(auth.allowed_authorization_headers).union(AllowedAuthorizationHeaders)):
             allowed_authorization_headers.append({"exact": key})
 

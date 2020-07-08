@@ -30,6 +30,7 @@
         "location": "--internal--",
         "name": "ir.ambassador",
         "namespace": "default",
+        "preserve_external_request_id": false,
         "proper_case": false,
         "readiness_probe": {
             "enabled": true,
@@ -106,7 +107,7 @@
             "service": "hostcrdno8080-http",
             "targets": [
                 {
-                    "ip": "hostcrdno8080-http.default",
+                    "ip": "hostcrdno8080-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -489,7 +490,7 @@
                         "service": "hostcrdno8080-http",
                         "targets": [
                             {
-                                "ip": "hostcrdno8080-http.default",
+                                "ip": "hostcrdno8080-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }

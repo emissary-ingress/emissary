@@ -30,6 +30,7 @@
         "location": "--internal--",
         "name": "ir.ambassador",
         "namespace": "default",
+        "preserve_external_request_id": false,
         "proper_case": false,
         "readiness_probe": {
             "enabled": true,
@@ -106,7 +107,7 @@
             "service": "authenticationtest-http",
             "targets": [
                 {
-                    "ip": "authenticationtest-http.default",
+                    "ip": "authenticationtest-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -140,7 +141,7 @@
             "service": "authenticationtest-ahttp-auth",
             "targets": [
                 {
-                    "ip": "authenticationtest-ahttp-auth.default",
+                    "ip": "authenticationtest-ahttp-auth",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -159,6 +160,7 @@
                 "authenticationtest.default.1"
             ],
             "_rkey": "authenticationtest.default.1",
+            "add_auth_headers": {},
             "add_linkerd_headers": false,
             "allow_request_body": false,
             "allowed_authorization_headers": [],
@@ -196,7 +198,7 @@
                 "service": "authenticationtest-ahttp-auth",
                 "targets": [
                     {
-                        "ip": "authenticationtest-ahttp-auth.default",
+                        "ip": "authenticationtest-ahttp-auth",
                         "port": 80,
                         "target_kind": "DNSname"
                     }
@@ -595,7 +597,7 @@
                         "service": "authenticationtest-http",
                         "targets": [
                             {
-                                "ip": "authenticationtest-http.default",
+                                "ip": "authenticationtest-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }

@@ -49,7 +49,6 @@ spec:
       containers:
       - name: stenography
         image: securityinsanity/stenography:latest
-        imagePullPolicy: Always
         env:
         - name: PORT
           value: "25565"

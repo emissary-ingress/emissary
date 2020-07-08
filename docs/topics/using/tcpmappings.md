@@ -17,6 +17,7 @@ Ambassador Edge Stack supports a number of attributes to configure and customize
 | `idle_timeout_ms` | (optional) the timeout, in milliseconds, after which the connection will be terminated if no traffic is seen -- if not present, no timeout is applied |
 | `enable_ipv4` | (optional) if true, enables IPv4 DNS lookups for this mapping's service (the default is set by the [`ambassador Module`](../../running/ambassador)) |
 | `enable_ipv6` | (optional) if true, enables IPv6 DNS lookups for this mapping's service (the default is set by the [`ambassador Module`](../../running/ambassador)) |
+| `circuit_breakers` | (optional) circuit breakers, as for [`HTTP mapping`](../circuit-breakers) (the default is set by the [`ambassador Module`](../../running/ambassador)) |
 
 If both `enable_ipv4` and `enable_ipv6` are set, Ambassador Edge Stack will prefer IPv6 to IPv4. See the [`ambassador Module`](../../running/ambassador) documentation for more information.
 

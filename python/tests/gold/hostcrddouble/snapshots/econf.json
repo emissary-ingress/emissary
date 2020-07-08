@@ -55,7 +55,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "hostcrddouble-http-target1.default",
+                                                "address": "hostcrddouble-http-target1",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }
@@ -82,7 +82,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "hostcrddouble-http-target2.default",
+                                                "address": "hostcrddouble-http-target2",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }
@@ -138,6 +138,7 @@
                                         "accept_http_10": false
                                     },
                                     "normalize_path": true,
+                                    "preserve_external_request_id": false,
                                     "route_config": {
                                         "virtual_hosts": [
                                             {
@@ -431,6 +432,7 @@
                                         "accept_http_10": false
                                     },
                                     "normalize_path": true,
+                                    "preserve_external_request_id": false,
                                     "route_config": {
                                         "virtual_hosts": [
                                             {
@@ -687,6 +689,7 @@
                                         "accept_http_10": false
                                     },
                                     "normalize_path": true,
+                                    "preserve_external_request_id": false,
                                     "route_config": {
                                         "virtual_hosts": [
                                             {
@@ -832,6 +835,7 @@
                                         "accept_http_10": false
                                     },
                                     "normalize_path": true,
+                                    "preserve_external_request_id": false,
                                     "route_config": {
                                         "virtual_hosts": [
                                             {
