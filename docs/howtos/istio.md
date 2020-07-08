@@ -97,9 +97,9 @@ spec:
           value: http://127.0.0.1:8877
         - name: AMBASSADOR_SINGLE_NAMESPACE
           value: ''
-+        # Necessary to run the istio-proxy sidecar
-+        - name: AMBASSADOR_ENVOY_BASE_ID
-+          value: "1"
+        # Necessary to run the istio-proxy sidecar
+        - name: AMBASSADOR_ENVOY_BASE_ID
+          value: "1"
         livenessProbe:
           httpGet:
             path: /ambassador/v0/check_alive
@@ -132,108 +132,108 @@ spec:
         - mountPath: /.config/ambassador
           name: ambassador-edge-stack-secrets
           readOnly: true
-+        - mountPath: /etc/istio-certs/
-+          name: istio-certs
-+      - name: istio-proxy
-+        # Use the same version as your Istio installation
-+        image: istio/proxyv2:{{ISTIO_VERSION}}
-+        args:
-+        - proxy
-+        - sidecar
-+        - --domain
-+        - $(POD_NAMESPACE).svc.cluster.local
-+        - --serviceCluster
-+        - istio-proxy-ambassador
-+        - --discoveryAddress
-+        - istio-pilot.istio-system.svc:15012
-+        - --connectTimeout
-+        - 10s
-+        - --statusPort
-+        - "15020"
-+        - --trust-domain=cluster.local
-+        - --controlPlaneBootstrap=false
-+        env:
-+        - name: OUTPUT_CERTS
-+          value: "/etc/istio-certs"
-+        - name: JWT_POLICY
-+          value: third-party-jwt
-+        - name: PILOT_CERT_PROVIDER
-+          value: istiod
-+        - name: CA_ADDR
-+          value: istiod.istio-system.svc:15012
-+        - name: ISTIO_META_MESH_ID
-+          value: cluster.local
-+        - name: POD_NAME
-+          valueFrom:
-+            fieldRef:
-+              fieldPath: metadata.name
-+        - name: POD_NAMESPACE
-+          valueFrom:
-+            fieldRef:
-+              fieldPath: metadata.namespace
-+        - name: INSTANCE_IP
-+          valueFrom:
-+            fieldRef:
-+              fieldPath: status.podIP
-+        - name: SERVICE_ACCOUNT
-+          valueFrom:
-+            fieldRef:
-+              fieldPath: spec.serviceAccountName
-+        - name: HOST_IP
-+          valueFrom:
-+            fieldRef:
-+              fieldPath: status.hostIP
-+        - name: ISTIO_META_POD_NAME
-+          valueFrom:
-+            fieldRef:
-+              apiVersion: v1
-+              fieldPath: metadata.name
-+        - name: ISTIO_META_CONFIG_NAMESPACE
-+          valueFrom:
-+            fieldRef:
-+              apiVersion: v1
-+              fieldPath: metadata.namespace
-+        imagePullPolicy: IfNotPresent
-+        readinessProbe:
-+          failureThreshold: 30
-+          httpGet:
-+            path: /healthz/ready
-+            port: 15020
-+            scheme: HTTP
-+          initialDelaySeconds: 1
-+          periodSeconds: 2
-+          successThreshold: 1
-+          timeoutSeconds: 1
-+        volumeMounts:
-+        - mountPath: /var/run/secrets/istio
-+          name: istiod-ca-cert
-+        - mountPath: /etc/istio/proxy
-+          name: istio-envoy
-+        - mountPath: /etc/istio-certs/
-+          name: istio-certs
-+        - mountPath: /var/run/secrets/tokens
-+          name: istio-token
-+        securityContext:
-+          runAsUser: 0
+        - mountPath: /etc/istio-certs/
+          name: istio-certs
+      - name: istio-proxy
+        # Use the same version as your Istio installation
+        image: istio/proxyv2:{{ISTIO_VERSION}}
+        args:
+        - proxy
+        - sidecar
+        - --domain
+        - $(POD_NAMESPACE).svc.cluster.local
+        - --serviceCluster
+        - istio-proxy-ambassador
+        - --discoveryAddress
+        - istio-pilot.istio-system.svc:15012
+        - --connectTimeout
+        - 10s
+        - --statusPort
+        - "15020"
+        - --trust-domain=cluster.local
+        - --controlPlaneBootstrap=false
+        env:
+        - name: OUTPUT_CERTS
+          value: "/etc/istio-certs"
+        - name: JWT_POLICY
+          value: third-party-jwt
+        - name: PILOT_CERT_PROVIDER
+          value: istiod
+        - name: CA_ADDR
+          value: istiod.istio-system.svc:15012
+        - name: ISTIO_META_MESH_ID
+          value: cluster.local
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: INSTANCE_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: SERVICE_ACCOUNT
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.serviceAccountName
+        - name: HOST_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        - name: ISTIO_META_POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: ISTIO_META_CONFIG_NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+        imagePullPolicy: IfNotPresent
+        readinessProbe:
+          failureThreshold: 30
+          httpGet:
+            path: /healthz/ready
+            port: 15020
+            scheme: HTTP
+          initialDelaySeconds: 1
+          periodSeconds: 2
+          successThreshold: 1
+          timeoutSeconds: 1
+        volumeMounts:
+        - mountPath: /var/run/secrets/istio
+          name: istiod-ca-cert
+        - mountPath: /etc/istio/proxy
+          name: istio-envoy
+        - mountPath: /etc/istio-certs/
+          name: istio-certs
+        - mountPath: /var/run/secrets/tokens
+          name: istio-token
+        securityContext:
+          runAsUser: 0
       volumes:
-+      - name: istio-certs
-+        emptyDir:
-+          medium: Memory
-+      - name: istiod-ca-cert
-+        configMap:
-+          defaultMode: 420
-+          name: istio-ca-root-cert
-+      - emptyDir:
-+          medium: Memory
-+        name: istio-envoy
-+      - name: istio-token
-+        projected:
-+          defaultMode: 420
-+          sources:
-+          - serviceAccountToken:
-+              audience: istio-ca
-+              expirationSeconds: 43200
-+              path: istio-token
+      - name: istio-certs
+        emptyDir:
+          medium: Memory
+      - name: istiod-ca-cert
+        configMap:
+          defaultMode: 420
+          name: istio-ca-root-cert
+      - emptyDir:
+          medium: Memory
+        name: istio-envoy
+      - name: istio-token
+        projected:
+          defaultMode: 420
+          sources:
+          - serviceAccountToken:
+              audience: istio-ca
+              expirationSeconds: 43200
+              path: istio-token
       - downwardAPI:
           items:
           - fieldRef:
