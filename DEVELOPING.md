@@ -331,6 +331,41 @@ How do I make changes to the Envoy that ships with Ambassador?
 
 This is a bit more complex than anyone likes, but here goes:
 
+### 1. Preparing your machine
+
+Building and testing Envoy can be very resource intensive.  A laptop
+often can build Envoy... if you plug in an external hard drive, point
+a fan at it, and leave it running overnight and most of the next day.
+At Datawire, we'll often spin up a temporary build machine in GCE, so
+that we can build it very quickly.
+
+As of Envoy 1.14.4, we've measure the resource use to build and test
+it as:
+
+> | Command            | Disk Size | Disk Used | Duration[1] |
+> |--------------------|-----------|-----------|-------------|
+> | `make update-base` | 400G      | 12GB      | ~11m        |
+> | `make check-envoy` | 400G      | 339GB     | ~45m        |
+>
+> [1] On a "Machine type: custom (32 vCPUs, 512 GB memory)" VM on GCE,
+> with the following entry in its `/etc/fstab`:
+>
+> ```
+> tmpfs:docker  /var/lib/docker tmpfs size=400G 0 0
+> ```
+
+In the past, we've seen tests fail or refuse to run if there's "low"
+diskspace, even though there's still a lot left; for instance, with
+Envoy 1.13, even though the total disk used by a passing test run is
+only 211GB, about half of the tests would fail or refuse to run on a
+250GB drive.  Since then, we've been dogmatically using a 400GB drive,
+which is still enough as of Envoy 1.14.4.
+
+If you have the RAM, we've seen huge speed gains from doing the builds
+and tests on a RAM disk (see the `/etc/fstab` line above).
+
+### 2. Setting up your workspace to hack on Envoy
+
 1. From your `ambassador.git` checkout, get Ambassador's current
    version of the Envoy sources, and create a branch from that:
 
@@ -352,83 +387,166 @@ This is a bit more complex than anyone likes, but here goes:
    want to rebuild Envoy, so we require the first two environment
    variables as a safety.
 
-   Setting `ENVOY_COMMIT=-` does 3 things
-    a. Tell it to use whatever is currently checked out in
+   Setting `ENVOY_COMMIT=-` does 3 things:
+    1. Tell it to use whatever is currently checked out in
        `./cxx/envoy/` (instead of checking out a specific commit), so
        that you are free to modify those sources.
-    b. Don't try to download a cached build of Envoy from a Docker
+    2. Don't try to download a cached build of Envoy from a Docker
        cache (since it wouldn't know which `ENVOY_COMMIT` do download
        the cached build for).
-    c. Don't push the build of Envoy to a Docker cache (since you're
+    3. Don't push the build of Envoy to a Docker cache (since you're
        still actively working on it).
 
-3. Modify the sources in `./cxx/envoy/`.
+### 3. Hacking on Envoy
 
-4. Build Envoy with `make update-base`.  Again, this is _not_ a quick
-   process.  The build happens in a Docker container; you can set
-   `DOCKER_HOST` to point to a powerful machine if you like.
+Modify the sources in `./cxx/envoy/`.
 
-   * You can build and test **Ambassador** with the usual `make` commands,
-   with the exception that you MUST run `make update-base` first
-   whenever Envoy needs to be recompiled; it won't happen
-   automatically.  So `make test` to build-and-test Ambassador would
-   become `make update-base && make test`, and `make images` to just
-   build Ambassador would become `make update-base && make images`.
+### 4. Building and testing your hacked-up Envoy
 
-   * For **Envoy** development, you can build and run **specific Envoy test**
-   (i.e. unit tests in test/common/network/listener_impl_test.cc) by exporting Bazel label:
-   `export ENVOY_TEST_LABEL='//test/common/network:listener_impl_test'`
-   and running `make check-envoy`.
-   Once you are happy with your changes, it's advised to `unset ENVOY_TEST_LABEL`
-   and run Envoy's **test suite** by executing `make check-envoy`
-   again to make sure your change is not breaking Envoy.
-   Be warned that Envoy's **test suite** requires several hundred gigabytes
-   of disk space to run.
+- **Build Envoy** with `make update-base`.  Again, this is _not_ a
+   quick process.  The build happens in a Docker container; you can
+   set `DOCKER_HOST` to point to a powerful machine if you like.
 
-   You can run `make envoy-shell` to get a Bash shell in the Docker
-   container that does the Envoy builds.
+- **Test Envoy** and run with Envoy's test suite (which we don't run
+  during normal Ambassador development) by running `make check-envoy`.
+  Be warned that Envoy's full **test suite** requires several hundred
+  gigabytes of disk space to run.
 
-5. Once you're happy with your changes to Envoy:
+  Inner dev-loop steps:
 
-    a. Ensure they're committed to `cxx/envoy/` and push/PR them in to
-       https://github.com/datawire/envoy branch `rebase/master`.
+   * To run just specific tests, instead of the whole test suite, set
+     the `ENVOY_TEST_LABEL` enviornment variable.  For example, to run
+     just the unit tests in
+     `test/common/network/listener_impl_test.cc`, you should run
 
-       If you're outside of Datawire, you'll need to
-        1. Create a fork of https://github.com/datawire/envoy on the
-           GitHub web interface
-        2. Add it as a remote to your `./cxx/envoy/`:
-           `git remote add my-fork git@github.com:YOUR_USERNAME/envoy.git`
-        3. Push the branch to that fork:
-           `git push my-fork YOUR_BRANCHNAME`
+     ```shell
+     ENVOY_TEST_LABEL='//test/common/network:listener_impl_test' make check-envoy
+     ```
 
-    b. Update `ENVOY_COMMIT` in `cxx/envoy.mk`
+   * You can run `make envoy-shell` to get a Bash shell in the Docker
+     container that does the Envoy builds.
 
-    c. Unset `ENVOY_COMMIT=-` and run a final `make update-base` to
-       push a cached build:
+  Interpreting the test results:
 
-       `unset ENVOY_COMMIT && make update-base`
+   * Unfortunately, at this time, there are a few expected failures in
+     the Envoy test suite; we expect some of the Rate Limit Service
+     tests to fail because we patch Envoy to use the old Lyft ("v1")
+     gRPC name, but don't patch the tests, which expect the new Envoy
+     ("v2") gRPC name.  The failures should all look like:
 
-       The image will be pushed to the default registry:
-       ENVOY_DOCKER_REPO=docker.io/datawire/ambassador-base
+     ```text
+       Expected equality of these values:
+       "/envoy.service.ratelimit.v2.RateLimitService/ShouldRateLimit"
+         Which is: 0x408155
+       ratelimit_request_->headers().Path()->value().getStringView()
+         Which is: "/pb.lyft.ratelimit.RateLimitService/ShouldRateLimit"
+     ```
 
-       Ensure the image is pushed to backup container registries:
+   * If you see the following message, don't worry, it's harmless; the
+     tests still ran:
 
-       ```
-       docker pull datawire/ambassador-base:$TAG
-       for target_registry in quay.io grc.io; do
-         docker images datawire/ambassador-base:$TAG \
-           --format "docker tag {{.Repository}}:{{.Tag}} $target_registry/{{.Repository}}:{{.Tag}} && docker push $target_registry/{{.Repository}}:{{.Tag}}" | bash
-       done
-       ```
+     ```text
+     There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.
+     ```
 
-       If you're outside of Datawire, you can skip this step if you
-       don't want to share your Envoy binary anywhere.  If you don't
-       skip this step, you'll need to `export
-       ENVOY_DOCKER_REPO=${your-envoy-docker-registry}` to tell it to
-       push somewhere other than Datawire's registry.
+     The message means that the test passed, but it passed too
+     quickly, and Bazel is suggesting that you declare it as smaller.
+     Something along the lines of "This test only took 2s, but you
+     declared it as being in the 60s-300s ('moderate') bucket,
+     consider declaring it as being in the 0s-60s ('short')
+     bucket".
 
-    d. Push/PR the `envoy.mk` `ENVOY_COMMIT` change to
-    https://github.com/datawire/ambassador
+     Don't be confused (as I was) in to thinking that it was saying
+     that the test was too big and was skipped and that you need to
+     throw more hardware at it.
+
+- **Build or test Ambassador** with the usual `make` commands, with
+  the exception that you MUST run `make update-base` first whenever
+  Envoy needs to be recompiled; it won't happen automatically.  So
+  `make test` to build-and-test Ambassador would become `make
+  update-base && make test`, and `make images` to just build
+  Ambassador would become `make update-base && make images`.  By
+  default (to keep the tests fast), the tests avoid running much
+  traffic through Envoy, and instead just check that the Envoy
+  configuration that Ambassador generates hasn't changed since the
+  previous version (since we generally trust that Enovy works, and
+  doesn't change as aoften).  Since you _are_ changing Envoy, you'll
+  need to run the tests with `KAT_RUN_MODE=envoy` set in the
+  environment in order to actually test against Envoy.
+
+### 5. Finalizing your changes
+
+Once you're happy with your changes to Envoy:
+
+1. Ensure they're committed to `cxx/envoy/` and push/PR them in to
+   https://github.com/datawire/envoy branch `rebase/master`.
+
+   If you're outside of Datawire, you'll need to
+    a. Create a fork of https://github.com/datawire/envoy on the
+       GitHub web interface
+    b. Add it as a remote to your `./cxx/envoy/`:
+       `git remote add my-fork git@github.com:YOUR_USERNAME/envoy.git`
+    c. Push the branch to that fork:
+       `git push my-fork YOUR_BRANCHNAME`
+
+2. Update `ENVOY_COMMIT` in `cxx/envoy.mk`
+
+3. Unset `ENVOY_COMMIT=-` and run a final `make update-base` to
+   push a cached build:
+
+   ```shell
+   export YES_I_AM_OK_WITH_COMPILING_ENVOY=true
+   export YES_I_AM_UPDATING_THE_BASE_IMAGES=true
+   unset ENVOY_COMMIT
+   make update-base
+   ```
+
+   The image will be pushed to `$ENVOY_DOCKER_REPO`, by default
+   `ENVOY_DOCKER_REPO=docker.io/datawire/ambassador-base`; if you're
+   outside of Datawire, you can skip this step if you don't want to
+   share your Envoy binary anywhere.  If you don't skip this step,
+   you'll need to `export
+   ENVOY_DOCKER_REPO=${your-envoy-docker-registry}` to tell it to push
+   somewhere other than Datawire's registry.
+
+   If you're at Datawire, you'll then want to make sure that the image
+   is also pushed to the backup container registries:
+
+   ```shell
+   TAG=GET_THIS_FROM_THE_make_update-base_OUTPUT
+
+   source_registry=docker.io/datawire
+   docker pull "$source_registry/ambassador-base:$TAG
+   for target_registry in quay.io/datawire grc.io/datawire; do
+     docker tag "$source_registry/ambassador-base:$TAG" "$target_registry/ambassador-base:$TAG"
+     docker push "$target_registry/ambassador-base:$TAG"
+   done
+   ```
+
+   If you're outside of Datawire, you can skip this step if you
+   don't want to share your Envoy binary anywhere.  If you don't
+   skip this step, you'll need to `export
+   ENVOY_DOCKER_REPO=${your-envoy-docker-registry}` to tell it to
+   push somewhere other than Datawire's registry.
+
+4. Push/PR the `envoy.mk` `ENVOY_COMMIT` change to
+   https://github.com/datawire/ambassador (or
+   https://github.com/datawire/apro if you're inside Datawire).
+
+### 6. Checklist for landing the changes
+
+I'd put this in in the pull request template, but so few PRs change Envoy...
+
+ - [ ] The image has been pushed to...
+   * [ ] `docker.io/datawire/ambassador-base`
+   * [ ] `quay.io/datawire/ambassador-base`
+   * [ ] `gcr.io/datawire/ambassador-base`
+ - [ ] The envoy.git commit has been tagged as `datawire-$(git
+   describe --tags --match='v*')` (the `--match` is to prevent
+   `datawire-*` tags from stacking on eachother).
+ - [ ] It's been tested with...
+   * [ ] `make check-envoy`
+   * [ ] `make pytest KAT_RUN_MODE=envoy`
 
 Developing Ambassador (Datawire-only advice)
 ============================================
