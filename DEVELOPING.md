@@ -516,7 +516,7 @@ Once you're happy with your changes to Envoy:
    TAG=GET_THIS_FROM_THE_make_update-base_OUTPUT
 
    source_registry=docker.io/datawire
-   docker pull "$source_registry/ambassador-base:$TAG
+   docker pull "$source_registry/ambassador-base:$TAG"
    for target_registry in quay.io/datawire grc.io/datawire; do
      docker tag "$source_registry/ambassador-base:$TAG" "$target_registry/ambassador-base:$TAG"
      docker push "$target_registry/ambassador-base:$TAG"
