@@ -18,4 +18,4 @@ The RIGHT Speedometer
 - A user's authenticated traffic limit is determined by their license, which is demonstrated by the light red zone on the speedometer arc.  If traffic exceeds the licensed limit, the speedometer hands turn red.
 - Evaluation users have a limit of 1 RPS and are encouraged to upgrade to a free community license which provides a limit of 5 RPS.
 
-Authenticated traffic volumes are a key factor in determining capacity needs and we want to help you select the Ambassador license optimal for your purposes.
+Authenticated traffic volumes are a key factor in determining capacity requirements and we want to help you select the Ambassador license best suited to your needs.
