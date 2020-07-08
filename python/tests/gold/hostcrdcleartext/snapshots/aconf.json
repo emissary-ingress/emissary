@@ -31,7 +31,7 @@
             "serialization": null,
             "version": "getambassador.io/v0"
         },
-        "cleartext-host.default.1": {
+        "hostcrdcleartext-cleartext-host.default.1": {
             "_referenced_by": {},
             "acmeProvider": {
                 "authority": "none"
@@ -43,28 +43,28 @@
             "generation": 1,
             "hostname": "hostcrdcleartext",
             "kind": "Host",
-            "location": "cleartext-host.default.1",
+            "location": "hostcrdcleartext-cleartext-host.default.1",
             "metadata_labels": {
-                "ambassador_crd": "cleartext-host.default",
+                "ambassador_crd": "hostcrdcleartext-cleartext-host.default",
                 "kat-ambassador-id": "hostcrdcleartext",
                 "scope": "AmbassadorTest"
             },
-            "name": "cleartext-host",
+            "name": "hostcrdcleartext-cleartext-host",
             "namespace": "default",
             "requestPolicy": {
                 "insecure": {
                     "action": "Route"
                 }
             },
-            "rkey": "cleartext-host.default.1",
+            "rkey": "hostcrdcleartext-cleartext-host.default.1",
             "selector": {
                 "matchLabels": {
-                    "hostname": "host-cleartext"
+                    "hostname": "hostcrdcleartext-host-cleartext"
                 }
             },
-            "serialization": "acmeProvider:\n  authority: none\nambassador_id:\n- hostcrdcleartext\napiVersion: getambassador.io/v2\ngeneration: 1\nhostname: hostcrdcleartext\nkind: Host\nmetadata_labels:\n  ambassador_crd: cleartext-host.default\n  kat-ambassador-id: hostcrdcleartext\n  scope: AmbassadorTest\nname: cleartext-host\nnamespace: default\nrequestPolicy:\n  insecure:\n    action: Route\nselector:\n  matchLabels:\n    hostname: host-cleartext\n"
+            "serialization": "acmeProvider:\n  authority: none\nambassador_id:\n- hostcrdcleartext\napiVersion: getambassador.io/v2\ngeneration: 1\nhostname: hostcrdcleartext\nkind: Host\nmetadata_labels:\n  ambassador_crd: hostcrdcleartext-cleartext-host.default\n  kat-ambassador-id: hostcrdcleartext\n  scope: AmbassadorTest\nname: hostcrdcleartext-cleartext-host\nnamespace: default\nrequestPolicy:\n  insecure:\n    action: Route\nselector:\n  matchLabels:\n    hostname: hostcrdcleartext-host-cleartext\n"
         },
-        "cleartext-target-mapping.default.1": {
+        "hostcrdcleartext-cleartext-target-mapping.default.1": {
             "_referenced_by": {},
             "ambassador_id": [
                 "hostcrdcleartext"
@@ -72,18 +72,18 @@
             "apiVersion": "getambassador.io/v2",
             "generation": 1,
             "kind": "Mapping",
-            "location": "cleartext-target-mapping.default.1",
+            "location": "hostcrdcleartext-cleartext-target-mapping.default.1",
             "metadata_labels": {
-                "ambassador_crd": "cleartext-target-mapping.default",
-                "hostname": "host-cleartext",
+                "ambassador_crd": "hostcrdcleartext-cleartext-target-mapping.default",
+                "hostname": "hostcrdcleartext-host-cleartext",
                 "kat-ambassador-id": "hostcrdcleartext",
                 "scope": "AmbassadorTest"
             },
-            "name": "cleartext-target-mapping",
+            "name": "hostcrdcleartext-cleartext-target-mapping",
             "namespace": "default",
             "prefix": "/target/",
-            "rkey": "cleartext-target-mapping.default.1",
-            "serialization": "ambassador_id:\n- hostcrdcleartext\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: cleartext-target-mapping.default\n  hostname: host-cleartext\n  kat-ambassador-id: hostcrdcleartext\n  scope: AmbassadorTest\nname: cleartext-target-mapping\nnamespace: default\nprefix: /target/\nservice: hostcrdcleartext-http\n",
+            "rkey": "hostcrdcleartext-cleartext-target-mapping.default.1",
+            "serialization": "ambassador_id:\n- hostcrdcleartext\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: hostcrdcleartext-cleartext-target-mapping.default\n  hostname: hostcrdcleartext-host-cleartext\n  kat-ambassador-id: hostcrdcleartext\n  scope: AmbassadorTest\nname: hostcrdcleartext-cleartext-target-mapping\nnamespace: default\nprefix: /target/\nservice: hostcrdcleartext-http\n",
             "service": "hostcrdcleartext-http"
         },
         "k8s-hostcrdcleartext-admin-default": {
@@ -138,7 +138,7 @@
         }
     },
     "hosts": {
-        "cleartext-host": {
+        "hostcrdcleartext-cleartext-host": {
             "acmeProvider": {
                 "authority": "none"
             },
@@ -150,11 +150,11 @@
             "hostname": "hostcrdcleartext",
             "kind": "Host",
             "metadata_labels": {
-                "ambassador_crd": "cleartext-host.default",
+                "ambassador_crd": "hostcrdcleartext-cleartext-host.default",
                 "kat-ambassador-id": "hostcrdcleartext",
                 "scope": "AmbassadorTest"
             },
-            "name": "cleartext-host",
+            "name": "hostcrdcleartext-cleartext-host",
             "namespace": "default",
             "requestPolicy": {
                 "insecure": {
@@ -163,13 +163,13 @@
             },
             "selector": {
                 "matchLabels": {
-                    "hostname": "host-cleartext"
+                    "hostname": "hostcrdcleartext-host-cleartext"
                 }
             }
         }
     },
     "mappings": {
-        "cleartext-target-mapping": {
+        "hostcrdcleartext-cleartext-target-mapping": {
             "ambassador_id": [
                 "hostcrdcleartext"
             ],
@@ -177,12 +177,12 @@
             "generation": 1,
             "kind": "Mapping",
             "metadata_labels": {
-                "ambassador_crd": "cleartext-target-mapping.default",
-                "hostname": "host-cleartext",
+                "ambassador_crd": "hostcrdcleartext-cleartext-target-mapping.default",
+                "hostname": "hostcrdcleartext-host-cleartext",
                 "kat-ambassador-id": "hostcrdcleartext",
                 "scope": "AmbassadorTest"
             },
-            "name": "cleartext-target-mapping",
+            "name": "hostcrdcleartext-cleartext-target-mapping",
             "namespace": "default",
             "prefix": "/target/",
             "service": "hostcrdcleartext-http"
