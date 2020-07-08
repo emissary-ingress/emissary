@@ -1,6 +1,20 @@
 Developing Ambassador
 =====================
 
+<!--
+  When editing this document, the heirarchy of headings is:
+
+     Heading 1
+     =========
+
+     Heading 2
+     ---------
+
+     ### Heading 3
+
+     #### Heading 4
+-->
+
 Ambassador is a complex piece of software with lots of integrations
 and moving parts. Just being able to build the code and run tests is
 often not sufficient to work efficiently on a given piece of the
@@ -124,7 +138,7 @@ the ambassador compiler by running it in kubernetes is very slow since
 we need to push both the code and any relevant kubernetes resources
 into the cluster.
 
-#### `mockery`
+### `mockery`
 
 Fortunately we have the `mockery` tool which lets us run the compiler
 code directly on kubernetes resources without having to push that code
@@ -195,7 +209,7 @@ without relying at all on a Kubernetes cluster. This means that you can easily a
 quickly take a Kubernetes input and look at the generated Envoy configuration without
 any other infrastructure.
 
-#### `ambassador dump`
+### `ambassador dump`
 
 The `ambassador dump` tool is also useful for debugging and hacking on
 the compiler. After running `make shell`, you'll also be able to use
@@ -264,7 +278,7 @@ with your code changes, and include them all in the same PR.
 
 If you want to make a change that **only** affects the live documentation for
 an already-released version of Ambassador, you'll need to make your changes in
-a branch from the `release` branch for that version, then PR back to the 
+a branch from the `release` branch for that version, then PR back to the
 `release` branch. For example, if you find a typo while reading the documentation
 for Ambassador 1.4:
 
@@ -361,9 +375,9 @@ This is a bit more complex than anyone likes, but here goes:
    become `make update-base && make test`, and `make images` to just
    build Ambassador would become `make update-base && make images`.
 
-   * For **Envoy** development, you can build and run **specific Envoy test** 
-   (i.e. unit tests in test/common/network/listener_impl_test.cc) by exporting Bazel label: 
-   `export ENVOY_TEST_LABEL='//test/common/network:listener_impl_test'` 
+   * For **Envoy** development, you can build and run **specific Envoy test**
+   (i.e. unit tests in test/common/network/listener_impl_test.cc) by exporting Bazel label:
+   `export ENVOY_TEST_LABEL='//test/common/network:listener_impl_test'`
    and running `make check-envoy`.
    Once you are happy with your changes, it's advised to `unset ENVOY_TEST_LABEL`
    and run Envoy's **test suite** by executing `make check-envoy`
@@ -393,12 +407,12 @@ This is a bit more complex than anyone likes, but here goes:
        push a cached build:
 
        `unset ENVOY_COMMIT && make update-base`
-       
+
        The image will be pushed to the default registry:
        ENVOY_DOCKER_REPO=docker.io/datawire/ambassador-base
-       
+
        Ensure the image is pushed to backup container registries:
-       
+
        ```
        docker pull datawire/ambassador-base:$TAG
        for target_registry in quay.io grc.io; do
@@ -416,7 +430,8 @@ This is a bit more complex than anyone likes, but here goes:
     d. Push/PR the `envoy.mk` `ENVOY_COMMIT` change to
     https://github.com/datawire/ambassador
 
-### Datawire Only
+Developing Ambassador (Datawire-only advice)
+============================================
 
 At the moment, these techniques will only work internally to Datawire. Mostly
 this is because they require credentials to access internal resources at the
@@ -427,7 +442,7 @@ How do I test my documentation work?
 
 *This will currently only work within Datawire.*
 
-After you've made some documentation changes, run 
+After you've made some documentation changes, run
 
 ```
 bash ambassador/scripts/doc-setup
@@ -472,6 +487,3 @@ bash ambassador/scripts/doc-publish --prod
 ```
 
 to update the live `getambassador-preview` Netlify site.
-
-
-
