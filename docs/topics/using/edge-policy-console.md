@@ -32,6 +32,7 @@ The landing page of the EPC is your dashboard, which shows metrics for:
 * counts of Hosts, Mappings, and Plugins
 * System status of Envoy and Redis
 * System Service health, which you can click for more details
+* [Throughput rates](../rate-limit-speedometers) for Rate Limited and for Authenticated traffic
 
 ### Hosts
 
