@@ -1678,9 +1678,7 @@ type ScopedRoutesConfigDump_InlineScopedRouteConfigsValidationError struct {
 }
 
 // Field function returns field value.
-func (e ScopedRoutesConfigDump_InlineScopedRouteConfigsValidationError) Field() string {
-	return e.field
-}
+func (e ScopedRoutesConfigDump_InlineScopedRouteConfigsValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
 func (e ScopedRoutesConfigDump_InlineScopedRouteConfigsValidationError) Reason() string {
@@ -1801,9 +1799,7 @@ func (e ScopedRoutesConfigDump_DynamicScopedRouteConfigsValidationError) Reason(
 }
 
 // Cause function returns cause value.
-func (e ScopedRoutesConfigDump_DynamicScopedRouteConfigsValidationError) Cause() error {
-	return e.cause
-}
+func (e ScopedRoutesConfigDump_DynamicScopedRouteConfigsValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
 func (e ScopedRoutesConfigDump_DynamicScopedRouteConfigsValidationError) Key() bool { return e.key }

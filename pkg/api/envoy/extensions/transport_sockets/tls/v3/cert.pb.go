@@ -783,10 +783,9 @@ type CommonTlsContext_CombinedValidationContext struct {
 	CombinedValidationContext *CommonTlsContext_CombinedCertificateValidationContext `protobuf:"bytes,8,opt,name=combined_validation_context,json=combinedValidationContext,proto3,oneof" json:"combined_validation_context,omitempty"`
 }
 
-func (*CommonTlsContext_ValidationContext) isCommonTlsContext_ValidationContextType() {}
-func (*CommonTlsContext_ValidationContextSdsSecretConfig) isCommonTlsContext_ValidationContextType() {
-}
-func (*CommonTlsContext_CombinedValidationContext) isCommonTlsContext_ValidationContextType() {}
+func (*CommonTlsContext_ValidationContext) isCommonTlsContext_ValidationContextType()                {}
+func (*CommonTlsContext_ValidationContextSdsSecretConfig) isCommonTlsContext_ValidationContextType() {}
+func (*CommonTlsContext_CombinedValidationContext) isCommonTlsContext_ValidationContextType()        {}
 
 func (m *CommonTlsContext) GetValidationContextType() isCommonTlsContext_ValidationContextType {
 	if m != nil {

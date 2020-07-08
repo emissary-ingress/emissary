@@ -360,9 +360,7 @@ func init() {
 	proto.RegisterType((*ClientStatusResponse)(nil), "envoy.service.status.v2.ClientStatusResponse")
 }
 
-func init() {
-	proto.RegisterFile("envoy/service/status/v2/csds.proto", fileDescriptor_b8273221d61b8a20)
-}
+func init() { proto.RegisterFile("envoy/service/status/v2/csds.proto", fileDescriptor_b8273221d61b8a20) }
 
 var fileDescriptor_b8273221d61b8a20 = []byte{
 	// 685 bytes of a gzipped FileDescriptorProto

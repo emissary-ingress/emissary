@@ -213,9 +213,7 @@ func init() {
 	proto.RegisterType((*StructMatcher_PathSegment)(nil), "envoy.type.matcher.v3.StructMatcher.PathSegment")
 }
 
-func init() {
-	proto.RegisterFile("envoy/type/matcher/v3/struct.proto", fileDescriptor_2eb06d41ab351944)
-}
+func init() { proto.RegisterFile("envoy/type/matcher/v3/struct.proto", fileDescriptor_2eb06d41ab351944) }
 
 var fileDescriptor_2eb06d41ab351944 = []byte{
 	// 347 bytes of a gzipped FileDescriptorProto

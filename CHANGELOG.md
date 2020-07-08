@@ -50,6 +50,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ### Ambassador API Gateway + Ambassador Edge Stack
 
+- Incorporate the Envoy 1.14.4 security update.
 - Feature: Add support for circuit breakers in TCP mapping
 
 ## [1.5.5] June 30, 2020
