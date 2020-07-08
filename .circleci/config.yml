@@ -28,6 +28,8 @@ commands:
         command: |
           env | grep -e GIT -e TRAVIS -e CIRCLE | sort
     - oss-checkout
+    - skip-if-no-changes:
+        to: docs/
   oss-linux-setup:
     steps:
     - pip-install:
@@ -219,6 +221,54 @@ commands:
              PAGER= git diff --cached
              exit 1
           fi
+  skip-if-no-changes:
+    parameters:
+      to:
+        description: A POSIX ERE (grep -E regex) that matches which filenames to check
+          for changes in
+        type: string
+    steps:
+    - run:
+        name: "Diff changes"
+        command: |
+          if [[ "<< pipeline.git.base_revision >>" == "" ]]; then
+            echo "There is no base_revision, therefore no changes"
+            exit 0
+          fi
+
+          COMMIT_RANGE="<< pipeline.git.base_revision >>...<<pipeline.git.revision>>"
+          echo "Commit range: " $COMMIT_RANGE
+          git --no-pager diff $COMMIT_RANGE --name-only
+
+          if [[ $(git --no-pager diff $COMMIT_RANGE --name-only | grep -E "<< parameters.to >>") == "" ]]; then
+            echo "Halting this CircleCI job because code in the following paths have not changed:"
+            echo "<< parameters.to >>"
+            circleci step halt
+          fi
+  skip-if-only-changes:
+    parameters:
+      to:
+        description: A POSIX ERE (grep -E regex) that matches which filenames to check
+          for changes in
+        type: string
+    steps:
+    - run:
+        name: "Diff changes"
+        command: |
+          if [[ "<< pipeline.git.base_revision >>" == "" ]]; then
+            echo "There is no base_revision, therefore no changes"
+            exit 0
+          fi
+
+          COMMIT_RANGE="<< pipeline.git.base_revision >>...<<pipeline.git.revision>>"
+          echo "Commit range: " $COMMIT_RANGE
+          git --no-pager diff $COMMIT_RANGE --name-only
+
+          if [[ $(git --no-pager diff $COMMIT_RANGE --name-only | grep -v -E "<< parameters.to >>") == "" ]]; then
+            echo "Halting this CircleCI job because only code in the following paths has changed:"
+            echo "<< parameters.to >>"
+            circleci step halt
+          fi
 jobs:
   "website-preview-build":
     !!merge <<: *website-job
@@ -265,6 +315,8 @@ jobs:
   oss-dev-images:
     steps:
     - oss-linux-setup
+    - skip-if-only-changes:
+        to: docs/
     - oss-images-build-and-test
     machine:
       image: "ubuntu-1604:201903-01"

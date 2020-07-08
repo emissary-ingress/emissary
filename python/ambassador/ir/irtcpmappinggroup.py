@@ -25,6 +25,7 @@ class IRTCPMappingGroup (IRBaseMappingGroup):
 
     CoreMappingKeys: ClassVar[Dict[str, bool]] = {
         'address': True,
+        'circuit_breakers': True,
         'enable_ipv4': True,
         'enable_ipv6': True,
         'group_id': True,
@@ -123,6 +124,7 @@ class IRTCPMappingGroup (IRBaseMappingGroup):
                             host_rewrite=mapping.get('host_rewrite', False),
                             enable_ipv4=mapping.get('enable_ipv4', None),
                             enable_ipv6=mapping.get('enable_ipv6', None),
+                            circuit_breakers=mapping.get('circuit_breakers', None),
                             marker=marker,
                             allow_scheme=False)
 

@@ -1,6 +1,10 @@
 {
     "_errors": {},
     "_notices": {
+        "-global-": [
+            "Parsed pod labels: {'kat-ambassador-id': 'tlscontextprotocolminversion', 'scope': 'AmbassadorTest', 'service': 'tlscontextprotocolminversion'}",
+            "Found Ambassador service: tlscontextprotocolminversion"
+        ],
         "tlscontextprotocolminversion.default.1": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ]

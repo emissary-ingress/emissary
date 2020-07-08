@@ -30,6 +30,7 @@
         "location": "--internal--",
         "name": "ir.ambassador",
         "namespace": "default",
+        "preserve_external_request_id": false,
         "proper_case": false,
         "readiness_probe": {
             "enabled": true,
@@ -106,7 +107,7 @@
             "service": "tlscontextstest-http",
             "targets": [
                 {
-                    "ip": "tlscontextstest-http.default",
+                    "ip": "tlscontextstest-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -390,7 +391,7 @@
                         "service": "tlscontextstest-http",
                         "targets": [
                             {
-                                "ip": "tlscontextstest-http.default",
+                                "ip": "tlscontextstest-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
