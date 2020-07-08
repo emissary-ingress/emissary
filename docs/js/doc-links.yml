@@ -122,7 +122,11 @@
         - title: Developer Portal
           link: /docs/latest/topics/using/dev-portal
         - title: Edge Policy Console
-          link: /docs/latest/topics/using/edge-policy-console
+          items: 
+          - title: Introduction to Edge Policy Console
+            link: /docs/latest/topics/using/edge-policy-console
+          - title: Rate Limit Speedometers
+            link: /docs/latest/topics/using/rate-limit-speedometers
         - title: The Project Resource
           link: /docs/latest/topics/using/projects
           items:
