@@ -41,33 +41,6 @@
                 },
                 "name": "cluster_127_0_0_1_8877_default",
                 "type": "STRICT_DNS"
-            },
-            {
-                "connect_timeout": "3.000s",
-                "dns_lookup_family": "V4_ONLY",
-                "lb_policy": "ROUND_ROBIN",
-                "load_assignment": {
-                    "cluster_name": "cluster_hostcrdmanualcontext_http_default",
-                    "endpoints": [
-                        {
-                            "lb_endpoints": [
-                                {
-                                    "endpoint": {
-                                        "address": {
-                                            "socket_address": {
-                                                "address": "hostcrdmanualcontext-http",
-                                                "port_value": 80,
-                                                "protocol": "TCP"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    ]
-                },
-                "name": "cluster_hostcrdmanualcontext_http_default",
-                "type": "STRICT_DNS"
             }
         ],
         "listeners": [
@@ -237,47 +210,6 @@
                                                                     "numerator": 100
                                                                 },
                                                                 "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
-                                                            }
-                                                        },
-                                                        "redirect": {
-                                                            "https_redirect": true
-                                                        }
-                                                    },
-                                                    {
-                                                        "match": {
-                                                            "case_sensitive": true,
-                                                            "headers": [
-                                                                {
-                                                                    "exact_match": "https",
-                                                                    "name": "x-forwarded-proto"
-                                                                }
-                                                            ],
-                                                            "prefix": "/target/",
-                                                            "runtime_fraction": {
-                                                                "default_value": {
-                                                                    "denominator": "HUNDRED",
-                                                                    "numerator": 100
-                                                                },
-                                                                "runtime_key": "routing.traffic_shift.cluster_hostcrdmanualcontext_http_default"
-                                                            }
-                                                        },
-                                                        "route": {
-                                                            "cluster": "cluster_hostcrdmanualcontext_http_default",
-                                                            "prefix_rewrite": "/",
-                                                            "priority": null,
-                                                            "timeout": "3.000s"
-                                                        }
-                                                    },
-                                                    {
-                                                        "match": {
-                                                            "case_sensitive": true,
-                                                            "prefix": "/target/",
-                                                            "runtime_fraction": {
-                                                                "default_value": {
-                                                                    "denominator": "HUNDRED",
-                                                                    "numerator": 100
-                                                                },
-                                                                "runtime_key": "routing.traffic_shift.cluster_hostcrdmanualcontext_http_default"
                                                             }
                                                         },
                                                         "redirect": {

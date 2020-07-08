@@ -23,7 +23,7 @@
                         "getambassador.io/config": "---\napiVersion: ambassador/v1\nkind: Mapping\nname: globalcircuitbreakingtest-http-pr\nprefix: /GlobalCircuitBreakingTest-pr/\nservice: globalcircuitbreakingtest-http\ncircuit_breakers:\n- priority: default\n  max_pending_requests: 1024\n  max_connections: 1024\nambassador_id: globalcircuitbreakingtest\n---\napiVersion: ambassador/v1\nkind: Mapping\nname: globalcircuitbreakingtest-http-normal\nprefix: /GlobalCircuitBreakingTest-normal/\nservice: globalcircuitbreakingtest-http\nambassador_id: globalcircuitbreakingtest\n---\napiVersion: ambassador/v1\nkind: Module\nname: ambassador\nconfig:\n  circuit_breakers:\n  - priority: default\n    max_pending_requests: 1\n    max_connections: 1\nambassador_id: globalcircuitbreakingtest\n",
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v1\\nkind: Mapping\\nname: globalcircuitbreakingtest-http-pr\\nprefix: /GlobalCircuitBreakingTest-pr/\\nservice: globalcircuitbreakingtest-http\\ncircuit_breakers:\\n- priority: default\\n  max_pending_requests: 1024\\n  max_connections: 1024\\nambassador_id: globalcircuitbreakingtest\\n---\\napiVersion: ambassador/v1\\nkind: Mapping\\nname: globalcircuitbreakingtest-http-normal\\nprefix: /GlobalCircuitBreakingTest-normal/\\nservice: globalcircuitbreakingtest-http\\nambassador_id: globalcircuitbreakingtest\\n---\\napiVersion: ambassador/v1\\nkind: Module\\nname: ambassador\\nconfig:\\n  circuit_breakers:\\n  - priority: default\\n    max_pending_requests: 1\\n    max_connections: 1\\nambassador_id: globalcircuitbreakingtest\\n\"},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"globalcircuitbreakingtest\",\"scope\":\"AmbassadorTest\"},\"name\":\"globalcircuitbreakingtest\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"globalcircuitbreakingtest\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-06-25T03:50:06Z",
+                    "creationTimestamp": "2020-07-08T12:43:34Z",
                     "labels": {
                         "app.kubernetes.io/component": "ambassador-service",
                         "kat-ambassador-id": "globalcircuitbreakingtest",
@@ -31,24 +31,24 @@
                     },
                     "name": "globalcircuitbreakingtest",
                     "namespace": "default",
-                    "resourceVersion": "85995897",
+                    "resourceVersion": "27095",
                     "selfLink": "/api/v1/namespaces/default/services/globalcircuitbreakingtest",
-                    "uid": "f52c5058-b696-11ea-bc23-022a80997af0"
+                    "uid": "a30318e1-c118-11ea-bf4a-0e268c70ad4f"
                 },
                 "spec": {
-                    "clusterIP": "100.68.169.142",
+                    "clusterIP": "10.96.197.94",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "http",
-                            "nodePort": 32619,
+                            "nodePort": 30964,
                             "port": 80,
                             "protocol": "TCP",
                             "targetPort": 8080
                         },
                         {
                             "name": "https",
-                            "nodePort": 30758,
+                            "nodePort": 31138,
                             "port": 443,
                             "protocol": "TCP",
                             "targetPort": 8443
@@ -71,7 +71,7 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"globalcircuitbreakingtest\",\"scope\":\"AmbassadorTest\",\"service\":\"globalcircuitbreakingtest-admin\"},\"name\":\"globalcircuitbreakingtest-admin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"globalcircuitbreakingtest-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"globalcircuitbreakingtest\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-06-25T03:50:06Z",
+                    "creationTimestamp": "2020-07-08T12:43:34Z",
                     "labels": {
                         "kat-ambassador-id": "globalcircuitbreakingtest",
                         "scope": "AmbassadorTest",
@@ -79,17 +79,17 @@
                     },
                     "name": "globalcircuitbreakingtest-admin",
                     "namespace": "default",
-                    "resourceVersion": "85995901",
+                    "resourceVersion": "27101",
                     "selfLink": "/api/v1/namespaces/default/services/globalcircuitbreakingtest-admin",
-                    "uid": "f540f777-b696-11ea-bc23-022a80997af0"
+                    "uid": "a311eb58-c118-11ea-bf4a-0e268c70ad4f"
                 },
                 "spec": {
-                    "clusterIP": "100.70.182.134",
+                    "clusterIP": "10.109.130.4",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "globalcircuitbreakingtest-admin",
-                            "nodePort": 30503,
+                            "nodePort": 31717,
                             "port": 8877,
                             "protocol": "TCP",
                             "targetPort": 8877
@@ -110,33 +110,33 @@
                 "kind": "Service",
                 "metadata": {
                     "annotations": {
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"globalcircuitbreakingtest\",\"scope\":\"AmbassadorTest\"},\"name\":\"globalcircuitbreakingtest-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8139},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8502}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"globalcircuitbreakingtest\",\"scope\":\"AmbassadorTest\"},\"name\":\"globalcircuitbreakingtest-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8105},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8468}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
                     },
-                    "creationTimestamp": "2020-06-25T03:50:06Z",
+                    "creationTimestamp": "2020-07-08T12:43:34Z",
                     "labels": {
                         "kat-ambassador-id": "globalcircuitbreakingtest",
                         "scope": "AmbassadorTest"
                     },
                     "name": "globalcircuitbreakingtest-http",
                     "namespace": "default",
-                    "resourceVersion": "85995907",
+                    "resourceVersion": "27108",
                     "selfLink": "/api/v1/namespaces/default/services/globalcircuitbreakingtest-http",
-                    "uid": "f55e3256-b696-11ea-bc23-022a80997af0"
+                    "uid": "a325c504-c118-11ea-bf4a-0e268c70ad4f"
                 },
                 "spec": {
-                    "clusterIP": "100.69.164.1",
+                    "clusterIP": "10.100.59.47",
                     "ports": [
                         {
                             "name": "http",
                             "port": 80,
                             "protocol": "TCP",
-                            "targetPort": 8139
+                            "targetPort": 8105
                         },
                         {
                             "name": "https",
                             "port": 443,
                             "protocol": "TCP",
-                            "targetPort": 8502
+                            "targetPort": 8468
                         }
                     ],
                     "selector": {

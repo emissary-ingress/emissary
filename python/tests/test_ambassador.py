@@ -20,23 +20,23 @@ import t_mappingtests
 import t_no_ui
 import t_optiontests
 import t_plain
-import t_ratelimit
-import t_redirect
-#import t_shadow
-#import t_stats
-import t_tcpmapping
-import t_tls
-import t_tracing
-import t_retrypolicy
-import t_consul
-import t_circuitbreaker
-import t_envoy_logs
-import t_ingress
-import t_listeneridletimeout
-import t_cluster_tag
-import t_queryparameter_routing
-import t_request_header
-import t_regexrewrite_forwarding
+# import t_ratelimit
+# import t_redirect
+# #import t_shadow
+# #import t_stats
+# import t_tcpmapping
+# import t_tls
+# import t_tracing
+# import t_retrypolicy
+# import t_consul
+# import t_circuitbreaker
+# import t_envoy_logs
+# import t_ingress
+# import t_listeneridletimeout
+# import t_cluster_tag
+# import t_queryparameter_routing
+# import t_request_header
+# import t_regexrewrite_forwarding
 
 # pytest will find this because Runner is a toplevel callable object in a file
 # that pytest is willing to look inside.

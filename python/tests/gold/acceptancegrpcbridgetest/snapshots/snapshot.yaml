@@ -20,21 +20,62 @@
                 "kind": "Service",
                 "metadata": {
                     "annotations": {
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"acceptancegrpcbridgetest\",\"scope\":\"AmbassadorTest\",\"service\":\"acceptancegrpcbridgetest-admin\"},\"name\":\"acceptancegrpcbridgetest-admin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"acceptancegrpcbridgetest-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"acceptancegrpcbridgetest\"},\"type\":\"NodePort\"}}\n"
+                    },
+                    "creationTimestamp": "2020-07-08T12:23:51Z",
+                    "labels": {
+                        "kat-ambassador-id": "acceptancegrpcbridgetest",
+                        "scope": "AmbassadorTest",
+                        "service": "acceptancegrpcbridgetest-admin"
+                    },
+                    "name": "acceptancegrpcbridgetest-admin",
+                    "namespace": "default",
+                    "resourceVersion": "53669",
+                    "selfLink": "/api/v1/namespaces/default/services/acceptancegrpcbridgetest-admin",
+                    "uid": "e1f3d03f-c115-11ea-911e-1235a2d91ba9"
+                },
+                "spec": {
+                    "clusterIP": "10.101.187.83",
+                    "externalTrafficPolicy": "Cluster",
+                    "ports": [
+                        {
+                            "name": "acceptancegrpcbridgetest-admin",
+                            "nodePort": 32009,
+                            "port": 8877,
+                            "protocol": "TCP",
+                            "targetPort": 8877
+                        }
+                    ],
+                    "selector": {
+                        "service": "acceptancegrpcbridgetest"
+                    },
+                    "sessionAffinity": "None",
+                    "type": "NodePort"
+                },
+                "status": {
+                    "loadBalancer": {}
+                }
+            },
+            {
+                "apiVersion": "v1",
+                "kind": "Service",
+                "metadata": {
+                    "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"acceptancegrpcbridgetest\",\"scope\":\"AmbassadorTest\"},\"name\":\"acceptancegrpcbridgetest-egrpc\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"backend\":\"acceptancegrpcbridgetest-egrpc\"}}}\n"
                     },
-                    "creationTimestamp": "2020-06-25T03:49:14Z",
+                    "creationTimestamp": "2020-07-08T12:23:51Z",
                     "labels": {
                         "kat-ambassador-id": "acceptancegrpcbridgetest",
                         "scope": "AmbassadorTest"
                     },
                     "name": "acceptancegrpcbridgetest-egrpc",
                     "namespace": "default",
-                    "resourceVersion": "85994130",
+                    "resourceVersion": "53677",
                     "selfLink": "/api/v1/namespaces/default/services/acceptancegrpcbridgetest-egrpc",
-                    "uid": "d6068a7b-b696-11ea-bc23-022a80997af0"
+                    "uid": "e2076bd1-c115-11ea-911e-1235a2d91ba9"
                 },
                 "spec": {
-                    "clusterIP": "100.66.135.227",
+                    "clusterIP": "10.97.98.212",
                     "ports": [
                         {
                             "name": "http",
@@ -67,7 +108,7 @@
                         "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind: Module\nname: ambassador\nconfig:\n  enable_grpc_http11_bridge: True\nambassador_id: acceptancegrpcbridgetest\n\n---\napiVersion: ambassador/v0\nkind: Mapping\ngrpc: True\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nname: acceptancegrpcbridgetest-egrpc\nservice: acceptancegrpcbridgetest-egrpc\nambassador_id: acceptancegrpcbridgetest\n",
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v0\\nkind: Module\\nname: ambassador\\nconfig:\\n  enable_grpc_http11_bridge: True\\nambassador_id: acceptancegrpcbridgetest\\n\\n---\\napiVersion: ambassador/v0\\nkind: Mapping\\ngrpc: True\\nprefix: /echo.EchoService/\\nrewrite: /echo.EchoService/\\nname: acceptancegrpcbridgetest-egrpc\\nservice: acceptancegrpcbridgetest-egrpc\\nambassador_id: acceptancegrpcbridgetest\\n\"},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"acceptancegrpcbridgetest\",\"scope\":\"AmbassadorTest\"},\"name\":\"acceptancegrpcbridgetest\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"acceptancegrpcbridgetest\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-06-25T03:49:13Z",
+                    "creationTimestamp": "2020-07-08T12:23:51Z",
                     "labels": {
                         "app.kubernetes.io/component": "ambassador-service",
                         "kat-ambassador-id": "acceptancegrpcbridgetest",
@@ -75,68 +116,27 @@
                     },
                     "name": "acceptancegrpcbridgetest",
                     "namespace": "default",
-                    "resourceVersion": "85994119",
+                    "resourceVersion": "53664",
                     "selfLink": "/api/v1/namespaces/default/services/acceptancegrpcbridgetest",
-                    "uid": "d5da918c-b696-11ea-bc23-022a80997af0"
+                    "uid": "e1e8d4ea-c115-11ea-911e-1235a2d91ba9"
                 },
                 "spec": {
-                    "clusterIP": "100.69.112.23",
+                    "clusterIP": "10.106.38.233",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "http",
-                            "nodePort": 31624,
+                            "nodePort": 31012,
                             "port": 80,
                             "protocol": "TCP",
                             "targetPort": 8080
                         },
                         {
                             "name": "https",
-                            "nodePort": 30108,
+                            "nodePort": 31536,
                             "port": 443,
                             "protocol": "TCP",
                             "targetPort": 8443
-                        }
-                    ],
-                    "selector": {
-                        "service": "acceptancegrpcbridgetest"
-                    },
-                    "sessionAffinity": "None",
-                    "type": "NodePort"
-                },
-                "status": {
-                    "loadBalancer": {}
-                }
-            },
-            {
-                "apiVersion": "v1",
-                "kind": "Service",
-                "metadata": {
-                    "annotations": {
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"acceptancegrpcbridgetest\",\"scope\":\"AmbassadorTest\",\"service\":\"acceptancegrpcbridgetest-admin\"},\"name\":\"acceptancegrpcbridgetest-admin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"acceptancegrpcbridgetest-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"acceptancegrpcbridgetest\"},\"type\":\"NodePort\"}}\n"
-                    },
-                    "creationTimestamp": "2020-06-25T03:49:13Z",
-                    "labels": {
-                        "kat-ambassador-id": "acceptancegrpcbridgetest",
-                        "scope": "AmbassadorTest",
-                        "service": "acceptancegrpcbridgetest-admin"
-                    },
-                    "name": "acceptancegrpcbridgetest-admin",
-                    "namespace": "default",
-                    "resourceVersion": "85994124",
-                    "selfLink": "/api/v1/namespaces/default/services/acceptancegrpcbridgetest-admin",
-                    "uid": "d5eb33b0-b696-11ea-bc23-022a80997af0"
-                },
-                "spec": {
-                    "clusterIP": "100.67.31.241",
-                    "externalTrafficPolicy": "Cluster",
-                    "ports": [
-                        {
-                            "name": "acceptancegrpcbridgetest-admin",
-                            "nodePort": 30013,
-                            "port": 8877,
-                            "protocol": "TCP",
-                            "targetPort": 8877
                         }
                     ],
                     "selector": {

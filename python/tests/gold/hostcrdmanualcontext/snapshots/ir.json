@@ -8,7 +8,6 @@
         "debug_mode": false,
         "default_label_domain": "ambassador",
         "default_labels": {},
-        "diag_port": 8877,
         "diagnostics": {
             "enabled": true,
             "prefix": "/ambassador/v0/",
@@ -81,41 +80,6 @@
             "urls": [
                 "tcp://127.0.0.1:8877"
             ]
-        },
-        "cluster_hostcrdmanualcontext_http_default": {
-            "_active": true,
-            "_errored": false,
-            "_hostname": "hostcrdmanualcontext-http",
-            "_is_sidecar": false,
-            "_namespace": "default",
-            "_port": 80,
-            "_referenced_by": [
-                "manual-target-mapping.default.1"
-            ],
-            "_resolver": "kubernetes-service",
-            "_rkey": "cluster_hostcrdmanualcontext_http_default",
-            "connect_timeout_ms": 3000,
-            "enable_endpoints": false,
-            "enable_ipv4": true,
-            "enable_ipv6": false,
-            "ignore_cluster": false,
-            "kind": "IRCluster",
-            "lb_type": "round_robin",
-            "location": "manual-target-mapping.default.1",
-            "name": "cluster_hostcrdmanualcontext_http_default",
-            "namespace": "default",
-            "service": "hostcrdmanualcontext-http",
-            "targets": [
-                {
-                    "ip": "hostcrdmanualcontext-http",
-                    "port": 80,
-                    "target_kind": "DNSname"
-                }
-            ],
-            "type": "strict_dns",
-            "urls": [
-                "tcp://hostcrdmanualcontext-http:80"
-            ]
         }
     },
     "filters": [
@@ -171,6 +135,7 @@
                     ],
                     "_rkey": "ir.ambassador",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -270,6 +235,7 @@
                     ],
                     "_rkey": "ir.ambassador",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -369,6 +335,7 @@
                     ],
                     "_rkey": "ir.ambassador",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -438,114 +405,6 @@
             "regex_rewrite": {},
             "rewrite": "/ambassador/v0/",
             "timeout_ms": 10000
-        },
-        {
-            "_active": true,
-            "_errored": false,
-            "_referenced_by": [
-                "manual-target-mapping.default.1"
-            ],
-            "_rkey": "manual-target-mapping.default.1",
-            "default_class": "httpmapping",
-            "group_id": "ef2f76a27cdb850e84f8f5c00ce17c4798f7e065",
-            "group_weight": [
-                0,
-                8,
-                0,
-                0,
-                "/target/",
-                "GET"
-            ],
-            "headers": [],
-            "kind": "IRHTTPMappingGroup",
-            "location": "manual-target-mapping.default.1",
-            "mappings": [
-                {
-                    "_active": true,
-                    "_errored": false,
-                    "_rkey": "manual-target-mapping.default.1",
-                    "add_request_headers": {},
-                    "cluster": {
-                        "_active": true,
-                        "_errored": false,
-                        "_hostname": "hostcrdmanualcontext-http",
-                        "_is_sidecar": false,
-                        "_namespace": "default",
-                        "_port": 80,
-                        "_referenced_by": [
-                            "manual-target-mapping.default.1"
-                        ],
-                        "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_hostcrdmanualcontext_http_default",
-                        "connect_timeout_ms": 3000,
-                        "enable_endpoints": false,
-                        "enable_ipv4": true,
-                        "enable_ipv6": false,
-                        "ignore_cluster": false,
-                        "kind": "IRCluster",
-                        "lb_type": "round_robin",
-                        "location": "manual-target-mapping.default.1",
-                        "name": "cluster_hostcrdmanualcontext_http_default",
-                        "namespace": "default",
-                        "service": "hostcrdmanualcontext-http",
-                        "targets": [
-                            {
-                                "ip": "hostcrdmanualcontext-http",
-                                "port": 80,
-                                "target_kind": "DNSname"
-                            }
-                        ],
-                        "type": "strict_dns",
-                        "urls": [
-                            "tcp://hostcrdmanualcontext-http:80"
-                        ]
-                    },
-                    "default_class": "httpmapping",
-                    "group_id": "ef2f76a27cdb850e84f8f5c00ce17c4798f7e065",
-                    "headers": [],
-                    "kind": "Mapping",
-                    "location": "manual-target-mapping.default.1",
-                    "metadata_labels": {
-                        "ambassador_crd": "manual-target-mapping.default",
-                        "hostname": "manual-hostname",
-                        "kat-ambassador-id": "hostcrdmanualcontext",
-                        "scope": "AmbassadorTest"
-                    },
-                    "name": "manual-target-mapping",
-                    "namespace": "default",
-                    "precedence": 0,
-                    "prefix": "/target/",
-                    "query_parameters": [],
-                    "regex_rewrite": {},
-                    "resolver": "kubernetes-service",
-                    "rewrite": "/",
-                    "route_weight": [
-                        0,
-                        8,
-                        0,
-                        0,
-                        "/target/",
-                        "GET"
-                    ],
-                    "serialization": "ambassador_id:\n- hostcrdmanualcontext\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: manual-target-mapping.default\n  hostname: manual-hostname\n  kat-ambassador-id: hostcrdmanualcontext\n  scope: AmbassadorTest\nname: manual-target-mapping\nnamespace: default\nprefix: /target/\nservice: hostcrdmanualcontext-http\n",
-                    "service": "hostcrdmanualcontext-http",
-                    "weight": 100
-                }
-            ],
-            "metadata_labels": {
-                "ambassador_crd": "manual-target-mapping.default",
-                "hostname": "manual-hostname",
-                "kat-ambassador-id": "hostcrdmanualcontext",
-                "scope": "AmbassadorTest"
-            },
-            "name": "GROUP: manual-target-mapping",
-            "namespace": "default",
-            "precedence": 0,
-            "prefix": "/target/",
-            "query_parameters": [],
-            "regex_rewrite": {},
-            "rewrite": "/",
-            "serialization": "ambassador_id:\n- hostcrdmanualcontext\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: manual-target-mapping.default\n  hostname: manual-hostname\n  kat-ambassador-id: hostcrdmanualcontext\n  scope: AmbassadorTest\nname: manual-target-mapping\nnamespace: default\nprefix: /target/\nservice: hostcrdmanualcontext-http\n"
         }
     ],
     "grpc_services": {},
@@ -580,15 +439,7 @@
         "ambassador_namespace": "default",
         "ambassador_nodename": "hostcrdmanualcontext-default"
     },
-    "k8s_status_updates": {
-        "manual-target-mapping.default": [
-            "Mapping",
-            "default",
-            {
-                "state": "Running"
-            }
-        ]
-    },
+    "k8s_status_updates": {},
     "listeners": [
         {
             "_active": true,

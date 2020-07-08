@@ -23,7 +23,7 @@
                         "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind: Module\nname: ambassador\nconfig:\n  gzip:\n    min_content_length: 32\n    content_type:\n    - application/json\nambassador_id: gzipnotsupportedcontenttypetest\n\n---\napiVersion: ambassador/v0\nkind: Mapping\nname: gzipnotsupportedcontenttypetest-http\nprefix: /target/\nservice: gzipnotsupportedcontenttypetest-http\nambassador_id: gzipnotsupportedcontenttypetest\n",
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v0\\nkind: Module\\nname: ambassador\\nconfig:\\n  gzip:\\n    min_content_length: 32\\n    content_type:\\n    - application/json\\nambassador_id: gzipnotsupportedcontenttypetest\\n\\n---\\napiVersion: ambassador/v0\\nkind: Mapping\\nname: gzipnotsupportedcontenttypetest-http\\nprefix: /target/\\nservice: gzipnotsupportedcontenttypetest-http\\nambassador_id: gzipnotsupportedcontenttypetest\\n\"},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"gzipnotsupportedcontenttypetest\",\"scope\":\"AmbassadorTest\"},\"name\":\"gzipnotsupportedcontenttypetest\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"gzipnotsupportedcontenttypetest\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-06-25T03:49:16Z",
+                    "creationTimestamp": "2020-07-08T12:23:53Z",
                     "labels": {
                         "app.kubernetes.io/component": "ambassador-service",
                         "kat-ambassador-id": "gzipnotsupportedcontenttypetest",
@@ -31,24 +31,24 @@
                     },
                     "name": "gzipnotsupportedcontenttypetest",
                     "namespace": "default",
-                    "resourceVersion": "85994194",
+                    "resourceVersion": "53769",
                     "selfLink": "/api/v1/namespaces/default/services/gzipnotsupportedcontenttypetest",
-                    "uid": "d75713b4-b696-11ea-bc23-022a80997af0"
+                    "uid": "e31c935b-c115-11ea-911e-1235a2d91ba9"
                 },
                 "spec": {
-                    "clusterIP": "100.70.64.76",
+                    "clusterIP": "10.96.71.100",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "http",
-                            "nodePort": 30781,
+                            "nodePort": 31639,
                             "port": 80,
                             "protocol": "TCP",
                             "targetPort": 8080
                         },
                         {
                             "name": "https",
-                            "nodePort": 32496,
+                            "nodePort": 30258,
                             "port": 443,
                             "protocol": "TCP",
                             "targetPort": 8443
@@ -71,7 +71,7 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"gzipnotsupportedcontenttypetest\",\"scope\":\"AmbassadorTest\",\"service\":\"gzipnotsupportedcontenttypetest-admin\"},\"name\":\"gzipnotsupportedcontenttypetest-admin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"gzipnotsupportedcontenttypetest-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"gzipnotsupportedcontenttypetest\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-06-25T03:49:16Z",
+                    "creationTimestamp": "2020-07-08T12:23:53Z",
                     "labels": {
                         "kat-ambassador-id": "gzipnotsupportedcontenttypetest",
                         "scope": "AmbassadorTest",
@@ -79,17 +79,17 @@
                     },
                     "name": "gzipnotsupportedcontenttypetest-admin",
                     "namespace": "default",
-                    "resourceVersion": "85994198",
+                    "resourceVersion": "53773",
                     "selfLink": "/api/v1/namespaces/default/services/gzipnotsupportedcontenttypetest-admin",
-                    "uid": "d765ac52-b696-11ea-bc23-022a80997af0"
+                    "uid": "e32626cf-c115-11ea-911e-1235a2d91ba9"
                 },
                 "spec": {
-                    "clusterIP": "100.64.148.55",
+                    "clusterIP": "10.97.181.251",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "gzipnotsupportedcontenttypetest-admin",
-                            "nodePort": 30970,
+                            "nodePort": 31358,
                             "port": 8877,
                             "protocol": "TCP",
                             "targetPort": 8877
@@ -112,19 +112,19 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"gzipnotsupportedcontenttypetest\",\"scope\":\"AmbassadorTest\"},\"name\":\"gzipnotsupportedcontenttypetest-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8097},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8460}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
                     },
-                    "creationTimestamp": "2020-06-25T03:49:16Z",
+                    "creationTimestamp": "2020-07-08T12:23:53Z",
                     "labels": {
                         "kat-ambassador-id": "gzipnotsupportedcontenttypetest",
                         "scope": "AmbassadorTest"
                     },
                     "name": "gzipnotsupportedcontenttypetest-http",
                     "namespace": "default",
-                    "resourceVersion": "85994206",
+                    "resourceVersion": "53780",
                     "selfLink": "/api/v1/namespaces/default/services/gzipnotsupportedcontenttypetest-http",
-                    "uid": "d7827d45-b696-11ea-bc23-022a80997af0"
+                    "uid": "e33c8832-c115-11ea-911e-1235a2d91ba9"
                 },
                 "spec": {
-                    "clusterIP": "100.67.188.205",
+                    "clusterIP": "10.101.197.73",
                     "ports": [
                         {
                             "name": "http",
