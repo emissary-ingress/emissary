@@ -70,24 +70,40 @@ class V2TLSContext(Dict):
 
         return params
 
-    def get_certs(self) -> ListOfCerts:
+    def get_certs_sds(self, sdsKey: str) -> ListOfCerts:
         common = self.get_common()
 
         # We have to explicitly cast this empty list to a list of strings.
         empty_cert_list: List[str] = []
-        cert_list = common.setdefault('tls_certificates', empty_cert_list)
+        cert_list = common.setdefault(sdsKey, empty_cert_list)
 
         # cert_list is of type EnvoyCommonTLSElements right now, so we need to cast it.
         return typecast(ListOfCerts, cert_list)
 
-    def update_cert_zero(self, key: str, value: str) -> None:
-        certs = self.get_certs()
 
-        if not certs:
-            certs.append({})
+    def update_certs_sds(self, key: str, value: str) -> None:
+        certs = self.get_certs_sds(key)
 
-        src: EnvoyCoreSource = { 'filename': value }
-        certs[0][key] = src
+        certs.append(
+            {
+                'name': 'tls.' + value,
+                'sds_config': {
+                    'ads': {}
+                }
+            }
+        )
+
+    def update_root_sds(self, key: str, value: str) -> None:
+        common = self.get_common()
+
+        common.setdefault(key,
+            {
+                'name': 'root.' + value,
+                'sds_config': {
+                    'ads': {}
+                }
+            }
+        )
 
     def update_alpn(self, key: str, value: str) -> None:
         common = self.get_common()
@@ -119,13 +135,12 @@ class V2TLSContext(Dict):
         if ctx.is_fallback:
             self.is_fallback = True
 
-        for secretinfokey, handler, hkey in [
-            ( 'cert_chain_file', self.update_cert_zero, 'certificate_chain' ),
-            ( 'private_key_file', self.update_cert_zero, 'private_key' ),
-            ( 'cacert_chain_file', self.update_validation, 'trusted_ca' ),
+        for secretinfokey , handler, hkey in [
+            ( 'secret', self.update_certs_sds, 'tls_certificate_sds_secret_configs'),
+            ( 'ca_secret', self.update_root_sds, 'validation_context_sds_secret_config'),
         ]:
             if secretinfokey in ctx['secret_info']:
-                handler(hkey, ctx['secret_info'][secretinfokey])
+                handler(hkey, ctx['secret_info'][secretinfokey] + "." + ctx['namespace'])
 
         for ctxkey, handler, hkey in [
             ( 'alpn_protocols', self.update_alpn, 'alpn_protocols' ),

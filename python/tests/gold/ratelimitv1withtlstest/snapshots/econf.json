@@ -76,13 +76,11 @@
                             "alpn_protocols": [
                                 "h2"
                             ],
-                            "tls_certificates": [
+                            "tls_certificate_sds_secret_configs": [
                                 {
-                                    "certificate_chain": {
-                                        "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/ratelimit-tls-secret/1DD5A6E63A26C002E05F2A82F1E950AAF0850900.crt"
-                                    },
-                                    "private_key": {
-                                        "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/ratelimit-tls-secret/1DD5A6E63A26C002E05F2A82F1E950AAF0850900.key"
+                                    "name": "tls.ratelimit-tls-secret.default",
+                                    "sds_config": {
+                                        "ads": {}
                                     }
                                 }
                             ]

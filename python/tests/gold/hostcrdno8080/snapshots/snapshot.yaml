@@ -12,7 +12,7 @@
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Host\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"hostcrdno8080\",\"scope\":\"AmbassadorTest\"},\"name\":\"hostcrdno8080-host\",\"namespace\":\"default\"},\"spec\":{\"acmeProvider\":{\"authority\":\"none\"},\"ambassador_id\":[\"hostcrdno8080\"],\"hostname\":\"hostcrdno8080\",\"requestPolicy\":{\"insecure\":{\"additionalPort\":-1}},\"selector\":{\"matchLabels\":{\"hostname\":\"hostcrdno8080\"}},\"tlsSecret\":{\"name\":\"hostcrdno8080-secret\"}}}\n"
                     },
                     "clusterName": "",
-                    "creationTimestamp": "2020-07-08T22:34:27Z",
+                    "creationTimestamp": "2020-07-09T17:30:53Z",
                     "generation": 1,
                     "labels": {
                         "kat-ambassador-id": "hostcrdno8080",
@@ -20,9 +20,9 @@
                     },
                     "name": "hostcrdno8080-host",
                     "namespace": "default",
-                    "resourceVersion": "3505",
+                    "resourceVersion": "10609",
                     "selfLink": "/apis/getambassador.io/v2/namespaces/default/hosts/hostcrdno8080-host",
-                    "uid": "2e981f31-c16b-11ea-b0ce-0ad2510411a7"
+                    "uid": "f0ba2b7d-c209-11ea-87b2-0ab82b9da1f7"
                 },
                 "spec": {
                     "acmeProvider": {
@@ -60,7 +60,7 @@
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"labels\":{\"hostname\":\"hostcrdno8080\",\"kat-ambassador-id\":\"hostcrdno8080\",\"scope\":\"AmbassadorTest\"},\"name\":\"hostcrdno8080-target-mapping\",\"namespace\":\"default\"},\"spec\":{\"ambassador_id\":[\"hostcrdno8080\"],\"prefix\":\"/target/\",\"service\":\"hostcrdno8080-http\"}}\n"
                     },
                     "clusterName": "",
-                    "creationTimestamp": "2020-07-08T22:34:27Z",
+                    "creationTimestamp": "2020-07-09T17:30:53Z",
                     "generation": 1,
                     "labels": {
                         "hostname": "hostcrdno8080",
@@ -69,9 +69,9 @@
                     },
                     "name": "hostcrdno8080-target-mapping",
                     "namespace": "default",
-                    "resourceVersion": "3506",
+                    "resourceVersion": "10610",
                     "selfLink": "/apis/getambassador.io/v2/namespaces/default/mappings/hostcrdno8080-target-mapping",
-                    "uid": "2e9f5a87-c16b-11ea-b0ce-0ad2510411a7"
+                    "uid": "f0c40d7e-c209-11ea-87b2-0ab82b9da1f7"
                 },
                 "spec": {
                     "ambassador_id": [
@@ -100,16 +100,16 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"data\":{\"tls.crt\":\"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURwakNDQW82Z0F3SUJBZ0lKQUpxa1Z4Y1RtQ1FITUEwR0NTcUdTSWIzRFFFQkN3VUFNR2d4Q3pBSkJnTlYKQkFZVEFsVlRNUXN3Q1FZRFZRUUlEQUpOUVRFUE1BMEdBMVVFQnd3R1FtOXpkRzl1TVJFd0R3WURWUVFLREFoRQpZWFJoZDJseVpURVVNQklHQTFVRUN3d0xSVzVuYVc1bFpYSnBibWN4RWpBUUJnTlZCQU1NQ1d4dlkyRnNhRzl6CmREQWVGdzB4T0RFd01UQXhNREk1TURKYUZ3MHlPREV3TURjeE1ESTVNREphTUdneEN6QUpCZ05WQkFZVEFsVlQKTVFzd0NRWURWUVFJREFKTlFURVBNQTBHQTFVRUJ3d0dRbTl6ZEc5dU1SRXdEd1lEVlFRS0RBaEVZWFJoZDJseQpaVEVVTUJJR0ExVUVDd3dMUlc1bmFXNWxaWEpwYm1jeEVqQVFCZ05WQkFNTUNXeHZZMkZzYUc5emREQ0NBU0l3CkRRWUpLb1pJaHZjTkFRRUJCUUFEZ2dFUEFEQ0NBUW9DZ2dFQkFMcTZtdS9FSzlQc1Q0YkR1WWg0aEZPVnZiblAKekV6MGpQcnVzdXcxT05MQk9jT2htbmNSTnE4c1FyTGxBZ3NicDBuTFZmQ1pSZHQ4UnlOcUFGeUJlR29XS3IvZAprQVEybVBucjBQRHlCTzk0UHo4VHdydDBtZEtEU1dGanNxMjlOYVJaT0JqdStLcGV6RytOZ3pLMk04M0ZtSldUCnFYdTI3ME9pOXlqb2VGQ3lPMjdwUkdvcktkQk9TcmIwd3ozdFdWUGk4NFZMdnFKRWprT0JVZjJYNVF3b25XWngKMktxVUJ6OUFSZVVUMzdwUVJZQkJMSUdvSnM4U042cjF4MSt1dTNLdTVxSkN1QmRlSHlJbHpKb2V0aEp2K3pTMgowN0pFc2ZKWkluMWNpdXhNNzNPbmVRTm1LUkpsL2NEb3BLemswSldRSnRSV1NnbktneFNYWkRrZjJMOENBd0VBCkFhTlRNRkV3SFFZRFZSME9CQllFRkJoQzdDeVRpNGFkSFVCd0wvTkZlRTZLdnFIRE1COEdBMVVkSXdRWU1CYUEKRkJoQzdDeVRpNGFkSFVCd0wvTkZlRTZLdnFIRE1BOEdBMVVkRXdFQi93UUZNQU1CQWY4d0RRWUpLb1pJaHZjTgpBUUVMQlFBRGdnRUJBSFJvb0xjcFdEa1IyMEhENEJ5d1BTUGRLV1hjWnN1U2tXYWZyekhoYUJ5MWJZcktIR1o1CmFodFF3L1gwQmRnMWtidlpZUDJSTzdGTFhBSlNTdXVJT0NHTFVwS0pkVHE1NDREUThNb1daWVZKbTc3UWxxam0KbHNIa2VlTlRNamFOVjdMd0MzalBkMERYelczbGVnWFRoYWpmZ2dtLzBJZXNGRzBVWjFEOTJHNURmc0hLekpSagpNSHZyVDNtVmJGZjkrSGJhRE4yT2g5VjIxUWhWSzF2M0F2dWNXczhUWCswZHZFZ1dtWHBRcndEd2pTMU04QkRYCldoWjVsZTZjVzhNYjhnZmRseG1JckpnQStuVVZzMU9EbkJKS1F3MUY4MVdkc25tWXdweVUrT2xVais4UGt1TVoKSU4rUlhQVnZMSWJ3czBmamJ4UXRzbTArZVBpRnN2d0NsUFk9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K\",\"tls.key\":\"LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2Z0lCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktnd2dnU2tBZ0VBQW9JQkFRQzZ1cHJ2eEN2VDdFK0cKdzdtSWVJUlRsYjI1ejh4TTlJejY3ckxzTlRqU3dUbkRvWnAzRVRhdkxFS3k1UUlMRzZkSnkxWHdtVVhiZkVjagphZ0JjZ1hocUZpcS8zWkFFTnBqNTY5RHc4Z1R2ZUQ4L0U4SzdkSm5TZzBsaFk3S3R2VFdrV1RnWTd2aXFYc3h2CmpZTXl0alBOeFppVms2bDd0dTlEb3ZjbzZIaFFzanR1NlVScUt5blFUa3EyOU1NOTdWbFQ0dk9GUzc2aVJJNUQKZ1ZIOWwrVU1LSjFtY2RpcWxBYy9RRVhsRTkrNlVFV0FRU3lCcUNiUEVqZXE5Y2RmcnJ0eXJ1YWlRcmdYWGg4aQpKY3lhSHJZU2IvczB0dE95UkxIeVdTSjlYSXJzVE85enAza0RaaWtTWmYzQTZLU3M1TkNWa0NiVVZrb0p5b01VCmwyUTVIOWkvQWdNQkFBRUNnZ0VBSVFsZzNpamNCRHViK21Eb2syK1hJZDZ0V1pHZE9NUlBxUm5RU0NCR2RHdEIKV0E1Z2NNNTMyVmhBV0x4UnR6dG1ScFVXR0dKVnpMWlpNN2ZPWm85MWlYZHdpcytkYWxGcWtWVWFlM2FtVHVQOApkS0YvWTRFR3Nnc09VWSs5RGlZYXRvQWVmN0xRQmZ5TnVQTFZrb1JQK0FrTXJQSWFHMHhMV3JFYmYzNVp3eFRuCnd5TTF3YVpQb1oxWjZFdmhHQkxNNzlXYmY2VFY0WXVzSTRNOEVQdU1GcWlYcDNlRmZ4L0tnNHhtYnZtN1JhYzcKOEJ3Z3pnVmljNXlSbkVXYjhpWUh5WGtyazNTL0VCYUNEMlQwUjM5VmlVM1I0VjBmMUtyV3NjRHowVmNiVWNhKwpzeVdyaVhKMHBnR1N0Q3FWK0dRYy9aNmJjOGt4VWpTTWxOUWtudVJRZ1FLQmdRRHpwM1ZaVmFzMTA3NThVT00rCnZUeTFNL0V6azg4cWhGb21kYVFiSFRlbStpeGpCNlg3RU9sRlkya3JwUkwvbURDSEpwR0MzYlJtUHNFaHVGSUwKRHhSQ2hUcEtTVmNsSytaaUNPaWE1ektTVUpxZnBOcW15RnNaQlhJNnRkNW9mWk42aFpJVTlJR2RUaGlYMjBONwppUW01UnZlSUx2UHVwMWZRMmRqd2F6Ykgvd0tCZ1FERU1MN21Mb2RqSjBNTXh6ZnM3MW1FNmZOUFhBMVY2ZEgrCllCVG4xS2txaHJpampRWmFNbXZ6dEZmL1F3Wkhmd3FKQUVuNGx2em5ncUNzZTMvUElZMy8zRERxd1p2NE1vdy8KRGdBeTBLQmpQYVJGNjhYT1B1d0VuSFN1UjhyZFg2UzI3TXQ2cEZIeFZ2YjlRRFJuSXc4a3grSFVreml4U0h5Ugo2NWxESklEdlFRS0JnUURpQTF3ZldoQlBCZk9VYlpQZUJydmhlaVVycXRob29BemYwQkJCOW9CQks1OHczVTloCjdQWDFuNWxYR3ZEY2x0ZXRCbUhEK3RQMFpCSFNyWit0RW5mQW5NVE5VK3E2V0ZhRWFhOGF3WXR2bmNWUWdTTXgKd25oK1pVYm9udnVJQWJSajJyTC9MUzl1TTVzc2dmKy9BQWM5RGs5ZXkrOEtXY0Jqd3pBeEU4TGxFUUtCZ0IzNwoxVEVZcTFoY0I4Tk1MeC9tOUtkN21kUG5IYUtqdVpSRzJ1c1RkVWNxajgxdklDbG95MWJUbVI5Si93dXVQczN4ClhWekF0cVlyTUtNcnZMekxSQWgyZm9OaVU1UDdKYlA5VDhwMFdBN1N2T2h5d0NobE5XeisvRlltWXJxeWcxbngKbHFlSHRYNU03REtJUFhvRndhcTlZYVk3V2M2K1pVdG4xbVNNajZnQkFvR0JBSTgwdU9iTkdhRndQTVYrUWhiZApBelkrSFNGQjBkWWZxRytzcTBmRVdIWTNHTXFmNFh0aVRqUEFjWlg3RmdtT3Q5Uit3TlFQK0dFNjZoV0JpKzBWCmVLV3prV0lXeS9sTVZCSW0zVWtlSlRCT3NudTFVaGhXbm5WVDhFeWhEY1FxcndPSGlhaUo3bFZSZmRoRWFyQysKSnpaU0czOHVZUVlyc0lITnRVZFgySmdPCi0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0K\"},\"kind\":\"Secret\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"hostcrdno8080\",\"scope\":\"AmbassadorTest\"},\"name\":\"hostcrdno8080-secret\",\"namespace\":\"default\"},\"type\":\"kubernetes.io/tls\"}\n"
                     },
-                    "creationTimestamp": "2020-07-08T22:34:27Z",
+                    "creationTimestamp": "2020-07-09T17:30:53Z",
                     "labels": {
                         "kat-ambassador-id": "hostcrdno8080",
                         "scope": "AmbassadorTest"
                     },
                     "name": "hostcrdno8080-secret",
                     "namespace": "default",
-                    "resourceVersion": "3504",
+                    "resourceVersion": "10608",
                     "selfLink": "/api/v1/namespaces/default/secrets/hostcrdno8080-secret",
-                    "uid": "2e90c381-c16b-11ea-b0ce-0ad2510411a7"
+                    "uid": "f0b3f6c9-c209-11ea-87b2-0ab82b9da1f7"
                 },
                 "type": "kubernetes.io/tls"
             }
@@ -120,9 +120,53 @@
                 "kind": "Service",
                 "metadata": {
                     "annotations": {
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"hostcrdno8080\",\"scope\":\"AmbassadorTest\"},\"name\":\"hostcrdno8080-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8101},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8464}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
+                    },
+                    "creationTimestamp": "2020-07-09T17:30:54Z",
+                    "labels": {
+                        "kat-ambassador-id": "hostcrdno8080",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "hostcrdno8080-http",
+                    "namespace": "default",
+                    "resourceVersion": "10634",
+                    "selfLink": "/api/v1/namespaces/default/services/hostcrdno8080-http",
+                    "uid": "f1066edd-c209-11ea-87b2-0ab82b9da1f7"
+                },
+                "spec": {
+                    "clusterIP": "10.110.27.214",
+                    "ports": [
+                        {
+                            "name": "http",
+                            "port": 80,
+                            "protocol": "TCP",
+                            "targetPort": 8101
+                        },
+                        {
+                            "name": "https",
+                            "port": 443,
+                            "protocol": "TCP",
+                            "targetPort": 8464
+                        }
+                    ],
+                    "selector": {
+                        "backend": "superpod-default"
+                    },
+                    "sessionAffinity": "None",
+                    "type": "ClusterIP"
+                },
+                "status": {
+                    "loadBalancer": {}
+                }
+            },
+            {
+                "apiVersion": "v1",
+                "kind": "Service",
+                "metadata": {
+                    "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"hostcrdno8080\",\"scope\":\"AmbassadorTest\"},\"name\":\"hostcrdno8080\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"hostcrdno8080\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-07-08T22:34:27Z",
+                    "creationTimestamp": "2020-07-09T17:30:54Z",
                     "labels": {
                         "app.kubernetes.io/component": "ambassador-service",
                         "kat-ambassador-id": "hostcrdno8080",
@@ -130,24 +174,24 @@
                     },
                     "name": "hostcrdno8080",
                     "namespace": "default",
-                    "resourceVersion": "3519",
+                    "resourceVersion": "10621",
                     "selfLink": "/api/v1/namespaces/default/services/hostcrdno8080",
-                    "uid": "2ec0bcb7-c16b-11ea-b0ce-0ad2510411a7"
+                    "uid": "f0e6ca94-c209-11ea-87b2-0ab82b9da1f7"
                 },
                 "spec": {
-                    "clusterIP": "10.97.75.102",
+                    "clusterIP": "10.103.210.50",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "http",
-                            "nodePort": 31221,
+                            "nodePort": 31167,
                             "port": 80,
                             "protocol": "TCP",
                             "targetPort": 8080
                         },
                         {
                             "name": "https",
-                            "nodePort": 30299,
+                            "nodePort": 31705,
                             "port": 443,
                             "protocol": "TCP",
                             "targetPort": 8443
@@ -170,7 +214,7 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"hostcrdno8080\",\"scope\":\"AmbassadorTest\",\"service\":\"hostcrdno8080-admin\"},\"name\":\"hostcrdno8080-admin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"hostcrdno8080-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"hostcrdno8080\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-07-08T22:34:27Z",
+                    "creationTimestamp": "2020-07-09T17:30:54Z",
                     "labels": {
                         "kat-ambassador-id": "hostcrdno8080",
                         "scope": "AmbassadorTest",
@@ -178,17 +222,17 @@
                     },
                     "name": "hostcrdno8080-admin",
                     "namespace": "default",
-                    "resourceVersion": "3523",
+                    "resourceVersion": "10626",
                     "selfLink": "/api/v1/namespaces/default/services/hostcrdno8080-admin",
-                    "uid": "2ec9f048-c16b-11ea-b0ce-0ad2510411a7"
+                    "uid": "f0f40e07-c209-11ea-87b2-0ab82b9da1f7"
                 },
                 "spec": {
-                    "clusterIP": "10.101.182.152",
+                    "clusterIP": "10.99.118.219",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "hostcrdno8080-admin",
-                            "nodePort": 30235,
+                            "nodePort": 30017,
                             "port": 8877,
                             "protocol": "TCP",
                             "targetPort": 8877
@@ -199,50 +243,6 @@
                     },
                     "sessionAffinity": "None",
                     "type": "NodePort"
-                },
-                "status": {
-                    "loadBalancer": {}
-                }
-            },
-            {
-                "apiVersion": "v1",
-                "kind": "Service",
-                "metadata": {
-                    "annotations": {
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"hostcrdno8080\",\"scope\":\"AmbassadorTest\"},\"name\":\"hostcrdno8080-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8081},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8444}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
-                    },
-                    "creationTimestamp": "2020-07-08T22:34:28Z",
-                    "labels": {
-                        "kat-ambassador-id": "hostcrdno8080",
-                        "scope": "AmbassadorTest"
-                    },
-                    "name": "hostcrdno8080-http",
-                    "namespace": "default",
-                    "resourceVersion": "3531",
-                    "selfLink": "/api/v1/namespaces/default/services/hostcrdno8080-http",
-                    "uid": "2edd66dc-c16b-11ea-b0ce-0ad2510411a7"
-                },
-                "spec": {
-                    "clusterIP": "10.98.148.147",
-                    "ports": [
-                        {
-                            "name": "http",
-                            "port": 80,
-                            "protocol": "TCP",
-                            "targetPort": 8081
-                        },
-                        {
-                            "name": "https",
-                            "port": 443,
-                            "protocol": "TCP",
-                            "targetPort": 8444
-                        }
-                    ],
-                    "selector": {
-                        "backend": "superpod-default"
-                    },
-                    "sessionAffinity": "None",
-                    "type": "ClusterIP"
                 },
                 "status": {
                     "loadBalancer": {}

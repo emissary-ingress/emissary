@@ -19,13 +19,14 @@ from typing import Any, Dict, List, Optional, TextIO, TYPE_CHECKING
 import binascii
 import hashlib
 import io
+import json
+import logging
+import os
+import requests
 import socket
+import tempfile
 import threading
 import time
-import os
-import logging
-import requests
-import tempfile
 import yaml
 
 from .VERSION import Version
@@ -597,7 +598,7 @@ class SecretInfo:
                 return None
 
             tls_key = cert_data.get('tls.key', None)
-        elif secret_type == 'Opaque':
+        elif secret_type == 'Opaque':	
             user_key = cert_data.get('user.key', None)
 
             if not user_key:
@@ -676,11 +677,12 @@ class SecretHandler:
     source_root: str
     cache_dir: str
 
-    def __init__(self, logger: logging.Logger, source_root: str, cache_dir: str, version: str) -> None:
+    def __init__(self, logger: logging.Logger, source_root: str, cache_dir: str, version: str, debug: bool = False) -> None:
         self.logger = logger
         self.source_root = source_root
         self.cache_dir = cache_dir
         self.version = version
+        self.debug = debug
 
     def load_secret(self, resource: 'IRResource', secret_name: str, namespace: str) -> Optional[SecretInfo]:
         """
@@ -761,33 +763,44 @@ class SecretHandler:
 
             secret_dir = os.path.join(self.cache_dir, namespace, "secrets-decoded", name)
 
-            try:
-                os.makedirs(secret_dir)
-            except FileExistsError:
-                pass
+            if (self.debug):
+                try:
+                    os.makedirs(secret_dir)
+                except FileExistsError:
+                    pass
 
+    
+            # Ugly repetition of conditions. But we only write files to the disk when debugging is on.
+            # Note that the path(s) are still needed (not their value though) because we have some business logic around it.
+            # As an example, in irtlscontext.py, we are using cert_path, key_path and root_cert_path. These need to be refactored later.
             if tls_crt:
                 tls_crt_path = os.path.join(secret_dir, f'{hd}.crt')
-                open(tls_crt_path, "w").write(tls_crt)
+                if (self.debug):
+                    open(tls_crt_path, "w").write(tls_crt)
 
             if tls_key:
                 tls_key_path = os.path.join(secret_dir, f'{hd}.key')
-                open(tls_key_path, "w").write(tls_key)
+                if (self.debug):
+                    open(tls_key_path, "w").write(tls_key)
 
             if user_key:
                 user_key_path = os.path.join(secret_dir, f'{hd}.user')
-                open(user_key_path, "w").write(user_key)
+                if (self.debug):
+                    open(user_key_path, "w").write(user_key)
 
             if root_crt:
                 root_crt_path = os.path.join(secret_dir, f'{hd}.root.crt')
-                open(root_crt_path, "w").write(root_crt)
+                if (self.debug):
+                    open(root_crt_path, "w").write(root_crt)
 
             cert_data = {
                 'tls_crt': tls_crt,
                 'tls_key': tls_key,
-                'user_key': user_key,
-                'root_crt': root_crt,
+                'validation': False if tls_key else True,
             }
+
+            self.logger.debug(f"name: {name}.{namespace} cert_data: {json.dumps(cert_data)}")
+            self.send_secrets_to_ambex(name + '.' + namespace, cert_data)
 
             self.logger.debug(f"saved secret {name}.{namespace}: {tls_crt_path}, {tls_key_path}, {root_crt_path}")
 
@@ -857,6 +870,23 @@ class SecretHandler:
         return SecretInfo.from_dict(resource, secret_name, namespace, source,
                                     cert_data=cert_data, secret_type=secret_type)
 
+    def send_secrets_to_ambex(self, name: str, cert_data: dict):
+      # Create a TCP/IP socket
+      sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+      # Connecting to Ambex to send secrets. 
+      # Keep this in sync with entrypoint.sh.
+      server_address = ('localhost', 8004)
+      self.logger.info (f'connecting to Ambex secrets listener: {server_address}')
+      sock.connect(server_address)
+      try:
+          sock.sendall(json.dumps({ 'name': name, 'data': cert_data}).encode('utf-8'))
+      except:
+          self.logger.error("Ambex secrets listener is not reachable on %s." %
+                                      (server_address))
+      finally:
+          sock.close()
+
 
 class NullSecretHandler(SecretHandler):
     def __init__(self, logger: logging.Logger, source_root: Optional[str], cache_dir: Optional[str], version: str) -> None:
@@ -885,6 +915,9 @@ class NullSecretHandler(SecretHandler):
 
         return SecretInfo(secret_name, namespace, "fake-secret", "fake-tls-crt", "fake-tls-key", "fake-user-key",
                           decode_b64=False)
+
+    def send_secrets_to_ambex(self, name: str, cert_data: dict):
+        return
 
 
 class FSSecretHandler(SecretHandler):

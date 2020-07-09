@@ -385,13 +385,11 @@
                         ],
                         "tls_context": {
                             "common_tls_context": {
-                                "tls_certificates": [
+                                "tls_certificate_sds_secret_configs": [
                                     {
-                                        "certificate_chain": {
-                                            "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrddouble-test-tlscontext-secret-1/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.crt"
-                                        },
-                                        "private_key": {
-                                            "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrddouble-test-tlscontext-secret-1/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.key"
+                                        "name": "tls.hostcrddouble-test-tlscontext-secret-1.default",
+                                        "sds_config": {
+                                            "ads": {}
                                         }
                                     }
                                 ]
@@ -628,13 +626,11 @@
                         ],
                         "tls_context": {
                             "common_tls_context": {
-                                "tls_certificates": [
+                                "tls_certificate_sds_secret_configs": [
                                     {
-                                        "certificate_chain": {
-                                            "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrddouble-test-tlscontext-secret-2/4CB5C4C15C3BBBF727E8572838933519EA42D103.crt"
-                                        },
-                                        "private_key": {
-                                            "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrddouble-test-tlscontext-secret-2/4CB5C4C15C3BBBF727E8572838933519EA42D103.key"
+                                        "name": "tls.hostcrddouble-test-tlscontext-secret-2.default",
+                                        "sds_config": {
+                                            "ads": {}
                                         }
                                     }
                                 ]

@@ -40,6 +40,7 @@ package ambex
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -85,13 +86,16 @@ var (
 	debug bool
 	watch bool
 
-	adsNetwork string
-	adsAddress string
+	adsNetwork           string
+	adsAddress           string
+	secretsListenNetwork string
+	secretsListenAddress string
 
 	legacyAdsPort uint
 
 	// Version is inserted at build using --ldflags -X
 	Version = "-no-version-"
+	secrets []ctypes.Resource
 )
 
 func init() {
@@ -100,13 +104,24 @@ func init() {
 
 	// TODO(lukeshu): Consider changing the default here so we don't need to put it in entrypoint.sh
 	flag.StringVar(&adsNetwork, "ads-listen-network", "tcp", "network for ADS to listen on")
-	flag.StringVar(&adsAddress, "ads-listen-address", ":18000", "address (on --ads-listen-network) for ADS to listen on")
+	flag.StringVar(&adsAddress, "ads-listen-address", ":8003", "address (on --ads-listen-network) for ADS to listen on")
+	flag.StringVar(&secretsListenNetwork, "secrets-listen-network", "tcp", "network for secrets to listen on")
+	flag.StringVar(&secretsListenAddress, "secrets-listen-address", ":8004", "address (on --secrets-listen-network) for secrets to listen on")
 
 	flag.UintVar(&legacyAdsPort, "ads", 0, "port number for ADS to listen on--deprecated, use --ads-listen-address=:1234 instead")
 }
 
 // Hasher returns node ID as an ID
 type Hasher struct {
+}
+
+type Secrets struct {
+	Name string `json:"name"`
+	Data struct {
+		TLSCert    string `json:"tls_crt"` // Certificate Chain
+		TLSKey     string `json:"tls_key"` // Private Key
+		Validation bool   `json:"validation"`
+	} `json:"data"`
 }
 
 // ID function
@@ -140,6 +155,7 @@ func runManagementServer(ctx context.Context, server server.Server, adsNetwork, 
 
 	// register services
 	discovery.RegisterAggregatedDiscoveryServiceServer(grpcServer, server)
+	discovery.RegisterSecretDiscoveryServiceServer(grpcServer, server)
 	v2.RegisterEndpointDiscoveryServiceServer(grpcServer, server)
 	v2.RegisterClusterDiscoveryServiceServer(grpcServer, server)
 	v2.RegisterRouteDiscoveryServiceServer(grpcServer, server)
@@ -235,7 +251,7 @@ func Clone(src proto.Message) proto.Message {
 	return dst
 }
 
-func update(config cache.SnapshotCache, generation *int, dirs []string) {
+func update(snapshotCache cache.SnapshotCache, generation *int, dirs []string) {
 	clusters := []ctypes.Resource{}  // v2.Cluster
 	endpoints := []ctypes.Resource{} // v2.ClusterLoadAssignment
 	routes := []ctypes.Resource{}    // v2.RouteConfiguration
@@ -303,19 +319,24 @@ func update(config cache.SnapshotCache, generation *int, dirs []string) {
 		listeners,
 		runtimes)
 
-	err := snapshot.Consistent()
+	if len(secrets) > 0 {
+		snapshot.Resources[ctypes.Secret] = cache.NewResources(version, secrets)
+	}
 
+	err := snapshot.Consistent()
 	if err != nil {
 		log.Errorf("Snapshot inconsistency: %+v", snapshot)
 	} else {
-		err = config.SetSnapshot("test-id", snapshot)
+		err = snapshotCache.SetSnapshot("test-id", snapshot)
+		// Empty secrets
+		secrets = secrets[:0]
 	}
 
 	if err != nil {
 		log.Fatalf("Snapshot error %q for %+v", err, snapshot)
 	} else {
 		// log.Infof("Snapshot %+v", snapshot)
-		log.Infof("Pushing snapshot %+v", version)
+		log.Infof("Pushed snapshot %+v to Envoy", version)
 	}
 }
 
@@ -399,8 +420,8 @@ func Main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	config := cache.NewSnapshotCache(true, Hasher{}, log)
-	srv := server.NewServer(ctx, config, log)
+	snapshotCache := cache.NewSnapshotCache(true, Hasher{}, log)
+	srv := server.NewServer(ctx, snapshotCache, log)
 
 	runManagementServer(ctx, srv, adsNetwork, adsAddress)
 
@@ -411,26 +432,80 @@ func Main() {
 	}
 
 	generation := 0
-	update(config, &generation, dirs)
+	update(snapshotCache, &generation, dirs)
+
+	// Listen for incoming connections for secrets.
+	listener, err := net.Listen(secretsListenNetwork, secretsListenAddress)
+	if err != nil {
+		log.Errorf("Ambex error listening for secrets: %s", err.Error())
+		os.Exit(1)
+	}
+	// Close the listener when the application closes.
+	// defer l.Close()
+	log.Infof("Ambex listening for secrets on %s", secretsListenAddress)
+
+	newConns := make(chan net.Conn)
+
+	// For every listener spawn the following routine
+	go func(l net.Listener) {
+		for {
+			sdsConn, err := l.Accept()
+			if err != nil {
+				newConns <- nil
+				log.Error("Ambex error accepting secrets connection: %s", err.Error())
+				os.Exit(1)
+			}
+			// The sdsConn will be closed bellow after it has received over the channel.
+			newConns <- sdsConn
+		}
+	}(listener)
 
 OUTER:
 	for {
-
 		select {
 		case sig := <-ch:
 			switch sig {
 			case syscall.SIGHUP:
-				update(config, &generation, dirs)
+				update(snapshotCache, &generation, dirs)
 			case os.Interrupt, syscall.SIGTERM:
 				break OUTER
 			}
 		case <-watcher.Events:
-			update(config, &generation, dirs)
+			update(snapshotCache, &generation, dirs)
 		case err := <-watcher.Errors:
 			log.WithError(err).Warn("Watcher error")
+		case sdsConn := <-newConns:
+			// Handle incoming connection from python side for secrets
+			handleRequest(sdsConn, snapshotCache)
 		}
-
 	}
 
 	log.Info("Done")
+}
+
+func handleRequest(conn net.Conn, snapshotCache cache.SnapshotCache) {
+	defer conn.Close()
+	d := json.NewDecoder(conn)
+	var msg Secrets
+	err := d.Decode(&msg)
+	if err != nil {
+		log.Error("Error reading:", err.Error())
+	}
+	// If we receive an empty message, we just skip the rest of function.
+	if (Secrets{}) == msg {
+		return
+	}
+
+	log.WithFields(logrus.Fields{
+		"Cert name":  msg.Name,
+		"TLSCert":    msg.Data.TLSCert,
+		"TLSKey":     msg.Data.TLSKey,
+		"Validation": msg.Data.Validation,
+	}).Debug("Data received")
+
+	if msg.Data.Validation {
+		secrets = append(secrets, GetTrustedCA(&msg))
+	} else {
+		secrets = append(secrets, GetCertificateChain(&msg))
+	}
 }

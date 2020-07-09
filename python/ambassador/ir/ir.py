@@ -736,10 +736,10 @@ class IR:
                 if secret_info:
                     using_tls_contexts = True
 
-                    if secret_info.get('certificate_chain_file', None):
+                    if secret_info.get('secret', None):
                         tls_termination_count += 1
 
-                    if secret_info.get('cacert_chain_file', None):
+                    if secret_info.get('ca_secret', None):
                         tls_origination_count += 1
 
                 if ctx.get('_legacy', False):
