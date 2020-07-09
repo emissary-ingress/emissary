@@ -1,4 +1,4 @@
-from kat.harness import variants, Query
+from kat.harness import EDGE_STACK, variants, Query
 
 from abstract_tests import AmbassadorTest, HTTP
 from abstract_tests import MappingTest, OptionTest, ServiceType
@@ -568,6 +568,35 @@ add_response_headers:
                 assert r.headers['Test'] == ['Test', 'boo']
                 assert r.headers['Foo'] == ['Foo']
 
+# To make sure queries to Edge stack related paths adds X-Content-Type-Options = nosniff in the response header
+# and not to any other mappings/routes
+class EdgeStackMapping(MappingTest):
+    parent: AmbassadorTest
+    target: ServiceType
+
+    def init(self):
+        MappingTest.init(self, HTTP())
+ 
+        if not EDGE_STACK:
+            self.skip_node = True
+
+    def config(self):
+        yield self.target, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.name}
+prefix: /{self.name}/
+service: http://{self.target.path.fqdn}
+""")
+
+    def queries(self):
+        yield Query(self.parent.url("edge_stack/admin/"), expected=200)
+        yield Query(self.parent.url(self.name + "/"), expected=200)
+
+    def check(self):
+        assert self.results[0].headers['X-Content-Type-Options'] == ['nosniff']
+        assert "X-Content-Type-Options" not in self.results[1].headers
 
 class RemoveReqHeadersMapping(MappingTest):
     parent: AmbassadorTest

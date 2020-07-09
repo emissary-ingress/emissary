@@ -9,6 +9,7 @@ from kat.utils import namespace_manifest
 class Empty(AmbassadorTest):
     single_namespace = True
     namespace = "empty-namespace"
+    extra_ports = [8877]
 
     def init(self):
         if EDGE_STACK:
@@ -26,6 +27,7 @@ class Empty(AmbassadorTest):
 
     def queries(self):
         yield Query(self.url("ambassador/v0/diag/?json=true&filter=errors"), phase=2)
+        yield Query(self.url("_internal/v0/ping", scheme="http", port=8877), expected=403)
 
     def check(self):
         # XXX Ew. If self.results[0].json is empty, the harness won't convert it to a response.

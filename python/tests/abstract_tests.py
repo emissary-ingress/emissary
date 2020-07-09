@@ -62,7 +62,9 @@ def assert_default_errors(errors, include_ingress_errors=True):
         )
 
     number_of_default_errors = len(default_errors)
-    assert errors[:number_of_default_errors] == default_errors
+
+    if errors[:number_of_default_errors] != default_errors:
+        assert False, f"default error table mismatch: got\n{errors}"
 
     for error in errors[number_of_default_errors:]:
         assert 'found invalid port' in error[1], "Could not find 'found invalid port' in the error {}".format(error[1])
