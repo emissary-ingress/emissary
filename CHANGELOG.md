@@ -50,7 +50,9 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ### Ambassador API Gateway + Ambassador Edge Stack
 
+- BREAKING CHANGE: Turning off the Diagnostics UI via the Ambassador Module disables access to it from outside the Ambassador Pod.
 - Feature: Add support for circuit breakers in TCP mapping
+- Internal: Configuration endpoints used internally by Ambassador are no longer accessible from outside the Ambassador Pod.
 
 ## [1.5.5] June 30, 2020
 [1.5.5]: https://github.com/datawire/ambassador/compare/vv1.5.4...v1.5.5

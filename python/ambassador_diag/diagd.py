@@ -314,7 +314,41 @@ def standard_handler(f):
     return wrapper
 
 
+def internal_handler(f):
+    """
+    Reject requests where the remote address is not localhost.
+
+    This works because of an implementation detail of Flask (Werkzeug), the
+    existence of the REMOTE_ADDR environment variable. This may not work as
+    intended on other WSGI implementations, though if the environment variable
+    is missing entirely, the effect is to fail closed, i.e. all requests will
+    be rejected, in which case the problem will become apparent very quickly.
+
+    For a somewhat more portable implementation, consider using the environment
+    variables SERVER_NAME and SERVER_PORT instead, as those are required by
+    WSGI. It's not clear (to me, ark3) what they mean, and relying on what they
+    do in Flask/Werkzeug yielded a worse implementation that was still not
+    portable.
+    """
+    func_name = getattr(f, '__name__', '<anonymous>')
+
+    @functools.wraps(f)
+    def wrapper(*args, **kwds):
+        if not _is_local_request():
+            return "Forbidden\n", 403
+        return f(*args, **kwds)
+
+    return wrapper
+
+
 ######## UTILITIES
+
+
+def _is_local_request() -> bool:
+    """
+    See the docstring for internal_handler(...) for important caveats.
+    """
+    return request.environ.get("REMOTE_ADDR") == "127.0.0.1"
 
 
 class Notices:
@@ -471,26 +505,13 @@ def filter_webui(d: Dict[Any, Any]):
 
 
 @app.route('/_internal/v0/ping', methods=[ 'GET' ])
+@internal_handler
 def handle_ping():
     return "ACK\n", 200
 
 
-@app.route('/_internal/v0/update', methods=[ 'POST' ])
-def handle_kubewatch_update():
-    url = request.args.get('url', None)
-
-    if not url:
-        app.logger.error("error: update requested with no URL")
-        return "error: update requested with no URL\n", 400
-
-    app.logger.debug("Update requested: kubewatch, %s" % url)
-
-    status, info = app.watcher.post('CONFIG', ( 'kw', url ))
-
-    return info, status
-
-
 @app.route('/_internal/v0/watt', methods=[ 'POST' ])
+@internal_handler
 def handle_watt_update():
     url = request.args.get('url', None)
 
@@ -506,6 +527,7 @@ def handle_watt_update():
 
 
 @app.route('/_internal/v0/fs', methods=[ 'POST' ])
+@internal_handler
 def handle_fs():
     path = request.args.get('path', None)
 
@@ -521,6 +543,7 @@ def handle_fs():
 
 
 @app.route('/_internal/v0/events', methods=[ 'GET' ])
+@internal_handler
 def handle_events():
     if not app.local_scout:
         return 'Local Scout is not enabled\n', 400
@@ -567,6 +590,12 @@ def check_ready():
 @app.route('/ambassador/v0/diag/', methods=[ 'GET' ])
 @standard_handler
 def show_overview(reqid=None):
+    enabled = app.ir and app.ir.ambassador_module.diagnostics.get("enabled", False)
+    if not enabled and not _is_local_request():
+        return Response("Not found\n", 404)
+
+    app.logger.debug("OV %s - showing overview" % reqid)
+
     diag = app.diag
 
     if not diag:
@@ -687,6 +716,12 @@ def collect_errors_and_notices(request, reqid, what: str, diag: Diagnostics) -> 
 @app.route('/ambassador/v0/diag/<path:source>', methods=[ 'GET' ])
 @standard_handler
 def show_intermediate(source=None, reqid=None):
+    enabled = app.ir and app.ir.ambassador_module.diagnostics.get("enabled", False)
+    if not enabled and not _is_local_request():
+        return Response("Not found\n", 404)
+
+    app.logger.debug("SRC %s - getting intermediate for '%s'" % (reqid, source))
+
     diag = app.diag
 
     if not diag:

@@ -23,7 +23,7 @@
                         "getambassador.io/config": "---\napiVersion: ambassador/v1\nkind: Mapping\nname: SafeRegexMapping\nprefix: /SafeRegexMapping/\nprefix_regex: true\nhost: \"[a-zA-Z].*\"\nhost_regex: true\nregex_headers:\n  X-Foo: \"^[a-z].*\"\nservice: http://saferegexmapping-http\nambassador_id: saferegexmapping\n",
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v1\\nkind: Mapping\\nname: SafeRegexMapping\\nprefix: /SafeRegexMapping/\\nprefix_regex: true\\nhost: \\\"[a-zA-Z].*\\\"\\nhost_regex: true\\nregex_headers:\\n  X-Foo: \\\"^[a-z].*\\\"\\nservice: http://saferegexmapping-http\\nambassador_id: saferegexmapping\\n\"},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"saferegexmapping\",\"scope\":\"AmbassadorTest\"},\"name\":\"saferegexmapping\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"saferegexmapping\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-06-25T03:49:05Z",
+                    "creationTimestamp": "2020-07-08T12:23:44Z",
                     "labels": {
                         "app.kubernetes.io/component": "ambassador-service",
                         "kat-ambassador-id": "saferegexmapping",
@@ -31,24 +31,24 @@
                     },
                     "name": "saferegexmapping",
                     "namespace": "default",
-                    "resourceVersion": "85993835",
+                    "resourceVersion": "53308",
                     "selfLink": "/api/v1/namespaces/default/services/saferegexmapping",
-                    "uid": "d0b91741-b696-11ea-bc23-022a80997af0"
+                    "uid": "ddb7edbf-c115-11ea-911e-1235a2d91ba9"
                 },
                 "spec": {
-                    "clusterIP": "100.65.110.132",
+                    "clusterIP": "10.99.49.31",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "http",
-                            "nodePort": 32020,
+                            "nodePort": 30235,
                             "port": 80,
                             "protocol": "TCP",
                             "targetPort": 8080
                         },
                         {
                             "name": "https",
-                            "nodePort": 30161,
+                            "nodePort": 32586,
                             "port": 443,
                             "protocol": "TCP",
                             "targetPort": 8443
@@ -71,7 +71,7 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"saferegexmapping\",\"scope\":\"AmbassadorTest\",\"service\":\"saferegexmapping-admin\"},\"name\":\"saferegexmapping-admin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"saferegexmapping-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"saferegexmapping\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-06-25T03:49:05Z",
+                    "creationTimestamp": "2020-07-08T12:23:44Z",
                     "labels": {
                         "kat-ambassador-id": "saferegexmapping",
                         "scope": "AmbassadorTest",
@@ -79,17 +79,17 @@
                     },
                     "name": "saferegexmapping-admin",
                     "namespace": "default",
-                    "resourceVersion": "85993839",
+                    "resourceVersion": "53312",
                     "selfLink": "/api/v1/namespaces/default/services/saferegexmapping-admin",
-                    "uid": "d0cc68d7-b696-11ea-bc23-022a80997af0"
+                    "uid": "ddc168db-c115-11ea-911e-1235a2d91ba9"
                 },
                 "spec": {
-                    "clusterIP": "100.71.21.166",
+                    "clusterIP": "10.105.168.242",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "saferegexmapping-admin",
-                            "nodePort": 32574,
+                            "nodePort": 30167,
                             "port": 8877,
                             "protocol": "TCP",
                             "targetPort": 8877
@@ -112,19 +112,19 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"saferegexmapping\",\"scope\":\"AmbassadorTest\"},\"name\":\"saferegexmapping-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8082},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8445}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
                     },
-                    "creationTimestamp": "2020-06-25T03:49:05Z",
+                    "creationTimestamp": "2020-07-08T12:23:44Z",
                     "labels": {
                         "kat-ambassador-id": "saferegexmapping",
                         "scope": "AmbassadorTest"
                     },
                     "name": "saferegexmapping-http",
                     "namespace": "default",
-                    "resourceVersion": "85993844",
+                    "resourceVersion": "53322",
                     "selfLink": "/api/v1/namespaces/default/services/saferegexmapping-http",
-                    "uid": "d0e80d1c-b696-11ea-bc23-022a80997af0"
+                    "uid": "ddd5ce90-c115-11ea-911e-1235a2d91ba9"
                 },
                 "spec": {
-                    "clusterIP": "100.65.111.240",
+                    "clusterIP": "10.110.144.55",
                     "ports": [
                         {
                             "name": "http",

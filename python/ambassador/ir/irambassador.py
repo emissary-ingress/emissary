@@ -31,7 +31,6 @@ class IRAmbassador (IRResource):
         'default_label_domain',
         'default_labels',
         # Do not include defaults, that's handled manually in setup.
-        'diag_port',
         'diagnostics',
         'enable_http10',
         'enable_ipv6',
@@ -62,7 +61,6 @@ class IRAmbassador (IRResource):
     ]
 
     service_port: int
-    diag_port: int
     default_label_domain: str
 
     # Set up the default probes and such.
@@ -93,7 +91,6 @@ class IRAmbassador (IRResource):
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
             service_port=Constants.SERVICE_PORT_HTTP,
             admin_port=Constants.ADMIN_PORT,
-            diag_port=Constants.DIAG_PORT,
             auth_enabled=None,
             enable_ipv6=False,
             envoy_log_type="text",
@@ -180,8 +177,7 @@ class IRAmbassador (IRResource):
             self.default_labels: Dict[str, Any] = {}
 
         # Next up: diag port & services.
-        diag_port = aconf.module_lookup('ambassador', 'diag_port', Constants.DIAG_PORT)
-        diag_service = "127.0.0.1:%d" % diag_port
+        diag_service = "127.0.0.1:%d" % Constants.DIAG_PORT
 
         for name, cur, dflt in [
             ("liveness",    self.liveness_probe,  IRAmbassador.default_liveness_probe),
@@ -302,6 +298,7 @@ class IRAmbassador (IRResource):
         if ir.edge_stack_allowed:
             if self.diagnostics and self.diagnostics.get("enabled", False):
                 ir.logger.debug("adding mappings for Edge Policy Console")
+                edge_stack_response_header = {"x-content-type-options": "nosniff"}
                 mapping = IRHTTPMapping(ir, aconf, rkey=self.rkey, location=self.location,
                                         name="edgestack-direct-mapping",
                                         metadata_labels={"ambassador_diag_class": "private"},
@@ -309,7 +306,8 @@ class IRAmbassador (IRResource):
                                         rewrite="/edge_stack_ui/edge_stack/",
                                         service="127.0.0.1:8500",
                                         precedence=1000000,
-                                        timeout_ms=60000)
+                                        timeout_ms=60000,
+                                        add_response_headers=edge_stack_response_header)
                 mapping.referenced_by(self)
                 ir.add_mapping(aconf, mapping)
 
@@ -320,7 +318,8 @@ class IRAmbassador (IRResource):
                                         rewrite="/edge_stack_ui/",
                                         service="127.0.0.1:8500",
                                         precedence=-1000000,
-                                        timeout_ms=60000)
+                                        timeout_ms=60000,
+                                        add_response_headers=edge_stack_response_header)
                 mapping.referenced_by(self)
                 ir.add_mapping(aconf, mapping)
             else:

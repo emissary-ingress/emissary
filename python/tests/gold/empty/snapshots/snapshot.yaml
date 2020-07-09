@@ -20,9 +20,9 @@
                 "kind": "Service",
                 "metadata": {
                     "annotations": {
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"empty\",\"scope\":\"AmbassadorTest\"},\"name\":\"empty\",\"namespace\":\"empty-namespace\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"empty\"},\"type\":\"NodePort\"}}\n"
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"empty\",\"scope\":\"AmbassadorTest\"},\"name\":\"empty\",\"namespace\":\"empty-namespace\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443},{\"name\":\"extra-8877\",\"port\":8877,\"protocol\":\"TCP\",\"targetPort\":8877}],\"selector\":{\"service\":\"empty\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-06-25T03:49:03Z",
+                    "creationTimestamp": "2020-07-08T12:23:43Z",
                     "labels": {
                         "app.kubernetes.io/component": "ambassador-service",
                         "kat-ambassador-id": "empty",
@@ -30,27 +30,34 @@
                     },
                     "name": "empty",
                     "namespace": "empty-namespace",
-                    "resourceVersion": "85993786",
+                    "resourceVersion": "53238",
                     "selfLink": "/api/v1/namespaces/empty-namespace/services/empty",
-                    "uid": "cfc23b93-b696-11ea-bc23-022a80997af0"
+                    "uid": "dd018882-c115-11ea-911e-1235a2d91ba9"
                 },
                 "spec": {
-                    "clusterIP": "100.65.120.69",
+                    "clusterIP": "10.103.14.241",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "http",
-                            "nodePort": 31808,
+                            "nodePort": 30673,
                             "port": 80,
                             "protocol": "TCP",
                             "targetPort": 8080
                         },
                         {
                             "name": "https",
-                            "nodePort": 30665,
+                            "nodePort": 32355,
                             "port": 443,
                             "protocol": "TCP",
                             "targetPort": 8443
+                        },
+                        {
+                            "name": "extra-8877",
+                            "nodePort": 32427,
+                            "port": 8877,
+                            "protocol": "TCP",
+                            "targetPort": 8877
                         }
                     ],
                     "selector": {
@@ -70,7 +77,7 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"empty\",\"scope\":\"AmbassadorTest\",\"service\":\"empty-admin\"},\"name\":\"empty-admin\",\"namespace\":\"empty-namespace\"},\"spec\":{\"ports\":[{\"name\":\"empty-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"empty\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-06-25T03:49:03Z",
+                    "creationTimestamp": "2020-07-08T12:23:43Z",
                     "labels": {
                         "kat-ambassador-id": "empty",
                         "scope": "AmbassadorTest",
@@ -78,17 +85,17 @@
                     },
                     "name": "empty-admin",
                     "namespace": "empty-namespace",
-                    "resourceVersion": "85993791",
+                    "resourceVersion": "53242",
                     "selfLink": "/api/v1/namespaces/empty-namespace/services/empty-admin",
-                    "uid": "cfd65efc-b696-11ea-bc23-022a80997af0"
+                    "uid": "dd0d9e8d-c115-11ea-911e-1235a2d91ba9"
                 },
                 "spec": {
-                    "clusterIP": "100.70.88.129",
+                    "clusterIP": "10.101.227.48",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "empty-admin",
-                            "nodePort": 30958,
+                            "nodePort": 30322,
                             "port": 8877,
                             "protocol": "TCP",
                             "targetPort": 8877
