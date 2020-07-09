@@ -29,6 +29,7 @@
         "location": "--internal--",
         "name": "ir.ambassador",
         "namespace": "empty-namespace",
+        "preserve_external_request_id": false,
         "proper_case": false,
         "readiness_probe": {
             "enabled": true,

@@ -32,6 +32,7 @@
         "location": "redirecttestswithproxyproto.default.1",
         "name": "ir.ambassador",
         "namespace": "default",
+        "preserve_external_request_id": false,
         "proper_case": false,
         "readiness_probe": {
             "enabled": true,
@@ -108,7 +109,7 @@
             "service": "redirecttestswithproxyproto-http",
             "targets": [
                 {
-                    "ip": "redirecttestswithproxyproto-http.default",
+                    "ip": "redirecttestswithproxyproto-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -495,7 +496,7 @@
                         "service": "redirecttestswithproxyproto-http",
                         "targets": [
                             {
-                                "ip": "redirecttestswithproxyproto-http.default",
+                                "ip": "redirecttestswithproxyproto-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }

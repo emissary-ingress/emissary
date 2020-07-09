@@ -1,27 +1,27 @@
 from typing import Optional, TYPE_CHECKING
 
+from .ircluster import IRCluster
+from .irresource import IRResource
 from ..config import Config
 from ..utils import RichStatus
-
-from .irresource import IRResource
-from .ircluster import IRCluster
 
 if TYPE_CHECKING:
     from .ir import IR
 
 
-class IRTracing (IRResource):
+class IRTracing(IRResource):
     cluster: Optional[IRCluster]
     service: str
     driver: str
     driver_config: dict
     tag_headers: list
     host_rewrite: Optional[str]
+    sampling: dict
 
     def __init__(self, ir: 'IR', aconf: Config,
-                 rkey: str="ir.tracing",
-                 kind: str="ir.tracing",
-                 name: str="tracing",
+                 rkey: str = "ir.tracing",
+                 kind: str = "ir.tracing",
+                 name: str = "tracing",
                  namespace: Optional[str] = None,
                  **kwargs) -> None:
         del kwargs  # silence unused-variable warning
@@ -79,6 +79,7 @@ class IRTracing (IRResource):
         self.cluster = None
         self.driver_config = config.get("config", {})
         self.tag_headers = config.get('tag_headers', [])
+        self.sampling = config.get('sampling', {})
 
         # XXX host_rewrite actually isn't in the schema right now.
         self.host_rewrite = config.get('host_rewrite', None)

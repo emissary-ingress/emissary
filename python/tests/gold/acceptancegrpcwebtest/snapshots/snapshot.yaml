@@ -23,7 +23,7 @@
                         "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind: Module\nname: ambassador\nconfig:\n  enable_grpc_web: True\nambassador_id: acceptancegrpcwebtest\n\n---\napiVersion: ambassador/v0\nkind: Mapping\ngrpc: True\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nname: acceptancegrpcwebtest-egrpc\nservice: acceptancegrpcwebtest-egrpc\nambassador_id: acceptancegrpcwebtest\n",
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v0\\nkind: Module\\nname: ambassador\\nconfig:\\n  enable_grpc_web: True\\nambassador_id: acceptancegrpcwebtest\\n\\n---\\napiVersion: ambassador/v0\\nkind: Mapping\\ngrpc: True\\nprefix: /echo.EchoService/\\nrewrite: /echo.EchoService/\\nname: acceptancegrpcwebtest-egrpc\\nservice: acceptancegrpcwebtest-egrpc\\nambassador_id: acceptancegrpcwebtest\\n\"},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"acceptancegrpcwebtest\",\"scope\":\"AmbassadorTest\"},\"name\":\"acceptancegrpcwebtest\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"acceptancegrpcwebtest\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-07-06T15:19:55Z",
+                    "creationTimestamp": "2020-07-09T17:30:48Z",
                     "labels": {
                         "app.kubernetes.io/component": "ambassador-service",
                         "kat-ambassador-id": "acceptancegrpcwebtest",
@@ -31,24 +31,24 @@
                     },
                     "name": "acceptancegrpcwebtest",
                     "namespace": "default",
-                    "resourceVersion": "19504",
+                    "resourceVersion": "10424",
                     "selfLink": "/api/v1/namespaces/default/services/acceptancegrpcwebtest",
-                    "uid": "25b13854-bf9c-11ea-b9b6-0e01d46fe775"
+                    "uid": "ed6afbcc-c209-11ea-87b2-0ab82b9da1f7"
                 },
                 "spec": {
-                    "clusterIP": "10.102.176.91",
+                    "clusterIP": "10.97.229.213",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "http",
-                            "nodePort": 30826,
+                            "nodePort": 31792,
                             "port": 80,
                             "protocol": "TCP",
                             "targetPort": 8080
                         },
                         {
                             "name": "https",
-                            "nodePort": 31564,
+                            "nodePort": 30744,
                             "port": 443,
                             "protocol": "TCP",
                             "targetPort": 8443
@@ -71,7 +71,7 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"acceptancegrpcwebtest\",\"scope\":\"AmbassadorTest\",\"service\":\"acceptancegrpcwebtest-admin\"},\"name\":\"acceptancegrpcwebtest-admin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"acceptancegrpcwebtest-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"acceptancegrpcwebtest\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-07-06T15:19:55Z",
+                    "creationTimestamp": "2020-07-09T17:30:48Z",
                     "labels": {
                         "kat-ambassador-id": "acceptancegrpcwebtest",
                         "scope": "AmbassadorTest",
@@ -79,17 +79,17 @@
                     },
                     "name": "acceptancegrpcwebtest-admin",
                     "namespace": "default",
-                    "resourceVersion": "19509",
+                    "resourceVersion": "10430",
                     "selfLink": "/api/v1/namespaces/default/services/acceptancegrpcwebtest-admin",
-                    "uid": "25bf5cb0-bf9c-11ea-b9b6-0e01d46fe775"
+                    "uid": "ed74fe40-c209-11ea-87b2-0ab82b9da1f7"
                 },
                 "spec": {
-                    "clusterIP": "10.111.47.38",
+                    "clusterIP": "10.101.78.202",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "acceptancegrpcwebtest-admin",
-                            "nodePort": 31939,
+                            "nodePort": 32397,
                             "port": 8877,
                             "protocol": "TCP",
                             "targetPort": 8877
@@ -112,19 +112,19 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"acceptancegrpcwebtest\",\"scope\":\"AmbassadorTest\"},\"name\":\"acceptancegrpcwebtest-egrpc\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"backend\":\"acceptancegrpcwebtest-egrpc\"}}}\n"
                     },
-                    "creationTimestamp": "2020-07-06T15:19:55Z",
+                    "creationTimestamp": "2020-07-09T17:30:48Z",
                     "labels": {
                         "kat-ambassador-id": "acceptancegrpcwebtest",
                         "scope": "AmbassadorTest"
                     },
                     "name": "acceptancegrpcwebtest-egrpc",
                     "namespace": "default",
-                    "resourceVersion": "19515",
+                    "resourceVersion": "10439",
                     "selfLink": "/api/v1/namespaces/default/services/acceptancegrpcwebtest-egrpc",
-                    "uid": "25d44293-bf9c-11ea-b9b6-0e01d46fe775"
+                    "uid": "ed9f13b3-c209-11ea-87b2-0ab82b9da1f7"
                 },
                 "spec": {
-                    "clusterIP": "10.102.213.75",
+                    "clusterIP": "10.99.253.119",
                     "ports": [
                         {
                             "name": "http",

@@ -106,6 +106,20 @@ workflows:
                 # shows as branch="pull/${number}"); they won't have
                 # GH_TOKEN set to be able to pull getambassador.io.git
                 - /^pull\/[0-9]+$/
+      # Don't bother running the BLC until we've taught it to ignore
+      # broken links from the CMS that the PR author can't do anything
+      # about.  Count on Kenn watching it in getambassador.io.git, and
+      # mocking any devs that write broken links.
+      #
+      #- "website-preview-blc":
+      #    requires: ["website-preview-build"]
+      #    filters:
+      #      branches:
+      #        ignore:
+      #          # Don't bother running on forked PRs (which CircleCI
+      #          # shows as branch="pull/${number}"); they won't have
+      #          # GH_TOKEN set to be able to pull getambassador.io.git
+      #          - /^pull\/[0-9]+$/
   "Docs: Prerelease":
     # Run preview-build+preview-publish on prerelease tags so that we
     # have a preview for the smoke-testers to use.  Do this in a
@@ -117,7 +131,7 @@ workflows:
       - "website-preview-for-smoketest":
           filters:
             tags:
-              only: /^v[0-9]+\.[0-9]+\.[0-9]+-.*/
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
             branches:
               ignore: /.*/
   "Docs: Release":

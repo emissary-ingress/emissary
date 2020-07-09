@@ -43,6 +43,7 @@
         "location": "authenticationhttpbufferedtest.default.1",
         "name": "ir.ambassador",
         "namespace": "default",
+        "preserve_external_request_id": false,
         "proper_case": false,
         "readiness_probe": {
             "enabled": true,
@@ -119,7 +120,7 @@
             "service": "authenticationhttpbufferedtest-http",
             "targets": [
                 {
-                    "ip": "authenticationhttpbufferedtest-http.default",
+                    "ip": "authenticationhttpbufferedtest-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -153,7 +154,7 @@
             "service": "authenticationhttpbufferedtest-http-auth",
             "targets": [
                 {
-                    "ip": "authenticationhttpbufferedtest-http-auth.default",
+                    "ip": "authenticationhttpbufferedtest-http-auth",
                     "port": 443,
                     "target_kind": "DNSname"
                 }
@@ -247,7 +248,7 @@
                 "service": "authenticationhttpbufferedtest-http-auth",
                 "targets": [
                     {
-                        "ip": "authenticationhttpbufferedtest-http-auth.default",
+                        "ip": "authenticationhttpbufferedtest-http-auth",
                         "port": 443,
                         "target_kind": "DNSname"
                     }
@@ -706,7 +707,7 @@
                         "service": "authenticationhttpbufferedtest-http",
                         "targets": [
                             {
-                                "ip": "authenticationhttpbufferedtest-http.default",
+                                "ip": "authenticationhttpbufferedtest-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }

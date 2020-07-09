@@ -29,6 +29,7 @@
         "location": "--internal--",
         "name": "ir.ambassador",
         "namespace": "default",
+        "preserve_external_request_id": false,
         "proper_case": false,
         "readiness_probe": {
             "enabled": true,
@@ -105,7 +106,7 @@
             "service": "authenticationhttppartialbuffertest-http",
             "targets": [
                 {
-                    "ip": "authenticationhttppartialbuffertest-http.default",
+                    "ip": "authenticationhttppartialbuffertest-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -139,7 +140,7 @@
             "service": "authenticationhttppartialbuffertest-http-auth",
             "targets": [
                 {
-                    "ip": "authenticationhttppartialbuffertest-http-auth.default",
+                    "ip": "authenticationhttppartialbuffertest-http-auth",
                     "port": 443,
                     "target_kind": "DNSname"
                 }
@@ -220,7 +221,7 @@
                 "service": "authenticationhttppartialbuffertest-http-auth",
                 "targets": [
                     {
-                        "ip": "authenticationhttppartialbuffertest-http-auth.default",
+                        "ip": "authenticationhttppartialbuffertest-http-auth",
                         "port": 443,
                         "target_kind": "DNSname"
                     }
@@ -651,7 +652,7 @@
                         "service": "authenticationhttppartialbuffertest-http",
                         "targets": [
                             {
-                                "ip": "authenticationhttppartialbuffertest-http.default",
+                                "ip": "authenticationhttppartialbuffertest-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }

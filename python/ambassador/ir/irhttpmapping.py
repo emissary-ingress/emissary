@@ -5,13 +5,12 @@ from typing import Any, ClassVar, Dict, List, Optional, Type, Union, TYPE_CHECKI
 
 from ..config import Config
 
-from .irbasemapping import IRBaseMapping
+from .irbasemapping import IRBaseMapping, qualify_service_name
 from .irbasemappinggroup import IRBaseMappingGroup
 from .irhttpmappinggroup import IRHTTPMappingGroup
 from .ircors import IRCORS
 from .irretrypolicy import IRRetryPolicy
 
-import json
 import hashlib
 
 if TYPE_CHECKING:
@@ -124,6 +123,7 @@ class IRHTTPMapping (IRBaseMapping):
                  rkey: str,      # REQUIRED
                  name: str,      # REQUIRED
                  location: str,  # REQUIRED
+                 service: str,   # REQUIRED
                  namespace: Optional[str] = None,
                  metadata_labels: Optional[Dict[str, str]] = None,
                  kind: str="IRHTTPMapping",
@@ -214,15 +214,11 @@ class IRHTTPMapping (IRBaseMapping):
         # Remember that we may need to add the Linkerd headers, too.
         add_linkerd_headers = new_args.get('add_linkerd_headers', False)
 
-        if add_linkerd_headers:
-            # Yup. We need the service info for this...
+        service = qualify_service_name(ir, service, namespace)
+        svc = Service(ir.logger, service)
 
-            if 'service' in kwargs:
-                svc = Service(ir.logger, kwargs['service'])
-                add_request_hdrs['l5d-dst-override'] = svc.hostname_port
-            else: 
-                # Uh. This is pretty much impossible.
-                self.post_error("Service is required for HTTP Mappings")
+        if add_linkerd_headers:
+            add_request_hdrs['l5d-dst-override'] = svc.hostname_port
 
         # XXX BRUTAL HACK HERE:
         # If we _don't_ have an origination context, but our IR has an agent_origination_ctx,
@@ -252,7 +248,7 @@ class IRHTTPMapping (IRBaseMapping):
 
         # ...and then init the superclass.
         super().__init__(
-            ir=ir, aconf=aconf, rkey=rkey, location=location,
+            ir=ir, aconf=aconf, rkey=rkey, location=location, service=service,
             kind=kind, name=name, namespace=namespace, metadata_labels=metadata_labels,
             apiVersion=apiVersion, headers=hdrs, add_request_headers=add_request_hdrs, add_response_headers = add_response_hdrs,
             precedence=precedence, rewrite=rewrite, cluster_tag=cluster_tag,
@@ -346,56 +342,6 @@ class IRHTTPMapping (IRBaseMapping):
             if not self.validate_load_balancer(self['load_balancer']):
                 self.post_error("Invalid load_balancer specified: {}, invalidating mapping".format(self['load_balancer']))
                 return False
-
-        if self.get('circuit_breakers', None) is None:
-            self['circuit_breakers'] = ir.ambassador_module.circuit_breakers
-
-        if self.get('circuit_breakers', None) is not None:
-            if not self.validate_circuit_breakers(ir, self['circuit_breakers']):
-                self.post_error("Invalid circuit_breakers specified: {}, invalidating mapping".format(self['circuit_breakers']))
-                return False
-
-        return True
-
-    @staticmethod
-    def validate_circuit_breakers(ir: 'IR', circuit_breakers) -> bool:
-        if not isinstance(circuit_breakers, (list, tuple)):
-            return False
-
-        for circuit_breaker in circuit_breakers:
-            if '_name' in circuit_breaker:
-                # Already reconciled.
-                ir.logger.debug(f'Breaker validation: good breaker {circuit_breaker["_name"]}')
-                continue
-
-            ir.logger.debug(f'Breaker validation: {json.dumps(circuit_breakers, indent=4, sort_keys=True)}')
-
-            name_fields = [ 'cb' ]
-
-            if 'priority' in circuit_breaker:
-                prio = circuit_breaker.get('priority').lower()
-                if prio not in ['default', 'high']:
-                    return False
-
-                name_fields.append(prio[0])
-            else:
-                name_fields.append('n')
-
-            digit_fields = [ ( 'max_connections', 'c' ),
-                             ( 'max_pending_requests', 'p' ),
-                             ( 'max_requests', 'r' ),
-                             ( 'max_retries', 't' ) ]
-
-            for field, abbrev in digit_fields:
-                if field in circuit_breaker:
-                    try:
-                        value = int(circuit_breaker[field])
-                        name_fields.append(f'{abbrev}{value}')
-                    except ValueError:
-                        return False
-
-            circuit_breaker['_name'] = ''.join(name_fields)
-            ir.logger.debug(f'Breaker valid: {circuit_breaker["_name"]}')
 
         return True
 

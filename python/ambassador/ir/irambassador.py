@@ -5,6 +5,7 @@ from ..constants import Constants
 from ..config import Config
 
 from .irresource import IRResource
+from .irbasemapping import IRBaseMapping
 from .irhttpmapping import IRHTTPMapping
 from .irtls import IRAmbassadorTLS
 from .irtlscontext import IRTLSContext
@@ -55,7 +56,8 @@ class IRAmbassador (IRResource):
         'use_remote_address',
         'x_forwarded_proto_redirect',
         'xff_num_trusted_hops',
-        'use_ambassador_namespace_for_service_resolution'
+        'use_ambassador_namespace_for_service_resolution',
+        'preserve_external_request_id'
     ]
 
     service_port: int
@@ -110,6 +112,7 @@ class IRAmbassador (IRResource):
             use_ambassador_namespace_for_service_resolution=False,
             server_name="envoy",
             debug_mode=False,
+            preserve_external_request_id=False,
             **kwargs
         )
 
@@ -254,9 +257,27 @@ class IRAmbassador (IRResource):
                 return False
 
         if self.get('circuit_breakers', None) is not None:
-            if not IRHTTPMapping.validate_circuit_breakers(self.ir, self['circuit_breakers']):
+            if not IRBaseMapping.validate_circuit_breakers(self.ir, self['circuit_breakers']):
                 self.post_error("Invalid circuit_breakers specified: {}".format(self['circuit_breakers']))
                 return False
+
+        if self.get('envoy_log_type') == 'text':
+            if self.get('envoy_log_format', None) is not None and not isinstance(self.get('envoy_log_format'), str):
+                self.post_error(
+                    "envoy_log_type 'text' requires a string in envoy_log_format: {}, invalidating...".format(
+                        self.get('envoy_log_format')))
+                self['envoy_log_format'] = ""
+                return False
+        elif self.get('envoy_log_type') == 'json':
+            if self.get('envoy_log_format', None) is not None and not isinstance(self.get('envoy_log_format'), dict):
+                self.post_error(
+                    "envoy_log_type 'json' requires a dictionary in envoy_log_format: {}, invalidating...".format(
+                        self.get('envoy_log_format')))
+                self['envoy_log_format'] = {}
+                return False
+        else:
+            self.post_error("Invalid log_type specified: {}. Supported: json, text".format(self.get('envoy_log_type')))
+            return False
 
         return True
 

@@ -29,6 +29,7 @@
         "location": "--internal--",
         "name": "ir.ambassador",
         "namespace": "default",
+        "preserve_external_request_id": false,
         "proper_case": false,
         "readiness_probe": {
             "enabled": true,
@@ -139,7 +140,7 @@
             "service": "stenography:25565",
             "targets": [
                 {
-                    "ip": "stenography.default",
+                    "ip": "stenography",
                     "port": 25565,
                     "target_kind": "DNSname"
                 }
@@ -637,7 +638,7 @@
                 "service": "stenography:25565",
                 "targets": [
                     {
-                        "ip": "stenography.default",
+                        "ip": "stenography",
                         "port": 25565,
                         "target_kind": "DNSname"
                     }

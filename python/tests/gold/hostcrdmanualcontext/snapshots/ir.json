@@ -29,6 +29,7 @@
         "location": "--internal--",
         "name": "ir.ambassador",
         "namespace": "default",
+        "preserve_external_request_id": false,
         "proper_case": false,
         "readiness_probe": {
             "enabled": true,
@@ -88,7 +89,7 @@
             "_namespace": "default",
             "_port": 80,
             "_referenced_by": [
-                "manual-target-mapping.default.1"
+                "hostcrdmanualcontext-target-mapping.default.1"
             ],
             "_resolver": "kubernetes-service",
             "_rkey": "cluster_hostcrdmanualcontext_http_default",
@@ -99,13 +100,13 @@
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
-            "location": "manual-target-mapping.default.1",
+            "location": "hostcrdmanualcontext-target-mapping.default.1",
             "name": "cluster_hostcrdmanualcontext_http_default",
             "namespace": "default",
             "service": "hostcrdmanualcontext-http",
             "targets": [
                 {
-                    "ip": "hostcrdmanualcontext-http.default",
+                    "ip": "hostcrdmanualcontext-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -444,9 +445,9 @@
             "_active": true,
             "_errored": false,
             "_referenced_by": [
-                "manual-target-mapping.default.1"
+                "hostcrdmanualcontext-target-mapping.default.1"
             ],
-            "_rkey": "manual-target-mapping.default.1",
+            "_rkey": "hostcrdmanualcontext-target-mapping.default.1",
             "default_class": "httpmapping",
             "group_id": "ef2f76a27cdb850e84f8f5c00ce17c4798f7e065",
             "group_weight": [
@@ -459,12 +460,12 @@
             ],
             "headers": [],
             "kind": "IRHTTPMappingGroup",
-            "location": "manual-target-mapping.default.1",
+            "location": "hostcrdmanualcontext-target-mapping.default.1",
             "mappings": [
                 {
                     "_active": true,
                     "_errored": false,
-                    "_rkey": "manual-target-mapping.default.1",
+                    "_rkey": "hostcrdmanualcontext-target-mapping.default.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
@@ -475,7 +476,7 @@
                         "_namespace": "default",
                         "_port": 80,
                         "_referenced_by": [
-                            "manual-target-mapping.default.1"
+                            "hostcrdmanualcontext-target-mapping.default.1"
                         ],
                         "_resolver": "kubernetes-service",
                         "_rkey": "cluster_hostcrdmanualcontext_http_default",
@@ -486,13 +487,13 @@
                         "ignore_cluster": false,
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
-                        "location": "manual-target-mapping.default.1",
+                        "location": "hostcrdmanualcontext-target-mapping.default.1",
                         "name": "cluster_hostcrdmanualcontext_http_default",
                         "namespace": "default",
                         "service": "hostcrdmanualcontext-http",
                         "targets": [
                             {
-                                "ip": "hostcrdmanualcontext-http.default",
+                                "ip": "hostcrdmanualcontext-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -506,14 +507,14 @@
                     "group_id": "ef2f76a27cdb850e84f8f5c00ce17c4798f7e065",
                     "headers": [],
                     "kind": "Mapping",
-                    "location": "manual-target-mapping.default.1",
+                    "location": "hostcrdmanualcontext-target-mapping.default.1",
                     "metadata_labels": {
-                        "ambassador_crd": "manual-target-mapping.default",
-                        "hostname": "manual-hostname",
+                        "ambassador_crd": "hostcrdmanualcontext-target-mapping.default",
+                        "hostname": "hostcrdmanualcontext-manual-hostname",
                         "kat-ambassador-id": "hostcrdmanualcontext",
                         "scope": "AmbassadorTest"
                     },
-                    "name": "manual-target-mapping",
+                    "name": "hostcrdmanualcontext-target-mapping",
                     "namespace": "default",
                     "precedence": 0,
                     "prefix": "/target/",
@@ -529,25 +530,25 @@
                         "/target/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id:\n- hostcrdmanualcontext\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: manual-target-mapping.default\n  hostname: manual-hostname\n  kat-ambassador-id: hostcrdmanualcontext\n  scope: AmbassadorTest\nname: manual-target-mapping\nnamespace: default\nprefix: /target/\nservice: hostcrdmanualcontext-http\n",
+                    "serialization": "ambassador_id:\n- hostcrdmanualcontext\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: hostcrdmanualcontext-target-mapping.default\n  hostname: hostcrdmanualcontext-manual-hostname\n  kat-ambassador-id: hostcrdmanualcontext\n  scope: AmbassadorTest\nname: hostcrdmanualcontext-target-mapping\nnamespace: default\nprefix: /target/\nservice: hostcrdmanualcontext-http\n",
                     "service": "hostcrdmanualcontext-http",
                     "weight": 100
                 }
             ],
             "metadata_labels": {
-                "ambassador_crd": "manual-target-mapping.default",
-                "hostname": "manual-hostname",
+                "ambassador_crd": "hostcrdmanualcontext-target-mapping.default",
+                "hostname": "hostcrdmanualcontext-manual-hostname",
                 "kat-ambassador-id": "hostcrdmanualcontext",
                 "scope": "AmbassadorTest"
             },
-            "name": "GROUP: manual-target-mapping",
+            "name": "GROUP: hostcrdmanualcontext-target-mapping",
             "namespace": "default",
             "precedence": 0,
             "prefix": "/target/",
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id:\n- hostcrdmanualcontext\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: manual-target-mapping.default\n  hostname: manual-hostname\n  kat-ambassador-id: hostcrdmanualcontext\n  scope: AmbassadorTest\nname: manual-target-mapping\nnamespace: default\nprefix: /target/\nservice: hostcrdmanualcontext-http\n"
+            "serialization": "ambassador_id:\n- hostcrdmanualcontext\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: hostcrdmanualcontext-target-mapping.default\n  hostname: hostcrdmanualcontext-manual-hostname\n  kat-ambassador-id: hostcrdmanualcontext\n  scope: AmbassadorTest\nname: hostcrdmanualcontext-target-mapping\nnamespace: default\nprefix: /target/\nservice: hostcrdmanualcontext-http\n"
         }
     ],
     "grpc_services": {},
@@ -556,24 +557,24 @@
             "_active": true,
             "_errored": false,
             "_referenced_by": [
-                "manual-host.default.1"
+                "hostcrdmanualcontext-manual-host.default.1"
             ],
-            "_rkey": "manual-host.default.1",
+            "_rkey": "hostcrdmanualcontext-manual-host.default.1",
             "acmeProvider": {
                 "authority": "none"
             },
             "hostname": "hostcrdmanualcontext",
             "kind": "Host",
-            "location": "manual-host.default.1",
-            "name": "manual-host",
+            "location": "hostcrdmanualcontext-manual-host.default.1",
+            "name": "hostcrdmanualcontext-manual-host",
             "namespace": "default",
             "selector": {
                 "matchLabels": {
-                    "hostname": "manual-hostname"
+                    "hostname": "hostcrdmanualcontext-manual-hostname"
                 }
             },
             "tlsSecret": {
-                "name": "manual-secret"
+                "name": "hostcrdmanualcontext-manual-secret"
             }
         }
     ],
@@ -583,7 +584,7 @@
         "ambassador_nodename": "hostcrdmanualcontext-default"
     },
     "k8s_status_updates": {
-        "manual-target-mapping.default": [
+        "hostcrdmanualcontext-target-mapping.default": [
             "Mapping",
             "default",
             {
@@ -600,34 +601,34 @@
                 "_active": true,
                 "_errored": false,
                 "_referenced_by": [
-                    "manual-host-context.default.1"
+                    "hostcrdmanualcontext-manual-host-context.default.1"
                 ],
-                "_rkey": "manual-host-context.default.1",
+                "_rkey": "hostcrdmanualcontext-manual-host-context.default.1",
                 "hosts": [
                     "hostcrdmanualcontext"
                 ],
                 "is_fallback": false,
                 "kind": "TLSContext",
-                "location": "manual-host-context.default.1",
+                "location": "hostcrdmanualcontext-manual-host-context.default.1",
                 "max_tls_version": "v1.3",
                 "metadata_labels": {
-                    "ambassador_crd": "manual-host-context.default",
+                    "ambassador_crd": "hostcrdmanualcontext-manual-host-context.default",
                     "kat-ambassador-id": "hostcrdmanualcontext",
                     "scope": "AmbassadorTest"
                 },
                 "min_tls_version": "v1.2",
-                "name": "manual-host-context",
+                "name": "hostcrdmanualcontext-manual-host-context",
                 "namespace": "default",
                 "secret_info": {
-                    "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/manual-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt",
-                    "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/manual-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key",
-                    "secret": "manual-secret"
+                    "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrdmanualcontext-manual-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt",
+                    "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrdmanualcontext-manual-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key",
+                    "secret": "hostcrdmanualcontext-manual-secret"
                 }
             },
             "hostname": "hostcrdmanualcontext",
             "insecure_action": "Redirect",
             "kind": "IRListener",
-            "location": "manual-host.default.1",
+            "location": "hostcrdmanualcontext-manual-host.default.1",
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
@@ -693,28 +694,28 @@
             "_active": true,
             "_errored": false,
             "_referenced_by": [
-                "manual-host-context.default.1"
+                "hostcrdmanualcontext-manual-host-context.default.1"
             ],
-            "_rkey": "manual-host-context.default.1",
+            "_rkey": "hostcrdmanualcontext-manual-host-context.default.1",
             "hosts": [
                 "hostcrdmanualcontext"
             ],
             "is_fallback": false,
             "kind": "TLSContext",
-            "location": "manual-host-context.default.1",
+            "location": "hostcrdmanualcontext-manual-host-context.default.1",
             "max_tls_version": "v1.3",
             "metadata_labels": {
-                "ambassador_crd": "manual-host-context.default",
+                "ambassador_crd": "hostcrdmanualcontext-manual-host-context.default",
                 "kat-ambassador-id": "hostcrdmanualcontext",
                 "scope": "AmbassadorTest"
             },
             "min_tls_version": "v1.2",
-            "name": "manual-host-context",
+            "name": "hostcrdmanualcontext-manual-host-context",
             "namespace": "default",
             "secret_info": {
-                "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/manual-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt",
-                "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/manual-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key",
-                "secret": "manual-secret"
+                "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrdmanualcontext-manual-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt",
+                "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrdmanualcontext-manual-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key",
+                "secret": "hostcrdmanualcontext-manual-secret"
             }
         }
     ]

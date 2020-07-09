@@ -21,12 +21,22 @@ spec:
   tag_headers:
   - ":authority"
   - ":path"
+  sampling:
+    overall: 100
 ```
 
 - `service` gives the URL of the external HTTP trace service.
 - `driver` provides the driver information that handles communicating with the `service`. Supported values are `lightstep`, `zipkin`, and `datadog`.
 - `config` provides additional configuration options for the selected `driver`.
 - `tag_headers` (optional) if present, specifies a list of other HTTP request headers which will be used as tags in the trace's span.
+- `sampling` (optional) if present, specifies some target percentages of requests that will be traced.
+  - `client`: percentage of requests that will be force traced if the `x-client-trace-id` header is set. Defaults to 100.
+  - `random`: percentage of requests that will be randomly traced. Defaults to 100.
+  - `overall`: percentage of requests that will be traced after all other checks have been applied (force tracing, sampling, etc.).
+  This field functions as an upper limit on the total configured sampling rate. For instance, setting `client`
+  to `100%` but `overall` to `1%` will result in only `1%` of client requests with the appropriate headers to be force
+  traced. Defaults to 100.
+    
 
 Please note that you must use the HTTP/2 pseudo-header names. For example:
 

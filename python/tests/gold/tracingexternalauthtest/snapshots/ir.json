@@ -29,6 +29,7 @@
         "location": "--internal--",
         "name": "ir.ambassador",
         "namespace": "default",
+        "preserve_external_request_id": false,
         "proper_case": false,
         "readiness_probe": {
             "enabled": true,
@@ -104,7 +105,7 @@
             "service": "tracingexternalauthtest-ahttp-auth",
             "targets": [
                 {
-                    "ip": "tracingexternalauthtest-ahttp-auth.default",
+                    "ip": "tracingexternalauthtest-ahttp-auth",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -138,7 +139,7 @@
             "service": "zipkin-auth:9411",
             "targets": [
                 {
-                    "ip": "zipkin-auth.default",
+                    "ip": "zipkin-auth",
                     "port": 9411,
                     "target_kind": "DNSname"
                 }
@@ -173,7 +174,7 @@
             "service": "tracingexternalauthtest-http",
             "targets": [
                 {
-                    "ip": "tracingexternalauthtest-http.default",
+                    "ip": "tracingexternalauthtest-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -226,7 +227,7 @@
                 "service": "tracingexternalauthtest-ahttp-auth",
                 "targets": [
                     {
-                        "ip": "tracingexternalauthtest-ahttp-auth.default",
+                        "ip": "tracingexternalauthtest-ahttp-auth",
                         "port": 80,
                         "target_kind": "DNSname"
                     }
@@ -631,7 +632,7 @@
                         "service": "tracingexternalauthtest-http",
                         "targets": [
                             {
-                                "ip": "tracingexternalauthtest-http.default",
+                                "ip": "tracingexternalauthtest-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -826,7 +827,7 @@
             "service": "zipkin-auth:9411",
             "targets": [
                 {
-                    "ip": "zipkin-auth.default",
+                    "ip": "zipkin-auth",
                     "port": 9411,
                     "target_kind": "DNSname"
                 }
@@ -845,6 +846,7 @@
         "location": "zipkin-auth.default.1",
         "name": "tracing",
         "namespace": "default",
+        "sampling": {},
         "service": "zipkin-auth:9411",
         "tag_headers": []
     }

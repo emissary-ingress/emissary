@@ -29,6 +29,7 @@
         "location": "--internal--",
         "name": "ir.ambassador",
         "namespace": "default",
+        "preserve_external_request_id": false,
         "proper_case": false,
         "readiness_probe": {
             "enabled": true,
@@ -106,7 +107,7 @@
             "service": "authenticationtestv1-http",
             "targets": [
                 {
-                    "ip": "authenticationtestv1-http.default",
+                    "ip": "authenticationtestv1-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -141,12 +142,12 @@
             "service": "authenticationtestv1-ahttp-auth1",
             "targets": [
                 {
-                    "ip": "authenticationtestv1-ahttp-auth1.default",
+                    "ip": "authenticationtestv1-ahttp-auth1",
                     "port": 80,
                     "target_kind": "DNSname"
                 },
                 {
-                    "ip": "authenticationtestv1-ahttp-auth2.default",
+                    "ip": "authenticationtestv1-ahttp-auth2",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -208,12 +209,12 @@
                 "service": "authenticationtestv1-ahttp-auth1",
                 "targets": [
                     {
-                        "ip": "authenticationtestv1-ahttp-auth1.default",
+                        "ip": "authenticationtestv1-ahttp-auth1",
                         "port": 80,
                         "target_kind": "DNSname"
                     },
                     {
-                        "ip": "authenticationtestv1-ahttp-auth2.default",
+                        "ip": "authenticationtestv1-ahttp-auth2",
                         "port": 80,
                         "target_kind": "DNSname"
                     }
@@ -529,7 +530,7 @@
                         "service": "authenticationtestv1-http",
                         "targets": [
                             {
-                                "ip": "authenticationtestv1-http.default",
+                                "ip": "authenticationtestv1-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -737,7 +738,7 @@
                         "service": "authenticationtestv1-http",
                         "targets": [
                             {
-                                "ip": "authenticationtestv1-http.default",
+                                "ip": "authenticationtestv1-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }

@@ -55,7 +55,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "hostcrddouble-http-target1.default",
+                                                "address": "hostcrddouble-http-target1",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }
@@ -82,7 +82,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "hostcrddouble-http-target2.default",
+                                                "address": "hostcrddouble-http-target2",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }
@@ -138,6 +138,7 @@
                                         "accept_http_10": false
                                     },
                                     "normalize_path": true,
+                                    "preserve_external_request_id": false,
                                     "route_config": {
                                         "virtual_hosts": [
                                             {
@@ -386,7 +387,7 @@
                             "common_tls_context": {
                                 "tls_certificate_sds_secret_configs": [
                                     {
-                                        "name": "tls.test-tlscontext-secret-1.default",
+                                        "name": "tls.hostcrddouble-test-tlscontext-secret-1.default",
                                         "sds_config": {
                                             "ads": {}
                                         }
@@ -429,6 +430,7 @@
                                         "accept_http_10": false
                                     },
                                     "normalize_path": true,
+                                    "preserve_external_request_id": false,
                                     "route_config": {
                                         "virtual_hosts": [
                                             {
@@ -626,7 +628,7 @@
                             "common_tls_context": {
                                 "tls_certificate_sds_secret_configs": [
                                     {
-                                        "name": "tls.test-tlscontext-secret-2.default",
+                                        "name": "tls.hostcrddouble-test-tlscontext-secret-2.default",
                                         "sds_config": {
                                             "ads": {}
                                         }
@@ -683,6 +685,7 @@
                                         "accept_http_10": false
                                     },
                                     "normalize_path": true,
+                                    "preserve_external_request_id": false,
                                     "route_config": {
                                         "virtual_hosts": [
                                             {
@@ -828,6 +831,7 @@
                                         "accept_http_10": false
                                     },
                                     "normalize_path": true,
+                                    "preserve_external_request_id": false,
                                     "route_config": {
                                         "virtual_hosts": [
                                             {

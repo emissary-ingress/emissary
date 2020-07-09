@@ -55,7 +55,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "authenticationhttpfailuremodeallowtest-http.default",
+                                                "address": "authenticationhttpfailuremodeallowtest-http",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }
@@ -82,7 +82,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "authenticationhttpfailuremodeallowtest-http-auth.default",
+                                                "address": "authenticationhttpfailuremodeallowtest-http-auth",
                                                 "port_value": 443,
                                                 "protocol": "TCP"
                                             }
@@ -244,6 +244,7 @@
                                         "accept_http_10": false
                                     },
                                     "normalize_path": true,
+                                    "preserve_external_request_id": false,
                                     "route_config": {
                                         "virtual_hosts": [
                                             {

@@ -22,7 +22,7 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"tracingexternalauthtest\",\"scope\":\"AmbassadorTest\"},\"name\":\"tracingexternalauthtest\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"tracingexternalauthtest\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-07-06T15:21:58Z",
+                    "creationTimestamp": "2020-07-09T17:32:47Z",
                     "labels": {
                         "app.kubernetes.io/component": "ambassador-service",
                         "kat-ambassador-id": "tracingexternalauthtest",
@@ -30,24 +30,24 @@
                     },
                     "name": "tracingexternalauthtest",
                     "namespace": "default",
-                    "resourceVersion": "21832",
+                    "resourceVersion": "12328",
                     "selfLink": "/api/v1/namespaces/default/services/tracingexternalauthtest",
-                    "uid": "6f18fc03-bf9c-11ea-b9b6-0e01d46fe775"
+                    "uid": "349cf5d9-c20a-11ea-87b2-0ab82b9da1f7"
                 },
                 "spec": {
-                    "clusterIP": "10.96.135.155",
+                    "clusterIP": "10.110.77.225",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "http",
-                            "nodePort": 30799,
+                            "nodePort": 32412,
                             "port": 80,
                             "protocol": "TCP",
                             "targetPort": 8080
                         },
                         {
                             "name": "https",
-                            "nodePort": 31403,
+                            "nodePort": 32715,
                             "port": 443,
                             "protocol": "TCP",
                             "targetPort": 8443
@@ -70,7 +70,7 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"tracingexternalauthtest\",\"scope\":\"AmbassadorTest\",\"service\":\"tracingexternalauthtest-admin\"},\"name\":\"tracingexternalauthtest-admin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"tracingexternalauthtest-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"tracingexternalauthtest\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-07-06T15:21:59Z",
+                    "creationTimestamp": "2020-07-09T17:32:48Z",
                     "labels": {
                         "kat-ambassador-id": "tracingexternalauthtest",
                         "scope": "AmbassadorTest",
@@ -78,17 +78,17 @@
                     },
                     "name": "tracingexternalauthtest-admin",
                     "namespace": "default",
-                    "resourceVersion": "21847",
+                    "resourceVersion": "12334",
                     "selfLink": "/api/v1/namespaces/default/services/tracingexternalauthtest-admin",
-                    "uid": "6f8238cd-bf9c-11ea-b9b6-0e01d46fe775"
+                    "uid": "34f2359d-c20a-11ea-87b2-0ab82b9da1f7"
                 },
                 "spec": {
-                    "clusterIP": "10.110.201.242",
+                    "clusterIP": "10.107.158.205",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "tracingexternalauthtest-admin",
-                            "nodePort": 31230,
+                            "nodePort": 32128,
                             "port": 8877,
                             "protocol": "TCP",
                             "targetPort": 8877
@@ -111,19 +111,19 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"tracingexternalauthtest\",\"scope\":\"AmbassadorTest\"},\"name\":\"tracingexternalauthtest-ahttp-auth\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"backend\":\"tracingexternalauthtest-ahttp-auth\"}}}\n"
                     },
-                    "creationTimestamp": "2020-07-06T15:22:00Z",
+                    "creationTimestamp": "2020-07-09T17:32:48Z",
                     "labels": {
                         "kat-ambassador-id": "tracingexternalauthtest",
                         "scope": "AmbassadorTest"
                     },
                     "name": "tracingexternalauthtest-ahttp-auth",
                     "namespace": "default",
-                    "resourceVersion": "21862",
+                    "resourceVersion": "12354",
                     "selfLink": "/api/v1/namespaces/default/services/tracingexternalauthtest-ahttp-auth",
-                    "uid": "6fea651d-bf9c-11ea-b9b6-0e01d46fe775"
+                    "uid": "3550e2a1-c20a-11ea-87b2-0ab82b9da1f7"
                 },
                 "spec": {
-                    "clusterIP": "10.104.118.159",
+                    "clusterIP": "10.109.1.161",
                     "ports": [
                         {
                             "name": "http",
@@ -154,33 +154,33 @@
                 "metadata": {
                     "annotations": {
                         "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind: Mapping\nname: tracing_target_mapping\nprefix: /target/\nservice: tracingexternalauthtest-http\nambassador_id: tracingexternalauthtest\n",
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v0\\nkind: Mapping\\nname: tracing_target_mapping\\nprefix: /target/\\nservice: tracingexternalauthtest-http\\nambassador_id: tracingexternalauthtest\\n\"},\"labels\":{\"kat-ambassador-id\":\"tracingexternalauthtest\",\"scope\":\"AmbassadorTest\"},\"name\":\"tracingexternalauthtest-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8133},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8496}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v0\\nkind: Mapping\\nname: tracing_target_mapping\\nprefix: /target/\\nservice: tracingexternalauthtest-http\\nambassador_id: tracingexternalauthtest\\n\"},\"labels\":{\"kat-ambassador-id\":\"tracingexternalauthtest\",\"scope\":\"AmbassadorTest\"},\"name\":\"tracingexternalauthtest-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8134},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8497}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
                     },
-                    "creationTimestamp": "2020-07-06T15:21:59Z",
+                    "creationTimestamp": "2020-07-09T17:32:48Z",
                     "labels": {
                         "kat-ambassador-id": "tracingexternalauthtest",
                         "scope": "AmbassadorTest"
                     },
                     "name": "tracingexternalauthtest-http",
                     "namespace": "default",
-                    "resourceVersion": "21857",
+                    "resourceVersion": "12349",
                     "selfLink": "/api/v1/namespaces/default/services/tracingexternalauthtest-http",
-                    "uid": "6fc4273b-bf9c-11ea-b9b6-0e01d46fe775"
+                    "uid": "351d1a5e-c20a-11ea-87b2-0ab82b9da1f7"
                 },
                 "spec": {
-                    "clusterIP": "10.107.29.213",
+                    "clusterIP": "10.104.126.197",
                     "ports": [
                         {
                             "name": "http",
                             "port": 80,
                             "protocol": "TCP",
-                            "targetPort": 8133
+                            "targetPort": 8134
                         },
                         {
                             "name": "https",
                             "port": 443,
                             "protocol": "TCP",
-                            "targetPort": 8496
+                            "targetPort": 8497
                         }
                     ],
                     "selector": {
@@ -201,24 +201,24 @@
                         "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind: TracingService\nname: tracing-auth\nservice: zipkin-auth:9411\ndriver: zipkin\nambassador_id: tracingexternalauthtest\n\n---\napiVersion: ambassador/v0\nkind: AuthService\nname: tracingexternalauthtest-ahttp-auth\nauth_service: \"tracingexternalauthtest-ahttp-auth\"\npath_prefix: \"/extauth\"\nallowed_headers:\n- Requested-Status\n- Requested-Header\nambassador_id: tracingexternalauthtest\n",
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v0\\nkind: TracingService\\nname: tracing-auth\\nservice: zipkin-auth:9411\\ndriver: zipkin\\nambassador_id: tracingexternalauthtest\\n\\n---\\napiVersion: ambassador/v0\\nkind: AuthService\\nname: tracingexternalauthtest-ahttp-auth\\nauth_service: \\\"tracingexternalauthtest-ahttp-auth\\\"\\npath_prefix: \\\"/extauth\\\"\\nallowed_headers:\\n- Requested-Status\\n- Requested-Header\\nambassador_id: tracingexternalauthtest\\n\"},\"labels\":{\"kat-ambassador-id\":\"tracingexternalauthtest\",\"scope\":\"AmbassadorTest\"},\"name\":\"zipkin-auth\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":9411,\"targetPort\":\"http\"}],\"selector\":{\"app\":\"zipkin-auth\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-07-06T15:21:55Z",
+                    "creationTimestamp": "2020-07-09T17:32:45Z",
                     "labels": {
                         "kat-ambassador-id": "tracingexternalauthtest",
                         "scope": "AmbassadorTest"
                     },
                     "name": "zipkin-auth",
                     "namespace": "default",
-                    "resourceVersion": "21789",
+                    "resourceVersion": "12295",
                     "selfLink": "/api/v1/namespaces/default/services/zipkin-auth",
-                    "uid": "6d6aa8f7-bf9c-11ea-b9b6-0e01d46fe775"
+                    "uid": "335ff2f9-c20a-11ea-87b2-0ab82b9da1f7"
                 },
                 "spec": {
-                    "clusterIP": "10.96.212.223",
+                    "clusterIP": "10.107.200.11",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "http",
-                            "nodePort": 30131,
+                            "nodePort": 30713,
                             "port": 9411,
                             "protocol": "TCP",
                             "targetPort": "http"

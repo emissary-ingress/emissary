@@ -71,7 +71,7 @@ spec:
 kind: Service
 apiVersion: v1
 metadata:
-  name: plain-host-carrier
+  name: cleartext-host-{self.path.k8s}
   namespace: plain-namespace
   annotations:
     getambassador.io/config: |
@@ -126,5 +126,13 @@ config: {}
         # XXX Ew. If self.results[0].json is empty, the harness won't convert it to a response.
         errors = self.results[0].json
 
-        # We should _not_ be seeing Ingress errors here.
-        assert_default_errors(errors, include_ingress_errors=False)
+        # We shouldn't have any missing-CRD-types errors any more.
+        for source, error in errors:
+          if (('could not find' in error) and ('CRD definitions' in error)):
+            assert False, f"Missing CRDs: {error}"
+
+          if 'Ingress resources' in error:
+            assert False, f"Ingress resource error: {error}"
+
+        # The default errors assume that we have missing CRDs, and that's not correct any more,
+        # so don't try to use assert_default_errors here.

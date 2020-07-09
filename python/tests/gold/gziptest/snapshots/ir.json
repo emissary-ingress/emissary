@@ -46,6 +46,7 @@
         "location": "gziptest.default.1",
         "name": "ir.ambassador",
         "namespace": "default",
+        "preserve_external_request_id": false,
         "proper_case": false,
         "readiness_probe": {
             "enabled": true,
@@ -122,7 +123,7 @@
             "service": "gziptest-http",
             "targets": [
                 {
-                    "ip": "gziptest-http.default",
+                    "ip": "gziptest-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -523,7 +524,7 @@
                         "service": "gziptest-http",
                         "targets": [
                             {
-                                "ip": "gziptest-http.default",
+                                "ip": "gziptest-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }

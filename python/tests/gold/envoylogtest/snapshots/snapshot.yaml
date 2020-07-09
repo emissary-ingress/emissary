@@ -20,54 +20,10 @@
                 "kind": "Service",
                 "metadata": {
                     "annotations": {
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"envoylogtest\",\"scope\":\"AmbassadorTest\"},\"name\":\"envoylogtest-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8136},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8499}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
-                    },
-                    "creationTimestamp": "2020-07-06T15:22:09Z",
-                    "labels": {
-                        "kat-ambassador-id": "envoylogtest",
-                        "scope": "AmbassadorTest"
-                    },
-                    "name": "envoylogtest-http",
-                    "namespace": "default",
-                    "resourceVersion": "22055",
-                    "selfLink": "/api/v1/namespaces/default/services/envoylogtest-http",
-                    "uid": "7595881d-bf9c-11ea-b9b6-0e01d46fe775"
-                },
-                "spec": {
-                    "clusterIP": "10.101.234.177",
-                    "ports": [
-                        {
-                            "name": "http",
-                            "port": 80,
-                            "protocol": "TCP",
-                            "targetPort": 8136
-                        },
-                        {
-                            "name": "https",
-                            "port": 443,
-                            "protocol": "TCP",
-                            "targetPort": 8499
-                        }
-                    ],
-                    "selector": {
-                        "backend": "superpod-default"
-                    },
-                    "sessionAffinity": "None",
-                    "type": "ClusterIP"
-                },
-                "status": {
-                    "loadBalancer": {}
-                }
-            },
-            {
-                "apiVersion": "v1",
-                "kind": "Service",
-                "metadata": {
-                    "annotations": {
                         "getambassador.io/config": "---\napiVersion: ambassador/v1\nkind: Module\nname: ambassador\nambassador_id: envoylogtest\nconfig:\n  envoy_log_path: /tmp/ambassador/ambassador.log\n  envoy_log_format: MY_REQUEST %RESPONSE_CODE% \"%REQ(:AUTHORITY)%\" \"%REQ(USER-AGENT)%\"\n    \"%REQ(X-REQUEST-ID)%\" \"%UPSTREAM_HOST%\"\n",
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v1\\nkind: Module\\nname: ambassador\\nambassador_id: envoylogtest\\nconfig:\\n  envoy_log_path: /tmp/ambassador/ambassador.log\\n  envoy_log_format: MY_REQUEST %RESPONSE_CODE% \\\"%REQ(:AUTHORITY)%\\\" \\\"%REQ(USER-AGENT)%\\\"\\n    \\\"%REQ(X-REQUEST-ID)%\\\" \\\"%UPSTREAM_HOST%\\\"\\n\"},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"envoylogtest\",\"scope\":\"AmbassadorTest\"},\"name\":\"envoylogtest\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"envoylogtest\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-07-06T15:22:08Z",
+                    "creationTimestamp": "2020-07-09T17:33:22Z",
                     "labels": {
                         "app.kubernetes.io/component": "ambassador-service",
                         "kat-ambassador-id": "envoylogtest",
@@ -75,24 +31,24 @@
                     },
                     "name": "envoylogtest",
                     "namespace": "default",
-                    "resourceVersion": "22034",
+                    "resourceVersion": "12792",
                     "selfLink": "/api/v1/namespaces/default/services/envoylogtest",
-                    "uid": "751185c4-bf9c-11ea-b9b6-0e01d46fe775"
+                    "uid": "495c4949-c20a-11ea-87b2-0ab82b9da1f7"
                 },
                 "spec": {
-                    "clusterIP": "10.102.164.90",
+                    "clusterIP": "10.101.58.112",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "http",
-                            "nodePort": 31221,
+                            "nodePort": 32156,
                             "port": 80,
                             "protocol": "TCP",
                             "targetPort": 8080
                         },
                         {
                             "name": "https",
-                            "nodePort": 30459,
+                            "nodePort": 30813,
                             "port": 443,
                             "protocol": "TCP",
                             "targetPort": 8443
@@ -115,7 +71,7 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"envoylogtest\",\"scope\":\"AmbassadorTest\",\"service\":\"envoylogtest-admin\"},\"name\":\"envoylogtest-admin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"envoylogtest-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"envoylogtest\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-07-06T15:22:09Z",
+                    "creationTimestamp": "2020-07-09T17:33:24Z",
                     "labels": {
                         "kat-ambassador-id": "envoylogtest",
                         "scope": "AmbassadorTest",
@@ -123,17 +79,17 @@
                     },
                     "name": "envoylogtest-admin",
                     "namespace": "default",
-                    "resourceVersion": "22043",
+                    "resourceVersion": "12809",
                     "selfLink": "/api/v1/namespaces/default/services/envoylogtest-admin",
-                    "uid": "756c7cbb-bf9c-11ea-b9b6-0e01d46fe775"
+                    "uid": "4abf88ad-c20a-11ea-87b2-0ab82b9da1f7"
                 },
                 "spec": {
-                    "clusterIP": "10.99.247.31",
+                    "clusterIP": "10.97.157.60",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "envoylogtest-admin",
-                            "nodePort": 30345,
+                            "nodePort": 32537,
                             "port": 8877,
                             "protocol": "TCP",
                             "targetPort": 8877
@@ -144,6 +100,50 @@
                     },
                     "sessionAffinity": "None",
                     "type": "NodePort"
+                },
+                "status": {
+                    "loadBalancer": {}
+                }
+            },
+            {
+                "apiVersion": "v1",
+                "kind": "Service",
+                "metadata": {
+                    "annotations": {
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"envoylogtest\",\"scope\":\"AmbassadorTest\"},\"name\":\"envoylogtest-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8142},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8505}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
+                    },
+                    "creationTimestamp": "2020-07-09T17:33:25Z",
+                    "labels": {
+                        "kat-ambassador-id": "envoylogtest",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "envoylogtest-http",
+                    "namespace": "default",
+                    "resourceVersion": "12819",
+                    "selfLink": "/api/v1/namespaces/default/services/envoylogtest-http",
+                    "uid": "4b3b9877-c20a-11ea-87b2-0ab82b9da1f7"
+                },
+                "spec": {
+                    "clusterIP": "10.108.74.184",
+                    "ports": [
+                        {
+                            "name": "http",
+                            "port": 80,
+                            "protocol": "TCP",
+                            "targetPort": 8142
+                        },
+                        {
+                            "name": "https",
+                            "port": 443,
+                            "protocol": "TCP",
+                            "targetPort": 8505
+                        }
+                    ],
+                    "selector": {
+                        "backend": "superpod-default"
+                    },
+                    "sessionAffinity": "None",
+                    "type": "ClusterIP"
                 },
                 "status": {
                     "loadBalancer": {}
