@@ -243,7 +243,7 @@ func (c *Client) watchRaw(ctx context.Context, name string, target chan rawUpdat
 	// we override Watch to let us signal when our initial List is
 	// complete so we can send an update() even when there are no
 	// resource instances of the kind being watched
-	lw := LW(ctx, cli, selector, func() {
+	lw := newListWatcher(ctx, cli, selector, func() {
 		if informer.HasSynced() {
 			update()
 		}
@@ -316,7 +316,7 @@ type lw struct {
 	once     sync.Once
 }
 
-func LW(ctx context.Context, client dynamic.ResourceInterface, selector string, synced func()) cache.ListerWatcher {
+func newListWatcher(ctx context.Context, client dynamic.ResourceInterface, selector string, synced func()) cache.ListerWatcher {
 	return &lw{ctx: ctx, client: client, selector: selector, synced: synced}
 }
 
