@@ -8,8 +8,11 @@
 package k8s
 
 import (
+	"context"
 	"fmt"
 	"strings"
+
+	"github.com/datawire/ambassador/pkg/kates"
 
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -17,17 +20,14 @@ import (
 
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 
-	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/restmapper"
 
 	"github.com/google/shlex"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 
-	// help pin dependencies
-	_ "github.com/datawire/libk8s"
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
 )
 
 const (
@@ -112,6 +112,11 @@ func (info *KubeInfo) load() error {
 	return nil
 }
 
+// GetConfigFlags returns the genericclioptions.ConfigFlags from inside the KubeInfo
+func (info *KubeInfo) GetConfigFlags() *genericclioptions.ConfigFlags {
+	return info.configFlags
+}
+
 // Namespace returns the namespace for a KubeInfo.
 func (info *KubeInfo) Namespace() (string, error) {
 	err := info.load()
@@ -159,10 +164,9 @@ func (info *KubeInfo) GetKubectlArray(args ...string) ([]string, error) {
 
 // Client is the top-level handle to the Kubernetes cluster.
 type Client struct {
-	config          *rest.Config
-	Namespace       string
-	restMapper      meta.RESTMapper
-	discoveryClient discovery.DiscoveryInterface
+	config     *rest.Config
+	Namespace  string
+	restMapper meta.RESTMapper
 }
 
 // NewClient constructs a k8s.Client, optionally using a previously-constructed
@@ -181,27 +185,15 @@ func NewClient(info *KubeInfo) (*Client, error) {
 		return nil, err
 	}
 
-	// TODO(lukeshu): Optionally use a DiscoveryClient that does kubectl-like filesystem
-	// caching; see k8s.io/cli-runtime/pkg/genericclioptions.ConfigFlags.ToDiscoveryClient().
-	discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
-	if err != nil {
-		return nil, err
-	}
-
-	// TODO(lukeshu): Use a *restmapper.DeferredDiscoveryRESTMapper to lazily call
-	// restmapper.GetAPIGroupResources().  This is blocked by discoveryClient implementing
-	// discovery.DiscoveryInterface but not discovery.CachedDiscoveryInterface (probably
-	// resolved with the above TODO).
-	resources, err := restmapper.GetAPIGroupResources(discoveryClient)
+	mapper, err := kates.NewRESTMapper(info.configFlags)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Client{
-		config:          config,
-		Namespace:       namespace,
-		restMapper:      restmapper.NewDiscoveryRESTMapper(resources),
-		discoveryClient: discoveryClient,
+		config:     config,
+		Namespace:  namespace,
+		restMapper: mapper,
 	}, nil
 }
 
@@ -235,8 +227,7 @@ func (r ResourceType) String() string {
 // group, or put "deployment" in apps/v1 instead of
 // extensions/v1beta1.
 func (c *Client) ResolveResourceType(resource string) (ResourceType, error) {
-	shortcutExpander := restmapper.NewShortcutExpander(c.restMapper, c.discoveryClient)
-	restmapping, err := mappingFor(resource, shortcutExpander)
+	restmapping, err := mappingFor(resource, c.restMapper)
 	if err != nil {
 		return ResourceType{}, err
 	}
@@ -377,7 +368,7 @@ func (c *Client) ListQuery(query Query) ([]Resource, error) {
 		filtered = cli
 	}
 
-	uns, err := filtered.List(metav1.ListOptions{
+	uns, err := filtered.List(context.TODO(), metav1.ListOptions{
 		FieldSelector: query.FieldSelector,
 		LabelSelector: query.LabelSelector,
 	})

@@ -959,19 +959,18 @@ class KubeStatus:
 
 
 def kubestatus_update(kind: str, name: str, namespace: str, text: str) -> str:
-    cmd = [ 'kubestatus', kind, '-f', f'metadata.name={name}', '-n', namespace, '-u', '/dev/fd/0' ]
+    cmd = [ 'kubestatus', '--cache-dir', '/tmp/client-go-http-cache', kind, name, '-n', namespace, '-u', '/dev/fd/0' ]
     # print(f"KubeStatus UPDATE {os.getpid()}: running command: {cmd}")
 
     try:
-        rc = subprocess.run(cmd, input=text.encode('utf-8'), timeout=5)
-
+        rc = subprocess.run(cmd, input=text.encode('utf-8'), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=5)
         if rc.returncode == 0:
             return f"{name}.{namespace}: update OK"
         else:
             return f"{name}.{namespace}: error {rc.returncode}"
 
     except subprocess.TimeoutExpired as e:
-        return f"{name}.{namespace}: timed out"
+        return f"{name}.{namespace}: timed out\n\n{e.output}"
 
 def kubestatus_update_done(f: concurrent.futures.Future) -> None:
     # print(f"KubeStatus DONE {os.getpid()}: result {f.result()}")
