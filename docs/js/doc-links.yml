@@ -124,9 +124,9 @@
         - title: Edge Policy Console
           items: 
           - title: Introduction to Edge Policy Console
-            link: /docs/latest/topics/using/edge-policy-console
+            link: /docs/pre-release/topics/using/edge-policy-console
           - title: Rate Limit Speedometers
-            link: /docs/latest/topics/using/rate-limit-speedometers
+            link: /docs/pre-release/topics/using/rate-limit-speedometers
         - title: The Project Resource
           link: /docs/pre-release/topics/using/projects
           items:
