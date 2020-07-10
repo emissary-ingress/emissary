@@ -695,7 +695,7 @@ func convert(in interface{}, out interface{}) error {
 }
 
 func unKey(u *Unstructured) string {
-	return u.GetKind() + ":" + u.GetNamespace() + ":" + u.GetName()
+	return string(u.GetUID())
 }
 
 func config(options ClientOptions) *ConfigFlags {
