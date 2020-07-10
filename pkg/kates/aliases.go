@@ -98,6 +98,7 @@ type UpdateOptions = metav1.UpdateOptions
 type DeleteOptions = metav1.DeleteOptions
 
 var NamespaceAll = metav1.NamespaceAll
+var NamespaceNone = metav1.NamespaceNone
 
 type Selector = labels.Selector
 type LabelSet = labels.Set
