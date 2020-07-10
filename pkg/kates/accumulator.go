@@ -198,7 +198,7 @@ func (a *Accumulator) update(target reflect.Value) bool {
 	for name, field := range a.fields {
 		items := field.items[:]
 		ms := a.mapsels[name]
-		a.client.patch(&items, ms.mapping, ms.selector)
+		a.client.patchWatch(&items, ms.mapping, ms.selector)
 		if a.updateField(target, name, items) {
 			updated = true
 		}

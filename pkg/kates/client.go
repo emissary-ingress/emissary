@@ -615,7 +615,9 @@ func (c *Client) Delete(ctx context.Context, resource interface{}, target interf
 
 // ==
 
-func (c *Client) patch(items *[]*Unstructured, mapping *meta.RESTMapping, sel Selector) {
+// Update the result of a watch with newer items from our local cache. This guarantees we never give
+// back stale objects that are known to be modified by us.
+func (c *Client) patchWatch(items *[]*Unstructured, mapping *meta.RESTMapping, sel Selector) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
