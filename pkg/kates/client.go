@@ -249,10 +249,13 @@ func (c *Client) watchRaw(ctx context.Context, name string, target chan rawUpdat
 		}
 	})
 	informer = cache.NewSharedInformer(lw, &Unstructured{}, 5*time.Minute)
-	/* TODO: uncomment this when we get to kubernetes 1.19
-	informer.SetWatchErrorHandler(func(r *cache.Reflector, err error) {
-		errorHandler(name, err)
-	})
+	// TODO: uncomment this when we get to kubernetes 1.19. Right now errors will get logged by
+	// klog. With this error handler in place we will log them to our own logger and provide a
+	// more useful error message:
+	/*
+		informer.SetWatchErrorHandler(func(r *cache.Reflector, err error) {
+			errorHandler(name, err)
+		})
 	*/
 	informer.AddEventHandler(
 		cache.ResourceEventHandlerFuncs{
