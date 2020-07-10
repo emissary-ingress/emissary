@@ -40,9 +40,9 @@ import (
 //
 //  1. Bootstrap of a single Kind: the Accumulator will ensure that all pre-existing resources of
 //     that Kind have been loaded into memory prior to triggering any notifications. This guarantees
-//     we will never trigger business logic on an outdated view of the cluster (e.g. when 500 out of
-//     100 Mappings have been loaded) and makes it safe for the business logic to assume complete
-//     knowledge of the cluster.
+//     we will never trigger business logic on an egregiously incomplete view of the cluster
+//     (e.g. when 500 out of 1000 Mappings have been loaded) and makes it safe for the business
+//     logic to assume complete knowledge of the cluster.
 //
 //  2. When multiple Kinds are needed by a controller, the Accumulator will not notify the
 //     controller until all the Kinds have been fully bootstrapped.
