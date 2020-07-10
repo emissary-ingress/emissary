@@ -271,7 +271,8 @@ func (c *Client) watchRaw(ctx context.Context, name string, target chan rawUpdat
 			},
 			DeleteFunc: func(obj interface{}) {
 				key := unKey(obj.(*Unstructured))
-				// We also clean out c.canonical
+				// For the Add and Update cases, we clean out c.canonical in
+				// patchWatch.
 				c.mutex.Lock()
 				delete(c.canonical, key)
 				c.mutex.Unlock()
