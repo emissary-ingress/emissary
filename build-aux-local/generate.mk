@@ -81,7 +81,7 @@ $(tools/protoc):
 tools/protoc-gen-gogofast = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-gogofast
 $(tools/protoc-gen-gogofast): $(OSS_HOME)/go.mod
 	mkdir -p $(@D)
-	go build -o $@ github.com/gogo/protobuf/protoc-gen-gogofast
+	cd $(OSS_HOME) && go build -o $@ github.com/gogo/protobuf/protoc-gen-gogofast
 
 # The version number of protoc-gen-validate is controlled by `./go.mod`, and is based on
 # https://github.com/envoyproxy/go-control-plane/blob/0e75602d5e36e96eafbe053999c0569edec9fe07/Dockerfile.ci
@@ -91,7 +91,7 @@ $(tools/protoc-gen-gogofast): $(OSS_HOME)/go.mod
 tools/protoc-gen-validate = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-validate
 $(tools/protoc-gen-validate): $(OSS_HOME)/go.mod
 	mkdir -p $(@D)
-	go build -o $@ github.com/envoyproxy/protoc-gen-validate
+	cd $(OSS_HOME) && go build -o $@ github.com/envoyproxy/protoc-gen-validate
 
 GRPC_WEB_VERSION          = 1.0.3
 GRPC_WEB_PLATFORM         = $(GOHOSTOS)-x86_64
@@ -107,7 +107,7 @@ $(tools/protoc-gen-grpc-web):
 tools/protoc-gen-go-json = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-go-json
 $(tools/protoc-gen-go-json): $(OSS_HOME)/go.mod
 	mkdir -p $(@D)
-	go build -o $@ github.com/mitchellh/protoc-gen-go-json
+	cd $(OSS_HOME) && go build -o $@ github.com/mitchellh/protoc-gen-go-json
 
 #
 # `make generate` vendor rules
