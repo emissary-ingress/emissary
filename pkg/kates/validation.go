@@ -18,7 +18,7 @@ import (
 type Validator struct {
 	client     *Client
 	mutex      sync.Mutex
-	validators map[string]*validate.SchemaValidator
+	validators map[TypeMeta]*validate.SchemaValidator
 }
 
 // The NewValidator constructor returns a *Validator that uses the
@@ -26,14 +26,21 @@ type Validator struct {
 // on demand as needed to validate data passed to the Validator.Validate()
 // method.
 func NewValidator(client *Client) *Validator {
-	return &Validator{client: client, validators: make(map[string]*validate.SchemaValidator)}
+	return &Validator{client: client, validators: make(map[TypeMeta]*validate.SchemaValidator)}
 }
 
-func (v *Validator) getValidator(ctx context.Context, crd string) (*validate.SchemaValidator, error) {
+func (v *Validator) getValidator(ctx context.Context, tm TypeMeta) (*validate.SchemaValidator, error) {
 	v.mutex.Lock()
 	defer v.mutex.Unlock()
-	validator, ok := v.validators[crd]
+
+	validator, ok := v.validators[tm]
 	if !ok {
+		mapping, err := v.client.mappingFor(tm.GroupVersionKind().GroupKind().String())
+		if err != nil {
+			return nil, err
+		}
+		crd := mapping.Resource.GroupResource().String()
+
 		obj := &CustomResourceDefinition{
 			TypeMeta: TypeMeta{
 				Kind: "CustomResourceDefinition",
@@ -42,10 +49,10 @@ func (v *Validator) getValidator(ctx context.Context, crd string) (*validate.Sch
 				Name: crd,
 			},
 		}
-		err := v.client.Get(ctx, obj, obj)
+		err = v.client.Get(ctx, obj, obj)
 		if err != nil {
 			if IsNotFound(err) {
-				v.validators[crd] = nil
+				v.validators[tm] = nil
 				return nil, nil
 			}
 
@@ -63,7 +70,7 @@ func (v *Validator) getValidator(ctx context.Context, crd string) (*validate.Sch
 			return nil, err
 		}
 
-		v.validators[crd] = validator
+		v.validators[tm] = validator
 	}
 	return validator, nil
 }
@@ -90,14 +97,7 @@ func (v *Validator) Validate(ctx context.Context, resource interface{}) error {
 		return err
 	}
 
-	mapping, err := v.client.mappingFor(tm.GroupVersionKind().GroupKind().String())
-	if err != nil {
-		return err
-	}
-
-	crd := mapping.Resource.GroupResource().String()
-
-	validator, err := v.getValidator(ctx, crd)
+	validator, err := v.getValidator(ctx, tm)
 	if err != nil {
 		return err
 	}
