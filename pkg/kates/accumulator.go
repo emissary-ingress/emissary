@@ -74,7 +74,7 @@ func newAccumulator(ctx context.Context, client *Client, queries ...Query) *Accu
 	changed := make(chan struct{})
 
 	mapsels := make(map[string]mapsel)
-	channel := make(chan rawUpdate)
+	rawUpdateCh := make(chan rawUpdate)
 
 	for _, q := range queries {
 		mapping, err := client.mappingFor(q.Kind)
@@ -86,11 +86,17 @@ func newAccumulator(ctx context.Context, client *Client, queries ...Query) *Accu
 			panic(err)
 		}
 		mapsels[q.Name] = mapsel{mapping, sel, q}
-		client.watchRaw(ctx, q.Kind, channel, client.cliFor(mapping, q.Namespace), q.LabelSelector, q.Name)
+		client.watchRaw(ctx, q.Kind, rawUpdateCh, client.cliFor(mapping, q.Namespace), q.LabelSelector, q.Name)
 	}
 
 	acc := &Accumulator{client, make(map[string]*field), mapsels, changed, sync.Mutex{}}
 
+	// This coalesces reads from rawUpdateCh to notifications that changes are available to be
+	// processed. This loop along with the logic in storeField guarantees the 3
+	// Goals/Requirements listed in the documentation for the Accumulator struct, i.e. Ensuring
+	// all Kinds are bootstrapped before any notification occurs, as well as ensuring that we
+	// continue to coalesce updates in the background while business logic is executing in order
+	// to ensure graceful load shedding.
 	go func() {
 		canSend := false
 
@@ -101,17 +107,20 @@ func newAccumulator(ctx context.Context, client *Client, queries ...Query) *Accu
 				case changed <- struct{}{}:
 					canSend = false
 					continue
-				case rawUp = <-channel:
+				case rawUp = <-rawUpdateCh:
 				case <-ctx.Done():
 					return
 				}
 			} else {
 				select {
-				case rawUp = <-channel:
+				case rawUp = <-rawUpdateCh:
 				case <-ctx.Done():
 					return
 				}
 			}
+
+			// Don't overwrite canSend if storeField returns false. We may not yet have
+			// had a chance to send a notification down the changed channel.
 			if acc.storeField(rawUp.correlation.(string), rawUp.items) {
 				canSend = true
 			}
