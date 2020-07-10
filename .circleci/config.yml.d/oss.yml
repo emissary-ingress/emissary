@@ -99,6 +99,13 @@ commands:
       #- oss-save-logs
 
 jobs:
+  "oss-dev-generate":
+    <<: *oss-linux-job
+    steps:
+      - oss-linux-setup
+      - run: make generate
+      - dirty-check
+
   "oss-dev-images":
     <<: *oss-linux-job
     steps:
@@ -143,6 +150,7 @@ workflows:
     # Run this workflow on just 'master' and PRs.
     jobs:
       - "oss-dev-images"
+      - "oss-dev-generate"
   "OSS: Release":
     when:
       equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]

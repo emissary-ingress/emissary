@@ -254,6 +254,14 @@ jobs:
           git config --global user.name 'ambassador.git CircleCI user'
           git config --global user.email dev@datawire.io
     - run: ./.ci/website-prod-publish
+  oss-dev-generate:
+    steps:
+    - oss-linux-setup
+    - run: make generate
+    - dirty-check
+    machine:
+      image: "ubuntu-1604:201903-01"
+    working_directory: ~/project/ambassador
   oss-dev-images:
     steps:
     - oss-linux-setup
@@ -365,6 +373,7 @@ workflows:
   'OSS: Dev':
     jobs:
     - "oss-dev-images"
+    - "oss-dev-generate"
   'OSS: Release':
     when:
       equal:
