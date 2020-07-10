@@ -126,6 +126,12 @@
 //
 package kates
 
+// TODO:
+// - Comment explaining what the different client-go pieces are, what the pieces here are, and how they fit together: What is an "informer", what is a "RESTMapper", what is an "accumulator"? How do they fit together?
+// - FieldSelector is omitted.
+// - LabelSelector is stringly typed.
+// - Add tests to prove that Update followed by Get/List is actually synchronous and doesn't require patchWatch type functionality.
+
 /** XXX: thoughts...
  *
  * Problems with the way we currently write controllers:
