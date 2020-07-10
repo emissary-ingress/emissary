@@ -647,7 +647,7 @@ def show_overview(reqid=None):
     # they can try again.
     if not app.ir:
           app.logger.debug("OV %s - can't do overview before configuration" % reqid)
-          return "Can't do overview before configuration", 400
+          return "Can't do overview before configuration", 503
 
     app.logger.debug("OV %s - showing overview" % reqid)
 
@@ -776,7 +776,7 @@ def show_intermediate(source=None, reqid=None):
     # they can try again.
     if not app.ir:
           app.logger.debug("SRC %s - can't do intermediate for %s before configuration" % (reqid, source))
-          return "Can't do overview before configuration", 400
+          return "Can't do overview before configuration", 503
 
     app.logger.debug("SRC %s - getting intermediate for '%s'" % (reqid, source))
 
