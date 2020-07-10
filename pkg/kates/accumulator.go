@@ -70,7 +70,7 @@ type mapsel struct {
 	query    Query
 }
 
-func NewAccumulator(ctx context.Context, client *Client, queries ...Query) *Accumulator {
+func newAccumulator(ctx context.Context, client *Client, queries ...Query) *Accumulator {
 	changed := make(chan struct{})
 
 	mapsels := make(map[string]mapsel)

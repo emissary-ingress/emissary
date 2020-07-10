@@ -222,7 +222,7 @@ type Query struct {
 }
 
 func (c *Client) Watch(ctx context.Context, queries ...Query) *Accumulator {
-	return NewAccumulator(ctx, c, queries...)
+	return newAccumulator(ctx, c, queries...)
 }
 
 // ==
