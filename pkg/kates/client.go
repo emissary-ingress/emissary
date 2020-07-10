@@ -299,6 +299,7 @@ func errorHandler(name string, err error) {
 	}
 }
 
+// This is from client-go/tools/cache/reflector.go:563
 func isExpiredError(err error) bool {
 	// In Kubernetes 1.17 and earlier, the api server returns both apierrors.StatusReasonExpired and
 	// apierrors.StatusReasonGone for HTTP 410 (Gone) status code responses. In 1.18 the kube server is more consistent
