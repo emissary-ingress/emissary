@@ -63,11 +63,11 @@ import (
 //   2. The Accumulator API is guaranteed to bootstrap (i.e. perform an initial List operation) on
 //      all watches prior to notifying the user that resources are available to process.
 type Client struct {
-	config   *ConfigFlags
-	cli      dynamic.Interface
-	mapper   meta.RESTMapper
-	mutex    sync.Mutex
-	modified map[string]*Unstructured
+	config    *ConfigFlags
+	cli       dynamic.Interface
+	mapper    meta.RESTMapper
+	mutex     sync.Mutex
+	canonical map[string]*Unstructured
 }
 
 // The ClientOptions struct holds all the parameters and configuration
@@ -112,7 +112,7 @@ func NewClientFromConfigFlags(config *ConfigFlags) (*Client, error) {
 		return nil, err
 	}
 
-	return &Client{config: config, cli: cli, mapper: mapper, modified: make(map[string]*Unstructured)}, nil
+	return &Client{config: config, cli: cli, mapper: mapper, canonical: make(map[string]*Unstructured)}, nil
 }
 
 func NewRESTMapper(config *ConfigFlags) (meta.RESTMapper, error) {
@@ -271,8 +271,9 @@ func (c *Client) watchRaw(ctx context.Context, name string, target chan rawUpdat
 			},
 			DeleteFunc: func(obj interface{}) {
 				key := unKey(obj.(*Unstructured))
+				// We also clean out c.canonical
 				c.mutex.Lock()
-				delete(c.modified, key)
+				delete(c.canonical, key)
 				c.mutex.Unlock()
 				if informer.HasSynced() {
 					update()
@@ -443,13 +444,9 @@ func (c *Client) List(ctx context.Context, query Query, target interface{}) erro
 		for _, un := range res.Items {
 			copy := un.DeepCopy()
 			key := unKey(copy)
-			// TODO: rename modified to something more accurate,
-			// it is really a store to temporarily hold canonical
-			// values for a given object until the same or a later
-			// version is returned by a watch.
 			// TODO: Deal with garbage collection in the case
 			// where there is no watch.
-			c.modified[key] = copy
+			c.canonical[key] = copy
 			items = append(items, copy)
 		}
 		return nil
@@ -479,13 +476,9 @@ func (c *Client) Get(ctx context.Context, resource interface{}, target interface
 			return err
 		}
 		key := unKey(res)
-		// TODO: rename modified to something more accurate,
-		// it is really a store to temporarily hold canonical
-		// values for a given object until the same or a later
-		// version is returned by a watch.
 		// TODO: Deal with garbage collection in the case
 		// where there is no watch.
-		c.modified[key] = res
+		c.canonical[key] = res
 		return nil
 	}(); err != nil {
 		return err
@@ -513,7 +506,7 @@ func (c *Client) Create(ctx context.Context, resource interface{}, target interf
 			return err
 		}
 		key := unKey(res)
-		c.modified[key] = res
+		c.canonical[key] = res
 		return nil
 	}(); err != nil {
 		return err
@@ -544,7 +537,7 @@ func (c *Client) Update(ctx context.Context, resource interface{}, target interf
 		}
 		if res.GetResourceVersion() != prev {
 			key := unKey(res)
-			c.modified[key] = res
+			c.canonical[key] = res
 		}
 		return nil
 	}(); err != nil {
@@ -576,7 +569,7 @@ func (c *Client) UpdateStatus(ctx context.Context, resource interface{}, target 
 		}
 		if res.GetResourceVersion() != prev {
 			key := unKey(res)
-			c.modified[key] = res
+			c.canonical[key] = res
 		}
 		return nil
 	}(); err != nil {
@@ -604,7 +597,7 @@ func (c *Client) Delete(ctx context.Context, resource interface{}, target interf
 			return err
 		}
 		key := unKey(&un)
-		c.modified[key] = nil
+		c.canonical[key] = nil
 		return nil
 	}(); err != nil {
 		return err
@@ -627,12 +620,12 @@ func (c *Client) patchWatch(items *[]*Unstructured, mapping *meta.RESTMapping, s
 	idx := 0
 	for _, item := range *items {
 		key := unKey(item)
-		mod, ok := c.modified[key]
+		mod, ok := c.canonical[key]
 		if ok {
 			log.Println("Patching", key)
 			if mod != nil {
 				if gteq(item.GetResourceVersion(), mod.GetResourceVersion()) {
-					delete(c.modified, key)
+					delete(c.canonical, key)
 					(*items)[idx] = item
 				} else {
 					(*items)[idx] = mod
@@ -647,8 +640,8 @@ func (c *Client) patchWatch(items *[]*Unstructured, mapping *meta.RESTMapping, s
 	}
 	*items = (*items)[:idx]
 
-	// loop through any modified items not included in the result and add them
-	for key, mod := range c.modified {
+	// loop through any canonical items not included in the result and add them
+	for key, mod := range c.canonical {
 		if _, ok := included[key]; ok {
 			continue
 		}
@@ -665,6 +658,12 @@ func (c *Client) patchWatch(items *[]*Unstructured, mapping *meta.RESTMapping, s
 	}
 }
 
+// Technically this is sketchy since resource versions are opaque, however this exact same approach
+// is also taken deep in the bowels of client-go and from what I understand of the k3s folk's
+// efforts replacing etcd (the source of these resource versions) with a different store, the
+// kubernetes team was very adamant about the approach to pluggable stores being to create an etcd
+// shim rather than to go more abstract. I believe this makes it relatively safe to depend on in
+// practice.
 func gteq(v1, v2 string) bool {
 	i1, err := strconv.ParseInt(v1, 10, 64)
 	if err != nil {
