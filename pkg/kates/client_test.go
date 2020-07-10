@@ -18,7 +18,7 @@ func TestCRUD(t *testing.T) {
 			Kind: "ConfigMap",
 		},
 		ObjectMeta: ObjectMeta{
-			Name: "test-upsert-configmap",
+			Name: "test-crud-configmap",
 		},
 	}
 
@@ -53,6 +53,79 @@ func TestCRUD(t *testing.T) {
 	err = cli.Get(ctx, cm, nil)
 	assert.Error(t, err, "expecting not found error")
 	assert.True(t, IsNotFound(err), "expecting not found error")
+}
+
+func TestUpsert(t *testing.T) {
+	ctx := context.TODO()
+
+	cli, err := NewClient(ClientOptions{})
+	assert.NoError(t, err)
+
+	cm := &ConfigMap{
+		TypeMeta: TypeMeta{
+			Kind: "ConfigMap",
+		},
+		ObjectMeta: ObjectMeta{
+			Name: "test-upsert-configmap",
+			Labels: map[string]string{
+				"foo": "bar",
+			},
+		},
+	}
+
+	defer func() {
+		cli.Delete(ctx, cm, nil)
+	}()
+
+	err = cli.Upsert(ctx, cm, cm, cm)
+	assert.NoError(t, err)
+	assert.NotEqual(t, "", cm.GetResourceVersion())
+
+	src := &ConfigMap{
+		TypeMeta: TypeMeta{
+			Kind: "ConfigMap",
+		},
+		ObjectMeta: ObjectMeta{
+			Name: "test-upsert-configmap",
+			Labels: map[string]string{
+				"foo": "baz",
+			},
+		},
+	}
+
+	err = cli.Upsert(ctx, cm, src, cm)
+	assert.NoError(t, err)
+	assert.Equal(t, "baz", cm.Labels["foo"])
+}
+
+func TestPatch(t *testing.T) {
+	ctx := context.TODO()
+
+	cli, err := NewClient(ClientOptions{})
+	assert.NoError(t, err)
+
+	cm := &ConfigMap{
+		TypeMeta: TypeMeta{
+			Kind: "ConfigMap",
+		},
+		ObjectMeta: ObjectMeta{
+			Name: "test-patch-configmap",
+			Labels: map[string]string{
+				"foo": "bar",
+			},
+		},
+	}
+
+	err = cli.Create(ctx, cm, cm)
+	assert.NoError(t, err)
+
+	defer func() {
+		cli.Delete(ctx, cm, nil)
+	}()
+
+	err = cli.Patch(ctx, cm, StrategicMergePatchType, []byte(`{"metadata": {"annotations": {"moo": "arf"}}}`), cm)
+	assert.NoError(t, err)
+	assert.Equal(t, "arf", cm.GetAnnotations()["moo"])
 }
 
 func TestList(t *testing.T) {

@@ -27,3 +27,52 @@ func TestByName(t *testing.T) {
 	assert.Equal(t, 1, len(svcs))
 	assert.Equal(t, objs[0], svcs["example-service"])
 }
+
+func TestMergeUpdate(t *testing.T) {
+	a := &Unstructured{}
+	a.Object = map[string]interface{}{
+		"apiVersion": "vtest",
+		"kind":       "Foo",
+		"metadata": map[string]interface{}{
+			"name":            "foo",
+			"namespace":       "default",
+			"resourceVersion": "1234",
+			"labels": map[string]interface{}{
+				"foo": "bar",
+			},
+			"annotations": map[string]interface{}{
+				"moo": "arf",
+			},
+		},
+		"spec": map[string]interface{}{
+			"foo": "bar",
+		},
+	}
+
+	b := &Unstructured{}
+	b.Object = map[string]interface{}{
+		"apiVersion": "vtest",
+		"kind":       "Foo",
+		"metadata": map[string]interface{}{
+			"labels": map[string]interface{}{
+				"foo": "bar",
+				"moo": "arf",
+			},
+			"annotations": map[string]interface{}{
+				"foo": "bar",
+				"moo": "arf",
+			},
+		},
+		"spec": map[string]interface{}{
+			"key": "value",
+		},
+	}
+
+	assert.NotEqual(t, a.Object["spec"], b.Object["spec"])
+
+	MergeUpdate(a, b)
+
+	assert.Equal(t, "arf", a.GetLabels()["moo"])
+	assert.Equal(t, "bar", a.GetAnnotations()["foo"])
+	assert.Equal(t, b.Object["spec"], a.Object["spec"])
+}

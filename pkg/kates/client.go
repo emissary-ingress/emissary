@@ -550,6 +550,108 @@ func (c *Client) Update(ctx context.Context, resource interface{}, target interf
 
 // ==
 
+func (c *Client) Patch(ctx context.Context, resource interface{}, pt PatchType, data []byte, target interface{}) error {
+	var un Unstructured
+	err := convert(resource, &un)
+	if err != nil {
+		return err
+	}
+
+	prev := un.GetResourceVersion()
+
+	var res *Unstructured
+	if err := func() error {
+		c.mutex.Lock()
+		defer c.mutex.Unlock()
+		cli := c.cliForResource(&un)
+		res, err = cli.Patch(ctx, un.GetName(), pt, data, PatchOptions{})
+		if err != nil {
+			return err
+		}
+		if res.GetResourceVersion() != prev {
+			key := unKey(res)
+			c.modified[key] = res
+		}
+		return nil
+	}(); err != nil {
+		return err
+	}
+
+	return convert(res, target)
+}
+
+// ==
+
+func (c *Client) Upsert(ctx context.Context, resource interface{}, source interface{}, target interface{}) error {
+	var un Unstructured
+	err := convert(resource, &un)
+	if err != nil {
+		return err
+	}
+
+	var unsrc Unstructured
+	err = convert(source, &unsrc)
+	if err != nil {
+		return err
+	}
+	MergeUpdate(&un, &unsrc)
+
+	prev := un.GetResourceVersion()
+
+	var res *Unstructured
+	if err := func() error {
+		c.mutex.Lock()
+		defer c.mutex.Unlock()
+		cli := c.cliForResource(&un)
+		create := false
+		rsrc := &un
+		if prev == "" {
+			stored, err := cli.Get(ctx, un.GetName(), GetOptions{})
+			if err != nil {
+				if IsNotFound(err) {
+					create = true
+					rsrc = &un
+				} else {
+					return err
+				}
+			} else {
+				rsrc = stored
+				MergeUpdate(rsrc, &unsrc)
+			}
+		}
+		if create {
+			res, err = cli.Create(ctx, rsrc, CreateOptions{})
+		} else {
+			// XXX: need to clean up the conflict case and add a test for it
+		update:
+			res, err = cli.Update(ctx, rsrc, UpdateOptions{})
+			if err != nil && IsConflict(err) {
+				stored, err := cli.Get(ctx, un.GetName(), GetOptions{})
+				if err != nil {
+					return err
+				}
+				rsrc = stored
+				MergeUpdate(rsrc, &unsrc)
+				goto update
+			}
+		}
+		if err != nil {
+			return err
+		}
+		if res.GetResourceVersion() != prev {
+			key := unKey(res)
+			c.modified[key] = res
+		}
+		return nil
+	}(); err != nil {
+		return err
+	}
+
+	return convert(res, target)
+}
+
+// ==
+
 func (c *Client) UpdateStatus(ctx context.Context, resource interface{}, target interface{}) error {
 	var un Unstructured
 	err := convert(resource, &un)

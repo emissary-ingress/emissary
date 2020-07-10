@@ -1,6 +1,7 @@
 package kates
 
 import (
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	xv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -9,6 +10,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
@@ -70,6 +72,8 @@ const ResourceMemory = corev1.ResourceMemory
 
 type PersistentVolumeClaim = corev1.PersistentVolumeClaim
 
+type Deployment = appsv1.Deployment
+
 type CustomResourceDefinition = xv1.CustomResourceDefinition
 
 var NamesAccepted = xv1.NamesAccepted
@@ -91,10 +95,20 @@ type ConfigFlags = genericclioptions.ConfigFlags
 
 var NewConfigFlags = genericclioptions.NewConfigFlags
 
+type PatchType = types.PatchType
+
+var (
+	JSONPatchType           = types.JSONPatchType
+	MergePatchType          = types.MergePatchType
+	StrategicMergePatchType = types.StrategicMergePatchType
+	ApplyPatchType          = types.ApplyPatchType
+)
+
 type GetOptions = metav1.GetOptions
 type ListOptions = metav1.ListOptions
 type CreateOptions = metav1.CreateOptions
 type UpdateOptions = metav1.UpdateOptions
+type PatchOptions = metav1.PatchOptions
 type DeleteOptions = metav1.DeleteOptions
 
 var NamespaceAll = metav1.NamespaceAll
@@ -108,6 +122,7 @@ var ParseSelector = labels.Parse
 // error related aliases
 
 var IsNotFound = apierrors.IsNotFound
+var IsConflict = apierrors.IsConflict
 
 //
 
