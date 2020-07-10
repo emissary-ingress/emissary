@@ -10,7 +10,7 @@ generate:
 	$(MAKE) $(OSS_HOME)/api/envoy
 	$(MAKE) _generate
 _generate:
-	$(MAKE) $(generate/files)
+	@echo '$(MAKE) $$(generate/files)'; $(MAKE) $(generate/files)
 	$(MAKE) $(OSS_HOME)/pkg/envoy-control-plane
 generate-clean: ## Delete generated sources that get committed to git
 generate-clean:
