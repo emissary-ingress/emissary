@@ -20,6 +20,17 @@ generate-clean:
 	rm -rf $(OSS_HOME)/pkg/envoy-control-plane
 .PHONY: generate _generate generate-clean
 
+go-mod-tidy/oss:
+	rm -f $(OSS_HOME)/go.sum
+	cd $(OSS_HOME) && go mod tidy
+	cd $(OSS_HOME) && go mod edit -require=$$(go list -m github.com/cncf/udpa/go | sed 's,/go ,@,')
+	cd $(OSS_HOME) && go mod vendor # adds "// indirect" to the udpa line
+	$(MAKE) go-mod-tidy/oss-evaluate
+go-mod-tidy/oss-evaluate:
+	@echo '# evaluate $$(proto_path)'; # $(proto_path) # cause Make to call `go list STUFF`, which will maybe edit go.mod or go.sum
+go-mod-tidy: go-mod-tidy/oss
+.PHONY: go-mod-tidy/oss go-mod-tidy
+
 #
 # Helper Make functions and variables
 

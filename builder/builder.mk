@@ -600,4 +600,6 @@ define _help.targets
   $(BLD)$(MAKE) $(BLU)clobber$(END)   -- kills the build container and the cache volume.
 
   $(BLD)$(MAKE) $(BLU)generate$(END)  -- update generated files that get checked in to Git
+
+  $(BLD)$(MAKE) $(BLU)go-mod-tidy$(END) -- 'go mod tidy', but plays nice with 'make generate'
 endef

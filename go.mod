@@ -46,9 +46,12 @@ go 1.13
 //     (like doing a `replace` for a dozen different k8s.io/
 //     packages), stop, and ask someone for advice.
 //
-//  5. `go mod tidy` is going to try to remove `github.com/cncf/udpa`--don't let it!
-//     That will break `make generate`.  Keep the github.com/cncf/udpa version
-//     in-sync with the github.com/cncf/udpa/go version.
+//  5. Use `make go-mod-tidy` instead of `go mod tidy`.  Normal `go
+//     mod tidy` will try to remove `github.com/cncf/udpa`--don't let
+//     it, that would break `make generate`; the github.com/cncf/udpa
+//     version needs to be kept in-sync with the
+//     github.com/cncf/udpa/go version (`make go-mod-tidy` will do
+//     this).
 
 require (
 	git.lukeshu.com/go/libsystemd v0.5.3
@@ -58,6 +61,7 @@ require (
 	github.com/aokoli/goutils v1.1.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869
+	github.com/cncf/udpa v0.0.0-20200324003616-bae28a880fdb // indirect
 	github.com/cncf/udpa/go v0.0.0-20200324003616-bae28a880fdb
 	github.com/containerd/containerd v1.3.4 // indirect
 	github.com/datawire/pf v0.0.0-20180510150411-31a823f9495a
