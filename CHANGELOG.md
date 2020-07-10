@@ -5,6 +5,10 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
+(no changes yet)
+
+## v6.4.9
+
 - BugFix: Cannot specify podSecurityPolicies: [ambassador-chart/#97](https://github.com/datawire/ambassador-chart/issues/97)
 
 ## v6.4.8
@@ -41,7 +45,7 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## v6.4.1
 
-- BugFix: The `PodSecurityPolicy` should not be created by default since it is a cluster-wide resource that should only be created once. 
+- BugFix: The `PodSecurityPolicy` should not be created by default since it is a cluster-wide resource that should only be created once.
 
 If you would like to use the default `PodSecurityPolicy`, make sure to unset `security.podSecurityPolicy` it in all other releases.
 
