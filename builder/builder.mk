@@ -598,4 +598,6 @@ define _help.targets
   $(BLD)$(MAKE) $(BLU)clean$(END)     -- kills the build container.
 
   $(BLD)$(MAKE) $(BLU)clobber$(END)   -- kills the build container and the cache volume.
+
+  $(BLD)$(MAKE) $(BLU)generate$(END)  -- update generated files that get checked in to Git
 endef
