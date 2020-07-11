@@ -64,7 +64,7 @@ message HostSpec {
   // Only one of `tlsConfig` or `tls` can be specified
   oneof tlsConfig {
     // Name of the TLSContext the Host resource is linked with
-    string tlsContext = 9;
+    k8s.io.api.core.v1.LocalObjectReference tlsContext = 9;
 
     // TLS config
     TLSConfig tls = 10;
