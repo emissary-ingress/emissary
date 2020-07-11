@@ -13,7 +13,8 @@ _generate:
 generate-clean: ## Delete generated sources that get committed to git
 generate-clean:
 	rm -rf $(OSS_HOME)/api/envoy
-	rm -rf $(OSS_HOME)/pkg/api
+	rm -rf $(OSS_HOME)/pkg/api/envoy
+	rm -rf $(OSS_HOME)/pkg/api/kat
 	rm -f $(OSS_HOME)/tools/sandbox/grpc_web/*_pb.js
 	rm -rf $(OSS_HOME)/pkg/envoy-control-plane
 .PHONY: generate _generate generate-clean
