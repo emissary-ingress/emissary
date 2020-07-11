@@ -344,7 +344,12 @@ spec:
             tlsContext:
               description: Name of the TLSContext the Host resource is linked with.
                 It is not valid to specify both `tlsContext` and `tls`.
-              type: string
+              properties:
+                name:
+                  description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                    TODO: Add other useful fields. apiVersion, kind, uid?'
+                  type: string
+              type: object
             tlsSecret:
               description: Name of the Kubernetes secret into which to save generated
                 certificates.  If ACME is enabled (see $acmeProvider), then the default

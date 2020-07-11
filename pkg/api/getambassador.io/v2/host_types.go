@@ -98,7 +98,7 @@ type HostSpec struct {
 
 	// Name of the TLSContext the Host resource is linked with.
 	// It is not valid to specify both `tlsContext` and `tls`.
-	TLSContext string `json:"tlsContext,omitempty"`
+	TLSContext *corev1.LocalObjectReference `json:"tlsContext,omitempty"`
 
 	// TLS configuration.  It is not valid to specify both
 	// `tlsContext` and `tls`.

@@ -531,6 +531,11 @@ func (in *HostSpec) DeepCopyInto(out *HostSpec) {
 		*out = new(PreviewURLSpec)
 		**out = **in
 	}
+	if in.TLSContext != nil {
+		in, out := &in.TLSContext, &out.TLSContext
+		*out = new(v1.LocalObjectReference)
+		**out = **in
+	}
 	if in.TLS != nil {
 		in, out := &in.TLS, &out.TLS
 		*out = new(TLSConfig)
