@@ -602,7 +602,7 @@ def show_overview(reqid=None):
 
     if not diag:
         app.logger.debug("OV %s - can't do overview before configuration" % reqid)
-        return "Can't do overview before configuration", 400
+        return "Can't do overview before configuration", 503
 
     app.logger.debug("OV %s - showing overview" % reqid)        
 
@@ -728,7 +728,7 @@ def show_intermediate(source=None, reqid=None):
 
     if not diag:
         app.logger.debug("SRC %s - can't do intermediate before configuration" % reqid)
-        return "Can't do overview before configuration", 400
+        return "Can't do overview before configuration", 503
 
     app.logger.debug("SRC %s - getting intermediate for '%s'" % (reqid, source))
 
