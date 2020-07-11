@@ -70,14 +70,13 @@ require (
 	github.com/envoyproxy/protoc-gen-validate v0.3.0-java.0.20200311152155-ab56c3dd1cf9
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/gogo/protobuf v1.3.1
-	github.com/golang/protobuf v1.4.0
+	github.com/golang/protobuf v1.4.2
 	github.com/google/go-cmp v0.4.0
 	github.com/google/shlex v0.0.0-20181106134648-c34317bd91bf
 	github.com/google/uuid v1.1.1
 	github.com/gookit/color v1.2.3
 	github.com/gorilla/websocket v1.4.1
 	github.com/hashicorp/consul/api v1.3.0
-	github.com/hashicorp/golang-lru v0.5.3 // indirect
 	github.com/iancoleman/strcase v0.0.0-20180726023541-3605ed457bf7
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/lib/pq v1.7.0 // indirect
@@ -97,12 +96,12 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
-	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
+	golang.org/x/net v0.0.0-20200520004742-59133d7f0dd7
 	golang.org/x/sys v0.0.0-20200420163511-1957bb5e6d1f
 	google.golang.org/genproto v0.0.0-20200115191322-ca5a22157cba // indirect
 	google.golang.org/grpc v1.27.0
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
-	gopkg.in/yaml.v2 v2.2.8
+	gopkg.in/yaml.v2 v2.3.0
 	helm.sh/helm/v3 v3.2.4
 	istio.io/gogo-genproto v0.0.0-20190904133402-ee07f2785480
 	k8s.io/api v0.18.4
@@ -112,6 +111,8 @@ require (
 	k8s.io/client-go v0.18.4
 	k8s.io/helm v2.16.9+incompatible
 	rsc.io/letsencrypt v0.0.3 // indirect
+	sigs.k8s.io/controller-runtime v0.6.1
+	sigs.k8s.io/controller-tools v0.3.1-0.20200517180335-820a4a27ea84
 	sigs.k8s.io/yaml v1.2.0
 )
 
