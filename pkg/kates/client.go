@@ -570,7 +570,7 @@ func (c *Client) Patch(ctx context.Context, resource interface{}, pt PatchType, 
 		}
 		if res.GetResourceVersion() != prev {
 			key := unKey(res)
-			c.modified[key] = res
+			c.canonical[key] = res
 		}
 		return nil
 	}(); err != nil {
@@ -640,7 +640,7 @@ func (c *Client) Upsert(ctx context.Context, resource interface{}, source interf
 		}
 		if res.GetResourceVersion() != prev {
 			key := unKey(res)
-			c.modified[key] = res
+			c.canonical[key] = res
 		}
 		return nil
 	}(); err != nil {
