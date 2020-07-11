@@ -70,7 +70,8 @@ class IRHost(IRResource):
                     implicit_tls_exists = ir.has_tls_context(ctx_name)
                     self.logger.debug(f"TLSContext with name {ctx_name} exists in the cluster?: {implicit_tls_exists}")
 
-                    host_tls_context_name = self.get('tlsContext', None)
+                    host_tls_context_obj = self.get('tlsContext', {})
+                    host_tls_context_name = host_tls_context_obj.get('name', None)
                     self.logger.debug(f"Found TLSContext: {host_tls_context_name}")
 
                     host_tls_config = self.get('tls', None)
