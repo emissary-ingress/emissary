@@ -302,8 +302,7 @@ spec:
                   description: Is the Preview URL feature enabled?
                   type: boolean
                 type:
-                  description: What type of Preview URL is allowed?  - path  - wildcard  -
-                    datawire // FIXME rename this before release
+                  description: What type of Preview URL is allowed?
                   enum:
                   - path
                   type: string
@@ -441,6 +440,8 @@ spec:
               - ACMECertificateChallenge
               type: string
             phasePending:
+              description: phaseCompleted and phasePending are valid when state==Pending
+                or state==Error.
               enum:
               - NA
               - DefaultsFilled

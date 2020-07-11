@@ -435,7 +435,11 @@ func (in *Host) DeepCopyInto(out *Host) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
 	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
-	in.Spec.DeepCopyInto(&out.Spec)
+	if in.Spec != nil {
+		in, out := &in.Spec, &out.Spec
+		*out = new(HostSpec)
+		(*in).DeepCopyInto(*out)
+	}
 	in.Status.DeepCopyInto(&out.Status)
 }
 

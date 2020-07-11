@@ -51,13 +51,17 @@ type PreviewURLSpec struct {
 	Enabled bool `json:"enabled,omitempty"`
 
 	// What type of Preview URL is allowed?
-	//  - path
-	//  - wildcard
-	//  - datawire // FIXME rename this before release
-	//
-	// +kubebuilder:validation:Enum={"path"}
-	Type string `json:"type,omitempty"`
+	Type PreviewURLType `json:"type,omitempty"`
 }
+
+// What type of Preview URL is allowed?
+//
+//  - path
+//  - wildcard
+//  - datawire // FIXME rename this before release
+//
+// +kubebuilder:validation:Enum={"path"}
+type PreviewURLType string
 
 // HostSpec defines the desired state of Host
 type HostSpec struct {
@@ -116,26 +120,42 @@ type TLSConfig struct {
 	SNI                   string   `json:"sni,omitempty"`
 }
 
+// The first value listed in the Enum marker becomes the "zero" value,
+// and it would be great if "Pending" could be the default value; but
+// it's Important that the "zero" value be able to be shown as
+// empty/omitted from display, and we really do want `kubectl get
+// hosts` to say "Pending" in the "STATE" column, and not leave the
+// column empty.
+//
+// +kubebuilder:validation:Type=string
+// +kubebuilder:validation:Enum={"Initial","Pending","Ready","Error"}
+type HostState int
+
+// +kubebuilder:validation:Type=string
+// +kubebuilder:validation:Enum={"NA","DefaultsFilled","ACMEUserPrivateKeyCreated","ACMEUserRegistered","ACMECertificateChallenge"}
+type HostPhase int
+
 // HostStatus defines the observed state of Host
 type HostStatus struct {
-	// +kubebuilder:validation:Enum={"Unknown","None","Other","ACME"}
-	TLSCertificateSource string `json:"tlsCertificateSource,omitempty"`
+	TLSCertificateSource HostTLSCertificateSource `json:"tlsCertificateSource,omitempty"`
 
-	// +kubebuilder:validation:Enum={"Initial","Pending","Ready","Error"}
-	State string `json:"state,omitempty"`
+	State HostState `json:"state,omitempty"`
 
 	// phaseCompleted and phasePending are valid when state==Pending or
 	// state==Error.
-	// +kubebuilder:validation:Enum={"NA","DefaultsFilled","ACMEUserPrivateKeyCreated","ACMEUserRegistered","ACMECertificateChallenge"}
-	PhaseCompleted string `json:"phaseCompleted,omitempty"`
-	// +kubebuilder:validation:Enum={"NA","DefaultsFilled","ACMEUserPrivateKeyCreated","ACMEUserRegistered","ACMECertificateChallenge"}
-	PhasePending string `json:"phasePending,omitempty"`
+	PhaseCompleted HostPhase `json:"phaseCompleted,omitempty"`
+	// phaseCompleted and phasePending are valid when state==Pending or
+	// state==Error.
+	PhasePending HostPhase `json:"phasePending,omitempty"`
 
 	// errorReason, errorTimestamp, and errorBackoff are valid when state==Error.
 	ErrorReason    string           `json:"errorReason,omitempty"`
 	ErrorTimestamp *metav1.Time     `json:"errorTimestamp,omitempty"`
 	ErrorBackoff   *metav1.Duration `json:"errorBackoff,omitempty"`
 }
+
+// +kubebuilder:validation:Enum={"Unknown","None","Other","ACME"}
+type HostTLSCertificateSource string
 
 // +kubebuilder:object:root=true
 
@@ -144,7 +164,7 @@ type Host struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   HostSpec   `json:"spec,omitempty"`
+	Spec   *HostSpec  `json:"spec,omitempty"`
 	Status HostStatus `json:"status,omitempty"`
 }
 
