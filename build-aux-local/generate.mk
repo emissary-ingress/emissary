@@ -313,3 +313,28 @@ clean: _makefile_clean
 _makefile_clean:
 	rm -rf $(OSS_HOME)/generate.tmp $(OSS_HOME)/vendor
 .PHONY: _makefile_clean
+
+#
+# `make generate`/`make update-yaml` rules to update generated YAML files
+
+update-yaml-preflight:
+	@printf "$(CYN)==> $(GRN)Updating YAML$(END)\n"
+.PHONY: update-yaml-preflight
+
+$(OSS_HOME)/docs/yaml/ambassador/%.yaml: $(OSS_HOME)/docs/yaml/ambassador/%.yaml.m4 $(OSS_HOME)/docs/yaml/ambassador/ambassador-crds.yaml update-yaml-preflight
+	@printf '  $(CYN)$@$(END)\n'
+	cd $(@D) && m4 < $(<F) > $(@F)
+
+update-yaml/files += $(OSS_HOME)/docs/yaml/ambassador/ambassador-rbac-prometheus.yaml
+update-yaml/files += $(OSS_HOME)/docs/yaml/ambassador/ambassador-knative.yaml
+
+generate/files += $(update-yaml/files)
+update-yaml:
+	$(MAKE) update-yaml-clean
+	@echo '$(MAKE) $$(update-yaml/files)'; $(MAKE) $(update-yaml/files)
+.PHONY: update-yaml
+
+update-yaml-clean:
+	rm -f $(update-yaml/files)
+generate-clean: update-yaml-clean
+.PHONY: update-yaml-clean
