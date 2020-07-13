@@ -58,6 +58,14 @@ In this section, we will deploy the Prometheus Operator using the standard YAML 
     kubectl apply -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/bundle.yaml
     ```
 
+    **Note:** The YAML assumes Kubernetes 1.15 and above. If running a lower version, you will need to run the following command to install the CRDs with the right API version:
+
+    ```
+    curl -sL https://raw.githubusercontent.com/coreos/prometheus-operator/master/bundle.yaml \
+      | sed 's|apiVersion: apiextensions.k8s.io/v1|apiVersion: apiextensions.k8s.io/v1beta1|' \
+      | kubectl apply -f -
+    ```
+
 2. Deploy Prometheus by creating a `Prometheus` CRD
 
     First, create RBAC resources for your Prometheus instance
