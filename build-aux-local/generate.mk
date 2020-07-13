@@ -109,6 +109,12 @@ $(tools/protoc-gen-go-json): $(OSS_HOME)/go.mod
 	mkdir -p $(@D)
 	cd $(OSS_HOME) && go build -o $@ github.com/mitchellh/protoc-gen-go-json
 
+# A python script... normally we might want to shove this in the
+# builder image, but (1) that'd be a pain, and (2) the requirements
+# here are python3, python3-yaml, and python3-packaging... now, if you
+# have 'awscli', which we already require, then you'll have those.
+tools/fix-crds = $(OSS_HOME)/build-aux-local/fix-crds
+
 #
 # `make generate` vendor rules
 
@@ -321,10 +327,15 @@ update-yaml-preflight:
 	@printf "$(CYN)==> $(GRN)Updating YAML$(END)\n"
 .PHONY: update-yaml-preflight
 
+
+$(OSS_HOME)/python/tests/manifests/crds.yaml: $(OSS_HOME)/docs/yaml/ambassador/ambassador-crds.yaml $(tools/fix-crds) update-yaml-preflight
+	@printf '  $(CYN)$@$(END)\n'
+	$(tools/fix-crds) '' 1.10 $< > $@
 $(OSS_HOME)/docs/yaml/ambassador/%.yaml: $(OSS_HOME)/docs/yaml/ambassador/%.yaml.m4 $(OSS_HOME)/docs/yaml/ambassador/ambassador-crds.yaml update-yaml-preflight
 	@printf '  $(CYN)$@$(END)\n'
 	cd $(@D) && m4 < $(<F) > $(@F)
 
+update-yaml/files += $(OSS_HOME)/python/tests/manifests/crds.yaml
 update-yaml/files += $(OSS_HOME)/docs/yaml/ambassador/ambassador-rbac-prometheus.yaml
 update-yaml/files += $(OSS_HOME)/docs/yaml/ambassador/ambassador-knative.yaml
 

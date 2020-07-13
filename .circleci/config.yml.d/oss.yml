@@ -28,7 +28,7 @@ commands:
       - install-python:
           executor-key: "201903-01"
       - pip-install:
-          packages: awscli
+          packages: awscli packaging
       - install-go
       - install-kubectl
       - oss-checkout

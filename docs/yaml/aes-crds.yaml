@@ -1,5 +1,5 @@
 # GENERATED FILE: edits made by hand will not be preserved.
-
+---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
@@ -499,4 +499,3 @@ spec:
   - name: v2
     served: true
     storage: true
-
