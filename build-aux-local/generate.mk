@@ -354,26 +354,19 @@ controller-gen/options/object      += # headerFile=hack/boilerplate.go.txt
 controller-gen/options/crd         += trivialVersions=true # change this to "false" once we're OK with requiring Kubernetes 1.13+
 controller-gen/options/crd         += crdVersions=v1beta1 # change this to "v1" once we're OK with requiring Kubernetes 1.16+
 controller-gen/output/crd           = dir=$(crds_yaml_dir)
-_generate_controller_gen: $(tools/controller-gen) update-yaml-preflight
+_generate_controller_gen: $(tools/controller-gen) $(tools/fix-crds) update-yaml-preflight
 	@printf '  $(CYN)Running controller-gen$(END)\n'
 	rm -f $(crds_yaml_dir)/getambassador.io_*
 	cd $(OSS_HOME) && $(tools/controller-gen) \
 	  $(foreach varname,$(filter controller-gen/options/%,$(.VARIABLES)), $(patsubst controller-gen/options/%,%,$(varname))$(if $(strip $($(varname))),:$(call joinlist,$(comma),$($(varname)))) ) \
 	  $(foreach varname,$(filter controller-gen/output/%,$(.VARIABLES)), $(call joinlist,:,output $(patsubst controller-gen/output/%,%,$(varname)) $($(varname))) ) \
 	  paths="./pkg/api/getambassador.io/..."
-# Are you kidding me: controller-gen generates CRDs with status
-# set... even though the apiserver will entirely ignore the status if
-# you try to set it on the broader parent resource.  But! As of
-# controller-gen 0.3.0, it generates a status that kubectl's
-# client-side validation will reject.  So, use `sed` to remove the
-# statuses that should never have been there anyway, so that the tools
-# that are to stupid to know to ignore them don't trip up on them.
-	@PS4=; set -ex; for file in $(crds_yaml_dir)/*.yaml; do sed -i.bak '/^status:$$/,$$d' "$$file"; rm -f "$$file.bak"; done
+	@PS4=; set -ex; for file in $(crds_yaml_dir)/*.yaml; do $(tools/fix-crds) '' 1.11 "$$file" > "$$file.tmp"; mv "$$file.tmp" "$$file"; done
 .PHONY: _generate_controller_gen
 
-$(OSS_HOME)/docs/yaml/ambassador/ambassador-crds.yaml: _generate_controller_gen update-yaml-preflight
+$(OSS_HOME)/docs/yaml/ambassador/ambassador-crds.yaml: _generate_controller_gen $(tools/fix-crds) update-yaml-preflight
 	@printf '  $(CYN)$@$(END)\n'
-	cat $(sort $(wildcard $(crds_yaml_dir)/*.yaml)) > $@
+	$(tools/fix-crds) '' 1.11 $(sort $(wildcard $(crds_yaml_dir)/*.yaml)) > $@
 $(OSS_HOME)/python/tests/manifests/crds.yaml: $(OSS_HOME)/docs/yaml/ambassador/ambassador-crds.yaml $(tools/fix-crds) update-yaml-preflight
 	@printf '  $(CYN)$@$(END)\n'
 	$(tools/fix-crds) '' 1.10 $< > $@

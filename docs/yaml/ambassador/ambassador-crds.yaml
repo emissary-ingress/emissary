@@ -1,4 +1,4 @@
-
+# GENERATED FILE: edits made by hand will not be preserved.
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -6,10 +6,13 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
   creationTimestamp: null
+  labels: {}
   name: authservices.getambassador.io
 spec:
   group: getambassador.io
   names:
+    categories:
+    - ambassador-crds
     kind: AuthService
     listKind: AuthServiceList
     plural: authservices
@@ -20,10 +23,14 @@ spec:
       description: AuthService is the Schema for the authservices API
       properties:
         apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
           type: string
         kind:
-          description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
           type: string
         metadata:
           type: object
@@ -85,12 +92,14 @@ spec:
           description: AuthServiceStatus defines the observed state of AuthService
           type: object
       type: object
-  version: v2
+  version: null
   versions:
   - name: v2
     served: true
     storage: true
-
+  - name: v1
+    served: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -98,10 +107,13 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
   creationTimestamp: null
+  labels: {}
   name: consulresolvers.getambassador.io
 spec:
   group: getambassador.io
   names:
+    categories:
+    - ambassador-crds
     kind: ConsulResolver
     listKind: ConsulResolverList
     plural: consulresolvers
@@ -112,10 +124,14 @@ spec:
       description: ConsulResolver is the Schema for the ConsulResolver API
       properties:
         apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
           type: string
         kind:
-          description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
           type: string
         metadata:
           type: object
@@ -133,12 +149,14 @@ spec:
           description: ConsulResolverStatus defines the observed state of ConsulResolver
           type: object
       type: object
-  version: v2
+  version: null
   versions:
   - name: v2
     served: true
     storage: true
-
+  - name: v1
+    served: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -146,10 +164,13 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
   creationTimestamp: null
+  labels: {}
   name: hosts.getambassador.io
 spec:
   group: getambassador.io
   names:
+    categories:
+    - ambassador-crds
     kind: Host
     listKind: HostList
     plural: hosts
@@ -160,10 +181,14 @@ spec:
       description: Host is the Schema for the hosts API
       properties:
         apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
           type: string
         kind:
-          description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
           type: string
         metadata:
           type: object
@@ -171,43 +196,54 @@ spec:
           description: HostSpec defines the desired state of Host
           properties:
             acmeProvider:
-              description: Specifies whether/who to talk ACME with to automatically manage the $tlsSecret.
+              description: Specifies whether/who to talk ACME with to automatically
+                manage the $tlsSecret.
               properties:
                 authority:
-                  description: Specifies who to talk ACME with to get certs. Defaults to Let's Encrypt; if "none" (case-insensitive), do not try to do ACME for this Host.
+                  description: Specifies who to talk ACME with to get certs. Defaults
+                    to Let's Encrypt; if "none" (case-insensitive), do not try to
+                    do ACME for this Host.
                   type: string
                 email:
                   type: string
                 privateKeySecret:
-                  description: LocalObjectReference contains enough information to let you locate the referenced object inside the same namespace.
+                  description: LocalObjectReference contains enough information to
+                    let you locate the referenced object inside the same namespace.
                   properties:
                     name:
-                      description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                      description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                        TODO: Add other useful fields. apiVersion, kind, uid?'
                       type: string
                   type: object
                 registration:
                   description: This is normally set automatically
                   type: string
               type: object
-            ambassador_id:
-              description: Common to all Ambassador objects (and optional).
+            ambassadorId:
+              description: A compatibility alias for "ambassador_id"; because Host
+                used to be specified with protobuf, and jsonpb allowed either "ambassador_id"
+                or "ambassadorId", and even though we didn't tell people about "ambassadorId"
+                it's what the web policy console generated because of jsonpb.  So
+                Hosts with 'ambassadorId' exist in the wild.
               items:
                 type: string
-            ambassadorId:
-              description: A compatibility alias for "ambassador_id"; because Host used to be specified with protobuf, and jsonpb allowed either "ambassador_id" or "ambassadorId", and even though we didn't tell people about "ambassadorId" it's what the web policy console generated because of jsonpb.  So Hosts with 'ambassadorId' exist in the wild.
+            ambassador_id:
+              description: Common to all Ambassador objects (and optional).
               items:
                 type: string
             hostname:
               description: Hostname by which the Ambassador can be reached.
               type: string
             previewUrl:
-              description: Configuration for the Preview URL feature of Service Preview. Defaults to preview URLs not enabled.
+              description: Configuration for the Preview URL feature of Service Preview.
+                Defaults to preview URLs not enabled.
               properties:
                 enabled:
                   description: Is the Preview URL feature enabled?
                   type: boolean
                 type:
-                  description: What type of Preview URL is allowed?  - path  - wildcard  - datawire // FIXME rename this before release
+                  description: What type of Preview URL is allowed?  - path  - wildcard  -
+                    datawire // FIXME rename this before release
                   enum:
                   - path
                   type: string
@@ -229,21 +265,31 @@ spec:
                   type: object
               type: object
             selector:
-              description: Selector by which we can find further configuration. Defaults to hostname=$hostname
+              description: Selector by which we can find further configuration. Defaults
+                to hostname=$hostname
               properties:
                 matchExpressions:
-                  description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
+                  description: matchExpressions is a list of label selector requirements.
+                    The requirements are ANDed.
                   items:
-                    description: A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+                    description: A label selector requirement is a selector that contains
+                      values, a key, and an operator that relates the key and values.
                     properties:
                       key:
-                        description: key is the label key that the selector applies to.
+                        description: key is the label key that the selector applies
+                          to.
                         type: string
                       operator:
-                        description: operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.
+                        description: operator represents a key's relationship to a
+                          set of values. Valid operators are In, NotIn, Exists and
+                          DoesNotExist.
                         type: string
                       values:
-                        description: values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.
+                        description: values is an array of string values. If the operator
+                          is In or NotIn, the values array must be non-empty. If the
+                          operator is Exists or DoesNotExist, the values array must
+                          be empty. This array is replaced during a strategic merge
+                          patch.
                         items:
                           type: string
                         type: array
@@ -255,11 +301,16 @@ spec:
                 matchLabels:
                   additionalProperties:
                     type: string
-                  description: matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is "key", the operator is "In", and the values array contains only "value". The requirements are ANDed.
+                  description: matchLabels is a map of {key,value} pairs. A single
+                    {key,value} in the matchLabels map is equivalent to an element
+                    of matchExpressions, whose key field is "key", the operator is
+                    "In", and the values array contains only "value". The requirements
+                    are ANDed.
                   type: object
               type: object
             tls:
-              description: TLS configuration.  It is not valid to specify both `tlsContext` and `tls`.
+              description: TLS configuration.  It is not valid to specify both `tlsContext`
+                and `tls`.
               properties:
                 alpn_protocols:
                   type: string
@@ -292,13 +343,18 @@ spec:
                   type: string
               type: object
             tlsContext:
-              description: Name of the TLSContext the Host resource is linked with. It is not valid to specify both `tlsContext` and `tls`.
+              description: Name of the TLSContext the Host resource is linked with.
+                It is not valid to specify both `tlsContext` and `tls`.
               type: string
             tlsSecret:
-              description: Name of the Kubernetes secret into which to save generated certificates.  If ACME is enabled (see $acmeProvider), then the default is $hostname; otherwise the default is "".  If the value is "", then we do not do TLS for this Host.
+              description: Name of the Kubernetes secret into which to save generated
+                certificates.  If ACME is enabled (see $acmeProvider), then the default
+                is $hostname; otherwise the default is "".  If the value is "", then
+                we do not do TLS for this Host.
               properties:
                 name:
-                  description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                  description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                    TODO: Add other useful fields. apiVersion, kind, uid?'
                   type: string
               type: object
           type: object
@@ -308,13 +364,15 @@ spec:
             errorBackoff:
               type: string
             errorReason:
-              description: errorReason, errorTimestamp, and errorBackoff are valid when state==Error.
+              description: errorReason, errorTimestamp, and errorBackoff are valid
+                when state==Error.
               type: string
             errorTimestamp:
               format: date-time
               type: string
             phaseCompleted:
-              description: phaseCompleted and phasePending are valid when state==Pending or state==Error.
+              description: phaseCompleted and phasePending are valid when state==Pending
+                or state==Error.
               enum:
               - NA
               - DefaultsFilled
@@ -346,12 +404,11 @@ spec:
               type: string
           type: object
       type: object
-  version: v2
+  version: null
   versions:
   - name: v2
     served: true
     storage: true
-
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -359,10 +416,13 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
   creationTimestamp: null
+  labels: {}
   name: kubernetesendpointresolvers.getambassador.io
 spec:
   group: getambassador.io
   names:
+    categories:
+    - ambassador-crds
     kind: KubernetesEndpointResolver
     listKind: KubernetesEndpointResolverList
     plural: kubernetesendpointresolvers
@@ -370,13 +430,18 @@ spec:
   scope: Namespaced
   validation:
     openAPIV3Schema:
-      description: KubernetesEndpointResolver is the Schema for the kubernetesendpointresolver API
+      description: KubernetesEndpointResolver is the Schema for the kubernetesendpointresolver
+        API
       properties:
         apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
           type: string
         kind:
-          description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
           type: string
         metadata:
           type: object
@@ -387,15 +452,18 @@ spec:
                 type: string
           type: object
         status:
-          description: KubernetesEndpointResolverStatus defines the observed state of KubernetesEndpointResolver
+          description: KubernetesEndpointResolverStatus defines the observed state
+            of KubernetesEndpointResolver
           type: object
       type: object
-  version: v2
+  version: null
   versions:
   - name: v2
     served: true
     storage: true
-
+  - name: v1
+    served: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -403,10 +471,13 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
   creationTimestamp: null
+  labels: {}
   name: kubernetesserviceresolvers.getambassador.io
 spec:
   group: getambassador.io
   names:
+    categories:
+    - ambassador-crds
     kind: KubernetesServiceResolver
     listKind: KubernetesServiceResolverList
     plural: kubernetesserviceresolvers
@@ -414,13 +485,18 @@ spec:
   scope: Namespaced
   validation:
     openAPIV3Schema:
-      description: KubernetesServiceResolver is the Schema for the kubernetesserviceresolver API
+      description: KubernetesServiceResolver is the Schema for the kubernetesserviceresolver
+        API
       properties:
         apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
           type: string
         kind:
-          description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
           type: string
         metadata:
           type: object
@@ -431,15 +507,18 @@ spec:
                 type: string
           type: object
         status:
-          description: KubernetesServiceResolverStatus defines the observed state of KubernetesServiceResolver
+          description: KubernetesServiceResolverStatus defines the observed state
+            of KubernetesServiceResolver
           type: object
       type: object
-  version: v2
+  version: null
   versions:
   - name: v2
     served: true
     storage: true
-
+  - name: v1
+    served: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -447,10 +526,13 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
   creationTimestamp: null
+  labels: {}
   name: logservices.getambassador.io
 spec:
   group: getambassador.io
   names:
+    categories:
+    - ambassador-crds
     kind: LogService
     listKind: LogServiceList
     plural: logservices
@@ -461,10 +543,14 @@ spec:
       description: LogService is the Schema for the logservices API
       properties:
         apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
           type: string
         kind:
-          description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
           type: string
         metadata:
           type: object
@@ -510,12 +596,14 @@ spec:
           description: LogServiceStatus defines the observed state of LogService
           type: object
       type: object
-  version: v2
+  version: null
   versions:
   - name: v2
     served: true
     storage: true
-
+  - name: v1
+    served: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -523,10 +611,13 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
   creationTimestamp: null
+  labels: {}
   name: mappings.getambassador.io
 spec:
   group: getambassador.io
   names:
+    categories:
+    - ambassador-crds
     kind: Mapping
     listKind: MappingList
     plural: mappings
@@ -537,10 +628,14 @@ spec:
       description: Mapping is the Schema for the mappings API
       properties:
         apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
           type: string
         kind:
-          description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
           type: string
         metadata:
           type: object
@@ -749,12 +844,14 @@ spec:
           description: MappingStatus defines the observed state of Mapping
           type: object
       type: object
-  version: v2
+  version: null
   versions:
   - name: v2
     served: true
     storage: true
-
+  - name: v1
+    served: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -762,10 +859,13 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
   creationTimestamp: null
+  labels: {}
   name: modules.getambassador.io
 spec:
   group: getambassador.io
   names:
+    categories:
+    - ambassador-crds
     kind: Module
     listKind: ModuleList
     plural: modules
@@ -775,10 +875,14 @@ spec:
     openAPIV3Schema:
       properties:
         apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
           type: string
         kind:
-          description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
           type: string
         metadata:
           type: object
@@ -793,12 +897,14 @@ spec:
         status:
           type: object
       type: object
-  version: v2
+  version: null
   versions:
   - name: v2
     served: true
     storage: true
-
+  - name: v1
+    served: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -806,10 +912,13 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
   creationTimestamp: null
+  labels: {}
   name: ratelimitservices.getambassador.io
 spec:
   group: getambassador.io
   names:
+    categories:
+    - ambassador-crds
     kind: RateLimitService
     listKind: RateLimitServiceList
     plural: ratelimitservices
@@ -820,10 +929,14 @@ spec:
       description: RateLimitService is the Schema for the ratelimitservices API
       properties:
         apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
           type: string
         kind:
-          description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
           type: string
         metadata:
           type: object
@@ -848,12 +961,14 @@ spec:
           description: RateLimitServiceStatus defines the observed state of RateLimitService
           type: object
       type: object
-  version: v2
+  version: null
   versions:
   - name: v2
     served: true
     storage: true
-
+  - name: v1
+    served: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -861,10 +976,13 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
   creationTimestamp: null
+  labels: {}
   name: tcpmappings.getambassador.io
 spec:
   group: getambassador.io
   names:
+    categories:
+    - ambassador-crds
     kind: TCPMapping
     listKind: TCPMappingList
     plural: tcpmappings
@@ -875,10 +993,14 @@ spec:
       description: TCPMapping is the Schema for the tcpmappings API
       properties:
         apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
           type: string
         kind:
-          description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
           type: string
         metadata:
           type: object
@@ -943,12 +1065,14 @@ spec:
           description: TCPMappingStatus defines the observed state of TCPMapping
           type: object
       type: object
-  version: v2
+  version: null
   versions:
   - name: v2
     served: true
     storage: true
-
+  - name: v1
+    served: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -956,10 +1080,13 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
   creationTimestamp: null
+  labels: {}
   name: tlscontexts.getambassador.io
 spec:
   group: getambassador.io
   names:
+    categories:
+    - ambassador-crds
     kind: TLSContext
     listKind: TLSContextList
     plural: tlscontexts
@@ -970,10 +1097,14 @@ spec:
       description: TLSContext is the Schema for the tlscontexts API
       properties:
         apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
           type: string
         kind:
-          description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
           type: string
         metadata:
           type: object
@@ -1034,12 +1165,14 @@ spec:
           description: TLSContextStatus defines the observed state of TLSContext
           type: object
       type: object
-  version: v2
+  version: null
   versions:
   - name: v2
     served: true
     storage: true
-
+  - name: v1
+    served: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -1047,10 +1180,13 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
   creationTimestamp: null
+  labels: {}
   name: tracingservices.getambassador.io
 spec:
   group: getambassador.io
   names:
+    categories:
+    - ambassador-crds
     kind: TracingService
     listKind: TracingServiceList
     plural: tracingservices
@@ -1061,10 +1197,14 @@ spec:
       description: TracingService is the Schema for the tracingservices API
       properties:
         apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
           type: string
         kind:
-          description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
           type: string
         metadata:
           type: object
@@ -1115,8 +1255,11 @@ spec:
           description: TracingServiceStatus defines the observed state of TracingService
           type: object
       type: object
-  version: v2
+  version: null
   versions:
   - name: v2
     served: true
     storage: true
+  - name: v1
+    served: true
+    storage: false
