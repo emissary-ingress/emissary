@@ -30,7 +30,11 @@ function relativeToAbsUrl(slug) {
 }
 
 function getMainDocsUrl(slug) {
-  return relativeToAbsUrl(slug.match(/\/docs\/[\d\.(latest)]*/)[0]);
+  // All doc pages slugs follow the pattern /docs/{VERSION}/{PATH}
+  // This regex extracts the /docs/{VERSION}/ part to find the current page's main docs slug
+  const mainDocsSlug = getPathFromSlug(slug).match(/\/docs\/[\d\.(latest)]*/)
+  // If, for some reason, we can't find this part (regex matches nothing in the slug string), we assume /docs/latest/
+  return relativeToAbsUrl(mainDocsSlug ? mainDocsSlug[0] : '/docs/latest/')
 }
 
 // Used to get a flat array of *all* links with their corresponding parents
@@ -63,8 +67,9 @@ const getDocPageSchema = ({
   '@context': 'http://schema.org',
   '@type': isFAQ ? 'FAQPage' : 'WebPage',
   '@id': relativeToAbsUrl(slug),
-  // Not every search engine has assemblyVersion figured out (see below),
-  // we want to separate this doc page from others of different versions 😉
+  // Search engines normally penalize sites for duplicating content.
+  // We want to communicate to the search engine "we're hosting multiple versions of the docs, please don't penalize us for having content that is duplicated in multiple versions".
+  // Principally, we do that with assemblyVersion (below), but some search engines don't have assemblyVersion (the version of the software being described) figured out, so we set version (the version of the web page describing the software) too.
   version,
   breadcrumb: {
     '@type': 'BreadcrumbList',
@@ -133,6 +138,9 @@ function useDocSEO({ slug, title }) {
   let section;
 
   function parseBreadcrumbs(menuEntry) {
+    if (!menuEntry) {
+      return
+    }
     // We'll only add a menu entry to the breadcrumbs array if it has a link
     if (menuEntry.link) {
       breadcrumbs = [
