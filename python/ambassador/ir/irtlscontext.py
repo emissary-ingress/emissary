@@ -170,7 +170,7 @@ class IRTLSContext(IRResource):
             self['secret_info']['secret'] = secret_name
         
 
-        self.ir.logger.info(f"TLSContext.resolve_secret {secret_name}, namespace {namespace}: namespacing is {secret_namespacing}")
+        self.ir.logger.debug(f"TLSContext.resolve_secret {secret_name}, namespace {namespace}: namespacing is {secret_namespacing}")
 
         return self.ir.resolve_secret(self, secret_name, namespace)
 
