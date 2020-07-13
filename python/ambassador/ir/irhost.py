@@ -77,7 +77,7 @@ class IRHost(IRResource):
 
                 # We have a directly-specified secret name. This will not normally support
                 # the ".namespace" thing that a TLSContext would, but consider overriding
-                # that if consider_overriding is set.
+                # that if consider_namespacing is set.
                 #
                 # XXX Flynn 1.6.0: This is a horrible hack that needs to go away in 1.7.
                 tls_ss = self.resolve(ir, tls_name, consider_namespacing=consider_namespacing)
