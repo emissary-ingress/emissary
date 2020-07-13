@@ -877,13 +877,13 @@ class SecretHandler:
       # Connecting to Ambex to send secrets. 
       # Keep this in sync with entrypoint.sh.
       server_address = ('localhost', 8004)
-      self.logger.info (f'connecting to Ambex secrets listener: {server_address}')
+      self.logger.debug(f'connecting to Ambex secrets listener: {server_address}')
       sock.connect(server_address)
       try:
           sock.sendall(json.dumps({ 'name': name, 'data': cert_data}).encode('utf-8'))
       except:
           self.logger.error("Ambex secrets listener is not reachable on %s." %
-                                      (server_address))
+                            (server_address))
       finally:
           sock.close()
 

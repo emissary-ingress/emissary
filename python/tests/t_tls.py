@@ -570,10 +570,10 @@ class TLSIngressTest(AmbassadorTest):
         self.target = HTTP()
 
     def manifests(self) -> str:
-        self.manifest_envs = """
-    - name: AMBASSADOR_DEBUG
-      value: "diagd"
-"""
+#         self.manifest_envs = """
+#     - name: AMBASSADOR_DEBUG
+#       value: "diagd"
+# """
 
         return namespace_manifest("secret-namespace-ingress") + f"""
 ---
