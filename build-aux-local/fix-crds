@@ -4,12 +4,14 @@ import copy
 import json
 import os
 import sys
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Literal, cast
 
 import yaml
 from packaging import version
 
-product = ''
+products = ["aes", "oss", "helm"]
+product_type = Literal["aes", "oss", "helm"]
+product: product_type
 kubeversion = ''
 
 def have_kubeversion(required_version: str) -> bool:
@@ -97,11 +99,17 @@ def fix_crd(crd: Dict[str, Any]) -> None:
 
     # fix labels
     labels = crd['metadata'].get('labels', {})
-    if product:
-        labels['product'] = product
-    elif 'product' in labels:
-        del labels['product']
+    labels['product'] = 'aes'
+    labels['app.kubernetes.io/name'] = 'ambassador'
     crd['metadata']['labels'] = labels
+
+    # fix annotations
+    annotations = crd['metadata'].get('annotations', {})
+    if product == 'helm':
+        annotations['helm.sh/hook'] = 'crd-install'
+    elif 'helm.sh/hook' in annotations:
+        del annotations['helm.sh/hook']
+    crd['metadata']['annotations'] = annotations
 
     # fix categories
     categories = crd['spec']['names'].get('categories', [])
@@ -110,23 +118,21 @@ def fix_crd(crd: Dict[str, Any]) -> None:
         categories.append('ambassador-crds')
     crd['spec']['names']['categories'] = categories
 
-    # fix status
-    #
-    # Are you kidding me: controller-gen generates CRDs with status
-    # set... even though the apiserver will entirely ignore the status
-    # if you try to set it on the broader parent resource.  But! As of
-    # controller-gen 0.3.0, it generates a status that kubectl's
-    # client-side validation will reject.  So remove the statuses that
-    # should never have been there anyway, so that the tools that are
-    # to stupid to know to ignore them don't trip up on them.
+    # fix "empty" things that shouldn't have been included but were
+    # because of Go deserialization.
     if 'status' in crd:
         del crd['status']
+    if 'creationTimestamp' in crd['metadata']:
+        del crd['metadata']['creationTimestamp']
 
 def main() -> None:
     global product
     global kubeversion
 
-    product = sys.argv[1]
+    if sys.argv[1] in products:
+        product = cast(product_type, sys.argv[1])
+    else:
+        raise ValueError(f"invalid product: {repr(sys.argv[1])} not in {repr(products)}")
     kubeversion = sys.argv[2]
     inputfiles = sys.argv[3:] or ['/dev/stdin']
 

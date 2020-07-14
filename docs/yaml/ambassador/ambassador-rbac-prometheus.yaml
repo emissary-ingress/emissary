@@ -68,8 +68,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
-  creationTimestamp: null
-  labels: {}
+  labels:
+    app.kubernetes.io/name: ambassador
+    product: aes
   name: authservices.getambassador.io
 spec:
   group: getambassador.io
@@ -170,8 +171,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
-  creationTimestamp: null
-  labels: {}
+  labels:
+    app.kubernetes.io/name: ambassador
+    product: aes
   name: consulresolvers.getambassador.io
 spec:
   group: getambassador.io
@@ -231,8 +233,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
-  creationTimestamp: null
-  labels: {}
+  labels:
+    app.kubernetes.io/name: ambassador
+    product: aes
   name: hosts.getambassador.io
 spec:
   additionalPrinterColumns:
@@ -507,8 +510,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
-  creationTimestamp: null
-  labels: {}
+  labels:
+    app.kubernetes.io/name: ambassador
+    product: aes
   name: kubernetesendpointresolvers.getambassador.io
 spec:
   group: getambassador.io
@@ -565,8 +569,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
-  creationTimestamp: null
-  labels: {}
+  labels:
+    app.kubernetes.io/name: ambassador
+    product: aes
   name: kubernetesserviceresolvers.getambassador.io
 spec:
   group: getambassador.io
@@ -623,8 +628,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
-  creationTimestamp: null
-  labels: {}
+  labels:
+    app.kubernetes.io/name: ambassador
+    product: aes
   name: logservices.getambassador.io
 spec:
   group: getambassador.io
@@ -709,8 +715,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
-  creationTimestamp: null
-  labels: {}
+  labels:
+    app.kubernetes.io/name: ambassador
+    product: aes
   name: mappings.getambassador.io
 spec:
   additionalPrinterColumns:
@@ -986,8 +993,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
-  creationTimestamp: null
-  labels: {}
+  labels:
+    app.kubernetes.io/name: ambassador
+    product: aes
   name: modules.getambassador.io
 spec:
   group: getambassador.io
@@ -1045,8 +1053,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
-  creationTimestamp: null
-  labels: {}
+  labels:
+    app.kubernetes.io/name: ambassador
+    product: aes
   name: ratelimitservices.getambassador.io
 spec:
   group: getambassador.io
@@ -1106,8 +1115,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
-  creationTimestamp: null
-  labels: {}
+  labels:
+    app.kubernetes.io/name: ambassador
+    product: aes
   name: tcpmappings.getambassador.io
 spec:
   group: getambassador.io
@@ -1211,8 +1221,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
-  creationTimestamp: null
-  labels: {}
+  labels:
+    app.kubernetes.io/name: ambassador
+    product: aes
   name: tlscontexts.getambassador.io
 spec:
   group: getambassador.io
@@ -1312,8 +1323,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
-  creationTimestamp: null
-  labels: {}
+  labels:
+    app.kubernetes.io/name: ambassador
+    product: aes
   name: tracingservices.getambassador.io
 spec:
   group: getambassador.io
