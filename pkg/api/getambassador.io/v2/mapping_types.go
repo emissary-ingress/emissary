@@ -52,20 +52,20 @@ type MappingSpec struct {
 	OutlierDetection      string            `json:"outlier_detection,omitempty"`
 	PathRedirect          string            `json:"path_redirect,omitempty"`
 	Priority              string            `json:"priority,omitempty"`
-	Precedence            int32             `json:"precedence,omitempty"`
+	Precedence            int               `json:"precedence,omitempty"`
 	RemoveRequestHeaders  []string          `json:"remove_request_headers,omitempty"`
 	RemoveResponseHeaders []string          `json:"remove_response_headers,omitempty"`
 	Resolver              string            `json:"resolver,omitempty"`
 	Rewrite               string            `json:"rewrite,omitempty"`
 	RegexRewrite          bool              `json:"regex_rewrite,omitempty"`
 	Shadow                bool              `json:"shadow,omitempty"`
-	ConnectTimeoutMs      int32             `json:"connect_timeout_ms,omitempty"`
-	ClusterIdleTimeoutMs  int32             `json:"cluster_idle_timeout_ms,omitempty"`
-	TimeoutMs             int32             `json:"timeout_ms,omitempty"`
-	IdleTimeoutMs         int32             `json:"idle_timeout_ms,omitempty"`
+	ConnectTimeoutMs      int               `json:"connect_timeout_ms,omitempty"`
+	ClusterIdleTimeoutMs  int               `json:"cluster_idle_timeout_ms,omitempty"`
+	TimeoutMs             int               `json:"timeout_ms,omitempty"`
+	IdleTimeoutMs         int               `json:"idle_timeout_ms,omitempty"`
 	TLS                   string            `json:"tls,omitempty"`
 	UseWebsocket          bool              `json:"use_websocket,omitempty"`
-	Weight                int32             `json:"weight,omitempty"`
+	Weight                int               `json:"weight,omitempty"`
 	BypassAuth            bool              `json:"bypass_auth,omitempty"`
 	Host                  string            `json:"host,omitempty"`
 	HostRegex             bool              `json:"host_regex,omitempty"`

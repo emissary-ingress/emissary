@@ -27,18 +27,18 @@ import (
 type TCPMappingSpec struct {
 	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
 
-	Port            int32            `json:"port,omitempty"`
+	Port            int              `json:"port,omitempty"`
 	Host            string           `json:"host,omitempty"`
 	Address         string           `json:"address,omitempty"`
 	Service         string           `json:"service,omitempty"`
 	EnableIPv4      bool             `json:"enable_ipv4,omitempty"`
 	EnableIPv6      bool             `json:"enable_ipv6,omitempty"`
 	CircuitBreakers []CircuitBreaker `json:"circuit_breakers,omitempty"`
-	TimeoutMs       int32            `json:"timeout_ms,omitempty"`
-	IdleTimeoutMs   int32            `json:"idle_timeout_ms,omitempty"`
+	TimeoutMs       int              `json:"timeout_ms,omitempty"`
+	IdleTimeoutMs   int              `json:"idle_timeout_ms,omitempty"`
 	Resolver        string           `json:"resolver,omitempty"`
 	TLS             string           `json:"tls,omitempty"`
-	Weight          int32            `json:"weight,omitempty"`
+	Weight          int              `json:"weight,omitempty"`
 	ClusterTag      string           `json:"cluster_tag,omitempty"`
 }
 

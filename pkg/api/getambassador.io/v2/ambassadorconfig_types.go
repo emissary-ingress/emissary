@@ -104,7 +104,7 @@ type Features struct {
 	// setting x_num_trusted_hops: 1 will tell Envoy to use the client IP
 	// address in X-Forwarded-For. Please see the envoy documentation for
 	// more information: https://www.envoyproxy.io/docs/envoy/latest/configuration/http_conn_man/headers#x-forwarded-for
-	XffNumTrustedHops int32 `json:"xff_num_trusted_hops,omitempty"`
+	XffNumTrustedHops int `json:"xff_num_trusted_hops,omitempty"`
 
 	// proxy_proto controls whether Envoy will honor the PROXY
 	// protocol on incoming requests.
@@ -130,11 +130,11 @@ type AmbassadorConfigSpec struct {
 	// admin_port is the port where Ambassador's Envoy will listen for
 	// low-level admin requests. You should almost never need to change
 	// this.
-	AdminPort int32 `json:"admin_port,omitempty"`
+	AdminPort int `json:"admin_port,omitempty"`
 
 	// diag_port is the port where Ambassador will listen for requests
 	// to the diagnostic service.
-	DiagPort int32 `json:"diag_port,omitempty"`
+	DiagPort int `json:"diag_port,omitempty"`
 
 	// By default Envoy sets server_name response header to 'envoy'
 	// Override it with this variable
@@ -143,7 +143,7 @@ type AmbassadorConfigSpec struct {
 	// If present, service_port will be the port Ambassador listens
 	// on for microservice access. If not present, Ambassador will
 	// use 8443 if TLS is configured, 8080 otherwise.
-	ServicePort int32 `json:"service_port,omitempty"`
+	ServicePort int `json:"service_port,omitempty"`
 
 	Features *Features `json:"features,omitempty"`
 
@@ -166,14 +166,14 @@ type AmbassadorConfigSpec struct {
 
 	// Set the default upstream-connection idle timeout. If not set (the default), upstream
 	// connections will never be closed due to idling.
-	ClusterIdleTimeoutMS int32 `json:"cluster_idle_timeout_ms,omitempty"`
+	ClusterIdleTimeoutMS int `json:"cluster_idle_timeout_ms,omitempty"`
 
 	// +kubebuilder:validation:Enum={"safe", "unsafe"}
 	RegexType string `json:"regex_type,omitempty"`
 
 	// This field controls the RE2 “program size” which is a rough estimate of how complex a compiled regex is to
 	// evaluate.  A regex that has a program size greater than the configured value will fail to compile.
-	RegexMaxSize int32 `json:"regex_max_size,omitempty"`
+	RegexMaxSize int `json:"regex_max_size,omitempty"`
 }
 
 // AmbassadorConfigStatus defines the observed state of AmbassadorConfig

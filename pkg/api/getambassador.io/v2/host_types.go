@@ -39,7 +39,7 @@ type ACMEProviderSpec struct {
 type InsecureRequestPolicy struct {
 	// +kubebuilder:validation:Enum={"Redirect","Reject","Route"}
 	Action         string `json:"action,omitempty"`
-	AdditionalPort int32  `json:"additional_port,omitempty"`
+	AdditionalPort int    `json:"additional_port,omitempty"`
 }
 
 type RequestPolicy struct {
@@ -118,7 +118,7 @@ type TLSConfig struct {
 	MaxTLSVersion         string   `json:"max_tls_version,omitempty"`
 	CipherSuites          []string `json:"cipher_suites,omitempty"`
 	ECDHCurves            []string `json:"ecdh_curves,omitempty"`
-	RedirectCleartextFrom int32    `json:"redirect_cleartext_from,omitempty"`
+	RedirectCleartextFrom int      `json:"redirect_cleartext_from,omitempty"`
 	SNI                   string   `json:"sni,omitempty"`
 }
 

@@ -133,7 +133,6 @@ spec:
                 allow_partial:
                   type: boolean
                 max_bytes:
-                  format: int32
                   type: integer
               type: object
             path_prefix:
@@ -147,11 +146,9 @@ spec:
               description: Why isn't this just an int??
               properties:
                 code:
-                  format: int32
                   type: integer
               type: object
             timeout_ms:
-              format: int32
               type: integer
             tls:
               type: string
@@ -348,7 +345,6 @@ spec:
                       - Route
                       type: string
                     additional_port:
-                      format: int32
                       type: integer
                   type: object
               type: object
@@ -425,7 +421,6 @@ spec:
                 private_key_file:
                   type: string
                 redirect_cleartext_from:
-                  format: int32
                   type: integer
                 sni:
                   type: string
@@ -690,10 +685,8 @@ spec:
                   type: array
               type: object
             flush_interval_byte_size:
-              format: int32
               type: integer
             flush_interval_time:
-              format: int32
               type: integer
             grpc:
               type: boolean
@@ -790,16 +783,12 @@ spec:
               items:
                 properties:
                   max_connections:
-                    format: int32
                     type: integer
                   max_pending_requests:
-                    format: int32
                     type: integer
                   max_requests:
-                    format: int32
                     type: integer
                   max_retries:
-                    format: int32
                     type: integer
                   priority:
                     enum:
@@ -809,10 +798,8 @@ spec:
                 type: object
               type: array
             cluster_idle_timeout_ms:
-              format: int32
               type: integer
             connect_timeout_ms:
-              format: int32
               type: integer
             cors:
               properties:
@@ -856,18 +843,14 @@ spec:
             host_rewrite:
               type: string
             idle_timeout_ms:
-              format: int32
               type: integer
             keepalive:
               properties:
                 idle_time:
-                  format: int32
                   type: integer
                 interval:
-                  format: int32
                   type: integer
                 probes:
-                  format: int32
                   type: integer
               type: object
             labels:
@@ -906,7 +889,6 @@ spec:
             path_redirect:
               type: string
             precedence:
-              format: int32
               type: integer
             prefix:
               type: string
@@ -935,7 +917,6 @@ spec:
             retry_policy:
               properties:
                 num_retries:
-                  format: int32
                   type: integer
                 per_try_timeout:
                   type: string
@@ -956,14 +937,12 @@ spec:
             shadow:
               type: boolean
             timeout_ms:
-              format: int32
               type: integer
             tls:
               type: string
             use_websocket:
               type: boolean
             weight:
-              format: int32
               type: integer
           type: object
         status:
@@ -1095,7 +1074,6 @@ spec:
             service:
               type: string
             timeout_ms:
-              format: int32
               type: integer
             tls:
               type: string
@@ -1161,16 +1139,12 @@ spec:
               items:
                 properties:
                   max_connections:
-                    format: int32
                     type: integer
                   max_pending_requests:
-                    format: int32
                     type: integer
                   max_requests:
-                    format: int32
                     type: integer
                   max_retries:
-                    format: int32
                     type: integer
                   priority:
                     enum:
@@ -1188,22 +1162,18 @@ spec:
             host:
               type: string
             idle_timeout_ms:
-              format: int32
               type: integer
             port:
-              format: int32
               type: integer
             resolver:
               type: string
             service:
               type: string
             timeout_ms:
-              format: int32
               type: integer
             tls:
               type: string
             weight:
-              format: int32
               type: integer
           type: object
       type: object

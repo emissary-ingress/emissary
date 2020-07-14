@@ -29,7 +29,7 @@ type RateLimitServiceSpec struct {
 	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
 
 	Service   string `json:"service,omitempty"`
-	TimeoutMs int32  `json:"timeout_ms,omitempty"`
+	TimeoutMs int    `json:"timeout_ms,omitempty"`
 	Domain    string `json:"domain,omitempty"`
 	TLS       string `json:"tls,omitempty"`
 }

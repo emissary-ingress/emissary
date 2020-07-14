@@ -24,13 +24,13 @@ import (
 )
 
 type AuthServiceIncludeBody struct {
-	MaxBytes     int32 `json:"max_bytes,omitempty"`
-	AllowPartial bool  `json:"allow_partial,omitempty"`
+	MaxBytes     int  `json:"max_bytes,omitempty"`
+	AllowPartial bool `json:"allow_partial,omitempty"`
 }
 
 // Why isn't this just an int??
 type AuthServiceStatusOnError struct {
-	Code int32 `json:"code,omitempty"`
+	Code int `json:"code,omitempty"`
 }
 
 // AuthServiceSpec defines the desired state of AuthService
@@ -42,7 +42,7 @@ type AuthServiceSpec struct {
 	TLS         string `json:"tls,omitempty"`
 	// +kubebuilder:validation:Enum={"http","grpc"}
 	Proto                       string                    `json:"proto,omitempty"`
-	TimeoutMs                   int32                     `json:"timeout_ms,omitempty"`
+	TimeoutMs                   int                       `json:"timeout_ms,omitempty"`
 	AllowedRequestHeaders       []string                  `json:"allowed_request_headers,omitempty"`
 	AllowedAuthorizationHeaders []string                  `json:"allowed_authorization_headers,omitempty"`
 	AddAuthHeaders              map[string]string         `json:"add_auth_headers,omitempty"`

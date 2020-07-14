@@ -82,16 +82,16 @@ import (
 type CircuitBreaker struct {
 	// +kubebuilder:validation:Enum={"default", "high"}
 	Priority           string `json:"priority,omitempty"`
-	MaxConnections     int32  `json:"max_connections,omitempty"`
-	MaxPendingRequests int32  `json:"max_pending_requests,omitempty"`
-	MaxRequests        int32  `json:"max_requests,omitempty"`
-	MaxRetries         int32  `json:"max_retries,omitempty"`
+	MaxConnections     int    `json:"max_connections,omitempty"`
+	MaxPendingRequests int    `json:"max_pending_requests,omitempty"`
+	MaxRequests        int    `json:"max_requests,omitempty"`
+	MaxRetries         int    `json:"max_retries,omitempty"`
 }
 
 type KeepAlive struct {
-	Probes   int32 `json:"probes,omitempty"`
-	IdleTime int32 `json:"idle_time,omitempty"`
-	Interval int32 `json:"interval,omitempty"`
+	Probes   int `json:"probes,omitempty"`
+	IdleTime int `json:"idle_time,omitempty"`
+	Interval int `json:"interval,omitempty"`
 }
 
 type CORS struct {
@@ -106,7 +106,7 @@ type CORS struct {
 type RetryPolicy struct {
 	// +kubebuilder:validation:Enum={"5xx","gateway-error","connect-failure","retriable-4xx","refused-stream","retriable-status-codes"}
 	RetryOn       string `json:"retry_on,omitempty"`
-	NumRetries    int32  `json:"num_retries,omitempty"`
+	NumRetries    int    `json:"num_retries,omitempty"`
 	PerTryTimeout string `json:"per_try_timeout,omitempty"`
 }
 

@@ -42,8 +42,8 @@ type LogServiceSpec struct {
 	// +kubebuilder:validation:Enum={"tcp","http"}
 	Driver                string        `json:"driver,omitempty"`
 	DriverConfig          *DriverConfig `json:"driver_config,omitempty"`
-	FlushIntervalTime     int32         `json:"flush_interval_time,omitempty"`
-	FlushIntervalByteSize int32         `json:"flush_interval_byte_size,omitempty"`
+	FlushIntervalTime     int           `json:"flush_interval_time,omitempty"`
+	FlushIntervalByteSize int           `json:"flush_interval_byte_size,omitempty"`
 	GRPC                  bool          `json:"grpc,omitempty"`
 }
 
