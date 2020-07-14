@@ -217,7 +217,7 @@ github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7
 github.com/envoyproxy/protoc-gen-validate v0.3.0-java.0.20200311152155-ab56c3dd1cf9 h1:mU3oOAYTK9ZRKMj//H1EWk1vWbkYeWKBPYKMnIwcs/A=
 github.com/envoyproxy/protoc-gen-validate v0.3.0-java.0.20200311152155-ab56c3dd1cf9/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
 github.com/envoyproxy/protoc-gen-validate v0.4.0 h1:0Hedkeb8AtERQoi/wLDxdMr6iOU4g6Mw0RfB2IEpEhk=
-github.com/envoyproxy/protoc-gen-validate/tests v0.0.0-20200708173139-ef00e9c655af h1:BSTTLzniOArdwDUQ0JC+pCwP/V4H+yvL5G0sd5tNhQk=
+github.com/envoyproxy/protoc-gen-validate/tests v0.0.0-20200714222326-622a81ea245e h1:1jtIsmt9LYl66aWxNsiFbeBMsSqLtaFYuYdLiM7kfLA=
 github.com/evanphx/json-patch v4.2.0+incompatible/go.mod h1:50XU6AFN0ol/bzJsmQLiYLvXMP4fmwYFNcr97nuDLSk=
 github.com/evanphx/json-patch v4.5.0+incompatible h1:ouOWdg56aJriqS0huScTkVXPC5IcNrDCXZ6OoTAWu7M=
 github.com/evanphx/json-patch v4.5.0+incompatible/go.mod h1:50XU6AFN0ol/bzJsmQLiYLvXMP4fmwYFNcr97nuDLSk=
