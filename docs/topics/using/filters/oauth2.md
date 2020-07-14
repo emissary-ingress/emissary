@@ -93,8 +93,9 @@ spec:
     # OAuth Resource Server settings                                           #
     ############################################################################
 
-    accessTokenValidation:  "enum"     # optional; default is "auto"
-    accessTokenJWTFilter:              # optional; default is null
+    allowMalformedAccessToken: bool     # optional; default is false
+    accessTokenValidation:     "enum"   # optional; default is "auto"
+    accessTokenJWTFilter:               # optional; default is null
       name: "string"                     # required
       namespace: "string"                # optional; default is the same namespace as the Filter
       arguments: JWT-Filter-Arguments    # optional
@@ -256,6 +257,7 @@ Settings that are only valid when `grantType: "AuthorizationCode"`:
 
 ### OAuth Resource Server settings
 
+ - `allowMalformedAccessToken`: Allow any access token, even if they are not RFC 6750-compliant.
  - `accessTokenValidation`: How to verify the liveness and scope of Access Tokens issued by the identity provider.  Valid values are either `"auto"`, `"jwt"`, or `"userinfo"`.  Empty or unset is equivalent to `"auto"`.
    * `"jwt"`: Validates the Access Token as a JWT.
      + By default: It accepts the RS256, RS384, or RS512 signature algorithms, and validates the signature against the JWKS from OIDC Discovery.  It then validates the `exp`, `iat`, `nbf`, `iss` (with the Issuer from OIDC Discovery), and `scope` claims: if present, none of the scopes are required to be present.  This relies on the identity provider using non-encrypted signed JWTs as Access Tokens, and configuring the signing appropriately
