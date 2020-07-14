@@ -1,18 +1,21 @@
-/*
+// Copyright 2020 Datawire.  All rights reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+///////////////////////////////////////////////////////////////////////////
+// Important: Run "make update-yaml" to regenerate code after modifying
+// this file.
+///////////////////////////////////////////////////////////////////////////
 
 package v2
 
@@ -20,26 +23,20 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// NOTE: json tags are required.  Any new fields you add must have json tags
-// for the fields to be serialized.
-
 // KubernetesServiceResolver tells Ambassador to use Kubernetes Service
 // resources to resolve services. It actually has no spec other than the
 // AmbassadorID.
-
 type KubernetesServiceResolverSpec struct {
 	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
 }
 
 // KubernetesServiceResolverStatus defines the observed state of KubernetesServiceResolver
 type KubernetesServiceResolverStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
 }
 
-// +kubebuilder:object:root=true
-
 // KubernetesServiceResolver is the Schema for the kubernetesserviceresolver API
+//
+// +kubebuilder:object:root=true
 type KubernetesServiceResolver struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -48,9 +45,9 @@ type KubernetesServiceResolver struct {
 	Status KubernetesServiceResolverStatus `json:"status,omitempty"`
 }
 
+// KubernetesServiceResolverList contains a list of KubernetesServiceResolvers.
+//
 // +kubebuilder:object:root=true
-
-// KubernetesServiceResolverList contains a list of KubernetesServiceResolver
 type KubernetesServiceResolverList struct {
 	metav1.TypeMeta `json:""`
 	metav1.ListMeta `json:"metadata,omitempty"`
@@ -60,20 +57,17 @@ type KubernetesServiceResolverList struct {
 // KubernetesEndpointResolver tells Ambassador to use Kubernetes Endpoints
 // resources to resolve services. It actually has no spec other than the
 // AmbassadorID.
-
 type KubernetesEndpointResolverSpec struct {
 	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
 }
 
 // KubernetesEndpointResolverStatus defines the observed state of KubernetesEndpointResolver
 type KubernetesEndpointResolverStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
 }
 
-// +kubebuilder:object:root=true
-
 // KubernetesEndpointResolver is the Schema for the kubernetesendpointresolver API
+//
+// +kubebuilder:object:root=true
 type KubernetesEndpointResolver struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -82,9 +76,9 @@ type KubernetesEndpointResolver struct {
 	Status KubernetesEndpointResolverStatus `json:"status,omitempty"`
 }
 
+// KubernetesEndpointResolverList contains a list of KubernetesEndpointResolvers.
+//
 // +kubebuilder:object:root=true
-
-// KubernetesEndpointResolverList contains a list of KubernetesEndpointResolver
 type KubernetesEndpointResolverList struct {
 	metav1.TypeMeta `json:""`
 	metav1.ListMeta `json:"metadata,omitempty"`
@@ -94,7 +88,6 @@ type KubernetesEndpointResolverList struct {
 // ConsulResolver tells Ambassador to use Consul to resolve services. In addition
 // to the AmbassadorID, it needs information about which Consul server and DC to
 // use.
-
 type ConsulResolverSpec struct {
 	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
 
@@ -104,13 +97,11 @@ type ConsulResolverSpec struct {
 
 // ConsulResolverStatus defines the observed state of ConsulResolver
 type ConsulResolverStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
 }
 
-// +kubebuilder:object:root=true
-
 // ConsulResolver is the Schema for the ConsulResolver API
+//
+// +kubebuilder:object:root=true
 type ConsulResolver struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -119,9 +110,9 @@ type ConsulResolver struct {
 	Status ConsulResolverStatus `json:"status,omitempty"`
 }
 
+// ConsulResolverList contains a list of ConsulResolvers.
+//
 // +kubebuilder:object:root=true
-
-// ConsulResolverList contains a list of ConsulResolver
 type ConsulResolverList struct {
 	metav1.TypeMeta `json:""`
 	metav1.ListMeta `json:"metadata,omitempty"`

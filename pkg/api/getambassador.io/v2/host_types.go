@@ -1,18 +1,21 @@
-/*
+// Copyright 2020 Datawire.  All rights reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+///////////////////////////////////////////////////////////////////////////
+// Important: Run "make update-yaml" to regenerate code after modifying
+// this file.
+///////////////////////////////////////////////////////////////////////////
 
 package v2
 
@@ -20,8 +23,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
-
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
 type ACMEProviderSpec struct {
 	// Specifies who to talk ACME with to get certs. Defaults to Let's
@@ -43,7 +44,8 @@ type InsecureRequestPolicy struct {
 
 type RequestPolicy struct {
 	Insecure InsecureRequestPolicy `json:"insecure,omitempty"`
-	// Secure coming later
+
+	// Later we may define a 'secure' section too.
 }
 
 type PreviewURLSpec struct {
@@ -157,9 +159,9 @@ type HostStatus struct {
 // +kubebuilder:validation:Enum={"Unknown","None","Other","ACME"}
 type HostTLSCertificateSource string
 
-// +kubebuilder:object:root=true
-
 // Host is the Schema for the hosts API
+//
+// +kubebuilder:object:root=true
 type Host struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -168,9 +170,9 @@ type Host struct {
 	Status HostStatus `json:"status,omitempty"`
 }
 
+// HostList contains a list of Hosts.
+//
 // +kubebuilder:object:root=true
-
-// HostList contains a list of Host
 type HostList struct {
 	metav1.TypeMeta `json:""`
 	metav1.ListMeta `json:"metadata,omitempty"`

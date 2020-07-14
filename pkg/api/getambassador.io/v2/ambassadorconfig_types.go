@@ -1,26 +1,27 @@
-/*
+// Copyright 2020 Datawire.  All rights reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+///////////////////////////////////////////////////////////////////////////
+// Important: Run "make update-yaml" to regenerate code after modifying
+// this file.
+///////////////////////////////////////////////////////////////////////////
 
 package v2
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
-
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
 type ModuleSpec struct {
 	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
@@ -39,12 +40,16 @@ func (o ModuleConfig) MarshalJSON() ([]byte, error) {
 }
 
 type ModuleStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
 }
 
+// A Module defines system-wide configuration.  The type of module is
+// controlled by the .metadata.name; valid names are "ambassador" or
+// "tls".
+//
+// https://www.getambassador.io/docs/latest/topics/running/ambassador/#the-ambassador-module
+// https://www.getambassador.io/docs/latest/topics/running/tls/#tls-module-deprecated
+//
 // +kubebuilder:object:root=true
-
 type Module struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -53,8 +58,9 @@ type Module struct {
 	Status ModuleStatus `json:"status,omitempty"`
 }
 
+// ModuleList contains a list of Modules.
+//
 // +kubebuilder:object:root=true
-
 type ModuleList struct {
 	metav1.TypeMeta `json:""`
 	metav1.ListMeta `json:"metadata,omitempty"`
@@ -174,31 +180,31 @@ type AmbassadorConfigSpec struct {
 	RegexMaxSize int32 `json:"regex_max_size,omitempty"`
 }
 
-// // AmbassadorConfigStatus defines the observed state of AmbassadorConfig
-// type AmbassadorConfigStatus struct {
-// 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-// 	// Important: Run "make" to regenerate code after modifying this file
-// }
+// AmbassadorConfigStatus defines the observed state of AmbassadorConfig
+type AmbassadorConfigStatus struct {
+}
 
-// // +kubebuilder:object:root=true
+/*
+// AmbassadorConfig is the Schema for the ambassadorconfigs API
+//
+// +kubebuilder:object:root=true
+type AmbassadorConfig struct {
+	metav1.TypeMeta   `json:""`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-// // AmbassadorConfig is the Schema for the ambassadorconfigs API
-// type AmbassadorConfig struct {
-// 	metav1.TypeMeta   `json:""`
-// 	metav1.ObjectMeta `json:"metadata,omitempty"`
+	Spec   AmbassadorConfigSpec   `json:"spec,omitempty"`
+	Status AmbassadorConfigStatus `json:"status,omitempty"`
+}
 
-// 	Spec   AmbassadorConfigSpec   `json:"spec,omitempty"`
-// 	Status AmbassadorConfigStatus `json:"status,omitempty"`
-// }
-
-// // +kubebuilder:object:root=true
-
-// // AmbassadorConfigList contains a list of AmbassadorConfig
-// type AmbassadorConfigList struct {
-// 	metav1.TypeMeta `json:""`
-// 	metav1.ListMeta `json:"metadata,omitempty"`
-// 	Items           []AmbassadorConfig `json:"items"`
-// }
+// AmbassadorConfigList contains a list of AmbassadorConfigs.
+//
+// +kubebuilder:object:root=true
+type AmbassadorConfigList struct {
+	metav1.TypeMeta `json:""`
+	metav1.ListMeta `json:"metadata,omitempty"`
+	Items           []AmbassadorConfig `json:"items"`
+}
+*/
 
 func init() {
 	SchemeBuilder.Register(&Module{}, &ModuleList{})

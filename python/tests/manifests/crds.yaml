@@ -52,6 +52,10 @@ spec:
                 type: string
               type: array
             ambassador_id:
+              description: "AmbassadorID declares which Ambassador instances should\
+                \ pay attention to this resource.  May either be a string or a list\
+                \ of strings.  If no value is provided, the default is: \n    ambassador_id:\
+                \    - \"default\""
               items:
                 type: string
             auth_service:
@@ -127,10 +131,17 @@ spec:
         metadata:
           type: object
         spec:
+          description: ConsulResolver tells Ambassador to use Consul to resolve services.
+            In addition to the AmbassadorID, it needs information about which Consul
+            server and DC to use.
           properties:
             address:
               type: string
             ambassador_id:
+              description: "AmbassadorID declares which Ambassador instances should\
+                \ pay attention to this resource.  May either be a string or a list\
+                \ of strings.  If no value is provided, the default is: \n    ambassador_id:\
+                \    - \"default\""
               items:
                 type: string
             datacenter:
@@ -430,8 +441,15 @@ spec:
         metadata:
           type: object
         spec:
+          description: KubernetesEndpointResolver tells Ambassador to use Kubernetes
+            Endpoints resources to resolve services. It actually has no spec other
+            than the AmbassadorID.
           properties:
             ambassador_id:
+              description: "AmbassadorID declares which Ambassador instances should\
+                \ pay attention to this resource.  May either be a string or a list\
+                \ of strings.  If no value is provided, the default is: \n    ambassador_id:\
+                \    - \"default\""
               items:
                 type: string
           type: object
@@ -478,8 +496,15 @@ spec:
         metadata:
           type: object
         spec:
+          description: KubernetesServiceResolver tells Ambassador to use Kubernetes
+            Service resources to resolve services. It actually has no spec other than
+            the AmbassadorID.
           properties:
             ambassador_id:
+              description: "AmbassadorID declares which Ambassador instances should\
+                \ pay attention to this resource.  May either be a string or a list\
+                \ of strings.  If no value is provided, the default is: \n    ambassador_id:\
+                \    - \"default\""
               items:
                 type: string
           type: object
@@ -528,6 +553,10 @@ spec:
           description: LogServiceSpec defines the desired state of LogService
           properties:
             ambassador_id:
+              description: "AmbassadorID declares which Ambassador instances should\
+                \ pay attention to this resource.  May either be a string or a list\
+                \ of strings.  If no value is provided, the default is: \n    ambassador_id:\
+                \    - \"default\""
               items:
                 type: string
             driver:
@@ -603,6 +632,7 @@ spec:
         metadata:
           type: object
         spec:
+          description: MappingSpec defines the desired state of Mapping
           properties:
             add_linkerd_headers:
               type: boolean
@@ -615,6 +645,10 @@ spec:
                 type: string
               type: array
             ambassador_id:
+              description: "AmbassadorID declares which Ambassador instances should\
+                \ pay attention to this resource.  May either be a string or a list\
+                \ of strings.  If no value is provided, the default is: \n    ambassador_id:\
+                \    - \"default\""
               items:
                 type: string
             auto_host_rewrite:
@@ -824,6 +858,10 @@ spec:
   scope: Namespaced
   validation:
     openAPIV3Schema:
+      description: "A Module defines system-wide configuration.  The type of module\
+        \ is controlled by the .metadata.name; valid names are \"ambassador\" or \"\
+        tls\". \n https://www.getambassador.io/docs/latest/topics/running/ambassador/#the-ambassador-module\
+        \ https://www.getambassador.io/docs/latest/topics/running/tls/#tls-module-deprecated"
       properties:
         apiVersion:
           description: 'APIVersion defines the versioned schema of this representation
@@ -840,6 +878,10 @@ spec:
         spec:
           properties:
             ambassador_id:
+              description: "AmbassadorID declares which Ambassador instances should\
+                \ pay attention to this resource.  May either be a string or a list\
+                \ of strings.  If no value is provided, the default is: \n    ambassador_id:\
+                \    - \"default\""
               items:
                 type: string
             config:
@@ -947,6 +989,10 @@ spec:
             address:
               type: string
             ambassador_id:
+              description: "AmbassadorID declares which Ambassador instances should\
+                \ pay attention to this resource.  May either be a string or a list\
+                \ of strings.  If no value is provided, the default is: \n    ambassador_id:\
+                \    - \"default\""
               items:
                 type: string
             circuit_breakers:
@@ -1044,6 +1090,10 @@ spec:
             alpn_protocols:
               type: string
             ambassador_id:
+              description: "AmbassadorID declares which Ambassador instances should\
+                \ pay attention to this resource.  May either be a string or a list\
+                \ of strings.  If no value is provided, the default is: \n    ambassador_id:\
+                \    - \"default\""
               items:
                 type: string
             ca_secret:
@@ -1135,6 +1185,10 @@ spec:
           description: TracingServiceSpec defines the desired state of TracingService
           properties:
             ambassador_id:
+              description: "AmbassadorID declares which Ambassador instances should\
+                \ pay attention to this resource.  May either be a string or a list\
+                \ of strings.  If no value is provided, the default is: \n    ambassador_id:\
+                \    - \"default\""
               items:
                 type: string
             config:
