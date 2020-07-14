@@ -11,7 +11,12 @@ commands:
       "packages":
         type: string
     steps:
-      - run: sudo pip install << parameters.packages >>
+      - run: |
+          if [[ "$(which pip3)" == *pyenv* ]]; then
+            pip3 install << parameters.packages >>
+          else
+            sudo pip3 install << parameters.packages >>
+          fi
 
   "install-node":
     parameters:
@@ -72,22 +77,27 @@ commands:
       "version":
         type: string
         default: "3.6.3"
+      "pip-version":
+        type: string
+        default: "20.1.1"
       "executor-key":
         type: string
     steps:
       - restore_cache:
           name: "Restore Python install cache"
-          key: "pyenv-<< parameters.executor-key >>-<< parameters.version >>"
+          key: "pyenv-<< parameters.executor-key >>-<< parameters.version >>-<< parameters.pip-version >>"
       - run:
           name: "Install Python << parameters.version >>"
           command: |
+            set -x
             pyenv versions
             pyenv install --skip-existing << parameters.version >>
             pyenv global 2.7.12 << parameters.version >>
             pyenv versions
+            pip3 install pip==<< parameters.pip-version>>
       - save_cache:
           name: "Save Python install cache"
-          key: "pyenv-<< parameters.executor-key >>-<< parameters.version >>"
+          key: "pyenv-<< parameters.executor-key >>-<< parameters.version >>-<< parameters.pip-version >>"
           paths:
             - "/opt/circleci/.pyenv"
 
