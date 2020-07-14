@@ -160,7 +160,6 @@ class DiagApp (Flask):
         self.ir_timer = Timer("IR")
         self.econf_timer = Timer("EConf")
         self.diag_timer = Timer("Diagnostics")
-        self.lock_timer = Timer("Lock")
 
         # When did we last reconfigure?
         self.last_reconfigure = -1.0
@@ -201,11 +200,10 @@ class DiagApp (Flask):
         # that grabbing the lock here is always effectively free turns out to
         # be wrong.
 
-        with self.lock_timer:
-            with self.config_lock:
-                self.ir = None      # don't update unless you hold config_lock
-                self.econf = None   # don't update unless you hold config_lock
-                self.diag = None    # don't update unless you hold config_lock
+        with self.config_lock:
+            self.ir = None      # don't update unless you hold config_lock
+            self.econf = None   # don't update unless you hold config_lock
+            self.diag = None    # don't update unless you hold config_lock
 
         self.stats_updater = None
         self.scout_checker = None
@@ -227,26 +225,23 @@ class DiagApp (Flask):
         """
         assert(not self.config_lock.locked())
 
-        # OK -- the lock_timer is meant to track _all_ the time we spend
-        # interacting with the lock, and the config_lock is meant to make
-        # sure that we don't ever update self.diag in two places at once.
-        # Hence the double context here.
-        with self.lock_timer:
-            with self.config_lock:
-                # OK. If we haven't already generated the Diagnostics...
-                if not app._diag:
-                    # ...then we need to fix that, and the diag_timer is the 
-                    # thing to use to time it.
-                    with self.diag_timer:
-                        app._diag = Diagnostics(app.ir, app.econf)
+        # OK -- the config_lock is meant to make sure that we don't ever update
+        # self.diag in two places at once.
+        with self.config_lock:
+            # OK. If we haven't already generated the Diagnostics...
+            if not app._diag:
+                # ...then we need to fix that, and the diag_timer is the 
+                # thing to use to time it.
+                with self.diag_timer:
+                    app._diag = Diagnostics(app.ir, app.econf)
 
-                        # We've done something time-worthy, so log the timers
-                        # in a little bit.
-                        app.ok_to_log_timers()
+                    # We've done something time-worthy, so log the timers
+                    # in a little bit.
+                    app.ok_to_log_timers()
 
-                # Either we had a Diagnostics to start with, or we just generated
-                # it, so we should be good to go.
-                return app._diag
+            # Either we had a Diagnostics to start with, or we just generated
+            # it, so we should be good to go.
+            return app._diag
 
     @diag.setter
     def diag(self, diag: Diagnostics) -> None:
@@ -290,8 +285,7 @@ class DiagApp (Flask):
                    self.aconf_timer,
                    self.ir_timer,
                    self.econf_timer,
-                   self.diag_timer,
-                   self.lock_timer ]:
+                   self.diag_timer ]:
             if t:
                 self.logger.info(t.summary())
 
@@ -1319,14 +1313,13 @@ class AmbassadorEventWatcher(threading.Thread):
         with open(app.ads_path, "w") as output:
             output.write(json.dumps(ads_config, sort_keys=True, indent=4))
 
-        with app.lock_timer:
-            with app.config_lock:
-                app.aconf = aconf
-                app.ir = ir
-                app.econf = econf
+        with app.config_lock:
+            app.aconf = aconf
+            app.ir = ir
+            app.econf = econf
 
-                # Force app.diag to None so that it'll be regenerated on-demand.
-                app.diag = None
+            # Force app.diag to None so that it'll be regenerated on-demand.
+            app.diag = None
 
         # We're finally done with the whole configuration process.
         self.app.config_timer.stop()
