@@ -30,10 +30,6 @@ type KubernetesServiceResolverSpec struct {
 	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
 }
 
-// KubernetesServiceResolverStatus defines the observed state of KubernetesServiceResolver
-type KubernetesServiceResolverStatus struct {
-}
-
 // KubernetesServiceResolver is the Schema for the kubernetesserviceresolver API
 //
 // +kubebuilder:object:root=true
@@ -41,8 +37,7 @@ type KubernetesServiceResolver struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   KubernetesServiceResolverSpec   `json:"spec,omitempty"`
-	Status KubernetesServiceResolverStatus `json:"status,omitempty"`
+	Spec KubernetesServiceResolverSpec `json:"spec,omitempty"`
 }
 
 // KubernetesServiceResolverList contains a list of KubernetesServiceResolvers.
@@ -61,10 +56,6 @@ type KubernetesEndpointResolverSpec struct {
 	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
 }
 
-// KubernetesEndpointResolverStatus defines the observed state of KubernetesEndpointResolver
-type KubernetesEndpointResolverStatus struct {
-}
-
 // KubernetesEndpointResolver is the Schema for the kubernetesendpointresolver API
 //
 // +kubebuilder:object:root=true
@@ -72,8 +63,7 @@ type KubernetesEndpointResolver struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   KubernetesEndpointResolverSpec   `json:"spec,omitempty"`
-	Status KubernetesEndpointResolverStatus `json:"status,omitempty"`
+	Spec KubernetesEndpointResolverSpec `json:"spec,omitempty"`
 }
 
 // KubernetesEndpointResolverList contains a list of KubernetesEndpointResolvers.
@@ -95,10 +85,6 @@ type ConsulResolverSpec struct {
 	Datacenter string `json:"datacenter,omitempty"`
 }
 
-// ConsulResolverStatus defines the observed state of ConsulResolver
-type ConsulResolverStatus struct {
-}
-
 // ConsulResolver is the Schema for the ConsulResolver API
 //
 // +kubebuilder:object:root=true
@@ -106,8 +92,7 @@ type ConsulResolver struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   ConsulResolverSpec   `json:"spec,omitempty"`
-	Status ConsulResolverStatus `json:"status,omitempty"`
+	Spec ConsulResolverSpec `json:"spec,omitempty"`
 }
 
 // ConsulResolverList contains a list of ConsulResolvers.

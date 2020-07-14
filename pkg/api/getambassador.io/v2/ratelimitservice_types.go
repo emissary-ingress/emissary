@@ -34,10 +34,6 @@ type RateLimitServiceSpec struct {
 	TLS       string `json:"tls,omitempty"`
 }
 
-// RateLimitServiceStatus defines the observed state of RateLimitService
-type RateLimitServiceStatus struct {
-}
-
 // RateLimitService is the Schema for the ratelimitservices API
 //
 // +kubebuilder:object:root=true
@@ -45,8 +41,7 @@ type RateLimitService struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   RateLimitServiceSpec   `json:"spec,omitempty"`
-	Status RateLimitServiceStatus `json:"status,omitempty"`
+	Spec RateLimitServiceSpec `json:"spec,omitempty"`
 }
 
 // RateLimitServiceList contains a list of RateLimitServices.

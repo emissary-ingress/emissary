@@ -53,10 +53,6 @@ type AuthServiceSpec struct {
 	StatusOnError               *AuthServiceStatusOnError `json:"status_on_error,omitempty"`
 }
 
-// AuthServiceStatus defines the observed state of AuthService
-type AuthServiceStatus struct {
-}
-
 // AuthService is the Schema for the authservices API
 //
 // +kubebuilder:object:root=true
@@ -64,8 +60,7 @@ type AuthService struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   AuthServiceSpec   `json:"spec,omitempty"`
-	Status AuthServiceStatus `json:"status,omitempty"`
+	Spec AuthServiceSpec `json:"spec,omitempty"`
 }
 
 // AuthServiceList contains a list of AuthServices.

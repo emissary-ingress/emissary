@@ -39,9 +39,6 @@ func (o ModuleConfig) MarshalJSON() ([]byte, error) {
 	return nil, nil
 }
 
-type ModuleStatus struct {
-}
-
 // A Module defines system-wide configuration.  The type of module is
 // controlled by the .metadata.name; valid names are "ambassador" or
 // "tls".
@@ -54,8 +51,7 @@ type Module struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   ModuleSpec   `json:"spec,omitempty"`
-	Status ModuleStatus `json:"status,omitempty"`
+	Spec ModuleSpec `json:"spec,omitempty"`
 }
 
 // ModuleList contains a list of Modules.

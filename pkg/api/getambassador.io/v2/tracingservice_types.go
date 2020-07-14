@@ -50,10 +50,6 @@ type TracingServiceSpec struct {
 	Config     *TraceConfig   `json:"config,omitempty"`
 }
 
-// TracingServiceStatus defines the observed state of TracingService
-type TracingServiceStatus struct {
-}
-
 // TracingService is the Schema for the tracingservices API
 //
 // +kubebuilder:object:root=true
@@ -61,8 +57,7 @@ type TracingService struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   TracingServiceSpec   `json:"spec,omitempty"`
-	Status TracingServiceStatus `json:"status,omitempty"`
+	Spec TracingServiceSpec `json:"spec,omitempty"`
 }
 
 // TracingServiceList contains a list of TracingServices.

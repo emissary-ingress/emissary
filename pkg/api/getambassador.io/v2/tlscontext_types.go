@@ -46,10 +46,6 @@ type TLSContextSpec struct {
 	SNI                   string   `json:"sni,omitempty"`
 }
 
-// TLSContextStatus defines the observed state of TLSContext
-type TLSContextStatus struct {
-}
-
 // TLSContext is the Schema for the tlscontexts API
 //
 // +kubebuilder:object:root=true
@@ -57,8 +53,7 @@ type TLSContext struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   TLSContextSpec   `json:"spec,omitempty"`
-	Status TLSContextStatus `json:"status,omitempty"`
+	Spec TLSContextSpec `json:"spec,omitempty"`
 }
 
 // TLSContextList contains a list of TLSContexts.

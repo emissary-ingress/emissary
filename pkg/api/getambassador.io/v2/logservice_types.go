@@ -47,10 +47,6 @@ type LogServiceSpec struct {
 	GRPC                  bool          `json:"grpc,omitempty"`
 }
 
-// LogServiceStatus defines the observed state of LogService
-type LogServiceStatus struct {
-}
-
 // LogService is the Schema for the logservices API
 //
 // +kubebuilder:object:root=true
@@ -58,8 +54,7 @@ type LogService struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   LogServiceSpec   `json:"spec,omitempty"`
-	Status LogServiceStatus `json:"status,omitempty"`
+	Spec LogServiceSpec `json:"spec,omitempty"`
 }
 
 // LogServiceList contains a list of LogServices.

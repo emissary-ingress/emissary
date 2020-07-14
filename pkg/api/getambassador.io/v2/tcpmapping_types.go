@@ -42,10 +42,6 @@ type TCPMappingSpec struct {
 	ClusterTag      string           `json:"cluster_tag,omitempty"`
 }
 
-// TCPMappingStatus defines the observed state of TCPMapping
-type TCPMappingStatus struct {
-}
-
 // TCPMapping is the Schema for the tcpmappings API
 //
 // +kubebuilder:object:root=true
@@ -53,8 +49,7 @@ type TCPMapping struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   TCPMappingSpec   `json:"spec,omitempty"`
-	Status TCPMappingStatus `json:"status,omitempty"`
+	Spec TCPMappingSpec `json:"spec,omitempty"`
 }
 
 // TCPMappingList contains a list of TCPMappings.

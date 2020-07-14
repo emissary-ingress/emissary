@@ -90,9 +90,6 @@ spec:
             tls:
               type: string
           type: object
-        status:
-          description: AuthServiceStatus defines the observed state of AuthService
-          type: object
       type: object
   version: v2
 ---
@@ -146,9 +143,6 @@ spec:
                 type: string
             datacenter:
               type: string
-          type: object
-        status:
-          description: ConsulResolverStatus defines the observed state of ConsulResolver
           type: object
       type: object
   version: v2
@@ -453,10 +447,6 @@ spec:
               items:
                 type: string
           type: object
-        status:
-          description: KubernetesEndpointResolverStatus defines the observed state
-            of KubernetesEndpointResolver
-          type: object
       type: object
   version: v2
 ---
@@ -507,10 +497,6 @@ spec:
                 \    - \"default\""
               items:
                 type: string
-          type: object
-        status:
-          description: KubernetesServiceResolverStatus defines the observed state
-            of KubernetesServiceResolver
           type: object
       type: object
   version: v2
@@ -590,9 +576,6 @@ spec:
               type: boolean
             service:
               type: string
-          type: object
-        status:
-          description: LogServiceStatus defines the observed state of LogService
           type: object
       type: object
   version: v2
@@ -887,8 +870,6 @@ spec:
             config:
               type: object
           type: object
-        status:
-          type: object
       type: object
   version: v2
 ---
@@ -942,9 +923,6 @@ spec:
               type: integer
             tls:
               type: string
-          type: object
-        status:
-          description: RateLimitServiceStatus defines the observed state of RateLimitService
           type: object
       type: object
   version: v2
@@ -1044,9 +1022,6 @@ spec:
               format: int32
               type: integer
           type: object
-        status:
-          description: TCPMappingStatus defines the observed state of TCPMapping
-          type: object
       type: object
   version: v2
 ---
@@ -1141,9 +1116,6 @@ spec:
             sni:
               type: string
           type: object
-        status:
-          description: TLSContextStatus defines the observed state of TLSContext
-          type: object
       type: object
   version: v2
 ---
@@ -1227,9 +1199,6 @@ spec:
               items:
                 type: string
               type: array
-          type: object
-        status:
-          description: TracingServiceStatus defines the observed state of TracingService
           type: object
       type: object
   version: v2
