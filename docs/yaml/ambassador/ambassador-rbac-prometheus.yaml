@@ -244,6 +244,8 @@ spec:
     plural: hosts
     singular: host
   scope: Namespaced
+  subresources:
+    status: {}
   validation:
     openAPIV3Schema:
       description: Host is the Schema for the hosts API
@@ -704,6 +706,8 @@ spec:
     plural: mappings
     singular: mapping
   scope: Namespaced
+  subresources:
+    status: {}
   validation:
     openAPIV3Schema:
       description: Mapping is the Schema for the mappings API
@@ -928,6 +932,15 @@ spec:
           type: object
         status:
           description: MappingStatus defines the observed state of Mapping
+          properties:
+            reason:
+              type: string
+            state:
+              enum:
+              - ''
+              - Inactive
+              - Running
+              type: string
           type: object
       type: object
   version: null

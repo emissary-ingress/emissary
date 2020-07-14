@@ -162,6 +162,7 @@ type HostTLSCertificateSource string
 // Host is the Schema for the hosts API
 //
 // +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
 type Host struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

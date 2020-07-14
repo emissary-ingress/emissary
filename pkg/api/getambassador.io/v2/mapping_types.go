@@ -132,11 +132,16 @@ func (o *StringOrMappingLabels) UnmarshalJSON(data []byte) error {
 
 // MappingStatus defines the observed state of Mapping
 type MappingStatus struct {
+	// +kubebuilder:validation:Enum={"","Inactive","Running"}
+	State string `json:"state,omitempty"`
+
+	Reason string `json:"reason,omitempty"`
 }
 
 // Mapping is the Schema for the mappings API
 //
 // +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
 type Mapping struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
