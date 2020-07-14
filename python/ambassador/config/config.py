@@ -61,6 +61,7 @@ class Config:
     single_namespace: ClassVar[bool] = bool(os.environ.get('AMBASSADOR_SINGLE_NAMESPACE'))
     certs_single_namespace: ClassVar[bool] = bool(os.environ.get('AMBASSADOR_CERTS_SINGLE_NAMESPACE', os.environ.get('AMBASSADOR_SINGLE_NAMESPACE')))
     enable_endpoints: ClassVar[bool] = not bool(os.environ.get('AMBASSADOR_DISABLE_ENDPOINTS'))
+    fast_validation: ClassVar[bool] = bool(os.environ.get('AMBASSADOR_FAST_VALIDATION'))
 
     StorageByKind: ClassVar[Dict[str, str]] = {
         'authservice': "auth_configs",
@@ -281,6 +282,8 @@ class Config:
         the set of ACResources to be sorted in some way that makes sense.
         """
 
+        self.logger.debug(f"Loading config; fast validation is {'enabled' if Config.fast_validation else 'disabled'}")
+
         rcount = 0
 
         for resource in resources:
@@ -450,6 +453,9 @@ class Config:
         else:
             return RichStatus.fromError("apiVersion %s unsupported" % apiVersion)
 
+        ns = resource.get('namespace') or self.ambassador_namespace
+        name = f"{resource.name} ns {ns}"
+
         version = apiVersion.lower()
 
         # Is this deprecated?
@@ -460,16 +466,46 @@ class Config:
                 self.post_notice(f"apiVersion {originalApiVersion} {status}", resource=resource)
 
         if resource.kind.lower() in Config.NoSchema:
-            return RichStatus.OK(msg=f"no schema for {resource.kind} so calling it good")
+            return RichStatus.OK(msg=f"no schema for {resource.kind} {name} so calling it good")
 
-        # Do we have a validator for this?
-        validator = self.get_validator(apiVersion, resource.kind)
+        # OK, now we need to decide what more we need to do. Start by assuming that we will,
+        # in fact, need to do full schema validation for this object.
 
-        if validator:
-            rc = validator(resource)
+        need_validation = True
 
-            self.logger.debug(f"validation {'OK' if rc else rc}")
-            return rc
+        # Next up: is the AMBASSADOR_FAST_VALIDATION flag set?
+        
+        if Config.fast_validation:
+            # Yes, so we _don't_ need to do validation here.
+            need_validation = False
+
+        # Finally, does the object specifically demand validation? (This is presently used
+        # for objects coming from annotations, since watt can't currently validate those.)
+        if resource.get('_force_validation', False):
+            # Yup, so we'll honor that. 
+            need_validation = True
+            del(resource['_force_validation'])
+
+        # OK, assume that no validation is needed...
+        rc = RichStatus.OK(msg=f"validation not needed for {apiVersion} {resource.kind} {name} so calling it good")
+
+        # ...then, let's see whether reality matches our assumption.
+
+        if need_validation:
+            # Aha, we need to do validation. Do we actually have a validator than can
+            # do that?
+            validator = self.get_validator(apiVersion, resource.kind)
+
+            if validator:
+                rc = validator(resource)
+            else:
+                # No validator, so, uh, call it good.
+                rc = RichStatus.OK(msg=f"no validator for {apiVersion} {resource.kind} {name} so calling it good")
+            
+        # One way or the other, we're done here. Finally.
+
+        self.logger.debug(f"validation {rc}")
+        return rc
 
     def get_validator(self, apiVersion: str, kind: str) -> Validator:
         schema_key = "%s-%s" % (apiVersion, kind)
