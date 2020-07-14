@@ -4,6 +4,8 @@
   items:
     - title: Quick Start
       link: /docs/latest/tutorials/getting-started
+    - title: Ambassador Tutorial
+      link: /docs/latest/tutorials/quickstart-demo
 - title: Install Ambassador Edge Stack
   link: /docs/latest/topics/install/
   items: 

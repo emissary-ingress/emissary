@@ -1,4 +1,6 @@
-# Installation Demo
+# Ambassador Tutorial
+
+In this tutorial, we'll walk through some of the key features and workflow of Ambassador.
 
 ## Create a Mapping
 
