@@ -31,9 +31,13 @@ command_exists "$EXE_HELM3"   || EXE_HELM3="helm3"
 
 #########################################################################################
 
+if [ ! -d "$VALUES_DIR" ] || [ ! -d "$VALUES_TEMPLATES_DIR" ] ; then
+  info "no values in $VALUES_DIR or $VALUES_TEMPLATES_DIR: quitting..."
+  exit 0
+fi
+
 info "Performing some preflight checks..."
 [ -d "$MANIFESTS_DIR"        ] || abort "no manifests dir found in $MANIFESTS_DIR"
-[ -d "$VALUES_TEMPLATES_DIR" ] || abort "no values templates found in $VALUES_TEMPLATES_DIR"
 [ -f "$HELM2_INIT_YAML"      ] || abort "no helm2 manifest found in $HELM2_INIT_YAML"
 [ -n "$PROVIDER"             ] || abort "no kubernetes cluster provider specified in the PROVIDER env var"
 [ -x "$EXE_PROVIDER"         ] || abort "no kubernetes provider script found in $EXE_PROVIDER"
