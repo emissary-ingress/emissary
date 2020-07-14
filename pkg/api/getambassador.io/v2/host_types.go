@@ -163,6 +163,11 @@ type HostTLSCertificateSource string
 //
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="Hostname",type=string,JSONPath=`.spec.hostname`
+// +kubebuilder:printcolumn:name="State",type=string,JSONPath=`.status.state`
+// +kubebuilder:printcolumn:name="Phase Completed",type=string,JSONPath=`.status.phaseCompleted`
+// +kubebuilder:printcolumn:name="Phase Pending",type=string,JSONPath=`.status.phasePending`
+// +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
 type Host struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

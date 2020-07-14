@@ -232,6 +232,22 @@ metadata:
   labels: {}
   name: hosts.getambassador.io
 spec:
+  additionalPrinterColumns:
+  - JSONPath: .spec.hostname
+    name: Hostname
+    type: string
+  - JSONPath: .status.state
+    name: State
+    type: string
+  - JSONPath: .status.phaseCompleted
+    name: Phase Completed
+    type: string
+  - JSONPath: .status.phasePending
+    name: Phase Pending
+    type: string
+  - JSONPath: .metadata.creationTimestamp
+    name: Age
+    type: date
   group: getambassador.io
   names:
     categories:
@@ -694,6 +710,19 @@ metadata:
   labels: {}
   name: mappings.getambassador.io
 spec:
+  additionalPrinterColumns:
+  - JSONPath: .spec.prefix
+    name: Prefix
+    type: string
+  - JSONPath: .spec.service
+    name: Service
+    type: string
+  - JSONPath: .status.state
+    name: State
+    type: string
+  - JSONPath: .status.reason
+    name: Reason
+    type: string
   group: getambassador.io
   names:
     categories:

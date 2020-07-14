@@ -142,6 +142,10 @@ type MappingStatus struct {
 //
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="Prefix",type=string,JSONPath=`.spec.prefix`
+// +kubebuilder:printcolumn:name="Service",type=string,JSONPath=`.spec.service`
+// +kubebuilder:printcolumn:name="State",type=string,JSONPath=`.status.state`
+// +kubebuilder:printcolumn:name="Reason",type=string,JSONPath=`.status.reason`
 type Mapping struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
