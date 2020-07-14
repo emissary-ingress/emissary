@@ -83,7 +83,7 @@ security:
   #
   # A set of reasonable defaults is outlined below. This is not created by default as it should only
   # be created by a one Release. If you want to use the PodSecurityPolicy in the chart, create it in
-  # the "master" Release and then leave it unset in all others. Set the `rbac.podSecurityPolicies` 
+  # the "master" Release and then leave it unset in all others. Set the `rbac.podSecurityPolicies`
   # in all non-"master" Releases.
   podSecurityPolicy: {}
     # # Add AppArmor and Seccomp annotations
@@ -312,7 +312,7 @@ licenseKey:
   createSecret: true
   secretName:
 
-# The DevPortal is exposed at /docs/ endpoint in the AES container. 
+# The DevPortal is exposed at /docs/ endpoint in the AES container.
 # Setting this to true will automatically create routes for the DevPortal.
 createDevPortalMappings: true
 
@@ -350,7 +350,7 @@ redis:
 # Setting authService.create: false will not install the AES AuthService and
 # allow you to define your own.
 #
-# Typically when using the AES, you will want to keep this set to true and use 
+# Typically when using the AES, you will want to keep this set to true and use
 # the External Filter to communicate with a custom authentication service.
 # https://www.getambassador.io/reference/filter-reference/#filter-type-external
 authService:
@@ -370,7 +370,7 @@ authService:
     # timeout_ms: 30000
 
 
-# Configures the RateLimitService in the Ambassador Edge Stack. 
+# Configures the RateLimitService in the Ambassador Edge Stack.
 # Keep this enabled to configure RateLimits in AES.
 rateLimit:
   create: true
@@ -417,7 +417,7 @@ prometheusExporter:
 
 # DEPRECATED: Use security.podSecurityContext
 # securityContext:
-#   runAsUser: 8888 
+#   runAsUser: 8888
 
 
 # Configures Service Preview that ships with the Ambassador Edge Stack and edgectl.
