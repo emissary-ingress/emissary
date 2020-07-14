@@ -5,3 +5,6 @@ image:
   pullPolicy: IfNotPresent
 
 enableAES: false
+
+deploymentStrategy:
+  type: Recreate
