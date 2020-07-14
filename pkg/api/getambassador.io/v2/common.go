@@ -109,13 +109,13 @@ type RetryPolicy struct {
 
 type LoadBalancer struct {
 	// +kubebuilder:validation:Enum={"round_robin","ring_hash","maglev","least_request"}
-	Policy   string               `json:"policy,omitempty"`
-	Cookie   *LoadBalancer_Cookie `json:"cookie,omitempty"`
-	Header   string               `json:"header,omitempty"`
-	SourceIp bool                 `json:"source_ip,omitempty"`
+	Policy   string              `json:"policy,omitempty"`
+	Cookie   *LoadBalancerCookie `json:"cookie,omitempty"`
+	Header   string              `json:"header,omitempty"`
+	SourceIp bool                `json:"source_ip,omitempty"`
 }
 
-type LoadBalancer_Cookie struct {
+type LoadBalancerCookie struct {
 	Name string `json:"name,omitempty"`
 	Path string `json:"path,omitempty"`
 	Ttl  string `json:"ttl,omitempty"`

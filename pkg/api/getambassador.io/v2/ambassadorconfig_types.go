@@ -61,7 +61,7 @@ type ModuleList struct {
 	Items           []Module `json:"items"`
 }
 
-type _Features struct {
+type Features struct {
 	// The diagnostic service (at /ambassador/v0/diag/) defaults on, but
 	// you can disable the api route. It will remain accessible on
 	// diag_port.
@@ -143,7 +143,7 @@ type AmbassadorConfigSpec struct {
 	// use 8443 if TLS is configured, 8080 otherwise.
 	ServicePort int32 `json:"service_port,omitempty"`
 
-	Features *_Features `json:"features,omitempty"`
+	Features *Features `json:"features,omitempty"`
 
 	// run a custom lua script on every request. see below for more details.
 	LuaScripts string `json:"lua_scripts,omitempty"`

@@ -22,13 +22,13 @@ import (
 
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-type AuthService_AuthIncludeBody struct {
+type AuthServiceIncludeBody struct {
 	MaxBytes     int32 `json:"max_bytes,omitempty"`
 	AllowPartial bool  `json:"allow_partial,omitempty"`
 }
 
 // Why isn't this just an int??
-type AuthService_AuthStatusOnError struct {
+type AuthServiceStatusOnError struct {
 	Code int32 `json:"code,omitempty"`
 }
 
@@ -40,16 +40,16 @@ type AuthServiceSpec struct {
 	PathPrefix  string `json:"path_prefix,omitempty"`
 	TLS         string `json:"tls,omitempty"`
 	// +kubebuilder:validation:Enum={"http","grpc"}
-	Proto                       string                         `json:"proto,omitempty"`
-	TimeoutMs                   int32                          `json:"timeout_ms,omitempty"`
-	AllowedRequestHeaders       []string                       `json:"allowed_request_headers,omitempty"`
-	AllowedAuthorizationHeaders []string                       `json:"allowed_authorization_headers,omitempty"`
-	AddAuthHeaders              map[string]string              `json:"add_auth_headers,omitempty"`
-	AllowRequestBody            bool                           `json:"allow_request_body,omitempty"`
-	AddLinkerdHeaders           bool                           `json:"add_linkerd_headers,omitempty"`
-	FailureModeAllow            bool                           `json:"failure_mode_allow,omitempty"`
-	IncludeBody                 *AuthService_AuthIncludeBody   `json:"include_body,omitempty"`
-	StatusOnError               *AuthService_AuthStatusOnError `json:"status_on_error,omitempty"`
+	Proto                       string                    `json:"proto,omitempty"`
+	TimeoutMs                   int32                     `json:"timeout_ms,omitempty"`
+	AllowedRequestHeaders       []string                  `json:"allowed_request_headers,omitempty"`
+	AllowedAuthorizationHeaders []string                  `json:"allowed_authorization_headers,omitempty"`
+	AddAuthHeaders              map[string]string         `json:"add_auth_headers,omitempty"`
+	AllowRequestBody            bool                      `json:"allow_request_body,omitempty"`
+	AddLinkerdHeaders           bool                      `json:"add_linkerd_headers,omitempty"`
+	FailureModeAllow            bool                      `json:"failure_mode_allow,omitempty"`
+	IncludeBody                 *AuthServiceIncludeBody   `json:"include_body,omitempty"`
+	StatusOnError               *AuthServiceStatusOnError `json:"status_on_error,omitempty"`
 }
 
 // AuthServiceStatus defines the observed state of AuthService
