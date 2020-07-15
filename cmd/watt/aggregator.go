@@ -2,6 +2,7 @@ package watt
 
 import (
 	"encoding/json"
+	"os"
 	"os/exec"
 	"strings"
 	"sync"
@@ -205,7 +206,13 @@ func (a *aggregator) generateSnapshot(p *supervisor.Process) (string, error) {
 	return string(jsonBytes), nil
 }
 
+var fastValidation = len(os.Getenv("AMBASSADOR_FAST_VALIDATION")) > 0
+
 func (a *aggregator) validate(p *supervisor.Process, resources []k8s.Resource) {
+	if !fastValidation {
+		return
+	}
+
 	for _, r := range resources {
 		err := a.validator.Validate(p.Context(), map[string]interface{}(r))
 		if err == nil {
