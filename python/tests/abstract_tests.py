@@ -106,6 +106,8 @@ class AmbassadorTest(Test):
       value: "0"
     - name: AMBASSADOR_UPDATE_MAPPING_STATUS
       value: "false"
+    - name: AMBASSADOR_FAST_VALIDATION
+      value: "fast"
 """
 
         if self.debug_diagd:
