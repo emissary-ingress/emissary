@@ -431,6 +431,14 @@ class Config:
         apiVersion = resource.apiVersion
         originalApiVersion = apiVersion
 
+        # If watt marked this as having errors, we're done.
+        if 'errors' in resource:
+            errors = resource.errors.split('\n')
+
+            # This weird list comprehension around 'errors' is just filtering out any
+            # empty lines.
+            return RichStatus.fromError('; '.join([error for error in errors if error]))
+
         # The Canonical API Version for our resources always starts with "getambassador.io/",
         # but it used to always start with "ambassador/". Translate as needed for backward
         # compatibility.
