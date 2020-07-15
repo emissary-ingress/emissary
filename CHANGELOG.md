@@ -55,9 +55,14 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 - Incorporate the Envoy 1.14.4 security update.
 - BREAKING CHANGE: Turning off the Diagnostics UI via the Ambassador Module disables access to it from outside the Ambassador Pod.
+- BREAKING CHANGE: Default to not updating `Mapping` status; see below.
 - Feature: Add support for circuit breakers in TCP mapping
 - Internal: Configuration endpoints used internally by Ambassador are no longer accessible from outside the Ambassador Pod.
-- Bugfix: Prevent a possible path to still update `Mapping.status` when `AMBASSADOR_UPDATE_MAPPING_STATUS` is `false`
+
+Ambassador will no longer attempt to update the `Status` of a `Mapping`, unless
+you explicitly set `AMBASSADOR_UPDATE_MAPPING_STATUS=true` in the environment.
+If you do not have tooling that relies on `Mapping` status updates, we do not
+recommend setting `AMBASSADOR_UPDATE_MAPPING_STATUS`.
 
 *In Ambassador 1.7*, TLS secrets in `Ingress` resources will not be able to use `.namespace`
 suffixes to cross namespaces.

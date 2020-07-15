@@ -169,18 +169,20 @@ class DiagApp (Flask):
         # we last logged.)
         self.next_timer_log: Optional[float] = None
 
-        # For the moment, we're defaulting AMBASSADOR_UPDATE_MAPPING_STATUS
-        # to true. Plan is to change this for 1.6.
-        ksclass = KubeStatusNoMappings
-
-        if os.environ.get("AMBASSADOR_UPDATE_MAPPING_STATUS", "true").lower() == "true":
-            ksclass = KubeStatus
-
-        self.kubestatus = ksclass(self)
-
         if debug:
             self.logger.setLevel(logging.DEBUG)
             logging.getLogger('ambassador').setLevel(logging.DEBUG)
+
+        # Assume that we will NOT update Mapping status.
+        ksclass = KubeStatusNoMappings
+
+        if os.environ.get("AMBASSADOR_UPDATE_MAPPING_STATUS", "false").lower() == "true":
+            self.logger.info("WILL update Mapping status")
+            ksclass = KubeStatus
+        else:
+            self.logger.info("WILL NOT update Mapping status")
+
+        self.kubestatus = ksclass(self)
 
         self.config_path = config_path
         self.bootstrap_path = bootstrap_path
@@ -851,8 +853,6 @@ class KubeStatus:
         self.live: Dict[str,  bool] = {}
         self.current_status: Dict[str, str] = {}
         self.pool = concurrent.futures.ProcessPoolExecutor(max_workers=5)
-
-        self.app.logger.info("WILL update Mapping status")
 
     def mark_live(self, kind: str, name: str, namespace: str) -> None:
         key = f"{kind}/{name}.{namespace}"
