@@ -101,42 +101,6 @@ type CircuitBreaker struct {
 	MaxRetries         int    `json:"max_retries,omitempty"`
 }
 
-type KeepAlive struct {
-	Probes   int `json:"probes,omitempty"`
-	IdleTime int `json:"idle_time,omitempty"`
-	Interval int `json:"interval,omitempty"`
-}
-
-type CORS struct {
-	Origins        []string `json:"origins,omitempty"`
-	Methods        []string `json:"methods,omitempty"`
-	Headers        []string `json:"headers,omitempty"`
-	ExposedHeaders []string `json:"exposed_headers,omitempty"`
-	Credentials    bool     `json:"credentials,omitempty"`
-	MaxAge         string   `json:"max_age,omitempty"`
-}
-
-type RetryPolicy struct {
-	// +kubebuilder:validation:Enum={"5xx","gateway-error","connect-failure","retriable-4xx","refused-stream","retriable-status-codes"}
-	RetryOn       string `json:"retry_on,omitempty"`
-	NumRetries    int    `json:"num_retries,omitempty"`
-	PerTryTimeout string `json:"per_try_timeout,omitempty"`
-}
-
-type LoadBalancer struct {
-	// +kubebuilder:validation:Enum={"round_robin","ring_hash","maglev","least_request"}
-	Policy   string              `json:"policy,omitempty"`
-	Cookie   *LoadBalancerCookie `json:"cookie,omitempty"`
-	Header   string              `json:"header,omitempty"`
-	SourceIp bool                `json:"source_ip,omitempty"`
-}
-
-type LoadBalancerCookie struct {
-	Name string `json:"name,omitempty"`
-	Path string `json:"path,omitempty"`
-	Ttl  string `json:"ttl,omitempty"`
-}
-
 // AmbassadorID declares which Ambassador instances should pay
 // attention to this resource.  May either be a string or a list of
 // strings.  If no value is provided, the default is:
