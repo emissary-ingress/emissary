@@ -4,13 +4,14 @@ import copy
 import json
 import os
 import sys
-from typing import Any, Dict, List, Literal, cast
+# Literal is new to 3.8
+from typing import Any, Dict, List, cast  # , Literal
 
 import yaml
 from packaging import version
 
 products = ["aes", "oss", "helm"]
-product_type = Literal["aes", "oss", "helm"]
+product_type = str  #Literal["aes", "oss", "helm"]
 product: product_type
 kubeversion = ''
 
