@@ -67,7 +67,7 @@ require (
 	github.com/datawire/pf v0.0.0-20180510150411-31a823f9495a
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/ecodia/golang-awaitility v0.0.0-20180710094957-fb55e59708c7
-	github.com/envoyproxy/protoc-gen-validate v0.3.0-java.0.20200311152155-ab56c3dd1cf9
+	github.com/envoyproxy/protoc-gen-validate v0.3.0-java.0.20200609174644-bd816e4522c1
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/go-openapi/validate v0.19.5
 	github.com/gogo/protobuf v1.3.1
@@ -81,7 +81,7 @@ require (
 	github.com/iancoleman/strcase v0.0.0-20180726023541-3605ed457bf7
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/lib/pq v1.7.0 // indirect
-	github.com/lyft/protoc-gen-star v0.4.4
+	github.com/lyft/protoc-gen-star v0.4.10
 	github.com/mholt/archiver/v3 v3.3.0
 	github.com/miekg/dns v1.1.6
 	github.com/mitchellh/mapstructure v1.1.2
