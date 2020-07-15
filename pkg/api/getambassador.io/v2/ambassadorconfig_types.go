@@ -26,17 +26,7 @@ import (
 type ModuleSpec struct {
 	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
 
-	Config ModuleConfig `json:"config,omitempty"`
-}
-
-// ModuleConfig is non-functional as a Go type, but it gets
-// controller-gen to spit out the correct schema.
-//
-// +kubebuilder:validation:Type=object
-type ModuleConfig struct{}
-
-func (o ModuleConfig) MarshalJSON() ([]byte, error) {
-	return nil, nil
+	Config UntypedDict `json:"config,omitempty"`
 }
 
 // A Module defines system-wide configuration.  The type of module is

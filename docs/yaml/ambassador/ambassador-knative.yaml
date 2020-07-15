@@ -1043,6 +1043,8 @@ spec:
               - type: string
               - type: array
             config:
+              description: UntypedDict is non-functional as a Go type, but it gets
+                controller-gen to spit out the correct schema.
               type: object
           type: object
       type: object

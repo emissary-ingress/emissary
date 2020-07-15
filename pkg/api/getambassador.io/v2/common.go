@@ -112,8 +112,15 @@ type CircuitBreaker struct {
 type AmbassadorID []string
 
 func (aid *AmbassadorID) UnmarshalJSON(data []byte) error {
+	return (*StringOrStringList)(aid).UnmarshalJSON(data)
+}
+
+// +kubebuilder:validation:Type="d6e-union:string,array"
+type StringOrStringList []string
+
+func (sl *StringOrStringList) UnmarshalJSON(data []byte) error {
 	if string(data) == "null" {
-		*aid = nil
+		*sl = nil
 		return nil
 	}
 
@@ -122,12 +129,12 @@ func (aid *AmbassadorID) UnmarshalJSON(data []byte) error {
 	var single string
 
 	if err = json.Unmarshal(data, &single); err == nil {
-		*aid = AmbassadorID([]string{single})
+		*sl = StringOrStringList([]string{single})
 		return nil
 	}
 
 	if err = json.Unmarshal(data, &list); err == nil {
-		*aid = AmbassadorID(list)
+		*sl = StringOrStringList(list)
 		return nil
 	}
 
@@ -182,3 +189,7 @@ func (o *BoolOrString) UnmarshalJSON(data []byte) error {
 
 	return err
 }
+
+// UntypedDict is non-functional as a Go type, but it gets
+// controller-gen to spit out the correct schema.
+type UntypedDict struct{}
