@@ -676,13 +676,9 @@ spec:
             add_linkerd_headers:
               type: boolean
             add_request_headers:
-              items:
-                type: string
-              type: array
+              type: object
             add_response_headers:
-              items:
-                type: string
-              type: array
+              type: object
             ambassador_id:
               description: "AmbassadorID declares which Ambassador instances should\
                 \ pay attention to this resource.  May either be a string or a list\
@@ -719,6 +715,8 @@ spec:
               type: array
             cluster_idle_timeout_ms:
               type: integer
+            cluster_tag:
+              type: string
             connect_timeout_ms:
               type: integer
             cors:
@@ -728,26 +726,38 @@ spec:
                 exposed_headers:
                   items:
                     type: string
-                  type: array
+                  oneOf:
+                  - type: string
+                  - type: array
                 headers:
                   items:
                     type: string
-                  type: array
+                  oneOf:
+                  - type: string
+                  - type: array
                 max_age:
                   type: string
                 methods:
                   items:
                     type: string
-                  type: array
+                  oneOf:
+                  - type: string
+                  - type: array
                 origins:
                   items:
                     type: string
-                  type: array
+                  oneOf:
+                  - type: string
+                  - type: array
               type: object
             enable_ipv4:
               type: boolean
             enable_ipv6:
               type: boolean
+            envoy_override:
+              description: UntypedDict is non-functional as a Go type, but it gets
+                controller-gen to spit out the correct schema.
+              type: object
             grpc:
               type: boolean
             headers:
@@ -801,6 +811,12 @@ spec:
               type: string
             method_regex:
               type: boolean
+            modules:
+              items:
+                description: UntypedDict is non-functional as a Go type, but it gets
+                  controller-gen to spit out the correct schema.
+                type: object
+              type: array
             outlier_detection:
               type: string
             path_redirect:
@@ -815,18 +831,26 @@ spec:
               type: boolean
             priority:
               type: string
+            query_parameters:
+              type: object
             regex_headers:
               type: object
+            regex_query_parameters:
+              type: object
             regex_rewrite:
-              type: boolean
+              type: object
             remove_request_headers:
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             remove_response_headers:
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             resolver:
               type: string
             retry_policy:
@@ -1071,15 +1095,14 @@ spec:
             host:
               type: string
             idle_timeout_ms:
-              type: integer
+              description: 'FIXME(lukeshu): Surely this should be an ''int''?'
+              type: string
             port:
               type: integer
             resolver:
               type: string
             service:
               type: string
-            timeout_ms:
-              type: integer
             tls:
               oneOf:
               - type: string

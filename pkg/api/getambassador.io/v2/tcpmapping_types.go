@@ -34,12 +34,14 @@ type TCPMappingSpec struct {
 	EnableIPv4      bool             `json:"enable_ipv4,omitempty"`
 	EnableIPv6      bool             `json:"enable_ipv6,omitempty"`
 	CircuitBreakers []CircuitBreaker `json:"circuit_breakers,omitempty"`
-	TimeoutMs       int              `json:"timeout_ms,omitempty"`
-	IdleTimeoutMs   int              `json:"idle_timeout_ms,omitempty"`
-	Resolver        string           `json:"resolver,omitempty"`
-	TLS             BoolOrString     `json:"tls,omitempty"`
-	Weight          int              `json:"weight,omitempty"`
-	ClusterTag      string           `json:"cluster_tag,omitempty"`
+
+	// FIXME(lukeshu): Surely this should be an 'int'?
+	IdleTimeoutMs string `json:"idle_timeout_ms,omitempty"`
+
+	Resolver   string       `json:"resolver,omitempty"`
+	TLS        BoolOrString `json:"tls,omitempty"`
+	Weight     int          `json:"weight,omitempty"`
+	ClusterTag string       `json:"cluster_tag,omitempty"`
 }
 
 // TCPMapping is the Schema for the tcpmappings API
