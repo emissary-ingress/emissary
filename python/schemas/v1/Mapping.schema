@@ -39,12 +39,12 @@
                     "type": "string"
                 },
                 {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
+                    "type": "array"
                 }
-            ]
+            ],
+            "items": {
+                "type": "string"
+            }
         },
         "prefix": {
             "type": "string"
@@ -152,12 +152,12 @@
                             "type": "string"
                         },
                         {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
+                            "type": "array"
                         }
-                    ]
+                    ],
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "methods": {
                     "oneOf": [
@@ -165,12 +165,12 @@
                             "type": "string"
                         },
                         {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
+                            "type": "array"
                         }
-                    ]
+                    ],
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "headers": {
                     "oneOf": [
@@ -178,12 +178,12 @@
                             "type": "string"
                         },
                         {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
+                            "type": "array"
                         }
-                    ]
+                    ],
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "credentials": {
                     "type": "boolean"
@@ -194,12 +194,12 @@
                             "type": "string"
                         },
                         {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
+                            "type": "array"
                         }
-                    ]
+                    ],
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "max_age": {
                     "type": "string"
@@ -261,12 +261,12 @@
                     "type": "string"
                 },
                 {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
+                    "type": "array"
                 }
-            ]
+            ],
+            "items": {
+                "type": "string"
+            }
         },
         "remove_response_headers": {
             "oneOf": [
@@ -274,12 +274,12 @@
                     "type": "string"
                 },
                 {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
+                    "type": "array"
                 }
-            ]
+            ],
+            "items": {
+                "type": "string"
+            }
         },
         "resolver": {
             "type": "string"
