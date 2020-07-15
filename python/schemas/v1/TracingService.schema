@@ -31,8 +31,7 @@
                 "trace_id_128bit": { "type": "boolean" },
                 "shared_span_context": { "type": "boolean" },
                 "service_name": { "type": "string" }
-            },
-            "additionalProperties": false
+            }
         },
         "tag_headers": {
             "type": "array",

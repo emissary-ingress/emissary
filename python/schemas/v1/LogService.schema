@@ -34,12 +34,10 @@
                   "during_request": { "type": "boolean" },
                   "during_response": { "type": "boolean" },
                   "during_trailer": { "type": "boolean" }
-                },
-                "additionalProperties": false
+                }
               }
             }
-          },
-          "additionalProperties": false
+          }
         },
         "flush_interval_time": { "type": "integer" },
         "flush_interval_byte_size": { "type": "integer" },

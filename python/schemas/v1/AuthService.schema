@@ -44,8 +44,7 @@
                 "max_bytes": { "type": "integer" },
                 "allow_partial": { "type": "boolean" }
             },
-            "required": [ "max_bytes", "allow_partial" ],
-            "additionalProperties": false
+            "required": [ "max_bytes", "allow_partial" ]
         },
         "status_on_error": { 
             "type": "object",

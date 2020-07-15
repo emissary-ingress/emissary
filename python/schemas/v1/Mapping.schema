@@ -43,8 +43,7 @@
                     "max_pending_requests": { "type": "integer" },
                     "max_requests": { "type": "integer" },
                     "max_retries": { "type": "integer" }
-                },
-                "additionalProperties": false
+                }
             }
         },
         "keepalive": {
@@ -90,8 +89,7 @@
                     ]
                 },
                 "max_age": { "type": "string" }
-            },
-            "additionalProperties": false
+            }
         },
         "retry_policy": {
             "type": "object",
@@ -102,8 +100,7 @@
                 },
                 "num_retries": { "type": "integer" },
                 "per_try_timeout": { "type": "string" }
-            },
-            "additionalProperties": false
+            }
         },
         "grpc": { "type": "boolean" },
         "host_redirect": { "type": "boolean" },
@@ -168,14 +165,12 @@
                         "path": { "type": "string" },
                         "ttl": { "type": "string" }
                     },
-                    "required": ["name"],
-                    "additionalProperties": false
+                    "required": ["name"]
                 },
                 "header":  { "type": "string" },
                 "source_ip": {"type": "boolean"}
             },
-            "required": ["policy"],
-            "additionalProperties": false
+            "required": ["policy"]
         }
     },
     "definitions": {
