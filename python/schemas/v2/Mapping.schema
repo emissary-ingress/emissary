@@ -23,9 +23,13 @@
         "metadata_labels": {
             "type": "object",
             "additionalProperties": {
-                "type": [
-                    "string",
-                    "boolean"
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    }
                 ]
             }
         },
@@ -57,20 +61,32 @@
         "add_request_headers": {
             "type": "object",
             "additionalProperties": {
-                "type": [
-                    "string",
-                    "boolean",
-                    "object"
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    },
+                    {
+                        "type": "object"
+                    }
                 ]
             }
         },
         "add_response_headers": {
             "type": "object",
             "additionalProperties": {
-                "type": [
-                    "string",
-                    "boolean",
-                    "object"
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    },
+                    {
+                        "type": "object"
+                    }
                 ]
             }
         },
@@ -266,9 +282,13 @@
         "regex_rewrite": {
             "type": "object",
             "additionalProperties": {
-                "type": [
-                    "string",
-                    "boolean"
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    }
                 ]
             }
         },
@@ -288,9 +308,13 @@
             "type": "integer"
         },
         "tls": {
-            "type": [
-                "string",
-                "boolean"
+            "oneOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "boolean"
+                }
             ]
         },
         "use_websocket": {
@@ -317,18 +341,26 @@
         "headers": {
             "type": "object",
             "additionalProperties": {
-                "type": [
-                    "string",
-                    "boolean"
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    }
                 ]
             }
         },
         "regex_headers": {
             "type": "object",
             "additionalProperties": {
-                "type": [
-                    "string",
-                    "boolean"
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    }
                 ]
             }
         },
@@ -381,18 +413,26 @@
         "query_parameters": {
             "type": "object",
             "additionalProperties": {
-                "type": [
-                    "string",
-                    "boolean"
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    }
                 ]
             }
         },
         "regex_query_parameters": {
             "type": "object",
             "additionalProperties": {
-                "type": [
-                    "string",
-                    "boolean"
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    }
                 ]
             }
         }
