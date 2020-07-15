@@ -29,6 +29,32 @@ func main() {
 	}
 }
 
+func transform(obj interface{}) interface{} {
+	switch obj := obj.(type) {
+	case map[string]interface{}:
+		if typ, ok := obj["type"]; ok {
+			if typAry, ok := typ.([]interface{}); ok {
+				delete(obj, "type")
+				var oneOf []interface{}
+				for _, opt := range typAry {
+					oneOf = append(oneOf, map[string]interface{}{
+						"type": opt,
+					})
+				}
+				obj["oneOf"] = oneOf
+			}
+		}
+		for k, v := range obj {
+			obj[k] = transform(v)
+		}
+	case []interface{}:
+		for i, v := range obj {
+			obj[i] = transform(v)
+		}
+	}
+	return obj
+}
+
 func processFile(ctx context.Context, op byte, filename string) error {
 	var err error
 	var file *os.File
@@ -55,6 +81,7 @@ func processFile(ctx context.Context, op byte, filename string) error {
 	if err := decoder.Decode(&schema); err != nil {
 		return fmt.Errorf("%q: %w", filename, err)
 	}
+	schema = transform(schema)
 
 	outputBytes, err := json.MarshalIndent(schema, "", "    ")
 	if err != nil {
