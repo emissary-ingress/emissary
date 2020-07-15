@@ -23,8 +23,14 @@
         "prefix": { "type": "string" },
         "prefix_regex": { "type": "boolean" },
         "service": { "type": "string" },
-        "add_request_headers": { "$ref": "#/definitions/mapStrObj" },
-        "add_response_headers": { "$ref": "#/definitions/mapStrObj" },
+        "add_request_headers": {
+            "type": "object",
+            "additionalProperties": { "type": [ "string", "boolean", "object" ] }
+        },
+        "add_response_headers": {
+            "type": "object",
+            "additionalProperties": { "type": [ "string", "boolean", "object" ] }
+        },
         "add_linkerd_headers": { "type": "boolean" },
         "auto_host_rewrite": { "type": "boolean" },
         "case_sensitive": { "type": "boolean" },
@@ -143,8 +149,14 @@
         },
         "host": { "type": "string" },
         "host_regex": { "type": "boolean" },
-        "headers": { "$ref": "#/definitions/mapStrStr" },
-        "regex_headers": { "$ref": "#/definitions/mapStrStr" },
+        "headers": {
+            "type": "object",
+            "additionalProperties": { "type": [ "string", "boolean" ] }
+        },
+        "regex_headers": {
+            "type": "object",
+            "additionalProperties": { "type": [ "string", "boolean" ] }
+        },
         "labels": {
             "type": "object"
         },
@@ -171,16 +183,6 @@
                 "source_ip": {"type": "boolean"}
             },
             "required": ["policy"]
-        }
-    },
-    "definitions": {
-        "mapStrStr": {
-            "type": "object",
-            "additionalProperties": { "type": [ "string", "boolean" ] }
-        },
-        "mapStrObj": {
-            "type": "object",
-            "additionalProperties": { "type": [ "string", "boolean", "object" ] }
         }
     },
     "required": [ "apiVersion", "kind", "name", "service", "prefix" ],

@@ -24,8 +24,14 @@
         "prefix_regex": { "type": "boolean" },
         "prefix_exact": { "type": "boolean" },
         "service": { "type": "string" },
-        "add_request_headers": { "$ref": "#/definitions/mapStrObj" },
-        "add_response_headers": { "$ref": "#/definitions/mapStrObj" },
+        "add_request_headers": {
+            "type": "object",
+            "additionalProperties": { "type": [ "string", "boolean", "object" ] }
+        },
+        "add_response_headers": {
+            "type": "object",
+            "additionalProperties": { "type": [ "string", "boolean", "object" ] }
+        },
         "add_linkerd_headers": { "type": "boolean" },
         "auto_host_rewrite": { "type": "boolean" },
         "case_sensitive": { "type": "boolean" },
@@ -113,7 +119,10 @@
         },
         "resolver": { "type": "string" },
         "rewrite": { "type": "string" },
-        "regex_rewrite": { "$ref": "#/definitions/mapStrStr" },
+        "regex_rewrite": {
+            "type": "object",
+            "additionalProperties": { "type": [ "string", "boolean" ] }
+        },
         "shadow": { "type": "boolean" },
         "connect_timeout_ms": { "type": "integer" },
         "cluster_idle_timeout_ms": { "type": "integer" },
@@ -132,8 +141,14 @@
         },
         "host": { "type": "string" },
         "host_regex": { "type": "boolean" },
-        "headers": { "$ref": "#/definitions/mapStrStr" },
-        "regex_headers": { "$ref": "#/definitions/mapStrStr" },
+        "headers": {
+            "type": "object",
+            "additionalProperties": { "type": [ "string", "boolean" ] }
+        },
+        "regex_headers": {
+            "type": "object",
+            "additionalProperties": { "type": [ "string", "boolean" ] }
+        },
         "labels": {
             "type": "object"
         },
@@ -161,17 +176,13 @@
             },
             "required": ["policy"]
         },
-        "query_parameters": { "$ref": "#/definitions/mapStrStr" },
-        "regex_query_parameters": { "$ref": "#/definitions/mapStrStr" }
-    },
-    "definitions": {
-        "mapStrStr": {
+        "query_parameters": {
             "type": "object",
             "additionalProperties": { "type": [ "string", "boolean" ] }
         },
-        "mapStrObj": {
+        "regex_query_parameters": {
             "type": "object",
-            "additionalProperties": { "type": [ "string", "boolean", "object" ] }
+            "additionalProperties": { "type": [ "string", "boolean" ] }
         }
     },
     "required": [ "apiVersion", "kind", "name", "service", "prefix" ],
