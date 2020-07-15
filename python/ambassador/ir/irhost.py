@@ -38,13 +38,6 @@ class IRHost(IRResource):
             if x in IRHost.AllowedKeys
         }
 
-        # XXX Flynn 1.6.0: This _from_ingress stuff is a terrible hack -- see
-        # IRHost.resolve, below, for more. Rip this out in 1.7, for the love of
-        # all that is holy.
-
-        ml = kwargs.get('metadata_labels') or {}
-        self._from_ingress = bool(ml.get('_from_ingress', None) == 'True')
-
         self.context: Optional[IRTLSContext] = None
 
         super().__init__(
@@ -54,16 +47,7 @@ class IRHost(IRResource):
         )
 
     def setup(self, ir: 'IR', aconf: Config) -> bool:
-        ir.logger.debug(f"Host {self.name} setting up: {repr(self.as_dict())}")
-
-        # XXX Flynn 1.6.0: This _from_ingress stuff is a terrible hack -- see
-        # IRHost.resolve, below, for more. Rip this out in 1.7, for the love of
-        # all that is holy.
-
-        consider_namespacing = self._from_ingress
-        del(self['_from_ingress'])
-
-        ir.logger.debug(f"Host {self.name}: consider_namespacing is {consider_namespacing}")
+        ir.logger.debug(f"Host {self.name} setting up")
 
         tls_ss: Optional[SavedSecret] = None
         pkey_ss: Optional[SavedSecret] = None
@@ -75,12 +59,7 @@ class IRHost(IRResource):
             if tls_name:
                 ir.logger.debug(f"Host {self.name}: TLS secret name is {tls_name}")
 
-                # We have a directly-specified secret name. This will not normally support
-                # the ".namespace" thing that a TLSContext would, but consider overriding
-                # that if consider_namespacing is set.
-                #
-                # XXX Flynn 1.6.0: This is a horrible hack that needs to go away in 1.7.
-                tls_ss = self.resolve(ir, tls_name, consider_namespacing=consider_namespacing)
+                tls_ss = self.resolve(ir, tls_name)
 
                 if tls_ss:
                     # OK, we have a TLS secret! Fire up a TLS context for it, if one doesn't
@@ -122,19 +101,8 @@ class IRHost(IRResource):
 
                         # First make sure that the TLSContext is "compatible" i.e. it at least has the same cert related
                         # configuration as the one in this Host AND hosts are same as well.
-
                         if 'secret' in host_tls_context:
-                            # Uhoh -- TLSContexts are allowed to have Secrets that cross namespaces, even though a
-                            # Host directly specifying a secret in another namespace not usually allowed. Force the
-                            # self.resolve to consider secret_namespacing here, and force the default namespace to
-                            # be the namespace of the TLSContext, not the Host.
-                            #
-                            # XXX Flynn 1.6.0: This whole consider_namespacing thing is a hack that needs to go 
-                            # away in 1.7.
-                            context_ss = self.resolve(ir, host_tls_context.get('secret'), 
-                                                      consider_namespacing=True,
-                                                      resource_namespace=host_tls_context.namespace)
-
+                            context_ss = self.resolve(ir, host_tls_context.get('secret'))
                             if str(context_ss) != str(tls_ss):
                                 self.post_error(f"Secret info mismatch between Host: {self.name} (secret: {tls_name})"
                                                 f"and TLSContext: {host_tls_context_name}"
@@ -297,8 +265,7 @@ class IRHost(IRResource):
                 if pkey_name:
                     ir.logger.debug(f"Host {self.name}: ACME private key name is {pkey_name}")
 
-                    # ACME secret names never, ever get to be in a different namespace.
-                    pkey_ss = self.resolve(ir, pkey_name, consider_namespacing=False)
+                    pkey_ss = self.resolve(ir, pkey_name)
 
                     if not pkey_ss:
                         ir.logger.error(f"Host {self.name}: continuing with invalid private key secret {pkey_name}")
@@ -316,38 +283,10 @@ class IRHost(IRResource):
         return "<Host %s for %s ctx %s ia %s iap %s>" % (self.name, self.hostname or '*', ctx_name,
                                                          insecure_action, insecure_addl_port)
 
-    def resolve(self, ir: 'IR', secret_name: str, consider_namespacing=False, resource_namespace=None) -> SavedSecret:
-        # If we were given a resource_namespace, let that be our default namespace.
-        # If not, try to use our own namespace. If we somehow have neither of those,
-        # fall back to the Ambassador's namespace.
-
-        namespace = resource_namespace or self.namespace or ir.ambassador_namespace
-
-        self.ir.logger.debug(f"Host {self.name}: resolve {secret_name}, namespace {namespace}")
-
-        # NOTE WELL! Secrets named in the Host CRD MUST NOT honor 
-        # secret_namespacing, since they are defined _in the CRD_ as a 
-        # core/v1.LocalObjectReference rather than a 
-        # core/v1.ObjectReference -- they are fundamentally NOT the same
-        # kind of thing as other places we name secrets. This almost
-        # certainly implies a reconciliation that will have to happen.
-        #
-        # XXX Flynn: unfortunately, while the above is correct, it
-        # might mess up customers in 1.6.0, since we actually allowed
-        # Ingress resources to use the secret.namespace syntax if
-        # secret_namespacing was True. Argh. So. For right now, then,
-        # we'll allow the Host resource to use secret_namespacing IFF
-        # we also have consider_namespacing set. Sigh. Rip this out in
-        # 1.7, for the love of all that is holy.
-
-        if consider_namespacing:
-            secret_namespacing = self.lookup('secret_namespacing', True,
-                                            default_key='tls_secret_namespacing')
-
-            if "." in secret_name and secret_namespacing:
-                secret_name, namespace = secret_name.split('.', 1)
-
-            self.ir.logger.debug(f"Host {self.name}: after considering_namespacing {secret_namespacing}: {secret_name}, namespace {namespace}")
+    def resolve(self, ir: 'IR', secret_name: str) -> SavedSecret:
+        # Try to use our namespace for secret resolution. If we somehow have no
+        # namespace, fall back to the Ambassador's namespace.
+        namespace = self.namespace or ir.ambassador_namespace
 
         return ir.resolve_secret(self, secret_name, namespace)
 

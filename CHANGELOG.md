@@ -24,10 +24,7 @@ for all users, and includes all the functionality of the Ambassador API Gateway 
 to the additional capabilities mentioned above. Due to popular demand, we’re offering a free
 tier of our core features as part of the Ambassador Edge Stack, designed for startups.
 
-### UPCOMING CHANGES
-
-*In Ambassador 1.7*, TLS secrets in `Ingress` resources will not be able to use `.namespace`
-suffixes to cross namespaces.
+### UPCOMING PROTOCOL CHANGES
 
 *In a future version*, Ambassador will change the version of the gRPC service name used to
 communicate with `AuthService`s and `RateLimitService`s:
@@ -57,9 +54,6 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 - BREAKING CHANGE: Turning off the Diagnostics UI via the Ambassador Module disables access to it from outside the Ambassador Pod.
 - Feature: Add support for circuit breakers in TCP mapping
 - Internal: Configuration endpoints used internally by Ambassador are no longer accessible from outside the Ambassador Pod.
-
-*In Ambassador 1.7*, TLS secrets in `Ingress` resources will not be able to use `.namespace`
-suffixes to cross namespaces.
 
 ## [1.5.5] June 30, 2020
 [1.5.5]: https://github.com/datawire/ambassador/compare/vv1.5.4...v1.5.5

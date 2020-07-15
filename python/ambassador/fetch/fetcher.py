@@ -505,15 +505,8 @@ class ResourceFetcher:
                         }
                     }
 
-                    ml = {}
-
                     if metadata_labels:
-                        ml = dict(metadata_labels)
-
-                    ml['_from_ingress'] = "True"
-
-                    if ml:
-                        ingress_host['metadata']['labels'] = ml
+                        ingress_host['metadata']['labels'] = metadata_labels
 
                     self.logger.debug(f"Generated Host from ingress {ingress_name}: {ingress_host}")
                     self.handle_k8s(ingress_host)
