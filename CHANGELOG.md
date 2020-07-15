@@ -57,6 +57,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 - BREAKING CHANGE: Turning off the Diagnostics UI via the Ambassador Module disables access to it from outside the Ambassador Pod.
 - Feature: Add support for circuit breakers in TCP mapping
 - Internal: Configuration endpoints used internally by Ambassador are no longer accessible from outside the Ambassador Pod.
+- Bugfix: Prevent a possible path to still update `Mapping.status` when `AMBASSADOR_UPDATE_MAPPING_STATUS` is `false`
 
 *In Ambassador 1.7*, TLS secrets in `Ingress` resources will not be able to use `.namespace`
 suffixes to cross namespaces.
