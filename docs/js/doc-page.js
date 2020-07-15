@@ -31,8 +31,8 @@ function relativeToAbsUrl(slug) {
 
 function getMainDocsUrl(slug) {
   // All doc pages slugs follow the pattern /docs/{VERSION}/{PATH}
-  // This regex extracts the /docs/{VERSION}/ part to find the current page's main docs slug
-  const mainDocsSlug = getPathFromSlug(slug).match(/\/docs\/[\d\.(latest)]*/)
+  // This regex extracts the /docs/{VERSION} part to find the current page's main docs slug
+  const mainDocsSlug = getPathFromSlug(slug).match(/\/docs\/[^/]*/)
   // If, for some reason, we can't find this part (regex matches nothing in the slug string), we assume /docs/latest/
   return relativeToAbsUrl(mainDocsSlug ? mainDocsSlug[0] : '/docs/latest/')
 }
