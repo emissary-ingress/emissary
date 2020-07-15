@@ -212,6 +212,7 @@ type RetryPolicy struct {
 
 type LoadBalancer struct {
 	// +kubebuilder:validation:Enum={"round_robin","ring_hash","maglev","least_request"}
+	// +kubebuilder:validation:Required
 	Policy   string              `json:"policy,omitempty"`
 	Cookie   *LoadBalancerCookie `json:"cookie,omitempty"`
 	Header   string              `json:"header,omitempty"`
@@ -219,6 +220,7 @@ type LoadBalancer struct {
 }
 
 type LoadBalancerCookie struct {
+	// +kubebuilder:validation:Required
 	Name string `json:"name,omitempty"`
 	Path string `json:"path,omitempty"`
 	Ttl  string `json:"ttl,omitempty"`

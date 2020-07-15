@@ -40,17 +40,27 @@
 //
 // The field markers of interest are:
 //
-//  - "+kubebuilder:validation:*" controls the OpenAPI v3 validation
-//    schema that is generated for this type.
+//  - The "+kubebuilder:validation:*" markers control the OpenAPI v3
+//    validation schema that is generated for this field.  ":Optional"
+//    or ":Required" may be applied at the package-level in order to
+//    set the default for all fields.  Most of the others can also be
+//    set at the type level.
 //
 // Package-level markers:
 //
 // The group name to use for the CRDs in the generated YAML:
 // +groupName=getambassador.io
 //
-// By default, generate DeepCopy methods for all types in this package
-// (so we don't need to specify this for every type):
+// By default, mark all types in this package to have DeepCopy methods
+// generated (so we don't need to specify this for every type):
 // +kubebuilder:object:generate=true
+//
+// By default, mark all fields as optional (so we don't need to
+// specify this for every optional field, since most fields are
+// optional; and also because controller-gen's "required-by-default"
+// mode is broken and always makes everything optional, even if it's
+// explicitly marked as required):
+// +kubebuilder:validation:Optional
 
 // Package v2 contains API Schema definitions for the getambassador.io v2 API group
 package v2

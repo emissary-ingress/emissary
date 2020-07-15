@@ -76,6 +76,9 @@ spec:
                   type: boolean
                 max_bytes:
                   type: integer
+              required:
+              - allow_partial
+              - max_bytes
               type: object
             path_prefix:
               type: string
@@ -854,6 +857,8 @@ spec:
                       type: string
                     ttl:
                       type: string
+                  required:
+                  - name
                   type: object
                 header:
                   type: string
@@ -866,6 +871,8 @@ spec:
                   type: string
                 source_ip:
                   type: boolean
+              required:
+              - policy
               type: object
             method:
               type: string

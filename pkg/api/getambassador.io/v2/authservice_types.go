@@ -24,7 +24,10 @@ import (
 )
 
 type AuthServiceIncludeBody struct {
-	MaxBytes     int  `json:"max_bytes,omitempty"`
+	// +kubebuilder:validation:Required
+	MaxBytes int `json:"max_bytes,omitempty"`
+
+	// +kubebuilder:validation:Required
 	AllowPartial bool `json:"allow_partial,omitempty"`
 }
 
