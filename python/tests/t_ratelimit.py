@@ -44,7 +44,6 @@ spec:
       containers:
       - name: rate-limit
         image: {self.test_image[ratelimit]}
-        imagePullPolicy: Always
         ports:
         - name: grpc
           containerPort: 5000
@@ -161,7 +160,6 @@ spec:
       containers:
       - name: rate-limit
         image: {self.test_image[ratelimit]}
-        imagePullPolicy: Always
         ports:
         - name: grpc
           containerPort: 5000
@@ -254,7 +252,6 @@ spec:
       containers:
       - name: rate-limit
         image: {self.test_image[ratelimit]}
-        imagePullPolicy: Always
         env:
         - name: "USE_TLS"
           value: "true"

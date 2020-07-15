@@ -109,13 +109,17 @@ commands:
     steps:
       - when:
           condition:
-            equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
+            or:
+            - equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
+            - equal: [ "https://github.com/datawire/ambassador-private", << pipeline.project.git_url >> ]
           steps:
             - checkout:
                 path: ~/project/ambassador
       - when:
           condition:
-            equal: [ "https://github.com/datawire/apro", << pipeline.project.git_url >> ]
+            or:
+            - equal: [ "https://github.com/datawire/apro", << pipeline.project.git_url >> ]
+            - equal: [ "https://github.com/datawire/apro-private", << pipeline.project.git_url >> ]
           steps:
             - run:
                 working_directory: ~/project
@@ -140,4 +144,52 @@ commands:
             if [[ -n "$(git status --porcelain)" ]]; then
                PAGER= git diff --cached
                exit 1
+            fi
+
+  "skip-if-no-changes":
+    parameters:
+      "to":
+        description: A POSIX ERE (grep -E regex) that matches which filenames to check for changes in
+        type: string
+    steps:
+      - run:
+          name: "Diff changes"
+          command: |
+            if [[ "<< pipeline.git.base_revision >>" == "" ]]; then
+              echo "There is no base_revision, therefore no changes"
+              exit 0
+            fi
+
+            COMMIT_RANGE="<< pipeline.git.base_revision >>...<<pipeline.git.revision>>"
+            echo "Commit range: " $COMMIT_RANGE
+            git --no-pager diff $COMMIT_RANGE --name-only
+
+            if [[ $(git --no-pager diff $COMMIT_RANGE --name-only | grep -E "<< parameters.to >>") == "" ]]; then
+              echo "Halting this CircleCI job because code in the following paths have not changed:"
+              echo "<< parameters.to >>"
+              circleci step halt
+            fi
+
+  "skip-if-only-changes":
+    parameters:
+      "to":
+        description: A POSIX ERE (grep -E regex) that matches which filenames to check for changes in
+        type: string
+    steps:
+      - run:
+          name: "Diff changes"
+          command: |
+            if [[ "<< pipeline.git.base_revision >>" == "" ]]; then
+              echo "There is no base_revision, therefore no changes"
+              exit 0
+            fi
+
+            COMMIT_RANGE="<< pipeline.git.base_revision >>...<<pipeline.git.revision>>"
+            echo "Commit range: " $COMMIT_RANGE
+            git --no-pager diff $COMMIT_RANGE --name-only
+
+            if [[ $(git --no-pager diff $COMMIT_RANGE --name-only | grep -v -E "<< parameters.to >>") == "" ]]; then
+              echo "Halting this CircleCI job because only code in the following paths has changed:"
+              echo "<< parameters.to >>"
+              circleci step halt
             fi

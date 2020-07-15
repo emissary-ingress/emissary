@@ -43,9 +43,9 @@ We've created an example filter that you can customize for your particular use c
    image instead of the standard sidecar.
 
    ```patch
+              value: '60'
+            - name: AMBASSADOR_INTERNAL_URL
               value: https://127.0.0.1:8443
-            - name: AMBASSADOR_ADMIN_URL
-              value: http://127.0.0.1:8877
    -        image: docker.io/datawire/aes:$version$
    +        image: DOCKER_REGISTRY/aes-plugin:VERSION
             imagePullPolicy: Always

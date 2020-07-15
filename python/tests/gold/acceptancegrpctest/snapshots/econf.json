@@ -56,7 +56,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "acceptancegrpctest-egrpc.default",
+                                                "address": "acceptancegrpctest-egrpc",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }
@@ -110,6 +110,7 @@
                                         "accept_http_10": false
                                     },
                                     "normalize_path": true,
+                                    "preserve_external_request_id": false,
                                     "route_config": {
                                         "virtual_hosts": [
                                             {

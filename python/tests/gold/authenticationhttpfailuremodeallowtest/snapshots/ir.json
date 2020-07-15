@@ -8,7 +8,6 @@
         "debug_mode": false,
         "default_label_domain": "ambassador",
         "default_labels": {},
-        "diag_port": 8877,
         "diagnostics": {
             "enabled": true,
             "prefix": "/ambassador/v0/",
@@ -30,6 +29,7 @@
         "location": "--internal--",
         "name": "ir.ambassador",
         "namespace": "default",
+        "preserve_external_request_id": false,
         "proper_case": false,
         "readiness_probe": {
             "enabled": true,
@@ -106,7 +106,7 @@
             "service": "authenticationhttpfailuremodeallowtest-http",
             "targets": [
                 {
-                    "ip": "authenticationhttpfailuremodeallowtest-http.default",
+                    "ip": "authenticationhttpfailuremodeallowtest-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -140,7 +140,7 @@
             "service": "authenticationhttpfailuremodeallowtest-http-auth",
             "targets": [
                 {
-                    "ip": "authenticationhttpfailuremodeallowtest-http-auth.default",
+                    "ip": "authenticationhttpfailuremodeallowtest-http-auth",
                     "port": 443,
                     "target_kind": "DNSname"
                 }
@@ -183,6 +183,7 @@
                 "authenticationhttpfailuremodeallowtest.default.2"
             ],
             "_rkey": "authenticationhttpfailuremodeallowtest.default.2",
+            "add_auth_headers": {},
             "add_linkerd_headers": false,
             "allow_request_body": false,
             "allowed_authorization_headers": [],
@@ -216,7 +217,7 @@
                 "service": "authenticationhttpfailuremodeallowtest-http-auth",
                 "targets": [
                     {
-                        "ip": "authenticationhttpfailuremodeallowtest-http-auth.default",
+                        "ip": "authenticationhttpfailuremodeallowtest-http-auth",
                         "port": 443,
                         "target_kind": "DNSname"
                     }
@@ -321,6 +322,7 @@
                     ],
                     "_rkey": "ir.ambassador",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -420,6 +422,7 @@
                     ],
                     "_rkey": "ir.ambassador",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -519,6 +522,7 @@
                     ],
                     "_rkey": "ir.ambassador",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -615,6 +619,7 @@
                     "_errored": false,
                     "_rkey": "authenticationhttpfailuremodeallowtest.default.3",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -640,7 +645,7 @@
                         "service": "authenticationhttpfailuremodeallowtest-http",
                         "targets": [
                             {
-                                "ip": "authenticationhttpfailuremodeallowtest-http.default",
+                                "ip": "authenticationhttpfailuremodeallowtest-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }

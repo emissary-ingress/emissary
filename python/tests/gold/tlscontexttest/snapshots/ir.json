@@ -8,7 +8,6 @@
         "debug_mode": false,
         "default_label_domain": "ambassador",
         "default_labels": {},
-        "diag_port": 8877,
         "diagnostics": {
             "enabled": true,
             "prefix": "/ambassador/v0/",
@@ -30,6 +29,7 @@
         "location": "--internal--",
         "name": "ir.ambassador",
         "namespace": "default",
+        "preserve_external_request_id": false,
         "proper_case": false,
         "readiness_probe": {
             "enabled": true,
@@ -107,7 +107,7 @@
             "service": "tlscontexttest-http",
             "targets": [
                 {
-                    "ip": "tlscontexttest-http.default",
+                    "ip": "tlscontexttest-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -142,7 +142,7 @@
             "service": "tlscontexttest-http",
             "targets": [
                 {
-                    "ip": "tlscontexttest-http.default",
+                    "ip": "tlscontexttest-http",
                     "port": 443,
                     "target_kind": "DNSname"
                 }
@@ -218,6 +218,7 @@
                     ],
                     "_rkey": "ir.ambassador",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -317,6 +318,7 @@
                     ],
                     "_rkey": "ir.ambassador",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -420,6 +422,7 @@
                     "_errored": false,
                     "_rkey": "tlscontexttest.default.3",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -446,7 +449,7 @@
                         "service": "tlscontexttest-http",
                         "targets": [
                             {
-                                "ip": "tlscontexttest-http.default",
+                                "ip": "tlscontexttest-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -600,6 +603,7 @@
                     "_errored": false,
                     "_rkey": "tlscontexttest.default.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -626,7 +630,7 @@
                         "service": "tlscontexttest-http",
                         "targets": [
                             {
-                                "ip": "tlscontexttest-http.default",
+                                "ip": "tlscontexttest-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -694,12 +698,12 @@
                         },
                         "min_tls_version": "v1.0",
                         "name": "TLSContextTest-same-context-1",
-                        "namespace": "default",
+                        "namespace": "secret-namespace",
                         "redirect_cleartext_from": 8080,
                         "secret_info": {
                             "cert_chain_file": "/tmp/ambassador/snapshots/secret-namespace/secrets-decoded/test-tlscontext-secret-1/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.crt",
                             "private_key_file": "/tmp/ambassador/snapshots/secret-namespace/secrets-decoded/test-tlscontext-secret-1/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.key",
-                            "secret": "test-tlscontext-secret-1.secret-namespace"
+                            "secret": "test-tlscontext-secret-1"
                         }
                     },
                     "weight": 100
@@ -740,12 +744,12 @@
                 },
                 "min_tls_version": "v1.0",
                 "name": "TLSContextTest-same-context-1",
-                "namespace": "default",
+                "namespace": "secret-namespace",
                 "redirect_cleartext_from": 8080,
                 "secret_info": {
                     "cert_chain_file": "/tmp/ambassador/snapshots/secret-namespace/secrets-decoded/test-tlscontext-secret-1/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.crt",
                     "private_key_file": "/tmp/ambassador/snapshots/secret-namespace/secrets-decoded/test-tlscontext-secret-1/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.key",
-                    "secret": "test-tlscontext-secret-1.secret-namespace"
+                    "secret": "test-tlscontext-secret-1"
                 }
             }
         },
@@ -775,6 +779,7 @@
                     "_errored": false,
                     "_rkey": "tlscontexttest.default.6",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -800,7 +805,7 @@
                         "service": "tlscontexttest-http",
                         "targets": [
                             {
-                                "ip": "tlscontexttest-http.default",
+                                "ip": "tlscontexttest-http",
                                 "port": 443,
                                 "target_kind": "DNSname"
                             }
@@ -896,6 +901,7 @@
                     ],
                     "_rkey": "ir.ambassador",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -1035,12 +1041,12 @@
                 },
                 "min_tls_version": "v1.0",
                 "name": "TLSContextTest-same-context-1",
-                "namespace": "default",
+                "namespace": "secret-namespace",
                 "redirect_cleartext_from": 8080,
                 "secret_info": {
                     "cert_chain_file": "/tmp/ambassador/snapshots/secret-namespace/secrets-decoded/test-tlscontext-secret-1/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.crt",
                     "private_key_file": "/tmp/ambassador/snapshots/secret-namespace/secrets-decoded/test-tlscontext-secret-1/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.key",
-                    "secret": "test-tlscontext-secret-1.secret-namespace"
+                    "secret": "test-tlscontext-secret-1"
                 }
             },
             "hostname": "tls-context-host-1",
@@ -1193,12 +1199,12 @@
             },
             "min_tls_version": "v1.0",
             "name": "TLSContextTest-same-context-1",
-            "namespace": "default",
+            "namespace": "secret-namespace",
             "redirect_cleartext_from": 8080,
             "secret_info": {
                 "cert_chain_file": "/tmp/ambassador/snapshots/secret-namespace/secrets-decoded/test-tlscontext-secret-1/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.crt",
                 "private_key_file": "/tmp/ambassador/snapshots/secret-namespace/secrets-decoded/test-tlscontext-secret-1/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.key",
-                "secret": "test-tlscontext-secret-1.secret-namespace"
+                "secret": "test-tlscontext-secret-1"
             }
         },
         {
@@ -1231,7 +1237,7 @@
         },
         {
             "_active": true,
-            "_errored": false,
+            "_errored": true,
             "_referenced_by": [
                 "tlscontexttest.default.7"
             ],
@@ -1247,6 +1253,29 @@
             },
             "min_tls_version": "v1.0",
             "name": "TLSContextTest-no-secret",
+            "namespace": "default",
+            "redirect_cleartext_from": 8080,
+            "secret_info": {}
+        },
+        {
+            "_active": true,
+            "_errored": true,
+            "_referenced_by": [
+                "tlscontexttest.default.8"
+            ],
+            "_rkey": "tlscontexttest.default.8",
+            "hosts": [
+                "tls-context-host-1"
+            ],
+            "is_fallback": false,
+            "kind": "TLSContext",
+            "location": "tlscontexttest.default.8",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tlscontexttest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "TLSContextTest-same-context-error",
             "namespace": "default",
             "redirect_cleartext_from": 8080,
             "secret_info": {}

@@ -55,7 +55,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "hostcrdmanualcontext-http.default",
+                                                "address": "hostcrdmanualcontext-http",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }
@@ -111,6 +111,7 @@
                                         "accept_http_10": false
                                     },
                                     "normalize_path": true,
+                                    "preserve_external_request_id": false,
                                     "route_config": {
                                         "virtual_hosts": [
                                             {
@@ -296,13 +297,11 @@
                         ],
                         "tls_context": {
                             "common_tls_context": {
-                                "tls_certificates": [
+                                "tls_certificate_sds_secret_configs": [
                                     {
-                                        "certificate_chain": {
-                                            "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/manual-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt"
-                                        },
-                                        "private_key": {
-                                            "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/manual-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key"
+                                        "name": "tls.hostcrdmanualcontext-manual-secret.default",
+                                        "sds_config": {
+                                            "ads": {}
                                         }
                                     }
                                 ],

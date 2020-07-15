@@ -1,10 +1,11 @@
 {
     "_errors": {},
     "_notices": {
-        "tracingtestshorttraceid-http.default.1": [
-            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        "-global-": [
+            "Parsed pod labels: {'kat-ambassador-id': 'tracingtestshorttraceid', 'scope': 'AmbassadorTest', 'service': 'tracingtestshorttraceid'}",
+            "Found Ambassador service: tracingtestshorttraceid"
         ],
-        "zipkin-64.default.1": [
+        "tracingtestshorttraceid-http.default.1": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ]
     },
@@ -119,7 +120,7 @@
         "zipkin-64.default.1": {
             "_referenced_by": {},
             "ambassador_id": "tracingtestshorttraceid",
-            "apiVersion": "getambassador.io/v0",
+            "apiVersion": "getambassador.io/v2",
             "config": {
                 "trace_id_128bit": false
             },
@@ -133,7 +134,7 @@
             "name": "tracing-64",
             "namespace": "default",
             "rkey": "zipkin-64.default.1",
-            "serialization": "ambassador_id: tracingtestshorttraceid\napiVersion: ambassador/v0\nconfig:\n  trace_id_128bit: false\ndriver: zipkin\nkind: TracingService\nmetadata_labels:\n  kat-ambassador-id: tracingtestshorttraceid\n  scope: AmbassadorTest\nname: tracing-64\nnamespace: default\nservice: zipkin-64:9411\n",
+            "serialization": "ambassador_id: tracingtestshorttraceid\napiVersion: getambassador.io/v2\nconfig:\n  trace_id_128bit: false\ndriver: zipkin\nkind: TracingService\nmetadata_labels:\n  kat-ambassador-id: tracingtestshorttraceid\n  scope: AmbassadorTest\nname: tracing-64\nnamespace: default\nservice: zipkin-64:9411\n",
             "service": "zipkin-64:9411"
         }
     },
@@ -207,7 +208,7 @@
     "tracing_configs": {
         "tracing-64": {
             "ambassador_id": "tracingtestshorttraceid",
-            "apiVersion": "getambassador.io/v0",
+            "apiVersion": "getambassador.io/v2",
             "config": {
                 "trace_id_128bit": false
             },

@@ -8,7 +8,6 @@
         "debug_mode": false,
         "default_label_domain": "ambassador",
         "default_labels": {},
-        "diag_port": 8877,
         "diagnostics": {
             "enabled": true,
             "prefix": "/ambassador/v0/",
@@ -30,6 +29,7 @@
         "location": "--internal--",
         "name": "ir.ambassador",
         "namespace": "default",
+        "preserve_external_request_id": false,
         "proper_case": false,
         "readiness_probe": {
             "enabled": true,
@@ -106,7 +106,7 @@
             "service": "rate-limit-tls:5000",
             "targets": [
                 {
-                    "ip": "rate-limit-tls.default",
+                    "ip": "rate-limit-tls",
                     "port": 5000,
                     "target_kind": "DNSname"
                 }
@@ -165,7 +165,7 @@
             "service": "ratelimitv1withtlstest-http",
             "targets": [
                 {
-                    "ip": "ratelimitv1withtlstest-http.default",
+                    "ip": "ratelimitv1withtlstest-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -219,7 +219,7 @@
                 "service": "rate-limit-tls:5000",
                 "targets": [
                     {
-                        "ip": "rate-limit-tls.default",
+                        "ip": "rate-limit-tls",
                         "port": 5000,
                         "target_kind": "DNSname"
                     }
@@ -286,7 +286,7 @@
                 "service": "rate-limit-tls:5000",
                 "targets": [
                     {
-                        "ip": "rate-limit-tls.default",
+                        "ip": "rate-limit-tls",
                         "port": 5000,
                         "target_kind": "DNSname"
                     }
@@ -369,6 +369,7 @@
                     ],
                     "_rkey": "ir.ambassador",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -468,6 +469,7 @@
                     ],
                     "_rkey": "ir.ambassador",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -567,6 +569,7 @@
                     ],
                     "_rkey": "ir.ambassador",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -677,6 +680,7 @@
                     "_errored": false,
                     "_rkey": "ratelimitv1withtlstest-http.default.2",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -702,7 +706,7 @@
                         "service": "ratelimitv1withtlstest-http",
                         "targets": [
                             {
-                                "ip": "ratelimitv1withtlstest-http.default",
+                                "ip": "ratelimitv1withtlstest-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -796,7 +800,7 @@
             "service": "rate-limit-tls:5000",
             "targets": [
                 {
-                    "ip": "rate-limit-tls.default",
+                    "ip": "rate-limit-tls",
                     "port": 5000,
                     "target_kind": "DNSname"
                 }
@@ -887,7 +891,7 @@
             "service": "rate-limit-tls:5000",
             "targets": [
                 {
-                    "ip": "rate-limit-tls.default",
+                    "ip": "rate-limit-tls",
                     "port": 5000,
                     "target_kind": "DNSname"
                 }
@@ -954,7 +958,7 @@
             "service": "rate-limit-tls:5000",
             "targets": [
                 {
-                    "ip": "rate-limit-tls.default",
+                    "ip": "rate-limit-tls",
                     "port": 5000,
                     "target_kind": "DNSname"
                 }

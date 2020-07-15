@@ -62,7 +62,9 @@ def assert_default_errors(errors, include_ingress_errors=True):
         )
 
     number_of_default_errors = len(default_errors)
-    assert errors[:number_of_default_errors] == default_errors
+
+    if errors[:number_of_default_errors] != default_errors:
+        assert False, f"default error table mismatch: got\n{errors}"
 
     for error in errors[number_of_default_errors:]:
         assert 'found invalid port' in error[1], "Could not find 'found invalid port' in the error {}".format(error[1])
@@ -98,6 +100,13 @@ class AmbassadorTest(Test):
 
     def manifests(self) -> str:
         rbac = RBAC_CLUSTER_SCOPE
+
+        self.manifest_envs += """
+    - name: POLL_EVERY_SECS
+      value: "0"
+    - name: AMBASSADOR_UPDATE_MAPPING_STATUS
+      value: "false"
+"""
 
         if self.debug_diagd:
             self.manifest_envs += """
@@ -249,6 +258,8 @@ class AmbassadorTest(Test):
                  "KUBERNETES_SERVICE_PORT=443",
                  "AMBASSADOR_SNAPSHOT_COUNT=1",
                  "AMBASSADOR_CONFIG_BASE_DIR=/tmp/ambassador",
+                 "POLL_EVERY_SECS=0",
+                 "AMBASSADOR_UPDATE_MAPPING_STATUS=false",
                  "AMBASSADOR_ID=%s" % self.ambassador_id]
 
         if self.namespace:

@@ -24,7 +24,10 @@ for all users, and includes all the functionality of the Ambassador API Gateway 
 to the additional capabilities mentioned above. Due to popular demand, we’re offering a free
 tier of our core features as part of the Ambassador Edge Stack, designed for startups.
 
-### UPCOMING PROTOCOL CHANGES
+### UPCOMING CHANGES
+
+*In Ambassador 1.7*, TLS secrets in `Ingress` resources will not be able to use `.namespace`
+suffixes to cross namespaces.
 
 *In a future version*, Ambassador will change the version of the gRPC service name used to
 communicate with `AuthService`s and `RateLimitService`s:
@@ -36,9 +39,9 @@ communicate with `AuthService`s and `RateLimitService`s:
 
 - In some future version of Ambassador, there will be settings to control which name is
   used; with the default being the current name; it will be opt-in to the new names.
-- In some future version of Ambassador after that, *no sooner than Ambassador 1.6.0*, the
-  default values of those setting swill change; making them opt-out from the new names.
 - In some future version of Ambassador after that, *no sooner than Ambassador 1.7.0*, the
+  default values of those settings will change; making them opt-out from the new names.
+- In some future version of Ambassador after that, *no sooner than Ambassador 1.8.0*, the
   settings will go away, and Ambassador will always use the new names.
 
 Note that Ambassador Edge Stack `External` Filters already unconditionally use the newer
@@ -48,7 +51,22 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ## Next Release
 
-(no changes yet)
+### Ambassador API Gateway + Ambassador Edge Stack
+
+- Incorporate the Envoy 1.14.4 security update.
+- BREAKING CHANGE: Turning off the Diagnostics UI via the Ambassador Module disables access to it from outside the Ambassador Pod.
+- Feature: Add support for circuit breakers in TCP mapping
+- Internal: Configuration endpoints used internally by Ambassador are no longer accessible from outside the Ambassador Pod.
+
+*In Ambassador 1.7*, TLS secrets in `Ingress` resources will not be able to use `.namespace`
+suffixes to cross namespaces.
+
+## [1.5.5] June 30, 2020
+[1.5.5]: https://github.com/datawire/ambassador/compare/vv1.5.4...v1.5.5
+
+### Ambassador API Gateway + Ambassador Edge Stack
+
+- Incorporate the Envoy 1.14.3 security update.
 
 ## [1.5.4] June 23, 2020
 [1.5.4]: https://github.com/datawire/ambassador/compare/v1.5.3...v1.5.4
@@ -76,6 +94,10 @@ The default value of `AMBASSADOR_UPDATE_MAPPING_STATUS` will change to
 
 - Bugfix: Allow deletion of ProjectControllers.
 - Bugfix: Fix regression introduced in 1.4.2 where the `OAuth2` AuthorizationCode filter no longer works when behind another gateway that rewrites the request hostname.  The behavior here is now controllable via the `internalOrigin` sub-field.
+
+### Ambassador API Gateway + Ambassador Edge Stack
+
+- Bugfix: Read Knative ingress generation from the correct place in the Kubernetes object
 
 ## [1.5.2] June 10, 2020
 [1.5.2]: https://github.com/datawire/ambassador/compare/v1.5.1...v1.5.2

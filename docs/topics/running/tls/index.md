@@ -68,11 +68,19 @@ spec:
 
 Ambassador will now use the certificate in `host-secret` to terminate TLS.
 
-### `Host`and `TLSContext`
+### `Host` and `TLSContext`
 
 The `Host` will configure basic TLS termination settings in Ambassador. If you 
 need more advanced TLS options on a domain, such as setting the minimum TLS 
-version, you can create a [`TLSContext`](#tlscontext) with the name 
+version, you can do it in one of the following ways.
+
+1. [Create a `TLSContext` with the name `{{HOST}}-context`](#create-a-tlscontext-with-the-name-host-context)
+2. [Link a `TLSContext` to the Host](#link-a-tlscontext-to-the-host)
+3. [Specify TLS configuration in the Host](#specify-tls-configuration-in-the-host)
+
+#### Create a `TLSContext` with the name `{{HOST}}-context`
+
+You can create a [`TLSContext`](#tlscontext) with the name
 `{{NAME_OF_HOST}}-context`, `hosts` set to the same `hostname`, and `secret` 
 set to the same `tlsSecret`.
 
@@ -92,7 +100,88 @@ spec:
   min_tls_version: v1.2
 ```
 
-Full reference for all options available to the `TLSContext` can be found below.
+Full reference for all options available to the `TLSContext` can be found [below](#tlscontext).
+
+#### Link a `TLSContext` to the Host
+
+You can create a new [`TLSContext`](#tlscontext) with the desired configuration
+and link it to the Host via the `tlsContext` field.
+
+For example, to enforce a minimum TLS version on the `Host` above, create a
+`TLSContext` with any name with the following configuration:
+
+```yaml
+---
+apiVersion: getambassador.io/v2
+kind: TLSContext
+metadata:
+  name: min-tls-context
+spec:
+  secret: min-secret
+  min_tls_version: v1.2
+```
+
+and link it to the Host via the `tlsContext` field as shown:
+
+```yaml
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: example-host
+spec:
+  hostname: host.example.com
+  acmeProvider:
+    authority: none
+  tlsSecret:
+    name: min-secret
+  tlsContext:
+    name: min-tls-context
+```
+
+**Note**: Any `hosts` or `secret` in the `TLSContext` must be the compatible with the `Host` to which it is
+being linked.
+
+#### Specify TLS configuration in the Host
+
+You can specify TLS configuration directly in the Host via the `tls` field.
+
+For example, to enforce a minimum TLS version on the `Host`, the configuration will look like this:
+
+```yaml
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: example-host
+spec:
+  hostname: host.example.com
+  acmeProvider:
+    authority: none
+  tlsSecret:
+    name: min-secret
+  tls:
+    min_tls_version: v1.2
+```
+
+The following fields are accepted in the `tls` field:
+```yaml
+tls:
+  cert_chain_file: # <type: string>
+  private_key_file: # <type: string>
+  ca_secret: # <type: string>
+  cacert_chain_file: # <type: string>
+  alpn_protocols: # <type: string>
+  cert_required: # <type: bool>
+  min_tls_version: # <type: string>
+  max_tls_version: # <type: string>
+  cipher_suites: # <type: array of strings>
+  ecdh_curves: # <type: array of strings>
+  redirect_cleartext_from: # <type: int32>
+  sni: # <type: string>
+```
+
+See [`TLSContext`](#tlscontext) below to read more on the description of these fields.
 
 ## TLSContext
 

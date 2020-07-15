@@ -8,7 +8,6 @@
         "debug_mode": false,
         "default_label_domain": "ambassador",
         "default_labels": {},
-        "diag_port": 8877,
         "diagnostics": {
             "enabled": true,
             "prefix": "/ambassador/v0/",
@@ -30,6 +29,7 @@
         "location": "--internal--",
         "name": "ir.ambassador",
         "namespace": "default",
+        "preserve_external_request_id": false,
         "proper_case": false,
         "readiness_probe": {
             "enabled": true,
@@ -105,7 +105,7 @@
             "service": "authenticationheaderrouting-headerroutingauth",
             "targets": [
                 {
-                    "ip": "authenticationheaderrouting-headerroutingauth.default",
+                    "ip": "authenticationheaderrouting-headerroutingauth",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -140,7 +140,7 @@
             "service": "authenticationheaderrouting-http-target1",
             "targets": [
                 {
-                    "ip": "authenticationheaderrouting-http-target1.default",
+                    "ip": "authenticationheaderrouting-http-target1",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -175,7 +175,7 @@
             "service": "authenticationheaderrouting-http-target2",
             "targets": [
                 {
-                    "ip": "authenticationheaderrouting-http-target2.default",
+                    "ip": "authenticationheaderrouting-http-target2",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -194,6 +194,7 @@
                 "authenticationheaderrouting.default.1"
             ],
             "_rkey": "authenticationheaderrouting.default.1",
+            "add_auth_headers": {},
             "add_linkerd_headers": false,
             "allow_request_body": false,
             "allowed_authorization_headers": [
@@ -227,7 +228,7 @@
                 "service": "authenticationheaderrouting-headerroutingauth",
                 "targets": [
                     {
-                        "ip": "authenticationheaderrouting-headerroutingauth.default",
+                        "ip": "authenticationheaderrouting-headerroutingauth",
                         "port": 80,
                         "target_kind": "DNSname"
                     }
@@ -306,6 +307,7 @@
                     ],
                     "_rkey": "ir.ambassador",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -405,6 +407,7 @@
                     ],
                     "_rkey": "ir.ambassador",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -504,6 +507,7 @@
                     ],
                     "_rkey": "ir.ambassador",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -607,6 +611,7 @@
                     "_errored": false,
                     "_rkey": "authenticationheaderrouting-http-target2.default.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -632,7 +637,7 @@
                         "service": "authenticationheaderrouting-http-target2",
                         "targets": [
                             {
-                                "ip": "authenticationheaderrouting-http-target2.default",
+                                "ip": "authenticationheaderrouting-http-target2",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -718,6 +723,7 @@
                     "_errored": false,
                     "_rkey": "authenticationheaderrouting-http-target1.default.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -743,7 +749,7 @@
                         "service": "authenticationheaderrouting-http-target1",
                         "targets": [
                             {
-                                "ip": "authenticationheaderrouting-http-target1.default",
+                                "ip": "authenticationheaderrouting-http-target1",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }

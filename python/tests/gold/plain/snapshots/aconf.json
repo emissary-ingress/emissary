@@ -1,33 +1,10 @@
 {
-    "_errors": {
-        "-global-": [
-            {
-                "error": "Ambassador could not find core CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...",
-                "hostname": "plain",
-                "ok": false,
-                "version": "1.4.2-10396-gd59f69983-dirty"
-            },
-            {
-                "error": "Ambassador could not find Resolver type CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...",
-                "hostname": "plain",
-                "ok": false,
-                "version": "1.4.2-10396-gd59f69983-dirty"
-            },
-            {
-                "error": "Ambassador could not find the Host CRD definition. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...",
-                "hostname": "plain",
-                "ok": false,
-                "version": "1.4.2-10396-gd59f69983-dirty"
-            },
-            {
-                "error": "Ambassador could not find the LogService CRD definition. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...",
-                "hostname": "plain",
-                "ok": false,
-                "version": "1.4.2-10396-gd59f69983-dirty"
-            }
-        ]
-    },
+    "_errors": {},
     "_notices": {
+        "-global-": [
+            "Parsed pod labels: {'kat-ambassador-id': 'plain', 'scope': 'AmbassadorTest', 'service': 'plain'}",
+            "Found Ambassador service: plain"
+        ],
         "plain-canarydiffmapping-grpc-0-grpc-canary.plain-namespace.1": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ],
@@ -822,6 +799,22 @@
             "namespace": "plain-namespace",
             "rkey": "k8s-plain-canarymapping-http-50-http-plain-namespace",
             "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: plain-canarymapping-http-50-http\nnamespace: plain-namespace\n"
+        },
+        "k8s-plain-edgestackmapping-http-plain-namespace": {
+            "_referenced_by": {},
+            "ambassador_id": "plain",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-plain-edgestackmapping-http-plain-namespace",
+            "metadata_labels": {
+                "kat-ambassador-id": "plain",
+                "scope": "AmbassadorTest"
+            },
+            "name": "plain-edgestackmapping-http",
+            "namespace": "plain-namespace",
+            "rkey": "k8s-plain-edgestackmapping-http-plain-namespace",
+            "serialization": "ambassador_id: plain\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: plain-edgestackmapping-http\nnamespace: plain-namespace\n"
         },
         "k8s-plain-headerroutingtest-grpc-grpc-plain-namespace": {
             "_referenced_by": {},
@@ -5773,6 +5766,18 @@
                 "scope": "AmbassadorTest"
             },
             "name": "plain-canarymapping-http-50-http",
+            "namespace": "plain-namespace"
+        },
+        "k8s-plain-edgestackmapping-http-plain-namespace": {
+            "ambassador_id": "plain",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "plain",
+                "scope": "AmbassadorTest"
+            },
+            "name": "plain-edgestackmapping-http",
             "namespace": "plain-namespace"
         },
         "k8s-plain-headerroutingtest-grpc-grpc-plain-namespace": {

@@ -1,5 +1,14 @@
 # The Ambassador Container
 
+## Container Images
+
+To give you flexibility and independence from a hosting platform's uptime, you can pull the `ambassador` and `aes` images from any of the following registries:
+- `docker.io/datawire/`
+- `quay.io/datawire/`
+- `gcr.io/datawire/`
+
+For an even more robust installation, consider using a [local registry as a pull through cache](https://docs.docker.com/registry/recipes/mirror/) or configure a [publicly accessible mirror](https://cloud.google.com/container-registry/docs/using-dockerhub-mirroring).
+
 ## Environment Variables
 
 Use the following variables for the environment of your Ambassador container:
@@ -12,20 +21,26 @@ Use the following variables for the environment of your Ambassador container:
 | Ambassador                 | `AMBASSADOR_ENVOY_BASE_ID`       | `0`                                                 | Integer                                                                       |
 | Ambassador Edge Stack      | `AES_LOG_LEVEL`                  | `info`                                              | Log level (see below)                                                         |
 | Primary Redis              | `REDIS_POOL_SIZE`                | `10`                                                | Integer                                                                       |
+| Primary Redis              | `REDIS_POOL_MAX_SIZE`            | `20`                                                | Integer                                                                       |
 | Primary Redis              | `REDIS_SOCKET_TYPE`              | None, must be set explicitly                        | Go network such as `tcp` or `unix`; see [Go `net.Dial`][]                     |
 | Primary Redis              | `REDIS_URL`                      | None, must be set explicitly                        | Go network address; for TCP this is a `host:port` pair; see [Go `net.Dial`][] |
 | Primary Redis              | `REDIS_USERNAME`                 | Empty                                               | Plain string                                                                  |
 | Primary Redis              | `REDIS_PASSWORD`                 | Empty                                               | Plain string                                                                  |
 | Primary Redis              | `REDIS_TLS_ENABLED`              | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
 | Primary Redis              | `REDIS_TLS_INSECURE`             | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
+| Primary Redis              | `REDIS_PING_INTERVAL`            | `10`                                                | Integer (seconds)                                                             |
+| Primary Redis              | `REDIS_IO_TIMEOUT`               | `10`                                                | Integer (seconds)                                                             |
 | Per-Second RateLimit Redis | `REDIS_PERSECOND`                | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
 | Per-Second RateLimit Redis | `REDIS_PERSECOND_POOL_SIZE`      | `10`                                                | Integer                                                                       |
+| Per-Second RateLimit Redis | `REDIS_PERSECOND_POOL_MAX_SIZE`  | `20`                                                | Integer                                                                       |
 | Per-Second RateLimit Redis | `REDIS_PERSECOND_SOCKET_TYPE`    | None, must be set explicitly (if `REDIS_PERSECOND`) | Go network such as `tcp` or `unix`; see [Go `net.Dial`][]                     |
 | Per-Second RateLimit Redis | `REDIS_PERSECOND_URL`            | None, must be set explicitly (if `REDIS_PERSECOND`) | Go network address; for TCP this is a `host:port` pair; see [Go `net.Dial`][] |
 | Per-Second RateLimit Redis | `REDIS_PERSECOND_USERNAME`       | Empty                                               | Plain string                                                                  |
 | Per-Second RateLimit Redis | `REDIS_PERSECOND_PASSWORD`       | Empty                                               | Plain string                                                                  |
 | Per-Second RateLimit Redis | `REDIS_PERSECOND_TLS_ENABLED`    | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
 | Per-Second RateLimit Redis | `REDIS_PERSECOND_TLS_INSECURE`   | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
+| Per-Second RateLimit Redis | `REDIS_PERSECOND_PING_INTERVAL`  | `10`                                                | Integer (seconds)                                                             |
+| Per-Second RateLimit Redis | `REDIS_PERSECOND_IO_TIMEOUT`     | `10`                                                | Integer (seconds)                                                             |
 | RateLimit                  | `EXPIRATION_JITTER_MAX_SECONDS`  | `300`                                               | Integer                                                                       |
 | RateLimit                  | `USE_STATSD`                     | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
 | RateLimit                  | `STATSD_HOST`                    | `localhost`                                         | Hostname                                                                      |
@@ -81,6 +96,7 @@ The Ambassador Edge Stack uses the following ports to listen for HTTP/HTTPS traf
 | 8001 | envoy   | Internal stats, logging, etc.; not exposed outside pod  |
 | 8002 | watt    | Internal watt snapshot access; not exposed outside pod  |
 | 8003 | ambex   | Internal ambex snapshot access; not exposed outside pod |
+| 8004 | ambex   | Secrets listener port for Envoy SDS                     |
 | 8080 | envoy   | Default HTTP service port                               |
 | 8443 | envoy   | Default HTTPS service port                              |
 

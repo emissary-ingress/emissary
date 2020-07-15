@@ -1,6 +1,11 @@
 {
     "_errors": {},
-    "_notices": {},
+    "_notices": {
+        "-global-": [
+            "Parsed pod labels: {'kat-ambassador-id': 'xfpredirect', 'scope': 'AmbassadorTest', 'service': 'xfpredirect'}",
+            "Found Ambassador service: xfpredirect"
+        ]
+    },
     "_sources": {
         "--diagnostics--": {
             "_referenced_by": {},

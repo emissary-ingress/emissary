@@ -5,6 +5,7 @@ from ..constants import Constants
 from ..config import Config
 
 from .irresource import IRResource
+from .irbasemapping import IRBaseMapping
 from .irhttpmapping import IRHTTPMapping
 from .irtls import IRAmbassadorTLS
 from .irtlscontext import IRTLSContext
@@ -30,7 +31,6 @@ class IRAmbassador (IRResource):
         'default_label_domain',
         'default_labels',
         # Do not include defaults, that's handled manually in setup.
-        'diag_port',
         'diagnostics',
         'enable_http10',
         'enable_ipv6',
@@ -56,11 +56,11 @@ class IRAmbassador (IRResource):
         'use_remote_address',
         'x_forwarded_proto_redirect',
         'xff_num_trusted_hops',
-        'use_ambassador_namespace_for_service_resolution'
+        'use_ambassador_namespace_for_service_resolution',
+        'preserve_external_request_id'
     ]
 
     service_port: int
-    diag_port: int
     default_label_domain: str
 
     # Set up the default probes and such.
@@ -91,7 +91,6 @@ class IRAmbassador (IRResource):
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
             service_port=Constants.SERVICE_PORT_HTTP,
             admin_port=Constants.ADMIN_PORT,
-            diag_port=Constants.DIAG_PORT,
             auth_enabled=None,
             enable_ipv6=False,
             envoy_log_type="text",
@@ -113,6 +112,7 @@ class IRAmbassador (IRResource):
             use_ambassador_namespace_for_service_resolution=False,
             server_name="envoy",
             debug_mode=False,
+            preserve_external_request_id=False,
             **kwargs
         )
 
@@ -177,8 +177,7 @@ class IRAmbassador (IRResource):
             self.default_labels: Dict[str, Any] = {}
 
         # Next up: diag port & services.
-        diag_port = aconf.module_lookup('ambassador', 'diag_port', Constants.DIAG_PORT)
-        diag_service = "127.0.0.1:%d" % diag_port
+        diag_service = "127.0.0.1:%d" % Constants.DIAG_PORT
 
         for name, cur, dflt in [
             ("liveness",    self.liveness_probe,  IRAmbassador.default_liveness_probe),
@@ -258,9 +257,27 @@ class IRAmbassador (IRResource):
                 return False
 
         if self.get('circuit_breakers', None) is not None:
-            if not IRHTTPMapping.validate_circuit_breakers(self.ir, self['circuit_breakers']):
+            if not IRBaseMapping.validate_circuit_breakers(self.ir, self['circuit_breakers']):
                 self.post_error("Invalid circuit_breakers specified: {}".format(self['circuit_breakers']))
                 return False
+
+        if self.get('envoy_log_type') == 'text':
+            if self.get('envoy_log_format', None) is not None and not isinstance(self.get('envoy_log_format'), str):
+                self.post_error(
+                    "envoy_log_type 'text' requires a string in envoy_log_format: {}, invalidating...".format(
+                        self.get('envoy_log_format')))
+                self['envoy_log_format'] = ""
+                return False
+        elif self.get('envoy_log_type') == 'json':
+            if self.get('envoy_log_format', None) is not None and not isinstance(self.get('envoy_log_format'), dict):
+                self.post_error(
+                    "envoy_log_type 'json' requires a dictionary in envoy_log_format: {}, invalidating...".format(
+                        self.get('envoy_log_format')))
+                self['envoy_log_format'] = {}
+                return False
+        else:
+            self.post_error("Invalid log_type specified: {}. Supported: json, text".format(self.get('envoy_log_type')))
+            return False
 
         return True
 
@@ -281,6 +298,7 @@ class IRAmbassador (IRResource):
         if ir.edge_stack_allowed:
             if self.diagnostics and self.diagnostics.get("enabled", False):
                 ir.logger.debug("adding mappings for Edge Policy Console")
+                edge_stack_response_header = {"x-content-type-options": "nosniff"}
                 mapping = IRHTTPMapping(ir, aconf, rkey=self.rkey, location=self.location,
                                         name="edgestack-direct-mapping",
                                         metadata_labels={"ambassador_diag_class": "private"},
@@ -288,7 +306,8 @@ class IRAmbassador (IRResource):
                                         rewrite="/edge_stack_ui/edge_stack/",
                                         service="127.0.0.1:8500",
                                         precedence=1000000,
-                                        timeout_ms=60000)
+                                        timeout_ms=60000,
+                                        add_response_headers=edge_stack_response_header)
                 mapping.referenced_by(self)
                 ir.add_mapping(aconf, mapping)
 
@@ -299,7 +318,8 @@ class IRAmbassador (IRResource):
                                         rewrite="/edge_stack_ui/",
                                         service="127.0.0.1:8500",
                                         precedence=-1000000,
-                                        timeout_ms=60000)
+                                        timeout_ms=60000,
+                                        add_response_headers=edge_stack_response_header)
                 mapping.referenced_by(self)
                 ir.add_mapping(aconf, mapping)
             else:

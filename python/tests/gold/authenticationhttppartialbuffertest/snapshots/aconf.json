@@ -1,6 +1,10 @@
 {
     "_errors": {},
     "_notices": {
+        "-global-": [
+            "Parsed pod labels: {'kat-ambassador-id': 'authenticationhttppartialbuffertest', 'scope': 'AmbassadorTest', 'service': 'authenticationhttppartialbuffertest'}",
+            "Found Ambassador service: authenticationhttppartialbuffertest"
+        ],
         "authenticationhttppartialbuffertest.default.3": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ]
@@ -67,6 +71,9 @@
         },
         "authenticationhttppartialbuffertest.default.2": {
             "_referenced_by": {},
+            "add_auth_headers": {
+                "X-Added-Auth": "auth-added"
+            },
             "allowed_authorization_headers": [
                 "Auth-Request-Body"
             ],
@@ -92,7 +99,7 @@
             "namespace": "default",
             "path_prefix": "/extauth",
             "rkey": "authenticationhttppartialbuffertest.default.2",
-            "serialization": "allowed_authorization_headers:\n- Auth-Request-Body\nallowed_request_headers:\n- Requested-Status\n- Requested-Header\nambassador_id: authenticationhttppartialbuffertest\napiVersion: ambassador/v2\nauth_service: authenticationhttppartialbuffertest-http-auth\ninclude_body:\n  allow_partial: true\n  max_bytes: 7\nkind: AuthService\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttppartialbuffertest\n  scope: AmbassadorTest\nname: authenticationhttppartialbuffertest-http-auth\nnamespace: default\npath_prefix: /extauth\ntimeout_ms: 5000\ntls: AuthenticationHTTPPartialBufferTest-same-context-1\n",
+            "serialization": "add_auth_headers:\n  X-Added-Auth: auth-added\nallowed_authorization_headers:\n- Auth-Request-Body\nallowed_request_headers:\n- Requested-Status\n- Requested-Header\nambassador_id: authenticationhttppartialbuffertest\napiVersion: ambassador/v2\nauth_service: authenticationhttppartialbuffertest-http-auth\ninclude_body:\n  allow_partial: true\n  max_bytes: 7\nkind: AuthService\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttppartialbuffertest\n  scope: AmbassadorTest\nname: authenticationhttppartialbuffertest-http-auth\nnamespace: default\npath_prefix: /extauth\ntimeout_ms: 5000\ntls: AuthenticationHTTPPartialBufferTest-same-context-1\n",
             "timeout_ms": 5000,
             "tls": "AuthenticationHTTPPartialBufferTest-same-context-1"
         },
@@ -183,6 +190,9 @@
     },
     "auth_configs": {
         "authenticationhttppartialbuffertest-http-auth": {
+            "add_auth_headers": {
+                "X-Added-Auth": "auth-added"
+            },
             "allowed_authorization_headers": [
                 "Auth-Request-Body"
             ],

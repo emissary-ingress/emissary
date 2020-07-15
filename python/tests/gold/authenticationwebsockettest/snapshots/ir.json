@@ -8,7 +8,6 @@
         "debug_mode": false,
         "default_label_domain": "ambassador",
         "default_labels": {},
-        "diag_port": 8877,
         "diagnostics": {
             "enabled": true,
             "prefix": "/ambassador/v0/",
@@ -30,6 +29,7 @@
         "location": "--internal--",
         "name": "ir.ambassador",
         "namespace": "default",
+        "preserve_external_request_id": false,
         "proper_case": false,
         "readiness_probe": {
             "enabled": true,
@@ -105,7 +105,7 @@
             "service": "authenticationwebsockettest-http-auth",
             "targets": [
                 {
-                    "ip": "authenticationwebsockettest-http-auth.default",
+                    "ip": "authenticationwebsockettest-http-auth",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -160,6 +160,7 @@
                 "authenticationwebsockettest.default.1"
             ],
             "_rkey": "authenticationwebsockettest.default.1",
+            "add_auth_headers": {},
             "add_linkerd_headers": false,
             "allow_request_body": true,
             "allowed_authorization_headers": [],
@@ -192,7 +193,7 @@
                 "service": "authenticationwebsockettest-http-auth",
                 "targets": [
                     {
-                        "ip": "authenticationwebsockettest-http-auth.default",
+                        "ip": "authenticationwebsockettest-http-auth",
                         "port": 80,
                         "target_kind": "DNSname"
                     }
@@ -270,6 +271,7 @@
                     "_errored": false,
                     "_rkey": "authenticationwebsockettest.default.2",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -383,6 +385,7 @@
                     ],
                     "_rkey": "ir.ambassador",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -482,6 +485,7 @@
                     ],
                     "_rkey": "ir.ambassador",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -581,6 +585,7 @@
                     ],
                     "_rkey": "ir.ambassador",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,

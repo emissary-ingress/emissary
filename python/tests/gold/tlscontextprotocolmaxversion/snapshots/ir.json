@@ -14,7 +14,6 @@
         "defaults": {
             "tls_secret_namespacing": false
         },
-        "diag_port": 8877,
         "diagnostics": {
             "enabled": true,
             "prefix": "/ambassador/v0/",
@@ -36,6 +35,7 @@
         "location": "tlscontextprotocolmaxversion.default.1",
         "name": "ir.ambassador",
         "namespace": "default",
+        "preserve_external_request_id": false,
         "proper_case": false,
         "readiness_probe": {
             "enabled": true,
@@ -112,7 +112,7 @@
             "service": "tlscontextprotocolmaxversion-http",
             "targets": [
                 {
-                    "ip": "tlscontextprotocolmaxversion-http.default",
+                    "ip": "tlscontextprotocolmaxversion-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -176,6 +176,7 @@
                     ],
                     "_rkey": "tlscontextprotocolmaxversion.default.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -275,6 +276,7 @@
                     ],
                     "_rkey": "tlscontextprotocolmaxversion.default.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -378,6 +380,7 @@
                     "_errored": false,
                     "_rkey": "tlscontextprotocolmaxversion.default.2",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -403,7 +406,7 @@
                         "service": "tlscontextprotocolmaxversion-http",
                         "targets": [
                             {
-                                "ip": "tlscontextprotocolmaxversion-http.default",
+                                "ip": "tlscontextprotocolmaxversion-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -553,6 +556,7 @@
                     ],
                     "_rkey": "tlscontextprotocolmaxversion.default.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,

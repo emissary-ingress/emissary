@@ -56,7 +56,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "rate-limit-v1.default",
+                                                "address": "rate-limit-v1",
                                                 "port_value": 5000,
                                                 "protocol": "TCP"
                                             }
@@ -83,7 +83,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "ratelimitv1test-http.default",
+                                                "address": "ratelimitv1test-http",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }
@@ -152,6 +152,7 @@
                                         "accept_http_10": false
                                     },
                                     "normalize_path": true,
+                                    "preserve_external_request_id": false,
                                     "route_config": {
                                         "virtual_hosts": [
                                             {

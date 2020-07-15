@@ -8,7 +8,6 @@
         "debug_mode": false,
         "default_label_domain": "ambassador",
         "default_labels": {},
-        "diag_port": 8877,
         "diagnostics": {
             "enabled": true,
             "prefix": "/ambassador/v0/",
@@ -30,6 +29,7 @@
         "location": "--internal--",
         "name": "ir.ambassador",
         "namespace": "default",
+        "preserve_external_request_id": false,
         "proper_case": false,
         "readiness_probe": {
             "enabled": true,
@@ -105,7 +105,7 @@
             "service": "zipkin-64:9411",
             "targets": [
                 {
-                    "ip": "zipkin-64.default",
+                    "ip": "zipkin-64",
                     "port": 9411,
                     "target_kind": "DNSname"
                 }
@@ -140,7 +140,7 @@
             "service": "tracingtestshorttraceid-http",
             "targets": [
                 {
-                    "ip": "tracingtestshorttraceid-http.default",
+                    "ip": "tracingtestshorttraceid-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -206,6 +206,7 @@
                     ],
                     "_rkey": "ir.ambassador",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -305,6 +306,7 @@
                     ],
                     "_rkey": "ir.ambassador",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -404,6 +406,7 @@
                     ],
                     "_rkey": "ir.ambassador",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -500,6 +503,7 @@
                     "_errored": false,
                     "_rkey": "tracingtestshorttraceid-http.default.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -525,7 +529,7 @@
                         "service": "tracingtestshorttraceid-http",
                         "targets": [
                             {
-                                "ip": "tracingtestshorttraceid-http.default",
+                                "ip": "tracingtestshorttraceid-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -704,7 +708,7 @@
             "service": "zipkin-64:9411",
             "targets": [
                 {
-                    "ip": "zipkin-64.default",
+                    "ip": "zipkin-64",
                     "port": 9411,
                     "target_kind": "DNSname"
                 }
@@ -724,6 +728,7 @@
         "location": "zipkin-64.default.1",
         "name": "tracing",
         "namespace": "default",
+        "sampling": {},
         "service": "zipkin-64:9411",
         "tag_headers": []
     }

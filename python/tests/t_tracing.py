@@ -50,7 +50,6 @@ spec:
       containers:
       - name: zipkin
         image: openzipkin/zipkin:2.17
-        imagePullPolicy: Always
         ports:
         - name: http
           containerPort: 9411
@@ -159,7 +158,6 @@ spec:
       containers:
       - name: zipkin
         image: openzipkin/zipkin:2.17
-        imagePullPolicy: Always
         ports:
         - name: http
           containerPort: 9411
@@ -179,16 +177,16 @@ service: {self.target.path.fqdn}
 """)
 
         # For self.with_tracing, we want to configure the TracingService.
-        yield self, self.format("""
+        yield self, """
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind: TracingService
 name: tracing-64
 service: zipkin-64:9411
 driver: zipkin
 config:
   trace_id_128bit: false
-""")
+"""
 
     def requirements(self):
         yield from super().requirements()
@@ -197,6 +195,7 @@ config:
     def queries(self):
         # Speak through each Ambassador to the traced service...
         yield Query(self.url("target-64/"), phase=1)
+
         # ...then ask the Zipkin for services and spans. Including debug=True in these queries
         # is particularly helpful.
         yield Query("http://zipkin-64:9411/api/v2/traces", phase=2)
@@ -250,7 +249,6 @@ spec:
       containers:
       - name: zipkin-auth
         image: openzipkin/zipkin:2.17
-        imagePullPolicy: Always
         ports:
         - name: http
           containerPort: 9411
@@ -305,3 +303,101 @@ allowed_headers:
         assert extauth_res["request"]["headers"]["x-b3-spanid"] == request_headers["x-b3-spanid"]
         assert extauth_res["request"]["headers"]["x-b3-traceid"] == request_headers["x-b3-traceid"]
         assert extauth_res["request"]["headers"]["x-request-id"] == request_headers["x-request-id"]
+
+
+class TracingTestSampling(AmbassadorTest):
+    """
+    Test for the "sampling" in TracingServices
+    """
+
+    def init(self):
+        self.target = HTTP()
+
+    def manifests(self) -> str:
+        return """
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zipkin-65
+spec:
+  selector:
+    app: zipkin-65
+  ports:
+  - port: 9411
+    name: http
+    targetPort: http
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zipkin-65
+spec:
+  selector:
+    matchLabels:
+      app: zipkin-65
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: zipkin-65
+    spec:
+      containers:
+      - name: zipkin
+        image: openzipkin/zipkin:2.17
+        ports:
+        - name: http
+          containerPort: 9411
+""" + super().manifests()
+
+    def config(self):
+        # Use self.target here, because we want this mapping to be annotated
+        # on the service, not the Ambassador.
+        # ambassador_id: [ {self.with_tracing.ambassador_id}, {self.no_tracing.ambassador_id} ]
+        yield self.target, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  tracing_target_mapping_65
+prefix: /target-65/
+service: {self.target.path.fqdn}
+""")
+
+        # For self.with_tracing, we want to configure the TracingService.
+        yield self, """
+---
+apiVersion: getambassador.io/v2
+kind: TracingService
+name: tracing-65
+service: zipkin-65:9411
+driver: zipkin
+sampling:
+  overall: 10
+"""
+
+    def requirements(self):
+        yield from super().requirements()
+        yield ("url", Query("http://zipkin-65:9411/api/v2/services"))
+
+    def queries(self):
+        # Speak through each Ambassador to the traced service...
+        for i in range(0, 100):
+            yield Query(self.url("target-65/"), phase=1, ignore_result=True)
+
+        # ...then ask the Zipkin for services and spans. Including debug=True in these queries
+        # is particularly helpful.
+        yield Query("http://zipkin-65:9411/api/v2/traces?limit=10000", phase=2)
+
+    def check(self):
+        traces = self.results[-1].json
+
+        print("%d traces obtained" % len(traces))
+
+        #import json
+        #print(json.dumps(traces, indent=4, sort_keys=True))
+
+        # Ensure we have the expected number of traces
+        assert 5 < len(traces) < 15

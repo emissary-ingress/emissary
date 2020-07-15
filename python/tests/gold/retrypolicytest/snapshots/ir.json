@@ -11,7 +11,6 @@
         "debug_mode": false,
         "default_label_domain": "ambassador",
         "default_labels": {},
-        "diag_port": 8877,
         "diagnostics": {
             "enabled": true,
             "prefix": "/ambassador/v0/",
@@ -33,6 +32,7 @@
         "location": "retrypolicytest.default.3",
         "name": "ir.ambassador",
         "namespace": "default",
+        "preserve_external_request_id": false,
         "proper_case": false,
         "readiness_probe": {
             "enabled": true,
@@ -114,7 +114,7 @@
             "service": "retrypolicytest-http",
             "targets": [
                 {
-                    "ip": "retrypolicytest-http.default",
+                    "ip": "retrypolicytest-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -178,6 +178,7 @@
                     ],
                     "_rkey": "retrypolicytest.default.3",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -277,6 +278,7 @@
                     ],
                     "_rkey": "retrypolicytest.default.3",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -373,6 +375,7 @@
                     "_errored": false,
                     "_rkey": "retrypolicytest.default.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -399,7 +402,7 @@
                         "service": "retrypolicytest-http",
                         "targets": [
                             {
-                                "ip": "retrypolicytest-http.default",
+                                "ip": "retrypolicytest-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -482,6 +485,7 @@
                     "_errored": false,
                     "_rkey": "retrypolicytest.default.2",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -508,7 +512,7 @@
                         "service": "retrypolicytest-http",
                         "targets": [
                             {
-                                "ip": "retrypolicytest-http.default",
+                                "ip": "retrypolicytest-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -602,6 +606,7 @@
                     ],
                     "_rkey": "retrypolicytest.default.3",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,

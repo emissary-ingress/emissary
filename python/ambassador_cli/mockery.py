@@ -44,7 +44,7 @@ click_option = functools.partial(click.option, show_default=True)
 click_option_no_default = functools.partial(click.option, show_default=False)
 
 from ambassador import Config, IR, Diagnostics, EnvoyConfig
-from ambassador.config.resourcefetcher import ResourceFetcher
+from ambassador.fetch import ResourceFetcher
 from ambassador.utils import parse_yaml, SecretHandler, SecretInfo
 from kat.utils import ShellCommand
 
@@ -305,6 +305,9 @@ class MockSecretHandler(SecretHandler):
 
         self.logger.debug(f"MockSecretHandler: cannot load {secret_name}.{namespace}")
         return None
+
+    def send_secrets_to_ambex(self, name: str, cert_data: dict):
+        return
 
 @click.command(help="Mock the watt/watch_hook/diagd cycle to generate an IR from a Kubernetes YAML manifest.")
 @click_option('--debug/--no-debug', default=True,

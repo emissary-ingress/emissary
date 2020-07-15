@@ -26,7 +26,6 @@
         "debug_mode": false,
         "default_label_domain": "ambassador",
         "default_labels": {},
-        "diag_port": 8877,
         "diagnostics": {
             "enabled": true,
             "prefix": "/ambassador/v0/",
@@ -48,6 +47,7 @@
         "location": "globalcorstest.default.1",
         "name": "ir.ambassador",
         "namespace": "default",
+        "preserve_external_request_id": false,
         "proper_case": false,
         "readiness_probe": {
             "enabled": true,
@@ -125,7 +125,7 @@
             "service": "globalcorstest-http",
             "targets": [
                 {
-                    "ip": "globalcorstest-http.default",
+                    "ip": "globalcorstest-http",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -189,6 +189,7 @@
                     ],
                     "_rkey": "globalcorstest.default.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -288,6 +289,7 @@
                     ],
                     "_rkey": "globalcorstest.default.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -387,6 +389,7 @@
                     ],
                     "_rkey": "globalcorstest.default.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -483,6 +486,7 @@
                     "_errored": false,
                     "_rkey": "globalcorstest.default.2",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -509,7 +513,7 @@
                         "service": "globalcorstest-http",
                         "targets": [
                             {
-                                "ip": "globalcorstest-http.default",
+                                "ip": "globalcorstest-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -605,6 +609,7 @@
                     "_errored": false,
                     "_rkey": "globalcorstest.default.3",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -631,7 +636,7 @@
                         "service": "globalcorstest-http",
                         "targets": [
                             {
-                                "ip": "globalcorstest-http.default",
+                                "ip": "globalcorstest-http",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }

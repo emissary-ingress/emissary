@@ -277,6 +277,59 @@ limitations under the License
 
       <div class="row">
         <div class="col-12">
+          Ambassador TCP Mappings
+
+          <div class="row">
+            <div class="col-12">
+              <table cellpadding="2em" width="100%">
+                <thead>
+                  <td><b>Name</b></td>
+                  <td><b>Port</b></td>
+                  <td><b>Source</b></td>
+                  <td><b>Service</b></td>
+                </thead>
+                <tbody>
+                  {% for group_id, group in groups.items() if group.kind == "IRTCPMappingGroup" %}
+                  <tr
+                    {% if loop.index % 2 %}
+                      style="background: rgba(86,61,124,.05);"
+                    {% endif %}
+                    >
+                    <td>
+                      <code style="color: black">
+                        {{ group.name | replace("GROUP: ", "") }}
+                        {% if group['host'] %}
+                          <br/>
+                          host: {{ group['host'] }}
+                        {% endif %}
+                      </code>
+                    </td>
+                    <td>
+                      {{ group.port }}
+                    </td>
+                    <td>
+                      <!--<a href="/ambassador/v0/diag/{{ group_id }}">-->
+                        {{ group.location }}
+                      <!--</a>-->
+                    </td>
+                    <td>
+                        {% if group['mappings'] %}
+                          {% for mapping in group['mappings'] %}
+                            {{ mapping.cluster.service }}
+                          {% endfor %}
+                        {% endif %}
+                    </td>
+                  {% endfor %}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12">
           Color Legend
           <div class="row">
             <div class="col-12">
