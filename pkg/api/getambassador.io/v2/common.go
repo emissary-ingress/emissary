@@ -31,53 +31,66 @@ import (
 // has a small number of "+kubebuilder:" magic comments ("markers") that we
 // can use to influence the schema it generates.
 //
-// So, for example, instead of having the AmbassadorID type define its
-// schema as
+// So, for example, we'd like to define the AmbassadorID schema as:
 //
-//    anyOf:
+//    oneOf:
 //    - type: "string"
 //    - type: "array"
-//      items:
-//        type: "string"
+//    items:             # only matters if type=array
+//      type: "string"
 //
-// we're forced to be dumb and say `+kubebuilder:validation:Type=""`, to
-// define its schema as
+// but if we're going to use just vanilla controller-gen, we're forced to
+// be dumb and say `+kubebuilder:validation:Type=""`, to define its schema
+// as
 //
 //    # no `type:` setting because of the +kubebuilder marker
 //    items:
 //      type: "string"  # because of the raw type
 //
-// and then kubectl and/or the api-server won't be able to validate
+// and then kubectl and/or the apiserver won't be able to validate
 // AmbassadorID, because it won't be validated until we actually go to
-// UnmarshalJSON it when it makes it to Ambassador.
+// UnmarshalJSON it when it makes it to Ambassador.  That's pretty much
+// what Kubernetes itself[1] does for the JSON Schema types that are unions
+// like that.
 //
-// That's pretty much what Kubernetes itself does for the JSON Schema
-// types that are unions like that:
-// https://github.com/kubernetes/apiextensions-apiserver/blob/kubernetes-1.18.4/pkg/apis/apiextensions/v1beta1/types_jsonschema.go#L195-L206
+//  > Aside: Some recent work in controller-gen[2] *strongly* suggests that
+//  > setting `+kubebuilder:validation:Type=Any` instead of `:Type=""` is
+//  > the proper thing to do.  But, um, it doesn't work... kubectl would
+//  > say things like:
+//  >
+//  >    Invalid value: "array": spec.ambassador_id in body must be of type Any: "array"
 //
-// Some recent work in controller-gen[1] *strongly* suggests that setting
-// `+kubebuilder:validation:Type=Any` should work.  But, um, it
-// doesn't... kubectl would say things like:
+// But honestly that's dumb, and we can do better than that.
 //
-//    Invalid value: "array": spec.ambassador_id in body must be of type Any: "array"
+// So, option one choice would be to send the controller-tools folks a PR
+// to support the openapi-gen methods to allow that customization.  That's
+// probably the Right Thing, but that seemed like more work than option
+// two.  FIXME(lukeshu): Send the controller-tools folks a PR.
 //
-// FIXME(lukeshu): Try sending the controller-tools folks a PR to support the
-// openapi-gen methods?
+// Option two: Say something nonsensical like
+// `+kubebuilder:validation:Type="d6e-union"`, and teach the `fix-crds`
+// script to notice that and delete that nonsensical `type`, replacing it
+// with the appropriate `oneOf: [type: A, type: B]` (note that the version
+// of JSONSchema that OpenAPI/Kubernetes uses doesn't support type being an
+// array).  And so that's what I did.
 //
-// FIXME(lukeshu): Both the "don't set 'type'" and the "patch
-// controller-tools to support anyOf" options are bad options, since in
-// either case they make our schema non-structural[2].  With
-// "apiextensions.k8s.io/v1beta1" CRDs, non-structural schemas disable
-// several features; and in v1 CRDs, non-structural schemas are entirely
-// forbidden.  I mean it doesn't _really_ matter right now, because we give
-// out v1beta1 CRDs anyway because v1 only became available in Kube 1.16
-// and we still support down to Kube 1.11; but I don't think that we want
-// to lock ourselves out from v1 forever.  Anyway, as best as I can figure
-// out, it isn't actually possible to specify AmbassadorID in way that
-// doesn't violate rule 3 of structural schemas.
+// FIXME(lukeshu): But all of that is still terrible.  Because the very
+// structure of our data inherently means that we must have a
+// non-structural[3] schema.  With "apiextensions.k8s.io/v1beta1" CRDs,
+// non-structural schemas disable several features; and in v1 CRDs,
+// non-structural schemas are entirely forbidden.  I mean it doesn't
+// _really_ matter right now, because we give out v1beta1 CRDs anyway
+// because v1 only became available in Kubernetes 1.16 and we still support
+// down to Kubernetes 1.11; but I don't think that we want to lock
+// ourselves out from v1 forever.  So I guess that means when it comes time
+// for `getambassador.io/v3` (`ambassadorlabs.com/v1`?), we need to
+// strictly avoid union types, in order to avoid violating rule 3 of
+// structural schemas.  Or hope that the Kubernetes folks decide to relax
+// some of the structural-schema rules.
 //
-// [1]: https://github.com/kubernetes-sigs/controller-tools/pull/427
-// [2]: https://kubernetes.io/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definitions/#specifying-a-structural-schema
+// [1]: https://github.com/kubernetes/apiextensions-apiserver/blob/kubernetes-1.18.4/pkg/apis/apiextensions/v1beta1/types_jsonschema.go#L195-L206
+// [2]: https://github.com/kubernetes-sigs/controller-tools/pull/427
+// [3]: https://kubernetes.io/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definitions/#specifying-a-structural-schema
 
 type CircuitBreaker struct {
 	// +kubebuilder:validation:Enum={"default", "high"}
@@ -131,7 +144,7 @@ type LoadBalancerCookie struct {
 //    ambassador_id:
 //    - "default"
 //
-// +kubebuilder:validation:Type=""
+// +kubebuilder:validation:Type="d6e-union:string,array"
 type AmbassadorID []string
 
 func (aid *AmbassadorID) UnmarshalJSON(data []byte) error {

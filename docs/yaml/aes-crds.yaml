@@ -61,6 +61,9 @@ spec:
                 \    - \"default\""
               items:
                 type: string
+              oneOf:
+              - type: string
+              - type: array
             auth_service:
               type: string
             failure_mode_allow:
@@ -149,6 +152,9 @@ spec:
                 \    - \"default\""
               items:
                 type: string
+              oneOf:
+              - type: string
+              - type: array
             datacenter:
               type: string
           type: object
@@ -250,10 +256,16 @@ spec:
                 Hosts with 'ambassadorId' exist in the wild.
               items:
                 type: string
+              oneOf:
+              - type: string
+              - type: array
             ambassador_id:
               description: Common to all Ambassador objects (and optional).
               items:
                 type: string
+              oneOf:
+              - type: string
+              - type: array
             hostname:
               description: Hostname by which the Ambassador can be reached.
               type: string
@@ -485,6 +497,9 @@ spec:
                 \    - \"default\""
               items:
                 type: string
+              oneOf:
+              - type: string
+              - type: array
           type: object
       type: object
   version: null
@@ -544,6 +559,9 @@ spec:
                 \    - \"default\""
               items:
                 type: string
+              oneOf:
+              - type: string
+              - type: array
           type: object
       type: object
   version: null
@@ -600,6 +618,9 @@ spec:
                 \    - \"default\""
               items:
                 type: string
+              oneOf:
+              - type: string
+              - type: array
             driver:
               enum:
               - tcp
@@ -710,6 +731,9 @@ spec:
                 \    - \"default\""
               items:
                 type: string
+              oneOf:
+              - type: string
+              - type: array
             auto_host_rewrite:
               type: boolean
             bypass_auth:
@@ -951,6 +975,9 @@ spec:
                 \    - \"default\""
               items:
                 type: string
+              oneOf:
+              - type: string
+              - type: array
             config:
               type: object
           type: object
@@ -1006,6 +1033,9 @@ spec:
               description: Common to all Ambassador objects.
               items:
                 type: string
+              oneOf:
+              - type: string
+              - type: array
             domain:
               type: string
             service:
@@ -1072,6 +1102,9 @@ spec:
                 \    - \"default\""
               items:
                 type: string
+              oneOf:
+              - type: string
+              - type: array
             circuit_breakers:
               items:
                 properties:
@@ -1170,6 +1203,9 @@ spec:
                 \    - \"default\""
               items:
                 type: string
+              oneOf:
+              - type: string
+              - type: array
             ca_secret:
               type: string
             cacert_chain_file:
@@ -1270,6 +1306,9 @@ spec:
                 \    - \"default\""
               items:
                 type: string
+              oneOf:
+              - type: string
+              - type: array
             config:
               properties:
                 access_token_file:

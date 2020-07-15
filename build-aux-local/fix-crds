@@ -97,6 +97,27 @@ def fix_crd(crd: Dict[str, Any]) -> None:
                     handle_list(val)
         handle_dict(crd['spec'])
 
+    # hack around limitations in `controller-gen`; see the comments in
+    # `pkg/api/getambassdor.io/v2/common.go`.
+    def handle_list(l: List[Any]) -> None:
+        for val in l:
+            if isinstance(val, dict):
+                handle_dict(val)
+            if isinstance(val, list):
+                handle_list(val)
+    def handle_dict(d: Dict[str, Any]) -> None:
+        typename = d.get('type', '')
+        if isinstance(typename, str) and typename.startswith('d6e-union:'):
+            types = d['type'][len('d6e-union:'):].split(',')
+            del d['type']
+            d['oneOf'] = [{'type': t} for t in types]
+        for val in d.values():
+            if isinstance(val, dict):
+                handle_dict(val)
+            if isinstance(val, list):
+                handle_list(val)
+    handle_dict(crd['spec'])
+
     # fix labels
     labels = crd['metadata'].get('labels', {})
     labels['product'] = 'aes'
