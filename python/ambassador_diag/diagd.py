@@ -172,18 +172,20 @@ class DiagApp (Flask):
         # we last logged.)
         self.next_timer_log: Optional[float] = None
 
-        # For the moment, we're defaulting AMBASSADOR_UPDATE_MAPPING_STATUS
-        # to true. Plan is to change this for 1.6.
-        ksclass = KubeStatusNoMappings
-
-        if os.environ.get("AMBASSADOR_UPDATE_MAPPING_STATUS", "true").lower() == "true":
-            ksclass = KubeStatus
-
-        self.kubestatus = ksclass(self)
-
         if debug:
             self.logger.setLevel(logging.DEBUG)
             logging.getLogger('ambassador').setLevel(logging.DEBUG)
+
+        # Assume that we will NOT update Mapping status.
+        ksclass = KubeStatusNoMappings
+
+        if os.environ.get("AMBASSADOR_UPDATE_MAPPING_STATUS", "false").lower() == "true":
+            self.logger.info("WILL update Mapping status")
+            ksclass = KubeStatus
+        else:
+            self.logger.info("WILL NOT update Mapping status")
+
+        self.kubestatus = ksclass(self)
 
         self.config_path = config_path
         self.bootstrap_path = bootstrap_path
@@ -932,8 +934,6 @@ class KubeStatus:
         self.current_status: Dict[str, str] = {}
         self.pool = concurrent.futures.ProcessPoolExecutor(max_workers=5)
 
-        self.app.logger.info("WILL update Mapping status")
-
     def mark_live(self, kind: str, name: str, namespace: str) -> None:
         key = f"{kind}/{name}.{namespace}"
 
@@ -976,6 +976,16 @@ class KubeStatusNoMappings (KubeStatus):
     def mark_live(self, kind: str, name: str, namespace: str) -> None:
         pass
 
+    def post(self, kind: str, name: str, namespace: str, text: str) -> None:
+        # There's a path (via IRBaseMapping.check_status) where a Mapping
+        # can be added directly to ir.k8s_status_updates, which will come
+        # straight here without mark_live being involved -- so short-circuit
+        # here for Mappings, too.
+
+        if kind == 'Mapping':
+            return
+
+        super().post(kind, name, namespace, text)
 
 def kubestatus_update(kind: str, name: str, namespace: str, text: str) -> str:
     cmd = [ 'kubestatus', '--cache-dir', '/tmp/client-go-http-cache', kind, name, '-n', namespace, '-u', '/dev/fd/0' ]
