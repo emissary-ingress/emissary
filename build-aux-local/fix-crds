@@ -4,7 +4,7 @@ import copy
 import json
 import os
 import sys
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 import yaml
 from packaging import version
@@ -79,12 +79,20 @@ def fix_crd(crd: Dict[str, Any]) -> None:
         if 'versions' in crd['spec']:
             del crd['spec']['versions']
         crd['spec']['version'] = 'v2'
+        def handle_list(l: List[Any]) -> None:
+            for val in l:
+                if isinstance(val, dict):
+                    handle_dict(val)
+                if isinstance(val, list):
+                    handle_list(val)
         def handle_dict(d: Dict[str, Any]) -> None:
             if 'additionalProperties' in d:
                 del d['additionalProperties']
             for val in d.values():
                 if isinstance(val, dict):
                     handle_dict(val)
+                if isinstance(val, list):
+                    handle_list(val)
         handle_dict(crd['spec'])
 
     # fix labels
