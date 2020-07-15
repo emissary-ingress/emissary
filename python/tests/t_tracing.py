@@ -400,4 +400,4 @@ sampling:
         #print(json.dumps(traces, indent=4, sort_keys=True))
 
         # Ensure we have the expected number of traces
-        assert 5 < len(traces) < 15
+        assert 5 < len(traces) < 20
