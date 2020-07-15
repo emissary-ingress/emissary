@@ -896,6 +896,16 @@ class KubeStatusNoMappings (KubeStatus):
     def mark_live(self, kind: str, name: str, namespace: str) -> None:
         pass
 
+    def post(self, kind: str, name: str, namespace: str, text: str) -> None:
+        # There's a path (via IRBaseMapping.check_status) where a Mapping
+        # can be added directly to ir.k8s_status_updates, which will come
+        # straight here without mark_live being involved -- so short-circuit
+        # here for Mappings, too.
+
+        if kind == 'Mapping':
+            return
+
+        super().post(kind, name, namespace, text)
 
 def kubestatus_update(kind: str, name: str, namespace: str, text: str) -> str:
     cmd = [ 'kubestatus', kind, '-f', f'metadata.name={name}', '-n', namespace, '-u', '/dev/fd/0' ]
