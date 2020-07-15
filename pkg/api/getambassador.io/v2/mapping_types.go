@@ -63,7 +63,7 @@ type MappingSpec struct {
 	ClusterIdleTimeoutMs  int               `json:"cluster_idle_timeout_ms,omitempty"`
 	TimeoutMs             int               `json:"timeout_ms,omitempty"`
 	IdleTimeoutMs         int               `json:"idle_timeout_ms,omitempty"`
-	TLS                   string            `json:"tls,omitempty"`
+	TLS                   BoolOrString      `json:"tls,omitempty"`
 	UseWebsocket          bool              `json:"use_websocket,omitempty"`
 	Weight                int               `json:"weight,omitempty"`
 	BypassAuth            bool              `json:"bypass_auth,omitempty"`

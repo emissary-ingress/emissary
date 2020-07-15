@@ -28,10 +28,10 @@ type RateLimitServiceSpec struct {
 	// Common to all Ambassador objects.
 	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
 
-	Service   string `json:"service,omitempty"`
-	TimeoutMs int    `json:"timeout_ms,omitempty"`
-	Domain    string `json:"domain,omitempty"`
-	TLS       string `json:"tls,omitempty"`
+	Service   string       `json:"service,omitempty"`
+	TimeoutMs int          `json:"timeout_ms,omitempty"`
+	Domain    string       `json:"domain,omitempty"`
+	TLS       BoolOrString `json:"tls,omitempty"`
 }
 
 // RateLimitService is the Schema for the ratelimitservices API

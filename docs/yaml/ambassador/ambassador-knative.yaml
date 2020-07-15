@@ -151,7 +151,9 @@ spec:
             timeout_ms:
               type: integer
             tls:
-              type: string
+              oneOf:
+              - type: string
+              - type: boolean
           type: object
       type: object
   version: null
@@ -960,7 +962,9 @@ spec:
             timeout_ms:
               type: integer
             tls:
-              type: string
+              oneOf:
+              - type: string
+              - type: boolean
             use_websocket:
               type: boolean
             weight:
@@ -1103,7 +1107,9 @@ spec:
             timeout_ms:
               type: integer
             tls:
-              type: string
+              oneOf:
+              - type: string
+              - type: boolean
           type: object
       type: object
   version: null
@@ -1202,7 +1208,9 @@ spec:
             timeout_ms:
               type: integer
             tls:
-              type: string
+              oneOf:
+              - type: string
+              - type: boolean
             weight:
               type: integer
           type: object

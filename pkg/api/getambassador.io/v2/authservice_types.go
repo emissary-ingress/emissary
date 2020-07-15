@@ -37,9 +37,9 @@ type AuthServiceStatusOnError struct {
 type AuthServiceSpec struct {
 	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
 
-	AuthService string `json:"auth_service,omitempty"`
-	PathPrefix  string `json:"path_prefix,omitempty"`
-	TLS         string `json:"tls,omitempty"`
+	AuthService string       `json:"auth_service,omitempty"`
+	PathPrefix  string       `json:"path_prefix,omitempty"`
+	TLS         BoolOrString `json:"tls,omitempty"`
 	// +kubebuilder:validation:Enum={"http","grpc"}
 	Proto                       string                    `json:"proto,omitempty"`
 	TimeoutMs                   int                       `json:"timeout_ms,omitempty"`

@@ -37,7 +37,7 @@ type TCPMappingSpec struct {
 	TimeoutMs       int              `json:"timeout_ms,omitempty"`
 	IdleTimeoutMs   int              `json:"idle_timeout_ms,omitempty"`
 	Resolver        string           `json:"resolver,omitempty"`
-	TLS             string           `json:"tls,omitempty"`
+	TLS             BoolOrString     `json:"tls,omitempty"`
 	Weight          int              `json:"weight,omitempty"`
 	ClusterTag      string           `json:"cluster_tag,omitempty"`
 }

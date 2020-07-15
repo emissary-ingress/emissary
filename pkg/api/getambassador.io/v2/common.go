@@ -169,3 +169,52 @@ func (aid *AmbassadorID) UnmarshalJSON(data []byte) error {
 
 	return err
 }
+
+// BoolOrString is a type that can hold a Boolean or a string.
+//
+// +kubebuilder:validation:Type="d6e-union:string,boolean"
+type BoolOrString struct {
+	String *string
+	Bool   *bool
+}
+
+// MarshalJSON is important both so that we generate the proper
+// output, and to trigger controller-gen to not try to generate
+// jsonschema for our sub-fields:
+// https://github.com/kubernetes-sigs/controller-tools/pull/427
+func (o BoolOrString) MarshalJSON() ([]byte, error) {
+	switch {
+	case o.String == nil && o.Bool == nil:
+		return json.Marshal(nil)
+	case o.String == nil && o.Bool != nil:
+		return json.Marshal(o.Bool)
+	case o.String != nil && o.Bool == nil:
+		return json.Marshal(o.String)
+	case o.String != nil && o.Bool != nil:
+		panic("invalid BoolOrString")
+	}
+	panic("not reached")
+}
+
+func (o *BoolOrString) UnmarshalJSON(data []byte) error {
+	if string(data) == "null" {
+		*o = BoolOrString{}
+		return nil
+	}
+
+	var err error
+
+	var b bool
+	if err = json.Unmarshal(data, &b); err == nil {
+		*o = BoolOrString{Bool: &b}
+		return nil
+	}
+
+	var str string
+	if err = json.Unmarshal(data, &str); err == nil {
+		*o = BoolOrString{String: &str}
+		return nil
+	}
+
+	return err
+}
