@@ -13,7 +13,7 @@
             "additionalProperties": { "type": [ "string", "boolean" ] }
         },
         "ambassador_id": {
-            "anyOf": [
+            "oneOf": [
                 { "type": "string" },
                 { "type": "array", "items": { "type": "string" } }
             ]
@@ -22,9 +22,9 @@
         "path_prefix": { "type": "string" },
         "tls": { "type": [ "string", "boolean" ] },
         "proto": {
-            "oneOf" : [
-                { "enum": [ "http" ] },
-                { "enum": [ "grpc" ] }
+            "enum": [
+                "http",
+                "grpc"
             ]
         },
         "timeout_ms": { "type": "integer" },

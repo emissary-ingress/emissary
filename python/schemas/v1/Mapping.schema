@@ -14,7 +14,7 @@
             "additionalProperties": { "type": [ "string", "boolean" ] }
         },
         "ambassador_id": {
-            "anyOf": [
+            "oneOf": [
                 { "type": "string" },
                 { "type": "array", "items": { "type": "string" } }
             ]
@@ -65,26 +65,26 @@
             "type": "object",
             "properties": {
                 "origins":  {
-                    "anyOf": [
+                    "oneOf": [
                         { "type": "string" },
                         { "type": "array", "items": { "type": "string" } }
                     ]
                 },
                 "methods": {
-                    "anyOf": [
+                    "oneOf": [
                         { "type": "string" },
                         { "type": "array", "items": { "type": "string" } }
                     ]
                 },
                 "headers": {
-                    "anyOf": [
+                    "oneOf": [
                         { "type": "string" },
                         { "type": "array", "items": { "type": "string" } }
                     ]
                 },
                 "credentials": { "type": "boolean" },
                 "exposed_headers": {
-                    "anyOf": [
+                    "oneOf": [
                         { "type": "string" },
                         { "type": "array", "items": { "type": "string" } }
                     ]
@@ -115,13 +115,13 @@
         "priority": { "type": "string" },
         "precedence": { "type": "integer" },
         "remove_request_headers": {
-            "anyOf": [
+            "oneOf": [
                 { "type": "string" },
                 { "type": "array", "items": { "type": "string" } }
             ]
         },
         "remove_response_headers": {
-            "anyOf": [
+            "oneOf": [
                 { "type": "string" },
                 { "type": "array", "items": { "type": "string" } }
             ]
@@ -186,9 +186,6 @@
         "mapStrObj": {
             "type": "object",
             "additionalProperties": { "type": [ "string", "boolean", "object" ] }
-        },
-        "rateLimit": {
-            "anyOf": [ { "type": "array" }, { "type": "object" } ]
         }
     },
     "required": [ "apiVersion", "kind", "name", "service", "prefix" ],

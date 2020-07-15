@@ -14,7 +14,7 @@
             "additionalProperties": { "type": [ "string", "boolean" ] }
         },
         "ambassador_id": {
-            "anyOf": [
+            "oneOf": [
                 { "type": "string" },
                 { "type": "array", "items": { "type": "string" } }
             ]

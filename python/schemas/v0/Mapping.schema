@@ -14,7 +14,7 @@
             "additionalProperties": { "type": [ "string", "boolean" ] }
         },
         "ambassador_id": {
-            "anyOf": [
+            "oneOf": [
                 { "type": "string" },
                 { "type": "array", "items": { "type": "string" } }
             ]
@@ -32,26 +32,26 @@
             "type": "object",
             "properties": {
                 "origins":  {
-                    "anyOf": [
+                    "oneOf": [
                         { "type": "string" },
                         { "type": "array", "items": { "type": "string" } }
                     ]
                 },
                 "methods": {
-                    "anyOf": [
+                    "oneOf": [
                         { "type": "string" },
                         { "type": "array", "items": { "type": "string" } }
                     ]
                 },
                 "headers": {
-                    "anyOf": [
+                    "oneOf": [
                         { "type": "string" },
                         { "type": "array", "items": { "type": "string" } }
                     ]
                 },
                 "credentials": { "type": "boolean" },
                 "exposed_headers": {
-                    "anyOf": [
+                    "oneOf": [
                         { "type": "string" },
                         { "type": "array", "items": { "type": "string" } }
                     ]
