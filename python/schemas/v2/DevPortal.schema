@@ -63,9 +63,13 @@
         },
         "metadata_labels": {
             "additionalProperties": {
-                "type": [
-                    "string",
-                    "boolean"
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    }
                 ]
             },
             "type": "object"
@@ -81,9 +85,13 @@
             "properties": {
                 "matchLabels": {
                     "additionalProperties": {
-                        "type": [
-                            "string",
-                            "object"
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "object"
+                            }
                         ]
                     },
                     "type": "object"

@@ -4,19 +4,29 @@
     "definitions": {
         "mapStrObj": {
             "additionalProperties": {
-                "type": [
-                    "string",
-                    "boolean",
-                    "object"
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    },
+                    {
+                        "type": "object"
+                    }
                 ]
             },
             "type": "object"
         },
         "mapStrStr": {
             "additionalProperties": {
-                "type": [
-                    "string",
-                    "boolean"
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    }
                 ]
             },
             "type": "object"
@@ -329,9 +339,13 @@
         },
         "metadata_labels": {
             "additionalProperties": {
-                "type": [
-                    "string",
-                    "boolean"
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    }
                 ]
             },
             "type": "object"
@@ -480,9 +494,13 @@
             "type": "integer"
         },
         "tls": {
-            "type": [
-                "string",
-                "boolean"
+            "oneOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "boolean"
+                }
             ]
         },
         "use_websocket": {

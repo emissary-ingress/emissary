@@ -4,9 +4,13 @@
     "definitions": {
         "mapStrStr": {
             "additionalProperties": {
-                "type": [
-                    "string",
-                    "boolean"
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    }
                 ]
             },
             "type": "object"
@@ -161,9 +165,13 @@
         },
         "metadata_labels": {
             "additionalProperties": {
-                "type": [
-                    "string",
-                    "boolean"
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    }
                 ]
             },
             "type": "object"
@@ -226,9 +234,13 @@
             "type": "integer"
         },
         "tls": {
-            "type": [
-                "string",
-                "boolean"
+            "oneOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "boolean"
+                }
             ]
         },
         "use_websocket": {
