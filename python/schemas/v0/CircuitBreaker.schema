@@ -1,30 +1,64 @@
 {
     "$schema": "http://json-schema.org/schema#",
     "id": "https://getambassador.io/schemas/circuitbreaker.json",
-
     "type": "object",
     "properties": {
-        "apiVersion": { "enum": [ "getambassador.io/v0" ] },
-        "generation": { "type": "integer" },
-        "kind": { "type": "string" },
-        "name": { "type": "string" },
-        "namespace": { "type": "string" },
+        "apiVersion": {
+            "enum": [
+                "getambassador.io/v0"
+            ]
+        },
+        "generation": {
+            "type": "integer"
+        },
+        "kind": {
+            "type": "string"
+        },
+        "name": {
+            "type": "string"
+        },
+        "namespace": {
+            "type": "string"
+        },
         "metadata_labels": {
             "type": "object",
-            "additionalProperties": { "type": [ "string", "boolean" ] }
+            "additionalProperties": {
+                "type": [
+                    "string",
+                    "boolean"
+                ]
+            }
         },
         "ambassador_id": {
             "oneOf": [
-                { "type": "string" },
-                { "type": "array", "items": { "type": "string" } }
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
             ]
         },
-        
-        "max_connections": { "type": "integer" },
-        "max_requests": { "type": "integer" },
-        "max_pending": { "type": "integer" },
-        "max_retries": { "type": "integer" }
+        "max_connections": {
+            "type": "integer"
+        },
+        "max_requests": {
+            "type": "integer"
+        },
+        "max_pending": {
+            "type": "integer"
+        },
+        "max_retries": {
+            "type": "integer"
+        }
     },
-    "required": [ "apiVersion", "kind", "name" ],
+    "required": [
+        "apiVersion",
+        "kind",
+        "name"
+    ],
     "additionalProperties": false
 }
