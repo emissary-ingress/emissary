@@ -1,18 +1,21 @@
-/*
+// Copyright 2020 Datawire.  All rights reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+///////////////////////////////////////////////////////////////////////////
+// Important: Run "make update-yaml" to regenerate code after modifying
+// this file.
+///////////////////////////////////////////////////////////////////////////
 
 package v2
 
@@ -20,48 +23,37 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
 type ModuleSpec struct {
 	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
 
-	Config ModuleConfig `json:"config,omitempty"`
+	Config UntypedDict `json:"config,omitempty"`
 }
 
-// ModuleConfig is non-functional as a Go type, but it gets
-// controller-gen to spit out the correct schema.
+// A Module defines system-wide configuration.  The type of module is
+// controlled by the .metadata.name; valid names are "ambassador" or
+// "tls".
 //
-// +kubebuilder:validation:Type=object
-type ModuleConfig struct{}
-
-func (o ModuleConfig) MarshalJSON() ([]byte, error) {
-	return nil, nil
-}
-
-type ModuleStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-}
-
+// https://www.getambassador.io/docs/latest/topics/running/ambassador/#the-ambassador-module
+// https://www.getambassador.io/docs/latest/topics/running/tls/#tls-module-deprecated
+//
 // +kubebuilder:object:root=true
-
 type Module struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   ModuleSpec   `json:"spec,omitempty"`
-	Status ModuleStatus `json:"status,omitempty"`
+	Spec ModuleSpec `json:"spec,omitempty"`
 }
 
+// ModuleList contains a list of Modules.
+//
 // +kubebuilder:object:root=true
-
 type ModuleList struct {
 	metav1.TypeMeta `json:""`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []Module `json:"items"`
 }
 
-type _Features struct {
+type Features struct {
 	// The diagnostic service (at /ambassador/v0/diag/) defaults on, but
 	// you can disable the api route. It will remain accessible on
 	// diag_port.
@@ -102,7 +94,7 @@ type _Features struct {
 	// setting x_num_trusted_hops: 1 will tell Envoy to use the client IP
 	// address in X-Forwarded-For. Please see the envoy documentation for
 	// more information: https://www.envoyproxy.io/docs/envoy/latest/configuration/http_conn_man/headers#x-forwarded-for
-	XffNumTrustedHops int32 `json:"xff_num_trusted_hops,omitempty"`
+	XffNumTrustedHops int `json:"xff_num_trusted_hops,omitempty"`
 
 	// proxy_proto controls whether Envoy will honor the PROXY
 	// protocol on incoming requests.
@@ -128,11 +120,11 @@ type AmbassadorConfigSpec struct {
 	// admin_port is the port where Ambassador's Envoy will listen for
 	// low-level admin requests. You should almost never need to change
 	// this.
-	AdminPort int32 `json:"admin_port,omitempty"`
+	AdminPort int `json:"admin_port,omitempty"`
 
 	// diag_port is the port where Ambassador will listen for requests
 	// to the diagnostic service.
-	DiagPort int32 `json:"diag_port,omitempty"`
+	DiagPort int `json:"diag_port,omitempty"`
 
 	// By default Envoy sets server_name response header to 'envoy'
 	// Override it with this variable
@@ -141,9 +133,9 @@ type AmbassadorConfigSpec struct {
 	// If present, service_port will be the port Ambassador listens
 	// on for microservice access. If not present, Ambassador will
 	// use 8443 if TLS is configured, 8080 otherwise.
-	ServicePort int32 `json:"service_port,omitempty"`
+	ServicePort int `json:"service_port,omitempty"`
 
-	Features *_Features `json:"features,omitempty"`
+	Features *Features `json:"features,omitempty"`
 
 	// run a custom lua script on every request. see below for more details.
 	LuaScripts string `json:"lua_scripts,omitempty"`
@@ -164,41 +156,41 @@ type AmbassadorConfigSpec struct {
 
 	// Set the default upstream-connection idle timeout. If not set (the default), upstream
 	// connections will never be closed due to idling.
-	ClusterIdleTimeoutMS int32 `json:"cluster_idle_timeout_ms,omitempty"`
+	ClusterIdleTimeoutMS int `json:"cluster_idle_timeout_ms,omitempty"`
 
 	// +kubebuilder:validation:Enum={"safe", "unsafe"}
 	RegexType string `json:"regex_type,omitempty"`
 
 	// This field controls the RE2 “program size” which is a rough estimate of how complex a compiled regex is to
 	// evaluate.  A regex that has a program size greater than the configured value will fail to compile.
-	RegexMaxSize int32 `json:"regex_max_size,omitempty"`
+	RegexMaxSize int `json:"regex_max_size,omitempty"`
 }
 
-// // AmbassadorConfigStatus defines the observed state of AmbassadorConfig
-// type AmbassadorConfigStatus struct {
-// 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-// 	// Important: Run "make" to regenerate code after modifying this file
-// }
+// AmbassadorConfigStatus defines the observed state of AmbassadorConfig
+type AmbassadorConfigStatus struct {
+}
 
-// // +kubebuilder:object:root=true
+/*
+// AmbassadorConfig is the Schema for the ambassadorconfigs API
+//
+// +kubebuilder:object:root=true
+type AmbassadorConfig struct {
+	metav1.TypeMeta   `json:""`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-// // AmbassadorConfig is the Schema for the ambassadorconfigs API
-// type AmbassadorConfig struct {
-// 	metav1.TypeMeta   `json:""`
-// 	metav1.ObjectMeta `json:"metadata,omitempty"`
+	Spec   AmbassadorConfigSpec   `json:"spec,omitempty"`
+	Status AmbassadorConfigStatus `json:"status,omitempty"`
+}
 
-// 	Spec   AmbassadorConfigSpec   `json:"spec,omitempty"`
-// 	Status AmbassadorConfigStatus `json:"status,omitempty"`
-// }
-
-// // +kubebuilder:object:root=true
-
-// // AmbassadorConfigList contains a list of AmbassadorConfig
-// type AmbassadorConfigList struct {
-// 	metav1.TypeMeta `json:""`
-// 	metav1.ListMeta `json:"metadata,omitempty"`
-// 	Items           []AmbassadorConfig `json:"items"`
-// }
+// AmbassadorConfigList contains a list of AmbassadorConfigs.
+//
+// +kubebuilder:object:root=true
+type AmbassadorConfigList struct {
+	metav1.TypeMeta `json:""`
+	metav1.ListMeta `json:"metadata,omitempty"`
+	Items           []AmbassadorConfig `json:"items"`
+}
+*/
 
 func init() {
 	SchemeBuilder.Register(&Module{}, &ModuleList{})

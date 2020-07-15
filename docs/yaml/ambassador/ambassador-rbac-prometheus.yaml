@@ -68,8 +68,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
-  creationTimestamp: null
-  labels: {}
+  labels:
+    app.kubernetes.io/name: ambassador
+    product: aes
   name: authservices.getambassador.io
 spec:
   group: getambassador.io
@@ -102,7 +103,9 @@ spec:
           properties:
             add_auth_headers:
               additionalProperties:
-                type: string
+                oneOf:
+                - type: string
+                - type: boolean
               type: object
             add_linkerd_headers:
               type: boolean
@@ -117,8 +120,15 @@ spec:
                 type: string
               type: array
             ambassador_id:
+              description: "AmbassadorID declares which Ambassador instances should\
+                \ pay attention to this resource.  May either be a string or a list\
+                \ of strings.  If no value is provided, the default is: \n    ambassador_id:\
+                \    - \"default\""
               items:
                 type: string
+              oneOf:
+              - type: string
+              - type: array
             auth_service:
               type: string
             failure_mode_allow:
@@ -128,8 +138,10 @@ spec:
                 allow_partial:
                   type: boolean
                 max_bytes:
-                  format: int32
                   type: integer
+              required:
+              - allow_partial
+              - max_bytes
               type: object
             path_prefix:
               type: string
@@ -142,17 +154,14 @@ spec:
               description: Why isn't this just an int??
               properties:
                 code:
-                  format: int32
                   type: integer
               type: object
             timeout_ms:
-              format: int32
               type: integer
             tls:
-              type: string
-          type: object
-        status:
-          description: AuthServiceStatus defines the observed state of AuthService
+              oneOf:
+              - type: string
+              - type: boolean
           type: object
       type: object
   version: null
@@ -169,8 +178,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
-  creationTimestamp: null
-  labels: {}
+  labels:
+    app.kubernetes.io/name: ambassador
+    product: aes
   name: consulresolvers.getambassador.io
 spec:
   group: getambassador.io
@@ -199,17 +209,24 @@ spec:
         metadata:
           type: object
         spec:
+          description: ConsulResolver tells Ambassador to use Consul to resolve services.
+            In addition to the AmbassadorID, it needs information about which Consul
+            server and DC to use.
           properties:
             address:
               type: string
             ambassador_id:
+              description: "AmbassadorID declares which Ambassador instances should\
+                \ pay attention to this resource.  May either be a string or a list\
+                \ of strings.  If no value is provided, the default is: \n    ambassador_id:\
+                \    - \"default\""
               items:
                 type: string
+              oneOf:
+              - type: string
+              - type: array
             datacenter:
               type: string
-          type: object
-        status:
-          description: ConsulResolverStatus defines the observed state of ConsulResolver
           type: object
       type: object
   version: null
@@ -226,10 +243,27 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
-  creationTimestamp: null
-  labels: {}
+  labels:
+    app.kubernetes.io/name: ambassador
+    product: aes
   name: hosts.getambassador.io
 spec:
+  additionalPrinterColumns:
+  - JSONPath: .spec.hostname
+    name: Hostname
+    type: string
+  - JSONPath: .status.state
+    name: State
+    type: string
+  - JSONPath: .status.phaseCompleted
+    name: Phase Completed
+    type: string
+  - JSONPath: .status.phasePending
+    name: Phase Pending
+    type: string
+  - JSONPath: .metadata.creationTimestamp
+    name: Age
+    type: date
   group: getambassador.io
   names:
     categories:
@@ -239,6 +273,8 @@ spec:
     plural: hosts
     singular: host
   scope: Namespaced
+  subresources:
+    status: {}
   validation:
     openAPIV3Schema:
       description: Host is the Schema for the hosts API
@@ -290,10 +326,16 @@ spec:
                 Hosts with 'ambassadorId' exist in the wild.
               items:
                 type: string
+              oneOf:
+              - type: string
+              - type: array
             ambassador_id:
               description: Common to all Ambassador objects (and optional).
               items:
                 type: string
+              oneOf:
+              - type: string
+              - type: array
             hostname:
               description: Hostname by which the Ambassador can be reached.
               type: string
@@ -322,7 +364,6 @@ spec:
                       - Route
                       type: string
                     additional_port:
-                      format: int32
                       type: integer
                   type: object
               type: object
@@ -399,7 +440,6 @@ spec:
                 private_key_file:
                   type: string
                 redirect_cleartext_from:
-                  format: int32
                   type: integer
                 sni:
                   type: string
@@ -484,8 +524,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
-  creationTimestamp: null
-  labels: {}
+  labels:
+    app.kubernetes.io/name: ambassador
+    product: aes
   name: kubernetesendpointresolvers.getambassador.io
 spec:
   group: getambassador.io
@@ -515,14 +556,20 @@ spec:
         metadata:
           type: object
         spec:
+          description: KubernetesEndpointResolver tells Ambassador to use Kubernetes
+            Endpoints resources to resolve services. It actually has no spec other
+            than the AmbassadorID.
           properties:
             ambassador_id:
+              description: "AmbassadorID declares which Ambassador instances should\
+                \ pay attention to this resource.  May either be a string or a list\
+                \ of strings.  If no value is provided, the default is: \n    ambassador_id:\
+                \    - \"default\""
               items:
                 type: string
-          type: object
-        status:
-          description: KubernetesEndpointResolverStatus defines the observed state
-            of KubernetesEndpointResolver
+              oneOf:
+              - type: string
+              - type: array
           type: object
       type: object
   version: null
@@ -539,8 +586,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
-  creationTimestamp: null
-  labels: {}
+  labels:
+    app.kubernetes.io/name: ambassador
+    product: aes
   name: kubernetesserviceresolvers.getambassador.io
 spec:
   group: getambassador.io
@@ -570,14 +618,20 @@ spec:
         metadata:
           type: object
         spec:
+          description: KubernetesServiceResolver tells Ambassador to use Kubernetes
+            Service resources to resolve services. It actually has no spec other than
+            the AmbassadorID.
           properties:
             ambassador_id:
+              description: "AmbassadorID declares which Ambassador instances should\
+                \ pay attention to this resource.  May either be a string or a list\
+                \ of strings.  If no value is provided, the default is: \n    ambassador_id:\
+                \    - \"default\""
               items:
                 type: string
-          type: object
-        status:
-          description: KubernetesServiceResolverStatus defines the observed state
-            of KubernetesServiceResolver
+              oneOf:
+              - type: string
+              - type: array
           type: object
       type: object
   version: null
@@ -594,8 +648,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
-  creationTimestamp: null
-  labels: {}
+  labels:
+    app.kubernetes.io/name: ambassador
+    product: aes
   name: logservices.getambassador.io
 spec:
   group: getambassador.io
@@ -627,8 +682,15 @@ spec:
           description: LogServiceSpec defines the desired state of LogService
           properties:
             ambassador_id:
+              description: "AmbassadorID declares which Ambassador instances should\
+                \ pay attention to this resource.  May either be a string or a list\
+                \ of strings.  If no value is provided, the default is: \n    ambassador_id:\
+                \    - \"default\""
               items:
                 type: string
+              oneOf:
+              - type: string
+              - type: array
             driver:
               enum:
               - tcp
@@ -651,18 +713,13 @@ spec:
                   type: array
               type: object
             flush_interval_byte_size:
-              format: int32
               type: integer
             flush_interval_time:
-              format: int32
               type: integer
             grpc:
               type: boolean
             service:
               type: string
-          type: object
-        status:
-          description: LogServiceStatus defines the observed state of LogService
           type: object
       type: object
   version: null
@@ -679,10 +736,24 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
-  creationTimestamp: null
-  labels: {}
+  labels:
+    app.kubernetes.io/name: ambassador
+    product: aes
   name: mappings.getambassador.io
 spec:
+  additionalPrinterColumns:
+  - JSONPath: .spec.prefix
+    name: Prefix
+    type: string
+  - JSONPath: .spec.service
+    name: Service
+    type: string
+  - JSONPath: .status.state
+    name: State
+    type: string
+  - JSONPath: .status.reason
+    name: Reason
+    type: string
   group: getambassador.io
   names:
     categories:
@@ -692,6 +763,8 @@ spec:
     plural: mappings
     singular: mapping
   scope: Namespaced
+  subresources:
+    status: {}
   validation:
     openAPIV3Schema:
       description: Mapping is the Schema for the mappings API
@@ -709,20 +782,34 @@ spec:
         metadata:
           type: object
         spec:
+          description: MappingSpec defines the desired state of Mapping
           properties:
             add_linkerd_headers:
               type: boolean
             add_request_headers:
-              items:
-                type: string
-              type: array
+              additionalProperties:
+                oneOf:
+                - type: string
+                - type: boolean
+                - type: object
+              type: object
             add_response_headers:
-              items:
-                type: string
-              type: array
+              additionalProperties:
+                oneOf:
+                - type: string
+                - type: boolean
+                - type: object
+              type: object
             ambassador_id:
+              description: "AmbassadorID declares which Ambassador instances should\
+                \ pay attention to this resource.  May either be a string or a list\
+                \ of strings.  If no value is provided, the default is: \n    ambassador_id:\
+                \    - \"default\""
               items:
                 type: string
+              oneOf:
+              - type: string
+              - type: array
             auto_host_rewrite:
               type: boolean
             bypass_auth:
@@ -733,16 +820,12 @@ spec:
               items:
                 properties:
                   max_connections:
-                    format: int32
                     type: integer
                   max_pending_requests:
-                    format: int32
                     type: integer
                   max_requests:
-                    format: int32
                     type: integer
                   max_retries:
-                    format: int32
                     type: integer
                   priority:
                     enum:
@@ -752,10 +835,10 @@ spec:
                 type: object
               type: array
             cluster_idle_timeout_ms:
-              format: int32
               type: integer
+            cluster_tag:
+              type: string
             connect_timeout_ms:
-              format: int32
               type: integer
             cors:
               properties:
@@ -764,31 +847,45 @@ spec:
                 exposed_headers:
                   items:
                     type: string
-                  type: array
+                  oneOf:
+                  - type: string
+                  - type: array
                 headers:
                   items:
                     type: string
-                  type: array
+                  oneOf:
+                  - type: string
+                  - type: array
                 max_age:
                   type: string
                 methods:
                   items:
                     type: string
-                  type: array
+                  oneOf:
+                  - type: string
+                  - type: array
                 origins:
                   items:
                     type: string
-                  type: array
+                  oneOf:
+                  - type: string
+                  - type: array
               type: object
             enable_ipv4:
               type: boolean
             enable_ipv6:
               type: boolean
+            envoy_override:
+              description: UntypedDict is non-functional as a Go type, but it gets
+                controller-gen to spit out the correct schema.
+              type: object
             grpc:
               type: boolean
             headers:
               additionalProperties:
-                type: string
+                oneOf:
+                - type: string
+                - type: boolean
               type: object
             host:
               type: string
@@ -799,18 +896,14 @@ spec:
             host_rewrite:
               type: string
             idle_timeout_ms:
-              format: int32
               type: integer
             keepalive:
               properties:
                 idle_time:
-                  format: int32
                   type: integer
                 interval:
-                  format: int32
                   type: integer
                 probes:
-                  format: int32
                   type: integer
               type: object
             labels:
@@ -827,6 +920,8 @@ spec:
                       type: string
                     ttl:
                       type: string
+                  required:
+                  - name
                   type: object
                 header:
                   type: string
@@ -839,17 +934,24 @@ spec:
                   type: string
                 source_ip:
                   type: boolean
+              required:
+              - policy
               type: object
             method:
               type: string
             method_regex:
               type: boolean
+            modules:
+              items:
+                description: UntypedDict is non-functional as a Go type, but it gets
+                  controller-gen to spit out the correct schema.
+                type: object
+              type: array
             outlier_detection:
               type: string
             path_redirect:
               type: string
             precedence:
-              format: int32
               type: integer
             prefix:
               type: string
@@ -859,26 +961,47 @@ spec:
               type: boolean
             priority:
               type: string
+            query_parameters:
+              additionalProperties:
+                oneOf:
+                - type: string
+                - type: boolean
+              type: object
             regex_headers:
               additionalProperties:
-                type: string
+                oneOf:
+                - type: string
+                - type: boolean
+              type: object
+            regex_query_parameters:
+              additionalProperties:
+                oneOf:
+                - type: string
+                - type: boolean
               type: object
             regex_rewrite:
-              type: boolean
+              additionalProperties:
+                oneOf:
+                - type: string
+                - type: boolean
+              type: object
             remove_request_headers:
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             remove_response_headers:
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             resolver:
               type: string
             retry_policy:
               properties:
                 num_retries:
-                  format: int32
                   type: integer
                 per_try_timeout:
                   type: string
@@ -899,18 +1022,27 @@ spec:
             shadow:
               type: boolean
             timeout_ms:
-              format: int32
               type: integer
             tls:
-              type: string
+              oneOf:
+              - type: string
+              - type: boolean
             use_websocket:
               type: boolean
             weight:
-              format: int32
               type: integer
           type: object
         status:
           description: MappingStatus defines the observed state of Mapping
+          properties:
+            reason:
+              type: string
+            state:
+              enum:
+              - ''
+              - Inactive
+              - Running
+              type: string
           type: object
       type: object
   version: null
@@ -927,8 +1059,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
-  creationTimestamp: null
-  labels: {}
+  labels:
+    app.kubernetes.io/name: ambassador
+    product: aes
   name: modules.getambassador.io
 spec:
   group: getambassador.io
@@ -942,6 +1075,10 @@ spec:
   scope: Namespaced
   validation:
     openAPIV3Schema:
+      description: "A Module defines system-wide configuration.  The type of module\
+        \ is controlled by the .metadata.name; valid names are \"ambassador\" or \"\
+        tls\". \n https://www.getambassador.io/docs/latest/topics/running/ambassador/#the-ambassador-module\
+        \ https://www.getambassador.io/docs/latest/topics/running/tls/#tls-module-deprecated"
       properties:
         apiVersion:
           description: 'APIVersion defines the versioned schema of this representation
@@ -958,12 +1095,19 @@ spec:
         spec:
           properties:
             ambassador_id:
+              description: "AmbassadorID declares which Ambassador instances should\
+                \ pay attention to this resource.  May either be a string or a list\
+                \ of strings.  If no value is provided, the default is: \n    ambassador_id:\
+                \    - \"default\""
               items:
                 type: string
+              oneOf:
+              - type: string
+              - type: array
             config:
+              description: UntypedDict is non-functional as a Go type, but it gets
+                controller-gen to spit out the correct schema.
               type: object
-          type: object
-        status:
           type: object
       type: object
   version: null
@@ -980,8 +1124,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
-  creationTimestamp: null
-  labels: {}
+  labels:
+    app.kubernetes.io/name: ambassador
+    product: aes
   name: ratelimitservices.getambassador.io
 spec:
   group: getambassador.io
@@ -1016,18 +1161,19 @@ spec:
               description: Common to all Ambassador objects.
               items:
                 type: string
+              oneOf:
+              - type: string
+              - type: array
             domain:
               type: string
             service:
               type: string
             timeout_ms:
-              format: int32
               type: integer
             tls:
-              type: string
-          type: object
-        status:
-          description: RateLimitServiceStatus defines the observed state of RateLimitService
+              oneOf:
+              - type: string
+              - type: boolean
           type: object
       type: object
   version: null
@@ -1044,8 +1190,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
-  creationTimestamp: null
-  labels: {}
+  labels:
+    app.kubernetes.io/name: ambassador
+    product: aes
   name: tcpmappings.getambassador.io
 spec:
   group: getambassador.io
@@ -1079,22 +1226,25 @@ spec:
             address:
               type: string
             ambassador_id:
+              description: "AmbassadorID declares which Ambassador instances should\
+                \ pay attention to this resource.  May either be a string or a list\
+                \ of strings.  If no value is provided, the default is: \n    ambassador_id:\
+                \    - \"default\""
               items:
                 type: string
+              oneOf:
+              - type: string
+              - type: array
             circuit_breakers:
               items:
                 properties:
                   max_connections:
-                    format: int32
                     type: integer
                   max_pending_requests:
-                    format: int32
                     type: integer
                   max_requests:
-                    format: int32
                     type: integer
                   max_retries:
-                    format: int32
                     type: integer
                   priority:
                     enum:
@@ -1112,26 +1262,20 @@ spec:
             host:
               type: string
             idle_timeout_ms:
-              format: int32
-              type: integer
+              description: 'FIXME(lukeshu): Surely this should be an ''int''?'
+              type: string
             port:
-              format: int32
               type: integer
             resolver:
               type: string
             service:
               type: string
-            timeout_ms:
-              format: int32
-              type: integer
             tls:
-              type: string
+              oneOf:
+              - type: string
+              - type: boolean
             weight:
-              format: int32
               type: integer
-          type: object
-        status:
-          description: TCPMappingStatus defines the observed state of TCPMapping
           type: object
       type: object
   version: null
@@ -1148,8 +1292,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
-  creationTimestamp: null
-  labels: {}
+  labels:
+    app.kubernetes.io/name: ambassador
+    product: aes
   name: tlscontexts.getambassador.io
 spec:
   group: getambassador.io
@@ -1183,8 +1328,15 @@ spec:
             alpn_protocols:
               type: string
             ambassador_id:
+              description: "AmbassadorID declares which Ambassador instances should\
+                \ pay attention to this resource.  May either be a string or a list\
+                \ of strings.  If no value is provided, the default is: \n    ambassador_id:\
+                \    - \"default\""
               items:
                 type: string
+              oneOf:
+              - type: string
+              - type: array
             ca_secret:
               type: string
             cacert_chain_file:
@@ -1230,9 +1382,6 @@ spec:
             sni:
               type: string
           type: object
-        status:
-          description: TLSContextStatus defines the observed state of TLSContext
-          type: object
       type: object
   version: null
   versions:
@@ -1248,8 +1397,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
-  creationTimestamp: null
-  labels: {}
+  labels:
+    app.kubernetes.io/name: ambassador
+    product: aes
   name: tracingservices.getambassador.io
 spec:
   group: getambassador.io
@@ -1281,8 +1431,15 @@ spec:
           description: TracingServiceSpec defines the desired state of TracingService
           properties:
             ambassador_id:
+              description: "AmbassadorID declares which Ambassador instances should\
+                \ pay attention to this resource.  May either be a string or a list\
+                \ of strings.  If no value is provided, the default is: \n    ambassador_id:\
+                \    - \"default\""
               items:
                 type: string
+              oneOf:
+              - type: string
+              - type: array
             config:
               properties:
                 access_token_file:
@@ -1319,9 +1476,6 @@ spec:
               items:
                 type: string
               type: array
-          type: object
-        status:
-          description: TracingServiceStatus defines the observed state of TracingService
           type: object
       type: object
   version: null
