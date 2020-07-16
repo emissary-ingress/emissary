@@ -58,31 +58,33 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ### Ambassador API Gateway + Ambassador Edge Stack
 
-- Feature: Ambassador CRDs now include schema. This enables validation by `kubectl apply`.
-- Performance improvement: diagnostics are generated on demand rather than on every reconfig.
-- Performance improvement: Faster validation of the contents of ambassador resources has been added. The AMBASSADOR_FAST_VALIDATION env var must be set to enable this.
 - Incorporate the Envoy 1.14.4 security update.
 - BREAKING CHANGE: Turning off the Diagnostics UI via the Ambassador Module disables access to it from outside the Ambassador Pod.
 - BREAKING CHANGE: Default to not updating `Mapping` status; see below.
 - Feature: Add support for circuit breakers in TCP mapping
+- Feature: Ambassador CRDs now include schema. This enables validation by `kubectl apply`.
+- Performance improvement: Diagnostics are generated on demand rather than on every reconfig.
+- Performance improvement: Experimental fast validation of the contents of Ambassador resources has been added. The `AMBASSADOR_FAST_VALIDATION` env var must be set to enable this.
 - Internal: Configuration endpoints used internally by Ambassador are no longer accessible from outside the Ambassador Pod.
 
-Ambassador will no longer attempt to update the `Status` of a `Mapping`, unless
-you explicitly set `AMBASSADOR_UPDATE_MAPPING_STATUS=true` in the environment.
-If you do not have tooling that relies on `Mapping` status updates, we do not
-recommend setting `AMBASSADOR_UPDATE_MAPPING_STATUS`.
+As previously announced, the default value of `AMBASSADOR_UPDATE_MAPPING_STATUS`
+has now changed from `true` to `false`; Ambassador will no longer attempt to
+update the `Status` of a `Mapping` unless you explicitly set
+`AMBASSADOR_UPDATE_MAPPING_STATUS=true` in the environment.  If you do not have
+tooling that relies on `Mapping` status updates, we do not recommend setting
+`AMBASSADOR_UPDATE_MAPPING_STATUS`.
 
-*In Ambassador 1.7*, TLS secrets in `Ingress` resources will not be able to use `.namespace`
-suffixes to cross namespaces.
+*In Ambassador 1.7*, TLS secrets in `Ingress` resources will not be able to use
+`.namespace` suffixes to cross namespaces.
 
 ### Ambassador Edge Stack only
 
-- Feature: The Edge Policy Console's Debugging page has a **Log Out** button to terminate all EPC sessions
-- Feature: Disable content sniffing on AES to prevent MIME confusion attack by adding X-Content-Type-Options nosniff to response headers.
-- Feature: Don't write TLS secrets to disk during Envoy configuration.
+- Feature: The Edge Policy Console's Debugging page now has a "Log Out" button to terminate all EPC sessions.
+- Feature: `X-Content-Type-Options: nosniff` to response headers are now set for the Edge Policy Console, to prevent MIME confusion attacks.
+- Feature: The `OAuth2` Filter now has a `allowMalformedAccessToken` setting to enable use with IDPs that generate access tokens that are not compliant with RFC 6750.
 
 ## [1.5.5] June 30, 2020
-[1.5.5]: https://github.com/datawire/ambassador/compare/vv1.5.4...v1.5.5
+[1.5.5]: https://github.com/datawire/ambassador/compare/v1.5.4...v1.5.5
 
 ### Ambassador API Gateway + Ambassador Edge Stack
 
