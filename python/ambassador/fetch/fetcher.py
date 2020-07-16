@@ -614,6 +614,10 @@ class ResourceFetcher:
                 for p in parsed_ambassador_annotations:
                     if p.get('metadata_labels') is None:
                         p['metadata_labels'] = metadata_labels
+            
+            # Force validation for all of these objects.
+            for p in parsed_ambassador_annotations:
+                p['_force_validation'] = True
 
             return resource_identifier, parsed_ambassador_annotations
 
@@ -856,6 +860,10 @@ class ResourceFetcher:
                         obj['metadata_labels'] = metadata_labels
                     if obj.get('namespace') is None:
                         obj['namespace'] = resource_namespace
+
+                    # Force validation of this object.
+                    obj['_force_validation'] = True
+
                     result.append(obj)
 
             except yaml.error.YAMLError as e:

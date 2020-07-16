@@ -1731,7 +1731,8 @@ type Cluster_CommonLbConfig_LocalityWeightedLbConfig_ struct {
 	LocalityWeightedLbConfig *Cluster_CommonLbConfig_LocalityWeightedLbConfig `protobuf:"bytes,3,opt,name=locality_weighted_lb_config,json=localityWeightedLbConfig,proto3,oneof" json:"locality_weighted_lb_config,omitempty"`
 }
 
-func (*Cluster_CommonLbConfig_ZoneAwareLbConfig_) isCluster_CommonLbConfig_LocalityConfigSpecifier() {}
+func (*Cluster_CommonLbConfig_ZoneAwareLbConfig_) isCluster_CommonLbConfig_LocalityConfigSpecifier() {
+}
 func (*Cluster_CommonLbConfig_LocalityWeightedLbConfig_) isCluster_CommonLbConfig_LocalityConfigSpecifier() {
 }
 

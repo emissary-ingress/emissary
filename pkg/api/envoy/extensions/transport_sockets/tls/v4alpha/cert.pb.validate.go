@@ -1491,7 +1491,9 @@ func (e CommonTlsContext_CombinedCertificateValidationContextValidationError) Ca
 }
 
 // Key function returns key value.
-func (e CommonTlsContext_CombinedCertificateValidationContextValidationError) Key() bool { return e.key }
+func (e CommonTlsContext_CombinedCertificateValidationContextValidationError) Key() bool {
+	return e.key
+}
 
 // ErrorName returns error name.
 func (e CommonTlsContext_CombinedCertificateValidationContextValidationError) ErrorName() string {

@@ -441,7 +441,9 @@ func init() {
 	proto.RegisterType((*HostHealthStatus)(nil), "envoy.admin.v2alpha.HostHealthStatus")
 }
 
-func init() { proto.RegisterFile("envoy/admin/v2alpha/clusters.proto", fileDescriptor_c6251a3a957f478b) }
+func init() {
+	proto.RegisterFile("envoy/admin/v2alpha/clusters.proto", fileDescriptor_c6251a3a957f478b)
+}
 
 var fileDescriptor_c6251a3a957f478b = []byte{
 	// 735 bytes of a gzipped FileDescriptorProto
