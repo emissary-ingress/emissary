@@ -526,25 +526,25 @@ class Config:
 
             if validator:
                 rc = validator(resource)
-
-                if watt_errors:
-                    # watt reported errors. Did we find errors or not?
-                    
-                    if rc:
-                        # We did not. Post this into fast_validation_disagreements
-                        fvd = self.fast_validation_disagreements.setdefault(resource.rkey, [])
-                        fvd.append(watt_errors)
-                        self.logger.debug(f"validation disagreement: good {resource.kind} {name} has watt errors {watt_errors}")
-
-                        # Note that we override watt here by returning the successful
-                        # result from our validator. That's intentional in 1.6.0.
-                    else:
-                        # We don't like it either. Stick with the watt errors (since we know,
-                        # a priori, that fast validation is enabled).
-                        rc = RichStatus.fromError(watt_errors)
             else:
                 # No validator, so, uh, call it good.
                 rc = RichStatus.OK(msg=f"no validator for {apiVersion} {resource.kind} {name} so calling it good")
+
+            if watt_errors:
+                # watt reported errors. Did we find errors or not?
+
+                if rc:
+                    # We did not. Post this into fast_validation_disagreements
+                    fvd = self.fast_validation_disagreements.setdefault(resource.rkey, [])
+                    fvd.append(watt_errors)
+                    self.logger.debug(f"validation disagreement: good {resource.kind} {name} has watt errors {watt_errors}")
+
+                    # Note that we override watt here by returning the successful
+                    # result from our validator. That's intentional in 1.6.0.
+                else:
+                    # We don't like it either. Stick with the watt errors (since we know,
+                    # a priori, that fast validation is enabled).
+                    rc = RichStatus.fromError(watt_errors)
             
         # One way or the other, we're done here. Finally.
         self.logger.debug(f"validation {rc}")
