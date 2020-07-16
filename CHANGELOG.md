@@ -24,7 +24,10 @@ for all users, and includes all the functionality of the Ambassador API Gateway 
 to the additional capabilities mentioned above. Due to popular demand, we’re offering a free
 tier of our core features as part of the Ambassador Edge Stack, designed for startups.
 
-### UPCOMING PROTOCOL CHANGES
+### UPCOMING CHANGES
+
+*In Ambassador 1.7*, TLS secrets in `Ingress` resources will not be able to use `.namespace`
+suffixes to cross namespaces.
 
 *In a future version*, Ambassador will change the version of the gRPC service name used to
 communicate with `AuthService`s and `RateLimitService`s:
@@ -55,10 +58,22 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ### Ambassador API Gateway + Ambassador Edge Stack
 
+- Feature: Ambassador CRDs now include schema. This enables validation by `kubectl apply`.
+- Performance improvement: diagnostics are generated on demand rather than on every reconfig.
+- Performance improvement: Faster validation of the contents of ambassador resources has been added. The AMBASSADOR_FAST_VALIDATION env var must be set to enable this.
 - Incorporate the Envoy 1.14.4 security update.
 - BREAKING CHANGE: Turning off the Diagnostics UI via the Ambassador Module disables access to it from outside the Ambassador Pod.
+- BREAKING CHANGE: Default to not updating `Mapping` status; see below.
 - Feature: Add support for circuit breakers in TCP mapping
 - Internal: Configuration endpoints used internally by Ambassador are no longer accessible from outside the Ambassador Pod.
+
+Ambassador will no longer attempt to update the `Status` of a `Mapping`, unless
+you explicitly set `AMBASSADOR_UPDATE_MAPPING_STATUS=true` in the environment.
+If you do not have tooling that relies on `Mapping` status updates, we do not
+recommend setting `AMBASSADOR_UPDATE_MAPPING_STATUS`.
+
+*In Ambassador 1.7*, TLS secrets in `Ingress` resources will not be able to use `.namespace`
+suffixes to cross namespaces.
 
 ### Ambassador Edge Stack only
 

@@ -12,6 +12,7 @@ import (
 
 	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/datawire/ambassador/pkg/k8s"
+	"github.com/datawire/ambassador/pkg/kates"
 	"github.com/datawire/ambassador/pkg/limiter"
 	"github.com/datawire/ambassador/pkg/supervisor"
 )
@@ -121,8 +122,13 @@ func runWatt(ctx context.Context, flags wattFlags, args []string) error {
 	}
 	invoker := NewInvoker(apiServerAuthority, flags.notifyReceivers)
 	limiter := limiter.NewComposite(limiter.NewUnlimited(), limiter.NewInterval(flags.interval), flags.interval)
+
+	kcli, err := kates.NewClient(kates.ClientOptions{})
+	if err != nil {
+		return err
+	}
 	aggregator := NewAggregator(invoker.Snapshots, aggregatorToKubewatchmanCh, aggregatorToConsulwatchmanCh,
-		flags.initialSources, ExecWatchHook(flags.watchHooks), limiter)
+		flags.initialSources, ExecWatchHook(flags.watchHooks), limiter, kates.NewValidator(kcli))
 
 	kubebootstrap := kubebootstrap{
 		namespace:      flags.kubernetesNamespace,

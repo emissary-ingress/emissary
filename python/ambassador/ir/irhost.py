@@ -70,7 +70,8 @@ class IRHost(IRResource):
                     implicit_tls_exists = ir.has_tls_context(ctx_name)
                     self.logger.debug(f"TLSContext with name {ctx_name} exists in the cluster?: {implicit_tls_exists}")
 
-                    host_tls_context_name = self.get('tlsContext', None)
+                    host_tls_context_obj = self.get('tlsContext', {})
+                    host_tls_context_name = host_tls_context_obj.get('name', None)
                     self.logger.debug(f"Found TLSContext: {host_tls_context_name}")
 
                     host_tls_config = self.get('tls', None)
@@ -285,17 +286,7 @@ class IRHost(IRResource):
     def resolve(self, ir: 'IR', secret_name: str) -> SavedSecret:
         # Try to use our namespace for secret resolution. If we somehow have no
         # namespace, fall back to the Ambassador's namespace.
-        # We override namespace below if there is a '.' in the secret_name
-        # and secret_namespacing is true.
         namespace = self.namespace or ir.ambassador_namespace
-
-        secret_namespacing = self.lookup('secret_namespacing', True,
-                                         default_key='tls_secret_namespacing')
-
-        if "." in secret_name and secret_namespacing:
-            secret_name, namespace = secret_name.split('.', 1)
-
-        self.ir.logger.debug(f"TLSContext.resolve_secret {secret_name}, namespace {namespace}: namespacing is {secret_namespacing}")
 
         return ir.resolve_secret(self, secret_name, namespace)
 

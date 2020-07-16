@@ -119,7 +119,9 @@ func init() {
 	proto.RegisterType((*DoubleMatcher)(nil), "envoy.type.matcher.v3.DoubleMatcher")
 }
 
-func init() { proto.RegisterFile("envoy/type/matcher/v3/number.proto", fileDescriptor_9de077d68a31b59d) }
+func init() {
+	proto.RegisterFile("envoy/type/matcher/v3/number.proto", fileDescriptor_9de077d68a31b59d)
+}
 
 var fileDescriptor_9de077d68a31b59d = []byte{
 	// 293 bytes of a gzipped FileDescriptorProto

@@ -1,0 +1,173 @@
+#!/usr/bin/env python3
+
+import copy
+import json
+import os
+import sys
+# Literal is new to 3.8
+from typing import Any, Dict, List, cast  # , Literal
+
+import yaml
+from packaging import version
+
+products = ["aes", "oss", "helm"]
+product_type = str  #Literal["aes", "oss", "helm"]
+product: product_type
+kubeversion = ''
+
+def have_kubeversion(required_version: str) -> bool:
+    global kubeversion
+    return version.parse(kubeversion) >= version.parse(required_version)
+
+old_pro_crds = {
+    'Filter',
+    'FilterPolicy',
+    'RateLimit'}
+
+old_oss_crds = {
+    'AuthService',
+    'ConsulResolver',
+    'KubernetesEndpointResolver',
+    'KubernetesServiceResolver',
+    'LogService',
+    'Mapping',
+    'Module',
+    'RateLimitService',
+    'TCPMapping',
+    'TLSContext',
+    'TracingService'}
+
+def fix_crd(crd: Dict[str, Any]) -> None:
+    global product
+
+    # sanity check
+    if crd['kind'] != 'CustomResourceDefinition' or not crd['apiVersion'].startswith('apiextensions.k8s.io/'):
+        raise TypeError(f"not a CRD: {repr(crd)}")
+
+    # fix apiVersion
+    if have_kubeversion('1.16'):
+        crd['apiVersion'] = 'apiextensions.k8s.io/v1'
+    else:
+        crd['apiVersion'] = 'apiextensions.k8s.io/v1beta1'
+
+    # fix CRD versions
+    if have_kubeversion('1.11'):
+        if crd['apiVersion'] == 'apiextensions.k8s.io/v1':
+            if 'version' in crd['spec']:
+                del crd['spec']['version']
+        else:
+            # Set this to 'null' instead of just not setting it,
+            # because some apiserver versions (like 1.14.10-gke.27)
+            # will auto-populate it, and that makes upgrades
+            # troublesome if `.versions[0]` changes.
+            crd['spec']['version'] = None
+
+        # Note: versions are sorted newest-first/oldest-last.
+        if crd['spec']['names']['kind'] in old_pro_crds:
+            crd['spec']['versions'] = [
+                { 'name': 'v2', 'served': True, 'storage': True },
+                { 'name': 'v1beta2', 'served': True, 'storage': False },
+                { 'name': 'v1beta1', 'served': True, 'storage': False },
+            ]
+        elif crd['spec']['names']['kind'] in old_oss_crds:
+            crd['spec']['versions'] = [
+                { 'name': 'v2', 'served': True, 'storage': True },
+                { 'name': 'v1', 'served': True, 'storage': False },
+            ]
+        else:
+            crd['spec']['versions'] = [
+                { 'name': 'v2', 'served': True, 'storage': True },
+            ]
+    else:
+        if 'versions' in crd['spec']:
+            del crd['spec']['versions']
+        crd['spec']['version'] = 'v2'
+        def handle_list(l: List[Any]) -> None:
+            for val in l:
+                if isinstance(val, dict):
+                    handle_dict(val)
+                if isinstance(val, list):
+                    handle_list(val)
+        def handle_dict(d: Dict[str, Any]) -> None:
+            if 'additionalProperties' in d:
+                del d['additionalProperties']
+            for val in d.values():
+                if isinstance(val, dict):
+                    handle_dict(val)
+                if isinstance(val, list):
+                    handle_list(val)
+        handle_dict(crd['spec'])
+
+    # hack around limitations in `controller-gen`; see the comments in
+    # `pkg/api/getambassdor.io/v2/common.go`.
+    def handle_list(l: List[Any]) -> None:
+        for val in l:
+            if isinstance(val, dict):
+                handle_dict(val)
+            if isinstance(val, list):
+                handle_list(val)
+    def handle_dict(d: Dict[str, Any]) -> None:
+        typename = d.get('type', '')
+        if isinstance(typename, str) and typename.startswith('d6e-union:'):
+            types = d['type'][len('d6e-union:'):].split(',')
+            del d['type']
+            d['oneOf'] = [{'type': t} for t in types]
+        for val in d.values():
+            if isinstance(val, dict):
+                handle_dict(val)
+            if isinstance(val, list):
+                handle_list(val)
+    handle_dict(crd['spec'])
+
+    # fix labels
+    labels = crd['metadata'].get('labels', {})
+    labels['product'] = 'aes'
+    labels['app.kubernetes.io/name'] = 'ambassador'
+    crd['metadata']['labels'] = labels
+
+    # fix annotations
+    annotations = crd['metadata'].get('annotations', {})
+    if product == 'helm':
+        annotations['helm.sh/hook'] = 'crd-install'
+    elif 'helm.sh/hook' in annotations:
+        del annotations['helm.sh/hook']
+    crd['metadata']['annotations'] = annotations
+
+    # fix categories
+    categories = crd['spec']['names'].get('categories', [])
+    if 'ambassador-crds' not in categories:
+        # sys.stderr.write(f"CRD {crd['metadata']['name']} missing ambassador-crds category\n")
+        categories.append('ambassador-crds')
+    crd['spec']['names']['categories'] = categories
+
+    # fix "empty" things that shouldn't have been included but were
+    # because of Go deserialization.
+    if 'status' in crd:
+        del crd['status']
+    if 'creationTimestamp' in crd['metadata']:
+        del crd['metadata']['creationTimestamp']
+
+def main() -> None:
+    global product
+    global kubeversion
+
+    if sys.argv[1] in products:
+        product = cast(product_type, sys.argv[1])
+    else:
+        raise ValueError(f"invalid product: {repr(sys.argv[1])} not in {repr(products)}")
+    kubeversion = sys.argv[2]
+    inputfiles = sys.argv[3:] or ['/dev/stdin']
+
+    crds = []
+    for in_path in inputfiles:
+        crds += list(yaml.safe_load_all(open(in_path, "r")))
+
+    for crd in crds:
+        fix_crd(crd)
+
+    print("# GENERATED FILE: edits made by hand will not be preserved.")
+    print("---")
+    print(yaml.safe_dump_all(crds), end='')
+
+if __name__ == "__main__":
+    main()

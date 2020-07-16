@@ -160,17 +160,6 @@ class IRTLSContext(IRResource):
 
         if "." in secret_name and secret_namespacing:
             secret_name, namespace = secret_name.split('.', 1)
-        
-        # Ok, if the '.' is the separator, let's reflect that in the IR.
-        self['namespace'] = namespace
-
-        # Now, if there is a namespace in the given secret_name,
-        # let's update current context ['secret'] info with the proper secret name (drop the namespace from the name).
-        if secret_name in self['secret_info']['secret']:
-            self['secret_info']['secret'] = secret_name
-        
-
-        self.ir.logger.info(f"TLSContext.resolve_secret {secret_name}, namespace {namespace}: namespacing is {secret_namespacing}")
 
         return self.ir.resolve_secret(self, secret_name, namespace)
 
@@ -274,6 +263,29 @@ class IRTLSContext(IRResource):
                                 self.name)
                 return False
 
+        # If the secret has been invalidated above, then we do not need to check for paths down under.
+        # We can return whether the TLS Context is valid or not.
+        if not secret_valid:
+            return is_valid
+
+        # OK. Check paths.
+        errors = 0
+
+        # self.ir.logger.debug("resolve_secrets before path checks: %s" % self.as_json())
+        for key in [ 'cert_chain_file', 'private_key_file', 'cacert_chain_file' ]:
+            path = self.secret_info.get(key, None)
+
+            if path:
+                fc = getattr(self.ir, 'file_checker')
+                if not fc(path):
+                    self.post_error("TLSContext %s found no %s '%s'" % (self.name, key, path))
+                    errors += 1
+            elif key != 'cacert_chain_file' and self.get('hosts', None):
+                self.post_error("TLSContext %s is missing %s" % (self.name, key))
+                errors += 1
+
+        if errors > 0:
+            return False
 
         return True
 

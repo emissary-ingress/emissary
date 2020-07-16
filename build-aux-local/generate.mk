@@ -1,24 +1,36 @@
+crds_yaml_dir = $(OSS_HOME)/../ambassador-chart/crds
+
 generate/files += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/                  -name '*.proto'))
 generate/files += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.validate.go                , $(shell find $(OSS_HOME)/api/envoy/            -name '*.proto'))
-generate/files += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.json.go                    , $(shell find $(OSS_HOME)/api/getambassador.io/ -name '*.proto' -not -name '*_nojson.proto'))
-generate/files += $(patsubst $(OSS_HOME)/api/getambassador.io/%.proto,  $(OSS_HOME)/python/ambassador/proto/%_pb2.py        , $(shell find $(OSS_HOME)/api/getambassador.io/ -name '*.proto' -not -name '*_nojson.proto'))
 generate/files += $(patsubst $(OSS_HOME)/api/kat/%.proto,               $(OSS_HOME)/tools/sandbox/grpc_web/%_pb.js          , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto'))
 generate/files += $(patsubst $(OSS_HOME)/api/kat/%.proto,               $(OSS_HOME)/tools/sandbox/grpc_web/%_grpc_web_pb.js , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto'))
+generate/files += $(OSS_HOME)/pkg/envoy-control-plane
 generate: ## Update generated sources that get committed to git
 generate:
 	$(MAKE) generate-clean
 	$(MAKE) $(OSS_HOME)/api/envoy
 	$(MAKE) _generate
 _generate:
-	$(MAKE) $(generate/files)
-	$(MAKE) $(OSS_HOME)/pkg/envoy-control-plane
+	@echo '$(MAKE) $$(generate/files)'; $(MAKE) $(generate/files)
 generate-clean: ## Delete generated sources that get committed to git
 generate-clean:
 	rm -rf $(OSS_HOME)/api/envoy
-	rm -rf $(OSS_HOME)/pkg/api $(OSS_HOME)/python/ambassador/proto
+	rm -rf $(OSS_HOME)/pkg/api/envoy
+	rm -rf $(OSS_HOME)/pkg/api/kat
 	rm -f $(OSS_HOME)/tools/sandbox/grpc_web/*_pb.js
 	rm -rf $(OSS_HOME)/pkg/envoy-control-plane
 .PHONY: generate _generate generate-clean
+
+go-mod-tidy/oss:
+	rm -f $(OSS_HOME)/go.sum
+	cd $(OSS_HOME) && go mod tidy
+	cd $(OSS_HOME) && go mod edit -require=$$(go list -m github.com/cncf/udpa/go | sed 's,/go ,@,')
+	cd $(OSS_HOME) && go mod vendor # adds "// indirect" to the udpa line
+	$(MAKE) go-mod-tidy/oss-evaluate
+go-mod-tidy/oss-evaluate:
+	@echo '# evaluate $$(proto_path)'; # $(proto_path) # cause Make to call `go list STUFF`, which will maybe edit go.mod or go.sum
+go-mod-tidy: go-mod-tidy/oss
+.PHONY: go-mod-tidy/oss go-mod-tidy
 
 #
 # Helper Make functions and variables
@@ -70,7 +82,7 @@ $(tools/protoc):
 tools/protoc-gen-gogofast = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-gogofast
 $(tools/protoc-gen-gogofast): $(OSS_HOME)/go.mod
 	mkdir -p $(@D)
-	go build -o $@ github.com/gogo/protobuf/protoc-gen-gogofast
+	cd $(OSS_HOME) && go build -o $@ github.com/gogo/protobuf/protoc-gen-gogofast
 
 # The version number of protoc-gen-validate is controlled by `./go.mod`, and is based on
 # https://github.com/envoyproxy/go-control-plane/blob/0e75602d5e36e96eafbe053999c0569edec9fe07/Dockerfile.ci
@@ -80,7 +92,7 @@ $(tools/protoc-gen-gogofast): $(OSS_HOME)/go.mod
 tools/protoc-gen-validate = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-validate
 $(tools/protoc-gen-validate): $(OSS_HOME)/go.mod
 	mkdir -p $(@D)
-	go build -o $@ github.com/envoyproxy/protoc-gen-validate
+	cd $(OSS_HOME) && go build -o $@ github.com/envoyproxy/protoc-gen-validate
 
 GRPC_WEB_VERSION          = 1.0.3
 GRPC_WEB_PLATFORM         = $(GOHOSTOS)-x86_64
@@ -96,7 +108,21 @@ $(tools/protoc-gen-grpc-web):
 tools/protoc-gen-go-json = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-go-json
 $(tools/protoc-gen-go-json): $(OSS_HOME)/go.mod
 	mkdir -p $(@D)
-	go build -o $@ github.com/mitchellh/protoc-gen-go-json
+	cd $(OSS_HOME) && go build -o $@ github.com/mitchellh/protoc-gen-go-json
+
+# The version number of protoc-gen-validate is controlled by `./go.mod`.  Additionally, the package
+# name is mentioned in `./pkg/ignore/pin.go`, so that `go mod tidy` won't make the `go.mod` file
+# forget about it.
+tools/controller-gen = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/controller-gen
+$(tools/controller-gen): $(OSS_HOME)/go.mod
+	mkdir -p $(@D)
+	cd $(OSS_HOME) && go build -o $@ sigs.k8s.io/controller-tools/cmd/controller-gen
+
+# A python script... normally we might want to shove this in the
+# builder image, but (1) that'd be a pain, and (2) the requirements
+# here are python3, python3-yaml, and python3-packaging... now, if you
+# have 'awscli', which we already require, then you'll have those.
+tools/fix-crds = $(OSS_HOME)/build-aux-local/fix-crds
 
 #
 # `make generate` vendor rules
@@ -302,3 +328,66 @@ clean: _makefile_clean
 _makefile_clean:
 	rm -rf $(OSS_HOME)/generate.tmp $(OSS_HOME)/vendor
 .PHONY: _makefile_clean
+
+#
+# `make generate`/`make update-yaml` rules to update generated YAML files (and `zz_generated.*.go` Go files)
+
+update-yaml-preflight:
+	@printf "$(CYN)==> $(GRN)Updating YAML$(END)\n"
+.PHONY: update-yaml-preflight
+
+# Use `controller-gen` to generate Go & YAML
+#
+# - Enable a generator by setting the
+#   `controller-gen/options/GENERATOR_NAME` variable (even to an empty
+#   value).
+# - Setting `controller-gen/output/GENERATOR_NAME` for an enabled
+#   generator is optional; the default output for each enabled
+#   generator is `dir=config/GENERATOR_NAME`.
+# - It is invalid to set `controller-gen/output/GENERATOR_NAME` for a
+#   generator that is not enabled.
+#
+#controller-gen/options/webhook     +=
+#controller-gen/options/schemapatch += manifests=foo
+#controller-gen/options/rbac        += roleName=ambassador
+controller-gen/options/object      += # headerFile=hack/boilerplate.go.txt
+controller-gen/options/crd         += trivialVersions=true # change this to "false" once we're OK with requiring Kubernetes 1.13+
+controller-gen/options/crd         += crdVersions=v1beta1 # change this to "v1" once we're OK with requiring Kubernetes 1.16+
+controller-gen/output/crd           = dir=$(crds_yaml_dir)
+_generate_controller_gen: $(tools/controller-gen) $(tools/fix-crds) update-yaml-preflight
+	@printf '  $(CYN)Running controller-gen$(END)\n'
+	rm -f $(crds_yaml_dir)/getambassador.io_*
+	cd $(OSS_HOME) && $(tools/controller-gen) \
+	  $(foreach varname,$(filter controller-gen/options/%,$(.VARIABLES)), $(patsubst controller-gen/options/%,%,$(varname))$(if $(strip $($(varname))),:$(call joinlist,$(comma),$($(varname)))) ) \
+	  $(foreach varname,$(filter controller-gen/output/%,$(.VARIABLES)), $(call joinlist,:,output $(patsubst controller-gen/output/%,%,$(varname)) $($(varname))) ) \
+	  paths="./pkg/api/getambassador.io/..."
+	@PS4=; set -ex; for file in $(crds_yaml_dir)/getambassador.io_*.yaml; do $(tools/fix-crds) helm 1.11 "$$file" > "$$file.tmp"; mv "$$file.tmp" "$$file"; done
+.PHONY: _generate_controller_gen
+
+$(OSS_HOME)/docs/yaml/ambassador/ambassador-crds.yaml: _generate_controller_gen $(tools/fix-crds) update-yaml-preflight
+	@printf '  $(CYN)$@$(END)\n'
+	$(tools/fix-crds) oss 1.11 $(sort $(wildcard $(crds_yaml_dir)/*.yaml)) > $@
+$(OSS_HOME)/python/tests/manifests/crds.yaml: $(OSS_HOME)/docs/yaml/ambassador/ambassador-crds.yaml $(tools/fix-crds) update-yaml-preflight
+	@printf '  $(CYN)$@$(END)\n'
+	$(tools/fix-crds) oss 1.10 $< > $@
+$(OSS_HOME)/docs/yaml/ambassador/%.yaml: $(OSS_HOME)/docs/yaml/ambassador/%.yaml.m4 $(OSS_HOME)/docs/yaml/ambassador/ambassador-crds.yaml update-yaml-preflight
+	@printf '  $(CYN)$@$(END)\n'
+	cd $(@D) && m4 < $(<F) > $(@F)
+
+update-yaml/files += $(OSS_HOME)/docs/yaml/ambassador/ambassador-crds.yaml
+update-yaml/files += $(OSS_HOME)/python/tests/manifests/crds.yaml
+update-yaml/files += $(OSS_HOME)/docs/yaml/ambassador/ambassador-rbac-prometheus.yaml
+update-yaml/files += $(OSS_HOME)/docs/yaml/ambassador/ambassador-knative.yaml
+
+generate/files += $(update-yaml/files)
+update-yaml:
+	$(MAKE) update-yaml-clean
+	@echo '$(MAKE) $$(update-yaml/files)'; $(MAKE) $(update-yaml/files)
+.PHONY: update-yaml
+
+update-yaml-clean:
+	find $(OSS_HOME)/pkg/api/getambassador.io -name 'zz_generated.*.go' -delete
+	rm -f $(crds_yaml_dir)/getambassador.io_*
+	rm -f $(update-yaml/files)
+generate-clean: update-yaml-clean
+.PHONY: update-yaml-clean

@@ -23,7 +23,8 @@ class NormalizedResource:
 
     @classmethod
     def from_data(cls, kind: str, name: str, namespace: str = 'default', generation: int = 1,
-                  version: str = 'v2', labels: Dict[str, Any] = None, spec: Dict[str, Any] = None) -> NormalizedResource:
+                  version: str = 'v2', labels: Dict[str, Any] = None, spec: Dict[str, Any] = None,
+                  errors: Optional[str]=None) -> NormalizedResource:
         rkey = f'{name}.{namespace}'
 
         ir_obj = {}
@@ -37,6 +38,9 @@ class NormalizedResource:
         ir_obj['generation'] = generation
         ir_obj['metadata_labels'] = labels or {}
 
+        if errors:
+            ir_obj['errors'] = errors
+
         return cls(ir_obj, rkey)
 
     @classmethod
@@ -49,9 +53,14 @@ class NormalizedResource:
         labels = dict(obj.labels)
         labels['ambassador_crd'] = f"{obj.name}.{obj.namespace}"
 
+        # When creating an Ambassador object from a Kubernetes object, we have to make
+        # sure that we pay attention to 'errors', which will be set IFF watt's validation
+        # finds errors.
+
         return cls.from_data(
             obj.kind,
             obj.name,
+            errors=obj.get('errors'),
             namespace=obj.namespace,
             generation=obj.generation,
             version=obj.gvk.version,

@@ -233,11 +233,13 @@
                         ],
                         "tls_context": {
                             "common_tls_context": {
-                                "tls_certificate_sds_secret_configs": [
+                                "tls_certificates": [
                                     {
-                                        "name": "tls.test-tls-secret.default",
-                                        "sds_config": {
-                                            "ads": {}
+                                        "certificate_chain": {
+                                            "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tls-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt"
+                                        },
+                                        "private_key": {
+                                            "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tls-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key"
                                         }
                                     }
                                 ]

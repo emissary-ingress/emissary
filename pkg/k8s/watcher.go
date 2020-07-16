@@ -1,6 +1,7 @@
 package k8s
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"sync"
@@ -28,13 +29,13 @@ func (lw listWatchAdapter) List(options v1.ListOptions) (runtime.Object, error) 
 	options.LabelSelector = lw.labelSelector
 	// silently coerce the returned *unstructured.UnstructuredList
 	// struct to a runtime.Object interface.
-	return lw.resource.List(options)
+	return lw.resource.List(context.TODO(), options)
 }
 
 func (lw listWatchAdapter) Watch(options v1.ListOptions) (pwatch.Interface, error) {
 	options.FieldSelector = lw.fieldSelector
 	options.LabelSelector = lw.labelSelector
-	return lw.resource.Watch(options)
+	return lw.resource.Watch(context.TODO(), options)
 }
 
 // Watcher is a kubernetes watcher that can watch multiple queries simultaneously
@@ -253,7 +254,7 @@ func (w *Watcher) UpdateStatus(resource Resource) (Resource, error) {
 		cli = watch.resource
 	}
 
-	result, err := cli.UpdateStatus(&uns, v1.UpdateOptions{})
+	result, err := cli.UpdateStatus(context.TODO(), &uns, v1.UpdateOptions{})
 	if err != nil {
 		return nil, err
 	} else {
