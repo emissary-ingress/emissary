@@ -66,9 +66,11 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 - Feature: `X-Content-Type-Options: nosniff` to response headers are now set for the Edge Policy Console, to prevent MIME confusion attacks.
 - Feature: The `OAuth2` Filter now has a `allowMalformedAccessToken` setting to enable use with IDPs that generate access tokens that are not compliant with RFC 6750.
 - Feature: Ambassador CRDs now include schema. This enables validation by `kubectl apply`.
+- Feature: Advanced TLS configuration can be specified in `Host` resource via `tlsContext` and `tls` fields.
 - Performance improvement: Diagnostics are generated on demand rather than on every reconfig.
 - Performance improvement: Experimental fast validation of the contents of Ambassador resources has been added. The `AMBASSADOR_FAST_VALIDATION` env var must be set to enable this.
 - Internal: Configuration endpoints used internally by Ambassador are no longer accessible from outside the Ambassador Pod.
+- Bugfix: `envoy_log_format` can now be set with `envoy_log_type: text`.
 
 As previously announced, the default value of `AMBASSADOR_UPDATE_MAPPING_STATUS`
 has now changed from `true` to `false`; Ambassador will no longer attempt to
@@ -85,6 +87,7 @@ tooling that relies on `Mapping` status updates, we do not recommend setting
 - Feature: The Edge Policy Console's Debugging page now has a "Log Out" button to terminate all EPC sessions.
 - Feature: `X-Content-Type-Options: nosniff` to response headers are now set for the Edge Policy Console, to prevent MIME confusion attacks.
 - Feature: The `OAuth2` Filter now has a `allowMalformedAccessToken` setting to enable use with IDPs that generate access tokens that are not compliant with RFC 6750.
+- Bugfix: All JWT Filter errors are now formatted per the specified `errorResponse`.
 
 ## [1.5.5] June 30, 2020
 [1.5.5]: https://github.com/datawire/ambassador/compare/v1.5.4...v1.5.5
