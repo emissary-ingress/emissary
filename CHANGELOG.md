@@ -82,9 +82,6 @@ tooling that relies on `Mapping` status updates, we do not recommend setting
 
 ### Ambassador Edge Stack only
 
-- Feature: The Edge Policy Console's Debugging page has a **Log Out** button to terminate all EPC sessions
-- Feature: Disable content sniffing on AES to prevent MIME confusion attack by adding X-Content-Type-Options nosniff to response headers.
-- Feature: Don't write TLS secrets to disk during Envoy configuration.
 - Feature: The Edge Policy Console's Debugging page now has a "Log Out" button to terminate all EPC sessions.
 - Feature: `X-Content-Type-Options: nosniff` to response headers are now set for the Edge Policy Console, to prevent MIME confusion attacks.
 - Feature: The `OAuth2` Filter now has a `allowMalformedAccessToken` setting to enable use with IDPs that generate access tokens that are not compliant with RFC 6750.
