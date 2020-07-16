@@ -65,6 +65,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 - Feature: The Edge Policy Console's Debugging page has a **Log Out** button to terminate all EPC sessions
 - Feature: Disable content sniffing on AES to prevent MIME confusion attack by adding X-Content-Type-Options nosniff to response headers.
 - Feature: Don't write TLS secrets to disk during Envoy configuration.
+- Feature: The Console's Dashboard page has speedometer gauges to visualize Rate Limited and Authenticated traffic
 
 ## [1.5.5] June 30, 2020
 [1.5.5]: https://github.com/datawire/ambassador/compare/vv1.5.4...v1.5.5
