@@ -108,10 +108,14 @@ class Config:
     # rkey => ACResource
     sources: Dict[str, ACResource]
 
-    errors: Dict[str, List[dict]]
-    notices: Dict[str, List[str]]
+    errors: Dict[str, List[dict]]           # errors to post to the UI
+    notices: Dict[str, List[str]]           # notices to post to the UI
     fatal_errors: int
     object_errors: int
+
+    # fast_validation_disagreements tracks places where watt says a resource
+    # is invalid, but Python says it's OK.
+    fast_validation_disagreements: Dict[str, List[str]]
 
     def __init__(self, schema_dir_path: Optional[str]=None) -> None:
 
@@ -177,6 +181,8 @@ class Config:
         self.fatal_errors = 0
         self.object_errors = 0
 
+        self.fast_validation_disagreements = {}
+
         # Build up the Ambassador node name.
         #
         # XXX This should be overrideable by the Ambassador module.
@@ -200,6 +206,7 @@ class Config:
         od: Dict[str, Any] = {
             '_errors': self.errors,
             '_notices': self.notices,
+            '_fast_validation_disagreements': self.fast_validation_disagreements,
             '_sources': {}
         }
 
@@ -431,14 +438,6 @@ class Config:
         apiVersion = resource.apiVersion
         originalApiVersion = apiVersion
 
-        # If watt marked this as having errors, we're done.
-        if 'errors' in resource:
-            errors = resource.errors.split('\n')
-
-            # This weird list comprehension around 'errors' is just filtering out any
-            # empty lines.
-            return RichStatus.fromError('; '.join([error for error in errors if error]))
-
         # The Canonical API Version for our resources always starts with "getambassador.io/",
         # but it used to always start with "ambassador/". Translate as needed for backward
         # compatibility.
@@ -476,6 +475,9 @@ class Config:
         if resource.kind.lower() in Config.NoSchema:
             return RichStatus.OK(msg=f"no schema for {resource.kind} {name} so calling it good")
 
+        # Do we have a validator that can work on this object?
+        validator = self.get_validator(apiVersion, resource.kind)
+
         # OK, now we need to decide what more we need to do. Start by assuming that we will,
         # in fact, need to do full schema validation for this object.
 
@@ -494,24 +496,57 @@ class Config:
             need_validation = True
             del(resource['_force_validation'])
 
-        # OK, assume that no validation is needed...
+        # Did watt find errors here? (This can only happen if AMBASSADOR_FAST_VALIDATION
+        # is enabled -- in a later version we'll short-circuit earlier, but for now we're
+        # going to re-validate as a check on watt.)
+
+        watt_errors = None
+
+        if 'errors' in resource:
+            # Pop the errors out of this resource, since we can't validate in Python
+            # while it's present!
+            errors = resource.pop('errors').split('\n')
+
+            # This weird list comprehension around 'errors' is just filtering out any
+            # empty lines.
+            watt_errors = '; '.join([error for error in errors if error])
+
+            if watt_errors:
+                # Yup, we really had errors here. Mark as needing re-validation for
+                # now.
+                need_validation = True
+
+        # OK, assume that we won't be validating so we can just report that...
         rc = RichStatus.OK(msg=f"validation not needed for {apiVersion} {resource.kind} {name} so calling it good")
 
         # ...then, let's see whether reality matches our assumption.
-
         if need_validation:
-            # Aha, we need to do validation. Do we actually have a validator than can
-            # do that?
-            validator = self.get_validator(apiVersion, resource.kind)
+            # Aha, we need to do validation -- either fast validation isn't on, or it
+            # was requested, or watt reported errors. So if we can do validation, do it.
 
             if validator:
                 rc = validator(resource)
+
+                if watt_errors:
+                    # watt reported errors. Did we find errors or not?
+                    
+                    if rc:
+                        # We did not. Post this into fast_validation_disagreements
+                        fvd = self.fast_validation_disagreements.setdefault(resource.rkey, [])
+                        fvd.append(watt_errors)
+                        self.logger.debug(f"validation disagreement: good {resource.kind} {name} has watt errors {watt_errors}")
+
+                        # Note that we override watt here by returning the successful
+                        # result from our validator. That's intentional in 1.6.0.
+                    else:
+                        # We don't like it either. Stick with the watt errors (since we know,
+                        # a priori, that fast validation is enabled).
+                        rc = RichStatus.fromError(watt_errors)
             else:
                 # No validator, so, uh, call it good.
                 rc = RichStatus.OK(msg=f"no validator for {apiVersion} {resource.kind} {name} so calling it good")
             
         # One way or the other, we're done here. Finally.
-
         self.logger.debug(f"validation {rc}")
         return rc
 
