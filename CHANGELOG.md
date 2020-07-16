@@ -53,6 +53,9 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ### Ambassador API Gateway + Ambassador Edge Stack
 
+- Feature: Ambassador CRDs now include schema. This enables validation by `kubectl apply`.
+- Performance improvement: diagnostics are generated on demand rather than on every reconfig.
+- Performance improvement: Faster validation of the contents of ambassador resources has been added. The AMBASSADOR_FAST_VALIDATION env var must be set to enable this.
 - Incorporate the Envoy 1.14.4 security update.
 - BREAKING CHANGE: Turning off the Diagnostics UI via the Ambassador Module disables access to it from outside the Ambassador Pod.
 - BREAKING CHANGE: Default to not updating `Mapping` status; see below.
