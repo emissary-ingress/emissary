@@ -1,258 +1,117 @@
 {
     "$schema": "http://json-schema.org/schema#",
     "id": "https://getambassador.io/schemas/mapping.json",
+
     "type": "object",
     "properties": {
-        "apiVersion": {
-            "enum": [
-                "getambassador.io/v0"
-            ]
-        },
-        "generation": {
-            "type": "integer"
-        },
-        "kind": {
-            "type": "string"
-        },
-        "name": {
-            "type": "string"
-        },
-        "namespace": {
-            "type": "string"
-        },
+        "apiVersion": { "enum": [ "getambassador.io/v0" ] },
+        "generation": { "type": "integer" },
+        "kind": { "type": "string" },
+        "name": { "type": "string" },
+        "namespace": { "type": "string" },
         "metadata_labels": {
             "type": "object",
-            "additionalProperties": {
-                "oneOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
-                        "type": "boolean"
-                    }
-                ]
-            }
+            "additionalProperties": { "type": [ "string", "boolean" ] }
         },
         "ambassador_id": {
-            "oneOf": [
-                {
-                    "type": "string"
-                },
-                {
-                    "type": "array"
-                }
-            ],
-            "items": {
-                "type": "string"
-            }
+            "anyOf": [
+                { "type": "string" },
+                { "type": "array", "items": { "type": "string" } }
+            ]
         },
-        "prefix": {
-            "type": "string"
-        },
-        "prefix_regex": {
-            "type": "boolean"
-        },
-        "service": {
-            "type": "string"
-        },
-        "add_request_headers": {
-            "$ref": "#/definitions/mapStrStr"
-        },
-        "add_response_headers": {
-            "$ref": "#/definitions/mapStrStr"
-        },
-        "auto_host_rewrite": {
-            "type": "boolean"
-        },
-        "case_sensitive": {
-            "type": "boolean"
-        },
-        "circuit_breaker": {
-            "type": "string"
-        },
+        
+        "prefix": { "type": "string" },
+        "prefix_regex": { "type": "boolean" },
+        "service": { "type": "string" },
+        "add_request_headers": { "$ref": "#/definitions/mapStrStr" },
+        "add_response_headers": { "$ref": "#/definitions/mapStrStr" },
+        "auto_host_rewrite": { "type": "boolean" },
+        "case_sensitive": { "type": "boolean" },
+        "circuit_breaker": { "type": "string" },
         "cors": {
             "type": "object",
             "properties": {
-                "origins": {
-                    "oneOf": [
-                        {
-                            "type": "string"
-                        },
-                        {
-                            "type": "array"
-                        }
-                    ],
-                    "items": {
-                        "type": "string"
-                    }
+                "origins":  {
+                    "anyOf": [
+                        { "type": "string" },
+                        { "type": "array", "items": { "type": "string" } }
+                    ]
                 },
                 "methods": {
-                    "oneOf": [
-                        {
-                            "type": "string"
-                        },
-                        {
-                            "type": "array"
-                        }
-                    ],
-                    "items": {
-                        "type": "string"
-                    }
+                    "anyOf": [
+                        { "type": "string" },
+                        { "type": "array", "items": { "type": "string" } }
+                    ]
                 },
                 "headers": {
-                    "oneOf": [
-                        {
-                            "type": "string"
-                        },
-                        {
-                            "type": "array"
-                        }
-                    ],
-                    "items": {
-                        "type": "string"
-                    }
+                    "anyOf": [
+                        { "type": "string" },
+                        { "type": "array", "items": { "type": "string" } }
+                    ]
                 },
-                "credentials": {
-                    "type": "boolean"
-                },
+                "credentials": { "type": "boolean" },
                 "exposed_headers": {
-                    "oneOf": [
-                        {
-                            "type": "string"
-                        },
-                        {
-                            "type": "array"
-                        }
-                    ],
-                    "items": {
-                        "type": "string"
-                    }
+                    "anyOf": [
+                        { "type": "string" },
+                        { "type": "array", "items": { "type": "string" } }
+                    ]
                 },
-                "max_age": {
-                    "type": "string"
-                }
+                "max_age": { "type": "string" }
             },
             "additionalProperties": false
         },
-        "grpc": {
-            "type": "boolean"
-        },
-        "host_redirect": {
-            "type": "boolean"
-        },
-        "host_rewrite": {
-            "type": "string"
-        },
-        "method": {
-            "type": "string"
-        },
-        "method_regex": {
-            "type": "boolean"
-        },
-        "outlier_detection": {
-            "type": "string"
-        },
-        "path_redirect": {
-            "type": "string"
-        },
-        "priority": {
-            "type": "string"
-        },
-        "precedence": {
-            "type": "integer"
-        },
-        "rewrite": {
-            "type": "string"
-        },
-        "shadow": {
-            "type": "boolean"
-        },
-        "connect_timeout_ms": {
-            "type": "integer"
-        },
-        "timeout_ms": {
-            "type": "integer"
-        },
-        "tls": {
-            "oneOf": [
-                {
-                    "type": "string"
-                },
-                {
-                    "type": "boolean"
-                }
-            ]
-        },
-        "use_websocket": {
-            "type": "boolean"
-        },
-        "weight": {
-            "type": "integer"
-        },
+        "grpc": { "type": "boolean" },
+        "host_redirect": { "type": "boolean" },
+        "host_rewrite": { "type": "string" },
+        "method": { "type": "string" },
+        "method_regex": { "type": "boolean" },
+        "outlier_detection": { "type": "string" },
+        "path_redirect": { "type": "string" },
+        "priority": { "type": "string" },
+        "precedence": { "type": "integer" },
+        "rewrite": { "type": "string" },
+        "shadow": { "type": "boolean" },
+        "connect_timeout_ms": { "type": "integer" },
+        "timeout_ms": { "type": "integer" },
+        "tls": { "type": [ "string", "boolean" ] },
+        "use_websocket": { "type": "boolean" },
+        "weight": { "type": "integer" },
+
         "modules": {
             "type": "array",
             "items": {
                 "type": "object"
             }
         },
-        "host": {
-            "type": "string"
-        },
-        "host_regex": {
-            "type": "boolean"
-        },
-        "headers": {
-            "$ref": "#/definitions/mapStrStr"
-        },
-        "regex_headers": {
-            "$ref": "#/definitions/mapStrStr"
-        },
+        "host": { "type": "string" },
+        "host_regex": { "type": "boolean" },
+        "headers": { "$ref": "#/definitions/mapStrStr" },
+        "regex_headers": { "$ref": "#/definitions/mapStrStr" },
         "rate_limits": {
             "type": "array",
-            "items": {
-                "$ref": "#/definitions/rateLimit"
-            }
+            "items": { "$ref": "#/definitions/rateLimit" }
         },
-        "envoy_override": {
+        "envoy_override": { 
             "type": "object"
         }
     },
     "definitions": {
         "mapStrStr": {
             "type": "object",
-            "additionalProperties": {
-                "oneOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
-                        "type": "boolean"
-                    }
-                ]
-            }
+            "additionalProperties": { "type": [ "string", "boolean" ] }
         },
         "rateLimit": {
             "type": "object",
             "properties": {
-                "descriptor": {
-                    "type": "string"
-                },
-                "headers": {
+                "descriptor":  { "type": "string" },
+                "headers": { 
                     "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
+                    "items": { "type": "string" }
                 }
             },
             "additionalProperties": false
         }
     },
-    "required": [
-        "apiVersion",
-        "kind",
-        "name",
-        "service",
-        "prefix"
-    ],
+    "required": [ "apiVersion", "kind", "name", "service", "prefix" ],
     "additionalProperties": false
 }
