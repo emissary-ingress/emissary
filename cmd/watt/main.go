@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
 	"time"
@@ -123,11 +124,15 @@ func runWatt(ctx context.Context, flags wattFlags, args []string) error {
 	invoker := NewInvoker(apiServerAuthority, flags.notifyReceivers)
 	limiter := limiter.NewComposite(limiter.NewUnlimited(), limiter.NewInterval(flags.interval), flags.interval)
 
-	kcli, err := kates.NewClient(kates.ClientOptions{})
+	crdYAML, err := ioutil.ReadFile("/opt/ambassador/etc/crds.yaml")
 	if err != nil {
 		return err
 	}
-	validator, err := kates.NewValidator(kcli, nil)
+	crdObjs, err := kates.ParseManifests(string(crdYAML))
+	if err != nil {
+		return err
+	}
+	validator, err := kates.NewValidator(nil, crdObjs)
 	if err != nil {
 		return err
 	}
