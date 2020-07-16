@@ -88,7 +88,7 @@ tooling that relies on `Mapping` status updates, we do not recommend setting
 - Bugfix: All JWT Filter errors are now formatted per the specified `errorResponse`.
 - Feature: Options for making Redis connection pooling configurable.
 - Bugfix: User is now directed to the correct URL after clicking in Microsoft Office.
-- Feature: The Console's Dashboard page has speedometer gauges to visualize Rate Limited and Authenticated traffic
+- Feature: The Console's Dashboard page has speedometer gauges to visualize Rate Limited and Authenticated traffic.
 
 ## [1.5.5] June 30, 2020
 [1.5.5]: https://github.com/datawire/ambassador/compare/v1.5.4...v1.5.5
