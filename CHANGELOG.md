@@ -62,9 +62,6 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 - BREAKING CHANGE: Turning off the Diagnostics UI via the Ambassador Module disables access to it from outside the Ambassador Pod.
 - BREAKING CHANGE: Default to not updating `Mapping` status; see below.
 - Feature: Add support for circuit breakers in TCP mapping (thanks, [Pierre Fersing](https://github.com/PierreF)!)
-- Feature: The Edge Policy Console's Debugging page now has a "Log Out" button to terminate all EPC sessions.
-- Feature: `X-Content-Type-Options: nosniff` to response headers are now set for the Edge Policy Console, to prevent MIME confusion attacks.
-- Feature: The `OAuth2` Filter now has a `allowMalformedAccessToken` setting to enable use with IDPs that generate access tokens that are not compliant with RFC 6750.
 - Feature: Ambassador CRDs now include schema. This enables validation by `kubectl apply`.
 - Feature: Advanced TLS configuration can be specified in `Host` resource via `tlsContext` and `tls` fields.
 - Performance improvement: Diagnostics are generated on demand rather than on every reconfig.
