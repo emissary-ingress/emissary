@@ -94,7 +94,7 @@ li.QS-asideNoBullets {
 }
 .QS-osLogo {
   width: 30px;
-  margin: 0 0 -4px 4px;
+  margin: 0 0 -4px -1px;
 }
 .QS-aside1 {
   grid-area: sidebar1;
@@ -211,21 +211,25 @@ summary#helmVersions {
 }
 @media screen and (max-width: 1200px) {
   .QS-grid {
-    padding-left: 100px;
+    margin-left: 0px;
+    width: 95%
   }
   img.QS-osLogo {
     display: inline;
   }
 }
 @media screen and (max-width: 1120px) {
+  .QS-grid {
+    margin-left: 0px;
+    width: 95%
+  }
   img.QS-osLogo {
     display: inline;
   }
 }
 @media screen and (max-width: 1010px) {
   .QS-grid {
-    padding-left: 150px;
-    width: 115%;
+    width: 95%;
   }
   div.doc-body {
     padding-left: 20px;
@@ -233,18 +237,17 @@ summary#helmVersions {
 }
 @media screen and (max-width: 995px) {
   .QS-grid {
-    padding-left: 150px;
-    width: 115%;
+    width: 95%;
   }
 }
 @media screen and (max-width: 900px) {
   .QS-grid {
-    padding-left: 150px;
+    width: 95%;
   }
 }
 @media screen and (max-width: 800px) {
   .QS-grid {
-    padding-left: 100px;
+    width: 95%;
   }
 }
 @media screen and (max-width: 500px) {
@@ -265,7 +268,7 @@ summary#helmVersions {
     padding: 5px 10px 0px;
   }
   .QS-grid {
-    padding-left: 100px;
-    width: 130%;
+    margin-left: -20px;
+    width: 95%;
   }
 }
