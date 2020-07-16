@@ -64,6 +64,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 - Feature: Add support for circuit breakers in TCP mapping (thanks, [Pierre Fersing](https://github.com/PierreF)!)
 - Feature: Ambassador CRDs now include schema. This enables validation by `kubectl apply`.
 - Feature: Advanced TLS configuration can be specified in `Host` resource via `tlsContext` and `tls` fields.
+- Feature: Implement sampling percentage in tracing service.
 - Performance improvement: Diagnostics are generated on demand rather than on every reconfig.
 - Performance improvement: Experimental fast validation of the contents of Ambassador resources has been added. The `AMBASSADOR_FAST_VALIDATION` env var must be set to enable this.
 - Internal: Configuration endpoints used internally by Ambassador are no longer accessible from outside the Ambassador Pod.
@@ -85,6 +86,8 @@ tooling that relies on `Mapping` status updates, we do not recommend setting
 - Feature: `X-Content-Type-Options: nosniff` to response headers are now set for the Edge Policy Console, to prevent MIME confusion attacks.
 - Feature: The `OAuth2` Filter now has a `allowMalformedAccessToken` setting to enable use with IDPs that generate access tokens that are not compliant with RFC 6750.
 - Bugfix: All JWT Filter errors are now formatted per the specified `errorResponse`.
+- Feature: Options for making Redis connection pooling configurable.
+- Bugfix: User is now directed to the correct URL after clicking in Microsoft Office.
 
 ## [1.5.5] June 30, 2020
 [1.5.5]: https://github.com/datawire/ambassador/compare/v1.5.4...v1.5.5
@@ -203,7 +206,7 @@ The default value of `AMBASSADOR_UPDATE_MAPPING_STATUS` will change to
 - Bugfix: The Traffic Agent binds to port 9900 by default. That port can be configured in the Agent's Pod spec.
    - For more about using the Traffic Agent, see the [Service Preview documentation](https://www.getambassador.io/docs/latest/topics/using/edgectl/#configuring-service-preview).
 - Bugfix: The `OAuth2` Filter redirection-endpoint now handles various XSRF errors more consistently (the way we meant it to in 1.2.1)
-- Bugfix: The `OAuth2` Filter now supports multiple authentication domains that share the same credentials.   
+- Bugfix: The `OAuth2` Filter now supports multiple authentication domains that share the same credentials.
    - For more about using multiple domains, see the [OAuth2 `Filter` documentation](https://www.getambassador.io/docs/1.4/topics/using/filters/oauth2/).
 - Bugfix: The ACME client now obeys `AMBASSADOR_ID`
 
@@ -212,7 +215,7 @@ The default value of `AMBASSADOR_UPDATE_MAPPING_STATUS` will change to
 
 ### Ambassador Edge Stack Only
 
-- Internal: `edgectl install` uses Helm under the hood 
+- Internal: `edgectl install` uses Helm under the hood
 
 ## [1.4.0] April 8, 2020
 [1.4.0]: https://github.com/datawire/ambassador/compare/v1.3.2...v1.4.0
@@ -270,7 +273,7 @@ The default value of `AMBASSADOR_UPDATE_MAPPING_STATUS` will change to
 ### Ambassador Edge Stack
 
 - Feature: Support username and password as headers for OAuth2 authentication (`grantType: Password`)
-- Feature: `edgectl install` provides better feedback for clusters that are unreachable from the public Internet 
+- Feature: `edgectl install` provides better feedback for clusters that are unreachable from the public Internet
 - Feature: `edgectl install` supports KIND clusters (thanks, [@factorypreset](https://github.com/factorypreset)!)
 - Feature: `edgectl intercept` supports HTTPS
 - Feature: Ambassador Edge Stack Docker image is ~150MB smaller
@@ -906,7 +909,7 @@ will try to warn you if your configuration will be affected by this change.
 - You can specify the `AMBASSADOR_NO_SECRETS` environment variable to prevent Ambassador from
   watching Kubernetes secrets at all (thanks [@esmet](https://github.com/esmet)!) ([#1293])
 - The services used when you do `docker run ambassador --demo` have been moved into the Docker image,
-  to remove external dependencies from the Ambassador quickstart.  
+  to remove external dependencies from the Ambassador quickstart.
 
 [#1293]: https://github.com/datawire/ambassador/issues/1293
 
@@ -1087,7 +1090,7 @@ section above for more information.**
 - Websocket connections will now be authenticated if an AuthService is configured [#1026]
 - Client certificate authentication should function whether configured from a TLSContext resource or from the the old-style TLS module (this is the full fix for [#993])
 - Ambassador can now switch listening ports without a restart (e.g. switching from cleartext to TLS) [#1100]
-- TLS origination certificates (including Istio mTLS) should now function [#1071]  
+- TLS origination certificates (including Istio mTLS) should now function [#1071]
 - The diagnostics service should function in all cases. [#1096]
 - The Ambassador image is significantly (~500MB) smaller than RC4.
 
@@ -1183,13 +1186,13 @@ updates after running for a short time. This will be fixed in 0.50.0-GA.
 
 - Some resources will change between `ambassador/v0` and `ambassador/v1`.
    - For example, the `Mapping` resource will no longer support `rate_limits` as that functionality will
-     be subsumed by `labels`.   
+     be subsumed by `labels`.
 
 ### Changes since 0.50.0-ea6:
 
 - Ambassador now supports `labels` for all `Mapping`s.
 - Configuration of rate limits for a `Mapping` is now handled by providing `labels` in the domain configured
-  for the `RateLimitService` (by default, this is "ambassador").    
+  for the `RateLimitService` (by default, this is "ambassador").
 - Ambassador, once again, supports `statsd` for statistics gathering.
 - The Envoy `buffer` filter is supported.
 - Ambassador can now use GRPC to call the external authentication service, and also include the message body
@@ -1237,7 +1240,7 @@ updates after running for a short time. This will be fixed in 0.50.0-GA.
 - Ambassador 0.50.0-ea4 uses Envoy 1.8.0.
 - `RateLimitService` is now supported. **You will need to restart Ambassador if you change the `RateLimitService` configuration.** We expect to lift this restriction in a later release; for now, the diag service will warn you when a restart is required.
    - The `RateLimitService` also has a new `timeout_ms` attribute, which allows overriding the default request timeout of 20ms.
-- GRPC is provisionally supported, but still needs improvements in test coverage.  
+- GRPC is provisionally supported, but still needs improvements in test coverage.
 - Ambassador will correctly include its EA number when checking for updates.
 
 ## [0.50.0-ea3] October 21, 2018
@@ -1280,13 +1283,13 @@ updates after running for a short time. This will be fixed in 0.50.0-GA.
 - WebSockets are not currently supported.
 - CORS is not currently supported.
 - GRPC is not currently supported.
-- TLS termination is not  
+- TLS termination is not
 - `statsd` integration has not been tested.
 - The logs are very cluttered.
 - Configuration directly from the filesystem isn’t supported.
 - The diagnostics service cannot correctly drill down by source file, though it can drill down by route or other resources.
 - Helm installation has not been tested.
-- `AuthService` does not currently have full support for configuring headers to be sent to the extauth service. At present it sends all the headers listed in `allowed_headers` plus:  
+- `AuthService` does not currently have full support for configuring headers to be sent to the extauth service. At present it sends all the headers listed in `allowed_headers` plus:
    - `Authorization`
    - `Cookie`
    - `Forwarded`
