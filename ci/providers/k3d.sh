@@ -29,7 +29,7 @@ setup)
 
   if ! command_exists k3d ; then
     info "Installing k3d"
-    curl -s https://raw.githubusercontent.com/rancher/k3d/master/install.sh | bash
+    curl -s https://raw.githubusercontent.com/rancher/k3d/main/install.sh | bash
   fi
   ;;
 

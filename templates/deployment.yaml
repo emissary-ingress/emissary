@@ -99,7 +99,7 @@ spec:
             - key: ambassadorConfig
               path: ambassador-config.yaml
         {{- end }}
-        {{- if .Values.enableAES}}
+        {{- if and .Values.licenseKey.createSecret .Values.enableAES }}
         - name: {{ include "ambassador.fullname" . }}-edge-stack-secrets
           secret:
             {{- if .Values.licenseKey.secretName }}
@@ -228,7 +228,7 @@ spec:
               mountPath: /ambassador/ambassador-config/ambassador-config.yaml
               subPath: ambassador-config.yaml
           {{- end }}
-          {{- if .Values.enableAES }}
+          {{- if and .Values.licenseKey.createSecret .Values.enableAES }}
             - name: {{ include "ambassador.fullname" . }}-edge-stack-secrets
               mountPath: /.config/ambassador
               readOnly: true
