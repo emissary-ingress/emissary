@@ -475,9 +475,6 @@ class Config:
         if resource.kind.lower() in Config.NoSchema:
             return RichStatus.OK(msg=f"no schema for {resource.kind} {name} so calling it good")
 
-        # Do we have a validator that can work on this object?
-        validator = self.get_validator(apiVersion, resource.kind)
-
         # OK, now we need to decide what more we need to do. Start by assuming that we will,
         # in fact, need to do full schema validation for this object.
 
@@ -523,6 +520,9 @@ class Config:
         if need_validation:
             # Aha, we need to do validation -- either fast validation isn't on, or it
             # was requested, or watt reported errors. So if we can do validation, do it.
+
+            # Do we have a validator that can work on this object?
+            validator = self.get_validator(apiVersion, resource.kind)
 
             if validator:
                 rc = validator(resource)
