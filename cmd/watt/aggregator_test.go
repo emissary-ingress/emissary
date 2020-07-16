@@ -45,9 +45,11 @@ func newAggIsolator(t *testing.T, requiredKinds []string, watchHook WatchHook) *
 	}
 	client, err := kates.NewClient(kates.ClientOptions{})
 	require.NoError(t, err)
+	validator, err := kates.NewValidator(client, nil)
+	require.NoError(t, err)
 	iso.aggregator = NewAggregator(iso.snapshots, iso.k8sWatches, iso.consulWatches, requiredKinds, watchHook,
 		limiter.NewUnlimited(),
-		kates.NewValidator(client))
+		validator)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	iso.cancel = cancel
 	iso.sup = supervisor.WithContext(ctx)

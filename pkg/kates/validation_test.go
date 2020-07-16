@@ -39,7 +39,8 @@ func TestValidation(t *testing.T) {
 	client.WaitFor(ctx, crd.GetName())
 
 	// check that an invalid crd errors out
-	validator := NewValidator(client)
+	validator, err := NewValidator(client, nil)
+	require.NoError(t, err)
 	err = validator.Validate(ctx, map[string]interface{}{
 		"apiVersion": "test.io/v1",
 		"kind":       "TestValidation",

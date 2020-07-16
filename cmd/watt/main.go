@@ -127,8 +127,12 @@ func runWatt(ctx context.Context, flags wattFlags, args []string) error {
 	if err != nil {
 		return err
 	}
+	validator, err := kates.NewValidator(kcli, nil)
+	if err != nil {
+		return err
+	}
 	aggregator := NewAggregator(invoker.Snapshots, aggregatorToKubewatchmanCh, aggregatorToConsulwatchmanCh,
-		flags.initialSources, ExecWatchHook(flags.watchHooks), limiter, kates.NewValidator(kcli))
+		flags.initialSources, ExecWatchHook(flags.watchHooks), limiter, validator)
 
 	kubebootstrap := kubebootstrap{
 		namespace:      flags.kubernetesNamespace,
