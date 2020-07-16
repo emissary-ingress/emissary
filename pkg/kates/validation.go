@@ -6,8 +6,8 @@ import (
 	"strings"
 	"sync"
 
-	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions"
-	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	apiextVInternal "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions"
+	apiextV1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apiextensions-apiserver/pkg/apiserver/validation"
 
 	"github.com/go-openapi/validate"
@@ -29,12 +29,8 @@ func NewValidator(client *Client) *Validator {
 	return &Validator{client: client, validators: make(map[TypeMeta]*validate.SchemaValidator)}
 }
 
-func (v *Validator) getValidator(ctx context.Context, tm TypeMeta) (*validate.SchemaValidator, error) {
-	v.mutex.Lock()
-	defer v.mutex.Unlock()
-
-	validator, ok := v.validators[tm]
-	if !ok {
+func (v *Validator) getCRD(ctx context.Context, tm TypeMeta) (*apiextVInternal.CustomResourceDefinition, error) {
+	if v.client != nil {
 		mapping, err := v.client.mappingFor(tm.GroupVersionKind().GroupKind().String())
 		if err != nil {
 			return nil, err
@@ -52,25 +48,41 @@ func (v *Validator) getValidator(ctx context.Context, tm TypeMeta) (*validate.Sc
 		err = v.client.Get(ctx, obj, obj)
 		if err != nil {
 			if IsNotFound(err) {
-				v.validators[tm] = nil
 				return nil, nil
 			}
 
 			return nil, err
 		}
 
-		extcrd := &apiextensions.CustomResourceDefinition{}
-		err = v1.Convert_v1_CustomResourceDefinition_To_apiextensions_CustomResourceDefinition(obj, extcrd, nil)
+		var ret apiextVInternal.CustomResourceDefinition
+		err = apiextV1.Convert_v1_CustomResourceDefinition_To_apiextensions_CustomResourceDefinition(obj, &ret, nil)
+		if err != nil {
+			return nil, err
+		}
+		return &ret, nil
+	}
+	return nil, nil
+}
+
+func (v *Validator) getValidator(ctx context.Context, tm TypeMeta) (*validate.SchemaValidator, error) {
+	v.mutex.Lock()
+	defer v.mutex.Unlock()
+
+	validator, ok := v.validators[tm]
+	if !ok {
+		crd, err := v.getCRD(ctx, tm)
 		if err != nil {
 			return nil, err
 		}
 
-		validator, _, err = validation.NewSchemaValidator(extcrd.Spec.Validation)
-		if err != nil {
-			return nil, err
+		if crd != nil {
+			validator, _, err = validation.NewSchemaValidator(crd.Spec.Validation)
+			if err != nil {
+				return nil, err
+			}
 		}
 
-		v.validators[tm] = validator
+		v.validators[tm] = validator // even if validator is nil; cache negative responses
 	}
 	return validator, nil
 }
