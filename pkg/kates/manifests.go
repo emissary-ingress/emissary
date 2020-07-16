@@ -2,6 +2,7 @@ package kates
 
 import (
 	"bufio"
+	"bytes"
 	"io"
 	"reflect"
 	"strings"
@@ -52,7 +53,7 @@ func ParseManifests(text string) ([]Object, error) {
 	var result []Object
 
 	for {
-		bytes, err := yr.Read()
+		bs, err := yr.Read()
 		if err == io.EOF {
 			break
 		}
@@ -60,12 +61,19 @@ func ParseManifests(text string) ([]Object, error) {
 			return nil, err
 		}
 
-		if strings.TrimSpace(string(bytes)) == "" {
+		empty := true
+		for _, line := range bytes.Split(bs, []byte("\n")) {
+			if len(bytes.TrimSpace(bytes.SplitN(line, []byte("#"), 2)[0])) > 0 {
+				empty = false
+				break
+			}
+		}
+		if empty {
 			continue
 		}
 
 		var tm TypeMeta
-		err = yaml.Unmarshal(bytes, &tm)
+		err = yaml.Unmarshal(bs, &tm)
 		if err != nil {
 			return nil, err
 		}
@@ -74,7 +82,7 @@ func ParseManifests(text string) ([]Object, error) {
 		if err != nil {
 			return nil, err
 		}
-		err = yaml.Unmarshal(bytes, obj)
+		err = yaml.Unmarshal(bs, obj)
 		if err != nil {
 			return nil, err
 		}

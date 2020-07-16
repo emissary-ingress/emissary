@@ -8,6 +8,7 @@ import (
 )
 
 var svc = `
+# leading comment
 ---
 apiVersion: v1
 kind: Service
