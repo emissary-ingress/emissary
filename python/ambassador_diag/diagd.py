@@ -225,10 +225,9 @@ class DiagApp (Flask):
 
         You MUST NOT already hold the config_lock when trying to read app.diag.
         """
-        assert(not self.config_lock.locked())
 
-        # OK -- the config_lock is meant to make sure that we don't ever update
-        # self.diag in two places at once.
+        # The config_lock is meant to make sure that we don't ever update
+        # self.diag in two places at once, so grab that first.
         with self.config_lock:
             # OK. If we haven't already generated the Diagnostics...
             if not app._diag:
@@ -254,7 +253,6 @@ class DiagApp (Flask):
 
         You MUST already hold the config_lock when trying to update app.diag.
         """
-        assert(self.config_lock.locked())
         self._diag = diag
 
     def check_scout(self, what: str) -> None:
