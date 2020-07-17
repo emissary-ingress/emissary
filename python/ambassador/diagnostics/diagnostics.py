@@ -515,7 +515,7 @@ class Diagnostics:
             for mapping in group.mappings:
                 resolver_name = mapping.resolver
                 group_list = used_resolvers.setdefault(resolver_name, [])
-                group_list.append(group)
+                group_list.append(group.rkey)
 
         for name, resolver in sorted(self.ir.resolvers.items()):
             if name in used_resolvers:
@@ -555,7 +555,7 @@ class Diagnostics:
             'kind': resolver.kind,
             '_source': resolver.location,
             'name': resolver.name,
-            'groups': [ g.as_dict() for g in group_list ]
+            'groups': group_list
         })
 
     @staticmethod
@@ -588,10 +588,25 @@ class Diagnostics:
             'errors': self.errors,
             'notices': self.notices,
             'fast_validation_disagreements': self.fast_validation_disagreements,
-            'groups': { key: value.as_dict() for key, value in self.groups.items() },
-            'clusters': { key: value.as_dict() for key, value in self.clusters.items() },
+            'groups': { key: self.flattened(value) for key, value in self.groups.items() },
+            # 'clusters': { key: value.as_dict() for key, value in self.clusters.items() },
             'tlscontexts': [ x.as_dict() for x in self.ir.tls_contexts.values() ]
         }
+
+    def flattened(self, group: IRBaseMappingGroup) -> dict:
+        flattened = { k: v for k, v in group.as_dict().items() if k != 'mappings' }
+        flattened['mappings'] = [
+            {
+                "_active": m['_active'],
+                "_errored": m['_errored'],
+                "_rkey": m['rkey'],
+                "name": m['name'],
+                "cluster_service": m.get('cluster', {}).get("service"),
+                "cluster_name": m.get('cluster', {}).get("name")
+            } for m in group['mappings']
+        ]
+
+        return flattened
 
     def _remember_source(self, src_key: str, dest_key: str) -> None:
         """
@@ -642,11 +657,9 @@ class Diagnostics:
         result = DiagResult(self, estat, request)
 
         for group in self.ir.ordered_groups():
+            # TCPMappings are currently handled elsewhere.
             if isinstance(group, IRHTTPMappingGroup):
                 result.include_httpgroup(group)
-            else:
-                # Can't happen yet.
-                self.logger.warning("group %s is not an HTTPMappingGroup, ignoring" % group.name)
 
         return result.as_dict()
 
@@ -675,11 +688,9 @@ class Diagnostics:
             # Yup, group ID.
             group = self.groups[key]
 
+            # TCPMappings are currently handled elsewhere.
             if isinstance(group, IRHTTPMappingGroup):
                 result.include_httpgroup(group)
-            else:
-                # Can't happen yet.
-                self.logger.warning("group %s is not an HTTPMappingGroup, ignoring" % group.name)
 
             found = True
         elif key in self.clusters:
