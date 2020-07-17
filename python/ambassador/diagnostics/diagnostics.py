@@ -436,11 +436,12 @@ class Diagnostics:
         #
         #         self.ir.aconf.post_notice(f'{m1} {m2}')
 
-        # Copy in the toplevel error and notice sets.
+        # Copy in the toplevel error, notice, and fast_validation_disagreements sets.
         self.errors = self.ir.aconf.errors
         self.notices = self.ir.aconf.notices
+        self.fast_validation_disagreements = self.ir.aconf.fast_validation_disagreements
 
-        # First up, walk the list of Ambassador sources.
+        # Next up, walk the list of Ambassador sources.
         for key, rsrc in self.ir.aconf.sources.items():
             uqkey = key     # Unqualified key, e.g. ambassador.yaml
             fqkey = uqkey   # Fully-qualified key, e.g. ambassador.yaml.1
@@ -586,6 +587,7 @@ class Diagnostics:
             'envoy_elements': self.envoy_elements,
             'errors': self.errors,
             'notices': self.notices,
+            'fast_validation_disagreements': self.fast_validation_disagreements,
             'groups': { key: value.as_dict() for key, value in self.groups.items() },
             'clusters': { key: value.as_dict() for key, value in self.clusters.items() },
             'tlscontexts': [ x.as_dict() for x in self.ir.tls_contexts.values() ]

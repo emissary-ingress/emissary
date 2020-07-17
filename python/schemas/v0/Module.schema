@@ -1,60 +1,27 @@
 {
     "$schema": "http://json-schema.org/schema#",
     "id": "https://getambassador.io/schemas/mapping.json",
+
     "type": "object",
     "properties": {
-        "apiVersion": {
-            "enum": [
-                "getambassador.io/v0"
-            ]
-        },
-        "generation": {
-            "type": "integer"
-        },
-        "kind": {
-            "type": "string"
-        },
-        "name": {
-            "type": "string"
-        },
-        "namespace": {
-            "type": "string"
-        },
+        "apiVersion": { "enum": [ "getambassador.io/v0" ] },
+        "generation": { "type": "integer" },
+        "kind": { "type": "string" },
+        "name": { "type": "string" },
+        "namespace": { "type": "string" },
         "metadata_labels": {
             "type": "object",
-            "additionalProperties": {
-                "oneOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
-                        "type": "boolean"
-                    }
-                ]
-            }
+            "additionalProperties": { "type": [ "string", "boolean" ] }
         },
         "ambassador_id": {
-            "oneOf": [
-                {
-                    "type": "string"
-                },
-                {
-                    "type": "array"
-                }
-            ],
-            "items": {
-                "type": "string"
-            }
+            "anyOf": [
+                { "type": "string" },
+                { "type": "array", "items": { "type": "string" } }
+            ]
         },
-        "config": {
-            "type": "object"
-        }
+        
+        "config": { "type": "object" }
     },
-    "required": [
-        "apiVersion",
-        "kind",
-        "name",
-        "config"
-    ],
+    "required": [ "apiVersion", "kind", "name", "config" ],
     "additionalProperties": false
 }

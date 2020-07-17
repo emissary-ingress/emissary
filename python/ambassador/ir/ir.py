@@ -1012,4 +1012,7 @@ class IR:
         od['listener_count'] = len(self.listeners)
         od['host_count'] = len(self.hosts)
 
+        od['fast_validation'] = Config.fast_validation
+        od['fast_validation_disagreements'] = len(self.aconf.fast_validation_disagreements.keys())
+
         return od
