@@ -5,7 +5,7 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
-(no changes yet)
+- Feature: Allow specifying annotations for the license-key-secret: [ambassador-chart/#106](https://github.com/datawire/ambassador-chart/issues/106)
 
 ## v6.4.9
 
