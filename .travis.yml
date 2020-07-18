@@ -15,8 +15,8 @@ install:
   - export PATH=~/bin:$PATH
   - source ~/.gimme/envs/latest.env
   - ./ci/install.sh
-  - ./ci/provider.sh setup
-  - ./ci/provider.sh create
+  - ./ci/providers/providers.sh setup
+  - ./ci/providers/providers.sh create
 
 language: generic
 
@@ -26,11 +26,11 @@ branches:
   - /^v.*$/
   - ci-test
 
-script: 
+script:
   - ./ci/run_test.sh
 
 after_script:
-  - ./ci/provider.sh delete
+  - ./ci/providers/providers.sh delete
 
 deploy:
   provider: script
