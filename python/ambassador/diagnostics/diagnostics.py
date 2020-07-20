@@ -595,16 +595,35 @@ class Diagnostics:
 
     def flattened(self, group: IRBaseMappingGroup) -> dict:
         flattened = { k: v for k, v in group.as_dict().items() if k != 'mappings' }
-        flattened['mappings'] = [
-            {
+        flattened_mappings = []
+
+        for m in group['mappings']:
+            fm = {
                 "_active": m['_active'],
                 "_errored": m['_errored'],
                 "_rkey": m['rkey'],
+                "location": m['location'],
                 "name": m['name'],
                 "cluster_service": m.get('cluster', {}).get("service"),
-                "cluster_name": m.get('cluster', {}).get("name")
-            } for m in group['mappings']
-        ]
+                "cluster_name": m.get('cluster', {}).get("name"),
+            }
+
+            if flattened['kind'] == 'IRHTTPMappingGroup':
+                fm['prefix'] = m.get('prefix')
+
+            rewrite = m.get('rewrite', None)
+
+            if rewrite:
+                fm['rewrite'] = rewrite
+
+            host = m.get('host', None)
+
+            if host:
+                fm['host'] = host
+
+            flattened_mappings.append(fm)
+
+        flattened['mappings'] = flattened_mappings
 
         return flattened
 
