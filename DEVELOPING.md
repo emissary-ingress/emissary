@@ -130,6 +130,14 @@ How do I update the python test cache?
 - Once that succeeds, use `make pytest-gold` to update the cache from
   the passing tests.
 
+My editor is changing `go.mod` or `go.sum`, should I commit that?
+-----------------------------------------------------------------
+
+If you notice this happening, run `make go-mod-tidy`, and commit that.
+
+(If you're in Datawire, you should do this from `apro/`, not
+`apro/ambassador/`, so that apro.git's files are included too.)
+
 How do I debug/develop envoy config generation?
 -----------------------------------------------
 

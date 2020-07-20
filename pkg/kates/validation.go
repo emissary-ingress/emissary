@@ -2,21 +2,26 @@ package kates
 
 import (
 	"context"
-	"errors"
 	"strings"
 	"sync"
 
-	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions"
-	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	apiextVInternal "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions"
+	apiextV1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	apiextV1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	apiextValidation "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/validation"
 	"k8s.io/apiextensions-apiserver/pkg/apiserver/validation"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	"github.com/go-openapi/validate"
+	"github.com/pkg/errors"
 )
 
 // A Validator may be used in concert with a Client to perform
 // validate of freeform jsonish data structures as kubernetes CRDs.
 type Validator struct {
-	client     *Client
+	client *Client
+	static map[TypeMeta]*apiextVInternal.CustomResourceDefinition
+
 	mutex      sync.Mutex
 	validators map[TypeMeta]*validate.SchemaValidator
 }
@@ -25,23 +30,70 @@ type Validator struct {
 // provided *Client to fetch CustomResourceDefinitions from kubernetes
 // on demand as needed to validate data passed to the Validator.Validate()
 // method.
-func NewValidator(client *Client) *Validator {
-	return &Validator{client: client, validators: make(map[TypeMeta]*validate.SchemaValidator)}
+func NewValidator(client *Client, staticCRDs []Object) (*Validator, error) {
+	if client == nil && len(staticCRDs) == 0 {
+		return nil, errors.New("at least 1 client or static CRD must be provided")
+	}
+
+	static := make(map[TypeMeta]*apiextVInternal.CustomResourceDefinition, len(staticCRDs))
+	for i, untypedCRD := range staticCRDs {
+		var crd apiextVInternal.CustomResourceDefinition
+		var gv schema.GroupVersion
+		switch untypedCRD.GetObjectKind().GroupVersionKind() {
+		case apiextV1beta1.SchemeGroupVersion.WithKind("CustomResourceDefinition"):
+			gv = apiextV1beta1.SchemeGroupVersion
+			var crdV1beta1 apiextV1beta1.CustomResourceDefinition
+			if err := convert(untypedCRD, &crdV1beta1); err != nil {
+				return nil, errors.Wrapf(err, "staticCRDs[%d]", i)
+			}
+			apiextV1beta1.SetDefaults_CustomResourceDefinition(&crdV1beta1)
+			if err := apiextV1beta1.Convert_v1beta1_CustomResourceDefinition_To_apiextensions_CustomResourceDefinition(&crdV1beta1, &crd, nil); err != nil {
+				return nil, errors.Wrapf(err, "staticCRDs[%d]", i)
+			}
+		case apiextV1.SchemeGroupVersion.WithKind("CustomResourceDefinition"):
+			gv = apiextV1.SchemeGroupVersion
+			var crdV1 apiextV1.CustomResourceDefinition
+			if err := convert(untypedCRD, &crdV1); err != nil {
+				return nil, errors.Wrapf(err, "staticCRDs[%d]", i)
+			}
+			apiextV1.SetDefaults_CustomResourceDefinition(&crdV1)
+			if err := apiextV1.Convert_v1_CustomResourceDefinition_To_apiextensions_CustomResourceDefinition(&crdV1, &crd, nil); err != nil {
+				return nil, errors.Wrapf(err, "staticCRDs[%d]", i)
+			}
+		default:
+			return nil, errors.Wrapf(errors.Errorf("unrecognized CRD GroupVersionKind: %v", untypedCRD.GetObjectKind().GroupVersionKind()), "staticCRDs[%d]", i)
+		}
+		if errs := apiextValidation.ValidateCustomResourceDefinition(&crd, gv); len(errs) > 0 {
+			return nil, errors.Wrapf(errs.ToAggregate(), "staticCRDs[%d]", i)
+		}
+		for _, version := range crd.Spec.Versions {
+			static[TypeMeta{
+				APIVersion: crd.Spec.Group + "/" + version.Name,
+				Kind:       crd.Spec.Names.Kind,
+			}] = &crd
+		}
+	}
+
+	return &Validator{
+		client: client,
+		static: static,
+
+		validators: make(map[TypeMeta]*validate.SchemaValidator),
+	}, nil
 }
 
-func (v *Validator) getValidator(ctx context.Context, tm TypeMeta) (*validate.SchemaValidator, error) {
-	v.mutex.Lock()
-	defer v.mutex.Unlock()
-
-	validator, ok := v.validators[tm]
-	if !ok {
+func (v *Validator) getCRD(ctx context.Context, tm TypeMeta) (*apiextVInternal.CustomResourceDefinition, error) {
+	if crd, ok := v.static[tm]; ok {
+		return crd, nil
+	}
+	if v.client != nil {
 		mapping, err := v.client.mappingFor(tm.GroupVersionKind().GroupKind().String())
 		if err != nil {
 			return nil, err
 		}
 		crd := mapping.Resource.GroupResource().String()
 
-		obj := &CustomResourceDefinition{
+		obj := &apiextV1.CustomResourceDefinition{
 			TypeMeta: TypeMeta{
 				Kind: "CustomResourceDefinition",
 			},
@@ -52,25 +104,41 @@ func (v *Validator) getValidator(ctx context.Context, tm TypeMeta) (*validate.Sc
 		err = v.client.Get(ctx, obj, obj)
 		if err != nil {
 			if IsNotFound(err) {
-				v.validators[tm] = nil
 				return nil, nil
 			}
 
 			return nil, err
 		}
 
-		extcrd := &apiextensions.CustomResourceDefinition{}
-		err = v1.Convert_v1_CustomResourceDefinition_To_apiextensions_CustomResourceDefinition(obj, extcrd, nil)
+		var ret apiextVInternal.CustomResourceDefinition
+		err = apiextV1.Convert_v1_CustomResourceDefinition_To_apiextensions_CustomResourceDefinition(obj, &ret, nil)
+		if err != nil {
+			return nil, err
+		}
+		return &ret, nil
+	}
+	return nil, nil
+}
+
+func (v *Validator) getValidator(ctx context.Context, tm TypeMeta) (*validate.SchemaValidator, error) {
+	v.mutex.Lock()
+	defer v.mutex.Unlock()
+
+	validator, ok := v.validators[tm]
+	if !ok {
+		crd, err := v.getCRD(ctx, tm)
 		if err != nil {
 			return nil, err
 		}
 
-		validator, _, err = validation.NewSchemaValidator(extcrd.Spec.Validation)
-		if err != nil {
-			return nil, err
+		if crd != nil {
+			validator, _, err = validation.NewSchemaValidator(crd.Spec.Validation)
+			if err != nil {
+				return nil, err
+			}
 		}
 
-		v.validators[tm] = validator
+		v.validators[tm] = validator // even if validator is nil; cache negative responses
 	}
 	return validator, nil
 }
