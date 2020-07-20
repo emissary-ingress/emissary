@@ -86,7 +86,7 @@ build_every_n_days = 5  # Periodic rebuild even if Dockerfile does not change
 
 epoch = datetime.datetime(2017, 4, 13, 1, 30)
 age = int((datetime.datetime.now() - epoch).days / build_every_n_days)
-hasher = hashlib.sha256(open("Dockerfile.base", "rb").read())
+hasher = hashlib.sha256(open("Dockerfile.base", "rb").read() + open("requirements.txt", "rb").read())
 print("%s-%sx%s" % (hasher.hexdigest()[:16], age, build_every_n_days))
 '
 
@@ -96,6 +96,7 @@ build_builder_base() {
     if [ -n "$DEV_REGISTRY" ]; then
         # We can push. Build and push if necessary.
         builder_base_image=${DEV_REGISTRY}/builder-base:${builder_base_tag}
+        printf "${GRN}Using ${BLU}${builder_base_image}${END}\n"
         if ! docker pull "${builder_base_image}" >& /dev/null ; then
             ${DBUILD} -f "${DIR}/Dockerfile.base" "${DIR}" -t "${builder_base_image}"
             docker push "${builder_base_image}"
@@ -103,6 +104,7 @@ build_builder_base() {
     else
         # We CANNOT push. Build locally and lean on the cache.
         builder_base_image=builder-base:${builder_base_tag}
+        printf "${GRN}Using ${BLU}${builder_base_image}${END}\n"
         ${DBUILD} -f "${DIR}/Dockerfile.base" "${DIR}" -t "${builder_base_image}"
     fi
 }
