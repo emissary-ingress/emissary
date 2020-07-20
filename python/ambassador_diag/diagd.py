@@ -33,6 +33,7 @@ import requests
 import jsonpatch
 
 from expiringdict import ExpiringDict
+from prometheus_client import CollectorRegistry, ProcessCollector, generate_latest, Info
 
 import concurrent.futures
 
@@ -60,6 +61,9 @@ if TYPE_CHECKING:
 __version__ = Version
 
 boot_time = datetime.datetime.now()
+
+# custom metrics registry to weed-out default metrics collectors
+metrics_registry = CollectorRegistry(auto_describe=True)
 
 # allows 10 concurrent users, with a request timeout of 60 seconds
 tvars_cache = ExpiringDict(max_len=10, max_age_seconds=60)
@@ -122,11 +126,12 @@ class DiagApp (Flask):
     last_request_time: Optional[datetime.datetime]
     latest_snapshot: str
     banner_endpoint: Optional[str]
+    metrics_endpoint: Optional[str]
 
     def setup(self, snapshot_path: str, bootstrap_path: str, ads_path: str,
               config_path: Optional[str], ambex_pid: int, kick: Optional[str], banner_endpoint: Optional[str],
-              k8s=False, do_checks=True, no_envoy=False, reload=False, debug=False, verbose=False,
-              notices=None, validation_retries=5, allow_fs_commands=False, local_scout=False,
+              metrics_endpoint: Optional[str], k8s=False, do_checks=True, no_envoy=False, reload=False, debug=False,
+              verbose=False, notices=None, validation_retries=5, allow_fs_commands=False, local_scout=False,
               report_action_keys=False):
         self.estats = EnvoyStats()
         self.health_checks = do_checks
@@ -143,6 +148,7 @@ class DiagApp (Flask):
         self.local_scout = local_scout
         self.report_action_keys = report_action_keys
         self.banner_endpoint = banner_endpoint
+        self.metrics_endpoint = metrics_endpoint
 
         # This will raise an exception and crash if you pass it a string. That's intentional.
         self.ambex_pid = int(ambex_pid)
@@ -201,6 +207,17 @@ class DiagApp (Flask):
 
         # self.scout = Scout(update_frequency=datetime.timedelta(seconds=10))
         self.scout = Scout(local_only=self.local_scout)
+
+        ProcessCollector(namespace="ambassador", registry=metrics_registry)
+        metrics_info = Info(name='diagnostic', namespace='ambassador', documentation='Ambassador diagnostic info', registry=metrics_registry)
+        metrics_info.info({
+            "version": __version__,
+            "hostname": SystemInfo.MyHostName,
+            "namespace": Config.ambassador_namespace,
+            "ambassador_id": Config.ambassador_id,
+            "cluster_id": os.environ.get('AMBASSADOR_CLUSTER_ID',
+                                         os.environ.get('AMBASSADOR_SCOUT_ID', "00000000-0000-0000-0000-000000000000"))
+        })
 
     def check_scout(self, what: str) -> None:
         self.watcher.post("SCOUT", (what, self.ir))
@@ -799,7 +816,24 @@ def source_lookup(name, sources):
 @app.route('/metrics', methods=['GET'])
 @standard_handler
 def get_prometheus_metrics(*args, **kwargs):
-    return app.estats.get_prometheus_state()
+    # Envoy metrics
+    envoy_metrics = app.estats.get_prometheus_stats()
+
+    # Ambassador OSS metrics
+    ambassador_metrics = generate_latest(registry=metrics_registry).decode('utf-8')
+
+    # Extra metrics endpoint
+    extra_metrics_content = ''
+    if app.metrics_endpoint and app.ir.edge_stack_allowed:
+        try:
+            response = requests.get(app.metrics_endpoint)
+            if response.status_code == 200:
+                extra_metrics_content = response.text
+        except Exception as e:
+            app.logger.error("could not get metrics_endpoint: %s" % e)
+
+    return Response(''.join([envoy_metrics, ambassador_metrics, extra_metrics_content]).encode('utf-8'),
+                    200, mimetype="text/plain")
 
 
 def bool_fmt(b: bool) -> str:
@@ -1600,7 +1634,7 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
 
 def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
           *, dev_magic=False, config_path=None, ambex_pid=0, kick=None,
-          banner_endpoint="http://127.0.0.1:8500/banner", k8s=False,
+          banner_endpoint="http://127.0.0.1:8500/banner", metrics_endpoint="http://127.0.0.1:8500/metrics", k8s=False,
           no_checks=False, no_envoy=False, reload=False, debug=False, verbose=False,
           workers=None, port=Constants.DIAG_PORT, host='0.0.0.0', notices=None,
           validation_retries=5, allow_fs_commands=False, local_scout=False,
@@ -1616,6 +1650,7 @@ def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
     :param ambex_pid: Optional PID to signal with HUP after updating Envoy configuration
     :param kick: Optional command to run after updating Envoy configuration
     :param banner_endpoint: Optional endpoint of extra banner to include
+    :param metrics_endpoint: Optional endpoint of extra prometheus metrics to include
     :param no_checks: If True, don't do Envoy-cluster health checking
     :param no_envoy: If True, don't interact with Envoy at all
     :param reload: If True, run Flask in debug mode for live reloading
@@ -1657,7 +1692,7 @@ def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
 
     # Create the application itself.
     app.setup(snapshot_path, bootstrap_path, ads_path, config_path, ambex_pid, kick, banner_endpoint,
-              k8s, not no_checks, no_envoy, reload, debug, verbose, notices,
+              metrics_endpoint, k8s, not no_checks, no_envoy, reload, debug, verbose, notices,
               validation_retries, allow_fs_commands, local_scout, report_action_keys)
 
     if not workers:
