@@ -48,11 +48,11 @@ kind:  Mapping
 metadata:
   name:  quote-backend
 spec:
-prefix: /backend/
-service: quote
-circuit_breakers:
-- max_connections: 2048
-  max_pending_requests: 2048
+  prefix: /backend/
+  service: quote
+  circuit_breakers:
+  - max_connections: 2048
+    max_pending_requests: 2048
 ```
 
 A global circuit breaker:
@@ -73,8 +73,8 @@ kind:  Mapping
 metadata:
   name:  quote-backend
 spec:
-prefix: /backend/
-service: quote
+  prefix: /backend/
+  service: quote
 ```
 
 ## Circuit Breakers and Automatic Retries

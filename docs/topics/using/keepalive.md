@@ -38,12 +38,12 @@ kind:  Mapping
 metadata:
   name:  quote-backend
 spec:
-prefix: /backend/
-service: quote
-keepalive:
-  time: 100
-  interval: 10
-  probes: 9
+  prefix: /backend/
+  service: quote
+  keepalive:
+    time: 100
+    interval: 10
+    probes: 9
 ```
 
 A global keepalive configuration:
@@ -65,6 +65,6 @@ kind:  Mapping
 metadata:
   name:  quote-backend
 spec:
-prefix: /backend/
-service: quote
+  prefix: /backend/
+  service: quote
 ```

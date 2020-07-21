@@ -76,7 +76,7 @@ li.QS-asideNoBullets {
   width: auto;
   font-style: italic;
   position: relative;
-  margin-left: 5px;
+  margin-left: 0px;
   margin-right: 10px;
   margin-bottom: -10px;
   z-index: 2;
@@ -94,7 +94,7 @@ li.QS-asideNoBullets {
 }
 .QS-osLogo {
   width: 30px;
-  margin: 0 0 -4px 4px;
+  margin: 0 0 -4px -1px;
 }
 .QS-aside1 {
   grid-area: sidebar1;
@@ -210,25 +210,48 @@ summary#helmVersions {
   text-decoration: none;
 }
 @media screen and (max-width: 1200px) {
-  .QS-osLogo {
-    display: none;
+  .QS-grid {
+    margin-left: 0px;
+    width: 95%
+  }
+  img.QS-osLogo {
+    display: inline;
+  }
+}
+@media screen and (max-width: 1120px) {
+  .QS-grid {
+    margin-left: 0px;
+    width: 95%
+  }
+  img.QS-osLogo {
+    display: inline;
+  }
+}
+@media screen and (max-width: 1010px) {
+  .QS-grid {
+    width: 95%;
+  }
+  div.doc-body {
+    padding-left: 20px;
   }
 }
 @media screen and (max-width: 995px) {
-  .QS-osLogo {
-    display: inline;
-  }
   .QS-grid {
-    margin-left: 10px;
+    width: 95%;
   }
 }
 @media screen and (max-width: 900px) {
   .QS-grid {
-    width: 100%;
-    margin-left: -20px;
+    width: 95%;
   }
 }
-@media screen and (max-width: 380px) {
+@media screen and (max-width: 805px) {
+  .QS-grid {
+    margin-left: -15px;
+    width: 95%;
+  }
+}
+@media screen and (max-width: 500px) {
   .QS-asideText {
     font-size: 90%;
   }
@@ -244,5 +267,9 @@ summary#helmVersions {
   .QS-aside {
     margin-left: -10px;
     padding: 5px 10px 0px;
+  }
+  .QS-grid {
+    margin-left: -15px;
+    width: 100%;
   }
 }
