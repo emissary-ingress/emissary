@@ -69,6 +69,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 - Performance improvement: Experimental fast validation of the contents of Ambassador resources has been added. The `AMBASSADOR_FAST_VALIDATION` env var must be set to enable this.
 - Internal: Configuration endpoints used internally by Ambassador are no longer accessible from outside the Ambassador Pod.
 - Bugfix: `envoy_log_format` can now be set with `envoy_log_type: text`.
+- Docs: Fixed OAuth2 documentation spelling errors (thanks, [Travis Byrum](https://github.com/travisbyrum)!)
 
 As previously announced, the default value of `AMBASSADOR_UPDATE_MAPPING_STATUS`
 has now changed from `true` to `false`; Ambassador will no longer attempt to
