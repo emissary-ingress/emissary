@@ -51,7 +51,7 @@ spec:
     # OAuth Client settings                                                    #
     ############################################################################
 
-    expirationSafteyMargin: "duration" # optional; default is "0"
+    expirationSafetyMargin: "duration" # optional; default is "0"
 
     # Which settings exist depends on the grantType; supported grantTypes
     # are "AuthorizationCode", "Password", and "ClientCredentials".
@@ -211,7 +211,7 @@ Settings that are only valid when `grantType: "AuthorizationCode"`:
 
  - By default, any cookies set by the Ambassador Edge Stack will be
    set to expire when the session expires naturally.  The
-   `useSessionCookies` setting may be used to cuase session cookies to
+   `useSessionCookies` setting may be used to cause session cookies to
    be used instead.
 
     * Normally cookies are set to be deleted at a specific time;
@@ -234,22 +234,22 @@ Settings that are only valid when `grantType: "AuthorizationCode"`:
       `useSessionCookies.value` sub-argument.
 
     * Setting the `useSessionCookies.ifRequestHeader` sub-argument
-      tells it to use `useSessionCookeies.value` for requests that
-      match the condition, and `!useSessionCookeies.value` for
+      tells it to use `useSessionCookies.value` for requests that
+      match the condition, and `!useSessionCookies.value` for
       requests don't match.
 
       When determining if a request matches, it looks at the HTTP
-      header field named by `useSessionCookeies.ifRequestHeader.name`
+      header field named by `useSessionCookies.ifRequestHeader.name`
       (case-insensitive), and checks if it is either set to (if
-      `useSessionCookeies.ifRequestHeader.negate: false`) or not set
-      to (if `useSessionCookeies.ifRequestHeader.negate: true`)...
+      `useSessionCookies.ifRequestHeader.negate: false`) or not set
+      to (if `useSessionCookies.ifRequestHeader.negate: true`)...
        + a non-empty string (if neither
-         `useSessionCookeies.ifRequestHeader.value` nor
-         `useSessionCookeies.ifRequestHeader.valueRegex` are set)
+         `useSessionCookies.ifRequestHeader.value` nor
+         `useSessionCookies.ifRequestHeader.valueRegex` are set)
        + the exact string `value` (case-sensitive) (if
-         `useSessionCookeies.ifRequestHeader.value` is set)
+         `useSessionCookies.ifRequestHeader.value` is set)
        + a string that matches the regular expression
-         `useSessionCookeies.ifRequestHeader.valueRegex` (if
+         `useSessionCookies.ifRequestHeader.valueRegex` (if
          `valueRegex` is set).  This uses [RE2][] syntax (always, not
          obeying [`regex_type` in the `ambassador Module`][]) but does
          not support the `\C` escape sequence.
@@ -347,7 +347,7 @@ spec:
       requests that have the HTTP header field
       `name` (case-insensitive) either set to (if `negate: false`) or
       not set to (if `negate: true`)
-       + a non-emtpy string if neither `value` nor `valueRegex` are set
+       + a non-empty string if neither `value` nor `valueRegex` are set
        + the exact string `value` (case-sensitive) (if `value` is set)
        + a string that matches the regular expression `valueRegex` (if
          `valueRegex` is set).  This uses [RE2][] syntax (always, not
