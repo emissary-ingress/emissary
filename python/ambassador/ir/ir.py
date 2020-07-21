@@ -770,7 +770,6 @@ class IR:
         default_port = Constants.SERVICE_PORT_HTTPS if tls_termination_count else Constants.SERVICE_PORT_HTTP
 
         od['custom_listener_port'] = bool(self.ambassador_module.service_port != default_port)
-        od['custom_diag_port'] = bool(self.ambassador_module.diag_port != Constants.DIAG_PORT)
 
         cluster_count = 0
         cluster_grpc_count = 0      # clusters using GRPC upstream
@@ -1012,5 +1011,8 @@ class IR:
 
         od['listener_count'] = len(self.listeners)
         od['host_count'] = len(self.hosts)
+
+        od['fast_validation'] = Config.fast_validation
+        od['fast_validation_disagreements'] = len(self.aconf.fast_validation_disagreements.keys())
 
         return od

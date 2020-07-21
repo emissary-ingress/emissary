@@ -25,7 +25,6 @@ spec:
 | `cluster_idle_timeout_ms` | Set the default upstream-connection idle timeout. If not set (the default), upstream connections will never be closed due to idling. | `cluster_idle_timeout_ms: 30000` |
 | `default_label_domain  and default_labels` | Set a default domain and request labels to every request for use by rate limiting. For more on how to use these, see the Rate Limit reference. |  |
 | `defaults` | The `defaults` element allows setting system-wide defaults that will be applied to various Ambassador resources. See [using defaults](../../using/defaults) for more information. | None | 
-| `diag_port` | The port where Ambassador will listen for requests  to the diagnostic service. | `diag_port: 8877`|
 | `enable_grpc_http11_bridge` | Should we enable the gRPC-http11 bridge? | `enable_grpc_http11_bridge: false `|
 | `enable_grpc_web` | Should we enable the grpc-Web protocol? | `enable_grpc_web: false` |
 | `enable_http10` | Should we enable http/1.0 protocol? | `enable_http10: false` |
@@ -93,6 +92,11 @@ diagnostics:
   enabled: false
 ```
 
+When configured this way, diagnostics are only available from inside the Ambassador pod(s) via `localhost` networking. You can use Kubernetes port forwarding to set up remote access temporarily:
+
+```
+kubectl port-forward -n ambassador deploy/ambassador 8877
+```
 
 `keepalive` sets the global keepalive settings.
 Ambassador will use for all mappings unless overridden in a
@@ -106,7 +110,9 @@ keepalive:
   probes: 100
 ```
 
-`liveness_probe` defaults on, but you can disable the API route. It will remain accessible on diag_port.
+`liveness_probe` defaults on, but you can disable the API route.  It
+will remain accessible on port 8877.
+
 ```
 liveness_probe:
       enabled: true
@@ -120,7 +126,9 @@ load_balancer:
   ...
 ```
 
-`readiness_probe` defaults on, but you can disable the API route. It will remain accessible on diag_port.
+`readiness_probe` defaults on, but you can disable the API route.  It
+will remain accessible on port 8877.
+
 ```
 readiness_probe:
   enabled: true

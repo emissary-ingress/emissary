@@ -321,6 +321,7 @@ prefix: /test/
 service: test:9999"""
     result = fetcher.handle_k8s_service(svc)
     expected = {
+        '_force_validation': True,
         'apiVersion': 'getambassador.io/v1',
         'kind': 'Mapping',
         'name': 'test_mapping',

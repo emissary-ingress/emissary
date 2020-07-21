@@ -8,7 +8,6 @@
         "debug_mode": false,
         "default_label_domain": "ambassador",
         "default_labels": {},
-        "diag_port": 8877,
         "diagnostics": {
             "enabled": true,
             "prefix": "/ambassador/v0/",
@@ -90,7 +89,7 @@
             "_namespace": "default",
             "_port": 80,
             "_referenced_by": [
-                "cleartext-target-mapping.default.1"
+                "hostcrdcleartext-cleartext-target-mapping.default.1"
             ],
             "_resolver": "kubernetes-service",
             "_rkey": "cluster_hostcrdcleartext_http_default",
@@ -101,7 +100,7 @@
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
-            "location": "cleartext-target-mapping.default.1",
+            "location": "hostcrdcleartext-cleartext-target-mapping.default.1",
             "name": "cluster_hostcrdcleartext_http_default",
             "namespace": "default",
             "service": "hostcrdcleartext-http",
@@ -171,6 +170,7 @@
                     ],
                     "_rkey": "ir.ambassador",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -270,6 +270,7 @@
                     ],
                     "_rkey": "ir.ambassador",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -369,6 +370,7 @@
                     ],
                     "_rkey": "ir.ambassador",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -443,9 +445,9 @@
             "_active": true,
             "_errored": false,
             "_referenced_by": [
-                "cleartext-target-mapping.default.1"
+                "hostcrdcleartext-cleartext-target-mapping.default.1"
             ],
-            "_rkey": "cleartext-target-mapping.default.1",
+            "_rkey": "hostcrdcleartext-cleartext-target-mapping.default.1",
             "default_class": "httpmapping",
             "group_id": "ef2f76a27cdb850e84f8f5c00ce17c4798f7e065",
             "group_weight": [
@@ -458,13 +460,14 @@
             ],
             "headers": [],
             "kind": "IRHTTPMappingGroup",
-            "location": "cleartext-target-mapping.default.1",
+            "location": "hostcrdcleartext-cleartext-target-mapping.default.1",
             "mappings": [
                 {
                     "_active": true,
                     "_errored": false,
-                    "_rkey": "cleartext-target-mapping.default.1",
+                    "_rkey": "hostcrdcleartext-cleartext-target-mapping.default.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -473,7 +476,7 @@
                         "_namespace": "default",
                         "_port": 80,
                         "_referenced_by": [
-                            "cleartext-target-mapping.default.1"
+                            "hostcrdcleartext-cleartext-target-mapping.default.1"
                         ],
                         "_resolver": "kubernetes-service",
                         "_rkey": "cluster_hostcrdcleartext_http_default",
@@ -484,7 +487,7 @@
                         "ignore_cluster": false,
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
-                        "location": "cleartext-target-mapping.default.1",
+                        "location": "hostcrdcleartext-cleartext-target-mapping.default.1",
                         "name": "cluster_hostcrdcleartext_http_default",
                         "namespace": "default",
                         "service": "hostcrdcleartext-http",
@@ -504,14 +507,14 @@
                     "group_id": "ef2f76a27cdb850e84f8f5c00ce17c4798f7e065",
                     "headers": [],
                     "kind": "Mapping",
-                    "location": "cleartext-target-mapping.default.1",
+                    "location": "hostcrdcleartext-cleartext-target-mapping.default.1",
                     "metadata_labels": {
-                        "ambassador_crd": "cleartext-target-mapping.default",
-                        "hostname": "host-cleartext",
+                        "ambassador_crd": "hostcrdcleartext-cleartext-target-mapping.default",
+                        "hostname": "hostcrdcleartext-host-cleartext",
                         "kat-ambassador-id": "hostcrdcleartext",
                         "scope": "AmbassadorTest"
                     },
-                    "name": "cleartext-target-mapping",
+                    "name": "hostcrdcleartext-cleartext-target-mapping",
                     "namespace": "default",
                     "precedence": 0,
                     "prefix": "/target/",
@@ -527,25 +530,25 @@
                         "/target/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id:\n- hostcrdcleartext\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: cleartext-target-mapping.default\n  hostname: host-cleartext\n  kat-ambassador-id: hostcrdcleartext\n  scope: AmbassadorTest\nname: cleartext-target-mapping\nnamespace: default\nprefix: /target/\nservice: hostcrdcleartext-http\n",
+                    "serialization": "ambassador_id:\n- hostcrdcleartext\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: hostcrdcleartext-cleartext-target-mapping.default\n  hostname: hostcrdcleartext-host-cleartext\n  kat-ambassador-id: hostcrdcleartext\n  scope: AmbassadorTest\nname: hostcrdcleartext-cleartext-target-mapping\nnamespace: default\nprefix: /target/\nservice: hostcrdcleartext-http\n",
                     "service": "hostcrdcleartext-http",
                     "weight": 100
                 }
             ],
             "metadata_labels": {
-                "ambassador_crd": "cleartext-target-mapping.default",
-                "hostname": "host-cleartext",
+                "ambassador_crd": "hostcrdcleartext-cleartext-target-mapping.default",
+                "hostname": "hostcrdcleartext-host-cleartext",
                 "kat-ambassador-id": "hostcrdcleartext",
                 "scope": "AmbassadorTest"
             },
-            "name": "GROUP: cleartext-target-mapping",
+            "name": "GROUP: hostcrdcleartext-cleartext-target-mapping",
             "namespace": "default",
             "precedence": 0,
             "prefix": "/target/",
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id:\n- hostcrdcleartext\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: cleartext-target-mapping.default\n  hostname: host-cleartext\n  kat-ambassador-id: hostcrdcleartext\n  scope: AmbassadorTest\nname: cleartext-target-mapping\nnamespace: default\nprefix: /target/\nservice: hostcrdcleartext-http\n"
+            "serialization": "ambassador_id:\n- hostcrdcleartext\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: hostcrdcleartext-cleartext-target-mapping.default\n  hostname: hostcrdcleartext-host-cleartext\n  kat-ambassador-id: hostcrdcleartext\n  scope: AmbassadorTest\nname: hostcrdcleartext-cleartext-target-mapping\nnamespace: default\nprefix: /target/\nservice: hostcrdcleartext-http\n"
         }
     ],
     "grpc_services": {},
@@ -554,16 +557,16 @@
             "_active": true,
             "_errored": false,
             "_referenced_by": [
-                "cleartext-host.default.1"
+                "hostcrdcleartext-cleartext-host.default.1"
             ],
-            "_rkey": "cleartext-host.default.1",
+            "_rkey": "hostcrdcleartext-cleartext-host.default.1",
             "acmeProvider": {
                 "authority": "none"
             },
             "hostname": "hostcrdcleartext",
             "kind": "Host",
-            "location": "cleartext-host.default.1",
-            "name": "cleartext-host",
+            "location": "hostcrdcleartext-cleartext-host.default.1",
+            "name": "hostcrdcleartext-cleartext-host",
             "namespace": "default",
             "requestPolicy": {
                 "insecure": {
@@ -572,7 +575,7 @@
             },
             "selector": {
                 "matchLabels": {
-                    "hostname": "host-cleartext"
+                    "hostname": "hostcrdcleartext-host-cleartext"
                 }
             }
         }
@@ -583,7 +586,7 @@
         "ambassador_nodename": "hostcrdcleartext-default"
     },
     "k8s_status_updates": {
-        "cleartext-target-mapping.default": [
+        "hostcrdcleartext-cleartext-target-mapping.default": [
             "Mapping",
             "default",
             {
@@ -599,7 +602,7 @@
             "hostname": "hostcrdcleartext",
             "insecure_action": "Route",
             "kind": "IRListener",
-            "location": "cleartext-host.default.1",
+            "location": "hostcrdcleartext-cleartext-host.default.1",
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,

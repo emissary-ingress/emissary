@@ -1,6 +1,6 @@
 # Ambassador Edge Stack Documentation
 
-The Ambassador Edge Stack is a comprehensive, self-service edge stack and API Gateway for Kubernetes built on [Envoy Proxy](https://www.envoyproxy.io/). The shift to Kubernetes and microservices has profound consequences for the capabilities you need at the edge, as well as how you manage the edge. The Ambassador Edge Stack has been engineered with this world in mind.
+The Ambassador Edge Stack is a comprehensive, self-service edge stack and API Gateway for Kubernetes built on [Envoy Proxy](https://www.envoyproxy.io/). The shift to Kubernetes and microservices has profound consequences for the capabilities you need at the edge, as well as how you manage the edge. The Ambassador Edge Stack has been engineered with this world in mind.
 
 ## First Steps
 

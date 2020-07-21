@@ -111,7 +111,8 @@ class DiagApp (Flask):
     aconf: Config
     ir: Optional[IR]
     econf: Optional[EnvoyConfig]
-    diag: Optional[Diagnostics]
+    # self.diag is actually a property
+    _diag: Optional[Diagnostics]
     notices: 'Notices'
     scout: Scout
     watcher: 'AmbassadorEventWatcher'
@@ -121,6 +122,8 @@ class DiagApp (Flask):
     last_request_time: Optional[datetime.datetime]
     latest_snapshot: str
     banner_endpoint: Optional[str]
+
+    config_lock: threading.Lock
 
     def setup(self, snapshot_path: str, bootstrap_path: str, ads_path: str,
               config_path: Optional[str], ambex_pid: int, kick: Optional[str], banner_endpoint: Optional[str],
@@ -169,27 +172,40 @@ class DiagApp (Flask):
         # we last logged.)
         self.next_timer_log: Optional[float] = None
 
-        # For the moment, we're defaulting AMBASSADOR_UPDATE_MAPPING_STATUS
-        # to true. Plan is to change this for 1.6.
-        ksclass = KubeStatusNoOp
-
-        if os.environ.get("AMBASSADOR_UPDATE_MAPPING_STATUS", "true").lower() == "true":
-            ksclass = KubeStatus
-
-        self.kubestatus = ksclass(self)
-
         if debug:
             self.logger.setLevel(logging.DEBUG)
             logging.getLogger('ambassador').setLevel(logging.DEBUG)
+
+        # Assume that we will NOT update Mapping status.
+        ksclass = KubeStatusNoMappings
+
+        if os.environ.get("AMBASSADOR_UPDATE_MAPPING_STATUS", "false").lower() == "true":
+            self.logger.info("WILL update Mapping status")
+            ksclass = KubeStatus
+        else:
+            self.logger.info("WILL NOT update Mapping status")
+
+        self.kubestatus = ksclass(self)
 
         self.config_path = config_path
         self.bootstrap_path = bootstrap_path
         self.ads_path = ads_path
         self.snapshot_path = snapshot_path
 
-        self.ir = None
-        self.econf = None
-        self.diag = None
+        # You must hold config_lock when updating config elements (including diag!).
+        self.config_lock = threading.Lock()
+
+        # Why are we doing this? Aren't we sure we're singlethreaded here?
+        # Well, yes. But self.diag is actually a property, and it will raise an
+        # assertion failure if we're not holding self.config_lock... and once
+        # the lock is in play at all, we're gonna time it, in case my belief 
+        # that grabbing the lock here is always effectively free turns out to
+        # be wrong.
+
+        with self.config_lock:
+            self.ir = None      # don't update unless you hold config_lock
+            self.econf = None   # don't update unless you hold config_lock
+            self.diag = None    # don't update unless you hold config_lock
 
         self.stats_updater = None
         self.scout_checker = None
@@ -199,6 +215,45 @@ class DiagApp (Flask):
 
         # self.scout = Scout(update_frequency=datetime.timedelta(seconds=10))
         self.scout = Scout(local_only=self.local_scout)
+
+    @property
+    def diag(self) -> Diagnostics:
+        """
+        It turns out to be expensive to generate the Diagnostics class, so 
+        app.diag is a property that does it on demand, handling Timers and
+        the config lock for you.
+
+        You MUST NOT already hold the config_lock when trying to read app.diag.
+        """
+
+        # The config_lock is meant to make sure that we don't ever update
+        # self.diag in two places at once, so grab that first.
+        with self.config_lock:
+            # OK. If we haven't already generated the Diagnostics...
+            if not app._diag:
+                # ...then we need to fix that, and the diag_timer is the 
+                # thing to use to time it.
+                with self.diag_timer:
+                    app._diag = Diagnostics(app.ir, app.econf)
+
+                    # We've done something time-worthy, so log the timers
+                    # in a little bit.
+                    app.ok_to_log_timers()
+
+            # Either we had a Diagnostics to start with, or we just generated
+            # it, so we should be good to go.
+            return app._diag
+
+    @diag.setter
+    def diag(self, diag: Diagnostics) -> None:
+        """
+        It turns out to be expensive to generate the Diagnostics class, so 
+        app.diag is a property that does it on demand, handling Timers and
+        the config lock for you.
+
+        You MUST already hold the config_lock when trying to update app.diag.
+        """
+        self._diag = diag
 
     def check_scout(self, what: str) -> None:
         self.watcher.post("SCOUT", (what, self.ir))
@@ -231,11 +286,22 @@ class DiagApp (Flask):
                    self.ir_timer,
                    self.econf_timer,
                    self.diag_timer ]:
-            self.logger.info(t.summary())
+            if t:
+                self.logger.info(t.summary())
 
         # ...and reset next_timer_log so we don't log forever.
         self.next_timer_log = None
 
+    def ok_to_log_timers(self, base_time: Optional[float]=None, delta: Optional[float]=10.0) -> None:
+        """
+        Note that it's OK to log the timers delta seconds (default 10) from base_time (default
+        now). Call this whenever you've done something that would be timeable.
+        """
+
+        if not base_time:
+            base_time = time.perf_counter()
+
+        self.next_timer_log = base_time + delta
 
 # get the "templates" directory, or raise "FileNotFoundError" if not found
 def get_templates_dir():
@@ -314,7 +380,41 @@ def standard_handler(f):
     return wrapper
 
 
+def internal_handler(f):
+    """
+    Reject requests where the remote address is not localhost.
+
+    This works because of an implementation detail of Flask (Werkzeug), the
+    existence of the REMOTE_ADDR environment variable. This may not work as
+    intended on other WSGI implementations, though if the environment variable
+    is missing entirely, the effect is to fail closed, i.e. all requests will
+    be rejected, in which case the problem will become apparent very quickly.
+
+    For a somewhat more portable implementation, consider using the environment
+    variables SERVER_NAME and SERVER_PORT instead, as those are required by
+    WSGI. It's not clear (to me, ark3) what they mean, and relying on what they
+    do in Flask/Werkzeug yielded a worse implementation that was still not
+    portable.
+    """
+    func_name = getattr(f, '__name__', '<anonymous>')
+
+    @functools.wraps(f)
+    def wrapper(*args, **kwds):
+        if not _is_local_request():
+            return "Forbidden\n", 403
+        return f(*args, **kwds)
+
+    return wrapper
+
+
 ######## UTILITIES
+
+
+def _is_local_request() -> bool:
+    """
+    See the docstring for internal_handler(...) for important caveats.
+    """
+    return request.environ.get("REMOTE_ADDR") == "127.0.0.1"
 
 
 class Notices:
@@ -471,26 +571,13 @@ def filter_webui(d: Dict[Any, Any]):
 
 
 @app.route('/_internal/v0/ping', methods=[ 'GET' ])
+@internal_handler
 def handle_ping():
     return "ACK\n", 200
 
 
-@app.route('/_internal/v0/update', methods=[ 'POST' ])
-def handle_kubewatch_update():
-    url = request.args.get('url', None)
-
-    if not url:
-        app.logger.error("error: update requested with no URL")
-        return "error: update requested with no URL\n", 400
-
-    app.logger.debug("Update requested: kubewatch, %s" % url)
-
-    status, info = app.watcher.post('CONFIG', ( 'kw', url ))
-
-    return info, status
-
-
 @app.route('/_internal/v0/watt', methods=[ 'POST' ])
+@internal_handler
 def handle_watt_update():
     url = request.args.get('url', None)
 
@@ -506,6 +593,7 @@ def handle_watt_update():
 
 
 @app.route('/_internal/v0/fs', methods=[ 'POST' ])
+@internal_handler
 def handle_fs():
     path = request.args.get('path', None)
 
@@ -521,6 +609,7 @@ def handle_fs():
 
 
 @app.route('/_internal/v0/events', methods=[ 'GET' ])
+@internal_handler
 def handle_events():
     if not app.local_scout:
         return 'Local Scout is not enabled\n', 400
@@ -553,7 +642,7 @@ def check_alive():
 
 @app.route('/ambassador/v0/check_ready', methods=[ 'GET' ])
 def check_ready():
-    if not (app.ir and app.diag):
+    if not app.ir:
         return "ambassador waiting for config\n", 503
 
     status = envoy_status(app.estats)
@@ -567,8 +656,25 @@ def check_ready():
 @app.route('/ambassador/v0/diag/', methods=[ 'GET' ])
 @standard_handler
 def show_overview(reqid=None):
+    # If we don't have an IR yet, do nothing. 
+    #
+    # We don't bother grabbing the config_lock here because we're not changing
+    # anything, and an overview request hitting at exactly the same moment as
+    # the first configure is a race anyway. If it fails, that's not a big deal,
+    # they can try again.
+    if not app.ir:
+          app.logger.debug("OV %s - can't do overview before configuration" % reqid)
+          return "Can't do overview before configuration", 503
+
+    enabled = app.ir.ambassador_module.diagnostics.get("enabled", False)
+    if not enabled and not _is_local_request():
+        return Response("Not found\n", 404)
+
     app.logger.debug("OV %s - showing overview" % reqid)
 
+    # Remember that app.diag is a property that can involve some real expense
+    # to compute -- we don't want to call it more than once here, so we cache
+    # its value.
     diag = app.diag
 
     if app.verbose:
@@ -683,8 +789,25 @@ def collect_errors_and_notices(request, reqid, what: str, diag: Diagnostics) -> 
 @app.route('/ambassador/v0/diag/<path:source>', methods=[ 'GET' ])
 @standard_handler
 def show_intermediate(source=None, reqid=None):
+    # If we don't have an IR yet, do nothing. 
+    #
+    # We don't bother grabbing the config_lock here because we're not changing
+    # anything, and an overview request hitting at exactly the same moment as
+    # the first configure is a race anyway. If it fails, that's not a big deal,
+    # they can try again.
+    if not app.ir:
+          app.logger.debug("SRC %s - can't do intermediate for %s before configuration" % (reqid, source))
+          return "Can't do overview before configuration", 503
+
+    enabled = app.ir.ambassador_module.diagnostics.get("enabled", False)
+    if not enabled and not _is_local_request():
+        return Response("Not found\n", 404)
+
     app.logger.debug("SRC %s - getting intermediate for '%s'" % (reqid, source))
 
+    # Remember that app.diag is a property that can involve some real expense
+    # to compute -- we don't want to call it more than once here, so we cache
+    # its value.
     diag = app.diag
 
     method = request.args.get('method', None)
@@ -799,20 +922,6 @@ class SystemStatus:
         return { key: info.to_dict() for key, info in self.status.items() }
 
 
-class KubeStatusNoOp:
-    def __init__(self, app) -> None:
-        pass
-
-    def mark_live(self, kind: str, name: str, namespace: str) -> None:
-        pass
-
-    def prune(self) -> None:
-        pass
-
-    def post(self, kind: str, name: str, namespace: str, text: str) -> None:
-        pass
-
-
 class KubeStatus:
     pool: concurrent.futures.ProcessPoolExecutor
 
@@ -822,8 +931,6 @@ class KubeStatus:
         self.live: Dict[str,  bool] = {}
         self.current_status: Dict[str, str] = {}
         self.pool = concurrent.futures.ProcessPoolExecutor(max_workers=5)
-
-        self.app.logger.info("WILL update Mapping status")
 
     def mark_live(self, kind: str, name: str, namespace: str) -> None:
         key = f"{kind}/{name}.{namespace}"
@@ -860,20 +967,37 @@ class KubeStatus:
             f.add_done_callback(kubestatus_update_done)
 
 
+# The KubeStatusNoMappings class clobbers the mark_live() method of the
+# KubeStatus class, so that updates to Mappings don't actually have any
+# effect, but updates to Ingress (for example) do.
+class KubeStatusNoMappings (KubeStatus):
+    def mark_live(self, kind: str, name: str, namespace: str) -> None:
+        pass
+
+    def post(self, kind: str, name: str, namespace: str, text: str) -> None:
+        # There's a path (via IRBaseMapping.check_status) where a Mapping
+        # can be added directly to ir.k8s_status_updates, which will come
+        # straight here without mark_live being involved -- so short-circuit
+        # here for Mappings, too.
+
+        if kind == 'Mapping':
+            return
+
+        super().post(kind, name, namespace, text)
+
 def kubestatus_update(kind: str, name: str, namespace: str, text: str) -> str:
-    cmd = [ 'kubestatus', kind, '-f', f'metadata.name={name}', '-n', namespace, '-u', '/dev/fd/0' ]
+    cmd = [ 'kubestatus', '--cache-dir', '/tmp/client-go-http-cache', kind, name, '-n', namespace, '-u', '/dev/fd/0' ]
     # print(f"KubeStatus UPDATE {os.getpid()}: running command: {cmd}")
 
     try:
-        rc = subprocess.run(cmd, input=text.encode('utf-8'), timeout=5)
-
+        rc = subprocess.run(cmd, input=text.encode('utf-8'), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=5)
         if rc.returncode == 0:
             return f"{name}.{namespace}: update OK"
         else:
             return f"{name}.{namespace}: error {rc.returncode}"
 
     except subprocess.TimeoutExpired as e:
-        return f"{name}.{namespace}: timed out"
+        return f"{name}.{namespace}: timed out\n\n{e.output}"
 
 def kubestatus_update_done(f: concurrent.futures.Future) -> None:
     # print(f"KubeStatus DONE {os.getpid()}: result {f.result()}")
@@ -946,9 +1070,7 @@ class AmbassadorEventWatcher(threading.Thread):
                 version, url = arg
 
                 try:
-                    if version == 'kw':
-                        self.load_config_kubewatch(rqueue, url)
-                    elif version == 'watt':
+                    if version == 'watt':
                         self.load_config_watt(rqueue, url)
                     else:
                         raise RuntimeError("config from %s not supported" % version)
@@ -979,6 +1101,10 @@ class AmbassadorEventWatcher(threading.Thread):
         self.logger.debug("responding to query with %s %s" % (status, info))
         rqueue.put((status, info))
 
+    # load_config_fs reconfigures from the filesystem. It's _mostly_ legacy
+    # code, but not entirely, since Docker demo mode still uses it.
+    #
+    # BE CAREFUL ABOUT STOPPING THE RECONFIGURATION TIMER ONCE IT IS STARTED.
     def load_config_fs(self, rqueue: queue.Queue, path: str) -> None:
         self.logger.debug("loading configuration from disk: %s" % path)
 
@@ -1039,7 +1165,8 @@ class AmbassadorEventWatcher(threading.Thread):
 
             return
 
-        # OK, we're starting a reconfiguration.
+        # OK, we're starting a reconfiguration. BE CAREFUL TO STOP THE TIMER
+        # BEFORE YOU RESPOND TO THE CALLER.
         self.app.config_timer.start()
 
         snapshot = re.sub(r'[^A-Za-z0-9_-]', '_', path)
@@ -1052,68 +1179,23 @@ class AmbassadorEventWatcher(threading.Thread):
 
         if not fetcher.elements:
             self.logger.debug("no configuration resources found at %s" % path)
-            # self._respond(rqueue, 204, 'ignoring empty configuration')
-            # return
+            # Don't bail from here -- go ahead and reload the IR.
+            # 
+            # XXX This is basically historical logic, honestly. But if you try
+            # to respond from here and bail, STOP THE RECONFIGURATION TIMER.
 
         self._load_ir(rqueue, aconf, fetcher, scc, snapshot)
 
-    def load_config_kubewatch(self, rqueue: queue.Queue, url: str):
-        snapshot = url.split('/')[-1]
-        ss_path = os.path.join(app.snapshot_path, "snapshot-tmp.yaml")
-
-        # OK, we're starting a reconfiguration.
-        self.app.config_timer.start()
-
-        self.logger.debug("copying configuration: kubewatch, %s to %s" % (url, ss_path))
-
-        # Grab the serialization, and save it to disk too.
-        elements: List[str] = []
-
-        serialization = load_url_contents(self.logger, "%s/services" % url, stream2=open(ss_path, "w"))
-
-        if serialization:
-            elements.append(serialization)
-        else:
-            self.logger.debug("no services loaded from snapshot %s" % snapshot)
-
-        if Config.enable_endpoints:
-            serialization = load_url_contents(self.logger, "%s/endpoints" % url, stream2=open(ss_path, "a"))
-
-            if serialization:
-                elements.append(serialization)
-            else:
-                self.logger.debug("no endpoints loaded from snapshot %s" % snapshot)
-
-        serialization = "---\n".join(elements)
-
-        if not serialization:
-            self.logger.debug("no data loaded from snapshot %s" % snapshot)
-            # We never used to return here. I'm not sure if that's really correct?
-            # self._respond(rqueue, 204, 'ignoring: no data loaded from snapshot %s' % snapshot)
-            # return
-
-        scc = KubewatchSecretHandler(app.logger, url, app.snapshot_path, snapshot)
-
-        with self.app.fetcher_timer:
-            aconf = Config()
-            fetcher = ResourceFetcher(app.logger, aconf)
-            fetcher.parse_yaml(serialization, k8s=True)
-
-        if not fetcher.elements:
-            self.logger.debug("no configuration found in snapshot %s" % snapshot)
-
-            # Don't actually bail here. If they send over a valid config that happens
-            # to have nothing for us, it's still a legit config.
-            # self._respond(rqueue, 204, 'ignoring: no configuration found in snapshot %s' % snapshot)
-            # return
-
-        self._load_ir(rqueue, aconf, fetcher, scc, snapshot)
-
+    # load_config_watt reconfigures from the filesystem. It's the one true way of
+    # reconfiguring these days.
+    #
+    # BE CAREFUL ABOUT STOPPING THE RECONFIGURATION TIMER ONCE IT IS STARTED.
     def load_config_watt(self, rqueue: queue.Queue, url: str):
         snapshot = url.split('/')[-1]
         ss_path = os.path.join(app.snapshot_path, "snapshot-tmp.yaml")
 
-        # OK, we're starting a reconfiguration.
+        # OK, we're starting a reconfiguration. BE CAREFUL TO STOP THE TIMER
+        # BEFORE YOU RESPOND TO THE CALLER.
         self.app.config_timer.start()
 
         self.logger.debug("copying configuration: watt, %s to %s" % (url, ss_path))
@@ -1124,8 +1206,8 @@ class AmbassadorEventWatcher(threading.Thread):
         if not serialization:
             self.logger.debug("no data loaded from snapshot %s" % snapshot)
             # We never used to return here. I'm not sure if that's really correct?
-            # self._respond(rqueue, 204, 'ignoring: no data loaded from snapshot %s' % snapshot)
-            # return
+            # 
+            # IF YOU CHANGE THIS, BE CAREFUL TO STOP THE RECONFIGURATION TIMER.
 
         # Weirdly, we don't need a special WattSecretHandler: parse_watt knows how to handle
         # the secrets that watt sends.
@@ -1145,11 +1227,15 @@ class AmbassadorEventWatcher(threading.Thread):
 
             # Don't actually bail here. If they send over a valid config that happens
             # to have nothing for us, it's still a legit config.
-            # self._respond(rqueue, 204, 'ignoring: no configuration found in snapshot %s' % snapshot)
-            # return
+            # 
+            # IF YOU CHANGE THIS, BE CAREFUL TO STOP THE RECONFIGURATION TIMER.
 
         self._load_ir(rqueue, aconf, fetcher, scc, snapshot)
 
+    # _load_ir is where the heavy lifting of a reconfigure happens. 
+    #
+    # AT THE POINT OF ENTRY, THE RECONFIGURATION TIMER IS RUNNING. DO NOT LEAVE
+    # THIS METHOD WITHOUT STOPPING THE RECONFIGURATION TIMER.
     def _load_ir(self, rqueue: queue.Queue, aconf: Config, fetcher: ResourceFetcher,
                  secret_handler: SecretHandler, snapshot: str) -> None:
         with self.app.aconf_timer:
@@ -1167,15 +1253,20 @@ class AmbassadorEventWatcher(threading.Thread):
         with self.app.econf_timer:
             econf = EnvoyConfig.generate(ir, "V2")
 
-        with self.app.diag_timer:
-            diag = Diagnostics(ir, econf)
+        # DON'T generate the Diagnostics here, because that turns out to be expensive.
+        # Instead, we'll just reset app.diag to None, then generate it on-demand when
+        # we need it.
 
         bootstrap_config, ads_config = econf.split_config()
 
         if not self.validate_envoy_config(config=ads_config, retries=self.app.validation_retries):
             self.logger.info("no updates were performed due to invalid envoy configuration, continuing with current configuration...")
+
             # Don't use app.check_scout; it will deadlock.
             self.check_scout("attempted bad update")
+
+            # DO stop the reconfiguration timer before leaving.
+            self.app.config_timer.stop()
             self._respond(rqueue, 500, 'ignoring: invalid Envoy configuration in snapshot %s' % snapshot)
             return
 
@@ -1203,6 +1294,10 @@ class AmbassadorEventWatcher(threading.Thread):
                 from_path = os.path.join(app.snapshot_path, fmt.format(from_suffix))
                 to_path = os.path.join(app.snapshot_path, fmt.format(to_suffix))
 
+                # Make sure we don't leave this method on error! The reconfiguration
+                # timer is still running, but also, the snapshots are a debugging aid:
+                # if we can't rotate them, meh, whatever.
+
                 try:
                     self.logger.debug("rotate: %s -> %s" % (from_path, to_path))
                     os.rename(from_path, to_path)
@@ -1221,10 +1316,13 @@ class AmbassadorEventWatcher(threading.Thread):
         with open(app.ads_path, "w") as output:
             output.write(json.dumps(ads_config, sort_keys=True, indent=4))
 
-        app.aconf = aconf
-        app.ir = ir
-        app.econf = econf
-        app.diag = diag
+        with app.config_lock:
+            app.aconf = aconf
+            app.ir = ir
+            app.econf = econf
+
+            # Force app.diag to None so that it'll be regenerated on-demand.
+            app.diag = None
 
         # We're finally done with the whole configuration process.
         self.app.config_timer.stop()
@@ -1273,8 +1371,8 @@ class AmbassadorEventWatcher(threading.Thread):
         # Remember that we've reconfigured...
         app.last_reconfigure = time.perf_counter()
 
-        # ...and that it'll be OK with us to log timers 10 seconds from now.
-        app.next_timer_log = app.last_reconfigure + 10.0
+        # ...and make sure we log the timers sometime soonish.
+        self.app.ok_to_log_timers(base_time=app.last_reconfigure)
 
         if app.health_checks and not app.stats_updater:
             app.logger.debug("starting Envoy status updater")

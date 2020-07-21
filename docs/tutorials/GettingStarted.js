@@ -38,14 +38,12 @@ class GettingStarted extends Component {
   render() {
     return (
     <div className="QS-grid">
+	
+      <span className="QS-os" id="QS-showMac" data-os="mac"><img className="QS-osLogo" src="../../images/apple.png" /></span>	
 
-    <div className="QS-os">	
-          <span id="QS-showMac" data-os="mac"><img className="QS-osLogo" src="../../images/apple.png" /></span>	
+      <span className="QS-os" id="QS-showLinux" data-os="linux"><img className="QS-osLogo" src="../../images/linux.png" /></span>	
 
-          <span id="QS-showLinux" data-os="linux"><img className="QS-osLogo" src="../../images/linux.png" /></span>	
-
-          <span id="QS-showWindows" data-os="windows"><img className="QS-osLogo" src="../../images/windows.png" /></span>	
-        </div>	
+      <span className="QS-os" id="QS-showWindows" data-os="windows"><img className="QS-osLogo" src="../../images/windows.png" /></span>
 
       <div className="QS-aside QS-aside1">	
         <ul id="QS-asideBullets">	
