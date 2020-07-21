@@ -1,6 +1,8 @@
 # The Ambassador API Gateway
 
-**The Ambassador Edge stack is now available and includes additional functionality beyond the current Ambassador API Gateway.** These features including automatic HTTPS, the Edge Policy Console UI, OAuth/OpenID Connect authentication support, integrated rate limiting, a developer portal, and [more](/edge-stack-faq/).
+**The Ambassador Edge Stack is now available and includes additional functionality beyond the current Ambassador API Gateway.**
+These features include automatic HTTPS, the Edge Policy Console UI, OAuth/OpenID Connect authentication support, integrated rate
+limiting, a developer portal, and [more](/edge-stack-faq/).
 
 If you still want to use just the Ambassador API Gateway, don't worry! You can follow the directions below to install it. Throughout the documentation, you'll see product tags at the top of the page, so you know what features apply to the Ambassador API Gateway.
 
@@ -8,6 +10,7 @@ If you still want to use just the Ambassador API Gateway, don't worry! You can f
 
 * [Kubernetes YAML](#kubernetes-yaml)
 * [Helm](#helm)
+* [Kubernetes distributions](#kubernetes-distributions)
 
 ## Kubernetes YAML
 
@@ -21,7 +24,7 @@ Below, we'll configure Ambassador to map `/httpbin/` to `httpbin.org`.
 
 ### 1. Deploying the Ambassador API Gateway
 
-The following steps deploy Ambassador in the default namespace. 
+The following steps deploy Ambassador in the default namespace.
 
 **Note:** If you're using Google Kubernetes Engine, you'll need to grant permissions to the account that will be setting up the Ambassador API Gateway. To do this, get your official GKE username, and then grant `cluster-admin` role privileges to that username:
 
@@ -124,7 +127,7 @@ See the [TLS HOWTO](../../../howtos/tls-termination) to quickly enable HTTPS sup
 ## Helm
 
 In the following instructions, we'll install the open-source Ambassador API
-Gateway with Helm. 
+Gateway with Helm.
 
 Although the [Helm chart](https://github.com/datawire/ambassador-chart) installs
 the Ambassador Edge Stack by default, the Ambassador API Gateway is still
@@ -177,6 +180,12 @@ You can also install the chart with the `--set` flag:
 ```
 helm install ambassador datawire/ambassador --set image.repository=docker.io/datawire/ambassador --set image.tag=$version$ --set enableAES=false
 ```
+
+## Kubernetes distributions
+
+The Ambassador API Gateway is currently available out-of-the-box in some Kubernetes distributions.
+See the [integrations with community projects](../ambassador-oss-community) to quickly install the
+Ambassador API Gateway.
 
 ## Want More?
 

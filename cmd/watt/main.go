@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
 	"time"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/datawire/ambassador/pkg/k8s"
+	"github.com/datawire/ambassador/pkg/kates"
 	"github.com/datawire/ambassador/pkg/limiter"
 	"github.com/datawire/ambassador/pkg/supervisor"
 )
@@ -121,8 +123,21 @@ func runWatt(ctx context.Context, flags wattFlags, args []string) error {
 	}
 	invoker := NewInvoker(apiServerAuthority, flags.notifyReceivers)
 	limiter := limiter.NewComposite(limiter.NewUnlimited(), limiter.NewInterval(flags.interval), flags.interval)
+
+	crdYAML, err := ioutil.ReadFile("/opt/ambassador/etc/crds.yaml")
+	if err != nil {
+		return err
+	}
+	crdObjs, err := kates.ParseManifests(string(crdYAML))
+	if err != nil {
+		return err
+	}
+	validator, err := kates.NewValidator(nil, crdObjs)
+	if err != nil {
+		return err
+	}
 	aggregator := NewAggregator(invoker.Snapshots, aggregatorToKubewatchmanCh, aggregatorToConsulwatchmanCh,
-		flags.initialSources, ExecWatchHook(flags.watchHooks), limiter)
+		flags.initialSources, ExecWatchHook(flags.watchHooks), limiter, validator)
 
 	kubebootstrap := kubebootstrap{
 		namespace:      flags.kubernetesNamespace,

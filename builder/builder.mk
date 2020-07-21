@@ -196,6 +196,18 @@ pytest-only: sync preflight-cluster
 pytest-gold:
 	sh $(COPY_GOLD) $(PYTEST_GOLD_DIR)
 
+mypy-server-stop: sync
+	docker exec -it $(shell $(BUILDER)) /buildroot/builder.sh mypy-internal stop
+.PHONY: mypy
+
+mypy-server: sync
+	docker exec -it $(shell $(BUILDER)) /buildroot/builder.sh mypy-internal start
+.PHONY: mypy
+
+mypy: mypy-server
+	docker exec -it $(shell $(BUILDER)) /buildroot/builder.sh mypy-internal check
+.PHONY: mypy
+
 GOTEST_PKGS ?= ./...
 export GOTEST_PKGS
 GOTEST_ARGS ?=
@@ -586,4 +598,18 @@ define _help.targets
   $(BLD)$(MAKE) $(BLU)clean$(END)     -- kills the build container.
 
   $(BLD)$(MAKE) $(BLU)clobber$(END)   -- kills the build container and the cache volume.
+
+  $(BLD)$(MAKE) $(BLU)generate$(END)  -- update generated files that get checked in to Git.
+
+    1. Use $(BLD)\$$ENVOY_COMMIT$(END) to update the vendored gRPC protobuf files ('api/envoy').
+    2. Run 'protoc' to generate things from the protobuf files (both those from
+       Envoy, and those from 'api/kat').
+    3. Use $(BLD)\$$ENVOY_GO_CONTROL_PLANE_COMMIT$(END) to update the vendored+patched copy of
+       envoyproxy/go-control-plane ('pkg/envoy-control-plane/').
+    4. Use the Go CRD definitions in 'pkg/api/getambassador.io/' to generate YAML
+       (and a few 'zz_generated.*.go' files).
+
+  $(BLD)$(MAKE) $(BLU)update-yaml$(END) -- like $(BLD)make generate$(END), but skips the slow Envoy stuff.
+
+  $(BLD)$(MAKE) $(BLU)go-mod-tidy$(END) -- 'go mod tidy', but plays nice with 'make generate'
 endef

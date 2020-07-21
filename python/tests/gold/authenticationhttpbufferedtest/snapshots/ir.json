@@ -22,7 +22,6 @@
         "debug_mode": false,
         "default_label_domain": "ambassador",
         "default_labels": {},
-        "diag_port": 8877,
         "diagnostics": {
             "enabled": true,
             "prefix": "/ambassador/v0/",
@@ -364,6 +363,7 @@
                     "add_request_headers": {
                         "l5d-dst-override": "127.0.0.1:8877"
                     },
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -470,6 +470,7 @@
                     "add_request_headers": {
                         "l5d-dst-override": "127.0.0.1:8877"
                     },
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -576,6 +577,7 @@
                     "add_request_headers": {
                         "l5d-dst-override": "127.0.0.1:8877"
                     },
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -679,6 +681,7 @@
                     "add_request_headers": {
                         "l5d-dst-override": "authenticationhttpbufferedtest-http:80"
                     },
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,

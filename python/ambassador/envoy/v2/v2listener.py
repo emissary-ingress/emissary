@@ -720,42 +720,44 @@ class V2Listener(dict):
 
         # Use sane access log spec in JSON
         if self.config.ir.ambassador_module.envoy_log_type.lower() == "json":
-            json_format = {
-                'start_time': '%START_TIME%',
-                'method': '%REQ(:METHOD)%',
-                'path': '%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%',
-                'protocol': '%PROTOCOL%',
-                'response_code': '%RESPONSE_CODE%',
-                'response_flags': '%RESPONSE_FLAGS%',
-                'bytes_received': '%BYTES_RECEIVED%',
-                'bytes_sent': '%BYTES_SENT%',
-                'duration': '%DURATION%',
-                'upstream_service_time': '%RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)%',
-                'x_forwarded_for': '%REQ(X-FORWARDED-FOR)%',
-                'user_agent': '%REQ(USER-AGENT)%',
-                'request_id': '%REQ(X-REQUEST-ID)%',
-                'authority': '%REQ(:AUTHORITY)%',
-                'upstream_host': '%UPSTREAM_HOST%',
-                'upstream_cluster': '%UPSTREAM_CLUSTER%',
-                'upstream_local_address': '%UPSTREAM_LOCAL_ADDRESS%',
-                'downstream_local_address': '%DOWNSTREAM_LOCAL_ADDRESS%',
-                'downstream_remote_address': '%DOWNSTREAM_REMOTE_ADDRESS%',
-                'requested_server_name': '%REQUESTED_SERVER_NAME%',
-                'istio_policy_status': '%DYNAMIC_METADATA(istio.mixer:status)%',
-                'upstream_transport_failure_reason': '%UPSTREAM_TRANSPORT_FAILURE_REASON%'
-            }
+            log_format = self.config.ir.ambassador_module.get('envoy_log_format', None)
+            if log_format is None:
+                log_format = {
+                    'start_time': '%START_TIME%',
+                    'method': '%REQ(:METHOD)%',
+                    'path': '%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%',
+                    'protocol': '%PROTOCOL%',
+                    'response_code': '%RESPONSE_CODE%',
+                    'response_flags': '%RESPONSE_FLAGS%',
+                    'bytes_received': '%BYTES_RECEIVED%',
+                    'bytes_sent': '%BYTES_SENT%',
+                    'duration': '%DURATION%',
+                    'upstream_service_time': '%RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)%',
+                    'x_forwarded_for': '%REQ(X-FORWARDED-FOR)%',
+                    'user_agent': '%REQ(USER-AGENT)%',
+                    'request_id': '%REQ(X-REQUEST-ID)%',
+                    'authority': '%REQ(:AUTHORITY)%',
+                    'upstream_host': '%UPSTREAM_HOST%',
+                    'upstream_cluster': '%UPSTREAM_CLUSTER%',
+                    'upstream_local_address': '%UPSTREAM_LOCAL_ADDRESS%',
+                    'downstream_local_address': '%DOWNSTREAM_LOCAL_ADDRESS%',
+                    'downstream_remote_address': '%DOWNSTREAM_REMOTE_ADDRESS%',
+                    'requested_server_name': '%REQUESTED_SERVER_NAME%',
+                    'istio_policy_status': '%DYNAMIC_METADATA(istio.mixer:status)%',
+                    'upstream_transport_failure_reason': '%UPSTREAM_TRANSPORT_FAILURE_REASON%'
+                }
 
-            tracing_config = self.config.ir.tracing
-            if tracing_config and tracing_config.driver == 'envoy.tracers.datadog':
-                json_format['dd.trace_id'] = '%REQ(X-DATADOG-TRACE-ID)%'
-                json_format['dd.span_id'] = '%REQ(X-DATADOG-PARENT-ID)%'
+                tracing_config = self.config.ir.tracing
+                if tracing_config and tracing_config.driver == 'envoy.tracers.datadog':
+                    log_format['dd.trace_id'] = '%REQ(X-DATADOG-TRACE-ID)%'
+                    log_format['dd.span_id'] = '%REQ(X-DATADOG-PARENT-ID)%'
 
             self.access_log.append({
                 'name': 'envoy.file_access_log',
                 'typed_config': {
                     '@type': 'type.googleapis.com/envoy.config.accesslog.v2.FileAccessLog',
                     'path': self.config.ir.ambassador_module.envoy_log_path,
-                    'json_format': json_format
+                    'json_format': log_format
                 }
             })
         else:
@@ -811,7 +813,6 @@ class V2Listener(dict):
         if 'preserve_external_request_id' in self.config.ir.ambassador_module:
             self.base_http_config["preserve_external_request_id"] = self.config.ir.ambassador_module.preserve_external_request_id
 
-
         if self.config.ir.tracing:
             self.base_http_config["generate_request_id"] = True
 
@@ -823,8 +824,28 @@ class V2Listener(dict):
             if req_hdrs:
                 self.base_http_config["tracing"]["request_headers_for_tags"] = req_hdrs
 
+            sampling = self.config.ir.tracing.get('sampling', {})
+            if sampling:
+                client_sampling = sampling.get('client', None)
+                if client_sampling is not None:
+                    self.base_http_config["tracing"]["client_sampling"] = {
+                        "value": client_sampling
+                    }
+
+                random_sampling = sampling.get('random', None)
+                if random_sampling is not None:
+                    self.base_http_config["tracing"]["random_sampling"] = {
+                        "value": random_sampling
+                    }
+
+                overall_sampling = sampling.get('overall', None)
+                if overall_sampling is not None:
+                    self.base_http_config["tracing"]["overall_sampling"] = {
+                        "value": overall_sampling
+                    }
+
         proper_case = self.config.ir.ambassador_module['proper_case']
-        
+
         if proper_case:
             proper_case_header = {'header_key_format': {'proper_case_words': {}}}
             if 'http_protocol_options' in self.base_http_config:

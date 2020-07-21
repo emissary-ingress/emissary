@@ -25,7 +25,6 @@
                 ]
             }
         },
-        "diag_port": 8877,
         "diagnostics": {
             "enabled": true,
             "prefix": "/ambassador/v0/",
@@ -262,6 +261,7 @@
                     "add_request_headers": {
                         "l5d-dst-override": "linkerdheadermapping-http-addlinkerdonly:80"
                     },
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -388,6 +388,7 @@
                         },
                         "l5d-dst-override": "127.0.0.1:8877"
                     },
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -508,6 +509,7 @@
                         },
                         "l5d-dst-override": "127.0.0.1:8877"
                     },
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -623,6 +625,7 @@
                             "value": "orange"
                         }
                     },
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -753,6 +756,7 @@
                         },
                         "l5d-dst-override": "127.0.0.1:8877"
                     },
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -870,6 +874,7 @@
                         },
                         "l5d-dst-override": "linkerdheadermapping-http:80"
                     },
+                    "add_response_headers": {},
                     "cluster": {
                         "_active": true,
                         "_errored": false,

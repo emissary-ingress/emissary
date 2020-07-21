@@ -19,7 +19,6 @@
         "debug_mode": false,
         "default_label_domain": "ambassador",
         "default_labels": {},
-        "diag_port": 8877,
         "diagnostics": {
             "enabled": true,
             "prefix": "/ambassador/v0/",
@@ -246,6 +245,7 @@
                     "_errored": false,
                     "_rkey": "globalcircuitbreakingtest.default.2",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "circuit_breakers": [
                         {
                             "_name": "cbdc1p1",
@@ -376,6 +376,7 @@
                     "_errored": false,
                     "_rkey": "globalcircuitbreakingtest.default.1",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "circuit_breakers": [
                         {
                             "_name": "cbdc1024p1024",
@@ -509,6 +510,7 @@
                     ],
                     "_rkey": "globalcircuitbreakingtest.default.3",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "circuit_breakers": [
                         {
                             "_name": "cbdc1p1",
@@ -632,6 +634,7 @@
                     ],
                     "_rkey": "globalcircuitbreakingtest.default.3",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "circuit_breakers": [
                         {
                             "_name": "cbdc1p1",
@@ -755,6 +758,7 @@
                     ],
                     "_rkey": "globalcircuitbreakingtest.default.3",
                     "add_request_headers": {},
+                    "add_response_headers": {},
                     "circuit_breakers": [
                         {
                             "_name": "cbdc1p1",

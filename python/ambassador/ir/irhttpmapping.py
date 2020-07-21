@@ -45,6 +45,7 @@ class IRHTTPMapping (IRBaseMapping):
     prefix: str
     headers: List[KeyValueDecorator]
     add_request_headers: Dict[str, str]
+    add_response_headers: Dict[str, str]
     method: Optional[str]
     service: str
     group_id: str
@@ -71,8 +72,7 @@ class IRHTTPMapping (IRBaseMapping):
 
     AllowedKeys: ClassVar[Dict[str, bool]] = {
         "add_linkerd_headers": False,
-        # Do not include add_request_headers
-        "add_response_headers": True,
+        # Do not include add_request_headers and add_response_headers
         "auto_host_rewrite": False,
         "bypass_auth": False,
         "case_sensitive": False,
@@ -198,11 +198,18 @@ class IRHTTPMapping (IRBaseMapping):
         # setting a value of `{}` to override a default!
 
         add_request_hdrs: dict
+        add_response_hdrs: dict
 
         if 'add_request_headers' in kwargs:
             add_request_hdrs = kwargs['add_request_headers']
         else:
             add_request_hdrs = self.lookup_default('add_request_headers', {})
+
+
+        if 'add_response_headers' in kwargs:
+            add_response_hdrs = kwargs['add_response_headers']
+        else:
+            add_response_hdrs = self.lookup_default('add_response_headers', {})
 
         # Remember that we may need to add the Linkerd headers, too.
         add_linkerd_headers = new_args.get('add_linkerd_headers', False)
@@ -243,7 +250,7 @@ class IRHTTPMapping (IRBaseMapping):
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, location=location, service=service,
             kind=kind, name=name, namespace=namespace, metadata_labels=metadata_labels,
-            apiVersion=apiVersion, headers=hdrs, add_request_headers=add_request_hdrs,
+            apiVersion=apiVersion, headers=hdrs, add_request_headers=add_request_hdrs, add_response_headers = add_response_hdrs,
             precedence=precedence, rewrite=rewrite, cluster_tag=cluster_tag,
             query_parameters=query_parameters,
             regex_rewrite=regex_rewrite,
