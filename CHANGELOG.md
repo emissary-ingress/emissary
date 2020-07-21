@@ -59,8 +59,8 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 ### Ambassador API Gateway + Ambassador Edge Stack
 
 - Incorporate the Envoy 1.14.4 security update.
-- BREAKING CHANGE: Turning off the Diagnostics UI via the Ambassador Module disables access to it from outside the Ambassador Pod.
-- BREAKING CHANGE: Default to not updating `Mapping` status; see below.
+- API CHANGE: Turning off the Diagnostics UI via the Ambassador Module now disables access to the UI from both inside and outside the Ambassador Pod.
+- API CHANGE: Default changes updating `Mapping` status from default-on to default-off; see below.
 - Feature: Add support for circuit breakers in TCP mapping (thanks, [Pierre Fersing](https://github.com/PierreF)!)
 - Feature: Ambassador CRDs now include schema. This enables validation by `kubectl apply`.
 - Feature: Advanced TLS configuration can be specified in `Host` resource via `tlsContext` and `tls` fields.
