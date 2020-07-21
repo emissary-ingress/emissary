@@ -141,6 +141,7 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `licenseKey.value`                 | Ambassador Edge Stack license. Empty will install in evaluation mode.           | ``                                |
 | `licenseKey.createSecret`          | Set to `false` if installing mutltiple Ambassdor Edge Stacks in a namespace.    | `true`                            |
 | `licenseKey.secretName`            | Name of the secret to store Ambassador license key in.                          | ``                                |
+| `licenseKey.annotations`           | Annotations to attach to the license-key-secret.                                | {}                                |
 | `redisURL`                         | URL of redis instance not created by the release                                | `""`                              |
 | `redisEnv`                         | (**DEPRECATED:** Use `envRaw`) Set env vars that control how Ambassador interacts with redis. | `""`                |
 | `redis.create`                     | Create a basic redis instance with default configurations                       | `true`                            |

@@ -311,6 +311,9 @@ licenseKey:
   value:
   createSecret: true
   secretName:
+  # Annotations to attach to the license-key-secret.
+  annotations:
+    {}
 
 # The DevPortal is exposed at /docs/ endpoint in the AES container.
 # Setting this to true will automatically create routes for the DevPortal.

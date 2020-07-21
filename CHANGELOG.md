@@ -5,7 +5,14 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
-(no changes yet)
+(nothing yet)
+
+## v6.4.10
+
+- Feature: Allow specifying annotations for the license-key-secret: [ambassador-chart/#106](https://github.com/datawire/ambassador-chart/issues/106)
+- Feature: Annotation for keeping the AES secret on removal: [ambassador-chart/#110](https://github.com/datawire/ambassador-chart/issues/110)
+- Fix: do not mount the secret if we do not want a secret: [ambassador-chart/#103](https://github.com/datawire/ambassador-chart/issues/103)
+- Internal CI refactorings.
 
 ## v6.5.0
 
