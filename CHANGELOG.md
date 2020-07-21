@@ -7,6 +7,10 @@ numbering uses [semantic versioning](http://semver.org).
 
 (nothing yet)
 
+## v6.5.0
+
+- Upgrade Ambassador to version 1.6.0: [CHANGELOG}](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
+
 ## v6.4.10
 
 - Feature: Allow specifying annotations for the license-key-secret: [ambassador-chart/#106](https://github.com/datawire/ambassador-chart/issues/106)
