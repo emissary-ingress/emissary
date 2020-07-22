@@ -54,7 +54,7 @@ class IRTCPMapping (IRBaseMapping):
         # we're going to allow from the incoming kwargs...
 
         new_args = { x: kwargs[x] for x in kwargs.keys() if x in IRTCPMapping.AllowedKeys }
-        service = qualify_service_name(ir, service, namespace)
+        service = qualify_service_name(ir, service, namespace, rkey=rkey)
 
         # ...and then init the superclass.
         super().__init__(

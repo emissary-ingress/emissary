@@ -2,6 +2,8 @@ import json
 
 from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
 
+from urllib.parse import urlparse
+
 from ..config import Config
 
 from .irresource import IRResource
@@ -9,26 +11,46 @@ from .irresource import IRResource
 if TYPE_CHECKING:
     from .ir import IR
 
-def qualify_service_name(ir: 'IR', service: str, namespace: Optional[str]) -> str:
+def qualify_service_name(ir: 'IR', service: str, namespace: Optional[str], rkey: Optional[str]=None) -> str:
     fully_qualified = "." in service or "localhost" == service
 
     if namespace != ir.ambassador_namespace and namespace and not fully_qualified and not ir.ambassador_module.use_ambassador_namespace_for_service_resolution:
-        # The target service name is not fully qualified.
-        # We are most likely targeting a simple k8s svc with kube-dns resolution.
-        # Make sure we actually resolve the service it's namespace, not the Ambassador process namespace.
+        # The target service name is not fully qualified. Parse it and make sure to use
+        # the service's namespace, if possible, rather than the Ambassador process namespace.
         # 
-        # Note well! The "unqualified" service here might contain a port number, so just appending 
-        # the namespace won't end well. So start by checking for a port number...
+        # Note will! The service can be something complex like 'https://myservice:443', so 
+        # naive parsing won't work. The URL parser is actually relevant... but ew, it's kind
+        # of stupid so we need to make sure that there's a scheme. Sigh.
 
-        fields = service.split(":", 1)
+        if "://" not in service:
+            service = "ambassador://" + service
 
-        hostname = fields[0]
-        port: Optional[str] = None
+        p = urlparse(service)
 
-        if len(fields) > 1:
-            port = fields[1]
+        hostname = p.hostname
+        scheme = p.scheme
+
+        port = None
+
+        try:
+            port = p.port
+        except ValueError:
+            # Malformed port. Uhhhhh... error.
+            errstr = f"Malformed service port in {service}"
+            
+            if rkey:
+                errstr = f"{rkey}: {errstr}"
+            
+            ir.post_error(errstr)
+
+            # The best we can do here is probably just to return the original string
+            # and hope for the best. I guess.
+            return service
 
         service = f"{hostname}.{namespace}"
+
+        if scheme and (scheme != "ambassador"):
+            service = f"{scheme}://{service}"
 
         if port is not None:
             service += f":{port}"

@@ -214,7 +214,7 @@ class IRHTTPMapping (IRBaseMapping):
         # Remember that we may need to add the Linkerd headers, too.
         add_linkerd_headers = new_args.get('add_linkerd_headers', False)
 
-        service = qualify_service_name(ir, service, namespace)
+        service = qualify_service_name(ir, service, namespace, rkey=rkey)
         svc = Service(ir.logger, service)
 
         if add_linkerd_headers:
