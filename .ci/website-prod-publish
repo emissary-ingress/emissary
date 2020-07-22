@@ -27,5 +27,5 @@ git clone -b master "$remote_url" /tmp/getambassador.io
 cd /tmp/getambassador.io
 git submodule update --init --reference="$git_workdir"
 
-npm run pull-docs
+yarn run pull-docs
 git push origin master
