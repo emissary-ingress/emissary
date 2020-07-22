@@ -18,7 +18,7 @@ def qualify_service_name(ir: 'IR', service: str, namespace: Optional[str], rkey:
         # The target service name is not fully qualified. Parse it and make sure to use
         # the service's namespace, if possible, rather than the Ambassador process namespace.
         # 
-        # Note will! The service can be something complex like 'https://myservice:443', so 
+        # Note well! The service can be something complex like 'https://myservice:443', so 
         # naive parsing won't work. The URL parser is actually relevant... but ew, it's kind
         # of stupid so we need to make sure that there's a scheme. Sigh.
 
