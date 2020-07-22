@@ -135,7 +135,8 @@ spec:
     authority: none
   tlsSecret:
     name: min-secret
-  tlsContext: min-tls-context
+  tlsContext:
+    name: min-tls-context
 ```
 
 **Note**: Any `hosts` or `secret` in the `TLSContext` must be the compatible with the `Host` to which it is

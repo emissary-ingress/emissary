@@ -37,9 +37,9 @@
         "sampling": {
             "type": "object",
             "properties": {
-                "client": { "type": "number" },
-                "random": { "type": "number" },
-                "overall": { "type": "number" }
+                "client": { "type": "integer" },
+                "random": { "type": "integer" },
+                "overall": { "type": "integer" }
             },
             "additionalProperties": false
         },

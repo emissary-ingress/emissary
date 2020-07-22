@@ -75,7 +75,9 @@ func init() {
 	proto.RegisterType((*CdsDummy)(nil), "envoy.service.cluster.v3.CdsDummy")
 }
 
-func init() { proto.RegisterFile("envoy/service/cluster/v3/cds.proto", fileDescriptor_c038ede4be83d91e) }
+func init() {
+	proto.RegisterFile("envoy/service/cluster/v3/cds.proto", fileDescriptor_c038ede4be83d91e)
+}
 
 var fileDescriptor_c038ede4be83d91e = []byte{
 	// 399 bytes of a gzipped FileDescriptorProto

@@ -93,7 +93,9 @@ func init() {
 	proto.RegisterType((*BackoffStrategy)(nil), "envoy.config.core.v3.BackoffStrategy")
 }
 
-func init() { proto.RegisterFile("envoy/config/core/v3/backoff.proto", fileDescriptor_5030f1467e197113) }
+func init() {
+	proto.RegisterFile("envoy/config/core/v3/backoff.proto", fileDescriptor_5030f1467e197113)
+}
 
 var fileDescriptor_5030f1467e197113 = []byte{
 	// 331 bytes of a gzipped FileDescriptorProto

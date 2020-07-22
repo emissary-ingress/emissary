@@ -306,9 +306,6 @@ class MockSecretHandler(SecretHandler):
         self.logger.debug(f"MockSecretHandler: cannot load {secret_name}.{namespace}")
         return None
 
-    def send_secrets_to_ambex(self, name: str, cert_data: dict):
-        return
-
 @click.command(help="Mock the watt/watch_hook/diagd cycle to generate an IR from a Kubernetes YAML manifest.")
 @click_option('--debug/--no-debug', default=True,
               help="enable debugging")

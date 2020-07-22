@@ -2030,7 +2030,9 @@ type Cluster_CommonLbConfig_LocalityWeightedLbConfigValidationError struct {
 }
 
 // Field function returns field value.
-func (e Cluster_CommonLbConfig_LocalityWeightedLbConfigValidationError) Field() string { return e.field }
+func (e Cluster_CommonLbConfig_LocalityWeightedLbConfigValidationError) Field() string {
+	return e.field
+}
 
 // Reason function returns reason value.
 func (e Cluster_CommonLbConfig_LocalityWeightedLbConfigValidationError) Reason() string {
@@ -2114,7 +2116,9 @@ func (e Cluster_CommonLbConfig_ConsistentHashingLbConfigValidationError) Reason(
 }
 
 // Cause function returns cause value.
-func (e Cluster_CommonLbConfig_ConsistentHashingLbConfigValidationError) Cause() error { return e.cause }
+func (e Cluster_CommonLbConfig_ConsistentHashingLbConfigValidationError) Cause() error {
+	return e.cause
+}
 
 // Key function returns key value.
 func (e Cluster_CommonLbConfig_ConsistentHashingLbConfigValidationError) Key() bool { return e.key }

@@ -555,7 +555,9 @@ func init() {
 	proto.RegisterType((*CidrRange)(nil), "envoy.config.core.v3.CidrRange")
 }
 
-func init() { proto.RegisterFile("envoy/config/core/v3/address.proto", fileDescriptor_73ff5d16d1e342ac) }
+func init() {
+	proto.RegisterFile("envoy/config/core/v3/address.proto", fileDescriptor_73ff5d16d1e342ac)
+}
 
 var fileDescriptor_73ff5d16d1e342ac = []byte{
 	// 813 bytes of a gzipped FileDescriptorProto

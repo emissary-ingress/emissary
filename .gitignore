@@ -20,7 +20,6 @@ vendor_bootstrap_hack.go
 
 /tools/sandbox/grpc_auth/docker-compose.yml
 /tools/sandbox/grpc_web/docker-compose.yaml
-/tools/sandbox/grpc_web/*_pb.js
 /tools/sandbox/http_auth/docker-compose.yml
 
 *.docker

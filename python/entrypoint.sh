@@ -323,7 +323,7 @@ fi
 ################################################################################
 if [[ -z "${DIAGD_ONLY}" ]]; then
     # Keep the listen address in-sync with v2bootstrap.py
-    launch "ambex" ambex --ads-listen-address=127.0.0.1:8003 --secrets-listen-address=127.0.0.1:8004 "${ENVOY_DIR}"
+    launch "ambex" ambex --ads-listen-address=127.0.0.1:8003 "${ENVOY_DIR}"
 
     diagd_flags+=('--kick' "kill -HUP $$")
 else

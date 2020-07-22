@@ -154,7 +154,7 @@ class IRBaseMapping (IRResource):
         labels = self.get('metadata_labels') or {}
         return labels.get(key) or None
 
-    def status(self) -> Optional[str]:
+    def status(self) -> Optional[Dict[str, Any]]:
         """
         Return the new status we should have. Subclasses would typically override
         this.

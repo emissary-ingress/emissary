@@ -267,7 +267,8 @@ spec:
       hostname: {self.path.fqdn}
   tlsSecret:
     name: {self.name.k8s}-secret
-  tlsContext: {self.path.k8s}-separate-tls-context
+  tlsContext:
+    name: {self.path.k8s}-separate-tls-context
 ---
 apiVersion: getambassador.io/v2
 kind: TLSContext

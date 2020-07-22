@@ -81,7 +81,7 @@ spec:
 
     def check(self):
         result = self.results[0]
-        clusters = result.json["clusters"]
+        clusters = result.json["cluster_info"]
         
         cluster_1 = clusters["cluster_clustertagtest_http_target1_default"]
         self.assert_cluster(cluster_1, "clustertagtest-http-target1")

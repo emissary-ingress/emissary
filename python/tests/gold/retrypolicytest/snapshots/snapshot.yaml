@@ -23,7 +23,7 @@
                         "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind: Mapping\nname: RetryPolicyTest-normal\nprefix: /RetryPolicyTest-normal/\nservice: retrypolicytest-http\ntimeout_ms: 3000\nambassador_id: retrypolicytest\n\n---\napiVersion: ambassador/v1\nkind: Mapping\nname: RetryPolicyTest-target\nprefix: /RetryPolicyTest-retry/\nservice: retrypolicytest-http\ntimeout_ms: 3000\nretry_policy:\n  retry_on: \"5xx\"\n  num_retries: 4\nambassador_id: retrypolicytest\n\n---\napiVersion: ambassador/v0\nkind: Module\nname: ambassador\nconfig:\n  retry_policy:\n    retry_on: \"retriable-4xx\"\n    num_retries: 4\nambassador_id: retrypolicytest\n",
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v0\\nkind: Mapping\\nname: RetryPolicyTest-normal\\nprefix: /RetryPolicyTest-normal/\\nservice: retrypolicytest-http\\ntimeout_ms: 3000\\nambassador_id: retrypolicytest\\n\\n---\\napiVersion: ambassador/v1\\nkind: Mapping\\nname: RetryPolicyTest-target\\nprefix: /RetryPolicyTest-retry/\\nservice: retrypolicytest-http\\ntimeout_ms: 3000\\nretry_policy:\\n  retry_on: \\\"5xx\\\"\\n  num_retries: 4\\nambassador_id: retrypolicytest\\n\\n---\\napiVersion: ambassador/v0\\nkind: Module\\nname: ambassador\\nconfig:\\n  retry_policy:\\n    retry_on: \\\"retriable-4xx\\\"\\n    num_retries: 4\\nambassador_id: retrypolicytest\\n\"},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"retrypolicytest\",\"scope\":\"AmbassadorTest\"},\"name\":\"retrypolicytest\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"retrypolicytest\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-07-09T17:32:59Z",
+                    "creationTimestamp": "2020-07-15T16:17:24Z",
                     "labels": {
                         "app.kubernetes.io/component": "ambassador-service",
                         "kat-ambassador-id": "retrypolicytest",
@@ -31,24 +31,24 @@
                     },
                     "name": "retrypolicytest",
                     "namespace": "default",
-                    "resourceVersion": "12469",
+                    "resourceVersion": "5001",
                     "selfLink": "/api/v1/namespaces/default/services/retrypolicytest",
-                    "uid": "3bf78438-c20a-11ea-87b2-0ab82b9da1f7"
+                    "uid": "ab49cc3d-c6b6-11ea-8473-42010a80004b"
                 },
                 "spec": {
-                    "clusterIP": "10.98.29.226",
+                    "clusterIP": "10.114.2.127",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "http",
-                            "nodePort": 31007,
+                            "nodePort": 32502,
                             "port": 80,
                             "protocol": "TCP",
                             "targetPort": 8080
                         },
                         {
                             "name": "https",
-                            "nodePort": 31195,
+                            "nodePort": 30957,
                             "port": 443,
                             "protocol": "TCP",
                             "targetPort": 8443
@@ -71,7 +71,7 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"retrypolicytest\",\"scope\":\"AmbassadorTest\",\"service\":\"retrypolicytest-admin\"},\"name\":\"retrypolicytest-admin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"retrypolicytest-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"retrypolicytest\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-07-09T17:33:00Z",
+                    "creationTimestamp": "2020-07-15T16:17:25Z",
                     "labels": {
                         "kat-ambassador-id": "retrypolicytest",
                         "scope": "AmbassadorTest",
@@ -79,17 +79,17 @@
                     },
                     "name": "retrypolicytest-admin",
                     "namespace": "default",
-                    "resourceVersion": "12476",
+                    "resourceVersion": "5006",
                     "selfLink": "/api/v1/namespaces/default/services/retrypolicytest-admin",
-                    "uid": "3c1c1b0a-c20a-11ea-87b2-0ab82b9da1f7"
+                    "uid": "ab66a0e2-c6b6-11ea-8473-42010a80004b"
                 },
                 "spec": {
-                    "clusterIP": "10.104.90.100",
+                    "clusterIP": "10.114.13.138",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "retrypolicytest-admin",
-                            "nodePort": 31217,
+                            "nodePort": 31428,
                             "port": 8877,
                             "protocol": "TCP",
                             "targetPort": 8877
@@ -110,33 +110,33 @@
                 "kind": "Service",
                 "metadata": {
                     "annotations": {
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"retrypolicytest\",\"scope\":\"AmbassadorTest\"},\"name\":\"retrypolicytest-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8136},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8499}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"retrypolicytest\",\"scope\":\"AmbassadorTest\"},\"name\":\"retrypolicytest-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8139},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8502}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
                     },
-                    "creationTimestamp": "2020-07-09T17:33:00Z",
+                    "creationTimestamp": "2020-07-15T16:17:25Z",
                     "labels": {
                         "kat-ambassador-id": "retrypolicytest",
                         "scope": "AmbassadorTest"
                     },
                     "name": "retrypolicytest-http",
                     "namespace": "default",
-                    "resourceVersion": "12488",
+                    "resourceVersion": "5014",
                     "selfLink": "/api/v1/namespaces/default/services/retrypolicytest-http",
-                    "uid": "3c4e7603-c20a-11ea-87b2-0ab82b9da1f7"
+                    "uid": "ab94613b-c6b6-11ea-8473-42010a80004b"
                 },
                 "spec": {
-                    "clusterIP": "10.100.47.134",
+                    "clusterIP": "10.114.3.33",
                     "ports": [
                         {
                             "name": "http",
                             "port": 80,
                             "protocol": "TCP",
-                            "targetPort": 8136
+                            "targetPort": 8139
                         },
                         {
                             "name": "https",
                             "port": 443,
                             "protocol": "TCP",
-                            "targetPort": 8499
+                            "targetPort": 8502
                         }
                     ],
                     "selector": {
