@@ -4,7 +4,9 @@ The Ambassador Edge Stack is a comprehensive, self-service edge stack and API Ga
 
 ## First Steps
 
-New to Ambassador Edge Stack? Start here! We've worked hard to make installing and using Ambassador Edge Stack as easy as possible.
+New to the Ambassador Edge Stack?  Start here!  We've worked hard to
+make installing and using the Ambassador Edge Stack as easy as
+possible.
 
 * The [Quick Start Guide](tutorials/getting-started)
 
@@ -28,6 +30,7 @@ We work hard at keeping our documentation useful for all of our users. Here's an
   * [Running Ambassador](topics/running) is for operators, site reliability engineers, and other Ambassador users who are responsible for running Ambassador in production.
 * [HOWTO Guides](howtos) are recipes for configuring Ambassador to address specific challenges such as Single Sign-On, rate limiting, or integrating with a service mesh. They assume some general knowledge of Ambassador.
 
-It's easy to get started with Ambassador Edge Stack. Get started now:
+It's easy to get started with the Ambassador Edge Stack.  Get started
+now:
 
 <Button color="orange" to="tutorials/getting-started/">Begin Quick Start</Button>
