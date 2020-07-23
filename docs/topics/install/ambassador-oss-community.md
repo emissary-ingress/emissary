@@ -63,5 +63,15 @@ is currently available out-of-the-box in some Kubernetes installers and local en
         <a href="https://minikube.sigs.k8s.io/docs/tutorials/ambassador_ingress_controller/" target="_blank">minikube</a> documentation.
       </td>
     </tr>
+    <tr>
+      <td style="text-align:center">
+        <a href="https://microk8s.io/" target="_blank">
+          <img width="75" src="https://admin.insights.ubuntu.com/wp-content/uploads/305a/microk8s-sticker.png"></img>
+        </a>
+      </td>
+      <td>
+        <a href="https://microk8s.io/docs/addon-ambassador" target="_blank">microk8s</a> documentation.
+      </td>
+    </tr>
   </tbody>
 </table>
