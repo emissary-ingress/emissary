@@ -12,7 +12,14 @@ if TYPE_CHECKING:
     from .ir import IR
 
 def qualify_service_name(ir: 'IR', service: str, namespace: Optional[str], rkey: Optional[str]=None) -> str:
-    fully_qualified = "." in service or "localhost" == service
+    to_parse = service
+
+    if "://" not in to_parse:
+        to_parse = "ambassador://" + to_parse
+
+    p = urlparse(to_parse)
+
+    fully_qualified = "." in service or "localhost" == p.hostname
 
     if namespace != ir.ambassador_namespace and namespace and not fully_qualified and not ir.ambassador_module.use_ambassador_namespace_for_service_resolution:
         # The target service name is not fully qualified. Parse it and make sure to use
@@ -21,11 +28,6 @@ def qualify_service_name(ir: 'IR', service: str, namespace: Optional[str], rkey:
         # Note well! The service can be something complex like 'https://myservice:443', so 
         # naive parsing won't work. The URL parser is actually relevant... but ew, it's kind
         # of stupid so we need to make sure that there's a scheme. Sigh.
-
-        if "://" not in service:
-            service = "ambassador://" + service
-
-        p = urlparse(service)
 
         hostname = p.hostname
         scheme = p.scheme

@@ -84,6 +84,54 @@ def test_qualify_service():
     assert qualify_service_name(ir, "https://backoffice.otherns:443", "default") == "https://backoffice.otherns:443"
     assert qualify_service_name(ir, "https://backoffice.otherns:443", "otherns") == "https://backoffice.otherns:443"
 
+    assert qualify_service_name(ir, "localhost", None) == "localhost"
+    assert qualify_service_name(ir, "localhost", "default") == "localhost"
+    assert qualify_service_name(ir, "localhost", "otherns") == "localhost"
+    # It's not meaningful to actually say "localhost.otherns", but it should passed through unchanged.
+    assert qualify_service_name(ir, "localhost.otherns", None) == "localhost.otherns"
+    assert qualify_service_name(ir, "localhost.otherns", "default") == "localhost.otherns"
+    assert qualify_service_name(ir, "localhost.otherns", "otherns") == "localhost.otherns"
+
+    assert qualify_service_name(ir, "localhost:80", None) == "localhost:80"
+    assert qualify_service_name(ir, "localhost:80", "default") == "localhost:80"
+    assert qualify_service_name(ir, "localhost:80", "otherns") == "localhost:80"
+    # It's not meaningful to actually say "localhost.otherns", but it should passed through unchanged.
+    assert qualify_service_name(ir, "localhost.otherns:80", None) == "localhost.otherns:80"
+    assert qualify_service_name(ir, "localhost.otherns:80", "default") == "localhost.otherns:80"
+    assert qualify_service_name(ir, "localhost.otherns:80", "otherns") == "localhost.otherns:80"
+
+    assert qualify_service_name(ir, "http://localhost", None) == "http://localhost"
+    assert qualify_service_name(ir, "http://localhost", "default") == "http://localhost"
+    assert qualify_service_name(ir, "http://localhost", "otherns") == "http://localhost"
+    # It's not meaningful to actually say "localhost.otherns", but it should passed through unchanged.
+    assert qualify_service_name(ir, "http://localhost.otherns", None) == "http://localhost.otherns"
+    assert qualify_service_name(ir, "http://localhost.otherns", "default") == "http://localhost.otherns"
+    assert qualify_service_name(ir, "http://localhost.otherns", "otherns") == "http://localhost.otherns"
+
+    assert qualify_service_name(ir, "http://localhost:80", None) == "http://localhost:80"
+    assert qualify_service_name(ir, "http://localhost:80", "default") == "http://localhost:80"
+    assert qualify_service_name(ir, "http://localhost:80", "otherns") == "http://localhost:80"
+    # It's not meaningful to actually say "localhost.otherns", but it should passed through unchanged.
+    assert qualify_service_name(ir, "http://localhost.otherns:80", None) == "http://localhost.otherns:80"
+    assert qualify_service_name(ir, "http://localhost.otherns:80", "default") == "http://localhost.otherns:80"
+    assert qualify_service_name(ir, "http://localhost.otherns:80", "otherns") == "http://localhost.otherns:80"
+
+    assert qualify_service_name(ir, "https://localhost", None) == "https://localhost"
+    assert qualify_service_name(ir, "https://localhost", "default") == "https://localhost"
+    assert qualify_service_name(ir, "https://localhost", "otherns") == "https://localhost"
+    # It's not meaningful to actually say "localhost.otherns", but it should passed through unchanged.
+    assert qualify_service_name(ir, "https://localhost.otherns", None) == "https://localhost.otherns"
+    assert qualify_service_name(ir, "https://localhost.otherns", "default") == "https://localhost.otherns"
+    assert qualify_service_name(ir, "https://localhost.otherns", "otherns") == "https://localhost.otherns"
+
+    assert qualify_service_name(ir, "https://localhost:443", None) == "https://localhost:443"
+    assert qualify_service_name(ir, "https://localhost:443", "default") == "https://localhost:443"
+    assert qualify_service_name(ir, "https://localhost:443", "otherns") == "https://localhost:443"
+    # It's not meaningful to actually say "localhost.otherns", but it should passed through unchanged.
+    assert qualify_service_name(ir, "https://localhost.otherns:443", None) == "https://localhost.otherns:443"
+    assert qualify_service_name(ir, "https://localhost.otherns:443", "default") == "https://localhost.otherns:443"
+    assert qualify_service_name(ir, "https://localhost.otherns:443", "otherns") == "https://localhost.otherns:443"
+
     assert qualify_service_name(ir, "https://bad-service:443:443", "otherns") == "https://bad-service:443:443"
     assert qualify_service_name(ir, "https://bad-service:443:443", "otherns", rkey="test-rkey") == "https://bad-service:443:443"
 
