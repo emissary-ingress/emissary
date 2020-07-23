@@ -51,6 +51,11 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ## Next Release
 
+(no changes yet)
+
+## [1.6.1-rc.0] July 23, 2020
+[1.6.1-rc.0]: https://github.com/datawire/ambassador/compare/v1.6.0...v1.6.1-rc.0
+
 - Bugfix: Mapping with `https` scheme for service are correctly parsed.
 
 ## [1.6.0] July 21, 2020
