@@ -71,17 +71,14 @@ require (
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/go-openapi/validate v0.19.5
 	github.com/gogo/protobuf v1.3.1
-	github.com/golang/protobuf v1.4.2
 	github.com/google/go-cmp v0.4.0
 	github.com/google/shlex v0.0.0-20181106134648-c34317bd91bf
 	github.com/google/uuid v1.1.1
 	github.com/gookit/color v1.2.3
 	github.com/gorilla/websocket v1.4.1
 	github.com/hashicorp/consul/api v1.3.0
-	github.com/iancoleman/strcase v0.0.0-20180726023541-3605ed457bf7
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/lib/pq v1.7.0 // indirect
-	github.com/lyft/protoc-gen-star v0.4.10
 	github.com/mholt/archiver/v3 v3.3.0
 	github.com/miekg/dns v1.1.6
 	github.com/mitchellh/mapstructure v1.1.2
