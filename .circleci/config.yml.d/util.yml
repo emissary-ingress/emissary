@@ -72,6 +72,13 @@ commands:
             curl -L --fail -o /tmp/kubectl https://storage.googleapis.com/kubernetes-release/release/v<< parameters.version >>/bin/$(uname -s | tr A-Z a-z)/amd64/kubectl
             sudo install /tmp/kubectl /usr/local/bin/kubectl
 
+  "install-yarn":
+    steps:
+      - run:
+          name: "Install Yarn"
+          command: |
+            curl -o- -L https://yarnpkg.com/install.sh | bash
+            echo 'PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"' >> "$BASH_ENV"
   "install-python":
     parameters:
       "version":

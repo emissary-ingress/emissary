@@ -89,6 +89,8 @@ spec:
       hostname: wildcard-host
 ```
 
+**Note:** If running multiple instances of ambassador in one cluster remember to include ambassador_id property in the spec, must be an array of id(s).
+
 Apply the `Host` configured above with `kubectl`:
 
 ```
