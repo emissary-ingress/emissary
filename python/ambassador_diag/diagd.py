@@ -62,9 +62,6 @@ __version__ = Version
 
 boot_time = datetime.datetime.now()
 
-# custom metrics registry to weed-out default metrics collectors
-metrics_registry = CollectorRegistry(auto_describe=True)
-
 # allows 10 concurrent users, with a request timeout of 60 seconds
 tvars_cache = ExpiringDict(max_len=10, max_age_seconds=60)
 
@@ -127,6 +124,8 @@ class DiagApp (Flask):
     latest_snapshot: str
     banner_endpoint: Optional[str]
     metrics_endpoint: Optional[str]
+    # custom metrics registry to weed-out default metrics collectors
+    metrics_registry: CollectorRegistry
 
     config_lock: threading.Lock
 
@@ -150,6 +149,7 @@ class DiagApp (Flask):
         self.report_action_keys = report_action_keys
         self.banner_endpoint = banner_endpoint
         self.metrics_endpoint = metrics_endpoint
+        self.metrics_registry = CollectorRegistry(auto_describe=True)
 
         # This will raise an exception and crash if you pass it a string. That's intentional.
         self.ambex_pid = int(ambex_pid)
@@ -222,15 +222,14 @@ class DiagApp (Flask):
         # self.scout = Scout(update_frequency=datetime.timedelta(seconds=10))
         self.scout = Scout(local_only=self.local_scout)
 
-        ProcessCollector(namespace="ambassador", registry=metrics_registry)
-        metrics_info = Info(name='diagnostic', namespace='ambassador', documentation='Ambassador diagnostic info', registry=metrics_registry)
+        ProcessCollector(namespace="ambassador", registry=self.metrics_registry)
+        metrics_info = Info(name='diagnostic', namespace='ambassador', documentation='Ambassador diagnostic info', registry=self.metrics_registry)
         metrics_info.info({
             "version": __version__,
-            "hostname": SystemInfo.MyHostName,
-            "namespace": Config.ambassador_namespace,
             "ambassador_id": Config.ambassador_id,
             "cluster_id": os.environ.get('AMBASSADOR_CLUSTER_ID',
-                                         os.environ.get('AMBASSADOR_SCOUT_ID', "00000000-0000-0000-0000-000000000000"))
+                                         os.environ.get('AMBASSADOR_SCOUT_ID', "00000000-0000-0000-0000-000000000000")),
+            "single_namespace": str(Config.single_namespace),
         })
 
     @property
@@ -898,7 +897,7 @@ def get_prometheus_metrics(*args, **kwargs):
     envoy_metrics = app.estats.get_prometheus_stats()
 
     # Ambassador OSS metrics
-    ambassador_metrics = generate_latest(registry=metrics_registry).decode('utf-8')
+    ambassador_metrics = generate_latest(registry=app.metrics_registry).decode('utf-8')
 
     # Extra metrics endpoint
     extra_metrics_content = ''

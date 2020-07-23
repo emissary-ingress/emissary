@@ -189,11 +189,11 @@ class EnvoyStats (object):
             r = requests.get("http://127.0.0.1:8001/stats/prometheus")
         except OSError as e:
             logging.warning("EnvoyStats.get_prometheus_state failed: %s" % e)
-            return
+            return ''
 
         if r.status_code != 200:
             logging.warning("EnvoyStats.get_prometheus_state failed: %s" % r.text)
-            return
+            return ''
         return r.text
         
     def update_envoy_stats(self, last_attempt):
