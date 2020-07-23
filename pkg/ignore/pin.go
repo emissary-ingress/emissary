@@ -13,9 +13,6 @@ import (
 	// protoc-gen-gogofast
 	_ "github.com/gogo/protobuf/protoc-gen-gogofast"
 
-	// protoc-gen-go-json
-	_ "github.com/mitchellh/protoc-gen-go-json"
-
 	// controller-gen
 	_ "sigs.k8s.io/controller-tools/cmd/controller-gen"
 )

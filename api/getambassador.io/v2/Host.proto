@@ -1,18 +1,4 @@
 /**
- * === HACK HACK HACK ===
- *
- * The existence of Host_nojson.proto is because if we bring in all the
- * k8s.io types that we would want to, the generated *.pb.json.go files try
- * to import github.com/gogo/protobuf/jsonpb, and that turns out to crash on
- * some of the k8s.io types. Sigh.
- *
- * So, instead, we split out the minimal high-level stuff we need in most of
- * of the Go code into Host_nojson.proto, and leave the more detailed things
- * with the breaking types here. For more information on this brutality, see
- * https://github.com/datawire/ambassador/pull/1999#issuecomment-548939518.
- *
- * === end hack ===
- *
  * Host defines a way that an Ambassador will be visible to the
  * outside world. A minimal Host defines a hostname (of course) by
  * which the Ambassador will be reachable, but a Host can also
