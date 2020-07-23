@@ -219,7 +219,7 @@ class IRHTTPMapping (IRBaseMapping):
         # So IFF we're not using a Consul Resolver, qualify the service name as
         # needed.
         # 
-        # XXX Duplicated code from IRBaseMapping.setup -- needs to be fixed in
+        # XXX Duplicated code from IRBaseMapping.setup -- needs to be fixed after
         # 1.6.1.
 
         resolver_name = kwargs.get('resolver')
