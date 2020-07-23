@@ -161,7 +161,7 @@ class IRServiceResolver(IRResource):
         service = ir.services.get(key)
 
         if not service:
-            self.logger.debug(f'Resolver {self.name}: {key} matches no Service')
+            self.logger.debug(f'Resolver {self.name}: {key} matches no Service for endpoints')
             return None
 
         self.logger.debug(f'Resolver {self.name}: {key} matches %s' % service.as_json())
