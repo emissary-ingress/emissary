@@ -53,8 +53,8 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 (no changes yet)
 
-## [1.6.1-rc.1] July 23, 2020
-[1.6.1-rc.1]: https://github.com/datawire/ambassador/compare/v1.6.0...v1.6.1-rc.1
+## [1.6.1-rc.2] July 23, 2020
+[1.6.1-rc.2]: https://github.com/datawire/ambassador/compare/v1.6.0...v1.6.1-rc.2
 
 - Bugfix: Mapping with `https` scheme for service are correctly parsed.
 - Bugfix: Mapping with both a scheme and a hostname of `localhost` is now handled correctly.
