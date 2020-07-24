@@ -258,6 +258,9 @@ podAnnotations:
   # prometheus.io/scrape: "true"
   # prometheus.io/port: "9102"
 
+deploymentLabels:
+  {}
+
 deploymentAnnotations:
   {}
   # configmap.reloader.stakater.com/auto: "true"

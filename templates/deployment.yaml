@@ -18,6 +18,9 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     {{- end }}
     product: aes
+    {{- if .Values.deploymentLabels }}
+    {{- toYaml .Values.deploymentLabels | nindent 4 }}
+    {{- end }}
     {{- if .Values.deploymentAnnotations }}
   annotations:
       {{- toYaml .Values.deploymentAnnotations | nindent 4 }}

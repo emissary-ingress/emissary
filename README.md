@@ -104,6 +104,7 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `podAnnotations`                   | Additional annotations for ambassador pods                                      | `{}`                              |
 | `deploymentAnnotations`            | Additional annotations for ambassador DaemonSet/Deployment                      | `{}`                              |
 | `podLabels`                        | Additional labels for ambassador pods                                           |                                   |
+| `deploymentLabels`                 | Additional labels for ambassador DaemonSet/Deployment                           |                                   |
 | `affinity`                         | Affinity for ambassador pods                                                    | `{}`                              |
 | `nodeSelector`                     | NodeSelector for ambassador pods                                                | `{}`                              |
 | `priorityClassName`                | The name of the priorityClass for the ambassador DaemonSet/Deployment           | `""`                              |
