@@ -20,9 +20,9 @@ import (
 	"fmt"
 	"time"
 
-	pstruct "github.com/gogo/protobuf/types"
+	pstruct "github.com/golang/protobuf/ptypes/struct"
 
-	ptypes "github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 
 	alf "github.com/datawire/ambassador/pkg/api/envoy/config/accesslog/v3"
 	cluster "github.com/datawire/ambassador/pkg/api/envoy/config/cluster/v3"

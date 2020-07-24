@@ -15,7 +15,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 )
 
 // ensure the imports are used
@@ -30,7 +30,7 @@ var (
 	_ = time.Duration(0)
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
-	_ = types.DynamicAny{}
+	_ = ptypes.DynamicAny{}
 )
 
 // define the regex for a UUID once up-front
@@ -44,23 +44,18 @@ func (m *OutlierDetection) Validate() error {
 		return nil
 	}
 
-	{
-		tmp := m.GetConsecutive_5Xx()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return OutlierDetectionValidationError{
-					field:  "Consecutive_5Xx",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetConsecutive_5Xx()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return OutlierDetectionValidationError{
+				field:  "Consecutive_5Xx",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
 	if d := m.GetInterval(); d != nil {
-		dur, err := types.DurationFromProto(d)
+		dur, err := ptypes.Duration(d)
 		if err != nil {
 			return OutlierDetectionValidationError{
 				field:  "Interval",
@@ -81,7 +76,7 @@ func (m *OutlierDetection) Validate() error {
 	}
 
 	if d := m.GetBaseEjectionTime(); d != nil {
-		dur, err := types.DurationFromProto(d)
+		dur, err := ptypes.Duration(d)
 		if err != nil {
 			return OutlierDetectionValidationError{
 				field:  "BaseEjectionTime",
@@ -134,62 +129,42 @@ func (m *OutlierDetection) Validate() error {
 
 	}
 
-	{
-		tmp := m.GetSuccessRateMinimumHosts()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return OutlierDetectionValidationError{
-					field:  "SuccessRateMinimumHosts",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetSuccessRateMinimumHosts()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return OutlierDetectionValidationError{
+				field:  "SuccessRateMinimumHosts",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetSuccessRateRequestVolume()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return OutlierDetectionValidationError{
-					field:  "SuccessRateRequestVolume",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetSuccessRateRequestVolume()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return OutlierDetectionValidationError{
+				field:  "SuccessRateRequestVolume",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetSuccessRateStdevFactor()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return OutlierDetectionValidationError{
-					field:  "SuccessRateStdevFactor",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetSuccessRateStdevFactor()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return OutlierDetectionValidationError{
+				field:  "SuccessRateStdevFactor",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetConsecutiveGatewayFailure()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return OutlierDetectionValidationError{
-					field:  "ConsecutiveGatewayFailure",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetConsecutiveGatewayFailure()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return OutlierDetectionValidationError{
+				field:  "ConsecutiveGatewayFailure",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -207,17 +182,12 @@ func (m *OutlierDetection) Validate() error {
 
 	// no validation rules for SplitExternalLocalOriginErrors
 
-	{
-		tmp := m.GetConsecutiveLocalOriginFailure()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return OutlierDetectionValidationError{
-					field:  "ConsecutiveLocalOriginFailure",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetConsecutiveLocalOriginFailure()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return OutlierDetectionValidationError{
+				field:  "ConsecutiveLocalOriginFailure",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -277,32 +247,22 @@ func (m *OutlierDetection) Validate() error {
 
 	}
 
-	{
-		tmp := m.GetFailurePercentageMinimumHosts()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return OutlierDetectionValidationError{
-					field:  "FailurePercentageMinimumHosts",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetFailurePercentageMinimumHosts()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return OutlierDetectionValidationError{
+				field:  "FailurePercentageMinimumHosts",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetFailurePercentageRequestVolume()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return OutlierDetectionValidationError{
-					field:  "FailurePercentageRequestVolume",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetFailurePercentageRequestVolume()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return OutlierDetectionValidationError{
+				field:  "FailurePercentageRequestVolume",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}

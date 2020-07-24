@@ -22,7 +22,7 @@ import (
 	"net/http"
 	"path"
 
-	"github.com/gogo/protobuf/jsonpb"
+	"github.com/golang/protobuf/jsonpb"
 
 	discovery "github.com/datawire/ambassador/pkg/api/envoy/service/discovery/v3"
 	"github.com/datawire/ambassador/pkg/envoy-control-plane/cache/types"

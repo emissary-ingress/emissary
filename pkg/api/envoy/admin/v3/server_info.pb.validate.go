@@ -15,7 +15,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 )
 
 // ensure the imports are used
@@ -30,7 +30,7 @@ var (
 	_ = time.Duration(0)
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
-	_ = types.DynamicAny{}
+	_ = ptypes.DynamicAny{}
 )
 
 // define the regex for a UUID once up-front
@@ -47,49 +47,34 @@ func (m *ServerInfo) Validate() error {
 
 	// no validation rules for State
 
-	{
-		tmp := m.GetUptimeCurrentEpoch()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return ServerInfoValidationError{
-					field:  "UptimeCurrentEpoch",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetUptimeCurrentEpoch()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ServerInfoValidationError{
+				field:  "UptimeCurrentEpoch",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetUptimeAllEpochs()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return ServerInfoValidationError{
-					field:  "UptimeAllEpochs",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetUptimeAllEpochs()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ServerInfoValidationError{
+				field:  "UptimeAllEpochs",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
 	// no validation rules for HotRestartVersion
 
-	{
-		tmp := m.GetCommandLineOptions()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return ServerInfoValidationError{
-					field:  "CommandLineOptions",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetCommandLineOptions()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ServerInfoValidationError{
+				field:  "CommandLineOptions",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -191,47 +176,32 @@ func (m *CommandLineOptions) Validate() error {
 
 	// no validation rules for ServiceZone
 
-	{
-		tmp := m.GetFileFlushInterval()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return CommandLineOptionsValidationError{
-					field:  "FileFlushInterval",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetFileFlushInterval()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CommandLineOptionsValidationError{
+				field:  "FileFlushInterval",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetDrainTime()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return CommandLineOptionsValidationError{
-					field:  "DrainTime",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetDrainTime()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CommandLineOptionsValidationError{
+				field:  "DrainTime",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetParentShutdownTime()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return CommandLineOptionsValidationError{
-					field:  "ParentShutdownTime",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetParentShutdownTime()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CommandLineOptionsValidationError{
+				field:  "ParentShutdownTime",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -245,6 +215,10 @@ func (m *CommandLineOptions) Validate() error {
 	// no validation rules for RestartEpoch
 
 	// no validation rules for CpusetThreads
+
+	// no validation rules for HiddenEnvoyDeprecatedMaxStats
+
+	// no validation rules for HiddenEnvoyDeprecatedMaxObjNameLen
 
 	return nil
 }

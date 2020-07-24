@@ -16,7 +16,7 @@
 package cache
 
 import (
-	"github.com/gogo/protobuf/proto"
+	"github.com/golang/protobuf/proto"
 
 	cluster "github.com/datawire/ambassador/pkg/api/envoy/config/cluster/v3"
 	endpoint "github.com/datawire/ambassador/pkg/api/envoy/config/endpoint/v3"
@@ -72,6 +72,7 @@ func GetResourceName(res types.Resource) string {
 // MarshalResource converts the Resource to MarshaledResource
 func MarshalResource(resource types.Resource) (types.MarshaledResource, error) {
 	b := proto.NewBuffer(nil)
+	b.SetDeterministic(true)
 	err := b.Marshal(resource)
 	if err != nil {
 		return nil, err

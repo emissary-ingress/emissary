@@ -15,7 +15,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 )
 
 // ensure the imports are used
@@ -30,7 +30,7 @@ var (
 	_ = time.Duration(0)
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
-	_ = types.DynamicAny{}
+	_ = ptypes.DynamicAny{}
 )
 
 // define the regex for a UUID once up-front
@@ -111,17 +111,12 @@ func (m *StreamAccessLogsMessage) Validate() error {
 		return nil
 	}
 
-	{
-		tmp := m.GetIdentifier()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return StreamAccessLogsMessageValidationError{
-					field:  "Identifier",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetIdentifier()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return StreamAccessLogsMessageValidationError{
+				field:  "Identifier",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -130,34 +125,24 @@ func (m *StreamAccessLogsMessage) Validate() error {
 
 	case *StreamAccessLogsMessage_HttpLogs:
 
-		{
-			tmp := m.GetHttpLogs()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return StreamAccessLogsMessageValidationError{
-						field:  "HttpLogs",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetHttpLogs()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return StreamAccessLogsMessageValidationError{
+					field:  "HttpLogs",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	case *StreamAccessLogsMessage_TcpLogs:
 
-		{
-			tmp := m.GetTcpLogs()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return StreamAccessLogsMessageValidationError{
-						field:  "TcpLogs",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetTcpLogs()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return StreamAccessLogsMessageValidationError{
+					field:  "TcpLogs",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -244,17 +229,12 @@ func (m *StreamAccessLogsMessage_Identifier) Validate() error {
 		}
 	}
 
-	{
-		tmp := m.GetNode()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return StreamAccessLogsMessage_IdentifierValidationError{
-					field:  "Node",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetNode()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return StreamAccessLogsMessage_IdentifierValidationError{
+				field:  "Node",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -344,17 +324,12 @@ func (m *StreamAccessLogsMessage_HTTPAccessLogEntries) Validate() error {
 	for idx, item := range m.GetLogEntry() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return StreamAccessLogsMessage_HTTPAccessLogEntriesValidationError{
-						field:  fmt.Sprintf("LogEntry[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return StreamAccessLogsMessage_HTTPAccessLogEntriesValidationError{
+					field:  fmt.Sprintf("LogEntry[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -440,17 +415,12 @@ func (m *StreamAccessLogsMessage_TCPAccessLogEntries) Validate() error {
 	for idx, item := range m.GetLogEntry() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return StreamAccessLogsMessage_TCPAccessLogEntriesValidationError{
-						field:  fmt.Sprintf("LogEntry[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return StreamAccessLogsMessage_TCPAccessLogEntriesValidationError{
+					field:  fmt.Sprintf("LogEntry[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}

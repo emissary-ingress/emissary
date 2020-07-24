@@ -15,7 +15,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 )
 
 // ensure the imports are used
@@ -30,7 +30,7 @@ var (
 	_ = time.Duration(0)
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
-	_ = types.DynamicAny{}
+	_ = ptypes.DynamicAny{}
 )
 
 // define the regex for a UUID once up-front
@@ -47,17 +47,12 @@ func (m *ClientStatusRequest) Validate() error {
 	for idx, item := range m.GetNodeMatchers() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return ClientStatusRequestValidationError{
-						field:  fmt.Sprintf("NodeMatchers[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ClientStatusRequestValidationError{
+					field:  fmt.Sprintf("NodeMatchers[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -137,68 +132,48 @@ func (m *PerXdsConfig) Validate() error {
 
 	case *PerXdsConfig_ListenerConfig:
 
-		{
-			tmp := m.GetListenerConfig()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return PerXdsConfigValidationError{
-						field:  "ListenerConfig",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetListenerConfig()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return PerXdsConfigValidationError{
+					field:  "ListenerConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	case *PerXdsConfig_ClusterConfig:
 
-		{
-			tmp := m.GetClusterConfig()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return PerXdsConfigValidationError{
-						field:  "ClusterConfig",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetClusterConfig()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return PerXdsConfigValidationError{
+					field:  "ClusterConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	case *PerXdsConfig_RouteConfig:
 
-		{
-			tmp := m.GetRouteConfig()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return PerXdsConfigValidationError{
-						field:  "RouteConfig",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetRouteConfig()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return PerXdsConfigValidationError{
+					field:  "RouteConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	case *PerXdsConfig_ScopedRouteConfig:
 
-		{
-			tmp := m.GetScopedRouteConfig()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return PerXdsConfigValidationError{
-						field:  "ScopedRouteConfig",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetScopedRouteConfig()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return PerXdsConfigValidationError{
+					field:  "ScopedRouteConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -270,17 +245,12 @@ func (m *ClientConfig) Validate() error {
 		return nil
 	}
 
-	{
-		tmp := m.GetNode()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return ClientConfigValidationError{
-					field:  "Node",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetNode()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ClientConfigValidationError{
+				field:  "Node",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -288,17 +258,12 @@ func (m *ClientConfig) Validate() error {
 	for idx, item := range m.GetXdsConfig() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return ClientConfigValidationError{
-						field:  fmt.Sprintf("XdsConfig[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ClientConfigValidationError{
+					field:  fmt.Sprintf("XdsConfig[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -373,17 +338,12 @@ func (m *ClientStatusResponse) Validate() error {
 	for idx, item := range m.GetConfig() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return ClientStatusResponseValidationError{
-						field:  fmt.Sprintf("Config[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ClientStatusResponseValidationError{
+					field:  fmt.Sprintf("Config[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
