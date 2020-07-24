@@ -39,7 +39,7 @@ type HTTPGateway struct {
 	Server Server
 }
 
-func (h *HTTPGateway) ServeHTTP(resp http.ResponseWriter, req *http.Request) error {
+func (h *HTTPGateway) ServeHTTP(req *http.Request) ([]byte, int, error) {
 	p := path.Clean(req.URL.Path)
 
 	typeURL := ""
@@ -57,27 +57,23 @@ func (h *HTTPGateway) ServeHTTP(resp http.ResponseWriter, req *http.Request) err
 	case resource.FetchRuntimes:
 		typeURL = resource.RuntimeType
 	default:
-		http.Error(resp, "no endpoint", http.StatusNotFound)
-		return fmt.Errorf("no endpoint")
+		return nil, http.StatusNotFound, fmt.Errorf("no endpoint")
 	}
 
 	if req.Body == nil {
-		http.Error(resp, "empty body", http.StatusBadRequest)
-		return nil
+		return nil, http.StatusBadRequest, fmt.Errorf("empty body")
 	}
 
 	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		http.Error(resp, "cannot read body", http.StatusBadRequest)
-		return nil
+		return nil, http.StatusBadRequest, fmt.Errorf("cannot read body")
 	}
 
 	// parse as JSON
 	out := &discovery.DiscoveryRequest{}
 	err = jsonpb.UnmarshalString(string(body), out)
 	if err != nil {
-		http.Error(resp, "cannot parse JSON body: "+err.Error(), http.StatusBadRequest)
-		return nil
+		return nil, http.StatusBadRequest, fmt.Errorf("cannot parse JSON body: " + err.Error())
 	}
 	out.TypeUrl = typeURL
 
@@ -87,21 +83,15 @@ func (h *HTTPGateway) ServeHTTP(resp http.ResponseWriter, req *http.Request) err
 		// SkipFetchErrors will return a 304 which will signify to the envoy client that
 		// it is already at the latest version; all other errors will 500 with a message.
 		if _, ok := err.(*types.SkipFetchError); ok {
-			resp.WriteHeader(http.StatusNotModified)
-		} else {
-			http.Error(resp, "fetch error: "+err.Error(), http.StatusInternalServerError)
+			return nil, http.StatusNotModified, nil
 		}
-		return nil
+		return nil, http.StatusInternalServerError, fmt.Errorf("fetch error: " + err.Error())
 	}
 
 	buf := &bytes.Buffer{}
 	if err := (&jsonpb.Marshaler{OrigName: true}).Marshal(buf, res); err != nil {
-		http.Error(resp, "marshal error: "+err.Error(), http.StatusInternalServerError)
+		return nil, http.StatusInternalServerError, fmt.Errorf("marshal error: " + err.Error())
 	}
 
-	if _, err = resp.Write(buf.Bytes()); err != nil && h.Log != nil {
-		h.Log.Errorf("gateway error: %v", err)
-	}
-
-	return nil
+	return buf.Bytes(), http.StatusOK, nil
 }

@@ -122,15 +122,37 @@ tools/fix-crds = $(OSS_HOME)/build-aux-local/fix-crds
 #
 # `make generate` vendor rules
 
-# TODO(lukeshu): Figure out a sane way of selecting an appropriate ENVOY_GO_CONTROL_PLANE_COMMIT for
-# our version of Envoy.
+# How to set ENVOY_GO_CONTROL_PLANE_COMMIT: In envoyproxy/go-control-plane.git, the majority of
+# commits have a commit message of the form "Mirrored from envoyproxy/envoy @ ${envoy.git_commit}".
+# Look for the most recent one that names a commit that is an ancestor of our ENVOY_COMMIT.  If there
+# are commits not of that form immediately following that commit, you can take them in too (but that's
+# pretty uncommon).  Since that's a simple sentence, can be tedious to go through and check which
+# commits are ancestors, I added `make guess-envoy-go-control-plane-commit` to do that in an automated
+# way!  Still look at the commit yourself to make sure it seems sane; blindly trusting machines is
+# bad, mmkay?
 #
-# I was tempted to use "v0.9.0^" because it's the last version that used gogo/protobuf instead of
-# golang/protobuf.  However, because the Envoy 1.11 -> 1.12 upgrade included
-# https://github.com/envoyproxy/envoy/pull/8163 continuing to use the gogo/protobuf-based version is
-# very difficult.  To the point that using the golang/protobuf version and editing it to work with
-# gogo/protobuf is easier than getting the gogo/protobuf version to work with the newer proto files.
-ENVOY_GO_CONTROL_PLANE_COMMIT = 3a8210324ccf55ef9fd7eeeed6fd24d59d6aefd9
+# I was tempted to say "ENVOY_GO_CONTROL_PLANE_COMMIT=v0.9.0^" because that's the last version that
+# used gogo/protobuf instead of golang/protobuf.  However, because the Envoy 1.11 -> 1.12 upgrade
+# included https://github.com/envoyproxy/envoy/pull/8163 continuing to use the gogo/protobuf-based
+# version is very difficult.  To the point that using the golang/protobuf version and editing it to
+# work with gogo/protobuf is easier than getting the gogo/protobuf version to work with the newer
+# proto files.
+ENVOY_GO_CONTROL_PLANE_COMMIT = ee38d3ad816fdd3a353a3edf7fc7d4d2b54d1b45
+
+guess-envoy-go-control-plane-commit: $(OSS_HOME)/cxx/envoy $(OSS_HOME)/cxx/go-control-plane
+	@echo
+	@echo '######################################################################'
+	@echo
+	@set -e; { \
+	  (cd $(OSS_HOME)/cxx/go-control-plane && git log --format='%H %s' origin/master) | sed -n 's, Mirrored from envoyproxy/envoy @ , ,p' | \
+	  while read -r go_commit cxx_commit; do \
+	    if (cd $(OSS_HOME)/cxx/envoy && git merge-base --is-ancestor "$$cxx_commit" $(ENVOY_COMMIT) 2>/dev/null); then \
+	      echo "ENVOY_GO_CONTROL_PLANE_COMMIT = $$go_commit"; \
+	      break; \
+	    fi; \
+	  done; \
+	}
+.PHONY: guess-envoy-go-control-plane-commit
 
 # Also, note that we disable all calls to SetDeterministic since it's totally broken in gogo/protobuf
 # 1.3.0 and 1.3.1 (the latest version at the time of this writing), because gogo cherry-picked
