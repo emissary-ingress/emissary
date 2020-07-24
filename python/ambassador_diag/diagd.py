@@ -160,12 +160,12 @@ class DiagApp (Flask):
         self.logger.setLevel(logging.INFO)
 
         # Use Timers to keep some stats on reconfigurations
-        self.config_timer = Timer("reconfiguration")
-        self.fetcher_timer = Timer("Fetcher")
-        self.aconf_timer = Timer("AConf")
-        self.ir_timer = Timer("IR")
-        self.econf_timer = Timer("EConf")
-        self.diag_timer = Timer("Diagnostics")
+        self.config_timer = Timer("reconfiguration", self.metrics_registry)
+        self.fetcher_timer = Timer("Fetcher", self.metrics_registry)
+        self.aconf_timer = Timer("AConf", self.metrics_registry)
+        self.ir_timer = Timer("IR", self.metrics_registry)
+        self.econf_timer = Timer("EConf", self.metrics_registry)
+        self.diag_timer = Timer("Diagnostics", self.metrics_registry)
 
         # When did we last reconfigure?
         self.last_reconfigure = -1.0
@@ -223,7 +223,7 @@ class DiagApp (Flask):
         self.scout = Scout(local_only=self.local_scout)
 
         ProcessCollector(namespace="ambassador", registry=self.metrics_registry)
-        metrics_info = Info(name='diagnostic', namespace='ambassador', documentation='Ambassador diagnostic info', registry=self.metrics_registry)
+        metrics_info = Info(name='diagnostics', namespace='ambassador', documentation='Ambassador diagnostic info', registry=self.metrics_registry)
         metrics_info.info({
             "version": __version__,
             "ambassador_id": Config.ambassador_id,
