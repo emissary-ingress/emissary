@@ -86,7 +86,7 @@ and the CI will be green.
       - `CurrentVersion` is e.g. "0.78.0" -- no leading 'v' here
       - `BlogLink` is the full URL of the blog post (from Marketing), or "" if there is no blog post
    - Make your edits, submit a PR, get it merged. Done.
-      - If you want to test before submitting, use `npm install && npm start` and point a web browser to `localhost:8000`
+      - If you want to test before submitting, use `yarn install && yarn start` and point a web browser to `localhost:8000`
 
    Submit a PR to the Ambassador website repository to update the version on the homepage.
 

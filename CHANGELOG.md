@@ -53,6 +53,13 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 (no changes yet)
 
+## [1.6.1] July 23, 2020
+[1.6.1]: https://github.com/datawire/ambassador/compare/v1.6.0...v1.6.1
+
+- Bugfix: Mapping with `https` scheme for service are correctly parsed.
+- Bugfix: Mapping with both a scheme and a hostname of `localhost` is now handled correctly.
+- Bugfix: ConsulResolver now works again for Mappings outside of Ambassador's namespace.
+
 ## [1.6.0] July 21, 2020
 [1.6.0]: https://github.com/datawire/ambassador/compare/v1.5.5...v1.6.0
 
@@ -68,7 +75,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 - Performance improvement: Diagnostics are generated on demand rather than on every reconfig.
 - Performance improvement: Experimental fast validation of the contents of Ambassador resources has been added. The `AMBASSADOR_FAST_VALIDATION` env var must be set to enable this.
 - Internal: Configuration endpoints used internally by Ambassador are no longer accessible from outside the Ambassador Pod.
-- Bugfix: `envoy_log_format` can now be set with `envoy_log_type: text`.
+- Bugfix: `envoy_log_format` can now be set with `envoy_log_type: json`.
 - Docs: Fixed OAuth2 documentation spelling errors (thanks, [Travis Byrum](https://github.com/travisbyrum)!)
 
 As previously announced, the default value of `AMBASSADOR_UPDATE_MAPPING_STATUS`
