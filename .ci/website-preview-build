@@ -45,5 +45,5 @@ for submodule in pre-release; do
 	cp -prv $amb_dir/docs submodules/"$submodule"/docs
 done
 
-npm install
-npm run build
+yarn install
+yarn run build
