@@ -10,7 +10,7 @@ After completing the Getting Started guide you will have a Kubernetes cluster ru
 
 ## 1. Deploy Zipkin
 
-In this tutorial, you will use a simple deployment of the open-source [Zipkin](https://zipkin.io/) distributed tracing system to store and visualize the Ambassador Edge Stack-generated traces. The trace data will be stored in memory within the Zipkin container, and you will be able to explore the traces via the Zipkin web UI.
+In this tutorial, you will use a simple deployment of the open-source [Zipkin](https://github.com/openzipkin/zipkin/wiki) distributed tracing system to store and visualize the Ambassador Edge Stack-generated traces. The trace data will be stored in memory within the Zipkin container, and you will be able to explore the traces via the Zipkin web UI.
 
 First, add the following YAML to a file named `zipkin.yaml`. This configuration will create a Zipkin Deployment that uses the [openzipkin/zipkin](https://hub.docker.com/r/openzipkin/zipkin/) container image and also an associated Service. We will also include a `TracingService` that configures Ambassador Edge Stack to use the Zipkin service (running on the default port of 9411) to provide tracing support.
 
