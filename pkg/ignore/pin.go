@@ -7,9 +7,6 @@
 package ignore
 
 import (
-	// protoc-gen-validate
-	_ "github.com/envoyproxy/protoc-gen-validate"
-
 	// protoc-gen-gogofast
 	_ "github.com/gogo/protobuf/protoc-gen-gogofast"
 

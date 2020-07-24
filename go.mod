@@ -47,12 +47,9 @@ go 1.13
 //     dozen different k8s.io/ packages), stop, and ask someone for
 //     advice.
 //
-//  5. Use `make go-mod-tidy` instead of `go mod tidy`.  Normal `go
-//     mod tidy` will try to remove `github.com/cncf/udpa`--don't let
-//     it, that would break `make generate`; the github.com/cncf/udpa
-//     version needs to be kept in-sync with the
-//     github.com/cncf/udpa/go version (`make go-mod-tidy` will do
-//     this).
+//  5. Use `make go-mod-tidy` instead of `go mod tidy`.  Unlike normal
+//     `go mod tidy`, it will make sure we're not missing anything
+//     that's needed for `make generate`.
 
 require (
 	git.lukeshu.com/go/libsystemd v0.5.3

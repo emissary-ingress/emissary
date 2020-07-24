@@ -176,6 +176,28 @@ envoy-shell: $(ENVOY_BASH.deps)
 $(OSS_HOME)/api/envoy: $(srcdir)/envoy
 	rsync --recursive --delete --delete-excluded --prune-empty-dirs --include='*/' --include='*.proto' --exclude='*' $</api/envoy/ $@
 
+$(srcdir)/envoy/build_go: $(ENVOY_BASH.deps) FORCE
+	$(call ENVOY_BASH.cmd, \
+	    $(ENVOY_DOCKER_EXEC) python3 -c 'from tools.api.generate_go_protobuf import generateProtobufs; generateProtobufs("/root/envoy/build_go")'; \
+	)
+	test -d $@ && touch $@
+$(OSS_HOME)/pkg/api/envoy: $(srcdir)/envoy/build_go
+	rm -rf $@
+	@PS4=; set -ex; { \
+	  unset GIT_DIR GIT_WORK_TREE; \
+	  tmpdir=$$(mktemp -d); \
+	  trap 'rm -rf "$$tmpdir"' EXIT; \
+	  cp -r $</envoy "$$tmpdir"; \
+	  find "$$tmpdir" -type f \
+	    -exec chmod 644 {} + \
+	    -exec sed -E -i.bak \
+	      -e 's,github\.com/envoyproxy/go-control-plane/pkg,github.com/datawire/ambassador/pkg/envoy-control-plane,g' \
+	      -e 's,github\.com/envoyproxy/go-control-plane/envoy,github.com/datawire/ambassador/pkg/api/envoy,g' \
+	      -- {} +; \
+	  find "$$tmpdir" -name '*.bak' -delete; \
+	  mv "$$tmpdir/envoy" $@; \
+	}
+
 update-base: $(srcdir)/envoy-build-image.txt $(OSS_HOME)/docker/base-envoy/envoy-static $(OSS_HOME)/docker/base-envoy/envoy-static-stripped
 	docker build --build-arg=base=$$(cat $(srcdir)/envoy-build-image.txt) -t $(ENVOY_DOCKER_TAG) $(OSS_HOME)/docker/base-envoy
 	$(MAKE) generate
