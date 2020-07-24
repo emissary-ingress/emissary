@@ -122,6 +122,8 @@ ENVOY_SYNC_DOCKER_TO_HOST = rsync -Pav --delete --blocking-io -e "docker exec -i
 ENVOY_BASH.cmd = bash -c 'PS4=; set -ex; $(ENVOY_SYNC_HOST_TO_DOCKER); trap '\''$(ENVOY_SYNC_DOCKER_TO_HOST)'\'' EXIT; '$(call quote.shell,$1)
 ENVOY_BASH.deps = $(srcdir)/envoy-build-container.txt
 
+ENVOY_DOCKER_EXEC = docker exec --workdir=/root/envoy --env=CC=/opt/llvm/bin/clang --env=CXX=/opt/llvm/bin/clang++ $$(cat $(srcdir)/envoy-build-container.txt)
+
 $(OSS_HOME)/docker/base-envoy/envoy-static: $(ENVOY_BASH.deps) FORCE
 	mkdir -p $(@D)
 	@PS4=; set -ex; { \
@@ -141,7 +143,7 @@ $(OSS_HOME)/docker/base-envoy/envoy-static: $(ENVOY_BASH.deps) FORCE
 	            exit 1; \
 	        fi; \
 	        $(call ENVOY_BASH.cmd, \
-	            docker exec --workdir=/root/envoy $$(cat $(srcdir)/envoy-build-container.txt) /bin/bash -c "export CC=/opt/llvm/bin/clang && export CXX=/opt/llvm/bin/clang++ && bazel build --verbose_failures -c $(ENVOY_COMPILATION_MODE) --config=clang //source/exe:envoy-static;"; \
+	            $(ENVOY_DOCKER_EXEC) bazel build --verbose_failures -c $(ENVOY_COMPILATION_MODE) --config=clang //source/exe:envoy-static; \
 	            rsync -Pav --blocking-io -e 'docker exec -i' $$(cat $(srcdir)/envoy-build-container.txt):/root/envoy/bazel-bin/source/exe/envoy-static $@; \
 	        ); \
 	    fi; \
@@ -155,9 +157,9 @@ $(OSS_HOME)/docker/base-envoy/envoy-static: $(ENVOY_BASH.deps) FORCE
 
 check-envoy: ## Run the Envoy test suite
 check-envoy: $(ENVOY_BASH.deps)
-	  @echo 'Testing envoy with Bazel label: "$(ENVOY_TEST_LABEL)"'; \
-	  $(call ENVOY_BASH.cmd, \
-	     docker exec --workdir=/root/envoy $$(cat $(srcdir)/envoy-build-container.txt) /bin/bash -c 'export CC=/opt/llvm/bin/clang && export CXX=/opt/llvm/bin/clang++ && bazel test --config=clang --test_output=errors --verbose_failures -c dbg --test_env=ENVOY_IP_TEST_VERSIONS=v4only $(ENVOY_TEST_LABEL);' \
+	@echo 'Testing envoy with Bazel label: "$(ENVOY_TEST_LABEL)"'; \
+	$(call ENVOY_BASH.cmd, \
+	     $(ENVOY_DOCKER_EXEC) bazel test --config=clang --test_output=errors --verbose_failures -c dbg --test_env=ENVOY_IP_TEST_VERSIONS=v4only $(ENVOY_TEST_LABEL); \
 	 )
 .PHONY: check-envoy
 
