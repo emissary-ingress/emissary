@@ -66,19 +66,19 @@ GOHOSTARCH=$(call lazyonce,GOHOSTARCH,$(shell go env GOHOSTARCH))
 # invalid Python if you name an Enum member the same as a Python keyword.
 PROTOC_VERSION            = 3.8.0
 PROTOC_PLATFORM           = $(patsubst darwin,osx,$(GOHOSTOS))-$(patsubst amd64,x86_64,$(patsubst 386,x86_32,$(GOHOSTARCH)))
-tools/protoc              = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc
+tools/protoc              = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/bin/protoc
 $(tools/protoc):
-	mkdir -p $(@D)
-	set -o pipefail; curl --fail -L https://github.com/protocolbuffers/protobuf/releases/download/v$(PROTOC_VERSION)/protoc-$(PROTOC_VERSION)-$(PROTOC_PLATFORM).zip | bsdtar -x -f - -O bin/protoc > $@
+	mkdir -p $(dir $(@D))
+	set -o pipefail; curl --fail -L https://github.com/protocolbuffers/protobuf/releases/download/v$(PROTOC_VERSION)/protoc-$(PROTOC_VERSION)-$(PROTOC_PLATFORM).zip | bsdtar -C $(dir $(@D)) -xf -
 	chmod 755 $@
 
-# The version number of protoc-gen-gogofast is controlled by `./go.mod`.  Additionally, the package
-# name is mentioned in `./pkg/ignore/pin.go`, so that `go mod tidy` won't make the `go.mod` file
-# forget about it.
-tools/protoc-gen-gogofast = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-gogofast
-$(tools/protoc-gen-gogofast): $(OSS_HOME)/go.mod
+# The version number of protoc-gen-go is controlled by `./go.mod`.  Additionally, the package name is
+# mentioned in `./pkg/ignore/pin.go`, so that `go mod tidy` won't make the `go.mod` file forget about
+# it.
+tools/protoc-gen-go = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-go
+$(tools/protoc-gen-go): $(OSS_HOME)/go.mod
 	mkdir -p $(@D)
-	cd $(OSS_HOME) && go build -o $@ github.com/gogo/protobuf/protoc-gen-gogofast
+	cd $(OSS_HOME) && go build -o $@ github.com/golang/protobuf/protoc-gen-go
 
 GRPC_WEB_VERSION          = 1.0.3
 GRPC_WEB_PLATFORM         = $(GOHOSTOS)-x86_64
@@ -154,7 +154,6 @@ $(OSS_HOME)/pkg/envoy-control-plane: $(OSS_HOME)/cxx/go-control-plane FORCE
 # proto_path is a list of where to look for .proto files.
 _proto_path += $(OSS_HOME)/api # input files must be within the path
 _proto_path += $(OSS_HOME)/vendor # for "k8s.io/..." and "github.com/gogo/protobuf/gogoproto/..."
-_proto_path += $(call gomoddir,github.com/gogo/protobuf)/protobuf # for stdlib "well-known-types" ("google/protobuf/...")
 proto_path = $(call lazyonce,proto_path,$(_proto_path))
 
 # Usage: $(call protoc,output_module,output_basedir[,plugin_files])
@@ -165,13 +164,13 @@ protoc = @echo PROTOC --$1_out=$2 $<; mkdir -p $2 && $(tools/protoc) \
   $<
 
 # The "M{FOO}={BAR}" options map from .proto files to Go package names.
-_proto_options/gogofast += plugins=grpc
-_proto_options/gogofast += Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types
-_proto_options/gogofast += Mgoogle/protobuf/timestamp.proto=github.com/gogo/protobuf/types
-proto_options/gogofast = $(call lazyonce,proto_options/gogofast,$(_proto_options/gogofast))
-$(OSS_HOME)/pkg/api/%.pb.go: $(OSS_HOME)/api/%.proto $(tools/protoc) $(tools/protoc-gen-gogofast) | $(OSS_HOME)/vendor
-	$(call protoc,gogofast,$(OSS_HOME)/pkg/api,\
-	    $(tools/protoc-gen-gogofast))
+_proto_options/go += plugins=grpc
+_proto_options/go += Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types
+_proto_options/go += Mgoogle/protobuf/timestamp.proto=github.com/gogo/protobuf/types
+proto_options/go = $(call lazyonce,proto_options/go,$(_proto_options/go))
+$(OSS_HOME)/pkg/api/%.pb.go: $(OSS_HOME)/api/%.proto $(tools/protoc) $(tools/protoc-gen-go) | $(OSS_HOME)/vendor
+	$(call protoc,go,$(OSS_HOME)/pkg/api,\
+	    $(tools/protoc-gen-go))
 
 proto_options/python +=
 $(OSS_HOME)/generate.tmp/%_pb2.py: $(OSS_HOME)/api/%.proto $(tools/protoc) | $(OSS_HOME)/vendor

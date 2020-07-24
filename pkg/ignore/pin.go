@@ -7,8 +7,8 @@
 package ignore
 
 import (
-	// protoc-gen-gogofast
-	_ "github.com/gogo/protobuf/protoc-gen-gogofast"
+	// protoc-gen-go
+	_ "github.com/golang/protobuf/protoc-gen-go"
 
 	// controller-gen
 	_ "sigs.k8s.io/controller-tools/cmd/controller-gen"

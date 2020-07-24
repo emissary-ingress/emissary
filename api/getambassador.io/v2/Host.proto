@@ -11,7 +11,6 @@ package getambassador.io.v2;
 
 import "k8s.io/apimachinery/pkg/apis/meta/v1/generated.proto";
 import "k8s.io/api/core/v1/generated.proto";
-import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";
 
@@ -87,8 +86,8 @@ message HostStatus {
 
   // errorReason, errorTimestamp, and errorBackoff are valid when state==Error.
   string errorReason = 5;
-  google.protobuf.Timestamp errorTimestamp = 6 [(gogoproto.stdtime) = true];
-  google.protobuf.Duration errorBackoff = 7 [(gogoproto.stdduration) = true];
+  google.protobuf.Timestamp errorTimestamp = 6;
+  google.protobuf.Duration errorBackoff = 7;
 }
 
 message ACMEProviderSpec {
