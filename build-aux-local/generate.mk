@@ -130,27 +130,24 @@ tools/fix-crds = $(OSS_HOME)/build-aux-local/fix-crds
 # https://github.com/envoyproxy/envoy/pull/8163 continuing to use the gogo/protobuf-based version is
 # very difficult.  To the point that using the golang/protobuf version and editing it to work with
 # gogo/protobuf is easier than getting the gogo/protobuf version to work with the newer proto files.
-#
+ENVOY_GO_CONTROL_PLANE_COMMIT = 3a8210324ccf55ef9fd7eeeed6fd24d59d6aefd9
+
 # Also, note that we disable all calls to SetDeterministic since it's totally broken in gogo/protobuf
 # 1.3.0 and 1.3.1 (the latest version at the time of this writing), because gogo cherry-picked
 # https://github.com/golang/protobuf/pull/650 and https://github.com/golang/protobuf/pull/656 but
 # not https://github.com/golang/protobuf/pull/658 ; and is even more broken than it was in pre-#658
 # golang/protobuf because protoc-gen-gogofast always generates a `Marshal` method, meaning that it
 # is 100% impossible to use SetDeterministic with gogofast.
-
-ENVOY_GO_CONTROL_PLANE_COMMIT = 3a8210324ccf55ef9fd7eeeed6fd24d59d6aefd9
-$(OSS_HOME)/pkg/envoy-control-plane: FORCE
+$(OSS_HOME)/pkg/envoy-control-plane: $(OSS_HOME)/cxx/go-control-plane FORCE
 	rm -rf $@
 	@PS4=; set -ex; { \
 	  unset GIT_DIR GIT_WORK_TREE; \
 	  tmpdir=$$(mktemp -d); \
 	  trap 'rm -rf "$$tmpdir"' EXIT; \
 	  cd "$$tmpdir"; \
-	  git init .; \
-	  git remote add origin https://github.com/envoyproxy/go-control-plane; \
-	  git fetch --tags --all; \
-	  git checkout $(ENVOY_GO_CONTROL_PLANE_COMMIT); \
-	  find pkg -name '*.go' -exec sed -E -i.bak \
+	  cd $(OSS_HOME)/cxx/go-control-plane; \
+	  cp -r $$(git ls-files ':[A-Z]*' ':!Dockerfile*' ':!Makefile') pkg/* "$$tmpdir"; \
+	  find "$$tmpdir" -name '*.go' -exec sed -E -i.bak \
 	    -e 's,github\.com/envoyproxy/go-control-plane/pkg,github.com/datawire/ambassador/pkg/envoy-control-plane,g' \
 	    -e 's,github\.com/envoyproxy/go-control-plane/envoy,github.com/datawire/ambassador/pkg/api/envoy,g' \
 	    -e 's,^[[:space:]]*"github.com/datawire/ambassador/pkg/api/[^"]*/([^/"]*)",\1 &,' \
@@ -162,9 +159,8 @@ $(OSS_HOME)/pkg/envoy-control-plane: FORCE
 	    -e 's,github\.com/golang/protobuf/,github.com/gogo/protobuf/,g' \
 	    -e '/SetDeterministic/d' \
 	    -- {} +; \
-	  find pkg -name '*.bak' -delete; \
-	  mv $$(git ls-files ':[A-Z]*' ':!Dockerfile*' ':!Makefile') pkg; \
-	  mv pkg $(abspath $@); \
+	  find "$$tmpdir" -name '*.bak' -delete; \
+	  mv "$$tmpdir" $(abspath $@); \
 	}
 	cd $(OSS_HOME) && go fmt ./pkg/envoy-control-plane/...
 

@@ -2,3 +2,5 @@
 /envoy-static
 /envoy-build-image.txt
 /envoy-build-container.txt
+
+/go-control-plane/

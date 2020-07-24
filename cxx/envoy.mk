@@ -64,6 +64,23 @@ $(srcdir)/envoy: FORCE
 	    fi; \
 	}
 
+$(srcdir)/go-control-plane: FORCE
+	@echo "Getting Envoy go-control-plane sources..."
+# Ensure that GIT_DIR and GIT_WORK_TREE are unset so that `git bisect`
+# and friends work properly.
+	@PS4=; set -ex; { \
+	    unset GIT_DIR GIT_WORK_TREE; \
+	    git init $@; \
+	    cd $@; \
+	    if git remote get-url origin &>/dev/null; then \
+	        git remote set-url origin https://github.com/envoyproxy/go-control-plane; \
+	    else \
+	        git remote add origin https://github.com/envoyproxy/go-control-plane; \
+	    fi; \
+	    git fetch --tags origin; \
+	    git checkout $(ENVOY_GO_CONTROL_PLANE_COMMIT); \
+	}
+
 $(srcdir)/envoy-build-image.txt: $(srcdir)/envoy $(WRITE_IFCHANGED) FORCE
 	@PS4=; set -ex -o pipefail; { \
 	    pushd $</ci; \
