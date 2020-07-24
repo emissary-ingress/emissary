@@ -25,7 +25,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='getambassador.io.v2',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\x1egetambassador.io/v2/Host.proto\x12\x13getambassador.io.v2\x1a\x34k8s.io/apimachinery/pkg/apis/meta/v1/generated.proto\x1a\"k8s.io/api/core/v1/generated.proto\x1a-github.com/gogo/protobuf/gogoproto/gogo.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1egoogle/protobuf/duration.proto\"\xfc\x02\n\x08HostSpec\x12\x15\n\rambassador_id\x18\x01 \x03(\t\x12\x12\n\ngeneration\x18\x02 \x01(\x05\x12\x10\n\x08hostname\x18\x03 \x01(\t\x12\x45\n\x08selector\x18\x04 \x01(\x0b\x32\x33.k8s.io.apimachinery.pkg.apis.meta.v1.LabelSelector\x12;\n\x0c\x61\x63meProvider\x18\x05 \x01(\x0b\x32%.getambassador.io.v2.ACMEProviderSpec\x12;\n\ttlsSecret\x18\x06 \x01(\x0b\x32(.k8s.io.api.core.v1.LocalObjectReference\x12\x39\n\rrequestPolicy\x18\x07 \x01(\x0b\x32\".getambassador.io.v2.RequestPolicy\x12\x37\n\npreviewUrl\x18\x08 \x01(\x0b\x32#.getambassador.io.v2.PreviewURLSpec\"\xfc\x02\n\nHostStatus\x12K\n\x14tlsCertificateSource\x18\x01 \x01(\x0e\x32-.getambassador.io.v2.HostTLSCertificateSource\x12-\n\x05state\x18\x02 \x01(\x0e\x32\x1e.getambassador.io.v2.HostState\x12\x36\n\x0ephaseCompleted\x18\x03 \x01(\x0e\x32\x1e.getambassador.io.v2.HostPhase\x12\x34\n\x0cphasePending\x18\x04 \x01(\x0e\x32\x1e.getambassador.io.v2.HostPhase\x12\x13\n\x0b\x65rrorReason\x18\x05 \x01(\t\x12\x38\n\x0e\x65rrorTimestamp\x18\x06 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x04\x90\xdf\x1f\x01\x12\x35\n\x0c\x65rrorBackoff\x18\x07 \x01(\x0b\x32\x19.google.protobuf.DurationB\x04\x98\xdf\x1f\x01\"\x8e\x01\n\x10\x41\x43MEProviderSpec\x12\x11\n\tauthority\x18\x01 \x01(\t\x12\r\n\x05\x65mail\x18\x02 \x01(\t\x12\x42\n\x10privateKeySecret\x18\x03 \x01(\x0b\x32(.k8s.io.api.core.v1.LocalObjectReference\x12\x14\n\x0cregistration\x18\x04 \x01(\t\"M\n\rRequestPolicy\x12<\n\x08insecure\x18\x01 \x01(\x0b\x32*.getambassador.io.v2.InsecureRequestPolicy\"k\n\x15InsecureRequestPolicy\x12:\n\x06\x61\x63tion\x18\x01 \x01(\x0e\x32*.getambassador.io.v2.InsecureRequestAction\x12\x16\n\x0e\x61\x64\x64itionalPort\x18\x02 \x01(\x05\"T\n\x0ePreviewURLSpec\x12\x0f\n\x07\x65nabled\x18\x01 \x01(\x08\x12\x31\n\x04type\x18\x02 \x01(\x0e\x32#.getambassador.io.v2.PreviewURLType*F\n\x18HostTLSCertificateSource\x12\x0b\n\x07Unknown\x10\x00\x12\x08\n\x04None\x10\x01\x12\t\n\x05Other\x10\x02\x12\x08\n\x04\x41\x43ME\x10\x03*;\n\tHostState\x12\x0b\n\x07Initial\x10\x00\x12\x0b\n\x07Pending\x10\x01\x12\t\n\x05Ready\x10\x02\x12\t\n\x05\x45rror\x10\x03*|\n\tHostPhase\x12\x06\n\x02NA\x10\x00\x12\x12\n\x0e\x44\x65\x66\x61ultsFilled\x10\x01\x12\x1d\n\x19\x41\x43MEUserPrivateKeyCreated\x10\x02\x12\x16\n\x12\x41\x43MEUserRegistered\x10\x03\x12\x1c\n\x18\x41\x43MECertificateChallenge\x10\x04*<\n\x15InsecureRequestAction\x12\x0c\n\x08Redirect\x10\x00\x12\n\n\x06Reject\x10\x01\x12\t\n\x05Route\x10\x02*\x1a\n\x0ePreviewURLType\x12\x08\n\x04Path\x10\x00\x62\x06proto3')
+  serialized_pb=_b('\n\x1egetambassador.io/v2/Host.proto\x12\x13getambassador.io.v2\x1a\x34k8s.io/apimachinery/pkg/apis/meta/v1/generated.proto\x1a\"k8s.io/api/core/v1/generated.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1egoogle/protobuf/duration.proto\"\xfc\x02\n\x08HostSpec\x12\x15\n\rambassador_id\x18\x01 \x03(\t\x12\x12\n\ngeneration\x18\x02 \x01(\x05\x12\x10\n\x08hostname\x18\x03 \x01(\t\x12\x45\n\x08selector\x18\x04 \x01(\x0b\x32\x33.k8s.io.apimachinery.pkg.apis.meta.v1.LabelSelector\x12;\n\x0c\x61\x63meProvider\x18\x05 \x01(\x0b\x32%.getambassador.io.v2.ACMEProviderSpec\x12;\n\ttlsSecret\x18\x06 \x01(\x0b\x32(.k8s.io.api.core.v1.LocalObjectReference\x12\x39\n\rrequestPolicy\x18\x07 \x01(\x0b\x32\".getambassador.io.v2.RequestPolicy\x12\x37\n\npreviewUrl\x18\x08 \x01(\x0b\x32#.getambassador.io.v2.PreviewURLSpec\"\xf0\x02\n\nHostStatus\x12K\n\x14tlsCertificateSource\x18\x01 \x01(\x0e\x32-.getambassador.io.v2.HostTLSCertificateSource\x12-\n\x05state\x18\x02 \x01(\x0e\x32\x1e.getambassador.io.v2.HostState\x12\x36\n\x0ephaseCompleted\x18\x03 \x01(\x0e\x32\x1e.getambassador.io.v2.HostPhase\x12\x34\n\x0cphasePending\x18\x04 \x01(\x0e\x32\x1e.getambassador.io.v2.HostPhase\x12\x13\n\x0b\x65rrorReason\x18\x05 \x01(\t\x12\x32\n\x0e\x65rrorTimestamp\x18\x06 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12/\n\x0c\x65rrorBackoff\x18\x07 \x01(\x0b\x32\x19.google.protobuf.Duration\"\x8e\x01\n\x10\x41\x43MEProviderSpec\x12\x11\n\tauthority\x18\x01 \x01(\t\x12\r\n\x05\x65mail\x18\x02 \x01(\t\x12\x42\n\x10privateKeySecret\x18\x03 \x01(\x0b\x32(.k8s.io.api.core.v1.LocalObjectReference\x12\x14\n\x0cregistration\x18\x04 \x01(\t\"M\n\rRequestPolicy\x12<\n\x08insecure\x18\x01 \x01(\x0b\x32*.getambassador.io.v2.InsecureRequestPolicy\"k\n\x15InsecureRequestPolicy\x12:\n\x06\x61\x63tion\x18\x01 \x01(\x0e\x32*.getambassador.io.v2.InsecureRequestAction\x12\x16\n\x0e\x61\x64\x64itionalPort\x18\x02 \x01(\x05\"T\n\x0ePreviewURLSpec\x12\x0f\n\x07\x65nabled\x18\x01 \x01(\x08\x12\x31\n\x04type\x18\x02 \x01(\x0e\x32#.getambassador.io.v2.PreviewURLType*F\n\x18HostTLSCertificateSource\x12\x0b\n\x07Unknown\x10\x00\x12\x08\n\x04None\x10\x01\x12\t\n\x05Other\x10\x02\x12\x08\n\x04\x41\x43ME\x10\x03*;\n\tHostState\x12\x0b\n\x07Initial\x10\x00\x12\x0b\n\x07Pending\x10\x01\x12\t\n\x05Ready\x10\x02\x12\t\n\x05\x45rror\x10\x03*|\n\tHostPhase\x12\x06\n\x02NA\x10\x00\x12\x12\n\x0e\x44\x65\x66\x61ultsFilled\x10\x01\x12\x1d\n\x19\x41\x43MEUserPrivateKeyCreated\x10\x02\x12\x16\n\x12\x41\x43MEUserRegistered\x10\x03\x12\x1c\n\x18\x41\x43MECertificateChallenge\x10\x04*<\n\x15InsecureRequestAction\x12\x0c\n\x08Redirect\x10\x00\x12\n\n\x06Reject\x10\x01\x12\t\n\x05Route\x10\x02*\x1a\n\x0ePreviewURLType\x12\x08\n\x04Path\x10\x00\x62\x06proto3')
   ,
   dependencies=[k8s_dot_io_dot_apimachinery_dot_pkg_dot_apis_dot_meta_dot_v1_dot_generated__pb2.DESCRIPTOR,k8s_dot_io_dot_api_dot_core_dot_v1_dot_generated__pb2.DESCRIPTOR,google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,google_dot_protobuf_dot_duration__pb2.DESCRIPTOR,])
 
@@ -54,8 +54,8 @@ _HOSTTLSCERTIFICATESOURCE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1442,
-  serialized_end=1512,
+  serialized_start=1383,
+  serialized_end=1453,
 )
 _sym_db.RegisterEnumDescriptor(_HOSTTLSCERTIFICATESOURCE)
 
@@ -85,8 +85,8 @@ _HOSTSTATE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1514,
-  serialized_end=1573,
+  serialized_start=1455,
+  serialized_end=1514,
 )
 _sym_db.RegisterEnumDescriptor(_HOSTSTATE)
 
@@ -120,8 +120,8 @@ _HOSTPHASE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1575,
-  serialized_end=1699,
+  serialized_start=1516,
+  serialized_end=1640,
 )
 _sym_db.RegisterEnumDescriptor(_HOSTPHASE)
 
@@ -147,8 +147,8 @@ _INSECUREREQUESTACTION = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1701,
-  serialized_end=1761,
+  serialized_start=1642,
+  serialized_end=1702,
 )
 _sym_db.RegisterEnumDescriptor(_INSECUREREQUESTACTION)
 
@@ -166,8 +166,8 @@ _PREVIEWURLTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1763,
-  serialized_end=1789,
+  serialized_start=1704,
+  serialized_end=1730,
 )
 _sym_db.RegisterEnumDescriptor(_PREVIEWURLTYPE)
 
@@ -267,8 +267,8 @@ _HOSTSPEC = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=258,
-  serialized_end=638,
+  serialized_start=211,
+  serialized_end=591,
 )
 
 
@@ -320,14 +320,14 @@ _HOSTSTATUS = _descriptor.Descriptor(
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=_b('\220\337\037\001'), file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='errorBackoff', full_name='getambassador.io.v2.HostStatus.errorBackoff', index=6,
       number=7, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=_b('\230\337\037\001'), file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -340,8 +340,8 @@ _HOSTSTATUS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=641,
-  serialized_end=1021,
+  serialized_start=594,
+  serialized_end=962,
 )
 
 
@@ -392,8 +392,8 @@ _ACMEPROVIDERSPEC = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1024,
-  serialized_end=1166,
+  serialized_start=965,
+  serialized_end=1107,
 )
 
 
@@ -423,8 +423,8 @@ _REQUESTPOLICY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1168,
-  serialized_end=1245,
+  serialized_start=1109,
+  serialized_end=1186,
 )
 
 
@@ -461,8 +461,8 @@ _INSECUREREQUESTPOLICY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1247,
-  serialized_end=1354,
+  serialized_start=1188,
+  serialized_end=1295,
 )
 
 
@@ -499,8 +499,8 @@ _PREVIEWURLSPEC = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1356,
-  serialized_end=1440,
+  serialized_start=1297,
+  serialized_end=1381,
 )
 
 _HOSTSPEC.fields_by_name['selector'].message_type = k8s_dot_io_dot_apimachinery_dot_pkg_dot_apis_dot_meta_dot_v1_dot_generated__pb2._LABELSELECTOR
@@ -574,6 +574,4 @@ PreviewURLSpec = _reflection.GeneratedProtocolMessageType('PreviewURLSpec', (_me
 _sym_db.RegisterMessage(PreviewURLSpec)
 
 
-_HOSTSTATUS.fields_by_name['errorTimestamp']._options = None
-_HOSTSTATUS.fields_by_name['errorBackoff']._options = None
 # @@protoc_insertion_point(module_scope)
