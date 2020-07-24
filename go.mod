@@ -38,13 +38,14 @@ go 1.13
 //  3. If you do add a `replace` command to this file, you must also
 //     add it to the go.mod in apro.git (see above for explanation).
 //
-//  4. We use https://github.com/datawire/libk8s to manage the
-//     Kubernetes library versions (since the Kubernetes folks make it
-//     such a nightmare).  See the docs there if you need to fuss with
-//     the versions of any of the k8s.io/ libraries.  If you find
-//     yourself having to do any hacks with k8s.io library versions
-//     (like doing a `replace` for a dozen different k8s.io/
-//     packages), stop, and ask someone for advice.
+//  4. We used to use complex hacks to manage the Kubernetes library
+//     versions (since the Kubernetes folks made it such a nightmare),
+//     but recent versions of Kubernetes 1.y.z now have useful
+//     "v0.y.z" git tags that Go understands, so it's actually quite
+//     reasonable now.  If you find yourself having to do any hacks
+//     with k8s.io library versions (like doing a `replace` for a
+//     dozen different k8s.io/ packages), stop, and ask someone for
+//     advice.
 //
 //  5. Use `make go-mod-tidy` instead of `go mod tidy`.  Normal `go
 //     mod tidy` will try to remove `github.com/cncf/udpa`--don't let
