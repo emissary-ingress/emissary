@@ -5,7 +5,7 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
-(nothing yet)
+- Feature: Add support for DaemonSet/Deployment labels: [ambassador-chart/#114](https://github.com/datawire/ambassador-chart/pull/114)
 
 ## v6.5.1
 
