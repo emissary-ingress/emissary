@@ -53,6 +53,13 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 (no changes yet)
 
+## [1.6.1] July 23, 2020
+[1.6.1]: https://github.com/datawire/ambassador/compare/v1.6.0...v1.6.1
+
+- Bugfix: Mapping with `https` scheme for service are correctly parsed.
+- Bugfix: Mapping with both a scheme and a hostname of `localhost` is now handled correctly.
+- Bugfix: ConsulResolver now works again for Mappings outside of Ambassador's namespace.
+
 ## [1.6.0] July 21, 2020
 [1.6.0]: https://github.com/datawire/ambassador/compare/v1.5.5...v1.6.0
 
