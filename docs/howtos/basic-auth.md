@@ -1,16 +1,18 @@
 # Authentication
 
-Ambassador can authenticate incoming requests before routing them to a backing service. In this tutorial, we'll configure Ambassador to use an external third party authentication service. Note that if you're using the Ambassador Edge Stack, the [`External` filter](../../topics/using/filters) is a more powerful way to manage authentication. 
+IMPORTANT: This guide applies to the Ambassador API Gateway version of Ambassador, use of this guide on the Ambassador Edge Stack is not fully supported; use the [External Filter](../../topics/using/filters) instead.
+
+Ambassador can authenticate incoming requests before routing them to a backing service. In this tutorial, we'll configure Ambassador to use an external third party authentication service. Note that if you're using the Ambassador Edge Stack, the [`External` filter](../../topics/using/filters) is the supported way to manage authentication. 
 
 ## Before You Get Started
 
-This tutorial assumes you have already followed the Ambassador Edge Stack [Installation](../../topics/install) guide. If you haven't done that already, you should do that now.
+This tutorial assumes you have already followed the Ambassador API Gateway [Installation](../../topics/install/install-ambassador-oss.md) guide. If you haven't done that already, you should do so now.
 
-Once complete, you'll have a Kubernetes cluster running Ambassador Edge Stack. Let's walk through adding authentication to this setup.
+Once complete, you'll have a Kubernetes cluster running Ambassador. Let's walk through adding authentication to this setup.
 
 ## 1. Deploy the Authentication Service
 
-Ambassador Edge Stack delegates the actual authentication logic to a third party authentication service. We've written a [simple authentication service](https://github.com/datawire/ambassador-auth-service) that:
+Ambassador delegates the actual authentication logic to a third party authentication service. We've written a [simple authentication service](https://github.com/datawire/ambassador-auth-service) that:
 
 - listens for requests on port 3000;
 - expects all URLs to begin with `/extauth/`;
@@ -18,7 +20,7 @@ Ambassador Edge Stack delegates the actual authentication logic to a third party
 - accepts only user `username`, password `password`; and
 - makes sure that the `x-qotm-session` header is present, generating a new one if needed.
 
-Ambassador Edge Stack routes _all_ requests through the authentication service: it relies on the auth service to distinguish between requests that need authentication and those that do not. If Ambassador Edge Stack cannot contact the auth service, it will return a 503 for the request; as such, **it is very important to have the auth service running before configuring Ambassador Edge Stack to use it.**
+Ambassador routes _all_ requests through the authentication service: it relies on the auth service to distinguish between requests that need authentication and those that do not. If Ambassador cannot contact the auth service, it will return a 503 for the request; as such, **it is very important to have the auth service running before configuring Ambassador Edge Stack to use it.**
 
 Here's the YAML we'll start with:
 
@@ -66,7 +68,7 @@ spec:
             memory: 100Mi
 ```
 
-Note that the cluster does not yet contain any Ambassador Edge Stack AuthService definition. This is intentional: we want the service running before we tell Ambassador about it.
+Note that the cluster does not yet contain any Ambassador AuthService definition. This is intentional: we want the service running before we tell Ambassador about it.
 
 The YAML above is published at getambassador.io, so if you like, you can just do
 
@@ -85,9 +87,9 @@ example-auth-6c5855b98d-24clp   1/1       Running   0          4m
 ```
 Note that the `READY` field says `1/1` which means the pod is up and running.
 
-## 2. Configure Ambassador Edge Stack Authentication
+## 2. Configure Ambassador Authentication
 
-Once the auth service is running, we need to tell Ambassador Edge Stack about it. The easiest way to do that is to map the `example-auth` service with the following:
+Once the auth service is running, we need to tell Ambassador about it. The easiest way to do that is to map the `example-auth` service with the following:
 
 ```yaml
 ---
@@ -104,7 +106,7 @@ spec:
   - "x-qotm-session"
 ```
 
-This configuration tells Ambassador Edge Stack about the auth service, notably that it needs the `/extauth` prefix, and that it's OK for it to pass back the `x-qotm-session` header. Note that `path_prefix` and `allowed_headers` are optional.
+This configuration tells Ambassador about the auth service, notably that it needs the `/extauth` prefix, and that it's OK for it to pass back the `x-qotm-session` header. Note that `path_prefix` and `allowed_headers` are optional.
 
 If the auth service uses a framework like [Gorilla Toolkit](http://www.gorillatoolkit.org) which enforces strict slashes as HTTP path separators, it is possible to end up with an infinite redirect where the auth service's framework redirects any request with non-conformant slashing. This would arise if the above example had ```path_prefix: "/extauth/"```, the auth service would see a request for ```/extauth//backend/get-quote/``` which would then be redirected to ```/extauth/backend/get-quote/``` rather than actually be handled by the authentication handler. For this reason, remember that the full path of the incoming request including the leading slash, will be appended to ```path_prefix``` regardless of non-conformant slashing.
 
@@ -116,7 +118,7 @@ kubectl apply -f https://www.getambassador.io/yaml/demo/demo-auth-enable.yaml
 
 or, again, apply it from a local file if you prefer.
 
-Note that the cluster does not yet contain any Ambassador Edge Stack AuthService definition.
+Note that the cluster does not yet contain any Ambassador AuthService definition.
 
 ## 3. Test Authentication
 
