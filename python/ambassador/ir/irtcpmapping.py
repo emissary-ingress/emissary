@@ -3,7 +3,7 @@ from typing import Any, ClassVar, Dict, List, Optional, Type, Union, TYPE_CHECKI
 
 from ..config import Config
 
-from .irbasemapping import IRBaseMapping, qualify_service_name
+from .irbasemapping import IRBaseMapping, normalize_service_name
 from .irbasemappinggroup import IRBaseMappingGroup
 from .irtcpmappinggroup import IRTCPMappingGroup
 
@@ -55,30 +55,20 @@ class IRTCPMapping (IRBaseMapping):
 
         new_args = { x: kwargs[x] for x in kwargs.keys() if x in IRTCPMapping.AllowedKeys }
 
-        # Consul Resolvers don't allow service names to include subdomains, but 
-        # Kubernetes Resolvers _require_ subdomains to correctly handle namespaces.
-        # So IFF we're not using a Consul Resolver, qualify the service name as
-        # needed.
-        # 
-        # XXX Duplicated code from IRBaseMapping.setup -- needs to be fixed after
-        # 1.6.1.
-
-        resolver_name = kwargs.get('resolver')
-
-        if not resolver_name:
-            resolver_name = ir.ambassador_module.get('resolver', 'kubernetes-service')
-
+        # XXX The resolver lookup code is duplicated from IRBaseMapping.setup --
+        # needs to be fixed after 1.6.1.
+        resolver_name = kwargs.get('resolver') or ir.ambassador_module.get('resolver', 'kubernetes-service')
         resolver = ir.get_resolver(resolver_name)
-
-        # In IRBaseMapping.setup, we post an error if the resolver is unknown. Here,
-        # we just don't bother using it for service qualification.
-
         if resolver:
-            ir.logger.debug(f"TCPMapping {name} using {resolver.name}")
+            resolver_kind = resolver.kind
+        else:
+            # In IRBaseMapping.setup, we post an error if the resolver is unknown.
+            # Here, we just don't bother; we're only using it for service
+            # qualification.
+            resolver_kind = 'KubernetesBogusResolver'
 
-            if resolver.kind != 'ConsulResolver':
-                service = qualify_service_name(ir, service, namespace, rkey=rkey)
-                ir.logger.debug(f"TCPMapping {name} service qualified to {service}")
+        service = normalize_service_name(ir, service, namespace, resolver_kind, rkey=rkey)
+        ir.logger.debug(f"TCPMapping {name} service normalized to {repr(service)}")
 
         # ...and then init the superclass.
         super().__init__(

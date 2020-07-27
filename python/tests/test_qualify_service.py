@@ -17,7 +17,7 @@ from ambassador import Config, IR
 from ambassador.fetch import ResourceFetcher
 from ambassador.utils import NullSecretHandler
 from ambassador.ir import IRResource
-from ambassador.ir.irbasemapping import qualify_service_name
+from ambassador.ir.irbasemapping import normalize_service_name
 
 yaml = '''
 ---
@@ -27,6 +27,8 @@ name: ambassador
 config: {}
 '''
 
+def qualify_service_name(ir: 'IR', service: str, namespace: Optional[str], rkey: Optional[str]=None) -> str:
+    return normalize_service_name(ir, service, namespace, 'KubernetesTestResolver', rkey=rkey)
 
 def test_qualify_service():
     aconf = Config()
@@ -132,23 +134,51 @@ def test_qualify_service():
     assert qualify_service_name(ir, "https://localhost.otherns:443", "default") == "https://localhost.otherns:443"
     assert qualify_service_name(ir, "https://localhost.otherns:443", "otherns") == "https://localhost.otherns:443"
 
-    assert qualify_service_name(ir, "https://bad-service:443:443", "otherns") == "https://bad-service:443:443"
-    assert qualify_service_name(ir, "https://bad-service:443:443", "otherns", rkey="test-rkey") == "https://bad-service:443:443"
+    assert qualify_service_name(ir, "ambassador://foo.ns", "otherns") == "ambassador://foo.ns" # let's not introduce silly semantics
+    assert qualify_service_name(ir, "//foo.ns:1234", "otherns") == "foo.ns:1234" # we tell people "URL-ish", actually support URL-ish
+    assert qualify_service_name(ir, "foo.ns:1234", "otherns") == "foo.ns:1234"
 
     errors = ir.aconf.errors
-    
-    assert "-global-" in errors
+    assert not errors
 
+    assert qualify_service_name(ir, "https://bad-service:443:443", "otherns") == "https://bad-service:443:443"
+    assert qualify_service_name(ir, "https://bad-service:443:443", "otherns", rkey="test-rkey") == "https://bad-service:443:443"
+    assert qualify_service_name(ir, "bad-service:443:443", "otherns") == "bad-service:443:443"
+    assert qualify_service_name(ir, "https://[fe80::e022:9cff:fecc:c7c4:443", "otherns") == "https://[fe80::e022:9cff:fecc:c7c4:443"
+    assert qualify_service_name(ir, "https://[fe80::e022:9cff:fecc:c7c4", "otherns") == "https://[fe80::e022:9cff:fecc:c7c4"
+    assert qualify_service_name(ir, "https://fe80::e022:9cff:fecc:c7c4", "otherns") == "https://fe80::e022:9cff:fecc:c7c4"
+    assert qualify_service_name(ir, "https://bad-service:-1", "otherns") == "https://bad-service:-1"
+    assert qualify_service_name(ir, "https://bad-service:70000", "otherns") == "https://bad-service:70000"
+    
+    errors = ir.aconf.errors
+    assert "-global-" in errors
     errors = errors["-global-"]
 
-    assert len(errors) == 2
+    assert len(errors) == 8
 
     assert not errors[0]["ok"]
-    assert errors[0]["error"] == "Malformed service port in https://bad-service:443:443"
+    assert errors[0]["error"] == "Malformed service 'https://bad-service:443:443': Port could not be cast to integer value as '443:443'"
 
     assert not errors[1]["ok"]
-    assert errors[1]["error"] == "test-rkey: Malformed service port in https://bad-service:443:443"
+    assert errors[1]["error"] == "test-rkey: Malformed service 'https://bad-service:443:443': Port could not be cast to integer value as '443:443'"
 
+    assert not errors[2]["ok"]
+    assert errors[2]["error"] == "Malformed service 'bad-service:443:443': Port could not be cast to integer value as '443:443'"
+
+    assert not errors[3]["ok"]
+    assert errors[3]["error"] == "Malformed service 'https://[fe80::e022:9cff:fecc:c7c4:443': Invalid IPv6 URL"
+
+    assert not errors[4]["ok"]
+    assert errors[4]["error"] == "Malformed service 'https://[fe80::e022:9cff:fecc:c7c4': Invalid IPv6 URL"
+
+    assert not errors[5]["ok"]
+    assert errors[5]["error"] == "Malformed service 'https://fe80::e022:9cff:fecc:c7c4': Port could not be cast to integer value as ':e022:9cff:fecc:c7c4'"
+
+    assert not errors[6]["ok"]
+    assert errors[6]["error"] == "Malformed service 'https://bad-service:-1': Port out of range 0-65535"
+
+    assert not errors[7]["ok"]
+    assert errors[7]["error"] == "Malformed service 'https://bad-service:70000': Port out of range 0-65535"
 
 if __name__ == '__main__':
     pytest.main(sys.argv)
