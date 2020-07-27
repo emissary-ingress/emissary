@@ -2,7 +2,7 @@
 
 IMPORTANT: This guide applies to the Ambassador API Gateway version of Ambassador, use of this guide on the Ambassador Edge Stack is not fully supported; use the [External Filter](../../topics/using/filters) instead.
 
-Ambassador can authenticate incoming requests before routing them to a backing service. In this tutorial, we'll configure Ambassador to use an external third party authentication service. Note that if you're using the Ambassador Edge Stack, the [`External` filter](../../topics/using/filters) is the supported way to manage authentication. 
+Ambassador can authenticate incoming requests before routing them to a backing service. In this tutorial, we'll configure Ambassador to use an external third party authentication service.
 
 ## Before You Get Started
 
@@ -20,7 +20,7 @@ Ambassador delegates the actual authentication logic to a third party authentica
 - accepts only user `username`, password `password`; and
 - makes sure that the `x-qotm-session` header is present, generating a new one if needed.
 
-Ambassador routes _all_ requests through the authentication service: it relies on the auth service to distinguish between requests that need authentication and those that do not. If Ambassador cannot contact the auth service, it will return a 503 for the request; as such, **it is very important to have the auth service running before configuring Ambassador Edge Stack to use it.**
+Ambassador routes _all_ requests through the authentication service: it relies on the auth service to distinguish between requests that need authentication and those that do not. If Ambassador cannot contact the auth service, it will return a 503 for the request; as such, **it is very important to have the auth service running before configuring Ambassador to use it.**
 
 Here's the YAML we'll start with:
 
