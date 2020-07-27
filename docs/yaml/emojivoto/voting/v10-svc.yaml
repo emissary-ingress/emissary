@@ -1,3 +1,8 @@
+# This YAML is used to select only version 10 of the emojivoto Voting service. 
+# 
+# This is downloaded when doing Chapter 6 of the CNCF service mesh labs which 
+# walks the user through traffic splitting using the 
+# Service Mesh Interface (SMI) TrafficSplit object.
 ---
 apiVersion: v1
 kind: ServiceAccount
