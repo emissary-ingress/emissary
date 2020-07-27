@@ -1,0 +1,28 @@
+# This YAML is used to select only version 10 of the emojivoto Voting service. 
+# 
+# This is downloaded when doing Chapter 6 of the CNCF service mesh labs which 
+# walks the user through traffic splitting using the 
+# Service Mesh Interface (SMI) TrafficSplit object.
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: voting
+  namespace: emojivoto
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: voting-svc-v10
+  namespace: emojivoto
+spec:
+  ports:
+  - name: grpc
+    port: 8080
+    targetPort: 8080
+  - name: prom
+    port: 8801
+    targetPort: 8801
+  selector:
+    app: voting-svc
+    version: v10

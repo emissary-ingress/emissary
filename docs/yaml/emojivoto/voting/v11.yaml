@@ -1,0 +1,68 @@
+# This YAML is used to deploy version 11 of the emojivoto Voting service which
+# fixes a bug in the service.
+# 
+# This is downloaded when doing Chapter 6 of the CNCF service mesh labs which 
+# walks the user through traffic splitting using the 
+# Service Mesh Interface (SMI) TrafficSplit object.
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: voting
+  namespace: emojivoto
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: voting-svc-v11
+  namespace: emojivoto
+spec:
+  ports:
+  - name: grpc
+    port: 8080
+    targetPort: 8080
+  - name: prom
+    port: 8801
+    targetPort: 8801
+  selector:
+    app: voting-svc
+    version: v11
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: voting
+    app.kubernetes.io/part-of: emojivoto
+    app.kubernetes.io/version: v11
+  name: voting-v11
+  namespace: emojivoto
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: voting-svc
+      version: v11
+  template:
+    metadata:
+      labels:
+        app: voting-svc
+        version: v11
+    spec:
+      containers:
+      - env:
+        - name: GRPC_PORT
+          value: "8080"
+        - name: PROM_PORT
+          value: "8801"
+        image: datawire/emojivoto-voting-svc:v11
+        name: voting-svc
+        ports:
+        - containerPort: 8080
+          name: grpc
+        - containerPort: 8801
+          name: prom
+        resources:
+          requests:
+            cpu: 100m
+      serviceAccountName: voting
