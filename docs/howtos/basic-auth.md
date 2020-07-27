@@ -1,6 +1,6 @@
 # Authentication
 
-IMPORTANT: This guide applies to the Ambassador API Gateway version of Ambassador, use of this guide on the Ambassador Edge Stack is not fully supported; use the [External Filter](../../topics/using/filters) instead.
+IMPORTANT: This guide applies to Ambassador API Gateway, use of this guide on the Ambassador Edge Stack is not fully supported.  Use the [External Filter](../../topics/using/filters) instead.
 
 Ambassador can authenticate incoming requests before routing them to a backing service. In this tutorial, we'll configure Ambassador to use an external third party authentication service.
 

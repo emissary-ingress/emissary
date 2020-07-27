@@ -1,6 +1,6 @@
 # Rate Limiting
 
-IMPORTANT: This guide applies to the Ambassador API Gateway version of Ambassador, use of this guide on the Ambassador Edge Stack is not fully supported.  Use the existing [RateLimitService](../../topics/using/rate-limits/) instead.
+IMPORTANT: This guide applies to Ambassador API Gateway, use of this guide on the Ambassador Edge Stack is not fully supported.  Use the existing [RateLimitService](../../topics/using/rate-limits/) instead.
 
 Ambassador can validate incoming requests before routing them to a backing service. In this tutorial, we'll configure the Ambassador API Gateway to use a simple third party rate limit service. If you don't want to implement your own rate limiting service, the Ambassador Edge Stack integrates a [powerful, flexible rate limiting service](../../topics/using/rate-limits/).
 
