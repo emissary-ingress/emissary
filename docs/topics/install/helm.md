@@ -41,8 +41,8 @@ deploy it with either version of the tool.
    helm install --name ambassador --namespace ambassador datawire/ambassador
    ```
 
-4. Finish the installation by running the following command: `edgectl install` \*
-5. Provide an email address when prompted to receive notices if your domain or TLS certificate is about to expire.
+4. Finish the installation by running the following command: `edgectl install` (optional) \*
+5. Provide an email address when prompted to receive notices if your domain or TLS certificate is about to expire. (optional)
 
 Your terminal should print something similar to the following:
 ```
