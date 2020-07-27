@@ -10,8 +10,7 @@ Service Preview addresses this challenge by connecting your CI system or local d
 
 When Service Preview is used, incoming requests get routed by Ambassador to a Traffic Agent, which then routes traffic to the microservice. When a request meets a specific criteria (e.g., it has a specific HTTP header value), the Traffic Agent will route that request to the microservice running locally. The following video shows Service Preview in more detail:
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/LDiyKOa1V_A" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-
+<iframe style="display: block; margin: auto;" width="560" height="315" src="https://www.youtube.com/embed/LDiyKOa1V_A" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 ## Preview URLs
 
@@ -21,19 +20,23 @@ Ambassador Edge Stack, when used as your cluster's API gateway, offers the abili
 
 There are three main components to Service Preview:
 
-1. The Traffic Agent, which controls routing to the microservice. The Traffic Agent is deployed as a sidecar on the same pod as your microservice (behind the scenes, it's a special configuration of the basic Ambassador Edge Stack image). The Traffic Agent sidecar can be manually configured or automatically injected in any pod with a specific annotation.
+1. The [Traffic Agent](#traffic-agent), which controls routing to the microservice. The Traffic Agent is deployed as a sidecar on the same pod as your microservice (behind the scenes, it's a special configuration of the basic Ambassador Edge Stack image). The Traffic Agent sidecar can be manually configured or [automatically injected by the Ambassador Injector](#automatic-traffic-agent-sidecar-injection) in any pod with a specific annotation.
 
-2. The Traffic Manager, which manages the different instances of the Traffic Agent, and is deployed in the cluster.
+2. The [Traffic Manager](#traffic-manager), which manages the different instances of the Traffic Agent, and is deployed in the cluster.
 
-3. The Edge Control local client, which runs in your local environment (Linux or Mac OS X). The client is the command line interface to the Traffic Manager.
+3. The [Edge Control](edge-control) local client, which runs in your local environment (Linux or Mac OS X). The client is the command line interface to the Traffic Manager.
 
 For Preview URLs to function, Ambassador Edge Stack must be running as your API gateway.
 
-## Configuring Service Preview
+## Installing and Configuring Service Preview
 
-To get started with Service Preview, you'll need to install Traffic Manager, configure a Traffic Agent, and then download and install the `edgectl` client.
+To get started with Service Preview, you'll need to [download and install the `edgectl` client](edge-control#installing-edge-control).
 
-To use Preview URLs, you must enable preview URL processing in one or more Host resources used by Ambassador Edge Stack.
+**If you are a new user, or you are looking to start using Ambassador Edge Stack with Service Preview on a fresh installation, the `edgectl install` command will get you up and running in no time with a pre-configured Traffic Manager and Traffic Agent supported by automatic sidecar injection.**
+
+To use Preview URLs, you must [enable preview URL processing in one or more Host](#ambassador-edge-stack) resources used by Ambassador Edge Stack.
+
+The following sections contain detailed instructions for a manual installation of the Traffic Manager and configuration of a Traffic Agent alongside an existing Ambassador Edge Stack installation.
 
 ### Traffic Manager
 
@@ -139,18 +142,19 @@ spec:
         name: ambassador-pod-info
 ```
 
-Note that if you do not wish to grant read privileges on `Secrets` to the `traffic-manager` `ServiceAccount`, you may mount the `ambassador-edge-stack` secret containing the license key in an extra volume and reference it using the `AMBASSADOR_LICENSE_FILE` environment variable:
+**Note**: If you do not wish to grant read privileges on `Secrets` to the `traffic-manager` `ServiceAccount`, you may mount the `ambassador-edge-stack` secret containing the license key in an extra volume and reference it using the `AMBASSADOR_LICENSE_FILE` environment variable:
 
 ```yaml
+    # [...]
     env:
     - name: AMBASSADOR_LICENSE_FILE
       value: /.config/ambassador/license-key
-   [...]
+    # [...]
     volumeMounts:
     - mountPath: /.config/ambassador
       name: ambassador-edge-stack-secrets
       readOnly: true
-   [...]
+  # [...]
   volumes:
   - name: ambassador-edge-stack-secrets
     secret:
@@ -159,13 +163,14 @@ Note that if you do not wish to grant read privileges on `Secrets` to the `traff
 
 ### Traffic Agent
 
-Any microservice running in a cluster with a traffic manager can opt in to intercept functionality by including the Traffic Agent in its pods.
+Any pod running in a cluster with a Traffic Manager can opt in to intercept functionality by including the Traffic Agent container.
 
 #### Configuring RBAC
 
 Since the Traffic Agent is built on Ambassador Edge Stack, it needs a subset of the same RBAC permissions that Ambassador does. The easiest way to provide this is to create a `ServiceAccount` in your service's namespace, bound to the `traffic-agent` `Role` or `ClusterRole`:
 
 ```yaml
+# This is traffic-agent-rbac.yaml
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -214,13 +219,7 @@ subjects:
     kind: ServiceAccount
 ```
 
-Copy the above YAML into `traffic-agent-rbac.yaml` and, if necessary, edit the two `namespace`s appropriately. Apply it:
-
-```bash
-$ kubectl apply -f traffic-agent-rbac.yaml
-serviceaccount/traffic-agent created
-clusterrolebinding.rbac.authorization.k8s.io/traffic-agent created
-```
+Copy the above YAML into `traffic-agent-rbac.yaml` and, if necessary, edit the two `namespace`s appropriately. Apply the manifests to your cluster with `kubectl apply -f traffic-agent-rbac.yaml`.
 
 If you want to include the Traffic Agent with multiple services, they can all use the same `ServiceAccount` name, as long as it exists in every namespace.
 
@@ -379,8 +378,10 @@ If you wish to allow automatic Traffic Agent sidecar injection in any deployment
     # Generate the CA cert and private key
     openssl req -days 365 -nodes -new -x509 -keyout ca.key -out ca.crt \
       -subj "/CN=Ambassador Edge Stack Admission Controller Webhook CA"
+    
     # Generate the private key for the webhook server
     openssl genrsa -out key.pem 2048
+    
     # Generate a Certificate Signing Request (CSR) for the private key, and sign it with the private key of the CA.
     openssl req -new -key key.pem -subj "/CN=ambassador-injector.ambassador.svc" \
         | openssl x509 -req -days 365 -CA ca.crt -CAkey ca.key -CAcreateserial -out crt.pem
@@ -390,10 +391,11 @@ If you wish to allow automatic Traffic Agent sidecar injection in any deployment
     cat key.pem | base64 > key.pem.base64
     cat crt.pem | base64 > crt.pem.base64
     ```
-2. Replace the `CA_BUNDLE_BASE64`, `CRT_PEM_BASE64` and `KEY_PEM_BASE64` placeholders using the values from above, and save the manifest below into a file called `ambassador-injector.yaml`.
+2. In the manifest below, replace the `CA_BUNDLE_BASE64`, `CRT_PEM_BASE64` and `KEY_PEM_BASE64` placeholders using the values from Step 1, and save the manifest into a file called `ambassador-injector.yaml`.
 3. Apply the manifest to your cluster with `kubectl apply -f ambassador-injector.yaml`.
 
 ```yaml
+# This is ambassador-injector.yaml
 ---
 kind: Secret
 apiVersion: v1
@@ -548,6 +550,7 @@ If this microservice expects incoming requests to speak TLS, tell the Traffic Ag
 To enable Preview URLs, you must first enable preview URL processing in one or more Host resources. Ambassador Edge Stack uses Host resources to configure various aspects of a given host. Enabling preview URLs is as simple as adding the `previewUrl` section and setting `enabled` to `true`:
 
 ```yaml
+# This is minimal-host-preview-url.yaml
 apiVersion: getambassador.io/v2
 kind: Host
 metadata:
@@ -560,4 +563,4 @@ spec:
     enabled: true
 ```
 
-When you first edit your Host to enable preview URLs, you must reconnect to the cluster for the Edge Control Daemon to detect the change. This limitation will be removed in the future.
+**Note**: If you already had an active Edge Control Daemon connection to the custer, you must reconnect to the cluster for the Edge Control Daemon to detect the change to the Host resource. This limitation will be removed in the future.

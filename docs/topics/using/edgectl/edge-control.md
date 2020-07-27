@@ -53,7 +53,7 @@ Launching Edge Control Daemon v1.3.2 (api v1)
 
 2. Connect your laptop to the cluster. This will enable your local environment to initiate traffic to the cluster.
 
-```
+```bash
 $ edgectl connect
 Connecting to traffic manager in namespace ambassador...
 Connected to context k3s-default (https://172.20.0.3:6443)
@@ -61,11 +61,9 @@ Connected to context k3s-default (https://172.20.0.3:6443)
 
 3. Set up an intercept rule. This will enable the cluster initiate traffic to your local environment.
 
-```
+```bash
 $ edgectl intercept add hello -n example -m x-dev=jane -t localhost:9000
-
 ```
-
 
 ## Edge Control commands
 
@@ -73,7 +71,7 @@ $ edgectl intercept add hello -n example -m x-dev=jane -t localhost:9000
 
 Connect to the cluster. This command allows your local environment to initiate traffic to the cluster, allowing services running locally to send and receive requests to cluster services.
 
-```
+```bash
 $ edgectl connect
 Connecting to traffic manager in namespace ambassador...
 Connected to context gke_us-east1-b_demo-cluster (https://35.136.57.145)
@@ -117,7 +115,7 @@ Intercept enables the cluster to initiate traffic to the local environment. To p
 
 List available Kubernetes deployments for intercept.
 
-```
+```bash
 $ edgectl intercept available
 Found 2 interceptable deployment(s):
    1. xyz in namespace default
@@ -132,7 +130,7 @@ List the current active intercepts.
 
 Add an intercept. The basic format of this command is:
 
-```
+```bash
   edgectl intercept add DEPLOYMENT -n NAME -t [HOST:]PORT -m HEADER=REGEX ...
 ```
 
@@ -150,7 +148,7 @@ A few other options to `intercept` include:
 
 Intercept all requests to the `hello` deployment that match the HTTP `x-dev` header with a value of `jane` to a service running locally on port 9000:
 
-```
+```bash
 $ edgectl intercept add hello -n example -m x-dev=jane -t localhost:9000
 Added intercept "example"
 ```
@@ -159,7 +157,7 @@ Added intercept "example"
 
 Pause the daemon. The network overrides used by the edgectl daemon are temporarily disabled. Typically, this is used for connecting with a VPN that is not compatible with Edge Control.
 
-```
+```bash
 $ edgectl pause
 Network overrides paused.
 Use "edgectl resume" to reestablish network overrides.
@@ -177,7 +175,7 @@ Resume the daemon. Used after `edgectl pause`.
 
 Print the status of Edge Control, including the Kubernetes context that is currently being used.
 
-```
+```bash
 $ edgectl status
 Connected
   Context:       gke_us-east1-b_demo-cluster (https://35.136.57.145)
@@ -246,7 +244,7 @@ Not connected
 
 ## Usage: Intercept
 
-1. Install the traffic manager in your cluster and the traffic agent in the simple microservice as described in the [Introduction to Service Preview and Edge Control](../../edgectl#configuring-service-preview)..
+1. Install the traffic manager in your cluster and the traffic agent in the simple microservice as described in the [Introduction to Service Preview and Edge Control](../../edgectl#installing-and-configuring-service-preview).
 
 ```bash
 $ kubectl apply -f traffic-manager.yaml
@@ -354,7 +352,7 @@ Requests are no longer intercepted.
 
 Make sure your Host resource has preview URLs enabled.
 
-```console
+```bash
 $ kubectl get host minimal-host -o yaml
 apiVersion: getambassador.io/v2
 kind: Host
@@ -370,7 +368,7 @@ When you first edit your Host to enable preview URLs, you must reconnect to the 
 
 Now add an intercept and give it a try.
 
-```console
+```bash
 $ edgectl intercept avail
 Found 1 interceptable deployment(s):
     1. hello
