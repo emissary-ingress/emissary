@@ -54,6 +54,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 ### Ambassador API Gateway + Ambassador Edge Stack
 
 - Bugfix: The (new in 1.6.0) `Host.spec.tls` and `Host.spec.tlsContext` fields now work when `AMBASSADOR_FAST_VALIDATION=fast` is not set.
+- Bugfix: Setting `use_websocket: true` on a `Mapping` now only affects routes generated from that `Mapping`, instead of affecting all routes on that port.
 
 ### Ambassador Edge Stack only
 

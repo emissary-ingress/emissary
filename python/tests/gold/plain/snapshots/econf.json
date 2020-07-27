@@ -4463,7 +4463,12 @@
                                                             "cluster": "cluster_http___plain_simplemapping_http_-18",
                                                             "prefix_rewrite": "/",
                                                             "priority": null,
-                                                            "timeout": "3.000s"
+                                                            "timeout": "3.000s",
+                                                            "upgrade_configs": [
+                                                                {
+                                                                    "upgrade_type": "websocket"
+                                                                }
+                                                            ]
                                                         }
                                                     },
                                                     {
@@ -4482,7 +4487,12 @@
                                                             "cluster": "cluster_http___plain_simplemapping_http_-18",
                                                             "prefix_rewrite": "/",
                                                             "priority": null,
-                                                            "timeout": "3.000s"
+                                                            "timeout": "3.000s",
+                                                            "upgrade_configs": [
+                                                                {
+                                                                    "upgrade_type": "websocket"
+                                                                }
+                                                            ]
                                                         }
                                                     },
                                                     {
@@ -4507,7 +4517,12 @@
                                                             "cluster": "cluster_http___plain_simplemapping_grpc_-18",
                                                             "prefix_rewrite": "/",
                                                             "priority": null,
-                                                            "timeout": "3.000s"
+                                                            "timeout": "3.000s",
+                                                            "upgrade_configs": [
+                                                                {
+                                                                    "upgrade_type": "websocket"
+                                                                }
+                                                            ]
                                                         }
                                                     },
                                                     {
@@ -4526,7 +4541,12 @@
                                                             "cluster": "cluster_http___plain_simplemapping_grpc_-18",
                                                             "prefix_rewrite": "/",
                                                             "priority": null,
-                                                            "timeout": "3.000s"
+                                                            "timeout": "3.000s",
+                                                            "upgrade_configs": [
+                                                                {
+                                                                    "upgrade_type": "websocket"
+                                                                }
+                                                            ]
                                                         }
                                                     },
                                                     {
@@ -6839,7 +6859,12 @@
                                                             },
                                                             "prefix_rewrite": "/foo",
                                                             "priority": null,
-                                                            "timeout": "3.000s"
+                                                            "timeout": "3.000s",
+                                                            "upgrade_configs": [
+                                                                {
+                                                                    "upgrade_type": "websocket"
+                                                                }
+                                                            ]
                                                         }
                                                     },
                                                     {
@@ -6894,7 +6919,12 @@
                                                             },
                                                             "prefix_rewrite": "/foo",
                                                             "priority": null,
-                                                            "timeout": "3.000s"
+                                                            "timeout": "3.000s",
+                                                            "upgrade_configs": [
+                                                                {
+                                                                    "upgrade_type": "websocket"
+                                                                }
+                                                            ]
                                                         }
                                                     },
                                                     {
@@ -6955,7 +6985,12 @@
                                                             },
                                                             "prefix_rewrite": "/foo",
                                                             "priority": null,
-                                                            "timeout": "3.000s"
+                                                            "timeout": "3.000s",
+                                                            "upgrade_configs": [
+                                                                {
+                                                                    "upgrade_type": "websocket"
+                                                                }
+                                                            ]
                                                         }
                                                     },
                                                     {
@@ -7010,7 +7045,12 @@
                                                             },
                                                             "prefix_rewrite": "/foo",
                                                             "priority": null,
-                                                            "timeout": "3.000s"
+                                                            "timeout": "3.000s",
+                                                            "upgrade_configs": [
+                                                                {
+                                                                    "upgrade_type": "websocket"
+                                                                }
+                                                            ]
                                                         }
                                                     },
                                                     {
@@ -7300,7 +7340,12 @@
                                                             "host_rewrite": "echo.websocket.org",
                                                             "prefix_rewrite": "/",
                                                             "priority": null,
-                                                            "timeout": "3.000s"
+                                                            "timeout": "3.000s",
+                                                            "upgrade_configs": [
+                                                                {
+                                                                    "upgrade_type": "websocket"
+                                                                }
+                                                            ]
                                                         }
                                                     },
                                                     {
@@ -7320,7 +7365,12 @@
                                                             "host_rewrite": "echo.websocket.org",
                                                             "prefix_rewrite": "/",
                                                             "priority": null,
-                                                            "timeout": "3.000s"
+                                                            "timeout": "3.000s",
+                                                            "upgrade_configs": [
+                                                                {
+                                                                    "upgrade_type": "websocket"
+                                                                }
+                                                            ]
                                                         }
                                                     },
                                                     {
@@ -7346,7 +7396,12 @@
                                                             "host_rewrite": "echo.websocket.org",
                                                             "prefix_rewrite": "/",
                                                             "priority": null,
-                                                            "timeout": "3.000s"
+                                                            "timeout": "3.000s",
+                                                            "upgrade_configs": [
+                                                                {
+                                                                    "upgrade_type": "websocket"
+                                                                }
+                                                            ]
                                                         }
                                                     },
                                                     {
@@ -7366,7 +7421,12 @@
                                                             "host_rewrite": "echo.websocket.org",
                                                             "prefix_rewrite": "/",
                                                             "priority": null,
-                                                            "timeout": "3.000s"
+                                                            "timeout": "3.000s",
+                                                            "upgrade_configs": [
+                                                                {
+                                                                    "upgrade_type": "websocket"
+                                                                }
+                                                            ]
                                                         }
                                                     },
                                                     {
@@ -8107,11 +8167,6 @@
                                     },
                                     "server_name": "envoy",
                                     "stat_prefix": "ingress_http",
-                                    "upgrade_configs": [
-                                        {
-                                            "upgrade_type": "websocket"
-                                        }
-                                    ],
                                     "use_remote_address": true,
                                     "xff_num_trusted_hops": 0
                                 }
