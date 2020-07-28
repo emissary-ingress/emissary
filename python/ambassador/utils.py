@@ -161,7 +161,7 @@ class RichStatus:
         return key in self.info
 
     def __str__(self):
-        attrs = ["%s=%s" % (key, self.info[key]) for key in sorted(self.info.keys())]
+        attrs = ["%s=%s" % (key, repr(self.info[key])) for key in sorted(self.info.keys())]
         astr = " ".join(attrs)
 
         if astr:
