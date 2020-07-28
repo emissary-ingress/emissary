@@ -6,7 +6,7 @@ Ambassador can validate incoming requests before routing them to a backing servi
 
 ## Before You Get Started
 
-This tutorial assumes you have already followed the Ambassador API Gateway [Installation](../../topics/install/install-ambassador-oss.md) and [Quickstart Tutorial](../../tutorials/quickstart-demo.md) guides. If you haven't done that already, you should do so now.
+This tutorial assumes you have already followed the Ambassador API Gateway [Installation](../../topics/install/install-ambassador-oss) and [Quickstart Tutorial](../../tutorials/quickstart-demo) guides. If you haven't done that already, you should do so now.
 
 Once completed, you'll have a Kubernetes cluster running Ambassador and the Quote of the Moment service. Let's walk through adding rate limiting to this setup.
 
