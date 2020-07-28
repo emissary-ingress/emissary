@@ -1,10 +1,7 @@
 {
     "_errors": {},
+    "_fast_validation_disagreements": {},
     "_notices": {
-        "-global-": [
-            "Parsed pod labels: {'kat-ambassador-id': 'authenticationhttppartialbuffertest', 'scope': 'AmbassadorTest', 'service': 'authenticationhttppartialbuffertest'}",
-            "Found Ambassador service: authenticationhttppartialbuffertest"
-        ],
         "authenticationhttppartialbuffertest.default.3": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ]
@@ -67,7 +64,7 @@
             "namespace": "default",
             "rkey": "authenticationhttppartialbuffertest.default.1",
             "secret": "auth-partial-secret",
-            "serialization": "ambassador_id: authenticationhttppartialbuffertest\napiVersion: ambassador/v1\nkind: TLSContext\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttppartialbuffertest\n  scope: AmbassadorTest\nname: AuthenticationHTTPPartialBufferTest-same-context-1\nnamespace: default\nsecret: auth-partial-secret\n"
+            "serialization": "_force_validation: true\nambassador_id: authenticationhttppartialbuffertest\napiVersion: ambassador/v1\nkind: TLSContext\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttppartialbuffertest\n  scope: AmbassadorTest\nname: AuthenticationHTTPPartialBufferTest-same-context-1\nnamespace: default\nsecret: auth-partial-secret\n"
         },
         "authenticationhttppartialbuffertest.default.2": {
             "_referenced_by": {},
@@ -99,7 +96,7 @@
             "namespace": "default",
             "path_prefix": "/extauth",
             "rkey": "authenticationhttppartialbuffertest.default.2",
-            "serialization": "add_auth_headers:\n  X-Added-Auth: auth-added\nallowed_authorization_headers:\n- Auth-Request-Body\nallowed_request_headers:\n- Requested-Status\n- Requested-Header\nambassador_id: authenticationhttppartialbuffertest\napiVersion: ambassador/v2\nauth_service: authenticationhttppartialbuffertest-http-auth\ninclude_body:\n  allow_partial: true\n  max_bytes: 7\nkind: AuthService\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttppartialbuffertest\n  scope: AmbassadorTest\nname: authenticationhttppartialbuffertest-http-auth\nnamespace: default\npath_prefix: /extauth\ntimeout_ms: 5000\ntls: AuthenticationHTTPPartialBufferTest-same-context-1\n",
+            "serialization": "_force_validation: true\nadd_auth_headers:\n  X-Added-Auth: auth-added\nallowed_authorization_headers:\n- Auth-Request-Body\nallowed_request_headers:\n- Requested-Status\n- Requested-Header\nambassador_id: authenticationhttppartialbuffertest\napiVersion: ambassador/v2\nauth_service: authenticationhttppartialbuffertest-http-auth\ninclude_body:\n  allow_partial: true\n  max_bytes: 7\nkind: AuthService\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttppartialbuffertest\n  scope: AmbassadorTest\nname: authenticationhttppartialbuffertest-http-auth\nnamespace: default\npath_prefix: /extauth\ntimeout_ms: 5000\ntls: AuthenticationHTTPPartialBufferTest-same-context-1\n",
             "timeout_ms": 5000,
             "tls": "AuthenticationHTTPPartialBufferTest-same-context-1"
         },
@@ -118,7 +115,7 @@
             "namespace": "default",
             "prefix": "/target/",
             "rkey": "authenticationhttppartialbuffertest.default.3",
-            "serialization": "ambassador_id: authenticationhttppartialbuffertest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttppartialbuffertest\n  scope: AmbassadorTest\nname: authenticationhttppartialbuffertest-http\nnamespace: default\nprefix: /target/\nservice: authenticationhttppartialbuffertest-http\n",
+            "serialization": "_force_validation: true\nambassador_id: authenticationhttppartialbuffertest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttppartialbuffertest\n  scope: AmbassadorTest\nname: authenticationhttppartialbuffertest-http\nnamespace: default\nprefix: /target/\nservice: authenticationhttppartialbuffertest-http\n",
             "service": "authenticationhttppartialbuffertest-http"
         },
         "k8s-authenticationhttppartialbuffertest-admin-default": {

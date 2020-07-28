@@ -433,7 +433,7 @@
                         "/echo.EchoService/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: acceptancegrpctest\napiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpctest\n  scope: AmbassadorTest\nname: acceptancegrpctest-egrpc\nnamespace: default\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nservice: acceptancegrpctest-egrpc\n",
+                    "serialization": "_force_validation: true\nambassador_id: acceptancegrpctest\napiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpctest\n  scope: AmbassadorTest\nname: acceptancegrpctest-egrpc\nnamespace: default\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nservice: acceptancegrpctest-egrpc\n",
                     "service": "acceptancegrpctest-egrpc",
                     "weight": 100
                 }
@@ -450,7 +450,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/echo.EchoService/",
-            "serialization": "ambassador_id: acceptancegrpctest\napiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpctest\n  scope: AmbassadorTest\nname: acceptancegrpctest-egrpc\nnamespace: default\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nservice: acceptancegrpctest-egrpc\n"
+            "serialization": "_force_validation: true\nambassador_id: acceptancegrpctest\napiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpctest\n  scope: AmbassadorTest\nname: acceptancegrpctest-egrpc\nnamespace: default\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nservice: acceptancegrpctest-egrpc\n"
         },
         {
             "_active": true,

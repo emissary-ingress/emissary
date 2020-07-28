@@ -1,10 +1,7 @@
 {
     "_errors": {},
+    "_fast_validation_disagreements": {},
     "_notices": {
-        "-global-": [
-            "Parsed pod labels: {'kat-ambassador-id': 'authenticationgrpctest', 'scope': 'AmbassadorTest', 'service': 'authenticationgrpctest'}",
-            "Found Ambassador service: authenticationgrpctest"
-        ],
         "authenticationgrpctest.default.2": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ]
@@ -50,7 +47,7 @@
             "namespace": "default",
             "proto": "grpc",
             "rkey": "authenticationgrpctest.default.1",
-            "serialization": "ambassador_id: authenticationgrpctest\napiVersion: ambassador/v1\nauth_service: authenticationgrpctest-agrpc-auth\nkind: AuthService\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationgrpctest\n  scope: AmbassadorTest\nname: authenticationgrpctest-agrpc-auth\nnamespace: default\nproto: grpc\ntimeout_ms: 5000\n",
+            "serialization": "_force_validation: true\nambassador_id: authenticationgrpctest\napiVersion: ambassador/v1\nauth_service: authenticationgrpctest-agrpc-auth\nkind: AuthService\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationgrpctest\n  scope: AmbassadorTest\nname: authenticationgrpctest-agrpc-auth\nnamespace: default\nproto: grpc\ntimeout_ms: 5000\n",
             "timeout_ms": 5000
         },
         "authenticationgrpctest.default.2": {
@@ -68,7 +65,7 @@
             "namespace": "default",
             "prefix": "/target/",
             "rkey": "authenticationgrpctest.default.2",
-            "serialization": "ambassador_id: authenticationgrpctest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationgrpctest\n  scope: AmbassadorTest\nname: authenticationgrpctest-http\nnamespace: default\nprefix: /target/\nservice: authenticationgrpctest-http\n",
+            "serialization": "_force_validation: true\nambassador_id: authenticationgrpctest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationgrpctest\n  scope: AmbassadorTest\nname: authenticationgrpctest-http\nnamespace: default\nprefix: /target/\nservice: authenticationgrpctest-http\n",
             "service": "authenticationgrpctest-http"
         },
         "k8s-authenticationgrpctest-admin-default": {

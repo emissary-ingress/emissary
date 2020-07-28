@@ -558,7 +558,7 @@
                         "/target/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: gzipnotsupportedcontenttypetest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gzipnotsupportedcontenttypetest\n  scope: AmbassadorTest\nname: gzipnotsupportedcontenttypetest-http\nnamespace: default\nprefix: /target/\nservice: gzipnotsupportedcontenttypetest-http\n",
+                    "serialization": "_force_validation: true\nambassador_id: gzipnotsupportedcontenttypetest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gzipnotsupportedcontenttypetest\n  scope: AmbassadorTest\nname: gzipnotsupportedcontenttypetest-http\nnamespace: default\nprefix: /target/\nservice: gzipnotsupportedcontenttypetest-http\n",
                     "service": "gzipnotsupportedcontenttypetest-http",
                     "weight": 100
                 }
@@ -575,7 +575,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: gzipnotsupportedcontenttypetest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gzipnotsupportedcontenttypetest\n  scope: AmbassadorTest\nname: gzipnotsupportedcontenttypetest-http\nnamespace: default\nprefix: /target/\nservice: gzipnotsupportedcontenttypetest-http\n"
+            "serialization": "_force_validation: true\nambassador_id: gzipnotsupportedcontenttypetest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gzipnotsupportedcontenttypetest\n  scope: AmbassadorTest\nname: gzipnotsupportedcontenttypetest-http\nnamespace: default\nprefix: /target/\nservice: gzipnotsupportedcontenttypetest-http\n"
         }
     ],
     "grpc_services": {},

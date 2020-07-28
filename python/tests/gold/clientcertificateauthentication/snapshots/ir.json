@@ -229,7 +229,7 @@
                         "/ClientCertificateAuthentication/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: clientcertificateauthentication\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: clientcertificateauthentication\n  scope: AmbassadorTest\nname: clientcertificateauthentication-http\nnamespace: default\nprefix: /ClientCertificateAuthentication/\nservice: clientcertificateauthentication-http\n",
+                    "serialization": "_force_validation: true\nambassador_id: clientcertificateauthentication\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: clientcertificateauthentication\n  scope: AmbassadorTest\nname: clientcertificateauthentication-http\nnamespace: default\nprefix: /ClientCertificateAuthentication/\nservice: clientcertificateauthentication-http\n",
                     "service": "clientcertificateauthentication-http",
                     "weight": 100
                 }
@@ -246,7 +246,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: clientcertificateauthentication\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: clientcertificateauthentication\n  scope: AmbassadorTest\nname: clientcertificateauthentication-http\nnamespace: default\nprefix: /ClientCertificateAuthentication/\nservice: clientcertificateauthentication-http\n"
+            "serialization": "_force_validation: true\nambassador_id: clientcertificateauthentication\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: clientcertificateauthentication\n  scope: AmbassadorTest\nname: clientcertificateauthentication-http\nnamespace: default\nprefix: /ClientCertificateAuthentication/\nservice: clientcertificateauthentication-http\n"
         },
         {
             "_active": true,

@@ -681,7 +681,7 @@
                         "/target/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: authenticationhttpfailuremodeallowtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttpfailuremodeallowtest\n  scope: AmbassadorTest\nname: authenticationhttpfailuremodeallowtest-http\nnamespace: default\nprefix: /target/\nservice: authenticationhttpfailuremodeallowtest-http\n",
+                    "serialization": "_force_validation: true\nambassador_id: authenticationhttpfailuremodeallowtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttpfailuremodeallowtest\n  scope: AmbassadorTest\nname: authenticationhttpfailuremodeallowtest-http\nnamespace: default\nprefix: /target/\nservice: authenticationhttpfailuremodeallowtest-http\n",
                     "service": "authenticationhttpfailuremodeallowtest-http",
                     "weight": 100
                 }
@@ -698,7 +698,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: authenticationhttpfailuremodeallowtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttpfailuremodeallowtest\n  scope: AmbassadorTest\nname: authenticationhttpfailuremodeallowtest-http\nnamespace: default\nprefix: /target/\nservice: authenticationhttpfailuremodeallowtest-http\n"
+            "serialization": "_force_validation: true\nambassador_id: authenticationhttpfailuremodeallowtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttpfailuremodeallowtest\n  scope: AmbassadorTest\nname: authenticationhttpfailuremodeallowtest-http\nnamespace: default\nprefix: /target/\nservice: authenticationhttpfailuremodeallowtest-http\n"
         }
     ],
     "grpc_services": {},

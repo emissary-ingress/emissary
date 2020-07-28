@@ -528,7 +528,7 @@
                         "/tls-target/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: redirecttests\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: redirecttests\n  scope: AmbassadorTest\nname: tls_target_mapping\nnamespace: default\nprefix: /tls-target/\nservice: redirecttests-http\n",
+                    "serialization": "_force_validation: true\nambassador_id: redirecttests\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: redirecttests\n  scope: AmbassadorTest\nname: tls_target_mapping\nnamespace: default\nprefix: /tls-target/\nservice: redirecttests-http\n",
                     "service": "redirecttests-http",
                     "weight": 100
                 }
@@ -544,7 +544,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: redirecttests\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: redirecttests\n  scope: AmbassadorTest\nname: tls_target_mapping\nnamespace: default\nprefix: /tls-target/\nservice: redirecttests-http\n"
+            "serialization": "_force_validation: true\nambassador_id: redirecttests\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: redirecttests\n  scope: AmbassadorTest\nname: tls_target_mapping\nnamespace: default\nprefix: /tls-target/\nservice: redirecttests-http\n"
         }
     ],
     "grpc_services": {},
