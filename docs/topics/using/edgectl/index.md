@@ -32,7 +32,8 @@ For Preview URLs to function, Ambassador Edge Stack must be running as your API 
 
 To get started with Service Preview, you'll need to [download and install the `edgectl` client](edge-control#installing-edge-control).
 
-**If you are a new user, or you are looking to start using Ambassador Edge Stack with Service Preview on a fresh installation, the `edgectl install` command will get you up and running in no time with a pre-configured Traffic Manager and Traffic Agent supported by automatic sidecar injection.**
+> If you are a new user, or you are looking to start using Ambassador Edge Stack with Service Preview on a fresh installation, the `edgectl install` command will get you up and running in no time with a pre-configured Traffic Manager and Traffic Agent supported by automatic sidecar injection.
+
 
 To use Preview URLs, you must [enable preview URL processing in one or more Host](#ambassador-edge-stack) resources used by Ambassador Edge Stack.
 
@@ -564,3 +565,7 @@ spec:
 ```
 
 **Note**: If you already had an active Edge Control Daemon connection to the custer, you must reconnect to the cluster for the Edge Control Daemon to detect the change to the Host resource. This limitation will be removed in the future.
+
+## What's Next?
+
+See how [Edge Control commands can be used in action](service-preview-quick-start) to establish outbound connectivity with a remote Kubernetes cluster and intercept inbound requests.

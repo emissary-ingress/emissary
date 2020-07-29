@@ -117,7 +117,9 @@
           items:
             - title: Introduction to Service Preview and Edge Control
               link: /docs/latest/topics/using/edgectl/
-            - title: Edge Control
+            - title: Service Preview in Action
+              link: /docs/latest/topics/using/edgectl/service-preview-quick-start
+            - title: Edge Control Reference
               link: /docs/latest/topics/using/edgectl/edge-control
             - title: Using Edge Control in CI
               link: /docs/latest/topics/using/edgectl/edge-control-in-ci
