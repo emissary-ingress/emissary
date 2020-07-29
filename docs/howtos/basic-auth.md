@@ -6,7 +6,7 @@ Ambassador can authenticate incoming requests before routing them to a backing s
 
 ## Before You Get Started
 
-This tutorial assumes you have already followed the Ambassador API Gateway [Installation](../../topics/install/install-ambassador-oss.md) guide. If you haven't done that already, you should do so now.
+This tutorial assumes you have already followed the Ambassador API Gateway [Installation](../../topics/install/install-ambassador-oss) guide. If you haven't done that already, you should do so now.
 
 Once complete, you'll have a Kubernetes cluster running Ambassador. Let's walk through adding authentication to this setup.
 
