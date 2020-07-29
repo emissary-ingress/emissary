@@ -1,10 +1,7 @@
 {
     "_errors": {},
+    "_fast_validation_disagreements": {},
     "_notices": {
-        "-global-": [
-            "Parsed pod labels: {'kat-ambassador-id': 'acceptancegrpcwebtest', 'scope': 'AmbassadorTest', 'service': 'acceptancegrpcwebtest'}",
-            "Found Ambassador service: acceptancegrpcwebtest"
-        ],
         "acceptancegrpcwebtest.default.1": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ],
@@ -54,7 +51,7 @@
             "name": "ambassador",
             "namespace": "default",
             "rkey": "acceptancegrpcwebtest.default.1",
-            "serialization": "ambassador_id: acceptancegrpcwebtest\napiVersion: ambassador/v0\nconfig:\n  enable_grpc_web: true\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpcwebtest\n  scope: AmbassadorTest\nname: ambassador\nnamespace: default\n"
+            "serialization": "_force_validation: true\nambassador_id: acceptancegrpcwebtest\napiVersion: ambassador/v0\nconfig:\n  enable_grpc_web: true\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpcwebtest\n  scope: AmbassadorTest\nname: ambassador\nnamespace: default\n"
         },
         "acceptancegrpcwebtest.default.2": {
             "_referenced_by": {},
@@ -73,7 +70,7 @@
             "prefix": "/echo.EchoService/",
             "rewrite": "/echo.EchoService/",
             "rkey": "acceptancegrpcwebtest.default.2",
-            "serialization": "ambassador_id: acceptancegrpcwebtest\napiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpcwebtest\n  scope: AmbassadorTest\nname: acceptancegrpcwebtest-egrpc\nnamespace: default\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nservice: acceptancegrpcwebtest-egrpc\n",
+            "serialization": "_force_validation: true\nambassador_id: acceptancegrpcwebtest\napiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpcwebtest\n  scope: AmbassadorTest\nname: acceptancegrpcwebtest-egrpc\nnamespace: default\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nservice: acceptancegrpcwebtest-egrpc\n",
             "service": "acceptancegrpcwebtest-egrpc"
         },
         "k8s-acceptancegrpcwebtest-admin-default": {

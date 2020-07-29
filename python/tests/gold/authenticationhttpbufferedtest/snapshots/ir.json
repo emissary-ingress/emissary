@@ -743,7 +743,7 @@
                         "/target/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: authenticationhttpbufferedtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttpbufferedtest\n  scope: AmbassadorTest\nname: authenticationhttpbufferedtest-http\nnamespace: default\nprefix: /target/\nservice: authenticationhttpbufferedtest-http\n",
+                    "serialization": "_force_validation: true\nambassador_id: authenticationhttpbufferedtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttpbufferedtest\n  scope: AmbassadorTest\nname: authenticationhttpbufferedtest-http\nnamespace: default\nprefix: /target/\nservice: authenticationhttpbufferedtest-http\n",
                     "service": "authenticationhttpbufferedtest-http",
                     "weight": 100
                 }
@@ -760,7 +760,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: authenticationhttpbufferedtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttpbufferedtest\n  scope: AmbassadorTest\nname: authenticationhttpbufferedtest-http\nnamespace: default\nprefix: /target/\nservice: authenticationhttpbufferedtest-http\n"
+            "serialization": "_force_validation: true\nambassador_id: authenticationhttpbufferedtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttpbufferedtest\n  scope: AmbassadorTest\nname: authenticationhttpbufferedtest-http\nnamespace: default\nprefix: /target/\nservice: authenticationhttpbufferedtest-http\n"
         }
     ],
     "grpc_services": {},

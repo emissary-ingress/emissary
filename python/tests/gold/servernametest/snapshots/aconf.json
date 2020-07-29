@@ -1,10 +1,7 @@
 {
     "_errors": {},
+    "_fast_validation_disagreements": {},
     "_notices": {
-        "-global-": [
-            "Parsed pod labels: {'kat-ambassador-id': 'servernametest', 'scope': 'AmbassadorTest', 'service': 'servernametest'}",
-            "Found Ambassador service: servernametest"
-        ],
         "servernametest.default.1": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ],
@@ -104,7 +101,7 @@
             "name": "ambassador",
             "namespace": "default",
             "rkey": "servernametest.default.1",
-            "serialization": "ambassador_id: servernametest\napiVersion: ambassador/v0\nconfig:\n  server_name: test-server\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: servernametest\n  scope: AmbassadorTest\nname: ambassador\nnamespace: default\n"
+            "serialization": "_force_validation: true\nambassador_id: servernametest\napiVersion: ambassador/v0\nconfig:\n  server_name: test-server\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: servernametest\n  scope: AmbassadorTest\nname: ambassador\nnamespace: default\n"
         },
         "servernametest.default.2": {
             "_referenced_by": {},
@@ -121,7 +118,7 @@
             "namespace": "default",
             "prefix": "/server-name",
             "rkey": "servernametest.default.2",
-            "serialization": "ambassador_id: servernametest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: servernametest\n  scope: AmbassadorTest\nname: servernametest/server-name\nnamespace: default\nprefix: /server-name\nservice: servernametest-http\n",
+            "serialization": "_force_validation: true\nambassador_id: servernametest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: servernametest\n  scope: AmbassadorTest\nname: servernametest/server-name\nnamespace: default\nprefix: /server-name\nservice: servernametest-http\n",
             "service": "servernametest-http"
         }
     },

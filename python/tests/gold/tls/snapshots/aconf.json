@@ -1,10 +1,7 @@
 {
     "_errors": {},
+    "_fast_validation_disagreements": {},
     "_notices": {
-        "-global-": [
-            "Parsed pod labels: {'kat-ambassador-id': 'tls', 'scope': 'AmbassadorTest', 'service': 'tls'}",
-            "Found Ambassador service: tls"
-        ],
         "tls-http.default.1": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ],
@@ -119,7 +116,7 @@
             "namespace": "default",
             "prefix": "/tls-target/",
             "rkey": "tls-http.default.1",
-            "serialization": "ambassador_id: tls\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tls\n  scope: AmbassadorTest\nname: tls_target_mapping\nnamespace: default\nprefix: /tls-target/\nservice: tls-http\n",
+            "serialization": "_force_validation: true\nambassador_id: tls\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tls\n  scope: AmbassadorTest\nname: tls_target_mapping\nnamespace: default\nprefix: /tls-target/\nservice: tls-http\n",
             "service": "tls-http"
         },
         "tls.default.1": {
@@ -142,7 +139,7 @@
             "name": "tls",
             "namespace": "default",
             "rkey": "tls.default.1",
-            "serialization": "ambassador_id: tls\napiVersion: ambassador/v0\nconfig:\n  server:\n    enabled: true\n    secret: test-tls-secret\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tls\n  scope: AmbassadorTest\nname: tls\nnamespace: default\n"
+            "serialization": "_force_validation: true\nambassador_id: tls\napiVersion: ambassador/v0\nconfig:\n  server:\n    enabled: true\n    secret: test-tls-secret\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tls\n  scope: AmbassadorTest\nname: tls\nnamespace: default\n"
         }
     },
     "mappings": {

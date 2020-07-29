@@ -468,7 +468,7 @@
                         "GET",
                         ":authority-tls-context-host-1"
                     ],
-                    "serialization": "ambassador_id: tlscontextciphersuites\napiVersion: ambassador/v0\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextciphersuites\n  scope: AmbassadorTest\nname: TLSContextCipherSuites-same-prefix-1\nnamespace: default\nprefix: /tls-context-same/\nservice: https://tlscontextciphersuites-http\n",
+                    "serialization": "_force_validation: true\nambassador_id: tlscontextciphersuites\napiVersion: ambassador/v0\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextciphersuites\n  scope: AmbassadorTest\nname: TLSContextCipherSuites-same-prefix-1\nnamespace: default\nprefix: /tls-context-same/\nservice: https://tlscontextciphersuites-http\n",
                     "service": "https://tlscontextciphersuites-http",
                     "sni": true,
                     "tls_context": {
@@ -520,7 +520,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: tlscontextciphersuites\napiVersion: ambassador/v0\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextciphersuites\n  scope: AmbassadorTest\nname: TLSContextCipherSuites-same-prefix-1\nnamespace: default\nprefix: /tls-context-same/\nservice: https://tlscontextciphersuites-http\n",
+            "serialization": "_force_validation: true\nambassador_id: tlscontextciphersuites\napiVersion: ambassador/v0\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextciphersuites\n  scope: AmbassadorTest\nname: TLSContextCipherSuites-same-prefix-1\nnamespace: default\nprefix: /tls-context-same/\nservice: https://tlscontextciphersuites-http\n",
             "sni": true,
             "tls_context": {
                 "_active": true,

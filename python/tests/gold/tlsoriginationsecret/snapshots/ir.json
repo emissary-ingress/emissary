@@ -319,7 +319,7 @@
                         "/TLSOriginationSecret-files/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: tlsoriginationsecret\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlsoriginationsecret\n  scope: AmbassadorTest\nname: tlsoriginationsecret-http-files\nnamespace: default\nprefix: /TLSOriginationSecret-files/\nservice: tlsoriginationsecret-http\ntls: upstream-files\n",
+                    "serialization": "_force_validation: true\nambassador_id: tlsoriginationsecret\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlsoriginationsecret\n  scope: AmbassadorTest\nname: tlsoriginationsecret-http-files\nnamespace: default\nprefix: /TLSOriginationSecret-files/\nservice: tlsoriginationsecret-http\ntls: upstream-files\n",
                     "service": "tlsoriginationsecret-http",
                     "tls": "upstream-files",
                     "weight": 100
@@ -337,7 +337,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: tlsoriginationsecret\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlsoriginationsecret\n  scope: AmbassadorTest\nname: tlsoriginationsecret-http-files\nnamespace: default\nprefix: /TLSOriginationSecret-files/\nservice: tlsoriginationsecret-http\ntls: upstream-files\n",
+            "serialization": "_force_validation: true\nambassador_id: tlsoriginationsecret\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlsoriginationsecret\n  scope: AmbassadorTest\nname: tlsoriginationsecret-http-files\nnamespace: default\nprefix: /TLSOriginationSecret-files/\nservice: tlsoriginationsecret-http\ntls: upstream-files\n",
             "tls": "upstream-files"
         },
         {
@@ -647,7 +647,7 @@
                         "/TLSOriginationSecret/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: tlsoriginationsecret\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlsoriginationsecret\n  scope: AmbassadorTest\nname: tlsoriginationsecret-http\nnamespace: default\nprefix: /TLSOriginationSecret/\nservice: tlsoriginationsecret-http\ntls: upstream\n",
+                    "serialization": "_force_validation: true\nambassador_id: tlsoriginationsecret\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlsoriginationsecret\n  scope: AmbassadorTest\nname: tlsoriginationsecret-http\nnamespace: default\nprefix: /TLSOriginationSecret/\nservice: tlsoriginationsecret-http\ntls: upstream\n",
                     "service": "tlsoriginationsecret-http",
                     "tls": "upstream",
                     "weight": 100
@@ -665,7 +665,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: tlsoriginationsecret\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlsoriginationsecret\n  scope: AmbassadorTest\nname: tlsoriginationsecret-http\nnamespace: default\nprefix: /TLSOriginationSecret/\nservice: tlsoriginationsecret-http\ntls: upstream\n",
+            "serialization": "_force_validation: true\nambassador_id: tlsoriginationsecret\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlsoriginationsecret\n  scope: AmbassadorTest\nname: tlsoriginationsecret-http\nnamespace: default\nprefix: /TLSOriginationSecret/\nservice: tlsoriginationsecret-http\ntls: upstream\n",
             "tls": "upstream"
         },
         {

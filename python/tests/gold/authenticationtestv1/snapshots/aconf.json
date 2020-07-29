@@ -1,10 +1,7 @@
 {
     "_errors": {},
+    "_fast_validation_disagreements": {},
     "_notices": {
-        "-global-": [
-            "Parsed pod labels: {'kat-ambassador-id': 'authenticationtestv1', 'scope': 'AmbassadorTest', 'service': 'authenticationtestv1'}",
-            "Found Ambassador service: authenticationtestv1"
-        ],
         "authenticationtestv1.default.3": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ]
@@ -62,7 +59,7 @@
             "path_prefix": "/extauth",
             "proto": "http",
             "rkey": "authenticationtestv1.default.1",
-            "serialization": "allowed_authorization_headers:\n- X-Foo\n- Extauth\nallowed_request_headers:\n- X-Foo\n- X-Bar\n- Requested-Status\n- Requested-Header\n- Location\nambassador_id: authenticationtestv1\napiVersion: ambassador/v1\nauth_service: authenticationtestv1-ahttp-auth1\nkind: AuthService\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationtestv1\n  scope: AmbassadorTest\nname: authenticationtestv1-ahttp-auth1\nnamespace: default\npath_prefix: /extauth\nproto: http\nstatus_on_error:\n  code: 503\ntimeout_ms: 5000\n",
+            "serialization": "_force_validation: true\nallowed_authorization_headers:\n- X-Foo\n- Extauth\nallowed_request_headers:\n- X-Foo\n- X-Bar\n- Requested-Status\n- Requested-Header\n- Location\nambassador_id: authenticationtestv1\napiVersion: ambassador/v1\nauth_service: authenticationtestv1-ahttp-auth1\nkind: AuthService\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationtestv1\n  scope: AmbassadorTest\nname: authenticationtestv1-ahttp-auth1\nnamespace: default\npath_prefix: /extauth\nproto: http\nstatus_on_error:\n  code: 503\ntimeout_ms: 5000\n",
             "status_on_error": {
                 "code": 503
             },
@@ -97,7 +94,7 @@
             "path_prefix": "/extauth",
             "proto": "http",
             "rkey": "authenticationtestv1.default.2",
-            "serialization": "add_linkerd_headers: true\nallowed_authorization_headers:\n- X-Foo\n- Extauth\nallowed_request_headers:\n- X-Foo\n- X-Bar\n- Requested-Status\n- Requested-Header\n- Location\nambassador_id: authenticationtestv1\napiVersion: ambassador/v1\nauth_service: authenticationtestv1-ahttp-auth2\nkind: AuthService\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationtestv1\n  scope: AmbassadorTest\nname: authenticationtestv1-ahttp-auth2\nnamespace: default\npath_prefix: /extauth\nproto: http\nstatus_on_error:\n  code: 503\ntimeout_ms: 5000\n",
+            "serialization": "_force_validation: true\nadd_linkerd_headers: true\nallowed_authorization_headers:\n- X-Foo\n- Extauth\nallowed_request_headers:\n- X-Foo\n- X-Bar\n- Requested-Status\n- Requested-Header\n- Location\nambassador_id: authenticationtestv1\napiVersion: ambassador/v1\nauth_service: authenticationtestv1-ahttp-auth2\nkind: AuthService\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationtestv1\n  scope: AmbassadorTest\nname: authenticationtestv1-ahttp-auth2\nnamespace: default\npath_prefix: /extauth\nproto: http\nstatus_on_error:\n  code: 503\ntimeout_ms: 5000\n",
             "status_on_error": {
                 "code": 503
             },
@@ -118,7 +115,7 @@
             "namespace": "default",
             "prefix": "/target/",
             "rkey": "authenticationtestv1.default.3",
-            "serialization": "ambassador_id: authenticationtestv1\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationtestv1\n  scope: AmbassadorTest\nname: authenticationtestv1-http\nnamespace: default\nprefix: /target/\nservice: authenticationtestv1-http\n",
+            "serialization": "_force_validation: true\nambassador_id: authenticationtestv1\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationtestv1\n  scope: AmbassadorTest\nname: authenticationtestv1-http\nnamespace: default\nprefix: /target/\nservice: authenticationtestv1-http\n",
             "service": "authenticationtestv1-http"
         },
         "authenticationtestv1.default.4": {
@@ -137,7 +134,7 @@
             "namespace": "default",
             "prefix": "/target/unauthed/",
             "rkey": "authenticationtestv1.default.4",
-            "serialization": "ambassador_id: authenticationtestv1\napiVersion: ambassador/v1\nbypass_auth: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationtestv1\n  scope: AmbassadorTest\nname: authenticationtestv1-http-unauthed\nnamespace: default\nprefix: /target/unauthed/\nservice: authenticationtestv1-http\n",
+            "serialization": "_force_validation: true\nambassador_id: authenticationtestv1\napiVersion: ambassador/v1\nbypass_auth: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationtestv1\n  scope: AmbassadorTest\nname: authenticationtestv1-http-unauthed\nnamespace: default\nprefix: /target/unauthed/\nservice: authenticationtestv1-http\n",
             "service": "authenticationtestv1-http"
         },
         "k8s-authenticationtestv1-admin-default": {
