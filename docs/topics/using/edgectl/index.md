@@ -37,7 +37,7 @@ To get started with Service Preview, you'll need to [download and install the `e
 
 To use Preview URLs, you must [enable preview URL processing in one or more Host](#ambassador-edge-stack) resources used by Ambassador Edge Stack.
 
-The following sections contain detailed instructions for a manual installation of the Traffic Manager and configuration of a Traffic Agent alongside an existing Ambassador Edge Stack installation.
+The following sections contain detailed instructions for a manual installation of the Traffic Manager and configuration of a Traffic Agent in the same namespace as an existing Ambassador Edge Stack installation.
 
 ### Traffic Manager
 
@@ -255,6 +255,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: hello
+  namespace: default
   labels:
     app: hello
 spec:
@@ -269,6 +270,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: hello
+  namespace: default
   labels:
     app: hello
 spec:
@@ -303,6 +305,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: hello
+  namespace: default
   labels:
     app: hello
 spec:
@@ -317,6 +320,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: hello
+  namespace: default
   labels:
     app: hello
 spec:
@@ -388,11 +392,11 @@ If you wish to allow automatic Traffic Agent sidecar injection in any deployment
         | openssl x509 -req -days 365 -CA ca.crt -CAkey ca.key -CAcreateserial -out crt.pem
     
     # Encode the certificates
-    cat ca.crt | base64 > ca.bundle.base64
-    cat key.pem | base64 > key.pem.base64
-    cat crt.pem | base64 > crt.pem.base64
+    cat ca.crt | base64 > CA_BUNDLE_BASE64
+    cat key.pem | base64 > CRT_PEM_BASE64
+    cat crt.pem | base64 > KEY_PEM_BASE64
     ```
-2. In the manifest below, replace the `CA_BUNDLE_BASE64`, `CRT_PEM_BASE64` and `KEY_PEM_BASE64` placeholders using the values from Step 1, and save the manifest into a file called `ambassador-injector.yaml`.
+2. In the manifest below, replace the `$CA_BUNDLE_BASE64$`, `$CRT_PEM_BASE64$` and `$KEY_PEM_BASE64$` placeholders using the values from Step 1, and save the manifest into a file called `ambassador-injector.yaml`.
 3. Apply the manifest to your cluster with `kubectl apply -f ambassador-injector.yaml`.
 
 ```yaml
@@ -405,8 +409,8 @@ metadata:
   namespace: ambassador
 type: Opaque
 data:
-  crt.pem: CRT_PEM_BASE64
-  key.pem: KEY_PEM_BASE64
+  crt.pem: $CRT_PEM_BASE64$
+  key.pem: $KEY_PEM_BASE64$
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -481,7 +485,7 @@ webhooks:
         name: ambassador-injector
         namespace: ambassador
         path: "/traffic-agent"
-      caBundle: CA_BUNDLE_BASE64
+      caBundle: $CA_BUNDLE_BASE64$
     failurePolicy: Ignore
     rules:
       - operations: ["CREATE"]
@@ -499,6 +503,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: hello
+  namespace: default
   labels:
     app: hello
 spec:
@@ -513,6 +518,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: hello
+  namespace: default
   labels:
     app: hello
 spec:
@@ -564,7 +570,7 @@ spec:
     enabled: true
 ```
 
-**Note**: If you already had an active Edge Control Daemon connection to the custer, you must reconnect to the cluster for the Edge Control Daemon to detect the change to the Host resource. This limitation will be removed in the future.
+**Note**: If you already had an active Edge Control Daemon connection to the cluster, you must reconnect to the cluster for the Edge Control Daemon to detect the change to the Host resource. This limitation will be removed in the future.
 
 ## What's Next?
 
