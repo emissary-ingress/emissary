@@ -13,44 +13,46 @@ For an even more robust installation, consider using a [local registry as a pull
 
 Use the following variables for the environment of your Ambassador container:
 
-| Purpose                    | Variable                         | Default value                                       | Value type                                                                    |
-|----------------------------|----------------------------------|-----------------------------------------------------|-------------------------------------------------------------------------------|
-| Ambassador                 | `AMBASSADOR_ID`                  | `default`                                           | Plain string                                                                  |
-| Ambassador                 | `AMBASSADOR_NAMESPACE`           | `default` ([^1])                                    | Kubernetes namespace                                                          |
-| Ambassador                 | `AMBASSADOR_SINGLE_NAMESPACE`    | Empty                                               | Boolean; non-empty=true, empty=false                                          |
-| Ambassador                 | `AMBASSADOR_ENVOY_BASE_ID`       | `0`                                                 | Integer                                                                       |
-| Ambassador Edge Stack      | `AES_LOG_LEVEL`                  | `info`                                              | Log level (see below)                                                         |
-| Primary Redis              | `REDIS_POOL_SIZE`                | `10`                                                | Integer                                                                       |
-| Primary Redis              | `REDIS_POOL_MAX_SIZE`            | `20`                                                | Integer                                                                       |
-| Primary Redis              | `REDIS_SOCKET_TYPE`              | None, must be set explicitly                        | Go network such as `tcp` or `unix`; see [Go `net.Dial`][]                     |
-| Primary Redis              | `REDIS_URL`                      | None, must be set explicitly                        | Go network address; for TCP this is a `host:port` pair; see [Go `net.Dial`][] |
-| Primary Redis              | `REDIS_USERNAME`                 | Empty                                               | Plain string                                                                  |
-| Primary Redis              | `REDIS_PASSWORD`                 | Empty                                               | Plain string                                                                  |
-| Primary Redis              | `REDIS_TLS_ENABLED`              | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
-| Primary Redis              | `REDIS_TLS_INSECURE`             | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
-| Primary Redis              | `REDIS_PING_INTERVAL`            | `10`                                                | Integer (seconds)                                                             |
-| Primary Redis              | `REDIS_IO_TIMEOUT`               | `10`                                                | Integer (seconds)                                                             |
-| Per-Second RateLimit Redis | `REDIS_PERSECOND`                | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
-| Per-Second RateLimit Redis | `REDIS_PERSECOND_POOL_SIZE`      | `10`                                                | Integer                                                                       |
-| Per-Second RateLimit Redis | `REDIS_PERSECOND_POOL_MAX_SIZE`  | `20`                                                | Integer                                                                       |
-| Per-Second RateLimit Redis | `REDIS_PERSECOND_SOCKET_TYPE`    | None, must be set explicitly (if `REDIS_PERSECOND`) | Go network such as `tcp` or `unix`; see [Go `net.Dial`][]                     |
-| Per-Second RateLimit Redis | `REDIS_PERSECOND_URL`            | None, must be set explicitly (if `REDIS_PERSECOND`) | Go network address; for TCP this is a `host:port` pair; see [Go `net.Dial`][] |
-| Per-Second RateLimit Redis | `REDIS_PERSECOND_USERNAME`       | Empty                                               | Plain string                                                                  |
-| Per-Second RateLimit Redis | `REDIS_PERSECOND_PASSWORD`       | Empty                                               | Plain string                                                                  |
-| Per-Second RateLimit Redis | `REDIS_PERSECOND_TLS_ENABLED`    | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
-| Per-Second RateLimit Redis | `REDIS_PERSECOND_TLS_INSECURE`   | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
-| Per-Second RateLimit Redis | `REDIS_PERSECOND_PING_INTERVAL`  | `10`                                                | Integer (seconds)                                                             |
-| Per-Second RateLimit Redis | `REDIS_PERSECOND_IO_TIMEOUT`     | `10`                                                | Integer (seconds)                                                             |
-| RateLimit                  | `EXPIRATION_JITTER_MAX_SECONDS`  | `300`                                               | Integer                                                                       |
-| RateLimit                  | `USE_STATSD`                     | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
-| RateLimit                  | `STATSD_HOST`                    | `localhost`                                         | Hostname                                                                      |
-| RateLimit                  | `STATSD_PORT`                    | `8125`                                              | Integer                                                                       |
-| RateLimit                  | `GOSTATS_FLUSH_INTERVAL_SECONDS` | `5`                                                 | Integer                                                                       |
-| Developer Portal           | `AMBASSADOR_URL`                 | `https://api.example.com`                           | URL                                                                           |
-| Developer Portal           | `DEVPORTAL_CONTENT_URL`          | `https://github.com/datawire/devportal-content`     | git-remote URL                                                                |
-| Developer Portal           | `DEVPORTAL_CONTENT_DIR`          | `/`                                                 | Rooted Git directory                                                          |
-| Developer Portal           | `DEVPORTAL_CONTENT_BRANCH`       | `master`                                            | Git branch name                                                               |
-| Developer Portal           | `POLL_EVERY_SECS`                | `60`                                                | Integer                                                                       |
+| Purpose                    | Variable                           | Default value                                       | Value type                                                                    |
+|----------------------------|------------------------------------|-----------------------------------------------------|-------------------------------------------------------------------------------|
+| Ambassador                 | `AMBASSADOR_ID`                    | `default`                                           | Plain string                                                                  |
+| Ambassador                 | `AMBASSADOR_NAMESPACE`             | `default` ([^1])                                    | Kubernetes namespace                                                          |
+| Ambassador                 | `AMBASSADOR_SINGLE_NAMESPACE`      | Empty                                               | Boolean; non-empty=true, empty=false                                          |
+| Ambassador                 | `AMBASSADOR_ENVOY_BASE_ID`         | `0`                                                 | Integer                                                                       |
+| Ambassador                 | `AMBASSADOR_FAST_VALIDATION`       | Empty                                               | EXPERIMENTAL -- Boolean; non-empty=true, empty=false                          |
+| Ambassador                 | `AMBASSADOR_UPDATE_MAPPING_STATUS` | `false`                                             | Boolean; `true`=true, any other value=false                                   |
+| Ambassador Edge Stack      | `AES_LOG_LEVEL`                    | `info`                                              | Log level (see below)                                                         |
+| Primary Redis              | `REDIS_POOL_SIZE`                  | `10`                                                | Integer                                                                       |
+| Primary Redis              | `REDIS_POOL_MAX_SIZE`              | `20`                                                | Integer                                                                       |
+| Primary Redis              | `REDIS_SOCKET_TYPE`                | None, must be set explicitly                        | Go network such as `tcp` or `unix`; see [Go `net.Dial`][]                     |
+| Primary Redis              | `REDIS_URL`                        | None, must be set explicitly                        | Go network address; for TCP this is a `host:port` pair; see [Go `net.Dial`][] |
+| Primary Redis              | `REDIS_USERNAME`                   | Empty                                               | Plain string                                                                  |
+| Primary Redis              | `REDIS_PASSWORD`                   | Empty                                               | Plain string                                                                  |
+| Primary Redis              | `REDIS_TLS_ENABLED`                | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
+| Primary Redis              | `REDIS_TLS_INSECURE`               | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
+| Primary Redis              | `REDIS_PING_INTERVAL`              | `10`                                                | Integer (seconds)                                                             |
+| Primary Redis              | `REDIS_IO_TIMEOUT`                 | `10`                                                | Integer (seconds)                                                             |
+| Per-Second RateLimit Redis | `REDIS_PERSECOND`                  | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
+| Per-Second RateLimit Redis | `REDIS_PERSECOND_POOL_SIZE`        | `10`                                                | Integer                                                                       |
+| Per-Second RateLimit Redis | `REDIS_PERSECOND_POOL_MAX_SIZE`    | `20`                                                | Integer                                                                       |
+| Per-Second RateLimit Redis | `REDIS_PERSECOND_SOCKET_TYPE`      | None, must be set explicitly (if `REDIS_PERSECOND`) | Go network such as `tcp` or `unix`; see [Go `net.Dial`][]                     |
+| Per-Second RateLimit Redis | `REDIS_PERSECOND_URL`              | None, must be set explicitly (if `REDIS_PERSECOND`) | Go network address; for TCP this is a `host:port` pair; see [Go `net.Dial`][] |
+| Per-Second RateLimit Redis | `REDIS_PERSECOND_USERNAME`         | Empty                                               | Plain string                                                                  |
+| Per-Second RateLimit Redis | `REDIS_PERSECOND_PASSWORD`         | Empty                                               | Plain string                                                                  |
+| Per-Second RateLimit Redis | `REDIS_PERSECOND_TLS_ENABLED`      | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
+| Per-Second RateLimit Redis | `REDIS_PERSECOND_TLS_INSECURE`     | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
+| Per-Second RateLimit Redis | `REDIS_PERSECOND_PING_INTERVAL`    | `10`                                                | Integer (seconds)                                                             |
+| Per-Second RateLimit Redis | `REDIS_PERSECOND_IO_TIMEOUT`       | `10`                                                | Integer (seconds)                                                             |
+| RateLimit                  | `EXPIRATION_JITTER_MAX_SECONDS`    | `300`                                               | Integer                                                                       |
+| RateLimit                  | `USE_STATSD`                       | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
+| RateLimit                  | `STATSD_HOST`                      | `localhost`                                         | Hostname                                                                      |
+| RateLimit                  | `STATSD_PORT`                      | `8125`                                              | Integer                                                                       |
+| RateLimit                  | `GOSTATS_FLUSH_INTERVAL_SECONDS`   | `5`                                                 | Integer                                                                       |
+| Developer Portal           | `AMBASSADOR_URL`                   | `https://api.example.com`                           | URL                                                                           |
+| Developer Portal           | `DEVPORTAL_CONTENT_URL`            | `https://github.com/datawire/devportal-content`     | git-remote URL                                                                |
+| Developer Portal           | `DEVPORTAL_CONTENT_DIR`            | `/`                                                 | Rooted Git directory                                                          |
+| Developer Portal           | `DEVPORTAL_CONTENT_BRANCH`         | `master`                                            | Git branch name                                                               |
+| Developer Portal           | `POLL_EVERY_SECS`                  | `60`                                                | Integer                                                                       |
 
 Log level names are case-insensitive.  From least verbose to most
 verbose, valid log levels are `error`, `warn`/`warning`, `info`,
