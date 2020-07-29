@@ -363,7 +363,7 @@ spec:
                       - Reject
                       - Route
                       type: string
-                    additional_port:
+                    additionalPort:
                       type: integer
                   type: object
               type: object
