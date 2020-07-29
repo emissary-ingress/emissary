@@ -4,19 +4,9 @@ One of the challenges in adopting Kubernetes and microservices is the developmen
 
 Service Preview addresses this challenge by connecting your CI system or local development infrastructure to the Kubernetes cluster, and dynamically routing specific requests to your local environment.
 
-## Service Preview in action
+## Service Preview Components
 
 ![Preview](../../../images/service-preview.png)
-
-When Service Preview is used, incoming requests get routed by Ambassador to a Traffic Agent, which then routes traffic to the microservice. When a request meets a specific criteria (e.g., it has a specific HTTP header value), the Traffic Agent will route that request to the microservice running locally. The following video shows Service Preview in more detail:
-
-<iframe style="display: block; margin: auto;" width="560" height="315" src="https://www.youtube.com/embed/LDiyKOa1V_A" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-
-## Preview URLs
-
-Ambassador Edge Stack, when used as your cluster's API gateway, offers the ability to use preview URLs. Just as you can access your application at a specific URL, you can access the development version of the same application through a Preview URL. When AES detects a Preview URL at the edge, it rewrites the request to look like a normal request but with a service preview header added. 
-
-## Service Preview Components
 
 There are three main components to Service Preview:
 
@@ -27,6 +17,10 @@ There are three main components to Service Preview:
 3. The [Edge Control](edge-control) local client, which runs in your local environment (Linux or Mac OS X). The client is the command line interface to the Traffic Manager.
 
 For Preview URLs to function, Ambassador Edge Stack must be running as your API gateway.
+
+## Preview URLs
+
+Ambassador Edge Stack, when used as your cluster's API gateway, offers the ability to use preview URLs. Just as you can access your application at a specific URL, you can access the development version of the same application through a Preview URL. When AES detects a Preview URL at the edge, it rewrites the request to look like a normal request but with a service preview header added. 
 
 ## Installing and Configuring Service Preview
 

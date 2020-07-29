@@ -1,12 +1,18 @@
 # Service Preview in Action
 
+When Service Preview is used, incoming requests get routed by Ambassador to a Traffic Agent, which then routes traffic to the microservice. When a request meets a specific criteria (e.g., it has a specific HTTP header value), the Traffic Agent will route that request to the microservice running locally. The following video shows Service Preview in more detail:
+
+<iframe style="display: block; margin: auto;" width="560" height="315" src="https://www.youtube.com/embed/LDiyKOa1V_A" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+## Quick Start
+
 Service Preview creates a connection between your local environment and the cluster. These connections are managed through the Traffic Manager, which is deployed in your cluster, and the `edgectl` daemon, which runs in your local environment.
 
 To get started with Service Preview, you'll need to [download and install the `edgectl` client](../edge-control#installing-edge-control).
 
 > If you are a new user, or you are looking to start using Ambassador Edge Stack with Service Preview on a fresh installation, the `edgectl install` command will get you up and running in no time with a pre-configured Traffic Manager and Traffic Agent supported by automatic sidecar injection. You may also refer to [Introduction to Service Preview and Edge Control](../#installing-and-configuring-service-preview) for detailed instructions to manually install the Traffic Manager and configure a Traffic Agent alongside an existing Ambassador Edge Stack installation.
 
-## Establishing a Connection with a Remote Cluster
+### Establishing a Connection with a Remote Cluster
 
 There are three basic commands that are used for Service Preview:
 
@@ -31,7 +37,7 @@ Connected to context k3s-default (https://172.20.0.3:6443)
 $ edgectl intercept add hello -n example -m x-dev=jane -t localhost:9000
 ```
 
-## Usage: Outbound Services
+### Usage: Outbound Services
 
 1. Starting with an empty cluster, add the simple microservice from the [Introduction to Service Preview and Edge Control](../../edgectl#traffic-agent).
 
@@ -89,7 +95,7 @@ $ edgectl status
 Not connected
 ```
 
-## Usage: Intercept
+### Usage: Intercept
 
 1. Install the traffic manager in your cluster and the traffic agent in the simple microservice as described in the [Introduction to Service Preview and Edge Control](../../edgectl#installing-and-configuring-service-preview).
 
