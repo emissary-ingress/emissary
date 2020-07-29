@@ -257,8 +257,8 @@ class V2Route(dict):
                     route["rate_limits"] = rate_limits
 
         # Save upgrade configs.
-        if group.get('use_websocket'):
-            route["upgrade_configs"] = [{'upgrade_type': 'websocket'}]
+        if group.get('allow_upgrade'):
+            route["upgrade_configs"] = [{'upgrade_type': proto} for proto in group.get('allow_upgrade')]
 
         self['route'] = route
 
