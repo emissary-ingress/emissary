@@ -51,10 +51,19 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ## Next Release
 
-(no changes yet)
+### Ambassador API Gateway + Ambassador Edge Stack
+
+- Bugfix: The (new in 1.6.0) `Host.spec.tls` and `Host.spec.tlsContext` fields now work when `AMBASSADOR_FAST_VALIDATION=fast` is not set.
+
+### Ambassador Edge Stack only
+
+- Bugfix: The `Host.spec.requestPolicy.insecure.additionalPort` field works again.
+- Bugfix: The `Host.spec.ambassadorId` is once again handled in addition to `.ambassador_id`; allowing hosts written by older versions AES prior to 1.6.0 to continue working.
 
 ## [1.6.1] July 23, 2020
 [1.6.1]: https://github.com/datawire/ambassador/compare/v1.6.0...v1.6.1
+
+### Ambassador API Gateway + Ambassador Edge Stack
 
 - Bugfix: Mapping with `https` scheme for service are correctly parsed.
 - Bugfix: Mapping with both a scheme and a hostname of `localhost` is now handled correctly.
