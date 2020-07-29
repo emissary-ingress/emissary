@@ -40,7 +40,7 @@ is currently available out-of-the-box in some Kubernetes installers and local en
         </a>
       </td>
       <td>
-        <a href="https://github.com/kubernetes-sigs/kubespray/tree/master/roles/kubernetes-apps/ingress_controller/ambassador" target="_blank">kubespray</a> README file.
+        <a href="https://kubespray.io/#/docs/ambassador" target="_blank">kubespray</a> documentation.
       </td>
     </tr>
     <tr>
