@@ -7,7 +7,7 @@ If you could use one persistent cluster and application for every test, you woul
 To avoid this bottleneck, your CI system must be able to test different changesets concurrently without tests interfering with one another. The outbound and intercept features of Edge Control make this possible. The key requirements are:
 
 - The microservice being tested must be an HTTP service, and
-- It must be possible to set a test-run-specific HTTP header for requests to the microservice being tested. Ideally, that header would pass through from where requests enter the system all the way to the microservice being tested.
+- It must be possible to set a test-run-specific HTTP header for requests to the microservice being tested. Ideally, that header would pass through from where requests enter the system all the way to the microservice being tested. This context information relay mechanism is known as [Header Propagation](/learn/kubernetes-glossary/header-propagation/).
 
 The CI job that performs system tests of `MyService` would look roughly like this:
 
@@ -26,7 +26,7 @@ The CI job that performs system tests of `MyService` would look roughly like thi
    ```
 6. Run system tests by sending requests to the application with the appropriate header set
    ```shell script
-   curl -L -H "x-ci-tag:$CI_TAG" https://my-service-api-gateway-endpoint
+   curl -L -H "x-ci-tag:$CI_TAG" https://my-service-endpoint
    # (or)
    env "TEST_HEADER_VALUE=$CI_TAG" pytest ...
    # (etc)
