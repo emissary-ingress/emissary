@@ -1,8 +1,17 @@
 # Using WebSockets and Ambassador
 
-Ambassador Edge Stack makes it easy to access your services from outside your application, and this includes services that use WebSockets, such as [Github](https://github.com/websockets). Only a small amount of additional configuration is required, which is as simple as adding the `use_websocket` attribute with a value of `true` on a `Mapping`.
+Ambassador makes it easy to access your services from outside your
+application, and this includes services that use WebSockets.  Only a
+small amount of additional configuration is required, which is as
+simple as telling the Mapping to allow "upgrading" from the HTTP protocol to
+the "websocket" protocol:
 
-## Example Websocket Service
+```yaml
+allow_upgrade:
+- websocket
+```
+
+## Example WebSocket Service
 
 The example configuration below demonstrates the addition of the `use_websocket` attribute.
 
@@ -15,7 +24,8 @@ metadata:
 spec:
   prefix: /my-service/
   service: my-service
-  use_websocket: true
+  allow_upgrade:
+  - websocket
 
 ---
 kind: Service

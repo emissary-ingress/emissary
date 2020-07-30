@@ -1,11 +1,7 @@
 {
     "_errors": {},
-    "_notices": {
-        "-global-": [
-            "Parsed pod labels: {'kat-ambassador-id': 'redirecttestsinvalidsecret', 'scope': 'AmbassadorTest', 'service': 'redirecttestsinvalidsecret'}",
-            "Found Ambassador service: redirecttestsinvalidsecret"
-        ]
-    },
+    "_fast_validation_disagreements": {},
+    "_notices": {},
     "_sources": {
         "--diagnostics--": {
             "_referenced_by": {},
@@ -95,7 +91,7 @@
             "namespace": "default",
             "prefix": "/tls-target/",
             "rkey": "redirecttestsinvalidsecret-http.default.1",
-            "serialization": "ambassador_id: redirecttestsinvalidsecret\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: redirecttestsinvalidsecret\n  scope: AmbassadorTest\nname: tls_target_mapping\nnamespace: default\nprefix: /tls-target/\nservice: redirecttestsinvalidsecret-http\n",
+            "serialization": "_force_validation: true\nambassador_id: redirecttestsinvalidsecret\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: redirecttestsinvalidsecret\n  scope: AmbassadorTest\nname: tls_target_mapping\nnamespace: default\nprefix: /tls-target/\nservice: redirecttestsinvalidsecret-http\n",
             "service": "redirecttestsinvalidsecret-http"
         },
         "redirecttestsinvalidsecret.default.1": {
@@ -119,7 +115,7 @@
             "name": "tls",
             "namespace": "default",
             "rkey": "redirecttestsinvalidsecret.default.1",
-            "serialization": "ambassador_id: redirecttestsinvalidsecret\napiVersion: ambassador/v1\nconfig:\n  server:\n    enabled: true\n    redirect_cleartext_from: 8080\n    secret: does-not-exist-secret\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: redirecttestsinvalidsecret\n  scope: AmbassadorTest\nname: tls\nnamespace: default\n"
+            "serialization": "_force_validation: true\nambassador_id: redirecttestsinvalidsecret\napiVersion: ambassador/v1\nconfig:\n  server:\n    enabled: true\n    redirect_cleartext_from: 8080\n    secret: does-not-exist-secret\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: redirecttestsinvalidsecret\n  scope: AmbassadorTest\nname: tls\nnamespace: default\n"
         }
     },
     "mappings": {

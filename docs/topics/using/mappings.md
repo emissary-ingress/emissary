@@ -64,3 +64,53 @@ If `AMBASSADOR_NAMESPACE` is correctly set, Ambassador Edge Stack can map to ser
 When using Linkerd, requests going to an upstream service need to include the `l5d-dst-override` header to ensure that Linkerd will route them correctly. Setting `add_linkerd_headers` does this automatically, based on the `service` attribute in the `Mapping`. 
 
 If `add_linkerd_headers` is not specified for a given `Mapping`, the default is taken from the `ambassador`[Module](../../running/ambassador). The overall default is `false`: you must explicitly enable `add_linkerd_headers` for Ambassador Edge Stack to add the header for you (although you can always add it yourself with `add_request_headers`, of course).
+
+### "Upgrading" to non-HTTP protocols (`allow_upgrade`)
+
+HTTP has [a mechanism][upgrade-mechanism] where the client can say
+`Connection: upgrade` / `Upgrade: PROTOCOL` to switch ("upgrade") from
+the current HTTP version to a different one, or even a different
+protocol entirely.  Ambassador itself understands and can handle the
+different HTTP versions, but for other protocols you need to tell
+Ambassador to get out of the way, and let the client speak that
+protocol directly with your upstream service.  You can do this by
+setting the `allow_upgrade` field to a case-insensitive list of
+protocol names Ambassador will allow switching to from HTTP.  After
+the upgrade, Ambassador does not interpret the traffic, and behaves
+similarly to how it does for TCPMappings.
+
+[upgrade-mechanism]: https://tools.ietf.org/html/rfc7230#section-6.7
+
+This "upgrade" mechanism is a useful way of adding HTTP-based
+authentication and access control to another protocol that might not
+support authentication; for this reason the designers of the WebSocket
+protocol made this "upgrade" mechanism the *only* way of initiating a
+WebSocket connection.  In a Mapping for an upstream service that
+supports WebSockets, you would write
+
+```yaml
+allow_upgrade:
+- websocket
+```
+
+The Kubernetes apiserver itself uses this "upgrade" mechanism to
+perform HTTP authentication before switching to SPDY for endpoint used
+by `kubectl exec`; if you wanted to use Ambassador to expose the
+Kubernetes apiserver such that `kubectl exec` functions, you would
+write
+
+```yaml
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: apiserver
+spec:
+  service: https://kubernetes.default
+  prefix: /
+  allow_upgrade:
+  - spdy/3.1
+```
+
+There is a deprecated setting `use_websocket`; setting `use_websocket:
+true` is equivalent to setting `allow_upgrade: ["websocket"]`.

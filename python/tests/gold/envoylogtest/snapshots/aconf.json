@@ -1,11 +1,7 @@
 {
     "_errors": {},
-    "_notices": {
-        "-global-": [
-            "Parsed pod labels: {'kat-ambassador-id': 'envoylogtest', 'scope': 'AmbassadorTest', 'service': 'envoylogtest'}",
-            "Found Ambassador service: envoylogtest"
-        ]
-    },
+    "_fast_validation_disagreements": {},
+    "_notices": {},
     "_sources": {
         "--diagnostics--": {
             "_referenced_by": {},
@@ -49,7 +45,7 @@
             "name": "ambassador",
             "namespace": "default",
             "rkey": "envoylogtest.default.1",
-            "serialization": "ambassador_id: envoylogtest\napiVersion: ambassador/v1\nconfig:\n  envoy_log_format: MY_REQUEST %RESPONSE_CODE% \"%REQ(:AUTHORITY)%\" \"%REQ(USER-AGENT)%\"\n    \"%REQ(X-REQUEST-ID)%\" \"%UPSTREAM_HOST%\"\n  envoy_log_path: /tmp/ambassador/ambassador.log\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: envoylogtest\n  scope: AmbassadorTest\nname: ambassador\nnamespace: default\n"
+            "serialization": "_force_validation: true\nambassador_id: envoylogtest\napiVersion: ambassador/v1\nconfig:\n  envoy_log_format: MY_REQUEST %RESPONSE_CODE% \"%REQ(:AUTHORITY)%\" \"%REQ(USER-AGENT)%\"\n    \"%REQ(X-REQUEST-ID)%\" \"%UPSTREAM_HOST%\"\n  envoy_log_path: /tmp/ambassador/ambassador.log\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: envoylogtest\n  scope: AmbassadorTest\nname: ambassador\nnamespace: default\n"
         },
         "k8s-envoylogtest-admin-default": {
             "_referenced_by": {},

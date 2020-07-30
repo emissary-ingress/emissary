@@ -1081,6 +1081,11 @@ func (in *MappingSpec) DeepCopyInto(out *MappingSpec) {
 		}
 	}
 	in.TLS.DeepCopyInto(&out.TLS)
+	if in.AllowUpgrade != nil {
+		in, out := &in.AllowUpgrade, &out.AllowUpgrade
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	if in.Modules != nil {
 		in, out := &in.Modules, &out.Modules
 		*out = make([]UntypedDict, len(*in))

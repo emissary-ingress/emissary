@@ -1,10 +1,7 @@
 {
     "_errors": {},
+    "_fast_validation_disagreements": {},
     "_notices": {
-        "-global-": [
-            "Parsed pod labels: {'kat-ambassador-id': 'tlsoriginationsecret', 'scope': 'AmbassadorTest', 'service': 'tlsoriginationsecret'}",
-            "Found Ambassador service: tlsoriginationsecret"
-        ],
         "tlsoriginationsecret.default.1": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ],
@@ -131,7 +128,7 @@
             "name": "tls",
             "namespace": "default",
             "rkey": "tlsoriginationsecret.default.1",
-            "serialization": "ambassador_id: tlsoriginationsecret\napiVersion: ambassador/v0\nconfig:\n  upstream:\n    secret: test-origination-secret\n  upstream-files:\n    cert_chain_file: /tmp/ambassador/snapshots/default/secrets-decoded/test-origination-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt\n    private_key_file: /tmp/ambassador/snapshots/default/secrets-decoded/test-origination-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlsoriginationsecret\n  scope: AmbassadorTest\nname: tls\nnamespace: default\n"
+            "serialization": "_force_validation: true\nambassador_id: tlsoriginationsecret\napiVersion: ambassador/v0\nconfig:\n  upstream:\n    secret: test-origination-secret\n  upstream-files:\n    cert_chain_file: /tmp/ambassador/snapshots/default/secrets-decoded/test-origination-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt\n    private_key_file: /tmp/ambassador/snapshots/default/secrets-decoded/test-origination-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlsoriginationsecret\n  scope: AmbassadorTest\nname: tls\nnamespace: default\n"
         },
         "tlsoriginationsecret.default.2": {
             "_referenced_by": {},
@@ -148,7 +145,7 @@
             "namespace": "default",
             "prefix": "/TLSOriginationSecret/",
             "rkey": "tlsoriginationsecret.default.2",
-            "serialization": "ambassador_id: tlsoriginationsecret\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlsoriginationsecret\n  scope: AmbassadorTest\nname: tlsoriginationsecret-http\nnamespace: default\nprefix: /TLSOriginationSecret/\nservice: tlsoriginationsecret-http\ntls: upstream\n",
+            "serialization": "_force_validation: true\nambassador_id: tlsoriginationsecret\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlsoriginationsecret\n  scope: AmbassadorTest\nname: tlsoriginationsecret-http\nnamespace: default\nprefix: /TLSOriginationSecret/\nservice: tlsoriginationsecret-http\ntls: upstream\n",
             "service": "tlsoriginationsecret-http",
             "tls": "upstream"
         },
@@ -167,7 +164,7 @@
             "namespace": "default",
             "prefix": "/TLSOriginationSecret-files/",
             "rkey": "tlsoriginationsecret.default.3",
-            "serialization": "ambassador_id: tlsoriginationsecret\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlsoriginationsecret\n  scope: AmbassadorTest\nname: tlsoriginationsecret-http-files\nnamespace: default\nprefix: /TLSOriginationSecret-files/\nservice: tlsoriginationsecret-http\ntls: upstream-files\n",
+            "serialization": "_force_validation: true\nambassador_id: tlsoriginationsecret\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlsoriginationsecret\n  scope: AmbassadorTest\nname: tlsoriginationsecret-http-files\nnamespace: default\nprefix: /TLSOriginationSecret-files/\nservice: tlsoriginationsecret-http\ntls: upstream-files\n",
             "service": "tlsoriginationsecret-http",
             "tls": "upstream-files"
         }

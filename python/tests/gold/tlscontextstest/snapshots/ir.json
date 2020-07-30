@@ -429,7 +429,7 @@
                         "/TLSContextsTest/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: tlscontextstest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextstest\n  scope: AmbassadorTest\nname: tlscontextstest-http\nnamespace: default\nprefix: /TLSContextsTest/\nservice: tlscontextstest-http\n",
+                    "serialization": "_force_validation: true\nambassador_id: tlscontextstest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextstest\n  scope: AmbassadorTest\nname: tlscontextstest-http\nnamespace: default\nprefix: /TLSContextsTest/\nservice: tlscontextstest-http\n",
                     "service": "tlscontextstest-http",
                     "weight": 100
                 }
@@ -446,7 +446,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: tlscontextstest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextstest\n  scope: AmbassadorTest\nname: tlscontextstest-http\nnamespace: default\nprefix: /TLSContextsTest/\nservice: tlscontextstest-http\n"
+            "serialization": "_force_validation: true\nambassador_id: tlscontextstest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextstest\n  scope: AmbassadorTest\nname: tlscontextstest-http\nnamespace: default\nprefix: /TLSContextsTest/\nservice: tlscontextstest-http\n"
         },
         {
             "_active": true,

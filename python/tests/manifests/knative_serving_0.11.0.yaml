@@ -62,6 +62,7 @@ rules:
   - '*'
   verbs:
   - '*'
+
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -83,6 +84,7 @@ rules:
   - update
   - patch
   - delete
+
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -105,10 +107,6 @@ rules:
   - watch
 
 ---
-aggregationRule:
-  clusterRoleSelectors:
-  - matchLabels:
-      serving.knative.dev/controller: "true"
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -116,6 +114,11 @@ metadata:
     serving.knative.dev/release: "v0.11.0"
   name: knative-serving-admin
 rules: []
+aggregationRule:
+  clusterRoleSelectors:
+  - matchLabels:
+      serving.knative.dev/controller: "true"
+
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -404,6 +407,7 @@ webhooks:
       namespace: knative-serving
   failurePolicy: Fail
   name: webhook.serving.knative.dev
+
 ---
 apiVersion: admissionregistration.k8s.io/v1beta1
 kind: ValidatingWebhookConfiguration
@@ -420,6 +424,7 @@ webhooks:
       namespace: knative-serving
   failurePolicy: Fail
   name: validation.webhook.serving.knative.dev
+
 ---
 apiVersion: admissionregistration.k8s.io/v1beta1
 kind: ValidatingWebhookConfiguration
@@ -440,6 +445,7 @@ webhooks:
     matchExpressions:
     - key: serving.knative.dev/release
       operator: Exists
+
 ---
 apiVersion: v1
 kind: Secret
@@ -539,6 +545,7 @@ spec:
           allowPrivilegeEscalation: false
       serviceAccountName: controller
       terminationGracePeriodSeconds: 300
+
 ---
 apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
@@ -714,6 +721,12 @@ spec:
 
 ---
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    serving.knative.dev/release: "v0.11.0"
+  name: config-autoscaler
+  namespace: knative-serving
 data:
   _example: |
     ################################
@@ -824,15 +837,15 @@ data:
     # Scale to zero grace period is the time an inactive revision is left
     # running before it is scaled to zero (min: 30s).
     scale-to-zero-grace-period: "30s"
+
+---
+apiVersion: v1
 kind: ConfigMap
 metadata:
   labels:
     serving.knative.dev/release: "v0.11.0"
-  name: config-autoscaler
+  name: config-defaults
   namespace: knative-serving
-
----
-apiVersion: v1
 data:
   _example: |
     ################################
@@ -894,15 +907,15 @@ data:
     # disables this throttling and lets through as many requests as
     # the pod receives.
     container-concurrency: "0"
+
+---
+apiVersion: v1
 kind: ConfigMap
 metadata:
   labels:
     serving.knative.dev/release: "v0.11.0"
-  name: config-defaults
+  name: config-deployment
   namespace: knative-serving
-
----
-apiVersion: v1
 data:
   _example: |
     ################################
@@ -923,15 +936,15 @@ data:
     # List of repositories for which tag to digest resolving should be skipped
     registriesSkippingTagResolving: "ko.local,dev.local"
   queueSidecarImage: gcr.io/knative-releases/knative.dev/serving/cmd/queue@sha256:077d82a8f7b3f8c645e95abdf20acf1f1c5ea4d2215aa43ac707920914db5cf8
+
+---
+apiVersion: v1
 kind: ConfigMap
 metadata:
   labels:
     serving.knative.dev/release: "v0.11.0"
-  name: config-deployment
+  name: config-domain
   namespace: knative-serving
-
----
-apiVersion: v1
 data:
   _example: |
     ################################
@@ -969,15 +982,16 @@ data:
     svc.cluster.local: |
       selector:
         app: secret
+
+---
+
+apiVersion: v1
 kind: ConfigMap
 metadata:
   labels:
     serving.knative.dev/release: "v0.11.0"
-  name: config-domain
+  name: config-gc
   namespace: knative-serving
-
----
-apiVersion: v1
 data:
   _example: |
     ################################
@@ -1008,15 +1022,15 @@ data:
     # To avoid constant updates, we allow an existing annotation to be stale by this
     # amount before we update the timestamp
     stale-revision-lastpinned-debounce: "5h"
+
+---
+apiVersion: v1
 kind: ConfigMap
 metadata:
   labels:
     serving.knative.dev/release: "v0.11.0"
-  name: config-gc
+  name: config-logging
   namespace: knative-serving
-
----
-apiVersion: v1
 data:
   _example: |
     ################################
@@ -1042,42 +1056,36 @@ data:
     loglevel.queueproxy: "info"
     loglevel.webhook: "info"
     loglevel.activator: "info"
-kind: ConfigMap
-metadata:
-  labels:
-    serving.knative.dev/release: "v0.11.0"
-  name: config-logging
-  namespace: knative-serving
 
 ---
 apiVersion: v1
-data:
 kind: ConfigMap
 metadata:
   labels:
     serving.knative.dev/release: "v0.11.0"
   name: config-network
   namespace: knative-serving
+data:
 
 ---
 apiVersion: v1
-data:
 kind: ConfigMap
 metadata:
   labels:
     serving.knative.dev/release: "v0.11.0"
   name: config-observability
   namespace: knative-serving
+data:
 
 ---
 apiVersion: v1
-data:
 kind: ConfigMap
 metadata:
   labels:
     serving.knative.dev/release: "v0.11.0"
   name: config-tracing
   namespace: knative-serving
+data:
 
 ---
 apiVersion: apps/v1
