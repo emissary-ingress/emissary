@@ -1137,6 +1137,8 @@ class V2Listener(dict):
                     # that we can have an action of None if we're looking at a vhost created
                     # by an insecure_addl_port).
 
+                    logger.debug(f"yoyoyo: deciding for vhost {vhost._hostname}: action: {vhost._action},"
+                                 f"insecure_action {vhost._insecure_action}")
                     candidates = []
                     vhostname = vhost._hostname
 
