@@ -16,6 +16,7 @@ click==7.0
 jsonpatch==1.24
 expiringdict==1.2.0
 durationpy==0.5
+prometheus_client==0.8.0
 
 # Dev requirements
 gitpython
