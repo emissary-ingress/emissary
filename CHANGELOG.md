@@ -61,6 +61,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 - Bugfix: The `Host.spec.requestPolicy.insecure.additionalPort` field works again.
 - Bugfix: The `Host.spec.ambassadorId` is once again handled in addition to `.ambassador_id`; allowing hosts written by older versions AES prior to 1.6.0 to continue working.
+- Bugfix: Fix a redirect loop that could occur when using using multiple `protectedOrigins` in a `Host`.
 
 ## [1.6.1] July 23, 2020
 [1.6.1]: https://github.com/datawire/ambassador/compare/v1.6.0...v1.6.1
