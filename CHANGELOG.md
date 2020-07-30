@@ -53,8 +53,8 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 (no changes yet)
 
-## [1.6.2-rc.0] July 30, 2020
-[1.6.2-rc.0]: https://github.com/datawire/ambassador/compare/v1.6.1...v1.6.2-rc.0
+## [1.6.2] July 30, 2020
+[1.6.2]: https://github.com/datawire/ambassador/compare/v1.6.1...v1.6.2
 
 ### Ambassador API Gateway + Ambassador Edge Stack
 
