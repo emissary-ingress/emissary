@@ -51,6 +51,11 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ## Next Release
 
+(no changes yet)
+
+## [1.6.2-rc.0] July 30, 2020
+[1.6.2-rc.0]: https://github.com/datawire/ambassador/compare/v1.6.1...v1.6.2-rc.0
+
 ### Ambassador API Gateway + Ambassador Edge Stack
 
 - Bugfix: The (new in 1.6.0) `Host.spec.tls` and `Host.spec.tlsContext` fields now work when `AMBASSADOR_FAST_VALIDATION=fast` is not set.
