@@ -18,14 +18,14 @@ There are three basic commands that are used for Service Preview:
 
 1. Launch the edgectl daemon:
 
-```bash
+```
 $ sudo edgectl daemon
 Launching Edge Control Daemon v1.6.1 (api v1)
 ```
 
 2. Connect your laptop to the cluster. This will enable your local environment to initiate traffic to the cluster.
 
-```bash
+```
 $ edgectl connect
 Connecting to traffic manager in namespace ambassador...
 Connected to context k3s-default (https://172.20.0.3:6443)
@@ -33,7 +33,7 @@ Connected to context k3s-default (https://172.20.0.3:6443)
 
 3. Set up an intercept rule. This will enable the cluster initiate traffic to your local environment.
 
-```bash
+```
 $ edgectl intercept add hello -n example -m x-dev=jane -t localhost:9000
 ```
 
@@ -41,7 +41,7 @@ $ edgectl intercept add hello -n example -m x-dev=jane -t localhost:9000
 
 1. Starting with an empty cluster, create a `ClusterRole` for the Traffic Agent in the `default` namespace and add the simple `hello` microservice. Both samples are taken from the [Introduction to Service Preview and Edge Control](../../edgectl#traffic-agent) guide.
 
-```bash
+```
 $ kubectl apply -f traffic-agent-rbac.yaml
 serviceaccount/traffic-agent created
 secret/traffic-agent created
@@ -64,7 +64,7 @@ deployment.extensions/hello   1/1     1            1           6m18s
 
 2. Use Edge Control to set up outbound connectivity to your cluster.
 
-```bash
+```
 $ edgectl status
 Not connected
  
@@ -87,7 +87,7 @@ You are now able to connect to services directly from your laptop, as demonstrat
 
 3. When you’re done working with this cluster, disconnect.
 
-```bash
+```
 $ edgectl disconnect
 Disconnected
  
@@ -99,7 +99,7 @@ Not connected
 
 1. Starting with an empty cluster, create a `ClusterRole` for the Traffic Agent in the `default` namespace and add the simple `hello` microservice. Both samples are taken from the [Introduction to Service Preview and Edge Control](../../edgectl#traffic-agent) guide.
 
-```bash
+```
 $ kubectl apply -f traffic-agent-rbac.yaml
 serviceaccount/traffic-agent created
 secret/traffic-agent created
@@ -122,7 +122,7 @@ deployment.extensions/hello   1/1     1            1           6m18s
 
 2. Launch a local service on your laptop. If you were debugging the hello service, you might run a local copy in your debugger. In this example, we will start an arbitrary service on port 9000.
 
-```bash
+```
 # using Python
 $ python3 -m http.server 9000
 Serving HTTP on 0.0.0.0 port 9000 (http://0.0.0.0:9000/) ...
@@ -140,7 +140,7 @@ Hit CTRL-C to stop the server
 
 3. Connect to the cluster to set up outbound connectivity and check that you can access the hello service in the cluster with `curl`.
 
-```bash
+```
 $ edgectl connect
 Connecting to traffic manager in namespace ambassador.
 Connected to context default (https://localhost:6443)
@@ -158,7 +158,7 @@ Hello, world!
 
 4. Set up an intercept. In this example, we’ll capture requests that have the `x-dev` header set to $USER.
 
-```bash
+```
 $ edgectl intercept avail
 Found 1 interceptable deployment(s):
    1. hello in namespace default
@@ -171,7 +171,7 @@ Using deployment hello in namespace default
 Added intercept "example"
  
 $ edgectl intercept list
-1. example
+ 1. example
     Intercepting requests to hello when
     - x-dev: ark3
     and redirecting them to localhost:9000
@@ -200,7 +200,7 @@ As you can see, the second request, which includes the specified `x-dev` header,
 
 5. Next, remove the intercept to restore normal operation.
 
-```bash
+```
 $ edgectl intercept remove example
 Removed intercept "example"
  
@@ -214,7 +214,7 @@ Requests are no longer intercepted.
 
 Make sure your Host resource has preview URLs enabled.
 
-```bash
+```
 $ kubectl get host -A -o yaml
 apiVersion: getambassador.io/v2
 kind: Host
@@ -224,11 +224,12 @@ spec:
   # [...]
   previewUrl:
     enabled: true
+    type: path
 ```
 
 When you first edit your Host to enable preview URLs, you must reconnect to the cluster for the Edge Control Daemon to detect the change. This limitation will be removed in the future.
 
-```bash
+```
 $ edgectl disconnect
 Disconnected
  
@@ -239,7 +240,7 @@ Connected to context k3s-default (https://172.20.0.3:6443)
 
 Now add an intercept and give it a try.
 
-```bash
+```
 $ edgectl intercept avail
 Found 1 interceptable deployment(s):
     1. hello in namespace default
@@ -286,7 +287,7 @@ As you can see, the second request, which uses the preview URL, is served by the
 
 7. Next, remove the intercept to restore normal operation.
 
-```bash
+```
 $ edgectl intercept remove example-url
 Removed intercept "example-url"
  
