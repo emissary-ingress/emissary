@@ -7,21 +7,8 @@
 package ignore
 
 import (
-	// protoc-gen-validate
-	_ "github.com/envoyproxy/protoc-gen-validate"
-	// list at least 1 package from each module mentioned in
-	// protoc-gen-validate's Gopkg.lock
-	_ "github.com/gogo/protobuf/proto"
-	_ "github.com/golang/protobuf/proto"
-	_ "github.com/iancoleman/strcase"
-	_ "github.com/lyft/protoc-gen-star"
-	_ "golang.org/x/net/context"
-
-	// protoc-gen-gogofast
-	_ "github.com/gogo/protobuf/protoc-gen-gogofast"
-
-	// protoc-gen-go-json
-	_ "github.com/mitchellh/protoc-gen-go-json"
+	// protoc-gen-go
+	_ "github.com/golang/protobuf/protoc-gen-go"
 
 	// controller-gen
 	_ "sigs.k8s.io/controller-tools/cmd/controller-gen"

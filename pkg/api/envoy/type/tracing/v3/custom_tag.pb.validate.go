@@ -15,7 +15,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 )
 
 // ensure the imports are used
@@ -30,7 +30,7 @@ var (
 	_ = time.Duration(0)
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
-	_ = types.DynamicAny{}
+	_ = ptypes.DynamicAny{}
 )
 
 // define the regex for a UUID once up-front
@@ -54,68 +54,48 @@ func (m *CustomTag) Validate() error {
 
 	case *CustomTag_Literal_:
 
-		{
-			tmp := m.GetLiteral()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return CustomTagValidationError{
-						field:  "Literal",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetLiteral()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return CustomTagValidationError{
+					field:  "Literal",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	case *CustomTag_Environment_:
 
-		{
-			tmp := m.GetEnvironment()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return CustomTagValidationError{
-						field:  "Environment",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetEnvironment()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return CustomTagValidationError{
+					field:  "Environment",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	case *CustomTag_RequestHeader:
 
-		{
-			tmp := m.GetRequestHeader()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return CustomTagValidationError{
-						field:  "RequestHeader",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetRequestHeader()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return CustomTagValidationError{
+					field:  "RequestHeader",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	case *CustomTag_Metadata_:
 
-		{
-			tmp := m.GetMetadata()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return CustomTagValidationError{
-						field:  "Metadata",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return CustomTagValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -426,32 +406,22 @@ func (m *CustomTag_Metadata) Validate() error {
 		return nil
 	}
 
-	{
-		tmp := m.GetKind()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return CustomTag_MetadataValidationError{
-					field:  "Kind",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetKind()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CustomTag_MetadataValidationError{
+				field:  "Kind",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetMetadataKey()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return CustomTag_MetadataValidationError{
-					field:  "MetadataKey",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetMetadataKey()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CustomTag_MetadataValidationError{
+				field:  "MetadataKey",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}

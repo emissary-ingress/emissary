@@ -15,7 +15,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 )
 
 // ensure the imports are used
@@ -30,7 +30,7 @@ var (
 	_ = time.Duration(0)
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
-	_ = types.DynamicAny{}
+	_ = ptypes.DynamicAny{}
 )
 
 // define the regex for a UUID once up-front
@@ -183,32 +183,22 @@ func (m *HttpProtocolOptions) Validate() error {
 		return nil
 	}
 
-	{
-		tmp := m.GetIdleTimeout()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return HttpProtocolOptionsValidationError{
-					field:  "IdleTimeout",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetIdleTimeout()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return HttpProtocolOptionsValidationError{
+				field:  "IdleTimeout",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetMaxConnectionDuration()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return HttpProtocolOptionsValidationError{
-					field:  "MaxConnectionDuration",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetMaxConnectionDuration()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return HttpProtocolOptionsValidationError{
+				field:  "MaxConnectionDuration",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -224,17 +214,12 @@ func (m *HttpProtocolOptions) Validate() error {
 
 	}
 
-	{
-		tmp := m.GetMaxStreamDuration()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return HttpProtocolOptionsValidationError{
-					field:  "MaxStreamDuration",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetMaxStreamDuration()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return HttpProtocolOptionsValidationError{
+				field:  "MaxStreamDuration",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -308,17 +293,12 @@ func (m *Http1ProtocolOptions) Validate() error {
 		return nil
 	}
 
-	{
-		tmp := m.GetAllowAbsoluteUrl()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return Http1ProtocolOptionsValidationError{
-					field:  "AllowAbsoluteUrl",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetAllowAbsoluteUrl()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return Http1ProtocolOptionsValidationError{
+				field:  "AllowAbsoluteUrl",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -327,17 +307,12 @@ func (m *Http1ProtocolOptions) Validate() error {
 
 	// no validation rules for DefaultHostForHttp_10
 
-	{
-		tmp := m.GetHeaderKeyFormat()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return Http1ProtocolOptionsValidationError{
-					field:  "HeaderKeyFormat",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetHeaderKeyFormat()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return Http1ProtocolOptionsValidationError{
+				field:  "HeaderKeyFormat",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -411,17 +386,12 @@ func (m *Http2ProtocolOptions) Validate() error {
 		return nil
 	}
 
-	{
-		tmp := m.GetHpackTableSize()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return Http2ProtocolOptionsValidationError{
-					field:  "HpackTableSize",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetHpackTableSize()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return Http2ProtocolOptionsValidationError{
+				field:  "HpackTableSize",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -485,32 +455,22 @@ func (m *Http2ProtocolOptions) Validate() error {
 
 	}
 
-	{
-		tmp := m.GetMaxConsecutiveInboundFramesWithEmptyPayload()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return Http2ProtocolOptionsValidationError{
-					field:  "MaxConsecutiveInboundFramesWithEmptyPayload",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetMaxConsecutiveInboundFramesWithEmptyPayload()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return Http2ProtocolOptionsValidationError{
+				field:  "MaxConsecutiveInboundFramesWithEmptyPayload",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetMaxInboundPriorityFramesPerStream()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return Http2ProtocolOptionsValidationError{
-					field:  "MaxInboundPriorityFramesPerStream",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetMaxInboundPriorityFramesPerStream()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return Http2ProtocolOptionsValidationError{
+				field:  "MaxInboundPriorityFramesPerStream",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -531,17 +491,12 @@ func (m *Http2ProtocolOptions) Validate() error {
 	for idx, item := range m.GetCustomSettingsParameters() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return Http2ProtocolOptionsValidationError{
-						field:  fmt.Sprintf("CustomSettingsParameters[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return Http2ProtocolOptionsValidationError{
+					field:  fmt.Sprintf("CustomSettingsParameters[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -615,17 +570,12 @@ func (m *GrpcProtocolOptions) Validate() error {
 		return nil
 	}
 
-	{
-		tmp := m.GetHttp2ProtocolOptions()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return GrpcProtocolOptionsValidationError{
-					field:  "Http2ProtocolOptions",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetHttp2ProtocolOptions()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GrpcProtocolOptionsValidationError{
+				field:  "Http2ProtocolOptions",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -701,17 +651,12 @@ func (m *Http1ProtocolOptions_HeaderKeyFormat) Validate() error {
 
 	case *Http1ProtocolOptions_HeaderKeyFormat_ProperCaseWords_:
 
-		{
-			tmp := m.GetProperCaseWords()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return Http1ProtocolOptions_HeaderKeyFormatValidationError{
-						field:  "ProperCaseWords",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetProperCaseWords()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return Http1ProtocolOptions_HeaderKeyFormatValidationError{
+					field:  "ProperCaseWords",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -891,17 +836,12 @@ func (m *Http2ProtocolOptions_SettingsParameter) Validate() error {
 		}
 	}
 
-	{
-		tmp := m.GetValue()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return Http2ProtocolOptions_SettingsParameterValidationError{
-					field:  "Value",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetValue()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return Http2ProtocolOptions_SettingsParameterValidationError{
+				field:  "Value",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}

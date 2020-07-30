@@ -18,7 +18,6 @@ import (
 	"context"
 	"io"
 	"net/http"
-	"net/http/httptest"
 	"strings"
 	"testing"
 	"testing/iotest"
@@ -87,25 +86,29 @@ func TestGateway(t *testing.T) {
 		},
 	}
 	for _, cs := range failCases {
-		rr := httptest.NewRecorder()
 		req, err := http.NewRequest(http.MethodPost, cs.path, cs.body)
 		if err != nil {
 			t.Fatal(err)
 		}
-		_ = gtw.ServeHTTP(rr, req)
-		if status := rr.Code; status != cs.expect {
+		resp, code, err := gtw.ServeHTTP(req)
+		if resp != nil {
+			t.Errorf("handler returned wrong response")
+		}
+		if status := code; status != cs.expect {
 			t.Errorf("handler returned wrong status: %d, want %d", status, cs.expect)
 		}
 	}
 
 	for _, path := range []string{resource.FetchClusters, resource.FetchRoutes, resource.FetchListeners} {
-		rr := httptest.NewRecorder()
 		req, err := http.NewRequest(http.MethodPost, path, strings.NewReader("{\"node\": {\"id\": \"test\"}}"))
 		if err != nil {
 			t.Fatal(err)
 		}
-		_ = gtw.ServeHTTP(rr, req)
-		if status := rr.Code; status != 200 {
+		resp, code, err := gtw.ServeHTTP(req)
+		if resp == nil {
+			t.Errorf("handler returned wrong response")
+		}
+		if status := code; status != 200 {
 			t.Errorf("handler returned wrong status: %d, want %d", status, 200)
 		}
 	}

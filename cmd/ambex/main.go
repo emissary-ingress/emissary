@@ -56,9 +56,10 @@ import (
 	"google.golang.org/grpc"
 
 	// protobuf library
-	"github.com/gogo/protobuf/jsonpb"
-	"github.com/gogo/protobuf/proto"
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/jsonpb"
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/any"
 
 	// envoy control plane
 	ctypes "github.com/datawire/ambassador/pkg/envoy-control-plane/cache/types"
@@ -184,7 +185,7 @@ type Validatable interface {
 }
 
 func decode(name string) (proto.Message, error) {
-	any := &types.Any{}
+	any := &any.Any{}
 	contents, err := ioutil.ReadFile(name)
 	if err != nil {
 		return nil, err
@@ -197,8 +198,8 @@ func decode(name string) (proto.Message, error) {
 		return nil, err
 	}
 
-	var m types.DynamicAny
-	err = types.UnmarshalAny(any, &m)
+	var m ptypes.DynamicAny
+	err = ptypes.UnmarshalAny(any, &m)
 	if err != nil {
 		return nil, err
 	}

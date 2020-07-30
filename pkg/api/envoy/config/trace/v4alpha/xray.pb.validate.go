@@ -15,7 +15,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 )
 
 // ensure the imports are used
@@ -30,7 +30,7 @@ var (
 	_ = time.Duration(0)
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
-	_ = types.DynamicAny{}
+	_ = ptypes.DynamicAny{}
 )
 
 // define the regex for a UUID once up-front
@@ -43,17 +43,12 @@ func (m *XRayConfig) Validate() error {
 		return nil
 	}
 
-	{
-		tmp := m.GetDaemonEndpoint()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return XRayConfigValidationError{
-					field:  "DaemonEndpoint",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetDaemonEndpoint()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return XRayConfigValidationError{
+				field:  "DaemonEndpoint",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -65,17 +60,12 @@ func (m *XRayConfig) Validate() error {
 		}
 	}
 
-	{
-		tmp := m.GetSamplingRuleManifest()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return XRayConfigValidationError{
-					field:  "SamplingRuleManifest",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetSamplingRuleManifest()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return XRayConfigValidationError{
+				field:  "SamplingRuleManifest",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}

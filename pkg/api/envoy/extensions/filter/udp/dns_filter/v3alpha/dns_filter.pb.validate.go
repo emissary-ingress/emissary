@@ -15,7 +15,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 )
 
 // ensure the imports are used
@@ -30,7 +30,7 @@ var (
 	_ = time.Duration(0)
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
-	_ = types.DynamicAny{}
+	_ = ptypes.DynamicAny{}
 )
 
 // define the regex for a UUID once up-front
@@ -51,17 +51,12 @@ func (m *DnsFilterConfig) Validate() error {
 		}
 	}
 
-	{
-		tmp := m.GetServerConfig()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return DnsFilterConfigValidationError{
-					field:  "ServerConfig",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetServerConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return DnsFilterConfigValidationError{
+				field:  "ServerConfig",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -135,34 +130,24 @@ func (m *DnsFilterConfig_ServerContextConfig) Validate() error {
 
 	case *DnsFilterConfig_ServerContextConfig_InlineDnsTable:
 
-		{
-			tmp := m.GetInlineDnsTable()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return DnsFilterConfig_ServerContextConfigValidationError{
-						field:  "InlineDnsTable",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetInlineDnsTable()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return DnsFilterConfig_ServerContextConfigValidationError{
+					field:  "InlineDnsTable",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	case *DnsFilterConfig_ServerContextConfig_ExternalDnsTable:
 
-		{
-			tmp := m.GetExternalDnsTable()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return DnsFilterConfig_ServerContextConfigValidationError{
-						field:  "ExternalDnsTable",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetExternalDnsTable()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return DnsFilterConfig_ServerContextConfigValidationError{
+					field:  "ExternalDnsTable",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
