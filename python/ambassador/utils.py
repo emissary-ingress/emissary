@@ -224,9 +224,9 @@ class Timer:
     _maximum: float
     _running: bool
     _faketime: float
-    _g: Optional[Gauge]=None
+    _gauge: Optional[Gauge]=None
 
-    def __init__(self, name: str, prom_metrics_registry: Optional[any]=None) -> None:
+    def __init__(self, name: str, prom_metrics_registry: Optional[Any]=None) -> None:
         """
         Create a Timer, given a name. The Timer is initially stopped.
         """
@@ -241,7 +241,7 @@ class Timer:
         self._faketime = 0.0
         if prom_metrics_registry:
             metric_prefix = re.sub('\s+', '_', name).lower()
-            self._g = Gauge(f'{metric_prefix}_time_seconds', f'Elapsed time on {name} operations',
+            self._gauge = Gauge(f'{metric_prefix}_time_seconds', f'Elapsed time on {name} operations',
                                 namespace='ambassador', registry=prom_metrics_registry)
 
     def __enter__(self):
@@ -299,8 +299,8 @@ class Timer:
             self._cycles += 1
 
             this_cycle = (when - self._starttime) + self._faketime
-            if self._g:
-                self._g.set(this_cycle)
+            if self._gauge:
+                self._gauge.set(this_cycle)
 
             self._faketime = 0
 
