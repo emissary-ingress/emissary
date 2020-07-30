@@ -7018,6 +7018,9 @@
                 "plain-simplemapping-http-usewebsocket-http.plain-namespace.1"
             ],
             "_rkey": "plain-simplemapping-http-usewebsocket-http.plain-namespace.1",
+            "allow_upgrade": [
+                "websocket"
+            ],
             "default_class": "httpmapping",
             "group_id": "d9ad870bfa328cb4d050228bd28eacd5852c5d62",
             "group_weight": [
@@ -7038,6 +7041,9 @@
                     "_rkey": "plain-simplemapping-http-usewebsocket-http.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
+                    "allow_upgrade": [
+                        "websocket"
+                    ],
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -7100,7 +7106,6 @@
                     ],
                     "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-UseWebsocket\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-UseWebsocket/\nservice: http://plain-simplemapping-http-usewebsocket-http.plain-namespace\nuse_websocket: true\n",
                     "service": "http://plain-simplemapping-http-usewebsocket-http.plain-namespace",
-                    "use_websocket": true,
                     "weight": 100
                 }
             ],
@@ -7115,8 +7120,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-UseWebsocket\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-UseWebsocket/\nservice: http://plain-simplemapping-http-usewebsocket-http.plain-namespace\nuse_websocket: true\n",
-            "use_websocket": true
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-UseWebsocket\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-UseWebsocket/\nservice: http://plain-simplemapping-http-usewebsocket-http.plain-namespace\nuse_websocket: true\n"
         },
         {
             "_active": true,
@@ -7125,6 +7129,9 @@
                 "plain-simplemapping-grpc-usewebsocket-grpc.plain-namespace.1"
             ],
             "_rkey": "plain-simplemapping-grpc-usewebsocket-grpc.plain-namespace.1",
+            "allow_upgrade": [
+                "websocket"
+            ],
             "default_class": "httpmapping",
             "group_id": "513210530131791f3e75df96a3efd189a8100301",
             "group_weight": [
@@ -7145,6 +7152,9 @@
                     "_rkey": "plain-simplemapping-grpc-usewebsocket-grpc.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
+                    "allow_upgrade": [
+                        "websocket"
+                    ],
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -7207,7 +7217,6 @@
                     ],
                     "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-UseWebsocket\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-UseWebsocket/\nservice: http://plain-simplemapping-grpc-usewebsocket-grpc.plain-namespace\nuse_websocket: true\n",
                     "service": "http://plain-simplemapping-grpc-usewebsocket-grpc.plain-namespace",
-                    "use_websocket": true,
                     "weight": 100
                 }
             ],
@@ -7222,8 +7231,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-UseWebsocket\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-UseWebsocket/\nservice: http://plain-simplemapping-grpc-usewebsocket-grpc.plain-namespace\nuse_websocket: true\n",
-            "use_websocket": true
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-UseWebsocket\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-UseWebsocket/\nservice: http://plain-simplemapping-grpc-usewebsocket-grpc.plain-namespace\nuse_websocket: true\n"
         },
         {
             "_active": true,
@@ -11756,6 +11764,9 @@
             "add_response_headers": {
                 "foo": "bar"
             },
+            "allow_upgrade": [
+                "websocket"
+            ],
             "auto_host_rewrite": true,
             "case_sensitive": false,
             "cors": {
@@ -11796,6 +11807,9 @@
                     "add_response_headers": {
                         "foo": "bar"
                     },
+                    "allow_upgrade": [
+                        "websocket"
+                    ],
                     "auto_host_rewrite": true,
                     "case_sensitive": false,
                     "cluster": {
@@ -11875,7 +11889,6 @@
                     ],
                     "serialization": "_force_validation: true\nadd_request_headers:\n  foo: bar\nadd_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\ncase_sensitive: false\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-all\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-all/\nremove_response_headers: x-envoy-upstream-service-time\nrewrite: /foo\nservice: http://plain-simplemapping-http-all-http.plain-namespace\nuse_websocket: true\n",
                     "service": "http://plain-simplemapping-http-all-http.plain-namespace",
-                    "use_websocket": true,
                     "weight": 100
                 }
             ],
@@ -11891,8 +11904,7 @@
             "regex_rewrite": {},
             "remove_response_headers": "x-envoy-upstream-service-time",
             "rewrite": "/foo",
-            "serialization": "_force_validation: true\nadd_request_headers:\n  foo: bar\nadd_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\ncase_sensitive: false\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-all\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-all/\nremove_response_headers: x-envoy-upstream-service-time\nrewrite: /foo\nservice: http://plain-simplemapping-http-all-http.plain-namespace\nuse_websocket: true\n",
-            "use_websocket": true
+            "serialization": "_force_validation: true\nadd_request_headers:\n  foo: bar\nadd_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\ncase_sensitive: false\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-all\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-all/\nremove_response_headers: x-envoy-upstream-service-time\nrewrite: /foo\nservice: http://plain-simplemapping-http-all-http.plain-namespace\nuse_websocket: true\n"
         },
         {
             "_active": true,
@@ -11907,6 +11919,9 @@
             "add_response_headers": {
                 "foo": "bar"
             },
+            "allow_upgrade": [
+                "websocket"
+            ],
             "auto_host_rewrite": true,
             "case_sensitive": false,
             "cors": {
@@ -11947,6 +11962,9 @@
                     "add_response_headers": {
                         "foo": "bar"
                     },
+                    "allow_upgrade": [
+                        "websocket"
+                    ],
                     "auto_host_rewrite": true,
                     "case_sensitive": false,
                     "cluster": {
@@ -12026,7 +12044,6 @@
                     ],
                     "serialization": "_force_validation: true\nadd_request_headers:\n  foo: bar\nadd_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\ncase_sensitive: false\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-all\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-all/\nremove_response_headers: x-envoy-upstream-service-time\nrewrite: /foo\nservice: http://plain-simplemapping-grpc-all-grpc.plain-namespace\nuse_websocket: true\n",
                     "service": "http://plain-simplemapping-grpc-all-grpc.plain-namespace",
-                    "use_websocket": true,
                     "weight": 100
                 }
             ],
@@ -12042,8 +12059,7 @@
             "regex_rewrite": {},
             "remove_response_headers": "x-envoy-upstream-service-time",
             "rewrite": "/foo",
-            "serialization": "_force_validation: true\nadd_request_headers:\n  foo: bar\nadd_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\ncase_sensitive: false\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-all\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-all/\nremove_response_headers: x-envoy-upstream-service-time\nrewrite: /foo\nservice: http://plain-simplemapping-grpc-all-grpc.plain-namespace\nuse_websocket: true\n",
-            "use_websocket": true
+            "serialization": "_force_validation: true\nadd_request_headers:\n  foo: bar\nadd_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\ncase_sensitive: false\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-all\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-all/\nremove_response_headers: x-envoy-upstream-service-time\nrewrite: /foo\nservice: http://plain-simplemapping-grpc-all-grpc.plain-namespace\nuse_websocket: true\n"
         },
         {
             "_active": true,
@@ -12614,6 +12630,9 @@
                 "plain-websocketmapping-http-http.plain-namespace.1"
             ],
             "_rkey": "plain-websocketmapping-http-http.plain-namespace.1",
+            "allow_upgrade": [
+                "websocket"
+            ],
             "default_class": "httpmapping",
             "group_id": "07ff6553e1b8a02e499d1be15a0cdb4b07043ced",
             "group_weight": [
@@ -12635,6 +12654,9 @@
                     "_rkey": "plain-websocketmapping-http-http.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
+                    "allow_upgrade": [
+                        "websocket"
+                    ],
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -12700,7 +12722,6 @@
                     ],
                     "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: echo.websocket.org\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: WebSocketMapping-HTTP\nnamespace: plain-namespace\nprefix: /WebSocketMapping-HTTP/\nservice: echo.websocket.org:80\nuse_websocket: true\n",
                     "service": "echo.websocket.org:80",
-                    "use_websocket": true,
                     "weight": 100
                 }
             ],
@@ -12715,8 +12736,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: echo.websocket.org\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: WebSocketMapping-HTTP\nnamespace: plain-namespace\nprefix: /WebSocketMapping-HTTP/\nservice: echo.websocket.org:80\nuse_websocket: true\n",
-            "use_websocket": true
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: echo.websocket.org\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: WebSocketMapping-HTTP\nnamespace: plain-namespace\nprefix: /WebSocketMapping-HTTP/\nservice: echo.websocket.org:80\nuse_websocket: true\n"
         },
         {
             "_active": true,
@@ -12725,6 +12745,9 @@
                 "plain-websocketmapping-grpc-grpc.plain-namespace.1"
             ],
             "_rkey": "plain-websocketmapping-grpc-grpc.plain-namespace.1",
+            "allow_upgrade": [
+                "websocket"
+            ],
             "default_class": "httpmapping",
             "group_id": "3b375e2e8ef79269ef6398c32d7d7474157ededd",
             "group_weight": [
@@ -12746,6 +12769,9 @@
                     "_rkey": "plain-websocketmapping-grpc-grpc.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
+                    "allow_upgrade": [
+                        "websocket"
+                    ],
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -12811,7 +12837,6 @@
                     ],
                     "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: echo.websocket.org\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: WebSocketMapping-GRPC\nnamespace: plain-namespace\nprefix: /WebSocketMapping-GRPC/\nservice: echo.websocket.org:80\nuse_websocket: true\n",
                     "service": "echo.websocket.org:80",
-                    "use_websocket": true,
                     "weight": 100
                 }
             ],
@@ -12826,8 +12851,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: echo.websocket.org\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: WebSocketMapping-GRPC\nnamespace: plain-namespace\nprefix: /WebSocketMapping-GRPC/\nservice: echo.websocket.org:80\nuse_websocket: true\n",
-            "use_websocket": true
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: echo.websocket.org\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: WebSocketMapping-GRPC\nnamespace: plain-namespace\nprefix: /WebSocketMapping-GRPC/\nservice: echo.websocket.org:80\nuse_websocket: true\n"
         },
         {
             "_active": true,

@@ -737,6 +737,19 @@ spec:
                 - type: boolean
                 - type: object
               type: object
+            allow_upgrade:
+              description: "A case-insensitive list of the non-HTTP protocols to allow\
+                \ \"upgrading\" to from HTTP via the \"Connection: upgrade\" mechanism[1].\
+                \  After the upgrade, Ambassador does not interpret the traffic, and\
+                \ behaves similarly to how it does for TCPMappings. \n [1]: https://tools.ietf.org/html/rfc7230#section-6.7\
+                \ \n For example, if your upstream service supports WebSockets, you\
+                \ would write \n    allow_upgrade:    - websocket \n Or if your upstream\
+                \ service supports upgrading from HTTP to SPDY (as the Kubernetes\
+                \ apiserver does for `kubectl exec` functionality), you would write\
+                \ \n    allow_upgrade:    - spdy/3.1"
+              items:
+                type: string
+              type: array
             ambassador_id:
               description: "AmbassadorID declares which Ambassador instances should\
                 \ pay attention to this resource.  May either be a string or a list\
@@ -965,6 +978,8 @@ spec:
               - type: string
               - type: boolean
             use_websocket:
+              description: 'use_websocket is deprecated, and is equivlaent to setting
+                `allow_upgrade: ["websocket"]`'
               type: boolean
             weight:
               type: integer

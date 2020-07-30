@@ -124,6 +124,12 @@
         "idle_timeout_ms": { "type": "integer" },
         "tls": { "type": [ "string", "boolean" ] },
         "use_websocket": { "type": "boolean" },
+        "allow_upgrade": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
         "weight": { "type": "integer" },
         "bypass_auth": { "type": "boolean" },
 
