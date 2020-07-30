@@ -508,6 +508,17 @@ spec:
       port: 80
       targetPort: http              # Application port
 ---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: hello
+  namespace: default
+  labels:
+    app: hello
+spec:
+  prefix: /hello/
+  service: hello:80
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
