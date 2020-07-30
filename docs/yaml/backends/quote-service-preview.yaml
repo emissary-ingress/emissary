@@ -1,0 +1,74 @@
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: quote-backend
+spec:
+  prefix: /backend/
+  service: quote
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quote
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: 9900
+  - name: https
+    port: 443
+    targetPort: 9900
+  selector:
+    app: quote
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quote
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: quote
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: quote
+    spec:
+      containers:
+      - name: backend
+        image: docker.io/datawire/quote:$quoteVersion$
+        ports:
+        - name: http
+          containerPort: 8000
+        env:
+        - name: PORT
+          value: "8000"
+        resources:
+          limits:
+            cpu: "0.1"
+            memory: 100Mi
+      - name: traffic-agent
+        image: docker.io/datawire/aes:$version$
+        ports:
+        - name: http
+          containerPort: 9900
+        env:
+        - name: AGENT_SERVICE
+          value: quote
+        - name: AGENT_PORT        # Port on which to talk to the microservice
+          value: "8000"
+        - name: AGENT_MANAGER_NAMESPACE # Namespace for contacting the Traffic Manager
+          value: ambassador
+        - name: AMBASSADOR_NAMESPACE # Namespace in which this microservice is running
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: AMBASSADOR_SINGLE_NAMESPACE # Traffic Agent container can run in a single-namespace
+          value: "true"
+        - name: AGENT_LISTEN_PORT # Port on which to listen for connections (note 10)
+          value: "9900"
+      serviceAccountName: traffic-agent # The pod runs with traffic-agent RBAC
