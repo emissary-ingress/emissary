@@ -531,7 +531,7 @@
                         "/XFPRedirect/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: xfpredirect\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: xfpredirect\n  scope: AmbassadorTest\nname: XFPRedirect\nnamespace: default\nprefix: /XFPRedirect/\nservice: xfpredirect-http\n",
+                    "serialization": "_force_validation: true\nambassador_id: xfpredirect\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: xfpredirect\n  scope: AmbassadorTest\nname: XFPRedirect\nnamespace: default\nprefix: /XFPRedirect/\nservice: xfpredirect-http\n",
                     "service": "xfpredirect-http",
                     "weight": 100
                 }
@@ -547,7 +547,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: xfpredirect\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: xfpredirect\n  scope: AmbassadorTest\nname: XFPRedirect\nnamespace: default\nprefix: /XFPRedirect/\nservice: xfpredirect-http\n"
+            "serialization": "_force_validation: true\nambassador_id: xfpredirect\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: xfpredirect\n  scope: AmbassadorTest\nname: XFPRedirect\nnamespace: default\nprefix: /XFPRedirect/\nservice: xfpredirect-http\n"
         }
     ],
     "grpc_services": {},

@@ -679,7 +679,7 @@
                         "GET",
                         "X-Auth-Route-Route"
                     ],
-                    "serialization": "ambassador_id: authenticationheaderrouting\napiVersion: ambassador/v0\nheaders:\n  X-Auth-Route: Route\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: AuthenticationHeaderRouting-target2\nnamespace: default\nprefix: /target/\nservice: http://authenticationheaderrouting-http-target2\n",
+                    "serialization": "_force_validation: true\nambassador_id: authenticationheaderrouting\napiVersion: ambassador/v0\nheaders:\n  X-Auth-Route: Route\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: AuthenticationHeaderRouting-target2\nnamespace: default\nprefix: /target/\nservice: http://authenticationheaderrouting-http-target2\n",
                     "service": "http://authenticationheaderrouting-http-target2",
                     "weight": 100
                 }
@@ -695,7 +695,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: authenticationheaderrouting\napiVersion: ambassador/v0\nheaders:\n  X-Auth-Route: Route\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: AuthenticationHeaderRouting-target2\nnamespace: default\nprefix: /target/\nservice: http://authenticationheaderrouting-http-target2\n"
+            "serialization": "_force_validation: true\nambassador_id: authenticationheaderrouting\napiVersion: ambassador/v0\nheaders:\n  X-Auth-Route: Route\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: AuthenticationHeaderRouting-target2\nnamespace: default\nprefix: /target/\nservice: http://authenticationheaderrouting-http-target2\n"
         },
         {
             "_active": true,
@@ -784,7 +784,7 @@
                         "/target/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: authenticationheaderrouting\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: AuthenticationHeaderRouting-target1\nnamespace: default\nprefix: /target/\nservice: http://authenticationheaderrouting-http-target1\n",
+                    "serialization": "_force_validation: true\nambassador_id: authenticationheaderrouting\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: AuthenticationHeaderRouting-target1\nnamespace: default\nprefix: /target/\nservice: http://authenticationheaderrouting-http-target1\n",
                     "service": "http://authenticationheaderrouting-http-target1",
                     "weight": 100
                 }
@@ -800,7 +800,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: authenticationheaderrouting\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: AuthenticationHeaderRouting-target1\nnamespace: default\nprefix: /target/\nservice: http://authenticationheaderrouting-http-target1\n"
+            "serialization": "_force_validation: true\nambassador_id: authenticationheaderrouting\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: AuthenticationHeaderRouting-target1\nnamespace: default\nprefix: /target/\nservice: http://authenticationheaderrouting-http-target1\n"
         }
     ],
     "grpc_services": {},

@@ -450,7 +450,7 @@
                         "GET",
                         ":authority-tls-context-host-1"
                     ],
-                    "serialization": "ambassador_id: tlscontextprotocolmaxversion\napiVersion: ambassador/v0\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextprotocolmaxversion\n  scope: AmbassadorTest\nname: TLSContextProtocolMaxVersion-same-prefix-1\nnamespace: default\nprefix: /tls-context-same/\nservice: http://tlscontextprotocolmaxversion-http\n",
+                    "serialization": "_force_validation: true\nambassador_id: tlscontextprotocolmaxversion\napiVersion: ambassador/v0\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextprotocolmaxversion\n  scope: AmbassadorTest\nname: TLSContextProtocolMaxVersion-same-prefix-1\nnamespace: default\nprefix: /tls-context-same/\nservice: http://tlscontextprotocolmaxversion-http\n",
                     "service": "http://tlscontextprotocolmaxversion-http",
                     "sni": true,
                     "tls_context": {
@@ -496,7 +496,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: tlscontextprotocolmaxversion\napiVersion: ambassador/v0\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextprotocolmaxversion\n  scope: AmbassadorTest\nname: TLSContextProtocolMaxVersion-same-prefix-1\nnamespace: default\nprefix: /tls-context-same/\nservice: http://tlscontextprotocolmaxversion-http\n",
+            "serialization": "_force_validation: true\nambassador_id: tlscontextprotocolmaxversion\napiVersion: ambassador/v0\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextprotocolmaxversion\n  scope: AmbassadorTest\nname: TLSContextProtocolMaxVersion-same-prefix-1\nnamespace: default\nprefix: /tls-context-same/\nservice: http://tlscontextprotocolmaxversion-http\n",
             "sni": true,
             "tls_context": {
                 "_active": true,

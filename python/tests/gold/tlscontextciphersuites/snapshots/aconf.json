@@ -1,10 +1,7 @@
 {
     "_errors": {},
+    "_fast_validation_disagreements": {},
     "_notices": {
-        "-global-": [
-            "Parsed pod labels: {'kat-ambassador-id': 'tlscontextciphersuites', 'scope': 'AmbassadorTest', 'service': 'tlscontextciphersuites'}",
-            "Found Ambassador service: tlscontextciphersuites"
-        ],
         "tlscontextciphersuites.default.1": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ]
@@ -118,7 +115,7 @@
             "namespace": "default",
             "prefix": "/tls-context-same/",
             "rkey": "tlscontextciphersuites.default.1",
-            "serialization": "ambassador_id: tlscontextciphersuites\napiVersion: ambassador/v0\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextciphersuites\n  scope: AmbassadorTest\nname: TLSContextCipherSuites-same-prefix-1\nnamespace: default\nprefix: /tls-context-same/\nservice: https://tlscontextciphersuites-http\n",
+            "serialization": "_force_validation: true\nambassador_id: tlscontextciphersuites\napiVersion: ambassador/v0\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextciphersuites\n  scope: AmbassadorTest\nname: TLSContextCipherSuites-same-prefix-1\nnamespace: default\nprefix: /tls-context-same/\nservice: https://tlscontextciphersuites-http\n",
             "service": "https://tlscontextciphersuites-http"
         },
         "tlscontextciphersuites.default.2": {
@@ -147,7 +144,7 @@
             "rkey": "tlscontextciphersuites.default.2",
             "secret": "secret.cipher-suites",
             "secret_namespacing": false,
-            "serialization": "ambassador_id: tlscontextciphersuites\napiVersion: ambassador/v1\ncipher_suites:\n- ECDHE-RSA-AES128-GCM-SHA256\necdh_curves:\n- P-256\nhosts:\n- tls-context-host-1\nkind: TLSContext\nmax_tls_version: v1.2\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextciphersuites\n  scope: AmbassadorTest\nname: TLSContextCipherSuites-same-context-1\nnamespace: default\nsecret: secret.cipher-suites\nsecret_namespacing: false\n"
+            "serialization": "_force_validation: true\nambassador_id: tlscontextciphersuites\napiVersion: ambassador/v1\ncipher_suites:\n- ECDHE-RSA-AES128-GCM-SHA256\necdh_curves:\n- P-256\nhosts:\n- tls-context-host-1\nkind: TLSContext\nmax_tls_version: v1.2\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextciphersuites\n  scope: AmbassadorTest\nname: TLSContextCipherSuites-same-context-1\nnamespace: default\nsecret: secret.cipher-suites\nsecret_namespacing: false\n"
         }
     },
     "mappings": {

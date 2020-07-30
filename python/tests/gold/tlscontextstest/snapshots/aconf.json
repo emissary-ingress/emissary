@@ -1,10 +1,7 @@
 {
     "_errors": {},
+    "_fast_validation_disagreements": {},
     "_notices": {
-        "-global-": [
-            "Parsed pod labels: {'kat-ambassador-id': 'tlscontextstest', 'scope': 'AmbassadorTest', 'service': 'tlscontextstest'}",
-            "Found Ambassador service: tlscontextstest"
-        ],
         "tlscontextstest.default.1": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ],
@@ -124,7 +121,7 @@
             "name": "tls",
             "namespace": "default",
             "rkey": "tlscontextstest.default.1",
-            "serialization": "ambassador_id: tlscontextstest\napiVersion: ambassador/v0\nconfig:\n  upstream:\n    enabled: true\n    secret: test-tlscontexts-secret\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextstest\n  scope: AmbassadorTest\nname: tls\nnamespace: default\n"
+            "serialization": "_force_validation: true\nambassador_id: tlscontextstest\napiVersion: ambassador/v0\nconfig:\n  upstream:\n    enabled: true\n    secret: test-tlscontexts-secret\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextstest\n  scope: AmbassadorTest\nname: tls\nnamespace: default\n"
         },
         "tlscontextstest.default.2": {
             "_referenced_by": {},
@@ -141,7 +138,7 @@
             "namespace": "default",
             "prefix": "/TLSContextsTest/",
             "rkey": "tlscontextstest.default.2",
-            "serialization": "ambassador_id: tlscontextstest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextstest\n  scope: AmbassadorTest\nname: tlscontextstest-http\nnamespace: default\nprefix: /TLSContextsTest/\nservice: tlscontextstest-http\n",
+            "serialization": "_force_validation: true\nambassador_id: tlscontextstest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextstest\n  scope: AmbassadorTest\nname: tlscontextstest-http\nnamespace: default\nprefix: /TLSContextsTest/\nservice: tlscontextstest-http\n",
             "service": "tlscontextstest-http"
         }
     },

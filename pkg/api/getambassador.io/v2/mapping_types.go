@@ -65,19 +65,45 @@ type MappingSpec struct {
 	TimeoutMs             int                     `json:"timeout_ms,omitempty"`
 	IdleTimeoutMs         int                     `json:"idle_timeout_ms,omitempty"`
 	TLS                   BoolOrString            `json:"tls,omitempty"`
-	UseWebsocket          bool                    `json:"use_websocket,omitempty"`
-	Weight                int                     `json:"weight,omitempty"`
-	BypassAuth            bool                    `json:"bypass_auth,omitempty"`
-	Modules               []UntypedDict           `json:"modules,omitempty"`
-	Host                  string                  `json:"host,omitempty"`
-	HostRegex             bool                    `json:"host_regex,omitempty"`
-	Headers               map[string]BoolOrString `json:"headers,omitempty"`
-	RegexHeaders          map[string]BoolOrString `json:"regex_headers,omitempty"`
-	Labels                MappingLabels           `json:"labels,omitempty"`
-	EnvoyOverride         UntypedDict             `json:"envoy_override,omitempty"`
-	LoadBalancer          *LoadBalancer           `json:"load_balancer,omitempty"`
-	QueryParameters       map[string]BoolOrString `json:"query_parameters,omitempty"`
-	RegexQueryParameters  map[string]BoolOrString `json:"regex_query_parameters,omitempty"`
+
+	// use_websocket is deprecated, and is equivlaent to setting
+	// `allow_upgrade: ["websocket"]`
+	UseWebsocket bool `json:"use_websocket,omitempty"`
+
+	// A case-insensitive list of the non-HTTP protocols to allow
+	// "upgrading" to from HTTP via the "Connection: upgrade"
+	// mechanism[1].  After the upgrade, Ambassador does not
+	// interpret the traffic, and behaves similarly to how it does
+	// for TCPMappings.
+	//
+	// [1]: https://tools.ietf.org/html/rfc7230#section-6.7
+	//
+	// For example, if your upstream service supports WebSockets,
+	// you would write
+	//
+	//    allow_upgrade:
+	//    - websocket
+	//
+	// Or if your upstream service supports upgrading from HTTP to
+	// SPDY (as the Kubernetes apiserver does for `kubectl exec`
+	// functionality), you would write
+	//
+	//    allow_upgrade:
+	//    - spdy/3.1
+	AllowUpgrade []string `json:"allow_upgrade,omitempty"`
+
+	Weight               int                     `json:"weight,omitempty"`
+	BypassAuth           bool                    `json:"bypass_auth,omitempty"`
+	Modules              []UntypedDict           `json:"modules,omitempty"`
+	Host                 string                  `json:"host,omitempty"`
+	HostRegex            bool                    `json:"host_regex,omitempty"`
+	Headers              map[string]BoolOrString `json:"headers,omitempty"`
+	RegexHeaders         map[string]BoolOrString `json:"regex_headers,omitempty"`
+	Labels               MappingLabels           `json:"labels,omitempty"`
+	EnvoyOverride        UntypedDict             `json:"envoy_override,omitempty"`
+	LoadBalancer         *LoadBalancer           `json:"load_balancer,omitempty"`
+	QueryParameters      map[string]BoolOrString `json:"query_parameters,omitempty"`
+	RegexQueryParameters map[string]BoolOrString `json:"regex_query_parameters,omitempty"`
 }
 
 // Python: MappingLabels = Dict[str, Union[str,'MappingLabels']]

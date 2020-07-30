@@ -459,7 +459,7 @@
                         "X-Foo-^[a-z].*",
                         ":authority-[a-zA-Z].*"
                     ],
-                    "serialization": "ambassador_id: saferegexmapping\napiVersion: ambassador/v1\nhost: '[a-zA-Z].*'\nhost_regex: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: saferegexmapping\n  scope: AmbassadorTest\nname: SafeRegexMapping\nnamespace: default\nprefix: /SafeRegexMapping/\nprefix_regex: true\nregex_headers:\n  X-Foo: ^[a-z].*\nservice: http://saferegexmapping-http\n",
+                    "serialization": "_force_validation: true\nambassador_id: saferegexmapping\napiVersion: ambassador/v1\nhost: '[a-zA-Z].*'\nhost_regex: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: saferegexmapping\n  scope: AmbassadorTest\nname: SafeRegexMapping\nnamespace: default\nprefix: /SafeRegexMapping/\nprefix_regex: true\nregex_headers:\n  X-Foo: ^[a-z].*\nservice: http://saferegexmapping-http\n",
                     "service": "http://saferegexmapping-http",
                     "weight": 100
                 }
@@ -477,7 +477,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: saferegexmapping\napiVersion: ambassador/v1\nhost: '[a-zA-Z].*'\nhost_regex: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: saferegexmapping\n  scope: AmbassadorTest\nname: SafeRegexMapping\nnamespace: default\nprefix: /SafeRegexMapping/\nprefix_regex: true\nregex_headers:\n  X-Foo: ^[a-z].*\nservice: http://saferegexmapping-http\n"
+            "serialization": "_force_validation: true\nambassador_id: saferegexmapping\napiVersion: ambassador/v1\nhost: '[a-zA-Z].*'\nhost_regex: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: saferegexmapping\n  scope: AmbassadorTest\nname: SafeRegexMapping\nnamespace: default\nprefix: /SafeRegexMapping/\nprefix_regex: true\nregex_headers:\n  X-Foo: ^[a-z].*\nservice: http://saferegexmapping-http\n"
         },
         {
             "_active": true,

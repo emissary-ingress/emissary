@@ -777,12 +777,6 @@ class V2Listener(dict):
                 }
             })
 
-        # Save upgrade configs.
-        for group in self.config.ir.ordered_groups():
-            if group.get('use_websocket'):
-                self.upgrade_configs = [{'upgrade_type': 'websocket'}]
-                break
-
         # Start by building our base HTTP config...
         self.base_http_config: Dict[str, Any] = {
             'stat_prefix': 'ingress_http',

@@ -1,10 +1,7 @@
 {
     "_errors": {},
+    "_fast_validation_disagreements": {},
     "_notices": {
-        "-global-": [
-            "Parsed pod labels: {'kat-ambassador-id': 'tracingtest', 'scope': 'AmbassadorTest', 'service': 'tracingtest'}",
-            "Found Ambassador service: tracingtest"
-        ],
         "tracingtest-http.default.1": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ],
@@ -117,7 +114,7 @@
             "namespace": "default",
             "prefix": "/target/",
             "rkey": "tracingtest-http.default.1",
-            "serialization": "ambassador_id: tracingtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingtest\n  scope: AmbassadorTest\nname: tracing_target_mapping\nnamespace: default\nprefix: /target/\nservice: tracingtest-http\n",
+            "serialization": "_force_validation: true\nambassador_id: tracingtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingtest\n  scope: AmbassadorTest\nname: tracing_target_mapping\nnamespace: default\nprefix: /target/\nservice: tracingtest-http\n",
             "service": "tracingtest-http"
         },
         "zipkin.default.1": {
@@ -134,7 +131,7 @@
             "name": "tracing",
             "namespace": "default",
             "rkey": "zipkin.default.1",
-            "serialization": "ambassador_id: tracingtest\napiVersion: ambassador/v0\ndriver: zipkin\nkind: TracingService\nmetadata_labels:\n  kat-ambassador-id: tracingtest\n  scope: AmbassadorTest\nname: tracing\nnamespace: default\nservice: zipkin:9411\n",
+            "serialization": "_force_validation: true\nambassador_id: tracingtest\napiVersion: ambassador/v0\ndriver: zipkin\nkind: TracingService\nmetadata_labels:\n  kat-ambassador-id: tracingtest\n  scope: AmbassadorTest\nname: tracing\nnamespace: default\nservice: zipkin:9411\n",
             "service": "zipkin:9411"
         }
     },

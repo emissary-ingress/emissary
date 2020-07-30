@@ -564,7 +564,7 @@
                         "/target-64/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: tracingtestshorttraceid\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingtestshorttraceid\n  scope: AmbassadorTest\nname: tracing_target_mapping_64\nnamespace: default\nprefix: /target-64/\nservice: tracingtestshorttraceid-http\n",
+                    "serialization": "_force_validation: true\nambassador_id: tracingtestshorttraceid\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingtestshorttraceid\n  scope: AmbassadorTest\nname: tracing_target_mapping_64\nnamespace: default\nprefix: /target-64/\nservice: tracingtestshorttraceid-http\n",
                     "service": "tracingtestshorttraceid-http",
                     "weight": 100
                 }
@@ -580,7 +580,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: tracingtestshorttraceid\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingtestshorttraceid\n  scope: AmbassadorTest\nname: tracing_target_mapping_64\nnamespace: default\nprefix: /target-64/\nservice: tracingtestshorttraceid-http\n"
+            "serialization": "_force_validation: true\nambassador_id: tracingtestshorttraceid\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingtestshorttraceid\n  scope: AmbassadorTest\nname: tracing_target_mapping_64\nnamespace: default\nprefix: /target-64/\nservice: tracingtestshorttraceid-http\n"
         }
     ],
     "grpc_services": {},

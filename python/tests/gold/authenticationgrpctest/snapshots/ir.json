@@ -630,7 +630,7 @@
                         "/target/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: authenticationgrpctest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationgrpctest\n  scope: AmbassadorTest\nname: authenticationgrpctest-http\nnamespace: default\nprefix: /target/\nservice: authenticationgrpctest-http\n",
+                    "serialization": "_force_validation: true\nambassador_id: authenticationgrpctest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationgrpctest\n  scope: AmbassadorTest\nname: authenticationgrpctest-http\nnamespace: default\nprefix: /target/\nservice: authenticationgrpctest-http\n",
                     "service": "authenticationgrpctest-http",
                     "weight": 100
                 }
@@ -647,7 +647,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: authenticationgrpctest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationgrpctest\n  scope: AmbassadorTest\nname: authenticationgrpctest-http\nnamespace: default\nprefix: /target/\nservice: authenticationgrpctest-http\n"
+            "serialization": "_force_validation: true\nambassador_id: authenticationgrpctest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationgrpctest\n  scope: AmbassadorTest\nname: authenticationgrpctest-http\nnamespace: default\nprefix: /target/\nservice: authenticationgrpctest-http\n"
         }
     ],
     "grpc_services": {},

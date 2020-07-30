@@ -1,10 +1,7 @@
 {
     "_errors": {},
+    "_fast_validation_disagreements": {},
     "_notices": {
-        "-global-": [
-            "Parsed pod labels: {'kat-ambassador-id': 'authenticationheaderrouting', 'scope': 'AmbassadorTest', 'service': 'authenticationheaderrouting'}",
-            "Found Ambassador service: authenticationheaderrouting"
-        ],
         "authenticationheaderrouting-http-target1.default.1": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ],
@@ -51,7 +48,7 @@
             "namespace": "default",
             "prefix": "/target/",
             "rkey": "authenticationheaderrouting-http-target1.default.1",
-            "serialization": "ambassador_id: authenticationheaderrouting\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: AuthenticationHeaderRouting-target1\nnamespace: default\nprefix: /target/\nservice: http://authenticationheaderrouting-http-target1\n",
+            "serialization": "_force_validation: true\nambassador_id: authenticationheaderrouting\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: AuthenticationHeaderRouting-target1\nnamespace: default\nprefix: /target/\nservice: http://authenticationheaderrouting-http-target1\n",
             "service": "http://authenticationheaderrouting-http-target1"
         },
         "authenticationheaderrouting-http-target2.default.1": {
@@ -71,7 +68,7 @@
             "namespace": "default",
             "prefix": "/target/",
             "rkey": "authenticationheaderrouting-http-target2.default.1",
-            "serialization": "ambassador_id: authenticationheaderrouting\napiVersion: ambassador/v0\nheaders:\n  X-Auth-Route: Route\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: AuthenticationHeaderRouting-target2\nnamespace: default\nprefix: /target/\nservice: http://authenticationheaderrouting-http-target2\n",
+            "serialization": "_force_validation: true\nambassador_id: authenticationheaderrouting\napiVersion: ambassador/v0\nheaders:\n  X-Auth-Route: Route\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: AuthenticationHeaderRouting-target2\nnamespace: default\nprefix: /target/\nservice: http://authenticationheaderrouting-http-target2\n",
             "service": "http://authenticationheaderrouting-http-target2"
         },
         "authenticationheaderrouting.default.1": {
@@ -95,7 +92,7 @@
             "path_prefix": "",
             "proto": "http",
             "rkey": "authenticationheaderrouting.default.1",
-            "serialization": "allowed_authorization_headers:\n- X-Auth-Route\n- Extauth\nambassador_id: authenticationheaderrouting\napiVersion: ambassador/v1\nauth_service: authenticationheaderrouting-headerroutingauth\nkind: AuthService\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: authenticationheaderrouting-headerroutingauth\nnamespace: default\npath_prefix: ''\nproto: http\ntimeout_ms: 5000\n",
+            "serialization": "_force_validation: true\nallowed_authorization_headers:\n- X-Auth-Route\n- Extauth\nambassador_id: authenticationheaderrouting\napiVersion: ambassador/v1\nauth_service: authenticationheaderrouting-headerroutingauth\nkind: AuthService\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: authenticationheaderrouting-headerroutingauth\nnamespace: default\npath_prefix: ''\nproto: http\ntimeout_ms: 5000\n",
             "timeout_ms": 5000
         },
         "k8s-authenticationheaderrouting-admin-default": {

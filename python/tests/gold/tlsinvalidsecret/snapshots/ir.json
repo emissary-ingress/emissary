@@ -528,7 +528,7 @@
                         "/tls-target/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: tlsinvalidsecret\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tlsinvalidsecret\n  scope: AmbassadorTest\nname: tls_target_mapping\nnamespace: default\nprefix: /tls-target/\nservice: tlsinvalidsecret-http\n",
+                    "serialization": "_force_validation: true\nambassador_id: tlsinvalidsecret\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tlsinvalidsecret\n  scope: AmbassadorTest\nname: tls_target_mapping\nnamespace: default\nprefix: /tls-target/\nservice: tlsinvalidsecret-http\n",
                     "service": "tlsinvalidsecret-http",
                     "weight": 100
                 }
@@ -544,7 +544,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: tlsinvalidsecret\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tlsinvalidsecret\n  scope: AmbassadorTest\nname: tls_target_mapping\nnamespace: default\nprefix: /tls-target/\nservice: tlsinvalidsecret-http\n"
+            "serialization": "_force_validation: true\nambassador_id: tlsinvalidsecret\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tlsinvalidsecret\n  scope: AmbassadorTest\nname: tls_target_mapping\nnamespace: default\nprefix: /tls-target/\nservice: tlsinvalidsecret-http\n"
         }
     ],
     "grpc_services": {},

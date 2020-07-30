@@ -1,10 +1,7 @@
 {
     "_errors": {},
+    "_fast_validation_disagreements": {},
     "_notices": {
-        "-global-": [
-            "Parsed pod labels: {'kat-ambassador-id': 'acceptancegrpcbridgetest', 'scope': 'AmbassadorTest', 'service': 'acceptancegrpcbridgetest'}",
-            "Found Ambassador service: acceptancegrpcbridgetest"
-        ],
         "acceptancegrpcbridgetest.default.1": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ],
@@ -54,7 +51,7 @@
             "name": "ambassador",
             "namespace": "default",
             "rkey": "acceptancegrpcbridgetest.default.1",
-            "serialization": "ambassador_id: acceptancegrpcbridgetest\napiVersion: ambassador/v0\nconfig:\n  enable_grpc_http11_bridge: true\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpcbridgetest\n  scope: AmbassadorTest\nname: ambassador\nnamespace: default\n"
+            "serialization": "_force_validation: true\nambassador_id: acceptancegrpcbridgetest\napiVersion: ambassador/v0\nconfig:\n  enable_grpc_http11_bridge: true\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpcbridgetest\n  scope: AmbassadorTest\nname: ambassador\nnamespace: default\n"
         },
         "acceptancegrpcbridgetest.default.2": {
             "_referenced_by": {},
@@ -73,7 +70,7 @@
             "prefix": "/echo.EchoService/",
             "rewrite": "/echo.EchoService/",
             "rkey": "acceptancegrpcbridgetest.default.2",
-            "serialization": "ambassador_id: acceptancegrpcbridgetest\napiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpcbridgetest\n  scope: AmbassadorTest\nname: acceptancegrpcbridgetest-egrpc\nnamespace: default\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nservice: acceptancegrpcbridgetest-egrpc\n",
+            "serialization": "_force_validation: true\nambassador_id: acceptancegrpcbridgetest\napiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpcbridgetest\n  scope: AmbassadorTest\nname: acceptancegrpcbridgetest-egrpc\nnamespace: default\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nservice: acceptancegrpcbridgetest-egrpc\n",
             "service": "acceptancegrpcbridgetest-egrpc"
         },
         "k8s-acceptancegrpcbridgetest-admin-default": {

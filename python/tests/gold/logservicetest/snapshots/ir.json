@@ -562,7 +562,7 @@
                         "/config_dump",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: logservicetest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: logservicetest\n  scope: AmbassadorTest\nname: config__dump\nnamespace: default\nprefix: /config_dump\nrewrite: /config_dump\nservice: http://127.0.0.1:8001\n",
+                    "serialization": "_force_validation: true\nambassador_id: logservicetest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: logservicetest\n  scope: AmbassadorTest\nname: config__dump\nnamespace: default\nprefix: /config_dump\nrewrite: /config_dump\nservice: http://127.0.0.1:8001\n",
                     "service": "http://127.0.0.1:8001",
                     "weight": 100
                 }
@@ -578,7 +578,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/config_dump",
-            "serialization": "ambassador_id: logservicetest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: logservicetest\n  scope: AmbassadorTest\nname: config__dump\nnamespace: default\nprefix: /config_dump\nrewrite: /config_dump\nservice: http://127.0.0.1:8001\n"
+            "serialization": "_force_validation: true\nambassador_id: logservicetest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: logservicetest\n  scope: AmbassadorTest\nname: config__dump\nnamespace: default\nprefix: /config_dump\nrewrite: /config_dump\nservice: http://127.0.0.1:8001\n"
         }
     ],
     "grpc_services": {},

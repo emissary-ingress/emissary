@@ -1,10 +1,7 @@
 {
     "_errors": {},
+    "_fast_validation_disagreements": {},
     "_notices": {
-        "-global-": [
-            "Parsed pod labels: {'kat-ambassador-id': 'retrypolicytest', 'scope': 'AmbassadorTest', 'service': 'retrypolicytest'}",
-            "Found Ambassador service: retrypolicytest"
-        ],
         "retrypolicytest.default.1": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ],
@@ -102,7 +99,7 @@
             "namespace": "default",
             "prefix": "/RetryPolicyTest-normal/",
             "rkey": "retrypolicytest.default.1",
-            "serialization": "ambassador_id: retrypolicytest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: retrypolicytest\n  scope: AmbassadorTest\nname: RetryPolicyTest-normal\nnamespace: default\nprefix: /RetryPolicyTest-normal/\nservice: retrypolicytest-http\ntimeout_ms: 3000\n",
+            "serialization": "_force_validation: true\nambassador_id: retrypolicytest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: retrypolicytest\n  scope: AmbassadorTest\nname: RetryPolicyTest-normal\nnamespace: default\nprefix: /RetryPolicyTest-normal/\nservice: retrypolicytest-http\ntimeout_ms: 3000\n",
             "service": "retrypolicytest-http",
             "timeout_ms": 3000
         },
@@ -125,7 +122,7 @@
                 "retry_on": "5xx"
             },
             "rkey": "retrypolicytest.default.2",
-            "serialization": "ambassador_id: retrypolicytest\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: retrypolicytest\n  scope: AmbassadorTest\nname: RetryPolicyTest-target\nnamespace: default\nprefix: /RetryPolicyTest-retry/\nretry_policy:\n  num_retries: 4\n  retry_on: 5xx\nservice: retrypolicytest-http\ntimeout_ms: 3000\n",
+            "serialization": "_force_validation: true\nambassador_id: retrypolicytest\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: retrypolicytest\n  scope: AmbassadorTest\nname: RetryPolicyTest-target\nnamespace: default\nprefix: /RetryPolicyTest-retry/\nretry_policy:\n  num_retries: 4\n  retry_on: 5xx\nservice: retrypolicytest-http\ntimeout_ms: 3000\n",
             "service": "retrypolicytest-http",
             "timeout_ms": 3000
         },
@@ -149,7 +146,7 @@
             "name": "ambassador",
             "namespace": "default",
             "rkey": "retrypolicytest.default.3",
-            "serialization": "ambassador_id: retrypolicytest\napiVersion: ambassador/v0\nconfig:\n  retry_policy:\n    num_retries: 4\n    retry_on: retriable-4xx\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: retrypolicytest\n  scope: AmbassadorTest\nname: ambassador\nnamespace: default\n"
+            "serialization": "_force_validation: true\nambassador_id: retrypolicytest\napiVersion: ambassador/v0\nconfig:\n  retry_policy:\n    num_retries: 4\n    retry_on: retriable-4xx\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: retrypolicytest\n  scope: AmbassadorTest\nname: ambassador\nnamespace: default\n"
         }
     },
     "mappings": {

@@ -688,7 +688,7 @@
                         "/target/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: authenticationhttppartialbuffertest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttppartialbuffertest\n  scope: AmbassadorTest\nname: authenticationhttppartialbuffertest-http\nnamespace: default\nprefix: /target/\nservice: authenticationhttppartialbuffertest-http\n",
+                    "serialization": "_force_validation: true\nambassador_id: authenticationhttppartialbuffertest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttppartialbuffertest\n  scope: AmbassadorTest\nname: authenticationhttppartialbuffertest-http\nnamespace: default\nprefix: /target/\nservice: authenticationhttppartialbuffertest-http\n",
                     "service": "authenticationhttppartialbuffertest-http",
                     "weight": 100
                 }
@@ -705,7 +705,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: authenticationhttppartialbuffertest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttppartialbuffertest\n  scope: AmbassadorTest\nname: authenticationhttppartialbuffertest-http\nnamespace: default\nprefix: /target/\nservice: authenticationhttppartialbuffertest-http\n"
+            "serialization": "_force_validation: true\nambassador_id: authenticationhttppartialbuffertest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttppartialbuffertest\n  scope: AmbassadorTest\nname: authenticationhttppartialbuffertest-http\nnamespace: default\nprefix: /target/\nservice: authenticationhttppartialbuffertest-http\n"
         }
     ],
     "grpc_services": {},

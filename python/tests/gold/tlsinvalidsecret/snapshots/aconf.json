@@ -1,10 +1,7 @@
 {
     "_errors": {},
+    "_fast_validation_disagreements": {},
     "_notices": {
-        "-global-": [
-            "Parsed pod labels: {'kat-ambassador-id': 'tlsinvalidsecret', 'scope': 'AmbassadorTest', 'service': 'tlsinvalidsecret'}",
-            "Found Ambassador service: tlsinvalidsecret"
-        ],
         "tlsinvalidsecret-http.default.1": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ],
@@ -101,7 +98,7 @@
             "namespace": "default",
             "prefix": "/tls-target/",
             "rkey": "tlsinvalidsecret-http.default.1",
-            "serialization": "ambassador_id: tlsinvalidsecret\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tlsinvalidsecret\n  scope: AmbassadorTest\nname: tls_target_mapping\nnamespace: default\nprefix: /tls-target/\nservice: tlsinvalidsecret-http\n",
+            "serialization": "_force_validation: true\nambassador_id: tlsinvalidsecret\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tlsinvalidsecret\n  scope: AmbassadorTest\nname: tls_target_mapping\nnamespace: default\nprefix: /tls-target/\nservice: tlsinvalidsecret-http\n",
             "service": "tlsinvalidsecret-http"
         },
         "tlsinvalidsecret.default.1": {
@@ -136,7 +133,7 @@
             "name": "tls",
             "namespace": "default",
             "rkey": "tlsinvalidsecret.default.1",
-            "serialization": "ambassador_id: tlsinvalidsecret\napiVersion: ambassador/v0\nconfig:\n  bad-path-info:\n    cert_chain_file: /nonesuch\n    private_key_file: /nonesuch\n  missing-secret-key:\n    cert_chain_file: /nonesuch\n  server:\n    enabled: true\n    secret: test-certs-secret-invalid\n  validation-without-termination:\n    ca_secret: ambassador-certs\n    enabled: true\n    secret: test-certs-secret-invalid\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlsinvalidsecret\n  scope: AmbassadorTest\nname: tls\nnamespace: default\n"
+            "serialization": "_force_validation: true\nambassador_id: tlsinvalidsecret\napiVersion: ambassador/v0\nconfig:\n  bad-path-info:\n    cert_chain_file: /nonesuch\n    private_key_file: /nonesuch\n  missing-secret-key:\n    cert_chain_file: /nonesuch\n  server:\n    enabled: true\n    secret: test-certs-secret-invalid\n  validation-without-termination:\n    ca_secret: ambassador-certs\n    enabled: true\n    secret: test-certs-secret-invalid\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlsinvalidsecret\n  scope: AmbassadorTest\nname: tls\nnamespace: default\n"
         }
     },
     "mappings": {
