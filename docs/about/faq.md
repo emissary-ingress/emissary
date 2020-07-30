@@ -64,7 +64,7 @@ To use a custom 404 landing page, simply insert your service and remove the rewr
 apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
-  name: "404 fallback"
+  name: "404-fallback"
 spec:
   prefix: "/"
   rewrite: "/404/" # This must not map to any existing prefix!

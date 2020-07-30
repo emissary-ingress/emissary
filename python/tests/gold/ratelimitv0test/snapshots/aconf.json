@@ -1,10 +1,7 @@
 {
     "_errors": {},
+    "_fast_validation_disagreements": {},
     "_notices": {
-        "-global-": [
-            "Parsed pod labels: {'kat-ambassador-id': 'ratelimitv0test', 'scope': 'AmbassadorTest', 'service': 'ratelimitv0test'}",
-            "Found Ambassador service: ratelimitv0test"
-        ],
         "rate-limit-v0.default.1": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ],
@@ -116,7 +113,7 @@
             "name": "ratelimit-v0",
             "namespace": "default",
             "rkey": "rate-limit-v0.default.1",
-            "serialization": "ambassador_id: ratelimitv0test\napiVersion: ambassador/v0\nkind: RateLimitService\nmetadata_labels:\n  kat-ambassador-id: ratelimitv0test\n  scope: AmbassadorTest\nname: ratelimit-v0\nnamespace: default\nservice: rate-limit-v0:5000\ntimeout_ms: 500\n",
+            "serialization": "_force_validation: true\nambassador_id: ratelimitv0test\napiVersion: ambassador/v0\nkind: RateLimitService\nmetadata_labels:\n  kat-ambassador-id: ratelimitv0test\n  scope: AmbassadorTest\nname: ratelimit-v0\nnamespace: default\nservice: rate-limit-v0:5000\ntimeout_ms: 500\n",
             "service": "rate-limit-v0:5000",
             "timeout_ms": 500
         },
@@ -142,7 +139,7 @@
                 }
             ],
             "rkey": "ratelimitv0test-http.default.1",
-            "serialization": "ambassador_id: ratelimitv0test\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: ratelimitv0test\n  scope: AmbassadorTest\nname: ratelimit_target_mapping\nnamespace: default\nprefix: /target/\nrate_limits:\n- descriptor: A test case\n  headers:\n  - x-ambassador-test-allow\nservice: ratelimitv0test-http\n",
+            "serialization": "_force_validation: true\nambassador_id: ratelimitv0test\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: ratelimitv0test\n  scope: AmbassadorTest\nname: ratelimit_target_mapping\nnamespace: default\nprefix: /target/\nrate_limits:\n- descriptor: A test case\n  headers:\n  - x-ambassador-test-allow\nservice: ratelimitv0test-http\n",
             "service": "ratelimitv0test-http"
         },
         "ratelimitv0test-http.default.2": {
@@ -189,7 +186,7 @@
             "namespace": "default",
             "prefix": "/labels/",
             "rkey": "ratelimitv0test-http.default.2",
-            "serialization": "ambassador_id: ratelimitv0test\napiVersion: ambassador/v1\nkind: Mapping\nlabels:\n  ambassador:\n  - host_and_user:\n    - custom-label:\n        header: :authority\n        omit_if_not_present: true\n    - user:\n        header: x-user\n        omit_if_not_present: true\n  - omg_header:\n    - custom-label:\n        default: OMFG!\n        header: x-omg\nmetadata_labels:\n  kat-ambassador-id: ratelimitv0test\n  scope: AmbassadorTest\nname: ratelimit_label_mapping\nnamespace: default\nprefix: /labels/\nservice: ratelimitv0test-http\n",
+            "serialization": "_force_validation: true\nambassador_id: ratelimitv0test\napiVersion: ambassador/v1\nkind: Mapping\nlabels:\n  ambassador:\n  - host_and_user:\n    - custom-label:\n        header: :authority\n        omit_if_not_present: true\n    - user:\n        header: x-user\n        omit_if_not_present: true\n  - omg_header:\n    - custom-label:\n        default: OMFG!\n        header: x-omg\nmetadata_labels:\n  kat-ambassador-id: ratelimitv0test\n  scope: AmbassadorTest\nname: ratelimit_label_mapping\nnamespace: default\nprefix: /labels/\nservice: ratelimitv0test-http\n",
             "service": "ratelimitv0test-http"
         }
     },

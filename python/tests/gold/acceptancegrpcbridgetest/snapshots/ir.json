@@ -456,7 +456,7 @@
                         "/echo.EchoService/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: acceptancegrpcbridgetest\napiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpcbridgetest\n  scope: AmbassadorTest\nname: acceptancegrpcbridgetest-egrpc\nnamespace: default\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nservice: acceptancegrpcbridgetest-egrpc\n",
+                    "serialization": "_force_validation: true\nambassador_id: acceptancegrpcbridgetest\napiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpcbridgetest\n  scope: AmbassadorTest\nname: acceptancegrpcbridgetest-egrpc\nnamespace: default\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nservice: acceptancegrpcbridgetest-egrpc\n",
                     "service": "acceptancegrpcbridgetest-egrpc",
                     "weight": 100
                 }
@@ -473,7 +473,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/echo.EchoService/",
-            "serialization": "ambassador_id: acceptancegrpcbridgetest\napiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpcbridgetest\n  scope: AmbassadorTest\nname: acceptancegrpcbridgetest-egrpc\nnamespace: default\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nservice: acceptancegrpcbridgetest-egrpc\n"
+            "serialization": "_force_validation: true\nambassador_id: acceptancegrpcbridgetest\napiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpcbridgetest\n  scope: AmbassadorTest\nname: acceptancegrpcbridgetest-egrpc\nnamespace: default\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nservice: acceptancegrpcbridgetest-egrpc\n"
         },
         {
             "_active": true,

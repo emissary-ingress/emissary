@@ -1,11 +1,7 @@
 {
     "_errors": {},
-    "_notices": {
-        "-global-": [
-            "Parsed pod labels: {'kat-ambassador-id': 'redirecttestswithproxyproto', 'scope': 'AmbassadorTest', 'service': 'redirecttestswithproxyproto'}",
-            "Found Ambassador service: redirecttestswithproxyproto"
-        ]
-    },
+    "_fast_validation_disagreements": {},
+    "_notices": {},
     "_sources": {
         "--diagnostics--": {
             "_referenced_by": {},
@@ -95,7 +91,7 @@
             "namespace": "default",
             "prefix": "/tls-target/",
             "rkey": "redirecttestswithproxyproto-http.default.1",
-            "serialization": "ambassador_id: redirecttestswithproxyproto\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: redirecttestswithproxyproto\n  scope: AmbassadorTest\nname: tls_target_mapping\nnamespace: default\nprefix: /tls-target/\nservice: redirecttestswithproxyproto-http\n",
+            "serialization": "_force_validation: true\nambassador_id: redirecttestswithproxyproto\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: redirecttestswithproxyproto\n  scope: AmbassadorTest\nname: tls_target_mapping\nnamespace: default\nprefix: /tls-target/\nservice: redirecttestswithproxyproto-http\n",
             "service": "redirecttestswithproxyproto-http"
         },
         "redirecttestswithproxyproto.default.1": {
@@ -116,7 +112,7 @@
             "name": "ambassador",
             "namespace": "default",
             "rkey": "redirecttestswithproxyproto.default.1",
-            "serialization": "ambassador_id: redirecttestswithproxyproto\napiVersion: ambassador/v1\nconfig:\n  enable_ipv6: true\n  use_proxy_proto: true\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: redirecttestswithproxyproto\n  scope: AmbassadorTest\nname: ambassador\nnamespace: default\n"
+            "serialization": "_force_validation: true\nambassador_id: redirecttestswithproxyproto\napiVersion: ambassador/v1\nconfig:\n  enable_ipv6: true\n  use_proxy_proto: true\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: redirecttestswithproxyproto\n  scope: AmbassadorTest\nname: ambassador\nnamespace: default\n"
         }
     },
     "mappings": {

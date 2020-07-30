@@ -1,11 +1,7 @@
 {
     "_errors": {},
-    "_notices": {
-        "-global-": [
-            "Parsed pod labels: {'kat-ambassador-id': 'redirecttests', 'scope': 'AmbassadorTest', 'service': 'redirecttests'}",
-            "Found Ambassador service: redirecttests"
-        ]
-    },
+    "_fast_validation_disagreements": {},
+    "_notices": {},
     "_sources": {
         "--diagnostics--": {
             "_referenced_by": {},
@@ -113,7 +109,7 @@
             "namespace": "default",
             "prefix": "/tls-target/",
             "rkey": "redirecttests-http.default.1",
-            "serialization": "ambassador_id: redirecttests\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: redirecttests\n  scope: AmbassadorTest\nname: tls_target_mapping\nnamespace: default\nprefix: /tls-target/\nservice: redirecttests-http\n",
+            "serialization": "_force_validation: true\nambassador_id: redirecttests\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: redirecttests\n  scope: AmbassadorTest\nname: tls_target_mapping\nnamespace: default\nprefix: /tls-target/\nservice: redirecttests-http\n",
             "service": "redirecttests-http"
         },
         "redirecttests.default.1": {
@@ -137,7 +133,7 @@
             "name": "tls",
             "namespace": "default",
             "rkey": "redirecttests.default.1",
-            "serialization": "ambassador_id: redirecttests\napiVersion: ambassador/v1\nconfig:\n  server:\n    enabled: true\n    redirect_cleartext_from: 8080\n    secret: redirect-cert\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: redirecttests\n  scope: AmbassadorTest\nname: tls\nnamespace: default\n"
+            "serialization": "_force_validation: true\nambassador_id: redirecttests\napiVersion: ambassador/v1\nconfig:\n  server:\n    enabled: true\n    redirect_cleartext_from: 8080\n    secret: redirect-cert\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: redirecttests\n  scope: AmbassadorTest\nname: tls\nnamespace: default\n"
         }
     },
     "mappings": {

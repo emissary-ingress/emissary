@@ -667,7 +667,7 @@
                         "/target/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: tracingexternalauthtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingexternalauthtest\n  scope: AmbassadorTest\nname: tracing_target_mapping\nnamespace: default\nprefix: /target/\nservice: tracingexternalauthtest-http\n",
+                    "serialization": "_force_validation: true\nambassador_id: tracingexternalauthtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingexternalauthtest\n  scope: AmbassadorTest\nname: tracing_target_mapping\nnamespace: default\nprefix: /target/\nservice: tracingexternalauthtest-http\n",
                     "service": "tracingexternalauthtest-http",
                     "weight": 100
                 }
@@ -683,7 +683,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: tracingexternalauthtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingexternalauthtest\n  scope: AmbassadorTest\nname: tracing_target_mapping\nnamespace: default\nprefix: /target/\nservice: tracingexternalauthtest-http\n"
+            "serialization": "_force_validation: true\nambassador_id: tracingexternalauthtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingexternalauthtest\n  scope: AmbassadorTest\nname: tracing_target_mapping\nnamespace: default\nprefix: /target/\nservice: tracingexternalauthtest-http\n"
         }
     ],
     "grpc_services": {},

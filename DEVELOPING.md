@@ -121,6 +121,14 @@ results. If you make a code update that changes the generated envoy
 configuration, those tests will fail and you will need to update the
 python test cache.
 
+Note that it is invalid to run one of the `main[Plain.*]` Python tests
+without running all of the other `main[Plain*]` tests; the test will
+fail to run (not even showing up as a failure or xfail--it will fail
+to run at all).  For example, `PYTEST_ARGS="-k WebSocket"` would match
+the `main[Plain.WebSocketMapping-GRPC]` test, and that test would fail
+to run; one should instead say `PYTEST_ARGS="-k Plain or WebSocket"`
+to avoid breaking the sub-tests of "Plain".
+
 How do I update the python test cache?
 --------------------------------------
 

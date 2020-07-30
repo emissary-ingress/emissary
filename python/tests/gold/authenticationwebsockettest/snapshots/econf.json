@@ -260,7 +260,12 @@
                                                             "host_rewrite": "echo.websocket.org",
                                                             "prefix_rewrite": "/",
                                                             "priority": null,
-                                                            "timeout": "3.000s"
+                                                            "timeout": "3.000s",
+                                                            "upgrade_configs": [
+                                                                {
+                                                                    "upgrade_type": "websocket"
+                                                                }
+                                                            ]
                                                         }
                                                     },
                                                     {
@@ -280,7 +285,12 @@
                                                             "host_rewrite": "echo.websocket.org",
                                                             "prefix_rewrite": "/",
                                                             "priority": null,
-                                                            "timeout": "3.000s"
+                                                            "timeout": "3.000s",
+                                                            "upgrade_configs": [
+                                                                {
+                                                                    "upgrade_type": "websocket"
+                                                                }
+                                                            ]
                                                         }
                                                     },
                                                     {
@@ -421,11 +431,6 @@
                                     },
                                     "server_name": "envoy",
                                     "stat_prefix": "ingress_http",
-                                    "upgrade_configs": [
-                                        {
-                                            "upgrade_type": "websocket"
-                                        }
-                                    ],
                                     "use_remote_address": true,
                                     "xff_num_trusted_hops": 0
                                 }

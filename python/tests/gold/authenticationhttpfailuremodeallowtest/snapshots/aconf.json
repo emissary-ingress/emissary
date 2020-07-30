@@ -1,10 +1,7 @@
 {
     "_errors": {},
+    "_fast_validation_disagreements": {},
     "_notices": {
-        "-global-": [
-            "Parsed pod labels: {'kat-ambassador-id': 'authenticationhttpfailuremodeallowtest', 'scope': 'AmbassadorTest', 'service': 'authenticationhttpfailuremodeallowtest'}",
-            "Found Ambassador service: authenticationhttpfailuremodeallowtest"
-        ],
         "authenticationhttpfailuremodeallowtest.default.3": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ]
@@ -67,7 +64,7 @@
             "namespace": "default",
             "rkey": "authenticationhttpfailuremodeallowtest.default.1",
             "secret": "auth-failure-secret",
-            "serialization": "ambassador_id: authenticationhttpfailuremodeallowtest\napiVersion: ambassador/v1\nkind: TLSContext\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttpfailuremodeallowtest\n  scope: AmbassadorTest\nname: AuthenticationHTTPFailureModeAllowTest-failure-context\nnamespace: default\nsecret: auth-failure-secret\n"
+            "serialization": "_force_validation: true\nambassador_id: authenticationhttpfailuremodeallowtest\napiVersion: ambassador/v1\nkind: TLSContext\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttpfailuremodeallowtest\n  scope: AmbassadorTest\nname: AuthenticationHTTPFailureModeAllowTest-failure-context\nnamespace: default\nsecret: auth-failure-secret\n"
         },
         "authenticationhttpfailuremodeallowtest.default.2": {
             "_referenced_by": {},
@@ -90,7 +87,7 @@
             "namespace": "default",
             "path_prefix": "/extauth",
             "rkey": "authenticationhttpfailuremodeallowtest.default.2",
-            "serialization": "allowed_request_headers:\n- Requested-Status\n- Requested-Header\nambassador_id: authenticationhttpfailuremodeallowtest\napiVersion: ambassador/v1\nauth_service: authenticationhttpfailuremodeallowtest-http-auth\nfailure_mode_allow: true\nkind: AuthService\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttpfailuremodeallowtest\n  scope: AmbassadorTest\nname: authenticationhttpfailuremodeallowtest-http-auth\nnamespace: default\npath_prefix: /extauth\ntimeout_ms: 5000\ntls: AuthenticationHTTPFailureModeAllowTest-failure-context\n",
+            "serialization": "_force_validation: true\nallowed_request_headers:\n- Requested-Status\n- Requested-Header\nambassador_id: authenticationhttpfailuremodeallowtest\napiVersion: ambassador/v1\nauth_service: authenticationhttpfailuremodeallowtest-http-auth\nfailure_mode_allow: true\nkind: AuthService\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttpfailuremodeallowtest\n  scope: AmbassadorTest\nname: authenticationhttpfailuremodeallowtest-http-auth\nnamespace: default\npath_prefix: /extauth\ntimeout_ms: 5000\ntls: AuthenticationHTTPFailureModeAllowTest-failure-context\n",
             "timeout_ms": 5000,
             "tls": "AuthenticationHTTPFailureModeAllowTest-failure-context"
         },
@@ -109,7 +106,7 @@
             "namespace": "default",
             "prefix": "/target/",
             "rkey": "authenticationhttpfailuremodeallowtest.default.3",
-            "serialization": "ambassador_id: authenticationhttpfailuremodeallowtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttpfailuremodeallowtest\n  scope: AmbassadorTest\nname: authenticationhttpfailuremodeallowtest-http\nnamespace: default\nprefix: /target/\nservice: authenticationhttpfailuremodeallowtest-http\n",
+            "serialization": "_force_validation: true\nambassador_id: authenticationhttpfailuremodeallowtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttpfailuremodeallowtest\n  scope: AmbassadorTest\nname: authenticationhttpfailuremodeallowtest-http\nnamespace: default\nprefix: /target/\nservice: authenticationhttpfailuremodeallowtest-http\n",
             "service": "authenticationhttpfailuremodeallowtest-http"
         },
         "k8s-authenticationhttpfailuremodeallowtest-admin-default": {

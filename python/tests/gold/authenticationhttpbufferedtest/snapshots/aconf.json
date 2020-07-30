@@ -1,10 +1,7 @@
 {
     "_errors": {},
+    "_fast_validation_disagreements": {},
     "_notices": {
-        "-global-": [
-            "Parsed pod labels: {'kat-ambassador-id': 'authenticationhttpbufferedtest', 'scope': 'AmbassadorTest', 'service': 'authenticationhttpbufferedtest'}",
-            "Found Ambassador service: authenticationhttpbufferedtest"
-        ],
         "authenticationhttpbufferedtest.default.1": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ],
@@ -75,7 +72,7 @@
             "name": "ambassador",
             "namespace": "default",
             "rkey": "authenticationhttpbufferedtest.default.1",
-            "serialization": "ambassador_id: authenticationhttpbufferedtest\napiVersion: ambassador/v0\nconfig:\n  add_linkerd_headers: true\n  buffer:\n    max_request_bytes: 16384\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttpbufferedtest\n  scope: AmbassadorTest\nname: ambassador\nnamespace: default\n"
+            "serialization": "_force_validation: true\nambassador_id: authenticationhttpbufferedtest\napiVersion: ambassador/v0\nconfig:\n  add_linkerd_headers: true\n  buffer:\n    max_request_bytes: 16384\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttpbufferedtest\n  scope: AmbassadorTest\nname: ambassador\nnamespace: default\n"
         },
         "authenticationhttpbufferedtest.default.2": {
             "_referenced_by": {},
@@ -92,7 +89,7 @@
             "namespace": "default",
             "rkey": "authenticationhttpbufferedtest.default.2",
             "secret": "auth-buffered-secret",
-            "serialization": "ambassador_id: authenticationhttpbufferedtest\napiVersion: ambassador/v1\nkind: TLSContext\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttpbufferedtest\n  scope: AmbassadorTest\nname: AuthenticationHTTPBufferedTest-same-context-1\nnamespace: default\nsecret: auth-buffered-secret\n"
+            "serialization": "_force_validation: true\nambassador_id: authenticationhttpbufferedtest\napiVersion: ambassador/v1\nkind: TLSContext\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttpbufferedtest\n  scope: AmbassadorTest\nname: AuthenticationHTTPBufferedTest-same-context-1\nnamespace: default\nsecret: auth-buffered-secret\n"
         },
         "authenticationhttpbufferedtest.default.3": {
             "_referenced_by": {},
@@ -126,7 +123,7 @@
             "namespace": "default",
             "path_prefix": "/extauth",
             "rkey": "authenticationhttpbufferedtest.default.3",
-            "serialization": "allowed_authorization_headers:\n- X-Foo\n- Set-Cookie\nallowed_request_headers:\n- X-Foo\n- X-Bar\n- Requested-Status\n- Requested-Header\n- Requested-Cookie\n- Location\nambassador_id: authenticationhttpbufferedtest\napiVersion: ambassador/v1\nauth_service: authenticationhttpbufferedtest-http-auth\ninclude_body:\n  allow_partial: true\n  max_bytes: 4096\nkind: AuthService\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttpbufferedtest\n  scope: AmbassadorTest\nname: authenticationhttpbufferedtest-http-auth\nnamespace: default\npath_prefix: /extauth\ntimeout_ms: 5000\ntls: AuthenticationHTTPBufferedTest-same-context-1\n",
+            "serialization": "_force_validation: true\nallowed_authorization_headers:\n- X-Foo\n- Set-Cookie\nallowed_request_headers:\n- X-Foo\n- X-Bar\n- Requested-Status\n- Requested-Header\n- Requested-Cookie\n- Location\nambassador_id: authenticationhttpbufferedtest\napiVersion: ambassador/v1\nauth_service: authenticationhttpbufferedtest-http-auth\ninclude_body:\n  allow_partial: true\n  max_bytes: 4096\nkind: AuthService\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttpbufferedtest\n  scope: AmbassadorTest\nname: authenticationhttpbufferedtest-http-auth\nnamespace: default\npath_prefix: /extauth\ntimeout_ms: 5000\ntls: AuthenticationHTTPBufferedTest-same-context-1\n",
             "timeout_ms": 5000,
             "tls": "AuthenticationHTTPBufferedTest-same-context-1"
         },
@@ -145,7 +142,7 @@
             "namespace": "default",
             "prefix": "/target/",
             "rkey": "authenticationhttpbufferedtest.default.4",
-            "serialization": "ambassador_id: authenticationhttpbufferedtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttpbufferedtest\n  scope: AmbassadorTest\nname: authenticationhttpbufferedtest-http\nnamespace: default\nprefix: /target/\nservice: authenticationhttpbufferedtest-http\n",
+            "serialization": "_force_validation: true\nambassador_id: authenticationhttpbufferedtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttpbufferedtest\n  scope: AmbassadorTest\nname: authenticationhttpbufferedtest-http\nnamespace: default\nprefix: /target/\nservice: authenticationhttpbufferedtest-http\n",
             "service": "authenticationhttpbufferedtest-http"
         },
         "k8s-authenticationhttpbufferedtest-admin-default": {

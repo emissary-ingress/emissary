@@ -1,10 +1,7 @@
 {
     "_errors": {},
+    "_fast_validation_disagreements": {},
     "_notices": {
-        "-global-": [
-            "Parsed pod labels: {'kat-ambassador-id': 'tlscontextprotocolminversion', 'scope': 'AmbassadorTest', 'service': 'tlscontextprotocolminversion'}",
-            "Found Ambassador service: tlscontextprotocolminversion"
-        ],
         "tlscontextprotocolminversion.default.1": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ]
@@ -118,7 +115,7 @@
             "namespace": "default",
             "prefix": "/tls-context-same/",
             "rkey": "tlscontextprotocolminversion.default.1",
-            "serialization": "ambassador_id: tlscontextprotocolminversion\napiVersion: ambassador/v0\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextprotocolminversion\n  scope: AmbassadorTest\nname: TLSContextProtocolMinVersion-same-prefix-1\nnamespace: default\nprefix: /tls-context-same/\nservice: https://tlscontextprotocolminversion-http\n",
+            "serialization": "_force_validation: true\nambassador_id: tlscontextprotocolminversion\napiVersion: ambassador/v0\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextprotocolminversion\n  scope: AmbassadorTest\nname: TLSContextProtocolMinVersion-same-prefix-1\nnamespace: default\nprefix: /tls-context-same/\nservice: https://tlscontextprotocolminversion-http\n",
             "service": "https://tlscontextprotocolminversion-http"
         },
         "tlscontextprotocolminversion.default.2": {
@@ -142,7 +139,7 @@
             "rkey": "tlscontextprotocolminversion.default.2",
             "secret": "secret.min-version",
             "secret_namespacing": false,
-            "serialization": "ambassador_id: tlscontextprotocolminversion\napiVersion: ambassador/v1\nhosts:\n- tls-context-host-1\nkind: TLSContext\nmax_tls_version: v1.3\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextprotocolminversion\n  scope: AmbassadorTest\nmin_tls_version: v1.2\nname: TLSContextProtocolMinVersion-same-context-1\nnamespace: default\nsecret: secret.min-version\nsecret_namespacing: false\n"
+            "serialization": "_force_validation: true\nambassador_id: tlscontextprotocolminversion\napiVersion: ambassador/v1\nhosts:\n- tls-context-host-1\nkind: TLSContext\nmax_tls_version: v1.3\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextprotocolminversion\n  scope: AmbassadorTest\nmin_tls_version: v1.2\nname: TLSContextProtocolMinVersion-same-context-1\nnamespace: default\nsecret: secret.min-version\nsecret_namespacing: false\n"
         }
     },
     "mappings": {

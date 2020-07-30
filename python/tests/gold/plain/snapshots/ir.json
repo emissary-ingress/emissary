@@ -3565,7 +3565,7 @@
                         "/SimpleMapping-HTTP-AddResponseHeaders-zoo-bar/",
                         "GET"
                     ],
-                    "serialization": "add_response_headers:\n  zoo:\n    append: true\n    value: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-zoo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-zoo-bar/\nservice: http://plain-simplemapping-http-addresponseheaders-zoo-bar-http.plain-namespace\n",
+                    "serialization": "_force_validation: true\nadd_response_headers:\n  zoo:\n    append: true\n    value: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-zoo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-zoo-bar/\nservice: http://plain-simplemapping-http-addresponseheaders-zoo-bar-http.plain-namespace\n",
                     "service": "http://plain-simplemapping-http-addresponseheaders-zoo-bar-http.plain-namespace",
                     "weight": 100
                 }
@@ -3581,7 +3581,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "add_response_headers:\n  zoo:\n    append: true\n    value: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-zoo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-zoo-bar/\nservice: http://plain-simplemapping-http-addresponseheaders-zoo-bar-http.plain-namespace\n"
+            "serialization": "_force_validation: true\nadd_response_headers:\n  zoo:\n    append: true\n    value: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-zoo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-zoo-bar/\nservice: http://plain-simplemapping-http-addresponseheaders-zoo-bar-http.plain-namespace\n"
         },
         {
             "_active": true,
@@ -3681,7 +3681,7 @@
                         "/SimpleMapping-HTTP-AddResponseHeaders-xoo-dwe/",
                         "GET"
                     ],
-                    "serialization": "add_response_headers:\n  xoo:\n    append: false\n    value: dwe\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-xoo-dwe\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-xoo-dwe/\nservice: http://plain-simplemapping-http-addresponseheaders-xoo-dwe-http.plain-namespace\n",
+                    "serialization": "_force_validation: true\nadd_response_headers:\n  xoo:\n    append: false\n    value: dwe\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-xoo-dwe\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-xoo-dwe/\nservice: http://plain-simplemapping-http-addresponseheaders-xoo-dwe-http.plain-namespace\n",
                     "service": "http://plain-simplemapping-http-addresponseheaders-xoo-dwe-http.plain-namespace",
                     "weight": 100
                 }
@@ -3697,7 +3697,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "add_response_headers:\n  xoo:\n    append: false\n    value: dwe\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-xoo-dwe\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-xoo-dwe/\nservice: http://plain-simplemapping-http-addresponseheaders-xoo-dwe-http.plain-namespace\n"
+            "serialization": "_force_validation: true\nadd_response_headers:\n  xoo:\n    append: false\n    value: dwe\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-xoo-dwe\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-xoo-dwe/\nservice: http://plain-simplemapping-http-addresponseheaders-xoo-dwe-http.plain-namespace\n"
         },
         {
             "_active": true,
@@ -3791,7 +3791,7 @@
                         "/SimpleMapping-HTTP-AddResponseHeaders-moo-arf/",
                         "GET"
                     ],
-                    "serialization": "add_response_headers:\n  moo: arf\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-moo-arf\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-moo-arf/\nservice: http://plain-simplemapping-http-addresponseheaders-moo-arf-http.plain-namespace\n",
+                    "serialization": "_force_validation: true\nadd_response_headers:\n  moo: arf\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-moo-arf\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-moo-arf/\nservice: http://plain-simplemapping-http-addresponseheaders-moo-arf-http.plain-namespace\n",
                     "service": "http://plain-simplemapping-http-addresponseheaders-moo-arf-http.plain-namespace",
                     "weight": 100
                 }
@@ -3807,7 +3807,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "add_response_headers:\n  moo: arf\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-moo-arf\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-moo-arf/\nservice: http://plain-simplemapping-http-addresponseheaders-moo-arf-http.plain-namespace\n"
+            "serialization": "_force_validation: true\nadd_response_headers:\n  moo: arf\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-moo-arf\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-moo-arf/\nservice: http://plain-simplemapping-http-addresponseheaders-moo-arf-http.plain-namespace\n"
         },
         {
             "_active": true,
@@ -3901,7 +3901,7 @@
                         "/SimpleMapping-HTTP-AddResponseHeaders-foo-bar/",
                         "GET"
                     ],
-                    "serialization": "add_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-foo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-foo-bar/\nservice: http://plain-simplemapping-http-addresponseheaders-foo-bar-http.plain-namespace\n",
+                    "serialization": "_force_validation: true\nadd_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-foo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-foo-bar/\nservice: http://plain-simplemapping-http-addresponseheaders-foo-bar-http.plain-namespace\n",
                     "service": "http://plain-simplemapping-http-addresponseheaders-foo-bar-http.plain-namespace",
                     "weight": 100
                 }
@@ -3917,7 +3917,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "add_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-foo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-foo-bar/\nservice: http://plain-simplemapping-http-addresponseheaders-foo-bar-http.plain-namespace\n"
+            "serialization": "_force_validation: true\nadd_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-foo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-foo-bar/\nservice: http://plain-simplemapping-http-addresponseheaders-foo-bar-http.plain-namespace\n"
         },
         {
             "_active": true,
@@ -4015,7 +4015,7 @@
                         "/SimpleMapping-HTTP-AddResponseHeaders-aoo-tyu/",
                         "GET"
                     ],
-                    "serialization": "add_response_headers:\n  aoo:\n    value: tyu\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-aoo-tyu\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-aoo-tyu/\nservice: http://plain-simplemapping-http-addresponseheaders-aoo-tyu-http.plain-namespace\n",
+                    "serialization": "_force_validation: true\nadd_response_headers:\n  aoo:\n    value: tyu\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-aoo-tyu\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-aoo-tyu/\nservice: http://plain-simplemapping-http-addresponseheaders-aoo-tyu-http.plain-namespace\n",
                     "service": "http://plain-simplemapping-http-addresponseheaders-aoo-tyu-http.plain-namespace",
                     "weight": 100
                 }
@@ -4031,7 +4031,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "add_response_headers:\n  aoo:\n    value: tyu\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-aoo-tyu\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-aoo-tyu/\nservice: http://plain-simplemapping-http-addresponseheaders-aoo-tyu-http.plain-namespace\n"
+            "serialization": "_force_validation: true\nadd_response_headers:\n  aoo:\n    value: tyu\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-aoo-tyu\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-aoo-tyu/\nservice: http://plain-simplemapping-http-addresponseheaders-aoo-tyu-http.plain-namespace\n"
         },
         {
             "_active": true,
@@ -4131,7 +4131,7 @@
                         "/SimpleMapping-GRPC-AddResponseHeaders-zoo-bar/",
                         "GET"
                     ],
-                    "serialization": "add_response_headers:\n  zoo:\n    append: true\n    value: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-zoo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-zoo-bar/\nservice: http://plain-simplemapping-grpc-addresponseheaders-zoo-bar-grpc.plain-namespace\n",
+                    "serialization": "_force_validation: true\nadd_response_headers:\n  zoo:\n    append: true\n    value: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-zoo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-zoo-bar/\nservice: http://plain-simplemapping-grpc-addresponseheaders-zoo-bar-grpc.plain-namespace\n",
                     "service": "http://plain-simplemapping-grpc-addresponseheaders-zoo-bar-grpc.plain-namespace",
                     "weight": 100
                 }
@@ -4147,7 +4147,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "add_response_headers:\n  zoo:\n    append: true\n    value: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-zoo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-zoo-bar/\nservice: http://plain-simplemapping-grpc-addresponseheaders-zoo-bar-grpc.plain-namespace\n"
+            "serialization": "_force_validation: true\nadd_response_headers:\n  zoo:\n    append: true\n    value: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-zoo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-zoo-bar/\nservice: http://plain-simplemapping-grpc-addresponseheaders-zoo-bar-grpc.plain-namespace\n"
         },
         {
             "_active": true,
@@ -4247,7 +4247,7 @@
                         "/SimpleMapping-GRPC-AddResponseHeaders-xoo-dwe/",
                         "GET"
                     ],
-                    "serialization": "add_response_headers:\n  xoo:\n    append: false\n    value: dwe\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-xoo-dwe\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-xoo-dwe/\nservice: http://plain-simplemapping-grpc-addresponseheaders-xoo-dwe-grpc.plain-namespace\n",
+                    "serialization": "_force_validation: true\nadd_response_headers:\n  xoo:\n    append: false\n    value: dwe\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-xoo-dwe\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-xoo-dwe/\nservice: http://plain-simplemapping-grpc-addresponseheaders-xoo-dwe-grpc.plain-namespace\n",
                     "service": "http://plain-simplemapping-grpc-addresponseheaders-xoo-dwe-grpc.plain-namespace",
                     "weight": 100
                 }
@@ -4263,7 +4263,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "add_response_headers:\n  xoo:\n    append: false\n    value: dwe\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-xoo-dwe\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-xoo-dwe/\nservice: http://plain-simplemapping-grpc-addresponseheaders-xoo-dwe-grpc.plain-namespace\n"
+            "serialization": "_force_validation: true\nadd_response_headers:\n  xoo:\n    append: false\n    value: dwe\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-xoo-dwe\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-xoo-dwe/\nservice: http://plain-simplemapping-grpc-addresponseheaders-xoo-dwe-grpc.plain-namespace\n"
         },
         {
             "_active": true,
@@ -4357,7 +4357,7 @@
                         "/SimpleMapping-GRPC-AddResponseHeaders-moo-arf/",
                         "GET"
                     ],
-                    "serialization": "add_response_headers:\n  moo: arf\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-moo-arf\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-moo-arf/\nservice: http://plain-simplemapping-grpc-addresponseheaders-moo-arf-grpc.plain-namespace\n",
+                    "serialization": "_force_validation: true\nadd_response_headers:\n  moo: arf\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-moo-arf\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-moo-arf/\nservice: http://plain-simplemapping-grpc-addresponseheaders-moo-arf-grpc.plain-namespace\n",
                     "service": "http://plain-simplemapping-grpc-addresponseheaders-moo-arf-grpc.plain-namespace",
                     "weight": 100
                 }
@@ -4373,7 +4373,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "add_response_headers:\n  moo: arf\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-moo-arf\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-moo-arf/\nservice: http://plain-simplemapping-grpc-addresponseheaders-moo-arf-grpc.plain-namespace\n"
+            "serialization": "_force_validation: true\nadd_response_headers:\n  moo: arf\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-moo-arf\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-moo-arf/\nservice: http://plain-simplemapping-grpc-addresponseheaders-moo-arf-grpc.plain-namespace\n"
         },
         {
             "_active": true,
@@ -4467,7 +4467,7 @@
                         "/SimpleMapping-GRPC-AddResponseHeaders-foo-bar/",
                         "GET"
                     ],
-                    "serialization": "add_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-foo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-foo-bar/\nservice: http://plain-simplemapping-grpc-addresponseheaders-foo-bar-grpc.plain-namespace\n",
+                    "serialization": "_force_validation: true\nadd_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-foo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-foo-bar/\nservice: http://plain-simplemapping-grpc-addresponseheaders-foo-bar-grpc.plain-namespace\n",
                     "service": "http://plain-simplemapping-grpc-addresponseheaders-foo-bar-grpc.plain-namespace",
                     "weight": 100
                 }
@@ -4483,7 +4483,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "add_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-foo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-foo-bar/\nservice: http://plain-simplemapping-grpc-addresponseheaders-foo-bar-grpc.plain-namespace\n"
+            "serialization": "_force_validation: true\nadd_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-foo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-foo-bar/\nservice: http://plain-simplemapping-grpc-addresponseheaders-foo-bar-grpc.plain-namespace\n"
         },
         {
             "_active": true,
@@ -4581,7 +4581,7 @@
                         "/SimpleMapping-GRPC-AddResponseHeaders-aoo-tyu/",
                         "GET"
                     ],
-                    "serialization": "add_response_headers:\n  aoo:\n    value: tyu\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-aoo-tyu\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-aoo-tyu/\nservice: http://plain-simplemapping-grpc-addresponseheaders-aoo-tyu-grpc.plain-namespace\n",
+                    "serialization": "_force_validation: true\nadd_response_headers:\n  aoo:\n    value: tyu\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-aoo-tyu\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-aoo-tyu/\nservice: http://plain-simplemapping-grpc-addresponseheaders-aoo-tyu-grpc.plain-namespace\n",
                     "service": "http://plain-simplemapping-grpc-addresponseheaders-aoo-tyu-grpc.plain-namespace",
                     "weight": 100
                 }
@@ -4597,7 +4597,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "add_response_headers:\n  aoo:\n    value: tyu\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-aoo-tyu\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-aoo-tyu/\nservice: http://plain-simplemapping-grpc-addresponseheaders-aoo-tyu-grpc.plain-namespace\n"
+            "serialization": "_force_validation: true\nadd_response_headers:\n  aoo:\n    value: tyu\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-aoo-tyu\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-aoo-tyu/\nservice: http://plain-simplemapping-grpc-addresponseheaders-aoo-tyu-grpc.plain-namespace\n"
         },
         {
             "_active": true,
@@ -4697,7 +4697,7 @@
                         "/SimpleMapping-HTTP-AddRequestHeaders-zoo-bar/",
                         "GET"
                     ],
-                    "serialization": "add_request_headers:\n  zoo:\n    append: true\n    value: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-zoo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-zoo-bar/\nservice: http://plain-simplemapping-http-addrequestheaders-zoo-bar-http.plain-namespace\n",
+                    "serialization": "_force_validation: true\nadd_request_headers:\n  zoo:\n    append: true\n    value: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-zoo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-zoo-bar/\nservice: http://plain-simplemapping-http-addrequestheaders-zoo-bar-http.plain-namespace\n",
                     "service": "http://plain-simplemapping-http-addrequestheaders-zoo-bar-http.plain-namespace",
                     "weight": 100
                 }
@@ -4713,7 +4713,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "add_request_headers:\n  zoo:\n    append: true\n    value: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-zoo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-zoo-bar/\nservice: http://plain-simplemapping-http-addrequestheaders-zoo-bar-http.plain-namespace\n"
+            "serialization": "_force_validation: true\nadd_request_headers:\n  zoo:\n    append: true\n    value: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-zoo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-zoo-bar/\nservice: http://plain-simplemapping-http-addrequestheaders-zoo-bar-http.plain-namespace\n"
         },
         {
             "_active": true,
@@ -4813,7 +4813,7 @@
                         "/SimpleMapping-HTTP-AddRequestHeaders-xoo-dwe/",
                         "GET"
                     ],
-                    "serialization": "add_request_headers:\n  xoo:\n    append: false\n    value: dwe\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-xoo-dwe\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-xoo-dwe/\nservice: http://plain-simplemapping-http-addrequestheaders-xoo-dwe-http.plain-namespace\n",
+                    "serialization": "_force_validation: true\nadd_request_headers:\n  xoo:\n    append: false\n    value: dwe\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-xoo-dwe\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-xoo-dwe/\nservice: http://plain-simplemapping-http-addrequestheaders-xoo-dwe-http.plain-namespace\n",
                     "service": "http://plain-simplemapping-http-addrequestheaders-xoo-dwe-http.plain-namespace",
                     "weight": 100
                 }
@@ -4829,7 +4829,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "add_request_headers:\n  xoo:\n    append: false\n    value: dwe\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-xoo-dwe\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-xoo-dwe/\nservice: http://plain-simplemapping-http-addrequestheaders-xoo-dwe-http.plain-namespace\n"
+            "serialization": "_force_validation: true\nadd_request_headers:\n  xoo:\n    append: false\n    value: dwe\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-xoo-dwe\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-xoo-dwe/\nservice: http://plain-simplemapping-http-addrequestheaders-xoo-dwe-http.plain-namespace\n"
         },
         {
             "_active": true,
@@ -4923,7 +4923,7 @@
                         "/SimpleMapping-HTTP-AddRequestHeaders-moo-arf/",
                         "GET"
                     ],
-                    "serialization": "add_request_headers:\n  moo: arf\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-moo-arf\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-moo-arf/\nservice: http://plain-simplemapping-http-addrequestheaders-moo-arf-http.plain-namespace\n",
+                    "serialization": "_force_validation: true\nadd_request_headers:\n  moo: arf\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-moo-arf\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-moo-arf/\nservice: http://plain-simplemapping-http-addrequestheaders-moo-arf-http.plain-namespace\n",
                     "service": "http://plain-simplemapping-http-addrequestheaders-moo-arf-http.plain-namespace",
                     "weight": 100
                 }
@@ -4939,7 +4939,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "add_request_headers:\n  moo: arf\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-moo-arf\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-moo-arf/\nservice: http://plain-simplemapping-http-addrequestheaders-moo-arf-http.plain-namespace\n"
+            "serialization": "_force_validation: true\nadd_request_headers:\n  moo: arf\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-moo-arf\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-moo-arf/\nservice: http://plain-simplemapping-http-addrequestheaders-moo-arf-http.plain-namespace\n"
         },
         {
             "_active": true,
@@ -5033,7 +5033,7 @@
                         "/SimpleMapping-HTTP-AddRequestHeaders-foo-bar/",
                         "GET"
                     ],
-                    "serialization": "add_request_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-foo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-foo-bar/\nservice: http://plain-simplemapping-http-addrequestheaders-foo-bar-http.plain-namespace\n",
+                    "serialization": "_force_validation: true\nadd_request_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-foo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-foo-bar/\nservice: http://plain-simplemapping-http-addrequestheaders-foo-bar-http.plain-namespace\n",
                     "service": "http://plain-simplemapping-http-addrequestheaders-foo-bar-http.plain-namespace",
                     "weight": 100
                 }
@@ -5049,7 +5049,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "add_request_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-foo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-foo-bar/\nservice: http://plain-simplemapping-http-addrequestheaders-foo-bar-http.plain-namespace\n"
+            "serialization": "_force_validation: true\nadd_request_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-foo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-foo-bar/\nservice: http://plain-simplemapping-http-addrequestheaders-foo-bar-http.plain-namespace\n"
         },
         {
             "_active": true,
@@ -5147,7 +5147,7 @@
                         "/SimpleMapping-HTTP-AddRequestHeaders-aoo-tyu/",
                         "GET"
                     ],
-                    "serialization": "add_request_headers:\n  aoo:\n    value: tyu\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-aoo-tyu\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-aoo-tyu/\nservice: http://plain-simplemapping-http-addrequestheaders-aoo-tyu-http.plain-namespace\n",
+                    "serialization": "_force_validation: true\nadd_request_headers:\n  aoo:\n    value: tyu\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-aoo-tyu\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-aoo-tyu/\nservice: http://plain-simplemapping-http-addrequestheaders-aoo-tyu-http.plain-namespace\n",
                     "service": "http://plain-simplemapping-http-addrequestheaders-aoo-tyu-http.plain-namespace",
                     "weight": 100
                 }
@@ -5163,7 +5163,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "add_request_headers:\n  aoo:\n    value: tyu\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-aoo-tyu\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-aoo-tyu/\nservice: http://plain-simplemapping-http-addrequestheaders-aoo-tyu-http.plain-namespace\n"
+            "serialization": "_force_validation: true\nadd_request_headers:\n  aoo:\n    value: tyu\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-aoo-tyu\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-aoo-tyu/\nservice: http://plain-simplemapping-http-addrequestheaders-aoo-tyu-http.plain-namespace\n"
         },
         {
             "_active": true,
@@ -5263,7 +5263,7 @@
                         "/SimpleMapping-GRPC-AddRequestHeaders-zoo-bar/",
                         "GET"
                     ],
-                    "serialization": "add_request_headers:\n  zoo:\n    append: true\n    value: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-zoo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-zoo-bar/\nservice: http://plain-simplemapping-grpc-addrequestheaders-zoo-bar-grpc.plain-namespace\n",
+                    "serialization": "_force_validation: true\nadd_request_headers:\n  zoo:\n    append: true\n    value: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-zoo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-zoo-bar/\nservice: http://plain-simplemapping-grpc-addrequestheaders-zoo-bar-grpc.plain-namespace\n",
                     "service": "http://plain-simplemapping-grpc-addrequestheaders-zoo-bar-grpc.plain-namespace",
                     "weight": 100
                 }
@@ -5279,7 +5279,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "add_request_headers:\n  zoo:\n    append: true\n    value: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-zoo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-zoo-bar/\nservice: http://plain-simplemapping-grpc-addrequestheaders-zoo-bar-grpc.plain-namespace\n"
+            "serialization": "_force_validation: true\nadd_request_headers:\n  zoo:\n    append: true\n    value: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-zoo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-zoo-bar/\nservice: http://plain-simplemapping-grpc-addrequestheaders-zoo-bar-grpc.plain-namespace\n"
         },
         {
             "_active": true,
@@ -5379,7 +5379,7 @@
                         "/SimpleMapping-GRPC-AddRequestHeaders-xoo-dwe/",
                         "GET"
                     ],
-                    "serialization": "add_request_headers:\n  xoo:\n    append: false\n    value: dwe\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-xoo-dwe\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-xoo-dwe/\nservice: http://plain-simplemapping-grpc-addrequestheaders-xoo-dwe-grpc.plain-namespace\n",
+                    "serialization": "_force_validation: true\nadd_request_headers:\n  xoo:\n    append: false\n    value: dwe\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-xoo-dwe\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-xoo-dwe/\nservice: http://plain-simplemapping-grpc-addrequestheaders-xoo-dwe-grpc.plain-namespace\n",
                     "service": "http://plain-simplemapping-grpc-addrequestheaders-xoo-dwe-grpc.plain-namespace",
                     "weight": 100
                 }
@@ -5395,7 +5395,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "add_request_headers:\n  xoo:\n    append: false\n    value: dwe\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-xoo-dwe\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-xoo-dwe/\nservice: http://plain-simplemapping-grpc-addrequestheaders-xoo-dwe-grpc.plain-namespace\n"
+            "serialization": "_force_validation: true\nadd_request_headers:\n  xoo:\n    append: false\n    value: dwe\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-xoo-dwe\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-xoo-dwe/\nservice: http://plain-simplemapping-grpc-addrequestheaders-xoo-dwe-grpc.plain-namespace\n"
         },
         {
             "_active": true,
@@ -5489,7 +5489,7 @@
                         "/SimpleMapping-GRPC-AddRequestHeaders-moo-arf/",
                         "GET"
                     ],
-                    "serialization": "add_request_headers:\n  moo: arf\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-moo-arf\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-moo-arf/\nservice: http://plain-simplemapping-grpc-addrequestheaders-moo-arf-grpc.plain-namespace\n",
+                    "serialization": "_force_validation: true\nadd_request_headers:\n  moo: arf\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-moo-arf\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-moo-arf/\nservice: http://plain-simplemapping-grpc-addrequestheaders-moo-arf-grpc.plain-namespace\n",
                     "service": "http://plain-simplemapping-grpc-addrequestheaders-moo-arf-grpc.plain-namespace",
                     "weight": 100
                 }
@@ -5505,7 +5505,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "add_request_headers:\n  moo: arf\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-moo-arf\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-moo-arf/\nservice: http://plain-simplemapping-grpc-addrequestheaders-moo-arf-grpc.plain-namespace\n"
+            "serialization": "_force_validation: true\nadd_request_headers:\n  moo: arf\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-moo-arf\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-moo-arf/\nservice: http://plain-simplemapping-grpc-addrequestheaders-moo-arf-grpc.plain-namespace\n"
         },
         {
             "_active": true,
@@ -5599,7 +5599,7 @@
                         "/SimpleMapping-GRPC-AddRequestHeaders-foo-bar/",
                         "GET"
                     ],
-                    "serialization": "add_request_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-foo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-foo-bar/\nservice: http://plain-simplemapping-grpc-addrequestheaders-foo-bar-grpc.plain-namespace\n",
+                    "serialization": "_force_validation: true\nadd_request_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-foo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-foo-bar/\nservice: http://plain-simplemapping-grpc-addrequestheaders-foo-bar-grpc.plain-namespace\n",
                     "service": "http://plain-simplemapping-grpc-addrequestheaders-foo-bar-grpc.plain-namespace",
                     "weight": 100
                 }
@@ -5615,7 +5615,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "add_request_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-foo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-foo-bar/\nservice: http://plain-simplemapping-grpc-addrequestheaders-foo-bar-grpc.plain-namespace\n"
+            "serialization": "_force_validation: true\nadd_request_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-foo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-foo-bar/\nservice: http://plain-simplemapping-grpc-addrequestheaders-foo-bar-grpc.plain-namespace\n"
         },
         {
             "_active": true,
@@ -5713,7 +5713,7 @@
                         "/SimpleMapping-GRPC-AddRequestHeaders-aoo-tyu/",
                         "GET"
                     ],
-                    "serialization": "add_request_headers:\n  aoo:\n    value: tyu\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-aoo-tyu\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-aoo-tyu/\nservice: http://plain-simplemapping-grpc-addrequestheaders-aoo-tyu-grpc.plain-namespace\n",
+                    "serialization": "_force_validation: true\nadd_request_headers:\n  aoo:\n    value: tyu\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-aoo-tyu\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-aoo-tyu/\nservice: http://plain-simplemapping-grpc-addrequestheaders-aoo-tyu-grpc.plain-namespace\n",
                     "service": "http://plain-simplemapping-grpc-addrequestheaders-aoo-tyu-grpc.plain-namespace",
                     "weight": 100
                 }
@@ -5729,7 +5729,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "add_request_headers:\n  aoo:\n    value: tyu\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-aoo-tyu\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-aoo-tyu/\nservice: http://plain-simplemapping-grpc-addrequestheaders-aoo-tyu-grpc.plain-namespace\n"
+            "serialization": "_force_validation: true\nadd_request_headers:\n  aoo:\n    value: tyu\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-aoo-tyu\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-aoo-tyu/\nservice: http://plain-simplemapping-grpc-addrequestheaders-aoo-tyu-grpc.plain-namespace\n"
         },
         {
             "_active": true,
@@ -5819,7 +5819,7 @@
                         "/SimpleMapping-HTTP-RemoveResponseHeaders/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-RemoveResponseHeaders\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-RemoveResponseHeaders/\nremove_response_headers: x-envoy-upstream-service-time\nservice: http://plain-simplemapping-http-removeresponseheaders-http.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-RemoveResponseHeaders\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-RemoveResponseHeaders/\nremove_response_headers: x-envoy-upstream-service-time\nservice: http://plain-simplemapping-http-removeresponseheaders-http.plain-namespace\n",
                     "service": "http://plain-simplemapping-http-removeresponseheaders-http.plain-namespace",
                     "weight": 100
                 }
@@ -5836,7 +5836,7 @@
             "regex_rewrite": {},
             "remove_response_headers": "x-envoy-upstream-service-time",
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-RemoveResponseHeaders\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-RemoveResponseHeaders/\nremove_response_headers: x-envoy-upstream-service-time\nservice: http://plain-simplemapping-http-removeresponseheaders-http.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-RemoveResponseHeaders\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-RemoveResponseHeaders/\nremove_response_headers: x-envoy-upstream-service-time\nservice: http://plain-simplemapping-http-removeresponseheaders-http.plain-namespace\n"
         },
         {
             "_active": true,
@@ -5926,7 +5926,7 @@
                         "/SimpleMapping-GRPC-RemoveResponseHeaders/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-RemoveResponseHeaders\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-RemoveResponseHeaders/\nremove_response_headers: x-envoy-upstream-service-time\nservice: http://plain-simplemapping-grpc-removeresponseheaders-grpc.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-RemoveResponseHeaders\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-RemoveResponseHeaders/\nremove_response_headers: x-envoy-upstream-service-time\nservice: http://plain-simplemapping-grpc-removeresponseheaders-grpc.plain-namespace\n",
                     "service": "http://plain-simplemapping-grpc-removeresponseheaders-grpc.plain-namespace",
                     "weight": 100
                 }
@@ -5943,7 +5943,7 @@
             "regex_rewrite": {},
             "remove_response_headers": "x-envoy-upstream-service-time",
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-RemoveResponseHeaders\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-RemoveResponseHeaders/\nremove_response_headers: x-envoy-upstream-service-time\nservice: http://plain-simplemapping-grpc-removeresponseheaders-grpc.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-RemoveResponseHeaders\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-RemoveResponseHeaders/\nremove_response_headers: x-envoy-upstream-service-time\nservice: http://plain-simplemapping-grpc-removeresponseheaders-grpc.plain-namespace\n"
         },
         {
             "_active": true,
@@ -6032,7 +6032,7 @@
                         "/SimpleIngressWithAnnotations-HTTP-nested/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleIngressWithAnnotations-HTTP-nested\nprefix: /SimpleIngressWithAnnotations-HTTP-nested/\nservice: http://plain-simpleingresswithannotations-http-http.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleIngressWithAnnotations-HTTP-nested\nprefix: /SimpleIngressWithAnnotations-HTTP-nested/\nservice: http://plain-simpleingresswithannotations-http-http.plain-namespace\n",
                     "service": "http://plain-simpleingresswithannotations-http-http.plain-namespace",
                     "weight": 100
                 }
@@ -6048,7 +6048,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleIngressWithAnnotations-HTTP-nested\nprefix: /SimpleIngressWithAnnotations-HTTP-nested/\nservice: http://plain-simpleingresswithannotations-http-http.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleIngressWithAnnotations-HTTP-nested\nprefix: /SimpleIngressWithAnnotations-HTTP-nested/\nservice: http://plain-simpleingresswithannotations-http-http.plain-namespace\n"
         },
         {
             "_active": true,
@@ -6137,7 +6137,7 @@
                         "/SimpleIngressWithAnnotations-GRPC-nested/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleIngressWithAnnotations-GRPC-nested\nprefix: /SimpleIngressWithAnnotations-GRPC-nested/\nservice: http://plain-simpleingresswithannotations-grpc-grpc.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleIngressWithAnnotations-GRPC-nested\nprefix: /SimpleIngressWithAnnotations-GRPC-nested/\nservice: http://plain-simpleingresswithannotations-grpc-grpc.plain-namespace\n",
                     "service": "http://plain-simpleingresswithannotations-grpc-grpc.plain-namespace",
                     "weight": 100
                 }
@@ -6153,7 +6153,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleIngressWithAnnotations-GRPC-nested\nprefix: /SimpleIngressWithAnnotations-GRPC-nested/\nservice: http://plain-simpleingresswithannotations-grpc-grpc.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleIngressWithAnnotations-GRPC-nested\nprefix: /SimpleIngressWithAnnotations-GRPC-nested/\nservice: http://plain-simpleingresswithannotations-grpc-grpc.plain-namespace\n"
         },
         {
             "_active": true,
@@ -6242,7 +6242,7 @@
                         "/SimpleMapping-HTTP-Rewrite-SLASH-foo/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-Rewrite-SLASH-foo\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-Rewrite-SLASH-foo/\nrewrite: /foo\nservice: http://plain-simplemapping-http-rewrite-slash-foo-http.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-Rewrite-SLASH-foo\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-Rewrite-SLASH-foo/\nrewrite: /foo\nservice: http://plain-simplemapping-http-rewrite-slash-foo-http.plain-namespace\n",
                     "service": "http://plain-simplemapping-http-rewrite-slash-foo-http.plain-namespace",
                     "weight": 100
                 }
@@ -6258,7 +6258,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/foo",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-Rewrite-SLASH-foo\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-Rewrite-SLASH-foo/\nrewrite: /foo\nservice: http://plain-simplemapping-http-rewrite-slash-foo-http.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-Rewrite-SLASH-foo\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-Rewrite-SLASH-foo/\nrewrite: /foo\nservice: http://plain-simplemapping-http-rewrite-slash-foo-http.plain-namespace\n"
         },
         {
             "_active": true,
@@ -6347,7 +6347,7 @@
                         "/SimpleMapping-GRPC-Rewrite-SLASH-foo/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-Rewrite-SLASH-foo\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-Rewrite-SLASH-foo/\nrewrite: /foo\nservice: http://plain-simplemapping-grpc-rewrite-slash-foo-grpc.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-Rewrite-SLASH-foo\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-Rewrite-SLASH-foo/\nrewrite: /foo\nservice: http://plain-simplemapping-grpc-rewrite-slash-foo-grpc.plain-namespace\n",
                     "service": "http://plain-simplemapping-grpc-rewrite-slash-foo-grpc.plain-namespace",
                     "weight": 100
                 }
@@ -6363,7 +6363,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/foo",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-Rewrite-SLASH-foo\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-Rewrite-SLASH-foo/\nrewrite: /foo\nservice: http://plain-simplemapping-grpc-rewrite-slash-foo-grpc.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-Rewrite-SLASH-foo\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-Rewrite-SLASH-foo/\nrewrite: /foo\nservice: http://plain-simplemapping-grpc-rewrite-slash-foo-grpc.plain-namespace\n"
         },
         {
             "_active": true,
@@ -6454,7 +6454,7 @@
                         "/SimpleMapping-HTTP-AutoHostRewrite/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AutoHostRewrite\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AutoHostRewrite/\nservice: http://plain-simplemapping-http-autohostrewrite-http.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AutoHostRewrite\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AutoHostRewrite/\nservice: http://plain-simplemapping-http-autohostrewrite-http.plain-namespace\n",
                     "service": "http://plain-simplemapping-http-autohostrewrite-http.plain-namespace",
                     "weight": 100
                 }
@@ -6470,7 +6470,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AutoHostRewrite\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AutoHostRewrite/\nservice: http://plain-simplemapping-http-autohostrewrite-http.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AutoHostRewrite\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AutoHostRewrite/\nservice: http://plain-simplemapping-http-autohostrewrite-http.plain-namespace\n"
         },
         {
             "_active": true,
@@ -6561,7 +6561,7 @@
                         "/SimpleMapping-GRPC-AutoHostRewrite/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AutoHostRewrite\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AutoHostRewrite/\nservice: http://plain-simplemapping-grpc-autohostrewrite-grpc.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AutoHostRewrite\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AutoHostRewrite/\nservice: http://plain-simplemapping-grpc-autohostrewrite-grpc.plain-namespace\n",
                     "service": "http://plain-simplemapping-grpc-autohostrewrite-grpc.plain-namespace",
                     "weight": 100
                 }
@@ -6577,7 +6577,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AutoHostRewrite\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AutoHostRewrite/\nservice: http://plain-simplemapping-grpc-autohostrewrite-grpc.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AutoHostRewrite\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AutoHostRewrite/\nservice: http://plain-simplemapping-grpc-autohostrewrite-grpc.plain-namespace\n"
         },
         {
             "_active": true,
@@ -6886,7 +6886,7 @@
                         "/SimpleMapping-HTTP-CaseSensitive/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\ncase_sensitive: false\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-CaseSensitive\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-CaseSensitive/\nservice: http://plain-simplemapping-http-casesensitive-http.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\ncase_sensitive: false\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-CaseSensitive\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-CaseSensitive/\nservice: http://plain-simplemapping-http-casesensitive-http.plain-namespace\n",
                     "service": "http://plain-simplemapping-http-casesensitive-http.plain-namespace",
                     "weight": 100
                 }
@@ -6902,7 +6902,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\ncase_sensitive: false\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-CaseSensitive\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-CaseSensitive/\nservice: http://plain-simplemapping-http-casesensitive-http.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\ncase_sensitive: false\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-CaseSensitive\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-CaseSensitive/\nservice: http://plain-simplemapping-http-casesensitive-http.plain-namespace\n"
         },
         {
             "_active": true,
@@ -6993,7 +6993,7 @@
                         "/SimpleMapping-GRPC-CaseSensitive/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\ncase_sensitive: false\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-CaseSensitive\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-CaseSensitive/\nservice: http://plain-simplemapping-grpc-casesensitive-grpc.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\ncase_sensitive: false\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-CaseSensitive\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-CaseSensitive/\nservice: http://plain-simplemapping-grpc-casesensitive-grpc.plain-namespace\n",
                     "service": "http://plain-simplemapping-grpc-casesensitive-grpc.plain-namespace",
                     "weight": 100
                 }
@@ -7009,7 +7009,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\ncase_sensitive: false\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-CaseSensitive\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-CaseSensitive/\nservice: http://plain-simplemapping-grpc-casesensitive-grpc.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\ncase_sensitive: false\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-CaseSensitive\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-CaseSensitive/\nservice: http://plain-simplemapping-grpc-casesensitive-grpc.plain-namespace\n"
         },
         {
             "_active": true,
@@ -7018,6 +7018,9 @@
                 "plain-simplemapping-http-usewebsocket-http.plain-namespace.1"
             ],
             "_rkey": "plain-simplemapping-http-usewebsocket-http.plain-namespace.1",
+            "allow_upgrade": [
+                "websocket"
+            ],
             "default_class": "httpmapping",
             "group_id": "d9ad870bfa328cb4d050228bd28eacd5852c5d62",
             "group_weight": [
@@ -7038,6 +7041,9 @@
                     "_rkey": "plain-simplemapping-http-usewebsocket-http.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
+                    "allow_upgrade": [
+                        "websocket"
+                    ],
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -7098,9 +7104,8 @@
                         "/SimpleMapping-HTTP-UseWebsocket/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-UseWebsocket\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-UseWebsocket/\nservice: http://plain-simplemapping-http-usewebsocket-http.plain-namespace\nuse_websocket: true\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-UseWebsocket\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-UseWebsocket/\nservice: http://plain-simplemapping-http-usewebsocket-http.plain-namespace\nuse_websocket: true\n",
                     "service": "http://plain-simplemapping-http-usewebsocket-http.plain-namespace",
-                    "use_websocket": true,
                     "weight": 100
                 }
             ],
@@ -7115,8 +7120,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-UseWebsocket\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-UseWebsocket/\nservice: http://plain-simplemapping-http-usewebsocket-http.plain-namespace\nuse_websocket: true\n",
-            "use_websocket": true
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-UseWebsocket\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-UseWebsocket/\nservice: http://plain-simplemapping-http-usewebsocket-http.plain-namespace\nuse_websocket: true\n"
         },
         {
             "_active": true,
@@ -7125,6 +7129,9 @@
                 "plain-simplemapping-grpc-usewebsocket-grpc.plain-namespace.1"
             ],
             "_rkey": "plain-simplemapping-grpc-usewebsocket-grpc.plain-namespace.1",
+            "allow_upgrade": [
+                "websocket"
+            ],
             "default_class": "httpmapping",
             "group_id": "513210530131791f3e75df96a3efd189a8100301",
             "group_weight": [
@@ -7145,6 +7152,9 @@
                     "_rkey": "plain-simplemapping-grpc-usewebsocket-grpc.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
+                    "allow_upgrade": [
+                        "websocket"
+                    ],
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -7205,9 +7215,8 @@
                         "/SimpleMapping-GRPC-UseWebsocket/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-UseWebsocket\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-UseWebsocket/\nservice: http://plain-simplemapping-grpc-usewebsocket-grpc.plain-namespace\nuse_websocket: true\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-UseWebsocket\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-UseWebsocket/\nservice: http://plain-simplemapping-grpc-usewebsocket-grpc.plain-namespace\nuse_websocket: true\n",
                     "service": "http://plain-simplemapping-grpc-usewebsocket-grpc.plain-namespace",
-                    "use_websocket": true,
                     "weight": 100
                 }
             ],
@@ -7222,8 +7231,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-UseWebsocket\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-UseWebsocket/\nservice: http://plain-simplemapping-grpc-usewebsocket-grpc.plain-namespace\nuse_websocket: true\n",
-            "use_websocket": true
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-UseWebsocket\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-UseWebsocket/\nservice: http://plain-simplemapping-grpc-usewebsocket-grpc.plain-namespace\nuse_websocket: true\n"
         },
         {
             "_active": true,
@@ -7312,7 +7320,7 @@
                         "/SimpleMapping-HTTP-Rewrite-foo/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-Rewrite-foo\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-Rewrite-foo/\nrewrite: foo\nservice: http://plain-simplemapping-http-rewrite-foo-http.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-Rewrite-foo\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-Rewrite-foo/\nrewrite: foo\nservice: http://plain-simplemapping-http-rewrite-foo-http.plain-namespace\n",
                     "service": "http://plain-simplemapping-http-rewrite-foo-http.plain-namespace",
                     "weight": 100
                 }
@@ -7328,7 +7336,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "foo",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-Rewrite-foo\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-Rewrite-foo/\nrewrite: foo\nservice: http://plain-simplemapping-http-rewrite-foo-http.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-Rewrite-foo\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-Rewrite-foo/\nrewrite: foo\nservice: http://plain-simplemapping-http-rewrite-foo-http.plain-namespace\n"
         },
         {
             "_active": true,
@@ -7417,7 +7425,7 @@
                         "/SimpleMapping-GRPC-Rewrite-foo/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-Rewrite-foo\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-Rewrite-foo/\nrewrite: foo\nservice: http://plain-simplemapping-grpc-rewrite-foo-grpc.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-Rewrite-foo\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-Rewrite-foo/\nrewrite: foo\nservice: http://plain-simplemapping-grpc-rewrite-foo-grpc.plain-namespace\n",
                     "service": "http://plain-simplemapping-grpc-rewrite-foo-grpc.plain-namespace",
                     "weight": 100
                 }
@@ -7433,7 +7441,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "foo",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-Rewrite-foo\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-Rewrite-foo/\nrewrite: foo\nservice: http://plain-simplemapping-grpc-rewrite-foo-grpc.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-Rewrite-foo\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-Rewrite-foo/\nrewrite: foo\nservice: http://plain-simplemapping-grpc-rewrite-foo-grpc.plain-namespace\n"
         },
         {
             "_active": true,
@@ -7786,7 +7794,7 @@
                         "/TLSOrigination-HTTP-IMPLICIT/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: TLSOrigination-HTTP-IMPLICIT\nnamespace: plain-namespace\nprefix: /TLSOrigination-HTTP-IMPLICIT/\nservice: https://plain-tlsorigination-http-implicit-http.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: TLSOrigination-HTTP-IMPLICIT\nnamespace: plain-namespace\nprefix: /TLSOrigination-HTTP-IMPLICIT/\nservice: https://plain-tlsorigination-http-implicit-http.plain-namespace\n",
                     "service": "https://plain-tlsorigination-http-implicit-http.plain-namespace",
                     "weight": 100
                 }
@@ -7802,7 +7810,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: TLSOrigination-HTTP-IMPLICIT\nnamespace: plain-namespace\nprefix: /TLSOrigination-HTTP-IMPLICIT/\nservice: https://plain-tlsorigination-http-implicit-http.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: TLSOrigination-HTTP-IMPLICIT\nnamespace: plain-namespace\nprefix: /TLSOrigination-HTTP-IMPLICIT/\nservice: https://plain-tlsorigination-http-implicit-http.plain-namespace\n"
         },
         {
             "_active": true,
@@ -7907,7 +7915,7 @@
                         "/TLSOrigination-HTTP-EXPLICIT/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: TLSOrigination-HTTP-EXPLICIT\nnamespace: plain-namespace\nprefix: /TLSOrigination-HTTP-EXPLICIT/\nservice: plain-tlsorigination-http-explicit-http.plain-namespace\ntls: true\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: TLSOrigination-HTTP-EXPLICIT\nnamespace: plain-namespace\nprefix: /TLSOrigination-HTTP-EXPLICIT/\nservice: plain-tlsorigination-http-explicit-http.plain-namespace\ntls: true\n",
                     "service": "plain-tlsorigination-http-explicit-http.plain-namespace",
                     "tls": true,
                     "weight": 100
@@ -7924,7 +7932,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: TLSOrigination-HTTP-EXPLICIT\nnamespace: plain-namespace\nprefix: /TLSOrigination-HTTP-EXPLICIT/\nservice: plain-tlsorigination-http-explicit-http.plain-namespace\ntls: true\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: TLSOrigination-HTTP-EXPLICIT\nnamespace: plain-namespace\nprefix: /TLSOrigination-HTTP-EXPLICIT/\nservice: plain-tlsorigination-http-explicit-http.plain-namespace\ntls: true\n",
             "tls": true
         },
         {
@@ -8030,7 +8038,7 @@
                         "/TLSOrigination-GRPC-IMPLICIT/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: TLSOrigination-GRPC-IMPLICIT\nnamespace: plain-namespace\nprefix: /TLSOrigination-GRPC-IMPLICIT/\nservice: https://plain-tlsorigination-grpc-implicit-grpc.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: TLSOrigination-GRPC-IMPLICIT\nnamespace: plain-namespace\nprefix: /TLSOrigination-GRPC-IMPLICIT/\nservice: https://plain-tlsorigination-grpc-implicit-grpc.plain-namespace\n",
                     "service": "https://plain-tlsorigination-grpc-implicit-grpc.plain-namespace",
                     "weight": 100
                 }
@@ -8046,7 +8054,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: TLSOrigination-GRPC-IMPLICIT\nnamespace: plain-namespace\nprefix: /TLSOrigination-GRPC-IMPLICIT/\nservice: https://plain-tlsorigination-grpc-implicit-grpc.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: TLSOrigination-GRPC-IMPLICIT\nnamespace: plain-namespace\nprefix: /TLSOrigination-GRPC-IMPLICIT/\nservice: https://plain-tlsorigination-grpc-implicit-grpc.plain-namespace\n"
         },
         {
             "_active": true,
@@ -8151,7 +8159,7 @@
                         "/TLSOrigination-GRPC-EXPLICIT/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: TLSOrigination-GRPC-EXPLICIT\nnamespace: plain-namespace\nprefix: /TLSOrigination-GRPC-EXPLICIT/\nservice: plain-tlsorigination-grpc-explicit-grpc.plain-namespace\ntls: true\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: TLSOrigination-GRPC-EXPLICIT\nnamespace: plain-namespace\nprefix: /TLSOrigination-GRPC-EXPLICIT/\nservice: plain-tlsorigination-grpc-explicit-grpc.plain-namespace\ntls: true\n",
                     "service": "plain-tlsorigination-grpc-explicit-grpc.plain-namespace",
                     "tls": true,
                     "weight": 100
@@ -8168,7 +8176,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: TLSOrigination-GRPC-EXPLICIT\nnamespace: plain-namespace\nprefix: /TLSOrigination-GRPC-EXPLICIT/\nservice: plain-tlsorigination-grpc-explicit-grpc.plain-namespace\ntls: true\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: TLSOrigination-GRPC-EXPLICIT\nnamespace: plain-namespace\nprefix: /TLSOrigination-GRPC-EXPLICIT/\nservice: plain-tlsorigination-grpc-explicit-grpc.plain-namespace\ntls: true\n",
             "tls": true
         },
         {
@@ -8265,7 +8273,7 @@
                         "/RemoveReqHeadersMapping-HTTP/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: RemoveReqHeadersMapping-HTTP\nnamespace: plain-namespace\nprefix: /RemoveReqHeadersMapping-HTTP/\nremove_request_headers:\n- zoo\n- aoo\nservice: http://httpbin.org\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: RemoveReqHeadersMapping-HTTP\nnamespace: plain-namespace\nprefix: /RemoveReqHeadersMapping-HTTP/\nremove_request_headers:\n- zoo\n- aoo\nservice: http://httpbin.org\n",
                     "service": "http://httpbin.org",
                     "weight": 100
                 }
@@ -8285,7 +8293,7 @@
                 "aoo"
             ],
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: RemoveReqHeadersMapping-HTTP\nnamespace: plain-namespace\nprefix: /RemoveReqHeadersMapping-HTTP/\nremove_request_headers:\n- zoo\n- aoo\nservice: http://httpbin.org\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: RemoveReqHeadersMapping-HTTP\nnamespace: plain-namespace\nprefix: /RemoveReqHeadersMapping-HTTP/\nremove_request_headers:\n- zoo\n- aoo\nservice: http://httpbin.org\n"
         },
         {
             "_active": true,
@@ -8381,7 +8389,7 @@
                         "/RemoveReqHeadersMapping-GRPC/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: RemoveReqHeadersMapping-GRPC\nnamespace: plain-namespace\nprefix: /RemoveReqHeadersMapping-GRPC/\nremove_request_headers:\n- zoo\n- aoo\nservice: http://httpbin.org\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: RemoveReqHeadersMapping-GRPC\nnamespace: plain-namespace\nprefix: /RemoveReqHeadersMapping-GRPC/\nremove_request_headers:\n- zoo\n- aoo\nservice: http://httpbin.org\n",
                     "service": "http://httpbin.org",
                     "weight": 100
                 }
@@ -8401,7 +8409,7 @@
                 "aoo"
             ],
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: RemoveReqHeadersMapping-GRPC\nnamespace: plain-namespace\nprefix: /RemoveReqHeadersMapping-GRPC/\nremove_request_headers:\n- zoo\n- aoo\nservice: http://httpbin.org\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: RemoveReqHeadersMapping-GRPC\nnamespace: plain-namespace\nprefix: /RemoveReqHeadersMapping-GRPC/\nremove_request_headers:\n- zoo\n- aoo\nservice: http://httpbin.org\n"
         },
         {
             "_active": true,
@@ -8494,7 +8502,7 @@
                         "/CanaryDiffMapping-HTTP-100/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-100\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-100/\nservice: http://plain-canarydiffmapping-http-100-http.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-100\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-100/\nservice: http://plain-canarydiffmapping-http-100-http.plain-namespace\n",
                     "service": "http://plain-canarydiffmapping-http-100-http.plain-namespace",
                     "weight": 100
                 },
@@ -8566,7 +8574,7 @@
                         "/CanaryDiffMapping-HTTP-100/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.2.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-100-canary\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-100/\nservice: http://plain-canarydiffmapping-http-100-http-canary.plain-namespace\nweight: 100\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.2.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-100-canary\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-100/\nservice: http://plain-canarydiffmapping-http-100-http-canary.plain-namespace\nweight: 100\n",
                     "service": "http://plain-canarydiffmapping-http-100-http-canary.plain-namespace",
                     "weight": 100
                 }
@@ -8582,7 +8590,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-100\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-100/\nservice: http://plain-canarydiffmapping-http-100-http.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-100\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-100/\nservice: http://plain-canarydiffmapping-http-100-http.plain-namespace\n"
         },
         {
             "_active": true,
@@ -8675,7 +8683,7 @@
                         "/CanaryDiffMapping-GRPC-100/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-100\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-100/\nservice: http://plain-canarydiffmapping-grpc-100-grpc.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-100\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-100/\nservice: http://plain-canarydiffmapping-grpc-100-grpc.plain-namespace\n",
                     "service": "http://plain-canarydiffmapping-grpc-100-grpc.plain-namespace",
                     "weight": 100
                 },
@@ -8747,7 +8755,7 @@
                         "/CanaryDiffMapping-GRPC-100/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.2.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-100-canary\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-100/\nservice: http://plain-canarydiffmapping-grpc-100-grpc-canary.plain-namespace\nweight: 100\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.2.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-100-canary\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-100/\nservice: http://plain-canarydiffmapping-grpc-100-grpc-canary.plain-namespace\nweight: 100\n",
                     "service": "http://plain-canarydiffmapping-grpc-100-grpc-canary.plain-namespace",
                     "weight": 100
                 }
@@ -8763,7 +8771,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-100\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-100/\nservice: http://plain-canarydiffmapping-grpc-100-grpc.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-100\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-100/\nservice: http://plain-canarydiffmapping-grpc-100-grpc.plain-namespace\n"
         },
         {
             "_active": true,
@@ -8882,7 +8890,7 @@
                         "/AddRespHeadersMapping-HTTP/",
                         "GET"
                     ],
-                    "serialization": "add_response_headers:\n  foo: Foo\n  koo:\n    append: false\n    value: KooK\n  test:\n    value: boo\n  zoo:\n    append: true\n    value: ZooZ\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: AddRespHeadersMapping-HTTP\nnamespace: plain-namespace\nprefix: /AddRespHeadersMapping-HTTP/\nservice: http://httpbin.org\n",
+                    "serialization": "_force_validation: true\nadd_response_headers:\n  foo: Foo\n  koo:\n    append: false\n    value: KooK\n  test:\n    value: boo\n  zoo:\n    append: true\n    value: ZooZ\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: AddRespHeadersMapping-HTTP\nnamespace: plain-namespace\nprefix: /AddRespHeadersMapping-HTTP/\nservice: http://httpbin.org\n",
                     "service": "http://httpbin.org",
                     "weight": 100
                 }
@@ -8898,7 +8906,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "add_response_headers:\n  foo: Foo\n  koo:\n    append: false\n    value: KooK\n  test:\n    value: boo\n  zoo:\n    append: true\n    value: ZooZ\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: AddRespHeadersMapping-HTTP\nnamespace: plain-namespace\nprefix: /AddRespHeadersMapping-HTTP/\nservice: http://httpbin.org\n"
+            "serialization": "_force_validation: true\nadd_response_headers:\n  foo: Foo\n  koo:\n    append: false\n    value: KooK\n  test:\n    value: boo\n  zoo:\n    append: true\n    value: ZooZ\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: AddRespHeadersMapping-HTTP\nnamespace: plain-namespace\nprefix: /AddRespHeadersMapping-HTTP/\nservice: http://httpbin.org\n"
         },
         {
             "_active": true,
@@ -9017,7 +9025,7 @@
                         "/AddRespHeadersMapping-GRPC/",
                         "GET"
                     ],
-                    "serialization": "add_response_headers:\n  foo: Foo\n  koo:\n    append: false\n    value: KooK\n  test:\n    value: boo\n  zoo:\n    append: true\n    value: ZooZ\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: AddRespHeadersMapping-GRPC\nnamespace: plain-namespace\nprefix: /AddRespHeadersMapping-GRPC/\nservice: http://httpbin.org\n",
+                    "serialization": "_force_validation: true\nadd_response_headers:\n  foo: Foo\n  koo:\n    append: false\n    value: KooK\n  test:\n    value: boo\n  zoo:\n    append: true\n    value: ZooZ\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: AddRespHeadersMapping-GRPC\nnamespace: plain-namespace\nprefix: /AddRespHeadersMapping-GRPC/\nservice: http://httpbin.org\n",
                     "service": "http://httpbin.org",
                     "weight": 100
                 }
@@ -9033,7 +9041,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "add_response_headers:\n  foo: Foo\n  koo:\n    append: false\n    value: KooK\n  test:\n    value: boo\n  zoo:\n    append: true\n    value: ZooZ\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: AddRespHeadersMapping-GRPC\nnamespace: plain-namespace\nprefix: /AddRespHeadersMapping-GRPC/\nservice: http://httpbin.org\n"
+            "serialization": "_force_validation: true\nadd_response_headers:\n  foo: Foo\n  koo:\n    append: false\n    value: KooK\n  test:\n    value: boo\n  zoo:\n    append: true\n    value: ZooZ\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: AddRespHeadersMapping-GRPC\nnamespace: plain-namespace\nprefix: /AddRespHeadersMapping-GRPC/\nservice: http://httpbin.org\n"
         },
         {
             "_active": true,
@@ -9344,7 +9352,7 @@
                         "/CanaryDiffMapping-HTTP-50/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-50\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-50/\nservice: http://plain-canarydiffmapping-http-50-http.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-50\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-50/\nservice: http://plain-canarydiffmapping-http-50-http.plain-namespace\n",
                     "service": "http://plain-canarydiffmapping-http-50-http.plain-namespace",
                     "weight": 100
                 },
@@ -9416,7 +9424,7 @@
                         "/CanaryDiffMapping-HTTP-50/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.2.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-50-canary\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-50/\nservice: http://plain-canarydiffmapping-http-50-http-canary.plain-namespace\nweight: 50\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.2.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-50-canary\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-50/\nservice: http://plain-canarydiffmapping-http-50-http-canary.plain-namespace\nweight: 50\n",
                     "service": "http://plain-canarydiffmapping-http-50-http-canary.plain-namespace",
                     "weight": 50
                 }
@@ -9432,7 +9440,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-50\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-50/\nservice: http://plain-canarydiffmapping-http-50-http.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-50\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-50/\nservice: http://plain-canarydiffmapping-http-50-http.plain-namespace\n"
         },
         {
             "_active": true,
@@ -9525,7 +9533,7 @@
                         "/CanaryDiffMapping-HTTP-10/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-10\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-10/\nservice: http://plain-canarydiffmapping-http-10-http.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-10\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-10/\nservice: http://plain-canarydiffmapping-http-10-http.plain-namespace\n",
                     "service": "http://plain-canarydiffmapping-http-10-http.plain-namespace",
                     "weight": 100
                 },
@@ -9597,7 +9605,7 @@
                         "/CanaryDiffMapping-HTTP-10/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.2.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-10-canary\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-10/\nservice: http://plain-canarydiffmapping-http-10-http-canary.plain-namespace\nweight: 10\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.2.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-10-canary\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-10/\nservice: http://plain-canarydiffmapping-http-10-http-canary.plain-namespace\nweight: 10\n",
                     "service": "http://plain-canarydiffmapping-http-10-http-canary.plain-namespace",
                     "weight": 10
                 }
@@ -9613,7 +9621,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-10\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-10/\nservice: http://plain-canarydiffmapping-http-10-http.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-10\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-10/\nservice: http://plain-canarydiffmapping-http-10-http.plain-namespace\n"
         },
         {
             "_active": true,
@@ -9706,7 +9714,7 @@
                         "/CanaryDiffMapping-GRPC-50/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-50\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-50/\nservice: http://plain-canarydiffmapping-grpc-50-grpc.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-50\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-50/\nservice: http://plain-canarydiffmapping-grpc-50-grpc.plain-namespace\n",
                     "service": "http://plain-canarydiffmapping-grpc-50-grpc.plain-namespace",
                     "weight": 100
                 },
@@ -9778,7 +9786,7 @@
                         "/CanaryDiffMapping-GRPC-50/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.2.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-50-canary\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-50/\nservice: http://plain-canarydiffmapping-grpc-50-grpc-canary.plain-namespace\nweight: 50\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.2.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-50-canary\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-50/\nservice: http://plain-canarydiffmapping-grpc-50-grpc-canary.plain-namespace\nweight: 50\n",
                     "service": "http://plain-canarydiffmapping-grpc-50-grpc-canary.plain-namespace",
                     "weight": 50
                 }
@@ -9794,7 +9802,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-50\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-50/\nservice: http://plain-canarydiffmapping-grpc-50-grpc.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-50\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-50/\nservice: http://plain-canarydiffmapping-grpc-50-grpc.plain-namespace\n"
         },
         {
             "_active": true,
@@ -9887,7 +9895,7 @@
                         "/CanaryDiffMapping-GRPC-10/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-10\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-10/\nservice: http://plain-canarydiffmapping-grpc-10-grpc.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-10\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-10/\nservice: http://plain-canarydiffmapping-grpc-10-grpc.plain-namespace\n",
                     "service": "http://plain-canarydiffmapping-grpc-10-grpc.plain-namespace",
                     "weight": 100
                 },
@@ -9959,7 +9967,7 @@
                         "/CanaryDiffMapping-GRPC-10/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.2.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-10-canary\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-10/\nservice: http://plain-canarydiffmapping-grpc-10-grpc-canary.plain-namespace\nweight: 10\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.2.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-10-canary\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-10/\nservice: http://plain-canarydiffmapping-grpc-10-grpc-canary.plain-namespace\nweight: 10\n",
                     "service": "http://plain-canarydiffmapping-grpc-10-grpc-canary.plain-namespace",
                     "weight": 10
                 }
@@ -9975,7 +9983,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-10\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-10/\nservice: http://plain-canarydiffmapping-grpc-10-grpc.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-10\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-10/\nservice: http://plain-canarydiffmapping-grpc-10-grpc.plain-namespace\n"
         },
         {
             "_active": true,
@@ -10091,7 +10099,7 @@
                         "/AddReqHeadersMapping-HTTP/",
                         "GET"
                     ],
-                    "serialization": "add_request_headers:\n  aoo:\n    append: true\n    value: aoo\n  boo:\n    value: boo\n  foo: Foo\n  zoo:\n    append: false\n    value: Zoo\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: AddReqHeadersMapping-HTTP\nnamespace: plain-namespace\nprefix: /AddReqHeadersMapping-HTTP/\nservice: http://plain-addreqheadersmapping-http-http.plain-namespace\n",
+                    "serialization": "_force_validation: true\nadd_request_headers:\n  aoo:\n    append: true\n    value: aoo\n  boo:\n    value: boo\n  foo: Foo\n  zoo:\n    append: false\n    value: Zoo\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: AddReqHeadersMapping-HTTP\nnamespace: plain-namespace\nprefix: /AddReqHeadersMapping-HTTP/\nservice: http://plain-addreqheadersmapping-http-http.plain-namespace\n",
                     "service": "http://plain-addreqheadersmapping-http-http.plain-namespace",
                     "weight": 100
                 }
@@ -10107,7 +10115,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "add_request_headers:\n  aoo:\n    append: true\n    value: aoo\n  boo:\n    value: boo\n  foo: Foo\n  zoo:\n    append: false\n    value: Zoo\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: AddReqHeadersMapping-HTTP\nnamespace: plain-namespace\nprefix: /AddReqHeadersMapping-HTTP/\nservice: http://plain-addreqheadersmapping-http-http.plain-namespace\n"
+            "serialization": "_force_validation: true\nadd_request_headers:\n  aoo:\n    append: true\n    value: aoo\n  boo:\n    value: boo\n  foo: Foo\n  zoo:\n    append: false\n    value: Zoo\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: AddReqHeadersMapping-HTTP\nnamespace: plain-namespace\nprefix: /AddReqHeadersMapping-HTTP/\nservice: http://plain-addreqheadersmapping-http-http.plain-namespace\n"
         },
         {
             "_active": true,
@@ -10223,7 +10231,7 @@
                         "/AddReqHeadersMapping-GRPC/",
                         "GET"
                     ],
-                    "serialization": "add_request_headers:\n  aoo:\n    append: true\n    value: aoo\n  boo:\n    value: boo\n  foo: Foo\n  zoo:\n    append: false\n    value: Zoo\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: AddReqHeadersMapping-GRPC\nnamespace: plain-namespace\nprefix: /AddReqHeadersMapping-GRPC/\nservice: http://plain-addreqheadersmapping-grpc-grpc.plain-namespace\n",
+                    "serialization": "_force_validation: true\nadd_request_headers:\n  aoo:\n    append: true\n    value: aoo\n  boo:\n    value: boo\n  foo: Foo\n  zoo:\n    append: false\n    value: Zoo\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: AddReqHeadersMapping-GRPC\nnamespace: plain-namespace\nprefix: /AddReqHeadersMapping-GRPC/\nservice: http://plain-addreqheadersmapping-grpc-grpc.plain-namespace\n",
                     "service": "http://plain-addreqheadersmapping-grpc-grpc.plain-namespace",
                     "weight": 100
                 }
@@ -10239,7 +10247,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "add_request_headers:\n  aoo:\n    append: true\n    value: aoo\n  boo:\n    value: boo\n  foo: Foo\n  zoo:\n    append: false\n    value: Zoo\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: AddReqHeadersMapping-GRPC\nnamespace: plain-namespace\nprefix: /AddReqHeadersMapping-GRPC/\nservice: http://plain-addreqheadersmapping-grpc-grpc.plain-namespace\n"
+            "serialization": "_force_validation: true\nadd_request_headers:\n  aoo:\n    append: true\n    value: aoo\n  boo:\n    value: boo\n  foo: Foo\n  zoo:\n    append: false\n    value: Zoo\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: AddReqHeadersMapping-GRPC\nnamespace: plain-namespace\nprefix: /AddReqHeadersMapping-GRPC/\nservice: http://plain-addreqheadersmapping-grpc-grpc.plain-namespace\n"
         },
         {
             "_active": true,
@@ -10532,7 +10540,7 @@
                         "/CanaryDiffMapping-HTTP-0/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-0\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-0/\nservice: http://plain-canarydiffmapping-http-0-http.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-0\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-0/\nservice: http://plain-canarydiffmapping-http-0-http.plain-namespace\n",
                     "service": "http://plain-canarydiffmapping-http-0-http.plain-namespace",
                     "weight": 100
                 },
@@ -10604,7 +10612,7 @@
                         "/CanaryDiffMapping-HTTP-0/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.2.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-0-canary\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-0/\nservice: http://plain-canarydiffmapping-http-0-http-canary.plain-namespace\nweight: 0\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.2.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-0-canary\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-0/\nservice: http://plain-canarydiffmapping-http-0-http-canary.plain-namespace\nweight: 0\n",
                     "service": "http://plain-canarydiffmapping-http-0-http-canary.plain-namespace",
                     "weight": 0
                 }
@@ -10620,7 +10628,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-0\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-0/\nservice: http://plain-canarydiffmapping-http-0-http.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-0\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-0/\nservice: http://plain-canarydiffmapping-http-0-http.plain-namespace\n"
         },
         {
             "_active": true,
@@ -10713,7 +10721,7 @@
                         "/CanaryDiffMapping-GRPC-0/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-0\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-0/\nservice: http://plain-canarydiffmapping-grpc-0-grpc.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-0\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-0/\nservice: http://plain-canarydiffmapping-grpc-0-grpc.plain-namespace\n",
                     "service": "http://plain-canarydiffmapping-grpc-0-grpc.plain-namespace",
                     "weight": 100
                 },
@@ -10785,7 +10793,7 @@
                         "/CanaryDiffMapping-GRPC-0/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.2.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-0-canary\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-0/\nservice: http://plain-canarydiffmapping-grpc-0-grpc-canary.plain-namespace\nweight: 0\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.2.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-0-canary\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-0/\nservice: http://plain-canarydiffmapping-grpc-0-grpc-canary.plain-namespace\nweight: 0\n",
                     "service": "http://plain-canarydiffmapping-grpc-0-grpc-canary.plain-namespace",
                     "weight": 0
                 }
@@ -10801,7 +10809,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-0\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-0/\nservice: http://plain-canarydiffmapping-grpc-0-grpc.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-0\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-0/\nservice: http://plain-canarydiffmapping-grpc-0-grpc.plain-namespace\n"
         },
         {
             "_active": true,
@@ -10918,7 +10926,7 @@
                         "/SimpleMapping-HTTP-CORS/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-CORS\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-CORS/\nservice: http://plain-simplemapping-http-cors-http.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-CORS\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-CORS/\nservice: http://plain-simplemapping-http-cors-http.plain-namespace\n",
                     "service": "http://plain-simplemapping-http-cors-http.plain-namespace",
                     "weight": 100
                 }
@@ -10934,7 +10942,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-CORS\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-CORS/\nservice: http://plain-simplemapping-http-cors-http.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-CORS\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-CORS/\nservice: http://plain-simplemapping-http-cors-http.plain-namespace\n"
         },
         {
             "_active": true,
@@ -11051,7 +11059,7 @@
                         "/SimpleMapping-GRPC-CORS/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-CORS\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-CORS/\nservice: http://plain-simplemapping-grpc-cors-grpc.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-CORS\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-CORS/\nservice: http://plain-simplemapping-grpc-cors-grpc.plain-namespace\n",
                     "service": "http://plain-simplemapping-grpc-cors-grpc.plain-namespace",
                     "weight": 100
                 }
@@ -11067,7 +11075,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-CORS\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-CORS/\nservice: http://plain-simplemapping-grpc-cors-grpc.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-CORS\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-CORS/\nservice: http://plain-simplemapping-grpc-cors-grpc.plain-namespace\n"
         },
         {
             "_active": true,
@@ -11149,7 +11157,7 @@
                         "/InvalidPortMapping-HTTP/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: InvalidPortMapping-HTTP\nnamespace: plain-namespace\nprefix: /InvalidPortMapping-HTTP/\nservice: http://plain-invalidportmapping-http-http.plain-namespace:80.invalid\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: InvalidPortMapping-HTTP\nnamespace: plain-namespace\nprefix: /InvalidPortMapping-HTTP/\nservice: http://plain-invalidportmapping-http-http.plain-namespace:80.invalid\n",
                     "service": "http://plain-invalidportmapping-http-http.plain-namespace:80.invalid",
                     "weight": 100
                 }
@@ -11165,7 +11173,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: InvalidPortMapping-HTTP\nnamespace: plain-namespace\nprefix: /InvalidPortMapping-HTTP/\nservice: http://plain-invalidportmapping-http-http.plain-namespace:80.invalid\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: InvalidPortMapping-HTTP\nnamespace: plain-namespace\nprefix: /InvalidPortMapping-HTTP/\nservice: http://plain-invalidportmapping-http-http.plain-namespace:80.invalid\n"
         },
         {
             "_active": true,
@@ -11247,7 +11255,7 @@
                         "/InvalidPortMapping-GRPC/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: InvalidPortMapping-GRPC\nnamespace: plain-namespace\nprefix: /InvalidPortMapping-GRPC/\nservice: http://plain-invalidportmapping-grpc-grpc.plain-namespace:80.invalid\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: InvalidPortMapping-GRPC\nnamespace: plain-namespace\nprefix: /InvalidPortMapping-GRPC/\nservice: http://plain-invalidportmapping-grpc-grpc.plain-namespace:80.invalid\n",
                     "service": "http://plain-invalidportmapping-grpc-grpc.plain-namespace:80.invalid",
                     "weight": 100
                 }
@@ -11263,7 +11271,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: InvalidPortMapping-GRPC\nnamespace: plain-namespace\nprefix: /InvalidPortMapping-GRPC/\nservice: http://plain-invalidportmapping-grpc-grpc.plain-namespace:80.invalid\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: InvalidPortMapping-GRPC\nnamespace: plain-namespace\nprefix: /InvalidPortMapping-GRPC/\nservice: http://plain-invalidportmapping-grpc-grpc.plain-namespace:80.invalid\n"
         },
         {
             "_active": true,
@@ -11367,7 +11375,7 @@
                         "GET",
                         ":authority-inspector.external"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nhost: inspector.external\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HostHeaderMapping-HTTP\nnamespace: plain-namespace\nprefix: /HostHeaderMapping-HTTP/\nservice: http://plain-hostheadermapping-http-http.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nhost: inspector.external\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HostHeaderMapping-HTTP\nnamespace: plain-namespace\nprefix: /HostHeaderMapping-HTTP/\nservice: http://plain-hostheadermapping-http-http.plain-namespace\n",
                     "service": "http://plain-hostheadermapping-http-http.plain-namespace",
                     "weight": 100
                 }
@@ -11383,7 +11391,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nhost: inspector.external\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HostHeaderMapping-HTTP\nnamespace: plain-namespace\nprefix: /HostHeaderMapping-HTTP/\nservice: http://plain-hostheadermapping-http-http.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nhost: inspector.external\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HostHeaderMapping-HTTP\nnamespace: plain-namespace\nprefix: /HostHeaderMapping-HTTP/\nservice: http://plain-hostheadermapping-http-http.plain-namespace\n"
         },
         {
             "_active": true,
@@ -11487,7 +11495,7 @@
                         "GET",
                         ":authority-inspector.external"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nhost: inspector.external\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HostHeaderMapping-GRPC\nnamespace: plain-namespace\nprefix: /HostHeaderMapping-GRPC/\nservice: http://plain-hostheadermapping-grpc-grpc.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nhost: inspector.external\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HostHeaderMapping-GRPC\nnamespace: plain-namespace\nprefix: /HostHeaderMapping-GRPC/\nservice: http://plain-hostheadermapping-grpc-grpc.plain-namespace\n",
                     "service": "http://plain-hostheadermapping-grpc-grpc.plain-namespace",
                     "weight": 100
                 }
@@ -11503,7 +11511,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nhost: inspector.external\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HostHeaderMapping-GRPC\nnamespace: plain-namespace\nprefix: /HostHeaderMapping-GRPC/\nservice: http://plain-hostheadermapping-grpc-grpc.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nhost: inspector.external\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HostHeaderMapping-GRPC\nnamespace: plain-namespace\nprefix: /HostHeaderMapping-GRPC/\nservice: http://plain-hostheadermapping-grpc-grpc.plain-namespace\n"
         },
         {
             "_active": true,
@@ -11606,7 +11614,7 @@
                         "GET",
                         "X-Route-target2"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nheaders:\n  X-Route: target2\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HeaderRoutingTest-HTTP-target2\nnamespace: plain-namespace\nprefix: /HeaderRoutingTest-HTTP/\nservice: http://plain-headerroutingtest-http-http-target2.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nheaders:\n  X-Route: target2\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HeaderRoutingTest-HTTP-target2\nnamespace: plain-namespace\nprefix: /HeaderRoutingTest-HTTP/\nservice: http://plain-headerroutingtest-http-http-target2.plain-namespace\n",
                     "service": "http://plain-headerroutingtest-http-http-target2.plain-namespace",
                     "weight": 100
                 }
@@ -11622,7 +11630,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nheaders:\n  X-Route: target2\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HeaderRoutingTest-HTTP-target2\nnamespace: plain-namespace\nprefix: /HeaderRoutingTest-HTTP/\nservice: http://plain-headerroutingtest-http-http-target2.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nheaders:\n  X-Route: target2\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HeaderRoutingTest-HTTP-target2\nnamespace: plain-namespace\nprefix: /HeaderRoutingTest-HTTP/\nservice: http://plain-headerroutingtest-http-http-target2.plain-namespace\n"
         },
         {
             "_active": true,
@@ -11725,7 +11733,7 @@
                         "GET",
                         "X-Route-target2"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nheaders:\n  X-Route: target2\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HeaderRoutingTest-GRPC-target2\nnamespace: plain-namespace\nprefix: /HeaderRoutingTest-GRPC/\nservice: http://plain-headerroutingtest-grpc-grpc-target2.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nheaders:\n  X-Route: target2\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HeaderRoutingTest-GRPC-target2\nnamespace: plain-namespace\nprefix: /HeaderRoutingTest-GRPC/\nservice: http://plain-headerroutingtest-grpc-grpc-target2.plain-namespace\n",
                     "service": "http://plain-headerroutingtest-grpc-grpc-target2.plain-namespace",
                     "weight": 100
                 }
@@ -11741,7 +11749,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nheaders:\n  X-Route: target2\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HeaderRoutingTest-GRPC-target2\nnamespace: plain-namespace\nprefix: /HeaderRoutingTest-GRPC/\nservice: http://plain-headerroutingtest-grpc-grpc-target2.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nheaders:\n  X-Route: target2\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HeaderRoutingTest-GRPC-target2\nnamespace: plain-namespace\nprefix: /HeaderRoutingTest-GRPC/\nservice: http://plain-headerroutingtest-grpc-grpc-target2.plain-namespace\n"
         },
         {
             "_active": true,
@@ -11756,6 +11764,9 @@
             "add_response_headers": {
                 "foo": "bar"
             },
+            "allow_upgrade": [
+                "websocket"
+            ],
             "auto_host_rewrite": true,
             "case_sensitive": false,
             "cors": {
@@ -11796,6 +11807,9 @@
                     "add_response_headers": {
                         "foo": "bar"
                     },
+                    "allow_upgrade": [
+                        "websocket"
+                    ],
                     "auto_host_rewrite": true,
                     "case_sensitive": false,
                     "cluster": {
@@ -11873,9 +11887,8 @@
                         "/SimpleMapping-HTTP-all/",
                         "GET"
                     ],
-                    "serialization": "add_request_headers:\n  foo: bar\nadd_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\ncase_sensitive: false\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-all\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-all/\nremove_response_headers: x-envoy-upstream-service-time\nrewrite: /foo\nservice: http://plain-simplemapping-http-all-http.plain-namespace\nuse_websocket: true\n",
+                    "serialization": "_force_validation: true\nadd_request_headers:\n  foo: bar\nadd_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\ncase_sensitive: false\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-all\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-all/\nremove_response_headers: x-envoy-upstream-service-time\nrewrite: /foo\nservice: http://plain-simplemapping-http-all-http.plain-namespace\nuse_websocket: true\n",
                     "service": "http://plain-simplemapping-http-all-http.plain-namespace",
-                    "use_websocket": true,
                     "weight": 100
                 }
             ],
@@ -11891,8 +11904,7 @@
             "regex_rewrite": {},
             "remove_response_headers": "x-envoy-upstream-service-time",
             "rewrite": "/foo",
-            "serialization": "add_request_headers:\n  foo: bar\nadd_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\ncase_sensitive: false\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-all\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-all/\nremove_response_headers: x-envoy-upstream-service-time\nrewrite: /foo\nservice: http://plain-simplemapping-http-all-http.plain-namespace\nuse_websocket: true\n",
-            "use_websocket": true
+            "serialization": "_force_validation: true\nadd_request_headers:\n  foo: bar\nadd_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\ncase_sensitive: false\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-all\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-all/\nremove_response_headers: x-envoy-upstream-service-time\nrewrite: /foo\nservice: http://plain-simplemapping-http-all-http.plain-namespace\nuse_websocket: true\n"
         },
         {
             "_active": true,
@@ -11907,6 +11919,9 @@
             "add_response_headers": {
                 "foo": "bar"
             },
+            "allow_upgrade": [
+                "websocket"
+            ],
             "auto_host_rewrite": true,
             "case_sensitive": false,
             "cors": {
@@ -11947,6 +11962,9 @@
                     "add_response_headers": {
                         "foo": "bar"
                     },
+                    "allow_upgrade": [
+                        "websocket"
+                    ],
                     "auto_host_rewrite": true,
                     "case_sensitive": false,
                     "cluster": {
@@ -12024,9 +12042,8 @@
                         "/SimpleMapping-GRPC-all/",
                         "GET"
                     ],
-                    "serialization": "add_request_headers:\n  foo: bar\nadd_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\ncase_sensitive: false\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-all\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-all/\nremove_response_headers: x-envoy-upstream-service-time\nrewrite: /foo\nservice: http://plain-simplemapping-grpc-all-grpc.plain-namespace\nuse_websocket: true\n",
+                    "serialization": "_force_validation: true\nadd_request_headers:\n  foo: bar\nadd_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\ncase_sensitive: false\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-all\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-all/\nremove_response_headers: x-envoy-upstream-service-time\nrewrite: /foo\nservice: http://plain-simplemapping-grpc-all-grpc.plain-namespace\nuse_websocket: true\n",
                     "service": "http://plain-simplemapping-grpc-all-grpc.plain-namespace",
-                    "use_websocket": true,
                     "weight": 100
                 }
             ],
@@ -12042,8 +12059,7 @@
             "regex_rewrite": {},
             "remove_response_headers": "x-envoy-upstream-service-time",
             "rewrite": "/foo",
-            "serialization": "add_request_headers:\n  foo: bar\nadd_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\ncase_sensitive: false\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-all\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-all/\nremove_response_headers: x-envoy-upstream-service-time\nrewrite: /foo\nservice: http://plain-simplemapping-grpc-all-grpc.plain-namespace\nuse_websocket: true\n",
-            "use_websocket": true
+            "serialization": "_force_validation: true\nadd_request_headers:\n  foo: bar\nadd_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\ncase_sensitive: false\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-all\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-all/\nremove_response_headers: x-envoy-upstream-service-time\nrewrite: /foo\nservice: http://plain-simplemapping-grpc-all-grpc.plain-namespace\nuse_websocket: true\n"
         },
         {
             "_active": true,
@@ -12132,7 +12148,7 @@
                         "/HeaderRoutingTest-HTTP/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HeaderRoutingTest-HTTP-target1\nnamespace: plain-namespace\nprefix: /HeaderRoutingTest-HTTP/\nservice: http://plain-headerroutingtest-http-http.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HeaderRoutingTest-HTTP-target1\nnamespace: plain-namespace\nprefix: /HeaderRoutingTest-HTTP/\nservice: http://plain-headerroutingtest-http-http.plain-namespace\n",
                     "service": "http://plain-headerroutingtest-http-http.plain-namespace",
                     "weight": 100
                 }
@@ -12148,7 +12164,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HeaderRoutingTest-HTTP-target1\nnamespace: plain-namespace\nprefix: /HeaderRoutingTest-HTTP/\nservice: http://plain-headerroutingtest-http-http.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HeaderRoutingTest-HTTP-target1\nnamespace: plain-namespace\nprefix: /HeaderRoutingTest-HTTP/\nservice: http://plain-headerroutingtest-http-http.plain-namespace\n"
         },
         {
             "_active": true,
@@ -12237,7 +12253,7 @@
                         "/HeaderRoutingTest-GRPC/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HeaderRoutingTest-GRPC-target1\nnamespace: plain-namespace\nprefix: /HeaderRoutingTest-GRPC/\nservice: http://plain-headerroutingtest-grpc-grpc.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HeaderRoutingTest-GRPC-target1\nnamespace: plain-namespace\nprefix: /HeaderRoutingTest-GRPC/\nservice: http://plain-headerroutingtest-grpc-grpc.plain-namespace\n",
                     "service": "http://plain-headerroutingtest-grpc-grpc.plain-namespace",
                     "weight": 100
                 }
@@ -12253,7 +12269,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HeaderRoutingTest-GRPC-target1\nnamespace: plain-namespace\nprefix: /HeaderRoutingTest-GRPC/\nservice: http://plain-headerroutingtest-grpc-grpc.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HeaderRoutingTest-GRPC-target1\nnamespace: plain-namespace\nprefix: /HeaderRoutingTest-GRPC/\nservice: http://plain-headerroutingtest-grpc-grpc.plain-namespace\n"
         },
         {
             "_active": true,
@@ -12343,7 +12359,7 @@
                         "/CanaryMapping-HTTP-100/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-100\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-100/\nservice: http://plain-canarymapping-http-100-http.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-100\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-100/\nservice: http://plain-canarymapping-http-100-http.plain-namespace\n",
                     "service": "http://plain-canarymapping-http-100-http.plain-namespace",
                     "weight": 100
                 },
@@ -12413,7 +12429,7 @@
                         "/CanaryMapping-HTTP-100/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-100-canary\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-100/\nservice: http://plain-canarymapping-http-100-http-canary.plain-namespace\nweight: 100\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-100-canary\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-100/\nservice: http://plain-canarymapping-http-100-http-canary.plain-namespace\nweight: 100\n",
                     "service": "http://plain-canarymapping-http-100-http-canary.plain-namespace",
                     "weight": 100
                 }
@@ -12429,7 +12445,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-100\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-100/\nservice: http://plain-canarymapping-http-100-http.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-100\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-100/\nservice: http://plain-canarymapping-http-100-http.plain-namespace\n"
         },
         {
             "_active": true,
@@ -12519,7 +12535,7 @@
                         "/CanaryMapping-GRPC-100/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-100\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-100/\nservice: http://plain-canarymapping-grpc-100-grpc.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-100\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-100/\nservice: http://plain-canarymapping-grpc-100-grpc.plain-namespace\n",
                     "service": "http://plain-canarymapping-grpc-100-grpc.plain-namespace",
                     "weight": 100
                 },
@@ -12589,7 +12605,7 @@
                         "/CanaryMapping-GRPC-100/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-100-canary\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-100/\nservice: http://plain-canarymapping-grpc-100-grpc-canary.plain-namespace\nweight: 100\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-100-canary\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-100/\nservice: http://plain-canarymapping-grpc-100-grpc-canary.plain-namespace\nweight: 100\n",
                     "service": "http://plain-canarymapping-grpc-100-grpc-canary.plain-namespace",
                     "weight": 100
                 }
@@ -12605,7 +12621,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-100\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-100/\nservice: http://plain-canarymapping-grpc-100-grpc.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-100\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-100/\nservice: http://plain-canarymapping-grpc-100-grpc.plain-namespace\n"
         },
         {
             "_active": true,
@@ -12614,6 +12630,9 @@
                 "plain-websocketmapping-http-http.plain-namespace.1"
             ],
             "_rkey": "plain-websocketmapping-http-http.plain-namespace.1",
+            "allow_upgrade": [
+                "websocket"
+            ],
             "default_class": "httpmapping",
             "group_id": "07ff6553e1b8a02e499d1be15a0cdb4b07043ced",
             "group_weight": [
@@ -12635,6 +12654,9 @@
                     "_rkey": "plain-websocketmapping-http-http.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
+                    "allow_upgrade": [
+                        "websocket"
+                    ],
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -12698,9 +12720,8 @@
                         "/WebSocketMapping-HTTP/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: echo.websocket.org\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: WebSocketMapping-HTTP\nnamespace: plain-namespace\nprefix: /WebSocketMapping-HTTP/\nservice: echo.websocket.org:80\nuse_websocket: true\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: echo.websocket.org\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: WebSocketMapping-HTTP\nnamespace: plain-namespace\nprefix: /WebSocketMapping-HTTP/\nservice: echo.websocket.org:80\nuse_websocket: true\n",
                     "service": "echo.websocket.org:80",
-                    "use_websocket": true,
                     "weight": 100
                 }
             ],
@@ -12715,8 +12736,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: echo.websocket.org\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: WebSocketMapping-HTTP\nnamespace: plain-namespace\nprefix: /WebSocketMapping-HTTP/\nservice: echo.websocket.org:80\nuse_websocket: true\n",
-            "use_websocket": true
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: echo.websocket.org\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: WebSocketMapping-HTTP\nnamespace: plain-namespace\nprefix: /WebSocketMapping-HTTP/\nservice: echo.websocket.org:80\nuse_websocket: true\n"
         },
         {
             "_active": true,
@@ -12725,6 +12745,9 @@
                 "plain-websocketmapping-grpc-grpc.plain-namespace.1"
             ],
             "_rkey": "plain-websocketmapping-grpc-grpc.plain-namespace.1",
+            "allow_upgrade": [
+                "websocket"
+            ],
             "default_class": "httpmapping",
             "group_id": "3b375e2e8ef79269ef6398c32d7d7474157ededd",
             "group_weight": [
@@ -12746,6 +12769,9 @@
                     "_rkey": "plain-websocketmapping-grpc-grpc.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
+                    "allow_upgrade": [
+                        "websocket"
+                    ],
                     "cluster": {
                         "_active": true,
                         "_errored": false,
@@ -12809,9 +12835,8 @@
                         "/WebSocketMapping-GRPC/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: echo.websocket.org\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: WebSocketMapping-GRPC\nnamespace: plain-namespace\nprefix: /WebSocketMapping-GRPC/\nservice: echo.websocket.org:80\nuse_websocket: true\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: echo.websocket.org\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: WebSocketMapping-GRPC\nnamespace: plain-namespace\nprefix: /WebSocketMapping-GRPC/\nservice: echo.websocket.org:80\nuse_websocket: true\n",
                     "service": "echo.websocket.org:80",
-                    "use_websocket": true,
                     "weight": 100
                 }
             ],
@@ -12826,8 +12851,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: echo.websocket.org\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: WebSocketMapping-GRPC\nnamespace: plain-namespace\nprefix: /WebSocketMapping-GRPC/\nservice: echo.websocket.org:80\nuse_websocket: true\n",
-            "use_websocket": true
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: echo.websocket.org\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: WebSocketMapping-GRPC\nnamespace: plain-namespace\nprefix: /WebSocketMapping-GRPC/\nservice: echo.websocket.org:80\nuse_websocket: true\n"
         },
         {
             "_active": true,
@@ -12880,7 +12904,7 @@
                     "/HostRedirectMapping-2/",
                     "GET"
                 ],
-                "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\ncase_sensitive: false\nhost_redirect: true\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HostRedirectMapping-2\nnamespace: plain-namespace\nprefix: /HostRedirectMapping-2/\nservice: foobar.com\n",
+                "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\ncase_sensitive: false\nhost_redirect: true\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HostRedirectMapping-2\nnamespace: plain-namespace\nprefix: /HostRedirectMapping-2/\nservice: foobar.com\n",
                 "service": "foobar.com"
             },
             "kind": "IRHTTPMappingGroup",
@@ -12978,7 +13002,7 @@
                         "/CanaryMapping-HTTP-50/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-50\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-50/\nservice: http://plain-canarymapping-http-50-http.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-50\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-50/\nservice: http://plain-canarymapping-http-50-http.plain-namespace\n",
                     "service": "http://plain-canarymapping-http-50-http.plain-namespace",
                     "weight": 100
                 },
@@ -13048,7 +13072,7 @@
                         "/CanaryMapping-HTTP-50/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-50-canary\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-50/\nservice: http://plain-canarymapping-http-50-http-canary.plain-namespace\nweight: 50\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-50-canary\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-50/\nservice: http://plain-canarymapping-http-50-http-canary.plain-namespace\nweight: 50\n",
                     "service": "http://plain-canarymapping-http-50-http-canary.plain-namespace",
                     "weight": 50
                 }
@@ -13064,7 +13088,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-50\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-50/\nservice: http://plain-canarymapping-http-50-http.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-50\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-50/\nservice: http://plain-canarymapping-http-50-http.plain-namespace\n"
         },
         {
             "_active": true,
@@ -13154,7 +13178,7 @@
                         "/CanaryMapping-HTTP-10/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-10\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-10/\nservice: http://plain-canarymapping-http-10-http.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-10\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-10/\nservice: http://plain-canarymapping-http-10-http.plain-namespace\n",
                     "service": "http://plain-canarymapping-http-10-http.plain-namespace",
                     "weight": 100
                 },
@@ -13224,7 +13248,7 @@
                         "/CanaryMapping-HTTP-10/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-10-canary\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-10/\nservice: http://plain-canarymapping-http-10-http-canary.plain-namespace\nweight: 10\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-10-canary\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-10/\nservice: http://plain-canarymapping-http-10-http-canary.plain-namespace\nweight: 10\n",
                     "service": "http://plain-canarymapping-http-10-http-canary.plain-namespace",
                     "weight": 10
                 }
@@ -13240,7 +13264,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-10\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-10/\nservice: http://plain-canarymapping-http-10-http.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-10\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-10/\nservice: http://plain-canarymapping-http-10-http.plain-namespace\n"
         },
         {
             "_active": true,
@@ -13330,7 +13354,7 @@
                         "/CanaryMapping-GRPC-50/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-50\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-50/\nservice: http://plain-canarymapping-grpc-50-grpc.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-50\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-50/\nservice: http://plain-canarymapping-grpc-50-grpc.plain-namespace\n",
                     "service": "http://plain-canarymapping-grpc-50-grpc.plain-namespace",
                     "weight": 100
                 },
@@ -13400,7 +13424,7 @@
                         "/CanaryMapping-GRPC-50/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-50-canary\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-50/\nservice: http://plain-canarymapping-grpc-50-grpc-canary.plain-namespace\nweight: 50\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-50-canary\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-50/\nservice: http://plain-canarymapping-grpc-50-grpc-canary.plain-namespace\nweight: 50\n",
                     "service": "http://plain-canarymapping-grpc-50-grpc-canary.plain-namespace",
                     "weight": 50
                 }
@@ -13416,7 +13440,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-50\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-50/\nservice: http://plain-canarymapping-grpc-50-grpc.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-50\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-50/\nservice: http://plain-canarymapping-grpc-50-grpc.plain-namespace\n"
         },
         {
             "_active": true,
@@ -13506,7 +13530,7 @@
                         "/CanaryMapping-GRPC-10/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-10\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-10/\nservice: http://plain-canarymapping-grpc-10-grpc.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-10\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-10/\nservice: http://plain-canarymapping-grpc-10-grpc.plain-namespace\n",
                     "service": "http://plain-canarymapping-grpc-10-grpc.plain-namespace",
                     "weight": 100
                 },
@@ -13576,7 +13600,7 @@
                         "/CanaryMapping-GRPC-10/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-10-canary\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-10/\nservice: http://plain-canarymapping-grpc-10-grpc-canary.plain-namespace\nweight: 10\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-10-canary\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-10/\nservice: http://plain-canarymapping-grpc-10-grpc-canary.plain-namespace\nweight: 10\n",
                     "service": "http://plain-canarymapping-grpc-10-grpc-canary.plain-namespace",
                     "weight": 10
                 }
@@ -13592,7 +13616,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-10\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-10/\nservice: http://plain-canarymapping-grpc-10-grpc.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-10\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-10/\nservice: http://plain-canarymapping-grpc-10-grpc.plain-namespace\n"
         },
         {
             "_active": true,
@@ -13682,7 +13706,7 @@
                         "/CanaryMapping-HTTP-0/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-0\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-0/\nservice: http://plain-canarymapping-http-0-http.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-0\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-0/\nservice: http://plain-canarymapping-http-0-http.plain-namespace\n",
                     "service": "http://plain-canarymapping-http-0-http.plain-namespace",
                     "weight": 100
                 },
@@ -13752,7 +13776,7 @@
                         "/CanaryMapping-HTTP-0/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-0-canary\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-0/\nservice: http://plain-canarymapping-http-0-http-canary.plain-namespace\nweight: 0\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-0-canary\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-0/\nservice: http://plain-canarymapping-http-0-http-canary.plain-namespace\nweight: 0\n",
                     "service": "http://plain-canarymapping-http-0-http-canary.plain-namespace",
                     "weight": 0
                 }
@@ -13768,7 +13792,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-0\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-0/\nservice: http://plain-canarymapping-http-0-http.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-0\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-0/\nservice: http://plain-canarymapping-http-0-http.plain-namespace\n"
         },
         {
             "_active": true,
@@ -13858,7 +13882,7 @@
                         "/CanaryMapping-GRPC-0/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-0\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-0/\nservice: http://plain-canarymapping-grpc-0-grpc.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-0\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-0/\nservice: http://plain-canarymapping-grpc-0-grpc.plain-namespace\n",
                     "service": "http://plain-canarymapping-grpc-0-grpc.plain-namespace",
                     "weight": 100
                 },
@@ -13928,7 +13952,7 @@
                         "/CanaryMapping-GRPC-0/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-0-canary\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-0/\nservice: http://plain-canarymapping-grpc-0-grpc-canary.plain-namespace\nweight: 0\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-0-canary\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-0/\nservice: http://plain-canarymapping-grpc-0-grpc-canary.plain-namespace\nweight: 0\n",
                     "service": "http://plain-canarymapping-grpc-0-grpc-canary.plain-namespace",
                     "weight": 0
                 }
@@ -13944,7 +13968,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-0\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-0/\nservice: http://plain-canarymapping-grpc-0-grpc.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-0\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-0/\nservice: http://plain-canarymapping-grpc-0-grpc.plain-namespace\n"
         },
         {
             "_active": true,
@@ -13995,7 +14019,7 @@
                     "/HostRedirectMapping/",
                     "GET"
                 ],
-                "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_redirect: true\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HostRedirectMapping\nnamespace: plain-namespace\nprefix: /HostRedirectMapping/\nservice: foobar.com\n",
+                "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_redirect: true\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HostRedirectMapping\nnamespace: plain-namespace\nprefix: /HostRedirectMapping/\nservice: foobar.com\n",
                 "service": "foobar.com"
             },
             "kind": "IRHTTPMappingGroup",
@@ -14092,7 +14116,7 @@
                         "/SimpleMapping-HTTP/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP/\nservice: http://plain-simplemapping-http-http.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP/\nservice: http://plain-simplemapping-http-http.plain-namespace\n",
                     "service": "http://plain-simplemapping-http-http.plain-namespace",
                     "weight": 100
                 }
@@ -14108,7 +14132,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP/\nservice: http://plain-simplemapping-http-http.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP/\nservice: http://plain-simplemapping-http-http.plain-namespace\n"
         },
         {
             "_active": true,
@@ -14197,7 +14221,7 @@
                         "/SimpleMapping-GRPC/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC/\nservice: http://plain-simplemapping-grpc-grpc.plain-namespace\n",
+                    "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC/\nservice: http://plain-simplemapping-grpc-grpc.plain-namespace\n",
                     "service": "http://plain-simplemapping-grpc-grpc.plain-namespace",
                     "weight": 100
                 }
@@ -14213,7 +14237,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC/\nservice: http://plain-simplemapping-grpc-grpc.plain-namespace\n"
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC/\nservice: http://plain-simplemapping-grpc-grpc.plain-namespace\n"
         },
         {
             "_active": true,

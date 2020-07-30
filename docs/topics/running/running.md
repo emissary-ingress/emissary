@@ -198,6 +198,16 @@ If no `AMBASSADOR_ENVOY_BASE_ID` is provided then it will use the ID `0`. For mo
 
 By default, the Ambassador Edge Stack will verify the TLS certificates provided by the Kubernetes API. In some situations, the cluster may be deployed with self-signed certificates. In this case, set `AMBASSADOR_VERIFY_SSL_FALSE` to `true` to disable verifying the TLS certificates.
 
+## `AMBASSADOR_FAST_VALIDATION`
+
+Setting `AMBASSADOR_FAST_VALIDATION` to any non-empty value will enable an experimental Ambassador-resource validator than can significantly reduce configuration latency for Ambassador installations with many resources. The default is to turn off fast validation.
+
+## `AMBASSADOR_UPDATE_MAPPING_STATUS`
+
+If `AMBASSADOR_UPDATE_MAPPING_STATUS` is set to the string `true`, Ambassador will update the `status` of every `Mapping` CRD that it accepts for its configuration. This has no effect on the proper functioning of Ambassador itself, and can be a performance burden on installations with many `Mapping`s. It has no effect for `Mapping`s stored as annotations. 
+
+The default is `false`. We recommend leaving `AMBASSADOR_UPDATE_MAPPING_STATUS` turned off unless required for external systems.
+
 ## Configuration from the Filesystem
 
 If desired, the Ambassador Edge Stack can be configured from YAML files in the directory `$AMBASSADOR_CONFIG_BASE_DIR/ambassador-config` (by default, `/ambassador/ambassador-config`, which is empty in the images built by Datawire). You could volume mount an external configuration directory here, for example, or use a custom Dockerfile to build configuration directly into a Docker image.

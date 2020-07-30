@@ -53,8 +53,25 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 (no changes yet)
 
+## [1.6.2] July 30, 2020
+[1.6.2]: https://github.com/datawire/ambassador/compare/v1.6.1...v1.6.2
+
+### Ambassador API Gateway + Ambassador Edge Stack
+
+- Bugfix: The (new in 1.6.0) `Host.spec.tls` and `Host.spec.tlsContext` fields now work when `AMBASSADOR_FAST_VALIDATION=fast` is not set.
+- Bugfix: Setting `use_websocket: true` on a `Mapping` now only affects routes generated from that `Mapping`, instead of affecting all routes on that port.
+- Feature: It is now possible to "upgrade" to non-HTTP protocols other than WebSocket; the new `allow_upgrade` is a generalization of `use_websocket`.
+
+### Ambassador Edge Stack only
+
+- Bugfix: The `Host.spec.requestPolicy.insecure.additionalPort` field works again.
+- Bugfix: The `Host.spec.ambassadorId` is once again handled in addition to `.ambassador_id`; allowing hosts written by older versions AES prior to 1.6.0 to continue working.
+- Bugfix: Fix a redirect loop that could occur when using using multiple `protectedOrigins` in a `Host`.
+
 ## [1.6.1] July 23, 2020
 [1.6.1]: https://github.com/datawire/ambassador/compare/v1.6.0...v1.6.1
+
+### Ambassador API Gateway + Ambassador Edge Stack
 
 - Bugfix: Mapping with `https` scheme for service are correctly parsed.
 - Bugfix: Mapping with both a scheme and a hostname of `localhost` is now handled correctly.

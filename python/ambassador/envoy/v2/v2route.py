@@ -256,6 +256,10 @@ class V2Route(dict):
                 if rate_limits:
                     route["rate_limits"] = rate_limits
 
+        # Save upgrade configs.
+        if group.get('allow_upgrade'):
+            route["upgrade_configs"] = [{'upgrade_type': proto} for proto in group.get('allow_upgrade')]
+
         self['route'] = route
 
     @classmethod

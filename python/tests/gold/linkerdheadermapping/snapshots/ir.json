@@ -324,7 +324,7 @@
                         "/target_add_linkerd_header_only/",
                         "GET"
                     ],
-                    "serialization": "add_request_headers: {}\nambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http-addlinkerdonly\nnamespace: default\nprefix: /target_add_linkerd_header_only/\nremove_request_headers: []\nservice: linkerdheadermapping-http-addlinkerdonly\n",
+                    "serialization": "_force_validation: true\nadd_request_headers: {}\nambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http-addlinkerdonly\nnamespace: default\nprefix: /target_add_linkerd_header_only/\nremove_request_headers: []\nservice: linkerdheadermapping-http-addlinkerdonly\n",
                     "service": "linkerdheadermapping-http-addlinkerdonly",
                     "weight": 100
                 }
@@ -342,7 +342,7 @@
             "regex_rewrite": {},
             "remove_request_headers": [],
             "rewrite": "/",
-            "serialization": "add_request_headers: {}\nambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http-addlinkerdonly\nnamespace: default\nprefix: /target_add_linkerd_header_only/\nremove_request_headers: []\nservice: linkerdheadermapping-http-addlinkerdonly\n"
+            "serialization": "_force_validation: true\nadd_request_headers: {}\nambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http-addlinkerdonly\nnamespace: default\nprefix: /target_add_linkerd_header_only/\nremove_request_headers: []\nservice: linkerdheadermapping-http-addlinkerdonly\n"
         },
         {
             "_active": true,
@@ -690,7 +690,7 @@
                         "/target_no_header/",
                         "GET"
                     ],
-                    "serialization": "add_linkerd_headers: false\nambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http-noheader\nnamespace: default\nprefix: /target_no_header/\nservice: linkerdheadermapping-http-noheader\n",
+                    "serialization": "_force_validation: true\nadd_linkerd_headers: false\nambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http-noheader\nnamespace: default\nprefix: /target_no_header/\nservice: linkerdheadermapping-http-noheader\n",
                     "service": "linkerdheadermapping-http-noheader",
                     "weight": 100
                 }
@@ -710,7 +710,7 @@
                 "x-evil-header"
             ],
             "rewrite": "/",
-            "serialization": "add_linkerd_headers: false\nambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http-noheader\nnamespace: default\nprefix: /target_no_header/\nservice: linkerdheadermapping-http-noheader\n"
+            "serialization": "_force_validation: true\nadd_linkerd_headers: false\nambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http-noheader\nnamespace: default\nprefix: /target_no_header/\nservice: linkerdheadermapping-http-noheader\n"
         },
         {
             "_active": true,
@@ -939,7 +939,7 @@
                         "/target/",
                         "GET"
                     ],
-                    "serialization": "add_request_headers:\n  fruit:\n    append: false\n    value: banana\nambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http\nnamespace: default\nprefix: /target/\nremove_request_headers:\n- x-evilness\nservice: linkerdheadermapping-http\n",
+                    "serialization": "_force_validation: true\nadd_request_headers:\n  fruit:\n    append: false\n    value: banana\nambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http\nnamespace: default\nprefix: /target/\nremove_request_headers:\n- x-evilness\nservice: linkerdheadermapping-http\n",
                     "service": "linkerdheadermapping-http",
                     "weight": 100
                 }
@@ -959,7 +959,7 @@
                 "x-evilness"
             ],
             "rewrite": "/",
-            "serialization": "add_request_headers:\n  fruit:\n    append: false\n    value: banana\nambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http\nnamespace: default\nprefix: /target/\nremove_request_headers:\n- x-evilness\nservice: linkerdheadermapping-http\n"
+            "serialization": "_force_validation: true\nadd_request_headers:\n  fruit:\n    append: false\n    value: banana\nambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http\nnamespace: default\nprefix: /target/\nremove_request_headers:\n- x-evilness\nservice: linkerdheadermapping-http\n"
         }
     ],
     "grpc_services": {},

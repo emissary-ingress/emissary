@@ -1,10 +1,7 @@
 {
     "_errors": {},
+    "_fast_validation_disagreements": {},
     "_notices": {
-        "-global-": [
-            "Parsed pod labels: {'kat-ambassador-id': 'plain', 'scope': 'AmbassadorTest', 'service': 'plain'}",
-            "Found Ambassador service: plain"
-        ],
         "plain-canarydiffmapping-grpc-0-grpc-canary.plain-namespace.1": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ],
@@ -1837,7 +1834,7 @@
             "namespace": "plain-namespace",
             "prefix": "/AddReqHeadersMapping-GRPC/",
             "rkey": "plain-addreqheadersmapping-grpc-grpc.plain-namespace.1",
-            "serialization": "add_request_headers:\n  aoo:\n    append: true\n    value: aoo\n  boo:\n    value: boo\n  foo: Foo\n  zoo:\n    append: false\n    value: Zoo\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: AddReqHeadersMapping-GRPC\nnamespace: plain-namespace\nprefix: /AddReqHeadersMapping-GRPC/\nservice: http://plain-addreqheadersmapping-grpc-grpc.plain-namespace\n",
+            "serialization": "_force_validation: true\nadd_request_headers:\n  aoo:\n    append: true\n    value: aoo\n  boo:\n    value: boo\n  foo: Foo\n  zoo:\n    append: false\n    value: Zoo\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: AddReqHeadersMapping-GRPC\nnamespace: plain-namespace\nprefix: /AddReqHeadersMapping-GRPC/\nservice: http://plain-addreqheadersmapping-grpc-grpc.plain-namespace\n",
             "service": "http://plain-addreqheadersmapping-grpc-grpc.plain-namespace"
         },
         "plain-addreqheadersmapping-http-http.plain-namespace.1": {
@@ -1868,7 +1865,7 @@
             "namespace": "plain-namespace",
             "prefix": "/AddReqHeadersMapping-HTTP/",
             "rkey": "plain-addreqheadersmapping-http-http.plain-namespace.1",
-            "serialization": "add_request_headers:\n  aoo:\n    append: true\n    value: aoo\n  boo:\n    value: boo\n  foo: Foo\n  zoo:\n    append: false\n    value: Zoo\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: AddReqHeadersMapping-HTTP\nnamespace: plain-namespace\nprefix: /AddReqHeadersMapping-HTTP/\nservice: http://plain-addreqheadersmapping-http-http.plain-namespace\n",
+            "serialization": "_force_validation: true\nadd_request_headers:\n  aoo:\n    append: true\n    value: aoo\n  boo:\n    value: boo\n  foo: Foo\n  zoo:\n    append: false\n    value: Zoo\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: AddReqHeadersMapping-HTTP\nnamespace: plain-namespace\nprefix: /AddReqHeadersMapping-HTTP/\nservice: http://plain-addreqheadersmapping-http-http.plain-namespace\n",
             "service": "http://plain-addreqheadersmapping-http-http.plain-namespace"
         },
         "plain-addrespheadersmapping-grpc-grpc.plain-namespace.1": {
@@ -1899,7 +1896,7 @@
             "namespace": "plain-namespace",
             "prefix": "/AddRespHeadersMapping-GRPC/",
             "rkey": "plain-addrespheadersmapping-grpc-grpc.plain-namespace.1",
-            "serialization": "add_response_headers:\n  foo: Foo\n  koo:\n    append: false\n    value: KooK\n  test:\n    value: boo\n  zoo:\n    append: true\n    value: ZooZ\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: AddRespHeadersMapping-GRPC\nnamespace: plain-namespace\nprefix: /AddRespHeadersMapping-GRPC/\nservice: http://httpbin.org\n",
+            "serialization": "_force_validation: true\nadd_response_headers:\n  foo: Foo\n  koo:\n    append: false\n    value: KooK\n  test:\n    value: boo\n  zoo:\n    append: true\n    value: ZooZ\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: AddRespHeadersMapping-GRPC\nnamespace: plain-namespace\nprefix: /AddRespHeadersMapping-GRPC/\nservice: http://httpbin.org\n",
             "service": "http://httpbin.org"
         },
         "plain-addrespheadersmapping-http-http.plain-namespace.1": {
@@ -1930,7 +1927,7 @@
             "namespace": "plain-namespace",
             "prefix": "/AddRespHeadersMapping-HTTP/",
             "rkey": "plain-addrespheadersmapping-http-http.plain-namespace.1",
-            "serialization": "add_response_headers:\n  foo: Foo\n  koo:\n    append: false\n    value: KooK\n  test:\n    value: boo\n  zoo:\n    append: true\n    value: ZooZ\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: AddRespHeadersMapping-HTTP\nnamespace: plain-namespace\nprefix: /AddRespHeadersMapping-HTTP/\nservice: http://httpbin.org\n",
+            "serialization": "_force_validation: true\nadd_response_headers:\n  foo: Foo\n  koo:\n    append: false\n    value: KooK\n  test:\n    value: boo\n  zoo:\n    append: true\n    value: ZooZ\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: AddRespHeadersMapping-HTTP\nnamespace: plain-namespace\nprefix: /AddRespHeadersMapping-HTTP/\nservice: http://httpbin.org\n",
             "service": "http://httpbin.org"
         },
         "plain-canarydiffmapping-grpc-0-grpc-canary.plain-namespace.1": {
@@ -1948,7 +1945,7 @@
             "namespace": "plain-namespace",
             "prefix": "/CanaryDiffMapping-GRPC-0/",
             "rkey": "plain-canarydiffmapping-grpc-0-grpc-canary.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.2.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-0-canary\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-0/\nservice: http://plain-canarydiffmapping-grpc-0-grpc-canary.plain-namespace\nweight: 0\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.2.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-0-canary\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-0/\nservice: http://plain-canarydiffmapping-grpc-0-grpc-canary.plain-namespace\nweight: 0\n",
             "service": "http://plain-canarydiffmapping-grpc-0-grpc-canary.plain-namespace",
             "weight": 0
         },
@@ -1967,7 +1964,7 @@
             "namespace": "plain-namespace",
             "prefix": "/CanaryDiffMapping-GRPC-0/",
             "rkey": "plain-canarydiffmapping-grpc-0-grpc.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-0\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-0/\nservice: http://plain-canarydiffmapping-grpc-0-grpc.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-0\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-0/\nservice: http://plain-canarydiffmapping-grpc-0-grpc.plain-namespace\n",
             "service": "http://plain-canarydiffmapping-grpc-0-grpc.plain-namespace"
         },
         "plain-canarydiffmapping-grpc-10-grpc-canary.plain-namespace.1": {
@@ -1985,7 +1982,7 @@
             "namespace": "plain-namespace",
             "prefix": "/CanaryDiffMapping-GRPC-10/",
             "rkey": "plain-canarydiffmapping-grpc-10-grpc-canary.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.2.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-10-canary\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-10/\nservice: http://plain-canarydiffmapping-grpc-10-grpc-canary.plain-namespace\nweight: 10\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.2.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-10-canary\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-10/\nservice: http://plain-canarydiffmapping-grpc-10-grpc-canary.plain-namespace\nweight: 10\n",
             "service": "http://plain-canarydiffmapping-grpc-10-grpc-canary.plain-namespace",
             "weight": 10
         },
@@ -2004,7 +2001,7 @@
             "namespace": "plain-namespace",
             "prefix": "/CanaryDiffMapping-GRPC-10/",
             "rkey": "plain-canarydiffmapping-grpc-10-grpc.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-10\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-10/\nservice: http://plain-canarydiffmapping-grpc-10-grpc.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-10\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-10/\nservice: http://plain-canarydiffmapping-grpc-10-grpc.plain-namespace\n",
             "service": "http://plain-canarydiffmapping-grpc-10-grpc.plain-namespace"
         },
         "plain-canarydiffmapping-grpc-100-grpc-canary.plain-namespace.1": {
@@ -2022,7 +2019,7 @@
             "namespace": "plain-namespace",
             "prefix": "/CanaryDiffMapping-GRPC-100/",
             "rkey": "plain-canarydiffmapping-grpc-100-grpc-canary.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.2.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-100-canary\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-100/\nservice: http://plain-canarydiffmapping-grpc-100-grpc-canary.plain-namespace\nweight: 100\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.2.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-100-canary\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-100/\nservice: http://plain-canarydiffmapping-grpc-100-grpc-canary.plain-namespace\nweight: 100\n",
             "service": "http://plain-canarydiffmapping-grpc-100-grpc-canary.plain-namespace",
             "weight": 100
         },
@@ -2041,7 +2038,7 @@
             "namespace": "plain-namespace",
             "prefix": "/CanaryDiffMapping-GRPC-100/",
             "rkey": "plain-canarydiffmapping-grpc-100-grpc.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-100\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-100/\nservice: http://plain-canarydiffmapping-grpc-100-grpc.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-100\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-100/\nservice: http://plain-canarydiffmapping-grpc-100-grpc.plain-namespace\n",
             "service": "http://plain-canarydiffmapping-grpc-100-grpc.plain-namespace"
         },
         "plain-canarydiffmapping-grpc-50-grpc-canary.plain-namespace.1": {
@@ -2059,7 +2056,7 @@
             "namespace": "plain-namespace",
             "prefix": "/CanaryDiffMapping-GRPC-50/",
             "rkey": "plain-canarydiffmapping-grpc-50-grpc-canary.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.2.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-50-canary\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-50/\nservice: http://plain-canarydiffmapping-grpc-50-grpc-canary.plain-namespace\nweight: 50\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.2.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-50-canary\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-50/\nservice: http://plain-canarydiffmapping-grpc-50-grpc-canary.plain-namespace\nweight: 50\n",
             "service": "http://plain-canarydiffmapping-grpc-50-grpc-canary.plain-namespace",
             "weight": 50
         },
@@ -2078,7 +2075,7 @@
             "namespace": "plain-namespace",
             "prefix": "/CanaryDiffMapping-GRPC-50/",
             "rkey": "plain-canarydiffmapping-grpc-50-grpc.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-50\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-50/\nservice: http://plain-canarydiffmapping-grpc-50-grpc.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-GRPC-50\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-GRPC-50/\nservice: http://plain-canarydiffmapping-grpc-50-grpc.plain-namespace\n",
             "service": "http://plain-canarydiffmapping-grpc-50-grpc.plain-namespace"
         },
         "plain-canarydiffmapping-http-0-http-canary.plain-namespace.1": {
@@ -2096,7 +2093,7 @@
             "namespace": "plain-namespace",
             "prefix": "/CanaryDiffMapping-HTTP-0/",
             "rkey": "plain-canarydiffmapping-http-0-http-canary.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.2.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-0-canary\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-0/\nservice: http://plain-canarydiffmapping-http-0-http-canary.plain-namespace\nweight: 0\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.2.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-0-canary\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-0/\nservice: http://plain-canarydiffmapping-http-0-http-canary.plain-namespace\nweight: 0\n",
             "service": "http://plain-canarydiffmapping-http-0-http-canary.plain-namespace",
             "weight": 0
         },
@@ -2115,7 +2112,7 @@
             "namespace": "plain-namespace",
             "prefix": "/CanaryDiffMapping-HTTP-0/",
             "rkey": "plain-canarydiffmapping-http-0-http.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-0\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-0/\nservice: http://plain-canarydiffmapping-http-0-http.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-0\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-0/\nservice: http://plain-canarydiffmapping-http-0-http.plain-namespace\n",
             "service": "http://plain-canarydiffmapping-http-0-http.plain-namespace"
         },
         "plain-canarydiffmapping-http-10-http-canary.plain-namespace.1": {
@@ -2133,7 +2130,7 @@
             "namespace": "plain-namespace",
             "prefix": "/CanaryDiffMapping-HTTP-10/",
             "rkey": "plain-canarydiffmapping-http-10-http-canary.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.2.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-10-canary\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-10/\nservice: http://plain-canarydiffmapping-http-10-http-canary.plain-namespace\nweight: 10\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.2.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-10-canary\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-10/\nservice: http://plain-canarydiffmapping-http-10-http-canary.plain-namespace\nweight: 10\n",
             "service": "http://plain-canarydiffmapping-http-10-http-canary.plain-namespace",
             "weight": 10
         },
@@ -2152,7 +2149,7 @@
             "namespace": "plain-namespace",
             "prefix": "/CanaryDiffMapping-HTTP-10/",
             "rkey": "plain-canarydiffmapping-http-10-http.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-10\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-10/\nservice: http://plain-canarydiffmapping-http-10-http.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-10\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-10/\nservice: http://plain-canarydiffmapping-http-10-http.plain-namespace\n",
             "service": "http://plain-canarydiffmapping-http-10-http.plain-namespace"
         },
         "plain-canarydiffmapping-http-100-http-canary.plain-namespace.1": {
@@ -2170,7 +2167,7 @@
             "namespace": "plain-namespace",
             "prefix": "/CanaryDiffMapping-HTTP-100/",
             "rkey": "plain-canarydiffmapping-http-100-http-canary.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.2.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-100-canary\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-100/\nservice: http://plain-canarydiffmapping-http-100-http-canary.plain-namespace\nweight: 100\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.2.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-100-canary\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-100/\nservice: http://plain-canarydiffmapping-http-100-http-canary.plain-namespace\nweight: 100\n",
             "service": "http://plain-canarydiffmapping-http-100-http-canary.plain-namespace",
             "weight": 100
         },
@@ -2189,7 +2186,7 @@
             "namespace": "plain-namespace",
             "prefix": "/CanaryDiffMapping-HTTP-100/",
             "rkey": "plain-canarydiffmapping-http-100-http.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-100\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-100/\nservice: http://plain-canarydiffmapping-http-100-http.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-100\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-100/\nservice: http://plain-canarydiffmapping-http-100-http.plain-namespace\n",
             "service": "http://plain-canarydiffmapping-http-100-http.plain-namespace"
         },
         "plain-canarydiffmapping-http-50-http-canary.plain-namespace.1": {
@@ -2207,7 +2204,7 @@
             "namespace": "plain-namespace",
             "prefix": "/CanaryDiffMapping-HTTP-50/",
             "rkey": "plain-canarydiffmapping-http-50-http-canary.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.2.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-50-canary\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-50/\nservice: http://plain-canarydiffmapping-http-50-http-canary.plain-namespace\nweight: 50\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.2.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-50-canary\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-50/\nservice: http://plain-canarydiffmapping-http-50-http-canary.plain-namespace\nweight: 50\n",
             "service": "http://plain-canarydiffmapping-http-50-http-canary.plain-namespace",
             "weight": 50
         },
@@ -2226,7 +2223,7 @@
             "namespace": "plain-namespace",
             "prefix": "/CanaryDiffMapping-HTTP-50/",
             "rkey": "plain-canarydiffmapping-http-50-http.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-50\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-50/\nservice: http://plain-canarydiffmapping-http-50-http.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: canary.1.example.com\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryDiffMapping-HTTP-50\nnamespace: plain-namespace\nprefix: /CanaryDiffMapping-HTTP-50/\nservice: http://plain-canarydiffmapping-http-50-http.plain-namespace\n",
             "service": "http://plain-canarydiffmapping-http-50-http.plain-namespace"
         },
         "plain-canarymapping-grpc-0-grpc-canary.plain-namespace.1": {
@@ -2243,7 +2240,7 @@
             "namespace": "plain-namespace",
             "prefix": "/CanaryMapping-GRPC-0/",
             "rkey": "plain-canarymapping-grpc-0-grpc-canary.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-0-canary\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-0/\nservice: http://plain-canarymapping-grpc-0-grpc-canary.plain-namespace\nweight: 0\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-0-canary\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-0/\nservice: http://plain-canarymapping-grpc-0-grpc-canary.plain-namespace\nweight: 0\n",
             "service": "http://plain-canarymapping-grpc-0-grpc-canary.plain-namespace",
             "weight": 0
         },
@@ -2261,7 +2258,7 @@
             "namespace": "plain-namespace",
             "prefix": "/CanaryMapping-GRPC-0/",
             "rkey": "plain-canarymapping-grpc-0-grpc.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-0\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-0/\nservice: http://plain-canarymapping-grpc-0-grpc.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-0\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-0/\nservice: http://plain-canarymapping-grpc-0-grpc.plain-namespace\n",
             "service": "http://plain-canarymapping-grpc-0-grpc.plain-namespace"
         },
         "plain-canarymapping-grpc-10-grpc-canary.plain-namespace.1": {
@@ -2278,7 +2275,7 @@
             "namespace": "plain-namespace",
             "prefix": "/CanaryMapping-GRPC-10/",
             "rkey": "plain-canarymapping-grpc-10-grpc-canary.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-10-canary\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-10/\nservice: http://plain-canarymapping-grpc-10-grpc-canary.plain-namespace\nweight: 10\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-10-canary\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-10/\nservice: http://plain-canarymapping-grpc-10-grpc-canary.plain-namespace\nweight: 10\n",
             "service": "http://plain-canarymapping-grpc-10-grpc-canary.plain-namespace",
             "weight": 10
         },
@@ -2296,7 +2293,7 @@
             "namespace": "plain-namespace",
             "prefix": "/CanaryMapping-GRPC-10/",
             "rkey": "plain-canarymapping-grpc-10-grpc.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-10\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-10/\nservice: http://plain-canarymapping-grpc-10-grpc.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-10\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-10/\nservice: http://plain-canarymapping-grpc-10-grpc.plain-namespace\n",
             "service": "http://plain-canarymapping-grpc-10-grpc.plain-namespace"
         },
         "plain-canarymapping-grpc-100-grpc-canary.plain-namespace.1": {
@@ -2313,7 +2310,7 @@
             "namespace": "plain-namespace",
             "prefix": "/CanaryMapping-GRPC-100/",
             "rkey": "plain-canarymapping-grpc-100-grpc-canary.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-100-canary\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-100/\nservice: http://plain-canarymapping-grpc-100-grpc-canary.plain-namespace\nweight: 100\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-100-canary\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-100/\nservice: http://plain-canarymapping-grpc-100-grpc-canary.plain-namespace\nweight: 100\n",
             "service": "http://plain-canarymapping-grpc-100-grpc-canary.plain-namespace",
             "weight": 100
         },
@@ -2331,7 +2328,7 @@
             "namespace": "plain-namespace",
             "prefix": "/CanaryMapping-GRPC-100/",
             "rkey": "plain-canarymapping-grpc-100-grpc.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-100\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-100/\nservice: http://plain-canarymapping-grpc-100-grpc.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-100\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-100/\nservice: http://plain-canarymapping-grpc-100-grpc.plain-namespace\n",
             "service": "http://plain-canarymapping-grpc-100-grpc.plain-namespace"
         },
         "plain-canarymapping-grpc-50-grpc-canary.plain-namespace.1": {
@@ -2348,7 +2345,7 @@
             "namespace": "plain-namespace",
             "prefix": "/CanaryMapping-GRPC-50/",
             "rkey": "plain-canarymapping-grpc-50-grpc-canary.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-50-canary\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-50/\nservice: http://plain-canarymapping-grpc-50-grpc-canary.plain-namespace\nweight: 50\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-50-canary\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-50/\nservice: http://plain-canarymapping-grpc-50-grpc-canary.plain-namespace\nweight: 50\n",
             "service": "http://plain-canarymapping-grpc-50-grpc-canary.plain-namespace",
             "weight": 50
         },
@@ -2366,7 +2363,7 @@
             "namespace": "plain-namespace",
             "prefix": "/CanaryMapping-GRPC-50/",
             "rkey": "plain-canarymapping-grpc-50-grpc.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-50\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-50/\nservice: http://plain-canarymapping-grpc-50-grpc.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-GRPC-50\nnamespace: plain-namespace\nprefix: /CanaryMapping-GRPC-50/\nservice: http://plain-canarymapping-grpc-50-grpc.plain-namespace\n",
             "service": "http://plain-canarymapping-grpc-50-grpc.plain-namespace"
         },
         "plain-canarymapping-http-0-http-canary.plain-namespace.1": {
@@ -2383,7 +2380,7 @@
             "namespace": "plain-namespace",
             "prefix": "/CanaryMapping-HTTP-0/",
             "rkey": "plain-canarymapping-http-0-http-canary.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-0-canary\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-0/\nservice: http://plain-canarymapping-http-0-http-canary.plain-namespace\nweight: 0\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-0-canary\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-0/\nservice: http://plain-canarymapping-http-0-http-canary.plain-namespace\nweight: 0\n",
             "service": "http://plain-canarymapping-http-0-http-canary.plain-namespace",
             "weight": 0
         },
@@ -2401,7 +2398,7 @@
             "namespace": "plain-namespace",
             "prefix": "/CanaryMapping-HTTP-0/",
             "rkey": "plain-canarymapping-http-0-http.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-0\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-0/\nservice: http://plain-canarymapping-http-0-http.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-0\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-0/\nservice: http://plain-canarymapping-http-0-http.plain-namespace\n",
             "service": "http://plain-canarymapping-http-0-http.plain-namespace"
         },
         "plain-canarymapping-http-10-http-canary.plain-namespace.1": {
@@ -2418,7 +2415,7 @@
             "namespace": "plain-namespace",
             "prefix": "/CanaryMapping-HTTP-10/",
             "rkey": "plain-canarymapping-http-10-http-canary.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-10-canary\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-10/\nservice: http://plain-canarymapping-http-10-http-canary.plain-namespace\nweight: 10\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-10-canary\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-10/\nservice: http://plain-canarymapping-http-10-http-canary.plain-namespace\nweight: 10\n",
             "service": "http://plain-canarymapping-http-10-http-canary.plain-namespace",
             "weight": 10
         },
@@ -2436,7 +2433,7 @@
             "namespace": "plain-namespace",
             "prefix": "/CanaryMapping-HTTP-10/",
             "rkey": "plain-canarymapping-http-10-http.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-10\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-10/\nservice: http://plain-canarymapping-http-10-http.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-10\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-10/\nservice: http://plain-canarymapping-http-10-http.plain-namespace\n",
             "service": "http://plain-canarymapping-http-10-http.plain-namespace"
         },
         "plain-canarymapping-http-100-http-canary.plain-namespace.1": {
@@ -2453,7 +2450,7 @@
             "namespace": "plain-namespace",
             "prefix": "/CanaryMapping-HTTP-100/",
             "rkey": "plain-canarymapping-http-100-http-canary.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-100-canary\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-100/\nservice: http://plain-canarymapping-http-100-http-canary.plain-namespace\nweight: 100\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-100-canary\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-100/\nservice: http://plain-canarymapping-http-100-http-canary.plain-namespace\nweight: 100\n",
             "service": "http://plain-canarymapping-http-100-http-canary.plain-namespace",
             "weight": 100
         },
@@ -2471,7 +2468,7 @@
             "namespace": "plain-namespace",
             "prefix": "/CanaryMapping-HTTP-100/",
             "rkey": "plain-canarymapping-http-100-http.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-100\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-100/\nservice: http://plain-canarymapping-http-100-http.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-100\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-100/\nservice: http://plain-canarymapping-http-100-http.plain-namespace\n",
             "service": "http://plain-canarymapping-http-100-http.plain-namespace"
         },
         "plain-canarymapping-http-50-http-canary.plain-namespace.1": {
@@ -2488,7 +2485,7 @@
             "namespace": "plain-namespace",
             "prefix": "/CanaryMapping-HTTP-50/",
             "rkey": "plain-canarymapping-http-50-http-canary.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-50-canary\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-50/\nservice: http://plain-canarymapping-http-50-http-canary.plain-namespace\nweight: 50\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-50-canary\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-50/\nservice: http://plain-canarymapping-http-50-http-canary.plain-namespace\nweight: 50\n",
             "service": "http://plain-canarymapping-http-50-http-canary.plain-namespace",
             "weight": 50
         },
@@ -2506,7 +2503,7 @@
             "namespace": "plain-namespace",
             "prefix": "/CanaryMapping-HTTP-50/",
             "rkey": "plain-canarymapping-http-50-http.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-50\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-50/\nservice: http://plain-canarymapping-http-50-http.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: CanaryMapping-HTTP-50\nnamespace: plain-namespace\nprefix: /CanaryMapping-HTTP-50/\nservice: http://plain-canarymapping-http-50-http.plain-namespace\n",
             "service": "http://plain-canarymapping-http-50-http.plain-namespace"
         },
         "plain-headerroutingtest-grpc-grpc-target2.plain-namespace.1": {
@@ -2526,7 +2523,7 @@
             "namespace": "plain-namespace",
             "prefix": "/HeaderRoutingTest-GRPC/",
             "rkey": "plain-headerroutingtest-grpc-grpc-target2.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nheaders:\n  X-Route: target2\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HeaderRoutingTest-GRPC-target2\nnamespace: plain-namespace\nprefix: /HeaderRoutingTest-GRPC/\nservice: http://plain-headerroutingtest-grpc-grpc-target2.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nheaders:\n  X-Route: target2\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HeaderRoutingTest-GRPC-target2\nnamespace: plain-namespace\nprefix: /HeaderRoutingTest-GRPC/\nservice: http://plain-headerroutingtest-grpc-grpc-target2.plain-namespace\n",
             "service": "http://plain-headerroutingtest-grpc-grpc-target2.plain-namespace"
         },
         "plain-headerroutingtest-grpc-grpc.plain-namespace.1": {
@@ -2543,7 +2540,7 @@
             "namespace": "plain-namespace",
             "prefix": "/HeaderRoutingTest-GRPC/",
             "rkey": "plain-headerroutingtest-grpc-grpc.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HeaderRoutingTest-GRPC-target1\nnamespace: plain-namespace\nprefix: /HeaderRoutingTest-GRPC/\nservice: http://plain-headerroutingtest-grpc-grpc.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HeaderRoutingTest-GRPC-target1\nnamespace: plain-namespace\nprefix: /HeaderRoutingTest-GRPC/\nservice: http://plain-headerroutingtest-grpc-grpc.plain-namespace\n",
             "service": "http://plain-headerroutingtest-grpc-grpc.plain-namespace"
         },
         "plain-headerroutingtest-http-http-target2.plain-namespace.1": {
@@ -2563,7 +2560,7 @@
             "namespace": "plain-namespace",
             "prefix": "/HeaderRoutingTest-HTTP/",
             "rkey": "plain-headerroutingtest-http-http-target2.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nheaders:\n  X-Route: target2\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HeaderRoutingTest-HTTP-target2\nnamespace: plain-namespace\nprefix: /HeaderRoutingTest-HTTP/\nservice: http://plain-headerroutingtest-http-http-target2.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nheaders:\n  X-Route: target2\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HeaderRoutingTest-HTTP-target2\nnamespace: plain-namespace\nprefix: /HeaderRoutingTest-HTTP/\nservice: http://plain-headerroutingtest-http-http-target2.plain-namespace\n",
             "service": "http://plain-headerroutingtest-http-http-target2.plain-namespace"
         },
         "plain-headerroutingtest-http-http.plain-namespace.1": {
@@ -2580,7 +2577,7 @@
             "namespace": "plain-namespace",
             "prefix": "/HeaderRoutingTest-HTTP/",
             "rkey": "plain-headerroutingtest-http-http.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HeaderRoutingTest-HTTP-target1\nnamespace: plain-namespace\nprefix: /HeaderRoutingTest-HTTP/\nservice: http://plain-headerroutingtest-http-http.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HeaderRoutingTest-HTTP-target1\nnamespace: plain-namespace\nprefix: /HeaderRoutingTest-HTTP/\nservice: http://plain-headerroutingtest-http-http.plain-namespace\n",
             "service": "http://plain-headerroutingtest-http-http.plain-namespace"
         },
         "plain-hostheadermapping-grpc-grpc.plain-namespace.1": {
@@ -2598,7 +2595,7 @@
             "namespace": "plain-namespace",
             "prefix": "/HostHeaderMapping-GRPC/",
             "rkey": "plain-hostheadermapping-grpc-grpc.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nhost: inspector.external\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HostHeaderMapping-GRPC\nnamespace: plain-namespace\nprefix: /HostHeaderMapping-GRPC/\nservice: http://plain-hostheadermapping-grpc-grpc.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nhost: inspector.external\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HostHeaderMapping-GRPC\nnamespace: plain-namespace\nprefix: /HostHeaderMapping-GRPC/\nservice: http://plain-hostheadermapping-grpc-grpc.plain-namespace\n",
             "service": "http://plain-hostheadermapping-grpc-grpc.plain-namespace"
         },
         "plain-hostheadermapping-http-http.plain-namespace.1": {
@@ -2616,7 +2613,7 @@
             "namespace": "plain-namespace",
             "prefix": "/HostHeaderMapping-HTTP/",
             "rkey": "plain-hostheadermapping-http-http.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nhost: inspector.external\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HostHeaderMapping-HTTP\nnamespace: plain-namespace\nprefix: /HostHeaderMapping-HTTP/\nservice: http://plain-hostheadermapping-http-http.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nhost: inspector.external\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HostHeaderMapping-HTTP\nnamespace: plain-namespace\nprefix: /HostHeaderMapping-HTTP/\nservice: http://plain-hostheadermapping-http-http.plain-namespace\n",
             "service": "http://plain-hostheadermapping-http-http.plain-namespace"
         },
         "plain-hostredirectmapping-http.plain-namespace.1": {
@@ -2634,7 +2631,7 @@
             "namespace": "plain-namespace",
             "prefix": "/HostRedirectMapping/",
             "rkey": "plain-hostredirectmapping-http.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_redirect: true\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HostRedirectMapping\nnamespace: plain-namespace\nprefix: /HostRedirectMapping/\nservice: foobar.com\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_redirect: true\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HostRedirectMapping\nnamespace: plain-namespace\nprefix: /HostRedirectMapping/\nservice: foobar.com\n",
             "service": "foobar.com"
         },
         "plain-hostredirectmapping-http.plain-namespace.2": {
@@ -2653,7 +2650,7 @@
             "namespace": "plain-namespace",
             "prefix": "/HostRedirectMapping-2/",
             "rkey": "plain-hostredirectmapping-http.plain-namespace.2",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\ncase_sensitive: false\nhost_redirect: true\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HostRedirectMapping-2\nnamespace: plain-namespace\nprefix: /HostRedirectMapping-2/\nservice: foobar.com\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\ncase_sensitive: false\nhost_redirect: true\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: HostRedirectMapping-2\nnamespace: plain-namespace\nprefix: /HostRedirectMapping-2/\nservice: foobar.com\n",
             "service": "foobar.com"
         },
         "plain-invalidportmapping-grpc-grpc.plain-namespace.1": {
@@ -2670,7 +2667,7 @@
             "namespace": "plain-namespace",
             "prefix": "/InvalidPortMapping-GRPC/",
             "rkey": "plain-invalidportmapping-grpc-grpc.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: InvalidPortMapping-GRPC\nnamespace: plain-namespace\nprefix: /InvalidPortMapping-GRPC/\nservice: http://plain-invalidportmapping-grpc-grpc.plain-namespace:80.invalid\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: InvalidPortMapping-GRPC\nnamespace: plain-namespace\nprefix: /InvalidPortMapping-GRPC/\nservice: http://plain-invalidportmapping-grpc-grpc.plain-namespace:80.invalid\n",
             "service": "http://plain-invalidportmapping-grpc-grpc.plain-namespace:80.invalid"
         },
         "plain-invalidportmapping-http-http.plain-namespace.1": {
@@ -2687,7 +2684,7 @@
             "namespace": "plain-namespace",
             "prefix": "/InvalidPortMapping-HTTP/",
             "rkey": "plain-invalidportmapping-http-http.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: InvalidPortMapping-HTTP\nnamespace: plain-namespace\nprefix: /InvalidPortMapping-HTTP/\nservice: http://plain-invalidportmapping-http-http.plain-namespace:80.invalid\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: InvalidPortMapping-HTTP\nnamespace: plain-namespace\nprefix: /InvalidPortMapping-HTTP/\nservice: http://plain-invalidportmapping-http-http.plain-namespace:80.invalid\n",
             "service": "http://plain-invalidportmapping-http-http.plain-namespace:80.invalid"
         },
         "plain-removereqheadersmapping-grpc-grpc.plain-namespace.1": {
@@ -2708,7 +2705,7 @@
                 "aoo"
             ],
             "rkey": "plain-removereqheadersmapping-grpc-grpc.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: RemoveReqHeadersMapping-GRPC\nnamespace: plain-namespace\nprefix: /RemoveReqHeadersMapping-GRPC/\nremove_request_headers:\n- zoo\n- aoo\nservice: http://httpbin.org\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: RemoveReqHeadersMapping-GRPC\nnamespace: plain-namespace\nprefix: /RemoveReqHeadersMapping-GRPC/\nremove_request_headers:\n- zoo\n- aoo\nservice: http://httpbin.org\n",
             "service": "http://httpbin.org"
         },
         "plain-removereqheadersmapping-http-http.plain-namespace.1": {
@@ -2729,7 +2726,7 @@
                 "aoo"
             ],
             "rkey": "plain-removereqheadersmapping-http-http.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: RemoveReqHeadersMapping-HTTP\nnamespace: plain-namespace\nprefix: /RemoveReqHeadersMapping-HTTP/\nremove_request_headers:\n- zoo\n- aoo\nservice: http://httpbin.org\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: RemoveReqHeadersMapping-HTTP\nnamespace: plain-namespace\nprefix: /RemoveReqHeadersMapping-HTTP/\nremove_request_headers:\n- zoo\n- aoo\nservice: http://httpbin.org\n",
             "service": "http://httpbin.org"
         },
         "plain-simplemapping-grpc-addrequestheaders-aoo-tyu-grpc.plain-namespace.1": {
@@ -2751,7 +2748,7 @@
             "namespace": "plain-namespace",
             "prefix": "/SimpleMapping-GRPC-AddRequestHeaders-aoo-tyu/",
             "rkey": "plain-simplemapping-grpc-addrequestheaders-aoo-tyu-grpc.plain-namespace.1",
-            "serialization": "add_request_headers:\n  aoo:\n    value: tyu\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-aoo-tyu\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-aoo-tyu/\nservice: http://plain-simplemapping-grpc-addrequestheaders-aoo-tyu-grpc.plain-namespace\n",
+            "serialization": "_force_validation: true\nadd_request_headers:\n  aoo:\n    value: tyu\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-aoo-tyu\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-aoo-tyu/\nservice: http://plain-simplemapping-grpc-addrequestheaders-aoo-tyu-grpc.plain-namespace\n",
             "service": "http://plain-simplemapping-grpc-addrequestheaders-aoo-tyu-grpc.plain-namespace"
         },
         "plain-simplemapping-grpc-addrequestheaders-foo-bar-grpc.plain-namespace.1": {
@@ -2771,7 +2768,7 @@
             "namespace": "plain-namespace",
             "prefix": "/SimpleMapping-GRPC-AddRequestHeaders-foo-bar/",
             "rkey": "plain-simplemapping-grpc-addrequestheaders-foo-bar-grpc.plain-namespace.1",
-            "serialization": "add_request_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-foo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-foo-bar/\nservice: http://plain-simplemapping-grpc-addrequestheaders-foo-bar-grpc.plain-namespace\n",
+            "serialization": "_force_validation: true\nadd_request_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-foo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-foo-bar/\nservice: http://plain-simplemapping-grpc-addrequestheaders-foo-bar-grpc.plain-namespace\n",
             "service": "http://plain-simplemapping-grpc-addrequestheaders-foo-bar-grpc.plain-namespace"
         },
         "plain-simplemapping-grpc-addrequestheaders-moo-arf-grpc.plain-namespace.1": {
@@ -2791,7 +2788,7 @@
             "namespace": "plain-namespace",
             "prefix": "/SimpleMapping-GRPC-AddRequestHeaders-moo-arf/",
             "rkey": "plain-simplemapping-grpc-addrequestheaders-moo-arf-grpc.plain-namespace.1",
-            "serialization": "add_request_headers:\n  moo: arf\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-moo-arf\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-moo-arf/\nservice: http://plain-simplemapping-grpc-addrequestheaders-moo-arf-grpc.plain-namespace\n",
+            "serialization": "_force_validation: true\nadd_request_headers:\n  moo: arf\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-moo-arf\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-moo-arf/\nservice: http://plain-simplemapping-grpc-addrequestheaders-moo-arf-grpc.plain-namespace\n",
             "service": "http://plain-simplemapping-grpc-addrequestheaders-moo-arf-grpc.plain-namespace"
         },
         "plain-simplemapping-grpc-addrequestheaders-xoo-dwe-grpc.plain-namespace.1": {
@@ -2814,7 +2811,7 @@
             "namespace": "plain-namespace",
             "prefix": "/SimpleMapping-GRPC-AddRequestHeaders-xoo-dwe/",
             "rkey": "plain-simplemapping-grpc-addrequestheaders-xoo-dwe-grpc.plain-namespace.1",
-            "serialization": "add_request_headers:\n  xoo:\n    append: false\n    value: dwe\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-xoo-dwe\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-xoo-dwe/\nservice: http://plain-simplemapping-grpc-addrequestheaders-xoo-dwe-grpc.plain-namespace\n",
+            "serialization": "_force_validation: true\nadd_request_headers:\n  xoo:\n    append: false\n    value: dwe\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-xoo-dwe\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-xoo-dwe/\nservice: http://plain-simplemapping-grpc-addrequestheaders-xoo-dwe-grpc.plain-namespace\n",
             "service": "http://plain-simplemapping-grpc-addrequestheaders-xoo-dwe-grpc.plain-namespace"
         },
         "plain-simplemapping-grpc-addrequestheaders-zoo-bar-grpc.plain-namespace.1": {
@@ -2837,7 +2834,7 @@
             "namespace": "plain-namespace",
             "prefix": "/SimpleMapping-GRPC-AddRequestHeaders-zoo-bar/",
             "rkey": "plain-simplemapping-grpc-addrequestheaders-zoo-bar-grpc.plain-namespace.1",
-            "serialization": "add_request_headers:\n  zoo:\n    append: true\n    value: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-zoo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-zoo-bar/\nservice: http://plain-simplemapping-grpc-addrequestheaders-zoo-bar-grpc.plain-namespace\n",
+            "serialization": "_force_validation: true\nadd_request_headers:\n  zoo:\n    append: true\n    value: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddRequestHeaders-zoo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddRequestHeaders-zoo-bar/\nservice: http://plain-simplemapping-grpc-addrequestheaders-zoo-bar-grpc.plain-namespace\n",
             "service": "http://plain-simplemapping-grpc-addrequestheaders-zoo-bar-grpc.plain-namespace"
         },
         "plain-simplemapping-grpc-addresponseheaders-aoo-tyu-grpc.plain-namespace.1": {
@@ -2859,7 +2856,7 @@
             "namespace": "plain-namespace",
             "prefix": "/SimpleMapping-GRPC-AddResponseHeaders-aoo-tyu/",
             "rkey": "plain-simplemapping-grpc-addresponseheaders-aoo-tyu-grpc.plain-namespace.1",
-            "serialization": "add_response_headers:\n  aoo:\n    value: tyu\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-aoo-tyu\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-aoo-tyu/\nservice: http://plain-simplemapping-grpc-addresponseheaders-aoo-tyu-grpc.plain-namespace\n",
+            "serialization": "_force_validation: true\nadd_response_headers:\n  aoo:\n    value: tyu\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-aoo-tyu\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-aoo-tyu/\nservice: http://plain-simplemapping-grpc-addresponseheaders-aoo-tyu-grpc.plain-namespace\n",
             "service": "http://plain-simplemapping-grpc-addresponseheaders-aoo-tyu-grpc.plain-namespace"
         },
         "plain-simplemapping-grpc-addresponseheaders-foo-bar-grpc.plain-namespace.1": {
@@ -2879,7 +2876,7 @@
             "namespace": "plain-namespace",
             "prefix": "/SimpleMapping-GRPC-AddResponseHeaders-foo-bar/",
             "rkey": "plain-simplemapping-grpc-addresponseheaders-foo-bar-grpc.plain-namespace.1",
-            "serialization": "add_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-foo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-foo-bar/\nservice: http://plain-simplemapping-grpc-addresponseheaders-foo-bar-grpc.plain-namespace\n",
+            "serialization": "_force_validation: true\nadd_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-foo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-foo-bar/\nservice: http://plain-simplemapping-grpc-addresponseheaders-foo-bar-grpc.plain-namespace\n",
             "service": "http://plain-simplemapping-grpc-addresponseheaders-foo-bar-grpc.plain-namespace"
         },
         "plain-simplemapping-grpc-addresponseheaders-moo-arf-grpc.plain-namespace.1": {
@@ -2899,7 +2896,7 @@
             "namespace": "plain-namespace",
             "prefix": "/SimpleMapping-GRPC-AddResponseHeaders-moo-arf/",
             "rkey": "plain-simplemapping-grpc-addresponseheaders-moo-arf-grpc.plain-namespace.1",
-            "serialization": "add_response_headers:\n  moo: arf\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-moo-arf\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-moo-arf/\nservice: http://plain-simplemapping-grpc-addresponseheaders-moo-arf-grpc.plain-namespace\n",
+            "serialization": "_force_validation: true\nadd_response_headers:\n  moo: arf\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-moo-arf\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-moo-arf/\nservice: http://plain-simplemapping-grpc-addresponseheaders-moo-arf-grpc.plain-namespace\n",
             "service": "http://plain-simplemapping-grpc-addresponseheaders-moo-arf-grpc.plain-namespace"
         },
         "plain-simplemapping-grpc-addresponseheaders-xoo-dwe-grpc.plain-namespace.1": {
@@ -2922,7 +2919,7 @@
             "namespace": "plain-namespace",
             "prefix": "/SimpleMapping-GRPC-AddResponseHeaders-xoo-dwe/",
             "rkey": "plain-simplemapping-grpc-addresponseheaders-xoo-dwe-grpc.plain-namespace.1",
-            "serialization": "add_response_headers:\n  xoo:\n    append: false\n    value: dwe\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-xoo-dwe\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-xoo-dwe/\nservice: http://plain-simplemapping-grpc-addresponseheaders-xoo-dwe-grpc.plain-namespace\n",
+            "serialization": "_force_validation: true\nadd_response_headers:\n  xoo:\n    append: false\n    value: dwe\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-xoo-dwe\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-xoo-dwe/\nservice: http://plain-simplemapping-grpc-addresponseheaders-xoo-dwe-grpc.plain-namespace\n",
             "service": "http://plain-simplemapping-grpc-addresponseheaders-xoo-dwe-grpc.plain-namespace"
         },
         "plain-simplemapping-grpc-addresponseheaders-zoo-bar-grpc.plain-namespace.1": {
@@ -2945,7 +2942,7 @@
             "namespace": "plain-namespace",
             "prefix": "/SimpleMapping-GRPC-AddResponseHeaders-zoo-bar/",
             "rkey": "plain-simplemapping-grpc-addresponseheaders-zoo-bar-grpc.plain-namespace.1",
-            "serialization": "add_response_headers:\n  zoo:\n    append: true\n    value: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-zoo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-zoo-bar/\nservice: http://plain-simplemapping-grpc-addresponseheaders-zoo-bar-grpc.plain-namespace\n",
+            "serialization": "_force_validation: true\nadd_response_headers:\n  zoo:\n    append: true\n    value: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AddResponseHeaders-zoo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AddResponseHeaders-zoo-bar/\nservice: http://plain-simplemapping-grpc-addresponseheaders-zoo-bar-grpc.plain-namespace\n",
             "service": "http://plain-simplemapping-grpc-addresponseheaders-zoo-bar-grpc.plain-namespace"
         },
         "plain-simplemapping-grpc-all-grpc.plain-namespace.1": {
@@ -2975,7 +2972,7 @@
             "remove_response_headers": "x-envoy-upstream-service-time",
             "rewrite": "/foo",
             "rkey": "plain-simplemapping-grpc-all-grpc.plain-namespace.1",
-            "serialization": "add_request_headers:\n  foo: bar\nadd_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\ncase_sensitive: false\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-all\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-all/\nremove_response_headers: x-envoy-upstream-service-time\nrewrite: /foo\nservice: http://plain-simplemapping-grpc-all-grpc.plain-namespace\nuse_websocket: true\n",
+            "serialization": "_force_validation: true\nadd_request_headers:\n  foo: bar\nadd_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\ncase_sensitive: false\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-all\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-all/\nremove_response_headers: x-envoy-upstream-service-time\nrewrite: /foo\nservice: http://plain-simplemapping-grpc-all-grpc.plain-namespace\nuse_websocket: true\n",
             "service": "http://plain-simplemapping-grpc-all-grpc.plain-namespace",
             "use_websocket": true
         },
@@ -2994,7 +2991,7 @@
             "namespace": "plain-namespace",
             "prefix": "/SimpleMapping-GRPC-AutoHostRewrite/",
             "rkey": "plain-simplemapping-grpc-autohostrewrite-grpc.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AutoHostRewrite\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AutoHostRewrite/\nservice: http://plain-simplemapping-grpc-autohostrewrite-grpc.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-AutoHostRewrite\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-AutoHostRewrite/\nservice: http://plain-simplemapping-grpc-autohostrewrite-grpc.plain-namespace\n",
             "service": "http://plain-simplemapping-grpc-autohostrewrite-grpc.plain-namespace"
         },
         "plain-simplemapping-grpc-casesensitive-grpc.plain-namespace.1": {
@@ -3012,7 +3009,7 @@
             "namespace": "plain-namespace",
             "prefix": "/SimpleMapping-GRPC-CaseSensitive/",
             "rkey": "plain-simplemapping-grpc-casesensitive-grpc.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\ncase_sensitive: false\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-CaseSensitive\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-CaseSensitive/\nservice: http://plain-simplemapping-grpc-casesensitive-grpc.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\ncase_sensitive: false\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-CaseSensitive\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-CaseSensitive/\nservice: http://plain-simplemapping-grpc-casesensitive-grpc.plain-namespace\n",
             "service": "http://plain-simplemapping-grpc-casesensitive-grpc.plain-namespace"
         },
         "plain-simplemapping-grpc-cors-grpc.plain-namespace.1": {
@@ -3032,7 +3029,7 @@
             "namespace": "plain-namespace",
             "prefix": "/SimpleMapping-GRPC-CORS/",
             "rkey": "plain-simplemapping-grpc-cors-grpc.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-CORS\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-CORS/\nservice: http://plain-simplemapping-grpc-cors-grpc.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-CORS\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-CORS/\nservice: http://plain-simplemapping-grpc-cors-grpc.plain-namespace\n",
             "service": "http://plain-simplemapping-grpc-cors-grpc.plain-namespace"
         },
         "plain-simplemapping-grpc-grpc.plain-namespace.1": {
@@ -3049,7 +3046,7 @@
             "namespace": "plain-namespace",
             "prefix": "/SimpleMapping-GRPC/",
             "rkey": "plain-simplemapping-grpc-grpc.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC/\nservice: http://plain-simplemapping-grpc-grpc.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC/\nservice: http://plain-simplemapping-grpc-grpc.plain-namespace\n",
             "service": "http://plain-simplemapping-grpc-grpc.plain-namespace"
         },
         "plain-simplemapping-grpc-removeresponseheaders-grpc.plain-namespace.1": {
@@ -3067,7 +3064,7 @@
             "prefix": "/SimpleMapping-GRPC-RemoveResponseHeaders/",
             "remove_response_headers": "x-envoy-upstream-service-time",
             "rkey": "plain-simplemapping-grpc-removeresponseheaders-grpc.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-RemoveResponseHeaders\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-RemoveResponseHeaders/\nremove_response_headers: x-envoy-upstream-service-time\nservice: http://plain-simplemapping-grpc-removeresponseheaders-grpc.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-RemoveResponseHeaders\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-RemoveResponseHeaders/\nremove_response_headers: x-envoy-upstream-service-time\nservice: http://plain-simplemapping-grpc-removeresponseheaders-grpc.plain-namespace\n",
             "service": "http://plain-simplemapping-grpc-removeresponseheaders-grpc.plain-namespace"
         },
         "plain-simplemapping-grpc-rewrite-foo-grpc.plain-namespace.1": {
@@ -3085,7 +3082,7 @@
             "prefix": "/SimpleMapping-GRPC-Rewrite-foo/",
             "rewrite": "foo",
             "rkey": "plain-simplemapping-grpc-rewrite-foo-grpc.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-Rewrite-foo\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-Rewrite-foo/\nrewrite: foo\nservice: http://plain-simplemapping-grpc-rewrite-foo-grpc.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-Rewrite-foo\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-Rewrite-foo/\nrewrite: foo\nservice: http://plain-simplemapping-grpc-rewrite-foo-grpc.plain-namespace\n",
             "service": "http://plain-simplemapping-grpc-rewrite-foo-grpc.plain-namespace"
         },
         "plain-simplemapping-grpc-rewrite-slash-foo-grpc.plain-namespace.1": {
@@ -3103,7 +3100,7 @@
             "prefix": "/SimpleMapping-GRPC-Rewrite-SLASH-foo/",
             "rewrite": "/foo",
             "rkey": "plain-simplemapping-grpc-rewrite-slash-foo-grpc.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-Rewrite-SLASH-foo\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-Rewrite-SLASH-foo/\nrewrite: /foo\nservice: http://plain-simplemapping-grpc-rewrite-slash-foo-grpc.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-Rewrite-SLASH-foo\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-Rewrite-SLASH-foo/\nrewrite: /foo\nservice: http://plain-simplemapping-grpc-rewrite-slash-foo-grpc.plain-namespace\n",
             "service": "http://plain-simplemapping-grpc-rewrite-slash-foo-grpc.plain-namespace"
         },
         "plain-simplemapping-grpc-usewebsocket-grpc.plain-namespace.1": {
@@ -3120,7 +3117,7 @@
             "namespace": "plain-namespace",
             "prefix": "/SimpleMapping-GRPC-UseWebsocket/",
             "rkey": "plain-simplemapping-grpc-usewebsocket-grpc.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-UseWebsocket\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-UseWebsocket/\nservice: http://plain-simplemapping-grpc-usewebsocket-grpc.plain-namespace\nuse_websocket: true\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-GRPC-UseWebsocket\nnamespace: plain-namespace\nprefix: /SimpleMapping-GRPC-UseWebsocket/\nservice: http://plain-simplemapping-grpc-usewebsocket-grpc.plain-namespace\nuse_websocket: true\n",
             "service": "http://plain-simplemapping-grpc-usewebsocket-grpc.plain-namespace",
             "use_websocket": true
         },
@@ -3143,7 +3140,7 @@
             "namespace": "plain-namespace",
             "prefix": "/SimpleMapping-HTTP-AddRequestHeaders-aoo-tyu/",
             "rkey": "plain-simplemapping-http-addrequestheaders-aoo-tyu-http.plain-namespace.1",
-            "serialization": "add_request_headers:\n  aoo:\n    value: tyu\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-aoo-tyu\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-aoo-tyu/\nservice: http://plain-simplemapping-http-addrequestheaders-aoo-tyu-http.plain-namespace\n",
+            "serialization": "_force_validation: true\nadd_request_headers:\n  aoo:\n    value: tyu\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-aoo-tyu\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-aoo-tyu/\nservice: http://plain-simplemapping-http-addrequestheaders-aoo-tyu-http.plain-namespace\n",
             "service": "http://plain-simplemapping-http-addrequestheaders-aoo-tyu-http.plain-namespace"
         },
         "plain-simplemapping-http-addrequestheaders-foo-bar-http.plain-namespace.1": {
@@ -3163,7 +3160,7 @@
             "namespace": "plain-namespace",
             "prefix": "/SimpleMapping-HTTP-AddRequestHeaders-foo-bar/",
             "rkey": "plain-simplemapping-http-addrequestheaders-foo-bar-http.plain-namespace.1",
-            "serialization": "add_request_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-foo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-foo-bar/\nservice: http://plain-simplemapping-http-addrequestheaders-foo-bar-http.plain-namespace\n",
+            "serialization": "_force_validation: true\nadd_request_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-foo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-foo-bar/\nservice: http://plain-simplemapping-http-addrequestheaders-foo-bar-http.plain-namespace\n",
             "service": "http://plain-simplemapping-http-addrequestheaders-foo-bar-http.plain-namespace"
         },
         "plain-simplemapping-http-addrequestheaders-moo-arf-http.plain-namespace.1": {
@@ -3183,7 +3180,7 @@
             "namespace": "plain-namespace",
             "prefix": "/SimpleMapping-HTTP-AddRequestHeaders-moo-arf/",
             "rkey": "plain-simplemapping-http-addrequestheaders-moo-arf-http.plain-namespace.1",
-            "serialization": "add_request_headers:\n  moo: arf\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-moo-arf\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-moo-arf/\nservice: http://plain-simplemapping-http-addrequestheaders-moo-arf-http.plain-namespace\n",
+            "serialization": "_force_validation: true\nadd_request_headers:\n  moo: arf\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-moo-arf\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-moo-arf/\nservice: http://plain-simplemapping-http-addrequestheaders-moo-arf-http.plain-namespace\n",
             "service": "http://plain-simplemapping-http-addrequestheaders-moo-arf-http.plain-namespace"
         },
         "plain-simplemapping-http-addrequestheaders-xoo-dwe-http.plain-namespace.1": {
@@ -3206,7 +3203,7 @@
             "namespace": "plain-namespace",
             "prefix": "/SimpleMapping-HTTP-AddRequestHeaders-xoo-dwe/",
             "rkey": "plain-simplemapping-http-addrequestheaders-xoo-dwe-http.plain-namespace.1",
-            "serialization": "add_request_headers:\n  xoo:\n    append: false\n    value: dwe\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-xoo-dwe\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-xoo-dwe/\nservice: http://plain-simplemapping-http-addrequestheaders-xoo-dwe-http.plain-namespace\n",
+            "serialization": "_force_validation: true\nadd_request_headers:\n  xoo:\n    append: false\n    value: dwe\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-xoo-dwe\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-xoo-dwe/\nservice: http://plain-simplemapping-http-addrequestheaders-xoo-dwe-http.plain-namespace\n",
             "service": "http://plain-simplemapping-http-addrequestheaders-xoo-dwe-http.plain-namespace"
         },
         "plain-simplemapping-http-addrequestheaders-zoo-bar-http.plain-namespace.1": {
@@ -3229,7 +3226,7 @@
             "namespace": "plain-namespace",
             "prefix": "/SimpleMapping-HTTP-AddRequestHeaders-zoo-bar/",
             "rkey": "plain-simplemapping-http-addrequestheaders-zoo-bar-http.plain-namespace.1",
-            "serialization": "add_request_headers:\n  zoo:\n    append: true\n    value: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-zoo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-zoo-bar/\nservice: http://plain-simplemapping-http-addrequestheaders-zoo-bar-http.plain-namespace\n",
+            "serialization": "_force_validation: true\nadd_request_headers:\n  zoo:\n    append: true\n    value: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddRequestHeaders-zoo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddRequestHeaders-zoo-bar/\nservice: http://plain-simplemapping-http-addrequestheaders-zoo-bar-http.plain-namespace\n",
             "service": "http://plain-simplemapping-http-addrequestheaders-zoo-bar-http.plain-namespace"
         },
         "plain-simplemapping-http-addresponseheaders-aoo-tyu-http.plain-namespace.1": {
@@ -3251,7 +3248,7 @@
             "namespace": "plain-namespace",
             "prefix": "/SimpleMapping-HTTP-AddResponseHeaders-aoo-tyu/",
             "rkey": "plain-simplemapping-http-addresponseheaders-aoo-tyu-http.plain-namespace.1",
-            "serialization": "add_response_headers:\n  aoo:\n    value: tyu\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-aoo-tyu\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-aoo-tyu/\nservice: http://plain-simplemapping-http-addresponseheaders-aoo-tyu-http.plain-namespace\n",
+            "serialization": "_force_validation: true\nadd_response_headers:\n  aoo:\n    value: tyu\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-aoo-tyu\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-aoo-tyu/\nservice: http://plain-simplemapping-http-addresponseheaders-aoo-tyu-http.plain-namespace\n",
             "service": "http://plain-simplemapping-http-addresponseheaders-aoo-tyu-http.plain-namespace"
         },
         "plain-simplemapping-http-addresponseheaders-foo-bar-http.plain-namespace.1": {
@@ -3271,7 +3268,7 @@
             "namespace": "plain-namespace",
             "prefix": "/SimpleMapping-HTTP-AddResponseHeaders-foo-bar/",
             "rkey": "plain-simplemapping-http-addresponseheaders-foo-bar-http.plain-namespace.1",
-            "serialization": "add_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-foo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-foo-bar/\nservice: http://plain-simplemapping-http-addresponseheaders-foo-bar-http.plain-namespace\n",
+            "serialization": "_force_validation: true\nadd_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-foo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-foo-bar/\nservice: http://plain-simplemapping-http-addresponseheaders-foo-bar-http.plain-namespace\n",
             "service": "http://plain-simplemapping-http-addresponseheaders-foo-bar-http.plain-namespace"
         },
         "plain-simplemapping-http-addresponseheaders-moo-arf-http.plain-namespace.1": {
@@ -3291,7 +3288,7 @@
             "namespace": "plain-namespace",
             "prefix": "/SimpleMapping-HTTP-AddResponseHeaders-moo-arf/",
             "rkey": "plain-simplemapping-http-addresponseheaders-moo-arf-http.plain-namespace.1",
-            "serialization": "add_response_headers:\n  moo: arf\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-moo-arf\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-moo-arf/\nservice: http://plain-simplemapping-http-addresponseheaders-moo-arf-http.plain-namespace\n",
+            "serialization": "_force_validation: true\nadd_response_headers:\n  moo: arf\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-moo-arf\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-moo-arf/\nservice: http://plain-simplemapping-http-addresponseheaders-moo-arf-http.plain-namespace\n",
             "service": "http://plain-simplemapping-http-addresponseheaders-moo-arf-http.plain-namespace"
         },
         "plain-simplemapping-http-addresponseheaders-xoo-dwe-http.plain-namespace.1": {
@@ -3314,7 +3311,7 @@
             "namespace": "plain-namespace",
             "prefix": "/SimpleMapping-HTTP-AddResponseHeaders-xoo-dwe/",
             "rkey": "plain-simplemapping-http-addresponseheaders-xoo-dwe-http.plain-namespace.1",
-            "serialization": "add_response_headers:\n  xoo:\n    append: false\n    value: dwe\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-xoo-dwe\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-xoo-dwe/\nservice: http://plain-simplemapping-http-addresponseheaders-xoo-dwe-http.plain-namespace\n",
+            "serialization": "_force_validation: true\nadd_response_headers:\n  xoo:\n    append: false\n    value: dwe\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-xoo-dwe\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-xoo-dwe/\nservice: http://plain-simplemapping-http-addresponseheaders-xoo-dwe-http.plain-namespace\n",
             "service": "http://plain-simplemapping-http-addresponseheaders-xoo-dwe-http.plain-namespace"
         },
         "plain-simplemapping-http-addresponseheaders-zoo-bar-http.plain-namespace.1": {
@@ -3337,7 +3334,7 @@
             "namespace": "plain-namespace",
             "prefix": "/SimpleMapping-HTTP-AddResponseHeaders-zoo-bar/",
             "rkey": "plain-simplemapping-http-addresponseheaders-zoo-bar-http.plain-namespace.1",
-            "serialization": "add_response_headers:\n  zoo:\n    append: true\n    value: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-zoo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-zoo-bar/\nservice: http://plain-simplemapping-http-addresponseheaders-zoo-bar-http.plain-namespace\n",
+            "serialization": "_force_validation: true\nadd_response_headers:\n  zoo:\n    append: true\n    value: bar\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AddResponseHeaders-zoo-bar\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AddResponseHeaders-zoo-bar/\nservice: http://plain-simplemapping-http-addresponseheaders-zoo-bar-http.plain-namespace\n",
             "service": "http://plain-simplemapping-http-addresponseheaders-zoo-bar-http.plain-namespace"
         },
         "plain-simplemapping-http-all-http.plain-namespace.1": {
@@ -3367,7 +3364,7 @@
             "remove_response_headers": "x-envoy-upstream-service-time",
             "rewrite": "/foo",
             "rkey": "plain-simplemapping-http-all-http.plain-namespace.1",
-            "serialization": "add_request_headers:\n  foo: bar\nadd_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\ncase_sensitive: false\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-all\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-all/\nremove_response_headers: x-envoy-upstream-service-time\nrewrite: /foo\nservice: http://plain-simplemapping-http-all-http.plain-namespace\nuse_websocket: true\n",
+            "serialization": "_force_validation: true\nadd_request_headers:\n  foo: bar\nadd_response_headers:\n  foo: bar\nambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\ncase_sensitive: false\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-all\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-all/\nremove_response_headers: x-envoy-upstream-service-time\nrewrite: /foo\nservice: http://plain-simplemapping-http-all-http.plain-namespace\nuse_websocket: true\n",
             "service": "http://plain-simplemapping-http-all-http.plain-namespace",
             "use_websocket": true
         },
@@ -3386,7 +3383,7 @@
             "namespace": "plain-namespace",
             "prefix": "/SimpleMapping-HTTP-AutoHostRewrite/",
             "rkey": "plain-simplemapping-http-autohostrewrite-http.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AutoHostRewrite\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AutoHostRewrite/\nservice: http://plain-simplemapping-http-autohostrewrite-http.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nauto_host_rewrite: true\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-AutoHostRewrite\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-AutoHostRewrite/\nservice: http://plain-simplemapping-http-autohostrewrite-http.plain-namespace\n",
             "service": "http://plain-simplemapping-http-autohostrewrite-http.plain-namespace"
         },
         "plain-simplemapping-http-casesensitive-http.plain-namespace.1": {
@@ -3404,7 +3401,7 @@
             "namespace": "plain-namespace",
             "prefix": "/SimpleMapping-HTTP-CaseSensitive/",
             "rkey": "plain-simplemapping-http-casesensitive-http.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\ncase_sensitive: false\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-CaseSensitive\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-CaseSensitive/\nservice: http://plain-simplemapping-http-casesensitive-http.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\ncase_sensitive: false\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-CaseSensitive\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-CaseSensitive/\nservice: http://plain-simplemapping-http-casesensitive-http.plain-namespace\n",
             "service": "http://plain-simplemapping-http-casesensitive-http.plain-namespace"
         },
         "plain-simplemapping-http-cors-http.plain-namespace.1": {
@@ -3424,7 +3421,7 @@
             "namespace": "plain-namespace",
             "prefix": "/SimpleMapping-HTTP-CORS/",
             "rkey": "plain-simplemapping-http-cors-http.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-CORS\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-CORS/\nservice: http://plain-simplemapping-http-cors-http.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\ncors:\n  origins: '*'\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-CORS\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-CORS/\nservice: http://plain-simplemapping-http-cors-http.plain-namespace\n",
             "service": "http://plain-simplemapping-http-cors-http.plain-namespace"
         },
         "plain-simplemapping-http-http.plain-namespace.1": {
@@ -3441,7 +3438,7 @@
             "namespace": "plain-namespace",
             "prefix": "/SimpleMapping-HTTP/",
             "rkey": "plain-simplemapping-http-http.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP/\nservice: http://plain-simplemapping-http-http.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP/\nservice: http://plain-simplemapping-http-http.plain-namespace\n",
             "service": "http://plain-simplemapping-http-http.plain-namespace"
         },
         "plain-simplemapping-http-removeresponseheaders-http.plain-namespace.1": {
@@ -3459,7 +3456,7 @@
             "prefix": "/SimpleMapping-HTTP-RemoveResponseHeaders/",
             "remove_response_headers": "x-envoy-upstream-service-time",
             "rkey": "plain-simplemapping-http-removeresponseheaders-http.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-RemoveResponseHeaders\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-RemoveResponseHeaders/\nremove_response_headers: x-envoy-upstream-service-time\nservice: http://plain-simplemapping-http-removeresponseheaders-http.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-RemoveResponseHeaders\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-RemoveResponseHeaders/\nremove_response_headers: x-envoy-upstream-service-time\nservice: http://plain-simplemapping-http-removeresponseheaders-http.plain-namespace\n",
             "service": "http://plain-simplemapping-http-removeresponseheaders-http.plain-namespace"
         },
         "plain-simplemapping-http-rewrite-foo-http.plain-namespace.1": {
@@ -3477,7 +3474,7 @@
             "prefix": "/SimpleMapping-HTTP-Rewrite-foo/",
             "rewrite": "foo",
             "rkey": "plain-simplemapping-http-rewrite-foo-http.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-Rewrite-foo\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-Rewrite-foo/\nrewrite: foo\nservice: http://plain-simplemapping-http-rewrite-foo-http.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-Rewrite-foo\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-Rewrite-foo/\nrewrite: foo\nservice: http://plain-simplemapping-http-rewrite-foo-http.plain-namespace\n",
             "service": "http://plain-simplemapping-http-rewrite-foo-http.plain-namespace"
         },
         "plain-simplemapping-http-rewrite-slash-foo-http.plain-namespace.1": {
@@ -3495,7 +3492,7 @@
             "prefix": "/SimpleMapping-HTTP-Rewrite-SLASH-foo/",
             "rewrite": "/foo",
             "rkey": "plain-simplemapping-http-rewrite-slash-foo-http.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-Rewrite-SLASH-foo\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-Rewrite-SLASH-foo/\nrewrite: /foo\nservice: http://plain-simplemapping-http-rewrite-slash-foo-http.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-Rewrite-SLASH-foo\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-Rewrite-SLASH-foo/\nrewrite: /foo\nservice: http://plain-simplemapping-http-rewrite-slash-foo-http.plain-namespace\n",
             "service": "http://plain-simplemapping-http-rewrite-slash-foo-http.plain-namespace"
         },
         "plain-simplemapping-http-usewebsocket-http.plain-namespace.1": {
@@ -3512,7 +3509,7 @@
             "namespace": "plain-namespace",
             "prefix": "/SimpleMapping-HTTP-UseWebsocket/",
             "rkey": "plain-simplemapping-http-usewebsocket-http.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-UseWebsocket\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-UseWebsocket/\nservice: http://plain-simplemapping-http-usewebsocket-http.plain-namespace\nuse_websocket: true\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleMapping-HTTP-UseWebsocket\nnamespace: plain-namespace\nprefix: /SimpleMapping-HTTP-UseWebsocket/\nservice: http://plain-simplemapping-http-usewebsocket-http.plain-namespace\nuse_websocket: true\n",
             "service": "http://plain-simplemapping-http-usewebsocket-http.plain-namespace",
             "use_websocket": true
         },
@@ -3530,7 +3527,7 @@
             "namespace": "plain-namespace",
             "prefix": "/TLSOrigination-GRPC-EXPLICIT/",
             "rkey": "plain-tlsorigination-grpc-explicit-grpc.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: TLSOrigination-GRPC-EXPLICIT\nnamespace: plain-namespace\nprefix: /TLSOrigination-GRPC-EXPLICIT/\nservice: plain-tlsorigination-grpc-explicit-grpc.plain-namespace\ntls: true\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: TLSOrigination-GRPC-EXPLICIT\nnamespace: plain-namespace\nprefix: /TLSOrigination-GRPC-EXPLICIT/\nservice: plain-tlsorigination-grpc-explicit-grpc.plain-namespace\ntls: true\n",
             "service": "plain-tlsorigination-grpc-explicit-grpc.plain-namespace",
             "tls": true
         },
@@ -3548,7 +3545,7 @@
             "namespace": "plain-namespace",
             "prefix": "/TLSOrigination-GRPC-IMPLICIT/",
             "rkey": "plain-tlsorigination-grpc-implicit-grpc.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: TLSOrigination-GRPC-IMPLICIT\nnamespace: plain-namespace\nprefix: /TLSOrigination-GRPC-IMPLICIT/\nservice: https://plain-tlsorigination-grpc-implicit-grpc.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: TLSOrigination-GRPC-IMPLICIT\nnamespace: plain-namespace\nprefix: /TLSOrigination-GRPC-IMPLICIT/\nservice: https://plain-tlsorigination-grpc-implicit-grpc.plain-namespace\n",
             "service": "https://plain-tlsorigination-grpc-implicit-grpc.plain-namespace"
         },
         "plain-tlsorigination-http-explicit-http.plain-namespace.1": {
@@ -3565,7 +3562,7 @@
             "namespace": "plain-namespace",
             "prefix": "/TLSOrigination-HTTP-EXPLICIT/",
             "rkey": "plain-tlsorigination-http-explicit-http.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: TLSOrigination-HTTP-EXPLICIT\nnamespace: plain-namespace\nprefix: /TLSOrigination-HTTP-EXPLICIT/\nservice: plain-tlsorigination-http-explicit-http.plain-namespace\ntls: true\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: TLSOrigination-HTTP-EXPLICIT\nnamespace: plain-namespace\nprefix: /TLSOrigination-HTTP-EXPLICIT/\nservice: plain-tlsorigination-http-explicit-http.plain-namespace\ntls: true\n",
             "service": "plain-tlsorigination-http-explicit-http.plain-namespace",
             "tls": true
         },
@@ -3583,7 +3580,7 @@
             "namespace": "plain-namespace",
             "prefix": "/TLSOrigination-HTTP-IMPLICIT/",
             "rkey": "plain-tlsorigination-http-implicit-http.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: TLSOrigination-HTTP-IMPLICIT\nnamespace: plain-namespace\nprefix: /TLSOrigination-HTTP-IMPLICIT/\nservice: https://plain-tlsorigination-http-implicit-http.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: TLSOrigination-HTTP-IMPLICIT\nnamespace: plain-namespace\nprefix: /TLSOrigination-HTTP-IMPLICIT/\nservice: https://plain-tlsorigination-http-implicit-http.plain-namespace\n",
             "service": "https://plain-tlsorigination-http-implicit-http.plain-namespace"
         },
         "plain-websocketmapping-grpc-grpc.plain-namespace.1": {
@@ -3601,7 +3598,7 @@
             "namespace": "plain-namespace",
             "prefix": "/WebSocketMapping-GRPC/",
             "rkey": "plain-websocketmapping-grpc-grpc.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: echo.websocket.org\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: WebSocketMapping-GRPC\nnamespace: plain-namespace\nprefix: /WebSocketMapping-GRPC/\nservice: echo.websocket.org:80\nuse_websocket: true\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: echo.websocket.org\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: WebSocketMapping-GRPC\nnamespace: plain-namespace\nprefix: /WebSocketMapping-GRPC/\nservice: echo.websocket.org:80\nuse_websocket: true\n",
             "service": "echo.websocket.org:80",
             "use_websocket": true
         },
@@ -3620,7 +3617,7 @@
             "namespace": "plain-namespace",
             "prefix": "/WebSocketMapping-HTTP/",
             "rkey": "plain-websocketmapping-http-http.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: echo.websocket.org\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: WebSocketMapping-HTTP\nnamespace: plain-namespace\nprefix: /WebSocketMapping-HTTP/\nservice: echo.websocket.org:80\nuse_websocket: true\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v0\nhost_rewrite: echo.websocket.org\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: WebSocketMapping-HTTP\nnamespace: plain-namespace\nprefix: /WebSocketMapping-HTTP/\nservice: echo.websocket.org:80\nuse_websocket: true\n",
             "service": "echo.websocket.org:80",
             "use_websocket": true
         },
@@ -3659,7 +3656,7 @@
             "namespace": "plain-namespace",
             "prefix": "/SimpleIngressWithAnnotations-GRPC-nested/",
             "rkey": "simpleingresswithannotations-grpc.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleIngressWithAnnotations-GRPC-nested\nprefix: /SimpleIngressWithAnnotations-GRPC-nested/\nservice: http://plain-simpleingresswithannotations-grpc-grpc.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleIngressWithAnnotations-GRPC-nested\nprefix: /SimpleIngressWithAnnotations-GRPC-nested/\nservice: http://plain-simpleingresswithannotations-grpc-grpc.plain-namespace\n",
             "service": "http://plain-simpleingresswithannotations-grpc-grpc.plain-namespace"
         },
         "simpleingresswithannotations-http-0-0.plain-namespace.1": {
@@ -3697,7 +3694,7 @@
             "namespace": "plain-namespace",
             "prefix": "/SimpleIngressWithAnnotations-HTTP-nested/",
             "rkey": "simpleingresswithannotations-http.plain-namespace.1",
-            "serialization": "ambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleIngressWithAnnotations-HTTP-nested\nprefix: /SimpleIngressWithAnnotations-HTTP-nested/\nservice: http://plain-simpleingresswithannotations-http-http.plain-namespace\n",
+            "serialization": "_force_validation: true\nambassador_id: plain\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: plain\n  scope: AmbassadorTest\nname: SimpleIngressWithAnnotations-HTTP-nested\nprefix: /SimpleIngressWithAnnotations-HTTP-nested/\nservice: http://plain-simpleingresswithannotations-http-http.plain-namespace\n",
             "service": "http://plain-simpleingresswithannotations-http-http.plain-namespace"
         },
         "simplemappingingress-grpc-0-0.plain-namespace.1": {
