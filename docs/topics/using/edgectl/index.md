@@ -1,4 +1,4 @@
-# Service Preview
+# Service Preview and Edgectl
 
 One of the challenges in adopting Kubernetes and microservices is the development and testing workflow. Creating and maintaining a full development environment with many microservices and their dependencies is complex and hard.
 
@@ -6,11 +6,29 @@ Service Preview addresses this challenge by connecting your CI system or local d
 
 ## Installation
 
-Service Preview is installed as an additional deployment to Ambassador Edge Stack.
+Service Preview and `edgectl` are addons to the Ambassador Edge Stack.
+
+### Edge Control Install
+
+`edgectl` is a binary used to interact with the Ambassador Edge Stack and Service Preview.
+
+See [installing edge control](edge-control#installing-edge-control) to learn how to download and install `edgectl`
+
+### Service Preview Install
+
+Service Preview is installed as an additional deployment to Ambassador Edge Stack that runs in your Kubernetes cluster.
 
 See [installing Service Preview](service-preview-install) and [Service Preview in Action](service-preview-quickstart) to learn how to install and use Service Preview.
 
-## Service Preview Components
+## Reference
+
+### Edge Control Commands
+
+`edgectl` is used for interacting with your cluster, Ambassador Edge Stack, and Service Preview. It can also be a powerful tool to use for CI/CD pipelines.
+
+See [Edge Control Commands](edge-controll#edge-control-commands) for cli reference and [Edge Control in CI](edge-control-in-ci) for information on using `edgectl` in CI/CD pipelines.
+
+### Service Preview Components
 
 ![Preview](../../../images/service-preview.png)
 
