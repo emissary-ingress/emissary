@@ -1,10 +1,7 @@
 {
     "_errors": {},
+    "_fast_validation_disagreements": {},
     "_notices": {
-        "-global-": [
-            "Parsed pod labels: {'kat-ambassador-id': 'authenticationwebsockettest', 'scope': 'AmbassadorTest', 'service': 'authenticationwebsockettest'}",
-            "Found Ambassador service: authenticationwebsockettest"
-        ],
         "authenticationwebsockettest.default.2": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ]
@@ -54,7 +51,7 @@
             "namespace": "default",
             "path_prefix": "/extauth",
             "rkey": "authenticationwebsockettest.default.1",
-            "serialization": "allow_request_body: true\nallowed_request_headers:\n- Requested-Status\nambassador_id: authenticationwebsockettest\napiVersion: ambassador/v1\nauth_service: authenticationwebsockettest-http-auth\nkind: AuthService\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationwebsockettest\n  scope: AmbassadorTest\nname: authenticationwebsockettest-http-auth\nnamespace: default\npath_prefix: /extauth\ntimeout_ms: 10000\n",
+            "serialization": "_force_validation: true\nallow_request_body: true\nallowed_request_headers:\n- Requested-Status\nambassador_id: authenticationwebsockettest\napiVersion: ambassador/v1\nauth_service: authenticationwebsockettest-http-auth\nkind: AuthService\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationwebsockettest\n  scope: AmbassadorTest\nname: authenticationwebsockettest-http-auth\nnamespace: default\npath_prefix: /extauth\ntimeout_ms: 10000\n",
             "timeout_ms": 10000
         },
         "authenticationwebsockettest.default.2": {
@@ -73,7 +70,7 @@
             "namespace": "default",
             "prefix": "/AuthenticationWebsocketTest/",
             "rkey": "authenticationwebsockettest.default.2",
-            "serialization": "ambassador_id: authenticationwebsockettest\napiVersion: ambassador/v0\nhost_rewrite: echo.websocket.org\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationwebsockettest\n  scope: AmbassadorTest\nname: AuthenticationWebsocketTest\nnamespace: default\nprefix: /AuthenticationWebsocketTest/\nservice: http://echo.websocket.org\nuse_websocket: true\n",
+            "serialization": "_force_validation: true\nambassador_id: authenticationwebsockettest\napiVersion: ambassador/v0\nhost_rewrite: echo.websocket.org\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationwebsockettest\n  scope: AmbassadorTest\nname: AuthenticationWebsocketTest\nnamespace: default\nprefix: /AuthenticationWebsocketTest/\nservice: http://echo.websocket.org\nuse_websocket: true\n",
             "service": "http://echo.websocket.org",
             "use_websocket": true
         },

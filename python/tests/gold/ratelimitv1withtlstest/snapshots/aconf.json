@@ -1,11 +1,7 @@
 {
     "_errors": {},
-    "_notices": {
-        "-global-": [
-            "Parsed pod labels: {'kat-ambassador-id': 'ratelimitv1withtlstest', 'scope': 'AmbassadorTest', 'service': 'ratelimitv1withtlstest'}",
-            "Found Ambassador service: ratelimitv1withtlstest"
-        ]
-    },
+    "_fast_validation_disagreements": {},
+    "_notices": {},
     "_sources": {
         "--diagnostics--": {
             "_referenced_by": {},
@@ -110,7 +106,7 @@
             "name": "ratelimit-tls",
             "namespace": "default",
             "rkey": "rate-limit-tls.default.1",
-            "serialization": "ambassador_id: ratelimitv1withtlstest\napiVersion: ambassador/v1\nkind: RateLimitService\nmetadata_labels:\n  kat-ambassador-id: ratelimitv1withtlstest\n  scope: AmbassadorTest\nname: ratelimit-tls\nnamespace: default\nservice: rate-limit-tls:5000\ntimeout_ms: 500\ntls: ratelimit-tls-context\n",
+            "serialization": "_force_validation: true\nambassador_id: ratelimitv1withtlstest\napiVersion: ambassador/v1\nkind: RateLimitService\nmetadata_labels:\n  kat-ambassador-id: ratelimitv1withtlstest\n  scope: AmbassadorTest\nname: ratelimit-tls\nnamespace: default\nservice: rate-limit-tls:5000\ntimeout_ms: 500\ntls: ratelimit-tls-context\n",
             "service": "rate-limit-tls:5000",
             "timeout_ms": 500,
             "tls": "ratelimit-tls-context"
@@ -148,7 +144,7 @@
             "namespace": "default",
             "rkey": "ratelimitv1withtlstest-http.default.1",
             "secret": "ratelimit-tls-secret",
-            "serialization": "alpn_protocols: h2\nambassador_id: ratelimitv1withtlstest\napiVersion: ambassador/v1\nkind: TLSContext\nmetadata_labels:\n  kat-ambassador-id: ratelimitv1withtlstest\n  scope: AmbassadorTest\nname: ratelimit-tls-context\nnamespace: default\nsecret: ratelimit-tls-secret\n"
+            "serialization": "_force_validation: true\nalpn_protocols: h2\nambassador_id: ratelimitv1withtlstest\napiVersion: ambassador/v1\nkind: TLSContext\nmetadata_labels:\n  kat-ambassador-id: ratelimitv1withtlstest\n  scope: AmbassadorTest\nname: ratelimit-tls-context\nnamespace: default\nsecret: ratelimit-tls-secret\n"
         },
         "ratelimitv1withtlstest-http.default.2": {
             "_referenced_by": {},
@@ -178,7 +174,7 @@
             "namespace": "default",
             "prefix": "/target/",
             "rkey": "ratelimitv1withtlstest-http.default.2",
-            "serialization": "ambassador_id: ratelimitv1withtlstest\napiVersion: ambassador/v1\nkind: Mapping\nlabels:\n  ambassador:\n  - request_label_group:\n    - x-ambassador-test-allow:\n        header: x-ambassador-test-allow\n        omit_if_not_present: true\nmetadata_labels:\n  kat-ambassador-id: ratelimitv1withtlstest\n  scope: AmbassadorTest\nname: ratelimit_target_mapping\nnamespace: default\nprefix: /target/\nservice: ratelimitv1withtlstest-http\n",
+            "serialization": "_force_validation: true\nambassador_id: ratelimitv1withtlstest\napiVersion: ambassador/v1\nkind: Mapping\nlabels:\n  ambassador:\n  - request_label_group:\n    - x-ambassador-test-allow:\n        header: x-ambassador-test-allow\n        omit_if_not_present: true\nmetadata_labels:\n  kat-ambassador-id: ratelimitv1withtlstest\n  scope: AmbassadorTest\nname: ratelimit_target_mapping\nnamespace: default\nprefix: /target/\nservice: ratelimitv1withtlstest-http\n",
             "service": "ratelimitv1withtlstest-http"
         }
     },

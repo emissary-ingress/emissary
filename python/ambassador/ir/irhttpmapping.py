@@ -113,6 +113,7 @@ class IRHTTPMapping (IRBaseMapping):
         "timeout_ms": False,
         "tls": False,
         "use_websocket": False,
+        "allow_upgrade": False,
         "weight": False,
 
         # Include the serialization, too.
@@ -192,6 +193,12 @@ class IRHTTPMapping (IRBaseMapping):
 
         if 'method' in kwargs:
             hdrs.append(KeyValueDecorator(":method", kwargs['method'], kwargs.get('method_regex', False)))
+
+        if 'use_websocket' in new_args:
+            allow_upgrade = new_args.setdefault('allow_upgrade', [])
+            if 'websocket' not in allow_upgrade:
+                allow_upgrade.append('websocket')
+            del new_args['use_websocket']
 
         # Next up: figure out what headers we need to add to each request. Again, if the key
         # is present in kwargs, the kwargs value wins -- this is important to allow explicitly

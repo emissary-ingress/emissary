@@ -560,7 +560,7 @@
                         "/target/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: gziptest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gziptest\n  scope: AmbassadorTest\nname: gziptest-http\nnamespace: default\nprefix: /target/\nservice: gziptest-http\n",
+                    "serialization": "_force_validation: true\nambassador_id: gziptest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gziptest\n  scope: AmbassadorTest\nname: gziptest-http\nnamespace: default\nprefix: /target/\nservice: gziptest-http\n",
                     "service": "gziptest-http",
                     "weight": 100
                 }
@@ -577,7 +577,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/",
-            "serialization": "ambassador_id: gziptest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gziptest\n  scope: AmbassadorTest\nname: gziptest-http\nnamespace: default\nprefix: /target/\nservice: gziptest-http\n"
+            "serialization": "_force_validation: true\nambassador_id: gziptest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gziptest\n  scope: AmbassadorTest\nname: gziptest-http\nnamespace: default\nprefix: /target/\nservice: gziptest-http\n"
         }
     ],
     "grpc_services": {},

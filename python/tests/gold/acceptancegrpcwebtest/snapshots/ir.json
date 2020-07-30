@@ -456,7 +456,7 @@
                         "/echo.EchoService/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: acceptancegrpcwebtest\napiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpcwebtest\n  scope: AmbassadorTest\nname: acceptancegrpcwebtest-egrpc\nnamespace: default\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nservice: acceptancegrpcwebtest-egrpc\n",
+                    "serialization": "_force_validation: true\nambassador_id: acceptancegrpcwebtest\napiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpcwebtest\n  scope: AmbassadorTest\nname: acceptancegrpcwebtest-egrpc\nnamespace: default\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nservice: acceptancegrpcwebtest-egrpc\n",
                     "service": "acceptancegrpcwebtest-egrpc",
                     "weight": 100
                 }
@@ -473,7 +473,7 @@
             "query_parameters": [],
             "regex_rewrite": {},
             "rewrite": "/echo.EchoService/",
-            "serialization": "ambassador_id: acceptancegrpcwebtest\napiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpcwebtest\n  scope: AmbassadorTest\nname: acceptancegrpcwebtest-egrpc\nnamespace: default\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nservice: acceptancegrpcwebtest-egrpc\n"
+            "serialization": "_force_validation: true\nambassador_id: acceptancegrpcwebtest\napiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpcwebtest\n  scope: AmbassadorTest\nname: acceptancegrpcwebtest-egrpc\nnamespace: default\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nservice: acceptancegrpcwebtest-egrpc\n"
         },
         {
             "_active": true,

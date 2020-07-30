@@ -1,11 +1,7 @@
 {
     "_errors": {},
-    "_notices": {
-        "-global-": [
-            "Parsed pod labels: {'kat-ambassador-id': 'hostcrdcleartext', 'scope': 'AmbassadorTest', 'service': 'hostcrdcleartext'}",
-            "Found Ambassador service: hostcrdcleartext"
-        ]
-    },
+    "_fast_validation_disagreements": {},
+    "_notices": {},
     "_sources": {
         "--diagnostics--": {
             "_referenced_by": {},

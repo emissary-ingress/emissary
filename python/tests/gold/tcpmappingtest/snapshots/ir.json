@@ -729,7 +729,7 @@
                     "route_weight": [
                         0
                     ],
-                    "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nhost: tls-context-host-3\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-3\nnamespace: tcp-namespace\nport: 6789\nservice: tcpmappingtest-http-target3.tcp-namespace\ntls: true\n",
+                    "serialization": "_force_validation: true\nambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nhost: tls-context-host-3\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-3\nnamespace: tcp-namespace\nport: 6789\nservice: tcpmappingtest-http-target3.tcp-namespace\ntls: true\n",
                     "service": "tcpmappingtest-http-target3.tcp-namespace",
                     "sni": true,
                     "tls": true,
@@ -774,7 +774,7 @@
             "port": 6789,
             "precedence": 0,
             "resolver": "kubernetes-service",
-            "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nhost: tls-context-host-3\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-3\nnamespace: tcp-namespace\nport: 6789\nservice: tcpmappingtest-http-target3.tcp-namespace\ntls: true\n",
+            "serialization": "_force_validation: true\nambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nhost: tls-context-host-3\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-3\nnamespace: tcp-namespace\nport: 6789\nservice: tcpmappingtest-http-target3.tcp-namespace\ntls: true\n",
             "sni": true,
             "tls": true,
             "tls_context": {
@@ -906,7 +906,7 @@
                     "route_weight": [
                         0
                     ],
-                    "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nhost: tls-context-host-2\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-2\nnamespace: other-namespace\nport: 6789\nservice: tcpmappingtest-http-target2.other-namespace\ntls: TCPMappingTest-tlscontext\n",
+                    "serialization": "_force_validation: true\nambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nhost: tls-context-host-2\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-2\nnamespace: other-namespace\nport: 6789\nservice: tcpmappingtest-http-target2.other-namespace\ntls: TCPMappingTest-tlscontext\n",
                     "service": "tcpmappingtest-http-target2.other-namespace",
                     "sni": true,
                     "tls": "TCPMappingTest-tlscontext",
@@ -951,7 +951,7 @@
             "port": 6789,
             "precedence": 0,
             "resolver": "kubernetes-service",
-            "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nhost: tls-context-host-2\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-2\nnamespace: other-namespace\nport: 6789\nservice: tcpmappingtest-http-target2.other-namespace\ntls: TCPMappingTest-tlscontext\n",
+            "serialization": "_force_validation: true\nambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nhost: tls-context-host-2\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-2\nnamespace: other-namespace\nport: 6789\nservice: tcpmappingtest-http-target2.other-namespace\ntls: TCPMappingTest-tlscontext\n",
             "sni": true,
             "tls": "TCPMappingTest-tlscontext",
             "tls_context": {
@@ -1054,7 +1054,7 @@
                     "route_weight": [
                         0
                     ],
-                    "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nhost: tls-context-host-1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-1\nnamespace: tcp-namespace\nport: 6789\nservice: tcpmappingtest-http-target1.tcp-namespace:80\n",
+                    "serialization": "_force_validation: true\nambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nhost: tls-context-host-1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-1\nnamespace: tcp-namespace\nport: 6789\nservice: tcpmappingtest-http-target1.tcp-namespace:80\n",
                     "service": "tcpmappingtest-http-target1.tcp-namespace:80",
                     "sni": true,
                     "tls_context": {
@@ -1098,7 +1098,7 @@
             "port": 6789,
             "precedence": 0,
             "resolver": "kubernetes-service",
-            "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nhost: tls-context-host-1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-1\nnamespace: tcp-namespace\nport: 6789\nservice: tcpmappingtest-http-target1.tcp-namespace:80\n",
+            "serialization": "_force_validation: true\nambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nhost: tls-context-host-1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-1\nnamespace: tcp-namespace\nport: 6789\nservice: tcpmappingtest-http-target1.tcp-namespace:80\n",
             "sni": true,
             "tls_context": {
                 "_active": true,
@@ -1214,7 +1214,7 @@
                     "route_weight": [
                         0
                     ],
-                    "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-clear-to-tls\nnamespace: tcp-namespace\nport: 7654\nservice: tcpmappingtest-http-target2.other-namespace:443\ntls: true\n",
+                    "serialization": "_force_validation: true\nambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-clear-to-tls\nnamespace: tcp-namespace\nport: 7654\nservice: tcpmappingtest-http-target2.other-namespace:443\ntls: true\n",
                     "service": "tcpmappingtest-http-target2.other-namespace:443",
                     "tls": true,
                     "weight": 100
@@ -1229,7 +1229,7 @@
             "port": 7654,
             "precedence": 0,
             "resolver": "kubernetes-service",
-            "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-clear-to-tls\nnamespace: tcp-namespace\nport: 7654\nservice: tcpmappingtest-http-target2.other-namespace:443\ntls: true\n",
+            "serialization": "_force_validation: true\nambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-clear-to-tls\nnamespace: tcp-namespace\nport: 7654\nservice: tcpmappingtest-http-target2.other-namespace:443\ntls: true\n",
             "tls": true
         },
         {
@@ -1303,7 +1303,7 @@
                     "route_weight": [
                         0
                     ],
-                    "serialization": "address: 127.0.0.1\nambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-local-only\nnamespace: tcp-namespace\nport: 8765\nservice: tcpmappingtest-http-target1.tcp-namespace:443\n",
+                    "serialization": "_force_validation: true\naddress: 127.0.0.1\nambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-local-only\nnamespace: tcp-namespace\nport: 8765\nservice: tcpmappingtest-http-target1.tcp-namespace:443\n",
                     "service": "tcpmappingtest-http-target1.tcp-namespace:443",
                     "weight": 100
                 }
@@ -1317,7 +1317,7 @@
             "port": 8765,
             "precedence": 0,
             "resolver": "kubernetes-service",
-            "serialization": "address: 127.0.0.1\nambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-local-only\nnamespace: tcp-namespace\nport: 8765\nservice: tcpmappingtest-http-target1.tcp-namespace:443\n"
+            "serialization": "_force_validation: true\naddress: 127.0.0.1\nambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-local-only\nnamespace: tcp-namespace\nport: 8765\nservice: tcpmappingtest-http-target1.tcp-namespace:443\n"
         },
         {
             "_active": true,
@@ -1388,7 +1388,7 @@
                     "route_weight": [
                         0
                     ],
-                    "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest\nnamespace: tcp-namespace\nport: 9876\nservice: tcpmappingtest-http-target1.tcp-namespace:443\n",
+                    "serialization": "_force_validation: true\nambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest\nnamespace: tcp-namespace\nport: 9876\nservice: tcpmappingtest-http-target1.tcp-namespace:443\n",
                     "service": "tcpmappingtest-http-target1.tcp-namespace:443",
                     "weight": 100
                 }
@@ -1402,7 +1402,7 @@
             "port": 9876,
             "precedence": 0,
             "resolver": "kubernetes-service",
-            "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest\nnamespace: tcp-namespace\nport: 9876\nservice: tcpmappingtest-http-target1.tcp-namespace:443\n"
+            "serialization": "_force_validation: true\nambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest\nnamespace: tcp-namespace\nport: 9876\nservice: tcpmappingtest-http-target1.tcp-namespace:443\n"
         }
     ],
     "grpc_services": {},

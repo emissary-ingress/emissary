@@ -1,10 +1,7 @@
 {
     "_errors": {},
+    "_fast_validation_disagreements": {},
     "_notices": {
-        "-global-": [
-            "Parsed pod labels: {'kat-ambassador-id': 'tracingexternalauthtest', 'scope': 'AmbassadorTest', 'service': 'tracingexternalauthtest'}",
-            "Found Ambassador service: tracingexternalauthtest"
-        ],
         "tracingexternalauthtest-http.default.1": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ],
@@ -136,7 +133,7 @@
             "namespace": "default",
             "prefix": "/target/",
             "rkey": "tracingexternalauthtest-http.default.1",
-            "serialization": "ambassador_id: tracingexternalauthtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingexternalauthtest\n  scope: AmbassadorTest\nname: tracing_target_mapping\nnamespace: default\nprefix: /target/\nservice: tracingexternalauthtest-http\n",
+            "serialization": "_force_validation: true\nambassador_id: tracingexternalauthtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingexternalauthtest\n  scope: AmbassadorTest\nname: tracing_target_mapping\nnamespace: default\nprefix: /target/\nservice: tracingexternalauthtest-http\n",
             "service": "tracingexternalauthtest-http"
         },
         "zipkin-auth.default.1": {
@@ -153,7 +150,7 @@
             "name": "tracing-auth",
             "namespace": "default",
             "rkey": "zipkin-auth.default.1",
-            "serialization": "ambassador_id: tracingexternalauthtest\napiVersion: ambassador/v0\ndriver: zipkin\nkind: TracingService\nmetadata_labels:\n  kat-ambassador-id: tracingexternalauthtest\n  scope: AmbassadorTest\nname: tracing-auth\nnamespace: default\nservice: zipkin-auth:9411\n",
+            "serialization": "_force_validation: true\nambassador_id: tracingexternalauthtest\napiVersion: ambassador/v0\ndriver: zipkin\nkind: TracingService\nmetadata_labels:\n  kat-ambassador-id: tracingexternalauthtest\n  scope: AmbassadorTest\nname: tracing-auth\nnamespace: default\nservice: zipkin-auth:9411\n",
             "service": "zipkin-auth:9411"
         },
         "zipkin-auth.default.2": {
@@ -175,7 +172,7 @@
             "namespace": "default",
             "path_prefix": "/extauth",
             "rkey": "zipkin-auth.default.2",
-            "serialization": "allowed_headers:\n- Requested-Status\n- Requested-Header\nambassador_id: tracingexternalauthtest\napiVersion: ambassador/v0\nauth_service: tracingexternalauthtest-ahttp-auth\nkind: AuthService\nmetadata_labels:\n  kat-ambassador-id: tracingexternalauthtest\n  scope: AmbassadorTest\nname: tracingexternalauthtest-ahttp-auth\nnamespace: default\npath_prefix: /extauth\n"
+            "serialization": "_force_validation: true\nallowed_headers:\n- Requested-Status\n- Requested-Header\nambassador_id: tracingexternalauthtest\napiVersion: ambassador/v0\nauth_service: tracingexternalauthtest-ahttp-auth\nkind: AuthService\nmetadata_labels:\n  kat-ambassador-id: tracingexternalauthtest\n  scope: AmbassadorTest\nname: tracingexternalauthtest-ahttp-auth\nnamespace: default\npath_prefix: /extauth\n"
         }
     },
     "auth_configs": {

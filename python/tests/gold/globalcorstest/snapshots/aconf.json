@@ -1,11 +1,7 @@
 {
     "_errors": {},
-    "_notices": {
-        "-global-": [
-            "Parsed pod labels: {'kat-ambassador-id': 'globalcorstest', 'scope': 'AmbassadorTest', 'service': 'globalcorstest'}",
-            "Found Ambassador service: globalcorstest"
-        ]
-    },
+    "_fast_validation_disagreements": {},
+    "_notices": {},
     "_sources": {
         "--diagnostics--": {
             "_referenced_by": {},
@@ -51,7 +47,7 @@
             "name": "ambassador",
             "namespace": "default",
             "rkey": "globalcorstest.default.1",
-            "serialization": "ambassador_id: globalcorstest\napiVersion: ambassador/v1\nconfig:\n  cors:\n    methods: POST, GET, OPTIONS\n    origins: http://foo.example.com\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: globalcorstest\n  scope: AmbassadorTest\nname: ambassador\nnamespace: default\n"
+            "serialization": "_force_validation: true\nambassador_id: globalcorstest\napiVersion: ambassador/v1\nconfig:\n  cors:\n    methods: POST, GET, OPTIONS\n    origins: http://foo.example.com\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: globalcorstest\n  scope: AmbassadorTest\nname: ambassador\nnamespace: default\n"
         },
         "globalcorstest.default.2": {
             "_referenced_by": {},
@@ -68,7 +64,7 @@
             "namespace": "default",
             "prefix": "/foo/",
             "rkey": "globalcorstest.default.2",
-            "serialization": "ambassador_id: globalcorstest\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: globalcorstest\n  scope: AmbassadorTest\nname: globalcorstest-http-foo\nnamespace: default\nprefix: /foo/\nservice: globalcorstest-http\n",
+            "serialization": "_force_validation: true\nambassador_id: globalcorstest\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: globalcorstest\n  scope: AmbassadorTest\nname: globalcorstest-http-foo\nnamespace: default\nprefix: /foo/\nservice: globalcorstest-http\n",
             "service": "globalcorstest-http"
         },
         "globalcorstest.default.3": {
@@ -90,7 +86,7 @@
             "namespace": "default",
             "prefix": "/bar/",
             "rkey": "globalcorstest.default.3",
-            "serialization": "ambassador_id: globalcorstest\napiVersion: ambassador/v1\ncors:\n  methods: POST, GET, OPTIONS\n  origins: http://bar.example.com\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: globalcorstest\n  scope: AmbassadorTest\nname: globalcorstest-http-bar\nnamespace: default\nprefix: /bar/\nservice: globalcorstest-http\n",
+            "serialization": "_force_validation: true\nambassador_id: globalcorstest\napiVersion: ambassador/v1\ncors:\n  methods: POST, GET, OPTIONS\n  origins: http://bar.example.com\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: globalcorstest\n  scope: AmbassadorTest\nname: globalcorstest-http-bar\nnamespace: default\nprefix: /bar/\nservice: globalcorstest-http\n",
             "service": "globalcorstest-http"
         },
         "k8s-globalcorstest-admin-default": {

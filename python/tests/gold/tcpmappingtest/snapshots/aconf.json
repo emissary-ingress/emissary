@@ -1,11 +1,7 @@
 {
     "_errors": {},
-    "_notices": {
-        "-global-": [
-            "Parsed pod labels: {'kat-ambassador-id': 'tcpmappingtest', 'scope': 'AmbassadorTest', 'service': 'tcpmappingtest'}",
-            "Found Ambassador service: tcpmappingtest"
-        ]
-    },
+    "_fast_validation_disagreements": {},
+    "_notices": {},
     "_sources": {
         "--diagnostics--": {
             "_referenced_by": {},
@@ -145,7 +141,7 @@
             "namespace": "tcp-namespace",
             "port": 9876,
             "rkey": "tcpmappingtest-http-target1.tcp-namespace.1",
-            "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest\nnamespace: tcp-namespace\nport: 9876\nservice: tcpmappingtest-http-target1.tcp-namespace:443\n",
+            "serialization": "_force_validation: true\nambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest\nnamespace: tcp-namespace\nport: 9876\nservice: tcpmappingtest-http-target1.tcp-namespace:443\n",
             "service": "tcpmappingtest-http-target1.tcp-namespace:443"
         },
         "tcpmappingtest-http-target1.tcp-namespace.2": {
@@ -163,7 +159,7 @@
             "namespace": "tcp-namespace",
             "port": 8765,
             "rkey": "tcpmappingtest-http-target1.tcp-namespace.2",
-            "serialization": "address: 127.0.0.1\nambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-local-only\nnamespace: tcp-namespace\nport: 8765\nservice: tcpmappingtest-http-target1.tcp-namespace:443\n",
+            "serialization": "_force_validation: true\naddress: 127.0.0.1\nambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-local-only\nnamespace: tcp-namespace\nport: 8765\nservice: tcpmappingtest-http-target1.tcp-namespace:443\n",
             "service": "tcpmappingtest-http-target1.tcp-namespace:443"
         },
         "tcpmappingtest-http-target1.tcp-namespace.3": {
@@ -180,7 +176,7 @@
             "namespace": "tcp-namespace",
             "port": 7654,
             "rkey": "tcpmappingtest-http-target1.tcp-namespace.3",
-            "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-clear-to-tls\nnamespace: tcp-namespace\nport: 7654\nservice: tcpmappingtest-http-target2.other-namespace:443\ntls: true\n",
+            "serialization": "_force_validation: true\nambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-clear-to-tls\nnamespace: tcp-namespace\nport: 7654\nservice: tcpmappingtest-http-target2.other-namespace:443\ntls: true\n",
             "service": "tcpmappingtest-http-target2.other-namespace:443",
             "tls": true
         },
@@ -199,7 +195,7 @@
             "namespace": "tcp-namespace",
             "port": 6789,
             "rkey": "tcpmappingtest-http-target1.tcp-namespace.4",
-            "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nhost: tls-context-host-1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-1\nnamespace: tcp-namespace\nport: 6789\nservice: tcpmappingtest-http-target1.tcp-namespace:80\n",
+            "serialization": "_force_validation: true\nambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nhost: tls-context-host-1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-1\nnamespace: tcp-namespace\nport: 6789\nservice: tcpmappingtest-http-target1.tcp-namespace:80\n",
             "service": "tcpmappingtest-http-target1.tcp-namespace:80"
         },
         "tcpmappingtest-http-target2.other-namespace.1": {
@@ -217,7 +213,7 @@
             "namespace": "other-namespace",
             "port": 6789,
             "rkey": "tcpmappingtest-http-target2.other-namespace.1",
-            "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nhost: tls-context-host-2\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-2\nnamespace: other-namespace\nport: 6789\nservice: tcpmappingtest-http-target2.other-namespace\ntls: TCPMappingTest-tlscontext\n",
+            "serialization": "_force_validation: true\nambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nhost: tls-context-host-2\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-2\nnamespace: other-namespace\nport: 6789\nservice: tcpmappingtest-http-target2.other-namespace\ntls: TCPMappingTest-tlscontext\n",
             "service": "tcpmappingtest-http-target2.other-namespace",
             "tls": "TCPMappingTest-tlscontext"
         },
@@ -236,7 +232,7 @@
             "namespace": "tcp-namespace",
             "port": 6789,
             "rkey": "tcpmappingtest-http-target3.tcp-namespace.1",
-            "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nhost: tls-context-host-3\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-3\nnamespace: tcp-namespace\nport: 6789\nservice: tcpmappingtest-http-target3.tcp-namespace\ntls: true\n",
+            "serialization": "_force_validation: true\nambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nhost: tls-context-host-3\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-3\nnamespace: tcp-namespace\nport: 6789\nservice: tcpmappingtest-http-target3.tcp-namespace\ntls: true\n",
             "service": "tcpmappingtest-http-target3.tcp-namespace",
             "tls": true
         },
@@ -260,7 +256,7 @@
             "namespace": "tcp-namespace",
             "rkey": "tcpmappingtest.tcp-namespace.1",
             "secret": "supersecret",
-            "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nhosts:\n- tls-context-host-1\n- tls-context-host-2\n- tls-context-host-3\nkind: TLSContext\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-tlscontext\nnamespace: tcp-namespace\nsecret: supersecret\n"
+            "serialization": "_force_validation: true\nambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nhosts:\n- tls-context-host-1\n- tls-context-host-2\n- tls-context-host-3\nkind: TLSContext\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-tlscontext\nnamespace: tcp-namespace\nsecret: supersecret\n"
         }
     },
     "secrets": {

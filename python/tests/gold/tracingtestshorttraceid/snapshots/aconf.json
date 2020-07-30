@@ -1,10 +1,7 @@
 {
     "_errors": {},
+    "_fast_validation_disagreements": {},
     "_notices": {
-        "-global-": [
-            "Parsed pod labels: {'kat-ambassador-id': 'tracingtestshorttraceid', 'scope': 'AmbassadorTest', 'service': 'tracingtestshorttraceid'}",
-            "Found Ambassador service: tracingtestshorttraceid"
-        ],
         "tracingtestshorttraceid-http.default.1": [
             "apiVersion ambassador/v0 is deprecated, consider upgrading"
         ]
@@ -114,7 +111,7 @@
             "namespace": "default",
             "prefix": "/target-64/",
             "rkey": "tracingtestshorttraceid-http.default.1",
-            "serialization": "ambassador_id: tracingtestshorttraceid\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingtestshorttraceid\n  scope: AmbassadorTest\nname: tracing_target_mapping_64\nnamespace: default\nprefix: /target-64/\nservice: tracingtestshorttraceid-http\n",
+            "serialization": "_force_validation: true\nambassador_id: tracingtestshorttraceid\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingtestshorttraceid\n  scope: AmbassadorTest\nname: tracing_target_mapping_64\nnamespace: default\nprefix: /target-64/\nservice: tracingtestshorttraceid-http\n",
             "service": "tracingtestshorttraceid-http"
         },
         "zipkin-64.default.1": {
@@ -134,7 +131,7 @@
             "name": "tracing-64",
             "namespace": "default",
             "rkey": "zipkin-64.default.1",
-            "serialization": "ambassador_id: tracingtestshorttraceid\napiVersion: getambassador.io/v2\nconfig:\n  trace_id_128bit: false\ndriver: zipkin\nkind: TracingService\nmetadata_labels:\n  kat-ambassador-id: tracingtestshorttraceid\n  scope: AmbassadorTest\nname: tracing-64\nnamespace: default\nservice: zipkin-64:9411\n",
+            "serialization": "_force_validation: true\nambassador_id: tracingtestshorttraceid\napiVersion: getambassador.io/v2\nconfig:\n  trace_id_128bit: false\ndriver: zipkin\nkind: TracingService\nmetadata_labels:\n  kat-ambassador-id: tracingtestshorttraceid\n  scope: AmbassadorTest\nname: tracing-64\nnamespace: default\nservice: zipkin-64:9411\n",
             "service": "zipkin-64:9411"
         }
     },
