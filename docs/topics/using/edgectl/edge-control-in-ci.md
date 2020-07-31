@@ -1,4 +1,4 @@
-# Edge Control in CI
+# Using Edge Control in CI
 
 Imagine you have an application consisting of a hundred microservices and you want to test microservice changes in CI before release. One approach to running such a test would be to spin up a new cluster, install and launch your application in that cluster, replace the one microservice that you wish to test, and run your tests against that cluster. This would work, but it's complicated, expensive, and slow.
 

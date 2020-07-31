@@ -253,14 +253,14 @@
           link: /docs/latest/howtos/cert-manager
         - title: Client Certificate Validation
           link: /docs/latest/howtos/client-cert-validation
-- title: Service Preview and Edge Control
+- title: Service Preview
   items:
-  - title: Introduction to Service Preview and Edge Control
-    link: /docs/latest/topics/using/edgectl/
-  - title: Service Preview Install
+  - title: Service Preview Quick Start
     link: /docs/latest/topics/using/edgectl/service-preview-install
-  - title: Service Preview in Action
-    link: /docs/latest/topics/using/edgectl/service-preview-quick-start
+  - title: Service Preview Tutorial
+    link: /docs/latest/topics/using/edgectl/service-preview-tutorial
+  - title: Introduction to Service Preview
+    link: /docs/latest/topics/using/edgectl/
   - title: Service Preview Reference
     link: /docs/latest/topics/using/edgectl/service-preview-reference
   - title: Edge Control Reference

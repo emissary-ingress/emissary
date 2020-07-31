@@ -656,10 +656,11 @@ spec:
     email: julian@example.com
   previewUrl:
     enabled: true
+    type: path
 ```
 
 **Note**: If you already had an active Edge Control Daemon connection to the cluster, you must reconnect to the cluster for the Edge Control Daemon to detect the change to the Host resource. This limitation will be removed in the future.
 
 ## What's Next?
 
-See how [Edge Control commands can be used in action](service-preview-quick-start) to establish outbound connectivity with a remote Kubernetes cluster and intercept inbound requests.
+See how [Edge Control commands can be used in action](service-preview-tutorial) to establish outbound connectivity with a remote Kubernetes cluster and intercept inbound requests.

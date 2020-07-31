@@ -1,4 +1,4 @@
-# Service Preview and Edgectl
+# Introduction to Service Preview
 
 One of the challenges in adopting Kubernetes and microservices is the development and testing workflow. Creating and maintaining a full development environment with many microservices and their dependencies is complex and hard.
 

@@ -158,4 +158,4 @@ Connected
 
 ## What's Next?
 
-See how [Edge Control commands can be used in action](../service-preview-quick-start) to establish outbound connectivity with a remote Kubernetes cluster and intercept inbound requests.
+See how [Edge Control commands can be used in action](../service-preview-tutorial) to establish outbound connectivity with a remote Kubernetes cluster and intercept inbound requests.

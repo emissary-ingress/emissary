@@ -1,4 +1,4 @@
-# Service Preview Installation
+# Service Preview Quick Start
 
 Service Preview is installed as an addon to the Ambassador Edge Stack.
 
@@ -11,8 +11,8 @@ There are two main mechanisms for installing Service Preview
 ## Prerequisites
 
 - [`kubectl`](https://kubernetes.io/docs/tasks/tools/install-kubectl/) access to a Kubernetes cluster
-- The Ambassador Edge Stack [Installed](../../../tutorials/getting-started)
-- [`edgectl`](edge-control#installing-edge-control) client
+- The Ambassador Edge Stack [Installed](../../../../tutorials/getting-started/)
+- [`edgectl`](../edge-control#installing-edge-control) client
 
 ## Install with Edgectl
 

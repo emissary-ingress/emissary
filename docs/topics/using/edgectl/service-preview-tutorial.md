@@ -1,4 +1,4 @@
-# Service Preview in Action
+# Service Preview Tutorial
 
 When Service Preview is used, incoming requests get routed by Ambassador to a Traffic Agent, which then routes traffic to the microservice. When a request meets a specific criteria (e.g., it has a specific HTTP header value), the Traffic Agent will route that request to the microservice running locally. The following video shows Service Preview in more detail:
 
@@ -127,6 +127,7 @@ Now let's set up an intercept with a preview URL.
      # [...]
      previewUrl:
        enabled: true
+       type: path
    ```
 
    Replace `{{AMBASSADOR_IP_OR_DOMAIN_NAME}}` with the IP address or domain name of your Ambassador service and apply it with `kubectl`
