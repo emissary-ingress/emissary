@@ -255,12 +255,12 @@
           link: /docs/latest/howtos/client-cert-validation
 - title: Service Preview
   items:
-  - title: Service Preview Quick Start
-    link: /docs/latest/topics/using/edgectl/service-preview-install
-  - title: Service Preview Tutorial
-    link: /docs/latest/topics/using/edgectl/service-preview-tutorial
   - title: Introduction to Service Preview
     link: /docs/latest/topics/using/edgectl/
+  - title: Installation
+    link: /docs/latest/topics/using/edgectl/service-preview-install
+  - title: Tutorial
+    link: /docs/latest/topics/using/edgectl/service-preview-tutorial
   - title: Service Preview Reference
     link: /docs/latest/topics/using/edgectl/service-preview-reference
   - title: Edge Control Reference
